@@ -457,6 +457,22 @@ def reverseTraversal {graph : Graph}
     (traversed : List graph.DirectedEdge) : List graph.DirectedEdge :=
   traversed.reverse.map DirectedEdge.reverse
 
+theorem head_reverseTraversal {graph : Graph}
+    (traversed : List graph.DirectedEdge) (nonempty : traversed ≠ []) :
+    (reverseTraversal traversed).head
+        (by simpa [reverseTraversal] using nonempty) =
+      (traversed.getLast nonempty).reverse := by
+  unfold reverseTraversal
+  rw [List.head_map, List.head_reverse]
+
+theorem getLast_reverseTraversal {graph : Graph}
+    (traversed : List graph.DirectedEdge) (nonempty : traversed ≠ []) :
+    (reverseTraversal traversed).getLast
+        (by simpa [reverseTraversal] using nonempty) =
+      (traversed.head nonempty).reverse := by
+  unfold reverseTraversal
+  rw [List.getLast_map, List.getLast_reverse]
+
 theorem trans {graph : Graph} {start middle finish : Vertex}
     {firstSteps secondSteps : List graph.DirectedEdge}
     (first : graph.EdgeWalk start firstSteps middle)
@@ -1536,6 +1552,87 @@ theorem complementPath {graph : Graph} (cycle : graph.EdgeSimpleCycle)
   have inOriginal : directed ∈ cycle.traversed :=
     traversalPermutation.mem_iff.mp inRotated
   exact List.mem_map.mpr ⟨directed, inOriginal, indexEquation⟩
+
+/-- Extract the contiguous old-cycle arc from a selected outgoing occurrence
+through a later incoming occurrence, stopping immediately before its successor.
+The exact edge indices and all visited vertices remain contained in the cycle.
+-/
+theorem middlePath {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {before between after : List graph.DirectedEdge}
+    {outgoing incoming successor : graph.DirectedEdge}
+    (traversalEquation : cycle.traversed =
+      before ++ outgoing :: between ++ incoming :: successor :: after) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = outgoing.source ∧
+      path.finish = incoming.target ∧
+      path.traversed = (outgoing :: between) ++ [incoming] ∧
+      (∀ vertex, vertex ∈ path.vertices → vertex ∈ cycle.vertices) ∧
+      ∀ index, index ∈ path.traversed.map DirectedEdge.index →
+        index ∈ cycle.traversed.map DirectedEdge.index := by
+  have rotationEquation : cycle.traversed = before ++
+      outgoing :: (between ++ incoming :: successor :: after) := by
+    simpa [List.append_assoc] using traversalEquation
+  rcases cycle.rotateAt_exists rotationEquation with
+    ⟨rotated, rotatedStarts, rotatedSteps⟩
+  have rotatedDecomposition : rotated.traversed =
+      (outgoing :: between) ++ incoming :: successor :: (after ++ before) := by
+    rw [rotatedSteps]
+    simp [List.append_assoc]
+  rcases rotated.prefixPath rotatedDecomposition with
+    ⟨path, pathStarts, pathFinishes, pathSteps⟩
+  have traversalPermutation : rotated.traversed.Perm cycle.traversed := by
+    rw [rotatedSteps, traversalEquation]
+    simpa [List.append_assoc] using
+      ((List.perm_append_comm :
+        (before ++ (outgoing ::
+          (between ++ incoming :: successor :: after))).Perm
+        ((outgoing :: (between ++ incoming :: successor :: after)) ++
+          before)).symm)
+  refine ⟨path, pathStarts.trans rotatedStarts, pathFinishes, pathSteps,
+    ?_, ?_⟩
+  · intro vertex membership
+    have inRotated : vertex ∈ rotated.vertices := by
+      rw [path.vertices_eq_sources_append_finish (by simp [pathSteps])]
+        at membership
+      rcases List.mem_append.mp membership with inSources | atFinish
+      · rcases List.mem_map.mp inSources with
+          ⟨directed, directedMembership, sourceEquation⟩
+        have directedInRotated : directed ∈ rotated.traversed := by
+          rw [rotatedDecomposition]
+          simp [pathSteps] at directedMembership ⊢
+          rcases directedMembership with rfl | inBetween | rfl
+          · simp
+          · simp [inBetween]
+          · simp
+        rw [← sourceEquation]
+        exact (rotated.directed_endpoints_mem_vertices
+          directedInRotated).1
+      · simp at atFinish
+        subst vertex
+        rw [pathFinishes]
+        exact (rotated.directed_endpoints_mem_vertices
+          (directed := incoming) (by
+          rw [rotatedDecomposition]
+          simp)).2
+    rw [← rotated.sources_eq_vertices] at inRotated
+    rcases List.mem_map.mp inRotated with
+      ⟨directed, directedMembership, sourceEquation⟩
+    have inOriginal := traversalPermutation.mem_iff.mp directedMembership
+    rw [← sourceEquation]
+    exact (cycle.directed_endpoints_mem_vertices inOriginal).1
+  · intro index membership
+    rcases List.mem_map.mp membership with
+      ⟨directed, directedMembership, indexEquation⟩
+    have inRotated : directed ∈ rotated.traversed := by
+      rw [rotatedDecomposition]
+      rw [pathSteps] at directedMembership
+      simp at directedMembership ⊢
+      rcases directedMembership with rfl | inBetween | rfl
+      · simp
+      · simp [inBetween]
+      · simp
+    have inOriginal := traversalPermutation.mem_iff.mp inRotated
+    exact List.mem_map.mpr ⟨directed, inOriginal, indexEquation⟩
 
 end EdgeSimpleCycle
 

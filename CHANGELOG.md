@@ -108,6 +108,12 @@
   be rotated back to the original base. The remaining obligation is to prove
   the rotated splice closes cusp-free and derive the strict minimality
   inequality.
+- normalized that same-base splice to an exact traversal formula, proved its
+  closing transition is free, and completed the minimal cusp-count inequality;
+  for every first intersection strictly away from the old base, the removed
+  arc and later path now close into a forbidden cusp-free simple cycle. The
+  degenerate first-hit-at-base orientation branch remains before universal
+  bungee separation is complete.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

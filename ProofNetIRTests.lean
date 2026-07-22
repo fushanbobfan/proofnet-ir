@@ -977,7 +977,15 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.CuspFreeContinuation.bungee_firstIntersection_cycle
 #check Certificate.CuspFreeContinuation.rotate_spliced_cycle_to_return_vertex
 #check Certificate.CuspFreeContinuation.bungee_firstIntersection_sameBaseCycle
+#check Certificate.CuspFreeContinuation.bungee_firstIntersection_exactSameBaseCycle
 #check Certificate.cuspCount_rotateAt_of_closing_free
+#check Certificate.bungee_exactSameBase_closingFree
+#check Certificate.bungee_minimal_count_constraints
+#check Certificate.bungee_cuspFreeCycle_of_minimal_nonempty
+#check Certificate.CuspAcyclic.no_minimal_bungee_firstIntersection_nonempty
+#check Graph.EdgeWalk.head_reverseTraversal
+#check Graph.EdgeWalk.getLast_reverseTraversal
+#check Graph.EdgeSimpleCycle.middlePath
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

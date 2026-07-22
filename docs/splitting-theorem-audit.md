@@ -100,10 +100,13 @@ name-level restatement of Yeo:
    entire original cycle (including parallel occurrences), closes with the
    reversed complementary arc, and rotates to an exact simple cycle at the
    original base while preserving cyclic cusp count. The remaining
-   generalized-Yeo obligation is the rotated splice's cusp-free closing proof
-   and strict minimal-cycle inequality, completing the bungee contradiction
-   and turning the first-cusp continuation into an `OrderingPath`, followed by
-   its ProofNet-IR sequentialization-edge instantiation.
+   generalized-Yeo proof now has a kernel-checked exact traversal normal form,
+   cusp-free closing proof, strict minimal-cycle inequality, and final
+   cusp-free-cycle contradiction whenever the first hit is not the old base.
+   The remaining bungee obligation is the degenerate hit-at-base orientation
+   branch; after that, the first-cusp continuation can become an
+   `OrderingPath`, followed by its ProofNet-IR sequentialization-edge
+   instantiation.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored
    link and ordered public boundary. The formula-complexity theorem already
    proves that connective structure has some terminal connective, but does not
