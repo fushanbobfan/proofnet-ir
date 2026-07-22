@@ -51,20 +51,24 @@ research-source count.
   and a tractable estimator.
 - General proof-net correctness beyond unit-free MLL is not canonical; units,
   additives, exponentials, and quantifiers each change the representation.
-- Finite reachability now has a soundness/completeness iff against an
-  independent fuel-indexed path semantics. Normalizing arbitrary walks to the
-  `vertexCount` budget remains open.
-- Full sequentialization remains the central proof obligation for v0.1.
+- Finite reachability and tree checking now have full iff theorems against both
+  the fuel-indexed and unbounded inductive-walk semantics; the former open
+  walk-normalization obligation was discharged by kernel-checked loop erasure.
+- Reverse sequentialization of every checker-accepted net remains the central
+  post-v0.2 proof obligation.
 
 ## Reading record
 
 All seven source PDFs have been converted to searchable text without modifying
 the originals. A corpus-wide section/theorem sweep, targeted close readings,
 and formula/diagram spot checks are recorded in
-[reading-ledger.md](reading-ledger.md). The two ProofNet documents were read
-directly end to end. The larger books and adjacent papers remain on an explicit
-ongoing close-reading track. Claims used by code are checked against the
-original local text, not accepted from local-model summaries.
+[reading-ledger.md](reading-ledger.md). The two ProofNet documents and
+*Geometry of Neuroscience* were read directly end to end; the latter also has a
+[33-page text-and-visual audit](source-pages/geometry-of-neuroscience.md) that
+explicitly excludes it as evidence for core logic claims. The remaining larger
+books and adjacent papers stay on an explicit ongoing close-reading track.
+Claims used by code are checked against the original local text, not accepted
+from local-model summaries.
 
 The resulting controlled evaluation design is specified in
 [experiment-protocol.md](experiment-protocol.md).

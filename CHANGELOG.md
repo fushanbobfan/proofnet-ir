@@ -26,6 +26,10 @@
   `isTree_iff_isTree`, `check_iff_correct`, and
   `check_iff_declarativelyCorrect` for unbounded walk semantics, and proved
   the unbounded and fuel-indexed correctness contracts equivalent.
+- completed a text-and-visual audit of all 33 pages of *Geometry of
+  Neuroscience*, with a per-page matrix that classifies it as adjacent
+  generated exposition and forbids using it as evidence for proof-net
+  correctness, sequentialization, canonicalization, or performance.
 
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 

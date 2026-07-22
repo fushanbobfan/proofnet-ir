@@ -162,7 +162,10 @@ The stricter post-v0.2 coverage and reuse assessments are in
 [docs/source-coverage-audit.md](docs/source-coverage-audit.md) and
 [docs/library-readiness-audit.md](docs/library-readiness-audit.md). The
 representation comparison that guides general sequentialization is in
-[docs/formalization-comparison.md](docs/formalization-comparison.md).
+[docs/formalization-comparison.md](docs/formalization-comparison.md). Completed
+page-level source audits, including the 33-page text-and-visual audit of
+*Geometry of Neuroscience*, live under
+[docs/source-pages/](docs/source-pages/geometry-of-neuroscience.md).
 
 ## License
 

@@ -16,10 +16,10 @@ sources.
 All original PDFs were extracted to searchable text without modifying the
 source files. A section/theorem sweep was performed across the full extracted
 corpus. Close reading is complete for the two project-specific ProofNet
-documents and the project chat; the larger books and adjacent papers have a
-complete structural pass plus targeted close readings recorded below. Further
-cover-to-cover close reading remains an ongoing research task and must not be
-represented as finished.
+documents, *Geometry of Neuroscience*, and the project chat. The remaining
+larger books and adjacent papers have a complete structural pass plus targeted
+close readings recorded below. Further cover-to-cover close reading remains an
+ongoing research task and must not be represented as finished.
 
 | Source | Physical pages | Extracted words | Coverage in this pass | SHA-256 prefix |
 |---|---:|---:|---|---|
@@ -28,7 +28,7 @@ represented as finished.
 | *Proof Nets as Graphical Proof Objects* | 20 | 7,990 | direct end-to-end reading and visual inspection | `8166b610c3b8` |
 | *ProofNet-IR Research Plan* | 19 | 5,904 | direct end-to-end reading and visual inspection | `4c934e603f8a` |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | 44,391 | full section/proposition sweep; introduction, operadic/tree sections, transformer discussion, and conclusion close read | `ed4daccfdf3e` |
-| *Geometry of Neuroscience* | 33 | 15,797 | full section/theorem sweep; graph, directed-topology, language-algebra, and synthesis sections close read | `e7730b0731bb` |
+| *Geometry of Neuroscience* | 33 | 15,797 | complete page-by-page text reading and visual inspection; [page matrix](source-pages/geometry-of-neuroscience.md) records every page and the strict claim boundary | `e7730b0731bb` |
 | Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | 25,013 | full theorem sweep; introduction, main statements, proof architecture, and concluding open question close read; Chinese guide checked against the source | `7b756a8759e1` |
 
 ### Duplicate-page finding
@@ -106,8 +106,12 @@ unaltered original file.
   distinguish missing edges from higher-dimensional cavities.
 - The language section represents Merge by rooted trees/forests and admissible
   cuts, reinforcing the usefulness of explicit composition and decomposition.
-- These analogies improve mathematical vocabulary but do not enter the v0.1
-  proof of correctness.
+- These analogies improve mathematical vocabulary but do not enter the
+  trusted proof of correctness.
+- The complete [33-page audit](source-pages/geometry-of-neuroscience.md)
+  confirms that the notes contain no proof-net correctness, sequentialization,
+  desequentialization, canonicalization, or performance theorem. They cannot
+  be used as evidence for those claims.
 
 ### Four-punctured-sphere open books
 
@@ -122,7 +126,8 @@ unaltered original file.
 
 ## Visual verification
 
-Selected pages were rendered and inspected for content that plain-text
+Selected pages across the corpus, plus every page of *Geometry of
+Neuroscience*, were rendered and inspected for content that plain-text
 extraction can corrupt:
 
 - the two-axiom tensor/par proof net and the Danos-Regnier switching statement;
@@ -130,6 +135,7 @@ extraction can corrupt:
 - Pfenning's linear/unrestricted sequent judgment and focusing phases;
 - Manin's formal graph definition using flags, tails, and edges;
 - Park's four-punctured-sphere mapping-class formulas and surface diagram.
+- all 33 pages and all ten numbered figures in *Geometry of Neuroscience*.
 
 The rendered formulas agree with the descriptions used in the repository.
 
@@ -143,4 +149,3 @@ The rendered formulas agree with the descriptions used in the repository.
 6. Measure proof identity only after defining a canonical net isomorphism or
    canonical serialization.
 7. Keep later persistent hypotheses, contraction, and weakening explicit.
-

@@ -10,3 +10,4 @@
 *.exe
 __pycache__/
 *.pyc
+/tmp/

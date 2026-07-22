@@ -38,14 +38,15 @@ extractable text and requires visual/OCR treatment.
 | *Proof Nets as Graphical Proof Objects* | 20 | complete end-to-end reading and selected-page visual verification | complete |
 | *ProofNet-IR Research Plan* | 19 | complete end-to-end reading and selected-page visual verification | complete, but treated as a generated design input rather than authority |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | section/proposition sweep and targeted close readings | not read cover to cover |
-| *Geometry of Neuroscience* | 33 | theorem/section sweep and targeted graph/topology/language readings | not read cover to cover |
+| *Geometry of Neuroscience* | 33 | complete ordered text reading and visual inspection of all 33 pages and Figures 1--10; [page matrix and claim boundary](source-pages/geometry-of-neuroscience.md) | complete, but adjacent generated exposition rather than core authority |
 | Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | theorem sweep and targeted proof-architecture reading; diagrams sampled visually | not read cover to cover |
 | `Rowling_s chat history.txt` | short text | read completely | complete |
 
 Consequently, the statement "all local papers and textbooks were seriously
-read in full" is false at this checkpoint. Two project-specific PDFs and the
-chat are complete; five larger or adjacent sources have structured and
-targeted coverage only.
+read in full" is still false at this checkpoint. Three PDFs and the chat are
+complete; four larger or adjacent sources have structured and targeted
+coverage only. Completing an adjacent source does not strengthen the core MLL
+theorems when that source contains no proof-net result.
 
 ## Reading protocol required before completion
 
