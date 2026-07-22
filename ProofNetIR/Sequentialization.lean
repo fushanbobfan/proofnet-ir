@@ -158,6 +158,22 @@ private theorem length_filter_filterMap_eq {α β : Type}
                 agrees.trans accepted
               simp [equation, accepted, afterAccepted, ih tailCompatible]
 
+private theorem list_mapM_eq_some_of_forall {α β : Type}
+    (values : List α) (function : α → Option β)
+    (defined : ∀ value ∈ values, ∃ result, function value = some result) :
+    ∃ results, values.mapM function = some results := by
+  induction values with
+  | nil => exact ⟨[], rfl⟩
+  | cons head tail ih =>
+      rcases defined head (by simp) with ⟨headResult, headEquation⟩
+      have tailDefined : ∀ value ∈ tail,
+          ∃ result, function value = some result := by
+        intro value membership
+        exact defined value (by simp [membership])
+      rcases ih tailDefined with ⟨tailResults, tailEquation⟩
+      exact ⟨headResult :: tailResults, by
+        simp [headEquation, tailEquation]⟩
+
 /-- Evidence returned by the future general sequentializer. The result is
 deliberately stronger than an `Option CutFreeDerivation`: it connects
 first-order inference, desequentialization, ordered boundary labels, and the
@@ -930,6 +946,37 @@ def fullGraphWithoutVertex (certificate : Certificate)
   vertexCount := certificate.formulas.size
   edges := certificate.fullEdges.filter fun edge => !edge.incident removed
 
+def tensorLeftReachable (certificate : Certificate)
+    (left conclusion : Vertex) : List Vertex :=
+  (certificate.fullGraphWithoutVertex conclusion).closureN
+    certificate.formulas.size [left]
+
+def tensorLeftVertices (certificate : Certificate)
+    (left conclusion : Vertex) : List Vertex :=
+  (List.range certificate.formulas.size).filter fun vertex =>
+    vertex != conclusion &&
+      (certificate.tensorLeftReachable left conclusion).contains vertex
+
+def tensorRightVertices (certificate : Certificate)
+    (left conclusion : Vertex) : List Vertex :=
+  (List.range certificate.formulas.size).filter fun vertex =>
+    vertex != conclusion &&
+      !(certificate.tensorLeftReachable left conclusion).contains vertex
+
+def tensorOtherConclusions (certificate : Certificate)
+    (conclusion : Vertex) : List Vertex :=
+  certificate.conclusions.erase conclusion
+
+def tensorLeftBoundary (certificate : Certificate)
+    (left conclusion : Vertex) : List Vertex :=
+  (certificate.tensorOtherConclusions conclusion).filter
+      (certificate.tensorLeftVertices left conclusion).contains ++ [left]
+
+def tensorRightBoundary (certificate : Certificate)
+    (left right conclusion : Vertex) : List Vertex :=
+  (certificate.tensorOtherConclusions conclusion).filter
+      (certificate.tensorRightVertices left conclusion).contains ++ [right]
+
 theorem fullGraphWithoutVertex_bounded {certificate : Certificate}
     (structural : certificate.StructurallyWellFormed)
     (removed : Vertex) :
@@ -962,6 +1009,113 @@ theorem fullGraphWithoutVertex_bounded {certificate : Certificate}
       · exact ⟨linkWellFormed.2.2.2.2.1,
           linkWellFormed.2.2.2.2.2.1, linkWellFormed.2.2.1⟩
 
+theorem fullGraphWithoutVertex_adjacent_of_fullEdge
+    {certificate : Certificate} {removed : Vertex} {edge : Edge}
+    (membership : edge ∈ certificate.fullEdges)
+    (avoids : edge.incident removed = false) :
+    (certificate.fullGraphWithoutVertex removed).Adjacent
+      edge.first edge.second := by
+  refine ⟨edge, ?_, .inl ⟨rfl, rfl⟩⟩
+  change edge ∈ certificate.fullEdges.filter
+    (fun candidate => !candidate.incident removed)
+  simp [membership, avoids]
+
+theorem fullGraphWithoutVertex_link_vertices_walk
+    {certificate : Certificate} {removed : Vertex} {link : Link}
+    (linkMembership : link ∈ certificate.links)
+    (avoids : removed ∉ link.vertices)
+    {start finish : Vertex}
+    (startMembership : start ∈ link.vertices)
+    (finishMembership : finish ∈ link.vertices) :
+    (certificate.fullGraphWithoutVertex removed).Walk start finish := by
+  cases link with
+  | «axiom» first second =>
+      simp [Link.vertices] at avoids startMembership finishMembership
+      have firstNotRemoved : first ≠ removed := Ne.symm avoids.1
+      have secondNotRemoved : second ≠ removed := Ne.symm avoids.2
+      let edge : Edge := { first, second }
+      have edgeMembership : edge ∈ certificate.fullEdges := by
+        simp only [fullEdges, List.mem_flatMap]
+        exact ⟨.axiom first second, linkMembership, by simp [edge]⟩
+      have adjacency :
+          (certificate.fullGraphWithoutVertex removed).Adjacent first second :=
+        fullGraphWithoutVertex_adjacent_of_fullEdge edgeMembership (by
+          simp [edge, Edge.incident, firstNotRemoved, secondNotRemoved])
+      have firstToSecond :
+          (certificate.fullGraphWithoutVertex removed).Walk first second :=
+        .step (.refl first) adjacency
+      rcases startMembership with rfl | rfl <;>
+      rcases finishMembership with rfl | rfl
+      · exact .refl _
+      · exact firstToSecond
+      · exact firstToSecond.reverse
+      · exact .refl _
+  | tensor first second result =>
+      simp [Link.vertices] at avoids startMembership finishMembership
+      have firstNotRemoved : first ≠ removed := Ne.symm avoids.1
+      have secondNotRemoved : second ≠ removed := Ne.symm avoids.2.1
+      have resultNotRemoved : result ≠ removed := Ne.symm avoids.2.2
+      let firstEdge : Edge := { first := first, second := result }
+      let secondEdge : Edge := { first := second, second := result }
+      have firstEdgeMembership : firstEdge ∈ certificate.fullEdges := by
+        simp only [fullEdges, List.mem_flatMap]
+        exact ⟨.tensor first second result, linkMembership, by
+          simp [firstEdge]⟩
+      have secondEdgeMembership : secondEdge ∈ certificate.fullEdges := by
+        simp only [fullEdges, List.mem_flatMap]
+        exact ⟨.tensor first second result, linkMembership, by
+          simp [secondEdge]⟩
+      have firstAdjacency :
+          (certificate.fullGraphWithoutVertex removed).Adjacent first result :=
+        fullGraphWithoutVertex_adjacent_of_fullEdge firstEdgeMembership (by
+          simp [firstEdge, Edge.incident, firstNotRemoved, resultNotRemoved])
+      have secondAdjacency :
+          (certificate.fullGraphWithoutVertex removed).Adjacent second result :=
+        fullGraphWithoutVertex_adjacent_of_fullEdge secondEdgeMembership (by
+          simp [secondEdge, Edge.incident, secondNotRemoved, resultNotRemoved])
+      have toResult : ∀ vertex,
+          vertex = first ∨ vertex = second ∨ vertex = result →
+          (certificate.fullGraphWithoutVertex removed).Walk vertex result := by
+        intro vertex membership
+        rcases membership with rfl | rfl | rfl
+        · exact .step (.refl _) firstAdjacency
+        · exact .step (.refl _) secondAdjacency
+        · exact .refl _
+      exact (toResult start startMembership).trans
+        (toResult finish finishMembership).reverse
+  | par first second result =>
+      simp [Link.vertices] at avoids startMembership finishMembership
+      have firstNotRemoved : first ≠ removed := Ne.symm avoids.1
+      have secondNotRemoved : second ≠ removed := Ne.symm avoids.2.1
+      have resultNotRemoved : result ≠ removed := Ne.symm avoids.2.2
+      let firstEdge : Edge := { first := first, second := result }
+      let secondEdge : Edge := { first := second, second := result }
+      have firstEdgeMembership : firstEdge ∈ certificate.fullEdges := by
+        simp only [fullEdges, List.mem_flatMap]
+        exact ⟨.par first second result, linkMembership, by
+          simp [firstEdge]⟩
+      have secondEdgeMembership : secondEdge ∈ certificate.fullEdges := by
+        simp only [fullEdges, List.mem_flatMap]
+        exact ⟨.par first second result, linkMembership, by
+          simp [secondEdge]⟩
+      have firstAdjacency :
+          (certificate.fullGraphWithoutVertex removed).Adjacent first result :=
+        fullGraphWithoutVertex_adjacent_of_fullEdge firstEdgeMembership (by
+          simp [firstEdge, Edge.incident, firstNotRemoved, resultNotRemoved])
+      have secondAdjacency :
+          (certificate.fullGraphWithoutVertex removed).Adjacent second result :=
+        fullGraphWithoutVertex_adjacent_of_fullEdge secondEdgeMembership (by
+          simp [secondEdge, Edge.incident, secondNotRemoved, resultNotRemoved])
+      have toResult : ∀ vertex,
+          vertex = first ∨ vertex = second ∨ vertex = result →
+          (certificate.fullGraphWithoutVertex removed).Walk vertex result := by
+        intro vertex membership
+        rcases membership with rfl | rfl | rfl
+        · exact .step (.refl _) firstAdjacency
+        · exact .step (.refl _) secondAdjacency
+        · exact .refl _
+      exact (toResult start startMembership).trans
+        (toResult finish finishMembership).reverse
 /-- Induce a locally numbered certificate on a listed subset and an explicitly
 chosen boundary. Crossing links are omitted, so callers must separately prove
 or check that the proposed partition covers every remaining link. -/
@@ -973,6 +1127,37 @@ def restrictTo? (certificate : Certificate) (vertices boundary : List Vertex) :
     formulas := formulas.toArray
     links := certificate.links.filterMap (Link.restrictTo? vertices)
     conclusions }
+
+theorem restrictTo?_eq_some_exists (certificate : Certificate)
+    (vertices boundary : List Vertex)
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices) :
+    ∃ restricted, certificate.restrictTo? vertices boundary = some restricted := by
+  have formulasDefined : ∀ vertex ∈ vertices,
+      ∃ formula, certificate.formula? vertex = some formula := by
+    intro vertex membership
+    have inBounds := verticesInBounds vertex membership
+    exact ⟨certificate.formulas[vertex], by
+      simp [formula?, inBounds]⟩
+  rcases list_mapM_eq_some_of_forall vertices certificate.formula?
+      formulasDefined with ⟨formulas, formulasEquation⟩
+  have indicesDefined : ∀ vertex ∈ boundary,
+      ∃ index, vertices.idxOf? vertex = some index := by
+    intro vertex membership
+    have contained := boundaryContained vertex membership
+    cases equation : vertices.idxOf? vertex with
+    | none =>
+        have absent := (List.idxOf?_eq_none_iff).mp equation
+        exact False.elim (absent contained)
+    | some index => exact ⟨index, rfl⟩
+  rcases list_mapM_eq_some_of_forall boundary vertices.idxOf?
+      indicesDefined with ⟨conclusions, conclusionsEquation⟩
+  refine ⟨{
+    formulas := formulas.toArray
+    links := certificate.links.filterMap (Link.restrictTo? vertices)
+    conclusions := conclusions }, ?_⟩
+  simp [restrictTo?, formulasEquation, conclusionsEquation]
 
 /-- A par link is terminal when its conclusion occurrence is on the ordered
 public boundary. Such a link is the unary inverse-rule case of
@@ -1039,6 +1224,30 @@ theorem LinkWellFormed.tensor_conclusionFormula
               simp [leftEquation, rightEquation, conclusionEquation] at typing
               subst conclusionFormula
               exact ⟨leftFormula, rightFormula, rfl⟩
+
+theorem LinkWellFormed.vertex_in_bounds
+    {certificate : Certificate} {link : Link}
+    (wellFormed : certificate.LinkWellFormed link)
+    {vertex : Vertex} (membership : vertex ∈ link.vertices) :
+    vertex < certificate.formulas.size := by
+  cases link with
+  | «axiom» left right =>
+      simp [Link.vertices] at membership
+      rcases membership with rfl | rfl
+      · exact wellFormed.2.1
+      · exact wellFormed.2.2.1
+  | tensor left right conclusion =>
+      simp [Link.vertices] at membership
+      rcases membership with rfl | rfl | rfl
+      · exact wellFormed.2.2.2.1
+      · exact wellFormed.2.2.2.2.1
+      · exact wellFormed.2.2.2.2.2.1
+  | par left right conclusion =>
+      simp [Link.vertices] at membership
+      rcases membership with rfl | rfl | rfl
+      · exact wellFormed.2.2.2.1
+      · exact wellFormed.2.2.2.2.1
+      · exact wellFormed.2.2.2.2.2.1
 
 theorem LinkWellFormed.axiom_endpointFormula
     {certificate : Certificate} {left right vertex : Vertex}
@@ -1199,6 +1408,57 @@ end TerminalPar
 
 namespace TerminalTensor
 
+theorem mem_tensorLeftVertices_iff (certificate : Certificate)
+    (left conclusion vertex : Vertex) :
+    vertex ∈ certificate.tensorLeftVertices left conclusion ↔
+      vertex < certificate.formulas.size ∧ vertex ≠ conclusion ∧
+        vertex ∈ certificate.tensorLeftReachable left conclusion := by
+  simp [tensorLeftVertices]
+
+theorem mem_tensorRightVertices_iff (certificate : Certificate)
+    (left conclusion vertex : Vertex) :
+    vertex ∈ certificate.tensorRightVertices left conclusion ↔
+      vertex < certificate.formulas.size ∧ vertex ≠ conclusion ∧
+        vertex ∉ certificate.tensorLeftReachable left conclusion := by
+  simp [tensorRightVertices]
+
+theorem tensorLeftVertices_nodup (certificate : Certificate)
+    (left conclusion : Vertex) :
+    (certificate.tensorLeftVertices left conclusion).Nodup :=
+  List.filter_sublist.nodup List.nodup_range
+
+theorem tensorRightVertices_nodup (certificate : Certificate)
+    (left conclusion : Vertex) :
+    (certificate.tensorRightVertices left conclusion).Nodup :=
+  List.filter_sublist.nodup List.nodup_range
+
+theorem vertex_partition (certificate : Certificate)
+    (left conclusion vertex : Vertex)
+    (vertexInBounds : vertex < certificate.formulas.size)
+    (vertexNotConclusion : vertex ≠ conclusion) :
+    vertex ∈ certificate.tensorLeftVertices left conclusion ∨
+      vertex ∈ certificate.tensorRightVertices left conclusion := by
+  by_cases reachable :
+      vertex ∈ certificate.tensorLeftReachable left conclusion
+  · exact Or.inl ((mem_tensorLeftVertices_iff certificate
+      left conclusion vertex).mpr
+      ⟨vertexInBounds, vertexNotConclusion, reachable⟩)
+  · exact Or.inr ((mem_tensorRightVertices_iff certificate
+      left conclusion vertex).mpr
+      ⟨vertexInBounds, vertexNotConclusion, reachable⟩)
+
+theorem vertex_partition_disjoint (certificate : Certificate)
+    (left conclusion : Vertex) :
+    ∀ vertex,
+      vertex ∈ certificate.tensorLeftVertices left conclusion →
+      vertex ∈ certificate.tensorRightVertices left conclusion → False := by
+  intro vertex leftMembership rightMembership
+  have reachable := (mem_tensorLeftVertices_iff certificate
+    left conclusion vertex).mp leftMembership |>.2.2
+  have unreachable := (mem_tensorRightVertices_iff certificate
+    left conclusion vertex).mp rightMembership |>.2.2
+  exact unreachable reachable
+
 theorem reachable_iff_walk
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -1211,6 +1471,90 @@ theorem reachable_iff_walk
     conclusion
   exact Graph.mem_closureN_vertexCount_iff_walk _ bounded
     terminalWellFormed.2.2.2.1 terminalWellFormed.2.2.2.2.1
+
+theorem left_mem_tensorLeftVertices
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    left ∈ certificate.tensorLeftVertices left conclusion := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  apply (mem_tensorLeftVertices_iff certificate
+    left conclusion left).mpr
+  refine ⟨terminalWellFormed.2.2.2.1,
+    terminalWellFormed.2.1, ?_⟩
+  unfold tensorLeftReachable
+  apply (Graph.mem_closureN_vertexCount_iff_walk _
+    (certificate.fullGraphWithoutVertex_bounded structural conclusion)
+    terminalWellFormed.2.2.2.1 terminalWellFormed.2.2.2.1).mpr
+  exact .refl left
+
+theorem right_mem_tensorRightVertices
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion) :
+    right ∈ certificate.tensorRightVertices left conclusion := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ splitting.1.1
+  apply (mem_tensorRightVertices_iff certificate
+    left conclusion right).mpr
+  refine ⟨terminalWellFormed.2.2.2.2.1,
+    terminalWellFormed.2.2.1, ?_⟩
+  intro reachable
+  exact splitting.2
+    ((TerminalTensor.reachable_iff_walk structural splitting.1).mp reachable)
+
+theorem tensorLeftVertices_in_bounds (certificate : Certificate)
+    (left conclusion : Vertex) :
+    ∀ vertex ∈ certificate.tensorLeftVertices left conclusion,
+      vertex < certificate.formulas.size := by
+  intro vertex membership
+  exact (TerminalTensor.mem_tensorLeftVertices_iff certificate
+    left conclusion vertex).mp membership |>.1
+
+theorem tensorRightVertices_in_bounds (certificate : Certificate)
+    (left conclusion : Vertex) :
+    ∀ vertex ∈ certificate.tensorRightVertices left conclusion,
+      vertex < certificate.formulas.size := by
+  intro vertex membership
+  exact (TerminalTensor.mem_tensorRightVertices_iff certificate
+    left conclusion vertex).mp membership |>.1
+
+theorem tensorLeftBoundary_contained
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    ∀ vertex ∈ certificate.tensorLeftBoundary left conclusion,
+      vertex ∈ certificate.tensorLeftVertices left conclusion := by
+  intro vertex membership
+  change vertex ∈
+      (certificate.tensorOtherConclusions conclusion).filter
+          (certificate.tensorLeftVertices left conclusion).contains ++
+        [left] at membership
+  rw [List.mem_append] at membership
+  rcases membership with filtered | same
+  · have contained := (List.mem_filter.mp filtered).2
+    simpa using contained
+  · simp at same
+    subst vertex
+    exact TerminalTensor.left_mem_tensorLeftVertices structural terminal
+
+theorem tensorRightBoundary_contained
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion) :
+    ∀ vertex ∈ certificate.tensorRightBoundary left right conclusion,
+      vertex ∈ certificate.tensorRightVertices left conclusion := by
+  intro vertex membership
+  change vertex ∈
+      (certificate.tensorOtherConclusions conclusion).filter
+          (certificate.tensorRightVertices left conclusion).contains ++
+        [right] at membership
+  rw [List.mem_append] at membership
+  rcases membership with filtered | same
+  · have contained := (List.mem_filter.mp filtered).2
+    simpa using contained
+  · simp at same
+    subst vertex
+    exact TerminalTensor.right_mem_tensorRightVertices structural splitting
 
 theorem splitting_iff_reachability_rejected
     {certificate : Certificate} {left right conclusion : Vertex}
@@ -1369,6 +1713,188 @@ theorem unique_incident {certificate : Certificate}
         have impossible := TerminalTensor.producer_unique structural terminal
           membership (by simp [Link.produces])
         cases impossible
+
+theorem nonterminal_avoids_conclusion
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (different : link ≠ .tensor left right conclusion) :
+    conclusion ∉ link.vertices := by
+  intro incident
+  exact different (TerminalTensor.unique_incident structural terminal
+    membership incident)
+
+theorem link_reachable_iff
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (linkMembership : link ∈ certificate.links)
+    (different : link ≠ .tensor left right conclusion)
+    {first second : Vertex}
+    (firstMembership : first ∈ link.vertices)
+    (secondMembership : second ∈ link.vertices) :
+    first ∈ certificate.tensorLeftReachable left conclusion ↔
+      second ∈ certificate.tensorLeftReachable left conclusion := by
+  have avoids := TerminalTensor.nonterminal_avoids_conclusion structural
+    terminal linkMembership different
+  have linkWellFormed := structural.2.2.2.2.1 link linkMembership
+  have firstInBounds := linkWellFormed.vertex_in_bounds firstMembership
+  have secondInBounds := linkWellFormed.vertex_in_bounds secondMembership
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have leftInBounds := terminalWellFormed.2.2.2.1
+  let graph := certificate.fullGraphWithoutVertex conclusion
+  have graphBounded : graph.Bounded :=
+    certificate.fullGraphWithoutVertex_bounded structural conclusion
+  have firstReachability :
+      first ∈ certificate.tensorLeftReachable left conclusion ↔
+        graph.Walk left first := by
+    unfold tensorLeftReachable
+    exact Graph.mem_closureN_vertexCount_iff_walk graph graphBounded
+      leftInBounds firstInBounds
+  have secondReachability :
+      second ∈ certificate.tensorLeftReachable left conclusion ↔
+        graph.Walk left second := by
+    unfold tensorLeftReachable
+    exact Graph.mem_closureN_vertexCount_iff_walk graph graphBounded
+      leftInBounds secondInBounds
+  have internal : graph.Walk first second :=
+    fullGraphWithoutVertex_link_vertices_walk linkMembership avoids
+      firstMembership secondMembership
+  constructor
+  · intro firstReachable
+    exact secondReachability.mpr
+      ((firstReachability.mp firstReachable).trans internal)
+  · intro secondReachable
+    exact firstReachability.mpr
+      ((secondReachability.mp secondReachable).trans internal.reverse)
+
+theorem link_partition_from_vertex
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (linkMembership : link ∈ certificate.links)
+    (different : link ≠ .tensor left right conclusion)
+    {pivot : Vertex} (pivotMembership : pivot ∈ link.vertices) :
+    (∀ vertex ∈ link.vertices,
+        vertex ∈ certificate.tensorLeftVertices left conclusion) ∨
+      (∀ vertex ∈ link.vertices,
+        vertex ∈ certificate.tensorRightVertices left conclusion) := by
+  have avoids := TerminalTensor.nonterminal_avoids_conclusion structural
+    terminal linkMembership different
+  have linkWellFormed := structural.2.2.2.2.1 link linkMembership
+  have pivotInBounds := linkWellFormed.vertex_in_bounds pivotMembership
+  have pivotNotConclusion : pivot ≠ conclusion := by
+    intro same
+    subst pivot
+    exact avoids pivotMembership
+  rcases TerminalTensor.vertex_partition certificate left conclusion pivot
+      pivotInBounds pivotNotConclusion with pivotLeft | pivotRight
+  · left
+    intro vertex vertexMembership
+    have vertexInBounds := linkWellFormed.vertex_in_bounds vertexMembership
+    have vertexNotConclusion : vertex ≠ conclusion := by
+      intro same
+      subst vertex
+      exact avoids vertexMembership
+    have pivotReachable :=
+      (TerminalTensor.mem_tensorLeftVertices_iff certificate
+        left conclusion pivot).mp pivotLeft |>.2.2
+    have vertexReachable :=
+      (TerminalTensor.link_reachable_iff structural terminal linkMembership
+        different pivotMembership vertexMembership).mp pivotReachable
+    exact (TerminalTensor.mem_tensorLeftVertices_iff certificate
+      left conclusion vertex).mpr
+      ⟨vertexInBounds, vertexNotConclusion, vertexReachable⟩
+  · right
+    intro vertex vertexMembership
+    have vertexInBounds := linkWellFormed.vertex_in_bounds vertexMembership
+    have vertexNotConclusion : vertex ≠ conclusion := by
+      intro same
+      subst vertex
+      exact avoids vertexMembership
+    have pivotUnreachable :=
+      (TerminalTensor.mem_tensorRightVertices_iff certificate
+        left conclusion pivot).mp pivotRight |>.2.2
+    have reachability := TerminalTensor.link_reachable_iff structural terminal
+      linkMembership different pivotMembership vertexMembership
+    have vertexUnreachable :
+        vertex ∉ certificate.tensorLeftReachable left conclusion := by
+      intro vertexReachable
+      exact pivotUnreachable (reachability.mpr vertexReachable)
+    exact (TerminalTensor.mem_tensorRightVertices_iff certificate
+      left conclusion vertex).mpr
+      ⟨vertexInBounds, vertexNotConclusion, vertexUnreachable⟩
+
+theorem remaining_link_partition
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (linkMembership : link ∈ certificate.links)
+    (different : link ≠ .tensor left right conclusion) :
+    (∀ vertex ∈ link.vertices,
+        vertex ∈ certificate.tensorLeftVertices left conclusion) ∨
+      (∀ vertex ∈ link.vertices,
+        vertex ∈ certificate.tensorRightVertices left conclusion) := by
+  cases link with
+  | «axiom» first second =>
+      exact TerminalTensor.link_partition_from_vertex (pivot := first)
+        structural terminal
+        linkMembership different (by simp [Link.vertices])
+  | tensor first second result =>
+      exact TerminalTensor.link_partition_from_vertex (pivot := first)
+        structural terminal
+        linkMembership different (by simp [Link.vertices])
+  | par first second result =>
+      exact TerminalTensor.link_partition_from_vertex (pivot := first)
+        structural terminal
+        linkMembership different (by simp [Link.vertices])
+
+theorem terminal_not_mem_remaining
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    Link.tensor left right conclusion ∉
+      certificate.links.erase (.tensor left right conclusion) := by
+  have countOriginal : certificate.links.count
+      (.tensor left right conclusion) = 1 := by
+    rw [← List.count_filter (p := (·.produces conclusion)) (by
+      simp [Link.produces])]
+    rw [TerminalTensor.producer_filter_eq structural terminal]
+    simp
+  apply List.count_eq_zero.mp
+  simp [countOriginal]
+
+theorem remainingLinks_partitioned
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion) :
+    (certificate.links.erase (.tensor left right conclusion)).all fun link =>
+      link.vertices.all
+          (certificate.tensorLeftVertices left conclusion).contains ||
+        link.vertices.all
+          (certificate.tensorRightVertices left conclusion).contains := by
+  rw [List.all_eq_true]
+  intro link remainingMembership
+  have linkMembership : link ∈ certificate.links :=
+    List.mem_of_mem_erase remainingMembership
+  have different : link ≠ .tensor left right conclusion := by
+    intro same
+    subst link
+    exact TerminalTensor.terminal_not_mem_remaining structural splitting.1
+      remainingMembership
+  rcases TerminalTensor.remaining_link_partition structural splitting.1
+      linkMembership different with allLeft | allRight
+  · rw [Bool.or_eq_true]
+    left
+    rw [List.all_eq_true]
+    intro vertex vertexMembership
+    simpa using allLeft vertex vertexMembership
+  · rw [Bool.or_eq_true]
+    right
+    rw [List.all_eq_true]
+    intro vertex vertexMembership
+    simpa using allRight vertex vertexMembership
 
 end TerminalTensor
 
@@ -2622,27 +3148,58 @@ def splitTerminalTensorCandidate? (certificate : Certificate)
   let terminalLink := Link.tensor left right conclusion
   if !certificate.links.contains terminalLink then none
   if !certificate.conclusions.contains conclusion then none
-  let graph := certificate.fullGraphWithoutVertex conclusion
-  let leftReachable := graph.closureN certificate.formulas.size [left]
+  let leftReachable := certificate.tensorLeftReachable left conclusion
   if leftReachable.contains right then none
-  let remainingVertices := List.range certificate.formulas.size
-  let leftVertices := remainingVertices.filter fun vertex =>
-    vertex != conclusion && leftReachable.contains vertex
-  let rightVertices := remainingVertices.filter fun vertex =>
-    vertex != conclusion && !leftReachable.contains vertex
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
   let remainingLinks := certificate.links.erase terminalLink
   let partitioned := remainingLinks.all fun link =>
     link.vertices.all leftVertices.contains ||
       link.vertices.all rightVertices.contains
   if !partitioned then none
-  let otherConclusions := certificate.conclusions.erase conclusion
-  let leftBoundary :=
-    otherConclusions.filter leftVertices.contains ++ [left]
-  let rightBoundary :=
-    otherConclusions.filter rightVertices.contains ++ [right]
+  let leftBoundary := certificate.tensorLeftBoundary left conclusion
+  let rightBoundary := certificate.tensorRightBoundary left right conclusion
   let leftCertificate ← certificate.restrictTo? leftVertices leftBoundary
   let rightCertificate ← certificate.restrictTo? rightVertices rightBoundary
   pure (leftCertificate, rightCertificate)
+
+theorem splitTerminalTensorCandidate?_eq_some_exists
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion) :
+    ∃ leftCertificate rightCertificate,
+      certificate.splitTerminalTensorCandidate? left right conclusion =
+        some (leftCertificate, rightCertificate) := by
+  have reachabilityRejected :
+      (certificate.tensorLeftReachable left conclusion).contains right = false := by
+    simpa [tensorLeftReachable] using
+      (TerminalTensor.splitting_iff_reachability_rejected structural
+        splitting.1).mp splitting
+  have rightUnreachable :
+      right ∉ certificate.tensorLeftReachable left conclusion := by
+    simpa using reachabilityRejected
+  have partitioned :
+      (certificate.links.erase (.tensor left right conclusion)).all fun link =>
+        link.vertices.all
+            (certificate.tensorLeftVertices left conclusion).contains ||
+          link.vertices.all
+            (certificate.tensorRightVertices left conclusion).contains :=
+    TerminalTensor.remainingLinks_partitioned structural splitting
+  rcases certificate.restrictTo?_eq_some_exists
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion)
+      (TerminalTensor.tensorLeftVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorLeftBoundary_contained structural splitting.1) with
+    ⟨leftCertificate, leftEquation⟩
+  rcases certificate.restrictTo?_eq_some_exists
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion)
+      (TerminalTensor.tensorRightVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorRightBoundary_contained structural splitting) with
+    ⟨rightCertificate, rightEquation⟩
+  exact ⟨leftCertificate, rightCertificate, by
+    simp [splitTerminalTensorCandidate?, splitting.1.1, splitting.1.2,
+      rightUnreachable, partitioned, leftEquation, rightEquation]⟩
 
 /-- Checker-gated tensor split. No recursive caller can consume a proposed
 component unless both independent proof-net checks succeed. -/

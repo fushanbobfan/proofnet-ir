@@ -140,6 +140,16 @@ unbounded `Walk` relation. Consequently the candidate finder's reachability
 rejection is sound and complete for this exact splitting condition; component
 restriction and universal existence remain separate obligations.
 
+The component constructor is now connected to that semantics as well. The
+reachable and unreachable vertex lists are proved disjoint and exhaustive off
+the removed conclusion. Internal full-graph walks force every remaining link
+to lie wholly in one component, so the executable no-crossing guard is a
+theorem for every splitting tensor. Both component boundaries are contained in
+their vertex lists, making formula lookup and `idxOf?` reindexing total; hence
+`splitTerminalTensorCandidate?` is proved to return two certificates. Full
+structural and switching preservation of those returned certificates remains
+the next obligation.
+
 ## v0.2 derivation-first path
 
 `DerivationTree.lean` represents arbitrary first-order cut-free rule trees.

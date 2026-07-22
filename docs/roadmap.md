@@ -90,6 +90,10 @@
 - [x] Define the proposition-level `SplittingTensor` condition and prove the
   bounded full-occurrence graph's `vertexCount`-round closure decides its
   unbounded walk/non-reachability condition exactly.
+- [x] Prove a genuine splitting tensor induces a disjoint exhaustive vertex
+  partition with no crossing remaining link, both boundary reindexings are
+  defined, and `splitTerminalTensorCandidate?` necessarily returns two
+  certificates.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor
   and that both inverse constructions preserve correctness.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
