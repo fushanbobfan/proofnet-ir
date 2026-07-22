@@ -204,6 +204,17 @@ example : canonical.incidenceColor canonicalParLeftIn =
     .par 5 := by native_decide
 example : canonical.incidenceColor canonicalParRightIn =
     .par 5 := by native_decide
+example : canonical.incidenceColor canonicalParLeftIn = .par 5 ↔
+    canonicalParLeftIn.forward = true ∧
+      canonical.fullEdgeParTargets[canonicalParLeftIn.index]? =
+        some (some 5) :=
+  canonical.incidenceColor_eq_par_iff canonicalParLeftIn 5
+example : ∃ leftIncidence rightIncidence : canonical.fullGraph.DirectedEdge,
+    leftIncidence.source = 1 ∧ leftIncidence.target = 5 ∧
+      rightIncidence.source = 3 ∧ rightIncidence.target = 5 ∧
+      canonical.incidenceColor leftIncidence = .par 5 ∧
+      canonical.incidenceColor rightIncidence = .par 5 :=
+  canonical.par_incidenceColors_exist (by simp [canonical])
 example : canonical.incidenceColor canonicalParLeftIn.reverse =
     .unique 4 false := by native_decide
 example : canonical.Cusp canonicalParLeftIn canonicalParRightIn.reverse := by

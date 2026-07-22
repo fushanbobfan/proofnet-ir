@@ -1799,6 +1799,28 @@ theorem par_fullEdgeAnnotations (certificate : Certificate)
   · exact ⟨.par left right conclusion, membership, by simp⟩
   · exact ⟨.par left right conclusion, membership, by simp⟩
 
+theorem fullEdgeAnnotation_lookup (certificate : Certificate)
+    {index : Nat} {edge : Edge} {parTarget : Option Vertex}
+    (lookup : certificate.fullEdgeAnnotations[index]? =
+      some (edge, parTarget)) :
+    certificate.fullEdges[index]? = some edge ∧
+      certificate.fullEdgeParTargets[index]? = some parTarget := by
+  constructor
+  · have mapped :
+        (certificate.fullEdgeAnnotations.map Prod.fst)[index]? =
+          some edge := by
+      rw [List.getElem?_map, lookup]
+      rfl
+    rw [certificate.fullEdgeAnnotations_edges] at mapped
+    exact mapped
+  · have mapped :
+        (certificate.fullEdgeAnnotations.map Prod.snd)[index]? =
+          some parTarget := by
+      rw [List.getElem?_map, lookup]
+      rfl
+    rw [certificate.fullEdgeAnnotations_parTargets] at mapped
+    exact mapped
+
 @[simp] theorem fullEdgeParTargets_length (certificate : Certificate) :
     certificate.fullEdgeParTargets.length = certificate.fullEdges.length := by
   rcases certificate with ⟨formulas, links, conclusions⟩
@@ -1819,6 +1841,56 @@ def incidenceColor (certificate : Certificate)
     | _ => .unique directed.index directed.forward
   else
     .unique directed.index directed.forward
+
+theorem incidenceColor_eq_par_iff (certificate : Certificate)
+    (directed : certificate.fullGraph.DirectedEdge)
+    (conclusion : Vertex) :
+    certificate.incidenceColor directed = .par conclusion ↔
+      directed.forward = true ∧
+        certificate.fullEdgeParTargets[directed.index]? =
+          some (some conclusion) := by
+  cases forward : directed.forward with
+  | false => simp [incidenceColor, forward]
+  | true =>
+      cases targetLookup :
+          certificate.fullEdgeParTargets[directed.index]? with
+      | none => simp [incidenceColor, forward, targetLookup]
+      | some parTarget =>
+          cases parTarget <;>
+            simp [incidenceColor, forward, targetLookup]
+
+theorem par_incidenceColors_exist (certificate : Certificate)
+    {left right conclusion : Vertex}
+    (membership : Link.par left right conclusion ∈ certificate.links) :
+    ∃ leftIncidence rightIncidence : certificate.fullGraph.DirectedEdge,
+      leftIncidence.source = left ∧
+      leftIncidence.target = conclusion ∧
+      rightIncidence.source = right ∧
+      rightIncidence.target = conclusion ∧
+      certificate.incidenceColor leftIncidence = .par conclusion ∧
+      certificate.incidenceColor rightIncidence = .par conclusion := by
+  have annotations := certificate.par_fullEdgeAnnotations membership
+  rcases List.getElem?_of_mem annotations.1 with ⟨leftIndex, leftLookup⟩
+  rcases List.getElem?_of_mem annotations.2 with ⟨rightIndex, rightLookup⟩
+  have leftProjection := certificate.fullEdgeAnnotation_lookup leftLookup
+  have rightProjection := certificate.fullEdgeAnnotation_lookup rightLookup
+  let leftIncidence : certificate.fullGraph.DirectedEdge :=
+    { index := leftIndex
+      edge := { first := left, second := conclusion }
+      lookup := leftProjection.1
+      forward := true }
+  let rightIncidence : certificate.fullGraph.DirectedEdge :=
+    { index := rightIndex
+      edge := { first := right, second := conclusion }
+      lookup := rightProjection.1
+      forward := true }
+  refine ⟨leftIncidence, rightIncidence, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · rfl
+  · rfl
+  · rfl
+  · rfl
+  · simp [incidenceColor, leftIncidence, leftProjection.2]
+  · simp [incidenceColor, rightIncidence, rightProjection.2]
 
 /-- A cusp occurs when two consecutive traversals use equally colored
 incidences at their common vertex. The outgoing traversal is reversed before

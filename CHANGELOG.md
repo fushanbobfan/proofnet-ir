@@ -52,7 +52,8 @@
   for the remaining colored-path/Yeo proof.
 - added edge-aware simple multigraph cycles, exact full-edge source annotations,
   local switching-incidence colors, cusp semantics, and reversal invariance;
-  only the two premise incidences of the same stored par link share a color.
+  proved that every stored par link yields two exact indexed incidences aimed
+  at its conclusion with the shared par color.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

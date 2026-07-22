@@ -66,7 +66,9 @@ name-level restatement of Yeo:
    exact edge-index/orientation color. `Cusp` compares the two incidences at a
    path transition, and `cusp_reverse_iff` proves local reversal invariance.
    `CuspFreeTraversal`, `CuspFreeCycle`, and `CuspAcyclic` now state the
-   proposition-level colored-cycle criterion.
+   proposition-level colored-cycle criterion. The projection and existence
+   theorems prove that every stored par link supplies two exact indexed
+   incidences aimed at its conclusion with that shared color.
 3. **Correctness bridge.** Prove that `DeclarativelyCorrect` implies
    cusp-acyclicity of the colored occurrence multigraph. This must cover every
    independent `ChoiceSelection`, not merely executable enumeration examples.
