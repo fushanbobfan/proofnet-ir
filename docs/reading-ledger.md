@@ -16,14 +16,15 @@ sources.
 All original PDFs were extracted to searchable text without modifying the
 source files. A section/theorem sweep was performed across the full extracted
 corpus. Close reading is complete for the two project-specific ProofNet
-documents, *Geometry of Neuroscience*, and the project chat. The remaining
-larger books and adjacent papers have a complete structural pass plus targeted
-close readings recorded below. Further cover-to-cover close reading remains an
-ongoing research task and must not be represented as finished.
+documents, *Geometry of Neuroscience*, Pfenning, and the project chat. The
+Pfenning audit covers every unique page in both ordered text and rendered-image
+form. The remaining larger book and adjacent papers have a structural pass plus
+targeted close readings recorded below. Further cover-to-cover close reading
+remains an ongoing research task and must not be represented as finished.
 
 | Source | Physical pages | Extracted words | Coverage in this pass | SHA-256 prefix |
 |---|---:|---:|---|---|
-| Pfenning, *Linear Logic* | 336 physical / 168 unique | 122,044 | contents/theorem sweep; close reading of cut-free sequent calculus, cut elimination, proof search, focusing, proof terms, and linear logical frameworks; [ordered page audit](source-pages/pfenning-linear-logic.md) now records 30/168 unique pages | `5d5a29d68c13` |
+| Pfenning, *Linear Logic* | 336 physical / 168 unique | 122,044 | [completed page audit](source-pages/pfenning-linear-logic.md) records ordered text reading and rendered-image inspection of all 168 unique pages | `5d5a29d68c13` |
 | Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | 186,440 | contents/theorem sweep; prefaces and Chapter IX §§1-6 close read | `79baf1ed4e81` |
 | *Proof Nets as Graphical Proof Objects* | 20 | 7,990 | direct end-to-end reading and visual inspection | `8166b610c3b8` |
 | *ProofNet-IR Research Plan* | 19 | 5,904 | direct end-to-end reading and visual inspection | `4c934e603f8a` |

@@ -33,7 +33,7 @@ extractable text and requires visual/OCR treatment.
 
 | Source | Pages | Current evidence | Status |
 |---|---:|---|---|
-| Pfenning, *Linear Logic* | 336 physical; 168 unique after exact repetition | complete contents/theorem sweep; close reading of cut-free calculus, cut elimination, focusing, proof search, and proof terms; ordered text audit now records 30/168 unique pages in a [page matrix](source-pages/pfenning-linear-logic.md) | in progress; not read cover to cover |
+| Pfenning, *Linear Logic* | 336 physical; 168 unique after exact repetition | complete ordered text reading and rendered-image inspection of all 168 unique pages in a [page matrix](source-pages/pfenning-linear-logic.md) | complete |
 | Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | contents/theorem sweep; prefaces and Chapter IX sections 1-6 close read; graph pages visually checked | not read cover to cover |
 | *Proof Nets as Graphical Proof Objects* | 20 | complete end-to-end reading and selected-page visual verification | complete |
 | *ProofNet-IR Research Plan* | 19 | complete end-to-end reading and selected-page visual verification | complete, but treated as a generated design input rather than authority |
@@ -43,8 +43,8 @@ extractable text and requires visual/OCR treatment.
 | `Rowling_s chat history.txt` | short text | read completely | complete |
 
 Consequently, the statement "all local papers and textbooks were seriously
-read in full" is still false at this checkpoint. Three PDFs and the chat are
-complete; four larger or adjacent sources have structured and targeted
+read in full" is still false at this checkpoint. Four PDFs and the chat are
+complete; Manin, Marcolli et al., and Park retain structured and targeted
 coverage only. Completing an adjacent source does not strengthen the core MLL
 theorems when that source contains no proof-net result.
 
