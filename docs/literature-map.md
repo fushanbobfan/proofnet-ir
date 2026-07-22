@@ -51,8 +51,9 @@ research-source count.
   and a tractable estimator.
 - General proof-net correctness beyond unit-free MLL is not canonical; units,
   additives, exponentials, and quantifiers each change the representation.
-- Finite reachability is proved sound with respect to an inductive walk
-  semantics, but the converse/completeness direction remains open.
+- Finite reachability now has a soundness/completeness iff against an
+  independent fuel-indexed path semantics. Normalizing arbitrary walks to the
+  `vertexCount` budget remains open.
 - Full sequentialization remains the central proof obligation for v0.1.
 
 ## Reading record

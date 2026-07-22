@@ -26,11 +26,14 @@ The repository currently contains:
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics, plus completeness/iff theorems for the
   exact finite-computation contract;
-- a converse theorem showing each bounded inductive walk appears at some
-  finite closure depth (the uniform `vertexCount` bound remains open);
+- exact soundness and completeness against an independent fuel-indexed path
+  semantics: `closureN fuel` iff a path of at most `fuel` steps is available
+  when stored edges are in bounds;
+- `check_iff_fuelCorrect`, lifting that correspondence through every switching
+  to the complete certificate checker;
 - kernel-checked sequent derivations for canonical two- and three-axiom net
   families, with certificate-gated reconstruction for the first family;
-- labeled negative-certificate mutations, 40 positive/negative compile-time
+- labeled negative-certificate mutations, 48 positive/negative compile-time
   assertions, and an executable smoke test.
 
 This is a research prototype. It does not yet include a general

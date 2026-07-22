@@ -15,7 +15,10 @@
 - [x] Add a versioned JSON Schema and fixtures.
 - [x] Prove finite closure membership implies an inductive graph walk.
 - [x] Prove a bounded inductive walk is found after some finite closure depth.
-- [ ] Prove every in-bounds graph walk is found by finite closure.
+- [x] Prove `closureN fuel` iff an independent path of at most `fuel` steps
+  exists, and lift the iff through `isTree` and `Certificate.check`.
+- [ ] Prove every arbitrary in-bounds graph walk reduces to a path within the
+  `vertexCount` budget, identifying `Correct` and `FuelCorrect`.
 - [ ] Prove general sequentialization for the supported representation.
 - [x] Add a second generated proof-tree/net family and labeled mutation tests.
 - [ ] Generalize proof-tree-to-net generation beyond the two supported families.

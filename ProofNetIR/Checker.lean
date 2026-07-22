@@ -87,6 +87,21 @@ theorem allTrees_complete_computational (graphs : List Graph)
           intro graph membership
           exact correct graph (by simp [membership]))
 
+theorem allTrees_fuel (graphs : List Graph) (accepted : allTrees graphs = true) :
+    ∀ graph ∈ graphs, graph.FuelTree := by
+  intro graph membership
+  have computational := allTrees_computational graphs accepted graph membership
+  exact graph.isTree_iff_fuelTree.mp
+    (graph.isTree_iff_computational.mpr computational)
+
+theorem allTrees_complete_fuel (graphs : List Graph)
+    (correct : ∀ graph ∈ graphs, graph.FuelTree) :
+    allTrees graphs = true := by
+  apply allTrees_complete_computational
+  intro graph membership
+  exact graph.isTree_iff_computational.mp
+    (graph.isTree_iff_fuelTree.mpr (correct graph membership))
+
 /-- Any accepted executable certificate satisfies the declarative criterion. -/
 theorem check_sound (certificate : Certificate) (accepted : certificate.check = true) :
     certificate.Correct := by
@@ -97,6 +112,13 @@ theorem check_sound (certificate : Certificate) (accepted : certificate.check = 
 def ComputationallyCorrect (certificate : Certificate) : Prop :=
   certificate.wellFormed = true ∧
     ∀ graph ∈ certificate.switchingGraphs, graph.ComputationalTree
+
+/-- Independent fuel-indexed correctness semantics. Unlike
+`ComputationallyCorrect`, this contract is stated through adjacency paths, but
+it still has a checker completeness theorem. -/
+def FuelCorrect (certificate : Certificate) : Prop :=
+  certificate.wellFormed = true ∧
+    ∀ graph ∈ certificate.switchingGraphs, graph.FuelTree
 
 /-- The checker is complete for its exact finite-computation contract. -/
 theorem check_complete_computational (certificate : Certificate)
@@ -114,6 +136,24 @@ theorem check_iff_computational (certificate : Certificate) :
     exact ⟨accepted.1,
       allTrees_computational certificate.switchingGraphs accepted.2⟩
   · exact certificate.check_complete_computational
+
+theorem check_iff_fuelCorrect (certificate : Certificate) :
+    certificate.check = true ↔ certificate.FuelCorrect := by
+  constructor
+  · intro accepted
+    simp [check] at accepted
+    exact ⟨accepted.1,
+      allTrees_fuel certificate.switchingGraphs accepted.2⟩
+  · intro correct
+    simp [check]
+    exact ⟨correct.1,
+      allTrees_complete_fuel certificate.switchingGraphs correct.2⟩
+
+theorem FuelCorrect.toCorrect {certificate : Certificate}
+    (correct : certificate.FuelCorrect) : certificate.Correct :=
+  ⟨correct.1, by
+    intro graph membership
+    exact (correct.2 graph membership).toIsTree⟩
 
 end Certificate
 end ProofNetIR

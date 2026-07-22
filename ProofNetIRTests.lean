@@ -26,6 +26,8 @@ example : canonical.wellFormed = true := by native_decide
 example : canonical.switchingGraphs.length = 2 := by native_decide
 example : canonical.check = true := by native_decide
 example : canonical.Correct := canonical.check_sound (by native_decide)
+example : canonical.FuelCorrect :=
+  canonical.check_iff_fuelCorrect.mp (by native_decide)
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide
 
@@ -48,6 +50,10 @@ def wrongAxiom : Certificate :=
 
 example : wrongAxiom.wellFormed = false := by native_decide
 example : wrongAxiom.check = false := by native_decide
+example : ¬wrongAxiom.FuelCorrect := by
+  intro semantic
+  have accepted := wrongAxiom.check_iff_fuelCorrect.mpr semantic
+  exact (by native_decide : wrongAxiom.check ≠ true) accepted
 example : (reconstructCanonical? wrongAxiom "p" "q").isSome = false := by
   native_decide
 
@@ -130,6 +136,10 @@ def cyclicGraph : Graph where
 
 example : cyclicGraph.connected = true := by native_decide
 example : cyclicGraph.isTree = false := by native_decide
+example : ¬cyclicGraph.FuelTree := by
+  intro semantic
+  have accepted := cyclicGraph.isTree_iff_fuelTree.mpr semantic
+  exact (by native_decide : cyclicGraph.isTree ≠ true) accepted
 
 def treeGraph : Graph where
   vertexCount := 4
@@ -141,17 +151,31 @@ def treeGraph : Graph where
 
 example : treeGraph.isTree = true := by native_decide
 example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
+example : treeGraph.FuelTree :=
+  treeGraph.isTree_iff_fuelTree.mp (by native_decide)
 example : treeGraph.Walk 0 3 :=
   (treeGraph.isTree_sound (by native_decide)).2.1.2 3 (by decide)
 
-theorem treeWalk03 : treeGraph.Walk 0 3 := by
-  have edge01 : treeGraph.Adjacent 0 1 :=
-    ⟨{ first := 0, second := 1 }, by simp [treeGraph], .inl ⟨rfl, rfl⟩⟩
-  have edge13 : treeGraph.Adjacent 1 3 :=
-    ⟨{ first := 1, second := 3 }, by simp [treeGraph], .inl ⟨rfl, rfl⟩⟩
-  exact .step (.step (.refl 0) edge01) edge13
+theorem treeEdge01 : treeGraph.Adjacent 0 1 :=
+  ⟨{ first := 0, second := 1 }, by simp [treeGraph], .inl ⟨rfl, rfl⟩⟩
+
+theorem treeEdge13 : treeGraph.Adjacent 1 3 :=
+  ⟨{ first := 1, second := 3 }, by simp [treeGraph], .inl ⟨rfl, rfl⟩⟩
+
+theorem treeWalk03 : treeGraph.Walk 0 3 :=
+  .step (.step (.refl 0) treeEdge01) treeEdge13
+
+theorem treeWalkN03 : treeGraph.WalkN 0 2 3 :=
+  .step (.step .refl treeEdge01) treeEdge13
 
 example : 3 ∈ treeGraph.closureN 2 [0] := by native_decide
+example : 3 ∈ treeGraph.closureN 2 [0] :=
+  treeGraph.walkN_mem_closureN
+    (treeGraph.isTree_sound (by native_decide)).1 treeWalkN03
+example :
+    3 ∈ treeGraph.closureN 2 [0] ↔ treeGraph.WalkWithin 0 2 3 :=
+  treeGraph.mem_closureN_iff_walkWithin
+    (treeGraph.isTree_sound (by native_decide)).1 0 3 2 (by decide)
 example : ∃ fuel, 3 ∈ treeGraph.closureN fuel [0] := by
   exact treeGraph.walk_mem_some_closureN
     (treeGraph.isTree_sound (by native_decide)).1

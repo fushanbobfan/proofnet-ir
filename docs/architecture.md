@@ -24,10 +24,16 @@ criterion and proof-order bureaucracy can be measured cleanly.
 8. `Graph.isTree` checks every switching.
 9. `Graph.reachable_sound` proves computed reachability yields an inductive
    `Graph.Walk`, independent of the closure implementation.
-10. `Graph.walk_mem_some_closureN` proves the converse at an unbounded finite
-    closure depth for graphs whose stored edges are in bounds.
-11. `Certificate.check` accepts only when both local and global checks pass.
-12. `check_sound` transports executable acceptance into `Certificate.Correct`.
+10. `Graph.closureN_walkWithin` translates finite closure membership into an
+    independent `WalkN` whose edge count is at most the supplied fuel.
+11. `Graph.walkN_mem_closureN` and `mem_closureN_mono` prove the converse for
+    bounded stored edges.
+12. `isTree_iff_fuelTree` lifts the correspondence to the executable tree
+    predicate.
+13. `Certificate.check` accepts only when both local and global checks pass.
+14. `check_sound` transports executable acceptance into
+    `Certificate.Correct`; `check_iff_fuelCorrect` additionally gives
+    soundness and completeness for the independent fuel-indexed semantics.
 
 ## Why exhaustive switchings first
 

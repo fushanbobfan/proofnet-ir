@@ -28,10 +28,18 @@ equation. `reachable_sound` proves that membership in the finite closure really
 produces such a walk; the proof proceeds through closure preservation and does
 not define a walk to mean "the algorithm returned true."
 
-`check_complete_computational` and `check_iff_computational` prove the converse
-only for the exact finite-closure contract. The converse from arbitrary
-inductive walks to the finite closure is still open. None of these results is
-the proof-net sequentialization theorem.
+`WalkN` is a second independent relation indexed by its exact number of edge
+steps. `closureN_walkWithin` and `walkN_mem_closureN` prove that finite closure
+at depth `fuel` is equivalent to the existence of a path of at most `fuel`
+steps, provided stored edges are in bounds. `isTree_iff_fuelTree` and
+`check_iff_fuelCorrect` lift this to the complete graph and certificate
+checkers.
+
+The stronger normalization theorem saying that every arbitrary `Graph.Walk`
+in an `n`-vertex graph has an equivalent walk of at most `n` steps remains
+open. This no longer weakens completeness for `FuelCorrect`, but it is needed
+to identify the original unbounded `Correct` predicate with `FuelCorrect`.
+None of these results is the proof-net sequentialization theorem.
 
 ## Failure containment
 
