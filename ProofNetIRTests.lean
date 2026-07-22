@@ -144,6 +144,19 @@ example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
 example : treeGraph.Walk 0 3 :=
   (treeGraph.isTree_sound (by native_decide)).2.1.2 3 (by decide)
 
+theorem treeWalk03 : treeGraph.Walk 0 3 := by
+  have edge01 : treeGraph.Adjacent 0 1 :=
+    ⟨{ first := 0, second := 1 }, by simp [treeGraph], .inl ⟨rfl, rfl⟩⟩
+  have edge13 : treeGraph.Adjacent 1 3 :=
+    ⟨{ first := 1, second := 3 }, by simp [treeGraph], .inl ⟨rfl, rfl⟩⟩
+  exact .step (.step (.refl 0) edge01) edge13
+
+example : 3 ∈ treeGraph.closureN 2 [0] := by native_decide
+example : ∃ fuel, 3 ∈ treeGraph.closureN fuel [0] := by
+  exact treeGraph.walk_mem_some_closureN
+    (treeGraph.isTree_sound (by native_decide)).1
+    treeWalk03
+
 def singletonGraph : Graph where
   vertexCount := 1
   edges := []

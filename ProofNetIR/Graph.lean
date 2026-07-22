@@ -48,6 +48,23 @@ theorem neighbor_adjacent (graph : Graph) {left right : Vertex}
         .inr ⟨endpointMembership.symm, secondMatches⟩⟩
     · simp [firstMatches, secondMatches] at endpointMembership
 
+theorem adjacent_neighbor (graph : Graph) {left right : Vertex}
+    (adjacency : graph.Adjacent left right) :
+    right ∈ graph.neighbors left := by
+  rcases adjacency with ⟨edge, edgeMembership, direction⟩
+  simp only [neighbors, List.mem_flatMap]
+  refine ⟨edge, edgeMembership, ?_⟩
+  rcases direction with forward | backward
+  · rcases forward with ⟨firstMatches, secondMatches⟩
+    simp [firstMatches, secondMatches]
+  · rcases backward with ⟨firstMatches, secondMatches⟩
+    by_cases same : right = left <;>
+      simp [firstMatches, secondMatches, same]
+
+theorem neighbor_iff_adjacent (graph : Graph) {left right : Vertex} :
+    right ∈ graph.neighbors left ↔ graph.Adjacent left right :=
+  ⟨graph.neighbor_adjacent, graph.adjacent_neighbor⟩
+
 def closure (graph : Graph) (seen : List Vertex) : List Vertex :=
   (seen ++ seen.flatMap graph.neighbors)
     |>.filter (· < graph.vertexCount)
@@ -68,6 +85,24 @@ theorem closure_preserves_walks (graph : Graph) (start : Vertex)
 def closureN (graph : Graph) : Nat → List Vertex → List Vertex
   | 0, seen => seen
   | fuel + 1, seen => graph.closureN fuel (graph.closure seen)
+
+theorem closureN_succ (graph : Graph) (fuel : Nat) (seen : List Vertex) :
+    graph.closureN (fuel + 1) seen =
+      graph.closure (graph.closureN fuel seen) := by
+  induction fuel generalizing seen with
+  | zero => rfl
+  | succ remaining ih =>
+      exact ih (graph.closure seen)
+
+theorem neighbor_mem_closure (graph : Graph) {middle finish : Vertex}
+    (middleSeen : middle ∈ seen)
+    (adjacency : graph.Adjacent middle finish)
+    (finishInBounds : finish < graph.vertexCount) :
+    finish ∈ graph.closure seen := by
+  simp only [closure, List.mem_eraseDups, List.mem_filter,
+    List.mem_append, List.mem_flatMap]
+  refine ⟨?_, by simpa using finishInBounds⟩
+  exact .inr ⟨middle, middleSeen, graph.adjacent_neighbor adjacency⟩
 
 theorem closureN_preserves_walks (graph : Graph) (start : Vertex)
     (fuel : Nat) (seen : List Vertex)
@@ -117,6 +152,30 @@ def Bounded (graph : Graph) : Prop :=
     edge.first < graph.vertexCount ∧
     edge.second < graph.vertexCount ∧
     edge.first ≠ edge.second
+
+theorem adjacent_right_in_bounds (graph : Graph) (bounded : graph.Bounded)
+    {left right : Vertex} (adjacency : graph.Adjacent left right) :
+    right < graph.vertexCount := by
+  rcases adjacency with ⟨edge, edgeMembership, direction⟩
+  have edgeBounds := bounded edge edgeMembership
+  rcases direction with forward | backward
+  · exact forward.2 ▸ edgeBounds.2.1
+  · exact backward.1 ▸ edgeBounds.1
+
+/-- Every bounded inductive walk is discovered after some finite number of
+closure rounds. The remaining semantic-completeness obligation is a uniform
+`vertexCount` bound on the required rounds. -/
+theorem walk_mem_some_closureN (graph : Graph) (bounded : graph.Bounded)
+    {start finish : Vertex} (walk : graph.Walk start finish) :
+    ∃ fuel, finish ∈ graph.closureN fuel [start] := by
+  induction walk with
+  | refl => exact ⟨0, by simp [closureN]⟩
+  | step prior adjacency ih =>
+      rcases ih with ⟨fuel, membership⟩
+      refine ⟨fuel + 1, ?_⟩
+      rw [graph.closureN_succ]
+      exact graph.neighbor_mem_closure membership adjacency
+        (graph.adjacent_right_in_bounds bounded adjacency)
 
 /-- Every in-bounds vertex occurs in the finite closure from vertex zero. -/
 def ReachablyConnected (graph : Graph) : Prop :=

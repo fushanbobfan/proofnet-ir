@@ -26,6 +26,8 @@ The repository currently contains:
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics, plus completeness/iff theorems for the
   exact finite-computation contract;
+- a converse theorem showing each bounded inductive walk appears at some
+  finite closure depth (the uniform `vertexCount` bound remains open);
 - kernel-checked sequent derivations for canonical two- and three-axiom net
   families, with certificate-gated reconstruction for the first family;
 - labeled negative-certificate mutations, 40 positive/negative compile-time
