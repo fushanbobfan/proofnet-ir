@@ -1488,6 +1488,57 @@ theorem IsTree.no_edgeSimpleCycle {graph : Graph} (tree : graph.IsTree)
     simpa [Graph.EdgeSimpleCycle.vertices] using predecessorInCycle)
   omega
 
+/-- A simple cycle survives any occurrence mask that keeps all of its exact
+stored edge indices. Compacted edge indices remain duplicate-free because the
+retained-index map is strictly monotone at kept positions. -/
+theorem EdgeSimpleCycle.retainEdges {graph : Graph} {mask : List Bool}
+    (cycle : graph.EdgeSimpleCycle)
+    (aligned : graph.edges.length = mask.length)
+    (allKept : ∀ directed ∈ cycle.traversed,
+      mask[directed.index]? = some true) :
+    Nonempty (graph.retainEdges mask).EdgeSimpleCycle := by
+  classical
+  rcases cycle.walk.retainEdges aligned allKept with
+    ⟨retainedTraversal, retainedWalk, indexEquation, targetEquation⟩
+  have compactIndicesNodup :
+      (cycle.traversed.map
+        (fun directed => Graph.retainedIndex mask directed.index)).Nodup := by
+    have mappedNodup :
+        ((cycle.traversed.map Graph.DirectedEdge.index).map
+          (Graph.retainedIndex mask)).Nodup := by
+      apply nodup_map_of_injective_on cycle.edgeIndicesNodup
+      intro first firstMembership second secondMembership same
+      rcases List.mem_map.mp firstMembership with
+        ⟨firstDirected, firstDirectedMembership, rfl⟩
+      rcases List.mem_map.mp secondMembership with
+        ⟨secondDirected, secondDirectedMembership, rfl⟩
+      exact Graph.retainedIndex_injective_of_kept
+        (allKept firstDirected firstDirectedMembership)
+        (allKept secondDirected secondDirectedMembership) same
+    simpa [List.map_map, Function.comp_def] using mappedNodup
+  have retainedLength : retainedTraversal.length = cycle.traversed.length := by
+    simpa using congrArg List.length indexEquation
+  have retainedNonempty : retainedTraversal ≠ [] := by
+    intro empty
+    rw [empty] at retainedLength
+    simp at retainedLength
+    exact cycle.nonempty (List.eq_nil_of_length_eq_zero retainedLength.symm)
+  have interiorTargets :
+      retainedTraversal.dropLast.map Graph.DirectedEdge.target =
+        cycle.traversed.dropLast.map Graph.DirectedEdge.target := by
+    simpa only [List.map_dropLast] using congrArg List.dropLast targetEquation
+  refine ⟨
+    { start := cycle.start
+      traversed := retainedTraversal
+      nonempty := retainedNonempty
+      walk := retainedWalk
+      edgeIndicesNodup := ?_
+      interiorNodup := ?_ }⟩
+  · rw [indexEquation]
+    exact compactIndicesNodup
+  · rw [interiorTargets]
+    exact cycle.interiorNodup
+
 theorem Adjacent.symm {graph : Graph} {left right : Vertex}
     (adjacency : graph.Adjacent left right) : graph.Adjacent right left := by
   rcases adjacency with ⟨edge, membership, direction⟩
@@ -1987,6 +2038,71 @@ def linkFullEdges (links : List Link) : List Edge :=
         [{ first := left, second := conclusion },
          { first := right, second := conclusion }]
 
+@[simp] theorem linkFullEdges_nil : linkFullEdges [] = [] := rfl
+
+/-- Par-target annotations computed from an arbitrary link suffix. Keeping the
+suffix-level projection explicit lets occurrence offsets be tracked during
+structural switching constructions. -/
+def linkFullEdgeParTargets (links : List Link) : List (Option Vertex) :=
+  links.flatMap fun
+    | .axiom _ _ => [none]
+    | .tensor _ _ _ => [none, none]
+    | .par _ _ conclusion => [some conclusion, some conclusion]
+
+@[simp] theorem linkFullEdgeParTargets_nil :
+    linkFullEdgeParTargets [] = [] := rfl
+
+@[simp] theorem linkFullEdgeParTargets_axiom_cons
+    (links : List Link) (left right : Vertex) :
+    linkFullEdgeParTargets (.axiom left right :: links) =
+      none :: linkFullEdgeParTargets links := rfl
+
+@[simp] theorem linkFullEdgeParTargets_tensor_cons
+    (links : List Link) (left right conclusion : Vertex) :
+    linkFullEdgeParTargets (.tensor left right conclusion :: links) =
+      none :: none :: linkFullEdgeParTargets links := rfl
+
+@[simp] theorem linkFullEdgeParTargets_par_cons
+    (links : List Link) (left right conclusion : Vertex) :
+    linkFullEdgeParTargets (.par left right conclusion :: links) =
+      some conclusion :: some conclusion :: linkFullEdgeParTargets links := rfl
+
+@[simp] theorem linkFullEdges_axiom_cons
+    (links : List Link) (left right : Vertex) :
+    linkFullEdges (.axiom left right :: links) =
+      { first := left, second := right } :: linkFullEdges links := rfl
+
+@[simp] theorem linkFullEdges_tensor_cons
+    (links : List Link) (left right conclusion : Vertex) :
+    linkFullEdges (.tensor left right conclusion :: links) =
+      { first := left, second := conclusion } ::
+        { first := right, second := conclusion } :: linkFullEdges links := rfl
+
+@[simp] theorem linkFullEdges_par_cons
+    (links : List Link) (left right conclusion : Vertex) :
+    linkFullEdges (.par left right conclusion :: links) =
+      { first := left, second := conclusion } ::
+      { first := right, second := conclusion } :: linkFullEdges links := rfl
+
+@[simp] theorem linkFullEdges_append (first second : List Link) :
+    linkFullEdges (first ++ second) =
+      linkFullEdges first ++ linkFullEdges second := by
+  unfold linkFullEdges
+  exact List.flatMap_append
+
+@[simp] theorem linkFullEdgeParTargets_append (first second : List Link) :
+    linkFullEdgeParTargets (first ++ second) =
+      linkFullEdgeParTargets first ++ linkFullEdgeParTargets second := by
+  unfold linkFullEdgeParTargets
+  exact List.flatMap_append
+
+@[simp] theorem linkFullEdgeParTargets_length (links : List Link) :
+    (linkFullEdgeParTargets links).length = (linkFullEdges links).length := by
+  induction links with
+  | nil => rfl
+  | cons link rest ih =>
+      cases link <;> simp [ih]
+
 @[simp] theorem linkParChoices_certificate (certificate : Certificate) :
     linkParChoices certificate.links = certificate.parChoices := rfl
 
@@ -2000,10 +2116,7 @@ def linkFullEdges (links : List Link) : List Edge :=
 true. Mismatched tails are rejected by truncation; `FullSwitchingSelection`
 proves exact length alignment for all masks it constructs. -/
 def retainByMask : List Edge → List Bool → List Edge
-  | edge :: edges, keep :: mask =>
-      if keep then edge :: retainByMask edges mask
-      else retainByMask edges mask
-  | _, _ => []
+  := Graph.retainEdgesByMask
 
 /-- An occurrence-order realization of a switching. It walks the stored link
 list once, retains every axiom/tensor edge, and retains exactly one indexed
@@ -2034,6 +2147,19 @@ inductive FullSwitchingSelection :
         ({ first := right, second := conclusion } :: selected)
         ({ first := right, second := conclusion } :: retained)
         (false :: true :: mask)
+
+/-- Relative occurrence indices used by a switching request are sparse at
+every par pair: the two positions emitted by one par link are never both
+requested. The running offset refers to the original full-edge list. -/
+def ParPairSparse : List Link → Nat → (Nat → Prop) → Prop
+  | [], _, _ => True
+  | .axiom _ _ :: links, offset, uses =>
+      ParPairSparse links (offset + 1) uses
+  | .tensor _ _ _ :: links, offset, uses =>
+      ParPairSparse links (offset + 2) uses
+  | .par _ _ _ :: links, offset, uses =>
+      ¬(uses offset ∧ uses (offset + 1)) ∧
+        ParPairSparse links (offset + 2) uses
 
 namespace FullSwitchingSelection
 
@@ -2085,12 +2211,123 @@ theorem retained_eq_retainByMask {links : List Link}
     retained = retainByMask (linkFullEdges links) mask := by
   induction selection with
   | nil => rfl
-  | «axiom» prior ih => simp [linkFullEdges, retainByMask, ih]
-  | tensor prior ih => simp [linkFullEdges, retainByMask, ih]
-  | parLeft prior ih => simp [linkFullEdges, retainByMask, ih]
-  | parRight prior ih => simp [linkFullEdges, retainByMask, ih]
+  | «axiom» prior ih =>
+      simp [linkFullEdges, retainByMask, Graph.retainEdgesByMask, ih]
+  | tensor prior ih =>
+      simp [linkFullEdges, retainByMask, Graph.retainEdgesByMask, ih]
+  | parLeft prior ih =>
+      simp [linkFullEdges, retainByMask, Graph.retainEdgesByMask, ih]
+  | parRight prior ih =>
+      simp [linkFullEdges, retainByMask, Graph.retainEdgesByMask, ih]
 
 end FullSwitchingSelection
+
+/-- Any par-sparse set of exact full-edge indices is contained in an
+occurrence-order switching. The returned mask is aligned with `linkFullEdges`
+and keeps every requested in-range occurrence. -/
+theorem fullSwitchingSelection_covering_exists {links : List Link}
+    {offset : Nat} {uses : Nat → Prop}
+    (sparse : ParPairSparse links offset uses) :
+    ∃ selected retained mask,
+      FullSwitchingSelection links selected retained mask ∧
+        ∀ relativeIndex,
+          relativeIndex < (linkFullEdges links).length →
+          uses (offset + relativeIndex) →
+          mask[relativeIndex]? = some true := by
+  classical
+  induction links generalizing offset with
+  | nil =>
+      refine ⟨[], [], [], .nil, ?_⟩
+      intro relativeIndex inBounds
+      change relativeIndex < 0 at inBounds
+      omega
+  | cons link rest ih =>
+      cases link with
+      | «axiom» left right =>
+          change ParPairSparse rest (offset + 1) uses at sparse
+          rcases ih sparse with ⟨selected, retained, mask, selection, keeps⟩
+          refine ⟨selected, _, true :: mask, .axiom selection, ?_⟩
+          intro relativeIndex inBounds used
+          cases relativeIndex with
+          | zero => rfl
+          | succ tailIndex =>
+              have tailBound : tailIndex < (linkFullEdges rest).length := by
+                simpa using inBounds
+              have tailUsed : uses ((offset + 1) + tailIndex) := by
+                have indexEquation :
+                    offset + (tailIndex + 1) = (offset + 1) + tailIndex := by
+                  omega
+                rw [← indexEquation]
+                exact used
+              change mask[tailIndex]? = some true
+              exact keeps tailIndex tailBound tailUsed
+      | tensor left right conclusion =>
+          change ParPairSparse rest (offset + 2) uses at sparse
+          rcases ih sparse with ⟨selected, retained, mask, selection, keeps⟩
+          refine ⟨selected, _, true :: true :: mask, .tensor selection, ?_⟩
+          intro relativeIndex inBounds used
+          cases relativeIndex with
+          | zero => rfl
+          | succ afterFirst =>
+              cases afterFirst with
+              | zero => rfl
+              | succ tailIndex =>
+                  have tailBound : tailIndex < (linkFullEdges rest).length := by
+                    simpa using inBounds
+                  have tailUsed : uses ((offset + 2) + tailIndex) := by
+                    have indexEquation :
+                        offset + ((tailIndex + 1) + 1) =
+                          (offset + 2) + tailIndex := by
+                      omega
+                    rw [← indexEquation]
+                    exact used
+                  change mask[tailIndex]? = some true
+                  exact keeps tailIndex tailBound tailUsed
+      | par left right conclusion =>
+          change (¬(uses offset ∧ uses (offset + 1))) ∧
+            ParPairSparse rest (offset + 2) uses at sparse
+          rcases ih sparse.2 with
+            ⟨selected, retained, mask, selection, keeps⟩
+          by_cases leftUsed : uses offset
+          · refine ⟨_, _, true :: false :: mask, .parLeft selection, ?_⟩
+            intro relativeIndex inBounds used
+            cases relativeIndex with
+            | zero => rfl
+            | succ afterFirst =>
+                cases afterFirst with
+                | zero =>
+                    exact False.elim (sparse.1 ⟨leftUsed, by simpa using used⟩)
+                | succ tailIndex =>
+                    have tailBound : tailIndex < (linkFullEdges rest).length := by
+                      simpa using inBounds
+                    have tailUsed : uses ((offset + 2) + tailIndex) := by
+                      have indexEquation :
+                          offset + ((tailIndex + 1) + 1) =
+                            (offset + 2) + tailIndex := by
+                        omega
+                      rw [← indexEquation]
+                      exact used
+                    change mask[tailIndex]? = some true
+                    exact keeps tailIndex tailBound tailUsed
+          · refine ⟨_, _, false :: true :: mask, .parRight selection, ?_⟩
+            intro relativeIndex inBounds used
+            cases relativeIndex with
+            | zero => exact False.elim (leftUsed (by simpa using used))
+            | succ afterFirst =>
+                cases afterFirst with
+                | zero => rfl
+                | succ tailIndex =>
+                    have tailBound : tailIndex < (linkFullEdges rest).length := by
+                      simpa using inBounds
+                    have tailUsed : uses ((offset + 2) + tailIndex) := by
+                      have indexEquation :
+                          offset + ((tailIndex + 1) + 1) =
+                            (offset + 2) + tailIndex := by
+                        omega
+                      rw [← indexEquation]
+                      exact used
+                    change mask[tailIndex]? = some true
+                    exact keeps tailIndex tailBound tailUsed
 
 theorem fullSwitchingSelection_exists {links : List Link}
     {selected : List Edge}
@@ -2165,10 +2402,11 @@ def fullEdgeAnnotations (certificate : Certificate) :
 edge emitted as a premise of that exact par link. Keeping this list parallel to
 the multigraph edges prevents equal-valued parallel edges from being confused. -/
 def fullEdgeParTargets (certificate : Certificate) : List (Option Vertex) :=
-  certificate.links.flatMap fun
-    | .axiom _ _ => [none]
-    | .tensor _ _ _ => [none, none]
-    | .par _ _ conclusion => [some conclusion, some conclusion]
+  linkFullEdgeParTargets certificate.links
+
+theorem linkFullEdgeParTargets_certificate (certificate : Certificate) :
+    linkFullEdgeParTargets certificate.links =
+      certificate.fullEdgeParTargets := rfl
 
 @[simp] theorem fullEdgeAnnotations_edges (certificate : Certificate) :
     certificate.fullEdgeAnnotations.map Prod.fst =
@@ -2184,7 +2422,8 @@ def fullEdgeParTargets (certificate : Certificate) : List (Option Vertex) :=
     certificate.fullEdgeAnnotations.map Prod.snd =
       certificate.fullEdgeParTargets := by
   rcases certificate with ⟨formulas, links, conclusions⟩
-  simp only [fullEdgeAnnotations, fullEdgeParTargets]
+  simp only [fullEdgeAnnotations]
+  unfold fullEdgeParTargets
   induction links with
   | nil => simp
   | cons link rest ih =>
@@ -2224,14 +2463,62 @@ theorem fullEdgeAnnotation_lookup (certificate : Certificate)
     rw [certificate.fullEdgeAnnotations_parTargets] at mapped
     exact mapped
 
+/-- The aligned edge/color projections recover the unique annotation at an
+exact occurrence index. This converse is what prevents equal-valued parallel
+edges from exchanging their local switching colors. -/
+theorem fullEdgeAnnotation_lookup_iff (certificate : Certificate)
+    {index : Nat} {edge : Edge} {parTarget : Option Vertex} :
+    certificate.fullEdgeAnnotations[index]? = some (edge, parTarget) ↔
+      certificate.fullEdges[index]? = some edge ∧
+        certificate.fullEdgeParTargets[index]? = some parTarget := by
+  constructor
+  · exact certificate.fullEdgeAnnotation_lookup
+  · rintro ⟨edgeLookup, targetLookup⟩
+    have firstLookup :
+        (certificate.fullEdgeAnnotations.map Prod.fst)[index]? = some edge := by
+      rw [certificate.fullEdgeAnnotations_edges]
+      exact edgeLookup
+    have secondLookup :
+        (certificate.fullEdgeAnnotations.map Prod.snd)[index]? =
+          some parTarget := by
+      rw [certificate.fullEdgeAnnotations_parTargets]
+      exact targetLookup
+    rw [List.getElem?_map] at firstLookup secondLookup
+    cases annotationLookup : certificate.fullEdgeAnnotations[index]? with
+    | none => simp [annotationLookup] at firstLookup
+    | some annotation =>
+        rcases annotation with ⟨annotatedEdge, annotatedTarget⟩
+        simp [annotationLookup] at firstLookup secondLookup
+        subst annotatedEdge
+        subst annotatedTarget
+        rfl
+
+/-- A par annotation records the stored premise-to-conclusion orientation:
+the second endpoint of the annotated occurrence is exactly its par target. -/
+theorem fullEdgeAnnotation_some_second (certificate : Certificate)
+    {index : Nat} {edge : Edge} {conclusion : Vertex}
+    (lookup : certificate.fullEdgeAnnotations[index]? =
+      some (edge, some conclusion)) :
+    edge.second = conclusion := by
+  have membership := List.mem_of_getElem? lookup
+  simp only [fullEdgeAnnotations, List.mem_flatMap] at membership
+  rcases membership with ⟨link, _, emitted⟩
+  cases link with
+  | «axiom» left right => simp at emitted
+  | tensor left right conclusion => simp at emitted
+  | par left right target =>
+      simp at emitted
+      rcases emitted with first | second
+      · rcases first with ⟨rfl, colorEquation⟩
+        exact colorEquation.symm
+      · rcases second with ⟨rfl, colorEquation⟩
+        exact colorEquation.symm
+
 @[simp] theorem fullEdgeParTargets_length (certificate : Certificate) :
     certificate.fullEdgeParTargets.length = certificate.fullEdges.length := by
-  rcases certificate with ⟨formulas, links, conclusions⟩
-  simp only [fullEdgeParTargets, fullEdges]
-  induction links with
-  | nil => simp
-  | cons link rest ih =>
-      cases link <;> simp [ih]
+  change (linkFullEdgeParTargets certificate.links).length =
+    (linkFullEdges certificate.links).length
+  exact linkFullEdgeParTargets_length certificate.links
 
 /-- Color the incidence at the target of a directed occurrence edge. Only the
 stored premise-to-conclusion orientation of a par edge receives the shared par
@@ -2329,6 +2616,27 @@ def CuspFreeTraversal (certificate : Certificate) :
       ¬certificate.Cusp incoming outgoing ∧
         certificate.CuspFreeTraversal (outgoing :: rest)
 
+theorem CuspFreeTraversal.tail (certificate : Certificate)
+    {first : certificate.fullGraph.DirectedEdge}
+    {rest : List certificate.fullGraph.DirectedEdge}
+    (free : certificate.CuspFreeTraversal (first :: rest)) :
+    certificate.CuspFreeTraversal rest := by
+  cases rest with
+  | nil => trivial
+  | cons second tail =>
+      cases tail with
+      | nil => trivial
+      | cons third remaining => exact free.2
+
+theorem CuspFreeTraversal.suffix (certificate : Certificate)
+    {initial suffix : List certificate.fullGraph.DirectedEdge}
+    (free : certificate.CuspFreeTraversal (initial ++ suffix)) :
+    certificate.CuspFreeTraversal suffix := by
+  induction initial with
+  | nil => simpa using free
+  | cons first rest ih =>
+      exact ih (CuspFreeTraversal.tail certificate free)
+
 /-- A simple closed traversal is cusp-free when neither an internal adjacent
 pair nor the last/first closing pair forms a cusp. -/
 def CuspFreeCycle (certificate : Certificate)
@@ -2339,11 +2647,279 @@ def CuspFreeCycle (certificate : Certificate)
     | first :: rest =>
         ¬certificate.Cusp ((first :: rest).getLast (by simp)) first
 
+theorem CuspFreeCycle.no_cusp_of_successor (certificate : Certificate)
+    {cycle : certificate.fullGraph.EdgeSimpleCycle}
+    (free : certificate.CuspFreeCycle cycle)
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (successor : cycle.CyclicSuccessor incoming outgoing) :
+    ¬certificate.Cusp incoming outgoing := by
+  rcases successor with internal | closing
+  · rcases internal with ⟨before, after, traversalEquation⟩
+    have suffixFree := CuspFreeTraversal.suffix certificate
+      (initial := before)
+      (suffix := incoming :: outgoing :: after) (by
+        rw [← traversalEquation]
+        exact free.1)
+    exact suffixFree.1
+  · rcases closing with ⟨middle, traversalEquation⟩
+    have closingFree := free.2
+    rw [traversalEquation] at closingFree
+    change ¬certificate.Cusp
+      ((outgoing :: (middle ++ [incoming])).getLast (by simp)) outgoing at closingFree
+    have lastEquation :
+        ((outgoing :: (middle ++ [incoming])).getLast (by simp)) = incoming := by
+      calc
+        ((outgoing :: middle) ++ [incoming]).getLast (by simp) =
+            [incoming].getLast (by simp) :=
+          List.getLast_append_of_ne_nil (by simp) (by simp)
+        _ = incoming := List.getLast_singleton _
+    rw [lastEquation] at closingFree
+    exact closingFree
+
+/-- A cusp-free simple cycle cannot traverse two distinct full-edge
+occurrences carrying the same par target. Equal orientations would repeat a
+cycle source or target; opposite orientations make the two occurrences
+cyclically consecutive and expose the forbidden par cusp. -/
+theorem CuspFreeCycle.not_both_same_par (certificate : Certificate)
+    {cycle : certificate.fullGraph.EdgeSimpleCycle}
+    (free : certificate.CuspFreeCycle cycle)
+    {first second : certificate.fullGraph.DirectedEdge}
+    (firstMembership : first ∈ cycle.traversed)
+    (secondMembership : second ∈ cycle.traversed)
+    {conclusion : Vertex}
+    (firstTarget :
+      certificate.fullEdgeParTargets[first.index]? = some (some conclusion))
+    (secondTarget :
+      certificate.fullEdgeParTargets[second.index]? = some (some conclusion))
+    (differentIndex : first.index ≠ second.index) : False := by
+  have firstEdgeLookup :
+      certificate.fullEdges[first.index]? = some first.edge := first.lookup
+  have secondEdgeLookup :
+      certificate.fullEdges[second.index]? = some second.edge := second.lookup
+  have firstAnnotation :
+      certificate.fullEdgeAnnotations[first.index]? =
+        some (first.edge, some conclusion) :=
+    certificate.fullEdgeAnnotation_lookup_iff.mpr
+      ⟨firstEdgeLookup, firstTarget⟩
+  have secondAnnotation :
+      certificate.fullEdgeAnnotations[second.index]? =
+        some (second.edge, some conclusion) :=
+    certificate.fullEdgeAnnotation_lookup_iff.mpr
+      ⟨secondEdgeLookup, secondTarget⟩
+  have firstSecond : first.edge.second = conclusion :=
+    certificate.fullEdgeAnnotation_some_second firstAnnotation
+  have secondSecond : second.edge.second = conclusion :=
+    certificate.fullEdgeAnnotation_some_second secondAnnotation
+  have different : first ≠ second := by
+    intro same
+    exact differentIndex (congrArg Graph.DirectedEdge.index same)
+  cases firstDirection : first.forward with
+  | false =>
+      cases secondDirection : second.forward with
+      | false =>
+          have sameSource : first.source = second.source := by
+            simp [Graph.DirectedEdge.source, firstDirection, secondDirection,
+              firstSecond, secondSecond]
+          exact different
+            (cycle.eq_of_source_eq firstMembership secondMembership sameSource)
+      | true =>
+          have meeting : second.target = first.source := by
+            simp [Graph.DirectedEdge.source, Graph.DirectedEdge.target,
+              firstDirection, secondDirection, firstSecond, secondSecond]
+          have successor := cycle.successor_of_target_eq_source
+            secondMembership firstMembership different.symm meeting
+          have noCusp := CuspFreeCycle.no_cusp_of_successor certificate
+            free successor
+          apply noCusp
+          unfold Cusp
+          have secondColor :
+              certificate.incidenceColor second = .par conclusion :=
+            (certificate.incidenceColor_eq_par_iff second conclusion).2
+              ⟨secondDirection, secondTarget⟩
+          have firstReverseDirection : first.reverse.forward = true := by
+            change (!first.forward) = true
+            rw [firstDirection]
+            rfl
+          have firstReverseColor :
+              certificate.incidenceColor first.reverse = .par conclusion :=
+            (certificate.incidenceColor_eq_par_iff first.reverse conclusion).2
+              ⟨firstReverseDirection, firstTarget⟩
+          rw [secondColor, firstReverseColor]
+  | true =>
+      cases secondDirection : second.forward with
+      | false =>
+          have meeting : first.target = second.source := by
+            simp [Graph.DirectedEdge.source, Graph.DirectedEdge.target,
+              firstDirection, secondDirection, firstSecond, secondSecond]
+          have successor := cycle.successor_of_target_eq_source
+            firstMembership secondMembership different meeting
+          have noCusp := CuspFreeCycle.no_cusp_of_successor certificate
+            free successor
+          apply noCusp
+          unfold Cusp
+          have firstColor :
+              certificate.incidenceColor first = .par conclusion :=
+            (certificate.incidenceColor_eq_par_iff first conclusion).2
+              ⟨firstDirection, firstTarget⟩
+          have secondReverseDirection : second.reverse.forward = true := by
+            change (!second.forward) = true
+            rw [secondDirection]
+            rfl
+          have secondReverseColor :
+              certificate.incidenceColor second.reverse = .par conclusion :=
+            (certificate.incidenceColor_eq_par_iff second.reverse conclusion).2
+              ⟨secondReverseDirection, secondTarget⟩
+          rw [firstColor, secondReverseColor]
+      | true =>
+          have sameTarget : first.target = second.target := by
+            simp [Graph.DirectedEdge.target, firstDirection, secondDirection,
+              firstSecond, secondSecond]
+          exact different
+            (cycle.eq_of_target_eq firstMembership secondMembership sameTarget)
+
+/-- The exact full-edge index occurs in this edge-identity-aware cycle. -/
+def CycleUsesIndex {certificate : Certificate}
+    (cycle : certificate.fullGraph.EdgeSimpleCycle) (index : Nat) : Prop :=
+  ∃ directed ∈ cycle.traversed, directed.index = index
+
+/-- Every suffix of the certificate's link list is par-pair sparse at its
+absolute full-edge offset when the requested indices come from a cusp-free
+simple cycle. -/
+theorem CuspFreeCycle.parPairSparse_suffix (certificate : Certificate)
+    {cycle : certificate.fullGraph.EdgeSimpleCycle}
+    (free : certificate.CuspFreeCycle cycle)
+    {priorLinks suffix : List Link}
+    (linksEquation : certificate.links = priorLinks ++ suffix) :
+    ParPairSparse suffix (linkFullEdges priorLinks).length
+      (CycleUsesIndex cycle) := by
+  induction suffix generalizing priorLinks with
+  | nil => trivial
+  | cons link rest ih =>
+      cases link with
+      | «axiom» left right =>
+          change ParPairSparse rest ((linkFullEdges priorLinks).length + 1)
+            (CycleUsesIndex cycle)
+          have restEquation : certificate.links =
+              (priorLinks ++ [.axiom left right]) ++ rest := by
+            simpa [List.append_assoc] using linksEquation
+          have tailSparse := ih
+            (priorLinks := priorLinks ++ [.axiom left right])
+            restEquation
+          simpa using tailSparse
+      | tensor left right conclusion =>
+          change ParPairSparse rest ((linkFullEdges priorLinks).length + 2)
+            (CycleUsesIndex cycle)
+          have restEquation : certificate.links =
+              (priorLinks ++ [.tensor left right conclusion]) ++ rest := by
+            simpa [List.append_assoc] using linksEquation
+          have tailSparse := ih
+            (priorLinks := priorLinks ++ [.tensor left right conclusion])
+            restEquation
+          simpa using tailSparse
+      | par left right conclusion =>
+          change
+            (¬(CycleUsesIndex cycle (linkFullEdges priorLinks).length ∧
+              CycleUsesIndex cycle ((linkFullEdges priorLinks).length + 1))) ∧
+              ParPairSparse rest ((linkFullEdges priorLinks).length + 2)
+                (CycleUsesIndex cycle)
+          constructor
+          · rintro ⟨firstUsed, secondUsed⟩
+            rcases firstUsed with
+              ⟨firstDirected, firstMembership, firstIndex⟩
+            rcases secondUsed with
+              ⟨secondDirected, secondMembership, secondIndex⟩
+            have firstOffsetTarget :
+                certificate.fullEdgeParTargets[
+                    (linkFullEdges priorLinks).length]? =
+                  some (some conclusion) := by
+              rw [← certificate.linkFullEdgeParTargets_certificate]
+              rw [linksEquation, linkFullEdgeParTargets_append]
+              rw [← linkFullEdgeParTargets_length priorLinks]
+              simp
+            have secondOffsetTarget :
+                certificate.fullEdgeParTargets[
+                    (linkFullEdges priorLinks).length + 1]? =
+                  some (some conclusion) := by
+              rw [← certificate.linkFullEdgeParTargets_certificate]
+              rw [linksEquation, linkFullEdgeParTargets_append]
+              rw [← linkFullEdgeParTargets_length priorLinks]
+              simp
+            have firstTarget :
+                certificate.fullEdgeParTargets[firstDirected.index]? =
+                  some (some conclusion) := by
+              simpa [firstIndex] using firstOffsetTarget
+            have secondTarget :
+                certificate.fullEdgeParTargets[secondDirected.index]? =
+                  some (some conclusion) := by
+              simpa [secondIndex] using secondOffsetTarget
+            have differentIndex :
+                firstDirected.index ≠ secondDirected.index := by
+              omega
+            exact CuspFreeCycle.not_both_same_par certificate free
+              firstMembership secondMembership firstTarget secondTarget
+              differentIndex
+          · have restEquation : certificate.links =
+                (priorLinks ++ [.par left right conclusion]) ++ rest := by
+              simpa [List.append_assoc] using linksEquation
+            have tailSparse := ih
+              (priorLinks := priorLinks ++ [.par left right conclusion])
+              restEquation
+            simpa using tailSparse
+
 /-- Proposition-level colored acyclicity used by the splitting theorem: there
 is no nonempty simple cycle whose every local transition avoids a cusp. -/
 def CuspAcyclic (certificate : Certificate) : Prop :=
   ∀ cycle : certificate.fullGraph.EdgeSimpleCycle,
     ¬certificate.CuspFreeCycle cycle
+
+/-- Danos--Regnier switching correctness excludes every cusp-free simple
+cycle in the unswitched occurrence multigraph. A hypothetical cycle selects a
+par-sparse set of exact edge indices, hence survives inside one switching;
+that contradicts the switching's tree property. -/
+theorem DeclarativelyCorrect.cuspAcyclic {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect) :
+    certificate.CuspAcyclic := by
+  intro cycle free
+  have sparse : ParPairSparse certificate.links 0
+      (CycleUsesIndex cycle) := by
+    have suffixSparse := CuspFreeCycle.parPairSparse_suffix certificate free
+      (priorLinks := []) (suffix := certificate.links) (by simp)
+    simpa using suffixSparse
+  rcases fullSwitchingSelection_covering_exists sparse with
+    ⟨selected, retained, mask, selection, keeps⟩
+  have ordinarySelection :
+      ChoiceSelection certificate.parChoices selected := by
+    simpa using selection.choiceSelection
+  have switchingTree :
+      (certificate.graphForSelection selected).IsTree :=
+    correct.2 _ ⟨selected, ordinarySelection, rfl⟩
+  have aligned : certificate.fullGraph.edges.length = mask.length := by
+    change (linkFullEdges certificate.links).length = mask.length
+    exact selection.mask_length.symm
+  have allKept : ∀ directed ∈ cycle.traversed,
+      mask[directed.index]? = some true := by
+    intro directed membership
+    have indexInBounds :
+        directed.index < (linkFullEdges certificate.links).length := by
+      exact (List.getElem?_eq_some_iff.mp directed.lookup).1
+    apply keeps directed.index indexInBounds
+    simpa using
+      (show CycleUsesIndex cycle directed.index from
+        ⟨directed, membership, rfl⟩)
+  rcases cycle.retainEdges aligned allKept with ⟨retainedCycle⟩
+  have retainedEdges :
+      (certificate.fullGraph.retainEdges mask).edges = retained := by
+    change Graph.retainEdgesByMask certificate.fullEdges mask = retained
+    simpa [retainByMask] using selection.retained_eq_retainByMask.symm
+  have edgePermutation :
+      (certificate.graphForSelection selected).edges.Perm
+        (certificate.fullGraph.retainEdges mask).edges := by
+    rw [retainedEdges]
+    exact selection.edgePermutation.symm
+  have retainedTree :
+      (certificate.fullGraph.retainEdges mask).IsTree :=
+    switchingTree.permuteEdges rfl edgePermutation
+  exact retainedTree.no_edgeSimpleCycle retainedCycle
 
 theorem fixedEdges_subset_fullEdges (certificate : Certificate) :
     ∀ edge ∈ certificate.fixedEdges, edge ∈ certificate.fullEdges := by

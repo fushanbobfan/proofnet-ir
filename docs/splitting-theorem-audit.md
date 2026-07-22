@@ -69,18 +69,15 @@ name-level restatement of Yeo:
    proposition-level colored-cycle criterion. The projection and existence
    theorems prove that every stored par link supplies two exact indexed
    incidences aimed at its conclusion with that shared color.
-3. **Correctness bridge.** Prove that `DeclarativelyCorrect` implies
-   cusp-acyclicity of the colored occurrence multigraph. This must cover every
-   independent `ChoiceSelection`, not merely executable enumeration examples.
-   The new `FullSwitchingSelection` sublemma already gives every such choice
-   an exact full-edge Boolean mask and proves that the retained edge multiset
-   is the checker switching graph up to storage order. What remains is the
-   cycle-containment construction and the theorem that `IsTree` excludes an
-   edge-aware simple cycle. The tree-side theorem is now complete at occurrence
-   level: non-root shortest-path parent indices occupy every stored tree edge
-   exactly once, and a minimum-rank argument proves `IsTree` has no
-   `EdgeSimpleCycle`, even with parallel equal-valued edges. The remaining part
-   of this bridge is the cycle-to-switching containment construction.
+3. **Correctness bridge (complete).**
+   `DeclarativelyCorrect.cuspAcyclic` now proves cusp-acyclicity of the colored
+   occurrence multigraph for every independent `ChoiceSelection`, not merely
+   executable enumeration examples. The proof treats stored edge indices as
+   occurrence identity, proves a cusp-free simple cycle cannot use both
+   positions of a par pair, constructs a `FullSwitchingSelection` mask that
+   preserves every requested cycle occurrence, transports the cycle through
+   mask compaction, and contradicts the selected switching's `IsTree` theorem.
+   This includes parallel equal-valued edges and the cycle's closing cusp.
 4. **Finite maximality/Yeo.** Prove the generalized finite colored-graph
    splitting theorem or an equivalent self-contained lemma in Lean.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored
@@ -103,6 +100,8 @@ name-level restatement of Yeo:
   terminal tensor or terminal par, by strict formula-complexity growth.
 - edge-aware simple cycles and the exact local switching-color/cusp semantics
   are defined without collapsing parallel edge occurrences.
+- declarative switching correctness now implies the exact proposition-level
+  colored-cycle criterion `CuspAcyclic`.
 
 ## Claim boundary
 

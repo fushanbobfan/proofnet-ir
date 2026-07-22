@@ -65,6 +65,11 @@
 - added a full-occurrence switching mask relation, proved it equivalent to the
   independent one-edge-per-par `ChoiceSelection`, and proved its retained
   multiset is exactly the checker switching graph up to edge-list order.
+- proved the full correctness-to-colored-acyclicity bridge: a cusp-free exact
+  multigraph cycle uses at most one premise occurrence from each par pair,
+  admits a switching mask that preserves every cycle edge, and therefore
+  contradicts `IsTree`; `DeclarativelyCorrect.cuspAcyclic` now states the
+  kernel-checked result for every independent switching.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

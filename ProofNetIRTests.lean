@@ -268,6 +268,8 @@ example : canonical.check = true ↔ canonical.Correct :=
   canonical.check_iff_correct
 example : canonical.DeclarativelyCorrect :=
   canonical.check_sound_declarative (by native_decide)
+example : canonical.CuspAcyclic :=
+  (canonical.check_sound_declarative (by native_decide)).cuspAcyclic
 example : canonical.check = true ↔ canonical.DeclarativelyCorrect :=
   canonical.check_iff_declarativelyCorrect
 example : canonical.FuelCorrect :=

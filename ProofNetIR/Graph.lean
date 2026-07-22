@@ -15,6 +15,77 @@ structure Graph where
 
 namespace Graph
 
+/-- Number of retained Boolean mask entries strictly before an original edge
+index. This is the compacted index of a kept edge. -/
+def retainedIndex (mask : List Bool) (index : Nat) : Nat :=
+  (mask.take index).count true
+
+/-- Retain stored edge occurrences according to a parallel Boolean mask. -/
+def retainEdgesByMask : List Edge → List Bool → List Edge
+  | edge :: edges, keep :: mask =>
+      if keep then edge :: retainEdgesByMask edges mask
+      else retainEdgesByMask edges mask
+  | _, _ => []
+
+/-- The occurrence-preserving masked subgraph. -/
+def retainEdges (graph : Graph) (mask : List Bool) : Graph where
+  vertexCount := graph.vertexCount
+  edges := retainEdgesByMask graph.edges mask
+
+theorem retainEdgesByMask_lookup_kept {edges : List Edge} {mask : List Bool}
+    {index : Nat} {edge : Edge}
+    (aligned : edges.length = mask.length)
+    (edgeLookup : edges[index]? = some edge)
+    (kept : mask[index]? = some true) :
+    (retainEdgesByMask edges mask)[retainedIndex mask index]? = some edge := by
+  induction index generalizing edges mask with
+  | zero =>
+      cases edges <;> cases mask <;>
+        simp_all [retainEdgesByMask, retainedIndex]
+  | succ index ih =>
+      cases edges with
+      | nil => simp at edgeLookup
+      | cons head tail =>
+          cases mask with
+          | nil => simp at aligned
+          | cons keep rest =>
+              cases keep <;>
+                simp_all [retainEdgesByMask, retainedIndex]
+
+theorem retainedIndex_lt_of_lt_of_kept {mask : List Bool} {first second : Nat}
+    (less : first < second) (firstKept : mask[first]? = some true) :
+    retainedIndex mask first < retainedIndex mask second := by
+  induction mask generalizing first second with
+  | nil => simp at firstKept
+  | cons keep tail ih =>
+      cases first with
+      | zero =>
+          cases second with
+          | zero => omega
+          | succ second =>
+              cases keep <;>
+                simp_all [retainedIndex]
+      | succ first =>
+          cases second with
+          | zero => omega
+          | succ second =>
+              have smaller := ih (Nat.lt_of_succ_lt_succ less) firstKept
+              cases keep <;>
+                simp_all [retainedIndex]
+
+theorem retainedIndex_injective_of_kept {mask : List Bool}
+    {first second : Nat}
+    (firstKept : mask[first]? = some true)
+    (secondKept : mask[second]? = some true)
+    (same : retainedIndex mask first = retainedIndex mask second) :
+    first = second := by
+  rcases Nat.lt_trichotomy first second with less | equal | greater
+  · have strict := retainedIndex_lt_of_lt_of_kept less firstKept
+    omega
+  · exact equal
+  · have strict := retainedIndex_lt_of_lt_of_kept greater secondKept
+    omega
+
 /-- Undirected adjacency induced by one stored edge. -/
 def Adjacent (graph : Graph) (left right : Vertex) : Prop :=
   ∃ edge ∈ graph.edges,
@@ -83,6 +154,28 @@ theorem adjacent {graph : Graph} (directed : graph.DirectedEdge) :
   refine ⟨edge, membership, ?_⟩
   cases forward <;> simp [source, target]
 
+def retain {graph : Graph} {mask : List Bool}
+    (directed : graph.DirectedEdge)
+    (aligned : graph.edges.length = mask.length)
+    (kept : mask[directed.index]? = some true) :
+    (graph.retainEdges mask).DirectedEdge where
+  index := retainedIndex mask directed.index
+  edge := directed.edge
+  lookup := retainEdgesByMask_lookup_kept aligned directed.lookup kept
+  forward := directed.forward
+
+@[simp] theorem retain_source {graph : Graph} {mask : List Bool}
+    (directed : graph.DirectedEdge)
+    (aligned : graph.edges.length = mask.length)
+    (kept : mask[directed.index]? = some true) :
+    (directed.retain aligned kept).source = directed.source := rfl
+
+@[simp] theorem retain_target {graph : Graph} {mask : List Bool}
+    (directed : graph.DirectedEdge)
+    (aligned : graph.edges.length = mask.length)
+    (kept : mask[directed.index]? = some true) :
+    (directed.retain aligned kept).target = directed.target := rfl
+
 end DirectedEdge
 
 /-- Edge-identity-aware oriented walks for colored-path and multigraph-cycle
@@ -98,6 +191,37 @@ inductive EdgeWalk (graph : Graph) :
       (starts : directed.source = middle)
       (finishes : directed.target = finish) :
       EdgeWalk graph start (traversed ++ [directed]) finish
+
+/-- Cons-oriented view of an edge-aware traversal. It is equivalent to
+`EdgeWalk` but exposes consecutive source/target equations directly. -/
+inductive EdgeChain (graph : Graph) :
+    Vertex → List graph.DirectedEdge → Vertex → Prop where
+  | nil (vertex : Vertex) : EdgeChain graph vertex [] vertex
+  | cons {start finish : Vertex} {rest : List graph.DirectedEdge}
+      (directed : graph.DirectedEdge)
+      (starts : directed.source = start)
+      (tail : EdgeChain graph directed.target rest finish) :
+      EdgeChain graph start (directed :: rest) finish
+
+namespace EdgeChain
+
+theorem appendLast {graph : Graph} {start middle finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (chain : graph.EdgeChain start traversed middle)
+    (directed : graph.DirectedEdge)
+    (starts : directed.source = middle)
+    (finishes : directed.target = finish) :
+    graph.EdgeChain start (traversed ++ [directed]) finish := by
+  induction chain with
+  | nil =>
+      apply EdgeChain.cons directed starts
+      rw [finishes]
+      exact .nil _
+  | @cons chainStart chainFinish rest first firstStarts tail ih =>
+      exact EdgeChain.cons first firstStarts
+        (ih starts)
+
+end EdgeChain
 
 /-- Independent path semantics for the graph checker. -/
 inductive Walk (graph : Graph) : Vertex → Vertex → Prop where
@@ -164,6 +288,50 @@ theorem getLast_target {graph : Graph} {start finish : Vertex}
   | @step start finish priorSteps prior directed starts finishes =>
       simpa using finishes
 
+theorem toChain {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish) :
+    graph.EdgeChain start traversed finish := by
+  induction walk with
+  | refl => exact .nil _
+  | @step start finish priorSteps prior directed starts finishes ih =>
+      exact ih.appendLast directed starts finishes
+
+/-- Transport an edge-aware walk through an occurrence mask that keeps every
+traversed edge. The returned traversal records the exact compacted indices and
+preserves its target-vertex sequence. -/
+theorem retainEdges {graph : Graph} {mask : List Bool}
+    {start finish : Vertex} {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish)
+    (aligned : graph.edges.length = mask.length)
+    (allKept : ∀ directed ∈ traversed,
+      mask[directed.index]? = some true) :
+    ∃ retainedTraversal : List (graph.retainEdges mask).DirectedEdge,
+      (graph.retainEdges mask).EdgeWalk start retainedTraversal finish ∧
+      retainedTraversal.map DirectedEdge.index =
+        traversed.map (fun directed => retainedIndex mask directed.index) ∧
+      retainedTraversal.map DirectedEdge.target =
+        traversed.map DirectedEdge.target := by
+  induction walk with
+  | refl => exact ⟨[], .refl _, rfl, rfl⟩
+  | @step start finish priorSteps prior directed starts finishes ih =>
+      have priorKept : ∀ earlier ∈ priorSteps,
+          mask[earlier.index]? = some true := by
+        intro earlier earlierMembership
+        exact allKept earlier (by simp [earlierMembership])
+      rcases ih priorKept with
+        ⟨retainedPrior, retainedWalk, indexEquation, targetEquation⟩
+      have directedKept : mask[directed.index]? = some true :=
+        allKept directed (by simp)
+      let retainedDirected := directed.retain aligned directedKept
+      refine ⟨retainedPrior ++ [retainedDirected], ?_, ?_, ?_⟩
+      · exact EdgeWalk.step retainedWalk retainedDirected
+          (by simpa [retainedDirected] using starts)
+          (by simpa [retainedDirected] using finishes)
+      · simp [List.map_append, indexEquation, retainedDirected,
+          DirectedEdge.retain]
+      · simp [List.map_append, targetEquation, retainedDirected]
+
 def reverseTraversal {graph : Graph}
     (traversed : List graph.DirectedEdge) : List graph.DirectedEdge :=
   traversed.reverse.map DirectedEdge.reverse
@@ -205,6 +373,52 @@ theorem reverse {graph : Graph} {start finish : Vertex}
 
 end EdgeWalk
 
+namespace EdgeChain
+
+theorem sources_eq_start_targets_dropLast {graph : Graph}
+    {start finish : Vertex} {traversed : List graph.DirectedEdge}
+    (chain : graph.EdgeChain start traversed finish)
+    (nonempty : traversed ≠ []) :
+    traversed.map Graph.DirectedEdge.source =
+      start :: (traversed.map Graph.DirectedEdge.target).dropLast := by
+  induction chain with
+  | nil => exact False.elim (nonempty rfl)
+  | @cons start finish rest directed starts tail ih =>
+      cases rest with
+      | nil => simp [starts]
+      | cons next remaining =>
+          have tailNonempty : next :: remaining ≠ [] := by simp
+          rw [List.map_cons, starts, ih tailNonempty]
+          simp
+
+theorem split_append {graph : Graph} {start finish : Vertex}
+    {leftSteps rightSteps : List graph.DirectedEdge}
+    (chain : graph.EdgeChain start (leftSteps ++ rightSteps) finish) :
+    ∃ middle,
+      graph.EdgeChain start leftSteps middle ∧
+        graph.EdgeChain middle rightSteps finish := by
+  induction leftSteps generalizing start with
+  | nil => exact ⟨start, .nil _, by simpa using chain⟩
+  | cons first rest ih =>
+      cases chain with
+      | cons directed starts tail =>
+          rcases ih tail with ⟨middle, prefixChain, suffixChain⟩
+          exact ⟨middle, .cons first starts prefixChain, suffixChain⟩
+
+theorem eq_of_nil {graph : Graph} {start finish : Vertex}
+    (chain : graph.EdgeChain start [] finish) : start = finish := by
+  cases chain
+  rfl
+
+theorem head_source {graph : Graph} {start finish : Vertex}
+    {first : graph.DirectedEdge} {rest : List graph.DirectedEdge}
+    (chain : graph.EdgeChain start (first :: rest) finish) :
+    first.source = start := by
+  cases chain
+  assumption
+
+end EdgeChain
+
 /-- A nonempty closed edge-aware walk with no repeated vertex except its
 identified start/end. The exact edge indices allow two parallel stored edges
 to form a genuine length-two multigraph cycle. -/
@@ -218,6 +432,26 @@ structure EdgeSimpleCycle (graph : Graph) where
     (start :: traversed.dropLast.map DirectedEdge.target).Nodup
 
 namespace EdgeSimpleCycle
+
+private theorem eq_of_map_eq_of_mem_of_nodup {α β : Type}
+    {values : List α} {function : α → β} {first second : α}
+    (nodup : (values.map function).Nodup)
+    (firstMembership : first ∈ values)
+    (secondMembership : second ∈ values)
+    (same : function first = function second) : first = second := by
+  induction values with
+  | nil => simp at firstMembership
+  | cons head tail ih =>
+      simp only [List.map_cons, List.nodup_cons] at nodup
+      simp only [List.mem_cons] at firstMembership secondMembership
+      rcases firstMembership with rfl | firstTail <;>
+        rcases secondMembership with rfl | secondTail
+      · rfl
+      · exact False.elim (nodup.1
+          (List.mem_map.mpr ⟨second, secondTail, same.symm⟩))
+      · exact False.elim (nodup.1
+          (List.mem_map.mpr ⟨first, firstTail, same⟩))
+      · exact ih nodup.2 firstTail secondTail
 
 def vertices {graph : Graph} (cycle : graph.EdgeSimpleCycle) : List Vertex :=
   cycle.start :: cycle.traversed.dropLast.map DirectedEdge.target
@@ -285,6 +519,101 @@ theorem edge_endpoints_mem_vertices {graph : Graph}
           endpoints.1⟩
   | true =>
       simpa [DirectedEdge.source, DirectedEdge.target, direction] using endpoints
+
+theorem sources_eq_vertices {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) :
+    cycle.traversed.map Graph.DirectedEdge.source = cycle.vertices := by
+  have sources := cycle.walk.toChain.sources_eq_start_targets_dropLast
+    cycle.nonempty
+  simpa [vertices, List.map_dropLast] using sources
+
+theorem sources_nodup {graph : Graph} (cycle : graph.EdgeSimpleCycle) :
+    (cycle.traversed.map Graph.DirectedEdge.source).Nodup := by
+  rw [cycle.sources_eq_vertices]
+  exact cycle.vertices_nodup
+
+theorem targets_nodup {graph : Graph} (cycle : graph.EdgeSimpleCycle) :
+    (cycle.traversed.map Graph.DirectedEdge.target).Nodup := by
+  rw [cycle.targets_eq]
+  have permutation :
+      (cycle.traversed.dropLast.map Graph.DirectedEdge.target ++ [cycle.start]).Perm
+        cycle.vertices := by
+    simp [vertices]
+  exact permutation.nodup_iff.mpr cycle.vertices_nodup
+
+theorem eq_of_source_eq {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {first second : graph.DirectedEdge}
+    (firstMembership : first ∈ cycle.traversed)
+    (secondMembership : second ∈ cycle.traversed)
+    (same : first.source = second.source) : first = second :=
+  eq_of_map_eq_of_mem_of_nodup cycle.sources_nodup firstMembership
+    secondMembership same
+
+theorem eq_of_target_eq {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {first second : graph.DirectedEdge}
+    (firstMembership : first ∈ cycle.traversed)
+    (secondMembership : second ∈ cycle.traversed)
+    (same : first.target = second.target) : first = second :=
+  eq_of_map_eq_of_mem_of_nodup cycle.targets_nodup firstMembership
+    secondMembership same
+
+/-- Consecutive traversal edges, including the wrap-around transition from the
+last edge back to the first edge. -/
+def CyclicSuccessor {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    (incoming outgoing : graph.DirectedEdge) : Prop :=
+  (∃ before after,
+    cycle.traversed = before ++ incoming :: outgoing :: after) ∨
+  (∃ middle,
+    cycle.traversed = (outgoing :: middle) ++ [incoming])
+
+theorem successor_of_target_eq_source {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) {incoming outgoing : graph.DirectedEdge}
+    (incomingMembership : incoming ∈ cycle.traversed)
+    (outgoingMembership : outgoing ∈ cycle.traversed)
+    (different : incoming ≠ outgoing)
+    (meeting : incoming.target = outgoing.source) :
+    cycle.CyclicSuccessor incoming outgoing := by
+  rcases List.mem_iff_append.mp incomingMembership with
+    ⟨before, after, traversalEquation⟩
+  have chain := cycle.walk.toChain
+  rw [traversalEquation] at chain
+  rcases chain.split_append with
+    ⟨middle, beforeChain, incomingChain⟩
+  cases incomingChain with
+  | cons directed starts tailChain =>
+      cases after with
+      | nil =>
+          cases before with
+          | nil =>
+              have onlyIncoming : outgoing = incoming := by
+                simpa [traversalEquation] using outgoingMembership
+              exact False.elim (different onlyIncoming.symm)
+          | cons first rest =>
+              have firstMembership : first ∈ cycle.traversed := by
+                rw [traversalEquation]
+                simp
+              have incomingTargetStart : incoming.target = cycle.start := by
+                exact EdgeChain.eq_of_nil tailChain
+              have firstSourceStart : first.source = cycle.start := by
+                have fullChain := cycle.walk.toChain
+                rw [traversalEquation] at fullChain
+                exact EdgeChain.head_source fullChain
+              have firstIsOutgoing := cycle.eq_of_source_eq firstMembership
+                outgoingMembership (by
+                  rw [firstSourceStart, ← incomingTargetStart, meeting])
+              subst first
+              exact .inr ⟨rest, by simpa using traversalEquation⟩
+      | cons next rest =>
+          have nextMembership : next ∈ cycle.traversed := by
+            rw [traversalEquation]
+            simp
+          have nextStarts : next.source = incoming.target := by
+            cases tailChain
+            assumption
+          have nextIsOutgoing := cycle.eq_of_source_eq nextMembership
+            outgoingMembership (nextStarts.trans meeting)
+          subst next
+          exact .inl ⟨before, rest, traversalEquation⟩
 
 end EdgeSimpleCycle
 
