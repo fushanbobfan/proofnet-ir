@@ -76,9 +76,11 @@ name-level restatement of Yeo:
    an exact full-edge Boolean mask and proves that the retained edge multiset
    is the checker switching graph up to storage order. What remains is the
    cycle-containment construction and the theorem that `IsTree` excludes an
-   edge-aware simple cycle. The tree-side counting sublemma is now proved at
-   occurrence level: non-root shortest-path parent indices occupy every stored
-   tree edge exactly once, even with parallel equal-valued edges.
+   edge-aware simple cycle. The tree-side theorem is now complete at occurrence
+   level: non-root shortest-path parent indices occupy every stored tree edge
+   exactly once, and a minimum-rank argument proves `IsTree` has no
+   `EdgeSimpleCycle`, even with parallel equal-valued edges. The remaining part
+   of this bridge is the cycle-to-switching containment construction.
 4. **Finite maximality/Yeo.** Prove the generalized finite colored-graph
    splitting theorem or an equivalent self-contained lemma in Lean.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored

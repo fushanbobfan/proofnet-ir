@@ -109,6 +109,61 @@ inductive Walk (graph : Graph) : Vertex → Vertex → Prop where
 
 namespace EdgeWalk
 
+/-- Vertices reached while following an edge-aware traversal, including its
+initial vertex. -/
+def visitedVertices {graph : Graph} (start : Vertex)
+    (traversed : List graph.DirectedEdge) : List Vertex :=
+  start :: traversed.map DirectedEdge.target
+
+theorem finish_mem_visitedVertices {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish) :
+    finish ∈ visitedVertices start traversed := by
+  induction walk with
+  | refl => simp [visitedVertices]
+  | @step start finish traversed prior directed starts finishes ih =>
+      simp [visitedVertices, List.map_append, finishes]
+
+theorem mem_visitedVertices_append {graph : Graph} {start vertex : Vertex}
+    {traversed suffix : List graph.DirectedEdge}
+    (membership : vertex ∈ visitedVertices start traversed) :
+    vertex ∈ visitedVertices start (traversed ++ suffix) := by
+  simp only [visitedVertices, List.mem_cons] at membership ⊢
+  rcases membership with rfl | tailMembership
+  · exact .inl rfl
+  · exact .inr (by
+      rw [List.map_append]
+      exact List.mem_append.mpr (.inl tailMembership))
+
+theorem endpoints_mem_visitedVertices {graph : Graph}
+    {start finish : Vertex} {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish)
+    {directed : graph.DirectedEdge} (membership : directed ∈ traversed) :
+    directed.source ∈ visitedVertices start traversed ∧
+      directed.target ∈ visitedVertices start traversed := by
+  induction walk generalizing directed with
+  | refl => simp at membership
+  | @step start finish priorSteps prior directedStep starts finishes ih =>
+      simp only [List.mem_append, List.mem_singleton] at membership
+      rcases membership with earlier | rfl
+      · rcases ih earlier with ⟨sourceMembership, targetMembership⟩
+        exact ⟨mem_visitedVertices_append sourceMembership,
+          mem_visitedVertices_append targetMembership⟩
+      · constructor
+        · rw [starts]
+          exact mem_visitedVertices_append prior.finish_mem_visitedVertices
+        · simp [visitedVertices, List.map_append]
+
+theorem getLast_target {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish)
+    (nonempty : traversed ≠ []) :
+    (traversed.getLast nonempty).target = finish := by
+  cases walk with
+  | refl => exact False.elim (nonempty rfl)
+  | @step start finish priorSteps prior directed starts finishes =>
+      simpa using finishes
+
 def reverseTraversal {graph : Graph}
     (traversed : List graph.DirectedEdge) : List graph.DirectedEdge :=
   traversed.reverse.map DirectedEdge.reverse
@@ -161,6 +216,77 @@ structure EdgeSimpleCycle (graph : Graph) where
   edgeIndicesNodup : (traversed.map DirectedEdge.index).Nodup
   interiorNodup :
     (start :: traversed.dropLast.map DirectedEdge.target).Nodup
+
+namespace EdgeSimpleCycle
+
+def vertices {graph : Graph} (cycle : graph.EdgeSimpleCycle) : List Vertex :=
+  cycle.start :: cycle.traversed.dropLast.map DirectedEdge.target
+
+@[simp] theorem vertices_nodup {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) : cycle.vertices.Nodup :=
+  cycle.interiorNodup
+
+theorem targets_eq {graph : Graph} (cycle : graph.EdgeSimpleCycle) :
+    cycle.traversed.map DirectedEdge.target =
+      cycle.traversed.dropLast.map DirectedEdge.target ++ [cycle.start] := by
+  have decomposition := congrArg (List.map DirectedEdge.target)
+    (List.dropLast_concat_getLast cycle.nonempty)
+  simp only [List.map_append, List.map_singleton] at decomposition
+  rw [cycle.walk.getLast_target cycle.nonempty] at decomposition
+  exact decomposition.symm
+
+@[simp] theorem vertices_length {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) :
+    cycle.vertices.length = cycle.traversed.length := by
+  have positive : 0 < cycle.traversed.length :=
+    List.length_pos_iff.mpr cycle.nonempty
+  simp [vertices, List.length_dropLast]
+  omega
+
+theorem directed_endpoints_mem_vertices {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) {directed : graph.DirectedEdge}
+    (membership : directed ∈ cycle.traversed) :
+    directed.source ∈ cycle.vertices ∧ directed.target ∈ cycle.vertices := by
+  have endpoints := cycle.walk.endpoints_mem_visitedVertices membership
+  constructor
+  · have sourceMembership := endpoints.1
+    simp only [EdgeWalk.visitedVertices] at sourceMembership
+    rw [targets_eq cycle] at sourceMembership
+    simp only [vertices, List.mem_cons, List.mem_append] at sourceMembership ⊢
+    rcases sourceMembership with atStart | inInterior | atEnd
+    · exact .inl atStart
+    · exact .inr inInterior
+    · rcases atEnd with atEnd | impossible
+      · exact .inl atEnd
+      · simp at impossible
+  · have targetMembership := endpoints.2
+    simp only [EdgeWalk.visitedVertices] at targetMembership
+    rw [targets_eq cycle] at targetMembership
+    simp only [vertices, List.mem_cons, List.mem_append] at targetMembership ⊢
+    rcases targetMembership with atStart | inInterior | atEnd
+    · exact .inl atStart
+    · exact .inr inInterior
+    · rcases atEnd with atEnd | impossible
+      · exact .inl atEnd
+      · simp at impossible
+
+theorem edge_endpoints_mem_vertices {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) {directed : graph.DirectedEdge}
+    (membership : directed ∈ cycle.traversed) :
+    directed.edge.first ∈ cycle.vertices ∧
+      directed.edge.second ∈ cycle.vertices := by
+  have endpoints := cycle.directed_endpoints_mem_vertices membership
+  cases direction : directed.forward with
+  | false =>
+      exact ⟨by
+        simpa [DirectedEdge.source, DirectedEdge.target, direction] using
+          endpoints.2, by
+        simpa [DirectedEdge.source, DirectedEdge.target, direction] using
+          endpoints.1⟩
+  | true =>
+      simpa [DirectedEdge.source, DirectedEdge.target, direction] using endpoints
+
+end EdgeSimpleCycle
 
 /-- An independent graph walk carrying its exact number of edge steps. The
 index makes finite-depth completeness statements possible without eliminating

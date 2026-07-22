@@ -59,6 +59,9 @@
 - strengthened tree counting from edge values to stored occurrences: in every
   `IsTree`, shortest-path parent-edge indices of non-root vertices occupy every
   edge index exactly once, including in multigraphs.
+- proved the full occurrence-level acyclicity theorem: `IsTree` excludes every
+  edge-aware simple multigraph cycle, by a minimum shortest-path-rank argument;
+  added a kernel-checked triangle-cycle regression independent of `isTree`.
 - added a full-occurrence switching mask relation, proved it equivalent to the
   independent one-edge-per-par `ChoiceSelection`, and proved its retained
   multiset is exactly the checker switching graph up to edge-list order.

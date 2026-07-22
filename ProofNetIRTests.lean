@@ -848,8 +848,42 @@ def cyclicGraph : Graph where
     { first := 2, second := 0 }
   ]
 
+def cyclicDirected01 : cyclicGraph.DirectedEdge where
+  index := 0
+  edge := { first := 0, second := 1 }
+  lookup := rfl
+  forward := true
+
+def cyclicDirected12 : cyclicGraph.DirectedEdge where
+  index := 1
+  edge := { first := 1, second := 2 }
+  lookup := rfl
+  forward := true
+
+def cyclicDirected20 : cyclicGraph.DirectedEdge where
+  index := 2
+  edge := { first := 2, second := 0 }
+  lookup := rfl
+  forward := true
+
+def cyclicTriangle : cyclicGraph.EdgeSimpleCycle where
+  start := 0
+  traversed := [cyclicDirected01, cyclicDirected12, cyclicDirected20]
+  nonempty := by simp
+  walk := by
+    apply Graph.EdgeWalk.step
+      (Graph.EdgeWalk.step
+        (Graph.EdgeWalk.step (.refl 0) cyclicDirected01 rfl rfl)
+        cyclicDirected12 rfl rfl)
+      cyclicDirected20 rfl rfl
+  edgeIndicesNodup := by decide
+  interiorNodup := by decide
+
 example : cyclicGraph.connected = true := by native_decide
 example : cyclicGraph.isTree = false := by native_decide
+example : ¬cyclicGraph.IsTree := by
+  intro tree
+  exact tree.no_edgeSimpleCycle cyclicTriangle
 example : ¬cyclicGraph.FuelTree := by
   intro semantic
   have accepted := cyclicGraph.isTree_iff_fuelTree.mpr semantic

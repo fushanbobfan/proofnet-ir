@@ -207,6 +207,21 @@ private theorem exists_maximal_measure {α : Type}
             (maximalBound value (by simpa using tailMembership))
             maximalBelowHead
 
+private theorem exists_minimal_measure {α : Type}
+    (head : α) (tail : List α) (measure : α → Nat) :
+    ∃ minimal ∈ head :: tail,
+      ∀ value ∈ head :: tail, measure minimal ≤ measure value := by
+  let property : Nat → Prop := fun candidate =>
+    ∃ value ∈ head :: tail, measure value = candidate
+  have existsProperty : ∃ candidate, property candidate :=
+    ⟨measure head, head, by simp, rfl⟩
+  rcases exists_least_nat property existsProperty with
+    ⟨least, ⟨minimal, minimalMembership, minimalMeasure⟩, leastBound⟩
+  refine ⟨minimal, minimalMembership, ?_⟩
+  intro value valueMembership
+  rw [minimalMeasure]
+  exact leastBound (measure value) ⟨value, valueMembership, rfl⟩
+
 private theorem length_filter_filterMap_eq {α β : Type}
     (values : List α) (transform : α → Option β)
     (after : β → Bool) (before : α → Bool)
@@ -1362,6 +1377,116 @@ theorem IsTree.every_edge_index_is_parent {graph : Graph}
     ⟨vertex, vertexMembership, same⟩
   rcases vertexData vertex vertexMembership with ⟨inBounds, nonRoot⟩
   exact ⟨vertex, inBounds, nonRoot, same⟩
+
+/-- A graph satisfying the declarative tree contract has no edge-aware simple
+multigraph cycle. The proof counts exact stored edge occurrences, maps each
+cycle edge to its unique shortest-path child vertex, and contradicts a
+minimum-distance cycle vertex. -/
+theorem IsTree.no_edgeSimpleCycle {graph : Graph} (tree : graph.IsTree)
+    (cycle : graph.EdgeSimpleCycle) : False := by
+  classical
+  let parentVertex : graph.DirectedEdge → Vertex := fun directed =>
+    Classical.choose (tree.every_edge_index_is_parent
+      (List.getElem?_eq_some_iff.mp directed.lookup).1)
+  have parentVertex_spec : ∀ directed : graph.DirectedEdge,
+      parentVertex directed < graph.vertexCount ∧
+        parentVertex directed ≠ 0 ∧
+          graph.parentEdgeIndex (parentVertex directed) = directed.index := by
+    intro directed
+    dsimp [parentVertex]
+    exact Classical.choose_spec (tree.every_edge_index_is_parent
+      (List.getElem?_eq_some_iff.mp directed.lookup).1)
+  let parentVertices := cycle.traversed.map parentVertex
+  have parentVerticesNodup : parentVertices.Nodup := by
+    have general : ∀ steps : List graph.DirectedEdge,
+        (steps.map Graph.DirectedEdge.index).Nodup →
+          (steps.map parentVertex).Nodup := by
+      intro steps indexNodup
+      induction steps with
+      | nil => simp
+      | cons head tail ih =>
+          simp only [List.map_cons, List.nodup_cons] at indexNodup ⊢
+          refine ⟨?_, ih indexNodup.2⟩
+          intro parentMembership
+          rcases List.mem_map.mp parentMembership with
+            ⟨other, otherMembership, sameParent⟩
+          have headSpec := parentVertex_spec head
+          have otherSpec := parentVertex_spec other
+          have sameIndex : head.index = other.index := by
+            rw [← headSpec.2.2, ← otherSpec.2.2, sameParent]
+          exact indexNodup.1
+            (List.mem_map.mpr ⟨other, otherMembership, sameIndex.symm⟩)
+    exact general cycle.traversed cycle.edgeIndicesNodup
+  have parentVerticesSubset : ∀ vertex ∈ parentVertices,
+      vertex ∈ cycle.vertices := by
+    intro vertex membership
+    rcases List.mem_map.mp membership with
+      ⟨directed, directedMembership, rfl⟩
+    have vertexSpec := parentVertex_spec directed
+    have parentLookup := graph.parentEdgeIndex_lookup tree.2.1
+      vertexSpec.1 vertexSpec.2.1
+    rw [vertexSpec.2.2] at parentLookup
+    have sameEdge : directed.edge =
+        graph.parentEdge (parentVertex directed) :=
+      Option.some.inj (directed.lookup.symm.trans parentLookup)
+    rcases graph.parentEdge_spec tree.2.1 vertexSpec.1 vertexSpec.2.1 with
+      ⟨predecessor, edgeMembership, direction, decrease⟩
+    rw [← sameEdge] at direction
+    have endpoints := cycle.edge_endpoints_mem_vertices directedMembership
+    rcases direction with forward | backward
+    · rw [← forward.2]
+      exact endpoints.2
+    · rw [← backward.1]
+      exact endpoints.1
+  have parentVerticesLength :
+      parentVertices.length = cycle.vertices.length := by
+    simp [parentVertices]
+  have verticesSubsetParent : ∀ vertex ∈ cycle.vertices,
+      vertex ∈ parentVertices := by
+    intro vertex membership
+    by_cases present : vertex ∈ parentVertices
+    · exact present
+    · have enlargedNodup : (vertex :: parentVertices).Nodup :=
+        List.nodup_cons.mpr ⟨present, parentVerticesNodup⟩
+      have enlargedSubset : ∀ candidate ∈ vertex :: parentVertices,
+          candidate ∈ cycle.vertices := by
+        intro candidate candidateMembership
+        simp only [List.mem_cons] at candidateMembership
+        rcases candidateMembership with rfl | tailMembership
+        · exact membership
+        · exact parentVerticesSubset candidate tailMembership
+      have impossible := length_le_of_nodup_subset' enlargedNodup enlargedSubset
+      rw [List.length_cons, parentVerticesLength] at impossible
+      omega
+  rcases exists_minimal_measure cycle.start
+      (cycle.traversed.dropLast.map Graph.DirectedEdge.target)
+      graph.shortestWalkSteps with
+    ⟨minimal, minimalMembership, minimalBound⟩
+  have minimalInCycle : minimal ∈ cycle.vertices := by
+    simpa [Graph.EdgeSimpleCycle.vertices] using minimalMembership
+  have minimalIsParent := verticesSubsetParent minimal minimalInCycle
+  rcases List.mem_map.mp minimalIsParent with
+    ⟨directed, directedMembership, parentEquation⟩
+  have minimalSpec := parentVertex_spec directed
+  rw [parentEquation] at minimalSpec
+  have parentLookup := graph.parentEdgeIndex_lookup tree.2.1
+    minimalSpec.1 minimalSpec.2.1
+  rw [minimalSpec.2.2] at parentLookup
+  have sameEdge : directed.edge = graph.parentEdge minimal :=
+    Option.some.inj (directed.lookup.symm.trans parentLookup)
+  rcases graph.parentEdge_spec tree.2.1 minimalSpec.1 minimalSpec.2.1 with
+    ⟨predecessor, edgeMembership, direction, decrease⟩
+  rw [← sameEdge] at direction
+  have endpoints := cycle.edge_endpoints_mem_vertices directedMembership
+  have predecessorInCycle : predecessor ∈ cycle.vertices := by
+    rcases direction with forward | backward
+    · rw [← forward.1]
+      exact endpoints.1
+    · rw [← backward.2]
+      exact endpoints.2
+  have minimalLePredecessor := minimalBound predecessor (by
+    simpa [Graph.EdgeSimpleCycle.vertices] using predecessorInCycle)
+  omega
 
 theorem Adjacent.symm {graph : Graph} {left right : Vertex}
     (adjacency : graph.Adjacent left right) : graph.Adjacent right left := by
