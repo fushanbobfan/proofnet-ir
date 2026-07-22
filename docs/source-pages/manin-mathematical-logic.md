@@ -1,6 +1,7 @@
-# Page audit in progress: Manin, *A Course in Mathematical Logic for Mathematicians*
+# Completed page audit: Manin, *A Course in Mathematical Logic for Mathematicians*
 
 Audit started: 2026-07-22
+Audit completed: 2026-07-22
 
 ## Source identity and protocol
 
@@ -11,10 +12,12 @@ Audit started: 2026-07-22
 - Extent: 389 physical PDF pages.
 - Text extraction: 388 pages have extractable text. Physical page 1 has no
   extracted text and was therefore rendered and checked visually as the cover.
-- Current direct ordered reading: physical pages 1-336. This is an in-progress
-  page audit, not a completed-source claim.
+- Direct ordered reading is complete for all 389 physical pages. The final
+  interval, physical pages 337-389, contains no substantive embedded image
+  objects (only 1-by-1 PDF stencil artifacts), so its extractable text accounts
+  for the mathematical content without an additional figure exception.
 
-## Page-by-page matrix for the completed interval
+## Page-by-page matrix
 
 | Physical page | Printed page / section | Content read or inspected | ProofNet-IR consequence |
 |---:|---|---|---|
@@ -354,11 +357,65 @@ Audit started: 2026-07-22
 | 334 | 326 / IX.10.1 | Kolmogorov orderings, linear forward map, and inverse not bounded by any recursive function. | A canonical-looking order can make ordinary operations noncomputable. |
 | 335 | 327 / IX.10.2-10.3 | Recursive permutations, conjugated arithmetic, quantum-circuit remarks, and concluding comments. | Canonicalization claims must include computability and API usability, not existence alone. |
 | 336 | Part IV divider | Divider introducing model theory. | Accounted for; no mathematical claim. |
+| 337 | 331 / X; X.1 | Model theory as the study of structures through language and definability; structures, theories, and satisfaction. | Separates an abstract structure from its linguistic presentation; no MLL result. |
+| 338 | 332 / X.1.1-1.5 | Embeddings, definable relations/operations, preservation of formulas, isomorphisms, and automorphism invariance. | Isomorphism preservation is a theorem about a specified structure and language, not literal serialization equality. |
+| 339 | 333 / X.1.6-1.9 | Nondefinability by automorphism, interpretations by quotient domains, definable structures, and elementary embeddings. | Quotient presentations require a proved interpretation and preservation theorem. |
+| 340 | 334 / X.1.9-1.13; X.2 | Elementary equivalence, semantic consequence, finite satisfiability, reducts/expansions, parameters, and compactness setup. | Semantic equivalence and syntactic proof identity remain different relations. |
+| 341 | 335 / X.2.1-2.5 | Compactness theorem, consistency proof, Lindenbaum completion by Zorn, and witness preparation. | Explicitly records use of choice and ineffectivity; unrelated to executable MLL checking. |
+| 342 | 336 / X.2.6-2.7 | Henkin-style language extension with witnesses and construction of a named term model. | Model existence depends on well-defined quotienting and induction over formulas. |
+| 343 | 337 / X.2.7-2.10 | Truth lemma for the term model, second compactness proof, filters, ultraproduct construction, and Łoś theorem. | A quotient becomes usable only after representative independence and a preservation theorem are proved. |
+| 344 | 338 / X.2.10 | Inductive proof of Łoś's theorem and ultraproduct proof of compactness. | Structural induction plus exact logical cases is methodological background only. |
+| 345 | 339 / X.2.11-2.12 | Topological compactness interpretation, ultrapowers, saturation, and Keisler-Shelah characterization. | Elementary equivalence may be witnessed after an extension; it is not graph isomorphism. |
+| 346 | 340 / X.2.12-2.13 | Shelah's removal of CH and construction of nonstandard arithmetic and real models. | Background on model existence; no project theorem. |
+| 347 | 341 / X.2.13 | Infinitesimals, bounded elements, standard part, and nonstandard characterizations of continuity and derivatives. | Background only. |
+| 348 | 342 / X.2.13; X.3.1-3.3 | Limits of nonstandard analysis, theories, diagrams/complete diagrams, and local compactness arguments. | Diagram here means a set of sentences, not a proof net; terminology must not be conflated. |
+| 349 | 343 / X.3.3-3.4 | Mal'tsev local linearity via translated diagrams and upward/downward Löwenheim-Skolem. | A local-to-global theorem depends on compactness and an explicit interpretation. |
+| 350 | 344 / X.3.4-3.6 | Skolem-function construction of elementary submodels and elementary chains. | Closure and preservation are proved before taking unions. |
+| 351 | 345 / X.3.6-3.9 | Completion of the elementary-chain lemma, types, realization/omission, and simultaneous realization in extensions. | Witness existence in an extension is not an executable construction without additional data. |
+| 352 | 346 / X.3.9-3.11 | Compactness construction realizing types and existence/uniqueness program for saturated models. | Background only. |
+| 353 | 347 / X.3.11-3.13 | Back-and-forth construction proving same-cardinality saturated models isomorphic. | Again distinguishes an existence proof for isomorphism from a canonical algorithm. |
+| 354 | 348 / X.3.14-3.17 | Back-and-forth systems, Ehrenfeucht-Fraïssé criterion, monster models, homogeneity, and omitting types. | Isomorphism criteria require stated saturation/cardinality hypotheses. |
+| 355 | 349 / X.3.18-3.19 | Quantifier-elimination criterion via automorphism orbits, compactness, and quantifier-free types. | Eliminating representation bureaucracy requires a proved completeness criterion, not examples. |
+| 356 | 350 / X.4.1-4.2 | Axioms of algebraically closed fields, ultraproduct characteristic transfer, and Tarski completeness/quantifier elimination. | Background only. |
+| 357 | 351 / X.4.2-4.5 | Strong Lefschetz principle, constructible sets/functions, and Ax's injective-map theorem setup. | Translation across characteristics rests on a precise first-order sentence and proven transfer. |
+| 358 | 352 / X.4.5-4.6 | Ax's proof by finite-field reduction and axioms of real closed fields. | Background only. |
+| 359 | 353 / X.4.6-4.8 | Real-closed-field algebra, Tarski-Seidenberg completeness/quantifier elimination, and semialgebraic sets. | Background only. |
+| 360 | 354 / X.4.8-4.9 | Piecewise algebraic description of definable functions and Hörmander's asymptotic application setup. | Background only. |
+| 361 | 355 / X.4.9-4.11 | Nonstandard asymptotic proof, methodological remarks on quantifier elimination, and decidability statement. | A complete recursively axiomatized theory can be decided by dovetailing, unlike an arbitrary proof-search space. |
+| 362 | 356 / X.4.11-4.12 | Decidability proofs for ACF/RCF and axioms for p-adically closed fields. | Termination relies on completeness or an exhaustive family argument. |
+| 363 | 357 / X.4.12-4.14 | Macintyre language, p-adic completeness/decidability/quantifier elimination, and Poincaré series. | Choice of language can determine whether an elimination theorem is useful. |
+| 364 | 358 / X.4.14; X.5 | p-adic integration/rationality by quantifier elimination and introduction to classification theory. | Background only. |
+| 365 | 359 / X.5.1-5.2 | Categoricity, Morley's theorem, and stability as control of type diversity. | Canonical up to isomorphism is always relative to a cardinal and language here. |
+| 366 | 360 / X.5.2-5.4 | Stability hierarchy, Morley rank, addition bounds, and algebraically closed fields as examples. | Background only. |
+| 367 | 361 / X.5.4-5.7 | Definable stable structures, order-property instability, pseudo-finite fields, independence property, and indiscernibles. | Background only. |
+| 368 | 362 / X.5.7-5.8 | Average types, orthogonality, multidimensional theories, and differentially closed fields. | Background only. |
+| 369 | 363 / X.5.8-5.11 | Differential/difference-field examples, Shelah stability criterion, simplicity, dependence, and o-minimality. | Background only. |
+| 370 | 364 / X.5.11; X.6.1 | O-minimal examples and strongly minimal sets with algebraic closure. | Background only. |
+| 371 | 365 / X.6.1-6.2 | Pregeometries/matroids, localization, independence, bases, dimension, and homogeneity. | The word localization has a distinct model-theoretic meaning here; no proof-net identity claim follows. |
+| 372 | 366 / X.6.3-6.4 | Trivial, modular, affine, and field pregeometries and the weak trichotomy theorem. | Background only. |
+| 373 | 367 / X.6.4-6.6 | Pseudoplanes, locally finite homogeneous geometry classification, and failure of the original trichotomy conjecture. | Counterexamples show why classification claims require exact hypotheses. |
+| 374 | 368 / X.6.6-6.8 | Corrected trichotomy perspective, Lang property, and axioms for Zariski geometries. | Background only. |
+| 375 | 369 / X.6.8-6.9 | Examples and classification theorem for nonlinear Zariski structures. | Background only. |
+| 376 | 370 / X.6.9-6.11 | Reconstruction of an algebraically closed field, applications, and Hrushovski free-fusion motivation. | Background only. |
+| 377 | 371 / X.6.11-6.13 | Predimension, Hrushovski inequality, strong embeddings, algebraic closure, and collapse setup. | Global closure/classification requires explicit inequalities and embedding conditions. |
+| 378 | 372 / X.6.13-6.16 | Collapse to strongly minimal structures, Schanuel predimension, and pseudoexponentiation axioms. | Background only. |
+| 379 | 373 / X.6.16-6.18 | Categoricity of pseudoexponentiation, conjectural comparison with complex exponentiation, and a test for Schanuel-like inequalities. | Clearly labels conjectures separately from theorems; same discipline applies to empirical ProofNet-IR claims. |
+| 380 | 374 / X.6.18; X.7.1-7.2 | Analytic example, infinitary languages, failure of compactness, Karp back-and-forth theorem, and AEC motivation. | Extending the logical language changes metatheorems; current library scope cannot be silently widened. |
+| 381 | 375 / X.7.2-7.5 | Scott sentences, restricted Löwenheim-Skolem behavior, and categoricity issues for infinitary logic. | Background only. |
+| 382 | 376 / X.7.5-7.7 | Exponential-structure example and definition/examples of abstract elementary classes. | Algebraic preservation conditions can replace syntax, but this is outside MLL. |
+| 383 | 377 / X.7.7-7.9 | AEC examples and Shelah eventual-categoricity results under explicit hypotheses. | Background only. |
+| 384 | 379 / further reading I-V | References for formal languages, forcing, set theory, and computability. | Bibliographic accounting only. |
+| 385 | 380 / further reading VI-X | References for Diophantine sets, incompleteness, recursive groups, computation, and model theory. | Bibliographic accounting only. |
+| 386 | 381 / index A-C | Index entries from L-structures through contraction morphisms/corollas. | Index accounted for; no new claim. |
+| 387 | 382 / index D-M | Index entries from differential fields through monster models. | Index accounted for; no new claim. |
+| 388 | 383 / index N-T | Index entries from natural languages through theories. | Index accounted for; no new claim. |
+| 389 | 384 / index T-Z | Final index entries from transfinite recursion through Zariski structures. | Index accounted for; no new claim. |
 
 ## Current claim boundary
 
-The completed interval supports the motivation for treating diagrams and
-decorated graphs as formal languages whose syntax and semantics must be stated
-precisely. It does not state the Danos-Regnier switching criterion, MLL proof-net
-correctness, or a sequentialization theorem. The remaining 53 pages are not
-yet represented as directly read in order.
+All 389 physical pages are accounted for. The source supports the motivation
+for treating diagrams and decorated graphs as formal languages whose syntax,
+isomorphisms, composition operations, and semantics must be stated precisely.
+It does not state the Danos-Regnier switching criterion, MLL proof-net
+correctness, desequentialization, or sequentialization theorem. Those project
+results therefore cannot be attributed to Manin.

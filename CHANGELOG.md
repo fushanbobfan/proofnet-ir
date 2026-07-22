@@ -39,11 +39,11 @@
   `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and
   completed ordered text and rendered-image inspection of every unique page;
-- continued the ordered Manin page matrix through physical page 336, including
-  visual inspection of the Kochen-Specker graphs on pages 99-100 and the
-  graph-language diagram and definitions on pages 307-313, without claiming
-  the remaining 53 pages or the targeted-only Marcolli/Park sources are
-  complete.
+- completed the ordered Manin page matrix for all 389 physical pages,
+  including visual inspection of the extraction-empty cover, Kochen-Specker
+  graphs on pages 99-100, graph-language pages 307-313, and an embedded-image
+  audit of the final interval; the targeted-only Marcolli/Park sources remain
+  explicitly incomplete.
 
 ## v0.4.0 - General sequentialization
 

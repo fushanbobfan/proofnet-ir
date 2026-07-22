@@ -1,6 +1,6 @@
 # Local source coverage audit
 
-Audit date: 2026-07-21
+Audit date: 2026-07-22
 
 ## Review question
 
@@ -34,7 +34,7 @@ extractable text and requires visual/OCR treatment.
 | Source | Pages | Current evidence | Status |
 |---|---:|---|---|
 | Pfenning, *Linear Logic* | 336 physical; 168 unique after exact repetition | complete ordered text reading and rendered-image inspection of all 168 unique pages in a [page matrix](source-pages/pfenning-linear-logic.md) | complete |
-| Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | contents/theorem sweep and [ordered page matrix](source-pages/manin-mathematical-logic.md) directly accounting for physical pages 1-336, including the extraction-empty cover, Kochen-Specker graphs on pages 99-100, and the graph-language diagram and definitions on pages 307-313 | ordered audit 336/389; incomplete |
+| Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | complete ordered text reading in a [page matrix](source-pages/manin-mathematical-logic.md), including visual inspection of the extraction-empty cover, Kochen-Specker graphs on pages 99-100, and graph-language pages 307-313; the final interval was also checked for substantive embedded images | complete |
 | *Proof Nets as Graphical Proof Objects* | 20 | complete end-to-end reading and selected-page visual verification | complete |
 | *ProofNet-IR Research Plan* | 19 | complete end-to-end reading and selected-page visual verification | complete, but treated as a generated design input rather than authority |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | section/proposition sweep and targeted close readings | not read cover to cover |
@@ -43,10 +43,10 @@ extractable text and requires visual/OCR treatment.
 | `Rowling_s chat history.txt` | short text | read completely | complete |
 
 Consequently, the statement "all local papers and textbooks were seriously
-read in full" is still false at this checkpoint. Four PDFs and the chat are
-complete; Manin, Marcolli et al., and Park retain structured and targeted
-coverage only. Completing an adjacent source does not strengthen the core MLL
-theorems when that source contains no proof-net result.
+read in full" is still false at this checkpoint. Five PDFs and the chat are
+complete; Marcolli et al. and Park retain structured and targeted coverage
+only. Completing an adjacent source does not strengthen the core MLL theorems
+when that source contains no proof-net result.
 
 ## Reading protocol required before completion
 
