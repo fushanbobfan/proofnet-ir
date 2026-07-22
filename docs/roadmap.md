@@ -87,6 +87,9 @@
 - [x] Prove terminal-tensor local ownership and switching degree: its producer
   is unique, no other link is incident to its conclusion, selected par edges
   contribute zero incidence, and the two fixed tensor edges give degree two.
+- [x] Define the proposition-level `SplittingTensor` condition and prove the
+  bounded full-occurrence graph's `vertexCount`-round closure decides its
+  unbounded walk/non-reachability condition exactly.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor
   and that both inverse constructions preserve correctness.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge

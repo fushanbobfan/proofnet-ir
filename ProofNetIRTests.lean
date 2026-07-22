@@ -185,6 +185,18 @@ example : canonical.TerminalPar 1 3 5 :=
   (canonical.mem_terminalPars_iff 1 3 5).mp (by native_decide)
 example : canonical.TerminalTensor 0 2 4 :=
   (canonical.mem_terminalTensors_iff 0 2 4).mp (by native_decide)
+example : ¬canonical.SplittingTensor 0 2 4 := by
+  intro splitting
+  have rejected :=
+    (Certificate.TerminalTensor.splitting_iff_reachability_rejected
+      (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+      (canonical.mem_terminalTensors_iff 0 2 4 |>.mp (by native_decide))).mp
+      splitting
+  have reached :
+      ((canonical.fullGraphWithoutVertex 4).closureN
+        canonical.formulas.size [0]).contains 2 = true := by native_decide
+  rw [reached] at rejected
+  cases rejected
 example : ∀ graph, canonical.SwitchingGraph graph → graph.Leaf 5 := by
   intro graph switching
   rcases switching with ⟨selected, selection, rfl⟩
@@ -208,6 +220,14 @@ def canonicalParPremise : Certificate where
     .axiom 2 3,
     .tensor 0 2 4]
   conclusions := [4, 1, 3]
+
+example : canonicalParPremise.SplittingTensor 0 2 4 := by
+  apply (Certificate.TerminalTensor.splitting_iff_reachability_rejected
+    (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (canonicalParPremise.mem_terminalTensors_iff 0 2 4 |>.mp
+      (by native_decide))).mpr
+  native_decide
 
 example : canonical.peelTerminalParCandidate? 1 3 5 =
     some canonicalParPremise := by native_decide

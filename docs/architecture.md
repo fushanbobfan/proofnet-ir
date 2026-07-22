@@ -131,6 +131,15 @@ universally two; proving that some terminal tensor splits the remaining graph
 and that both restricted certificates preserve all switchings is the next
 global combinatorial step.
 
+`SplittingTensor` now states that global condition without mentioning the
+algorithm: after removing the terminal conclusion from the full occurrence
+graph, no graph walk connects its two premises. The full occurrence graph is
+proved bounded from certificate structural well-formedness, and a general
+finite-graph theorem proves `vertexCount` closure rounds equivalent to the
+unbounded `Walk` relation. Consequently the candidate finder's reachability
+rejection is sound and complete for this exact splitting condition; component
+restriction and universal existence remain separate obligations.
+
 ## v0.2 derivation-first path
 
 `DerivationTree.lean` represents arbitrary first-order cut-free rule trees.

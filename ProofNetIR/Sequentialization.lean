@@ -891,6 +891,23 @@ theorem IsTree.deleteLeaf {graph : Graph} (tree : graph.IsTree)
     tree.2.1.deleteLeaf tree.1 leaf,
     tree.deleteVertex_edgeCount leaf⟩
 
+/-- On a bounded finite graph, `vertexCount` closure rounds decide the
+unbounded walk relation between any two in-bounds vertices. -/
+theorem mem_closureN_vertexCount_iff_walk (graph : Graph)
+    (bounded : graph.Bounded) {start finish : Vertex}
+    (startInBounds : start < graph.vertexCount)
+    (finishInBounds : finish < graph.vertexCount) :
+    finish ∈ graph.closureN graph.vertexCount [start] ↔
+      graph.Walk start finish := by
+  rw [graph.mem_closureN_iff_walkWithin bounded start finish
+    graph.vertexCount finishInBounds]
+  constructor
+  · rintro ⟨steps, _, walk⟩
+    exact walk.toWalk
+  · intro walk
+    rcases walk.toSimple with ⟨steps, visited, simple⟩
+    exact simple.toWalkWithin bounded startInBounds
+
 end Graph
 
 namespace Certificate
@@ -912,6 +929,38 @@ def fullGraphWithoutVertex (certificate : Certificate)
     (removed : Vertex) : Graph where
   vertexCount := certificate.formulas.size
   edges := certificate.fullEdges.filter fun edge => !edge.incident removed
+
+theorem fullGraphWithoutVertex_bounded {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (removed : Vertex) :
+    (certificate.fullGraphWithoutVertex removed).Bounded := by
+  intro edge edgeMembership
+  change edge ∈ certificate.fullEdges.filter
+    (fun candidate => !candidate.incident removed) at edgeMembership
+  have fullMembership := (List.mem_filter.mp edgeMembership).1
+  simp only [fullEdges, List.mem_flatMap] at fullMembership
+  rcases fullMembership with ⟨link, linkMembership, emitted⟩
+  have linkWellFormed := structural.2.2.2.2.1 link linkMembership
+  cases link with
+  | «axiom» first second =>
+      simp at emitted
+      subst edge
+      exact ⟨linkWellFormed.2.1, linkWellFormed.2.2.1,
+        linkWellFormed.1⟩
+  | tensor first second result =>
+      simp at emitted
+      rcases emitted with rfl | rfl
+      · exact ⟨linkWellFormed.2.2.2.1,
+          linkWellFormed.2.2.2.2.2.1, linkWellFormed.2.1⟩
+      · exact ⟨linkWellFormed.2.2.2.2.1,
+          linkWellFormed.2.2.2.2.2.1, linkWellFormed.2.2.1⟩
+  | par first second result =>
+      simp at emitted
+      rcases emitted with rfl | rfl
+      · exact ⟨linkWellFormed.2.2.2.1,
+          linkWellFormed.2.2.2.2.2.1, linkWellFormed.2.1⟩
+      · exact ⟨linkWellFormed.2.2.2.2.1,
+          linkWellFormed.2.2.2.2.2.1, linkWellFormed.2.2.1⟩
 
 /-- Induce a locally numbered certificate on a listed subset and an explicitly
 chosen boundary. Crossing links are omitted, so callers must separately prove
@@ -940,6 +989,14 @@ def TerminalTensor (certificate : Certificate)
     (left right conclusion : Vertex) : Prop :=
   Link.tensor left right conclusion ∈ certificate.links ∧
     conclusion ∈ certificate.conclusions
+
+/-- A terminal tensor is splitting when deleting its conclusion from the full
+occurrence graph separates the two premises. This proposition is independent
+of the executable closure algorithm used by the candidate finder. -/
+def SplittingTensor (certificate : Certificate)
+    (left right conclusion : Vertex) : Prop :=
+  certificate.TerminalTensor left right conclusion ∧
+    ¬(certificate.fullGraphWithoutVertex conclusion).Walk left right
 
 theorem LinkWellFormed.par_conclusionFormula
     {certificate : Certificate} {left right conclusion : Vertex}
@@ -1141,6 +1198,46 @@ theorem deletion_none_iff_eq
 end TerminalPar
 
 namespace TerminalTensor
+
+theorem reachable_iff_walk
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    right ∈ (certificate.fullGraphWithoutVertex conclusion).closureN
+        certificate.formulas.size [left] ↔
+      (certificate.fullGraphWithoutVertex conclusion).Walk left right := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have bounded := certificate.fullGraphWithoutVertex_bounded structural
+    conclusion
+  exact Graph.mem_closureN_vertexCount_iff_walk _ bounded
+    terminalWellFormed.2.2.2.1 terminalWellFormed.2.2.2.2.1
+
+theorem splitting_iff_reachability_rejected
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    certificate.SplittingTensor left right conclusion ↔
+      ((certificate.fullGraphWithoutVertex conclusion).closureN
+        certificate.formulas.size [left]).contains right = false := by
+  have reachability := TerminalTensor.reachable_iff_walk structural terminal
+  constructor
+  · intro splitting
+    have noMembership : right ∉
+        (certificate.fullGraphWithoutVertex conclusion).closureN
+          certificate.formulas.size [left] := by
+      intro membership
+      exact splitting.2 (reachability.mp membership)
+    simpa using noMembership
+  · intro rejected
+    refine ⟨terminal, ?_⟩
+    intro walk
+    have membership := reachability.mpr walk
+    have accepted :
+        ((certificate.fullGraphWithoutVertex conclusion).closureN
+          certificate.formulas.size [left]).contains right = true := by
+      simpa using membership
+    rw [accepted] at rejected
+    cases rejected
 
 theorem ownership {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
