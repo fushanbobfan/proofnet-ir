@@ -1064,6 +1064,17 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check CutFreeDerivation.infer?_of_build?
 #check CutFreeDerivation.build?_exists_of_desequentialize?
 #check SequentializationResult.fragment_exists
+#check VertexRenaming.extendLast
+#check VertexRenaming.insertLastAt
+#check CutFreeDerivation.reorder?_idxOf_of_nodup_perm
+#check Certificate.appendParOccurrence
+#check Certificate.appendParOccurrence_reindex_formulas
+#check Certificate.DirectProofNetEquivalent.appendParOccurrence
+
+example : CutFreeDerivation.reorder?
+    [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =
+      some [((.atom "p" true : Formula), 1), (.atom "p" true, 0)] := by
+  native_decide
 
 example : Nonempty (LogicalSequentializationResult canonical) :=
   canonical.logicalSequentialization_of_check (by native_decide)

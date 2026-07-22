@@ -407,6 +407,260 @@ private theorem idxOf_getElem_eq_index
   apply (List.getElem?_inj firstInBounds nodup).mp
   rw [firstOccurrence, List.getElem?_eq_getElem inBounds]
 
+private theorem list_mapM_getElem?_idxOf_eq_some
+    [BEq α] [LawfulBEq α]
+    (source target : List α)
+    (contained : ∀ value ∈ target, value ∈ source) :
+    (target.map source.idxOf).mapM (fun index => source[index]?) =
+      some target := by
+  induction target with
+  | nil => rfl
+  | cons head tail ih =>
+      have headMembership : head ∈ source := contained head (by simp)
+      have tailContained : ∀ value ∈ tail, value ∈ source := by
+        intro value membership
+        exact contained value (by simp [membership])
+      have headFound : source[source.idxOf head]? = some head := by
+        simpa using list_map_getElem?_idxOf_eq_some source id headMembership
+      simp [headFound, ih tailContained]
+
+/-- For duplicate-free occurrence data, the target's source indices form a
+valid executable exchange order whenever the target is a permutation of the
+source. This is occurrence-aware: callers may use formula/root pairs rather
+than formula equality alone. -/
+theorem CutFreeDerivation.reorder?_idxOf_of_nodup_perm
+    [BEq α] [LawfulBEq α] [DecidableEq α]
+    {source target : List α}
+    (sourceNodup : source.Nodup) (permutation : source.Perm target) :
+    CutFreeDerivation.reorder? source (target.map source.idxOf) =
+      some target := by
+  have targetNodup : target.Nodup := permutation.nodup_iff.mp sourceNodup
+  have contained : ∀ value ∈ target, value ∈ source := by
+    intro value membership
+    exact permutation.mem_iff.mpr membership
+  have orderNodup : (target.map source.idxOf).Nodup := by
+    suffices general : ∀ values : List α, values.Nodup →
+        (∀ value ∈ values, value ∈ source) →
+        (values.map source.idxOf).Nodup by
+      exact general target targetNodup contained
+    intro values nodup valuesContained
+    induction values with
+    | nil => exact .nil
+    | cons head tail ih =>
+        rcases List.nodup_cons.mp nodup with ⟨headFresh, tailNodup⟩
+        have headMembership : head ∈ source := valuesContained head (by simp)
+        have tailContained : ∀ value ∈ tail, value ∈ source := by
+          intro value membership
+          exact valuesContained value (by simp [membership])
+        apply List.nodup_cons.mpr
+        refine ⟨?_, ih tailNodup tailContained⟩
+        intro indexMembership
+        rcases List.mem_map.mp indexMembership with
+          ⟨value, valueMembership, sameIndex⟩
+        have sameValue := idxOf_injective_of_mem headMembership
+          (tailContained value valueMembership) sameIndex.symm
+        exact headFresh (sameValue ▸ valueMembership)
+  have orderBounds : (target.map source.idxOf).all
+      (fun index => index < source.length) = true := by
+    rw [List.all_eq_true]
+    intro index indexMembership
+    rcases List.mem_map.mp indexMembership with
+      ⟨value, valueMembership, rfl⟩
+    simpa using List.idxOf_lt_length_of_mem
+      (contained value valueMembership)
+  have candidate : CutFreeDerivation.reorderCandidate? source
+      (target.map source.idxOf) = some target := by
+    unfold CutFreeDerivation.reorderCandidate?
+    have lengthEquation : target.length = source.length :=
+      permutation.length_eq.symm
+    have eraseEquation :
+        (target.map source.idxOf).eraseDups = target.map source.idxOf :=
+      eraseDups_eq_self_of_nodup orderNodup
+    simp [lengthEquation, eraseEquation, orderBounds,
+      list_mapM_getElem?_idxOf_eq_some source target contained]
+  unfold CutFreeDerivation.reorder?
+  rw [candidate]
+  simp [permutation]
+
+/-- Certificate-level effect of introducing one fresh final par occurrence.
+The boundary is explicit because a following exchange may place the new
+conclusion at any occurrence position. -/
+def Certificate.appendParOccurrence (premise : Certificate)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) : Certificate where
+  formulas := premise.formulas.push (.par left right)
+  links := premise.links ++ [
+    .par leftRoot rightRoot premise.formulas.size]
+  conclusions := boundary
+
+@[simp] theorem Certificate.appendParOccurrence_formulas_size
+    (premise : Certificate) (left right : Formula)
+    (leftRoot rightRoot : Vertex) (boundary : List Vertex) :
+    (premise.appendParOccurrence left right leftRoot rightRoot boundary).formulas.size =
+      premise.formulas.size + 1 := by
+  simp [Certificate.appendParOccurrence]
+
+/-- The type-aligned extension of an old renaming to the concrete certificate
+obtained by appending one par occurrence. -/
+def Certificate.appendParRenaming (premise : Certificate)
+    (r : VertexRenaming premise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    VertexRenaming
+      ((premise.appendParOccurrence left right leftRoot rightRoot boundary).formulas.size) :=
+  r.extendLast.changeBound
+    (premise.appendParOccurrence_formulas_size left right leftRoot rightRoot
+      boundary).symm
+
+@[simp] theorem Certificate.appendParRenaming_forward
+    (premise : Certificate) (r : VertexRenaming premise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    (premise.appendParRenaming r left right leftRoot rightRoot boundary).forward =
+      r.extendLast.forward := by
+  simp [Certificate.appendParRenaming]
+
+@[simp] theorem Certificate.appendParRenaming_inverse
+    (premise : Certificate) (r : VertexRenaming premise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    (premise.appendParRenaming r left right leftRoot rightRoot boundary).inverse =
+      r.extendLast.inverse := by
+  simp [Certificate.appendParRenaming]
+
+/-- Formula storage commutes with extending a vertex renaming across one
+fresh final par occurrence. -/
+theorem Certificate.appendParOccurrence_reindex_formulas
+    (premise : Certificate) (r : VertexRenaming premise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    ((premise.appendParOccurrence left right leftRoot rightRoot boundary).reindex
+      (premise.appendParRenaming r left right leftRoot rightRoot boundary)).formulas =
+    ((premise.reindex r).appendParOccurrence left right
+      (r.forward leftRoot) (r.forward rightRoot)
+      (boundary.map r.forward)).formulas := by
+  apply Array.ext_getElem?
+  intro index
+  by_cases oldIndex : index < premise.formulas.size
+  · have inverseOld : r.inverse index < premise.formulas.size :=
+      (r.inverse_lt_iff index).mpr oldIndex
+    have indexNotLast : index ≠ premise.formulas.size := Nat.ne_of_lt oldIndex
+    have inverseNotLast : r.inverse index ≠ premise.formulas.size :=
+      Nat.ne_of_lt inverseOld
+    simp only [Certificate.appendParOccurrence, Certificate.reindex,
+      Certificate.appendParRenaming_inverse]
+    rw [Array.getElem?_eq_getElem (by
+      simp
+      exact Nat.lt_succ_of_lt oldIndex)]
+    simp [Array.getElem?_push, oldIndex, inverseOld, indexNotLast,
+      inverseNotLast]
+    rw [Array.getElem_push_lt inverseOld]
+  · by_cases atLast : index = premise.formulas.size
+    · subst index
+      simp only [Certificate.appendParOccurrence, Certificate.reindex,
+        Certificate.appendParRenaming_inverse]
+      let renamed : Array Formula := Array.ofFn fun vertex =>
+        premise.formulas[r.inverse vertex.val]'(
+          (r.inverse_lt_iff vertex.val).mpr vertex.isLt)
+      have renamedSize : renamed.size = premise.formulas.size := by
+        simp [renamed]
+      have rightValue :
+          (renamed.push (left.par right))[premise.formulas.size]? =
+            some (left.par right) := by
+        rw [← renamedSize]
+        exact Array.getElem?_push_size
+      change _ = (renamed.push (left.par right))[premise.formulas.size]?
+      rw [rightValue]
+      simp [VertexRenaming.extendLast]
+    · have outside : premise.formulas.size + 1 ≤ index := by
+        omega
+      have notBelow : ¬index < premise.formulas.size := oldIndex
+      simp [Certificate.appendParOccurrence, Certificate.reindex,
+        Array.getElem?_push, oldIndex, atLast, outside, notBelow,
+        VertexRenaming.extendLast]
+
+/-- Adding the same typed par rule to equivalent premises preserves direct
+proof-net equivalence. Endpoint boundedness is stated explicitly so this
+lemma cannot silently repair malformed certificates. -/
+theorem Certificate.DirectProofNetEquivalent.appendParOccurrence
+    {leftPremise rightPremise : Certificate}
+    (vertexMap : VertexRenaming leftPremise.formulas.size)
+    (linkPermutation :
+      (leftPremise.reindex vertexMap).LinkPermutationEquivalent rightPremise)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (leftBoundary : List Vertex)
+    (linksInBounds : ∀ link ∈ leftPremise.links,
+      ∀ vertex ∈ link.vertices,
+        vertex < leftPremise.formulas.size)
+    (boundaryInBounds : ∀ vertex ∈ leftBoundary,
+      vertex < leftPremise.formulas.size)
+    (leftRootInBounds : leftRoot < leftPremise.formulas.size)
+    (rightRootInBounds : rightRoot < leftPremise.formulas.size) :
+    Certificate.DirectProofNetEquivalent
+      (leftPremise.appendParOccurrence left right leftRoot rightRoot leftBoundary)
+      (rightPremise.appendParOccurrence left right
+        (vertexMap.forward leftRoot)
+        (vertexMap.forward rightRoot)
+        (leftBoundary.map vertexMap.forward)) := by
+  refine ⟨leftPremise.appendParRenaming vertexMap left right leftRoot
+    rightRoot leftBoundary, ?_⟩
+  refine {
+    formulas := ?_
+    links := ?_
+    conclusions := ?_ }
+  · rw [Certificate.appendParOccurrence_reindex_formulas]
+    exact congrArg (fun formulas => formulas.push (.par left right))
+      linkPermutation.formulas
+  · have oldLinks :
+        leftPremise.links.map (Link.reindex
+          (leftPremise.appendParRenaming vertexMap left right leftRoot
+            rightRoot leftBoundary)) =
+          leftPremise.links.map (Link.reindex vertexMap) := by
+      apply List.map_congr_left
+      intro link membership
+      have extended := Link.reindex_extendLast vertexMap link
+        (linksInBounds link membership)
+      cases link <;>
+        simpa [Link.reindex] using extended
+    have newLink :
+        Link.reindex
+          (leftPremise.appendParRenaming vertexMap left right leftRoot
+            rightRoot leftBoundary)
+          (.par leftRoot rightRoot leftPremise.formulas.size) =
+        .par (vertexMap.forward leftRoot) (vertexMap.forward rightRoot)
+          rightPremise.formulas.size := by
+      have sizeEquation : leftPremise.formulas.size =
+          rightPremise.formulas.size := by
+        simpa using congrArg Array.size linkPermutation.formulas
+      simp only [Link.reindex]
+      rw [Certificate.appendParRenaming_forward]
+      rw [VertexRenaming.extendLast_forward_old vertexMap leftRootInBounds,
+        VertexRenaming.extendLast_forward_old vertexMap rightRootInBounds,
+        VertexRenaming.extendLast_forward_last]
+      exact congrArg
+        (fun result => Link.par (vertexMap.forward leftRoot)
+          (vertexMap.forward rightRoot) result)
+        sizeEquation
+    rw [Certificate.reindex_links]
+    change ((leftPremise.links ++ [
+      Link.par leftRoot rightRoot leftPremise.formulas.size]).map
+        (Link.reindex
+          (leftPremise.appendParRenaming vertexMap left right leftRoot
+            rightRoot leftBoundary))).Perm
+      (rightPremise.links ++ [
+        Link.par (vertexMap.forward leftRoot) (vertexMap.forward rightRoot)
+          rightPremise.formulas.size])
+    rw [List.map_append, List.map_singleton]
+    rw [oldLinks, newLink]
+    exact linkPermutation.links.append_right _
+  · change leftBoundary.map
+        (leftPremise.appendParRenaming vertexMap left right leftRoot
+          rightRoot leftBoundary).forward =
+        leftBoundary.map vertexMap.forward
+    apply List.map_congr_left
+    intro vertex membership
+    simp [boundaryInBounds vertex membership]
+
 /-- Evidence returned by the future general sequentializer. The result is
 deliberately stronger than an `Option CutFreeDerivation`: it connects
 first-order inference, desequentialization, ordered boundary labels, and the

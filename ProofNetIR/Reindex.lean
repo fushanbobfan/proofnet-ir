@@ -269,6 +269,76 @@ def refl (bound : Nat) : VertexRenaming bound where
   forward_inverse := by simp
   forward_lt_iff := by simp
 
+/-- Extend a bounded renaming by fixing one newly appended final vertex.
+Only the old in-bounds action is retained; all vertices above the new bound
+are fixed, independently of how the original total bijection acted there. -/
+def extendLast {oldBound : Nat} (r : VertexRenaming oldBound) :
+    VertexRenaming (oldBound + 1) where
+  forward vertex :=
+    if oldVertex : vertex < oldBound then r.forward vertex
+    else if vertex = oldBound then oldBound else vertex
+  inverse vertex :=
+    if oldVertex : vertex < oldBound then r.inverse vertex
+    else if vertex = oldBound then oldBound else vertex
+  inverse_forward := by
+    intro vertex
+    by_cases oldVertex : vertex < oldBound
+    · have mappedOld : r.forward vertex < oldBound :=
+        (r.forward_lt_iff vertex).mpr oldVertex
+      simp [oldVertex, mappedOld, r.inverse_forward]
+    · by_cases atLast : vertex = oldBound
+      · subst vertex
+        simp
+      · simp [oldVertex, atLast]
+  forward_inverse := by
+    intro vertex
+    by_cases oldVertex : vertex < oldBound
+    · have mappedOld : r.inverse vertex < oldBound :=
+        (r.inverse_lt_iff vertex).mpr oldVertex
+      simp [oldVertex, mappedOld, r.forward_inverse]
+    · by_cases atLast : vertex = oldBound
+      · subst vertex
+        simp
+      · simp [oldVertex, atLast]
+  forward_lt_iff := by
+    intro vertex
+    by_cases oldVertex : vertex < oldBound
+    · have mappedOld : r.forward vertex < oldBound :=
+        (r.forward_lt_iff vertex).mpr oldVertex
+      simp [oldVertex, Nat.lt_succ_of_lt oldVertex,
+        Nat.lt_succ_of_lt mappedOld]
+    · by_cases atLast : vertex = oldBound
+      · subst vertex
+        simp
+      · have outside : ¬vertex < oldBound + 1 := by
+          intro inBounds
+          have atMost : vertex ≤ oldBound :=
+            Nat.lt_succ_iff.mp (by simpa using inBounds)
+          exact (Nat.lt_or_eq_of_le atMost).elim oldVertex atLast
+        simp [oldVertex, atLast, outside]
+
+@[simp] theorem extendLast_forward_old {oldBound : Nat}
+    (r : VertexRenaming oldBound) {vertex : Vertex}
+    (oldVertex : vertex < oldBound) :
+    r.extendLast.forward vertex = r.forward vertex := by
+  simp [extendLast, oldVertex]
+
+@[simp] theorem extendLast_forward_last {oldBound : Nat}
+    (r : VertexRenaming oldBound) :
+    r.extendLast.forward oldBound = oldBound := by
+  simp [extendLast]
+
+@[simp] theorem extendLast_inverse_old {oldBound : Nat}
+    (r : VertexRenaming oldBound) {vertex : Vertex}
+    (oldVertex : vertex < oldBound) :
+    r.extendLast.inverse vertex = r.inverse vertex := by
+  simp [extendLast, oldVertex]
+
+@[simp] theorem extendLast_inverse_last {oldBound : Nat}
+    (r : VertexRenaming oldBound) :
+    r.extendLast.inverse oldBound = oldBound := by
+  simp [extendLast]
+
 /-- Extend an `oldBound`-vertex numbering by one final source vertex and move
 that new vertex to `removed` in the target numbering. Existing source
 vertices below `removed` stay fixed; the rest shift up by one. -/
@@ -451,6 +521,28 @@ def reindex {bound : Nat} (r : VertexRenaming bound) : Link → Link
   | .par left right conclusion =>
       .par (r.forward left) (r.forward right)
         (r.forward conclusion)
+
+/-- Extending a renaming by a new final occurrence does not change the action
+on a link whose endpoints all belong to the old occurrence interval. -/
+theorem reindex_extendLast {bound : Nat} (r : VertexRenaming bound)
+    (link : Link)
+    (inBounds : ∀ vertex ∈ link.vertices, vertex < bound) :
+    link.reindex r.extendLast = link.reindex r := by
+  cases link with
+  | «axiom» left right =>
+      have leftBound := inBounds left (by simp [vertices])
+      have rightBound := inBounds right (by simp [vertices])
+      simp [reindex, leftBound, rightBound]
+  | tensor left right conclusion =>
+      have leftBound := inBounds left (by simp [vertices])
+      have rightBound := inBounds right (by simp [vertices])
+      have conclusionBound := inBounds conclusion (by simp [vertices])
+      simp [reindex, leftBound, rightBound, conclusionBound]
+  | par left right conclusion =>
+      have leftBound := inBounds left (by simp [vertices])
+      have rightBound := inBounds right (by simp [vertices])
+      have conclusionBound := inBounds conclusion (by simp [vertices])
+      simp [reindex, leftBound, rightBound, conclusionBound]
 
 @[simp] theorem vertices_reindex {bound : Nat}
     (r : VertexRenaming bound) (link : Link) :
