@@ -62,6 +62,17 @@ example : generatedDerivationTrees.all (fun tree =>
 example : generatedDerivationTrees.all (fun tree => tree.elaborate?.isSome) = true := by
   native_decide
 
+def generatedJsonRoundTrips : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        match Certificate.checkedFromString certificate.canonicalString with
+        | .error _ => false
+        | .ok checked => checked.certificate == certificate.canonicalize
+
+example : generatedJsonRoundTrips = true := by native_decide
+
 example : generatedDerivationTrees.all (fun tree =>
     match tree.desequentialize? with
     | some certificate => certificate.check
@@ -101,6 +112,55 @@ def scrambledCanonical : Certificate :=
 
 example : scrambledCanonical.canonicalize.check = true := by native_decide
 example : scrambledCanonical.canonicalString = canonical.canonicalString := by
+  native_decide
+
+def parsedCanonicalMatches : Bool :=
+  match Certificate.fromString canonical.canonicalString with
+  | .ok certificate => certificate == canonical
+  | .error _ => false
+
+example : parsedCanonicalMatches = true := by native_decide
+
+example :
+    (Certificate.checkedFromString canonical.canonicalString).isOk = true := by
+  native_decide
+
+def rejectedCanonicalJson : Lean.Json :=
+  Mutation.dropFirstLink.apply canonical |>.canonicalJson
+
+def rejectedCertificateStillParses : Bool :=
+  match Certificate.fromJson rejectedCanonicalJson with
+  | .ok certificate =>
+      certificate == (Mutation.dropFirstLink.apply canonical |>.canonicalize)
+  | .error _ => false
+
+example : rejectedCertificateStillParses = true := by native_decide
+
+example : (Certificate.checkedFromJson rejectedCanonicalJson).isOk = false := by
+  native_decide
+
+def missingAtomName : Lean.Json := Lean.Json.mkObj [
+  ("kind", "atom"), ("positive", true)]
+
+def missingAtomNameDiagnosticMatches : Bool :=
+  match Certificate.formulaFromJson missingAtomName with
+  | .error error =>
+      error == { path := "$.name", message := "property not found: name" }
+  | .ok _ => false
+
+example : missingAtomNameDiagnosticMatches = true := by native_decide
+
+def nonCanonicalJson : Lean.Json :=
+  Lean.Json.mkObj [
+    ("version", "0.2"),
+    ("canonical", true),
+    ("formulas", .arr (canonical.formulas.map Certificate.formulaJson)),
+    ("links", .arr
+      (scrambledCanonical.links.toArray.map Certificate.linkJson)),
+    ("conclusions", .arr (scrambledCanonical.conclusions.toArray.map
+      (fun value : Vertex => .num (Lean.JsonNumber.fromNat value))))]
+
+example : (Certificate.fromJson nonCanonicalJson).isOk = false := by
   native_decide
 
 def malformedExchange : CutFreeDerivation :=

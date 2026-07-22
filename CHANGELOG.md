@@ -17,6 +17,9 @@
 - recorded a representation-level comparison with the primary Rocq proof-net
   formalization to guide sequentialization without silently copying a theorem
   for a different graph model.
+- added a native Lean parser for canonical v0.2 JSON, path-aware parse errors,
+  canonical-form validation, and a safe checked-input boundary for untrusted
+  external certificates.
 
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 

@@ -57,6 +57,8 @@ The repository currently contains:
   1,000 generated or mutated certificates.
 - versioned canonical v0.2 JSON plus a committed deterministic dataset of 250
   positive and 750 negative checker-labeled records;
+- a native canonical-v0.2 JSON parser with path-aware errors and a
+  checker-gated API for untrusted certificates;
 - a runnable focused cut-free sequent-search baseline with eager invertible par
   steps and exhaustive tensor resource partitions.
 
@@ -85,8 +87,18 @@ supported sequential reconstruction
 Lean kernel
 ```
 
-The external AI, future JSON parser, and future graph proposer are untrusted.
+The external AI, JSON input, and future graph proposer are untrusted. Use
+`Certificate.checkedFromString` to parse and validate an external canonical
+v0.2 certificate before exposing it to trusted code.
 See [docs/trust-model.md](docs/trust-model.md) for the exact boundary.
+
+```lean
+match Certificate.checkedFromString input with
+| .ok checked => -- checked.accepted : checked.certificate.check = true
+    useCertificate checked.certificate
+| .error error =>
+    report error.path error.message
+```
 
 ## Build
 
@@ -118,6 +130,7 @@ ProofNetIR/Generate.lean      recursive derivation-first identity certificates
 ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
 ProofNetIR/DerivationTree.lean arbitrary cut-free trees and desequentialization
 ProofNetIR/Serialization.lean canonical v0.2 certificate JSON
+ProofNetIR/Parser.lean        v0.2 JSON parser and checked-input boundary
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 consumer-smoke/               independent downstream Lake dependency test

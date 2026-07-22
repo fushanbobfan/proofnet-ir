@@ -16,7 +16,9 @@
 - prompts, retrieved text, local-model summaries, and imported papers;
 - a future Python/TypeScript dataset generator or visualizer;
 - the Python focused-search baseline and dataset regeneration wrapper;
-- a future JSON parser until its output is revalidated in Lean;
+- external JSON and the parsing path; callers should use
+  `Certificate.checkedFromString`, whose return value includes the revalidated
+  Lean checker acceptance proof;
 - benchmark labels not regenerated from checked certificates;
 - the high-level claim that proof geometry improves proof search.
 

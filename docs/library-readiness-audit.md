@@ -1,7 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-21  
-Audited version: v0.2.0 (`f4ec45b`)
+Audited baseline: v0.2.0 (`f4ec45b`), plus post-release `main`
 
 ## Verdict
 
@@ -9,8 +9,9 @@ ProofNet-IR v0.2.0 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. It cannot yet support the stronger claim that any
-accepted net can be converted back into a derivation, nor can a downstream
-consumer parse arbitrary v0.2 JSON directly into a checked Lean object.
+accepted net can be converted back into a derivation. Post-release `main` now
+lets a downstream consumer parse canonical v0.2 JSON directly into a checked
+Lean object, but that closes only one engineering gap.
 
 ## What is logically established
 
@@ -29,6 +30,8 @@ consumer parse arbitrary v0.2 JSON directly into a checked Lean object.
 - `CutFreeDerivation.elaborate?` returns only when the inferred sequent has a
   kernel-typed derivation, the certificate boundary labels are that same
   sequent, and the reference checker accepted the certificate.
+- the post-release parser accepts the canonical serializer for all 250
+  generated derivation-tree fixtures and returns the normalized certificate.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -47,8 +50,8 @@ consumer parse arbitrary v0.2 JSON directly into a checked Lean object.
 
 ## Engineering gaps blocking a mature-library claim
 
-- serialization is write-only; there is no trusted Lean JSON parser with
-  structured errors and validation;
+- canonical v0.2 serialization now has a native Lean parser, path-aware parse
+  errors, normalization validation, and a checker-gated untrusted-input API;
 - many APIs return `Option`, losing the location and reason for failure;
 - separate path-dependency and clean pinned-v0.2.0 Lake consumers now pass;
   they must remain in CI for future compatibility releases;
