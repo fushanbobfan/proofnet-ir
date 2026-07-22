@@ -21,7 +21,10 @@
   `vertexCount` budget, identifying `Correct` and `FuelCorrect`.
 - [ ] Prove general sequentialization for the supported representation.
 - [x] Add a second generated proof-tree/net family and labeled mutation tests.
-- [ ] Generalize proof-tree-to-net generation beyond the two supported families.
+- [x] Generalize derivation-first generation and gated reconstruction to the
+  recursive identity family `A, A-dual` at arbitrary formula depth.
+- [ ] Generalize generation/reconstruction from identity nets to arbitrary
+  cut-free derivation trees.
 
 ## v0.2 - Dataset and repair loop
 

@@ -41,6 +41,12 @@ open. This no longer weakens completeness for `FuelCorrect`, but it is needed
 to identify the original unbounded `Correct` predicate with `FuelCorrect`.
 None of these results is the proof-net sequentialization theorem.
 
+The supported reconstruction boundary is broader than a fixed fixture but
+still explicit: `Derivation.identity` and `identityCertificate` cover the
+recursive family `A, A-dual`, and `reconstructIdentity?` requires exact
+certificate equality. It does not treat checker acceptance alone as permission
+to return a preselected derivation.
+
 ## Failure containment
 
 Even if a future graph proposer, optimized checker, or sequentializer is wrong,

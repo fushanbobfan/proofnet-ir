@@ -1,4 +1,5 @@
 import ProofNetIR.Checker
+import ProofNetIR.Generate
 
 namespace ProofNetIR
 
@@ -18,8 +19,38 @@ inductive Derivation : List Formula → Type where
   | parTail {left right : Formula} {context : List Formula} :
       Derivation (context ++ [left, right]) →
       Derivation (context ++ [.par left right])
+  | exchange {before after : List Formula} :
+      List.Perm before after →
+      Derivation before →
+      Derivation after
 
 namespace Derivation
+
+/-- Identity expansion for every unit-free MLL formula. Atomic identity is
+primitive; tensor and par identities are reconstructed compositionally using
+the connective rules and an explicit permutation witness. -/
+def identity : (formula : Formula) → Derivation [formula, formula.dual]
+  | .atom name positive => .axiom name positive
+  | .tensor left right => by
+      let combined : Derivation [
+          .tensor left right, left.dual, right.dual] := by
+        simpa using Derivation.tensor (identity left) (identity right)
+      simpa [Formula.dual] using Derivation.parTail
+        (context := [.tensor left right]) combined
+  | .par left right => by
+      let leftDualFirst : Derivation [left.dual, left] :=
+        .exchange (.swap left.dual left []) (identity left)
+      let rightDualFirst : Derivation [right.dual, right] :=
+        .exchange (.swap right.dual right []) (identity right)
+      let combined : Derivation [
+          .tensor left.dual right.dual, left, right] := by
+        simpa using Derivation.tensor leftDualFirst rightDualFirst
+      let withPar : Derivation [
+          .tensor left.dual right.dual, .par left right] := by
+        simpa using Derivation.parTail
+          (context := [.tensor left.dual right.dual]) combined
+      simpa [Formula.dual] using Derivation.exchange
+        (.swap (.par left right) (.tensor left.dual right.dual) []) withPar
 
 /-- A supported sequential reconstruction of the canonical two-axiom MLL net. -/
 def canonical (leftName rightName : String) :
@@ -162,5 +193,21 @@ theorem reconstructCanonical?_isSome_iff (certificate : Certificate)
     (reconstructCanonical? certificate leftName rightName).isSome = true ↔
       certificate = canonicalCertificate leftName rightName := by
   simp [reconstructCanonical?]
+
+/-- Certificate-gated reconstruction for the recursively generated identity
+family. This supports arbitrary unit-free MLL formula depth while continuing
+to reject certificates outside the exact declared family. -/
+def reconstructIdentity? (certificate : Certificate) (formula : Formula) :
+    Option (Derivation [formula, formula.dual]) :=
+  if certificate = identityCertificate formula then
+    some (Derivation.identity formula)
+  else
+    none
+
+theorem reconstructIdentity?_isSome_iff (certificate : Certificate)
+    (formula : Formula) :
+    (reconstructIdentity? certificate formula).isSome = true ↔
+      certificate = identityCertificate formula := by
+  simp [reconstructIdentity?]
 
 end ProofNetIR

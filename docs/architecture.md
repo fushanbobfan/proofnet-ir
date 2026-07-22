@@ -44,20 +44,24 @@ recognizers should be tested against this implementation before replacing it.
 
 ## Sequentialization boundary
 
-`Reconstruct.lean` currently supplies kernel-checked derivations for canonical
-two- and three-axiom nested tensor/par families. The smallest family has the
-shape
+`Reconstruct.lean` includes an explicit exchange rule with a `List.Perm`
+witness. `Derivation.identity` then recursively constructs a kernel-checked
+derivation of
 
 ```text
-|- p tensor q, p-dual par q-dual.
+|- A, A-dual
 ```
 
-`reconstructCanonical?` also gates the two-axiom reconstruction on exact
-certificate matching, so an arbitrary certificate cannot be ignored while a
-fixed derivation is returned. This still does not claim a general
-sequentialization theorem. The next formal step is to add exchange/permutation
-explicitly and prove that every accepted net in the supported certificate
-representation yields a `Derivation`.
+for every formula in the unit-free MLL syntax. `Generate.lean` mirrors this
+derivation recursively to build a canonical identity certificate, and
+`reconstructIdentity?` gates reconstruction on exact certificate equality.
+Consequently, the supported family now has arbitrary formula depth rather than
+only two hand-written examples.
+
+This still does not claim the general sequentialization theorem: an arbitrary
+accepted proof net need not be a canonical identity net. The next formal step
+is to represent the splitting-tensor argument and recursively turn every
+accepted net into a `Derivation`, modulo explicit exchange.
 
 ## Representation invariants
 

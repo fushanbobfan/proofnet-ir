@@ -31,9 +31,14 @@ The repository currently contains:
   when stored edges are in bounds;
 - `check_iff_fuelCorrect`, lifting that correspondence through every switching
   to the complete certificate checker;
-- kernel-checked sequent derivations for canonical two- and three-axiom net
-  families, with certificate-gated reconstruction for the first family;
-- labeled negative-certificate mutations, 48 positive/negative compile-time
+- explicit exchange/permutation plus recursive identity expansion proving
+  `|- A, A-dual` for every unit-free MLL formula;
+- a derivation-first generator for the corresponding canonical identity
+  certificate at arbitrary formula depth, with exact certificate-gated
+  reconstruction;
+- a finite formula enumerator whose depth-two one-atom corpus checks all 210
+  generated identity certificates;
+- labeled negative-certificate mutations, 58 positive/negative compile-time
   assertions, and an executable smoke test.
 
 This is a research prototype. It does not yet include a general
@@ -85,6 +90,7 @@ ProofNetIR/Certificate.lean   occurrences, links, and structural validation
 ProofNetIR/Graph.lean         finite graph closure and declarative tree property
 ProofNetIR/Checker.lean       switchings, executable checker, soundness/completeness
 ProofNetIR/Reconstruct.lean   supported sequent derivation reconstruction
+ProofNetIR/Generate.lean      recursive derivation-first identity certificates
 ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 schemas/                      versioned external certificate contract

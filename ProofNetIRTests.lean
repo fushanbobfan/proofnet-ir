@@ -11,6 +11,44 @@ def qDual : Formula := q.dual
 
 example : p.dual.dual = p := by simp
 
+def mixedFormula : Formula := .par (.tensor p q) (.atom "r" true)
+
+example : Derivation [mixedFormula, mixedFormula.dual] :=
+  Derivation.identity mixedFormula
+
+example : identityCertificate (.tensor p q) = canonicalCertificate "p" "q" := by
+  native_decide
+
+example : (identityCertificate mixedFormula).wellFormed = true := by
+  native_decide
+
+example : (identityCertificate mixedFormula).switchingGraphs.length = 4 := by
+  native_decide
+
+example : (identityCertificate mixedFormula).check = true := by
+  native_decide
+
+example : (identityCertificate mixedFormula).FuelCorrect :=
+  (identityCertificate mixedFormula).check_iff_fuelCorrect.mp (by native_decide)
+
+example :
+    (reconstructIdentity? (identityCertificate mixedFormula) mixedFormula).isSome =
+      true := by
+  native_decide
+
+example :
+    (reconstructIdentity?
+      (Mutation.dropFirstLink.apply (identityCertificate mixedFormula))
+      mixedFormula).isSome = false := by
+  native_decide
+
+def generatedDepthTwo : List Formula := Formula.enumerate ["p"] 2
+
+example : generatedDepthTwo.length = 210 := by native_decide
+example : generatedDepthTwo.all (fun formula =>
+    (identityCertificate formula).check) = true := by
+  native_decide
+
 /-- The canonical net for `⊢ p ⊗ q, p⊥ ⅋ q⊥`. -/
 def canonical : Certificate where
   formulas := #[p, pDual, q, qDual, .tensor p q, .par pDual qDual]

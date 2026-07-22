@@ -28,6 +28,10 @@ logic. Later Lean-term reconstruction must additionally pass the Lean kernel.
 
 - Generate cut-free derivation trees first.
 - Desequentialize them to valid proof nets.
+- Use the recursive `identityCertificate` family as the first arbitrary-depth
+  generator sanity stratum; do not mistake it for a diverse proof corpus.
+- The transparent `Formula.enumerate` helper intentionally retains duplicates;
+  canonicalization and train/test splitting must happen before experiments.
 - Deduplicate by a versioned canonical serialization that is invariant under
   occurrence renaming but preserves formula labels and link incidence.
 - Stratify by atom count, connective count, number of par links, maximum depth,
@@ -71,4 +75,3 @@ infer a search improvement from a large quotient alone.
 - A graph method wins only if it improves checked success or cost at matched
   success against the focused baseline. A smaller textual representation or a
   visually appealing graph is not enough.
-
