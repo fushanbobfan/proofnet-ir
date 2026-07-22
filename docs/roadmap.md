@@ -178,6 +178,9 @@
   desequentialization, and `ProofNetEquivalent` output.
 - [x] Exhaustively backtrack over repeated boundary formula occurrences rather
   than assuming formula labels are unique.
+- [x] Prove completeness of the optimized occurrence-permutation enumeration.
+- [x] Prove completeness of executable direct-equivalence witness search on
+  structurally well-formed certificates.
 - [x] Add structured staged errors and 250 broad generated regressions plus a
   repeated-label regression.
 - [x] Reject the over-strong link-order-sensitive identity contract and retain

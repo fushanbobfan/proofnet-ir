@@ -17,7 +17,11 @@
   this specific search remains an explicit pre-release obligation;
 - extended the path-dependency consumer to execute the new API and consume its
   proof-net-equivalence theorem;
-- added a CI trust audit pinning six public logical-boundary theorems to exactly
+- proved that the optimized repeated-label occurrence backtracker enumerates
+  every fresh duplicate-free formula-compatible occurrence permutation;
+- proved completeness of the executable direct proof-net-equivalence search on
+  structurally well-formed certificates, including link-list permutations;
+- added a CI trust audit pinning eight public logical-boundary theorems to exactly
   `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and
   completed ordered text and rendered-image inspection of every unique page;

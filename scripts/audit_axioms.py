@@ -16,6 +16,8 @@ EXPECTED_THEOREMS = {
     "ProofNetIR.Certificate.sequentialization_of_check",
     "ProofNetIR.Certificate.generallySequentializable",
     "ProofNetIR.Certificate.reindexEquivalent?_eq_true_iff_of_check",
+    "ProofNetIR.Certificate.matchingFormulaOrders_complete",
+    "ProofNetIR.Certificate.directProofNetEquivalentWitness?_complete",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
 }
@@ -77,4 +79,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

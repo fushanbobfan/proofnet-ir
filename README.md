@@ -93,7 +93,7 @@ permutation, and rechecks its output. A Lean theorem that this
 specific executable search succeeds for every accepted certificate remains a
 v0.5 obligation; generated success is regression evidence, not that theorem.
 The path-based downstream consumer executes this API, and CI separately audits
-six public logical-boundary theorems against the exact accepted axiom set
+eight public logical-boundary theorems against the exact accepted axiom set
 `[propext, Classical.choice, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose

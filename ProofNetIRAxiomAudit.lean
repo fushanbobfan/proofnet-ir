@@ -13,6 +13,7 @@ expansion.
 #print axioms Certificate.sequentialization_of_check
 #print axioms Certificate.generallySequentializable
 #print axioms Certificate.reindexEquivalent?_eq_true_iff_of_check
+#print axioms Certificate.matchingFormulaOrders_complete
+#print axioms Certificate.directProofNetEquivalentWitness?_complete
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent
-

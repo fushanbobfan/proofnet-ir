@@ -107,7 +107,9 @@ part of the engineering and proof-identity gap.
 - separate path-dependency and clean pinned-v0.4.0 Lake consumers now pass;
   the path dependency executes the unreleased sequentializer and consumes its
   equivalence theorem, while the pinned consumer protects the v0.4.0 API;
-- CI now parses `#print axioms` for six public logical-boundary theorems and
+- the finite direct-equivalence search is now proved complete on structurally
+  well-formed left certificates, including repeated labels and link reordering;
+- CI now parses `#print axioms` for eight public logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
