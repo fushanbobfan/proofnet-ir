@@ -6592,6 +6592,375 @@ theorem CuspingEdge.par_origin
     simp [Graph.DirectedEdge.target, colorData.1, edgeSecond]
   exact ⟨left, right, conclusion, membership, target, edgeShape⟩
 
+/-- Representation-specific carrier used by parametrized generalized Yeo:
+positive occurrences aimed at the conclusion produced by a tensor or par
+link.  Unlike the set of cusping occurrences, this carrier is also closed
+under moving from a non-boundary connective conclusion to its parent link. -/
+def SequentializationEdge (certificate : Certificate)
+    (directed : certificate.fullGraph.DirectedEdge) : Prop :=
+  directed.forward = true ∧
+    ∃ link ∈ certificate.links, link.produces directed.target = true
+
+/-- Every nontrivially cusping occurrence belongs to the parametrized-Yeo
+sequentialization carrier. -/
+theorem CuspingEdge.sequentializationEdge
+    {certificate : Certificate}
+    {incoming : certificate.fullGraph.DirectedEdge}
+    (cusping : certificate.CuspingEdge incoming) :
+    certificate.SequentializationEdge incoming := by
+  rcases cusping.incidenceColor_eq_par with ⟨colorTarget, color⟩
+  have forward :=
+    (certificate.incidenceColor_eq_par_iff incoming colorTarget).mp color |>.1
+  rcases cusping.par_origin with
+    ⟨left, right, conclusion, membership, target, _edgeShape⟩
+  refine ⟨forward, .par left right conclusion, membership, ?_⟩
+  simp [Link.produces, target]
+
+/-- A non-boundary connective occurrence has an exact forward parent
+occurrence in the sequentialization carrier.  Node ownership supplies the
+unique parent link; aligned tensor/par annotations supply its stored edge
+index without conflating parallel equal-valued edges. -/
+theorem parent_sequentializationEdge_exists
+    {certificate : Certificate} (structural : certificate.StructurallyWellFormed)
+    {vertex : Vertex} (inBounds : vertex < certificate.formulas.size)
+    (notBoundary : vertex ∉ certificate.conclusions) :
+    ∃ parent : certificate.fullGraph.DirectedEdge,
+      parent.source = vertex ∧ certificate.SequentializationEdge parent := by
+  have node := structural.2.2.2.2.2 vertex inBounds
+  have parentCount : certificate.parentUseCount vertex = 1 := by
+    simpa [Certificate.NodeWellFormed, notBoundary] using node.2
+  unfold parentUseCount at parentCount
+  rcases List.length_eq_one_iff.mp parentCount with
+    ⟨parentLink, parentFilterEquation⟩
+  have parentFiltered : parentLink ∈ certificate.links.filter
+      (·.usesAsPremise vertex) := by
+    rw [parentFilterEquation]
+    simp
+  rcases List.mem_filter.mp parentFiltered with
+    ⟨parentMembership, parentUses⟩
+  have premiseMembership : vertex ∈ parentLink.premises := by
+    simpa [Link.usesAsPremise] using parentUses
+  have parentWellFormed :=
+    structural.2.2.2.2.1 parentLink parentMembership
+  cases parentLink with
+  | «axiom» first second => simp [Link.premises] at premiseMembership
+  | tensor left right conclusion =>
+      simp [Link.premises] at premiseMembership
+      rcases certificate.tensor_incidenceColors_exist parentMembership
+          parentWellFormed.1 with
+        ⟨leftIncidence, rightIncidence, leftSource, _leftTarget, rightSource,
+          _rightTarget, leftColor, rightColor, _different⟩
+      have leftForward : leftIncidence.forward = true := by
+        cases forward : leftIncidence.forward
+        · simp [incidenceColor, forward] at leftColor
+        · rfl
+      have rightForward : rightIncidence.forward = true := by
+        cases forward : rightIncidence.forward
+        · simp [incidenceColor, forward] at rightColor
+        · rfl
+      rcases premiseMembership with rfl | rfl
+      · refine ⟨leftIncidence, leftSource, leftForward,
+          .tensor vertex right conclusion,
+          parentMembership, ?_⟩
+        simp [Link.produces, _leftTarget]
+      · refine ⟨rightIncidence, rightSource, rightForward,
+          .tensor left vertex conclusion,
+          parentMembership, ?_⟩
+        simp [Link.produces, _rightTarget]
+  | par left right conclusion =>
+      simp [Link.premises] at premiseMembership
+      rcases certificate.par_incidenceColors_exist parentMembership with
+        ⟨leftIncidence, rightIncidence, leftSource, _leftTarget, rightSource,
+          _rightTarget, leftColor, rightColor⟩
+      have leftForward :=
+        (certificate.incidenceColor_eq_par_iff leftIncidence conclusion).mp
+          leftColor |>.1
+      have rightForward :=
+        (certificate.incidenceColor_eq_par_iff rightIncidence conclusion).mp
+          rightColor |>.1
+      rcases premiseMembership with rfl | rfl
+      · refine ⟨leftIncidence, leftSource, leftForward,
+          .par vertex right conclusion,
+          parentMembership, ?_⟩
+        simp [Link.produces, _leftTarget]
+      · refine ⟨rightIncidence, rightSource, rightForward,
+          .par left vertex conclusion,
+          parentMembership, ?_⟩
+        simp [Link.produces, _rightTarget]
+
+/-- At a forward outgoing occurrence, the only incoming occurrence that can
+form a cusp with it is its exact reverse.  The proof uses occurrence index and
+orientation, so equal-valued parallel edges remain distinct. -/
+theorem cusp_eq_reverse_of_outgoing_forward
+    (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge)
+    (outgoingForward : outgoing.forward = true)
+    (cusp : certificate.Cusp incoming outgoing) :
+    incoming = outgoing.reverse := by
+  have outgoingColor : certificate.incidenceColor outgoing.reverse =
+      .unique outgoing.index false := by
+    simp [incidenceColor, Graph.DirectedEdge.reverse, outgoingForward]
+  have incomingNotPar : ∀ conclusion,
+      certificate.incidenceColor incoming ≠ .par conclusion := by
+    intro conclusion incomingPar
+    have impossible : LocalSwitchingColor.par conclusion =
+        .unique outgoing.index false :=
+      incomingPar.symm.trans (cusp.trans outgoingColor)
+    cases impossible
+  have incomingColor := certificate.incidenceColor_eq_unique_of_not_par
+    incoming incomingNotPar
+  unfold Cusp at cusp
+  rw [incomingColor, outgoingColor] at cusp
+  have sameIndex : incoming.index = outgoing.index := by
+    injection cusp
+  have incomingFalse : incoming.forward = false := by
+    injection cusp
+  apply Graph.DirectedEdge.eq_of_index_eq_of_forward_eq incoming
+    outgoing.reverse
+  · simpa using sameIndex
+  · simpa [Graph.DirectedEdge.reverse, outgoingForward] using incomingFalse
+
+/-- The exact parent occurrence of a sequentialization edge gives a one-edge
+cusp-free continuation.  Its source and target are distinct by structural
+looplessness, and the initial transition is free because both carrier edges
+are forward while a cusp into a forward edge would force reversal. -/
+def SequentializationEdge.parentContinuation
+    {certificate : Certificate} (structural : certificate.StructurallyWellFormed)
+    {incoming parent : certificate.fullGraph.DirectedEdge}
+    (incomingEdge : certificate.SequentializationEdge incoming)
+    (parentSource : parent.source = incoming.target)
+    (parentEdge : certificate.SequentializationEdge parent) :
+    certificate.CuspFreeContinuation incoming parent := by
+  have endpointsDifferent := certificate.fullDirectedEdge_loopless structural parent
+  let path : certificate.fullGraph.EdgeSimplePath :=
+    { start := incoming.target
+      finish := parent.target
+      traversed := [parent]
+      walk := by
+        simpa using Graph.EdgeWalk.step (.refl incoming.target) parent
+          parentSource rfl
+      verticesNodup := by
+        change (incoming.target :: parent.target :: []).Nodup
+        have sourceTarget : incoming.target ≠ parent.target := by
+          intro same
+          apply endpointsDifferent
+          exact parentSource.trans same
+        simp [sourceTarget] }
+  refine
+    { path := path
+      nonempty := by simp [path]
+      startsAt := rfl
+      endsAt := rfl
+      cuspFree := by simp [path, CuspFreeTraversal]
+      initialFree := ?_
+      lastEdge := by simp [path] }
+  intro cusp
+  have reversed := certificate.cusp_eq_reverse_of_outgoing_forward
+    incoming parent parentEdge.1 cusp
+  have orientations := congrArg Graph.DirectedEdge.forward reversed
+  rw [incomingEdge.1] at orientations
+  simp [Graph.DirectedEdge.reverse, parentEdge.1] at orientations
+
+/-- Parametrized-Yeo terminality step in the formula-occurrence
+representation.  Moving from a non-boundary connective conclusion to its
+exact parent occurrence is a strict `EdgeOrdering` step.  Any violation of the
+one-edge path's universal separation clause would close with a prefix of the
+later continuation to form a forbidden cusp-free exact cycle. -/
+theorem CuspAcyclic.ordering_to_parent
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    (structural : certificate.StructurallyWellFormed)
+    {incoming parent : certificate.fullGraph.DirectedEdge}
+    (incomingEdge : certificate.SequentializationEdge incoming)
+    (parentSource : parent.source = incoming.target)
+    (parentEdge : certificate.SequentializationEdge parent) :
+    certificate.EdgeOrdering incoming parent := by
+  let first := incomingEdge.parentContinuation structural parentSource parentEdge
+  have firstSteps : first.path.traversed = [parent] := rfl
+  have firstVertices : first.path.vertices = [incoming.target, parent.target] := by
+    simp [Graph.EdgeSimplePath.vertices, Graph.EdgeWalk.visitedVertices,
+      firstSteps, first.startsAt]
+  refine ⟨{ first with separated := ?_ }⟩
+  intro later continuation vertex inFirst inLater
+  have vertexCases : vertex = incoming.target ∨ vertex = parent.target := by
+    simpa [firstVertices] using inFirst
+  rcases vertexCases with atBase | atParentTarget
+  · subst vertex
+    rcases continuation.prefixToTailVertex inLater with
+      ⟨last, ⟨returning⟩, lastTarget⟩
+    have meeting : first.path.finish = returning.path.start :=
+      first.endsAt.trans returning.startsAt.symm
+    have closing : returning.path.finish = first.path.start :=
+      returning.endsAt.trans (lastTarget.trans first.startsAt.symm)
+    have vertexDisjoint : ∀ candidate,
+        candidate ∈ first.path.vertices →
+        candidate ∈ returning.path.vertices.tail.dropLast → False := by
+      intro candidate inFirstPath inReturnInterior
+      have candidateCases : candidate = incoming.target ∨
+          candidate = parent.target := by
+        simpa [firstVertices] using inFirstPath
+      rcases candidateCases with candidateBase | candidateParent
+      · subst candidate
+        apply returning.path.finish_not_mem_vertices_tail_dropLast
+          returning.nonempty
+        rw [returning.endsAt, lastTarget]
+        exact inReturnInterior
+      · subst candidate
+        apply returning.path.start_not_mem_vertices_tail
+        rw [returning.startsAt]
+        exact Graph.mem_of_mem_dropLast inReturnInterior
+    have edgeDisjoint : ∀ index,
+        index ∈ first.path.traversed.map Graph.DirectedEdge.index →
+        index ∈ returning.path.traversed.map Graph.DirectedEdge.index →
+          False := by
+      intro index inFirstIndices inReturnIndices
+      have indexParent : index = parent.index := by
+        simpa [firstSteps] using inFirstIndices
+      rcases List.mem_map.mp inReturnIndices with
+        ⟨directed, directedMembership, directedIndex⟩
+      have sameIndex : directed.index = parent.index :=
+        directedIndex.trans indexParent
+      rcases Graph.DirectedEdge.eq_or_eq_reverse_of_index_eq
+          directed parent sameIndex with same | reversed
+      · apply returning.path.directed_source_ne_finish returning.nonempty
+          directedMembership
+        calc
+          directed.source = parent.source := congrArg _ same
+          _ = incoming.target := parentSource
+          _ = last.target := lastTarget.symm
+          _ = returning.path.finish := returning.endsAt.symm
+      · let head := returning.path.traversed.head returning.nonempty
+        have headMembership : head ∈ returning.path.traversed :=
+          List.head_mem returning.nonempty
+        have sameSource : directed.source = head.source := by
+          calc
+            directed.source = parent.reverse.source := congrArg _ reversed
+            _ = parent.target := Graph.DirectedEdge.reverse_source parent
+            _ = returning.path.start := returning.startsAt.symm
+            _ = head.source := (returning.path.head_source
+              returning.nonempty).symm
+        have directedIsHead := returning.path.eq_of_source_eq
+          directedMembership headMembership sameSource
+        have initialFree : ¬certificate.Cusp parent head := by
+          simpa [head] using returning.initialFree
+        apply initialFree
+        rw [← directedIsHead, reversed]
+        simp [Cusp]
+    let closed := Graph.EdgeSimpleCycle.ofTwoPaths first.path returning.path
+      first.nonempty returning.nonempty meeting closing vertexDisjoint
+        edgeDisjoint
+    have closedSteps : closed.traversed =
+        first.path.traversed ++ returning.path.traversed := rfl
+    have traversalFree : certificate.CuspFreeTraversal closed.traversed := by
+      rw [closedSteps]
+      apply CuspFreeTraversal.append certificate first.cuspFree
+        returning.cuspFree first.nonempty returning.nonempty
+      rw [first.lastEdge]
+      exact returning.initialFree
+    let returnLast := returning.path.traversed.getLast returning.nonempty
+    have closingPairFree : ¬certificate.Cusp returnLast parent := by
+      intro cusp
+      have reversed := certificate.cusp_eq_reverse_of_outgoing_forward
+        returnLast parent parentEdge.1 cusp
+      apply edgeDisjoint parent.index
+      · simp [firstSteps]
+      · exact List.mem_map.mpr
+          ⟨returnLast, List.getLast_mem returning.nonempty, by
+            simpa [returnLast] using congrArg Graph.DirectedEdge.index reversed⟩
+    have closedHeadOption : closed.traversed.head? = some parent := by
+      rw [closedSteps, firstSteps]
+      simp
+    have closedHead : closed.traversed.head closed.nonempty = parent :=
+      List.head_of_head?_eq_some closedHeadOption
+    have closedLastOption : closed.traversed.getLast? = some returnLast := by
+      rw [closedSteps, List.getLast?_append,
+        List.getLast?_eq_some_getLast returning.nonempty]
+      rfl
+    have closedLast : closed.traversed.getLast closed.nonempty = returnLast :=
+      List.getLast_of_getLast?_eq_some closedLastOption
+    have closingFree : ¬certificate.ClosingCusp closed := by
+      intro cusp
+      unfold ClosingCusp at cusp
+      rw [closedLast, closedHead] at cusp
+      exact closingPairFree cusp
+    exact acyclic closed ((certificate.cuspFreeCycle_iff closed).2
+      ⟨traversalFree, closingFree⟩)
+  · subst vertex
+    apply continuation.path.start_not_mem_vertices_tail
+    rw [continuation.startsAt]
+    exact inLater
+
+theorem SequentializationEdge.target_in_bounds
+    {certificate : Certificate} (structural : certificate.StructurallyWellFormed)
+    {directed : certificate.fullGraph.DirectedEdge}
+    (sequentialization : certificate.SequentializationEdge directed) :
+    directed.target < certificate.formulas.size := by
+  rcases sequentialization.2 with ⟨link, membership, produces⟩
+  have wellFormed := structural.2.2.2.2.1 link membership
+  cases link with
+  | «axiom» left right => simp [Link.produces] at produces
+  | tensor left right conclusion =>
+      have target : conclusion = directed.target := by
+        simpa [Link.produces] using produces
+      rw [← target]
+      exact wellFormed.2.2.2.2.2.1
+  | par left right conclusion =>
+      have target : conclusion = directed.target := by
+        simpa [Link.produces] using produces
+      rw [← target]
+      exact wellFormed.2.2.2.2.2.1
+
+/-- Non-terminality of a carrier edge yields a strict carrier successor: its
+unique parent occurrence. -/
+theorem CuspAcyclic.ordering_of_sequentializationEdge_not_terminal
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    (structural : certificate.StructurallyWellFormed)
+    {incoming : certificate.fullGraph.DirectedEdge}
+    (incomingEdge : certificate.SequentializationEdge incoming)
+    (notTerminal : incoming.target ∉ certificate.conclusions) :
+    ∃ parent : certificate.fullGraph.DirectedEdge,
+      certificate.EdgeOrdering incoming parent ∧
+        certificate.SequentializationEdge parent := by
+  have inBounds := incomingEdge.target_in_bounds structural
+  rcases certificate.parent_sequentializationEdge_exists structural inBounds
+      notTerminal with ⟨parent, parentSource, parentEdge⟩
+  exact ⟨parent, acyclic.ordering_to_parent certificate structural incomingEdge
+    parentSource parentEdge, parentEdge⟩
+
+/-- Any stored connective supplies a concrete member of the parametrized-Yeo
+carrier. -/
+theorem sequentializationEdge_exists_of_connective
+    {certificate : Certificate} (structural : certificate.StructurallyWellFormed)
+    (connectiveExists : ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    ∃ directed : certificate.fullGraph.DirectedEdge,
+      certificate.SequentializationEdge directed := by
+  rcases connectiveExists with ⟨link, membership, connective⟩
+  have wellFormed := structural.2.2.2.2.1 link membership
+  cases link with
+  | «axiom» left right => simp [Link.isConnective] at connective
+  | tensor left right conclusion =>
+      rcases certificate.tensor_incidenceColors_exist membership
+          wellFormed.1 with
+        ⟨leftIncidence, _rightIncidence, _leftSource, leftTarget,
+          _rightSource, _rightTarget, leftColor, _rightColor, _different⟩
+      have leftForward : leftIncidence.forward = true := by
+        cases forward : leftIncidence.forward
+        · simp [incidenceColor, forward] at leftColor
+        · rfl
+      refine ⟨leftIncidence, leftForward, .tensor left right conclusion,
+        membership, ?_⟩
+      simp [Link.produces, leftTarget]
+  | par left right conclusion =>
+      rcases certificate.par_incidenceColors_exist membership with
+        ⟨leftIncidence, _rightIncidence, _leftSource, leftTarget,
+          _rightSource, _rightTarget, leftColor, _rightColor⟩
+      have leftForward :=
+        (certificate.incidenceColor_eq_par_iff leftIncidence conclusion).mp
+          leftColor |>.1
+      refine ⟨leftIncidence, leftForward, .par left right conclusion,
+        membership, ?_⟩
+      simp [Link.produces, leftTarget]
+
 theorem not_splittingVertex_witness (certificate : Certificate)
     {vertex : Vertex} (notSplitting : ¬certificate.SplittingVertex vertex) :
     ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
@@ -6845,6 +7214,68 @@ theorem CuspAcyclic.ordering_of_not_splitting
     apply differentIndex
     simpa using congrArg Graph.DirectedEdge.index same
   exact ⟨cusping, ⟨ordering⟩, outgoing, cusp, differentReverse⟩
+
+/-- Parametrized generalized Yeo on the representation-specific carrier.
+Every cusping occurrence lies in the carrier, and every non-terminal carrier
+target has a strict carrier successor. Therefore a finite maximal carrier
+occurrence targets a vertex that is both colored-splitting and on the public
+boundary. -/
+theorem CuspAcyclic.exists_terminal_splitting_target
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    (structural : certificate.StructurallyWellFormed)
+    (connectiveExists : ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    ∃ maximal : certificate.fullGraph.DirectedEdge,
+      certificate.SequentializationEdge maximal ∧
+        maximal.target ∈ certificate.conclusions ∧
+        certificate.SplittingVertex maximal.target := by
+  classical
+  letI : BEq certificate.fullGraph.DirectedEdge :=
+    ⟨fun first second => decide (first = second)⟩
+  letI : LawfulBEq certificate.fullGraph.DirectedEdge := inferInstance
+  let values : List certificate.fullGraph.DirectedEdge :=
+    certificate.fullGraph.directedEdges.eraseDups.filter fun directed =>
+      decide (certificate.SequentializationEdge directed)
+  have valuesNodup : values.Nodup := by
+    exact (eraseDups_nodup_generic
+      certificate.fullGraph.directedEdges).filter _
+  rcases certificate.sequentializationEdge_exists_of_connective structural
+      connectiveExists with ⟨seed, seedEdge⟩
+  have seedInValues : seed ∈ values := by
+    simp [values, seed.mem_directedEdges, seedEdge]
+  have valuesNonempty : values ≠ [] := by
+    intro empty
+    rw [empty] at seedInValues
+    simp at seedInValues
+  rcases exists_relation_maximal values valuesNodup valuesNonempty
+      certificate.EdgeOrdering
+      (fun value => EdgeOrdering.irrefl certificate value)
+      (fun {_first _middle _last} firstMiddle middleLast =>
+        EdgeOrdering.transitive certificate firstMiddle middleLast) with
+    ⟨maximal, maximalInValues, noSuccessor⟩
+  have maximalEdge : certificate.SequentializationEdge maximal := by
+    have filtered := List.mem_filter.mp maximalInValues
+    exact of_decide_eq_true filtered.2
+  have maximalTerminal : maximal.target ∈ certificate.conclusions := by
+    apply Classical.byContradiction
+    intro notTerminal
+    rcases acyclic.ordering_of_sequentializationEdge_not_terminal certificate
+        structural maximalEdge notTerminal with
+      ⟨successor, ordering, successorEdge⟩
+    have successorInValues : successor ∈ values := by
+      simp [values, successor.mem_directedEdges, successorEdge]
+    exact noSuccessor successor successorInValues ordering
+  have maximalSplitting : certificate.SplittingVertex maximal.target := by
+    apply Classical.byContradiction
+    intro notSplitting
+    rcases acyclic.ordering_of_not_splitting certificate structural maximal
+        notSplitting with
+      ⟨successor, ordering, successorCusping⟩
+    have successorEdge := successorCusping.sequentializationEdge
+    have successorInValues : successor ∈ values := by
+      simp [values, successor.mem_directedEdges, successorEdge]
+    exact noSuccessor successor successorInValues ordering
+  exact ⟨maximal, maximalEdge, maximalTerminal, maximalSplitting⟩
 
 /-- Generalized-Yeo maximality consequence for a nonempty edge-colored graph.
 Both orientations of every stored edge form a finite carrier.  A maximal
@@ -8061,6 +8492,52 @@ theorem SplittingVertex.toSplittingTensor
       injection closing
     exact indicesDifferent sameIndex.symm
   exact closingFree (splitting based basedAtConclusion)
+
+/-- Global terminal-rule existence for every declaratively correct
+certificate containing a connective.  Parametrized generalized Yeo supplies a
+terminal colored-splitting connective target; exact producer inversion then
+distinguishes the terminal par case from the terminal tensor case, where the
+colored-to-separator bridge supplies `SplittingTensor`. -/
+theorem DeclarativelyCorrect.terminalPar_or_splittingTensor_exists
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    (connectiveExists : ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    ∃ left right conclusion,
+      certificate.TerminalPar left right conclusion ∨
+        certificate.SplittingTensor left right conclusion := by
+  have acyclic := correct.cuspAcyclic
+  rcases acyclic.exists_terminal_splitting_target certificate correct.1
+      connectiveExists with
+    ⟨maximal, maximalEdge, terminalTarget, splittingTarget⟩
+  rcases maximalEdge.2 with ⟨producer, producerMembership, produces⟩
+  cases producer with
+  | «axiom» left right => simp [Link.produces] at produces
+  | tensor left right conclusion =>
+      have target : conclusion = maximal.target := by
+        simpa [Link.produces] using produces
+      have terminal : certificate.TerminalTensor left right conclusion :=
+        ⟨producerMembership, by simpa [target] using terminalTarget⟩
+      have splitting : certificate.SplittingVertex conclusion := by
+        simpa [target] using splittingTarget
+      exact ⟨left, right, conclusion, .inr
+        (splitting.toSplittingTensor correct.1 terminal)⟩
+  | par left right conclusion =>
+      have target : conclusion = maximal.target := by
+        simpa [Link.produces] using produces
+      have terminal : certificate.TerminalPar left right conclusion :=
+        ⟨producerMembership, by simpa [target] using terminalTarget⟩
+      exact ⟨left, right, conclusion, .inl terminal⟩
+
+theorem terminalPar_or_splittingTensor_exists_of_check
+    {certificate : Certificate} (accepted : certificate.check = true)
+    (connectiveExists : ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    ∃ left right conclusion,
+      certificate.TerminalPar left right conclusion ∨
+        certificate.SplittingTensor left right conclusion :=
+  (certificate.check_sound_declarative accepted).terminalPar_or_splittingTensor_exists
+    connectiveExists
 
 /-- Every structurally well-formed certificate containing a multiplicative
 link has a terminal multiplicative link. Choose a connective conclusion of

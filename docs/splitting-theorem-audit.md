@@ -115,14 +115,17 @@ name-level restatement of Yeo:
    first-cusp continuation is now an `OrderingPath`; finite maximality proves
    existence of a colored `SplittingVertex` in every nonempty cusp-acyclic
    occurrence graph.
-5. **Stored-link and terminal bridge (partially complete).** Exact annotation
+5. **Stored-link and terminal bridge (complete).** Exact annotation
    inversion now proves every nontrivially cusping occurrence is a concrete
-   stored par premise occurrence aimed at that par conclusion. Finite
-   maximality restricted to cusping occurrences therefore returns a stored par
-   conclusion satisfying `SplittingVertex`. What remains is the global
-   terminality argument: when such a par conclusion has a parent, propagate
-   the strict occurrence ordering toward the ordered public boundary and
-   derive either a terminal par or a terminal splitting tensor.
+   stored par premise occurrence aimed at that par conclusion. The
+   representation-specific `SequentializationEdge` carrier contains every
+   cusping occurrence and every positive tensor/par premise occurrence. For a
+   non-boundary carrier target, node ownership produces an exact parent
+   occurrence; a one-edge continuation to that parent satisfies the full
+   `OrderingPath.separated` clause because any returning prefix would form a
+   forbidden cusp-free exact cycle. Finite maximality on this carrier therefore
+   yields a target that is simultaneously `SplittingVertex` and a public
+   conclusion.
 6. **Terminal-tensor splitting bridge (required direction complete).**
    `SplittingVertex.toSplittingTensor` proves that a structurally well-formed
    terminal tensor satisfying the colored splitting condition has no walk
@@ -149,11 +152,14 @@ name-level restatement of Yeo:
   colored-cycle criterion `CuspAcyclic`.
 - a colored splitting terminal tensor now implies the existing mathematical
   `SplittingTensor` separator proposition, with exact multiedge identity.
+- `DeclarativelyCorrect.terminalPar_or_splittingTensor_exists` and its
+  checker-facing corollary now prove the global terminal-rule dichotomy for
+  every correct certificate containing a connective.
 
 ## Claim boundary
 
-None of the completed bullets proves universal splitting existence. Generated
-examples and successful checker-gated candidates are regression evidence only.
-`GenerallySequentializable` must remain unproved until the six representation
-obligations above and the subsequent well-founded reconstruction/equivalence
-proof are kernel-checked with no `sorry` or `admit`.
+The universal terminal-rule existence theorem is now complete; generated
+examples and successful checker-gated candidates remain regression evidence,
+not part of that proof. `GenerallySequentializable` must remain unproved until
+the subsequent well-founded reconstruction and final equivalence proof are
+kernel-checked with no `sorry` or `admit`.

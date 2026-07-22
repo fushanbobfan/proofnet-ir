@@ -100,7 +100,7 @@
 - [x] Prove the two restricted switching graphs satisfy the exact tree
   edge-count equation and derive full checker/declarative correctness,
   including totality of the checker-gated split on accepted inputs.
-- [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor.
+- [x] Prove every accepted net containing a connective has a terminal par or splitting tensor.
   The finite-rank sublemma that every structurally well-formed net containing a
   connective has some terminal tensor or par is now complete; the remaining
   case is the global splitting lemma for terminal tensors when no terminal par
@@ -127,10 +127,12 @@
   classifier, universal-separation conclusion, and finite generalized-Yeo
   maximality theorem are now kernel checked. Exact annotation inversion
   identifies maximal cusping occurrences with stored par links, while
-  `SplittingVertex.toSplittingTensor` now turns any colored splitting terminal
-  tensor into the existing deletion/non-reachability separator. The remaining
-  global step is the terminality propagation that yields either a public
-  terminal par or such a terminal splitting tensor; see
+  `SplittingVertex.toSplittingTensor` turns any colored splitting terminal
+  tensor into the existing deletion/non-reachability separator. The
+  representation-specific sequentialization carrier, exact parent-occurrence
+  step, universal separation proof, and finite parametrized maximality now
+  yield a public terminal par or splitting tensor for every correct
+  certificate containing a connective; see
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

@@ -138,8 +138,16 @@
   cusping-restricted maximality, and a generic lift from duplicate-free vertex
   walks to exact occurrence-aware simple paths; proved
   `SplittingVertex.toSplittingTensor`, closing the colored-to-deletion splitting
-  bridge for terminal tensors without collapsing parallel stored edges. The
-  remaining global existence step is terminality propagation.
+  bridge for terminal tensors without collapsing parallel stored edges.
+- defined the representation-specific `SequentializationEdge` carrier and
+  proved the exact parent occurrence of every non-boundary carrier target gives
+  a strict `EdgeOrdering` successor with the full universal separation field;
+  finite parametrized generalized-Yeo maximality now yields a target that is
+  both colored-splitting and terminal.
+- proved `DeclarativelyCorrect.terminalPar_or_splittingTensor_exists` and the
+  checker-facing corollary: every accepted certificate containing a connective
+  exposes a mathematical terminal par or splitting tensor. The remaining main
+  theorem is well-founded recursive reconstruction plus output equivalence.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

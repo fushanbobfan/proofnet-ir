@@ -1015,6 +1015,21 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.CuspAcyclic.exists_splitting_par_of_cuspingEdge
 #check Certificate.fullGraphWithoutVertex_simpleWalk_avoids
 #check Certificate.SplittingVertex.toSplittingTensor
+#check Graph.EdgeSimplePath.directed_endpoints_mem_vertices
+#check Graph.EdgeSimplePath.directed_source_ne_finish
+#check Graph.EdgeSimplePath.head_source
+#check Certificate.SequentializationEdge
+#check Certificate.CuspingEdge.sequentializationEdge
+#check Certificate.parent_sequentializationEdge_exists
+#check Certificate.cusp_eq_reverse_of_outgoing_forward
+#check Certificate.SequentializationEdge.parentContinuation
+#check Certificate.CuspAcyclic.ordering_to_parent
+#check Certificate.SequentializationEdge.target_in_bounds
+#check Certificate.CuspAcyclic.ordering_of_sequentializationEdge_not_terminal
+#check Certificate.sequentializationEdge_exists_of_connective
+#check Certificate.CuspAcyclic.exists_terminal_splitting_target
+#check Certificate.DeclarativelyCorrect.terminalPar_or_splittingTensor_exists
+#check Certificate.terminalPar_or_splittingTensor_exists_of_check
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

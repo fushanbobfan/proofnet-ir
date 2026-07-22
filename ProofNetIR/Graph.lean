@@ -738,6 +738,14 @@ theorem start_ne_finish_of_nonempty {graph : Graph}
     exact (List.nodup_cons.mp nodup).1
   exact startFresh (same ▸ finishInTail)
 
+/-- Both endpoints of every exact occurrence traversed by a simple path occur
+in its visited-vertex list. -/
+theorem directed_endpoints_mem_vertices {graph : Graph}
+    (path : graph.EdgeSimplePath) {directed : graph.DirectedEdge}
+    (membership : directed ∈ path.traversed) :
+    directed.source ∈ path.vertices ∧ directed.target ∈ path.vertices := by
+  exact path.walk.endpoints_mem_visitedVertices membership
+
 /-- For a nonempty simple path, its visited vertices are exactly the source of
 each traversal edge followed by the final endpoint. -/
 theorem vertices_eq_sources_append_finish {graph : Graph}
@@ -786,6 +794,38 @@ theorem finish_not_mem_vertices_dropLast {graph : Graph}
     exact nodup.2.2 path.finish membership path.finish (by simp) rfl
   rw [path.vertices_eq_sources_append_finish nonempty]
   simpa using finishNotInSources
+
+/-- No traversed occurrence can leave the final vertex of a nonempty simple
+path. -/
+theorem directed_source_ne_finish {graph : Graph}
+    (path : graph.EdgeSimplePath) (nonempty : path.traversed ≠ [])
+    {directed : graph.DirectedEdge} (membership : directed ∈ path.traversed) :
+    directed.source ≠ path.finish := by
+  have nodup := path.verticesNodup
+  change path.vertices.Nodup at nodup
+  rw [path.vertices_eq_sources_append_finish nonempty,
+    List.nodup_append] at nodup
+  intro same
+  exact nodup.2.2 path.finish
+    (by
+      rw [← same]
+      exact List.mem_map.mpr ⟨directed, membership, rfl⟩)
+    path.finish (by simp) rfl
+
+/-- The head occurrence of a nonempty simple path leaves its stated start. -/
+theorem head_source {graph : Graph} (path : graph.EdgeSimplePath)
+    (nonempty : path.traversed ≠ []) :
+    (path.traversed.head nonempty).source = path.start := by
+  rcases List.exists_cons_of_ne_nil nonempty with
+    ⟨first, rest, traversalEquation⟩
+  have headOption : path.traversed.head? = some first := by
+    simp [traversalEquation]
+  have headEquation : path.traversed.head nonempty = first :=
+    List.head_of_head?_eq_some headOption
+  have chain := path.walk.toChain
+  rw [traversalEquation] at chain
+  rw [headEquation]
+  exact chain.head_source
 
 theorem finish_not_mem_vertices_tail_dropLast {graph : Graph}
     (path : graph.EdgeSimplePath) (nonempty : path.traversed ≠ []) :
