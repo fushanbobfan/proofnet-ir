@@ -501,6 +501,155 @@ private def alignTree? (input : Certificate) (tree : CutFreeDerivation)
           | none => none
       | none => none) (matchingFormulaOrders source target)
 
+private theorem alignTree?_complete {input : Certificate}
+    {tree : CutFreeDerivation} {source target : List Formula}
+    {order : List Nat} {checked : CutFreeDerivation.CheckedCertificate}
+    (sourceEquation : tree.infer? = some source)
+    (orderMembership : order ∈ matchingFormulaOrders source target)
+    (inferred : (CutFreeDerivation.exchange order tree).infer? = some target)
+    (checkedEquation :
+      (CutFreeDerivation.exchange order tree).desequentializeChecked? =
+        some checked)
+    (equivalent : checked.certificate.DirectProofNetEquivalent input) :
+    (alignTree? input tree target).isSome = true := by
+  have checkedStructural : checked.certificate.StructurallyWellFormed :=
+    (checked.certificate.check_sound_declarative checked.accepted).1
+  have equivalenceFound :=
+    directProofNetEquivalentWitness?_complete checkedStructural equivalent
+  unfold alignTree?
+  simp only [sourceEquation]
+  apply firstSome_isSome_of_mem _ _ order orderMembership
+  simp [inferred, checkedEquation]
+  cases equation : directProofNetEquivalentWitness? checked.certificate input with
+  | none => simp [equation] at equivalenceFound
+  | some witness => simp
+
+private theorem alignTree?_complete_of_desequentialize
+    {input output : Certificate} {tree : CutFreeDerivation}
+    {source target : List Formula} {order : List Nat}
+    (inputAccepted : input.check = true)
+    (sourceEquation : tree.infer? = some source)
+    (orderMembership : order ∈ matchingFormulaOrders source target)
+    (inferred : (CutFreeDerivation.exchange order tree).infer? = some target)
+    (desequentialized :
+      (CutFreeDerivation.exchange order tree).desequentialize? = some output)
+    (equivalent : output.DirectProofNetEquivalent input) :
+    (alignTree? input tree target).isSome = true := by
+  have outputAccepted : output.check = true := by
+    rw [equivalent.toProofNetEquivalent.check_eq]
+    exact inputAccepted
+  let checked : CutFreeDerivation.CheckedCertificate :=
+    ⟨output, outputAccepted⟩
+  apply alignTree?_complete sourceEquation orderMembership inferred
+    (checked := checked)
+  · simp [CutFreeDerivation.desequentializeChecked?, desequentialized,
+      outputAccepted, checked]
+  · exact equivalent
+
+private theorem axiomExchangeIdentity_infer (name : String)
+    (positive : Bool) :
+    (CutFreeDerivation.exchange [0, 1]
+      (.axiom name positive)).infer? =
+    some [.atom name positive, .atom name (!positive)] := by
+  let atom : Formula := .atom name positive
+  let dual : Formula := .atom name (!positive)
+  have candidate :
+      CutFreeDerivation.reorderCandidate? [atom, dual] [0, 1] =
+        some [atom, dual] := by
+    rfl
+  change CutFreeDerivation.reorder? [atom, dual] [0, 1] =
+    some [atom, dual]
+  unfold CutFreeDerivation.reorder?
+  rw [candidate]
+  simp
+
+private theorem axiomExchangeSwap_infer (name : String)
+    (positive : Bool) :
+    (CutFreeDerivation.exchange [1, 0]
+      (.axiom name positive)).infer? =
+    some [.atom name (!positive), .atom name positive] := by
+  let atom : Formula := .atom name positive
+  let dual : Formula := .atom name (!positive)
+  have candidate :
+      CutFreeDerivation.reorderCandidate? [atom, dual] [1, 0] =
+        some [dual, atom] := by
+    rfl
+  have permutation : [atom, dual].Perm [dual, atom] := .swap _ _ []
+  change CutFreeDerivation.reorder? [atom, dual] [1, 0] =
+    some [dual, atom]
+  unfold CutFreeDerivation.reorder?
+  rw [candidate]
+  simp [permutation]
+
+private theorem axiomExchangeIdentity_desequentialize (name : String)
+    (positive : Bool) :
+    (CutFreeDerivation.exchange [0, 1]
+      (.axiom name positive)).desequentialize? =
+    some {
+      formulas := #[.atom name positive, .atom name (!positive)]
+      links := [.axiom 0 1]
+      conclusions := [0, 1] } := by
+  let atom : Formula := .atom name positive
+  let dual : Formula := .atom name (!positive)
+  have candidate :
+      CutFreeDerivation.reorderCandidate?
+        [(atom, 0), (dual, 1)] [0, 1] =
+      some [(atom, 0), (dual, 1)] := by
+    rfl
+  simp [CutFreeDerivation.desequentialize?, CutFreeDerivation.build?,
+    NetFragment.entries, CutFreeDerivation.reorder?, candidate,
+    NetFragment.ofEntries, NetFragment.toCertificate, atom, dual,
+    Formula.dual]
+
+private theorem axiomExchangeSwap_desequentialize (name : String)
+    (positive : Bool) :
+    (CutFreeDerivation.exchange [1, 0]
+      (.axiom name positive)).desequentialize? =
+    some {
+      formulas := #[.atom name positive, .atom name (!positive)]
+      links := [.axiom 0 1]
+      conclusions := [1, 0] } := by
+  let atom : Formula := .atom name positive
+  let dual : Formula := .atom name (!positive)
+  have candidate :
+      CutFreeDerivation.reorderCandidate?
+        [(atom, 0), (dual, 1)] [1, 0] =
+      some [(dual, 1), (atom, 0)] := by
+    rfl
+  have permutation :
+      [(atom, 0), (dual, 1)].Perm [(dual, 1), (atom, 0)] :=
+    .swap _ _ []
+  simp [CutFreeDerivation.desequentialize?, CutFreeDerivation.build?,
+    NetFragment.entries, CutFreeDerivation.reorder?, candidate, permutation,
+    NetFragment.ofEntries, NetFragment.toCertificate, atom, dual,
+    Formula.dual]
+
+private theorem axiomDirectSwap (name : String) (positive : Bool)
+    (boundary : List Vertex) :
+    ({ formulas := #[.atom name positive, .atom name (!positive)]
+       links := [.axiom 0 1]
+       conclusions := boundary } : Certificate).DirectProofNetEquivalent
+    { formulas := #[.atom name (!positive), .atom name positive]
+      links := [.axiom 1 0]
+      conclusions := boundary.map
+        (VertexRenaming.swap 2 0 1 (by decide) (by decide)).forward } := by
+  let swap := VertexRenaming.swap 2 0 1 (by decide) (by decide)
+  refine ⟨swap, ?_⟩
+  constructor
+  · apply Array.ext
+    · simp [Certificate.reindex]
+    · intro index leftInBounds rightInBounds
+      have indexCases : index = 0 ∨ index = 1 :=
+        Nat.le_one_iff_eq_zero_or_eq_one.mp
+          (Nat.lt_succ_iff.mp (by simpa using leftInBounds))
+      rcases indexCases with rfl | rfl <;>
+        simp [Certificate.reindex, swap, VertexRenaming.swap]
+  · simp [Link.reindex, swap, VertexRenaming.swap]
+  · change boundary.map swap.forward =
+      boundary.map
+        (VertexRenaming.swap 2 0 1 (by decide) (by decide)).forward
+    rfl
+
 private def axiomTree? (certificate : Certificate)
     (target : List Formula) : Option CutFreeDerivation :=
   if certificate.links.any (fun link => link.isConnective) then
@@ -511,6 +660,95 @@ private def axiomTree? (certificate : Certificate)
       | .atom name positive =>
           alignTree? certificate (.axiom name positive) target
       | _ => none) certificate.formulas.toList
+
+private theorem axiomTree?_of_alignedAxiom {certificate : Certificate}
+    {target : List Formula} {name : String} {positive : Bool}
+    (noConnective :
+      certificate.links.any (fun link => link.isConnective) = false)
+    (formulaMembership :
+      Formula.atom name positive ∈ certificate.formulas.toList)
+    (aligned :
+      (alignTree? certificate (.axiom name positive) target).isSome = true) :
+    (axiomTree? certificate target).isSome = true := by
+  unfold axiomTree?
+  simp only [noConnective, Bool.false_eq_true, ↓reduceIte]
+  apply firstSome_isSome_of_mem _ _ (.atom name positive)
+    formulaMembership
+  exact aligned
+
+/-- The executable axiom branch is total on the checker-accepted base case.
+This is the first inverse-rule case where the proposition-level
+sequentialization theorem is connected all the way to the runtime search. -/
+private theorem axiomTree?_complete {certificate : Certificate}
+    (accepted : certificate.check = true) {target : List Formula}
+    (labels : certificate.conclusionFormulas? = some target)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    (axiomTree? certificate target).isSome = true := by
+  have correct := certificate.check_sound_declarative accepted
+  rcases correct.axiomOnly_certificate_cases noConnective with
+    ⟨name, positive, shape⟩
+  rcases shape with shape | shape | shape | shape
+  · subst certificate
+    simp [Certificate.conclusionFormulas?, Certificate.formula?] at labels
+    subst target
+    apply axiomTree?_of_alignedAxiom (name := name) (positive := positive)
+      (by rfl) (by simp)
+    have orderMembership :
+        [0, 1] ∈ matchingFormulaOrders
+          [.atom name positive, .atom name (!positive)]
+          [.atom name positive, .atom name (!positive)] :=
+      matchingFormulaOrders_complete _ _ _ (by simp)
+        (by change [0, 1].Perm [0, 1]; exact .refl _) (by simp)
+    exact alignTree?_complete_of_desequentialize accepted rfl
+      orderMembership (axiomExchangeIdentity_infer name positive)
+      (axiomExchangeIdentity_desequentialize name positive)
+      (.refl _)
+  · subst certificate
+    simp [Certificate.conclusionFormulas?, Certificate.formula?] at labels
+    subst target
+    apply axiomTree?_of_alignedAxiom (name := name) (positive := positive)
+      (by rfl) (by simp)
+    have orderMembership :
+        [1, 0] ∈ matchingFormulaOrders
+          [.atom name positive, .atom name (!positive)]
+          [.atom name (!positive), .atom name positive] :=
+      matchingFormulaOrders_complete _ _ _ (by simp)
+        (.swap _ _ []) (by simp)
+    exact alignTree?_complete_of_desequentialize accepted rfl
+      orderMembership (axiomExchangeSwap_infer name positive)
+      (axiomExchangeSwap_desequentialize name positive)
+      (.refl _)
+  · subst certificate
+    simp [Certificate.conclusionFormulas?, Certificate.formula?] at labels
+    subst target
+    apply axiomTree?_of_alignedAxiom (name := name) (positive := positive)
+      (by rfl) (by simp)
+    have orderMembership :
+        [1, 0] ∈ matchingFormulaOrders
+          [.atom name positive, .atom name (!positive)]
+          [.atom name (!positive), .atom name positive] :=
+      matchingFormulaOrders_complete _ _ _ (by simp)
+        (.swap _ _ []) (by simp)
+    exact alignTree?_complete_of_desequentialize accepted rfl
+      orderMembership (axiomExchangeSwap_infer name positive)
+      (axiomExchangeSwap_desequentialize name positive)
+      (axiomDirectSwap name positive [1, 0])
+  · subst certificate
+    simp [Certificate.conclusionFormulas?, Certificate.formula?] at labels
+    subst target
+    apply axiomTree?_of_alignedAxiom (name := name) (positive := positive)
+      (by rfl) (by simp)
+    have orderMembership :
+        [0, 1] ∈ matchingFormulaOrders
+          [.atom name positive, .atom name (!positive)]
+          [.atom name positive, .atom name (!positive)] :=
+      matchingFormulaOrders_complete _ _ _ (by simp)
+        (by change [0, 1].Perm [0, 1]; exact .refl _) (by simp)
+    exact alignTree?_complete_of_desequentialize accepted rfl
+      orderMembership (axiomExchangeIdentity_infer name positive)
+      (axiomExchangeIdentity_desequentialize name positive)
+      (axiomDirectSwap name positive [0, 1])
 
 private def rebuildParTree? (input : Certificate)
     (premiseTree : CutFreeDerivation)
@@ -590,6 +828,24 @@ def executableTreeWithFuel : Nat → Certificate →
                     | none =>
                         .error (sequentializationError certificate "search"
                           "no checker-preserving inverse rule reconstructed a derivation")
+
+/-- Any positive fuel suffices for the executable axiom-only branch.  The
+proof uses the literal base-case classification and the finite alignment
+search completeness theorem above; it does not assume that evaluation happens
+to succeed on the four representations. -/
+private theorem executableTreeWithFuel_axiomOnly
+    (certificate : Certificate) (accepted : certificate.check = true)
+    {target : List Formula}
+    (labels : certificate.conclusionFormulas? = some target)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) (fuel : Nat) :
+    ∃ tree, certificate.executableTreeWithFuel (fuel + 1) = .ok tree := by
+  have axiomFound := axiomTree?_complete accepted labels noConnective
+  cases equation : axiomTree? certificate target with
+  | none => simp [equation] at axiomFound
+  | some tree =>
+      refine ⟨tree, ?_⟩
+      simp [executableTreeWithFuel, accepted, labels, equation]
 
 /-- Executable certificate-to-derivation API.  Successful results are
 proof-bearing values, while failures retain a stable stage and certificate

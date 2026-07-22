@@ -81,6 +81,10 @@ part of the engineering and proof-identity gap.
    falsified an over-strong `ReindexEquivalent` prototype contract. The missing
    logical step is a theorem that this corrected finite search succeeds on
    every checker-accepted certificate; regressions do not replace that proof.
+   The generic alignment search and every accepted axiom-only base
+   representation are now proved complete, including a positive-fuel theorem.
+   The remaining proof obligation is the terminal-par/splitting-tensor
+   recursive composition and its fuel induction.
 2. The safe `elaborate?` return type relates inference, derivation existence,
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`

@@ -189,9 +189,18 @@
   an accepted reversed-link-order certificate as a regression.
 - [x] Exercise the runtime API from a clean path-dependency consumer and pin
   the public theorem trust boundary in CI.
+- [x] Prove the finite alignment kernel cannot miss an explicitly supplied
+  inference/desequentialization/equivalence witness, and close executable
+  totality for all four accepted axiom-only representations.
+- [ ] Connect terminal-par candidate totality and the recursively returned
+  premise tree to `rebuildParTree?` success.
+- [ ] Connect splitting-tensor candidate totality and both recursively returned
+  premise trees to `rebuildTensorTree?` success.
 - [ ] Prove the executable search succeeds for every checker-accepted
   certificate, using the terminal-rule dichotomy, candidate totality, and
-  completeness of the finite occurrence-permutation enumeration.
+  completeness of the finite occurrence-permutation enumeration; the axiom
+  base and generic alignment layer are complete, but the par/tensor recursive
+  composition and fuel induction are not yet closed.
 - [x] Add a deterministic 5,000-case malformed-input fuzz gate for the native
   checked parser.
 - [x] Add a checked depth-2/3/4 runtime workload and CI regression budget,

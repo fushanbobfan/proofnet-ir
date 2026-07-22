@@ -21,6 +21,11 @@
   every fresh duplicate-free formula-compatible occurrence permutation;
 - proved completeness of the executable direct proof-net-equivalence search on
   structurally well-formed certificates, including link-list permutations;
+- connected the finite boundary-alignment search to a proved candidate and
+  proved that the executable axiom branch succeeds on all four possible
+  checker-accepted axiom-only representations; any positive fuel now has a
+  kernel-checked successful base-case result, while par/tensor recursive
+  totality remains open;
 - exposed `Certificate.proofNetEquivalent?` and proved that on structurally
   well-formed certificates it decides `ProofNetEquivalent` exactly;
 - added a deterministic 5,000-case malformed-JSON fuzz harness around the
@@ -32,8 +37,9 @@
   `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and
   completed ordered text and rendered-image inspection of every unique page;
-- started an ordered Manin page matrix and directly accounted for physical
-  pages 1-48 without claiming the remaining source is complete.
+- continued the ordered Manin page matrix through physical page 96 without
+  claiming the remaining 293 pages or the targeted-only Marcolli/Park sources
+  are complete.
 
 ## v0.4.0 - General sequentialization
 
