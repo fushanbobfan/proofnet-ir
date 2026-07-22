@@ -3,7 +3,7 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.3.1` (complete order-preserving reindex normal forms). See
+Current release: `v0.4.0` (general sequentialization for unit-free, cut-free MLL). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof

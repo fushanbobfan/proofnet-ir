@@ -1,7 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.3.1 plus post-release v0.4 sequentialization work on `main`
+Audited baseline: v0.4.0 release candidate on `main`
 
 ## Verdict
 

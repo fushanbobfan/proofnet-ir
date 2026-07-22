@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.4.0 - General sequentialization
+
 - added `LinkPermutationEquivalent` and the generated `ProofNetEquivalent`
   relation so general sequentialization can ignore semantically irrelevant
   link-list storage order without weakening ordered conclusions or connective

@@ -25,6 +25,11 @@ and validates the source normal form before emitting a v0.3 string. Future
 canonicalization algorithms must use a new `canonicalization` value and, when
 the payload contract changes, a new wire version.
 
+Release v0.4.0 adds the general sequentialization Lean API and theorem without
+introducing a new wire version or changing the v0.2/v0.3 payload contracts.
+`Certificate.sequentialization_of_check` and
+`Certificate.generallySequentializable` are additive public declarations.
+
 ## Deprecation and release checks
 
 A public API scheduled for removal will remain for at least one tagged minor
