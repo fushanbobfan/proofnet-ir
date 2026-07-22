@@ -13,8 +13,20 @@ def releasedTree : CutFreeDerivation :=
 example : releasedTree.desequentializeChecked?.isSome = true := by
   native_decide
 
+example :
+    (Certificate.checkedFromString
+      releasedCertificate.equivalenceCanonicalString).isOk = true := by
+  native_decide
+
+example :
+    (Certificate.migrateV02StringToV03
+      releasedCertificate.canonicalString).isOk = true := by
+  native_decide
+
 def main : IO Unit := do
-  if releasedCertificate.check && releasedTree.desequentializeChecked?.isSome then
+  if releasedCertificate.check && releasedTree.desequentializeChecked?.isSome &&
+      (Certificate.checkedFromString
+        releasedCertificate.equivalenceCanonicalString).isOk then
     IO.println "ProofNetIR pinned-release consumer smoke test passed"
   else
     throw <| IO.userError "ProofNetIR pinned-release consumer smoke test failed"

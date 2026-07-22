@@ -5,7 +5,7 @@ defaultTargets = ["proofnet_ir_release_consumer_smoke"]
 [[require]]
 name = "proofnet-ir"
 git = "https://github.com/fushanbobfan/proofnet-ir.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[lean_exe]]
 name = "proofnet_ir_release_consumer_smoke"
