@@ -107,12 +107,16 @@ name-level restatement of Yeo:
    kernel checked as well. Thus every first hit at or before the selected cusp
    is impossible. The symmetric wrap-around construction for a first cycle
    hit after the cusp is now also complete through its final cusp-free-cycle
-   contradiction. The remaining bungee obligation is to classify an arbitrary
-   normalized first intersection into the proved positional branches and
-   discharge the adjacent hit at the incoming cusp edge's source. After that,
-   the first-cusp continuation can become an `OrderingPath`, followed by its
-   ProofNet-IR sequentialization-edge instantiation.
-5. **Terminal bridge.** Relate a selected directed edge target to the stored
+   contradiction. The arbitrary normalized first intersection is now
+   exhaustively classified into the old prefix, selected incoming edge,
+   selected partner, or old suffix. The partner would revisit the later
+   path's start; the other cases are discharged by the before/base,
+   orientation-reversed adjacent, and after-cusp theorems. Consequently the
+   first-cusp continuation is now an `OrderingPath`; finite maximality proves
+   existence of a colored `SplittingVertex` in every nonempty cusp-acyclic
+   occurrence graph.
+5. **Terminal bridge (remaining).** Relate the colored `SplittingVertex`
+   produced by generalized Yeo to the stored
    link and ordered public boundary. The formula-complexity theorem already
    proves that connective structure has some terminal connective, but does not
    prove that a terminal tensor splits.

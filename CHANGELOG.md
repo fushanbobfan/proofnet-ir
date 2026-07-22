@@ -124,6 +124,17 @@
   minimal cusp-count constraints, and closed the final forbidden cusp-free
   cycle. What remains is the exhaustive first-intersection position classifier
   and the adjacent hit at the incoming cusp edge's source.
+- completed the adjacent incoming-edge branch by reversing the ambient cycle
+  when the old prefix is nonempty and by a two-orientation same-base
+  minimality argument at the old base; the exhaustive first-intersection
+  classifier now covers every source occurrence and excludes the cusp partner
+  by simple-path freshness.
+- upgraded the minimal first-cusp continuation to a genuine `OrderingPath`,
+  proved that every non-splitting target has a strict cusping
+  `EdgeOrdering` successor, and closed finite generalized-Yeo maximality to
+  obtain a colored `SplittingVertex` in every nonempty cusp-acyclic occurrence
+  graph. The representation-specific bridge from that colored vertex to a
+  terminal `SplittingTensor` remains separate.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 
