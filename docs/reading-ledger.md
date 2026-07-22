@@ -16,13 +16,15 @@ sources.
 All original PDFs were extracted to searchable text without modifying the
 source files. A section/theorem sweep was performed across the full extracted
 corpus. Close reading is complete for the two project-specific ProofNet
-documents, *Geometry of Neuroscience*, Pfenning, Manin, and the project chat.
+documents, *Geometry of Neuroscience*, Pfenning, Manin, the
+*Syntax-Semantics Interface* paper, and the project chat.
 The Pfenning audit covers every unique page in both ordered text and
 rendered-image form; the Manin audit accounts for all 389 physical pages and
-renders every relevant non-text anomaly or diagram. The two remaining adjacent
-papers have a structural pass plus targeted close readings recorded below.
-Further cover-to-cover close reading of those papers remains ongoing and must
-not be represented as finished.
+renders every relevant non-text anomaly or diagram. The Marcolli et al. audit
+also covers all 75 pages, all 19 figures, and all three algebraic tables. The
+remaining Park paper has a structural pass plus targeted close readings
+recorded below. Its further cover-to-cover close reading remains ongoing and
+must not be represented as finished.
 
 | Source | Physical pages | Extracted words | Coverage in this pass | SHA-256 prefix |
 |---|---:|---:|---|---|
@@ -30,7 +32,7 @@ not be represented as finished.
 | Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | 186,440 | [completed page audit](source-pages/manin-mathematical-logic.md) accounts for all 389 pages, including visual checks of the cover, pages 99-100, and graph-language pages 307-313 plus an embedded-image audit of pages 337-389 | `79baf1ed4e81` |
 | *Proof Nets as Graphical Proof Objects* | 20 | 7,990 | direct end-to-end reading and visual inspection | `8166b610c3b8` |
 | *ProofNet-IR Research Plan* | 19 | 5,904 | direct end-to-end reading and visual inspection | `4c934e603f8a` |
-| Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | 44,391 | full section/proposition sweep; introduction, operadic/tree sections, transformer discussion, and conclusion close read | `ed4daccfdf3e` |
+| Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | 44,391 | [completed page audit](source-pages/marcolli-syntax-semantics.md) records ordered reading of all 75 pages and rendered checks of all 19 figures and three algebraic tables | `ed4daccfdf3e` |
 | *Geometry of Neuroscience* | 33 | 15,797 | complete page-by-page text reading and visual inspection; [page matrix](source-pages/geometry-of-neuroscience.md) records every page and the strict claim boundary | `e7730b0731bb` |
 | Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | 25,013 | full theorem sweep; introduction, main statements, proof architecture, and concluding open question close read; Chinese guide checked against the source | `7b756a8759e1` |
 
@@ -103,6 +105,10 @@ hash of the unaltered original PDF.
   behavior is not a linguistic theory.
 - This is conceptual support for a compositional graph IR. It is not evidence
   that proof nets improve theorem-proving success or efficiency.
+- The complete [75-page audit](source-pages/marcolli-syntax-semantics.md)
+  confirms that Theorem 5.4 concerns linguistic Merge derivations, not
+  proof-net sequentialization or focused MLL proof search, and that the paper
+  explicitly declines to analyze transformer efficiency.
 
 ### Geometry of neuroscience
 
@@ -142,7 +148,9 @@ extraction can corrupt:
 - Manin's formal graph definition using flags, tails, and edges;
 - Manin's rendered flag-pairing diagram and the surrounding definitions of
   directedness, graph isomorphism, contraction, decorated trees, and `Op(τ)`;
-- Park's four-punctured-sphere mapping-class formulas and surface diagram.
+- all 19 numbered figures and all three algebraic tables in the
+  *Syntax-Semantics Interface* paper;
+- Park's four-punctured-sphere mapping-class formulas and surface diagram;
 - all 33 pages and all ten numbered figures in *Geometry of Neuroscience*.
 
 The rendered formulas agree with the descriptions used in the repository.

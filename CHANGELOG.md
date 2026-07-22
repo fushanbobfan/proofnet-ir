@@ -42,8 +42,12 @@
 - completed the ordered Manin page matrix for all 389 physical pages,
   including visual inspection of the extraction-empty cover, Kochen-Specker
   graphs on pages 99-100, graph-language pages 307-313, and an embedded-image
-  audit of the final interval; the targeted-only Marcolli/Park sources remain
-  explicitly incomplete.
+  audit of the final interval;
+- completed the ordered 75-page Marcolli-Berwick-Chomsky source matrix and
+  rendered all 19 numbered figures plus three algebraic tables, explicitly
+  separating its linguistic Merge “Minimal Search” theorem from proof-net
+  sequentialization and focused MLL search; the targeted-only Park source
+  remains incomplete.
 
 ## v0.4.0 - General sequentialization
 
