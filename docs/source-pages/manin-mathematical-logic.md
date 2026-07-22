@@ -11,7 +11,7 @@ Audit started: 2026-07-22
 - Extent: 389 physical PDF pages.
 - Text extraction: 388 pages have extractable text. Physical page 1 has no
   extracted text and was therefore rendered and checked visually as the cover.
-- Current direct ordered reading: physical pages 1-144. This is an in-progress
+- Current direct ordered reading: physical pages 1-192. This is an in-progress
   page audit, not a completed-source claim.
 
 ## Page-by-page matrix for the completed interval
@@ -162,11 +162,59 @@ Audit started: 2026-07-22
 | 142 | 129 / III.6.4-6.5 | Formula-defined random classes and construction proving the pairing axiom Boolean-true. | Existence is obtained by a formula plus a bounded representative proof, a useful library-proof pattern only. |
 | 143 | 130 / III.6.6 | Construction proving the union axiom Boolean-true through rank restriction and extensionality. | Shows the bookkeeping required for semantic closure; outside MLL. |
 | 144 | 131 / III.6.7 | Power-set construction begins, using a rank-bounded representative and equality estimate. | The proof is unfinished on this page and is recorded as such; no project dependency. |
+| 145 | 132 / III.6.7-6.8; III.7.1 | Completion of power set, rank-minimal proof of regularity, and introduction to collecting random sets. | Minimal-rank contradiction is a termination pattern only; no MLL result. |
+| 146 | 133 / III.7.2 | Collection and gluing lemmas for Boolean-valued sets, with leastness properties. | A constructed representative is specified by an observable universal property, not storage identity. |
+| 147 | 134 / III.7.2-7.4 | Completion of collection/gluing, proof of infinity, and a witness lemma for nonempty random classes. | Existence, equivalence, and leastness are distinct proof obligations. |
+| 148 | 135 / III.7.4-7.6 | Choice-based witness construction, replacement statement, and reduction to a unit interval Boolean algebra. | Relies explicitly on choice; the project's axiom audit must continue to expose such trust dependencies. |
+| 149 | 136 / III.7.6-7.7 | Restriction to `B_a` and rank-bounded construction proving replacement. | Localizing a semantic argument requires a preservation map and exact truth equations. |
+| 150 | 137 / III.7.7-7.8 | Completion of replacement and construction of a Boolean-valued choice function. | A witness-producing API needs the same kind of explicit admissibility and output invariants. |
+| 151 | 138 / III.7.9-7.11 | Verification that the constructed relation is a functional graph with the intended domain. | Each public invariant must be proved separately; one aggregate test is insufficient. |
+| 152 | 139 / III.7.12 | Domain reduction and induction for the element-selection clause of choice. | Reinforces explicit induction coverage and extensional transport. |
+| 153 | 140 / III.7.12; III.8.1-8.2 | Completion of choice, canonical embedding of ordinary sets, and Boolean-algebra conditions for falsifying CH. | Canonical maps are defined only up to a stated equivalence here; a useful warning for serialization claims. |
+| 154 | 141 / III.8.2-8.5 | Regular-open Boolean algebra construction (proof omitted) and distinct random subsets lemma. | The omitted theorem is not machine-checked evidence; no project claim depends on it. |
+| 155 | 142 / III.8.5-8.7 | Topological proof of distinctness, formal negation of CH, and unique-object reduction lemma. | Formalization must replace abbreviated prose with exact formulas and hypotheses. |
+| 156 | 143 / III.8.7-8.11 | Application of the reduction lemma and countable-chain-condition argument against a surjection. | Uniqueness reduces a quantified proof only after its formal deduction is supplied. |
+| 157 | 144 / III.8.11-8.12 | Completion of the first non-surjection and start of the second via many distinct subsets. | Cardinal counting is background only. |
+| 158 | 145 / III.8.12; III.9.1-9.2 | Completion of the CH countermodel and transition from Boolean-valued models to forcing/generic extensions. | Different proof presentations can encode the same result only after a bridge construction is shown. |
+| 159 | 146 / III.9.2-9.3 | Countable transitive model, generic finite restrictions, and density conditions ensuring a total surjection. | Local finite approximations require a global invariant and coverage condition. |
+| 160 | 147 / III.9.3-9.6 | Dense sets, abstract forcing conditions, generic-set existence, and roadmap to `M[G]`. | Search completeness analogously needs an explicit notion of what every candidate family must meet. |
+| 161 | 148 / III.9.6-9.9 | Completion of a poset to a Boolean algebra, generic maximal ideal, and relativized Boolean universe. | Equivalence between representations is a theorem with a construction, not an informal identification. |
+| 162 | 149 / III.9.9-9.13 | Construction and model theorem for `M[G]`, CH example, and setup for Easton's theorem. | Model-building scope remains unrelated to current proof nets. |
+| 163 | 150 / III.9.14 | Easton's and Silver's cardinal-exponentiation results and limits of GCH behavior. | No current code dependency. |
+| 164 | 151 / IV.1.1-1.2 | Constructible universe `L`, eight primitive set operations, rank construction, and definition of constructible sets. | Explicit generators plus transfinite closure illustrate a presentation, not an MLL calculus. |
+| 165 | 152 / IV.1.2-1.4 | Interpretation of constructibility, finite-rank agreement with `V`, and cardinality of each `L_alpha`. | “Constructible” here is not finitistic/executable; terminology must not be transferred casually. |
+| 166 | 153 / IV.1.5-1.7 | Transitivity, big-class property, and well-ordering scheme for effective ordinal numbering. | Canonical numbering requires a proved global well-order and is far stronger than a stable serialization order. |
+| 167 | 154 / IV.1.7-1.8 | Important-triple well-order, recursive numbering `N`, and correctness/surjectivity proof begins. | A numbering is useful only with totality and coverage proofs. |
+| 168 | 155 / IV.1.8; IV.2.1-2.3 | Completion of enumeration of `L`, model-relative truth, definable sets, and closure proposition. | Separates encoding coverage from semantic absoluteness. |
+| 169 | 156 / IV.2.3 | Structural induction showing atomic and connective-defined subsets stay in a transitive closed class. | Every syntax constructor needs its own preservation case. |
+| 170 | 157 / IV.2.3-2.4 | Quantifier projection case and absoluteness lemma for restricted quantifiers. | Unbounded search is controlled by a rank bound; analogous to explicit search bounds in executable APIs. |
+| 171 | 158 / IV.2.4-2.5; IV.3.1 | Sigma-zero formulas, constructibility of ordinals, and proof that ZF is `L`-true begins. | Absolute fragments depend on syntactic restrictions that must be recorded. |
+| 172 | 159 / IV.3.1 | Verification of set-theory axioms through power set and infinity in `L`. | Closure of a representation under operations is a family of theorems, not one label. |
+| 173 | 160 / IV.3.1-3.3 | Replacement, statement of absolute numbering formula, and universal choice function. | The key numbering theorem is postponed; dependency ordering must remain visible. |
+| 174 | 161 / IV.3.3-3.4; IV.4.1 | Completion of choice and careful formulation of GCH relative to internal cardinality. | Model-relative cardinality illustrates why a library must fix the equivalence observed by clients. |
+| 175 | 162 / IV.4.2-4.3 | Absolute constructibility formula and lemma placing subsets at a controlled rank. | A representation membership predicate needs an explicit absoluteness/preservation theorem. |
+| 176 | 163 / IV.4.4-4.5 | Deduction of GCH in `L` and constructible downward Löwenheim-Skolem construction. | Long metatheoretic prerequisites remain outside ProofNet-IR. |
+| 177 | 164 / IV.4.6; IV.5.1 | Constructible Mostowski collapse and plan for expanding the long constructibility formulas into absolute blocks. | Building and checking formulas in named blocks is directly relevant to maintainable formalization practice. |
+| 178 | 165 / IV.5.1-5.7 | Explicit absolute formulas for the primitive set operations. | Surface abbreviations are safe only after their expanded forms and preservation facts are audited. |
+| 179 | 166 / IV.5.8-5.11 | Image/closure formulas, construction of `Phi`, and definition of a closure sequence. | A staged executable closure must expose its induction invariant. |
+| 180 | 167 / IV.5.11-5.14 | Closure sequences, `J`, successor constructibility, and transfinite constructing sequences. | Unrestricted quantifiers require an existence/uniqueness argument, not a hidden search assumption. |
+| 181 | 168 / IV.5.14-5.17 | Absolute `L(x,y)`, consistency of `V=L`, and formal cardinality deduction. | Explicitly distinguishes semantic explanation from a formal derivation. |
+| 182 | 169 / IV.5.18 | Absolute formula enumerating important triples and successor/limit cases. | Exhaustive constructor cases must be demonstrably complete. |
+| 183 | 170 / IV.5.18-5.19 | Limit cases and construction of the absolute numbering sequence `S(N,x)`. | Limit handling and coordinate encodings need separate verification. |
+| 184 | 171 / IV.5.19-5.20; IV.6.1-6.3 | Completion of `N(x,y)` and syntactic definitions of relativization/internal models. | A semantic proof and a fully internal syntactic proof are not interchangeable artifacts. |
+| 185 | 172 / IV.6.4-6.8; IV.7 | Translation of semantic statements to relativized ZF deductions and warning about unwritten enormous formal proofs. | Strongly motivates kernel checking while acknowledging that explanation is still required for auditability. |
+| 186 | 173 / IV.7.1 | Competing views of continuum, constructivism, ineffective existence, and alternate semantics. | The project must state whether APIs are constructive algorithms or classical existence theorems. |
+| 187 | 174 / IV.7.1-7.2 | Boolean-valued alternatives, Cohen's view, and Goedel's pragmatic criterion for new axioms. | Empirical fruitfulness is evidence of utility, never a substitute for logical soundness. |
+| 188 | 175 / IV.7.3 | Woodin's `H(k)` program, expanded logic, axiom star, and conclusion `2^aleph0 = aleph2`. | Historical update only; no project dependency. |
+| 189 | Part II divider | Divider introducing computability. | Accounted for; no mathematical claim. |
+| 190 | 179 / V.1.1-1.2 | Proof versus computation roadmap, algorithms as processes, and partial functions over positive integer tuples. | Directly relevant to distinguishing existence of a derivation from an executable sequentializer. |
+| 191 | 180 / V.1.2-1.4 | Definitions of computable, semicomputable, and noncomputable partial functions. | Supports precise termination/error contracts for the public runtime. |
+| 192 | 181 / V.1.4 | Domain characteristic functions, counting evidence for noncomputability, arithmetic-truth example, and a Fermat semidecision procedure. | A semidecision procedure is not a total API; ProofNet-IR's accepted-input totality theorem closes that distinction only in its documented fragment. |
 
 ## Current claim boundary
 
 The completed interval supports the motivation for treating diagrams and
 decorated graphs as formal languages whose syntax and semantics must be stated
 precisely. It does not state the Danos-Regnier switching criterion, MLL proof-net
-correctness, or a sequentialization theorem. The remaining 245 pages are not
+correctness, or a sequentialization theorem. The remaining 197 pages are not
 yet represented as directly read in order.
