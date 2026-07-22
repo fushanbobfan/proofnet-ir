@@ -59,6 +59,9 @@ example : generatedDerivationTrees.all (fun tree =>
     tree.desequentializeChecked?.isSome) = true := by
   native_decide
 
+example : generatedDerivationTrees.all (fun tree => tree.elaborate?.isSome) = true := by
+  native_decide
+
 example : generatedDerivationTrees.all (fun tree =>
     match tree.desequentialize? with
     | some certificate => certificate.check

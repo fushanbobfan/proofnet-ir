@@ -7,6 +7,9 @@
   kernel-typed `Derivation`;
 - strengthened explicit exchange validation with a checked `List.Perm`
   boundary and `reorder?_perm` theorem;
+- added `elaborate?`, whose result connects the inferred sequent, a
+  kernel-typed derivation, matching proof-net conclusion labels, and checker
+  acceptance in one public boundary;
 - added honest source-coverage and library-readiness audits so targeted reading
   and research-prototype functionality cannot be presented as completion.
 

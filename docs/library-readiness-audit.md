@@ -26,16 +26,19 @@ consumer parse arbitrary v0.2 JSON directly into a checked Lean object.
 - exact reconstruction for the recursive identity family;
 - after v0.2.0, successful first-order derivation inference denotes a genuine
   kernel-typed `Derivation` (`CutFreeDerivation.infer?_sound`).
+- `CutFreeDerivation.elaborate?` returns only when the inferred sequent has a
+  kernel-typed derivation, the certificate boundary labels are that same
+  sequent, and the reference checker accepted the certificate.
 
 ## Logical gaps blocking a mature-library claim
 
 1. `Connected` versus `FuelConnected` completeness is not proved for arbitrary
    finite walks, so the standard unbounded correctness predicate lacks an iff
    theorem even though executable behavior has extensive differential tests.
-2. The independent `infer?` derivation semantics is not yet formally related
-   to every field produced by `build?`; `desequentializeChecked?` safely
-   post-checks its output, but a general desequentialization soundness theorem
-   is still missing.
+2. The safe `elaborate?` return type relates inference, derivation existence,
+   certificate boundary labels, and checker acceptance. A general theorem that
+   every successfully inferred well-formed rule tree must make `elaborate?`
+   succeed is still missing.
 3. General sequentialization of every accepted MLL proof net is absent.
 4. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
