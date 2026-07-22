@@ -39,6 +39,10 @@
   input switching as an exact induced restriction; the restricted graphs are
   bounded and connected because a same-side simple path cannot cross the
   degree-two terminal tensor separator.
+- proved the finite connected-graph lower bound `V <= E + 1`, exact tensor
+  vertex/edge partitions, and full `IsTree` preservation for both induced
+  components; added `TerminalTensorReduction`, declarative/checker preservation,
+  and total checker-gated splitting for every accepted splitting input.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

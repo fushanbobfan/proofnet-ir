@@ -56,8 +56,9 @@ part of the engineering and proof-identity gap.
   step; the supporting vertex-deletion graph layer now proves the complete
   theorem that deleting a leaf preserves `IsTree`. Terminal-par preservation is
   complete, and a genuine splitting tensor now produces two universally
-  structurally well-formed components. Tensor-component switching transport
-  and universal splitting existence remain open.
+  structurally well-formed components whose every switching is an induced
+  input restriction and remains an `IsTree`. Checker/declarative preservation
+  for this reduction is complete; universal splitting existence remains open.
 
 ## Logical gaps blocking a mature-library claim
 

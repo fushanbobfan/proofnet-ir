@@ -120,17 +120,18 @@ all kernel theorems; hence the complete proposition-level structural
 specification is preserved. Choice lifting now also proves every premise
 switching is the terminal-leaf deletion of an input switching up to edge-order
 permutation, so terminal-par correctness preservation is complete. The
-universal existence of a splitting tensor and tensor-component switching
-preservation remain current proof obligations.
+universal existence of a terminal par or splitting tensor remains the current
+global proof obligation.
 
 For the tensor branch, the local theorem layer now proves unique conclusion
 ownership, absence of any other incident link, non-boundary premises, zero
 incident selected-par edges, and exactly the two fixed tensor edges at the
 terminal conclusion in every switching. Thus terminal tensor degree is
 universally two. A genuine splitting tensor now yields two structurally
-well-formed restricted certificates; proving that some terminal tensor is
-splitting and that both restrictions preserve every switching is the next
-global combinatorial step.
+well-formed restricted certificates. Every child switching is now an induced
+restriction of an input switching and is proved to remain a tree; proving that
+some terminal tensor is splitting when no terminal par is available is the
+next global combinatorial step.
 
 `SplittingTensor` now states that global condition without mentioning the
 algorithm: after removing the terminal conclusion from the full occurrence
@@ -153,9 +154,12 @@ discipline, source ownership, and parent-use accounting prove both returned
 certificates `StructurallyWellFormed`. Every switching of either child is now
 proved to be the induced occurrence restriction of an input switching. The
 separator proof shows same-side simple paths cannot traverse the terminal
-tensor conclusion, so both induced graphs are bounded and connected. The exact
-edge-count equation, and hence full `IsTree` preservation, remains the next
-tensor obligation.
+tensor conclusion, so both induced graphs are bounded and connected. A finite
+connected-graph parent-edge theorem supplies the lower edge bounds; exact
+vertex and edge partitions then force `E + 1 = V` in both components. Thus the
+concrete `TerminalTensorReduction` preserves declarative correctness and the
+Boolean checker for both premises. Universal decomposition existence and the
+well-founded derivation reconstruction remain open.
 
 ## v0.2 derivation-first path
 

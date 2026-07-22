@@ -97,8 +97,9 @@
 - [x] Prove every child switching lifts to an input switching as an induced
   occurrence restriction, and prove both restricted graphs bounded and
   connected via the terminal-tensor separator theorem.
-- [ ] Prove the two restricted switching graphs satisfy the exact tree
-  edge-count equation, then derive full checker/declarative correctness.
+- [x] Prove the two restricted switching graphs satisfy the exact tree
+  edge-count equation and derive full checker/declarative correctness,
+  including totality of the checker-gated split on accepted inputs.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

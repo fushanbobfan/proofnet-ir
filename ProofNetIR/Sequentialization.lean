@@ -121,6 +121,62 @@ private theorem nodup_map_of_injective_on {α β : Type}
         exact injectiveOn first (by simp [firstMembership]) second
           (by simp [secondMembership]) same
 
+private theorem length_le_of_nodup_subset' [BEq α] [LawfulBEq α]
+    {values ambient : List α} (nodup : values.Nodup)
+    (subset : ∀ value ∈ values, value ∈ ambient) :
+    values.length ≤ ambient.length := by
+  induction values generalizing ambient with
+  | nil => simp
+  | cons head tail ih =>
+      have headMembership : head ∈ ambient := subset head (by simp)
+      have tailSubset : ∀ value ∈ tail, value ∈ ambient.erase head := by
+        intro value membership
+        have valueMembership := subset value (by simp [membership])
+        have different : value ≠ head := by
+          intro same
+          subst value
+          exact (List.nodup_cons.mp nodup).1 membership
+        exact (List.mem_erase_of_ne different).mpr valueMembership
+      have tailBound := ih (List.nodup_cons.mp nodup).2 tailSubset
+      rw [List.length_erase_of_mem headMembership] at tailBound
+      have ambientPositive : 0 < ambient.length :=
+        List.length_pos_of_mem headMembership
+      simp only [List.length_cons]
+      omega
+
+private theorem exists_least_nat_up_to (property : Nat → Prop) :
+    ∀ bound, (∃ value, value ≤ bound ∧ property value) →
+      ∃ least, property least ∧ ∀ value, property value → least ≤ value := by
+  intro bound
+  induction bound with
+  | zero =>
+      rintro ⟨value, valueBound, propertyValue⟩
+      have valueZero : value = 0 := by omega
+      subst value
+      exact ⟨0, propertyValue, by intro; omega⟩
+  | succ bound ih =>
+      intro existsBounded
+      by_cases existsEarlier : ∃ value, value ≤ bound ∧ property value
+      · exact ih existsEarlier
+      · rcases existsBounded with ⟨value, valueBound, propertyValue⟩
+        have notEarlier : ¬ value ≤ bound := by
+          intro earlier
+          exact existsEarlier ⟨value, earlier, propertyValue⟩
+        have valueLast : value = bound + 1 := by omega
+        subst value
+        refine ⟨bound + 1, propertyValue, ?_⟩
+        intro other propertyOther
+        have otherNotEarlier : ¬ other ≤ bound := by
+          intro earlier
+          exact existsEarlier ⟨other, earlier, propertyOther⟩
+        omega
+
+private theorem exists_least_nat (property : Nat → Prop)
+    (existsProperty : ∃ value, property value) :
+    ∃ least, property least ∧ ∀ value, property value → least ≤ value := by
+  rcases existsProperty with ⟨bound, propertyBound⟩
+  exact exists_least_nat_up_to property bound ⟨bound, by omega, propertyBound⟩
+
 private theorem length_filter_filterMap_eq {α β : Type}
     (values : List α) (transform : α → Option β)
     (after : β → Bool) (before : α → Bool)
@@ -157,6 +213,55 @@ private theorem length_filter_filterMap_eq {α β : Type}
               have afterAccepted : after transformed = true :=
                 agrees.trans accepted
               simp [equation, accepted, afterAccepted, ih tailCompatible]
+
+private theorem length_filter_three_partition {α : Type}
+    (values : List α) (first second third : α → Bool)
+    (partition : ∀ value ∈ values,
+      (first value = true ∧ second value = false ∧ third value = false) ∨
+      (first value = false ∧ second value = true ∧ third value = false) ∨
+      (first value = false ∧ second value = false ∧ third value = true)) :
+    (values.filter first).length + (values.filter second).length +
+      (values.filter third).length = values.length := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+      have tailPartition : ∀ value ∈ tail,
+          (first value = true ∧ second value = false ∧ third value = false) ∨
+          (first value = false ∧ second value = true ∧ third value = false) ∨
+          (first value = false ∧ second value = false ∧ third value = true) := by
+        intro value membership
+        exact partition value (by simp [membership])
+      rcases partition head (by simp) with firstCase | secondCase | thirdCase
+      · simp [firstCase.1, firstCase.2.1, firstCase.2.2]
+        have count := ih tailPartition
+        omega
+      · simp [secondCase.1, secondCase.2.1, secondCase.2.2]
+        have count := ih tailPartition
+        omega
+      · simp [thirdCase.1, thirdCase.2.1, thirdCase.2.2]
+        have count := ih tailPartition
+        omega
+
+private theorem length_filter_eq_vertex_of_lt (count vertex : Nat)
+    (inBounds : vertex < count) :
+    ((List.range count).filter (fun candidate => candidate == vertex)).length =
+      1 := by
+  induction count with
+  | zero => omega
+  | succ count ih =>
+      rw [List.range_succ]
+      by_cases same : count = vertex
+      · subst count
+        have none : (List.range vertex).filter
+            (fun candidate => candidate == vertex) = [] := by
+          apply List.filter_eq_nil_iff.mpr
+          intro candidate membership accepted
+          have candidateBound := List.mem_range.mp membership
+          simp at accepted
+          omega
+        simp [none]
+      · have earlier : vertex < count := by omega
+        simp [List.filter_append, same, ih earlier]
 
 private theorem list_mapM_eq_some_of_forall {α β : Type}
     (values : List α) (function : α → Option β)
@@ -958,6 +1063,181 @@ end ParChoice
 
 namespace Graph
 
+private noncomputable def shortestWalkSteps (graph : Graph)
+    (vertex : Vertex) : Nat := by
+  classical
+  exact if reachable : ∃ steps, graph.WalkN 0 steps vertex then
+    Classical.choose (exists_least_nat
+      (fun steps => graph.WalkN 0 steps vertex) reachable)
+  else 0
+
+private theorem walkN_shortestWalkSteps (graph : Graph) (vertex : Vertex)
+    (reachable : ∃ steps, graph.WalkN 0 steps vertex) :
+    graph.WalkN 0 (graph.shortestWalkSteps vertex) vertex := by
+  unfold shortestWalkSteps
+  rw [dif_pos reachable]
+  exact (Classical.choose_spec (exists_least_nat
+    (fun steps => graph.WalkN 0 steps vertex) reachable)).1
+
+private theorem shortestWalkSteps_le (graph : Graph) {vertex : Vertex}
+    {steps : Nat} (walk : graph.WalkN 0 steps vertex) :
+    graph.shortestWalkSteps vertex ≤ steps := by
+  have reachable : ∃ candidate, graph.WalkN 0 candidate vertex :=
+    ⟨steps, walk⟩
+  unfold shortestWalkSteps
+  rw [dif_pos reachable]
+  exact (Classical.choose_spec (exists_least_nat
+    (fun candidate => graph.WalkN 0 candidate vertex) reachable)).2 steps walk
+
+private def IsRootedParentEdge (graph : Graph) (vertex : Vertex)
+    (edge : Edge) : Prop :=
+  ∃ predecessor,
+    edge ∈ graph.edges ∧
+    ((edge.first = predecessor ∧ edge.second = vertex) ∨
+      (edge.first = vertex ∧ edge.second = predecessor)) ∧
+    graph.shortestWalkSteps predecessor < graph.shortestWalkSteps vertex
+
+theorem WalkN.lastEdge {graph : Graph} {root vertex : Vertex} {steps : Nat}
+    (walk : graph.WalkN root steps vertex) (nonRoot : vertex ≠ root) :
+    ∃ priorSteps predecessor edge,
+      graph.WalkN root priorSteps predecessor ∧
+      edge ∈ graph.edges ∧
+      ((edge.first = predecessor ∧ edge.second = vertex) ∨
+        (edge.first = vertex ∧ edge.second = predecessor)) ∧
+      steps = priorSteps + 1 := by
+  cases walk with
+  | refl => exact False.elim (nonRoot rfl)
+  | @step priorSteps predecessor finish prior adjacency =>
+      rcases adjacency with ⟨edge, edgeMembership, direction⟩
+      exact ⟨priorSteps, predecessor, edge, prior, edgeMembership,
+        direction, rfl⟩
+
+private theorem exists_rootedParentEdge (graph : Graph) {vertex : Vertex}
+    (reachable : ∃ steps, graph.WalkN 0 steps vertex)
+    (nonRoot : vertex ≠ 0) :
+    ∃ edge, graph.IsRootedParentEdge vertex edge := by
+  have shortest := graph.walkN_shortestWalkSteps vertex reachable
+  rcases shortest.lastEdge nonRoot with
+    ⟨steps, predecessor, edge, prior, edgeMembership, direction,
+      distanceEquation⟩
+  refine ⟨edge, predecessor, edgeMembership, direction, ?_⟩
+  have predecessorLe := graph.shortestWalkSteps_le prior
+  omega
+
+private noncomputable def parentEdge (graph : Graph) (vertex : Vertex) :
+    Edge := by
+  classical
+  exact if existsParent : ∃ edge, graph.IsRootedParentEdge vertex edge then
+    Classical.choose existsParent
+  else { first := 0, second := 0 }
+
+private theorem parentEdge_spec (graph : Graph) {vertex : Vertex}
+    (connected : graph.Connected) (inBounds : vertex < graph.vertexCount)
+    (nonRoot : vertex ≠ 0) :
+    graph.IsRootedParentEdge vertex (graph.parentEdge vertex) := by
+  have reachable : ∃ steps, graph.WalkN 0 steps vertex := by
+    rcases (connected.2 vertex inBounds).toSimple with
+      ⟨steps, visited, simple⟩
+    exact ⟨steps, simple.toWalkN⟩
+  have existsParent := graph.exists_rootedParentEdge reachable nonRoot
+  unfold parentEdge
+  rw [dif_pos existsParent]
+  exact Classical.choose_spec existsParent
+
+private theorem parentEdge_injective (graph : Graph)
+    (connected : graph.Connected) {first second : Vertex}
+    (firstInBounds : first < graph.vertexCount) (firstNonRoot : first ≠ 0)
+    (secondInBounds : second < graph.vertexCount)
+    (secondNonRoot : second ≠ 0)
+    (same : graph.parentEdge first = graph.parentEdge second) :
+    first = second := by
+  rcases graph.parentEdge_spec connected firstInBounds firstNonRoot with
+    ⟨firstPredecessor, firstMembership, firstDirection, firstDecrease⟩
+  rcases graph.parentEdge_spec connected secondInBounds secondNonRoot with
+    ⟨secondPredecessor, secondMembership, secondDirection, secondDecrease⟩
+  rw [← same] at secondDirection
+  rcases firstDirection with ⟨firstFirst, firstSecond⟩ |
+      ⟨firstFirst, firstSecond⟩ <;>
+    rcases secondDirection with ⟨secondFirst, secondSecond⟩ |
+      ⟨secondFirst, secondSecond⟩
+  · exact firstSecond.symm.trans secondSecond
+  · have predecessorIsSecond : firstPredecessor = second :=
+      firstFirst.symm.trans secondFirst
+    have firstIsPredecessor : first = secondPredecessor :=
+      firstSecond.symm.trans secondSecond
+    rw [predecessorIsSecond] at firstDecrease
+    rw [← firstIsPredecessor] at secondDecrease
+    omega
+  · have firstIsPredecessor : first = secondPredecessor :=
+      firstFirst.symm.trans secondFirst
+    have predecessorIsSecond : firstPredecessor = second :=
+      firstSecond.symm.trans secondSecond
+    rw [predecessorIsSecond] at firstDecrease
+    rw [← firstIsPredecessor] at secondDecrease
+    omega
+  · exact firstFirst.symm.trans secondFirst
+
+/-- A finite connected graph contains at least one distinct stored edge for
+every non-root vertex. The proof selects a shortest-walk parent edge and uses
+strict distance decrease to show that two vertices cannot select the same
+undirected edge. -/
+theorem Connected.vertexCount_le_edges_add_one {graph : Graph}
+    (connected : graph.Connected) :
+    graph.vertexCount ≤ graph.edges.length + 1 := by
+  let nonRootVertices :=
+    (List.range (graph.vertexCount - 1)).map (fun offset => offset + 1)
+  have vertexData : ∀ vertex ∈ nonRootVertices,
+      vertex < graph.vertexCount ∧ vertex ≠ 0 := by
+    intro vertex membership
+    change vertex ∈ (List.range (graph.vertexCount - 1)).map
+      (fun offset => offset + 1) at membership
+    rcases List.mem_map.mp membership with ⟨offset, offsetMembership, rfl⟩
+    have offsetBound := List.mem_range.mp offsetMembership
+    constructor <;> omega
+  have verticesNodup : nonRootVertices.Nodup := by
+    apply nodup_map_of_injective_on List.nodup_range
+    intro first firstMembership second secondMembership same
+    omega
+  let edgeKey : Edge → Nat × Nat := fun edge => (edge.first, edge.second)
+  have parentEdgeKeysNodup :
+      (nonRootVertices.map
+        (fun vertex => edgeKey (graph.parentEdge vertex))).Nodup := by
+    apply nodup_map_of_injective_on verticesNodup
+    intro first firstMembership second secondMembership same
+    rcases vertexData first firstMembership with
+      ⟨firstInBounds, firstNonRoot⟩
+    rcases vertexData second secondMembership with
+      ⟨secondInBounds, secondNonRoot⟩
+    have sameEdge : graph.parentEdge first = graph.parentEdge second := by
+      cases firstEquation : graph.parentEdge first with
+      | mk firstSource firstTarget =>
+          cases secondEquation : graph.parentEdge second with
+          | mk secondSource secondTarget =>
+              simp [edgeKey, firstEquation, secondEquation] at same
+              simp [same]
+    exact graph.parentEdge_injective connected firstInBounds firstNonRoot
+      secondInBounds secondNonRoot sameEdge
+  have parentEdgeKeysSubset :
+      ∀ key ∈ nonRootVertices.map
+        (fun vertex => edgeKey (graph.parentEdge vertex)),
+        key ∈ graph.edges.map edgeKey := by
+    intro key membership
+    rcases List.mem_map.mp membership with
+      ⟨vertex, vertexMembership, rfl⟩
+    rcases vertexData vertex vertexMembership with
+      ⟨inBounds, nonRoot⟩
+    rcases graph.parentEdge_spec connected inBounds nonRoot with
+      ⟨predecessor, edgeMembership, direction, decrease⟩
+    exact List.mem_map.mpr ⟨graph.parentEdge vertex, edgeMembership, rfl⟩
+  have edgeBound := length_le_of_nodup_subset' parentEdgeKeysNodup
+    parentEdgeKeysSubset
+  change (((List.range (graph.vertexCount - 1)).map
+    (fun offset => offset + 1)).map
+      (fun vertex => edgeKey (graph.parentEdge vertex))).length ≤
+      (graph.edges.map edgeKey).length at edgeBound
+  simp only [List.length_map, List.length_range] at edgeBound
+  omega
+
 theorem Adjacent.symm {graph : Graph} {left right : Vertex}
     (adjacency : graph.Adjacent left right) : graph.Adjacent right left := by
   rcases adjacency with ⟨edge, membership, direction⟩
@@ -971,6 +1251,27 @@ listed occurrence component. -/
 def restrictTo (graph : Graph) (vertices : List Vertex) : Graph where
   vertexCount := vertices.length
   edges := graph.edges.filterMap (Edge.restrictTo? vertices)
+
+theorem restrictTo_edges_length (graph : Graph) (vertices : List Vertex) :
+    (graph.restrictTo vertices).edges.length =
+      (graph.edges.filter fun edge =>
+        vertices.contains edge.first && vertices.contains edge.second).length := by
+  change (graph.edges.filterMap (Edge.restrictTo? vertices)).length = _
+  induction graph.edges with
+  | nil => rfl
+  | cons head tail ih =>
+      by_cases firstContained : head.first ∈ vertices
+      · by_cases secondContained : head.second ∈ vertices
+        · have accepted := head.restrictTo?_eq_some_of_mem vertices
+            firstContained secondContained
+          simp [accepted, firstContained, secondContained, ih]
+        · have rejected : head.restrictTo? vertices = none := by
+            simp [Edge.restrictTo?,
+              List.idxOf?_eq_none_iff.mpr secondContained]
+          simp [rejected, firstContained, secondContained, ih]
+      · have rejected : head.restrictTo? vertices = none := by
+          simp [Edge.restrictTo?, List.idxOf?_eq_none_iff.mpr firstContained]
+        simp [rejected, firstContained, ih]
 
 theorem Bounded.restrictTo {graph : Graph} (bounded : graph.Bounded)
     (vertices : List Vertex) :
@@ -2485,6 +2786,33 @@ theorem vertex_partition_disjoint (certificate : Certificate)
   have unreachable := (mem_tensorRightVertices_iff certificate
     left conclusion vertex).mp rightMembership |>.2.2
   exact unreachable reachable
+
+theorem tensorVertices_length_partition
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    (certificate.tensorLeftVertices left conclusion).length +
+        (certificate.tensorRightVertices left conclusion).length + 1 =
+      certificate.formulas.size := by
+  let reachable := certificate.tensorLeftReachable left conclusion
+  have partition := length_filter_three_partition
+    (List.range certificate.formulas.size)
+    (fun vertex => vertex != conclusion && reachable.contains vertex)
+    (fun vertex => vertex != conclusion && !reachable.contains vertex)
+    (fun vertex => vertex == conclusion) (by
+      intro vertex membership
+      by_cases same : vertex = conclusion
+      · subst vertex
+        simp
+      · cases reachableEquation : reachable.contains vertex with
+        | false => exact Or.inr (Or.inl (by simp [same]))
+        | true => exact Or.inl (by simp [same]))
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have conclusionInBounds := terminalWellFormed.2.2.2.2.2.1
+  have conclusionCount := length_filter_eq_vertex_of_lt
+    certificate.formulas.size conclusion conclusionInBounds
+  rw [conclusionCount] at partition
+  simpa [tensorLeftVertices, tensorRightVertices, reachable] using partition
 
 theorem reachable_iff_walk
     {certificate : Certificate} {left right conclusion : Vertex}
@@ -4526,6 +4854,159 @@ theorem graph_restrictTo_right_connected
   rw [startIndex, finishIndex] at restrictedWalk
   exact restrictedWalk
 
+theorem graph_restrictTo_edges_length_partition
+    {certificate : Certificate} {left right conclusion : Vertex}
+    {selected : List Edge}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree) :
+    ((certificate.graphForSelection selected).restrictTo
+          (certificate.tensorLeftVertices left conclusion)).edges.length +
+        ((certificate.graphForSelection selected).restrictTo
+          (certificate.tensorRightVertices left conclusion)).edges.length + 2 =
+      (certificate.graphForSelection selected).edges.length := by
+  let graph := certificate.graphForSelection selected
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  let leftContained : Edge → Bool := fun edge =>
+    leftVertices.contains edge.first && leftVertices.contains edge.second
+  let rightContained : Edge → Bool := fun edge =>
+    rightVertices.contains edge.first && rightVertices.contains edge.second
+  have classified : ∀ edge ∈ graph.edges,
+      (leftContained edge = true ∧ rightContained edge = false ∧
+        edge.incident conclusion = false) ∨
+      (leftContained edge = false ∧ rightContained edge = true ∧
+        edge.incident conclusion = false) ∨
+      (leftContained edge = false ∧ rightContained edge = false ∧
+        edge.incident conclusion = true) := by
+    intro edge edgeMembership
+    have edgeBounded := tree.1 edge edgeMembership
+    have adjacency : graph.Adjacent edge.first edge.second :=
+      ⟨edge, edgeMembership, .inl ⟨rfl, rfl⟩⟩
+    by_cases incident : edge.incident conclusion = true
+    · have incidentEndpoint :
+          edge.first = conclusion ∨ edge.second = conclusion := by
+        simpa [Edge.incident] using incident
+      have conclusionNotLeft : conclusion ∉ leftVertices := by
+        exact TerminalTensor.conclusion_not_mem_tensorLeftVertices
+          certificate left conclusion
+      have conclusionNotRight : conclusion ∉ rightVertices := by
+        exact TerminalTensor.conclusion_not_mem_tensorRightVertices
+          certificate left conclusion
+      have leftRejected : leftContained edge = false := by
+        rcases incidentEndpoint with firstConclusion | secondConclusion
+        · simp [leftContained, firstConclusion, conclusionNotLeft]
+        · simp [leftContained, secondConclusion, conclusionNotLeft]
+      have rightRejected : rightContained edge = false := by
+        rcases incidentEndpoint with firstConclusion | secondConclusion
+        · simp [rightContained, firstConclusion, conclusionNotRight]
+        · simp [rightContained, secondConclusion, conclusionNotRight]
+      exact Or.inr (Or.inr ⟨leftRejected, rightRejected, incident⟩)
+    · have endpointAvoidance :
+          edge.first ≠ conclusion ∧ edge.second ≠ conclusion := by
+        have incidentFalse : edge.incident conclusion = false := by
+          cases incidentEquation : edge.incident conclusion with
+          | false => rfl
+          | true => exact False.elim (incident incidentEquation)
+        simpa [Edge.incident] using incidentFalse
+      have incidentFalse : edge.incident conclusion = false := by
+        cases incidentEquation : edge.incident conclusion with
+        | false => rfl
+        | true => exact False.elim (incident incidentEquation)
+      rcases TerminalTensor.vertex_partition certificate left conclusion
+          edge.first edgeBounded.1 endpointAvoidance.1 with
+        firstLeft | firstRight
+      · have secondLeft :=
+          TerminalTensor.graphForSelection_adjacent_preserves_left
+            structural splitting selection firstLeft endpointAvoidance.2
+            adjacency
+        have firstNotRight : edge.first ∉ rightVertices := by
+          intro firstRight
+          exact TerminalTensor.vertex_partition_disjoint certificate
+            left conclusion edge.first firstLeft firstRight
+        exact Or.inl ⟨by
+          simp [leftContained, leftVertices, firstLeft, secondLeft], by
+          simp [rightContained, rightVertices, firstNotRight], incidentFalse⟩
+      · have secondRight :=
+          TerminalTensor.graphForSelection_adjacent_preserves_right
+            structural splitting selection firstRight endpointAvoidance.2
+            adjacency
+        have firstNotLeft : edge.first ∉ leftVertices := by
+          intro firstLeft
+          exact TerminalTensor.vertex_partition_disjoint certificate
+            left conclusion edge.first firstLeft firstRight
+        exact Or.inr (Or.inl ⟨by
+          simp [leftContained, leftVertices, firstNotLeft], by
+          simp [rightContained, rightVertices, firstRight, secondRight],
+          incidentFalse⟩)
+  have edgePartition := length_filter_three_partition graph.edges
+    leftContained rightContained (fun edge => edge.incident conclusion)
+    classified
+  have incidentCount :=
+    TerminalTensor.graphForSelection_incidentCount structural splitting.1
+      selection
+  unfold Graph.incidentCount at incidentCount
+  change (graph.edges.filter (fun edge => edge.incident conclusion)).length =
+    2 at incidentCount
+  rw [Graph.restrictTo_edges_length, Graph.restrictTo_edges_length]
+  change (graph.edges.filter leftContained).length +
+      (graph.edges.filter rightContained).length + 2 = graph.edges.length
+  omega
+
+theorem graph_restrictTo_trees
+    {certificate : Certificate} {left right conclusion : Vertex}
+    {selected : List Edge}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree) :
+    ((certificate.graphForSelection selected).restrictTo
+        (certificate.tensorLeftVertices left conclusion)).IsTree ∧
+      ((certificate.graphForSelection selected).restrictTo
+        (certificate.tensorRightVertices left conclusion)).IsTree := by
+  let inputGraph := certificate.graphForSelection selected
+  let leftGraph := inputGraph.restrictTo
+    (certificate.tensorLeftVertices left conclusion)
+  let rightGraph := inputGraph.restrictTo
+    (certificate.tensorRightVertices left conclusion)
+  have leftBounded : leftGraph.Bounded := by
+    simpa [leftGraph, inputGraph] using tree.1.restrictTo
+      (certificate.tensorLeftVertices left conclusion)
+  have rightBounded : rightGraph.Bounded := by
+    simpa [rightGraph, inputGraph] using tree.1.restrictTo
+      (certificate.tensorRightVertices left conclusion)
+  have leftConnected : leftGraph.Connected := by
+    simpa [leftGraph, inputGraph] using
+      TerminalTensor.graph_restrictTo_left_connected structural splitting
+        selection tree
+  have rightConnected : rightGraph.Connected := by
+    simpa [rightGraph, inputGraph] using
+      TerminalTensor.graph_restrictTo_right_connected structural splitting
+        selection tree
+  have leftLower := leftConnected.vertexCount_le_edges_add_one
+  have rightLower := rightConnected.vertexCount_le_edges_add_one
+  change leftGraph.vertexCount ≤ leftGraph.edges.length + 1 at leftLower
+  change rightGraph.vertexCount ≤ rightGraph.edges.length + 1 at rightLower
+  have edgePartition :=
+    TerminalTensor.graph_restrictTo_edges_length_partition structural
+      splitting selection tree
+  change leftGraph.edges.length + rightGraph.edges.length + 2 =
+    inputGraph.edges.length at edgePartition
+  have vertexPartition :=
+    TerminalTensor.tensorVertices_length_partition structural splitting.1
+  change leftGraph.vertexCount + rightGraph.vertexCount + 1 =
+    inputGraph.vertexCount at vertexPartition
+  have inputCount := tree.2.2
+  change inputGraph.edges.length + 1 = inputGraph.vertexCount at inputCount
+  have leftCount : leftGraph.edges.length + 1 = leftGraph.vertexCount := by
+    omega
+  have rightCount : rightGraph.edges.length + 1 = rightGraph.vertexCount := by
+    omega
+  constructor
+  · exact ⟨leftBounded, leftConnected, leftCount⟩
+  · exact ⟨rightBounded, rightConnected, rightCount⟩
+
 end TerminalTensor
 
 theorem TerminalPar.parChoices_incidentCount
@@ -5643,6 +6124,163 @@ theorem splitTerminalTensorCandidate?_structurallyWellFormed
   cases equation
   exact ⟨leftStructural, rightStructural⟩
 
+theorem splitTerminalTensorCandidate?_restriction_equations
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate)) :
+    certificate.restrictTo?
+        (certificate.tensorLeftVertices left conclusion)
+        (certificate.tensorLeftBoundary left conclusion) =
+          some leftCertificate ∧
+      certificate.restrictTo?
+        (certificate.tensorRightVertices left conclusion)
+        (certificate.tensorRightBoundary left right conclusion) =
+          some rightCertificate := by
+  have reachabilityRejected :
+      (certificate.tensorLeftReachable left conclusion).contains right = false := by
+    simpa [tensorLeftReachable] using
+      (TerminalTensor.splitting_iff_reachability_rejected structural
+        splitting.1).mp splitting
+  have rightUnreachable :
+      right ∉ certificate.tensorLeftReachable left conclusion := by
+    simpa using reachabilityRejected
+  have partitioned :
+      (certificate.links.erase (.tensor left right conclusion)).all fun link =>
+        link.vertices.all
+            (certificate.tensorLeftVertices left conclusion).contains ||
+          link.vertices.all
+            (certificate.tensorRightVertices left conclusion).contains :=
+    TerminalTensor.remainingLinks_partitioned structural splitting
+  cases leftEquation : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) with
+  | none =>
+      simp [splitTerminalTensorCandidate?, splitting.1.1, splitting.1.2,
+        rightUnreachable, partitioned, leftEquation] at equation
+  | some expectedLeft =>
+      cases rightEquation : certificate.restrictTo?
+          (certificate.tensorRightVertices left conclusion)
+          (certificate.tensorRightBoundary left right conclusion) with
+      | none =>
+          simp [splitTerminalTensorCandidate?, splitting.1.1, splitting.1.2,
+            rightUnreachable, partitioned, leftEquation, rightEquation]
+            at equation
+      | some expectedRight =>
+          simp [splitTerminalTensorCandidate?, splitting.1.1, splitting.1.2,
+            rightUnreachable, partitioned, leftEquation, rightEquation]
+            at equation
+          rcases equation with ⟨leftSame, rightSame⟩
+          subst leftCertificate
+          subst rightCertificate
+          exact ⟨rfl, rfl⟩
+
+/-- Exact proof interface for the inverse tensor rule. Each premise switching
+is the induced restriction of an input switching to one of the two components
+cut apart by a mathematically splitting terminal tensor. -/
+structure TerminalTensorReduction
+    (input leftPremise rightPremise : Certificate)
+    (left right conclusion : Vertex) : Prop where
+  splitting : input.SplittingTensor left right conclusion
+  leftPremiseStructural : leftPremise.StructurallyWellFormed
+  rightPremiseStructural : rightPremise.StructurallyWellFormed
+  leftSwitchingRestriction : ∀ premiseGraph,
+    leftPremise.SwitchingGraph premiseGraph →
+      ∃ inputGraph,
+        input.SwitchingGraph inputGraph ∧
+        premiseGraph = inputGraph.restrictTo
+          (input.tensorLeftVertices left conclusion)
+  rightSwitchingRestriction : ∀ premiseGraph,
+    rightPremise.SwitchingGraph premiseGraph →
+      ∃ inputGraph,
+        input.SwitchingGraph inputGraph ∧
+        premiseGraph = inputGraph.restrictTo
+          (input.tensorRightVertices left conclusion)
+
+/-- The concrete terminal-tensor split satisfies the exact induced-component
+interface required by sequentialization. -/
+theorem splitTerminalTensorCandidate?_reduction
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate)) :
+    TerminalTensorReduction certificate leftCertificate rightCertificate
+      left right conclusion := by
+  rcases certificate.splitTerminalTensorCandidate?_restriction_equations
+      structural splitting equation with ⟨leftEquation, rightEquation⟩
+  rcases certificate.splitTerminalTensorCandidate?_structurallyWellFormed
+      structural splitting equation with ⟨leftStructural, rightStructural⟩
+  refine {
+    splitting := splitting
+    leftPremiseStructural := leftStructural
+    rightPremiseStructural := rightStructural
+    leftSwitchingRestriction := ?_
+    rightSwitchingRestriction := ?_ }
+  · intro premiseGraph premiseSwitching
+    exact TerminalTensor.restrictTo?_leftSwitchingLift structural splitting
+      leftEquation premiseSwitching
+  · intro premiseGraph premiseSwitching
+    exact TerminalTensor.restrictTo?_rightSwitchingLift structural splitting
+      rightEquation premiseSwitching
+
+namespace TerminalTensorReduction
+
+theorem declarativelyCorrect
+    {input leftPremise rightPremise : Certificate}
+    {left right conclusion : Vertex}
+    (reduction : TerminalTensorReduction input leftPremise rightPremise
+      left right conclusion)
+    (correct : input.DeclarativelyCorrect) :
+    leftPremise.DeclarativelyCorrect ∧ rightPremise.DeclarativelyCorrect := by
+  constructor
+  · refine ⟨reduction.leftPremiseStructural, ?_⟩
+    intro premiseGraph premiseSwitching
+    rcases reduction.leftSwitchingRestriction premiseGraph premiseSwitching with
+      ⟨inputGraph, inputSwitching, rfl⟩
+    have inputTree := correct.2 inputGraph inputSwitching
+    rcases inputSwitching with ⟨selected, selection, rfl⟩
+    exact (TerminalTensor.graph_restrictTo_trees correct.1
+      reduction.splitting selection inputTree).1
+  · refine ⟨reduction.rightPremiseStructural, ?_⟩
+    intro premiseGraph premiseSwitching
+    rcases reduction.rightSwitchingRestriction premiseGraph premiseSwitching with
+      ⟨inputGraph, inputSwitching, rfl⟩
+    have inputTree := correct.2 inputGraph inputSwitching
+    rcases inputSwitching with ⟨selected, selection, rfl⟩
+    exact (TerminalTensor.graph_restrictTo_trees correct.1
+      reduction.splitting selection inputTree).2
+
+theorem check_of_check
+    {input leftPremise rightPremise : Certificate}
+    {left right conclusion : Vertex}
+    (reduction : TerminalTensorReduction input leftPremise rightPremise
+      left right conclusion)
+    (accepted : input.check = true) :
+    leftPremise.check = true ∧ rightPremise.check = true := by
+  rcases reduction.declarativelyCorrect
+      (input.check_iff_declarativelyCorrect.mp accepted) with
+    ⟨leftCorrect, rightCorrect⟩
+  exact ⟨leftPremise.check_iff_declarativelyCorrect.mpr leftCorrect,
+    rightPremise.check_iff_declarativelyCorrect.mpr rightCorrect⟩
+
+end TerminalTensorReduction
+
+theorem splitTerminalTensorCandidate?_check_of_check
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate))
+    (accepted : certificate.check = true) :
+    leftCertificate.check = true ∧ rightCertificate.check = true :=
+  (certificate.splitTerminalTensorCandidate?_reduction structural splitting
+    equation).check_of_check accepted
+
 /-- Checker-gated tensor split. No recursive caller can consume a proposed
 component unless both independent proof-net checks succeed. -/
 def splitTerminalTensorChecked? (certificate : Certificate)
@@ -5658,6 +6296,27 @@ def splitTerminalTensorChecked? (certificate : Certificate)
       none
   else
     none
+
+theorem splitTerminalTensorChecked?_eq_some_exists
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (accepted : certificate.check = true) :
+    ∃ premises,
+      certificate.splitTerminalTensorChecked? left right conclusion =
+        some premises := by
+  rcases certificate.splitTerminalTensorCandidate?_eq_some_exists
+      structural splitting with
+    ⟨leftCertificate, rightCertificate, candidateEquation⟩
+  rcases certificate.splitTerminalTensorCandidate?_check_of_check
+      structural splitting candidateEquation accepted with
+    ⟨leftAccepted, rightAccepted⟩
+  let premises : CheckedTensorPremises := {
+    leftPremise := ⟨leftCertificate, leftAccepted⟩
+    rightPremise := ⟨rightCertificate, rightAccepted⟩ }
+  refine ⟨premises, ?_⟩
+  simp [splitTerminalTensorChecked?, candidateEquation, leftAccepted,
+    rightAccepted, premises]
 
 /-- Exact proof interface for a terminal-par inverse. It isolates the
 certificate bookkeeping obligation from the already-proved graph theorem:
