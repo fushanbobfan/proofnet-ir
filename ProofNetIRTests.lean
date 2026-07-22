@@ -252,6 +252,8 @@ example : ∃ leftIncidence rightIncidence : canonical.fullGraph.DirectedEdge,
   canonical.par_incidenceColors_exist (by simp [canonical])
 example : canonical.incidenceColor canonicalParLeftIn.reverse =
     .unique 4 false := by native_decide
+example : canonicalParLeftIn ∈ canonical.fullGraph.directedEdges :=
+  canonicalParLeftIn.mem_directedEdges
 example : canonical.Cusp canonicalParLeftIn canonicalParRightIn.reverse := by
   rfl
 example : canonical.Cusp canonicalParRightIn canonicalParLeftIn.reverse :=
@@ -886,6 +888,11 @@ example : cyclicGraph.isTree = false := by native_decide
 example : ¬cyclicGraph.IsTree := by
   intro tree
   exact tree.no_edgeSimpleCycle cyclicTriangle
+example : ∃ maximal ∈ ([0, 1, 2] : List Nat),
+    ∀ candidate ∈ ([0, 1, 2] : List Nat), ¬maximal < candidate := by
+  exact Certificate.exists_relation_maximal [0, 1, 2] (by simp) (by simp)
+    (fun first second : Nat => first < second)
+    Nat.lt_irrefl (by intro first middle last; omega)
 example : ¬cyclicGraph.FuelTree := by
   intro semantic
   have accepted := cyclicGraph.isTree_iff_fuelTree.mpr semantic

@@ -70,6 +70,12 @@
   admits a switching mask that preserves every cycle edge, and therefore
   contradicts `IsTree`; `DeclarativelyCorrect.cuspAcyclic` now states the
   kernel-checked result for every independent switching.
+- added duplicate-free exact-edge simple paths, cusp-free continuations and
+  their disjointness-safe concatenation; defined the strengthened directed-edge
+  ordering used by generalized Yeo and proved it irreflexive and transitive.
+- added both-orientation enumeration of every stored edge occurrence and a
+  generic theorem that every nonempty duplicate-free finite list has a maximal
+  member under any irreflexive transitive relation.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

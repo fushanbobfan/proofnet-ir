@@ -78,8 +78,15 @@ name-level restatement of Yeo:
    preserves every requested cycle occurrence, transports the cycle through
    mask compaction, and contradicts the selected switching's `IsTree` theorem.
    This includes parallel equal-valued edges and the cycle's closing cusp.
-4. **Finite maximality/Yeo.** Prove the generalized finite colored-graph
-   splitting theorem or an equivalent self-contained lemma in Lean.
+4. **Finite maximality/Yeo (order foundation complete).** `EdgeSimplePath`,
+   `CuspFreeContinuation`, and the strengthened `OrderingPath` now encode the
+   simple open cusp-free continuation and universal path-separation condition.
+   Their append theorem proves the induced `EdgeOrdering` is irreflexive and
+   transitive. A representation-independent finite theorem now supplies a
+   maximal member of every nonempty duplicate-free list under such a relation.
+   The remaining generalized-Yeo obligation is the bungee lemma showing that
+   a non-splitting target has a strictly greater cusping edge, followed by its
+   ProofNet-IR sequentialization-edge instantiation.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored
    link and ordered public boundary. The formula-complexity theorem already
    proves that connective structure has some terminal connective, but does not

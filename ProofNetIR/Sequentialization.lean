@@ -2637,6 +2637,255 @@ theorem CuspFreeTraversal.suffix (certificate : Certificate)
   | cons first rest ih =>
       exact ih (CuspFreeTraversal.tail certificate free)
 
+/-- Two nonempty cusp-free traversals concatenate when their boundary
+transition is not a cusp. -/
+theorem CuspFreeTraversal.append (certificate : Certificate)
+    {first second : List certificate.fullGraph.DirectedEdge}
+    (firstFree : certificate.CuspFreeTraversal first)
+    (secondFree : certificate.CuspFreeTraversal second)
+    (firstNonempty : first ≠ []) (secondNonempty : second ≠ [])
+    (boundary : ¬certificate.Cusp (first.getLast firstNonempty)
+      (second.head secondNonempty)) :
+    certificate.CuspFreeTraversal (first ++ second) := by
+  induction first with
+  | nil => exact False.elim (firstNonempty rfl)
+  | cons head tail ih =>
+      cases tail with
+      | nil =>
+          cases second with
+          | nil => exact False.elim (secondNonempty rfl)
+          | cons next rest =>
+              exact ⟨by simpa using boundary, secondFree⟩
+      | cons next rest =>
+          have tailNonempty : next :: rest ≠ [] := by simp
+          have tailBoundary :
+              ¬certificate.Cusp ((next :: rest).getLast tailNonempty)
+                (second.head secondNonempty) := by
+            simpa using boundary
+          exact ⟨firstFree.1,
+            ih firstFree.2 tailNonempty tailBoundary⟩
+
+/-- A simple, open, cusp-free continuation from the target of `incoming` to
+the target of `outgoing`, ending with that exact directed edge. -/
+structure CuspFreeContinuation (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge) where
+  path : certificate.fullGraph.EdgeSimplePath
+  nonempty : path.traversed ≠ []
+  startsAt : path.start = incoming.target
+  endsAt : path.finish = outgoing.target
+  cuspFree : certificate.CuspFreeTraversal path.traversed
+  initialFree :
+    ¬certificate.Cusp incoming (path.traversed.head nonempty)
+  lastEdge : path.traversed.getLast nonempty = outgoing
+
+namespace CuspFreeContinuation
+
+/-- Concatenate compatible continuations. The explicit vertex-disjointness
+hypothesis is exactly what preserves simplicity after the shared endpoint is
+removed from the second path's vertex list. -/
+def append {certificate : Certificate}
+    {incoming middle outgoing : certificate.fullGraph.DirectedEdge}
+    (first : CuspFreeContinuation certificate incoming middle)
+    (second : CuspFreeContinuation certificate middle outgoing)
+    (disjoint : ∀ vertex, vertex ∈ first.path.vertices →
+      vertex ∈ second.path.vertices.tail → False) :
+    CuspFreeContinuation certificate incoming outgoing := by
+  have meeting : first.path.finish = second.path.start :=
+    first.endsAt.trans second.startsAt.symm
+  let combinedPath := first.path.append second.path meeting disjoint
+  have combinedNonempty : combinedPath.traversed ≠ [] := by
+    simp [combinedPath, first.nonempty]
+  have boundary : ¬certificate.Cusp
+      (first.path.traversed.getLast first.nonempty)
+      (second.path.traversed.head second.nonempty) := by
+    rw [first.lastEdge]
+    exact second.initialFree
+  refine
+    { path := combinedPath
+      nonempty := combinedNonempty
+      startsAt := ?_
+      endsAt := ?_
+      cuspFree := ?_
+      initialFree := ?_
+      lastEdge := ?_ }
+  · exact first.startsAt
+  · exact second.endsAt
+  · change certificate.CuspFreeTraversal
+      (first.path.traversed ++ second.path.traversed)
+    exact CuspFreeTraversal.append certificate first.cuspFree second.cuspFree
+      first.nonempty second.nonempty boundary
+  · have headEquation :
+        (first.path.traversed ++ second.path.traversed).head
+            combinedNonempty =
+          first.path.traversed.head first.nonempty :=
+      List.head_append_of_ne_nil first.nonempty
+    change ¬certificate.Cusp incoming
+      ((first.path.traversed ++ second.path.traversed).head combinedNonempty)
+    rw [headEquation]
+    exact first.initialFree
+  · have lastEquation :
+        (first.path.traversed ++ second.path.traversed).getLast
+            combinedNonempty =
+          second.path.traversed.getLast second.nonempty :=
+      List.getLast_append_of_ne_nil combinedNonempty second.nonempty
+    change (first.path.traversed ++ second.path.traversed).getLast
+      combinedNonempty = outgoing
+    rw [lastEquation]
+    exact second.lastEdge
+
+@[simp] theorem append_path_vertices {certificate : Certificate}
+    {incoming middle outgoing : certificate.fullGraph.DirectedEdge}
+    (first : CuspFreeContinuation certificate incoming middle)
+    (second : CuspFreeContinuation certificate middle outgoing)
+    (disjoint : ∀ vertex, vertex ∈ first.path.vertices →
+      vertex ∈ second.path.vertices.tail → False) :
+    (first.append second disjoint).path.vertices =
+      first.path.vertices ++ second.path.vertices.tail := by
+  simp [append]
+
+end CuspFreeContinuation
+
+/-- The strengthened continuation used as the strict generalized-Yeo order:
+every later continuation from `outgoing` is vertex-disjoint from this path,
+apart from its removed initial vertex. -/
+structure OrderingPath (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge)
+    extends CuspFreeContinuation certificate incoming outgoing where
+  separated : ∀ {later : certificate.fullGraph.DirectedEdge},
+    (continuation : CuspFreeContinuation certificate outgoing later) →
+      ∀ vertex, vertex ∈ path.vertices →
+        vertex ∈ continuation.path.vertices.tail → False
+
+namespace OrderingPath
+
+/-- The separation clause makes ordering paths composable: it supplies the
+exact disjointness needed for the simple-path append, and remains stable
+against every later continuation. -/
+def append {certificate : Certificate}
+    {incoming middle outgoing : certificate.fullGraph.DirectedEdge}
+    (first : OrderingPath certificate incoming middle)
+    (second : OrderingPath certificate middle outgoing) :
+    OrderingPath certificate incoming outgoing := by
+  have firstSecondDisjoint : ∀ vertex,
+      vertex ∈ first.path.vertices →
+        vertex ∈ second.path.vertices.tail → False :=
+    first.separated second.toCuspFreeContinuation
+  let combined := first.toCuspFreeContinuation.append
+    second.toCuspFreeContinuation firstSecondDisjoint
+  refine
+    { combined with
+      separated := ?_ }
+  intro later continuation vertex combinedMembership laterMembership
+  have secondLaterDisjoint : ∀ candidate,
+      candidate ∈ second.path.vertices →
+        candidate ∈ continuation.path.vertices.tail → False :=
+    second.separated continuation
+  let extended := second.toCuspFreeContinuation.append continuation
+    secondLaterDisjoint
+  have firstExtendedDisjoint : ∀ candidate,
+      candidate ∈ first.path.vertices →
+        candidate ∈ extended.path.vertices.tail → False :=
+    first.separated extended
+  have combinedVertices : combined.path.vertices =
+      first.path.vertices ++ second.path.vertices.tail := by
+    exact CuspFreeContinuation.append_path_vertices _ _ _
+  rw [combinedVertices, List.mem_append] at combinedMembership
+  rcases combinedMembership with inFirst | inSecond
+  · apply firstExtendedDisjoint vertex inFirst
+    have extendedVertices : extended.path.vertices =
+        second.path.vertices ++ continuation.path.vertices.tail := by
+      exact CuspFreeContinuation.append_path_vertices _ _ _
+    rw [extendedVertices]
+    have laterTargetMembership : vertex ∈
+        continuation.path.traversed.map Graph.DirectedEdge.target := by
+      simpa [Graph.EdgeSimplePath.vertices,
+        Graph.EdgeWalk.visitedVertices] using laterMembership
+    change vertex ∈
+      second.path.traversed.map Graph.DirectedEdge.target ++
+        continuation.path.traversed.map Graph.DirectedEdge.target
+    exact List.mem_append.mpr (.inr laterTargetMembership)
+  · exact secondLaterDisjoint vertex (List.mem_of_mem_tail inSecond)
+      laterMembership
+
+end OrderingPath
+
+/-- Existential strict ordering on directed edge occurrences. -/
+def EdgeOrdering (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge) : Prop :=
+  Nonempty (OrderingPath certificate incoming outgoing)
+
+theorem EdgeOrdering.irrefl (certificate : Certificate)
+    (directed : certificate.fullGraph.DirectedEdge) :
+    ¬certificate.EdgeOrdering directed directed := by
+  rintro ⟨ordering⟩
+  have endpointEquation : ordering.path.start = ordering.path.finish :=
+    ordering.startsAt.trans ordering.endsAt.symm
+  exact ordering.path.start_ne_finish_of_nonempty ordering.nonempty
+    endpointEquation
+
+theorem EdgeOrdering.transitive (certificate : Certificate)
+    {first middle last : certificate.fullGraph.DirectedEdge}
+    (firstBeforeMiddle : certificate.EdgeOrdering first middle)
+    (middleBeforeLast : certificate.EdgeOrdering middle last) :
+    certificate.EdgeOrdering first last := by
+  rcases firstBeforeMiddle with ⟨firstOrdering⟩
+  rcases middleBeforeLast with ⟨secondOrdering⟩
+  exact ⟨firstOrdering.append secondOrdering⟩
+
+/-- Every nonempty duplicate-free finite list has a maximal member for an
+irreflexive transitive relation. The proof minimizes the number of successors;
+any strict successor would have a strictly smaller successor set. -/
+theorem exists_relation_maximal {α : Type} (values : List α)
+    (valuesNodup : values.Nodup) (nonempty : values ≠ [])
+    (relation : α → α → Prop)
+    (irrefl : ∀ value, ¬relation value value)
+    (transitive : ∀ {first middle last},
+      relation first middle → relation middle last → relation first last) :
+    ∃ maximal ∈ values,
+      ∀ candidate ∈ values, ¬relation maximal candidate := by
+  classical
+  let successors : α → List α := fun value =>
+    values.filter fun candidate => decide (relation value candidate)
+  cases values with
+  | nil => exact False.elim (nonempty rfl)
+  | cons head tail =>
+      rcases exists_minimal_measure head tail
+          (fun value => (successors value).length) with
+        ⟨maximal, maximalMembership, minimal⟩
+      refine ⟨maximal, maximalMembership, ?_⟩
+      intro candidate candidateMembership maximalBeforeCandidate
+      have candidateInMaximalSuccessors :
+          candidate ∈ successors maximal := by
+        simp [successors, candidateMembership, maximalBeforeCandidate]
+      have candidateNotInOwnSuccessors :
+          candidate ∉ successors candidate := by
+        simp [successors, irrefl candidate]
+      have successorSubset : ∀ value ∈ successors candidate,
+          value ∈ successors maximal := by
+        intro value membership
+        have filtered := List.mem_filter.mp membership
+        have candidateBeforeValue : relation candidate value :=
+          of_decide_eq_true filtered.2
+        have maximalBeforeValue :=
+          transitive maximalBeforeCandidate candidateBeforeValue
+        exact List.mem_filter.mpr
+          ⟨filtered.1, by simpa using maximalBeforeValue⟩
+      have enlargedNodup :
+          (candidate :: successors candidate).Nodup := by
+        exact List.nodup_cons.mpr
+          ⟨candidateNotInOwnSuccessors, valuesNodup.filter _⟩
+      have enlargedSubset : ∀ value ∈ candidate :: successors candidate,
+          value ∈ successors maximal := by
+        intro value membership
+        rcases List.mem_cons.mp membership with rfl | tailMembership
+        · exact candidateInMaximalSuccessors
+        · exact successorSubset value tailMembership
+      have strictBound := length_le_of_nodup_subset'
+        enlargedNodup enlargedSubset
+      have minimalBound := minimal candidate candidateMembership
+      simp only [List.length_cons] at strictBound
+      omega
+
 /-- A simple closed traversal is cusp-free when neither an internal adjacent
 pair nor the last/first closing pair forms a cusp. -/
 def CuspFreeCycle (certificate : Certificate)

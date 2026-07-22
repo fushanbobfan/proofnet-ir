@@ -108,8 +108,10 @@
   switching colors/cusps are now formalized. The exact tree-acyclic theorem,
   par-sparse cycle-to-switching containment construction, mask-compaction
   transport, and `DeclarativelyCorrect.cuspAcyclic` bridge are proved for
-  exact multigraph edge occurrences. The remaining generalized-Yeo theorem is
-  specified in
+  exact multigraph edge occurrences. Exact-edge simple paths, cusp-free
+  continuation concatenation, the strengthened strict edge order, and its
+  finite maximal-element theorem are also complete. The remaining bungee
+  lemma and generalized-Yeo instantiation are specified in
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

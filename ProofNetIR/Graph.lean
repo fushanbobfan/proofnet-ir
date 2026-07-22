@@ -178,6 +178,34 @@ def retain {graph : Graph} {mask : List Bool}
 
 end DirectedEdge
 
+/-- Enumerate both orientations of every stored edge occurrence. The exact
+list index and lookup proof remain attached, so parallel equal-valued edges are
+distinct entries. -/
+def directedEdges (graph : Graph) : List graph.DirectedEdge :=
+  (List.range graph.edges.length).flatMap fun index =>
+    match lookup : graph.edges[index]? with
+    | none => []
+    | some edge =>
+        [{ index, edge, lookup, forward := false },
+         { index, edge, lookup, forward := true }]
+
+theorem DirectedEdge.mem_directedEdges {graph : Graph}
+    (directed : graph.DirectedEdge) : directed ∈ graph.directedEdges := by
+  rcases directed with ⟨index, edge, lookup, forward⟩
+  simp only [directedEdges, List.mem_flatMap]
+  refine ⟨index, List.mem_range.mpr
+    (List.getElem?_eq_some_iff.mp lookup).1, ?_⟩
+  split
+  · rename_i absent
+    have impossible : (none : Option Edge) = some edge :=
+      absent.symm.trans lookup
+    contradiction
+  · rename_i matched present
+    have sameEdge : matched = edge :=
+      Option.some.inj (present.symm.trans lookup)
+    subst matched
+    cases forward <;> simp
+
 /-- Edge-identity-aware oriented walks for colored-path and multigraph-cycle
 arguments. `Walk` remains the checker-facing endpoint relation; this layer is
 strictly richer and records the exact stored edge occurrence at every step. -/
@@ -418,6 +446,105 @@ theorem head_source {graph : Graph} {start finish : Vertex}
   assumption
 
 end EdgeChain
+
+/-- An edge-identity-aware path with no repeated visited vertex. Unlike
+`EdgeSimpleCycle`, its endpoints need not coincide; the empty reflexive path is
+also admitted so endpoint openness can be stated by clients when needed. -/
+structure EdgeSimplePath (graph : Graph) where
+  start : Vertex
+  finish : Vertex
+  traversed : List graph.DirectedEdge
+  walk : graph.EdgeWalk start traversed finish
+  verticesNodup :
+    (EdgeWalk.visitedVertices start traversed).Nodup
+
+namespace EdgeSimplePath
+
+def vertices {graph : Graph} (path : graph.EdgeSimplePath) : List Vertex :=
+  EdgeWalk.visitedVertices path.start path.traversed
+
+@[simp] theorem vertices_nodup {graph : Graph}
+    (path : graph.EdgeSimplePath) : path.vertices.Nodup :=
+  path.verticesNodup
+
+theorem start_ne_finish_of_nonempty {graph : Graph}
+    (path : graph.EdgeSimplePath) (nonempty : path.traversed ≠ []) :
+    path.start ≠ path.finish := by
+  intro same
+  have lastMembership : path.traversed.getLast nonempty ∈ path.traversed :=
+    List.getLast_mem nonempty
+  have finishInTail : path.finish ∈
+      path.traversed.map DirectedEdge.target := by
+    apply List.mem_map.mpr
+    refine ⟨path.traversed.getLast nonempty, lastMembership, ?_⟩
+    exact path.walk.getLast_target nonempty
+  have startFresh : path.start ∉ path.traversed.map DirectedEdge.target := by
+    have nodup :
+        (path.start :: path.traversed.map DirectedEdge.target).Nodup := by
+      simpa [EdgeWalk.visitedVertices] using path.verticesNodup
+    exact (List.nodup_cons.mp nodup).1
+  exact startFresh (same ▸ finishInTail)
+
+/-- Concatenate two simple edge paths when, after deleting the shared start of
+the second path, their visited vertex lists are disjoint. -/
+def append {graph : Graph} (first second : graph.EdgeSimplePath)
+    (meeting : first.finish = second.start)
+    (disjoint : ∀ vertex, vertex ∈ first.vertices →
+      vertex ∈ second.vertices.tail → False) :
+    graph.EdgeSimplePath := by
+  have secondWalk : graph.EdgeWalk first.finish second.traversed
+      second.finish := by
+    rw [meeting]
+    exact second.walk
+  refine
+    { start := first.start
+      finish := second.finish
+      traversed := first.traversed ++ second.traversed
+      walk := first.walk.trans secondWalk
+      verticesNodup := ?_ }
+  have verticesEquation :
+      EdgeWalk.visitedVertices first.start
+          (first.traversed ++ second.traversed) =
+        first.vertices ++ second.vertices.tail := by
+    simp [vertices, EdgeWalk.visitedVertices, List.map_append]
+  rw [verticesEquation, List.nodup_append]
+  refine ⟨first.verticesNodup, second.verticesNodup.tail, ?_⟩
+  intro firstVertex firstMembership secondVertex secondMembership same
+  subst secondVertex
+  exact disjoint firstVertex firstMembership secondMembership
+
+@[simp] theorem append_start {graph : Graph}
+    (first second : graph.EdgeSimplePath)
+    (meeting : first.finish = second.start)
+    (disjoint : ∀ vertex, vertex ∈ first.vertices →
+      vertex ∈ second.vertices.tail → False) :
+    (first.append second meeting disjoint).start = first.start := rfl
+
+@[simp] theorem append_finish {graph : Graph}
+    (first second : graph.EdgeSimplePath)
+    (meeting : first.finish = second.start)
+    (disjoint : ∀ vertex, vertex ∈ first.vertices →
+      vertex ∈ second.vertices.tail → False) :
+    (first.append second meeting disjoint).finish = second.finish := rfl
+
+@[simp] theorem append_traversed {graph : Graph}
+    (first second : graph.EdgeSimplePath)
+    (meeting : first.finish = second.start)
+    (disjoint : ∀ vertex, vertex ∈ first.vertices →
+      vertex ∈ second.vertices.tail → False) :
+    (first.append second meeting disjoint).traversed =
+      first.traversed ++ second.traversed := rfl
+
+@[simp] theorem append_vertices {graph : Graph}
+    (first second : graph.EdgeSimplePath)
+    (meeting : first.finish = second.start)
+    (disjoint : ∀ vertex, vertex ∈ first.vertices →
+      vertex ∈ second.vertices.tail → False) :
+    (first.append second meeting disjoint).vertices =
+      first.vertices ++ second.vertices.tail := by
+  simp [append, vertices, EdgeWalk.visitedVertices, List.map_append]
+
+end EdgeSimplePath
 
 /-- A nonempty closed edge-aware walk with no repeated vertex except its
 identified start/end. The exact edge indices allow two parallel stored edges
