@@ -1,5 +1,4 @@
-import ProofNetIR.Checker
-import ProofNetIR.Generate
+import ProofNetIR.Reconstruct
 
 namespace ProofNetIR
 
@@ -55,13 +54,153 @@ def pick? : List α → Nat → Option (α × List α)
 
 /-- Apply an explicit permutation written as original occurrence indices.
 Malformed, duplicated, missing, or out-of-bounds orders are rejected. -/
-def reorder? (values : List α) (order : List Nat) : Option (List α) :=
+def reorderCandidate? (values : List α) (order : List Nat) : Option (List α) :=
   if order.length == values.length &&
       order.eraseDups.length == order.length &&
       order.all (fun index => index < values.length) then
     order.mapM fun index => values[index]?
   else
     none
+
+/-- Reordering additionally validates the mathematical permutation relation.
+This redundant check exposes a direct proof boundary for downstream theorems. -/
+def reorder? [DecidableEq α] (values : List α) (order : List Nat) :
+    Option (List α) := do
+  let reordered ← reorderCandidate? values order
+  if values.Perm reordered then some reordered else none
+
+theorem reorder?_perm [DecidableEq α] {values reordered : List α}
+    {order : List Nat} (accepted : reorder? values order = some reordered) :
+    values.Perm reordered := by
+  unfold reorder? at accepted
+  cases candidateResult : reorderCandidate? values order with
+  | none => simp [candidateResult] at accepted
+  | some candidate =>
+      by_cases permutation : values.Perm candidate
+      · have same : candidate = reordered := by
+          simpa [candidateResult, permutation] using accepted
+        simpa [same] using permutation
+      · simp [candidateResult, permutation] at accepted
+
+/-- Infer the conclusion sequent of the first-order rule tree independently of
+the proof-net fragment construction. -/
+def infer? : CutFreeDerivation → Option (List Formula)
+  | .axiom name positive =>
+      let formula : Formula := .atom name positive
+      some [formula, formula.dual]
+  | .tensor leftFocus rightFocus leftTree rightTree => do
+      let leftSequent ← infer? leftTree
+      let rightSequent ← infer? rightTree
+      let (left, leftContext) ← pick? leftSequent leftFocus
+      let (right, rightContext) ← pick? rightSequent rightFocus
+      pure (.tensor left right :: (leftContext ++ rightContext))
+  | .par leftFocus rightFocus premise => do
+      let sequent ← infer? premise
+      let (left, afterLeft) ← pick? sequent leftFocus
+      let (right, context) ← pick? afterLeft rightFocus
+      pure (context ++ [.par left right])
+  | .exchange order premise => do
+      let sequent ← infer? premise
+      reorder? sequent order
+
+theorem pick?_perm {values : List α} {index : Nat} {selected : α}
+    {remaining : List α}
+    (accepted : pick? values index = some (selected, remaining)) :
+    values.Perm (selected :: remaining) := by
+  induction values generalizing index remaining with
+  | nil => simp [pick?] at accepted
+  | cons head tail ih =>
+      cases index with
+      | zero =>
+          simp [pick?] at accepted
+          obtain ⟨rfl, rfl⟩ := accepted
+          exact .refl _
+      | succ prior =>
+          simp only [pick?] at accepted
+          cases result : pick? tail prior with
+          | none => simp [result] at accepted
+          | some pair =>
+              rcases pair with ⟨chosen, rest⟩
+              simp [result] at accepted
+              obtain ⟨rfl, rfl⟩ := accepted
+              exact (ih result).cons head |>.trans (.swap chosen head rest)
+
+/-- Successful first-order inference denotes a genuine kernel-typed derivation
+in the independent `Derivation` sequent calculus. -/
+theorem infer?_sound {tree : CutFreeDerivation} {sequent : List Formula}
+    (accepted : tree.infer? = some sequent) :
+    Nonempty (Derivation sequent) := by
+  induction tree generalizing sequent with
+  | «axiom» name positive =>
+      simp [infer?] at accepted
+      subst sequent
+      exact ⟨Derivation.axiom name positive⟩
+  | tensor leftFocus rightFocus leftTree rightTree leftIH rightIH =>
+      simp only [infer?] at accepted
+      cases leftResult : leftTree.infer? with
+      | none => simp [leftResult] at accepted
+      | some leftSequent =>
+          cases rightResult : rightTree.infer? with
+          | none => simp [leftResult, rightResult] at accepted
+          | some rightSequent =>
+              cases leftPick : pick? leftSequent leftFocus with
+              | none => simp [leftResult, rightResult, leftPick] at accepted
+              | some leftPair =>
+                  rcases leftPair with ⟨leftFormula, leftContext⟩
+                  cases rightPick : pick? rightSequent rightFocus with
+                  | none =>
+                      simp [leftResult, rightResult, rightPick] at accepted
+                  | some rightPair =>
+                      rcases rightPair with ⟨rightFormula, rightContext⟩
+                      simp [leftResult, rightResult, leftPick, rightPick] at accepted
+                      subst sequent
+                      obtain ⟨leftDerivation⟩ := leftIH leftResult
+                      obtain ⟨rightDerivation⟩ := rightIH rightResult
+                      let leftFocused :
+                          Derivation (leftFormula :: leftContext) :=
+                        .exchange (pick?_perm leftPick) leftDerivation
+                      let rightFocused :
+                          Derivation (rightFormula :: rightContext) :=
+                        .exchange (pick?_perm rightPick) rightDerivation
+                      exact ⟨Derivation.tensor leftFocused rightFocused⟩
+  | par leftFocus rightFocus premise ih =>
+      simp only [infer?] at accepted
+      cases premiseResult : premise.infer? with
+      | none => simp [premiseResult] at accepted
+      | some premiseSequent =>
+          cases leftPick : pick? premiseSequent leftFocus with
+          | none => simp [premiseResult, leftPick] at accepted
+          | some leftPair =>
+              rcases leftPair with ⟨leftFormula, afterLeft⟩
+              cases rightPick : pick? afterLeft rightFocus with
+              | none => simp [premiseResult, leftPick, rightPick] at accepted
+              | some rightPair =>
+                  rcases rightPair with ⟨rightFormula, context⟩
+                  simp [premiseResult, leftPick, rightPick] at accepted
+                  subst sequent
+                  obtain ⟨premiseDerivation⟩ := ih premiseResult
+                  have toFront : premiseSequent.Perm
+                      (leftFormula :: rightFormula :: context) :=
+                    (pick?_perm leftPick).trans
+                      ((pick?_perm rightPick).cons leftFormula)
+                  have rotate : (leftFormula :: rightFormula :: context).Perm
+                      (context ++ [leftFormula, rightFormula]) := by
+                    simpa using (List.perm_append_comm :
+                      List.Perm ([leftFormula, rightFormula] ++ context)
+                        (context ++ [leftFormula, rightFormula]))
+                  let focused : Derivation
+                      (context ++ [leftFormula, rightFormula]) :=
+                    .exchange (toFront.trans rotate) premiseDerivation
+                  exact ⟨Derivation.parTail focused⟩
+  | exchange order premise ih =>
+      simp only [infer?] at accepted
+      cases premiseResult : premise.infer? with
+      | none => simp [premiseResult] at accepted
+      | some premiseSequent =>
+          simp [premiseResult] at accepted
+          obtain ⟨premiseDerivation⟩ := ih premiseResult
+          exact ⟨Derivation.exchange
+            (reorder?_perm accepted) premiseDerivation⟩
 
 def shiftEntry (offset : Nat) (entry : Formula × Vertex) : Formula × Vertex :=
   (entry.1, entry.2 + offset)

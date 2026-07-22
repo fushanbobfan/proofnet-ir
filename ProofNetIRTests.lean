@@ -52,6 +52,9 @@ example : generatedDepthTwo.all (fun formula =>
 def generatedDerivationTrees : List CutFreeDerivation :=
   (List.range 250).map fun seed => CutFreeDerivation.generate seed 2
 
+example : generatedDerivationTrees.all (fun tree => tree.infer?.isSome) = true := by
+  native_decide
+
 example : generatedDerivationTrees.all (fun tree =>
     tree.desequentializeChecked?.isSome) = true := by
   native_decide

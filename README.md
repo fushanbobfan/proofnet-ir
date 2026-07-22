@@ -140,6 +140,9 @@ The auditable source-coverage record is in
 [docs/reading-ledger.md](docs/reading-ledger.md), and the first matched
 evaluation is specified in
 [docs/experiment-protocol.md](docs/experiment-protocol.md).
+The stricter post-v0.2 coverage and reuse assessments are in
+[docs/source-coverage-audit.md](docs/source-coverage-audit.md) and
+[docs/library-readiness-audit.md](docs/library-readiness-audit.md).
 
 ## License
 

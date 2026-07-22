@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- added an independent conclusion-inference pass for first-order derivation
+  trees and proved `infer?_sound`: every successful inference denotes a
+  kernel-typed `Derivation`;
+- strengthened explicit exchange validation with a checked `List.Perm`
+  boundary and `reorder?_perm` theorem;
+- added honest source-coverage and library-readiness audits so targeted reading
+  and research-prototype functionality cannot be presented as completion.
+
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 
 ### Included
