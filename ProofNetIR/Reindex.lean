@@ -64,6 +64,119 @@ theorem forward_injective {bound : Nat} (r : VertexRenaming bound) :
   | cons head tail ih =>
       simp [List.idxOf_cons, r.forward_beq, ih]
 
+theorem getElem_idxOf (vertices : List Vertex) (vertex : Vertex)
+    (member : vertex ∈ vertices) :
+    vertices[vertices.idxOf vertex]'(
+      vertices.idxOf_lt_length_of_mem member) = vertex := by
+  induction vertices with
+  | nil => simp at member
+  | cons head tail ih =>
+      by_cases same : head = vertex
+      · subst head
+        simp
+      · have memberTail : vertex ∈ tail := by
+          simp only [List.mem_cons] at member
+          exact member.resolve_left (fun atHead => same atHead.symm)
+        have unequal : (head == vertex) = false := by simp [same]
+        simp [List.idxOf_cons, unequal, ih memberTail]
+
+theorem idxOf_getElem_of_nodup (vertices : List Vertex)
+    (nodup : vertices.Nodup) (index : Nat) (inBounds : index < vertices.length) :
+    vertices.idxOf vertices[index] = index := by
+  have member : vertices[index] ∈ vertices := List.getElem_mem inBounds
+  apply (List.getElem_inj nodup).mp
+  exact getElem_idxOf vertices vertices[index] member
+
+/-- `eraseDups` really produces a duplicate-free list. This basic fact is
+proved here because the Lean core verification API currently exposes only the
+membership theorem. -/
+theorem eraseDups_nodup (vertices : List Vertex) :
+    vertices.eraseDups.Nodup := by
+  match vertices with
+  | [] => simp
+  | head :: tail =>
+      rw [List.eraseDups_cons, List.nodup_cons]
+      exact ⟨by simp, eraseDups_nodup
+        (tail.filter fun vertex => !vertex == head)⟩
+termination_by vertices.length
+decreasing_by
+  exact Nat.lt_succ_of_le (List.length_filter_le _ _)
+
+theorem perm_range_of_nodup_complete (bound : Nat) (order : List Vertex)
+    (nodup : order.Nodup)
+    (complete : ∀ vertex, vertex < bound ↔ vertex ∈ order) :
+    order.Perm (List.range bound) := by
+  rw [List.perm_iff_count]
+  intro vertex
+  rw [nodup.count, List.nodup_range.count]
+  simp [complete vertex]
+
+theorem length_eq_of_nodup_complete (bound : Nat) (order : List Vertex)
+    (nodup : order.Nodup)
+    (complete : ∀ vertex, vertex < bound ↔ vertex ∈ order) :
+    order.length = bound := by
+  have permutation := perm_range_of_nodup_complete bound order nodup complete
+  simpa using permutation.length_eq
+
+/-- Turn a duplicate-free enumeration of exactly the in-bounds vertices into
+a total bounded vertex renaming. Out-of-bounds naturals are fixed. -/
+def ofOrder (bound : Nat) (order : List Vertex)
+    (length_eq : order.length = bound) (nodup : order.Nodup)
+    (complete : ∀ vertex, vertex < bound ↔ vertex ∈ order) :
+    VertexRenaming bound where
+  forward vertex := if vertex < bound then order.idxOf vertex else vertex
+  inverse vertex := if inBounds : vertex < bound then
+      order[vertex]'(by simpa [length_eq] using inBounds)
+    else vertex
+  inverse_forward := by
+    intro vertex
+    by_cases inBounds : vertex < bound
+    · have member : vertex ∈ order := (complete vertex).mp inBounds
+      have indexInOrder : order.idxOf vertex < order.length :=
+        order.idxOf_lt_length_of_mem member
+      have indexInBounds : order.idxOf vertex < bound := by
+        simpa [length_eq] using indexInOrder
+      simp only [inBounds, if_pos, indexInBounds, dif_pos]
+      exact getElem_idxOf order vertex member
+    · simp [inBounds]
+  forward_inverse := by
+    intro vertex
+    by_cases inBounds : vertex < bound
+    · have indexInOrder : vertex < order.length := by
+        simpa [length_eq] using inBounds
+      have member : order[vertex] ∈ order := List.getElem_mem indexInOrder
+      have valueInBounds : order[vertex] < bound :=
+        (complete order[vertex]).mpr member
+      simp only [inBounds, dif_pos, valueInBounds, if_pos]
+      exact idxOf_getElem_of_nodup order nodup vertex indexInOrder
+    · simp [inBounds]
+  forward_lt_iff := by
+    intro vertex
+    by_cases inBounds : vertex < bound
+    · have member : vertex ∈ order := (complete vertex).mp inBounds
+      have indexInOrder : order.idxOf vertex < order.length :=
+        order.idxOf_lt_length_of_mem member
+      have indexInBounds : order.idxOf vertex < bound := by
+        simpa [length_eq] using indexInOrder
+      simp [inBounds, indexInBounds]
+    · simp [inBounds]
+
+@[simp] theorem ofOrder_forward_inBounds (bound : Nat) (order : List Vertex)
+    (length_eq : order.length = bound) (nodup : order.Nodup)
+    (complete : ∀ vertex, vertex < bound ↔ vertex ∈ order)
+    {vertex : Vertex} (inBounds : vertex < bound) :
+    (ofOrder bound order length_eq nodup complete).forward vertex =
+      order.idxOf vertex := by
+  simp [ofOrder, inBounds]
+
+@[simp] theorem ofOrder_inverse_inBounds (bound : Nat) (order : List Vertex)
+    (length_eq : order.length = bound) (nodup : order.Nodup)
+    (complete : ∀ vertex, vertex < bound ↔ vertex ∈ order)
+    {vertex : Vertex} (inBounds : vertex < bound) :
+    (ofOrder bound order length_eq nodup complete).inverse vertex =
+      order[vertex]'(by simpa [length_eq] using inBounds) := by
+  simp [ofOrder, inBounds]
+
 @[simp] theorem all_map_forward_lt {bound : Nat}
     (r : VertexRenaming bound) (vertices : List Vertex) :
     (vertices.map r.forward).all (fun vertex => vertex < bound) =

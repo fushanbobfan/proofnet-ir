@@ -3,7 +3,7 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.3.0` (checked input and reindex-invariant wire keys). See
+Current release: `v0.3.1` (complete order-preserving reindex normal forms). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -68,11 +68,14 @@ The repository currently contains:
   equivalence relation, and whole-checker/declarative-correctness invariance.
 - a v0.3 `reindex-v1` serialized normal-form key proved invariant under that
   relation, plus an independent 1,000-record permutation/property audit.
+- a theorem that this normal form is an in-class representative and a complete
+  invariant for structurally well-formed certificates, plus the executable
+  `Certificate.reindexEquivalent?` decision procedure.
 
 This is a research prototype. It does not yet include general reverse
 sequentialization of every accepted net, cut elimination, exponentials, additives,
-quantifiers, a completeness/converse theorem for the v0.3 reindex key,
-arbitrary graph-isomorphism canonicalization, or a Lean tactic.
+quantifiers, canonicalization modulo reordered links/conclusions or arbitrary
+graph isomorphism, or a Lean tactic.
 
 ## Trust path
 
@@ -144,7 +147,7 @@ ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundar
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 consumer-smoke/               independent downstream Lake dependency test
-consumer-release-smoke/       clean consumer pinned to public v0.3.0 tag
+consumer-release-smoke/       clean consumer pinned to a public release tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest

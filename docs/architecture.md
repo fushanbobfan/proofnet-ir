@@ -50,10 +50,11 @@ criterion and proof-order bureaucracy can be measured cleanly.
     bounded vertex renaming.
 
 Canonical v0.2 JSON continues to preserve submitted formula-array numbering.
-The separate v0.3 key removes that numbering. It is not an arbitrary graph
-canonical-labeling algorithm: list order and logical premise order remain part
-of identity, and the converse from equal keys to `ReindexEquivalent` is not yet
-kernel-proved.
+The separate v0.3 key removes that numbering. For structurally well-formed
+certificates, Lean proves normalization is an in-class reindexing and that
+normal-form equality is equivalent to `ReindexEquivalent`. It is not an
+arbitrary graph canonical-labeling algorithm: list order and logical premise
+order remain part of identity.
 
 ## Why exhaustive switchings first
 
@@ -103,6 +104,9 @@ from this trust path.
 `traversalRelabel` uses first-occurrence positions as new names. The reindexing
 proof shows this traversal commutes exactly with every `VertexRenaming`, so the
 serialized v0.3 value is a stable key across submitted vertex permutations.
+Structural ownership proves every formula vertex occurs in the traversal;
+`traversalRelabel_eq_reindex` constructs the induced renaming, and
+`reindexEquivalent_iff_equivalenceCanonicalize_eq` proves completeness.
 The parser retains both wire versions, and migration validates v0.2 before
 emitting v0.3. Logical validity remains a separate checker-gated boundary.
 

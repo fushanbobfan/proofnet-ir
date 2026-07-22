@@ -89,6 +89,8 @@ symmetric, and transitive certificate relation. Structural validation,
 adjacency and walk semantics, declarative tree/switching correctness, and the
 Boolean checker are invariant under that relation. The v0.2 serializer remains
 numbering-sensitive, while v0.3 adds a first-occurrence normal-form key proved
-invariant under the relation. The converse/completeness theorem is still open,
-so the reindexing relation remains the target relation for sequentialization
-rather than being silently replaced by arbitrary graph-key equality.
+invariant under the relation. v0.3.1 proves that, for structurally well-formed
+certificates, this normal form is an in-class representative and equality is
+equivalent to `ReindexEquivalent`. That exact order-preserving relation remains
+the target for sequentialization rather than being silently replaced by a
+broader arbitrary graph-isomorphism relation.

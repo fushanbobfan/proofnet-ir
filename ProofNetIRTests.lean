@@ -154,9 +154,20 @@ example : canonical.DeclarativelyCorrect ↔
     ⟨swapCanonicalZeroOne, rfl⟩).declarativelyCorrect_iff
 example : canonical.canonicalString ≠ reindexedCanonical.canonicalString := by
   native_decide
-example : canonical.equivalenceCanonicalize.check = true := by native_decide
+example : canonical.equivalenceCanonicalize.check = true :=
+  canonical.equivalenceCanonicalize_check_of_check (by native_decide)
+example : canonical.ReindexEquivalent canonical.equivalenceCanonicalize :=
+  (show canonical.StructurallyWellFormed from
+    canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+    |>.equivalenceCanonicalize_reindexEquivalent
 example : canonical.equivalenceCanonicalString =
     reindexedCanonical.equivalenceCanonicalString := by native_decide
+example : Certificate.reindexEquivalent? canonical reindexedCanonical = true := by
+  native_decide
+example : Certificate.reindexEquivalent? canonical reindexedCanonical = true ↔
+    canonical.ReindexEquivalent reindexedCanonical :=
+  Certificate.reindexEquivalent?_eq_true_iff_of_check
+    (by native_decide) (by native_decide)
 example : (canonical.reindex swapCanonicalZeroOne).equivalenceCanonicalString =
     canonical.equivalenceCanonicalString :=
   canonical.equivalenceCanonicalString_reindex swapCanonicalZeroOne
@@ -173,6 +184,10 @@ def scrambledCanonical : Certificate :=
 
 example : scrambledCanonical.canonicalize.check = true := by native_decide
 example : scrambledCanonical.canonicalString = canonical.canonicalString := by
+  native_decide
+example : scrambledCanonical.StructurallyWellFormed :=
+  scrambledCanonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide)
+example : Certificate.reindexEquivalent? canonical scrambledCanonical = false := by
   native_decide
 
 def parsedCanonicalMatches : Bool :=

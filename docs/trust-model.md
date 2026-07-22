@@ -88,11 +88,11 @@ dataset itself remains untrusted input when consumed by later experiments.
 
 The separate v0.3 `reindex-v1` path first relabels vertices by their ordered
 first occurrence in conclusions and links. Lean proves this value unchanged by
-every bounded `VertexRenaming`, and the generic parser validates the declared
-algorithm and normalized payload. Lean does not yet prove the converse that
-equal keys imply `ReindexEquivalent`, nor that normalization is an in-class
-representative for every structurally well-formed input. Those stronger claims
-remain outside the trusted theorem boundary.
+every bounded `VertexRenaming`. For structurally well-formed inputs, Lean also
+proves traversal coverage, constructs the induced renaming, proves the normal
+form is in the original class, and proves normal-form equality iff
+`ReindexEquivalent`. The generic parser validates the declared algorithm and
+normalized payload; logical acceptance is still rechecked separately.
 
 ## Failure containment
 

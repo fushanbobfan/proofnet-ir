@@ -1,11 +1,11 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.2.0 plus the v0.3.0 release candidate on `main`
+Audited baseline: v0.3.0 plus the v0.3.1 release candidate on `main`
 
 ## Verdict
 
-ProofNet-IR v0.3.0 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.3.1 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. It cannot yet support the stronger claim that any
@@ -43,6 +43,9 @@ part of the engineering and proof-identity gap.
   `reindex-v1` serialized key; 250 generated certificates round-trip through
   the native checked parser and an independent audit exercises all 1,000
   committed records under deterministic vertex permutations.
+- v0.3.1 proves structural well-formedness gives a complete traversal,
+  normalization is an in-class representative, and normal-form equality is an
+  iff/decision procedure for the exact order-preserving reindex relation.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -53,11 +56,9 @@ part of the engineering and proof-identity gap.
 2. General sequentialization of every accepted MLL proof net is absent.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
-4. The v0.3 key is proved invariant under reindexing, but the converse from key
-   equality to `ReindexEquivalent` and a theorem that normalization returns an
-   in-class representative for every structurally well-formed certificate are
-   absent. Therefore it is not yet a proved decision procedure for the exact
-   equivalence relation.
+4. Canonicalization modulo reordered links/conclusions or arbitrary graph
+   isomorphism is not defined. The completed v0.3.1 theorem is intentionally
+   for the narrower, order-preserving `ReindexEquivalent` relation.
 
 ## Engineering gaps blocking a mature-library claim
 

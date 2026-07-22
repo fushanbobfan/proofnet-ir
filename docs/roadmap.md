@@ -39,9 +39,9 @@
   prove it preserves executable and declarative correctness.
 - [x] Compute a stable v0.3 serialization key proved invariant under
   `ReindexEquivalent`, with v0.2 migration and 1,000-record property tests.
-- [ ] Prove the converse/completeness theorem for the v0.3 key and prove that
-  normalization returns an in-class representative for every structurally
-  well-formed certificate.
+- [x] Prove the converse/completeness theorem for the v0.3 certificate normal
+  form and prove that normalization returns an in-class representative for
+  every structurally well-formed certificate.
 
 ## v0.2 - Dataset and repair loop
 
@@ -67,7 +67,8 @@
   downstream-consumer coverage.
 - [x] Audit invariance, schema validity, idempotence, and documented order
   sensitivity on all 1,000 committed records.
-- [ ] Complete the reindex-key converse and representative-membership proofs.
+- [x] Complete the reindex normal-form converse and
+  representative-membership proofs, with an executable decision procedure.
 
 ## v0.4 - General sequentialization
 

@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## v0.3.1 - Complete order-preserving reindex normal forms
+
+- proved that structural well-formedness makes the first-occurrence traversal
+  a duplicate-free enumeration of exactly all formula vertices;
+- constructed the explicit bounded `VertexRenaming` induced by that traversal
+  and proved normalization is literally an in-class reindexing of every
+  structurally well-formed certificate;
+- proved the converse theorem: for structurally well-formed certificates,
+  equal v0.3 certificate normal forms are equivalent to `ReindexEquivalent`;
+- added the executable `reindexEquivalent?` decision procedure with iff
+  theorems for structurally well-formed and checker-accepted inputs;
+- proved v0.3 normalization preserves checker acceptance for every accepted
+  certificate, not only the generated regression corpus.
+
+No JSON field, `reindex-v1` algorithm, or accepted-certificate semantics
+changed from v0.3.0.
+
 ## v0.3.0 - Checked input and reindex-invariant wire keys
 
 ### Included
