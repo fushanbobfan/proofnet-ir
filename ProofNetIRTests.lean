@@ -29,6 +29,9 @@ example : canonical.Correct := canonical.check_sound (by native_decide)
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide
 
+example : (reconstructCanonical? canonical "p" "q").isSome = true := by
+  native_decide
+
 example :
     Derivation [
       .tensor (.atom "p" true) (.atom "q" true),
@@ -45,6 +48,35 @@ def wrongAxiom : Certificate :=
 
 example : wrongAxiom.wellFormed = false := by native_decide
 example : wrongAxiom.check = false := by native_decide
+example : (reconstructCanonical? wrongAxiom "p" "q").isSome = false := by
+  native_decide
+
+def canonicalThree : Certificate := canonicalThreeCertificate "p" "q" "r"
+
+example : canonicalThree.wellFormed = true := by native_decide
+example : canonicalThree.switchingGraphs.length = 4 := by native_decide
+example : canonicalThree.check = true := by native_decide
+example : canonicalThree.Correct :=
+  canonicalThree.check_sound (by native_decide)
+
+example :
+    Derivation [
+      .tensor
+        (.tensor (.atom "p" true) (.atom "q" true))
+        (.atom "r" true),
+      .par
+        (.atom "p" false)
+        (.par (.atom "q" false) (.atom "r" false))
+    ] := Derivation.canonicalThree "p" "q" "r"
+
+def droppedLink : Certificate := Mutation.dropFirstLink.apply canonical
+def duplicatedLink : Certificate := Mutation.duplicateFirstLink.apply canonical
+def rewiredAxiom : Certificate :=
+  (Mutation.replaceFirstAxiomRight 3).apply canonical
+
+example : droppedLink.check = false := by native_decide
+example : duplicatedLink.check = false := by native_decide
+example : rewiredAxiom.check = false := by native_decide
 
 def disconnected : Certificate where
   formulas := #[p, pDual, q, qDual]

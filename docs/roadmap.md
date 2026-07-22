@@ -16,10 +16,12 @@
 - [x] Prove finite closure membership implies an inductive graph walk.
 - [ ] Prove every in-bounds graph walk is found by finite closure.
 - [ ] Prove general sequentialization for the supported representation.
-- [ ] Add generated proof-tree-to-net fixtures and mutation tests.
+- [x] Add a second generated proof-tree/net family and labeled mutation tests.
+- [ ] Generalize proof-tree-to-net generation beyond the two supported families.
 
 ## v0.2 - Dataset and repair loop
 
+- [x] Specify a controlled comparison against focused cut-free proof search.
 - Generate valid derivation trees first, then desequentialize to proof nets.
 - Produce labeled invalid mutations: non-dual axiom, missing edge, duplicated
   resource, cycle, disconnection, and wrong connective attachment.

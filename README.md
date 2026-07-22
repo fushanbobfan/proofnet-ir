@@ -26,8 +26,10 @@ The repository currently contains:
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics, plus completeness/iff theorems for the
   exact finite-computation contract;
-- a kernel-checked sequent derivation for the first supported canonical net;
-- positive and negative compile-time fixtures, plus an executable smoke test.
+- kernel-checked sequent derivations for canonical two- and three-axiom net
+  families, with certificate-gated reconstruction for the first family;
+- labeled negative-certificate mutations, 40 positive/negative compile-time
+  assertions, and an executable smoke test.
 
 This is a research prototype. It does not yet include a general
 sequentialization theorem, cut elimination, exponentials, additives,
@@ -78,6 +80,7 @@ ProofNetIR/Certificate.lean   occurrences, links, and structural validation
 ProofNetIR/Graph.lean         finite graph closure and declarative tree property
 ProofNetIR/Checker.lean       switchings, executable checker, soundness/completeness
 ProofNetIR/Reconstruct.lean   supported sequent derivation reconstruction
+ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
@@ -93,6 +96,10 @@ and checker-guided repair on controlled MLL tasks.
 
 The broader plan is in [docs/roadmap.md](docs/roadmap.md). Source screening and
 project rationale are recorded in [docs/literature-map.md](docs/literature-map.md).
+The auditable source-coverage record is in
+[docs/reading-ledger.md](docs/reading-ledger.md), and the first matched
+evaluation is specified in
+[docs/experiment-protocol.md](docs/experiment-protocol.md).
 
 ## License
 

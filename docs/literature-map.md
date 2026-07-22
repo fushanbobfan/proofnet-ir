@@ -39,6 +39,9 @@ research-source count.
    “graphical” with “automatically easier to search.”
 6. The neuroscience and contact-topology sources provide graph-rich and
    dependency-rich mathematics, but they belong to later case-study work.
+7. Pfenning's focusing result changes the experimental baseline: comparison
+   against naive rule enumeration alone would exaggerate the benefit of
+   quotienting harmless inference order.
 
 ## Evidence gaps
 
@@ -55,8 +58,12 @@ research-source count.
 ## Reading record
 
 All seven source PDFs have been converted to searchable text without modifying
-the originals. The two ProofNet documents were directly read end to end. The
-remaining books and papers have been structurally indexed, and section-level
-reading notes are being expanded as implementation reaches the corresponding
-concepts. Claims used by code are checked against the original local text, not
-accepted from local-model summaries.
+the originals. A corpus-wide section/theorem sweep, targeted close readings,
+and formula/diagram spot checks are recorded in
+[reading-ledger.md](reading-ledger.md). The two ProofNet documents were read
+directly end to end. The larger books and adjacent papers remain on an explicit
+ongoing close-reading track. Claims used by code are checked against the
+original local text, not accepted from local-model summaries.
+
+The resulting controlled evaluation design is specified in
+[experiment-protocol.md](experiment-protocol.md).

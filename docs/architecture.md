@@ -36,16 +36,20 @@ recognizers should be tested against this implementation before replacing it.
 
 ## Sequentialization boundary
 
-`Reconstruct.lean` currently supplies a kernel-checked derivation for the
-canonical two-axiom net
+`Reconstruct.lean` currently supplies kernel-checked derivations for canonical
+two- and three-axiom nested tensor/par families. The smallest family has the
+shape
 
 ```text
 |- p tensor q, p-dual par q-dual.
 ```
 
-It does not claim a general sequentialization theorem. The next formal step is
-to add exchange/permutation explicitly and prove that every accepted net in the
-supported certificate representation yields a `Derivation`.
+`reconstructCanonical?` also gates the two-axiom reconstruction on exact
+certificate matching, so an arbitrary certificate cannot be ignored while a
+fixed derivation is returned. This still does not claim a general
+sequentialization theorem. The next formal step is to add exchange/permutation
+explicitly and prove that every accepted net in the supported certificate
+representation yields a `Derivation`.
 
 ## Representation invariants
 

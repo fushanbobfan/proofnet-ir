@@ -42,6 +42,53 @@ def canonical (leftName rightName : String) :
     (context := [.tensor (.atom leftName true) (.atom rightName true)])
     combined
 
+/-- A second supported family, with three axiom links and nested tensor/par
+links. This exercises nontrivial composition without claiming a general
+sequentialization algorithm. -/
+def canonicalThree (firstName secondName thirdName : String) :
+    Derivation [
+      .tensor
+        (.tensor (.atom firstName true) (.atom secondName true))
+        (.atom thirdName true),
+      .par
+        (.atom firstName false)
+        (.par (.atom secondName false) (.atom thirdName false))
+    ] := by
+  let firstTwo : Derivation [
+      .tensor (.atom firstName true) (.atom secondName true),
+      .atom firstName false,
+      .atom secondName false] := by
+    simpa using Derivation.tensor
+      (Derivation.axiom firstName true)
+      (Derivation.axiom secondName true)
+  let withThird : Derivation [
+      .tensor
+        (.tensor (.atom firstName true) (.atom secondName true))
+        (.atom thirdName true),
+      .atom firstName false,
+      .atom secondName false,
+      .atom thirdName false] := by
+    simpa using Derivation.tensor firstTwo (Derivation.axiom thirdName true)
+  let innerPar : Derivation [
+      .tensor
+        (.tensor (.atom firstName true) (.atom secondName true))
+        (.atom thirdName true),
+      .atom firstName false,
+      .par (.atom secondName false) (.atom thirdName false)] := by
+    simpa using Derivation.parTail
+      (context := [
+        .tensor
+          (.tensor (.atom firstName true) (.atom secondName true))
+          (.atom thirdName true),
+        .atom firstName false])
+      withThird
+  simpa using Derivation.parTail
+    (context := [
+      .tensor
+        (.tensor (.atom firstName true) (.atom secondName true))
+        (.atom thirdName true)])
+    innerPar
+
 end Derivation
 
 /-- Construct the certificate corresponding to `Derivation.canonical`. -/
@@ -60,6 +107,33 @@ def canonicalCertificate (leftName rightName : String) : Certificate :=
     ]
     conclusions := [4, 5] }
 
+/-- Construct the certificate corresponding to `Derivation.canonicalThree`. -/
+def canonicalThreeCertificate
+    (firstName secondName thirdName : String) : Certificate :=
+  let first : Formula := .atom firstName true
+  let second : Formula := .atom secondName true
+  let third : Formula := .atom thirdName true
+  let firstTwo : Formula := .tensor first second
+  let allThree : Formula := .tensor firstTwo third
+  let lastTwoDual : Formula := .par second.dual third.dual
+  { formulas := #[
+      first, first.dual,
+      second, second.dual,
+      third, third.dual,
+      firstTwo, allThree, lastTwoDual,
+      .par first.dual lastTwoDual
+    ]
+    links := [
+      .axiom 0 1,
+      .axiom 2 3,
+      .axiom 4 5,
+      .tensor 0 2 6,
+      .tensor 6 4 7,
+      .par 3 5 8,
+      .par 1 8 9
+    ]
+    conclusions := [7, 9] }
+
 /-- The first sequentializer entry point. It is intentionally explicit about
 the fragment it supports instead of pretending to sequentialize every correct
 net before that theorem has been formalized. -/
@@ -69,5 +143,24 @@ def reconstructCanonical (leftName rightName : String) :
       .par (.atom leftName false) (.atom rightName false)
     ] :=
   Derivation.canonical leftName rightName
+
+/-- A certificate-gated entry point for the currently supported two-axiom
+family. Returning a derivation is possible only after exact certificate
+matching; arbitrary input is never silently ignored. -/
+def reconstructCanonical? (certificate : Certificate)
+    (leftName rightName : String) : Option (Derivation [
+      .tensor (.atom leftName true) (.atom rightName true),
+      .par (.atom leftName false) (.atom rightName false)
+    ]) :=
+  if certificate = canonicalCertificate leftName rightName then
+    some (Derivation.canonical leftName rightName)
+  else
+    none
+
+theorem reconstructCanonical?_isSome_iff (certificate : Certificate)
+    (leftName rightName : String) :
+    (reconstructCanonical? certificate leftName rightName).isSome = true ↔
+      certificate = canonicalCertificate leftName rightName := by
+  simp [reconstructCanonical?]
 
 end ProofNetIR
