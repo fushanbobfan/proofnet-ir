@@ -599,6 +599,8 @@ theorem build?_tensorLast
 def conclusions? (tree : CutFreeDerivation) : Option (List Formula) :=
   tree.build?.map NetFragment.conclusions
 
+/-- Build a proof-net certificate from a validated first-order rule tree.
+Malformed resource positions or exchanges return `none`. -/
 def desequentialize? (tree : CutFreeDerivation) : Option Certificate :=
   tree.build?.map NetFragment.toCertificate
 
@@ -624,6 +626,8 @@ structure CheckedCertificate where
   certificate : Certificate
   accepted : certificate.check = true
 
+/-- Desequentialize and retain the result only when the reference proof-net
+checker accepts it. -/
 def desequentializeChecked? (tree : CutFreeDerivation) :
     Option CheckedCertificate := do
   let certificate ← tree.desequentialize?

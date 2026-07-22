@@ -20,6 +20,8 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_tests
       - name: Audit theorem trust dependencies
         run: python scripts/audit_axioms.py
+      - name: Verify generated public API reference
+        run: ~/.elan/bin/lake exe proofnet_ir_api_docs --check
       - name: Fuzz malformed parser inputs
         run: python scripts/fuzz_malformed_parser.py
       - name: Enforce representative runtime budget

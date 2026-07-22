@@ -228,6 +228,8 @@ theorem check_iff_correct (certificate : Certificate) :
     certificate.check = true ↔ certificate.Correct :=
   ⟨certificate.check_sound, certificate.check_complete⟩
 
+/-- The executable reference checker is sound and complete for the independent
+structural plus all-switchings-tree specification. -/
 theorem check_iff_declarativelyCorrect (certificate : Certificate) :
     certificate.check = true ↔ certificate.DeclarativelyCorrect := by
   rw [certificate.check_iff_correct, certificate.correct_iff_declarative]

@@ -1,4 +1,4 @@
-import ProofNetIR
+import Tutorial
 
 open ProofNetIR
 

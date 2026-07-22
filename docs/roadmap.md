@@ -206,7 +206,8 @@
   checked parser.
 - [x] Add a checked depth-2/3/4 runtime workload and CI regression budget,
   documenting the current depth-sensitive cost.
-- [ ] Add generated API reference and tutorial material.
+- [x] Add a kernel-environment-generated, CI drift-checked public API reference
+  and an external Lake consumer tutorial.
 
 ## v0.6 - Persistent LeanProp bridge
 

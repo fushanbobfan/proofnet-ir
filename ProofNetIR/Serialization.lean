@@ -498,6 +498,8 @@ theorem reindexEquivalent?_eq_true_iff {left right : Certificate}
     leftWellFormed rightWellFormed]
   simp [reindexEquivalent?]
 
+/-- On checker-accepted inputs, the Boolean comparison decides exactly the
+order-preserving bounded-reindex equivalence relation. -/
 theorem reindexEquivalent?_eq_true_iff_of_check {left right : Certificate}
     (leftAccepted : left.check = true) (rightAccepted : right.check = true) :
     reindexEquivalent? left right = true ↔ left.ReindexEquivalent right :=
@@ -549,6 +551,7 @@ def canonicalJson (certificate : Certificate) : Lean.Json :=
     ("conclusions", .arr (normalized.conclusions.toArray.map
       (fun value : Vertex => .num (Lean.JsonNumber.fromNat value))))]
 
+/-- Compact v0.2 canonical JSON under fixed submitted occurrence numbering. -/
 def canonicalString (certificate : Certificate) : String :=
   certificate.canonicalJson.compress
 
@@ -566,6 +569,8 @@ def equivalenceCanonicalJson (certificate : Certificate) : Lean.Json :=
     ("conclusions", .arr (normalized.conclusions.toArray.map
       (fun value : Vertex => .num (Lean.JsonNumber.fromNat value))))]
 
+/-- Compact v0.3 `reindex-v1` JSON key, invariant under the documented
+order-preserving bounded vertex-renaming relation. -/
 def equivalenceCanonicalString (certificate : Certificate) : String :=
   certificate.equivalenceCanonicalJson.compress
 

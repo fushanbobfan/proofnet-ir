@@ -33,6 +33,8 @@
   CI;
 - added a verified 291-case depth-2/3/4 runtime workload with a 45-second CI
   regression budget and documented the observed depth-sensitive search cost;
+- added a kernel-environment-generated public API reference with CI drift and
+  unsafe-declaration checks, plus an external Lake consumer tutorial;
 - added a CI trust audit pinning ten public logical-boundary theorems to exactly
   `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and

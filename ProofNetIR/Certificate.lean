@@ -219,6 +219,8 @@ def StructurallyWellFormed (certificate : Certificate) : Prop :=
   ∀ vertex, vertex < certificate.formulas.size →
     certificate.NodeWellFormed vertex
 
+/-- The executable structural guard is exact for the independent proposition-
+level ownership and boundary specification. -/
 theorem wellFormed_iff_structurallyWellFormed (certificate : Certificate) :
     certificate.wellFormed = true ↔ certificate.StructurallyWellFormed := by
   simp only [wellFormed, Bool.and_eq_true, decide_eq_true_eq]

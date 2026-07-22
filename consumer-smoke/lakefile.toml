@@ -6,6 +6,9 @@ defaultTargets = ["proofnet_ir_consumer_smoke"]
 name = "proofnet-ir"
 path = ".."
 
+[[lean_lib]]
+name = "Tutorial"
+
 [[lean_exe]]
 name = "proofnet_ir_consumer_smoke"
 root = "Main"

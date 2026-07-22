@@ -151,6 +151,7 @@ lake build
 lake exe proofnet_ir_tests
 python scripts/generate_dataset.py --check
 python scripts/audit_v03_canonical.py
+lake exe proofnet_ir_api_docs --check
 python scripts/fuzz_malformed_parser.py
 lake exe proofnet_ir_benchmark
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
@@ -183,6 +184,7 @@ ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget
+ProofNetIRAPIDocs.lean        generated public API manifest and reference
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.4.0 tag
 schemas/                      versioned external certificate contract
@@ -212,6 +214,9 @@ evaluation is specified in
 The stricter post-v0.2 coverage and reuse assessments are in
 [docs/source-coverage-audit.md](docs/source-coverage-audit.md) and
 [docs/library-readiness-audit.md](docs/library-readiness-audit.md). The
+external-consumer walkthrough is in [docs/tutorial.md](docs/tutorial.md), and
+the kernel-environment-generated declaration surface is in
+[docs/api-reference.md](docs/api-reference.md). The
 representation comparison that guides general sequentialization is in
 [docs/formalization-comparison.md](docs/formalization-comparison.md). Completed
 page-level source audits, including the completed 168-unique-page Pfenning

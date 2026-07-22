@@ -17,6 +17,7 @@ def render (error : ParseError) : String :=
 
 end ParseError
 
+/-- Parser result with a structured JSON path and diagnostic on failure. -/
 abbrev ParseResult (alpha : Type) := Except ParseError alpha
 
 namespace Certificate
@@ -203,6 +204,7 @@ def fromJson (json : Lean.Json) : ParseResult Certificate := do
   | other =>
       throw { path := "$.version", message := s!"unsupported certificate version '{other}'" }
 
+/-- Parse canonical v0.2 or v0.3 JSON without asserting proof-net correctness. -/
 def fromString (input : String) : ParseResult Certificate := do
   let json ← atPath "$" (Lean.Json.parse input)
   fromJson json
@@ -225,6 +227,8 @@ def checkedFromJson (json : Lean.Json) :
   else
     throw { path := "$", message := "proof-net checker rejected certificate" }
 
+/-- Parse untrusted canonical JSON and return a certificate only after the
+reference checker accepts it. -/
 def checkedFromString (input : String) :
     ParseResult CutFreeDerivation.CheckedCertificate := do
   let json ← atPath "$" (Lean.Json.parse input)

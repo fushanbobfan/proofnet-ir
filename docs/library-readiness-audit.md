@@ -110,7 +110,10 @@ part of the engineering and proof-identity gap.
   `Classical.choice`, and `Quot.sound`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;
-- no generated API reference or tutorial beyond repository-local examples;
+- a curated public declaration manifest now generates types and docstrings
+  from the kernel-loaded environment, fails on missing/unsafe declarations,
+  and is drift-checked in CI; an external Lake consumer tutorial covers
+  checking, parsing, both proof directions, and precise scope boundaries;
 - a deterministic 5,000-case native parser fuzz gate covers truncation,
   deletion, replacement, insertion, malformed fields, and excessive formula
   nesting; broader coverage-guided fuzzing remains future hardening;

@@ -44,6 +44,8 @@ theorem kernelDerivation {input : Certificate}
     Nonempty (Derivation result.sequent) :=
   result.tree.infer?_sound result.inferred
 
+/-- Project the proof that the reconstructed output differs from the input only
+by the documented proof-net equivalence. -/
 theorem proofNetEquivalent {input : Certificate}
     (result : ExecutableSequentializationResult input) :
     result.output.ProofNetEquivalent input :=
