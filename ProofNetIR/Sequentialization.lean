@@ -649,6 +649,28 @@ def Certificate.appendParOccurrence (premise : Certificate)
     .par leftRoot rightRoot premise.formulas.size]
   conclusions := boundary
 
+/-- Certificate-level effect of combining two disjoint premises with one
+fresh tensor occurrence.  The explicit boundary allows a following exchange
+to restore any ordered conclusion interface. -/
+def Certificate.appendTensorOccurrence (leftPremise rightPremise : Certificate)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) : Certificate where
+  formulas := (leftPremise.formulas ++ rightPremise.formulas).push
+    (.tensor left right)
+  links := leftPremise.links ++
+    rightPremise.links.map (·.shift leftPremise.formulas.size) ++ [
+      .tensor leftRoot (rightRoot + leftPremise.formulas.size)
+        (leftPremise.formulas ++ rightPremise.formulas).size]
+  conclusions := boundary
+
+@[simp] theorem Certificate.appendTensorOccurrence_formulas_size
+    (leftPremise rightPremise : Certificate) (left right : Formula)
+    (leftRoot rightRoot : Vertex) (boundary : List Vertex) :
+    (leftPremise.appendTensorOccurrence rightPremise left right leftRoot
+      rightRoot boundary).formulas.size =
+      leftPremise.formulas.size + rightPremise.formulas.size + 1 := by
+  simp [Certificate.appendTensorOccurrence, Nat.add_assoc]
+
 @[simp] theorem Certificate.appendParOccurrence_formulas_size
     (premise : Certificate) (left right : Formula)
     (leftRoot rightRoot : Vertex) (boundary : List Vertex) :
@@ -1452,6 +1474,25 @@ def restrictTo? (vertices : List Vertex) : Link → Option Link
       let right' ← vertices.idxOf? right
       let conclusion' ← vertices.idxOf? conclusion
       pure (.par left' right' conclusion')
+
+theorem restrictTo?_eq_none_of_mem_not_mem
+    (link : Link) (vertices : List Vertex) {vertex : Vertex}
+    (vertexMembership : vertex ∈ link.vertices)
+    (vertexAbsent : vertex ∉ vertices) :
+    link.restrictTo? vertices = none := by
+  cases link with
+  | «axiom» first second =>
+      simp [Link.vertices] at vertexMembership
+      rcases vertexMembership with rfl | rfl <;>
+        simp [restrictTo?, List.idxOf?_eq_none_iff.mpr vertexAbsent]
+  | tensor first second result =>
+      simp [Link.vertices] at vertexMembership
+      rcases vertexMembership with rfl | rfl | rfl <;>
+        simp [restrictTo?, List.idxOf?_eq_none_iff.mpr vertexAbsent]
+  | par first second result =>
+      simp [Link.vertices] at vertexMembership
+      rcases vertexMembership with rfl | rfl | rfl <;>
+        simp [restrictTo?, List.idxOf?_eq_none_iff.mpr vertexAbsent]
 
 theorem restrictTo?_eq_some_of_vertices
     (link : Link) (vertices : List Vertex)
@@ -9421,6 +9462,33 @@ theorem LinkWellFormed.tensor_conclusionFormula
               subst conclusionFormula
               exact ⟨leftFormula, rightFormula, rfl⟩
 
+/-- Full formula data carried by a well-formed tensor link. -/
+theorem LinkWellFormed.tensor_formulaData
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (wellFormed : certificate.LinkWellFormed (.tensor left right conclusion)) :
+    ∃ leftFormula rightFormula,
+      certificate.formula? left = some leftFormula ∧
+      certificate.formula? right = some rightFormula ∧
+      certificate.formula? conclusion =
+        some (.tensor leftFormula rightFormula) := by
+  rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases rightEquation : certificate.formula? right with
+      | none => simp [leftEquation, rightEquation] at typing
+      | some rightFormula =>
+          cases conclusionEquation : certificate.formula? conclusion with
+          | none =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+          | some conclusionFormula =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+              subst conclusionFormula
+              refine ⟨leftFormula, rightFormula, ?_, ?_, ?_⟩
+              · simpa using leftEquation
+              · simpa using rightEquation
+              · simpa using conclusionEquation
+
 theorem LinkWellFormed.vertex_in_bounds
     {certificate : Certificate} {link : Link}
     (wellFormed : certificate.LinkWellFormed link)
@@ -9726,6 +9794,285 @@ theorem tensorVertices_length_partition
     certificate.formulas.size conclusion conclusionInBounds
   rw [conclusionCount] at partition
   simpa [tensorLeftVertices, tensorRightVertices, reachable] using partition
+
+/-- The global occurrence order obtained by listing the left tensor component,
+then the right component, then the deleted tensor conclusion. -/
+def tensorVertexOrder (certificate : Certificate)
+    (left conclusion : Vertex) : List Vertex :=
+  certificate.tensorLeftVertices left conclusion ++
+    (certificate.tensorRightVertices left conclusion ++ [conclusion])
+
+theorem tensorVertexOrder_nodup (certificate : Certificate)
+    (left conclusion : Vertex) :
+    (TerminalTensor.tensorVertexOrder certificate left conclusion).Nodup := by
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  have leftNodup :=
+    TerminalTensor.tensorLeftVertices_nodup certificate left conclusion
+  have rightNodup :=
+    TerminalTensor.tensorRightVertices_nodup certificate left conclusion
+  have conclusionNotLeft :=
+    TerminalTensor.conclusion_not_mem_tensorLeftVertices certificate left
+      conclusion
+  have conclusionNotRight :=
+    TerminalTensor.conclusion_not_mem_tensorRightVertices certificate left
+      conclusion
+  rw [tensorVertexOrder, List.nodup_append]
+  refine ⟨leftNodup, ?_, ?_⟩
+  · rw [List.nodup_append]
+    refine ⟨rightNodup, by simp, ?_⟩
+    intro vertex vertexMembership final finalMembership
+    simp only [List.mem_singleton] at finalMembership
+    subst final
+    intro same
+    subst vertex
+    exact conclusionNotRight vertexMembership
+  · intro first firstMembership second secondMembership
+    rw [List.mem_append] at secondMembership
+    rcases secondMembership with rightMembership | finalMembership
+    · intro same
+      subst second
+      exact TerminalTensor.vertex_partition_disjoint certificate left
+        conclusion first firstMembership rightMembership
+    · simp only [List.mem_singleton] at finalMembership
+      subst second
+      intro same
+      subst first
+      exact conclusionNotLeft firstMembership
+
+theorem tensorVertexOrder_length
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    (TerminalTensor.tensorVertexOrder certificate left conclusion).length =
+      certificate.formulas.size := by
+  simpa [tensorVertexOrder, Nat.add_assoc] using
+    TerminalTensor.tensorVertices_length_partition structural terminal
+
+theorem mem_tensorVertexOrder_iff
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    vertex ∈ TerminalTensor.tensorVertexOrder certificate left conclusion ↔
+      vertex < certificate.formulas.size := by
+  constructor
+  · intro membership
+    simp only [tensorVertexOrder, List.mem_append, List.mem_singleton]
+      at membership
+    rcases membership with leftMembership | rightMembership | same
+    · exact (TerminalTensor.mem_tensorLeftVertices_iff certificate left
+        conclusion vertex).mp leftMembership |>.1
+    · exact (TerminalTensor.mem_tensorRightVertices_iff certificate left
+        conclusion vertex).mp rightMembership |>.1
+    · subst vertex
+      exact structural.2.2.1 conclusion terminal.2
+  · intro inBounds
+    by_cases atConclusion : vertex = conclusion
+    · subst vertex
+      simp [tensorVertexOrder]
+    · rcases TerminalTensor.vertex_partition certificate left conclusion
+          vertex inBounds atConclusion with leftMembership | rightMembership
+      · simp [tensorVertexOrder, leftMembership]
+      · simp [tensorVertexOrder, rightMembership]
+
+/-- Canonical bounded renaming from the concatenated component order back to
+the original global occurrence names. -/
+def tensorPlacement {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    VertexRenaming certificate.formulas.size :=
+  (VertexRenaming.ofOrder certificate.formulas.size
+    (TerminalTensor.tensorVertexOrder certificate left conclusion)
+    (TerminalTensor.tensorVertexOrder_length structural terminal)
+    (TerminalTensor.tensorVertexOrder_nodup certificate left conclusion)
+    (fun vertex => (TerminalTensor.mem_tensorVertexOrder_iff structural
+      terminal).symm)).symm
+
+theorem tensorPlacement_forward_getElem
+    {certificate : Certificate} {left right conclusion index : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    (indexInBounds : index < certificate.formulas.size) :
+    (TerminalTensor.tensorPlacement structural terminal).forward index =
+      (TerminalTensor.tensorVertexOrder certificate left conclusion)[index]'(by
+        rw [TerminalTensor.tensorVertexOrder_length structural terminal]
+        exact indexInBounds) := by
+  let order := TerminalTensor.tensorVertexOrder certificate left conclusion
+  let lengthEquation :=
+    TerminalTensor.tensorVertexOrder_length structural terminal
+  let orderNodup :=
+    TerminalTensor.tensorVertexOrder_nodup certificate left conclusion
+  let complete : ∀ vertex, vertex < certificate.formulas.size ↔
+      vertex ∈ order := fun vertex =>
+    (TerminalTensor.mem_tensorVertexOrder_iff structural terminal).symm
+  simpa [tensorPlacement, VertexRenaming.symm, order, lengthEquation,
+    orderNodup, complete] using
+    (VertexRenaming.ofOrder_inverse_inBounds certificate.formulas.size order
+      lengthEquation orderNodup complete indexInBounds)
+
+theorem tensorPlacement_forward_left_idxOf
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    (membership :
+      vertex ∈ certificate.tensorLeftVertices left conclusion) :
+    (TerminalTensor.tensorPlacement structural terminal).forward
+        ((certificate.tensorLeftVertices left conclusion).idxOf vertex) =
+      vertex := by
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  have localInBounds : leftVertices.idxOf vertex < leftVertices.length :=
+    List.idxOf_lt_length_of_mem membership
+  have globalInBounds : leftVertices.idxOf vertex <
+      certificate.formulas.size := by
+    have partition :=
+      TerminalTensor.tensorVertices_length_partition structural terminal
+    have partition' : leftVertices.length +
+        (certificate.tensorRightVertices left conclusion).length + 1 =
+          certificate.formulas.size := by
+      simpa [leftVertices] using partition
+    omega
+  rw [TerminalTensor.tensorPlacement_forward_getElem structural terminal
+    globalInBounds]
+  change getElem (leftVertices ++
+    (certificate.tensorRightVertices left conclusion ++ [conclusion]))
+      (leftVertices.idxOf vertex) (by simp; omega) = vertex
+  rw [List.getElem_append_left localInBounds]
+  exact VertexRenaming.getElem_idxOf leftVertices vertex membership
+
+theorem tensorPlacement_forward_right_idxOf
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    (membership :
+      vertex ∈ certificate.tensorRightVertices left conclusion) :
+    (TerminalTensor.tensorPlacement structural terminal).forward
+        ((certificate.tensorLeftVertices left conclusion).length +
+          (certificate.tensorRightVertices left conclusion).idxOf vertex) =
+      vertex := by
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  have localInBounds : rightVertices.idxOf vertex < rightVertices.length :=
+    List.idxOf_lt_length_of_mem membership
+  have globalInBounds : leftVertices.length + rightVertices.idxOf vertex <
+      certificate.formulas.size := by
+    have partition :=
+      TerminalTensor.tensorVertices_length_partition structural terminal
+    have partition' : leftVertices.length + rightVertices.length + 1 =
+        certificate.formulas.size := by
+      simpa [leftVertices, rightVertices] using partition
+    omega
+  rw [TerminalTensor.tensorPlacement_forward_getElem structural terminal
+    globalInBounds]
+  change getElem (leftVertices ++ (rightVertices ++ [conclusion]))
+      (leftVertices.length + rightVertices.idxOf vertex) (by simp; omega) =
+      vertex
+  rw [List.getElem_append_right (by omega)]
+  simp only [Nat.add_sub_cancel_left]
+  rw [List.getElem_append_left localInBounds]
+  exact VertexRenaming.getElem_idxOf rightVertices vertex membership
+
+theorem tensorPlacement_forward_last
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    (TerminalTensor.tensorPlacement structural terminal).forward
+        ((certificate.tensorLeftVertices left conclusion).length +
+          (certificate.tensorRightVertices left conclusion).length) =
+      conclusion := by
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  have globalInBounds : leftVertices.length + rightVertices.length <
+      certificate.formulas.size := by
+    rw [← TerminalTensor.tensorVertexOrder_length structural terminal]
+    simp [TerminalTensor.tensorVertexOrder, leftVertices, rightVertices]
+  rw [TerminalTensor.tensorPlacement_forward_getElem structural terminal
+    globalInBounds]
+  change getElem (leftVertices ++ (rightVertices ++ [conclusion]))
+      (leftVertices.length + rightVertices.length) (by simp) = conclusion
+  rw [List.getElem_append_right (by omega)]
+  simp only [Nat.add_sub_cancel_left]
+  rw [List.getElem_append_right (by omega)]
+  simp
+
+theorem Link.restrictTo?_reindex_tensorPlacement_left
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link restricted : Link}
+    (contained : ∀ vertex ∈ link.vertices,
+      vertex ∈ certificate.tensorLeftVertices left conclusion)
+    (equation : link.restrictTo?
+      (certificate.tensorLeftVertices left conclusion) = some restricted) :
+    Link.reindex (TerminalTensor.tensorPlacement structural terminal)
+      restricted = link := by
+  have exactEquation := Link.restrictTo?_eq_some_of_vertices link
+    (certificate.tensorLeftVertices left conclusion) contained
+  rw [exactEquation] at equation
+  cases equation
+  cases link with
+  | «axiom» first second =>
+      simp [Link.reindex,
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained first (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained second (by simp [Link.vertices]))]
+  | tensor first second result =>
+      simp [Link.reindex,
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained first (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained second (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained result (by simp [Link.vertices]))]
+  | par first second result =>
+      simp [Link.reindex,
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained first (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained second (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_left_idxOf structural terminal
+          (contained result (by simp [Link.vertices]))]
+
+theorem Link.restrictTo?_shift_reindex_tensorPlacement_right
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link restricted : Link}
+    (contained : ∀ vertex ∈ link.vertices,
+      vertex ∈ certificate.tensorRightVertices left conclusion)
+    (equation : link.restrictTo?
+      (certificate.tensorRightVertices left conclusion) = some restricted) :
+    Link.reindex (TerminalTensor.tensorPlacement structural terminal)
+      (restricted.shift
+        (certificate.tensorLeftVertices left conclusion).length) = link := by
+  have exactEquation := Link.restrictTo?_eq_some_of_vertices link
+    (certificate.tensorRightVertices left conclusion) contained
+  rw [exactEquation] at equation
+  cases equation
+  cases link with
+  | «axiom» first second =>
+      simp [Link.reindex, Link.shift, Nat.add_comm,
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained first (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained second (by simp [Link.vertices]))]
+  | tensor first second result =>
+      simp [Link.reindex, Link.shift, Nat.add_comm,
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained first (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained second (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained result (by simp [Link.vertices]))]
+  | par first second result =>
+      simp [Link.reindex, Link.shift, Nat.add_comm,
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained first (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained second (by simp [Link.vertices])),
+        TerminalTensor.tensorPlacement_forward_right_idxOf structural terminal
+          (contained result (by simp [Link.vertices]))]
+
 
 theorem reachable_iff_walk
     {certificate : Certificate} {left right conclusion : Vertex}
@@ -10308,6 +10655,418 @@ theorem terminal_not_mem_remaining
     simp
   apply List.count_eq_zero.mp
   simp [countOriginal]
+
+/-- The two restricted link lists of a splitting terminal tensor, shifted into
+their disjoint local blocks and placed back into the input occurrence space,
+recover exactly the nonterminal links up to order. Appending the terminal tensor
+therefore recovers the complete input link multiset. -/
+theorem restrictLinks_reindex_append_perm
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (leftRestriction : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) = some leftCertificate)
+    (rightRestriction : certificate.restrictTo?
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion) =
+        some rightCertificate) :
+    (leftCertificate.links.map
+          (Link.reindex (TerminalTensor.tensorPlacement structural splitting.1)) ++
+        rightCertificate.links.map (fun link : Link =>
+          Link.reindex (TerminalTensor.tensorPlacement structural splitting.1)
+            (link.shift
+              (certificate.tensorLeftVertices left conclusion).length)) ++
+        [Link.tensor left right conclusion]).Perm certificate.links := by
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  let terminalLink : Link := .tensor left right conclusion
+  let placement := TerminalTensor.tensorPlacement structural splitting.1
+  have restoreSegment : ∀ segment : List Link,
+      (∀ link ∈ segment, link ∈ certificate.links) →
+      terminalLink ∉ segment →
+      ((segment.filterMap (Link.restrictTo? leftVertices)).map
+            (Link.reindex placement) ++
+        (segment.filterMap (Link.restrictTo? rightVertices)).map
+            (fun link => Link.reindex placement
+              (link.shift leftVertices.length))).Perm segment := by
+    intro segment subset avoidsTerminal
+    induction segment with
+    | nil => simp
+    | cons head tail ih =>
+        have headMembership : head ∈ certificate.links :=
+          subset head (by simp)
+        have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+          intro link membership
+          exact subset link (by simp [membership])
+        have headDifferent : head ≠ terminalLink := by
+          intro same
+          subst head
+          exact avoidsTerminal (by simp)
+        have tailAvoids : terminalLink ∉ tail := by
+          intro membership
+          exact avoidsTerminal (by simp [membership])
+        have tailPermutation := ih tailSubset tailAvoids
+        rcases TerminalTensor.remaining_link_partition structural splitting.1
+            headMembership headDifferent with allLeft | allRight
+        · cases leftEquation : head.restrictTo? leftVertices with
+          | none =>
+              have accepted := Link.restrictTo?_eq_some_of_vertices head
+                leftVertices allLeft
+              rw [accepted] at leftEquation
+              contradiction
+          | some restricted =>
+              have rightEquation : head.restrictTo? rightVertices = none := by
+                cases head with
+                | «axiom» first second =>
+                    apply Link.restrictTo?_eq_none_of_mem_not_mem
+                      (.axiom first second) rightVertices
+                      (vertex := first) (by simp [Link.vertices])
+                    intro firstRight
+                    exact TerminalTensor.vertex_partition_disjoint certificate
+                      left conclusion first
+                      (allLeft first (by simp [Link.vertices])) firstRight
+                | tensor first second result =>
+                    apply Link.restrictTo?_eq_none_of_mem_not_mem
+                      (.tensor first second result) rightVertices
+                      (vertex := first) (by simp [Link.vertices])
+                    intro firstRight
+                    exact TerminalTensor.vertex_partition_disjoint certificate
+                      left conclusion first
+                      (allLeft first (by simp [Link.vertices])) firstRight
+                | par first second result =>
+                    apply Link.restrictTo?_eq_none_of_mem_not_mem
+                      (.par first second result) rightVertices
+                      (vertex := first) (by simp [Link.vertices])
+                    intro firstRight
+                    exact TerminalTensor.vertex_partition_disjoint certificate
+                      left conclusion first
+                      (allLeft first (by simp [Link.vertices])) firstRight
+              have restored :=
+                Link.restrictTo?_reindex_tensorPlacement_left structural
+                  splitting.1 allLeft leftEquation
+              simpa [leftEquation, rightEquation, restored, placement,
+                leftVertices, rightVertices] using
+                  tailPermutation.cons head
+        · cases rightEquation : head.restrictTo? rightVertices with
+          | none =>
+              have accepted := Link.restrictTo?_eq_some_of_vertices head
+                rightVertices allRight
+              rw [accepted] at rightEquation
+              contradiction
+          | some restricted =>
+              have leftEquation : head.restrictTo? leftVertices = none := by
+                cases head with
+                | «axiom» first second =>
+                    apply Link.restrictTo?_eq_none_of_mem_not_mem
+                      (.axiom first second) leftVertices
+                      (vertex := first) (by simp [Link.vertices])
+                    intro firstLeft
+                    exact TerminalTensor.vertex_partition_disjoint certificate
+                      left conclusion first firstLeft
+                      (allRight first (by simp [Link.vertices]))
+                | tensor first second result =>
+                    apply Link.restrictTo?_eq_none_of_mem_not_mem
+                      (.tensor first second result) leftVertices
+                      (vertex := first) (by simp [Link.vertices])
+                    intro firstLeft
+                    exact TerminalTensor.vertex_partition_disjoint certificate
+                      left conclusion first firstLeft
+                      (allRight first (by simp [Link.vertices]))
+                | par first second result =>
+                    apply Link.restrictTo?_eq_none_of_mem_not_mem
+                      (.par first second result) leftVertices
+                      (vertex := first) (by simp [Link.vertices])
+                    intro firstLeft
+                    exact TerminalTensor.vertex_partition_disjoint certificate
+                      left conclusion first firstLeft
+                      (allRight first (by simp [Link.vertices]))
+              have restored :=
+                Link.restrictTo?_shift_reindex_tensorPlacement_right structural
+                  splitting.1 allRight rightEquation
+              simpa [leftEquation, rightEquation, restored, placement,
+                leftVertices, rightVertices] using
+                  List.perm_middle.trans (tailPermutation.cons head)
+  have countOriginal : certificate.links.count terminalLink = 1 := by
+    change certificate.links.count (.tensor left right conclusion) = 1
+    rw [← List.count_filter (p := (·.produces conclusion)) (by
+      simp [Link.produces])]
+    rw [TerminalTensor.producer_filter_eq structural splitting.1]
+    simp
+  rcases List.mem_iff_append.mp splitting.1.1 with
+    ⟨before, after, linksEquation⟩
+  have segmentSubset : ∀ link ∈ before ++ after,
+      link ∈ certificate.links := by
+    intro link membership
+    rw [linksEquation]
+    simp only [List.mem_append, List.mem_cons]
+    rcases List.mem_append.mp membership with beforeMembership | afterMembership
+    · exact Or.inl beforeMembership
+    · exact Or.inr (Or.inr afterMembership)
+  have countDecomposition := congrArg (List.count terminalLink) linksEquation
+  rw [countOriginal] at countDecomposition
+  have countSplit : before.count terminalLink + after.count terminalLink = 0 := by
+    simp [terminalLink, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+      at countDecomposition
+    rcases countDecomposition with ⟨beforeZero, afterZero⟩
+    simp [terminalLink, beforeZero, afterZero]
+  have beforeAvoids : terminalLink ∉ before := by
+    apply List.count_eq_zero.mp
+    omega
+  have afterAvoids : terminalLink ∉ after := by
+    apply List.count_eq_zero.mp
+    omega
+  have segmentAvoids : terminalLink ∉ before ++ after := by
+    simp [beforeAvoids, afterAvoids]
+  have restoredSegment := restoreSegment (before ++ after) segmentSubset
+    segmentAvoids
+  have terminalLeftNone : terminalLink.restrictTo? leftVertices = none := by
+    apply Link.restrictTo?_eq_none_of_mem_not_mem terminalLink leftVertices
+      (vertex := conclusion) (by simp [terminalLink, Link.vertices])
+    exact TerminalTensor.conclusion_not_mem_tensorLeftVertices certificate left
+      conclusion
+  have terminalRightNone : terminalLink.restrictTo? rightVertices = none := by
+    apply Link.restrictTo?_eq_none_of_mem_not_mem terminalLink rightVertices
+      (vertex := conclusion) (by simp [terminalLink, Link.vertices])
+    exact TerminalTensor.conclusion_not_mem_tensorRightVertices certificate left
+      conclusion
+  have restoredWithTerminal := restoredSegment.append_right [terminalLink]
+  have rotateTerminal : ((before ++ after) ++ [terminalLink]).Perm
+      certificate.links := by
+    rw [linksEquation]
+    have swap : ((before ++ after) ++ [terminalLink]).Perm
+        ([terminalLink] ++ (before ++ after)) := List.perm_append_comm
+    have move : (terminalLink :: before ++ after).Perm
+        (before ++ terminalLink :: after) := List.perm_middle.symm
+    exact swap.trans (by simpa using move)
+  rw [certificate.restrictTo?_links leftRestriction,
+    certificate.restrictTo?_links rightRestriction]
+  rw [linksEquation, List.filterMap_append, List.filterMap_append]
+  simp only [List.filterMap_cons]
+  rw [terminalLeftNone, terminalRightNone]
+  simpa [List.filterMap_append, leftVertices, rightVertices, terminalLink,
+    placement, linksEquation] using restoredWithTerminal.trans rotateTerminal
+
+/-- Recombining the two exact restrictions of a splitting terminal tensor,
+introducing its typed conclusion, and exchanging the concatenated local vertex
+blocks back to the input occurrence names reconstructs the original certificate
+up to link order. -/
+theorem rebuild_directProofNetEquivalent
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (leftRestriction : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) = some leftCertificate)
+    (rightRestriction : certificate.restrictTo?
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion) =
+        some rightCertificate) :
+    ∃ leftFormula rightFormula,
+      certificate.formula? left = some leftFormula ∧
+      certificate.formula? right = some rightFormula ∧
+      certificate.formula? conclusion =
+        some (.tensor leftFormula rightFormula) ∧
+      let rawPlacement := TerminalTensor.tensorPlacement structural splitting.1
+      let targetBoundary := certificate.conclusions.map rawPlacement.inverse
+      Certificate.DirectProofNetEquivalent
+        (leftCertificate.appendTensorOccurrence rightCertificate
+          leftFormula rightFormula
+          ((certificate.tensorLeftVertices left conclusion).idxOf left)
+          ((certificate.tensorRightVertices left conclusion).idxOf right)
+          targetBoundary)
+        certificate := by
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  have leftMembership :=
+    TerminalTensor.left_mem_tensorLeftVertices structural splitting.1
+  have rightMembership :=
+    TerminalTensor.right_mem_tensorRightVertices structural splitting
+  have leftSize : leftCertificate.formulas.size = leftVertices.length := by
+    simpa [leftVertices] using
+      certificate.restrictTo?_formulas_size leftRestriction
+  have rightSize : rightCertificate.formulas.size = rightVertices.length := by
+    simpa [rightVertices] using
+      certificate.restrictTo?_formulas_size rightRestriction
+  have partitionSize :=
+    TerminalTensor.tensorVertices_length_partition structural splitting.1
+  have componentSize : leftCertificate.formulas.size +
+        rightCertificate.formulas.size + 1 = certificate.formulas.size := by
+    simpa [leftSize, rightSize, leftVertices, rightVertices] using partitionSize
+  have terminalWellFormed := structural.2.2.2.2.1 _ splitting.1.1
+  rcases terminalWellFormed.tensor_formulaData with
+    ⟨leftFormula, rightFormula, leftFormulaEquation, rightFormulaEquation,
+      conclusionFormulaEquation⟩
+  refine ⟨leftFormula, rightFormula, leftFormulaEquation,
+    rightFormulaEquation, conclusionFormulaEquation, ?_⟩
+  dsimp only
+  let rawPlacement := TerminalTensor.tensorPlacement structural splitting.1
+  let targetBoundary := certificate.conclusions.map rawPlacement.inverse
+  let rebuilt := leftCertificate.appendTensorOccurrence rightCertificate
+    leftFormula rightFormula (leftVertices.idxOf left)
+      (rightVertices.idxOf right) targetBoundary
+  have rebuiltSize : rebuilt.formulas.size = certificate.formulas.size := by
+    simpa [rebuilt] using componentSize
+  let placement : VertexRenaming rebuilt.formulas.size :=
+    rawPlacement.changeBound rebuiltSize.symm
+  refine ⟨placement, {
+    formulas := ?_
+    links := ?_
+    conclusions := ?_ }⟩
+  · apply Array.ext_getElem?
+    intro index
+    change (rebuilt.reindex placement).formula? index =
+      certificate.formula? index
+    by_cases indexInBounds : index < certificate.formulas.size
+    · by_cases atConclusion : index = conclusion
+      · subst index
+        have lastForward : placement.forward
+            (leftCertificate.formulas.size + rightCertificate.formulas.size) =
+              conclusion := by
+          simp only [placement, VertexRenaming.changeBound_forward]
+          rw [leftSize, rightSize]
+          exact TerminalTensor.tensorPlacement_forward_last structural splitting.1
+        have lookup := rebuilt.reindex_formula?_forward placement
+          (leftCertificate.formulas.size + rightCertificate.formulas.size)
+        rw [lastForward] at lookup
+        have rebuiltLast : rebuilt.formula?
+            (leftCertificate.formulas.size + rightCertificate.formulas.size) =
+              some (.tensor leftFormula rightFormula) := by
+          simp [rebuilt, Certificate.appendTensorOccurrence,
+            Certificate.formula?, Nat.add_assoc]
+        exact lookup.trans
+          (rebuiltLast.trans conclusionFormulaEquation.symm)
+      · rcases TerminalTensor.vertex_partition certificate left conclusion
+            index indexInBounds atConclusion with
+          indexLeft | indexRight
+        · let localVertex := leftVertices.idxOf index
+          have localInBounds : localVertex < leftCertificate.formulas.size := by
+            rw [leftSize]
+            exact List.idxOf_lt_length_of_mem indexLeft
+          have localForward : placement.forward localVertex = index := by
+            simp only [placement, VertexRenaming.changeBound_forward]
+            exact TerminalTensor.tensorPlacement_forward_left_idxOf structural
+              splitting.1 indexLeft
+          have lookup := rebuilt.reindex_formula?_forward placement localVertex
+          rw [localForward] at lookup
+          have rebuiltLocal : rebuilt.formula? localVertex =
+              leftCertificate.formula? localVertex := by
+            change ((leftCertificate.formulas ++ rightCertificate.formulas).push
+                (.tensor leftFormula rightFormula))[localVertex]? =
+              leftCertificate.formulas[localVertex]?
+            rw [Array.getElem?_push]
+            rw [if_neg (by
+              simp only [Array.size_append]
+              omega)]
+            exact Array.getElem?_append_left localInBounds
+          have restrictedLocal := certificate.restrictTo?_formula?_idxOf
+            (TerminalTensor.tensorLeftVertices_in_bounds certificate left
+              conclusion)
+            (TerminalTensor.tensorLeftBoundary_contained structural splitting.1)
+            leftRestriction indexLeft
+          exact lookup.trans (rebuiltLocal.trans restrictedLocal)
+        · let localVertex := leftCertificate.formulas.size +
+            rightVertices.idxOf index
+          have rightLocalInBounds : rightVertices.idxOf index <
+              rightCertificate.formulas.size := by
+            rw [rightSize]
+            exact List.idxOf_lt_length_of_mem indexRight
+          have localInBounds : localVertex < rebuilt.formulas.size := by
+            rw [rebuiltSize]
+            have rightIndexBound := List.idxOf_lt_length_of_mem indexRight
+            rw [leftSize, rightSize] at componentSize
+            simp only [localVertex]
+            omega
+          have localForward : placement.forward localVertex = index := by
+            simp only [placement, VertexRenaming.changeBound_forward]
+            change rawPlacement.forward
+              (leftCertificate.formulas.size + rightVertices.idxOf index) = index
+            rw [leftSize]
+            exact TerminalTensor.tensorPlacement_forward_right_idxOf structural
+              splitting.1 indexRight
+          have lookup := rebuilt.reindex_formula?_forward placement localVertex
+          rw [localForward] at lookup
+          have rebuiltLocal : rebuilt.formula? localVertex =
+              rightCertificate.formula? (rightVertices.idxOf index) := by
+            change ((leftCertificate.formulas ++ rightCertificate.formulas).push
+                (.tensor leftFormula rightFormula))[localVertex]? =
+              rightCertificate.formulas[rightVertices.idxOf index]?
+            rw [Array.getElem?_push]
+            rw [if_neg (by
+              simp only [Array.size_append, localVertex]
+              omega)]
+            rw [Array.getElem?_append_right (by
+              simp [localVertex])]
+            simp [localVertex, rightLocalInBounds]
+          have restrictedLocal := certificate.restrictTo?_formula?_idxOf
+            (TerminalTensor.tensorRightVertices_in_bounds certificate left
+              conclusion)
+            (TerminalTensor.tensorRightBoundary_contained structural splitting)
+            rightRestriction indexRight
+          exact lookup.trans (rebuiltLocal.trans restrictedLocal)
+    · have inputOutside : certificate.formulas.size ≤ index :=
+        Nat.le_of_not_gt indexInBounds
+      have rebuiltOutside : (rebuilt.reindex placement).formulas.size ≤
+          index := by
+        simpa [rebuiltSize] using inputOutside
+      simp [Certificate.formula?, Array.getElem?_eq_none_iff.mpr inputOutside,
+        Array.getElem?_eq_none_iff.mpr rebuiltOutside]
+  · have exactLinks :=
+      TerminalTensor.restrictLinks_reindex_append_perm structural splitting
+        leftRestriction rightRestriction
+    have leftMap : leftCertificate.links.map (Link.reindex placement) =
+        leftCertificate.links.map (Link.reindex rawPlacement) := by
+      apply List.map_congr_left
+      intro link _membership
+      cases link <;> simp [Link.reindex, placement]
+    have rightMap :
+        (rightCertificate.links.map
+            (fun link : Link => link.shift leftCertificate.formulas.size)).map
+            (Link.reindex placement) =
+          rightCertificate.links.map (fun link : Link =>
+            Link.reindex rawPlacement (link.shift leftVertices.length)) := by
+      rw [List.map_map]
+      apply List.map_congr_left
+      intro link _membership
+      cases link <;> simp [Link.reindex, Link.shift, placement, leftSize]
+    have leftRestored :=
+      TerminalTensor.tensorPlacement_forward_left_idxOf structural splitting.1
+        leftMembership
+    have rightRestored :=
+      TerminalTensor.tensorPlacement_forward_right_idxOf structural splitting.1
+        rightMembership
+    have conclusionRestored :=
+      TerminalTensor.tensorPlacement_forward_last structural splitting.1
+    have newLink : Link.reindex placement
+        (.tensor (leftVertices.idxOf left)
+          (rightVertices.idxOf right + leftCertificate.formulas.size)
+          (leftCertificate.formulas ++ rightCertificate.formulas).size) =
+        .tensor left right conclusion := by
+      simp only [Link.reindex]
+      congr 1
+      · simpa [placement, rawPlacement, leftVertices] using leftRestored
+      · simpa [placement, rawPlacement, leftVertices, rightVertices,
+          leftSize, Nat.add_comm] using rightRestored
+      · simpa [placement, rawPlacement, leftVertices, rightVertices,
+          leftSize, rightSize] using conclusionRestored
+    change ((leftCertificate.links ++
+      rightCertificate.links.map
+        (fun link : Link => link.shift leftCertificate.formulas.size) ++
+      [Link.tensor (leftVertices.idxOf left)
+        (rightVertices.idxOf right + leftCertificate.formulas.size)
+        (leftCertificate.formulas ++ rightCertificate.formulas).size]).map
+          (Link.reindex placement)).Perm certificate.links
+    rw [List.map_append, List.map_append, List.map_singleton,
+      leftMap, rightMap, newLink]
+    simpa [rawPlacement, leftVertices] using exactLinks
+  · change targetBoundary.map placement.forward = certificate.conclusions
+    have placementForward : placement.forward = rawPlacement.forward := by
+      simp [placement]
+    rw [placementForward]
+    simp [targetBoundary, List.map_map, Function.comp_def,
+      rawPlacement.forward_inverse]
 
 theorem remainingLinks_partitioned
     {certificate : Certificate} {left right conclusion : Vertex}

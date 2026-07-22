@@ -1090,6 +1090,11 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.TerminalPar.peelFormulas_reindex_append_eq
 #check Certificate.TerminalPar.rebuild_directProofNetEquivalent
 #check Certificate.TerminalPar.sequentializationResult
+#check Certificate.appendTensorOccurrence
+#check Certificate.LinkWellFormed.tensor_formulaData
+#check Certificate.TerminalTensor.tensorPlacement
+#check Certificate.TerminalTensor.restrictLinks_reindex_append_perm
+#check Certificate.TerminalTensor.rebuild_directProofNetEquivalent
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =
