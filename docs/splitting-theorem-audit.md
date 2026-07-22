@@ -84,9 +84,13 @@ name-level restatement of Yeo:
    Their append theorem proves the induced `EdgeOrdering` is irreflexive and
    transitive. A representation-independent finite theorem now supplies a
    maximal member of every nonempty duplicate-free list under such a relation.
-   The remaining generalized-Yeo obligation is the bungee lemma showing that
-   a non-splitting target has a strictly greater cusping edge, followed by its
-   ProofNet-IR sequentialization-edge instantiation.
+   Simple-cycle reversal, freely closing cycle orientation, a minimal finite
+   internal-cusp count, and prefix extraction are now formalized. From
+   cusp-acyclicity, a freely oriented non-closing cycle yields a simple
+   cusp-free continuation to its first nontrivial cusping edge. The remaining
+   generalized-Yeo obligation is the bungee/universal-separation lemma turning
+   that continuation into an `OrderingPath`, followed by its ProofNet-IR
+   sequentialization-edge instantiation.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored
    link and ordered public boundary. The formula-complexity theorem already
    proves that connective structure has some terminal connective, but does not

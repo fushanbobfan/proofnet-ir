@@ -2665,6 +2665,94 @@ theorem CuspFreeTraversal.append (certificate : Certificate)
           exact ⟨firstFree.1,
             ih firstFree.2 tailNonempty tailBoundary⟩
 
+/-- Failure of traversal cusp-freedom exposes an internal adjacent cusp. -/
+theorem CuspFreeTraversal.exists_cusp_of_not_free
+    (certificate : Certificate)
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (notFree : ¬certificate.CuspFreeTraversal traversed) :
+    ∃ before incoming outgoing after,
+      traversed = before ++ incoming :: outgoing :: after ∧
+        certificate.Cusp incoming outgoing := by
+  induction traversed with
+  | nil => exact False.elim (notFree trivial)
+  | cons first rest ih =>
+      cases rest with
+      | nil => exact False.elim (notFree trivial)
+      | cons second tail =>
+          by_cases cusp : certificate.Cusp first second
+          · exact ⟨[], first, second, tail, by simp, cusp⟩
+          · have tailNotFree :
+                ¬certificate.CuspFreeTraversal (second :: tail) := by
+              intro tailFree
+              exact notFree ⟨cusp, tailFree⟩
+            rcases ih tailNotFree with
+              ⟨before, incoming, outgoing, after, equation, found⟩
+            exact ⟨first :: before, incoming, outgoing, after,
+              by simp [equation], found⟩
+
+/-- The first internal cusp can be chosen with a cusp-free prefix ending at
+its incoming edge. -/
+theorem CuspFreeTraversal.exists_first_cusp_of_not_free
+    (certificate : Certificate)
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (notFree : ¬certificate.CuspFreeTraversal traversed) :
+    ∃ before incoming outgoing after,
+      traversed = before ++ incoming :: outgoing :: after ∧
+      certificate.Cusp incoming outgoing ∧
+      certificate.CuspFreeTraversal (before ++ [incoming]) := by
+  induction traversed with
+  | nil => exact False.elim (notFree trivial)
+  | cons first rest ih =>
+      cases rest with
+      | nil => exact False.elim (notFree trivial)
+      | cons second tail =>
+          by_cases cusp : certificate.Cusp first second
+          · exact ⟨[], first, second, tail, by simp, cusp, by trivial⟩
+          · have tailNotFree :
+                ¬certificate.CuspFreeTraversal (second :: tail) := by
+              intro tailFree
+              exact notFree ⟨cusp, tailFree⟩
+            rcases ih tailNotFree with
+              ⟨before, incoming, outgoing, after, equation, found, prefixFree⟩
+            have enlargedPrefixFree : certificate.CuspFreeTraversal
+                ((first :: before) ++ [incoming]) := by
+              cases before with
+              | nil =>
+                  have sameIncoming : second = incoming :=
+                    (List.cons.inj equation).1
+                  subst incoming
+                  exact ⟨cusp, trivial⟩
+              | cons prefixHead prefixTail =>
+                  have sameHead : second = prefixHead :=
+                    (List.cons.inj equation).1
+                  subst prefixHead
+                  exact ⟨cusp, prefixFree⟩
+            exact ⟨first :: before, incoming, outgoing, after,
+              by simp [equation], found, enlargedPrefixFree⟩
+
+/-- Number of internal adjacent cusps in a directed traversal. The closing
+transition of a cycle is deliberately counted separately by `ClosingCusp`. -/
+def cuspCount (certificate : Certificate) :
+    List certificate.fullGraph.DirectedEdge → Nat
+  | incoming :: outgoing :: rest =>
+      (if certificate.Cusp incoming outgoing then 1 else 0) +
+        certificate.cuspCount (outgoing :: rest)
+  | _ => 0
+
+theorem cuspCount_eq_zero_iff (certificate : Certificate)
+    (traversed : List certificate.fullGraph.DirectedEdge) :
+    certificate.cuspCount traversed = 0 ↔
+      certificate.CuspFreeTraversal traversed := by
+  induction traversed with
+  | nil => simp [cuspCount, CuspFreeTraversal]
+  | cons first rest ih =>
+      cases rest with
+      | nil => simp [cuspCount, CuspFreeTraversal]
+      | cons second tail =>
+          by_cases cusp : certificate.Cusp first second
+          · simp [cuspCount, CuspFreeTraversal, cusp]
+          · simp [cuspCount, CuspFreeTraversal, cusp, ih]
+
 /-- A simple, open, cusp-free continuation from the target of `incoming` to
 the target of `outgoing`, ending with that exact directed edge. -/
 structure CuspFreeContinuation (certificate : Certificate)
@@ -2896,6 +2984,79 @@ def CuspFreeCycle (certificate : Certificate)
     | first :: rest =>
         ¬certificate.Cusp ((first :: rest).getLast (by simp)) first
 
+/-- The transition from the last traversal edge back to the first. -/
+def ClosingCusp (certificate : Certificate)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle) : Prop :=
+  certificate.Cusp (cycle.traversed.getLast cycle.nonempty)
+    (cycle.traversed.head cycle.nonempty)
+
+theorem cuspFreeCycle_iff (certificate : Certificate)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle) :
+    certificate.CuspFreeCycle cycle ↔
+      certificate.CuspFreeTraversal cycle.traversed ∧
+        ¬certificate.ClosingCusp cycle := by
+  cases traversalEquation : cycle.traversed with
+  | nil => exact False.elim (cycle.nonempty traversalEquation)
+  | cons first rest =>
+      simp [CuspFreeCycle, ClosingCusp, traversalEquation]
+
+theorem closingCusp_reverse_iff (certificate : Certificate)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle) :
+    certificate.ClosingCusp cycle.reverse ↔
+      certificate.ClosingCusp cycle := by
+  have reversed := (certificate.cusp_reverse_iff
+    (cycle.traversed.getLast cycle.nonempty)
+    (cycle.traversed.head cycle.nonempty)).symm
+  simpa [ClosingCusp, Graph.EdgeSimpleCycle.reverse,
+    Graph.EdgeWalk.reverseTraversal] using reversed
+
+/-- At a freely closing cycle base, an incoming edge is cusp-free with at
+least one of the two possible first directions around the cycle. -/
+theorem initial_or_reverse_initial_free (certificate : Certificate)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle)
+    (closingFree : ¬certificate.ClosingCusp cycle)
+    (incoming : certificate.fullGraph.DirectedEdge) :
+    (¬certificate.Cusp incoming
+        (cycle.traversed.head cycle.nonempty)) ∨
+      (¬certificate.Cusp incoming
+        (cycle.traversed.getLast cycle.nonempty).reverse) := by
+  classical
+  by_cases firstFree : ¬certificate.Cusp incoming
+      (cycle.traversed.head cycle.nonempty)
+  · exact .inl firstFree
+  · right
+    intro reverseCusp
+    apply closingFree
+    unfold ClosingCusp Cusp at closingFree ⊢
+    have firstCusp : certificate.Cusp incoming
+        (cycle.traversed.head cycle.nonempty) :=
+      Classical.byContradiction (fun absent => firstFree absent)
+    unfold Cusp at firstCusp reverseCusp
+    rw [Graph.DirectedEdge.reverse_reverse] at reverseCusp
+    exact reverseCusp.symm.trans firstCusp
+
+/-- Choose the orientation of a freely closing simple cycle so a prescribed
+incoming edge does not cusp with its first traversal edge. -/
+theorem orient_cycle_initial_free (certificate : Certificate)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle)
+    (closingFree : ¬certificate.ClosingCusp cycle)
+    (incoming : certificate.fullGraph.DirectedEdge) :
+    ∃ oriented : certificate.fullGraph.EdgeSimpleCycle,
+      oriented.start = cycle.start ∧
+      ¬certificate.ClosingCusp oriented ∧
+      ¬certificate.Cusp incoming
+        (oriented.traversed.head oriented.nonempty) := by
+  rcases certificate.initial_or_reverse_initial_free cycle closingFree incoming with
+    forwardFree | reverseFree
+  · exact ⟨cycle, rfl, closingFree, forwardFree⟩
+  · have reverseClosingFree : ¬certificate.ClosingCusp cycle.reverse := by
+      intro reverseClosing
+      exact closingFree
+        ((certificate.closingCusp_reverse_iff cycle).mp reverseClosing)
+    refine ⟨cycle.reverse, rfl, reverseClosingFree, ?_⟩
+    simpa [Graph.EdgeSimpleCycle.reverse,
+      Graph.EdgeWalk.reverseTraversal] using reverseFree
+
 theorem CuspFreeCycle.no_cusp_of_successor (certificate : Certificate)
     {cycle : certificate.fullGraph.EdgeSimpleCycle}
     (free : certificate.CuspFreeCycle cycle)
@@ -3120,6 +3281,182 @@ is no nonempty simple cycle whose every local transition avoids a cusp. -/
 def CuspAcyclic (certificate : Certificate) : Prop :=
   ∀ cycle : certificate.fullGraph.EdgeSimpleCycle,
     ¬certificate.CuspFreeCycle cycle
+
+/-- A colored splitting vertex is one at which every based simple cycle closes
+with a cusp. This is the representation-independent target of generalized
+Yeo; later lemmas relate it to terminal tensor component separation. -/
+def SplittingVertex (certificate : Certificate) (vertex : Vertex) : Prop :=
+  ∀ cycle : certificate.fullGraph.EdgeSimpleCycle,
+    cycle.start = vertex → certificate.ClosingCusp cycle
+
+/-- A directed occurrence participates nontrivially in a local cusp. -/
+def CuspingEdge (certificate : Certificate)
+    (incoming : certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ outgoing, certificate.Cusp incoming outgoing ∧
+    incoming ≠ outgoing.reverse
+
+theorem not_splittingVertex_witness (certificate : Certificate)
+    {vertex : Vertex} (notSplitting : ¬certificate.SplittingVertex vertex) :
+    ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
+      cycle.start = vertex ∧ ¬certificate.ClosingCusp cycle := by
+  classical
+  apply Classical.byContradiction
+  intro noWitness
+  apply notSplitting
+  intro cycle starts
+  apply Classical.byContradiction
+  intro notClosing
+  exact noWitness ⟨cycle, starts, notClosing⟩
+
+/-- Among all simple cycles based at a non-splitting vertex whose closing pair
+is free, one has a minimal finite number of internal cusps. -/
+theorem exists_minimal_nonclosing_cycle (certificate : Certificate)
+    {vertex : Vertex} (notSplitting : ¬certificate.SplittingVertex vertex) :
+    ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
+      cycle.start = vertex ∧
+      ¬certificate.ClosingCusp cycle ∧
+      ∀ other : certificate.fullGraph.EdgeSimpleCycle,
+        other.start = vertex → ¬certificate.ClosingCusp other →
+          certificate.cuspCount cycle.traversed ≤
+            certificate.cuspCount other.traversed := by
+  let property : Nat → Prop := fun count =>
+    ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
+      cycle.start = vertex ∧ ¬certificate.ClosingCusp cycle ∧
+        certificate.cuspCount cycle.traversed = count
+  rcases certificate.not_splittingVertex_witness notSplitting with
+    ⟨witness, starts, closingFree⟩
+  have propertyExists : ∃ count, property count :=
+    ⟨certificate.cuspCount witness.traversed,
+      witness, starts, closingFree, rfl⟩
+  rcases exists_least_nat property propertyExists with
+    ⟨least, ⟨cycle, cycleStarts, cycleClosingFree, cycleCount⟩,
+      leastBound⟩
+  refine ⟨cycle, cycleStarts, cycleClosingFree, ?_⟩
+  intro other otherStarts otherClosingFree
+  rw [cycleCount]
+  exact leastBound _ ⟨other, otherStarts, otherClosingFree, rfl⟩
+
+theorem CuspAcyclic.minimal_nonclosing_cycle_has_cusp
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    {cycle : certificate.fullGraph.EdgeSimpleCycle}
+    (closingFree : ¬certificate.ClosingCusp cycle) :
+    0 < certificate.cuspCount cycle.traversed := by
+  have notZero : certificate.cuspCount cycle.traversed ≠ 0 := by
+    intro zero
+    have traversalFree :=
+      (certificate.cuspCount_eq_zero_iff cycle.traversed).mp zero
+    exact acyclic cycle ((certificate.cuspFreeCycle_iff cycle).2
+      ⟨traversalFree, closingFree⟩)
+  omega
+
+/-- Following a freely oriented non-splitting cycle up to its first internal
+cusp yields a simple cusp-free continuation from the prescribed incoming edge
+to a nontrivial cusping edge. The generalized-Yeo separation condition is the
+remaining strengthening needed to turn this continuation into `EdgeOrdering`.
+-/
+theorem CuspAcyclic.continuation_to_first_cusping_edge
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    (incoming : certificate.fullGraph.DirectedEdge)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle)
+    (startsAt : cycle.start = incoming.target)
+    (closingFree : ¬certificate.ClosingCusp cycle)
+    (initialFree : ¬certificate.Cusp incoming
+      (cycle.traversed.head cycle.nonempty)) :
+    ∃ cusping : certificate.fullGraph.DirectedEdge,
+      Nonempty (certificate.CuspFreeContinuation incoming cusping) ∧
+        certificate.CuspingEdge cusping := by
+  have traversalNotFree :
+      ¬certificate.CuspFreeTraversal cycle.traversed := by
+    intro traversalFree
+    exact acyclic cycle ((certificate.cuspFreeCycle_iff cycle).2
+      ⟨traversalFree, closingFree⟩)
+  rcases CuspFreeTraversal.exists_first_cusp_of_not_free certificate
+      traversalNotFree with
+    ⟨before, cusping, outgoing, after, traversalEquation,
+      cusp, prefixFree⟩
+  rcases cycle.prefixPath traversalEquation with
+    ⟨path, pathStarts, pathFinishes, pathSteps⟩
+  have pathNonempty : path.traversed ≠ [] := by
+    rw [pathSteps]
+    simp
+  have prefixNonempty : before ++ [cusping] ≠ [] := by simp
+  have headEquation : path.traversed.head pathNonempty =
+      cycle.traversed.head cycle.nonempty := by
+    simpa only [pathSteps, traversalEquation, List.append_assoc,
+      List.singleton_append] using
+      (List.head_append_of_ne_nil
+        (l := before ++ [cusping]) (l' := outgoing :: after)
+        (w₁ := by simp)
+        prefixNonempty).symm
+  have lastEquation : path.traversed.getLast pathNonempty = cusping := by
+    simp [pathSteps]
+  have differentIndex : cusping.index ≠ outgoing.index := by
+    intro sameIndex
+    have indicesNodup := cycle.edgeIndicesNodup
+    rw [traversalEquation] at indicesNodup
+    simp only [List.map_append, List.map_cons] at indicesNodup
+    rw [sameIndex] at indicesNodup
+    have suffixNodup :
+        (outgoing.index :: outgoing.index ::
+          after.map Graph.DirectedEdge.index).Nodup :=
+      (List.nodup_append.mp indicesNodup).2.1
+    exact (List.nodup_cons.mp suffixNodup).1 (by simp)
+  have differentReverse : cusping ≠ outgoing.reverse := by
+    intro same
+    apply differentIndex
+    simpa using congrArg Graph.DirectedEdge.index same
+  refine ⟨cusping, ⟨?_⟩, outgoing, cusp, differentReverse⟩
+  exact
+    { path := path
+      nonempty := pathNonempty
+      startsAt := pathStarts.trans startsAt
+      endsAt := pathFinishes
+      cuspFree := by simpa [pathSteps] using prefixFree
+      initialFree := by simpa [headEquation] using initialFree
+      lastEdge := lastEquation }
+
+/-- In a cusp-acyclic graph, a non-splitting vertex has a based simple cycle
+whose closing pair is free but which contains an internal, nontrivial cusping
+edge occurrence. -/
+theorem CuspAcyclic.cusping_cycle_of_not_splitting
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    {vertex : Vertex} (notSplitting : ¬certificate.SplittingVertex vertex) :
+    ∃ (cycle : certificate.fullGraph.EdgeSimpleCycle),
+      ∃ before : List certificate.fullGraph.DirectedEdge,
+      ∃ incoming outgoing : certificate.fullGraph.DirectedEdge,
+      ∃ after : List certificate.fullGraph.DirectedEdge,
+      cycle.start = vertex ∧
+        ¬certificate.ClosingCusp cycle ∧
+        cycle.traversed = before ++ incoming :: outgoing :: after ∧
+        certificate.CuspingEdge incoming := by
+  rcases certificate.not_splittingVertex_witness notSplitting with
+    ⟨cycle, starts, closingFree⟩
+  have traversalNotFree :
+      ¬certificate.CuspFreeTraversal cycle.traversed := by
+    intro traversalFree
+    exact acyclic cycle
+      ((certificate.cuspFreeCycle_iff cycle).2
+        ⟨traversalFree, closingFree⟩)
+  rcases CuspFreeTraversal.exists_cusp_of_not_free certificate
+      traversalNotFree with
+    ⟨before, incoming, outgoing, after, traversalEquation, cusp⟩
+  have differentIndex : incoming.index ≠ outgoing.index := by
+    intro sameIndex
+    have indicesNodup := cycle.edgeIndicesNodup
+    rw [traversalEquation] at indicesNodup
+    simp only [List.map_append, List.map_cons] at indicesNodup
+    rw [sameIndex] at indicesNodup
+    have suffixNodup :
+        (outgoing.index :: outgoing.index ::
+          after.map Graph.DirectedEdge.index).Nodup :=
+      (List.nodup_append.mp indicesNodup).2.1
+    exact (List.nodup_cons.mp suffixNodup).1 (by simp)
+  have differentReverse : incoming ≠ outgoing.reverse := by
+    intro same
+    apply differentIndex
+    simpa using congrArg Graph.DirectedEdge.index same
+  exact ⟨cycle, before, incoming, outgoing, after, starts, closingFree,
+    traversalEquation, outgoing, cusp, differentReverse⟩
 
 /-- Danos--Regnier switching correctness excludes every cusp-free simple
 cycle in the unswitched occurrence multigraph. A hypothetical cycle selects a

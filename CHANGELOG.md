@@ -76,6 +76,13 @@
 - added both-orientation enumeration of every stored edge occurrence and a
   generic theorem that every nonempty duplicate-free finite list has a maximal
   member under any irreflexive transitive relation.
+- added exact-edge simple-cycle reversal and simple prefix extraction; defined
+  closing cusps, splitting vertices, cusping edges, and a finite internal-cusp
+  count with its cusp-free characterization.
+- proved that a cusp-acyclic non-splitting vertex admits a freely closing cycle
+  with a nontrivial internal cusp, and that a freely oriented such cycle yields
+  a simple cusp-free continuation to its first cusping edge. The universal
+  separation condition required by generalized Yeo remains open.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

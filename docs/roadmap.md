@@ -110,8 +110,10 @@
   transport, and `DeclarativelyCorrect.cuspAcyclic` bridge are proved for
   exact multigraph edge occurrences. Exact-edge simple paths, cusp-free
   continuation concatenation, the strengthened strict edge order, and its
-  finite maximal-element theorem are also complete. The remaining bungee
-  lemma and generalized-Yeo instantiation are specified in
+  finite maximal-element theorem are also complete. Simple-cycle orientation,
+  minimal non-closing cusp count, and continuation to the first nontrivial
+  cusping edge are now kernel checked. The remaining universal-separation
+  strengthening (the bungee lemma) and generalized-Yeo instantiation are in
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

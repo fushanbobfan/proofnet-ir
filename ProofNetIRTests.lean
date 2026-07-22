@@ -259,6 +259,15 @@ example : canonical.Cusp canonicalParLeftIn canonicalParRightIn.reverse := by
 example : canonical.Cusp canonicalParRightIn canonicalParLeftIn.reverse :=
   (canonical.cusp_reverse_iff canonicalParLeftIn
     canonicalParRightIn.reverse).mp (by rfl)
+example : canonical.cuspCount
+    [canonicalParLeftIn, canonicalParRightIn.reverse] = 1 := by
+  native_decide
+example : canonical.CuspingEdge canonicalParLeftIn := by
+  refine ⟨canonicalParRightIn.reverse, by rfl, ?_⟩
+  intro same
+  have sameIndex := congrArg Graph.DirectedEdge.index same
+  exact (by decide : canonicalParLeftIn.index ≠
+    canonicalParRightIn.reverse.index) sameIndex
 
 example : canonical.wellFormed = true := by native_decide
 example : canonical.StructurallyWellFormed :=
@@ -882,6 +891,19 @@ def cyclicTriangle : cyclicGraph.EdgeSimpleCycle where
       cyclicDirected20 rfl rfl
   edgeIndicesNodup := by decide
   interiorNodup := by decide
+
+example : cyclicTriangle.reverse.traversed =
+    [cyclicDirected20.reverse, cyclicDirected12.reverse,
+      cyclicDirected01.reverse] := by
+  rfl
+
+example : ∃ path : cyclicGraph.EdgeSimplePath,
+    path.start = 0 ∧ path.finish = 1 ∧
+      path.traversed = [cyclicDirected01] := by
+  simpa [cyclicTriangle, cyclicDirected01, Graph.DirectedEdge.target] using
+    cyclicTriangle.prefixPath
+    (before := []) (incoming := cyclicDirected01)
+    (outgoing := cyclicDirected12) (after := [cyclicDirected20]) rfl
 
 example : cyclicGraph.connected = true := by native_decide
 example : cyclicGraph.isTree = false := by native_decide
