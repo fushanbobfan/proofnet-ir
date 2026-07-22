@@ -150,8 +150,12 @@ their vertex lists, making formula lookup and `idxOf?` reindexing total; hence
 `splitTerminalTensorCandidate?` is proved to return two certificates. Exact
 restriction equations, formula/index transport, local link typing, boundary
 discipline, source ownership, and parent-use accounting prove both returned
-certificates `StructurallyWellFormed`. Switching-tree preservation remains the
-next tensor obligation.
+certificates `StructurallyWellFormed`. Every switching of either child is now
+proved to be the induced occurrence restriction of an input switching. The
+separator proof shows same-side simple paths cannot traverse the terminal
+tensor conclusion, so both induced graphs are bounded and connected. The exact
+edge-count equation, and hence full `IsTree` preservation, remains the next
+tensor obligation.
 
 ## v0.2 derivation-first path
 

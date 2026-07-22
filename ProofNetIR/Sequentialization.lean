@@ -856,6 +856,46 @@ def deleteVertex? (removed : Vertex) (edge : Edge) : Option Edge := do
   let second ← Certificate.deleteVertex? removed edge.second
   pure { first, second }
 
+/-- Reindex an edge into a listed occurrence component. -/
+def restrictTo? (vertices : List Vertex) (edge : Edge) : Option Edge := do
+  let first ← vertices.idxOf? edge.first
+  let second ← vertices.idxOf? edge.second
+  pure { first, second }
+
+theorem restrictTo?_eq_some_of_mem (edge : Edge) (vertices : List Vertex)
+    (firstContained : edge.first ∈ vertices)
+    (secondContained : edge.second ∈ vertices) :
+    edge.restrictTo? vertices = some {
+      first := vertices.idxOf edge.first
+      second := vertices.idxOf edge.second } := by
+  simp [restrictTo?, idxOf?_eq_some_idxOf_of_mem firstContained,
+    idxOf?_eq_some_idxOf_of_mem secondContained]
+
+theorem restrictTo?_eq_some {vertices : List Vertex} {edge restricted : Edge}
+    (equation : edge.restrictTo? vertices = some restricted) :
+    edge.first ∈ vertices ∧ edge.second ∈ vertices ∧
+      restricted = {
+        first := vertices.idxOf edge.first
+        second := vertices.idxOf edge.second } := by
+  cases firstEquation : vertices.idxOf? edge.first with
+  | none => simp [restrictTo?, firstEquation] at equation
+  | some first =>
+      cases secondEquation : vertices.idxOf? edge.second with
+      | none => simp [restrictTo?, firstEquation, secondEquation] at equation
+      | some second =>
+          simp [restrictTo?, firstEquation, secondEquation] at equation
+          subst restricted
+          have firstMembership := mem_of_idxOf?_eq_some firstEquation
+          have secondMembership := mem_of_idxOf?_eq_some secondEquation
+          have firstIndex := idxOf?_eq_some_idxOf_of_mem firstMembership
+          have secondIndex := idxOf?_eq_some_idxOf_of_mem secondMembership
+          rw [firstEquation] at firstIndex
+          rw [secondEquation] at secondIndex
+          simp at firstIndex secondIndex
+          subst first
+          subst second
+          exact ⟨firstMembership, secondMembership, rfl⟩
+
 def expandVertex (removed : Vertex) (edge : Edge) : Edge :=
   { first := Certificate.expandVertex removed edge.first
     second := Certificate.expandVertex removed edge.second }
@@ -907,9 +947,99 @@ def deleteVertex? (removed : Vertex) (choice : Edge × Edge) :
   let second ← choice.2.deleteVertex? removed
   pure (first, second)
 
+/-- Restrict both alternatives of a par switching choice to one component. -/
+def restrictTo? (vertices : List Vertex) (choice : Edge × Edge) :
+    Option (Edge × Edge) := do
+  let first ← choice.1.restrictTo? vertices
+  let second ← choice.2.restrictTo? vertices
+  pure (first, second)
+
 end ParChoice
 
 namespace Graph
+
+theorem Adjacent.symm {graph : Graph} {left right : Vertex}
+    (adjacency : graph.Adjacent left right) : graph.Adjacent right left := by
+  rcases adjacency with ⟨edge, membership, direction⟩
+  refine ⟨edge, membership, ?_⟩
+  rcases direction with forward | backward
+  · exact .inr forward
+  · exact .inl backward
+
+/-- Induced local numbering of all edges whose two endpoints belong to the
+listed occurrence component. -/
+def restrictTo (graph : Graph) (vertices : List Vertex) : Graph where
+  vertexCount := vertices.length
+  edges := graph.edges.filterMap (Edge.restrictTo? vertices)
+
+theorem Bounded.restrictTo {graph : Graph} (bounded : graph.Bounded)
+    (vertices : List Vertex) :
+    (graph.restrictTo vertices).Bounded := by
+  intro restrictedEdge restrictedMembership
+  change restrictedEdge ∈ graph.edges.filterMap
+    (Edge.restrictTo? vertices) at restrictedMembership
+  rcases List.mem_filterMap.mp restrictedMembership with
+    ⟨edge, edgeMembership, edgeEquation⟩
+  rcases Edge.restrictTo?_eq_some edgeEquation with
+    ⟨firstMembership, secondMembership, rfl⟩
+  have originalDistinct := (bounded edge edgeMembership).2.2
+  refine ⟨List.idxOf_lt_length_of_mem firstMembership,
+    List.idxOf_lt_length_of_mem secondMembership, ?_⟩
+  intro same
+  exact originalDistinct
+    (idxOf_injective_of_mem firstMembership secondMembership same)
+
+theorem adjacent_restrictTo_iff (graph : Graph) (vertices : List Vertex)
+    {left right : Vertex}
+    (leftMembership : left ∈ vertices)
+    (rightMembership : right ∈ vertices) :
+    (graph.restrictTo vertices).Adjacent
+        (vertices.idxOf left) (vertices.idxOf right) ↔
+      graph.Adjacent left right := by
+  constructor
+  · rintro ⟨restrictedEdge, restrictedMembership, direction⟩
+    change restrictedEdge ∈ graph.edges.filterMap
+      (Edge.restrictTo? vertices) at restrictedMembership
+    rcases List.mem_filterMap.mp restrictedMembership with
+      ⟨edge, edgeMembership, edgeEquation⟩
+    rcases Edge.restrictTo?_eq_some edgeEquation with
+      ⟨firstMembership, secondMembership, rfl⟩
+    refine ⟨edge, edgeMembership, ?_⟩
+    rcases direction with forward | backward
+    · exact .inl ⟨
+        idxOf_injective_of_mem firstMembership leftMembership forward.1,
+        idxOf_injective_of_mem secondMembership rightMembership forward.2⟩
+    · exact .inr ⟨
+        idxOf_injective_of_mem firstMembership rightMembership backward.1,
+        idxOf_injective_of_mem secondMembership leftMembership backward.2⟩
+  · rintro ⟨edge, edgeMembership, direction⟩
+    rcases direction with forward | backward
+    · have firstMembership : edge.first ∈ vertices := forward.1 ▸ leftMembership
+      have secondMembership : edge.second ∈ vertices := forward.2 ▸ rightMembership
+      let restrictedEdge : Edge := {
+        first := vertices.idxOf edge.first
+        second := vertices.idxOf edge.second }
+      refine ⟨restrictedEdge, ?_, .inl ⟨?_, ?_⟩⟩
+      · change restrictedEdge ∈ graph.edges.filterMap
+          (Edge.restrictTo? vertices)
+        exact List.mem_filterMap.mpr ⟨edge, edgeMembership,
+          edge.restrictTo?_eq_some_of_mem vertices firstMembership
+            secondMembership⟩
+      · exact congrArg vertices.idxOf forward.1
+      · exact congrArg vertices.idxOf forward.2
+    · have firstMembership : edge.first ∈ vertices := backward.1 ▸ rightMembership
+      have secondMembership : edge.second ∈ vertices := backward.2 ▸ leftMembership
+      let restrictedEdge : Edge := {
+        first := vertices.idxOf edge.first
+        second := vertices.idxOf edge.second }
+      refine ⟨restrictedEdge, ?_, .inr ⟨?_, ?_⟩⟩
+      · change restrictedEdge ∈ graph.edges.filterMap
+          (Edge.restrictTo? vertices)
+        exact List.mem_filterMap.mpr ⟨edge, edgeMembership,
+          edge.restrictTo?_eq_some_of_mem vertices firstMembership
+            secondMembership⟩
+      · exact congrArg vertices.idxOf backward.1
+      · exact congrArg vertices.idxOf backward.2
 
 /-- Delete a graph vertex, drop all incident edges, and compact larger vertex
 names. -/
@@ -993,6 +1123,26 @@ theorem SimpleWalk.finish_mem {graph : Graph} {start finish : Vertex}
   induction walk with
   | refl => simp
   | step prior adjacency fresh ih => simp
+
+theorem SimpleWalk.restrictTo {graph : Graph} {vertices : List Vertex}
+    {start finish : Vertex} {steps : Nat} {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish)
+    (contained : ∀ vertex ∈ visited, vertex ∈ vertices) :
+    (graph.restrictTo vertices).Walk
+      (vertices.idxOf start) (vertices.idxOf finish) := by
+  induction walk with
+  | refl => exact .refl _
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      have priorContained : ∀ vertex ∈ priorVisited, vertex ∈ vertices := by
+        intro vertex membership
+        exact contained vertex (by simp [membership])
+      have middleMembership : middle ∈ vertices :=
+        priorContained middle prior.finish_mem
+      have currentMembership : current ∈ vertices :=
+        contained current (by simp)
+      exact .step (ih priorContained)
+        ((graph.adjacent_restrictTo_iff vertices middleMembership
+          currentMembership).mpr adjacency)
 
 theorem SimpleWalk.avoidsLeaf {graph : Graph} {start finish removed : Vertex}
     {steps : Nat} {visited : List Vertex}
@@ -1247,6 +1397,66 @@ def fullEdges (certificate : Certificate) : List Edge :=
         [{ first := left, second := conclusion },
          { first := right, second := conclusion }]
 
+theorem fixedEdges_subset_fullEdges (certificate : Certificate) :
+    ∀ edge ∈ certificate.fixedEdges, edge ∈ certificate.fullEdges := by
+  intro edge membership
+  simp only [fixedEdges, fullEdges, List.mem_flatMap] at membership ⊢
+  rcases membership with ⟨link, linkMembership, emitted⟩
+  refine ⟨link, linkMembership, ?_⟩
+  cases link <;> simp_all
+
+theorem parChoice_edges_mem_fullEdges (certificate : Certificate)
+    {choice : Edge × Edge} (membership : choice ∈ certificate.parChoices) :
+    choice.1 ∈ certificate.fullEdges ∧
+      choice.2 ∈ certificate.fullEdges := by
+  simp only [parChoices, List.mem_filterMap] at membership
+  rcases membership with ⟨link, linkMembership, emitted⟩
+  cases link with
+  | «axiom» left right => simp at emitted
+  | tensor left right conclusion => simp at emitted
+  | par left right conclusion =>
+      simp at emitted
+      subst choice
+      simp only [fullEdges, List.mem_flatMap]
+      constructor <;> exact ⟨.par left right conclusion, linkMembership, by simp⟩
+
+theorem ChoiceSelection.selected_origin
+    {choices : List (Edge × Edge)} {selected : List Edge}
+    (selection : ChoiceSelection choices selected)
+    {edge : Edge} (membership : edge ∈ selected) :
+    ∃ choice ∈ choices, edge = choice.1 ∨ edge = choice.2 := by
+  induction selection with
+  | nil => simp at membership
+  | @left left right rest selected prior ih =>
+      simp at membership
+      rcases membership with same | tailMembership
+      · exact ⟨(left, right), by simp, Or.inl same⟩
+      · rcases ih tailMembership with ⟨choice, choiceMembership, endpoint⟩
+        exact ⟨choice, by simp [choiceMembership], endpoint⟩
+  | @right left right rest selected prior ih =>
+      simp at membership
+      rcases membership with same | tailMembership
+      · exact ⟨(left, right), by simp, Or.inr same⟩
+      · rcases ih tailMembership with ⟨choice, choiceMembership, endpoint⟩
+        exact ⟨choice, by simp [choiceMembership], endpoint⟩
+
+theorem graphForSelection_edges_subset_fullEdges (certificate : Certificate)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    ∀ edge ∈ (certificate.graphForSelection selected).edges,
+      edge ∈ certificate.fullEdges := by
+  intro edge membership
+  change edge ∈ certificate.fixedEdges ++ selected at membership
+  rw [List.mem_append] at membership
+  rcases membership with fixed | selectedMembership
+  · exact certificate.fixedEdges_subset_fullEdges edge fixed
+  · rcases selection.selected_origin selectedMembership with
+      ⟨choice, choiceMembership, endpoint⟩
+    have choiceEdges := certificate.parChoice_edges_mem_fullEdges choiceMembership
+    rcases endpoint with rfl | rfl
+    · exact choiceEdges.1
+    · exact choiceEdges.2
+
 def fullGraphWithoutVertex (certificate : Certificate)
     (removed : Vertex) : Graph where
   vertexCount := certificate.formulas.size
@@ -1325,6 +1535,27 @@ theorem fullGraphWithoutVertex_adjacent_of_fullEdge
   change edge ∈ certificate.fullEdges.filter
     (fun candidate => !candidate.incident removed)
   simp [membership, avoids]
+
+theorem graphForSelection_adjacent_fullGraphWithout
+    {certificate : Certificate} {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected)
+    {removed start finish : Vertex}
+    (startNotRemoved : start ≠ removed)
+    (finishNotRemoved : finish ≠ removed)
+    (adjacency : (certificate.graphForSelection selected).Adjacent
+      start finish) :
+    (certificate.fullGraphWithoutVertex removed).Adjacent start finish := by
+  rcases adjacency with ⟨edge, edgeMembership, direction⟩
+  have fullMembership := certificate.graphForSelection_edges_subset_fullEdges
+    selection edge edgeMembership
+  have avoids : edge.incident removed = false := by
+    rcases direction with forward | backward
+    · simp [Edge.incident, forward, startNotRemoved, finishNotRemoved]
+    · simp [Edge.incident, backward, startNotRemoved, finishNotRemoved]
+  refine ⟨edge, ?_, direction⟩
+  change edge ∈ certificate.fullEdges.filter
+    (fun candidate => !candidate.incident removed)
+  simp [fullMembership, avoids]
 
 theorem fullGraphWithoutVertex_link_vertices_walk
     {certificate : Certificate} {removed : Vertex} {link : Link}
@@ -1817,6 +2048,130 @@ theorem restrictTo?_structuralPrefix
   · rw [conclusionsEquation,
       eraseDups_eq_self_of_nodup localBoundaryNodup]
 
+/-- Restricting links commutes exactly with extracting par switching choices.
+Unlike fixed tensor edges, this identity needs no component-closure premise:
+the two alternatives together mention all three vertices of a par link. -/
+theorem restrictTo?_parChoices
+    {certificate restricted : Certificate} {vertices boundary : List Vertex}
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted) :
+    restricted.parChoices = certificate.parChoices.filterMap
+      (ParChoice.restrictTo? vertices) := by
+  unfold Certificate.parChoices
+  rw [certificate.restrictTo?_links certificateEquation]
+  let emitChoice : Link → Option (Edge × Edge) := fun
+    | .par left right conclusion =>
+        some ({ first := left, second := conclusion },
+          { first := right, second := conclusion })
+    | _ => none
+  change
+    ((certificate.links.filterMap (Link.restrictTo? vertices)).filterMap
+      emitChoice) =
+    (certificate.links.filterMap emitChoice).filterMap
+      (ParChoice.restrictTo? vertices)
+  induction certificate.links with
+  | nil => rfl
+  | cons head tail ih =>
+      cases head with
+      | «axiom» left right =>
+          cases leftEquation : vertices.idxOf? left <;>
+          cases rightEquation : vertices.idxOf? right <;>
+            simp [Link.restrictTo?, emitChoice, leftEquation, rightEquation, ih]
+      | tensor left right conclusion =>
+          cases leftEquation : vertices.idxOf? left <;>
+          cases rightEquation : vertices.idxOf? right <;>
+          cases conclusionEquation : vertices.idxOf? conclusion <;>
+            simp [Link.restrictTo?, emitChoice, leftEquation, rightEquation,
+              conclusionEquation, ih]
+      | par left right conclusion =>
+          cases leftEquation : vertices.idxOf? left <;>
+          cases rightEquation : vertices.idxOf? right <;>
+          cases conclusionEquation : vertices.idxOf? conclusion <;>
+            simp [Link.restrictTo?, Edge.restrictTo?, ParChoice.restrictTo?,
+              emitChoice, leftEquation, rightEquation, conclusionEquation, ih]
+
+/-- Fixed switching edges commute with component restriction when every input
+link is either the removed terminal tensor, wholly inside, or wholly outside
+the component. -/
+theorem restrictTo?_fixedEdges_of_tensor_partition
+    {certificate restricted : Certificate} {vertices boundary : List Vertex}
+    {left right conclusion : Vertex}
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    (conclusionOutside : conclusion ∉ vertices)
+    (partition : ∀ link ∈ certificate.links,
+      link = .tensor left right conclusion ∨
+        (∀ vertex ∈ link.vertices, vertex ∈ vertices) ∨
+        (∀ vertex ∈ link.vertices, vertex ∉ vertices)) :
+    restricted.fixedEdges = certificate.fixedEdges.filterMap
+      (Edge.restrictTo? vertices) := by
+  unfold Certificate.fixedEdges
+  rw [certificate.restrictTo?_links certificateEquation]
+  let emitFixed : Link → List Edge := fun
+    | .axiom first second => [{ first, second }]
+    | .tensor first second result =>
+        [{ first := first, second := result },
+         { first := second, second := result }]
+    | .par _ _ _ => []
+  change
+    (certificate.links.filterMap (Link.restrictTo? vertices)).flatMap
+        emitFixed =
+      (certificate.links.flatMap emitFixed).filterMap
+        (Edge.restrictTo? vertices)
+  suffices general : ∀ links : List Link,
+      (∀ link ∈ links, link ∈ certificate.links) →
+      (links.filterMap (Link.restrictTo? vertices)).flatMap emitFixed =
+        (links.flatMap emitFixed).filterMap (Edge.restrictTo? vertices) by
+    exact general certificate.links (by simp)
+  intro links subset
+  induction links with
+  | nil => rfl
+  | cons head tail ih =>
+      have headMembership := subset head (by simp)
+      have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+        intro link membership
+        exact subset link (by simp [membership])
+      have tailEquality := ih tailSubset
+      cases head with
+      | «axiom» first second =>
+          cases firstEquation : vertices.idxOf? first <;>
+          cases secondEquation : vertices.idxOf? second <;>
+            simp [Link.restrictTo?, Edge.restrictTo?, emitFixed,
+              firstEquation, secondEquation, tailEquality]
+      | tensor first second result =>
+          rcases partition (.tensor first second result) headMembership with
+            terminal | contained | avoids
+          · cases terminal
+            have conclusionNone : vertices.idxOf? conclusion = none :=
+              (List.idxOf?_eq_none_iff).mpr conclusionOutside
+            simp [Link.restrictTo?, Edge.restrictTo?, emitFixed,
+              conclusionNone, tailEquality]
+          · have firstContained := contained first (by simp [Link.vertices])
+            have secondContained := contained second (by simp [Link.vertices])
+            have resultContained := contained result (by simp [Link.vertices])
+            have firstEquation := idxOf?_eq_some_idxOf_of_mem firstContained
+            have secondEquation := idxOf?_eq_some_idxOf_of_mem secondContained
+            have resultEquation := idxOf?_eq_some_idxOf_of_mem resultContained
+            simp [Link.restrictTo?, Edge.restrictTo?, emitFixed,
+              firstEquation, secondEquation, resultEquation, tailEquality]
+          · have firstOutside := avoids first (by simp [Link.vertices])
+            have secondOutside := avoids second (by simp [Link.vertices])
+            have resultOutside := avoids result (by simp [Link.vertices])
+            have firstEquation : vertices.idxOf? first = none :=
+              (List.idxOf?_eq_none_iff).mpr firstOutside
+            have secondEquation : vertices.idxOf? second = none :=
+              (List.idxOf?_eq_none_iff).mpr secondOutside
+            have resultEquation : vertices.idxOf? result = none :=
+              (List.idxOf?_eq_none_iff).mpr resultOutside
+            simp [Link.restrictTo?, Edge.restrictTo?, emitFixed,
+              firstEquation, secondEquation, resultEquation, tailEquality]
+      | par first second result =>
+          cases firstEquation : vertices.idxOf? first <;>
+          cases secondEquation : vertices.idxOf? second <;>
+          cases resultEquation : vertices.idxOf? result <;>
+            simp [Link.restrictTo?, emitFixed,
+              firstEquation, secondEquation, resultEquation, tailEquality]
+
 /-- A par link is terminal when its conclusion occurrence is on the ordered
 public boundary. Such a link is the unary inverse-rule case of
 sequentialization. -/
@@ -2089,6 +2444,20 @@ theorem tensorRightVertices_nodup (certificate : Certificate)
     (left conclusion : Vertex) :
     (certificate.tensorRightVertices left conclusion).Nodup :=
   List.filter_sublist.nodup List.nodup_range
+
+theorem conclusion_not_mem_tensorLeftVertices (certificate : Certificate)
+    (left conclusion : Vertex) :
+    conclusion ∉ certificate.tensorLeftVertices left conclusion := by
+  intro membership
+  exact (TerminalTensor.mem_tensorLeftVertices_iff certificate
+    left conclusion conclusion).mp membership |>.2.1 rfl
+
+theorem conclusion_not_mem_tensorRightVertices (certificate : Certificate)
+    (left conclusion : Vertex) :
+    conclusion ∉ certificate.tensorRightVertices left conclusion := by
+  intro membership
+  exact (TerminalTensor.mem_tensorRightVertices_iff certificate
+    left conclusion conclusion).mp membership |>.2.1 rfl
 
 theorem vertex_partition (certificate : Certificate)
     (left conclusion vertex : Vertex)
@@ -3308,6 +3677,143 @@ theorem ChoiceSelection.liftDelete
               exact ⟨choice.2 :: lifted, .right liftedSelection, by
                 simp [secondEquation, selectedEquation]⟩
 
+theorem ChoiceSelection.liftRestrict
+    {vertices : List Vertex} {choices : List (Edge × Edge)}
+    {selected : List Edge}
+    (selection : ChoiceSelection
+      (choices.filterMap (ParChoice.restrictTo? vertices)) selected) :
+    ∃ lifted,
+      ChoiceSelection choices lifted ∧
+      selected = lifted.filterMap (Edge.restrictTo? vertices) := by
+  induction choices generalizing selected with
+  | nil =>
+      cases selection
+      exact ⟨[], .nil, rfl⟩
+  | cons choice rest ih =>
+      cases firstEquation : choice.1.restrictTo? vertices with
+      | none =>
+          have restSelection : ChoiceSelection
+              (rest.filterMap (ParChoice.restrictTo? vertices)) selected := by
+            simpa [ParChoice.restrictTo?, firstEquation] using selection
+          rcases ih restSelection with
+            ⟨lifted, liftedSelection, selectedEquation⟩
+          exact ⟨choice.1 :: lifted, .left liftedSelection, by
+            simp [firstEquation, selectedEquation]⟩
+      | some first =>
+          cases secondEquation : choice.2.restrictTo? vertices with
+          | none =>
+              have restSelection : ChoiceSelection
+                  (rest.filterMap (ParChoice.restrictTo? vertices)) selected := by
+                simpa [ParChoice.restrictTo?, firstEquation, secondEquation]
+                  using selection
+              rcases ih restSelection with
+                ⟨lifted, liftedSelection, selectedEquation⟩
+              exact ⟨choice.2 :: lifted, .right liftedSelection, by
+                simp [secondEquation, selectedEquation]⟩
+          | some second =>
+              have expandedSelection : ChoiceSelection
+                  ((first, second) ::
+                    rest.filterMap (ParChoice.restrictTo? vertices)) selected := by
+                simpa [ParChoice.restrictTo?, firstEquation, secondEquation]
+                  using selection
+              cases expandedSelection with
+              | left prior =>
+                  rcases ih prior with
+                    ⟨lifted, liftedSelection, selectedEquation⟩
+                  exact ⟨choice.1 :: lifted, .left liftedSelection, by
+                    simp [firstEquation, selectedEquation]⟩
+              | right prior =>
+                  rcases ih prior with
+                    ⟨lifted, liftedSelection, selectedEquation⟩
+                  exact ⟨choice.2 :: lifted, .right liftedSelection, by
+                    simp [secondEquation, selectedEquation]⟩
+
+/-- Every switching of a closed restricted component is the edge restriction
+of a switching of the input certificate. -/
+theorem restrictTo?_switchingLift_of_tensor_partition
+    {certificate restricted : Certificate} {vertices boundary : List Vertex}
+    {left right conclusion : Vertex}
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    (conclusionOutside : conclusion ∉ vertices)
+    (partition : ∀ link ∈ certificate.links,
+      link = .tensor left right conclusion ∨
+        (∀ vertex ∈ link.vertices, vertex ∈ vertices) ∨
+        (∀ vertex ∈ link.vertices, vertex ∉ vertices))
+    {restrictedGraph : Graph}
+    (restrictedSwitching : restricted.SwitchingGraph restrictedGraph) :
+    ∃ inputGraph,
+      certificate.SwitchingGraph inputGraph ∧
+      restrictedGraph = inputGraph.restrictTo vertices := by
+  rcases restrictedSwitching with ⟨selected, selection, rfl⟩
+  have transformedSelection : ChoiceSelection
+      (certificate.parChoices.filterMap (ParChoice.restrictTo? vertices))
+      selected := by
+    rw [← certificate.restrictTo?_parChoices certificateEquation]
+    exact selection
+  rcases transformedSelection.liftRestrict with
+    ⟨lifted, liftedSelection, selectedEquation⟩
+  let inputGraph := certificate.graphForSelection lifted
+  refine ⟨inputGraph, ⟨lifted, liftedSelection, rfl⟩, ?_⟩
+  have formulasSize :=
+    certificate.restrictTo?_formulas_size certificateEquation
+  have edgesEquation : restricted.fixedEdges ++ selected =
+      (certificate.fixedEdges ++ lifted).filterMap
+        (Edge.restrictTo? vertices) := by
+    rw [certificate.restrictTo?_fixedEdges_of_tensor_partition
+      certificateEquation conclusionOutside partition,
+      selectedEquation, List.filterMap_append]
+  simp [inputGraph, Certificate.graphForSelection, Graph.restrictTo,
+    formulasSize, edgesEquation]
+
+namespace TerminalTensor
+
+theorem restrictTo?_leftSwitchingLift
+    {certificate restricted : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) = some restricted)
+    {restrictedGraph : Graph}
+    (restrictedSwitching : restricted.SwitchingGraph restrictedGraph) :
+    ∃ inputGraph,
+      certificate.SwitchingGraph inputGraph ∧
+      restrictedGraph = inputGraph.restrictTo
+        (certificate.tensorLeftVertices left conclusion) := by
+  apply certificate.restrictTo?_switchingLift_of_tensor_partition
+    certificateEquation
+    (TerminalTensor.conclusion_not_mem_tensorLeftVertices
+      certificate left conclusion)
+  · intro link membership
+    exact TerminalTensor.link_terminal_or_left_or_avoids_left
+      structural splitting membership
+  · exact restrictedSwitching
+
+theorem restrictTo?_rightSwitchingLift
+    {certificate restricted : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion) = some restricted)
+    {restrictedGraph : Graph}
+    (restrictedSwitching : restricted.SwitchingGraph restrictedGraph) :
+    ∃ inputGraph,
+      certificate.SwitchingGraph inputGraph ∧
+      restrictedGraph = inputGraph.restrictTo
+        (certificate.tensorRightVertices left conclusion) := by
+  apply certificate.restrictTo?_switchingLift_of_tensor_partition
+    certificateEquation
+    (TerminalTensor.conclusion_not_mem_tensorRightVertices
+      certificate left conclusion)
+  · intro link membership
+    exact TerminalTensor.link_terminal_or_right_or_avoids_right
+      structural splitting membership
+  · exact restrictedSwitching
+
+end TerminalTensor
+
 theorem TerminalPar.parChoice_incident_agreement
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -3473,6 +3979,554 @@ theorem TerminalTensor.graphForSelection_incidentCount
     TerminalTensor.fixedEdges_incident structural terminal,
     TerminalTensor.selected_incidentCount structural terminal selection]
   rfl
+
+theorem TerminalTensor.graphForSelection_incidentEdges
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    (certificate.graphForSelection selected).edges.filter
+        (·.incident conclusion) =
+      [{ first := left, second := conclusion },
+       { first := right, second := conclusion }] := by
+  have selectedLength :=
+    TerminalTensor.selected_incidentCount structural terminal selection
+  have selectedNone : selected.filter (·.incident conclusion) = [] :=
+    List.eq_nil_of_length_eq_zero selectedLength
+  change (certificate.fixedEdges ++ selected).filter
+      (·.incident conclusion) = _
+  rw [List.filter_append,
+    TerminalTensor.fixedEdges_incident structural terminal, selectedNone]
+  rfl
+
+theorem TerminalTensor.graphForSelection_adjacent_conclusion_iff
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    (certificate.graphForSelection selected).Adjacent vertex conclusion ↔
+      vertex = left ∨ vertex = right := by
+  have incidentEdges :=
+    TerminalTensor.graphForSelection_incidentEdges structural terminal selection
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have leftNotConclusion := terminalWellFormed.2.1
+  have rightNotConclusion := terminalWellFormed.2.2.1
+  constructor
+  · rintro ⟨edge, edgeMembership, direction⟩
+    have incident : edge.incident conclusion = true := by
+      rcases direction with forward | backward
+      · simp [Edge.incident, forward]
+      · simp [Edge.incident, backward]
+    have filtered : edge ∈
+        (certificate.graphForSelection selected).edges.filter
+          (·.incident conclusion) := by
+      simp [edgeMembership, incident]
+    rw [incidentEdges] at filtered
+    simp at filtered
+    rcases filtered with same | same
+    · rw [same] at direction
+      rcases direction with forward | backward
+      · exact Or.inl forward.1.symm
+      · exact False.elim (leftNotConclusion backward.1)
+    · rw [same] at direction
+      rcases direction with forward | backward
+      · exact Or.inr forward.1.symm
+      · exact False.elim (rightNotConclusion backward.1)
+  · intro endpoint
+    rcases endpoint with endpoint | endpoint
+    · have filtered : ({ first := left, second := conclusion } : Edge) ∈
+          (certificate.graphForSelection selected).edges.filter
+            (·.incident conclusion) := by
+        rw [incidentEdges]
+        simp
+      have adjacency : (certificate.graphForSelection selected).Adjacent
+          left conclusion :=
+        ⟨_, (List.mem_filter.mp filtered).1, .inl ⟨rfl, rfl⟩⟩
+      simpa [endpoint] using adjacency
+    · have filtered : ({ first := right, second := conclusion } : Edge) ∈
+          (certificate.graphForSelection selected).edges.filter
+            (·.incident conclusion) := by
+        rw [incidentEdges]
+        simp
+      have adjacency : (certificate.graphForSelection selected).Adjacent
+          right conclusion :=
+        ⟨_, (List.mem_filter.mp filtered).1, .inl ⟨rfl, rfl⟩⟩
+      simpa [endpoint] using adjacency
+
+namespace TerminalTensor
+
+theorem graphForSelection_adjacent_preserves_left
+    {certificate : Certificate} {left right conclusion first second : Vertex}
+    {selected : List Edge}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (firstMembership :
+      first ∈ certificate.tensorLeftVertices left conclusion)
+    (secondNotConclusion : second ≠ conclusion)
+    (adjacency : (certificate.graphForSelection selected).Adjacent
+      first second) :
+    second ∈ certificate.tensorLeftVertices left conclusion := by
+  have firstData := (TerminalTensor.mem_tensorLeftVertices_iff certificate
+    left conclusion first).mp firstMembership
+  have fullAdjacency :=
+    certificate.graphForSelection_adjacent_fullGraphWithout selection
+      firstData.2.1 secondNotConclusion adjacency
+  have fullBounded :=
+    certificate.fullGraphWithoutVertex_bounded structural conclusion
+  have secondInBounds :=
+    (certificate.fullGraphWithoutVertex conclusion).adjacent_right_in_bounds
+      fullBounded fullAdjacency
+  have terminalWellFormed := structural.2.2.2.2.1 _ splitting.1.1
+  have leftInBounds := terminalWellFormed.2.2.2.1
+  have firstWalk :=
+    (Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+      leftInBounds firstData.1).mp firstData.2.2
+  have secondReachable : second ∈
+      certificate.tensorLeftReachable left conclusion := by
+    unfold tensorLeftReachable
+    exact (Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+      leftInBounds secondInBounds).mpr (.step firstWalk fullAdjacency)
+  exact (TerminalTensor.mem_tensorLeftVertices_iff certificate
+    left conclusion second).mpr
+    ⟨secondInBounds, secondNotConclusion, secondReachable⟩
+
+theorem graphForSelection_adjacent_preserves_right
+    {certificate : Certificate} {left right conclusion first second : Vertex}
+    {selected : List Edge}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (firstMembership :
+      first ∈ certificate.tensorRightVertices left conclusion)
+    (secondNotConclusion : second ≠ conclusion)
+    (adjacency : (certificate.graphForSelection selected).Adjacent
+      first second) :
+    second ∈ certificate.tensorRightVertices left conclusion := by
+  have firstData := (TerminalTensor.mem_tensorRightVertices_iff certificate
+    left conclusion first).mp firstMembership
+  have fullAdjacency :=
+    certificate.graphForSelection_adjacent_fullGraphWithout selection
+      firstData.2.1 secondNotConclusion adjacency
+  have fullBounded :=
+    certificate.fullGraphWithoutVertex_bounded structural conclusion
+  have secondInBounds :=
+    (certificate.fullGraphWithoutVertex conclusion).adjacent_right_in_bounds
+      fullBounded fullAdjacency
+  have terminalWellFormed := structural.2.2.2.2.1 _ splitting.1.1
+  have leftInBounds := terminalWellFormed.2.2.2.1
+  have secondUnreachable : second ∉
+      certificate.tensorLeftReachable left conclusion := by
+    intro secondReachable
+    have secondWalk :=
+      (Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+        leftInBounds secondInBounds).mp secondReachable
+    have firstWalk := secondWalk.trans
+      (.step (.refl second) fullAdjacency.symm)
+    exact firstData.2.2
+      ((Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+        leftInBounds firstData.1).mpr firstWalk)
+  exact (TerminalTensor.mem_tensorRightVertices_iff certificate
+    left conclusion second).mpr
+    ⟨secondInBounds, secondNotConclusion, secondUnreachable⟩
+
+theorem simpleWalk_avoiding_conclusion_stays_left
+    {certificate : Certificate} {left right conclusion start finish : Vertex}
+    {selected : List Edge} {steps : Nat} {visited : List Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree)
+    (walk : (certificate.graphForSelection selected).SimpleWalk
+      start steps visited finish)
+    (startMembership :
+      start ∈ certificate.tensorLeftVertices left conclusion)
+    (avoidsConclusion : conclusion ∉ visited) :
+    ∀ vertex ∈ visited,
+      vertex ∈ certificate.tensorLeftVertices left conclusion := by
+  induction walk with
+  | refl =>
+      intro vertex membership
+      simp at membership
+      subst vertex
+      exact startMembership
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      have priorAvoids : conclusion ∉ priorVisited := by
+        intro membership
+        exact avoidsConclusion (by simp [membership])
+      have priorContained := ih priorAvoids
+      intro vertex membership
+      simp at membership
+      rcases membership with priorMembership | same
+      · exact priorContained vertex priorMembership
+      · subst vertex
+        have middleMembership := priorContained middle prior.finish_mem
+        have middleNotConclusion :=
+          (TerminalTensor.mem_tensorLeftVertices_iff certificate
+            left conclusion middle).mp middleMembership |>.2.1
+        have currentNotConclusion : current ≠ conclusion := by
+          intro same
+          subst current
+          exact avoidsConclusion (by simp)
+        have currentInBounds :=
+          (certificate.graphForSelection selected).adjacent_right_in_bounds
+            tree.1 adjacency
+        have fullAdjacency :=
+          certificate.graphForSelection_adjacent_fullGraphWithout selection
+            middleNotConclusion currentNotConclusion adjacency
+        have terminalWellFormed := structural.2.2.2.2.1 _ splitting.1.1
+        have leftInBounds := terminalWellFormed.2.2.2.1
+        have middleInBounds :=
+          (TerminalTensor.mem_tensorLeftVertices_iff certificate
+            left conclusion middle).mp middleMembership |>.1
+        have middleReachable :=
+          (TerminalTensor.mem_tensorLeftVertices_iff certificate
+            left conclusion middle).mp middleMembership |>.2.2
+        have fullBounded :=
+          certificate.fullGraphWithoutVertex_bounded structural conclusion
+        have middleWalk :=
+          (Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+            leftInBounds middleInBounds).mp middleReachable
+        have currentReachable : current ∈
+            certificate.tensorLeftReachable left conclusion := by
+          unfold tensorLeftReachable
+          exact (Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+            leftInBounds currentInBounds).mpr
+            (.step middleWalk fullAdjacency)
+        exact (TerminalTensor.mem_tensorLeftVertices_iff certificate
+          left conclusion current).mpr
+          ⟨currentInBounds, currentNotConclusion, currentReachable⟩
+
+theorem simpleWalk_avoiding_conclusion_stays_right
+    {certificate : Certificate} {left right conclusion start finish : Vertex}
+    {selected : List Edge} {steps : Nat} {visited : List Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree)
+    (walk : (certificate.graphForSelection selected).SimpleWalk
+      start steps visited finish)
+    (startMembership :
+      start ∈ certificate.tensorRightVertices left conclusion)
+    (avoidsConclusion : conclusion ∉ visited) :
+    ∀ vertex ∈ visited,
+      vertex ∈ certificate.tensorRightVertices left conclusion := by
+  induction walk with
+  | refl =>
+      intro vertex membership
+      simp at membership
+      subst vertex
+      exact startMembership
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      have priorAvoids : conclusion ∉ priorVisited := by
+        intro membership
+        exact avoidsConclusion (by simp [membership])
+      have priorContained := ih priorAvoids
+      intro vertex membership
+      simp at membership
+      rcases membership with priorMembership | same
+      · exact priorContained vertex priorMembership
+      · subst vertex
+        have middleMembership := priorContained middle prior.finish_mem
+        have middleNotConclusion :=
+          (TerminalTensor.mem_tensorRightVertices_iff certificate
+            left conclusion middle).mp middleMembership |>.2.1
+        have currentNotConclusion : current ≠ conclusion := by
+          intro same
+          subst current
+          exact avoidsConclusion (by simp)
+        have currentInBounds :=
+          (certificate.graphForSelection selected).adjacent_right_in_bounds
+            tree.1 adjacency
+        have fullAdjacency :=
+          certificate.graphForSelection_adjacent_fullGraphWithout selection
+            middleNotConclusion currentNotConclusion adjacency
+        have terminalWellFormed := structural.2.2.2.2.1 _ splitting.1.1
+        have leftInBounds := terminalWellFormed.2.2.2.1
+        have middleInBounds :=
+          (TerminalTensor.mem_tensorRightVertices_iff certificate
+            left conclusion middle).mp middleMembership |>.1
+        have middleUnreachable :=
+          (TerminalTensor.mem_tensorRightVertices_iff certificate
+            left conclusion middle).mp middleMembership |>.2.2
+        have fullBounded :=
+          certificate.fullGraphWithoutVertex_bounded structural conclusion
+        have currentUnreachable : current ∉
+            certificate.tensorLeftReachable left conclusion := by
+          intro currentReachable
+          have currentWalk :=
+            (Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+              leftInBounds currentInBounds).mp currentReachable
+          have reverseAdjacency :
+              (certificate.fullGraphWithoutVertex conclusion).Adjacent
+                current middle := by
+            rcases fullAdjacency with ⟨edge, edgeMembership, direction⟩
+            refine ⟨edge, edgeMembership, ?_⟩
+            rcases direction with forward | backward
+            · exact .inr forward
+            · exact .inl backward
+          have middleWalk := currentWalk.trans
+            (.step (.refl current) reverseAdjacency)
+          exact middleUnreachable
+            ((Graph.mem_closureN_vertexCount_iff_walk _ fullBounded
+              leftInBounds middleInBounds).mpr middleWalk)
+        exact (TerminalTensor.mem_tensorRightVertices_iff certificate
+          left conclusion current).mpr
+          ⟨currentInBounds, currentNotConclusion, currentUnreachable⟩
+
+theorem simpleWalk_left_endpoints_avoids_conclusion
+    {certificate : Certificate} {left right conclusion start finish : Vertex}
+    {selected : List Edge} {steps : Nat} {visited : List Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree)
+    (walk : (certificate.graphForSelection selected).SimpleWalk
+      start steps visited finish)
+    (startMembership :
+      start ∈ certificate.tensorLeftVertices left conclusion)
+    (finishMembership :
+      finish ∈ certificate.tensorLeftVertices left conclusion) :
+    conclusion ∉ visited := by
+  induction walk with
+  | refl =>
+      have startNotConclusion :=
+        (TerminalTensor.mem_tensorLeftVertices_iff certificate
+          left conclusion start).mp startMembership |>.2.1
+      simpa [eq_comm] using startNotConclusion
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      have currentNotConclusion :=
+        (TerminalTensor.mem_tensorLeftVertices_iff certificate
+          left conclusion current).mp finishMembership |>.2.1
+      intro conclusionMembership
+      simp at conclusionMembership
+      rcases conclusionMembership with priorContains | currentIsConclusion
+      · by_cases middleIsConclusion : middle = conclusion
+        · subst middle
+          have currentEndpoint :=
+            (TerminalTensor.graphForSelection_adjacent_conclusion_iff
+              structural splitting.1 selection).mp adjacency.symm
+          have currentIsLeft : current = left := by
+            rcases currentEndpoint with currentIsLeft | currentIsRight
+            · exact currentIsLeft
+            · subst current
+              exact False.elim
+                (TerminalTensor.vertex_partition_disjoint certificate
+                  left conclusion right finishMembership
+                  (TerminalTensor.right_mem_tensorRightVertices
+                    structural splitting))
+          cases prior with
+          | refl =>
+              have startNotConclusion :=
+                (TerminalTensor.mem_tensorLeftVertices_iff certificate
+                  left conclusion conclusion).mp startMembership |>.2.1
+              exact startNotConclusion rfl
+          | @step earlierSteps earlierVisited previous _ earlier enter
+              conclusionFresh =>
+              have previousEndpoint :=
+                (TerminalTensor.graphForSelection_adjacent_conclusion_iff
+                  structural splitting.1 selection).mp enter
+              rcases previousEndpoint with previousIsLeft | previousIsRight
+              · subst previous
+                subst current
+                exact fresh (List.mem_append.mpr (Or.inl earlier.finish_mem))
+              · have earlierContained :=
+                  TerminalTensor.simpleWalk_avoiding_conclusion_stays_left
+                    structural splitting selection tree earlier startMembership
+                    conclusionFresh
+                have previousLeft :=
+                  earlierContained previous earlier.finish_mem
+                subst previous
+                exact TerminalTensor.vertex_partition_disjoint certificate
+                  left conclusion right previousLeft
+                  (TerminalTensor.right_mem_tensorRightVertices
+                    structural splitting)
+        · have middleLeft :=
+            TerminalTensor.graphForSelection_adjacent_preserves_left
+              structural splitting selection finishMembership
+              middleIsConclusion adjacency.symm
+          exact (ih middleLeft) priorContains
+      · exact currentNotConclusion currentIsConclusion.symm
+
+theorem simpleWalk_right_endpoints_avoids_conclusion
+    {certificate : Certificate} {left right conclusion start finish : Vertex}
+    {selected : List Edge} {steps : Nat} {visited : List Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree)
+    (walk : (certificate.graphForSelection selected).SimpleWalk
+      start steps visited finish)
+    (startMembership :
+      start ∈ certificate.tensorRightVertices left conclusion)
+    (finishMembership :
+      finish ∈ certificate.tensorRightVertices left conclusion) :
+    conclusion ∉ visited := by
+  induction walk with
+  | refl =>
+      have startNotConclusion :=
+        (TerminalTensor.mem_tensorRightVertices_iff certificate
+          left conclusion start).mp startMembership |>.2.1
+      simpa [eq_comm] using startNotConclusion
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      have currentNotConclusion :=
+        (TerminalTensor.mem_tensorRightVertices_iff certificate
+          left conclusion current).mp finishMembership |>.2.1
+      intro conclusionMembership
+      simp at conclusionMembership
+      rcases conclusionMembership with priorContains | currentIsConclusion
+      · by_cases middleIsConclusion : middle = conclusion
+        · subst middle
+          have currentEndpoint :=
+            (TerminalTensor.graphForSelection_adjacent_conclusion_iff
+              structural splitting.1 selection).mp adjacency.symm
+          have currentIsRight : current = right := by
+            rcases currentEndpoint with currentIsLeft | currentIsRight
+            · subst current
+              exact False.elim
+                (TerminalTensor.vertex_partition_disjoint certificate
+                  left conclusion left
+                  (TerminalTensor.left_mem_tensorLeftVertices
+                    structural splitting.1) finishMembership)
+            · exact currentIsRight
+          cases prior with
+          | refl =>
+              have startNotConclusion :=
+                (TerminalTensor.mem_tensorRightVertices_iff certificate
+                  left conclusion conclusion).mp startMembership |>.2.1
+              exact startNotConclusion rfl
+          | @step earlierSteps earlierVisited previous _ earlier enter
+              conclusionFresh =>
+              have previousEndpoint :=
+                (TerminalTensor.graphForSelection_adjacent_conclusion_iff
+                  structural splitting.1 selection).mp enter
+              rcases previousEndpoint with previousIsLeft | previousIsRight
+              · have earlierContained :=
+                  TerminalTensor.simpleWalk_avoiding_conclusion_stays_right
+                    structural splitting selection tree earlier startMembership
+                    conclusionFresh
+                have previousRight :=
+                  earlierContained previous earlier.finish_mem
+                subst previous
+                exact TerminalTensor.vertex_partition_disjoint certificate
+                  left conclusion left
+                  (TerminalTensor.left_mem_tensorLeftVertices
+                    structural splitting.1) previousRight
+              · subst previous
+                subst current
+                exact fresh (List.mem_append.mpr (Or.inl earlier.finish_mem))
+        · have middleRight :=
+            TerminalTensor.graphForSelection_adjacent_preserves_right
+              structural splitting selection finishMembership
+              middleIsConclusion adjacency.symm
+          exact (ih middleRight) priorContains
+      · exact currentNotConclusion currentIsConclusion.symm
+
+theorem graph_restrictTo_left_connected
+    {certificate : Certificate} {left right conclusion : Vertex}
+    {selected : List Edge}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree) :
+    ((certificate.graphForSelection selected).restrictTo
+      (certificate.tensorLeftVertices left conclusion)).Connected := by
+  let vertices := certificate.tensorLeftVertices left conclusion
+  have verticesPositive :=
+    TerminalTensor.tensorLeftVertices_length_pos structural splitting.1
+  refine ⟨by simpa [Graph.restrictTo, vertices] using verticesPositive, ?_⟩
+  intro localVertex localInBounds
+  have zeroInBounds : 0 < vertices.length := verticesPositive
+  let oldStart := vertices[0]
+  let oldFinish := vertices[localVertex]
+  have oldStartMembership : oldStart ∈ vertices :=
+    List.getElem_mem zeroInBounds
+  have oldFinishMembership : oldFinish ∈ vertices :=
+    List.getElem_mem localInBounds
+  have oldStartInBounds :=
+    (TerminalTensor.mem_tensorLeftVertices_iff certificate
+      left conclusion oldStart).mp oldStartMembership |>.1
+  have oldFinishInBounds :=
+    (TerminalTensor.mem_tensorLeftVertices_iff certificate
+      left conclusion oldFinish).mp oldFinishMembership |>.1
+  have between : (certificate.graphForSelection selected).Walk
+      oldStart oldFinish :=
+    (tree.2.1.2 oldStart oldStartInBounds).reverse.trans
+      (tree.2.1.2 oldFinish oldFinishInBounds)
+  rcases between.toSimple with ⟨steps, visited, simple⟩
+  have avoids :=
+    TerminalTensor.simpleWalk_left_endpoints_avoids_conclusion
+      structural splitting selection tree simple oldStartMembership
+      oldFinishMembership
+  have contained :=
+    TerminalTensor.simpleWalk_avoiding_conclusion_stays_left
+      structural splitting selection tree simple oldStartMembership avoids
+  have restrictedWalk := simple.restrictTo contained
+  have startIndex : vertices.idxOf oldStart = 0 :=
+    idxOf_getElem_eq_index
+      (TerminalTensor.tensorLeftVertices_nodup certificate left conclusion)
+      0 zeroInBounds
+  have finishIndex : vertices.idxOf oldFinish = localVertex :=
+    idxOf_getElem_eq_index
+      (TerminalTensor.tensorLeftVertices_nodup certificate left conclusion)
+      localVertex localInBounds
+  rw [startIndex, finishIndex] at restrictedWalk
+  exact restrictedWalk
+
+theorem graph_restrictTo_right_connected
+    {certificate : Certificate} {left right conclusion : Vertex}
+    {selected : List Edge}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (selection : ChoiceSelection certificate.parChoices selected)
+    (tree : (certificate.graphForSelection selected).IsTree) :
+    ((certificate.graphForSelection selected).restrictTo
+      (certificate.tensorRightVertices left conclusion)).Connected := by
+  let vertices := certificate.tensorRightVertices left conclusion
+  have verticesPositive :=
+    TerminalTensor.tensorRightVertices_length_pos structural splitting
+  refine ⟨by simpa [Graph.restrictTo, vertices] using verticesPositive, ?_⟩
+  intro localVertex localInBounds
+  have zeroInBounds : 0 < vertices.length := verticesPositive
+  let oldStart := vertices[0]
+  let oldFinish := vertices[localVertex]
+  have oldStartMembership : oldStart ∈ vertices :=
+    List.getElem_mem zeroInBounds
+  have oldFinishMembership : oldFinish ∈ vertices :=
+    List.getElem_mem localInBounds
+  have oldStartInBounds :=
+    (TerminalTensor.mem_tensorRightVertices_iff certificate
+      left conclusion oldStart).mp oldStartMembership |>.1
+  have oldFinishInBounds :=
+    (TerminalTensor.mem_tensorRightVertices_iff certificate
+      left conclusion oldFinish).mp oldFinishMembership |>.1
+  have between : (certificate.graphForSelection selected).Walk
+      oldStart oldFinish :=
+    (tree.2.1.2 oldStart oldStartInBounds).reverse.trans
+      (tree.2.1.2 oldFinish oldFinishInBounds)
+  rcases between.toSimple with ⟨steps, visited, simple⟩
+  have avoids :=
+    TerminalTensor.simpleWalk_right_endpoints_avoids_conclusion
+      structural splitting selection tree simple oldStartMembership
+      oldFinishMembership
+  have contained :=
+    TerminalTensor.simpleWalk_avoiding_conclusion_stays_right
+      structural splitting selection tree simple oldStartMembership avoids
+  have restrictedWalk := simple.restrictTo contained
+  have startIndex : vertices.idxOf oldStart = 0 :=
+    idxOf_getElem_eq_index
+      (TerminalTensor.tensorRightVertices_nodup certificate left conclusion)
+      0 zeroInBounds
+  have finishIndex : vertices.idxOf oldFinish = localVertex :=
+    idxOf_getElem_eq_index
+      (TerminalTensor.tensorRightVertices_nodup certificate left conclusion)
+      localVertex localInBounds
+  rw [startIndex, finishIndex] at restrictedWalk
+  exact restrictedWalk
+
+end TerminalTensor
 
 theorem TerminalPar.parChoices_incidentCount
     {certificate : Certificate} {left right conclusion : Vertex}

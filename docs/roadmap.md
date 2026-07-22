@@ -94,8 +94,11 @@
   partition with no crossing remaining link, both boundary reindexings are
   defined, and `splitTerminalTensorCandidate?` necessarily returns two
   certificates that are both structurally well formed.
-- [ ] Prove both splitting-tensor restrictions preserve every switching tree
-  and therefore checker/declarative correctness.
+- [x] Prove every child switching lifts to an input switching as an induced
+  occurrence restriction, and prove both restricted graphs bounded and
+  connected via the terminal-tensor separator theorem.
+- [ ] Prove the two restricted switching graphs satisfy the exact tree
+  edge-count equation, then derive full checker/declarative correctness.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

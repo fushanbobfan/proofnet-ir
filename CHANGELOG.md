@@ -35,6 +35,10 @@
   candidate return two structurally well-formed certificates, including exact
   restriction/index transport, local link typing, duplicate-free boundaries,
   source ownership, and the root parent-use decrement on both components.
+- proved that every switching of either splitting-tensor component lifts to an
+  input switching as an exact induced restriction; the restricted graphs are
+  bounded and connected because a same-side simple path cannot cross the
+  degree-two terminal tensor separator.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

@@ -221,6 +221,16 @@ def canonicalParPremise : Certificate where
     .tensor 0 2 4]
   conclusions := [4, 1, 3]
 
+def canonicalLeftTensorPremise : Certificate where
+  formulas := #[p, pDual]
+  links := [.axiom 0 1]
+  conclusions := [1, 0]
+
+def canonicalRightTensorPremise : Certificate where
+  formulas := #[q, qDual]
+  links := [.axiom 0 1]
+  conclusions := [1, 0]
+
 example : canonicalParPremise.SplittingTensor 0 2 4 := by
   apply (Certificate.TerminalTensor.splitting_iff_reachability_rejected
     (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
@@ -258,6 +268,47 @@ example : ∃ leftCertificate rightCertificate,
         (canonicalParPremise.mem_terminalTensors_iff 0 2 4 |>.mp
           (by native_decide))).mpr
       native_decide)
+
+example : canonicalParPremise.splitTerminalTensorCandidate? 0 2 4 =
+    some (canonicalLeftTensorPremise, canonicalRightTensorPremise) := by
+  native_decide
+
+example {graph : Graph}
+    (switching : canonicalLeftTensorPremise.SwitchingGraph graph) :
+    ∃ inputGraph,
+      canonicalParPremise.SwitchingGraph inputGraph ∧
+      graph = inputGraph.restrictTo
+        (canonicalParPremise.tensorLeftVertices 0 4) := by
+  apply Certificate.TerminalTensor.restrictTo?_leftSwitchingLift
+    (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (by
+      apply (Certificate.TerminalTensor.splitting_iff_reachability_rejected
+        (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+          (by native_decide))
+        (canonicalParPremise.mem_terminalTensors_iff 0 2 4 |>.mp
+          (by native_decide))).mpr
+      native_decide)
+    (by native_decide)
+    switching
+
+example {selected : List Edge}
+    (selection : Certificate.ChoiceSelection
+      canonicalParPremise.parChoices selected)
+    (tree : (canonicalParPremise.graphForSelection selected).IsTree) :
+    ((canonicalParPremise.graphForSelection selected).restrictTo
+      (canonicalParPremise.tensorLeftVertices 0 4)).Connected := by
+  exact Certificate.TerminalTensor.graph_restrictTo_left_connected
+    (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (by
+      apply (Certificate.TerminalTensor.splitting_iff_reachability_rejected
+        (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+          (by native_decide))
+        (canonicalParPremise.mem_terminalTensors_iff 0 2 4 |>.mp
+          (by native_decide))).mpr
+      native_decide)
+    selection tree
 
 example : canonical.peelTerminalParCandidate? 1 3 5 =
     some canonicalParPremise := by native_decide
