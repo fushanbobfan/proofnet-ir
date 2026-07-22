@@ -82,7 +82,8 @@ The repository currently contains:
   checker-preserving inverse rules and returns a proof-bearing tree, exact
   ordered input boundary, accepted desequentialization, and
   `ProofNetEquivalent` output; it currently passes all 250 broad generated
-  regressions plus repeated-boundary-label and reversed-link-order regressions.
+  regressions, the same 250 nets with every link list reversed, and a dedicated
+  repeated-boundary-label regression.
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does

@@ -10,7 +10,8 @@
   `ReindexEquivalent` postcondition after a reversed-link-order accepted
   certificate exposed a false runtime failure; executable identity now
   enumerates formula-compatible vertex bijections and checks link permutation,
-  with the counterexample retained as a regression;
+  with the counterexample and all 250 generated nets under reversed link order
+  retained as regressions;
 - added 250 broad generated executable-sequentialization regressions plus a
   dedicated repeated-formula-boundary test; the universal totality theorem for
   this specific search remains an explicit pre-release obligation;

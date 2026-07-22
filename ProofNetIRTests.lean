@@ -201,6 +201,19 @@ def reversedLinkSequentializes : Bool :=
 the v0.5 prototype's initially over-strong `ReindexEquivalent` postcondition. -/
 example : reversedLinkSequentializes = true := by native_decide
 
+def generatedReversedLinkSequentializations : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        let reordered : Certificate :=
+          { certificate with links := certificate.links.reverse }
+        reordered.check && reordered.sequentialize.isOk
+
+/-- The full generated corpus remains executable after reversing every stored
+link list, exercising the v0.4 link-permutation identity contract broadly. -/
+example : generatedReversedLinkSequentializations = true := by native_decide
+
 def generatedTerminalParPeelsAccepted : Bool :=
   generatedDerivationTrees.all fun tree =>
     match tree.desequentialize? with

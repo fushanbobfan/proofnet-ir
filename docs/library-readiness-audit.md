@@ -76,11 +76,11 @@ part of the engineering and proof-identity gap.
    `Certificate.sequentialize` API now performs executable inverse-rule search
    and returns structured errors or a proof-bearing result with exact input
    labels, accepted desequentialization, and `ProofNetEquivalent` output. It
-   passes 250 broad generated nets, a repeated-label regression, and an accepted
-   reversed-link-order regression that previously falsified an over-strong
-   `ReindexEquivalent` prototype contract. The missing logical step is a theorem
-   that this corrected finite search succeeds on every checker-accepted
-   certificate; regressions do not replace that proof.
+   passes 250 broad generated nets, those same 250 nets with reversed link
+   lists, and a repeated-label regression. Reversed link order previously
+   falsified an over-strong `ReindexEquivalent` prototype contract. The missing
+   logical step is a theorem that this corrected finite search succeeds on
+   every checker-accepted certificate; regressions do not replace that proof.
 2. The safe `elaborate?` return type relates inference, derivation existence,
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`
