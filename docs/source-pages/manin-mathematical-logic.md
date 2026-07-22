@@ -11,7 +11,7 @@ Audit started: 2026-07-22
 - Extent: 389 physical PDF pages.
 - Text extraction: 388 pages have extractable text. Physical page 1 has no
   extracted text and was therefore rendered and checked visually as the cover.
-- Current direct ordered reading: physical pages 1-96. This is an in-progress
+- Current direct ordered reading: physical pages 1-144. This is an in-progress
   page audit, not a completed-source claim.
 
 ## Page-by-page matrix for the completed interval
@@ -114,11 +114,59 @@ Audit started: 2026-07-22
 | 94 | 80 / II.12.4-12.5 | Link from spin assignments to Kochen-Specker, followed by the Hilbert-space language of quantum mechanics. | General local/global analogy only; no theorem transfers to proof nets. |
 | 95 | 81 / II.12.5-12.7 | Observables, compatible operators, symmetries, and the hydrogen-atom example. | No direct project dependency; reinforces keeping mathematical language and physical interpretation separate. |
 | 96 | 82 / II.12.8 | Two-layer interpretation of free evolution, observation, probability, and post-measurement state. | Demonstrates that one syntax can have layered operational interpretation; outside current certificate semantics. |
+| 97 | 83 / II.12.8-12.10 | Completion of the measurement discussion and definition of quantum propositions as partially compatible Boolean structures. | Shows that changing the ambient logic changes which operations are total; it supplies no MLL switching theorem. |
+| 98 | 84 / II.12.10-12.12 | Closed subspaces of a Hilbert space as a partial Boolean algebra and the non-embedding theorem for dimension at least three. | A local Boolean view need not extend globally; this is an analogy only, not a proof-net counterexample. |
+| 99 | 85 / II.12.13 | First finite Kochen-Specker graph and its orthogonal realization constraints. Rendered and inspected the labelled graph visually. | Confirms that diagram labels and incidences carry proof data; no result transfers to MLL. |
+| 100 | 86 / II.12.14 | Large assembled graph used in the finite noncolorability argument. Rendered and inspected its circular network and subgraphs visually. | Reinforces that a graph theorem depends on exact incidence, not an informal picture or serialization order. |
+| 101 | 87 / II.12.12 proof | Propagation through the finite graph forces a contradiction and proves the non-embedding theorem. | Exemplifies a finite global obstruction; unrelated to Danos-Regnier switchings. |
+| 102 | 88 / II.12.15-12.16 | Quantum tautologies, modular-structure encodings, admissible sequences, and the Gelfand-Ponomarev representation direction. | Representation theorems require explicit preserved structure; no graph-canonicalization claim follows for ProofNet-IR. |
+| 103 | 89 / II.12.16; Orthohelium; von Neumann universe | Approximate symmetries and Hilbert-space/spin reinterpretation of orthohelium, then transition to the cumulative universe. | Physical reinterpretation remains separate from formal semantics; no current code dependency. |
+| 104 | 90 / von Neumann universe | Sets versus classes, Russell-style size restrictions, and motivation for constructing the universe in stages. | Supports size and representation discipline only. |
+| 105 | 91 / von Neumann universe | Partial, linear, and well orders; initial segments; and comparison of well-ordered sets. | Well-founded descent is methodological support for termination measures, not the project's sequentialization proof. |
+| 106 | 92 / von Neumann universe | Unique order isomorphisms, universal ordering difficulties, and von Neumann's canonical ordinal representatives. | Canonical representatives require a proved uniqueness principle; useful boundary for the library's narrower canonical keys. |
+| 107 | 93 / von Neumann universe | Successor and limit ordinals, transfinite induction/recursion, and cardinal representatives. | Clarifies the kind of well-founded recursion obligation used in total search, without supplying an MLL result. |
+| 108 | 94 / von Neumann universe | Rank hierarchy, definition of the cumulative universe, and closure/transitivity properties. | Supports explicit universes and rank measures; outside proof nets. |
+| 109 | 95 / von Neumann universe | Kuratowski pairs, products, relations, functions, and closure of the universe under standard set constructions. | Encodings must be accompanied by preservation claims; set encodings alone do not define proof identity. |
+| 110 | 96 / von Neumann universe | Foundation/no descending membership chains and comparison of the intuitive universe with the formal language of set theory. | Reinforces separating metatheoretic interpretation from the checked object language. |
+| 111 | 97 / Truth as Value and Duty | Mathematical truth, testimony, reproducibility, and the special status of mathematical verification. | Motivates independently replayable Lean artifacts but is philosophical rather than theorem evidence. |
+| 112 | 98 / Truth as Value and Duty | Rigidity of mathematical constants across calculations and the contrast between finite computation and ideal infinite objects. | Tests provide finite evidence; they are not substitutes for universal kernel theorems. |
+| 113 | 99 / Truth as Value and Duty | Truth as a human value, scepticism/relativism, and the relation between texts and accepted claims. | Supports transparent claim boundaries and auditable provenance only. |
+| 114 | 100 / Truth as Value and Duty | Formal-rule accounts of proof contrasted with compressed mathematical practice, discovery, experimentation, and error. | Directly supports retaining machine-checkable proof terms beneath explanatory documentation. |
+| 115 | 101 / Truth as Value and Duty | Theories, models, metaphors, and mathematics as a language for the physical world. | A motivating metaphor cannot validate a proof-net criterion; formal statements remain authoritative. |
+| 116 | 102 / Truth as Value and Duty | Computerized black-box models, representation replacing the represented activity, and financial-model caution. | Warns against confusing serialized certificates, benchmark scores, or model output with mathematical correctness. |
+| 117 | 103 / Truth as Value and Duty | Mathematical truth among competing values and the shift from set-theoretic foundations toward categories and homotopy. | Broad foundations context; no direct current-fragment theorem. |
+| 118 | III divider; III.1 | Start of the continuum problem: cardinal comparison, Cantor's ideas, and the continuum hypothesis. | New chapter accounted for; unrelated to MLL correctness. |
+| 119 | 106 / III.1.2-1.4 | Cantor-Schroeder-Bernstein, comparison via well-ordering, and the role of choice. | Classical existence and executable construction remain distinct obligations. |
+| 120 | 107 / III.1.4-1.6 | Well-ordering construction, diagonal proof that the power set is larger, CH/GCH, and independence statements. | Separates relative consistency/model results from internal algorithmic evidence. |
+| 121 | 108 / III.1.7-1.8 | Goedel's constructible-universe idea and Cohen/Scott-Solovay Boolean-valued strategy. | Demonstrates that a completeness or independence claim depends on a precisely fixed semantics. |
+| 122 | 109 / III.1.9-1.12 | Random-variable model, almost-sure Boolean truth, statement of the main theorem, and obstacles to naive interpretation. | A checker-specific truth notion must be defined and proved stable under rules; analogical background only. |
+| 123 | 110 / III.1.12; III.2.1 | Why intermediate cardinality is subtle in the random model, roadmap, and need for a second-order real language. | Reinforces that an informal construction can change meaning under interpretation. |
+| 124 | 111 / III.2.2-2.5 | Syntax of `L2 Real` and formulas for integers, CH, and completeness. | Expressibility is an explicit language-design problem; current ProofNet-IR scope must stay stated. |
+| 125 | 112 / III.2.6-2.7 | Complete Boolean algebra of truth values and the interpretation set of random variables/functionals. | Generalized truth values are outside the current Boolean checker, but illustrate explicit semantic domains. |
+| 126 | 113 / III.2.7-2.8 | Compositional truth function for atoms, connectives, and quantifiers; assignment-invariance lemma begins. | Models the syntax-to-semantics recursion and free-variable invariance pattern. |
+| 127 | 114 / III.2.8-2.9; III.3.1-3.4 | Closed-formula truth, fundamental lemma, non-deducibility theorem, and preservation of truth under rules. | Strongly reinforces separate rule-preservation, axiom-validity, and countermodel obligations. |
+| 128 | 115 / III.3.5-3.6 | Sketch for special axioms, omitted hard choice/completeness checks, a field-axiom example, and start of falsifying CH. | Omitted textbook steps cannot be silently imported as machine-checked evidence; no project theorem depends on them. |
+| 129 | 116 / III.3.6-3.7 | Construction of a functional whose random zero set has intermediate size and its correctness lemma. | Demonstrates a witness construction with explicit admissibility obligations. |
+| 130 | 117 / III.3.7-3.8 | Correctness proof, random-set interpretation, and setup for ruling out a surjection onto all reals. | Shows why apparent set-size intuition must be re-proved inside the chosen semantics. |
+| 131 | 118 / III.3.8-3.9 | Countable-chain-condition contradiction for the first CH alternative and computation of the model's integers. | Independent combinatorial invariants can close a semantic proof; no transfer to switching correctness. |
+| 132 | 119 / III.3.9-3.10 | Completion of the integer truth-value lemma and start of the second CH alternative. | A derived semantic predicate needs both inequalities/directions, paralleling exact checker specifications. |
+| 133 | 120 / III.3.10; III.4.1-4.2 | Countable-chain contradiction for the second alternative and introduction of Boolean-valued universes by transfinite recursion. | Total recursive constructions require explicit stages, invariants, and a domain measure. |
+| 134 | 121 / III.4.2 | Rank-indexed data for `V^B`, new elements, extensionality condition, and recursive Boolean membership/equality. | Extensionality is built into the representation and then proved adequate; relevant as a design lesson for certificate equivalence. |
+| 135 | 122 / III.4.2-4.4 | Verification of the recursion and low-rank examples with nontrivial Boolean membership probabilities. | Representation equations need closure proofs before downstream claims can rely on them. |
+| 136 | 123 / III.4.4 | Further low-rank computations and the specialization `B = {0,1}` toward ordinary sets. | A special case can validate intuition but does not establish arbitrary representation isomorphism. |
+| 137 | 124 / III.4.4; III.5.1 | Completion of the ordinary-set map, truth semantics for `L1 Set`, and start of the equality/membership compatibility lemma. | A semantic equivalence requires explicit preservation in both membership and equality. |
+| 138 | 125 / III.5.1 | Rank induction proving transitivity and substitution laws for Boolean equality and membership. | Mirrors the need to prove every equivalence relation supports each public operation. |
+| 139 | 126 / III.5.1-5.2 | Completion of the compatibility lemma and proof that extensionality is Boolean-true. | Extensionality is a theorem under the recursive definitions, not a naming convention. |
+| 140 | 127 / III.5.3-5.4; III.6.1-6.2 | Equality axioms, observational equivalence of random sets, and definition of random classes. | Observational equivalence is explicitly delimited; this cautions against calling the current canonical key full graph isomorphism. |
+| 141 | 128 / III.6.3 | Random-class examples, rank truncation, Boolean set operations, and separation via intersection with a set. | A class-like predicate is not automatically representable by a finite/set object; constructive conversion needs proof. |
+| 142 | 129 / III.6.4-6.5 | Formula-defined random classes and construction proving the pairing axiom Boolean-true. | Existence is obtained by a formula plus a bounded representative proof, a useful library-proof pattern only. |
+| 143 | 130 / III.6.6 | Construction proving the union axiom Boolean-true through rank restriction and extensionality. | Shows the bookkeeping required for semantic closure; outside MLL. |
+| 144 | 131 / III.6.7 | Power-set construction begins, using a rank-bounded representative and equality estimate. | The proof is unfinished on this page and is recorded as such; no project dependency. |
 
 ## Current claim boundary
 
 The completed interval supports the motivation for treating diagrams and
 decorated graphs as formal languages whose syntax and semantics must be stated
 precisely. It does not state the Danos-Regnier switching criterion, MLL proof-net
-correctness, or a sequentialization theorem. The remaining 293 pages are not
+correctness, or a sequentialization theorem. The remaining 245 pages are not
 yet represented as directly read in order.

@@ -34,7 +34,7 @@ extractable text and requires visual/OCR treatment.
 | Source | Pages | Current evidence | Status |
 |---|---:|---|---|
 | Pfenning, *Linear Logic* | 336 physical; 168 unique after exact repetition | complete ordered text reading and rendered-image inspection of all 168 unique pages in a [page matrix](source-pages/pfenning-linear-logic.md) | complete |
-| Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | contents/theorem sweep and prior Chapter IX close read; new [ordered page matrix](source-pages/manin-mathematical-logic.md) directly accounts for physical pages 1-96, including visual inspection of the extraction-empty cover | ordered audit 96/389; incomplete |
+| Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | contents/theorem sweep and prior Chapter IX close read; new [ordered page matrix](source-pages/manin-mathematical-logic.md) directly accounts for physical pages 1-144, including visual inspection of the extraction-empty cover and the Kochen-Specker graphs on physical pages 99-100 | ordered audit 144/389; incomplete |
 | *Proof Nets as Graphical Proof Objects* | 20 | complete end-to-end reading and selected-page visual verification | complete |
 | *ProofNet-IR Research Plan* | 19 | complete end-to-end reading and selected-page visual verification | complete, but treated as a generated design input rather than authority |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | section/proposition sweep and targeted close readings | not read cover to cover |
