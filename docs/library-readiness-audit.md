@@ -5,7 +5,7 @@ Audited baseline: v0.4.0 release candidate on `main`
 
 ## Verdict
 
-ProofNet-IR v0.3.1 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.4.0 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. Post-release `main` now proves that any accepted

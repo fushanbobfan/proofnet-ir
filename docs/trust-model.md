@@ -76,7 +76,7 @@ to return a preselected derivation.
 
 v0.2 added the derivation-first direction for arbitrary first-order cut-free
 trees: validated desequentialization constructs a candidate certificate and
-gates the checked API on `Certificate.check = true`. Post-v0.3.1 `main` now
+gates the checked API on `Certificate.check = true`. Release v0.4.0
 also proves the reverse direction for the supported representation:
 `sequentialization_of_check` maps every accepted certificate to a concrete
 first-order tree whose executable output is `ProofNetEquivalent` to the

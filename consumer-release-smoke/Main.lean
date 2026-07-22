@@ -7,6 +7,9 @@ def releasedCertificate : Certificate :=
 
 example : releasedCertificate.check = true := by native_decide
 
+example : Nonempty (SequentializationResult releasedCertificate) :=
+  releasedCertificate.sequentialization_of_check (by native_decide)
+
 def releasedTree : CutFreeDerivation :=
   CutFreeDerivation.generate 17 2
 
