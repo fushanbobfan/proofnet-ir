@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.1.1 - Mathematical audit hardening
+
+### Changed
+
+- audited the compiled checker against an independent Python oracle on all
+  33,868 simple undirected graphs through six vertices and 1,000 generated or
+  mutated proof-net certificates;
+- added proposition-level link, node, and certificate structural semantics and
+  proved `wellFormed_iff_structurallyWellFormed`;
+- strengthened `DeclarativelyCorrect` and `FuelDeclarativelyCorrect` so their
+  structural premise no longer calls the Boolean checker;
+- changed formula Boolean equality to the lawful instance derived from
+  `DecidableEq`;
+- added multigraph parallel-edge regression coverage and made the audit a
+  required CI step.
+
+No v0.1 certificate schema or accepted-fragment semantics changed.
+
 ## v0.1.0 - Verified MLL reference core
 
 ### Included

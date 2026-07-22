@@ -25,6 +25,10 @@
 - [x] Add a second generated proof-tree/net family and labeled mutation tests.
 - [x] Generalize derivation-first generation and gated reconstruction to the
   recursive identity family `A, A-dual` at arbitrary formula depth.
+- [x] Audit the v0.1.0 checker against an independent oracle on all 33,868
+  simple graphs through six vertices and 1,000 generated/mutated certificates.
+- [x] Replace the Boolean premise in declarative structural correctness with
+  an independent proposition and prove the executable/specification iff.
 - [ ] Generalize generation/reconstruction from identity nets to arbitrary
   cut-free derivation trees.
 

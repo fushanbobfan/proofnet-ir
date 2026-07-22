@@ -1,5 +1,5 @@
 name = "proofnet-ir"
-version = "0.1.0"
+version = "0.1.1"
 defaultTargets = ["ProofNetIR", "proofnet_ir_tests"]
 
 [[lean_lib]]
@@ -8,3 +8,11 @@ name = "ProofNetIR"
 [[lean_exe]]
 name = "proofnet_ir_tests"
 root = "ProofNetIRTests"
+
+[[lean_exe]]
+name = "proofnet_ir_audit_graph"
+root = "ProofNetIRAuditGraph"
+
+[[lean_exe]]
+name = "proofnet_ir_audit_certificates"
+root = "ProofNetIRAuditCertificates"

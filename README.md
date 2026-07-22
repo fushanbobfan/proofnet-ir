@@ -3,7 +3,7 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.1.0` (verified MLL reference core). See
+Current release: `v0.1.1` (audited MLL reference core). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -23,6 +23,8 @@ The repository currently contains:
 - a unit-free MLL formula language with involutive De Morgan duality;
 - explicit formula occurrences and typed `axiom`, `tensor`, and `par` links;
 - executable structural well-formedness checks;
+- independent proposition-level structural semantics and an iff theorem for
+  the executable structural checker;
 - exhaustive enumeration of all par switchings;
 - an independent inductive `ChoiceSelection` relation and an iff theorem
   proving the enumerator covers exactly all one-edge-per-par switchings;
@@ -43,8 +45,10 @@ The repository currently contains:
   reconstruction;
 - a finite formula enumerator whose depth-two one-atom corpus checks all 210
   generated identity certificates;
-- labeled negative-certificate mutations, 61 positive/negative compile-time
+- labeled negative-certificate mutations, 64 positive/negative compile-time
   assertions, and an executable smoke test.
+- an independent CI differential audit over 33,868 exhaustive graphs and
+  1,000 generated or mutated certificates.
 
 This is a research prototype. It does not yet include a general
 sequentialization theorem, cut elimination, exponentials, additives,

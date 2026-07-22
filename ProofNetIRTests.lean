@@ -61,6 +61,8 @@ def canonical : Certificate where
   conclusions := [4, 5]
 
 example : canonical.wellFormed = true := by native_decide
+example : canonical.StructurallyWellFormed :=
+  canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide)
 example : canonical.switchingGraphs.length = 2 := by native_decide
 example : canonical.check = true := by native_decide
 example : canonical.Correct := canonical.check_sound (by native_decide)
@@ -245,6 +247,16 @@ def selfLoopGraph : Graph where
 
 example : selfLoopGraph.boundedEdges = false := by native_decide
 example : selfLoopGraph.isTree = false := by native_decide
+
+def parallelEdgeGraph : Graph where
+  vertexCount := 2
+  edges := [
+    { first := 0, second := 1 },
+    { first := 0, second := 1 }
+  ]
+
+example : parallelEdgeGraph.connected = true := by native_decide
+example : parallelEdgeGraph.isTree = false := by native_decide
 
 def unboundedGraph : Graph where
   vertexCount := 2

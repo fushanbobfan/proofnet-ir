@@ -115,19 +115,19 @@ def Correct (certificate : Certificate) : Prop :=
 
 /-- Correctness quantified over the independent switching-choice relation. -/
 def DeclarativelyCorrect (certificate : Certificate) : Prop :=
-  certificate.wellFormed = true ∧
+  certificate.StructurallyWellFormed ∧
     ∀ graph, certificate.SwitchingGraph graph → graph.IsTree
 
 theorem correct_iff_declarative (certificate : Certificate) :
     certificate.Correct ↔ certificate.DeclarativelyCorrect := by
   constructor
   · intro correct
-    exact ⟨correct.1, by
+    exact ⟨certificate.wellFormed_iff_structurallyWellFormed.mp correct.1, by
       intro graph switching
       exact correct.2 graph
         (certificate.mem_switchingGraphs_iff graph |>.mpr switching)⟩
   · intro correct
-    exact ⟨correct.1, by
+    exact ⟨certificate.wellFormed_iff_structurallyWellFormed.mpr correct.1, by
       intro graph membership
       exact correct.2 graph
         (certificate.mem_switchingGraphs_iff graph |>.mp membership)⟩
@@ -216,19 +216,19 @@ def FuelCorrect (certificate : Certificate) : Prop :=
 
 /-- Fuel-indexed correctness over the independent switching-choice relation. -/
 def FuelDeclarativelyCorrect (certificate : Certificate) : Prop :=
-  certificate.wellFormed = true ∧
+  certificate.StructurallyWellFormed ∧
     ∀ graph, certificate.SwitchingGraph graph → graph.FuelTree
 
 theorem fuelCorrect_iff_declarative (certificate : Certificate) :
     certificate.FuelCorrect ↔ certificate.FuelDeclarativelyCorrect := by
   constructor
   · intro correct
-    exact ⟨correct.1, by
+    exact ⟨certificate.wellFormed_iff_structurallyWellFormed.mp correct.1, by
       intro graph switching
       exact correct.2 graph
         (certificate.mem_switchingGraphs_iff graph |>.mpr switching)⟩
   · intro correct
-    exact ⟨correct.1, by
+    exact ⟨certificate.wellFormed_iff_structurallyWellFormed.mpr correct.1, by
       intro graph membership
       exact correct.2 graph
         (certificate.mem_switchingGraphs_iff graph |>.mp membership)⟩

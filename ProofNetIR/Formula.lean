@@ -5,7 +5,7 @@ inductive Formula where
   | atom (name : String) (positive : Bool)
   | tensor (left right : Formula)
   | par (left right : Formula)
-  deriving Repr, DecidableEq, BEq
+  deriving Repr, DecidableEq
 
 namespace Formula
 

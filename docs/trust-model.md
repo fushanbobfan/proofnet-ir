@@ -20,9 +20,15 @@
 `Certificate.check_sound_declarative` states that executable acceptance
 implies:
 
-1. structural `wellFormed` acceptance;
+1. the Boolean-free `StructurallyWellFormed` proposition, including local link
+   legality and exact occurrence ownership;
 2. every graph satisfying the independent inductive `ChoiceSelection`
    switching relation satisfies `Graph.IsTree`.
+
+`wellFormed_iff_structurallyWellFormed` proves that the executable structural
+pass is sound and complete for independent proposition-level definitions of
+link, node, conclusion, and resource-use discipline. Formula Boolean equality
+is supplied by `DecidableEq`, so Lean also has its `LawfulBEq` proof.
 
 `mem_switchingGraphs_iff` proves that the executable enumeration contains
 exactly those independently described switchings, closing the risk that an
@@ -46,6 +52,12 @@ in an `n`-vertex graph has an equivalent walk of at most `n` steps remains
 open. This no longer weakens completeness for `FuelCorrect`, but it is needed
 to identify the original unbounded `Correct` predicate with `FuelCorrect`.
 None of these results is the proof-net sequentialization theorem.
+
+An independent differential audit additionally compares the compiled checker
+against a Python union-find/certificate oracle on every simple graph through
+six vertices and 1,000 generated or mutated certificates. See
+`docs/audit-v0.1.0.md`; this is regression evidence, not part of the trusted
+kernel proof.
 
 The supported reconstruction boundary is broader than a fixed fixture but
 still explicit: `Derivation.identity` and `identityCertificate` cover the
