@@ -23,7 +23,10 @@
   least one accepted inverse par or tensor step;
 - began the universal graph proof: deleting an in-bounds vertex preserves
   boundedness, has exact incident-edge accounting, preserves the tree
-  edge-count equation for leaves, and has an exact adjacency/walk embedding.
+  edge-count equation for leaves, and has an exact adjacency/walk embedding;
+- completed the graph theorem that deleting any leaf of an `IsTree` graph
+  yields another `IsTree`, including unique incident-edge reasoning,
+  simple-walk leaf avoidance, and connectedness preservation.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

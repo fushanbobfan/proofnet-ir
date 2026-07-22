@@ -85,8 +85,9 @@
   occurrence-component restriction, and cross-link rejection.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor
   and that both inverse constructions preserve correctness.
-- [ ] Complete the graph leaf-deletion theorem (boundedness, edge accounting,
-  and adjacency/walk embedding are proved; connectedness preservation remains).
+- [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
+  accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all
+  preserved under vertex compaction.
 - [ ] Recursively construct a cut-free derivation modulo explicit exchange.
 - [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
 

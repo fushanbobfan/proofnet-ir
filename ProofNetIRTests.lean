@@ -536,6 +536,15 @@ example : treeGraph.FuelTree :=
   treeGraph.isTree_iff_fuelTree.mp (by native_decide)
 example : treeGraph.Walk 0 3 :=
   (treeGraph.isTree_sound (by native_decide)).2.1.2 3 (by decide)
+theorem treeGraphLeaf3 : treeGraph.Leaf 3 := by
+  simp [Graph.Leaf, Graph.incidentCount, treeGraph, Edge.incident]
+example : (treeGraph.deleteVertex 3).IsTree :=
+  (treeGraph.isTree_sound (by native_decide)).deleteLeaf treeGraphLeaf3
+example : (treeGraph.deleteVertex 3).isTree = true := by native_decide
+theorem treeGraphLeaf0 : treeGraph.Leaf 0 := by
+  simp [Graph.Leaf, Graph.incidentCount, treeGraph, Edge.incident]
+example : (treeGraph.deleteVertex 0).IsTree :=
+  (treeGraph.isTree_sound (by native_decide)).deleteLeaf treeGraphLeaf0
 
 theorem treeEdge01 : treeGraph.Adjacent 0 1 :=
   ⟨{ first := 0, second := 1 }, by simp [treeGraph], .inl ⟨rfl, rfl⟩⟩

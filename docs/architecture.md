@@ -106,9 +106,11 @@ components, and accepting the split only if both reference checks pass. Across
 the 250 generated non-axiom nets, at least one accepted inverse par or tensor
 step is found. The graph proof layer already establishes deletion compaction,
 boundedness preservation, exact incident-edge accounting, the tree edge-count
-equation for a deleted leaf, and adjacency/walk embedding. Connectedness after
-leaf deletion and the universal terminal-splitting existence theorem remain
-the current proof obligations.
+equation for a deleted leaf, exact adjacency/walk embedding, simple-walk leaf
+avoidance, connectedness after deletion, and the full `IsTree` preservation
+theorem. Transporting each terminal-par switching to this general graph lemma
+and proving the universal terminal-splitting existence theorem remain the
+current proof obligations.
 
 ## v0.2 derivation-first path
 

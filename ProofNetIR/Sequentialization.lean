@@ -258,6 +258,103 @@ def incidentCount (graph : Graph) (vertex : Vertex) : Nat :=
 def Leaf (graph : Graph) (vertex : Vertex) : Prop :=
   vertex < graph.vertexCount ∧ graph.incidentCount vertex = 1
 
+theorem Leaf.incidentEdge_eq {graph : Graph} {vertex : Vertex}
+    (leaf : graph.Leaf vertex) {first second : Edge}
+    (firstMembership : first ∈ graph.edges)
+    (secondMembership : second ∈ graph.edges)
+    (firstIncident : first.incident vertex = true)
+    (secondIncident : second.incident vertex = true) :
+    first = second := by
+  have firstFiltered : first ∈ graph.edges.filter (·.incident vertex) := by
+    simp [firstMembership, firstIncident]
+  have secondFiltered : second ∈ graph.edges.filter (·.incident vertex) := by
+    simp [secondMembership, secondIncident]
+  rcases List.length_eq_one_iff.mp leaf.2 with ⟨only, filterEquation⟩
+  rw [filterEquation] at firstFiltered secondFiltered
+  simp at firstFiltered secondFiltered
+  exact firstFiltered.trans secondFiltered.symm
+
+theorem Leaf.adjacent_through_eq {graph : Graph} {vertex first second : Vertex}
+    (leaf : graph.Leaf vertex)
+    (enter : graph.Adjacent first vertex)
+    (leave : graph.Adjacent vertex second) :
+    first = second := by
+  rcases enter with ⟨enterEdge, enterMembership, enterDirection⟩
+  rcases leave with ⟨leaveEdge, leaveMembership, leaveDirection⟩
+  have enterIncident : enterEdge.incident vertex = true := by
+    rcases enterDirection with forward | backward
+    · simp [Edge.incident, forward]
+    · simp [Edge.incident, backward]
+  have leaveIncident : leaveEdge.incident vertex = true := by
+    rcases leaveDirection with forward | backward
+    · simp [Edge.incident, forward]
+    · simp [Edge.incident, backward]
+  have sameEdge := leaf.incidentEdge_eq enterMembership leaveMembership
+    enterIncident leaveIncident
+  subst leaveEdge
+  rcases enterDirection with enterForward | enterBackward <;>
+  rcases leaveDirection with leaveForward | leaveBackward <;>
+    simp_all
+
+theorem Leaf.two_le_vertexCount {graph : Graph} {vertex : Vertex}
+    (leaf : graph.Leaf vertex) (bounded : graph.Bounded) :
+    2 ≤ graph.vertexCount := by
+  rcases List.length_eq_one_iff.mp leaf.2 with ⟨edge, filterEquation⟩
+  have filteredMembership : edge ∈ graph.edges.filter (·.incident vertex) := by
+    rw [filterEquation]
+    simp
+  simp only [List.mem_filter] at filteredMembership
+  rcases bounded edge filteredMembership.1 with
+    ⟨firstInBounds, secondInBounds, distinct⟩
+  cases countEquation : graph.vertexCount with
+  | zero => simp [countEquation] at firstInBounds
+  | succ remaining =>
+      cases remaining with
+      | zero =>
+          have firstZero : edge.first = 0 := by
+            simpa [countEquation] using firstInBounds
+          have secondZero : edge.second = 0 := by
+            simpa [countEquation] using secondInBounds
+          exact False.elim (distinct (firstZero.trans secondZero.symm))
+      | succ extra => simp
+
+theorem SimpleWalk.finish_mem {graph : Graph} {start finish : Vertex}
+    {steps : Nat} {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish) :
+    finish ∈ visited := by
+  induction walk with
+  | refl => simp
+  | step prior adjacency fresh ih => simp
+
+theorem SimpleWalk.avoidsLeaf {graph : Graph} {start finish removed : Vertex}
+    {steps : Nat} {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish)
+    (leaf : graph.Leaf removed)
+    (startNotRemoved : start ≠ removed)
+    (finishNotRemoved : finish ≠ removed) :
+    removed ∉ visited := by
+  induction walk with
+  | refl => simpa [eq_comm] using startNotRemoved
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      have middleNotRemoved : middle ≠ removed := by
+        intro middleIsRemoved
+        subst middle
+        cases prior with
+        | refl => exact startNotRemoved rfl
+        | @step earlierSteps earlierVisited previous _ earlier enter
+            removedFresh =>
+            have sameEndpoint := leaf.adjacent_through_eq enter adjacency
+            subst current
+            exact fresh (by
+              simp only [List.mem_append, List.mem_singleton]
+              exact .inl earlier.finish_mem)
+      have priorAvoids := ih middleNotRemoved
+      intro membership
+      simp only [List.mem_append, List.mem_singleton] at membership
+      rcases membership with priorMembership | finalEqual
+      · exact priorAvoids priorMembership
+      · exact finishNotRemoved finalEqual.symm
+
 theorem deleteVertex_edges_length_add_incidentCount
     (graph : Graph) (removed : Vertex) :
     (graph.deleteVertex removed).edges.length + graph.incidentCount removed =
@@ -352,6 +449,37 @@ theorem adjacent_deleteVertex_iff (graph : Graph) (removed : Vertex)
         · change Certificate.compactVertex removed edge.second = left
           simp [backward.2]
 
+theorem SimpleWalk.deleteVertex {graph : Graph}
+    {start finish removed : Vertex} {steps : Nat} {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish)
+    (avoids : removed ∉ visited) :
+    (graph.deleteVertex removed).Walk
+      (Certificate.compactVertex removed start)
+      (Certificate.compactVertex removed finish) := by
+  induction walk with
+  | refl => exact .refl _
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      have priorAvoids : removed ∉ priorVisited := by
+        intro membership
+        exact avoids (by simp [membership])
+      have currentNotRemoved : current ≠ removed := by
+        intro same
+        subst current
+        exact avoids (by simp)
+      have middleNotRemoved : middle ≠ removed := by
+        intro same
+        subst middle
+        exact priorAvoids prior.finish_mem
+      have compactedAdjacency :
+          (graph.deleteVertex removed).Adjacent
+            (Certificate.compactVertex removed middle)
+            (Certificate.compactVertex removed current) := by
+        apply (graph.adjacent_deleteVertex_iff removed _ _).mpr
+        simpa [Certificate.expandVertex_compactVertex_of_ne middleNotRemoved,
+          Certificate.expandVertex_compactVertex_of_ne currentNotRemoved]
+          using adjacency
+      exact .step (ih priorAvoids) compactedAdjacency
+
 theorem Walk.expandDelete {graph : Graph} {removed start finish : Vertex}
     (walk : (graph.deleteVertex removed).Walk start finish) :
     graph.Walk (Certificate.expandVertex removed start)
@@ -361,6 +489,31 @@ theorem Walk.expandDelete {graph : Graph} {removed start finish : Vertex}
   | step prior adjacency ih =>
       exact .step ih
         ((graph.adjacent_deleteVertex_iff removed _ _).mp adjacency)
+
+theorem Connected.deleteLeaf {graph : Graph} (connected : graph.Connected)
+    (bounded : graph.Bounded) {removed : Vertex} (leaf : graph.Leaf removed) :
+    (graph.deleteVertex removed).Connected := by
+  have remainingPositive : 0 < graph.vertexCount - 1 := by
+    have atLeastTwo := leaf.two_le_vertexCount bounded
+    omega
+  refine ⟨by simpa using remainingPositive, ?_⟩
+  intro vertex vertexInBounds
+  have oldStartInBounds :
+      Certificate.expandVertex removed 0 < graph.vertexCount :=
+    Certificate.expandVertex_lt leaf.1 remainingPositive
+  have oldFinishInBounds :
+      Certificate.expandVertex removed vertex < graph.vertexCount :=
+    Certificate.expandVertex_lt leaf.1 (by simpa using vertexInBounds)
+  have between : graph.Walk
+      (Certificate.expandVertex removed 0)
+      (Certificate.expandVertex removed vertex) :=
+    (connected.2 _ oldStartInBounds).reverse.trans
+      (connected.2 _ oldFinishInBounds)
+  rcases between.toSimple with ⟨steps, visited, simple⟩
+  have avoids := simple.avoidsLeaf leaf
+    (Certificate.expandVertex_ne removed 0)
+    (Certificate.expandVertex_ne removed vertex)
+  simpa using simple.deleteVertex avoids
 
 theorem Bounded.deleteVertex {graph : Graph} (bounded : graph.Bounded)
     {removed : Vertex} (removedInBounds : removed < graph.vertexCount) :
@@ -384,6 +537,13 @@ theorem Bounded.deleteVertex {graph : Graph} (bounded : graph.Bounded)
   rw [Certificate.expandVertex_compactVertex_of_ne firstNotRemoved,
     Certificate.expandVertex_compactVertex_of_ne secondNotRemoved] at expandedEqual
   exact endpointsDistinct expandedEqual
+
+theorem IsTree.deleteLeaf {graph : Graph} (tree : graph.IsTree)
+    {removed : Vertex} (leaf : graph.Leaf removed) :
+    (graph.deleteVertex removed).IsTree :=
+  ⟨tree.1.deleteVertex leaf.1,
+    tree.2.1.deleteLeaf tree.1 leaf,
+    tree.deleteVertex_edgeCount leaf⟩
 
 end Graph
 
