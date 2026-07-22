@@ -114,6 +114,20 @@ example : canonical.DeclarativelyCorrect ↔
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide
 
+def swapCanonicalZeroOne : VertexRenaming canonical.formulas.size :=
+  VertexRenaming.swap canonical.formulas.size 0 1 (by decide) (by decide)
+
+def reindexedCanonical : Certificate :=
+  canonical.reindex swapCanonicalZeroOne
+
+example : reindexedCanonical ≠ canonical := by native_decide
+example : reindexedCanonical.formula? 1 = canonical.formula? 0 := by
+  exact canonical.reindex_formula?_forward swapCanonicalZeroOne 0
+example : reindexedCanonical.check = true := by native_decide
+example : reindexedCanonical.reindex
+    (canonical.inverseReindexing swapCanonicalZeroOne) = canonical :=
+  canonical.reindex_inverse swapCanonicalZeroOne
+
 def scrambledCanonical : Certificate :=
   { canonical with
     links := canonical.links.reverse

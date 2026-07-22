@@ -31,6 +31,10 @@
   an independent proposition and prove the executable/specification iff.
 - [x] Generalize generation/desequentialization from identity nets to arbitrary
   cut-free derivation trees.
+- [x] Define lossless bounded vertex renaming, formula/link/conclusion
+  transport, and a kernel-checked inverse round trip.
+- [ ] Prove structural, switching, and checker/declarative correctness
+  invariant under arbitrary bounded vertex renaming.
 
 ## v0.2 - Dataset and repair loop
 

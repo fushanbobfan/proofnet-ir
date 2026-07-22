@@ -63,11 +63,13 @@ The repository currently contains:
 - a native canonical-v0.2 JSON parser with path-aware errors and a
   checker-gated API for untrusted certificates;
 - a runnable focused cut-free sequent-search baseline with eager invertible par
-  steps and exhaustive tensor resource partitions.
+  steps and exhaustive tensor resource partitions;
+- lossless bounded vertex reindexing with inverse round trips and invariance of
+  formula lookup, local link typing, and node ownership/count predicates.
 
 This is a research prototype. It does not yet include general reverse
 sequentialization of every accepted net, cut elimination, exponentials, additives,
-quantifiers, or a Lean tactic.
+quantifiers, a whole-checker reindexing-invariance theorem, or a Lean tactic.
 
 ## Trust path
 
@@ -126,6 +128,7 @@ ProofNetIR: all compile-time certificate checks passed
 ```text
 ProofNetIR/Formula.lean       MLL formulas and linear negation
 ProofNetIR/Certificate.lean   occurrences, links, and structural validation
+ProofNetIR/Reindex.lean       lossless bounded vertex renaming and transport
 ProofNetIR/Graph.lean         finite graph closure and declarative tree property
 ProofNetIR/Checker.lean       switchings, executable checker, soundness/completeness
 ProofNetIR/Reconstruct.lean   supported sequent derivation reconstruction

@@ -30,6 +30,13 @@
   Neuroscience*, with a per-page matrix that classifies it as adjacent
   generated exposition and forbids using it as evidence for proof-net
   correctness, sequentialization, canonicalization, or performance.
+- added a lossless certificate-reindexing foundation: bounded bijective vertex
+  renamings preserve out-of-bounds status, transport ordered links and
+  conclusions, commute with formula lookup, and recover the literal source
+  certificate after applying the transported inverse; local link typing and
+  node ownership/count predicates are proved invariant. Whole-certificate
+  structural and checker invariance under arbitrary reindexing remain explicit
+  next theorems, not current claims.
 
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 

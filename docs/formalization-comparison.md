@@ -79,3 +79,15 @@ Before general sequentialization can be claimed here, ProofNet-IR must:
 These obligations replace the earlier informal plan of simply "finding a
 splitting tensor". They also explain why v0.2.0 is a research prototype rather
 than a completed proof-net library.
+
+## Current implementation checkpoint
+
+`ProofNetIR/Reindex.lean` now supplies the transport half of obligation 1: a
+bounded bijection of natural-number vertices, consistent transport of formula
+occurrences and ordered links, formula-lookup commutation, and a literal
+inverse round trip. Local link typing and node ownership/count predicates are
+also invariant. It deliberately does not yet mark obligation 1 complete. The
+explicit certificate equivalence relation and whole-certificate structural,
+switching, and checker invariance theorems remain open, after which
+sequentialization can return a derivation together with that relation rather
+than literal array equality.

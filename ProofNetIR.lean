@@ -1,5 +1,6 @@
 import ProofNetIR.Formula
 import ProofNetIR.Certificate
+import ProofNetIR.Reindex
 import ProofNetIR.Graph
 import ProofNetIR.Checker
 import ProofNetIR.Generate
