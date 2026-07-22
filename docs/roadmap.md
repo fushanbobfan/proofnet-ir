@@ -137,6 +137,13 @@
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all
   preserved under vertex compaction.
+- [x] Prove the well-founded occurrence measure for both inverse rules:
+  terminal-par peeling strictly decreases formula-array size, and both
+  splitting-tensor restrictions are strictly smaller than the input.
+- [x] Close the no-connective recursive base case: correctness forces exactly
+  two formula occurrences, one axiom, a complete two-element boundary, and a
+  full `SequentializationResult` for either axiom orientation and either
+  ordered conclusion orientation.
 - [ ] Recursively construct a cut-free derivation modulo explicit exchange.
 - [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
 

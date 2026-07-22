@@ -1030,6 +1030,18 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.CuspAcyclic.exists_terminal_splitting_target
 #check Certificate.DeclarativelyCorrect.terminalPar_or_splittingTensor_exists
 #check Certificate.terminalPar_or_splittingTensor_exists_of_check
+#check Certificate.peelTerminalPar_formulas_size_lt
+#check Certificate.splitTerminalTensorCandidate?_left_formulas_size_lt
+#check Certificate.splitTerminalTensorCandidate?_right_formulas_size_lt
+#check Certificate.DeclarativelyCorrect.axiomOnly_cardinality
+#check Certificate.DeclarativelyCorrect.axiomOnly_conclusions_perm
+#check Certificate.DeclarativelyCorrect.axiomOnly_data
+#check Certificate.DeclarativelyCorrect.axiomOnly_certificate_cases
+#check Certificate.DeclarativelyCorrect.axiomOnly_sequentialization
+
+example : Nonempty (SequentializationResult axiomOnly) := by
+  apply (axiomOnly.check_sound_declarative (by native_decide)).axiomOnly_sequentialization
+  simp [axiomOnly, Link.isConnective]
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

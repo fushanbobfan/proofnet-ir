@@ -155,11 +155,19 @@ name-level restatement of Yeo:
 - `DeclarativelyCorrect.terminalPar_or_splittingTensor_exists` and its
   checker-facing corollary now prove the global terminal-rule dichotomy for
   every correct certificate containing a connective.
+- terminal-par peeling and both splitting-tensor components now have proved
+  strict formula-occurrence decrease, supplying the recursive measure rather
+  than assuming termination from the executable candidates.
+- the no-connective case is completely classified: switching connectedness
+  and exact node ownership force two occurrences and one axiom. All four
+  combinations of axiom orientation and ordered boundary orientation now
+  construct a full `SequentializationResult`, including output equivalence.
 
 ## Claim boundary
 
-The universal terminal-rule existence theorem is now complete; generated
-examples and successful checker-gated candidates remain regression evidence,
-not part of that proof. `GenerallySequentializable` must remain unproved until
-the subsequent well-founded reconstruction and final equivalence proof are
+The universal terminal-rule existence theorem, strict recursive measure, and
+axiom-only recursive base are now complete; generated examples and successful
+checker-gated candidates remain regression evidence, not part of those
+proofs. `GenerallySequentializable` must remain unproved until the par/tensor
+composition steps, well-founded recursion, and final equivalence proof are
 kernel-checked with no `sorry` or `admit`.

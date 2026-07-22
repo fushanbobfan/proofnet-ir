@@ -148,6 +148,14 @@
   checker-facing corollary: every accepted certificate containing a connective
   exposes a mathematical terminal par or splitting tensor. The remaining main
   theorem is well-founded recursive reconstruction plus output equivalence.
+- proved strict formula-occurrence decrease for terminal-par peeling and for
+  both components of every splitting-tensor restriction, establishing the
+  measure obligations needed by well-founded sequentialization.
+- completed the axiom-only recursive base: correctness forces exactly two
+  occurrences and one axiom; its boundary and endpoint orientation are
+  classified exhaustively, and every case now yields a full
+  `SequentializationResult` with a kernel-checked derivation tree and explicit
+  proof-net equivalence.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

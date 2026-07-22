@@ -12313,6 +12313,77 @@ theorem splitTerminalTensorCandidate?_restriction_equations
           subst rightCertificate
           exact ⟨rfl, rfl⟩
 
+/-- Peeling a terminal par strictly decreases the number of formula
+occurrences.  This is the unary branch of the well-founded measure used by
+general sequentialization. -/
+theorem peelTerminalPar_formulas_size_lt
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    (certificate.peelTerminalPar left right conclusion).formulas.size <
+      certificate.formulas.size := by
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  have sizeEquation :
+      (certificate.peelTerminalPar left right conclusion).formulas.size =
+        certificate.formulas.size - 1 := by
+    simp [peelTerminalPar, Array.eraseIdxIfInBounds, conclusionInBounds]
+  rw [sizeEquation]
+  exact Nat.sub_lt structural.1 (by decide)
+
+/-- The left component of a splitting tensor omits the terminal conclusion,
+so its formula-occurrence measure is strictly smaller than the input. -/
+theorem splitTerminalTensorCandidate?_left_formulas_size_lt
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate)) :
+    leftCertificate.formulas.size < certificate.formulas.size := by
+  rcases certificate.splitTerminalTensorCandidate?_restriction_equations
+      structural splitting equation with ⟨leftEquation, _⟩
+  rw [certificate.restrictTo?_formulas_size leftEquation]
+  change
+    ((List.range certificate.formulas.size).filter fun vertex =>
+      vertex != conclusion &&
+        (certificate.tensorLeftReachable left conclusion).contains vertex).length <
+      certificate.formulas.size
+  have strict :
+      ((List.range certificate.formulas.size).filter fun vertex =>
+        vertex != conclusion &&
+          (certificate.tensorLeftReachable left conclusion).contains vertex).length <
+        (List.range certificate.formulas.size).length :=
+    List.length_filter_lt_length_iff_exists.mpr ⟨conclusion,
+      List.mem_range.mpr (structural.2.2.1 conclusion splitting.1.2), by simp⟩
+  simpa using strict
+
+/-- The right component of a splitting tensor also omits the terminal
+conclusion and therefore strictly decreases the recursive measure. -/
+theorem splitTerminalTensorCandidate?_right_formulas_size_lt
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate)) :
+    rightCertificate.formulas.size < certificate.formulas.size := by
+  rcases certificate.splitTerminalTensorCandidate?_restriction_equations
+      structural splitting equation with ⟨_, rightEquation⟩
+  rw [certificate.restrictTo?_formulas_size rightEquation]
+  change
+    ((List.range certificate.formulas.size).filter fun vertex =>
+      vertex != conclusion &&
+        !(certificate.tensorLeftReachable left conclusion).contains vertex).length <
+      certificate.formulas.size
+  have strict :
+      ((List.range certificate.formulas.size).filter fun vertex =>
+        vertex != conclusion &&
+          !(certificate.tensorLeftReachable left conclusion).contains vertex).length <
+        (List.range certificate.formulas.size).length :=
+    List.length_filter_lt_length_iff_exists.mpr ⟨conclusion,
+      List.mem_range.mpr (structural.2.2.1 conclusion splitting.1.2), by simp⟩
+  simpa using strict
+
 /-- Exact proof interface for the inverse tensor rule. Each premise switching
 is the induced restriction of an input switching to one of the two components
 cut apart by a mathematically splitting terminal tensor. -/
@@ -12586,6 +12657,597 @@ theorem mem_terminalTensors_iff (certificate : Certificate)
   · rintro ⟨linkMembership, boundary⟩
     simp only [terminalTensors, List.mem_filterMap]
     exact ⟨.tensor left right conclusion, linkMembership, by simp [boundary]⟩
+
+/-! ### Axiom-only base case accounting
+
+The recursive sequentializer stops only when no connective link remains.  The
+following lemmas prove that a correct unit-free net at that point is not an
+arbitrary matching: connectedness and exact occurrence ownership force one
+single axiom over exactly two formula occurrences. -/
+
+private theorem link_eq_axiom_of_no_connective
+    {certificate : Certificate}
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true)
+    {link : Link} (membership : link ∈ certificate.links) :
+    ∃ left right, link = .axiom left right := by
+  cases link with
+  | «axiom» left right => exact ⟨left, right, rfl⟩
+  | tensor left right conclusion =>
+      exact False.elim (noConnective ⟨.tensor left right conclusion,
+        membership, by simp [Link.isConnective]⟩)
+  | par left right conclusion =>
+      exact False.elim (noConnective ⟨.par left right conclusion,
+        membership, by simp [Link.isConnective]⟩)
+
+private theorem parChoices_eq_nil_of_no_connective
+    {certificate : Certificate}
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    certificate.parChoices = [] := by
+  unfold parChoices
+  apply List.filterMap_eq_nil_iff.mpr
+  intro link membership
+  rcases link_eq_axiom_of_no_connective noConnective membership with
+    ⟨left, right, rfl⟩
+  rfl
+
+private theorem fixedEdges_length_eq_links_length_of_no_connective
+    {certificate : Certificate}
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    certificate.fixedEdges.length = certificate.links.length := by
+  unfold fixedEdges
+  let emit : Link → List Edge := fun
+    | .axiom left right => [{ first := left, second := right }]
+    | .tensor left right conclusion =>
+        [{ first := left, second := conclusion },
+         { first := right, second := conclusion }]
+    | .par _ _ _ => []
+  change (certificate.links.flatMap emit).length = certificate.links.length
+  have allAxiom : ∀ link ∈ certificate.links,
+      ∃ left right, link = .axiom left right := by
+    intro link membership
+    exact link_eq_axiom_of_no_connective noConnective membership
+  have general : ∀ links : List Link,
+      (∀ link ∈ links, ∃ left right, link = .axiom left right) →
+      (links.flatMap emit).length = links.length := by
+    intro links all
+    induction links with
+    | nil => rfl
+    | cons head tail ih =>
+        rcases all head (by simp) with ⟨left, right, rfl⟩
+        have tailAll : ∀ link ∈ tail,
+            ∃ first second, link = .axiom first second := by
+          intro link membership
+          exact all link (by simp [membership])
+        simpa [emit] using congrArg Nat.succ (ih tailAll)
+  exact general certificate.links allAxiom
+
+private theorem producerCount_eq_zero_of_no_connective
+    {certificate : Certificate}
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true)
+    (vertex : Vertex) : certificate.producerCount vertex = 0 := by
+  unfold producerCount
+  rw [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+  intro link membership
+  rcases link_eq_axiom_of_no_connective noConnective membership with
+    ⟨left, right, rfl⟩
+  simp [Link.produces]
+
+private theorem formula_is_atom_of_no_connective
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true)
+    {vertex : Vertex} (inBounds : vertex < certificate.formulas.size) :
+    ∃ name positive,
+      certificate.formula? vertex = some (.atom name positive) := by
+  have node := structural.2.2.2.2.2 vertex inBounds
+  have producerZero :=
+    producerCount_eq_zero_of_no_connective noConnective vertex
+  have lookup : certificate.formula? vertex =
+      some certificate.formulas[vertex] := by
+    simp [formula?, Array.getElem?_eq_getElem inBounds]
+  unfold NodeWellFormed at node
+  rw [lookup] at node
+  cases formula : certificate.formulas[vertex] with
+  | atom name positive =>
+      exact ⟨name, positive, by simpa [formula] using lookup⟩
+  | tensor left right =>
+      simp [formula] at node
+      omega
+  | par left right =>
+      simp [formula] at node
+      omega
+
+private theorem axiomVertices_count_eq_axiomCount
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true)
+    (vertex : Vertex) :
+    (certificate.links.flatMap Link.vertices).count vertex =
+      certificate.axiomCount vertex := by
+  unfold axiomCount
+  have allAxiom : ∀ link ∈ certificate.links,
+      ∃ left right, link = .axiom left right := by
+    intro link membership
+    exact link_eq_axiom_of_no_connective noConnective membership
+  have general : ∀ links : List Link,
+      (∀ link ∈ links, certificate.LinkWellFormed link) →
+      (∀ link ∈ links, ∃ left right, link = .axiom left right) →
+      (links.flatMap Link.vertices).count vertex =
+        (links.filter (fun link => link.containsAxiomEndpoint vertex)).length := by
+    intro links linksWellFormed linksAxiom
+    induction links with
+    | nil => rfl
+    | cons head tail ih =>
+        rcases linksAxiom head (by simp) with ⟨left, right, rfl⟩
+        have different : left ≠ right :=
+          (linksWellFormed (.axiom left right) (by simp)).1
+        have tailWellFormed : ∀ link ∈ tail,
+            certificate.LinkWellFormed link := by
+          intro link membership
+          exact linksWellFormed link (by simp [membership])
+        have tailAxiom : ∀ link ∈ tail,
+            ∃ first second, link = .axiom first second := by
+          intro link membership
+          exact linksAxiom link (by simp [membership])
+        have tailIH := ih tailWellFormed tailAxiom
+        by_cases atLeft : vertex = left
+        · subst vertex
+          simp [Link.vertices, Link.containsAxiomEndpoint,
+            Ne.symm different, tailIH]
+        · by_cases atRight : vertex = right
+          · subst vertex
+            simp [Link.vertices, Link.containsAxiomEndpoint,
+              different, atLeft, tailIH]
+          · simp [Link.vertices, Link.containsAxiomEndpoint,
+              atLeft, atRight, Ne.symm atLeft, Ne.symm atRight, tailIH]
+  exact general certificate.links structural.2.2.2.2.1 allAxiom
+
+private theorem axiomVertices_perm_range
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    (certificate.links.flatMap Link.vertices).Perm
+      (List.range certificate.formulas.size) := by
+  rw [List.perm_iff_count]
+  intro vertex
+  rw [axiomVertices_count_eq_axiomCount structural noConnective]
+  by_cases inBounds : vertex < certificate.formulas.size
+  · rcases formula_is_atom_of_no_connective structural noConnective inBounds with
+      ⟨name, positive, formulaEquation⟩
+    have node := structural.2.2.2.2.2 vertex inBounds
+    have axiomOne : certificate.axiomCount vertex = 1 := by
+      simpa [NodeWellFormed, formulaEquation] using node.1
+    simp [axiomOne, inBounds]
+  · have axiomZero : certificate.axiomCount vertex = 0 := by
+      unfold axiomCount
+      rw [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+      intro link membership
+      rcases link_eq_axiom_of_no_connective noConnective membership with
+        ⟨left, right, rfl⟩
+      have wellFormed := structural.2.2.2.2.1 (.axiom left right) membership
+      have leftDifferent : left ≠ vertex := fun same =>
+        inBounds (same ▸ wellFormed.2.1)
+      have rightDifferent : right ≠ vertex := fun same =>
+        inBounds (same ▸ wellFormed.2.2.1)
+      simp [Link.containsAxiomEndpoint, leftDifferent, rightDifferent]
+    simp [axiomZero, inBounds]
+
+/-- A declaratively correct certificate with no connective link has exactly
+two formula occurrences and exactly one axiom link.  This is the cardinality
+core of the recursive base case. -/
+theorem DeclarativelyCorrect.axiomOnly_cardinality
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    certificate.formulas.size = 2 ∧ certificate.links.length = 1 := by
+  have endpointPermutation :=
+    axiomVertices_perm_range correct.1 noConnective
+  have endpointLength :
+      (certificate.links.flatMap Link.vertices).length =
+        certificate.formulas.size := by
+    simpa using endpointPermutation.length_eq
+  have twoLinks :
+      (certificate.links.flatMap Link.vertices).length =
+        2 * certificate.links.length := by
+    have allAxiom : ∀ link ∈ certificate.links,
+        ∃ left right, link = .axiom left right := by
+      intro link membership
+      exact link_eq_axiom_of_no_connective noConnective membership
+    have general : ∀ links : List Link,
+        (∀ link ∈ links, ∃ left right,
+          link = .axiom left right) →
+        (links.flatMap Link.vertices).length = 2 * links.length := by
+      intro links all
+      induction links with
+      | nil => rfl
+      | cons head tail ih =>
+          rcases all head (by simp) with ⟨left, right, rfl⟩
+          have tailAll : ∀ link ∈ tail,
+              ∃ first second, link = .axiom first second := by
+            intro link membership
+            exact all link (by simp [membership])
+          have tailIH := ih tailAll
+          simp [Link.vertices, tailIH]
+          omega
+    exact general certificate.links allAxiom
+  have parChoicesNil :=
+    parChoices_eq_nil_of_no_connective noConnective
+  have selection : ChoiceSelection certificate.parChoices [] := by
+    rw [parChoicesNil]
+    exact .nil
+  have tree := correct.2 (certificate.graphForSelection [])
+    ⟨[], selection, rfl⟩
+  have edgeLength : certificate.links.length + 1 =
+      certificate.formulas.size := by
+    have treeCount := tree.2.2
+    change (certificate.fixedEdges ++ []).length + 1 =
+      certificate.formulas.size at treeCount
+    simpa [fixedEdges_length_eq_links_length_of_no_connective noConnective]
+      using treeCount
+  constructor <;> omega
+
+private theorem parentUseCount_eq_zero_of_no_connective
+    {certificate : Certificate}
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true)
+    (vertex : Vertex) : certificate.parentUseCount vertex = 0 := by
+  unfold parentUseCount
+  rw [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+  intro link membership
+  rcases link_eq_axiom_of_no_connective noConnective membership with
+    ⟨left, right, rfl⟩
+  simp [Link.usesAsPremise, Link.premises]
+
+/-- In the axiom-only base case every occurrence is a public conclusion.
+Together with boundary uniqueness this says that the stored boundary is a
+permutation of the complete vertex range. -/
+theorem DeclarativelyCorrect.axiomOnly_conclusions_perm
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    certificate.conclusions.Perm
+      (List.range certificate.formulas.size) := by
+  have conclusionsNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq correct.1.2.2.2.1
+  apply VertexRenaming.perm_range_of_nodup_complete
+    certificate.formulas.size certificate.conclusions conclusionsNodup
+  intro vertex
+  constructor
+  · intro inBounds
+    have node := correct.1.2.2.2.2.2 vertex inBounds
+    have parentZero :=
+      parentUseCount_eq_zero_of_no_connective noConnective vertex
+    by_cases boundary : vertex ∈ certificate.conclusions
+    · exact boundary
+    · have parentOne : certificate.parentUseCount vertex = 1 := by
+        simpa [boundary] using node.2
+      omega
+  · intro membership
+    exact correct.1.2.2.1 vertex membership
+
+/-- Complete data needed by the axiom branch of recursive
+sequentialization: a unique stored axiom, its dual endpoint labels, its two
+possible bounded orientations, and the complete ordered boundary. -/
+theorem DeclarativelyCorrect.axiomOnly_data
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    ∃ left right name positive,
+      certificate.links = [.axiom left right] ∧
+      certificate.formula? left = some (.atom name positive) ∧
+      certificate.formula? right = some (.atom name (!positive)) ∧
+      ((left = 0 ∧ right = 1) ∨ (left = 1 ∧ right = 0)) ∧
+      certificate.conclusions.Perm [0, 1] := by
+  rcases correct.axiomOnly_cardinality noConnective with
+    ⟨formulaSize, linkLength⟩
+  rcases List.length_eq_one_iff.mp linkLength with ⟨link, linksEquation⟩
+  have linkMembership : link ∈ certificate.links := by
+    rw [linksEquation]
+    simp
+  rcases link_eq_axiom_of_no_connective noConnective linkMembership with
+    ⟨left, right, rfl⟩
+  have wellFormed := correct.1.2.2.2.2.1
+    (.axiom left right) linkMembership
+  rcases wellFormed with
+    ⟨different, leftInBounds, rightInBounds, typing⟩
+  have orientation :
+      (left = 0 ∧ right = 1) ∨ (left = 1 ∧ right = 0) := by
+    rw [formulaSize] at leftInBounds rightInBounds
+    have leftCases : left = 0 ∨ left = 1 :=
+      Nat.le_one_iff_eq_zero_or_eq_one.mp
+        (Nat.lt_succ_iff.mp leftInBounds)
+    have rightCases : right = 0 ∨ right = 1 :=
+      Nat.le_one_iff_eq_zero_or_eq_one.mp
+        (Nat.lt_succ_iff.mp rightInBounds)
+    rcases leftCases with rfl | rfl <;>
+    rcases rightCases with rfl | rfl <;> simp_all
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases leftFormula with
+      | tensor first second => simp [leftEquation] at typing
+      | par first second => simp [leftEquation] at typing
+      | atom name positive =>
+          cases rightEquation : certificate.formula? right with
+          | none => simp [leftEquation, rightEquation] at typing
+          | some rightFormula =>
+              simp [leftEquation, rightEquation] at typing
+              subst rightFormula
+              refine ⟨left, right, name, positive, linksEquation,
+                leftEquation, ?_, orientation, ?_⟩
+              · simpa [Formula.dual] using rightEquation
+              · have boundaryPermutation :=
+                  correct.axiomOnly_conclusions_perm noConnective
+                rw [formulaSize] at boundaryPermutation
+                have rangeTwo : List.range 2 = [0, 1] := by decide
+                rwa [rangeTwo] at boundaryPermutation
+
+private theorem perm_zero_one_cases {values : List Vertex}
+    (permutation : values.Perm [0, 1]) :
+    values = [0, 1] ∨ values = [1, 0] := by
+  have lengthEquation : values.length = 2 := by
+    simpa using permutation.length_eq
+  have nodup : values.Nodup :=
+    permutation.nodup_iff.mpr (by decide)
+  cases values with
+  | nil => simp at lengthEquation
+  | cons first tail =>
+      cases tail with
+      | nil => simp at lengthEquation
+      | cons second rest =>
+          cases rest with
+          | cons third more => simp at lengthEquation
+          | nil =>
+              have firstMembership : first = 0 ∨ first = 1 := by
+                have : first ∈ [0, 1] :=
+                  permutation.mem_iff.mp (by simp)
+                simpa using this
+              have secondMembership : second = 0 ∨ second = 1 := by
+                have : second ∈ [0, 1] :=
+                  permutation.mem_iff.mp (by simp)
+                simpa using this
+              rcases firstMembership with rfl | rfl <;>
+              rcases secondMembership with rfl | rfl <;> simp_all
+
+private theorem array_eq_pair
+    {values : Array α} {first second : α}
+    (sizeEquation : values.size = 2)
+    (firstEquation : values[0]? = some first)
+    (secondEquation : values[1]? = some second) :
+    values = #[first, second] := by
+  apply Array.ext
+  · simpa using sizeEquation
+  · intro index leftInBounds rightInBounds
+    rw [sizeEquation] at leftInBounds
+    have indexCases : index = 0 ∨ index = 1 :=
+      Nat.le_one_iff_eq_zero_or_eq_one.mp
+        (Nat.lt_succ_iff.mp leftInBounds)
+    rcases indexCases with rfl | rfl
+    · have firstValue : values[0] = first := by
+        rw [Array.getElem?_eq_getElem (by simpa [sizeEquation] using leftInBounds)]
+          at firstEquation
+        exact Option.some.inj firstEquation
+      simpa [firstValue]
+    · have secondValue : values[1] = second := by
+        rw [Array.getElem?_eq_getElem (by simpa [sizeEquation] using leftInBounds)]
+          at secondEquation
+        exact Option.some.inj secondEquation
+      simpa [secondValue]
+
+/-- Literal classification of the axiom-only base certificate.  The four
+cases are exactly axiom orientation times ordered-boundary orientation; no
+other checker-accepted base representation exists. -/
+theorem DeclarativelyCorrect.axiomOnly_certificate_cases
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    ∃ name positive,
+      certificate = {
+        formulas := #[.atom name positive, .atom name (!positive)]
+        links := [.axiom 0 1]
+        conclusions := [0, 1] } ∨
+      certificate = {
+        formulas := #[.atom name positive, .atom name (!positive)]
+        links := [.axiom 0 1]
+        conclusions := [1, 0] } ∨
+      certificate = {
+        formulas := #[.atom name (!positive), .atom name positive]
+        links := [.axiom 1 0]
+        conclusions := [0, 1] } ∨
+      certificate = {
+        formulas := #[.atom name (!positive), .atom name positive]
+        links := [.axiom 1 0]
+        conclusions := [1, 0] } := by
+  rcases correct.axiomOnly_cardinality noConnective with
+    ⟨formulaSize, _⟩
+  rcases correct.axiomOnly_data noConnective with
+    ⟨left, right, name, positive, linksEquation,
+      leftFormula, rightFormula, orientation, boundaryPermutation⟩
+  have boundaryCases := perm_zero_one_cases boundaryPermutation
+  rcases orientation with orientation | orientation
+  · rcases orientation with ⟨rfl, rfl⟩
+    have formulasEquation : certificate.formulas =
+        #[.atom name positive, .atom name (!positive)] := by
+      apply array_eq_pair formulaSize
+      · simpa [Certificate.formula?] using leftFormula
+      · simpa [Certificate.formula?] using rightFormula
+    refine ⟨name, positive, ?_⟩
+    rcases boundaryCases with boundary | boundary
+    · left
+      apply Certificate.ext_fields formulasEquation linksEquation boundary
+    · right; left
+      apply Certificate.ext_fields formulasEquation linksEquation boundary
+  · rcases orientation with ⟨rfl, rfl⟩
+    have formulasEquation : certificate.formulas =
+        #[.atom name (!positive), .atom name positive] := by
+      apply array_eq_pair formulaSize
+      · simpa [Certificate.formula?] using rightFormula
+      · simpa [Certificate.formula?] using leftFormula
+    refine ⟨name, positive, ?_⟩
+    rcases boundaryCases with boundary | boundary
+    · right; right; left
+      apply Certificate.ext_fields formulasEquation linksEquation boundary
+    · right; right; right
+      apply Certificate.ext_fields formulasEquation linksEquation boundary
+
+private def swapZeroOne : VertexRenaming 2 :=
+  VertexRenaming.swap 2 0 1 (by decide) (by decide)
+
+private theorem axiomCertificate_reindex_swap
+    (name : String) (positive : Bool) (boundary : List Vertex) :
+    ({ formulas := #[.atom name positive, .atom name (!positive)]
+       links := [.axiom 0 1]
+       conclusions := boundary } : Certificate).reindex swapZeroOne =
+    { formulas := #[.atom name (!positive), .atom name positive]
+      links := [.axiom 1 0]
+      conclusions := boundary.map swapZeroOne.forward } := by
+  apply Certificate.ext_fields
+  · apply Array.ext
+    · simp
+    · intro index leftInBounds rightInBounds
+      have indexCases : index = 0 ∨ index = 1 :=
+        Nat.le_one_iff_eq_zero_or_eq_one.mp
+          (Nat.lt_succ_iff.mp (by simpa using leftInBounds))
+      rcases indexCases with rfl | rfl <;>
+        simp [Certificate.reindex, swapZeroOne, VertexRenaming.swap]
+  · simp [Certificate.reindex, Link.reindex, swapZeroOne,
+      VertexRenaming.swap]
+  · rfl
+
+private theorem axiomSwap_infer (name : String) (positive : Bool) :
+    (CutFreeDerivation.exchange [1, 0]
+      (.axiom name positive)).infer? =
+    some [.atom name (!positive), .atom name positive] := by
+  let atom : Formula := .atom name positive
+  let dual : Formula := .atom name (!positive)
+  have candidate :
+      CutFreeDerivation.reorderCandidate? [atom, dual] [1, 0] =
+        some [dual, atom] := by
+    rfl
+  have permutation : [atom, dual].Perm [dual, atom] := .swap _ _ []
+  change CutFreeDerivation.reorder? [atom, dual] [1, 0] =
+    some [dual, atom]
+  unfold CutFreeDerivation.reorder?
+  rw [candidate]
+  simp [permutation]
+
+private theorem axiomSwap_build (name : String) (positive : Bool) :
+    (CutFreeDerivation.exchange [1, 0]
+      (.axiom name positive)).build? =
+    some {
+      formulas := #[.atom name positive, .atom name (!positive)]
+      links := [.axiom 0 1]
+      conclusions := [.atom name (!positive), .atom name positive]
+      roots := [1, 0] } := by
+  let atom : Formula := .atom name positive
+  let dual : Formula := .atom name (!positive)
+  have candidate :
+      CutFreeDerivation.reorderCandidate?
+        [(atom, 0), (dual, 1)] [1, 0] =
+      some [(dual, 1), (atom, 0)] := by
+    rfl
+  have permutation :
+      [(atom, 0), (dual, 1)].Perm [(dual, 1), (atom, 0)] :=
+    .swap _ _ []
+  simp [CutFreeDerivation.build?, NetFragment.entries,
+    CutFreeDerivation.reorder?, candidate, permutation,
+    NetFragment.ofEntries, atom, dual, Formula.dual]
+
+private theorem axiomSwap_desequentialize
+    (name : String) (positive : Bool) :
+    (CutFreeDerivation.exchange [1, 0]
+      (.axiom name positive)).desequentialize? =
+    some {
+      formulas := #[.atom name positive, .atom name (!positive)]
+      links := [.axiom 0 1]
+      conclusions := [1, 0] } := by
+  rw [CutFreeDerivation.desequentialize?]
+  rw [axiomSwap_build]
+  rfl
+
+/-- The terminal recursive base already satisfies the full strengthened
+`SequentializationResult` contract, including a first-order rule tree and
+proof-net equivalence for both axiom orientations and both boundary orders. -/
+theorem DeclarativelyCorrect.axiomOnly_sequentialization
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    (noConnective : ¬ ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    Nonempty (SequentializationResult certificate) := by
+  rcases correct.axiomOnly_certificate_cases noConnective with
+    ⟨name, positive, shape⟩
+  let atom : Formula := .atom name positive
+  let dual : Formula := .atom name (!positive)
+  rcases shape with shape | shape | shape | shape
+  · subst certificate
+    exact ⟨{
+      tree := .axiom name positive
+      sequent := [atom, dual]
+      output := {
+        formulas := #[atom, dual]
+        links := [.axiom 0 1]
+        conclusions := [0, 1] }
+      inferred := by rfl
+      desequentialized := by rfl
+      outputLabels := by rfl
+      equivalent := .refl _ }⟩
+  · subst certificate
+    exact ⟨{
+      tree := .exchange [1, 0] (.axiom name positive)
+      sequent := [dual, atom]
+      output := {
+        formulas := #[atom, dual]
+        links := [.axiom 0 1]
+        conclusions := [1, 0] }
+      inferred := by simpa [atom, dual] using axiomSwap_infer name positive
+      desequentialized := by
+        simpa [atom, dual] using axiomSwap_desequentialize name positive
+      outputLabels := by rfl
+      equivalent := .refl _ }⟩
+  · subst certificate
+    exact ⟨{
+      tree := .exchange [1, 0] (.axiom name positive)
+      sequent := [dual, atom]
+      output := {
+        formulas := #[atom, dual]
+        links := [.axiom 0 1]
+        conclusions := [1, 0] }
+      inferred := by simpa [atom, dual] using axiomSwap_infer name positive
+      desequentialized := by
+        simpa [atom, dual] using axiomSwap_desequentialize name positive
+      outputLabels := by rfl
+      equivalent := by
+        apply Certificate.ReindexEquivalent.toProofNetEquivalent
+        refine ⟨swapZeroOne, ?_⟩
+        simpa [atom, dual, swapZeroOne, VertexRenaming.swap] using
+          (axiomCertificate_reindex_swap name positive [1, 0]).symm }⟩
+  · subst certificate
+    exact ⟨{
+      tree := .axiom name positive
+      sequent := [atom, dual]
+      output := {
+        formulas := #[atom, dual]
+        links := [.axiom 0 1]
+        conclusions := [0, 1] }
+      inferred := by rfl
+      desequentialized := by rfl
+      outputLabels := by rfl
+      equivalent := by
+        apply Certificate.ReindexEquivalent.toProofNetEquivalent
+        refine ⟨swapZeroOne, ?_⟩
+        simpa [atom, dual, swapZeroOne, VertexRenaming.swap] using
+          (axiomCertificate_reindex_swap name positive [0, 1]).symm }⟩
 
 end Certificate
 
