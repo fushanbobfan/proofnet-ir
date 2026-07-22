@@ -1,0 +1,46 @@
+# Performance budget and current boundary
+
+## CI workload
+
+`ProofNetIRBenchmark.lean` runs the native checker, executable
+sequentializer, and `ProofNetEquivalent` decision procedure on 291 deterministic
+derivation-generated certificates:
+
+- 250 depth-2 trees;
+- 40 depth-3 trees;
+- one depth-4 sentinel;
+- every even-numbered input has its link storage order reversed.
+
+The executable verifies every result and accumulates a stable checksum so the
+work cannot be optimized away silently. Timing begins after process startup and
+excludes compilation. CI fails when the complete workload exceeds 45 seconds.
+The threshold is deliberately a regression guard with platform headroom, not a
+claim of constant, polynomial, interactive, or production-grade performance.
+
+## Baseline measurement
+
+On the Windows development machine on 2026-07-22, the committed workload
+reported:
+
+```text
+cases=291 checksum=8246 elapsed_ms=8107
+check_ms=0 sequentialize_ms=7133 equivalence_ms=0
+```
+
+The millisecond counters are coarse; zero means below one aggregate measured
+millisecond at those isolated call sites. Recursive checker and equivalence
+calls performed inside sequentialization are included in `sequentialize_ms`.
+
+An exploratory workload with eight depth-4 cases took 60,409 ms and failed an
+initial 15,000 ms budget. Removing those eight cases reduced the depth-2/3
+workload to 3,746 ms; adding one depth-4 sentinel raised it to 8,107 ms. This
+shows that the current inverse-rule search has a meaningful depth-sensitive
+cost. The benchmark protects against catastrophic regression but does not close
+the need for profiling, asymptotic improvement, adversarial workloads, or a
+documented user-configurable resource limit.
+
+Run it with:
+
+```text
+lake exe proofnet_ir_benchmark
+```

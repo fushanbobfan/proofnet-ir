@@ -151,6 +151,7 @@ lake exe proofnet_ir_tests
 python scripts/generate_dataset.py --check
 python scripts/audit_v03_canonical.py
 python scripts/fuzz_malformed_parser.py
+lake exe proofnet_ir_benchmark
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 ```
 
@@ -180,6 +181,7 @@ ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundar
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
+ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.4.0 tag
 schemas/                      versioned external certificate contract
@@ -200,7 +202,9 @@ and checker-guided repair on controlled MLL tasks.
 
 The broader plan is in [docs/roadmap.md](docs/roadmap.md). Source screening and
 project rationale are recorded in [docs/literature-map.md](docs/literature-map.md).
-The auditable source-coverage record is in
+The current representative workload and its explicit scalability limitation
+are recorded in [docs/performance.md](docs/performance.md). The auditable
+source-coverage record is in
 [docs/reading-ledger.md](docs/reading-ledger.md), and the first matched
 evaluation is specified in
 [docs/experiment-protocol.md](docs/experiment-protocol.md).

@@ -26,6 +26,8 @@
 - added a deterministic 5,000-case malformed-JSON fuzz harness around the
   native checked parser, including the formula-depth limit, and required it in
   CI;
+- added a verified 291-case depth-2/3/4 runtime workload with a 45-second CI
+  regression budget and documented the observed depth-sensitive search cost;
 - added a CI trust audit pinning nine public logical-boundary theorems to exactly
   `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and

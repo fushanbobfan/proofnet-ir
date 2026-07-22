@@ -194,7 +194,9 @@
   completeness of the finite occurrence-permutation enumeration.
 - [x] Add a deterministic 5,000-case malformed-input fuzz gate for the native
   checked parser.
-- [ ] Add performance budgets, API reference and tutorial material.
+- [x] Add a checked depth-2/3/4 runtime workload and CI regression budget,
+  documenting the current depth-sensitive cost.
+- [ ] Add generated API reference and tutorial material.
 
 ## v0.6 - Persistent LeanProp bridge
 

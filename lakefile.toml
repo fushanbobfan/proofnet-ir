@@ -24,3 +24,7 @@ root = "ProofNetIRDataset"
 [[lean_exe]]
 name = "proofnet_ir_parser_fuzz"
 root = "ProofNetIRParserFuzz"
+
+[[lean_exe]]
+name = "proofnet_ir_benchmark"
+root = "ProofNetIRBenchmark"

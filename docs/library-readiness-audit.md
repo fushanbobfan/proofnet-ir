@@ -119,7 +119,9 @@ part of the engineering and proof-identity gap.
 - a deterministic 5,000-case native parser fuzz gate covers truncation,
   deletion, replacement, insertion, malformed fields, and excessive formula
   nesting; broader coverage-guided fuzzing remains future hardening;
-- no performance budget protects users from exponential switching blowups;
+- a 291-case depth-2/3/4 native CI workload now has a 45-second catastrophic
+  regression budget; it explicitly does not establish favorable asymptotics,
+  and the measured depth-4 cost remains a library-readiness limitation;
 - the focused baseline is a Python experiment component, not a Lean library
   module;
 - no model-backed matched experiment has established the research hypothesis.
