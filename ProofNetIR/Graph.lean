@@ -6,7 +6,7 @@ namespace ProofNetIR
 structure Edge where
   first : Vertex
   second : Vertex
-  deriving Repr, DecidableEq, BEq
+  deriving Repr, DecidableEq, BEq, ReflBEq, LawfulBEq
 
 structure Graph where
   vertexCount : Nat

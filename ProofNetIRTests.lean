@@ -865,6 +865,11 @@ def treeGraph : Graph where
 
 example : treeGraph.isTree = true := by native_decide
 example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
+example : ∃ vertex, vertex < treeGraph.vertexCount ∧ vertex ≠ 0 := by
+  rcases (treeGraph.isTree_sound (by native_decide)).every_edge_index_is_parent
+      (index := 1) (by decide) with
+    ⟨vertex, inBounds, nonRoot, parentIndex⟩
+  exact ⟨vertex, inBounds, nonRoot⟩
 example : treeGraph.isTree = true ↔ treeGraph.IsTree :=
   treeGraph.isTree_iff_isTree
 example : treeGraph.FuelTree :=

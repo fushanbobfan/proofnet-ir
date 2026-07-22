@@ -1207,6 +1207,20 @@ private theorem parentEdge_injective (graph : Graph)
     omega
   · exact firstFirst.symm.trans secondFirst
 
+private noncomputable def parentEdgeIndex (graph : Graph)
+    (vertex : Vertex) : Nat :=
+  graph.edges.idxOf (graph.parentEdge vertex)
+
+private theorem parentEdgeIndex_lookup (graph : Graph)
+    (connected : graph.Connected) {vertex : Vertex}
+    (inBounds : vertex < graph.vertexCount) (nonRoot : vertex ≠ 0) :
+    graph.edges[graph.parentEdgeIndex vertex]? =
+      some (graph.parentEdge vertex) := by
+  rcases graph.parentEdge_spec connected inBounds nonRoot with
+    ⟨predecessor, membership, direction, decrease⟩
+  simpa [parentEdgeIndex] using
+    (list_map_getElem?_idxOf_eq_some graph.edges id membership)
+
 /-- A finite connected graph contains at least one distinct stored edge for
 every non-root vertex. The proof selects a shortest-walk parent edge and uses
 strict distance decrease to show that two vertices cannot select the same
@@ -1267,6 +1281,87 @@ theorem Connected.vertexCount_le_edges_add_one {graph : Graph}
       (graph.edges.map edgeKey).length at edgeBound
   simp only [List.length_map, List.length_range] at edgeBound
   omega
+
+/-- In a finite tree, the shortest-path parent edges of the non-root vertices
+occupy every stored multigraph edge index exactly once. This occurrence-level
+statement remains valid in the presence of parallel equal-valued edges. -/
+theorem IsTree.every_edge_index_is_parent {graph : Graph}
+    (tree : graph.IsTree) {index : Nat}
+    (indexInBounds : index < graph.edges.length) :
+    ∃ vertex,
+      vertex < graph.vertexCount ∧ vertex ≠ 0 ∧
+        graph.parentEdgeIndex vertex = index := by
+  classical
+  let nonRootVertices :=
+    (List.range (graph.vertexCount - 1)).map (fun offset => offset + 1)
+  have vertexData : ∀ vertex ∈ nonRootVertices,
+      vertex < graph.vertexCount ∧ vertex ≠ 0 := by
+    intro vertex membership
+    change vertex ∈ (List.range (graph.vertexCount - 1)).map
+      (fun offset => offset + 1) at membership
+    rcases List.mem_map.mp membership with ⟨offset, offsetMembership, rfl⟩
+    have offsetBound := List.mem_range.mp offsetMembership
+    constructor <;> omega
+  have verticesNodup : nonRootVertices.Nodup := by
+    apply nodup_map_of_injective_on List.nodup_range
+    intro first firstMembership second secondMembership same
+    omega
+  let parentIndices :=
+    nonRootVertices.map (fun vertex => graph.parentEdgeIndex vertex)
+  have parentIndicesNodup : parentIndices.Nodup := by
+    apply nodup_map_of_injective_on verticesNodup
+    intro first firstMembership second secondMembership sameIndex
+    rcases vertexData first firstMembership with
+      ⟨firstInBounds, firstNonRoot⟩
+    rcases vertexData second secondMembership with
+      ⟨secondInBounds, secondNonRoot⟩
+    have firstLookup := graph.parentEdgeIndex_lookup tree.2.1
+      firstInBounds firstNonRoot
+    have secondLookup := graph.parentEdgeIndex_lookup tree.2.1
+      secondInBounds secondNonRoot
+    have sameSome : some (graph.parentEdge first) =
+        some (graph.parentEdge second) := by
+      rw [← firstLookup, ← secondLookup, sameIndex]
+    have sameEdge : graph.parentEdge first = graph.parentEdge second :=
+      Option.some.inj sameSome
+    exact graph.parentEdge_injective tree.2.1 firstInBounds firstNonRoot
+      secondInBounds secondNonRoot sameEdge
+  have parentIndicesSubset : ∀ candidate ∈ parentIndices,
+      candidate ∈ List.range graph.edges.length := by
+    intro candidate membership
+    rcases List.mem_map.mp membership with
+      ⟨vertex, vertexMembership, rfl⟩
+    rcases vertexData vertex vertexMembership with ⟨inBounds, nonRoot⟩
+    exact List.mem_range.mpr
+      (List.getElem?_eq_some_iff.mp
+        (graph.parentEdgeIndex_lookup tree.2.1 inBounds nonRoot)).1
+  have parentIndicesLength : parentIndices.length = graph.edges.length := by
+    dsimp [parentIndices, nonRootVertices]
+    simp only [List.length_map]
+    simp only [List.length_range]
+    have positive := tree.2.1.1
+    have edgeCount := tree.2.2
+    omega
+  have indexMembership : index ∈ parentIndices := by
+    by_cases present : index ∈ parentIndices
+    · exact present
+    · have enlargedNodup : (index :: parentIndices).Nodup :=
+        List.nodup_cons.mpr ⟨present, parentIndicesNodup⟩
+      have enlargedSubset : ∀ candidate ∈ index :: parentIndices,
+          candidate ∈ List.range graph.edges.length := by
+        intro candidate membership
+        simp only [List.mem_cons] at membership
+        rcases membership with rfl | tailMembership
+        · exact List.mem_range.mpr indexInBounds
+        · exact parentIndicesSubset candidate tailMembership
+      have impossible := length_le_of_nodup_subset' enlargedNodup enlargedSubset
+      simp only [List.length_cons, List.length_range,
+        parentIndicesLength] at impossible
+      omega
+  rcases List.mem_map.mp indexMembership with
+    ⟨vertex, vertexMembership, same⟩
+  rcases vertexData vertex vertexMembership with ⟨inBounds, nonRoot⟩
+  exact ⟨vertex, inBounds, nonRoot, same⟩
 
 theorem Adjacent.symm {graph : Graph} {left right : Vertex}
     (adjacency : graph.Adjacent left right) : graph.Adjacent right left := by
