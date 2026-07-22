@@ -1091,6 +1091,8 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.TerminalPar.rebuild_directProofNetEquivalent
 #check Certificate.TerminalPar.sequentializationResult
 #check Certificate.appendTensorOccurrence
+#check VertexRenaming.blockSum
+#check Certificate.appendTensorRenaming
 #check Certificate.LinkWellFormed.tensor_formulaData
 #check Certificate.TerminalTensor.tensorPlacement
 #check Certificate.TerminalTensor.restrictLinks_reindex_append_perm

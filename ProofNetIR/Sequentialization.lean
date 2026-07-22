@@ -638,6 +638,95 @@ theorem list_map_pair_self_nodup {roots : List α} (data : α → β)
         exact congrArg Prod.snd same
       exact headFresh (sameValue ▸ valueMembership)
 
+namespace VertexRenaming
+
+/-- Disjoint sum of two bounded renamings. The left block remains below
+`leftBound`; the right block is translated by `leftBound`. Because each input
+renaming preserves in-bounds and out-of-bounds vertices exactly, the same
+piecewise definition is a total bijection on natural-number vertices, not only
+on the finite certificate range. -/
+def blockSum {leftBound rightBound : Nat}
+    (left : VertexRenaming leftBound)
+    (right : VertexRenaming rightBound) :
+    VertexRenaming (leftBound + rightBound) where
+  forward vertex := if vertex < leftBound then
+      left.forward vertex
+    else
+      leftBound + right.forward (vertex - leftBound)
+  inverse vertex := if vertex < leftBound then
+      left.inverse vertex
+    else
+      leftBound + right.inverse (vertex - leftBound)
+  inverse_forward := by
+    intro vertex
+    by_cases inLeft : vertex < leftBound
+    · have forwardInLeft : left.forward vertex < leftBound :=
+        (left.forward_lt_iff vertex).mpr inLeft
+      simp [inLeft, forwardInLeft, left.inverse_forward]
+    · have leftLe : leftBound ≤ vertex := Nat.le_of_not_gt inLeft
+      have shiftedNotLeft : ¬(leftBound +
+          right.forward (vertex - leftBound) < leftBound) := by omega
+      simp [inLeft, shiftedNotLeft, right.inverse_forward,
+        Nat.add_sub_cancel_left, Nat.add_sub_of_le leftLe]
+  forward_inverse := by
+    intro vertex
+    by_cases inLeft : vertex < leftBound
+    · have inverseInLeft : left.inverse vertex < leftBound :=
+        (left.inverse_lt_iff vertex).mpr inLeft
+      simp [inLeft, inverseInLeft, left.forward_inverse]
+    · have leftLe : leftBound ≤ vertex := Nat.le_of_not_gt inLeft
+      have shiftedNotLeft : ¬(leftBound +
+          right.inverse (vertex - leftBound) < leftBound) := by omega
+      simp [inLeft, shiftedNotLeft, right.forward_inverse,
+        Nat.add_sub_cancel_left, Nat.add_sub_of_le leftLe]
+  forward_lt_iff := by
+    intro vertex
+    by_cases inLeft : vertex < leftBound
+    · rw [if_pos inLeft]
+      have mappedInLeft := (left.forward_lt_iff vertex).mpr inLeft
+      constructor
+      · intro _
+        exact Nat.lt_of_lt_of_le inLeft
+          (Nat.le_add_right leftBound rightBound)
+      · intro _
+        exact Nat.lt_of_lt_of_le mappedInLeft
+          (Nat.le_add_right leftBound rightBound)
+    · rw [if_neg inLeft]
+      have leftLe : leftBound ≤ vertex := Nat.le_of_not_gt inLeft
+      rw [Nat.add_lt_add_iff_left,
+        right.forward_lt_iff (vertex - leftBound),
+        Nat.sub_lt_iff_lt_add' leftLe]
+
+@[simp] theorem blockSum_forward_left {leftBound rightBound : Nat}
+    (left : VertexRenaming leftBound) (right : VertexRenaming rightBound)
+    {vertex : Vertex} (inBounds : vertex < leftBound) :
+    (left.blockSum right).forward vertex = left.forward vertex := by
+  simp [blockSum, inBounds]
+
+@[simp] theorem blockSum_forward_right {leftBound rightBound : Nat}
+    (left : VertexRenaming leftBound) (right : VertexRenaming rightBound)
+    (vertex : Vertex) :
+    (left.blockSum right).forward (leftBound + vertex) =
+      leftBound + right.forward vertex := by
+  have notLeft : ¬(leftBound + vertex < leftBound) := by omega
+  simp [blockSum, notLeft, Nat.add_sub_cancel_left]
+
+@[simp] theorem blockSum_inverse_left {leftBound rightBound : Nat}
+    (left : VertexRenaming leftBound) (right : VertexRenaming rightBound)
+    {vertex : Vertex} (inBounds : vertex < leftBound) :
+    (left.blockSum right).inverse vertex = left.inverse vertex := by
+  simp [blockSum, inBounds]
+
+@[simp] theorem blockSum_inverse_right {leftBound rightBound : Nat}
+    (left : VertexRenaming leftBound) (right : VertexRenaming rightBound)
+    (vertex : Vertex) :
+    (left.blockSum right).inverse (leftBound + vertex) =
+      leftBound + right.inverse vertex := by
+  have notLeft : ¬(leftBound + vertex < leftBound) := by omega
+  simp [blockSum, notLeft, Nat.add_sub_cancel_left]
+
+end VertexRenaming
+
 /-- Certificate-level effect of introducing one fresh final par occurrence.
 The boundary is explicit because a following exchange may place the new
 conclusion at any occurrence position. -/
@@ -670,6 +759,42 @@ def Certificate.appendTensorOccurrence (leftPremise rightPremise : Certificate)
       rightRoot boundary).formulas.size =
       leftPremise.formulas.size + rightPremise.formulas.size + 1 := by
   simp [Certificate.appendTensorOccurrence, Nat.add_assoc]
+
+/-- Type-aligned disjoint sum of two premise renamings, extended by the fresh
+final tensor occurrence. -/
+def Certificate.appendTensorRenaming (leftPremise rightPremise : Certificate)
+    (leftMap : VertexRenaming leftPremise.formulas.size)
+    (rightMap : VertexRenaming rightPremise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    VertexRenaming
+      ((leftPremise.appendTensorOccurrence rightPremise left right leftRoot
+        rightRoot boundary).formulas.size) :=
+  (leftMap.blockSum rightMap).extendLast.changeBound
+    (leftPremise.appendTensorOccurrence_formulas_size rightPremise left right
+      leftRoot rightRoot boundary).symm
+
+@[simp] theorem Certificate.appendTensorRenaming_forward
+    (leftPremise rightPremise : Certificate)
+    (leftMap : VertexRenaming leftPremise.formulas.size)
+    (rightMap : VertexRenaming rightPremise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    (leftPremise.appendTensorRenaming rightPremise leftMap rightMap left right
+      leftRoot rightRoot boundary).forward =
+      (leftMap.blockSum rightMap).extendLast.forward := by
+  simp [Certificate.appendTensorRenaming]
+
+@[simp] theorem Certificate.appendTensorRenaming_inverse
+    (leftPremise rightPremise : Certificate)
+    (leftMap : VertexRenaming leftPremise.formulas.size)
+    (rightMap : VertexRenaming rightPremise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    (leftPremise.appendTensorRenaming rightPremise leftMap rightMap left right
+      leftRoot rightRoot boundary).inverse =
+      (leftMap.blockSum rightMap).extendLast.inverse := by
+  simp [Certificate.appendTensorRenaming]
 
 @[simp] theorem Certificate.appendParOccurrence_formulas_size
     (premise : Certificate) (left right : Formula)
