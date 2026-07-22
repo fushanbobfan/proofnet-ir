@@ -21,19 +21,22 @@ criterion and proof-order bureaucracy can be measured cleanly.
 5. `fixedEdges` emits axiom and tensor graph edges.
 6. `parChoices` emits the two possible premise edges of each par link.
 7. `switchingGraphs` exhaustively enumerates the resulting `2^k` graphs.
-8. `Graph.isTree` checks every switching.
-9. `Graph.reachable_sound` proves computed reachability yields an inductive
+8. `ChoiceSelection` independently states that exactly one edge was chosen for
+   each par link; `mem_switchingGraphs_iff` proves exact enumeration coverage.
+9. `Graph.isTree` checks every switching.
+10. `Graph.reachable_sound` proves computed reachability yields an inductive
    `Graph.Walk`, independent of the closure implementation.
-10. `Graph.closureN_walkWithin` translates finite closure membership into an
+11. `Graph.closureN_walkWithin` translates finite closure membership into an
     independent `WalkN` whose edge count is at most the supplied fuel.
-11. `Graph.walkN_mem_closureN` and `mem_closureN_mono` prove the converse for
+12. `Graph.walkN_mem_closureN` and `mem_closureN_mono` prove the converse for
     bounded stored edges.
-12. `isTree_iff_fuelTree` lifts the correspondence to the executable tree
+13. `isTree_iff_fuelTree` lifts the correspondence to the executable tree
     predicate.
-13. `Certificate.check` accepts only when both local and global checks pass.
-14. `check_sound` transports executable acceptance into
-    `Certificate.Correct`; `check_iff_fuelCorrect` additionally gives
-    soundness and completeness for the independent fuel-indexed semantics.
+14. `Certificate.check` accepts only when both local and global checks pass.
+15. `check_sound_declarative` transports executable acceptance into the
+    independent switching semantics;
+    `check_iff_fuelDeclarativelyCorrect` additionally gives soundness and
+    completeness for both the independent switching and path semantics.
 
 ## Why exhaustive switchings first
 

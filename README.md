@@ -21,6 +21,8 @@ The repository currently contains:
 - explicit formula occurrences and typed `axiom`, `tensor`, and `par` links;
 - executable structural well-formedness checks;
 - exhaustive enumeration of all par switchings;
+- an independent inductive `ChoiceSelection` relation and an iff theorem
+  proving the enumerator covers exactly all one-edge-per-par switchings;
 - a finite undirected graph checker for boundedness, connectedness, and the
   `|E| + 1 = |V|` tree condition;
 - a Lean theorem `check_sound` connecting executable acceptance to an
@@ -29,8 +31,8 @@ The repository currently contains:
 - exact soundness and completeness against an independent fuel-indexed path
   semantics: `closureN fuel` iff a path of at most `fuel` steps is available
   when stored edges are in bounds;
-- `check_iff_fuelCorrect`, lifting that correspondence through every switching
-  to the complete certificate checker;
+- `check_iff_fuelDeclarativelyCorrect`, lifting both the path and switching
+  correspondences to the complete certificate checker;
 - explicit exchange/permutation plus recursive identity expansion proving
   `|- A, A-dual` for every unit-free MLL formula;
 - a derivation-first generator for the corresponding canonical identity
@@ -38,7 +40,7 @@ The repository currently contains:
   reconstruction;
 - a finite formula enumerator whose depth-two one-atom corpus checks all 210
   generated identity certificates;
-- labeled negative-certificate mutations, 58 positive/negative compile-time
+- labeled negative-certificate mutations, 61 positive/negative compile-time
   assertions, and an executable smoke test.
 
 This is a research prototype. It does not yet include a general

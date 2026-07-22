@@ -7,6 +7,8 @@
 - [x] Define formula occurrences and axiom/tensor/par links.
 - [x] Check local structural invariants.
 - [x] Enumerate all switchings.
+- [x] Prove switching enumeration sound and complete against an independent
+  one-edge-per-par inductive relation.
 - [x] Implement the reference tree checker.
 - [x] Prove semantic soundness against an independent inductive walk relation.
 - [x] Prove completeness/iff for the exact finite-computation contract.

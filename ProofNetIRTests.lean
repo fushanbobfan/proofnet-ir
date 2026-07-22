@@ -64,8 +64,12 @@ example : canonical.wellFormed = true := by native_decide
 example : canonical.switchingGraphs.length = 2 := by native_decide
 example : canonical.check = true := by native_decide
 example : canonical.Correct := canonical.check_sound (by native_decide)
+example : canonical.DeclarativelyCorrect :=
+  canonical.check_sound_declarative (by native_decide)
 example : canonical.FuelCorrect :=
   canonical.check_iff_fuelCorrect.mp (by native_decide)
+example : canonical.FuelDeclarativelyCorrect :=
+  canonical.check_iff_fuelDeclarativelyCorrect.mp (by native_decide)
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide
 
@@ -91,6 +95,10 @@ example : wrongAxiom.check = false := by native_decide
 example : ¬wrongAxiom.FuelCorrect := by
   intro semantic
   have accepted := wrongAxiom.check_iff_fuelCorrect.mpr semantic
+  exact (by native_decide : wrongAxiom.check ≠ true) accepted
+example : ¬wrongAxiom.FuelDeclarativelyCorrect := by
+  intro semantic
+  have accepted := wrongAxiom.check_iff_fuelDeclarativelyCorrect.mpr semantic
   exact (by native_decide : wrongAxiom.check ≠ true) accepted
 example : (reconstructCanonical? wrongAxiom "p" "q").isSome = false := by
   native_decide

@@ -17,10 +17,16 @@
 
 ## Current theorem boundary
 
-`Certificate.check_sound` states that executable acceptance implies:
+`Certificate.check_sound_declarative` states that executable acceptance
+implies:
 
 1. structural `wellFormed` acceptance;
-2. every enumerated switching satisfies `Graph.IsTree`.
+2. every graph satisfying the independent inductive `ChoiceSelection`
+   switching relation satisfies `Graph.IsTree`.
+
+`mem_switchingGraphs_iff` proves that the executable enumeration contains
+exactly those independently described switchings, closing the risk that an
+enumerator bug could silently omit a par choice from the semantic contract.
 
 `Graph.IsTree` is a proposition over bounded edges, an independent inductive
 `Graph.Walk` from vertex zero to every in-bounds vertex, and the edge-count
@@ -32,8 +38,8 @@ not define a walk to mean "the algorithm returned true."
 steps. `closureN_walkWithin` and `walkN_mem_closureN` prove that finite closure
 at depth `fuel` is equivalent to the existence of a path of at most `fuel`
 steps, provided stored edges are in bounds. `isTree_iff_fuelTree` and
-`check_iff_fuelCorrect` lift this to the complete graph and certificate
-checkers.
+`check_iff_fuelDeclarativelyCorrect` lifts both independent relations to the
+complete certificate checker.
 
 The stronger normalization theorem saying that every arbitrary `Graph.Walk`
 in an `n`-vertex graph has an equivalent walk of at most `n` steps remains
