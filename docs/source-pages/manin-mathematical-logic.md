@@ -11,7 +11,7 @@ Audit started: 2026-07-22
 - Extent: 389 physical PDF pages.
 - Text extraction: 388 pages have extractable text. Physical page 1 has no
   extracted text and was therefore rendered and checked visually as the cover.
-- Current direct ordered reading: physical pages 1-288. This is an in-progress
+- Current direct ordered reading: physical pages 1-336. This is an in-progress
   page audit, not a completed-source claim.
 
 ## Page-by-page matrix for the completed interval
@@ -306,11 +306,59 @@ Audit started: 2026-07-22
 | 286 | 278 / VIII.5.5-5.6 | Completion of the reduction and construction of multiple HNN extensions. | No current project dependency. |
 | 287 | 279 / VIII.5.6-5.8 | Finitely presented extension, finitely generated witness subgroups, and conjugation equations. | No current project dependency. |
 | 288 | 280 / VIII.5.8; VIII.6.1 | Completion of intersection proof and final Higman reduction begins. | No current project dependency. |
+| 289 | 281 / VIII.6.2-6.3 | Benignity transfer from an ambient encoded subgroup to an enumerable subgroup and the final embedding-diagram plan. | No current project dependency; the diagram records hypotheses before the construction. |
+| 290 | 282 / VIII.6.3-6.4 | Reduction from the embedding diagram to a finitely presented witness and construction of the first multiple HNN extension. | No current project dependency. |
+| 291 | 283 / VIII.6.5-6.7 | Definitions of the auxiliary subgroups and finite-generator replacement, followed by the intersection proof setup. | No current project dependency. |
+| 292 | 284 / VIII.6.7 | Conjugation formulas generate all encoded elements and the reverse intersection inclusion completes Higman's theorem. | Records completion of the preceding dependency chain; no MLL result. |
+| 293 | 285 / IX.1.1 | Constructive worlds, effective numberings of syntax, and Turing computation as a physical rather than purely linguistic metaphor. | Begins the directly relevant graph/computation chapter; encodings remain presentations, not semantic identity. |
+| 294 | 286 / IX.1.1-1.2 | Microscopic computation, categorical Church thesis, constructive universes, and languages as categories. | Supports treating proof-net graphs as a formal categorical language, not informal drawings. |
+| 295 | 287 / IX.1.2-1.3 | Decorated graphs as flowchart languages, composition of programming methods, and motivation from classical/quantum computation. | Conceptual support only; no proof-net correctness or sequentialization theorem. |
+| 296 | 288 / IX.1.3; IX.2.1 | Quantum-randomness motivation and two equivalent categorical presentations of partial maps. | Equivalent presentations require explicit functors; analogous to distinguishing certificate encodings from semantics. |
+| 297 | 289 / IX.2.1 | Partial maps, pointed sets, and the monoidal equivalence obtained by adding or deleting a base point. | An equivalence is supported by explicit quasi-inverse constructions, a standard for library representation changes. |
+| 298 | 290 / IX.2.1-2.2 | Cartesian and disjoint-union monoidal structures and the definition of a constructive universe. | Multiple monoidal structures must be named explicitly; they cannot be inferred from one serialization. |
+| 299 | 291 / IX.2.2-2.3 | Church-thesis comments, computable numberings, and invariance of enumerable/decidable subsets under recursive permutations. | Representation independence is relative to a specified computable equivalence. |
+| 300 | 292 / IX.2.3-2.4 | Word-object endofunctor, primitive/polynomial-time variants, and natural-numbers objects. | A cost-sensitive representation needs an explicit equivalence and cost model. |
+| 301 | 293 / IX.2.4; IX.3.1-3.2 | Universal property of natural-numbers objects and definition of programming methods via evaluation morphisms. | Separates a program representation from the morphism it computes. |
+| 302 | 294 / IX.3.2-3.4 | Versal programming methods, compilation maps, undecidable program equivalence, and composition at program level. | Direct warning that extensional equality need not be decidable or canonical. |
+| 303 | 295 / IX.3.4-3.6 | Nonassociativity of arbitrary compiled programs, categories of algorithms, enrichment, and coherence isomorphisms. | Literal serialization equality must not replace a declared structural equivalence. |
+| 304 | 296 / IX.4.1-4.5 | Strict monoidal reduction, collections, symmetric-group actions, endomorphism collections, and vertical composition. | Permutation actions and input/output arities are relevant structural vocabulary, not an MLL proof. |
+| 305 | 297 / IX.4.5-4.7 | Horizontal composition, PROP/operad axioms, and the basic-recursive-function collection. | Global composition laws require explicit compatibility conditions; they are not supplied by local typing alone. |
+| 306 | 298 / IX.4.7; IX.5.1 | PROPs cannot directly express all recursion operators; decorated graphs are introduced as a constructive language for flowcharts. | Motivates a graph IR while keeping its semantic operators and correctness conditions explicit. |
+| 307 | 299 / IX.5.1-5.4 | Formal graph definition as finite flags and vertices with boundary map and involution; tails, edges, corollas, and geometric realization. | Visually inspected; closely parallels the need for explicit incidence and occurrence identity in ProofNet-IR. |
+| 308 | 300 / IX.5.4-5.5 | Rendered flag-pairing diagram, connectedness via realization, orientations, paths, wheels, and directedness. | Visual inspection confirms that orientation and global input/output direction are separate notions. |
+| 309 | 301 / IX.5.5-5.7 | Counterintuitive directed grafting example, labels/colors/orders, and graph isomorphisms preserving boundary and involution. | Directly supports the claim that storage order and graph identity need a specified isomorphism, not label equality. |
+| 310 | 302 / IX.5.8-5.11 | Collections as functors on corollas, disjoint sums, merger morphisms, symmetric-monoidal functors, and contraction morphisms. | Permutation/merger/contraction are distinct equivalences or operations and must not be conflated. |
+| 311 | 303 / IX.5.12-5.13 | Grafting plus contraction realizes PROP composition; decorated oriented trees with roots and ordered local inputs define `Prim`. | Composition can quotient bureaucracy only under an explicitly defined graph category. |
+| 312 | 304 / IX.5.13-5.14 | Arity/coarity, vertex operators, basic-function decorations, and interpretation of a decorated tree as `Op(τ)`. | Local decorations require global compatibility before interpretation. |
+| 313 | 305 / IX.5.14 | Composition, bracketing, recursion corollas, and inductive evaluation of a general decorated tree. | The rendered definition makes well-founded structural evaluation explicit; it is analogous methodology, not sequentialization evidence. |
+| 314 | 306 / IX.5.14-5.15 | Componentwise evaluation, restricted operators, programming-method arities, graph composition, and localization by contraction. | Associative regrouping is quotiented only by a named localization; arbitrary graph isomorphism is still not solved. |
+| 315 | 307 / IX.5.15; IX.6.1 | Category of decorated programming graphs and definition of a normal model of computation. | Executability and semantic equivalence are separate layers; no current theorem dependency. |
+| 316 | 308 / IX.6.1 | Normal models, universal step functions, total-versus-partial evaluations, and Turing-machine encoding. | A total API theorem must state its accepted-input precondition exactly. |
+| 317 | 309 / IX.6.1-6.2 | Turing configurations and transition steps, followed by Boolean circuits as finite gate programs. | Establishes alternative cost models; benchmark comparisons must name the machine model. |
+| 318 | 310 / IX.6.2-6.4 | Boolean bases, circuit length, flowchart representation, and simulation between circuits and Turing machines. | Search/work metrics are representation-dependent even under polynomial simulation. |
+| 319 | 311 / IX.6.4-6.5 | Uniform circuit families, size functions, and polynomial-time morphisms between constructive worlds. | Library performance claims require input-size and uniformity definitions. |
+| 320 | 312 / IX.6.5 | Polynomial-time Church thesis and bounded change of size under machine steps. | Current CI time budget is a regression threshold, not a complexity theorem. |
+| 321 | 313 / IX.6.6-6.8 | Definitions of P and NP, witnesses, polynomial-time reductions, and SAT completeness. | Experimental search claims must distinguish verification from witness discovery. |
+| 322 | 314 / IX.6.8 | SAT encoding of bounded Turing computations and polynomial-size tableau constraints. | A checker can be efficient while generation remains hard; directly relevant experimental distinction. |
+| 323 | 315 / IX.6.8; IX.7.1 | Further complexity examples and quantum-state/entanglement postulates. | Background only; no proof-net claim. |
+| 324 | 316 / IX.7.2 | First quantum-parallel-processing construction over a classical function. | Outside current project scope. |
+| 325 | 317 / IX.7.2-7.3 | Unitary evolution, measurement, and reversible embedding of classical functions. | Outside current project scope. |
+| 326 | 318 / IX.7.3-7.5 | Reversible oracle construction, limits of direct observation, and requirements for useful quantum subroutines. | Shows that a representation containing answers does not itself give an extraction algorithm. |
+| 327 | 319 / IX.7.5; IX.8.1-8.2 | Quantum algorithm design conditions and quantum Fourier transform setup. | Outside current project scope. |
+| 328 | 320 / IX.8.2-8.3 | Reversible circuit construction and quantum Fourier transform circuit decomposition. | Outside current project scope. |
+| 329 | 321 / IX.8.3-8.4 | Completion of Fourier-transform circuit and Grover search setup. | Outside current project scope. |
+| 330 | 322 / IX.8.4 | Grover iteration, amplitude rotation, and quadratic-query search. | Outside current project scope. |
+| 331 | 323 / IX.9 | Shor factoring reduction to order finding and classical preprocessing. | Outside current project scope. |
+| 332 | 324 / IX.9 | Quantum period-finding analysis, continued fractions, and success probability. | Outside current project scope. |
+| 333 | 325 / IX.9; IX.10.1 | Completion of factoring discussion and Kolmogorov-ordering setup. | Reinforces that efficient decoding is an essential part of a representation. |
+| 334 | 326 / IX.10.1 | Kolmogorov orderings, linear forward map, and inverse not bounded by any recursive function. | A canonical-looking order can make ordinary operations noncomputable. |
+| 335 | 327 / IX.10.2-10.3 | Recursive permutations, conjugated arithmetic, quantum-circuit remarks, and concluding comments. | Canonicalization claims must include computability and API usability, not existence alone. |
+| 336 | Part IV divider | Divider introducing model theory. | Accounted for; no mathematical claim. |
 
 ## Current claim boundary
 
 The completed interval supports the motivation for treating diagrams and
 decorated graphs as formal languages whose syntax and semantics must be stated
 precisely. It does not state the Danos-Regnier switching criterion, MLL proof-net
-correctness, or a sequentialization theorem. The remaining 101 pages are not
+correctness, or a sequentialization theorem. The remaining 53 pages are not
 yet represented as directly read in order.

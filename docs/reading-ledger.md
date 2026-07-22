@@ -25,7 +25,7 @@ remains an ongoing research task and must not be represented as finished.
 | Source | Physical pages | Extracted words | Coverage in this pass | SHA-256 prefix |
 |---|---:|---:|---|---|
 | Pfenning, *Linear Logic* | 336 physical / 168 unique | 122,044 | [completed page audit](source-pages/pfenning-linear-logic.md) records ordered text reading and rendered-image inspection of all 168 unique pages | `5d5a29d68c13` |
-| Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | 186,440 | [ordered page audit](source-pages/manin-mathematical-logic.md) now covers physical pages 1-288, including visual checks of physical pages 99-100; prior contents/theorem sweep and Chapter IX §§1-6 close read retained | `79baf1ed4e81` |
+| Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | 186,440 | [ordered page audit](source-pages/manin-mathematical-logic.md) now covers physical pages 1-336, including visual checks of physical pages 99-100 and graph-language pages 307-313; prior contents/theorem sweep retained | `79baf1ed4e81` |
 | *Proof Nets as Graphical Proof Objects* | 20 | 7,990 | direct end-to-end reading and visual inspection | `8166b610c3b8` |
 | *ProofNet-IR Research Plan* | 19 | 5,904 | direct end-to-end reading and visual inspection | `4c934e603f8a` |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | 44,391 | full section/proposition sweep; introduction, operadic/tree sections, transformer discussion, and conclusion close read | `ed4daccfdf3e` |
@@ -138,6 +138,8 @@ extraction can corrupt:
 - the ProofNet-IR sequentialization and persistent/linear-context formulas;
 - Pfenning's linear/unrestricted sequent judgment and focusing phases;
 - Manin's formal graph definition using flags, tails, and edges;
+- Manin's rendered flag-pairing diagram and the surrounding definitions of
+  directedness, graph isomorphism, contraction, decorated trees, and `Op(τ)`;
 - Park's four-punctured-sphere mapping-class formulas and surface diagram.
 - all 33 pages and all ten numbered figures in *Geometry of Neuroscience*.
 
