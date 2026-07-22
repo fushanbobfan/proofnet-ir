@@ -212,6 +212,12 @@ example : ∀ link ∈ (canonical.peelTerminalPar 1 3 5).links,
   Certificate.peelTerminalPar_links_wellFormed
     (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
     (canonical.mem_terminalPars_iff 1 3 5 |>.mp (by native_decide))
+example : canonicalParPremise.StructurallyWellFormed := by
+  have preserved := Certificate.peelTerminalPar_structurallyWellFormed
+    (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+    (canonical.mem_terminalPars_iff 1 3 5 |>.mp (by native_decide))
+  simpa [show canonical.peelTerminalPar 1 3 5 = canonicalParPremise by
+    native_decide] using preserved
 example : canonicalParPremise.check = true := by native_decide
 example : (canonical.peelTerminalParChecked? 1 3 5).isSome = true := by
   native_decide

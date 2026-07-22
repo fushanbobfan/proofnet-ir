@@ -80,9 +80,8 @@
   ordered-boundary transport, and checker-safe terminal-par candidate peeling.
 - [ ] Prove terminal-par peeling preserves structural and switching
   correctness for every accepted input (the conclusion is now proved to be a
-  leaf in every switching; formula deletion, boundary bounds/uniqueness, and
-  every surviving link's local well-formedness are proved. Global node
-  ownership and exact switching deletion transport remain).
+  leaf in every switching, and full premise structural preservation including
+  global node ownership is proved. Exact switching deletion transport remains).
 - [x] Implement checker-gated splitting-tensor candidate discovery,
   occurrence-component restriction, and cross-link rejection.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor

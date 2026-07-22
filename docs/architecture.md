@@ -115,9 +115,10 @@ to edge order between the generated premise switching and the deleted input
 switching remains open. On the structural side, the pure reduction is now
 proved equal to the executable candidate on well-formed terminal pars; formula
 lookup under compaction, nonempty and bounded duplicate-free boundary output,
-and local well-formedness of every surviving link are kernel theorems. Global
-node ownership is the one remaining premise-structure field. The universal
-terminal-splitting existence theorem also remains a current proof obligation.
+local well-formedness of every surviving link, and global node ownership are
+all kernel theorems; hence the complete proposition-level structural
+specification is preserved. Exact switching transport and the universal
+terminal-splitting existence theorem remain current proof obligations.
 
 ## v0.2 derivation-first path
 
