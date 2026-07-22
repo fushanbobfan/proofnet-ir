@@ -1368,6 +1368,48 @@ def reverse {graph : Graph} (cycle : graph.EdgeSimpleCycle) :
       nodup_reverse_of_nodup _ originalNodup.2
     exact ⟨by simpa using originalNodup.1, interiorReverseNodup⟩
 
+theorem mem_targets_iff_mem_vertices {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) (vertex : Vertex) :
+    vertex ∈ cycle.traversed.map DirectedEdge.target ↔
+      vertex ∈ cycle.vertices := by
+  rw [cycle.targets_eq]
+  simp [vertices, or_comm]
+
+/-- Reversing a simple cycle changes orientations and order, but not its
+underlying finite set of visited vertices. -/
+theorem mem_reverse_vertices_iff {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) (vertex : Vertex) :
+    vertex ∈ cycle.reverse.vertices ↔ vertex ∈ cycle.vertices := by
+  constructor
+  · intro membership
+    rw [← cycle.reverse.sources_eq_vertices] at membership
+    rcases List.mem_map.mp membership with
+      ⟨reversedEdge, reversedMembership, sourceEquation⟩
+    simp only [reverse, EdgeWalk.reverseTraversal, List.mem_map,
+      List.mem_reverse] at reversedMembership
+    rcases reversedMembership with
+      ⟨originalEdge, originalMembership, reversedEquation⟩
+    have targetInCycle :=
+      (cycle.directed_endpoints_mem_vertices originalMembership).2
+    rw [← sourceEquation, ← reversedEquation,
+      DirectedEdge.reverse_source]
+    exact targetInCycle
+  · intro membership
+    have targetMembership : vertex ∈
+        cycle.traversed.map DirectedEdge.target :=
+      (cycle.mem_targets_iff_mem_vertices vertex).2 membership
+    rcases List.mem_map.mp targetMembership with
+      ⟨originalEdge, originalMembership, targetEquation⟩
+    rw [← cycle.reverse.sources_eq_vertices]
+    apply List.mem_map.mpr
+    refine ⟨originalEdge.reverse, ?_, ?_⟩
+    · change originalEdge.reverse ∈
+          cycle.traversed.reverse.map DirectedEdge.reverse
+      apply List.mem_map.mpr
+      exact ⟨originalEdge, by simpa using originalMembership, rfl⟩
+    · rw [DirectedEdge.reverse_source]
+      exact targetEquation
+
 /-- The prefix ending at an internal incoming edge of a simple cycle is a
 simple open path from the cycle base to that edge's target. The nonempty
 remaining suffix ensures the repeated closing base is not included. -/

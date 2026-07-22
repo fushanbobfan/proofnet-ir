@@ -114,6 +114,11 @@
   arc and later path now close into a forbidden cusp-free simple cycle. The
   degenerate first-hit-at-base orientation branch remains before universal
   bungee separation is complete.
+- closed both endpoint orientations of the hit-at-base branch with two exact
+  same-base replacement cycles. Consequently the oriented bungee
+  contradiction is complete for every first hit at or before the selected
+  cusp; the symmetric wrap-around case where the first cycle hit lies after
+  the cusp remains.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

@@ -983,9 +983,14 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.bungee_minimal_count_constraints
 #check Certificate.bungee_cuspFreeCycle_of_minimal_nonempty
 #check Certificate.CuspAcyclic.no_minimal_bungee_firstIntersection_nonempty
+#check Certificate.no_minimal_bungee_firstIntersection_atBase
+#check Certificate.no_minimal_bungee_firstIntersection_atBase_forward
+#check Certificate.no_minimal_bungee_firstIntersection_atBase_anyOrientation
+#check Certificate.CuspAcyclic.no_minimal_bungee_firstIntersection
 #check Graph.EdgeWalk.head_reverseTraversal
 #check Graph.EdgeWalk.getLast_reverseTraversal
 #check Graph.EdgeSimpleCycle.middlePath
+#check Graph.EdgeSimpleCycle.mem_reverse_vertices_iff
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

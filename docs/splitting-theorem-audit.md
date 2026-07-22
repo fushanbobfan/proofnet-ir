@@ -103,10 +103,12 @@ name-level restatement of Yeo:
    generalized-Yeo proof now has a kernel-checked exact traversal normal form,
    cusp-free closing proof, strict minimal-cycle inequality, and final
    cusp-free-cycle contradiction whenever the first hit is not the old base.
-   The remaining bungee obligation is the degenerate hit-at-base orientation
-   branch; after that, the first-cusp continuation can become an
-   `OrderingPath`, followed by its ProofNet-IR sequentialization-edge
-   instantiation.
+   Both endpoint orientations of the degenerate hit-at-base branch are now
+   kernel checked as well. Thus every first hit at or before the selected cusp
+   is impossible. The remaining bungee obligation is the symmetric
+   wrap-around construction for a first cycle hit after the cusp; after that,
+   the first-cusp continuation can become an `OrderingPath`, followed by its
+   ProofNet-IR sequentialization-edge instantiation.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored
    link and ordered public boundary. The formula-complexity theorem already
    proves that connective structure has some terminal connective, but does not

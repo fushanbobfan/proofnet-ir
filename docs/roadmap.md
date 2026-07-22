@@ -121,9 +121,10 @@
   path extraction, the one-cusp split arithmetic, edge-disjoint first-return
   splicing, and rotation of that splice back to the original base are now
   formalized. The same-base closing proof and strict minimal-cycle inequality
-  now close the full contradiction for every first hit away from the old base.
-  The remaining hit-at-base orientation branch, universal-separation
-  conclusion, and generalized-Yeo instantiation are in
+  now close the full contradiction for every first hit away from the old base,
+  and both hit-at-base endpoint orientations are complete. The remaining
+  after-cusp wrap-around branch, universal-separation conclusion, and
+  generalized-Yeo instantiation are in
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all
