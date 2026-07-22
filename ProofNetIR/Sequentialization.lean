@@ -31,6 +31,96 @@ private theorem false_of_mem_filter_length_zero {α : Type}
   rw [count] at positive
   exact Nat.not_lt_zero 0 positive
 
+private theorem length_eraseDups_le [BEq α] (values : List α) :
+    values.eraseDups.length ≤ values.length := by
+  cases values with
+  | nil => simp
+  | cons head tail =>
+      rw [List.eraseDups_cons]
+      simp only [List.length_cons, Nat.add_le_add_iff_right]
+      exact Nat.le_trans
+        (length_eraseDups_le (tail.filter fun value => !value == head))
+        (List.length_filter_le _ tail)
+termination_by values.length
+decreasing_by
+  exact Nat.lt_add_one_of_le (List.length_filter_le _ tail)
+
+private theorem nodup_of_eraseDups_length_eq [BEq α] [LawfulBEq α]
+    {values : List α}
+    (sameLength : values.eraseDups.length = values.length) :
+    values.Nodup := by
+  induction values with
+  | nil => exact .nil
+  | cons head tail ih =>
+      rw [List.eraseDups_cons] at sameLength
+      simp only [List.length_cons] at sameLength
+      let retained := tail.filter fun value => !value == head
+      have erasedEqualsTail : retained.eraseDups.length = tail.length := by
+        change (tail.filter fun value => !value == head).eraseDups.length =
+          tail.length
+        exact Nat.add_right_cancel sameLength
+      have retainedAtMost : retained.length ≤ tail.length :=
+        List.length_filter_le _ tail
+      have erasedAtMost : retained.eraseDups.length ≤ retained.length :=
+        length_eraseDups_le retained
+      have retainedAtLeast : tail.length ≤ retained.length := by
+        rw [← erasedEqualsTail]
+        exact erasedAtMost
+      have retainedLength : retained.length = tail.length :=
+        Nat.le_antisymm retainedAtMost retainedAtLeast
+      have allRetained : ∀ value ∈ tail, value != head :=
+        List.length_filter_eq_length_iff.mp retainedLength
+      have retainedEquation : retained = tail :=
+        List.filter_eq_self.mpr allRetained
+      have headFresh : head ∉ tail := by
+        intro membership
+        have rejected := allRetained head membership
+        simp at rejected
+      apply List.nodup_cons.mpr
+      refine ⟨headFresh, ih ?_⟩
+      simpa only [retainedEquation] using erasedEqualsTail
+
+private theorem eraseDups_eq_self_of_nodup [BEq α] [LawfulBEq α]
+    {values : List α} (nodup : values.Nodup) :
+    values.eraseDups = values := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+      rcases List.nodup_cons.mp nodup with ⟨headFresh, tailNodup⟩
+      rw [List.eraseDups_cons]
+      have allDifferent : ∀ value ∈ tail, !(value == head) := by
+        intro value membership
+        have different : value ≠ head := by
+          intro same
+          subst value
+          exact headFresh membership
+        simp [beq_eq_false_iff_ne.mpr different]
+      rw [List.filter_eq_self.mpr allDifferent, ih tailNodup]
+
+private theorem nodup_map_of_injective_on {α β : Type}
+    {values : List α} {function : α → β}
+    (nodup : values.Nodup)
+    (injectiveOn : ∀ first ∈ values, ∀ second ∈ values,
+      function first = function second → first = second) :
+    (values.map function).Nodup := by
+  induction values with
+  | nil => exact .nil
+  | cons head tail ih =>
+      rcases List.nodup_cons.mp nodup with ⟨headFresh, tailNodup⟩
+      apply List.nodup_cons.mpr
+      constructor
+      · intro headImageInTail
+        rcases List.mem_map.mp headImageInTail with
+          ⟨value, valueMembership, imageEqual⟩
+        have same := injectiveOn value (by simp [valueMembership]) head
+          (by simp) imageEqual
+        subst value
+        exact headFresh valueMembership
+      · apply ih tailNodup
+        intro first firstMembership second secondMembership same
+        exact injectiveOn first (by simp [firstMembership]) second
+          (by simp [secondMembership]) same
+
 /-- Evidence returned by the future general sequentializer. The result is
 deliberately stronger than an `Option CutFreeDerivation`: it connects
 first-order inference, desequentialization, ordered boundary labels, and the
@@ -150,6 +240,15 @@ theorem expandVertex_compactVertex_of_ne {removed vertex : Nat}
     have compactNotBefore : ¬vertex - 1 < removed := by omega
     simp [compactVertex, expandVertex, before, compactNotBefore]
     omega
+
+theorem compactVertex_injective_of_ne {removed first second : Nat}
+    (firstNotRemoved : first ≠ removed)
+    (secondNotRemoved : second ≠ removed)
+    (same : compactVertex removed first = compactVertex removed second) :
+    first = second := by
+  have expanded := congrArg (expandVertex removed) same
+  simpa [expandVertex_compactVertex_of_ne firstNotRemoved,
+    expandVertex_compactVertex_of_ne secondNotRemoved] using expanded
 
 theorem compactVertex_lt {removed vertex bound : Nat}
     (removedInBounds : removed < bound) (vertexInBounds : vertex < bound)
@@ -687,6 +786,30 @@ theorem ownership {certificate : Certificate} {left right conclusion : Vertex}
   simp [NodeWellFormed, conclusionFormula, terminal.2] at node
   exact ⟨node.1, node.2, leftFormula, rightFormula, conclusionFormula⟩
 
+theorem premises_not_conclusions
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    left ∉ certificate.conclusions ∧ right ∉ certificate.conclusions := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases terminalWellFormed with
+    ⟨_, _, _, leftInBounds, rightInBounds, _, _⟩
+  constructor
+  · intro leftConclusion
+    have node := structural.2.2.2.2.2 left leftInBounds
+    have parentZero := node.2
+    simp [leftConclusion] at parentZero
+    change (certificate.links.filter (·.usesAsPremise left)).length = 0 at parentZero
+    exact false_of_mem_filter_length_zero parentZero terminal.1
+      (by simp [Link.usesAsPremise, Link.premises])
+  · intro rightConclusion
+    have node := structural.2.2.2.2.2 right rightInBounds
+    have parentZero := node.2
+    simp [rightConclusion] at parentZero
+    change (certificate.links.filter (·.usesAsPremise right)).length = 0 at parentZero
+    exact false_of_mem_filter_length_zero parentZero terminal.1
+      (by simp [Link.usesAsPremise, Link.premises])
+
 theorem producer_unique {certificate : Certificate}
     {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -1014,12 +1137,349 @@ def peelTerminalParCandidate? (certificate : Certificate)
   if !certificate.conclusions.contains conclusion then none
   let left' ← deleteVertex? conclusion left
   let right' ← deleteVertex? conclusion right
-  let context ← (certificate.conclusions.erase conclusion).mapM
+  let context ← (certificate.conclusions.filter (· != conclusion)).mapM
     (deleteVertex? conclusion)
   pure {
     formulas := certificate.formulas.eraseIdxIfInBounds conclusion
     links := certificate.links.filterMap (Link.deleteVertex? conclusion)
     conclusions := context ++ [left', right'] }
+
+/-- Proposition-friendly form of terminal-par peeling. It agrees with the
+optional candidate on every structurally well-formed terminal par. -/
+def peelTerminalPar (certificate : Certificate)
+    (left right conclusion : Vertex) : Certificate where
+  formulas := certificate.formulas.eraseIdxIfInBounds conclusion
+  links := certificate.links.filterMap (Link.deleteVertex? conclusion)
+  conclusions :=
+    (certificate.conclusions.filter (· != conclusion)).map
+      (compactVertex conclusion) ++
+    [compactVertex conclusion left, compactVertex conclusion right]
+
+theorem mapM_deleteVertex?_eq_of_avoids (removed : Vertex)
+    (values : List Vertex)
+    (avoids : ∀ vertex ∈ values, vertex ≠ removed) :
+    values.mapM (deleteVertex? removed) =
+      some (values.map (compactVertex removed)) := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+      have headNotRemoved := avoids head (by simp)
+      have tailAvoids : ∀ vertex ∈ tail, vertex ≠ removed := by
+        intro vertex membership
+        exact avoids vertex (by simp [membership])
+      simp [deleteVertex?_eq_some_of_ne headNotRemoved, ih tailAvoids]
+
+theorem peelTerminalParCandidate?_eq_some
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    certificate.peelTerminalParCandidate? left right conclusion =
+      some (certificate.peelTerminalPar left right conclusion) := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases terminalWellFormed with
+    ⟨_, leftNotConclusion, rightNotConclusion, _, _, _, _⟩
+  have filteredAvoids : ∀ vertex ∈
+      certificate.conclusions.filter (· != conclusion),
+      vertex ≠ conclusion := by
+    intro vertex membership
+    simp only [List.mem_filter] at membership
+    simpa using membership.2
+  have contextMap := mapM_deleteVertex?_eq_of_avoids conclusion
+    (certificate.conclusions.filter (· != conclusion)) filteredAvoids
+  simp [peelTerminalParCandidate?, peelTerminalPar, terminal.1, terminal.2,
+    deleteVertex?_eq_some_of_ne leftNotConclusion,
+    deleteVertex?_eq_some_of_ne rightNotConclusion,
+    contextMap]
+
+theorem peelTerminalPar_formula?_compact
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    (vertexNotConclusion : vertex ≠ conclusion) :
+    (certificate.peelTerminalPar left right conclusion).formula?
+      (compactVertex conclusion vertex) = certificate.formula? vertex := by
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  by_cases before : vertex < conclusion
+  · simp [peelTerminalPar, formula?, Array.eraseIdxIfInBounds,
+      conclusionInBounds, compactVertex, before, Array.getElem?_eraseIdx]
+  · have conclusionLeVertex : conclusion ≤ vertex := Nat.le_of_not_gt before
+    have conclusionNotVertex : conclusion ≠ vertex := Ne.symm vertexNotConclusion
+    have after : conclusion < vertex :=
+      Nat.lt_of_le_of_ne conclusionLeVertex conclusionNotVertex
+    have compactAtOrAfter : conclusion ≤ vertex - 1 :=
+      Nat.le_sub_one_of_lt after
+    have compactNotBefore : ¬vertex - 1 < conclusion :=
+      Nat.not_lt.mpr compactAtOrAfter
+    have vertexPositive : 1 ≤ vertex :=
+      Nat.succ_le_of_lt (Nat.zero_lt_of_lt after)
+    have restore : vertex - 1 + 1 = vertex :=
+      Nat.sub_add_cancel vertexPositive
+    simp [peelTerminalPar, formula?, Array.eraseIdxIfInBounds,
+      conclusionInBounds, compactVertex, before, Array.getElem?_eraseIdx,
+      compactNotBefore, restore]
+
+theorem peelTerminalPar_conclusions_nodup
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    (certificate.peelTerminalPar left right conclusion).conclusions.Nodup := by
+  let remaining := certificate.conclusions.filter (· != conclusion)
+  let context := remaining.map (compactVertex conclusion)
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have remainingNodup : remaining.Nodup :=
+    List.filter_sublist.nodup originalNodup
+  have contextNodup : context.Nodup := by
+    apply nodup_map_of_injective_on remainingNodup
+    intro first firstMembership second secondMembership same
+    have firstNotConclusion : first ≠ conclusion := by
+      have filtered := List.mem_filter.mp firstMembership
+      simpa using filtered.2
+    have secondNotConclusion : second ≠ conclusion := by
+      have filtered := List.mem_filter.mp secondMembership
+      simpa using filtered.2
+    exact compactVertex_injective_of_ne firstNotConclusion
+      secondNotConclusion same
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases terminalWellFormed with
+    ⟨leftNotRight, leftNotConclusion, rightNotConclusion, _, _, _, _⟩
+  have premiseBoundaries := TerminalPar.premises_not_conclusions
+    structural terminal
+  have compactLeftFresh : compactVertex conclusion left ∉ context := by
+    intro membership
+    rcases List.mem_map.mp membership with
+      ⟨vertex, vertexMembership, same⟩
+    have filtered := List.mem_filter.mp vertexMembership
+    have vertexNotConclusion : vertex ≠ conclusion := by
+      simpa using filtered.2
+    have oldSame := compactVertex_injective_of_ne vertexNotConclusion
+      leftNotConclusion same
+    subst vertex
+    exact premiseBoundaries.1 filtered.1
+  have compactRightFresh : compactVertex conclusion right ∉ context := by
+    intro membership
+    rcases List.mem_map.mp membership with
+      ⟨vertex, vertexMembership, same⟩
+    have filtered := List.mem_filter.mp vertexMembership
+    have vertexNotConclusion : vertex ≠ conclusion := by
+      simpa using filtered.2
+    have oldSame := compactVertex_injective_of_ne vertexNotConclusion
+      rightNotConclusion same
+    subst vertex
+    exact premiseBoundaries.2 filtered.1
+  have compactDistinct :
+      compactVertex conclusion left ≠ compactVertex conclusion right := by
+    intro same
+    exact leftNotRight (compactVertex_injective_of_ne leftNotConclusion
+      rightNotConclusion same)
+  change (context ++ [compactVertex conclusion left,
+    compactVertex conclusion right]).Nodup
+  rw [List.nodup_append]
+  refine ⟨contextNodup, by simp [compactDistinct], ?_⟩
+  intro vertex vertexMembership boundary boundaryMembership
+  simp at boundaryMembership
+  rcases boundaryMembership with rfl | rfl
+  · intro same
+    subst vertex
+    exact compactLeftFresh vertexMembership
+  · intro same
+    subst vertex
+    exact compactRightFresh vertexMembership
+
+theorem peelTerminalPar_conclusions_eraseDups_length
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    (certificate.peelTerminalPar left right conclusion).conclusions.eraseDups.length =
+      (certificate.peelTerminalPar left right conclusion).conclusions.length := by
+  rw [eraseDups_eq_self_of_nodup
+    (peelTerminalPar_conclusions_nodup structural terminal)]
+
+theorem LinkWellFormed.deleteVertex
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {link compacted : Link}
+    (wellFormed : certificate.LinkWellFormed link)
+    (deleted : link.deleteVertex? conclusion = some compacted) :
+    (certificate.peelTerminalPar left right conclusion).LinkWellFormed
+      compacted := by
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  have formulaSize :
+      (certificate.peelTerminalPar left right conclusion).formulas.size =
+        certificate.formulas.size - 1 := by
+    simp [peelTerminalPar, Array.eraseIdxIfInBounds, conclusionInBounds]
+  cases link with
+  | «axiom» first second =>
+      by_cases firstDeleted : first = conclusion
+      · subst first
+        simp [Link.deleteVertex?, Certificate.deleteVertex?] at deleted
+      · by_cases secondDeleted : second = conclusion
+        · subst second
+          simp [Link.deleteVertex?, Certificate.deleteVertex?] at deleted
+        · simp [Link.deleteVertex?, Certificate.deleteVertex?, firstDeleted,
+            secondDeleted] at deleted
+          subst compacted
+          rcases wellFormed with
+            ⟨different, firstInBounds, secondInBounds, typing⟩
+          refine ⟨?_, ?_, ?_, ?_⟩
+          · exact fun same => different
+              (compactVertex_injective_of_ne firstDeleted secondDeleted same)
+          · rw [formulaSize]
+            exact compactVertex_lt conclusionInBounds firstInBounds firstDeleted
+          · rw [formulaSize]
+            exact compactVertex_lt conclusionInBounds secondInBounds secondDeleted
+          · rw [peelTerminalPar_formula?_compact structural terminal firstDeleted,
+              peelTerminalPar_formula?_compact structural terminal secondDeleted]
+            exact typing
+  | tensor first second result =>
+      by_cases firstDeleted : first = conclusion
+      · subst first
+        simp [Link.deleteVertex?, Certificate.deleteVertex?] at deleted
+      · by_cases secondDeleted : second = conclusion
+        · subst second
+          simp [Link.deleteVertex?, Certificate.deleteVertex?, firstDeleted] at deleted
+        · by_cases resultDeleted : result = conclusion
+          · subst result
+            simp [Link.deleteVertex?, Certificate.deleteVertex?, firstDeleted,
+              secondDeleted] at deleted
+          · simp [Link.deleteVertex?, Certificate.deleteVertex?, firstDeleted,
+              secondDeleted, resultDeleted] at deleted
+            subst compacted
+            rcases wellFormed with
+              ⟨firstSecond, firstResult, secondResult, firstInBounds,
+                secondInBounds, resultInBounds, typing⟩
+            refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+            · exact fun same => firstSecond
+                (compactVertex_injective_of_ne firstDeleted secondDeleted same)
+            · exact fun same => firstResult
+                (compactVertex_injective_of_ne firstDeleted resultDeleted same)
+            · exact fun same => secondResult
+                (compactVertex_injective_of_ne secondDeleted resultDeleted same)
+            · rw [formulaSize]
+              exact compactVertex_lt conclusionInBounds firstInBounds firstDeleted
+            · rw [formulaSize]
+              exact compactVertex_lt conclusionInBounds secondInBounds secondDeleted
+            · rw [formulaSize]
+              exact compactVertex_lt conclusionInBounds resultInBounds resultDeleted
+            · rw [peelTerminalPar_formula?_compact structural terminal firstDeleted,
+                peelTerminalPar_formula?_compact structural terminal secondDeleted,
+                peelTerminalPar_formula?_compact structural terminal resultDeleted]
+              exact typing
+  | par first second result =>
+      by_cases firstDeleted : first = conclusion
+      · subst first
+        simp [Link.deleteVertex?, Certificate.deleteVertex?] at deleted
+      · by_cases secondDeleted : second = conclusion
+        · subst second
+          simp [Link.deleteVertex?, Certificate.deleteVertex?, firstDeleted] at deleted
+        · by_cases resultDeleted : result = conclusion
+          · subst result
+            simp [Link.deleteVertex?, Certificate.deleteVertex?, firstDeleted,
+              secondDeleted] at deleted
+          · simp [Link.deleteVertex?, Certificate.deleteVertex?, firstDeleted,
+              secondDeleted, resultDeleted] at deleted
+            subst compacted
+            rcases wellFormed with
+              ⟨firstSecond, firstResult, secondResult, firstInBounds,
+                secondInBounds, resultInBounds, typing⟩
+            refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+            · exact fun same => firstSecond
+                (compactVertex_injective_of_ne firstDeleted secondDeleted same)
+            · exact fun same => firstResult
+                (compactVertex_injective_of_ne firstDeleted resultDeleted same)
+            · exact fun same => secondResult
+                (compactVertex_injective_of_ne secondDeleted resultDeleted same)
+            · rw [formulaSize]
+              exact compactVertex_lt conclusionInBounds firstInBounds firstDeleted
+            · rw [formulaSize]
+              exact compactVertex_lt conclusionInBounds secondInBounds secondDeleted
+            · rw [formulaSize]
+              exact compactVertex_lt conclusionInBounds resultInBounds resultDeleted
+            · rw [peelTerminalPar_formula?_compact structural terminal firstDeleted,
+                peelTerminalPar_formula?_compact structural terminal secondDeleted,
+                peelTerminalPar_formula?_compact structural terminal resultDeleted]
+              exact typing
+
+theorem peelTerminalPar_links_wellFormed
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    ∀ link ∈ (certificate.peelTerminalPar left right conclusion).links,
+      (certificate.peelTerminalPar left right conclusion).LinkWellFormed link := by
+  intro link membership
+  change link ∈ certificate.links.filterMap
+    (Link.deleteVertex? conclusion) at membership
+  simp only [List.mem_filterMap] at membership
+  rcases membership with ⟨original, originalMembership, deleted⟩
+  exact LinkWellFormed.deleteVertex structural terminal
+    (structural.2.2.2.2.1 original originalMembership) deleted
+
+/-- Every structural obligation for terminal-par peeling except global node
+ownership. The omitted final field is isolated explicitly so that this result
+cannot be mistaken for full structural preservation. -/
+theorem peelTerminalPar_structural_prefix
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    0 < (certificate.peelTerminalPar left right conclusion).formulas.size ∧
+    0 < (certificate.peelTerminalPar left right conclusion).conclusions.length ∧
+    (∀ vertex ∈
+      (certificate.peelTerminalPar left right conclusion).conclusions,
+      vertex <
+        (certificate.peelTerminalPar left right conclusion).formulas.size) ∧
+    (certificate.peelTerminalPar left right conclusion).conclusions.eraseDups.length =
+      (certificate.peelTerminalPar left right conclusion).conclusions.length ∧
+    (∀ link ∈ (certificate.peelTerminalPar left right conclusion).links,
+      (certificate.peelTerminalPar left right conclusion).LinkWellFormed link) := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases terminalWellFormed with
+    ⟨_, leftNotConclusion, rightNotConclusion, leftInBounds,
+      rightInBounds, conclusionInBounds, _⟩
+  have formulaSize :
+      (certificate.peelTerminalPar left right conclusion).formulas.size =
+        certificate.formulas.size - 1 := by
+    simp [peelTerminalPar, Array.eraseIdxIfInBounds, conclusionInBounds]
+  refine ⟨?_, ?_, ?_,
+    peelTerminalPar_conclusions_eraseDups_length structural terminal,
+    peelTerminalPar_links_wellFormed structural terminal⟩
+  · rw [formulaSize]
+    have onePremisePositive : 0 < left ∨ 0 < conclusion := by
+      by_cases leftZero : left = 0
+      · right
+        exact Nat.pos_of_ne_zero fun conclusionZero =>
+          leftNotConclusion (leftZero.trans conclusionZero.symm)
+      · exact Or.inl (Nat.pos_of_ne_zero leftZero)
+    have oneLtSize : 1 < certificate.formulas.size := by
+      rcases onePremisePositive with leftPositive | conclusionPositive
+      · exact Nat.lt_of_le_of_lt leftPositive leftInBounds
+      · exact Nat.lt_of_le_of_lt conclusionPositive conclusionInBounds
+    exact Nat.sub_pos_of_lt oneLtSize
+  · simp [peelTerminalPar]
+  · intro vertex membership
+    change vertex ∈
+      (certificate.conclusions.filter (· != conclusion)).map
+          (compactVertex conclusion) ++
+        [compactVertex conclusion left,
+          compactVertex conclusion right] at membership
+    rw [List.mem_append] at membership
+    rcases membership with contextMembership | premiseMembership
+    · rcases List.mem_map.mp contextMembership with
+        ⟨original, originalMembership, rfl⟩
+      have filtered := List.mem_filter.mp originalMembership
+      have originalNotConclusion : original ≠ conclusion := by
+        simpa using filtered.2
+      rw [formulaSize]
+      exact compactVertex_lt conclusionInBounds
+        (structural.2.2.1 original filtered.1) originalNotConclusion
+    · simp at premiseMembership
+      rcases premiseMembership with rfl | rfl
+      · rw [formulaSize]
+        exact compactVertex_lt conclusionInBounds leftInBounds
+          leftNotConclusion
+      · rw [formulaSize]
+        exact compactVertex_lt conclusionInBounds rightInBounds
+          rightNotConclusion
 
 /-- Checker-gated terminal-par premise. Even before the general preservation
 theorem is complete, callers cannot accidentally treat a malformed candidate

@@ -201,6 +201,17 @@ def canonicalParPremise : Certificate where
 
 example : canonical.peelTerminalParCandidate? 1 3 5 =
     some canonicalParPremise := by native_decide
+example : canonical.peelTerminalPar 1 3 5 = canonicalParPremise := by
+  native_decide
+example : (canonical.peelTerminalPar 1 3 5).conclusions.Nodup :=
+  Certificate.peelTerminalPar_conclusions_nodup
+    (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+    (canonical.mem_terminalPars_iff 1 3 5 |>.mp (by native_decide))
+example : ∀ link ∈ (canonical.peelTerminalPar 1 3 5).links,
+    (canonical.peelTerminalPar 1 3 5).LinkWellFormed link :=
+  Certificate.peelTerminalPar_links_wellFormed
+    (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+    (canonical.mem_terminalPars_iff 1 3 5 |>.mp (by native_decide))
 example : canonicalParPremise.check = true := by native_decide
 example : (canonical.peelTerminalParChecked? 1 3 5).isSome = true := by
   native_decide

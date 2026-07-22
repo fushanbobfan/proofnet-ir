@@ -112,8 +112,12 @@ theorem. Transporting each terminal-par switching to this general graph lemma
 is now halfway formalized: structural ownership and par-choice counting prove
 that a terminal par conclusion is a leaf in every switching. Exact equality up
 to edge order between the generated premise switching and the deleted input
-switching, premise structural preservation, and the universal
-terminal-splitting existence theorem remain the current proof obligations.
+switching remains open. On the structural side, the pure reduction is now
+proved equal to the executable candidate on well-formed terminal pars; formula
+lookup under compaction, nonempty and bounded duplicate-free boundary output,
+and local well-formedness of every surviving link are kernel theorems. Global
+node ownership is the one remaining premise-structure field. The universal
+terminal-splitting existence theorem also remains a current proof obligation.
 
 ## v0.2 derivation-first path
 

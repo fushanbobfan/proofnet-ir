@@ -9,7 +9,7 @@ inductive Link where
   | axiom (left right : Vertex)
   | tensor (left right conclusion : Vertex)
   | par (left right conclusion : Vertex)
-  deriving Repr, DecidableEq, BEq
+  deriving Repr, DecidableEq, BEq, ReflBEq, LawfulBEq
 
 namespace Link
 
