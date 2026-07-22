@@ -2871,6 +2871,49 @@ theorem cuspCount_eq_zero_iff (certificate : Certificate)
           · simp [cuspCount, CuspFreeTraversal, cusp]
           · simp [cuspCount, CuspFreeTraversal, cusp, ih]
 
+theorem cuspBoundaryCount_eq_one (certificate : Certificate)
+    {first second : List certificate.fullGraph.DirectedEdge}
+    (firstNonempty : first ≠ []) (secondNonempty : second ≠ [])
+    (boundary : certificate.Cusp (first.getLast firstNonempty)
+      (second.head secondNonempty)) :
+    certificate.cuspBoundaryCount first second = 1 := by
+  simp [cuspBoundaryCount, List.getLast?_eq_some_getLast firstNonempty,
+    List.head?_eq_some_head secondNonempty, cuspIndicator, boundary]
+
+theorem cuspBoundaryCount_eq_zero (certificate : Certificate)
+    {first second : List certificate.fullGraph.DirectedEdge}
+    (firstNonempty : first ≠ []) (secondNonempty : second ≠ [])
+    (boundary : ¬certificate.Cusp (first.getLast firstNonempty)
+      (second.head secondNonempty)) :
+    certificate.cuspBoundaryCount first second = 0 := by
+  simp [cuspBoundaryCount, List.getLast?_eq_some_getLast firstNonempty,
+    List.head?_eq_some_head secondNonempty, cuspIndicator, boundary]
+
+theorem cuspCount_eq_zero_of_free (certificate : Certificate)
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (free : certificate.CuspFreeTraversal traversed) :
+    certificate.cuspCount traversed = 0 :=
+  (certificate.cuspCount_eq_zero_iff traversed).2 free
+
+/-- If a concatenation has exactly one cusp and its boundary is a cusp, both
+pieces are internally cusp-free. -/
+theorem cuspCount_one_boundary_splits_free (certificate : Certificate)
+    {first second : List certificate.fullGraph.DirectedEdge}
+    (firstNonempty : first ≠ []) (secondNonempty : second ≠ [])
+    (boundary : certificate.Cusp (first.getLast firstNonempty)
+      (second.head secondNonempty))
+    (one : certificate.cuspCount (first ++ second) = 1) :
+    certificate.CuspFreeTraversal first ∧
+      certificate.CuspFreeTraversal second := by
+  have countEquation := certificate.cuspCount_append first second
+  have boundaryCount := certificate.cuspBoundaryCount_eq_one
+    firstNonempty secondNonempty boundary
+  rw [one, boundaryCount] at countEquation
+  have firstZero : certificate.cuspCount first = 0 := by omega
+  have secondZero : certificate.cuspCount second = 0 := by omega
+  exact ⟨(certificate.cuspCount_eq_zero_iff first).1 firstZero,
+    (certificate.cuspCount_eq_zero_iff second).1 secondZero⟩
+
 /-- Cusp-freedom is invariant under reversing the order and orientation of
 the whole traversal. -/
 theorem cuspFreeTraversal_reverse_iff (certificate : Certificate)
@@ -3926,6 +3969,46 @@ theorem CuspAcyclic.firstIntersection_boundary_cusp
     exact later.initialFree closing
   exact acyclic cycle ((certificate.cuspFreeCycle_iff cycle).2
     ⟨traversalFree, closingFree⟩)
+
+/-- The normalized first-intersection cycle has exactly one internal cusp: the
+forced splice cusp. -/
+theorem CuspAcyclic.firstIntersection_cycle_cuspCount
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    {incoming middle last : certificate.fullGraph.DirectedEdge}
+    (first : certificate.CuspFreeContinuation incoming middle)
+    (later : certificate.CuspFreeContinuation middle last)
+    (returnPath : certificate.fullGraph.EdgeSimplePath)
+    (returnStarts : returnPath.start = last.target)
+    (returnFinishes : returnPath.finish = middle.target)
+    (returnSubset : ∀ candidate, candidate ∈ returnPath.vertices →
+      candidate ∈ first.path.vertices)
+    (returnFree : certificate.CuspFreeTraversal returnPath.traversed)
+    (uniqueIntersection : ∀ vertex,
+      vertex ∈ later.path.vertices.tail →
+      vertex ∈ first.path.vertices → vertex = last.target)
+    (returnLast : returnPath.traversed.getLast? = some middle) :
+    ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
+      certificate.cuspCount cycle.traversed = 1 := by
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    intro empty
+    simp [empty] at returnLast
+  rcases CuspFreeContinuation.firstIntersection_cycle first later returnPath
+      returnStarts returnFinishes returnSubset uniqueIntersection returnLast with
+    ⟨cycle, cycleSteps⟩
+  have boundary := acyclic.firstIntersection_boundary_cusp certificate first
+    later returnPath returnStarts returnFinishes returnSubset returnFree
+    uniqueIntersection returnLast
+  have listBoundary : certificate.Cusp
+      (later.path.traversed.getLast later.nonempty)
+      (returnPath.traversed.head returnNonempty) := by
+    rw [later.lastEdge]
+    exact boundary
+  refine ⟨cycle, ?_⟩
+  rw [cycleSteps, certificate.cuspCount_append,
+    certificate.cuspCount_eq_zero_of_free later.cuspFree,
+    certificate.cuspCount_eq_zero_of_free returnFree,
+    certificate.cuspBoundaryCount_eq_one later.nonempty returnNonempty
+      listBoundary]
 
 /-- A colored splitting vertex is one at which every based simple cycle closes
 with a cusp. This is the representation-independent target of generalized

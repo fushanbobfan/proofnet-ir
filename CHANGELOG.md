@@ -97,6 +97,11 @@
   vertex and edge disjointness, and proved cusp-acyclicity forces a cusp at its
   splice from the later prefix into the old return suffix. Minimal-cycle cusp
   arithmetic remains the next bungee obligation.
+- proved that normalized intersection cycle has exactly one internal cusp and
+  that a one-cusp concatenation split at its cusp has two cusp-free pieces.
+- added exact simple-cycle rotation and complementary wrap-around path
+  extraction, preserving occurrence identity and vertex simplicity; these are
+  the graph constructors needed for the minimal-cycle rerouting step.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

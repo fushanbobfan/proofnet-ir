@@ -1173,6 +1173,59 @@ theorem targets_nodup {graph : Graph} (cycle : graph.EdgeSimpleCycle) :
     simp [vertices]
   exact permutation.nodup_iff.mpr cycle.vertices_nodup
 
+/-- Rotate a simple cycle to begin at an exact traversal occurrence. -/
+theorem rotateAt_exists {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {before after : List graph.DirectedEdge} {first : graph.DirectedEdge}
+    (traversalEquation : cycle.traversed = before ++ first :: after) :
+    ∃ rotated : graph.EdgeSimpleCycle,
+      rotated.start = first.source ∧
+      rotated.traversed = (first :: after) ++ before := by
+  have fullChain := cycle.walk.toChain
+  rw [traversalEquation] at fullChain
+  rcases fullChain.split_append with
+    ⟨middle, prefixChain, suffixChain⟩
+  have middleEquation : middle = first.source :=
+    suffixChain.head_source.symm
+  have suffixWalk := suffixChain.toWalk
+  rw [middleEquation] at suffixWalk
+  have prefixWalk := prefixChain.toWalk
+  rw [middleEquation] at prefixWalk
+  have rotatedWalk : graph.EdgeWalk first.source
+      ((first :: after) ++ before) first.source :=
+    suffixWalk.trans prefixWalk
+  have originalIndexNodup := cycle.edgeIndicesNodup
+  rw [traversalEquation, List.map_append, List.nodup_append]
+    at originalIndexNodup
+  have rotatedIndexNodup :
+      (((first :: after) ++ before).map DirectedEdge.index).Nodup := by
+    rw [List.map_append, List.nodup_append]
+    refine ⟨originalIndexNodup.2.1, originalIndexNodup.1, ?_⟩
+    intro afterIndex afterMembership beforeIndex beforeMembership same
+    exact originalIndexNodup.2.2 beforeIndex beforeMembership afterIndex
+      afterMembership same.symm
+  have originalSourceNodup := cycle.sources_nodup
+  rw [traversalEquation, List.map_append, List.nodup_append]
+    at originalSourceNodup
+  have rotatedSourceNodup :
+      (((first :: after) ++ before).map DirectedEdge.source).Nodup := by
+    rw [List.map_append, List.nodup_append]
+    refine ⟨originalSourceNodup.2.1, originalSourceNodup.1, ?_⟩
+    intro afterSource afterMembership beforeSource beforeMembership same
+    exact originalSourceNodup.2.2 beforeSource beforeMembership afterSource
+      afterMembership same.symm
+  refine ⟨
+    { start := first.source
+      traversed := (first :: after) ++ before
+      nonempty := by simp
+      walk := rotatedWalk
+      edgeIndicesNodup := rotatedIndexNodup
+      interiorNodup := ?_ }, rfl, rfl⟩
+  have sourceEquation :=
+    rotatedWalk.toChain.sources_eq_start_targets_dropLast (by simp)
+  rw [List.map_dropLast]
+  rw [← sourceEquation]
+  exact rotatedSourceNodup
+
 theorem eq_of_source_eq {graph : Graph} (cycle : graph.EdgeSimpleCycle)
     {first second : graph.DirectedEdge}
     (firstMembership : first ∈ cycle.traversed)
@@ -1331,6 +1384,102 @@ theorem prefixPath {graph : Graph} (cycle : graph.EdgeSimpleCycle)
         (outgoing :: after).dropLast.map
           Graph.DirectedEdge.target).Nodup at decomposedInteriorNodup
   exact (List.nodup_append.mp decomposedInteriorNodup).1
+
+/-- A prefix immediately before a selected outgoing occurrence is a
+simple path ending at that occurrence's source. -/
+theorem prefixBefore {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {initialSteps after : List graph.DirectedEdge}
+    {outgoing : graph.DirectedEdge}
+    (traversalEquation :
+      cycle.traversed = initialSteps ++ outgoing :: after) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = cycle.start ∧
+      path.finish = outgoing.source ∧
+      path.traversed = initialSteps ∧
+      ∀ vertex, vertex ∈ path.vertices → vertex ∈ cycle.vertices := by
+  have fullChain := cycle.walk.toChain
+  rw [traversalEquation] at fullChain
+  rcases fullChain.split_append with
+    ⟨middle, prefixChain, suffixChain⟩
+  have finishEquation : middle = outgoing.source :=
+    suffixChain.head_source.symm
+  have prefixWalk := prefixChain.toWalk
+  rw [finishEquation] at prefixWalk
+  have interiorNodup := cycle.interiorNodup
+  rw [traversalEquation,
+    List.dropLast_append_of_ne_nil (by simp : outgoing :: after ≠ []),
+    List.map_append] at interiorNodup
+  have decomposedNodup :
+      ((cycle.start :: initialSteps.map DirectedEdge.target) ++
+        (outgoing :: after).dropLast.map DirectedEdge.target).Nodup := by
+    simpa using interiorNodup
+  let path : graph.EdgeSimplePath :=
+    { start := cycle.start
+      finish := outgoing.source
+      traversed := initialSteps
+      walk := prefixWalk
+      verticesNodup := (List.nodup_append.mp decomposedNodup).1 }
+  refine ⟨path, rfl, rfl, rfl, ?_⟩
+  intro vertex membership
+  have prefixMembership : vertex ∈
+      cycle.start :: initialSteps.map DirectedEdge.target := by
+    simpa [path, EdgeSimplePath.vertices, EdgeWalk.visitedVertices] using
+      membership
+  change vertex ∈
+    cycle.start :: cycle.traversed.dropLast.map DirectedEdge.target
+  rw [traversalEquation,
+    List.dropLast_append_of_ne_nil (by simp : outgoing :: after ≠ []),
+    List.map_append]
+  change vertex ∈
+    (cycle.start :: initialSteps.map DirectedEdge.target) ++
+      (outgoing :: after).dropLast.map DirectedEdge.target
+  exact List.mem_append.mpr (.inl prefixMembership)
+
+/-- Given two consecutive cusp edges later in a cycle, extract the complementary
+simple path that starts with the outgoing cusp edge, wraps through the cycle
+base, and stops just before a selected earlier outgoing edge. -/
+theorem complementPath {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {before between after : List graph.DirectedEdge}
+    {outgoingAtVertex cuspIncoming cuspOutgoing : graph.DirectedEdge}
+    (traversalEquation : cycle.traversed =
+      before ++ outgoingAtVertex :: between ++
+        cuspIncoming :: cuspOutgoing :: after) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = cuspOutgoing.source ∧
+      path.finish = outgoingAtVertex.source ∧
+      path.traversed = (cuspOutgoing :: after) ++ before ∧
+      ∀ vertex, vertex ∈ path.vertices → vertex ∈ cycle.vertices := by
+  let beforeRotation :=
+    before ++ outgoingAtVertex :: between ++ [cuspIncoming]
+  have rotationEquation : cycle.traversed =
+      beforeRotation ++ cuspOutgoing :: after := by
+    simpa [beforeRotation, List.append_assoc] using traversalEquation
+  rcases cycle.rotateAt_exists rotationEquation with
+    ⟨rotated, rotatedStart, rotatedSteps⟩
+  have rotatedDecomposition : rotated.traversed =
+      ((cuspOutgoing :: after) ++ before) ++
+        outgoingAtVertex :: (between ++ [cuspIncoming]) := by
+    rw [rotatedSteps]
+    simp [beforeRotation, List.append_assoc]
+  rcases rotated.prefixBefore rotatedDecomposition with
+    ⟨path, pathStarts, pathFinishes, pathSteps, pathSubset⟩
+  refine ⟨path, pathStarts.trans rotatedStart,
+    pathFinishes, pathSteps, ?_⟩
+  intro vertex membership
+  have inRotated := pathSubset vertex membership
+  rw [← rotated.sources_eq_vertices] at inRotated
+  rcases List.mem_map.mp inRotated with
+    ⟨directed, directedMembership, sourceEquation⟩
+  have traversalPermutation : rotated.traversed.Perm cycle.traversed := by
+    rw [rotatedSteps, traversalEquation]
+    simpa [beforeRotation, List.append_assoc] using
+      ((List.perm_append_comm :
+        (beforeRotation ++ (cuspOutgoing :: after)).Perm
+          ((cuspOutgoing :: after) ++ beforeRotation)).symm)
+  have originalMembership : directed ∈ cycle.traversed :=
+    traversalPermutation.mem_iff.mp directedMembership
+  rw [← sourceEquation]
+  exact (cycle.directed_endpoints_mem_vertices originalMembership).1
 
 end EdgeSimpleCycle
 

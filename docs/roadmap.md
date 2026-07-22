@@ -117,7 +117,9 @@
   occurrence exclusion now supply the next bungee layer. The normalized
   intersection and return paths now close into an exact simple cycle with
   disjoint occurrences, and cusp-acyclicity forces its splice boundary to be
-  a cusp. The remaining minimal-cycle cusp arithmetic, universal-separation
+  its unique internal cusp. Exact cycle rotation, complementary wrap-around
+  path extraction, and the one-cusp split arithmetic are now formalized. The
+  remaining minimal-cycle rerouting inequality, universal-separation
   conclusion, and generalized-Yeo instantiation are in
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge

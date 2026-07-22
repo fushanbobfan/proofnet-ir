@@ -950,6 +950,23 @@ example : cyclicPath02.reverse.vertices = cyclicPath02.vertices.reverse :=
   cyclicPath02.reverse_vertices
 example : cyclicPath02.traversed.map Graph.DirectedEdge.index |>.Nodup :=
   cyclicPath02.edgeIndicesNodup
+example : ∃ rotated : cyclicGraph.EdgeSimpleCycle,
+    rotated.start = 1 ∧ rotated.traversed =
+      [cyclicDirected12, cyclicDirected20, cyclicDirected01] := by
+  simpa [cyclicDirected12, Graph.DirectedEdge.source] using
+    cyclicTriangle.rotateAt_exists
+      (before := [cyclicDirected01]) (first := cyclicDirected12)
+      (after := [cyclicDirected20]) rfl
+example : ∃ path : cyclicGraph.EdgeSimplePath,
+    path.start = 2 ∧ path.finish = 0 ∧
+      path.traversed = [cyclicDirected20] ∧
+      ∀ vertex, vertex ∈ path.vertices → vertex ∈ cyclicTriangle.vertices := by
+  simpa [cyclicDirected20, cyclicDirected01,
+    Graph.DirectedEdge.source] using
+      cyclicTriangle.complementPath
+        (before := []) (outgoingAtVertex := cyclicDirected01)
+        (between := []) (cuspIncoming := cyclicDirected12)
+        (cuspOutgoing := cyclicDirected20) (after := []) rfl
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,
