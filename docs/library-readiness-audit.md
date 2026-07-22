@@ -71,12 +71,14 @@ part of the engineering and proof-identity gap.
 
 ## Logical gaps blocking a mature-library claim
 
-1. General sequentialization is currently exposed as
-   `Nonempty (SequentializationResult certificate)`, a theorem in `Prop`.
-   It provides a concrete witness for kernel reasoning (and a noncomputable
-   witness via choice), but it is not an executable certificate-to-tree
-   program. A mature library needs an executable diagnostic API and a theorem
-   that it succeeds on every accepted certificate.
+1. The universal theorem is exposed as
+   `Nonempty (SequentializationResult certificate)` in `Prop`. The unreleased
+   `Certificate.sequentialize` API now performs executable inverse-rule search
+   and returns structured errors or a proof-bearing result with exact input
+   labels, accepted desequentialization, and `ReindexEquivalent` output. It
+   passes 250 broad generated nets and a repeated-label regression. The missing
+   logical step is a theorem that this specific finite search succeeds on every
+   checker-accepted certificate; regressions do not replace that proof.
 2. The safe `elaborate?` return type relates inference, derivation existence,
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`
@@ -98,9 +100,14 @@ part of the engineering and proof-identity gap.
 - v0.2/v0.3 serialization now has a native Lean parser, path-aware parse
   errors, normalization validation, migration, and a checker-gated
   untrusted-input API;
-- many APIs return `Option`, losing the location and reason for failure;
+- many older APIs return `Option`, losing the location and reason for failure;
+  executable sequentialization now returns a staged `SequentializationError`;
 - separate path-dependency and clean pinned-v0.4.0 Lake consumers now pass;
-  they must remain in CI for future compatibility releases;
+  the path dependency executes the unreleased sequentializer and consumes its
+  equivalence theorem, while the pinned consumer protects the v0.4.0 API;
+- CI now parses `#print axioms` for six public logical-boundary theorems and
+  fails if their exact dependency set changes from `propext`,
+  `Classical.choice`, and `Quot.sound`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;
 - no generated API reference or tutorial beyond repository-local examples;
@@ -117,6 +124,9 @@ It can currently be used for:
 - constructing MLL certificates in Lean;
 - checking structural and Danos-Regnier switching correctness;
 - using the general sequentialization existence theorem inside Lean proofs;
+- running the proof-bearing executable sequentializer on accepted certificates,
+  with finite-search failure reported explicitly and no universal-success claim
+  until its totality theorem is complete;
 - generating/desequentializing the first-order derivation syntax and retaining
   only checker-accepted results;
 - regenerating the labeled v0.2 corpus;
@@ -126,7 +136,8 @@ It can currently be used for:
 It should not yet be presented as:
 
 - a general Lean/mathlib proof assistant extension;
-- an executable general proof-net-to-first-order-tree sequentializer;
+- a universally proved-complete and performance-qualified executable general
+  proof-net-to-first-order-tree sequentializer;
 - a complete isomorphism-canonical proof identity library;
 - evidence that proof-net generation reduces search redundancy in practice.
 

@@ -92,6 +92,18 @@ equivalent output certificate. `sequentialization_of_check` constructs that
 result for every checker-accepted certificate, and
 `generallySequentializable` exposes the proposition-level theorem.
 
+`ExecutableSequentialization.lean` supplies a separate computational path. It
+enumerates checker-preserving terminal-par and splitting-tensor inverses with
+an occurrence-count fuel bound. At each rebuilt node it enumerates all boundary
+permutations compatible with formula labels, independently infers and
+desequentializes the tree, reruns the checker, and requires the executable
+v0.3 reindex-equivalence decision to succeed. A returned
+`ExecutableSequentializationResult` therefore carries a kernel derivation and
+an exact `ReindexEquivalent`, hence `ProofNetEquivalent`, output proof. What is
+not yet proved is totality of this particular search function for every
+accepted input; the older proposition-level theorem remains the universal
+mathematical result.
+
 The same module now discovers terminal splitting-tensor candidates by deleting
 the tensor conclusion in the full occurrence graph, partitioning reachable
 vertices, rejecting every cross-component link, locally renumbering both

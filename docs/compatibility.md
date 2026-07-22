@@ -30,6 +30,14 @@ introducing a new wire version or changing the v0.2/v0.3 payload contracts.
 `Certificate.sequentialization_of_check` and
 `Certificate.generallySequentializable` are additive public declarations.
 
+The unreleased v0.5 development line adds
+`Certificate.sequentialize`, `ExecutableSequentializationResult`, and
+`SequentializationError` without changing either wire payload. These APIs are
+additive, but their names and error-stage vocabulary remain pre-release until a
+v0.5 tag is cut. The result's `ReindexEquivalent` field preserves the narrower
+order-sensitive v0.3 identity contract; it does not introduce arbitrary graph
+isomorphism or reorder link/conclusion lists.
+
 ## Deprecation and release checks
 
 A public API scheduled for removal will remain for at least one tagged minor

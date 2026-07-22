@@ -170,7 +170,25 @@
   `SequentializationResult` whose desequentialization is
   `ProofNetEquivalent` to the input.
 
-## v0.5 - Persistent LeanProp bridge
+## v0.5 - Executable sequentialization and library hardening
+
+- [x] Add a runtime certificate-to-tree search over checker-preserving terminal
+  par and splitting-tensor inverses.
+- [x] Return a proof-bearing result with exact ordered input labels, accepted
+  desequentialization, and `ReindexEquivalent`/`ProofNetEquivalent` output.
+- [x] Exhaustively backtrack over repeated boundary formula occurrences rather
+  than assuming formula labels are unique.
+- [x] Add structured staged errors and 250 broad generated regressions plus a
+  repeated-label regression.
+- [x] Exercise the runtime API from a clean path-dependency consumer and pin
+  the public theorem trust boundary in CI.
+- [ ] Prove the executable search succeeds for every checker-accepted
+  certificate, using the terminal-rule dichotomy, candidate totality, and
+  completeness of the finite occurrence-permutation enumeration.
+- [ ] Add malformed-input fuzzing, performance budgets, API reference and
+  tutorial material.
+
+## v0.6 - Persistent LeanProp bridge
 
 - Add a two-context design for persistent and linear hypotheses.
 - Make weakening and contraction explicit.

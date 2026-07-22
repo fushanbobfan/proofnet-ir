@@ -18,6 +18,8 @@ jobs:
         run: ~/.elan/bin/lake build
       - name: Run smoke test
         run: ~/.elan/bin/lake exe proofnet_ir_tests
+      - name: Audit theorem trust dependencies
+        run: python scripts/audit_axioms.py
       - name: Build as a downstream Lake dependency
         working-directory: consumer-smoke
         run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_consumer_smoke

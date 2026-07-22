@@ -15,6 +15,17 @@ def consumedTree : CutFreeDerivation :=
 
 example : consumedTree.elaborate?.isSome = true := by native_decide
 
+def consumedSequentialization :
+    Except SequentializationError
+      (ExecutableSequentializationResult consumedCertificate) :=
+  consumedCertificate.sequentialize
+
+example : consumedSequentialization.isOk = true := by native_decide
+
+example (result : ExecutableSequentializationResult consumedCertificate) :
+    result.output.ProofNetEquivalent consumedCertificate :=
+  result.proofNetEquivalent
+
 example :
     (Certificate.checkedFromString consumedCertificate.canonicalString).isOk =
       true := by
@@ -32,6 +43,7 @@ example :
 
 def main : IO Unit := do
   if consumedCertificate.check && consumedTree.elaborate?.isSome &&
+      consumedSequentialization.isOk &&
       (Certificate.checkedFromString
         consumedCertificate.canonicalString).isOk &&
       (Certificate.checkedFromString

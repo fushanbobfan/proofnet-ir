@@ -2,12 +2,21 @@
 
 ## Unreleased
 
-- clarified that the v0.4 general sequentialization result is a
-  kernel-checked existence theorem in `Prop`, not yet an executable
-  certificate-to-tree API;
+- added the proof-bearing executable `Certificate.sequentialize` API with
+  staged errors, checker-gated inverse-rule search, exhaustive repeated-label
+  boundary matching, accepted desequentialization, and an exact
+  `ReindexEquivalent`/`ProofNetEquivalent` result on success;
+- added 250 broad generated executable-sequentialization regressions plus a
+  dedicated repeated-formula-boundary test; the universal totality theorem for
+  this specific search remains an explicit pre-release obligation;
+- extended the path-dependency consumer to execute the new API and consume its
+  proof-net-equivalence theorem;
+- added a CI trust audit pinning six public logical-boundary theorems to exactly
+  `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and
-  started an explicit ordered page matrix without claiming cover-to-cover
-  completion.
+  completed ordered text and rendered-image inspection of every unique page;
+- started an ordered Manin page matrix and directly accounted for physical
+  pages 1-48 without claiming the remaining source is complete.
 
 ## v0.4.0 - General sequentialization
 

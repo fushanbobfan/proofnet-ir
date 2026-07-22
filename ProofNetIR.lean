@@ -10,4 +10,5 @@ import ProofNetIR.DerivationTree
 import ProofNetIR.Serialization
 import ProofNetIR.NetEquivalence
 import ProofNetIR.Sequentialization
+import ProofNetIR.ExecutableSequentialization
 import ProofNetIR.Parser

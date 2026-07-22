@@ -78,12 +78,21 @@ The repository currently contains:
   certificate has a concrete first-order `CutFreeDerivation`; its executable
   desequentialization is `ProofNetEquivalent` to the input and carries the
   same ordered formula boundary.
+- an unreleased executable `Certificate.sequentialize` API that searches
+  checker-preserving inverse rules and returns a proof-bearing tree, exact
+  ordered input boundary, accepted desequentialization, and
+  `ReindexEquivalent`/`ProofNetEquivalent` output; it currently passes all 250
+  broad generated regressions plus a repeated-boundary-label regression.
 
-The last item is presently an existence theorem returning
-`Nonempty (SequentializationResult input)`. It is fully usable in kernel proofs,
-but it is not yet an executable certificate-to-tree API; extracting its witness
-as data requires noncomputable choice. This distinction is an explicit v0.5
-library-readiness obligation.
+The universal v0.4 theorem still returns
+`Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does
+not extract that witness by choice: it performs finite inverse-rule and
+occurrence-permutation search and rechecks its output. A Lean theorem that this
+specific executable search succeeds for every accepted certificate remains a
+v0.5 obligation; generated success is regression evidence, not that theorem.
+The path-based downstream consumer executes this API, and CI separately audits
+six public logical-boundary theorems against the exact accepted axiom set
+`[propext, Classical.choice, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
@@ -161,6 +170,7 @@ ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
 ProofNetIR/DerivationTree.lean arbitrary cut-free trees and desequentialization
 ProofNetIR/NetEquivalence.lean semantic equivalence and checker invariance
 ProofNetIR/Sequentialization.lean general theorem contract and inverse-rule work
+ProofNetIR/ExecutableSequentialization.lean runtime inverse search and diagnostics
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
@@ -193,8 +203,9 @@ The stricter post-v0.2 coverage and reuse assessments are in
 [docs/library-readiness-audit.md](docs/library-readiness-audit.md). The
 representation comparison that guides general sequentialization is in
 [docs/formalization-comparison.md](docs/formalization-comparison.md). Completed
-page-level source audits, including the 33-page text-and-visual audit of
-*Geometry of Neuroscience*, live under
+page-level source audits, including the completed 168-unique-page Pfenning
+audit, completed 33-page *Geometry of Neuroscience* audit, and the in-progress
+Manin ordered audit, live under
 [docs/source-pages/](docs/source-pages/geometry-of-neuroscience.md).
 Wire-version stability and migration rules are in
 [docs/compatibility.md](docs/compatibility.md), and the exact v0.3 guarantees

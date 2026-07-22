@@ -140,6 +140,53 @@ example : generatedDerivationTrees.all (fun tree =>
     | none => false) = true := by
   native_decide
 
+def generatedExecutableSequentializations : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        match certificate.sequentialize with
+        | .error _ => false
+        | .ok result =>
+            result.tree.infer? == certificate.conclusionFormulas? &&
+              result.output.check
+
+/-- The public runtime inverse reconstructs all 250 broad generated trees,
+including arbitrary tensor/par focuses and exchanges, and revalidates every
+output certificate. -/
+example : generatedExecutableSequentializations = true := by native_decide
+
+def rejectedExecutableSequentialization : Bool :=
+  match (Mutation.dropFirstLink.apply
+      (identityCertificate mixedFormula)).sequentialize with
+  | .error error => error.stage == "input"
+  | .ok _ => false
+
+example : rejectedExecutableSequentialization = true := by native_decide
+
+example : Certificate.matchingFormulaOrder? [p, p, q] [p, q, p] =
+    some [0, 2, 1] := by native_decide
+
+example : Certificate.matchingFormulaOrders [p, p, q] [p, q, p] =
+    [[0, 2, 1], [1, 2, 0]] := by native_decide
+
+def repeatedBoundaryTree : CutFreeDerivation :=
+  .tensor 0 0 (.axiom "p" true) (.axiom "p" true)
+
+def repeatedBoundarySequentializes : Bool :=
+  match repeatedBoundaryTree.desequentialize? with
+  | none => false
+  | some certificate =>
+      match certificate.sequentialize with
+      | .error _ => false
+      | .ok result =>
+          result.output.reindexEquivalent? certificate &&
+            result.tree.infer? == certificate.conclusionFormulas?
+
+/-- Two indistinguishable `p⊥` boundary labels exercise exhaustive occurrence
+matching rather than a unique-label shortcut. -/
+example : repeatedBoundarySequentializes = true := by native_decide
+
 def generatedTerminalParPeelsAccepted : Bool :=
   generatedDerivationTrees.all fun tree =>
     match tree.desequentialize? with
