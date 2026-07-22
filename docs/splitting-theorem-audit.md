@@ -162,12 +162,19 @@ name-level restatement of Yeo:
   and exact node ownership force two occurrences and one axiom. All four
   combinations of axiom orientation and ordered boundary orientation now
   construct a full `SequentializationResult`, including output equivalence.
+- the par/tensor rule-tree mechanics are now factored and kernel checked:
+  exact last-boundary inference/build equations accompany a
+  `LogicalSequentializationResult` contract whose par and tensor composition
+  constructors restore the ordered input sequent by explicit exchange. This
+  isolates logical proof reconstruction from the later graph-equivalence
+  composition proof.
 
 ## Claim boundary
 
-The universal terminal-rule existence theorem, strict recursive measure, and
-axiom-only recursive base are now complete; generated examples and successful
-checker-gated candidates remain regression evidence, not part of those
-proofs. `GenerallySequentializable` must remain unproved until the par/tensor
-composition steps, well-founded recursion, and final equivalence proof are
-kernel-checked with no `sorry` or `admit`.
+The universal terminal-rule existence theorem, strict recursive measure,
+axiom-only recursive base, and logical par/tensor rule composition are now
+complete; generated examples and successful checker-gated candidates remain
+regression evidence, not part of those proofs. `GenerallySequentializable`
+must remain unproved until reduction-specific boundary alignment,
+well-founded recursion, graph reconstruction/equivalence composition, and the
+final theorem are kernel checked with no `sorry` or `admit`.

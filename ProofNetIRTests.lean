@@ -1038,6 +1038,15 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.DeclarativelyCorrect.axiomOnly_data
 #check Certificate.DeclarativelyCorrect.axiomOnly_certificate_cases
 #check Certificate.DeclarativelyCorrect.axiomOnly_sequentialization
+#check CutFreeDerivation.pick?_append_cons
+#check CutFreeDerivation.infer?_parLast
+#check CutFreeDerivation.infer?_tensorLast
+#check CutFreeDerivation.build?_parLast
+#check CutFreeDerivation.build?_tensorLast
+#check LogicalSequentializationResult
+#check LogicalSequentializationResult.ofSequentialization
+#check LogicalSequentializationResult.parRule
+#check LogicalSequentializationResult.tensorRule
 
 example : Nonempty (SequentializationResult axiomOnly) := by
   apply (axiomOnly.check_sound_declarative (by native_decide)).axiomOnly_sequentialization

@@ -471,6 +471,94 @@ def GenerallySequentializable : Prop :=
   ∀ input : Certificate,
     input.check = true → Nonempty (SequentializationResult input)
 
+/-- The purely logical projection of sequentialization.  It records an
+independent kernel-typed sequent derivation with exactly the input boundary
+labels, while omitting the stronger desequentialized-net equivalence field.
+Keeping this intermediate contract explicit lets the recursive rule proof and
+the graph-reconstruction proof be audited separately. -/
+structure LogicalSequentializationResult (input : Certificate) where
+  sequent : List Formula
+  derivation : Nonempty (Derivation sequent)
+  inputLabels : input.conclusionFormulas? = some sequent
+
+namespace LogicalSequentializationResult
+
+/-- Forget only the graph-reconstruction fields of a full sequentialization
+result; the sequent derivation and exact ordered input boundary are retained. -/
+def ofSequentialization {input : Certificate}
+    (result : SequentializationResult input) :
+    LogicalSequentializationResult input where
+  sequent := result.sequent
+  derivation := result.kernelDerivation
+  inputLabels := result.inputLabels
+
+/-- Logical composition for an inverse terminal-par step.  All occurrence
+bookkeeping is summarized by two explicit equations: the premise ends in the
+two selected formulas, and the rebuilt par boundary is a permutation of the
+target input boundary. -/
+def parRule {input premise : Certificate}
+    (premiseResult : LogicalSequentializationResult premise)
+    (context : List Formula) (left right : Formula)
+    (premiseSequent : premiseResult.sequent = context ++ [left, right])
+    (inputSequent : List Formula)
+    (inputLabels : input.conclusionFormulas? = some inputSequent)
+    (rebuiltBoundary :
+      (context ++ [Formula.par left right]).Perm inputSequent) :
+    LogicalSequentializationResult input := by
+  have rebuiltDerivation : Nonempty (Derivation inputSequent) := by
+    rcases premiseResult.derivation with ⟨premiseProof⟩
+    have focused : Derivation (context ++ [left, right]) :=
+      premiseSequent ▸ premiseProof
+    let rebuilt : Derivation (context ++ [Formula.par left right]) :=
+      Derivation.parTail focused
+    exact ⟨Derivation.exchange rebuiltBoundary rebuilt⟩
+  exact {
+    sequent := inputSequent
+    derivation := rebuiltDerivation
+    inputLabels }
+
+/-- Logical composition for an inverse splitting-tensor step.  Each child
+derivation is focused from its final boundary occurrence to the head, tensor
+is applied, and explicit exchange restores the target ordered boundary. -/
+def tensorRule {input leftPremise rightPremise : Certificate}
+    (leftResult : LogicalSequentializationResult leftPremise)
+    (rightResult : LogicalSequentializationResult rightPremise)
+    (leftContext rightContext : List Formula) (left right : Formula)
+    (leftSequent : leftResult.sequent = leftContext ++ [left])
+    (rightSequent : rightResult.sequent = rightContext ++ [right])
+    (inputSequent : List Formula)
+    (inputLabels : input.conclusionFormulas? = some inputSequent)
+    (rebuiltBoundary :
+      (.tensor left right :: (leftContext ++ rightContext)).Perm inputSequent) :
+    LogicalSequentializationResult input := by
+  have rebuiltDerivation : Nonempty (Derivation inputSequent) := by
+    rcases leftResult.derivation with ⟨leftProof⟩
+    rcases rightResult.derivation with ⟨rightProof⟩
+    have leftTail : Derivation (leftContext ++ [left]) :=
+      leftSequent ▸ leftProof
+    have rightTail : Derivation (rightContext ++ [right]) :=
+      rightSequent ▸ rightProof
+    have leftToFront : (leftContext ++ [left]).Perm
+        (left :: leftContext) := by
+      exact List.perm_append_comm
+    have rightToFront : (rightContext ++ [right]).Perm
+        (right :: rightContext) := by
+      exact List.perm_append_comm
+    have leftFocused : Derivation (left :: leftContext) :=
+      Derivation.exchange leftToFront leftTail
+    have rightFocused : Derivation (right :: rightContext) :=
+      Derivation.exchange rightToFront rightTail
+    let rebuilt : Derivation
+        (.tensor left right :: (leftContext ++ rightContext)) :=
+      Derivation.tensor leftFocused rightFocused
+    exact ⟨Derivation.exchange rebuiltBoundary rebuilt⟩
+  exact {
+    sequent := inputSequent
+    derivation := rebuiltDerivation
+    inputLabels }
+
+end LogicalSequentializationResult
+
 namespace Certificate
 
 /-- Total compaction map used once the deleted occurrence is known not to be

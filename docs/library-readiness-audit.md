@@ -58,7 +58,11 @@ part of the engineering and proof-identity gap.
   complete, and a genuine splitting tensor now produces two universally
   structurally well-formed components whose every switching is an induced
   input restriction and remains an `IsTree`. Checker/declarative preservation
-  for this reduction is complete; universal splitting existence remains open.
+  for this reduction is complete. Universal terminal-par-or-splitting-tensor
+  existence, strict decrease of both reductions, and the axiom-only recursive
+  base are now kernel checked. The logical par/tensor composition layer is
+  also complete, but reduction-specific boundary alignment, well-founded
+  recursion, and desequentialized-net equivalence remain open.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -66,7 +70,10 @@ part of the engineering and proof-identity gap.
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`
    succeed is still missing.
-2. General sequentialization of every accepted MLL proof net is absent.
+2. General sequentialization of every accepted MLL proof net is not yet
+   complete: its decomposition theorem, measure, base case, and rule-level
+   logical composition are proved, while recursive boundary transport and the
+   final graph-equivalence construction remain.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
 4. A semantic relation modulo reordered links is now defined, but it does not

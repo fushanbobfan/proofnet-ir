@@ -125,6 +125,42 @@ theorem pick?_perm {values : List α} {index : Nat} {selected : α}
               obtain ⟨rfl, rfl⟩ := accepted
               exact (ih result).cons head |>.trans (.swap chosen head rest)
 
+/-- Selecting the first element after a known prefix removes exactly that
+element and preserves the prefix and suffix order. -/
+theorem pick?_append_cons (before : List α) (selected : α)
+    (suffix : List α) :
+    pick? (before ++ selected :: suffix) before.length =
+      some (selected, before ++ suffix) := by
+  induction before with
+  | nil => rfl
+  | cons head tail ih =>
+      simp only [List.cons_append, List.length_cons, pick?]
+      rw [ih]
+      rfl
+
+/-- A par rule focused on the final two occurrences has the expected
+right-boundary sequent, independently of the size of the preceding context. -/
+theorem infer?_parLast
+    {premise : CutFreeDerivation} {context : List Formula}
+    {left right : Formula}
+    (premiseInference : premise.infer? = some (context ++ [left, right])) :
+    (CutFreeDerivation.par context.length context.length premise).infer? =
+      some (context ++ [.par left right]) := by
+  simp [infer?, premiseInference, pick?_append_cons]
+
+/-- Tensor focused on the final occurrence of each premise produces the
+tensor formula followed by the two untouched contexts. -/
+theorem infer?_tensorLast
+    {leftTree rightTree : CutFreeDerivation}
+    {leftContext rightContext : List Formula}
+    {left right : Formula}
+    (leftInference : leftTree.infer? = some (leftContext ++ [left]))
+    (rightInference : rightTree.infer? = some (rightContext ++ [right])) :
+    (CutFreeDerivation.tensor leftContext.length rightContext.length
+      leftTree rightTree).infer? =
+      some (.tensor left right :: (leftContext ++ rightContext)) := by
+  simp [infer?, leftInference, rightInference, pick?_append_cons]
+
 /-- Successful first-order inference denotes a genuine kernel-typed derivation
 in the independent `Derivation` sequent calculus. -/
 theorem infer?_sound {tree : CutFreeDerivation} {sequent : List Formula}
@@ -254,6 +290,54 @@ def build? : CutFreeDerivation → Option NetFragment
       let fragment ← build? premise
       let reordered ← reorder? fragment.entries order
       pure <| NetFragment.ofEntries fragment.formulas fragment.links reordered
+
+/-- Exact fragment equation for applying par to the last two boundary
+entries. This is the certificate-building counterpart of `infer?_parLast`. -/
+theorem build?_parLast
+    {premise : CutFreeDerivation} {fragment : NetFragment}
+    {context : List (Formula × Vertex)}
+    {left right : Formula} {leftRoot rightRoot : Vertex}
+    (premiseBuild : premise.build? = some fragment)
+    (entriesEquation : fragment.entries =
+      context ++ [(left, leftRoot), (right, rightRoot)]) :
+    (CutFreeDerivation.par context.length context.length premise).build? =
+      some (NetFragment.ofEntries
+        (fragment.formulas.push (.par left right))
+        (fragment.links ++ [
+          .par leftRoot rightRoot fragment.formulas.size])
+        (context ++ [(.par left right, fragment.formulas.size)])) := by
+  simp [build?, premiseBuild, entriesEquation, pick?_append_cons]
+
+/-- Exact fragment equation for tensor focused on the last boundary entry of
+each child. The right context is shifted by the complete left formula-array
+size, exactly as in the executable desequentializer. -/
+theorem build?_tensorLast
+    {leftTree rightTree : CutFreeDerivation}
+    {leftFragment rightFragment : NetFragment}
+    {leftContext rightContext : List (Formula × Vertex)}
+    {left right : Formula} {leftRoot rightRoot : Vertex}
+    (leftBuild : leftTree.build? = some leftFragment)
+    (rightBuild : rightTree.build? = some rightFragment)
+    (leftEntries : leftFragment.entries =
+      leftContext ++ [(left, leftRoot)])
+    (rightEntries : rightFragment.entries =
+      rightContext ++ [(right, rightRoot)]) :
+    (CutFreeDerivation.tensor leftContext.length rightContext.length
+      leftTree rightTree).build? =
+      some (NetFragment.ofEntries
+        ((leftFragment.formulas ++ rightFragment.formulas).push
+          (.tensor left right))
+        (leftFragment.links ++
+          rightFragment.links.map (·.shift leftFragment.formulas.size) ++ [
+            .tensor leftRoot
+              (rightRoot + leftFragment.formulas.size)
+              (leftFragment.formulas ++ rightFragment.formulas).size])
+        ((.tensor left right,
+            (leftFragment.formulas ++ rightFragment.formulas).size) ::
+          (leftContext ++ rightContext.map
+            (shiftEntry leftFragment.formulas.size)))) := by
+  simp [build?, leftBuild, rightBuild, leftEntries, rightEntries,
+    pick?_append_cons]
 
 def conclusions? (tree : CutFreeDerivation) : Option (List Formula) :=
   tree.build?.map NetFragment.conclusions

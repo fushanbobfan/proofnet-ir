@@ -156,6 +156,11 @@
   classified exhaustively, and every case now yields a full
   `SequentializationResult` with a kernel-checked derivation tree and explicit
   proof-net equivalence.
+- factored the recursive rule layer into a separate
+  `LogicalSequentializationResult`: exact terminal-boundary inference/build
+  equations and kernel-checked par/tensor composition now reconstruct the
+  ordered input sequent using explicit exchange, without prematurely claiming
+  the still-open recursive graph-equivalence theorem.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

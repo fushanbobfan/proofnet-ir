@@ -144,6 +144,11 @@
   two formula occurrences, one axiom, a complete two-element boundary, and a
   full `SequentializationResult` for either axiom orientation and either
   ordered conclusion orientation.
+- [x] Factor the recursive rule layer into an auditable logical contract:
+  prove exact inference/build equations for par and tensor focused on terminal
+  boundary entries, and prove that premise derivations compose through par or
+  tensor plus explicit exchange while preserving the exact ordered input
+  sequent. This step deliberately omits graph reconstruction/equivalence.
 - [ ] Recursively construct a cut-free derivation modulo explicit exchange.
 - [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
 
