@@ -218,6 +218,11 @@ example : canonicalParPremise.StructurallyWellFormed := by
     (canonical.mem_terminalPars_iff 1 3 5 |>.mp (by native_decide))
   simpa [show canonical.peelTerminalPar 1 3 5 = canonicalParPremise by
     native_decide] using preserved
+example : Certificate.TerminalParReduction canonical canonicalParPremise 5 := by
+  simpa [show canonical.peelTerminalPar 1 3 5 = canonicalParPremise by
+    native_decide] using Certificate.peelTerminalPar_reduction
+      (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+      (canonical.mem_terminalPars_iff 1 3 5 |>.mp (by native_decide))
 example : canonicalParPremise.check = true := by native_decide
 example : (canonical.peelTerminalParChecked? 1 3 5).isSome = true := by
   native_decide

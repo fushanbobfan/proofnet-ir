@@ -117,8 +117,11 @@ proved equal to the executable candidate on well-formed terminal pars; formula
 lookup under compaction, nonempty and bounded duplicate-free boundary output,
 local well-formedness of every surviving link, and global node ownership are
 all kernel theorems; hence the complete proposition-level structural
-specification is preserved. Exact switching transport and the universal
-terminal-splitting existence theorem remain current proof obligations.
+specification is preserved. Choice lifting now also proves every premise
+switching is the terminal-leaf deletion of an input switching up to edge-order
+permutation, so terminal-par correctness preservation is complete. The
+universal splitting-tensor existence and preservation theorems remain current
+proof obligations.
 
 ## v0.2 derivation-first path
 

@@ -78,10 +78,10 @@
   and the executable checker.
 - [x] Define the evidence-rich `SequentializationResult` theorem contract,
   ordered-boundary transport, and checker-safe terminal-par candidate peeling.
-- [ ] Prove terminal-par peeling preserves structural and switching
-  correctness for every accepted input (the conclusion is now proved to be a
-  leaf in every switching, and full premise structural preservation including
-  global node ownership is proved. Exact switching deletion transport remains).
+- [x] Prove terminal-par peeling preserves structural and switching
+  correctness for every accepted input: the conclusion is a leaf in every
+  switching, full premise structural preservation holds, and every premise
+  switching is the deleted input switching up to edge-order permutation.
 - [x] Implement checker-gated splitting-tensor candidate discovery,
   occurrence-component restriction, and cross-link rejection.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor

@@ -565,7 +565,27 @@ theorem deleteVertex?_eq_some_of_ne (edge : Edge) (removed : Vertex)
   simp [deleteVertex?, Certificate.deleteVertex?, firstNotRemoved,
     secondNotRemoved]
 
+theorem deleteVertex?_isSome (edge : Edge) (removed : Vertex) :
+    (edge.deleteVertex? removed).isSome = !edge.incident removed := by
+  rcases edge with ⟨first, second⟩
+  by_cases firstRemoved : first = removed <;>
+  by_cases secondRemoved : second = removed <;>
+    simp [deleteVertex?, Certificate.deleteVertex?, incident,
+      firstRemoved, secondRemoved]
+
 end Edge
+
+namespace ParChoice
+
+/-- Delete one occurrence from both alternatives of a par switching choice.
+The choice survives only when both alternative edges survive. -/
+def deleteVertex? (removed : Vertex) (choice : Edge × Edge) :
+    Option (Edge × Edge) := do
+  let first ← choice.1.deleteVertex? removed
+  let second ← choice.2.deleteVertex? removed
+  pure (first, second)
+
+end ParChoice
 
 namespace Graph
 
@@ -1126,6 +1146,66 @@ theorem ChoiceSelection.filter_length_eq_of_pair_agreement
       by_cases accepted : predicate left = true <;>
         simp [accepted, ← headAgreement, ih restAgreement]
 
+theorem ChoiceSelection.liftDelete
+    {removed : Vertex} {choices : List (Edge × Edge)} {selected : List Edge}
+    (selection : ChoiceSelection
+      (choices.filterMap (ParChoice.deleteVertex? removed)) selected)
+    (agreement : ∀ choice ∈ choices,
+      (choice.1.deleteVertex? removed).isSome =
+        (choice.2.deleteVertex? removed).isSome) :
+    ∃ lifted,
+      ChoiceSelection choices lifted ∧
+      selected = lifted.filterMap (Edge.deleteVertex? removed) := by
+  induction choices generalizing selected with
+  | nil =>
+      cases selection
+      exact ⟨[], .nil, rfl⟩
+  | cons choice rest ih =>
+      have headAgreement := agreement choice (by simp)
+      have restAgreement : ∀ candidate ∈ rest,
+          (candidate.1.deleteVertex? removed).isSome =
+            (candidate.2.deleteVertex? removed).isSome := by
+        intro candidate membership
+        exact agreement candidate (by simp [membership])
+      cases firstEquation : choice.1.deleteVertex? removed with
+      | none =>
+          have secondNone : choice.2.deleteVertex? removed = none := by
+            cases secondEquation : choice.2.deleteVertex? removed with
+            | none => rfl
+            | some second =>
+                simp [firstEquation, secondEquation] at headAgreement
+          have restSelection : ChoiceSelection
+              (rest.filterMap (ParChoice.deleteVertex? removed)) selected := by
+            simpa [ParChoice.deleteVertex?, firstEquation, secondNone]
+              using selection
+          rcases ih restSelection restAgreement with
+            ⟨lifted, liftedSelection, selectedEquation⟩
+          exact ⟨choice.1 :: lifted, .left liftedSelection, by
+            simp [firstEquation, selectedEquation]⟩
+      | some first =>
+          have secondSome : ∃ second,
+              choice.2.deleteVertex? removed = some second := by
+            cases secondEquation : choice.2.deleteVertex? removed with
+            | none => simp [firstEquation, secondEquation] at headAgreement
+            | some second => exact ⟨second, rfl⟩
+          rcases secondSome with ⟨second, secondEquation⟩
+          have expandedSelection : ChoiceSelection
+              ((first, second) ::
+                rest.filterMap (ParChoice.deleteVertex? removed)) selected := by
+            simpa [ParChoice.deleteVertex?, firstEquation, secondEquation]
+              using selection
+          cases expandedSelection with
+          | left prior =>
+              rcases ih prior restAgreement with
+                ⟨lifted, liftedSelection, selectedEquation⟩
+              exact ⟨choice.1 :: lifted, .left liftedSelection, by
+                simp [firstEquation, selectedEquation]⟩
+          | right prior =>
+              rcases ih prior restAgreement with
+                ⟨lifted, liftedSelection, selectedEquation⟩
+              exact ⟨choice.2 :: lifted, .right liftedSelection, by
+                simp [secondEquation, selectedEquation]⟩
+
 theorem TerminalPar.parChoice_incident_agreement
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -1155,6 +1235,16 @@ theorem TerminalPar.parChoice_incident_agreement
       have secondBoolean : (second == conclusion) = false :=
         beq_eq_false_iff_ne.mpr secondNotConclusion
       simp [Edge.incident, firstBoolean, secondBoolean]
+
+theorem TerminalPar.parChoice_deletion_agreement
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {choice : Edge × Edge} (membership : choice ∈ certificate.parChoices) :
+    (choice.1.deleteVertex? conclusion).isSome =
+      (choice.2.deleteVertex? conclusion).isSome := by
+  rw [Edge.deleteVertex?_isSome, Edge.deleteVertex?_isSome,
+    TerminalPar.parChoice_incident_agreement structural terminal membership]
 
 theorem TerminalPar.parChoices_incidentCount
     {certificate : Certificate} {left right conclusion : Vertex}
@@ -1997,6 +2087,134 @@ theorem peelTerminalPar_wellFormed
     (certificate.peelTerminalPar left right conclusion)).mpr
     (peelTerminalPar_structurallyWellFormed structural terminal)
 
+theorem peelTerminalPar_parChoices
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    (certificate.peelTerminalPar left right conclusion).parChoices =
+      certificate.parChoices.filterMap
+        (ParChoice.deleteVertex? conclusion) := by
+  let emitChoice : Link → Option (Edge × Edge) := fun
+    | .par first second result =>
+        some ({ first := first, second := result },
+          { first := second, second := result })
+    | _ => none
+  change
+    ((certificate.links.filterMap (Link.deleteVertex? conclusion)).filterMap
+      emitChoice) =
+    (certificate.links.filterMap emitChoice).filterMap
+      (ParChoice.deleteVertex? conclusion)
+  suffices general : ∀ links : List Link,
+      (∀ link ∈ links, link ∈ certificate.links) →
+      ((links.filterMap (Link.deleteVertex? conclusion)).filterMap
+        emitChoice) =
+      (links.filterMap emitChoice).filterMap
+        (ParChoice.deleteVertex? conclusion) by
+    exact general certificate.links (by simp)
+  intro links subset
+  induction links with
+  | nil => rfl
+  | cons head tail ih =>
+      have headMembership : head ∈ certificate.links :=
+        subset head (by simp)
+      have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+        intro link membership
+        exact subset link (by simp [membership])
+      have tailEquality := ih tailSubset
+      cases deleted : head.deleteVertex? conclusion with
+      | none =>
+          have same := (TerminalPar.deletion_none_iff_eq structural terminal
+            headMembership).mp deleted
+          subst head
+          simpa [emitChoice, deleted, Link.deleteVertex?,
+            ParChoice.deleteVertex?, Edge.deleteVertex?,
+            Certificate.deleteVertex?] using tailEquality
+      | some compacted =>
+          rcases (Link.deleteVertex?_eq_some_iff head compacted conclusion).mp
+            deleted with ⟨avoids, rfl⟩
+          cases head with
+          | «axiom» first second =>
+              simpa [emitChoice, deleted, Link.compactVertices] using tailEquality
+          | tensor first second result =>
+              simpa [emitChoice, deleted, Link.compactVertices] using tailEquality
+          | par first second result =>
+              simp [Link.vertices] at avoids
+              have firstNotConclusion : first ≠ conclusion := Ne.symm avoids.1
+              have secondNotConclusion : second ≠ conclusion :=
+                Ne.symm avoids.2.1
+              have resultNotConclusion : result ≠ conclusion :=
+                Ne.symm avoids.2.2
+              simpa [emitChoice, deleted, Link.compactVertices,
+                ParChoice.deleteVertex?, Edge.deleteVertex?,
+                Certificate.deleteVertex?, firstNotConclusion,
+                secondNotConclusion, resultNotConclusion] using tailEquality
+
+theorem peelTerminalPar_fixedEdges
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    (certificate.peelTerminalPar left right conclusion).fixedEdges =
+      certificate.fixedEdges.filterMap (Edge.deleteVertex? conclusion) := by
+  let emitFixed : Link → List Edge := fun
+    | .axiom first second => [{ first, second }]
+    | .tensor first second result =>
+        [{ first := first, second := result },
+         { first := second, second := result }]
+    | .par _ _ _ => []
+  change
+    (certificate.links.filterMap
+      (Link.deleteVertex? conclusion)).flatMap emitFixed =
+    (certificate.links.flatMap emitFixed).filterMap
+      (Edge.deleteVertex? conclusion)
+  suffices general : ∀ links : List Link,
+      (∀ link ∈ links, link ∈ certificate.links) →
+      (links.filterMap (Link.deleteVertex? conclusion)).flatMap emitFixed =
+      (links.flatMap emitFixed).filterMap (Edge.deleteVertex? conclusion) by
+    exact general certificate.links (by simp)
+  intro links subset
+  induction links with
+  | nil => rfl
+  | cons head tail ih =>
+      have headMembership : head ∈ certificate.links :=
+        subset head (by simp)
+      have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+        intro link membership
+        exact subset link (by simp [membership])
+      have tailEquality := ih tailSubset
+      cases deleted : head.deleteVertex? conclusion with
+      | none =>
+          have same := (TerminalPar.deletion_none_iff_eq structural terminal
+            headMembership).mp deleted
+          subst head
+          simpa [emitFixed, deleted, Link.deleteVertex?,
+            Certificate.deleteVertex?] using tailEquality
+      | some compacted =>
+          rcases (Link.deleteVertex?_eq_some_iff head compacted conclusion).mp
+            deleted with ⟨avoids, rfl⟩
+          cases head with
+          | «axiom» first second =>
+              simp [Link.vertices] at avoids
+              have firstNotConclusion : first ≠ conclusion := Ne.symm avoids.1
+              have secondNotConclusion : second ≠ conclusion :=
+                Ne.symm avoids.2
+              simpa [emitFixed, deleted, Link.compactVertices,
+                Edge.deleteVertex?, Certificate.deleteVertex?,
+                firstNotConclusion, secondNotConclusion] using tailEquality
+          | tensor first second result =>
+              simp [Link.vertices] at avoids
+              have firstNotConclusion : first ≠ conclusion := Ne.symm avoids.1
+              have secondNotConclusion : second ≠ conclusion :=
+                Ne.symm avoids.2.1
+              have resultNotConclusion : result ≠ conclusion :=
+                Ne.symm avoids.2.2
+              simpa [emitFixed, deleted, Link.compactVertices,
+                Edge.deleteVertex?, Certificate.deleteVertex?,
+                firstNotConclusion, secondNotConclusion,
+                resultNotConclusion] using tailEquality
+          | par first second result =>
+              simpa [emitFixed, deleted, Link.compactVertices]
+                using tailEquality
+
 /-- Checker-gated terminal-par premise. Even before the general preservation
 theorem is complete, callers cannot accidentally treat a malformed candidate
 as a proof net. -/
@@ -2080,6 +2298,47 @@ structure TerminalParReduction (input premise : Certificate)
         premiseGraph.edges.Perm
           (inputGraph.deleteVertex conclusion).edges
 
+/-- The concrete terminal-par peel satisfies the exact graph-deletion
+interface required by sequentialization. -/
+theorem peelTerminalPar_reduction
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    TerminalParReduction certificate
+      (certificate.peelTerminalPar left right conclusion) conclusion := by
+  refine {
+    premiseStructural :=
+      peelTerminalPar_structurallyWellFormed structural terminal
+    switchingDeletion := ?_ }
+  intro premiseGraph premiseSwitching
+  rcases premiseSwitching with ⟨selected, selection, rfl⟩
+  have transformedSelection : ChoiceSelection
+      (certificate.parChoices.filterMap
+        (ParChoice.deleteVertex? conclusion)) selected := by
+    rw [← peelTerminalPar_parChoices structural terminal]
+    exact selection
+  rcases transformedSelection.liftDelete (by
+      intro choice membership
+      exact TerminalPar.parChoice_deletion_agreement structural terminal
+        membership) with
+    ⟨lifted, liftedSelection, selectedEquation⟩
+  let inputGraph := certificate.graphForSelection lifted
+  refine ⟨inputGraph, ⟨lifted, liftedSelection, rfl⟩,
+    TerminalPar.graphForSelection_leaf structural terminal liftedSelection,
+    ?_, ?_⟩
+  · change
+      (certificate.peelTerminalPar left right conclusion).formulas.size =
+        certificate.formulas.size - 1
+    have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+    simp [peelTerminalPar, Array.eraseIdxIfInBounds, conclusionInBounds]
+  · change
+      ((certificate.peelTerminalPar left right conclusion).fixedEdges ++
+        selected).Perm
+      ((certificate.fixedEdges ++ lifted).filterMap
+        (Edge.deleteVertex? conclusion))
+    rw [peelTerminalPar_fixedEdges structural terminal, selectedEquation,
+      List.filterMap_append]
+
 namespace TerminalParReduction
 
 theorem declarativelyCorrect {input premise : Certificate}
@@ -2104,6 +2363,14 @@ theorem check_of_check {input premise : Certificate} {conclusion : Vertex}
     (input.check_iff_declarativelyCorrect.mp accepted)
 
 end TerminalParReduction
+
+theorem peelTerminalPar_check_of_check
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    (accepted : certificate.check = true) :
+    (certificate.peelTerminalPar left right conclusion).check = true :=
+  (peelTerminalPar_reduction structural terminal).check_of_check accepted
 
 theorem mem_terminalPars_iff (certificate : Certificate)
     (left right conclusion : Vertex) :
