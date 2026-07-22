@@ -11948,6 +11948,113 @@ theorem TerminalPar.logicalBoundaryData
               rw [conclusionLabel] at normalizedLabelPermutation
               exact normalizedLabelPermutation
 
+/-- Occurrence-level boundary reconstruction for a terminal par inverse.
+After peeling, applying par to the two final premise roots yields the old
+boundary with the par conclusion rotated to the end. Pulling the original
+boundary back through the insertion renaming is therefore an executable
+exchange target, even when boundary formulas are syntactically equal. -/
+theorem TerminalPar.occurrenceBoundaryReconstruction
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    let premise := certificate.peelTerminalPar left right conclusion
+    let sourceBoundary :=
+      (certificate.conclusions.filter (· != conclusion)).map
+          (Certificate.compactVertex conclusion) ++
+        [premise.formulas.size]
+    ∃ placement : VertexRenaming (premise.formulas.size + 1),
+      sourceBoundary.map placement.forward =
+          certificate.conclusions.erase conclusion ++ [conclusion] ∧
+        sourceBoundary.Perm
+          (certificate.conclusions.map placement.inverse) := by
+  dsimp only
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  have sizeEquation :
+      (certificate.peelTerminalPar left right conclusion).formulas.size + 1 =
+        certificate.formulas.size := by
+    have peelSize :
+        (certificate.peelTerminalPar left right conclusion).formulas.size =
+          certificate.formulas.size - 1 := by
+      simp [peelTerminalPar, Array.eraseIdxIfInBounds, conclusionInBounds]
+    rw [peelSize]
+    exact Nat.sub_add_cancel structural.1
+  have placementInBounds : conclusion <
+      (certificate.peelTerminalPar left right conclusion).formulas.size + 1 := by
+    simpa [sizeEquation] using conclusionInBounds
+  let placement := VertexRenaming.insertLastAt
+    (certificate.peelTerminalPar left right conclusion).formulas.size
+    conclusion placementInBounds
+  let context := certificate.conclusions.filter (· != conclusion)
+  have contextMapped :
+      (context.map (Certificate.compactVertex conclusion)).map
+          placement.forward = context := by
+    rw [List.map_map]
+    calc
+      List.map (placement.forward ∘ Certificate.compactVertex conclusion) context =
+          List.map id context := by
+        apply List.map_congr_left
+        intro vertex membership
+        have filtered := List.mem_filter.mp membership
+        have vertexMembership : vertex ∈ certificate.conclusions := filtered.1
+        have vertexNotConclusion : vertex ≠ conclusion := by
+          simpa using filtered.2
+        have vertexInBounds := structural.2.2.1 vertex vertexMembership
+        have compactInBounds : Certificate.compactVertex conclusion vertex <
+            (certificate.peelTerminalPar left right conclusion).formulas.size := by
+          have compactBound := Certificate.compactVertex_lt conclusionInBounds
+            vertexInBounds vertexNotConclusion
+          have peelSize :
+              (certificate.peelTerminalPar left right conclusion).formulas.size =
+                certificate.formulas.size - 1 := by
+            simp [peelTerminalPar, Array.eraseIdxIfInBounds, conclusionInBounds]
+          simpa [peelSize] using compactBound
+        simp only [Function.comp_apply, id_eq, placement]
+        rw [VertexRenaming.insertLastAt_forward_old _ _ placementInBounds
+          compactInBounds]
+        change Certificate.expandVertex conclusion
+          (Certificate.compactVertex conclusion vertex) = vertex
+        exact Certificate.expandVertex_compactVertex_of_ne vertexNotConclusion
+      _ = context := by simpa using (List.map_id context)
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have contextEquation : context = certificate.conclusions.erase conclusion := by
+    simpa [context] using
+      (List.Nodup.erase_eq_filter originalNodup conclusion).symm
+  let sourceBoundary :=
+    context.map (Certificate.compactVertex conclusion) ++
+      [(certificate.peelTerminalPar left right conclusion).formulas.size]
+  have sourceMapped : sourceBoundary.map placement.forward =
+      certificate.conclusions.erase conclusion ++ [conclusion] := by
+    calc
+      sourceBoundary.map placement.forward = context ++ [conclusion] := by
+        simp only [sourceBoundary, List.map_append, List.map_singleton]
+        rw [contextMapped]
+        simp [placement]
+      _ = certificate.conclusions.erase conclusion ++ [conclusion] := by
+        rw [contextEquation]
+  have erasedPermutation :
+      (certificate.conclusions.erase conclusion ++ [conclusion]).Perm
+        certificate.conclusions := by
+    have rotation :
+        (certificate.conclusions.erase conclusion ++ [conclusion]).Perm
+          ([conclusion] ++ certificate.conclusions.erase conclusion) :=
+      List.perm_append_comm
+    exact rotation.trans (by
+      simpa using (List.perm_cons_erase terminal.2).symm)
+  have targetMapped :
+      (certificate.conclusions.map placement.inverse).map placement.forward =
+        certificate.conclusions := by
+    simp [List.map_map, Function.comp_def, placement.forward_inverse]
+  have mappedPermutation :
+      (sourceBoundary.map placement.forward).Perm
+        ((certificate.conclusions.map placement.inverse).map
+          placement.forward) := by
+    rw [sourceMapped, targetMapped]
+    exact erasedPermutation
+  have pulled := mappedPermutation.map placement.inverse
+  refine ⟨placement, sourceMapped, ?_⟩
+  simpa [List.map_map, Function.comp_def, placement.inverse_forward] using pulled
+
 theorem peelTerminalPar_conclusions_nodup
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
