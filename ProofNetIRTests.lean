@@ -92,6 +92,21 @@ example : generatedDerivationTrees.all (fun tree =>
     | none => false) = true := by
   native_decide
 
+def generatedTerminalParPeelsAccepted : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        certificate.terminalPars.all fun candidate =>
+          let (left, right, conclusion) := candidate
+          (certificate.peelTerminalParChecked?
+            left right conclusion).isSome
+
+/-- A broad generated regression for the terminal-par inverse operation. The
+general preservation theorem remains separate and is not inferred from this
+test. -/
+example : generatedTerminalParPeelsAccepted = true := by native_decide
+
 /-- The canonical net for `⊢ p ⊗ q, p⊥ ⅋ q⊥`. -/
 def canonical : Certificate where
   formulas := #[p, pDual, q, qDual, .tensor p q, .par pDual qDual]
@@ -124,6 +139,47 @@ example : canonical.FuelDeclarativelyCorrect :=
 example : canonical.DeclarativelyCorrect ↔
     canonical.FuelDeclarativelyCorrect :=
   canonical.declarativelyCorrect_iff_fuelDeclarativelyCorrect
+
+def canonicalRuleTree : CutFreeDerivation :=
+  .par 1 1 (.tensor 0 0 (.axiom "p" true) (.axiom "q" true))
+
+def canonicalSequentialization : SequentializationResult canonical where
+  tree := canonicalRuleTree
+  sequent := [
+    .tensor (.atom "p" true) (.atom "q" true),
+    .par (.atom "p" false) (.atom "q" false)]
+  output := canonical
+  inferred := by native_decide
+  desequentialized := by native_decide
+  outputLabels := by native_decide
+  equivalent := .refl canonical
+
+example : Nonempty (Derivation canonicalSequentialization.sequent) :=
+  canonicalSequentialization.kernelDerivation
+example : canonical.conclusionFormulas? =
+    some canonicalSequentialization.sequent :=
+  canonicalSequentialization.inputLabels
+example : canonicalSequentialization.output.check = true :=
+  canonicalSequentialization.outputAccepted (by native_decide)
+example : (1, 3, 5) ∈ canonical.terminalPars := by native_decide
+example : canonical.TerminalPar 1 3 5 :=
+  (canonical.mem_terminalPars_iff 1 3 5).mp (by native_decide)
+
+def canonicalParPremise : Certificate where
+  formulas := #[p, pDual, q, qDual, .tensor p q]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .tensor 0 2 4]
+  conclusions := [4, 1, 3]
+
+example : canonical.peelTerminalParCandidate? 1 3 5 =
+    some canonicalParPremise := by native_decide
+example : canonicalParPremise.check = true := by native_decide
+example : (canonical.peelTerminalParChecked? 1 3 5).isSome = true := by
+  native_decide
+example : canonical.peelTerminalParCandidate? 0 2 4 = none := by
+  native_decide
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide
 
@@ -181,6 +237,32 @@ def scrambledCanonical : Certificate :=
   { canonical with
     links := canonical.links.reverse
     conclusions := canonical.conclusions.reverse }
+
+/-- This differs only in link storage order. It is checker-equivalent but not
+related by the deliberately narrower, order-preserving reindexing relation. -/
+def linkScrambledCanonical : Certificate :=
+  { canonical with links := canonical.links.reverse }
+
+example : canonical.LinkPermutationEquivalent linkScrambledCanonical := by
+  refine ⟨rfl, ?_, rfl⟩
+  simpa [linkScrambledCanonical] using
+    (List.reverse_perm canonical.links).symm
+example : linkScrambledCanonical.check = true := by native_decide
+example : canonical.check = linkScrambledCanonical.check :=
+  (show canonical.LinkPermutationEquivalent linkScrambledCanonical from by
+    refine ⟨rfl, ?_, rfl⟩
+    simpa [linkScrambledCanonical] using
+      (List.reverse_perm canonical.links).symm).check_eq
+example : canonical.ProofNetEquivalent linkScrambledCanonical :=
+  (show canonical.LinkPermutationEquivalent linkScrambledCanonical from by
+    refine ⟨rfl, ?_, rfl⟩
+    simpa [linkScrambledCanonical] using
+      (List.reverse_perm canonical.links).symm).toProofNetEquivalent
+example : ¬ canonical.ReindexEquivalent linkScrambledCanonical := by
+  rw [← Certificate.reindexEquivalent?_eq_true_iff_of_check
+    (left := canonical) (right := linkScrambledCanonical)
+    (by native_decide) (by native_decide)]
+  native_decide
 
 example : scrambledCanonical.canonicalize.check = true := by native_decide
 example : scrambledCanonical.canonicalString = canonical.canonicalString := by

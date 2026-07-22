@@ -142,6 +142,8 @@ ProofNetIR/Reconstruct.lean   supported sequent derivation reconstruction
 ProofNetIR/Generate.lean      recursive derivation-first identity certificates
 ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
 ProofNetIR/DerivationTree.lean arbitrary cut-free trees and desequentialization
+ProofNetIR/NetEquivalence.lean semantic equivalence and checker invariance
+ProofNetIR/Sequentialization.lean general theorem contract and inverse-rule work
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures

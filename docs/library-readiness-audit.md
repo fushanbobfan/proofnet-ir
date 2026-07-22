@@ -46,6 +46,11 @@ part of the engineering and proof-identity gap.
 - v0.3.1 proves structural well-formedness gives a complete traversal,
   normalization is an in-class representative, and normal-form equality is an
   iff/decision procedure for the exact order-preserving reindex relation.
+- post-v0.3.1 `main` defines a broader `ProofNetEquivalent` relation generated
+  by bounded reindexing and link-list permutation. Lean proves that link
+  permutation preserves all structural conditions, transports every par
+  switching to a tree-equivalent graph, and preserves declarative correctness,
+  `Correct`, and the Boolean checker.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -56,9 +61,11 @@ part of the engineering and proof-identity gap.
 2. General sequentialization of every accepted MLL proof net is absent.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
-4. Canonicalization modulo reordered links/conclusions or arbitrary graph
-   isomorphism is not defined. The completed v0.3.1 theorem is intentionally
-   for the narrower, order-preserving `ReindexEquivalent` relation.
+4. A semantic relation modulo reordered links is now defined, but it does not
+   yet have a complete canonical form or executable decision procedure.
+   Conclusion-order canonicalization and arbitrary graph isomorphism remain
+   outside the current claim. The v0.3.1 wire theorem remains intentionally
+   about the narrower, order-preserving `ReindexEquivalent` relation.
 
 ## Engineering gaps blocking a mature-library claim
 

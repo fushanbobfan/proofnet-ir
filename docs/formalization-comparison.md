@@ -64,7 +64,7 @@ Before general sequentialization can be claimed here, ProofNet-IR must:
 
 1. define certificate reindexing and an equivalence/isomorphism relation that
    preserves formulas, ordered tensor/par premises, conclusions, and axiom
-   pairing;
+   pairing while quotienting semantically irrelevant link storage order;
 2. prove the checker and declarative correctness predicates invariant under
    that relation;
 3. prove arbitrary inferred derivations desequentialize to accepted nets,
@@ -82,15 +82,20 @@ than a completed proof-net library.
 
 ## Current implementation checkpoint
 
-`ProofNetIR/Reindex.lean` now completes obligations 1 and 2. It defines bounded
-vertex bijections, transports formula occurrences and ordered links, proves a
-literal inverse round trip, and exposes `ReindexEquivalent` as a reflexive,
-symmetric, and transitive certificate relation. Structural validation,
-adjacency and walk semantics, declarative tree/switching correctness, and the
-Boolean checker are invariant under that relation. The v0.2 serializer remains
-numbering-sensitive, while v0.3 adds a first-occurrence normal-form key proved
-invariant under the relation. v0.3.1 proves that, for structurally well-formed
-certificates, this normal form is an in-class representative and equality is
-equivalent to `ReindexEquivalent`. That exact order-preserving relation remains
-the target for sequentialization rather than being silently replaced by a
-broader arbitrary graph-isomorphism relation.
+`ProofNetIR/Reindex.lean` establishes bounded vertex-renaming invariance and
+the narrower `ReindexEquivalent` relation. v0.3.1 proves its normal form is an
+in-class representative and a complete invariant for structurally well-formed
+certificates. This relation intentionally preserves link-list order.
+
+`ProofNetIR/NetEquivalence.lean` closes the additional identity boundary needed
+by sequentialization. `LinkPermutationEquivalent` keeps formula occurrences,
+ordered conclusions, axiom pairing, and ordered connective premises fixed but
+allows the link list to be permuted. Lean transports every independent par
+choice to a permuted selection and proves the corresponding switching graphs
+have the same tree property. `ProofNetEquivalent` is the equivalence generated
+by vertex renaming and link permutation, and preserves structural,
+declarative, and executable correctness. This broader relation is now the
+sequentialization target: desequentialization emits links in rule-tree
+postorder, whereas the checker correctly treats their storage order as
+irrelevant. It still does not quotient conclusion order or logical premise
+order, and it is not arbitrary unlabeled graph isomorphism.

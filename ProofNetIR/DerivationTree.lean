@@ -275,17 +275,13 @@ def desequentializeChecked? (tree : CutFreeDerivation) :
   else
     none
 
-def conclusionFormulas? (certificate : Certificate) :
-    Option (List Formula) :=
-  certificate.conclusions.mapM certificate.formula?
-
 /-- End-to-end checked result connecting the inferred sequent, an independent
 kernel-typed derivation, the proof-net boundary labels, and checker acceptance. -/
 structure ElaboratedCertificate where
   sequent : List Formula
   derivation : Nonempty (Derivation sequent)
   certificate : Certificate
-  conclusionLabels : conclusionFormulas? certificate = some sequent
+  conclusionLabels : certificate.conclusionFormulas? = some sequent
   accepted : certificate.check = true
 
 /-- The strongest public v0.2+ entry point for first-order derivation trees.
@@ -297,7 +293,7 @@ def elaborate? (tree : CutFreeDerivation) : Option ElaboratedCertificate :=
       match tree.desequentialize? with
       | none => none
       | some certificate =>
-          if labels : conclusionFormulas? certificate = some sequent then
+          if labels : certificate.conclusionFormulas? = some sequent then
             if accepted : certificate.check = true then
               some {
                 sequent

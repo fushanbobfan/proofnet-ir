@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added `LinkPermutationEquivalent` and the generated `ProofNetEquivalent`
+  relation so general sequentialization can ignore semantically irrelevant
+  link-list storage order without weakening ordered conclusions or connective
+  premises;
+- proved in Lean that arbitrary link permutation preserves structural
+  well-formedness, all independent par switchings, declarative correctness,
+  `Correct`, and the executable checker;
+- added a regression certificate that is checker-equivalent under link
+  permutation but provably not in the narrower `ReindexEquivalent` class.
+- defined the evidence-rich `SequentializationResult` contract and proved it
+  transports checker acceptance, ordered boundary labels, and kernel-typed
+  derivations;
+- added vertex deletion/compaction laws plus a checker-gated terminal-par
+  inverse operation, with generated regression coverage over every terminal
+  par found in 250 deterministic derivation-first certificates.
+
 ## v0.3.1 - Complete order-preserving reindex normal forms
 
 - proved that structural well-formedness makes the first-occurrence traversal

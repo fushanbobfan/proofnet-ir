@@ -48,6 +48,10 @@ criterion and proof-order bureaucracy can be measured cleanly.
     and assigns first-occurrence indices. `equivalenceCanonicalString_reindex`
     proves that the v0.3 `reindex-v1` key is invariant under every admissible
     bounded vertex renaming.
+19. `NetEquivalence.lean` proves that permuting the link list transports every
+    par switching to an edge-permutation-equivalent graph and therefore leaves
+    the checker unchanged. `ProofNetEquivalent` combines this storage-order
+    quotient with bounded vertex renaming for the sequentialization boundary.
 
 Canonical v0.2 JSON continues to preserve submitted formula-array numbering.
 The separate v0.3 key removes that numbering. For structurally well-formed
@@ -80,9 +84,21 @@ Consequently, the supported family now has arbitrary formula depth rather than
 only two hand-written examples.
 
 This still does not claim the general sequentialization theorem: an arbitrary
-accepted proof net need not be a canonical identity net. The next formal step
-is to represent the splitting-tensor argument and recursively turn every
-accepted net into a `Derivation`, modulo explicit exchange.
+accepted proof net need not be a canonical identity net. The new
+`ProofNetEquivalent` relation fixes the previously too-narrow conclusion type
+by quotienting link storage order. The next formal step is to represent the
+splitting-tensor argument and recursively turn every accepted net into a
+`Derivation`, modulo explicit exchange, whose desequentialization is
+`ProofNetEquivalent` to the input.
+
+`Sequentialization.lean` now makes that final result type explicit: a successful
+result must connect first-order inference, a kernel-typed derivation,
+desequentialization, ordered boundary labels, and `ProofNetEquivalent` output.
+It also implements vertex deletion/compaction and a checker-gated inverse for
+terminal par links. All terminal-par candidates found across the 250 generated
+derivation-tree regressions produce accepted premises. This is implementation
+and regression evidence; the universal preservation theorem and splitting
+tensor case remain open.
 
 ## v0.2 derivation-first path
 

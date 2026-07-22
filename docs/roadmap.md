@@ -72,9 +72,18 @@
 
 ## v0.4 - General sequentialization
 
+- [x] Define `LinkPermutationEquivalent` and the generated
+  `ProofNetEquivalent` relation, then prove link-order permutation preserves
+  structural well-formedness, every switching tree, declarative correctness,
+  and the executable checker.
+- [x] Define the evidence-rich `SequentializationResult` theorem contract,
+  ordered-boundary transport, and checker-safe terminal-par candidate peeling.
+- [ ] Prove terminal-par peeling preserves structural and switching
+  correctness for every accepted input (the checked implementation and broad
+  generated regression are complete; the universal theorem is not).
 - [ ] Formalize splitting tensor/par decomposition for accepted nets.
 - [ ] Recursively construct a cut-free derivation modulo explicit exchange.
-- [ ] Prove its desequentialization is `ReindexEquivalent` to the input.
+- [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
 
 ## v0.5 - Persistent LeanProp bridge
 

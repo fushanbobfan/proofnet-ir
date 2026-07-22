@@ -49,6 +49,12 @@ namespace Certificate
 def formula? (certificate : Certificate) (vertex : Vertex) : Option Formula :=
   certificate.formulas[vertex]?
 
+/-- Ordered formula labels on the public conclusion boundary. This belongs to
+the certificate API rather than to any particular sequentializer. -/
+def conclusionFormulas? (certificate : Certificate) :
+    Option (List Formula) :=
+  certificate.conclusions.mapM certificate.formula?
+
 def inBounds (certificate : Certificate) (vertex : Vertex) : Bool :=
   vertex < certificate.formulas.size
 
