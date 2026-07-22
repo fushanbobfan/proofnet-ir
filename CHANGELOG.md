@@ -17,6 +17,13 @@
 - added vertex deletion/compaction laws plus a checker-gated terminal-par
   inverse operation, with generated regression coverage over every terminal
   par found in 250 deterministic derivation-first certificates.
+- added checker-gated splitting-tensor discovery with full-graph component
+  partitioning, cross-link rejection, local renumbering, and two independently
+  accepted premises; every one of the 250 generated non-axiom nets exposes at
+  least one accepted inverse par or tensor step;
+- began the universal graph proof: deleting an in-bounds vertex preserves
+  boundedness, has exact incident-edge accounting, preserves the tree
+  edge-count equation for leaves, and has an exact adjacency/walk embedding.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

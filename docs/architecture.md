@@ -97,8 +97,18 @@ desequentialization, ordered boundary labels, and `ProofNetEquivalent` output.
 It also implements vertex deletion/compaction and a checker-gated inverse for
 terminal par links. All terminal-par candidates found across the 250 generated
 derivation-tree regressions produce accepted premises. This is implementation
-and regression evidence; the universal preservation theorem and splitting
-tensor case remain open.
+and regression evidence; the universal preservation theorem remains open.
+
+The same module now discovers terminal splitting-tensor candidates by deleting
+the tensor conclusion in the full occurrence graph, partitioning reachable
+vertices, rejecting every cross-component link, locally renumbering both
+components, and accepting the split only if both reference checks pass. Across
+the 250 generated non-axiom nets, at least one accepted inverse par or tensor
+step is found. The graph proof layer already establishes deletion compaction,
+boundedness preservation, exact incident-edge accounting, the tree edge-count
+equation for a deleted leaf, and adjacency/walk embedding. Connectedness after
+leaf deletion and the universal terminal-splitting existence theorem remain
+the current proof obligations.
 
 ## v0.2 derivation-first path
 

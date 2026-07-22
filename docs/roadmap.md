@@ -81,7 +81,12 @@
 - [ ] Prove terminal-par peeling preserves structural and switching
   correctness for every accepted input (the checked implementation and broad
   generated regression are complete; the universal theorem is not).
-- [ ] Formalize splitting tensor/par decomposition for accepted nets.
+- [x] Implement checker-gated splitting-tensor candidate discovery,
+  occurrence-component restriction, and cross-link rejection.
+- [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor
+  and that both inverse constructions preserve correctness.
+- [ ] Complete the graph leaf-deletion theorem (boundedness, edge accounting,
+  and adjacency/walk embedding are proved; connectedness preservation remains).
 - [ ] Recursively construct a cut-free derivation modulo explicit exchange.
 - [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
 

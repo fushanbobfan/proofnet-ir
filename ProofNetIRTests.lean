@@ -107,6 +107,25 @@ general preservation theorem remains separate and is not inferred from this
 test. -/
 example : generatedTerminalParPeelsAccepted = true := by native_decide
 
+def hasCheckedInverseStep (certificate : Certificate) : Bool :=
+  certificate.terminalPars.any (fun candidate =>
+    let (left, right, conclusion) := candidate
+    (certificate.peelTerminalParChecked? left right conclusion).isSome) ||
+  certificate.terminalTensors.any (fun candidate =>
+    let (left, right, conclusion) := candidate
+    (certificate.splitTerminalTensorChecked? left right conclusion).isSome)
+
+def generatedInverseStepsAvailable : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate => hasCheckedInverseStep certificate
+
+/-- Every non-axiom generated fixture exposes a checker-accepted inverse par
+or splitting-tensor step. This exercises discovery but does not replace the
+universal splitting theorem. -/
+example : generatedInverseStepsAvailable = true := by native_decide
+
 /-- The canonical net for `⊢ p ⊗ q, p⊥ ⅋ q⊥`. -/
 def canonical : Certificate where
   formulas := #[p, pDual, q, qDual, .tensor p q, .par pDual qDual]
@@ -179,6 +198,27 @@ example : canonicalParPremise.check = true := by native_decide
 example : (canonical.peelTerminalParChecked? 1 3 5).isSome = true := by
   native_decide
 example : canonical.peelTerminalParCandidate? 0 2 4 = none := by
+  native_decide
+
+def canonicalLeftAxiomPremise : Certificate where
+  formulas := #[p, pDual]
+  links := [.axiom 0 1]
+  conclusions := [1, 0]
+
+def canonicalRightAxiomPremise : Certificate where
+  formulas := #[q, qDual]
+  links := [.axiom 0 1]
+  conclusions := [1, 0]
+
+example : canonical.splitTerminalTensorCandidate? 0 2 4 = none := by
+  native_decide
+example : canonicalParPremise.splitTerminalTensorCandidate? 0 2 4 =
+    some (canonicalLeftAxiomPremise, canonicalRightAxiomPremise) := by
+  native_decide
+example : canonicalLeftAxiomPremise.check = true := by native_decide
+example : canonicalRightAxiomPremise.check = true := by native_decide
+example :
+    (canonicalParPremise.splitTerminalTensorChecked? 0 2 4).isSome = true := by
   native_decide
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide

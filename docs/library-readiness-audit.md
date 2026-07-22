@@ -51,6 +51,11 @@ part of the engineering and proof-identity gap.
   permutation preserves all structural conditions, transports every par
   switching to a tree-equivalent graph, and preserves declarative correctness,
   `Correct`, and the Boolean checker.
+- the v0.4 worktree implements checker-gated terminal-par and splitting-tensor
+  inverse candidates, with 250 generated nets exposing an accepted recursive
+  step; the supporting vertex-deletion graph layer has proved boundedness,
+  edge accounting, and adjacency transport, but not yet universal
+  connectedness/splitting preservation.
 
 ## Logical gaps blocking a mature-library claim
 
