@@ -53,14 +53,20 @@ ProofNet-IR instead has formula occurrences as vertices and stores proof links
 separately. A valid Lean proof therefore needs explicit bridges rather than a
 name-level restatement of Yeo:
 
-1. **Edge-aware paths (foundation complete).** `Graph.Walk` records adjacent
+1. **Edge-aware paths and simple cycles (foundation complete).** `Graph.Walk` records adjacent
    vertices but not which stored multiedge was traversed. `Graph.DirectedEdge`
    and `Graph.EdgeWalk` now retain list indices, orientation, reversal, and
    exact traversal composition while forgetting soundly to `Graph.Walk`.
-   Colored paths still need the cusp/simple-cycle layer on top of this API.
-2. **Local switching colors.** Define colors for directed stored-edge
-   incidences. The two edges emitted by one par link must share a color at the
-   par conclusion; unrelated incidences must not be identified.
+   `Graph.EdgeSimpleCycle` represents nonempty multigraph cycles without
+   collapsing equal-valued parallel edges.
+2. **Local switching colors (foundation complete).** `fullEdgeAnnotations`
+   proves that stored edges and their source-link annotations stay aligned.
+   `incidenceColor` gives the two incoming premise incidences of one par link
+   their shared conclusion color and gives every other directed incidence its
+   exact edge-index/orientation color. `Cusp` compares the two incidences at a
+   path transition, and `cusp_reverse_iff` proves local reversal invariance.
+   `CuspFreeTraversal`, `CuspFreeCycle`, and `CuspAcyclic` now state the
+   proposition-level colored-cycle criterion.
 3. **Correctness bridge.** Prove that `DeclarativelyCorrect` implies
    cusp-acyclicity of the colored occurrence multigraph. This must cover every
    independent `ChoiceSelection`, not merely executable enumeration examples.
@@ -84,6 +90,8 @@ name-level restatement of Yeo:
 - `TerminalTensorReduction` preserves declarative and Boolean correctness;
 - every structurally well-formed certificate containing a connective has some
   terminal tensor or terminal par, by strict formula-complexity growth.
+- edge-aware simple cycles and the exact local switching-color/cusp semantics
+  are defined without collapsing parallel edge occurrences.
 
 ## Claim boundary
 

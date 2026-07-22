@@ -42,6 +42,20 @@ example : indexedParallelGraph.EdgeWalk 1 [parallelDirectedZero.reverse] 0 := by
     .step (.refl 0) parallelDirectedZero rfl rfl
   simpa [Graph.EdgeWalk.reverseTraversal] using forward.reverse
 
+def indexedParallelCycle : indexedParallelGraph.EdgeSimpleCycle where
+  start := 0
+  traversed := [parallelDirectedZero, parallelDirectedOne.reverse]
+  nonempty := by simp
+  walk := by
+    apply Graph.EdgeWalk.step
+      (Graph.EdgeWalk.step (.refl 0) parallelDirectedZero rfl rfl)
+      parallelDirectedOne.reverse
+    · rfl
+    · rfl
+  interiorNodup := by decide
+
+example : indexedParallelCycle.traversed.map (·.index) = [0, 1] := rfl
+
 def mixedFormula : Formula := .par (.tensor p q) (.atom "r" true)
 
 example : Derivation [mixedFormula, mixedFormula.dual] :=
@@ -167,6 +181,36 @@ def canonical : Certificate where
     .par 1 3 5
   ]
   conclusions := [4, 5]
+
+def canonicalParLeftIn : canonical.fullGraph.DirectedEdge where
+  index := 4
+  edge := { first := 1, second := 5 }
+  lookup := rfl
+  forward := true
+
+def canonicalParRightIn : canonical.fullGraph.DirectedEdge where
+  index := 5
+  edge := { first := 3, second := 5 }
+  lookup := rfl
+  forward := true
+
+example : canonical.fullEdgeParTargets =
+    [none, none, none, none, some 5, some 5] := by native_decide
+example : canonical.fullEdgeAnnotations.map Prod.fst = canonical.fullEdges :=
+  canonical.fullEdgeAnnotations_edges
+example : canonical.fullEdgeAnnotations.map Prod.snd =
+    canonical.fullEdgeParTargets := canonical.fullEdgeAnnotations_parTargets
+example : canonical.incidenceColor canonicalParLeftIn =
+    .par 5 := by native_decide
+example : canonical.incidenceColor canonicalParRightIn =
+    .par 5 := by native_decide
+example : canonical.incidenceColor canonicalParLeftIn.reverse =
+    .unique 4 false := by native_decide
+example : canonical.Cusp canonicalParLeftIn canonicalParRightIn.reverse := by
+  rfl
+example : canonical.Cusp canonicalParRightIn canonicalParLeftIn.reverse :=
+  (canonical.cusp_reverse_iff canonicalParLeftIn
+    canonicalParRightIn.reverse).mp (by rfl)
 
 example : canonical.wellFormed = true := by native_decide
 example : canonical.StructurallyWellFormed :=

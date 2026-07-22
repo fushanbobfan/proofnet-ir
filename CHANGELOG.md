@@ -50,6 +50,9 @@
   edge-aware walks, preserving parallel-edge identity and projecting soundly
   to the existing checker-facing vertex walk semantics; this is the base layer
   for the remaining colored-path/Yeo proof.
+- added edge-aware simple multigraph cycles, exact full-edge source annotations,
+  local switching-incidence colors, cusp semantics, and reversal invariance;
+  only the two premise incidences of the same stored par link share a color.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

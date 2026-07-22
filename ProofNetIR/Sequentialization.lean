@@ -1713,6 +1713,15 @@ theorem mem_closureN_vertexCount_iff_walk (graph : Graph)
 
 end Graph
 
+/-- A local color for one directed incidence of the unswitched occurrence
+graph. Ordinary incidences retain the exact stored multiedge and endpoint;
+the two premise incidences aimed at one par conclusion deliberately share the
+same color. -/
+inductive LocalSwitchingColor where
+  | unique (edgeIndex : Nat) (forward : Bool)
+  | par (conclusion : Vertex)
+  deriving Repr, DecidableEq, BEq
+
 namespace Certificate
 
 /-- The unswitched occurrence graph contains both premise edges of every
@@ -1727,6 +1736,139 @@ def fullEdges (certificate : Certificate) : List Edge :=
     | .par left right conclusion =>
         [{ first := left, second := conclusion },
          { first := right, second := conclusion }]
+
+/-- The unswitched occurrence multigraph. Its stored edge order is part of the
+internal incidence identity used by the colored-path layer. -/
+def fullGraph (certificate : Certificate) : Graph where
+  vertexCount := certificate.formulas.size
+  edges := certificate.fullEdges
+
+/-- Full occurrence edges paired with their exact local par annotation. This
+single source-level list is useful for proving that the independently exposed
+edge and color projections remain aligned. -/
+def fullEdgeAnnotations (certificate : Certificate) :
+    List (Edge × Option Vertex) :=
+  certificate.links.flatMap fun
+    | .axiom left right =>
+        [({ first := left, second := right }, none)]
+    | .tensor left right conclusion =>
+        [({ first := left, second := conclusion }, none),
+         ({ first := right, second := conclusion }, none)]
+    | .par left right conclusion =>
+        [({ first := left, second := conclusion }, some conclusion),
+         ({ first := right, second := conclusion }, some conclusion)]
+
+/-- Annotation parallel to `fullEdges`: a `some conclusion` entry records an
+edge emitted as a premise of that exact par link. Keeping this list parallel to
+the multigraph edges prevents equal-valued parallel edges from being confused. -/
+def fullEdgeParTargets (certificate : Certificate) : List (Option Vertex) :=
+  certificate.links.flatMap fun
+    | .axiom _ _ => [none]
+    | .tensor _ _ _ => [none, none]
+    | .par _ _ conclusion => [some conclusion, some conclusion]
+
+@[simp] theorem fullEdgeAnnotations_edges (certificate : Certificate) :
+    certificate.fullEdgeAnnotations.map Prod.fst =
+      certificate.fullEdges := by
+  rcases certificate with ⟨formulas, links, conclusions⟩
+  simp only [fullEdgeAnnotations, fullEdges]
+  induction links with
+  | nil => simp
+  | cons link rest ih =>
+      cases link <;> simp [ih]
+
+@[simp] theorem fullEdgeAnnotations_parTargets (certificate : Certificate) :
+    certificate.fullEdgeAnnotations.map Prod.snd =
+      certificate.fullEdgeParTargets := by
+  rcases certificate with ⟨formulas, links, conclusions⟩
+  simp only [fullEdgeAnnotations, fullEdgeParTargets]
+  induction links with
+  | nil => simp
+  | cons link rest ih =>
+      cases link <;> simp [ih]
+
+theorem par_fullEdgeAnnotations (certificate : Certificate)
+    {left right conclusion : Vertex}
+    (membership : Link.par left right conclusion ∈ certificate.links) :
+    (({ first := left, second := conclusion }, some conclusion) ∈
+        certificate.fullEdgeAnnotations) ∧
+      (({ first := right, second := conclusion }, some conclusion) ∈
+        certificate.fullEdgeAnnotations) := by
+  simp only [fullEdgeAnnotations, List.mem_flatMap]
+  constructor
+  · exact ⟨.par left right conclusion, membership, by simp⟩
+  · exact ⟨.par left right conclusion, membership, by simp⟩
+
+@[simp] theorem fullEdgeParTargets_length (certificate : Certificate) :
+    certificate.fullEdgeParTargets.length = certificate.fullEdges.length := by
+  rcases certificate with ⟨formulas, links, conclusions⟩
+  simp only [fullEdgeParTargets, fullEdges]
+  induction links with
+  | nil => simp
+  | cons link rest ih =>
+      cases link <;> simp [ih]
+
+/-- Color the incidence at the target of a directed occurrence edge. Only the
+stored premise-to-conclusion orientation of a par edge receives the shared par
+color. Reversing that edge exposes its other, uniquely colored incidence. -/
+def incidenceColor (certificate : Certificate)
+    (directed : certificate.fullGraph.DirectedEdge) : LocalSwitchingColor :=
+  if directed.forward then
+    match certificate.fullEdgeParTargets[directed.index]? with
+    | some (some conclusion) => .par conclusion
+    | _ => .unique directed.index directed.forward
+  else
+    .unique directed.index directed.forward
+
+/-- A cusp occurs when two consecutive traversals use equally colored
+incidences at their common vertex. The outgoing traversal is reversed before
+coloring so that both colors are evaluated at that common vertex. -/
+def Cusp (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge) : Prop :=
+  certificate.incidenceColor incoming =
+    certificate.incidenceColor outgoing.reverse
+
+instance cuspDecidable (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge) :
+    Decidable (certificate.Cusp incoming outgoing) := by
+  unfold Cusp
+  infer_instance
+
+/-- Local cusps are invariant under reversing the direction through their
+common vertex. -/
+theorem cusp_reverse_iff (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge) :
+    certificate.Cusp incoming outgoing ↔
+      certificate.Cusp outgoing.reverse incoming.reverse := by
+  simp only [Cusp, Graph.DirectedEdge.reverse_reverse]
+  exact eq_comm
+
+/-- No consecutive pair of traversed edges forms a cusp at its shared
+intermediate vertex. Closing-pair cusp-freedom is stated separately for
+cycles. -/
+def CuspFreeTraversal (certificate : Certificate) :
+    List certificate.fullGraph.DirectedEdge → Prop
+  | [] => True
+  | [_] => True
+  | incoming :: outgoing :: rest =>
+      ¬certificate.Cusp incoming outgoing ∧
+        certificate.CuspFreeTraversal (outgoing :: rest)
+
+/-- A simple closed traversal is cusp-free when neither an internal adjacent
+pair nor the last/first closing pair forms a cusp. -/
+def CuspFreeCycle (certificate : Certificate)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle) : Prop :=
+  certificate.CuspFreeTraversal cycle.traversed ∧
+    match cycle.traversed with
+    | [] => False
+    | first :: rest =>
+        ¬certificate.Cusp ((first :: rest).getLast (by simp)) first
+
+/-- Proposition-level colored acyclicity used by the splitting theorem: there
+is no nonempty simple cycle whose every local transition avoids a cusp. -/
+def CuspAcyclic (certificate : Certificate) : Prop :=
+  ∀ cycle : certificate.fullGraph.EdgeSimpleCycle,
+    ¬certificate.CuspFreeCycle cycle
 
 theorem fixedEdges_subset_fullEdges (certificate : Certificate) :
     ∀ edge ∈ certificate.fixedEdges, edge ∈ certificate.fullEdges := by

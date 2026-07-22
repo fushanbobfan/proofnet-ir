@@ -150,6 +150,17 @@ theorem reverse {graph : Graph} {start finish : Vertex}
 
 end EdgeWalk
 
+/-- A nonempty closed edge-aware walk with no repeated vertex except its
+identified start/end. The exact edge indices allow two parallel stored edges
+to form a genuine length-two multigraph cycle. -/
+structure EdgeSimpleCycle (graph : Graph) where
+  start : Vertex
+  traversed : List graph.DirectedEdge
+  nonempty : traversed ≠ []
+  walk : graph.EdgeWalk start traversed start
+  interiorNodup :
+    (start :: traversed.dropLast.map DirectedEdge.target).Nodup
+
 /-- An independent graph walk carrying its exact number of edge steps. The
 index makes finite-depth completeness statements possible without eliminating
 the proof-irrelevant `Walk` proposition into data. -/
