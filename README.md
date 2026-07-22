@@ -79,6 +79,12 @@ The repository currently contains:
   desequentialization is `ProofNetEquivalent` to the input and carries the
   same ordered formula boundary.
 
+The last item is presently an existence theorem returning
+`Nonempty (SequentializationResult input)`. It is fully usable in kernel proofs,
+but it is not yet an executable certificate-to-tree API; extracting its witness
+as data requires noncomputable choice. This distinction is an explicit v0.5
+library-readiness obligation.
+
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
 theorem is now complete, but the repository does not include cut elimination,

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- clarified that the v0.4 general sequentialization result is a
+  kernel-checked existence theorem in `Prop`, not yet an executable
+  certificate-to-tree API;
+- corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and
+  started an explicit ordered page matrix without claiming cover-to-cover
+  completion.
+
 ## v0.4.0 - General sequentialization
 
 - added `LinkPermutationEquivalent` and the generated `ProofNetEquivalent`

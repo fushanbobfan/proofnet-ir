@@ -1,14 +1,14 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.4.0 release candidate on `main`
+Audited baseline: v0.4.0 release plus post-release downstream validation on `main`
 
 ## Verdict
 
 ProofNet-IR v0.4.0 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
-baseline can be reproduced. Post-release `main` now proves that any accepted
+baseline can be reproduced. v0.4.0 proves that any accepted
 certificate can be converted into a concrete first-order derivation whose
 desequentialization is `ProofNetEquivalent` to the input. It also
 lets a downstream consumer parse v0.2/v0.3 JSON directly into a checked Lean
@@ -47,12 +47,12 @@ part of the engineering and proof-identity gap.
 - v0.3.1 proves structural well-formedness gives a complete traversal,
   normalization is an in-class representative, and normal-form equality is an
   iff/decision procedure for the exact order-preserving reindex relation.
-- post-v0.3.1 `main` defines a broader `ProofNetEquivalent` relation generated
+- v0.4.0 defines a broader `ProofNetEquivalent` relation generated
   by bounded reindexing and link-list permutation. Lean proves that link
   permutation preserves all structural conditions, transports every par
   switching to a tree-equivalent graph, and preserves declarative correctness,
   `Correct`, and the Boolean checker.
-- the v0.4 worktree implements checker-gated terminal-par and splitting-tensor
+- v0.4.0 implements checker-gated terminal-par and splitting-tensor
   inverse candidates, with 250 generated nets exposing an accepted recursive
   step; the supporting vertex-deletion graph layer now proves the complete
   theorem that deleting a leaf preserves `IsTree`. Terminal-par preservation is
@@ -71,17 +71,23 @@ part of the engineering and proof-identity gap.
 
 ## Logical gaps blocking a mature-library claim
 
-1. The safe `elaborate?` return type relates inference, derivation existence,
+1. General sequentialization is currently exposed as
+   `Nonempty (SequentializationResult certificate)`, a theorem in `Prop`.
+   It provides a concrete witness for kernel reasoning (and a noncomputable
+   witness via choice), but it is not an executable certificate-to-tree
+   program. A mature library needs an executable diagnostic API and a theorem
+   that it succeeds on every accepted certificate.
+2. The safe `elaborate?` return type relates inference, derivation existence,
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`
    succeed is still missing.
-2. The stronger `GenerallySequentializable` result is complete for the
+3. The stronger `GenerallySequentializable` result is complete for the
    documented unit-free, cut-free MLL representation. Remaining logical scope
    gaps concern unsupported connectives/units/cuts and broader notions of
    canonical graph identity, not the accepted-net reverse theorem.
-3. The edge-count tree characterization is used correctly, but no explicit
+4. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
-4. A semantic relation modulo reordered links is now defined, but it does not
+5. A semantic relation modulo reordered links is now defined, but it does not
    yet have a complete canonical form or executable decision procedure.
    Conclusion-order canonicalization and arbitrary graph isomorphism remain
    outside the current claim. The v0.3.1 wire theorem remains intentionally
@@ -93,7 +99,7 @@ part of the engineering and proof-identity gap.
   errors, normalization validation, migration, and a checker-gated
   untrusted-input API;
 - many APIs return `Option`, losing the location and reason for failure;
-- separate path-dependency and clean pinned-v0.2.0 Lake consumers now pass;
+- separate path-dependency and clean pinned-v0.4.0 Lake consumers now pass;
   they must remain in CI for future compatibility releases;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;
@@ -110,6 +116,7 @@ It can currently be used for:
 
 - constructing MLL certificates in Lean;
 - checking structural and Danos-Regnier switching correctness;
+- using the general sequentialization existence theorem inside Lean proofs;
 - generating/desequentializing the first-order derivation syntax and retaining
   only checker-accepted results;
 - regenerating the labeled v0.2 corpus;
@@ -119,8 +126,7 @@ It can currently be used for:
 It should not yet be presented as:
 
 - a general Lean/mathlib proof assistant extension;
-- a complete proof-net-to-first-order-tree sequentializer with certified
-  graph reconstruction;
+- an executable general proof-net-to-first-order-tree sequentializer;
 - a complete isomorphism-canonical proof identity library;
 - evidence that proof-net generation reduces search redundancy in practice.
 

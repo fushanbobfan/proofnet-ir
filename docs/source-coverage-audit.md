@@ -22,8 +22,8 @@ Coursework PDFs excluded                              7
 Derived duplicate-format guide merged                 1
 Original project sources included                     7
 Physical pages in included PDFs                     948
-Exact repeated pages in linearlogic.pdf             158
-Approximate unique physical pages                   790
+Exact repeated pages in linearlogic.pdf             168
+Approximate unique physical pages                   780
 ```
 
 All seven PDFs have extractable text. One page in the Manin scan has no
@@ -33,7 +33,7 @@ extractable text and requires visual/OCR treatment.
 
 | Source | Pages | Current evidence | Status |
 |---|---:|---|---|
-| Pfenning, *Linear Logic* | 336 physical; 178 unique after exact repetition | complete contents/theorem sweep; close reading of cut-free calculus, cut elimination, focusing, proof search, and proof terms; selected pages visually checked | not read cover to cover |
+| Pfenning, *Linear Logic* | 336 physical; 168 unique after exact repetition | complete contents/theorem sweep; close reading of cut-free calculus, cut elimination, focusing, proof search, and proof terms; ordered text audit now records 30/168 unique pages in a [page matrix](source-pages/pfenning-linear-logic.md) | in progress; not read cover to cover |
 | Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | contents/theorem sweep; prefaces and Chapter IX sections 1-6 close read; graph pages visually checked | not read cover to cover |
 | *Proof Nets as Graphical Proof Objects* | 20 | complete end-to-end reading and selected-page visual verification | complete |
 | *ProofNet-IR Research Plan* | 19 | complete end-to-end reading and selected-page visual verification | complete, but treated as a generated design input rather than authority |

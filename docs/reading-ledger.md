@@ -23,7 +23,7 @@ ongoing research task and must not be represented as finished.
 
 | Source | Physical pages | Extracted words | Coverage in this pass | SHA-256 prefix |
 |---|---:|---:|---|---|
-| Pfenning, *Linear Logic* | 336 | 122,044 | contents/theorem sweep; close reading of cut-free sequent calculus, cut elimination, proof search, focusing, proof terms, and linear logical frameworks | `5d5a29d68c13` |
+| Pfenning, *Linear Logic* | 336 physical / 168 unique | 122,044 | contents/theorem sweep; close reading of cut-free sequent calculus, cut elimination, proof search, focusing, proof terms, and linear logical frameworks; [ordered page audit](source-pages/pfenning-linear-logic.md) now records 30/168 unique pages | `5d5a29d68c13` |
 | Manin, *A Course in Mathematical Logic for Mathematicians* | 389 | 186,440 | contents/theorem sweep; prefaces and Chapter IX §§1-6 close read | `79baf1ed4e81` |
 | *Proof Nets as Graphical Proof Objects* | 20 | 7,990 | direct end-to-end reading and visual inspection | `8166b610c3b8` |
 | *ProofNet-IR Research Plan* | 19 | 5,904 | direct end-to-end reading and visual inspection | `4c934e603f8a` |
@@ -33,10 +33,13 @@ ongoing research task and must not be represented as finished.
 
 ### Duplicate-page finding
 
-`linearlogic.pdf` contains an exact page-text repetition: physical pages
-179-336 repeat pages 21-178 with offset 158. The reading unit is therefore 178
-unique pages, not 336 distinct pages. The hash above remains the hash of the
-unaltered original file.
+`linearlogic.pdf` contains two exact repetitions, confirmed independently by
+SHA-256 hashes of both decoded PDF content streams and extracted page text:
+physical pages 11-20 repeat pages 1-10 with offset 10, and physical pages
+179-336 repeat pages 21-178 with offset 158. Every duplicate group has exactly
+two members. The reading unit is therefore 168 unique pages, not the previously
+reported 178 or the 336 physical pages. The file-level hash above remains the
+hash of the unaltered original PDF.
 
 ## Source notes and project consequences
 
