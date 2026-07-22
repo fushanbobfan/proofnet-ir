@@ -18,6 +18,7 @@ EXPECTED_THEOREMS = {
     "ProofNetIR.Certificate.reindexEquivalent?_eq_true_iff_of_check",
     "ProofNetIR.Certificate.matchingFormulaOrders_complete",
     "ProofNetIR.Certificate.directProofNetEquivalentWitness?_complete",
+    "ProofNetIR.Certificate.proofNetEquivalent?_eq_true_iff",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
 }

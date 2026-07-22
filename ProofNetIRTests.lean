@@ -192,6 +192,29 @@ def reversedLinkCertificate : Certificate :=
 
 example : reversedLinkCertificate.check = true := by native_decide
 
+example : Certificate.proofNetEquivalent?
+    (canonicalCertificate "reordered-p" "reordered-q")
+      reversedLinkCertificate = true := by native_decide
+
+example : (canonicalCertificate "reordered-p" "reordered-q").ProofNetEquivalent
+    reversedLinkCertificate := by
+  apply (Certificate.proofNetEquivalent?_eq_true_iff
+    ((canonicalCertificate "reordered-p" "reordered-q").check_sound_declarative
+      (by native_decide)).1).mp
+  native_decide
+
+def reversedConclusionCertificate : Certificate :=
+  { canonicalCertificate "ordered-p" "ordered-q" with
+    conclusions := (canonicalCertificate "ordered-p" "ordered-q").conclusions.reverse }
+
+example : reversedConclusionCertificate.check = true := by native_decide
+
+/-- `ProofNetEquivalent` deliberately preserves the ordered conclusion
+boundary even though it ignores link-list storage order. -/
+example : Certificate.proofNetEquivalent?
+    (canonicalCertificate "ordered-p" "ordered-q")
+      reversedConclusionCertificate = false := by native_decide
+
 def reversedLinkSequentializes : Bool :=
   match reversedLinkCertificate.sequentialize with
   | .error _ => false

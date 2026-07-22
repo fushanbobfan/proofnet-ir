@@ -181,6 +181,8 @@
 - [x] Prove completeness of the optimized occurrence-permutation enumeration.
 - [x] Prove completeness of executable direct-equivalence witness search on
   structurally well-formed certificates.
+- [x] Expose and characterize a Boolean `ProofNetEquivalent` decision API on
+  structurally well-formed certificates.
 - [x] Add structured staged errors and 250 broad generated regressions plus a
   repeated-label regression.
 - [x] Reject the over-strong link-order-sensitive identity contract and retain
@@ -190,8 +192,9 @@
 - [ ] Prove the executable search succeeds for every checker-accepted
   certificate, using the terminal-rule dichotomy, candidate totality, and
   completeness of the finite occurrence-permutation enumeration.
-- [ ] Add malformed-input fuzzing, performance budgets, API reference and
-  tutorial material.
+- [x] Add a deterministic 5,000-case malformed-input fuzz gate for the native
+  checked parser.
+- [ ] Add performance budgets, API reference and tutorial material.
 
 ## v0.6 - Persistent LeanProp bridge
 

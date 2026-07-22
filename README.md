@@ -61,7 +61,8 @@ The repository currently contains:
 - versioned canonical v0.2 JSON plus a committed deterministic dataset of 250
   positive and 750 negative checker-labeled records;
 - a native v0.2/v0.3 JSON parser with path-aware errors, a v0.2-to-v0.3
-  migration API, and a checker-gated API for untrusted certificates;
+  migration API, a checker-gated API for untrusted certificates, and a
+  deterministic 5,000-case malformed-input fuzz gate;
 - a runnable focused cut-free sequent-search baseline with eager invertible par
   steps and exhaustive tensor resource partitions;
 - lossless bounded vertex reindexing with inverse round trips, a proved
@@ -93,7 +94,7 @@ permutation, and rechecks its output. A Lean theorem that this
 specific executable search succeeds for every accepted certificate remains a
 v0.5 obligation; generated success is regression evidence, not that theorem.
 The path-based downstream consumer executes this API, and CI separately audits
-eight public logical-boundary theorems against the exact accepted axiom set
+nine public logical-boundary theorems against the exact accepted axiom set
 `[propext, Classical.choice, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
@@ -101,7 +102,7 @@ library. The supported unit-free, cut-free MLL reverse-sequentialization
 theorem is now complete, but the repository does not include cut elimination,
 units, exponentials, additives, quantifiers, canonicalization modulo reordered
 conclusions or arbitrary graph isomorphism, or a Lean tactic. The API,
-diagnostics, compatibility, fuzzing, performance, independent downstream, and
+diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.
 
@@ -149,6 +150,7 @@ lake build
 lake exe proofnet_ir_tests
 python scripts/generate_dataset.py --check
 python scripts/audit_v03_canonical.py
+python scripts/fuzz_malformed_parser.py
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 ```
 
@@ -177,6 +179,7 @@ ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
+ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.4.0 tag
 schemas/                      versioned external certificate contract
@@ -184,6 +187,7 @@ examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
 scripts/focused_search.py     focused cut-free comparison baseline
 scripts/audit_v03_canonical.py independent 1,000-record reindex-key audit
+scripts/fuzz_malformed_parser.py deterministic 5,000-case parser fuzz gate
 docs/                         architecture, literature map, roadmap, trust boundary
 ```
 

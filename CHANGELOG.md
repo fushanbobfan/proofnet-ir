@@ -21,7 +21,12 @@
   every fresh duplicate-free formula-compatible occurrence permutation;
 - proved completeness of the executable direct proof-net-equivalence search on
   structurally well-formed certificates, including link-list permutations;
-- added a CI trust audit pinning eight public logical-boundary theorems to exactly
+- exposed `Certificate.proofNetEquivalent?` and proved that on structurally
+  well-formed certificates it decides `ProofNetEquivalent` exactly;
+- added a deterministic 5,000-case malformed-JSON fuzz harness around the
+  native checked parser, including the formula-depth limit, and required it in
+  CI;
+- added a CI trust audit pinning nine public logical-boundary theorems to exactly
   `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and
   completed ordered text and rendered-image inspection of every unique page;

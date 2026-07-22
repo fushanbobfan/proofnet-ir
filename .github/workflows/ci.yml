@@ -20,6 +20,8 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_tests
       - name: Audit theorem trust dependencies
         run: python scripts/audit_axioms.py
+      - name: Fuzz malformed parser inputs
+        run: python scripts/fuzz_malformed_parser.py
       - name: Build as a downstream Lake dependency
         working-directory: consumer-smoke
         run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_consumer_smoke

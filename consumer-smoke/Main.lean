@@ -5,6 +5,9 @@ open ProofNetIR
 def consumedCertificate : Certificate :=
   canonicalCertificate "consumer-p" "consumer-q"
 
+def reorderedConsumedCertificate : Certificate :=
+  { consumedCertificate with links := consumedCertificate.links.reverse }
+
 example : consumedCertificate.check = true := by native_decide
 
 example : consumedCertificate.DeclarativelyCorrect :=
@@ -21,6 +24,14 @@ def consumedSequentialization :
   consumedCertificate.sequentialize
 
 example : consumedSequentialization.isOk = true := by native_decide
+
+example : Certificate.proofNetEquivalent? consumedCertificate
+    reorderedConsumedCertificate = true := by native_decide
+
+example : consumedCertificate.ProofNetEquivalent reorderedConsumedCertificate := by
+  apply (Certificate.proofNetEquivalent?_eq_true_iff
+    (consumedCertificate.check_sound_declarative (by native_decide)).1).mp
+  native_decide
 
 example (result : ExecutableSequentializationResult consumedCertificate) :
     result.output.ProofNetEquivalent consumedCertificate :=
@@ -44,6 +55,8 @@ example :
 def main : IO Unit := do
   if consumedCertificate.check && consumedTree.elaborate?.isSome &&
       consumedSequentialization.isOk &&
+      Certificate.proofNetEquivalent? consumedCertificate
+        reorderedConsumedCertificate &&
       (Certificate.checkedFromString
         consumedCertificate.canonicalString).isOk &&
       (Certificate.checkedFromString

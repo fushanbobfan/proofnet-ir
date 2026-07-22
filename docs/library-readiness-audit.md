@@ -91,11 +91,12 @@ part of the engineering and proof-identity gap.
    canonical graph identity, not the accepted-net reverse theorem.
 4. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
-5. A semantic relation modulo reordered links is now defined, but it does not
-   yet have a complete canonical form or executable decision procedure.
-   Conclusion-order canonicalization and arbitrary graph isomorphism remain
-   outside the current claim. The v0.3.1 wire theorem remains intentionally
-   about the narrower, order-preserving `ReindexEquivalent` relation.
+5. A semantic relation modulo reordered links now has a complete executable
+   decision procedure on structurally well-formed certificates. It does not
+   yet have a complete canonical form. Conclusion-order canonicalization and
+   arbitrary graph isomorphism remain outside the current claim. The v0.3.1
+   wire theorem remains intentionally about the narrower, order-preserving
+   `ReindexEquivalent` relation.
 
 ## Engineering gaps blocking a mature-library claim
 
@@ -109,13 +110,15 @@ part of the engineering and proof-identity gap.
   equivalence theorem, while the pinned consumer protects the v0.4.0 API;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for eight public logical-boundary theorems and
+- CI now parses `#print axioms` for nine public logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;
 - no generated API reference or tutorial beyond repository-local examples;
-- no fuzz/property suite covers arbitrary malformed serialized inputs;
+- a deterministic 5,000-case native parser fuzz gate covers truncation,
+  deletion, replacement, insertion, malformed fields, and excessive formula
+  nesting; broader coverage-guided fuzzing remains future hardening;
 - no performance budget protects users from exponential switching blowups;
 - the focused baseline is a Python experiment component, not a Lean library
   module;
