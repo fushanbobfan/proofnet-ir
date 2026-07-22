@@ -11,6 +11,37 @@ def qDual : Formula := q.dual
 
 example : p.dual.dual = p := by simp
 
+def indexedParallelGraph : Graph where
+  vertexCount := 2
+  edges := [{ first := 0, second := 1 }, { first := 0, second := 1 }]
+
+def parallelDirectedZero : indexedParallelGraph.DirectedEdge where
+  index := 0
+  edge := { first := 0, second := 1 }
+  lookup := rfl
+  forward := true
+
+def parallelDirectedOne : indexedParallelGraph.DirectedEdge where
+  index := 1
+  edge := { first := 0, second := 1 }
+  lookup := rfl
+  forward := true
+
+example : parallelDirectedZero.edge = parallelDirectedOne.edge := rfl
+example : parallelDirectedZero.index ≠ parallelDirectedOne.index := by decide
+
+example : indexedParallelGraph.EdgeWalk 0 [parallelDirectedZero] 1 := by
+  exact .step (.refl 0) parallelDirectedZero rfl rfl
+
+example : indexedParallelGraph.Walk 0 1 := by
+  exact (show indexedParallelGraph.EdgeWalk 0 [parallelDirectedZero] 1 from
+    .step (.refl 0) parallelDirectedZero rfl rfl).toWalk
+
+example : indexedParallelGraph.EdgeWalk 1 [parallelDirectedZero.reverse] 0 := by
+  have forward : indexedParallelGraph.EdgeWalk 0 [parallelDirectedZero] 1 :=
+    .step (.refl 0) parallelDirectedZero rfl rfl
+  simpa [Graph.EdgeWalk.reverseTraversal] using forward.reverse
+
 def mixedFormula : Formula := .par (.tensor p q) (.atom "r" true)
 
 example : Derivation [mixedFormula, mixedFormula.dual] :=

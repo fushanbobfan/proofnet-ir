@@ -104,7 +104,8 @@
   The finite-rank sublemma that every structurally well-formed net containing a
   connective has some terminal tensor or par is now complete; the remaining
   case is the global splitting lemma for terminal tensors when no terminal par
-  exists.
+  exists. Its edge-aware colored-path and generalized-Yeo obligations are
+  specified in `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all
   preserved under vertex compaction.

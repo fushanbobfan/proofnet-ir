@@ -46,6 +46,10 @@
 - added formula-complexity ranks and proved that every structurally well-formed
   certificate containing a tensor/par link has a terminal connective link;
   the global existence of a splitting tensor remains separate.
+- added edge-indexed oriented multigraph edges and composable/reversible
+  edge-aware walks, preserving parallel-edge identity and projecting soundly
+  to the existing checker-facing vertex walk semantics; this is the base layer
+  for the remaining colored-path/Yeo proof.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

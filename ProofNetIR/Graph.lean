@@ -21,6 +21,84 @@ def Adjacent (graph : Graph) (left right : Vertex) : Prop :=
     (edge.first = left ∧ edge.second = right) ∨
     (edge.first = right ∧ edge.second = left)
 
+/-- One oriented occurrence of a stored multigraph edge. The list index keeps
+parallel equal-valued edges distinct, which vertex-only `Walk` deliberately
+does not do. -/
+structure DirectedEdge (graph : Graph) where
+  index : Nat
+  edge : Edge
+  lookup : graph.edges[index]? = some edge
+  forward : Bool
+
+namespace DirectedEdge
+
+def source {graph : Graph} (directed : graph.DirectedEdge) : Vertex :=
+  if directed.forward then directed.edge.first else directed.edge.second
+
+def target {graph : Graph} (directed : graph.DirectedEdge) : Vertex :=
+  if directed.forward then directed.edge.second else directed.edge.first
+
+def reverse {graph : Graph} (directed : graph.DirectedEdge) :
+    graph.DirectedEdge where
+  index := directed.index
+  edge := directed.edge
+  lookup := directed.lookup
+  forward := !directed.forward
+
+@[simp] theorem reverse_source {graph : Graph}
+    (directed : graph.DirectedEdge) :
+    directed.reverse.source = directed.target := by
+  rcases directed with ⟨index, edge, lookup, forward⟩
+  cases forward <;> rfl
+
+@[simp] theorem reverse_target {graph : Graph}
+    (directed : graph.DirectedEdge) :
+    directed.reverse.target = directed.source := by
+  rcases directed with ⟨index, edge, lookup, forward⟩
+  cases forward <;> rfl
+
+@[simp] theorem reverse_index {graph : Graph}
+    (directed : graph.DirectedEdge) : directed.reverse.index = directed.index :=
+  rfl
+
+@[simp] theorem reverse_reverse {graph : Graph}
+    (directed : graph.DirectedEdge) : directed.reverse.reverse = directed := by
+  rcases directed with ⟨index, edge, lookup, forward⟩
+  cases forward <;> rfl
+
+theorem edge_mem {graph : Graph} (directed : graph.DirectedEdge) :
+    directed.edge ∈ graph.edges := by
+  rcases List.getElem?_eq_some_iff.mp directed.lookup with
+    ⟨inBounds, equation⟩
+  rw [← equation]
+  exact List.getElem_mem inBounds
+
+theorem adjacent {graph : Graph} (directed : graph.DirectedEdge) :
+    graph.Adjacent directed.source directed.target := by
+  rcases directed with ⟨index, edge, lookup, forward⟩
+  have membership : edge ∈ graph.edges := by
+    rcases List.getElem?_eq_some_iff.mp lookup with ⟨inBounds, equation⟩
+    rw [← equation]
+    exact List.getElem_mem inBounds
+  refine ⟨edge, membership, ?_⟩
+  cases forward <;> simp [source, target]
+
+end DirectedEdge
+
+/-- Edge-identity-aware oriented walks for colored-path and multigraph-cycle
+arguments. `Walk` remains the checker-facing endpoint relation; this layer is
+strictly richer and records the exact stored edge occurrence at every step. -/
+inductive EdgeWalk (graph : Graph) :
+    Vertex → List graph.DirectedEdge → Vertex → Prop where
+  | refl (vertex : Vertex) : EdgeWalk graph vertex [] vertex
+  | step {start middle finish : Vertex}
+      {traversed : List graph.DirectedEdge}
+      (prior : EdgeWalk graph start traversed middle)
+      (directed : graph.DirectedEdge)
+      (starts : directed.source = middle)
+      (finishes : directed.target = finish) :
+      EdgeWalk graph start (traversed ++ [directed]) finish
+
 /-- Independent path semantics for the graph checker. -/
 inductive Walk (graph : Graph) : Vertex → Vertex → Prop where
   | refl (vertex : Vertex) : Walk graph vertex vertex
@@ -28,6 +106,49 @@ inductive Walk (graph : Graph) : Vertex → Vertex → Prop where
       Walk graph start middle →
       graph.Adjacent middle finish →
       Walk graph start finish
+
+namespace EdgeWalk
+
+def reverseTraversal {graph : Graph}
+    (traversed : List graph.DirectedEdge) : List graph.DirectedEdge :=
+  traversed.reverse.map DirectedEdge.reverse
+
+theorem trans {graph : Graph} {start middle finish : Vertex}
+    {firstSteps secondSteps : List graph.DirectedEdge}
+    (first : graph.EdgeWalk start firstSteps middle)
+    (second : graph.EdgeWalk middle secondSteps finish) :
+    graph.EdgeWalk start (firstSteps ++ secondSteps) finish := by
+  induction second with
+  | refl => simpa using first
+  | @step secondStart secondFinish traversed prior directed starts finishes ih =>
+      simpa [List.append_assoc] using
+        (EdgeWalk.step ih directed starts finishes)
+
+theorem toWalk {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish) :
+    graph.Walk start finish := by
+  induction walk with
+  | refl => exact .refl _
+  | @step start finish traversed prior directed starts finishes ih =>
+      exact .step ih (by simpa [starts, finishes] using directed.adjacent)
+
+theorem reverse {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish) :
+    graph.EdgeWalk finish (reverseTraversal traversed) start := by
+  induction walk with
+  | refl => exact .refl _
+  | @step stepStart stepFinish priorSteps prior directed starts finishes ih =>
+      have first : graph.EdgeWalk stepFinish [directed.reverse]
+          stepStart := by
+        apply EdgeWalk.step (.refl stepFinish) directed.reverse
+        · rw [DirectedEdge.reverse_source, finishes]
+        · rw [DirectedEdge.reverse_target, starts]
+      have combined := first.trans ih
+      simpa [reverseTraversal] using combined
+
+end EdgeWalk
 
 /-- An independent graph walk carrying its exact number of edge steps. The
 index makes finite-depth completeness statements possible without eliminating

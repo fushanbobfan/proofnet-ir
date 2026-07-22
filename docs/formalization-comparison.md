@@ -76,6 +76,9 @@ Before general sequentialization can be claimed here, ProofNet-IR must:
 7. recurse on a strict size measure and return a `Derivation` together with an
    isomorphism to the original certificate.
 
+The exact representation-level obligations for the remaining generalized-Yeo
+step are maintained in [splitting-theorem-audit.md](splitting-theorem-audit.md).
+
 These obligations replace the earlier informal plan of simply "finding a
 splitting tensor". They also explain why v0.2.0 is a research prototype rather
 than a completed proof-net library.
