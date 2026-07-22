@@ -11,7 +11,7 @@ Audit started: 2026-07-22
 - Extent: 389 physical PDF pages.
 - Text extraction: 388 pages have extractable text. Physical page 1 has no
   extracted text and was therefore rendered and checked visually as the cover.
-- Current direct ordered reading: physical pages 1-192. This is an in-progress
+- Current direct ordered reading: physical pages 1-240. This is an in-progress
   page audit, not a completed-source claim.
 
 ## Page-by-page matrix for the completed interval
@@ -210,11 +210,59 @@ Audit started: 2026-07-22
 | 190 | 179 / V.1.1-1.2 | Proof versus computation roadmap, algorithms as processes, and partial functions over positive integer tuples. | Directly relevant to distinguishing existence of a derivation from an executable sequentializer. |
 | 191 | 180 / V.1.2-1.4 | Definitions of computable, semicomputable, and noncomputable partial functions. | Supports precise termination/error contracts for the public runtime. |
 | 192 | 181 / V.1.4 | Domain characteristic functions, counting evidence for noncomputability, arithmetic-truth example, and a Fermat semidecision procedure. | A semidecision procedure is not a total API; ProofNet-IR's accepted-input totality theorem closes that distinction only in its documented fragment. |
+| 193 | 182 / V.1.4-1.6 | Fermat update, a semicomputable noncomputable Diophantine example, critique of informal program notions, and weakest Church thesis. | Corrects the historical Fermat example and distinguishes empirical thesis from formal theorem. |
+| 194 | 183 / V.1.7; V.2.1-2.3 | Significance of Church's thesis, basic partial-recursive functions, composition, juxtaposition, and recursion. | Executable closure under constructors needs exact domain equations. |
+| 195 | 184 / V.2.3-2.4 | Recursive domains, minimization operator, and partial/primitive recursive descriptions. | The minimization operator is where partiality enters; analogous API search must state its totality domain. |
+| 196 | 185 / V.2.5-2.6 | Usual Church thesis, computable versus semicomputable, and mass-problem undecidability. | Logical totality claims must not rest on Church's thesis alone. |
+| 197 | 186 / V.2.6-2.7 | Heuristic use of Church's thesis and preservation of semicomputability by minimization. | Informal algorithm arguments are useful discovery aids but require formal closure proofs. |
+| 198 | 187 / V.2.7; V.3.1-3.2 | Evidence from recursive descriptions, Turing equivalence and other models, then basic recursive arithmetic examples. | Cross-model agreement is evidence, while the Lean theorem remains fragment-specific proof. |
+| 199 | 188 / V.3.2-3.4 | Recursive sums/products and truncated predecessor/difference. | Multiple descriptions of one function caution against identifying programs with mathematical functions. |
+| 200 | 189 / V.3.5-3.8 | Polynomial, step, remainder, and conditional-recursion constructions. | Branch conditions must be exhaustive and mutually exclusive. |
+| 201 | 190 / V.3.8-3.11 | Quotient, integer square root, min/max via conditional recursion. | Engineering examples only. |
+| 202 | 191 / V.3.12-3.14; V.4.1 | Bounded sums/products, argument transformations, componentwise recursion, and recursively enumerable sets. | Encodings and projections require preservation under every argument transformation. |
+| 203 | 192 / V.4.1-4.4 | Equivalent level-set definitions and theorem characterizing enumerable sets as projections of primitive-recursive levels. | A representation theorem has two directions; directly supports maintaining both proof-net translations. |
+| 204 | 193 / V.4.4-4.5 | Projection-codimension cases and statement of a recursive tuple-numbering bijection. | Tuple encoding needs a computable inverse, not just injectivity. |
+| 205 | 194 / V.4.5-4.8 | Construction of Cantor tuple encodings and closure of primitive-enumerable sets. | Canonical encoding is backed by explicit round-trip properties here. |
+| 206 | 195 / V.4.8-4.9 | Graph closure under constructors and Goedel function encoding finite sequences. | Arbitrarily long finite witness traces can be encoded, but decoding and coverage must be proved. |
+| 207 | 196 / V.4.9-4.10 | Chinese-remainder proof of sequence encoding and minimization stability setup. | Witness packing is a theorem, not an informal serialization trick. |
+| 208 | 197 / V.4.10 | Primitive-enumerable graph proof for minimization using encoded intermediate witnesses. | Shows the complexity of proving search-graph closure exactly. |
+| 209 | 198 / V.4.10-4.11 | Completion of minimization and recursive-step graph encoding. | Every intermediate recursive state is represented and checked. |
+| 210 | 199 / V.4.11-4.12 | Completion of recursion stability and generative meaning of recursively enumerable sets. | Enumerating all positives says nothing about terminating on negatives. |
+| 211 | 200 / V.4.13-4.15 | Decidable sets, characteristic-function theorem, and graph characterization of partial recursion. | A decidable checker requires both positive and negative termination; current Boolean checker supplies that in scope. |
+| 212 | 201 / V.4.16-4.19; V.5.1 | Normal-form corollaries, finite decidability, and recursive-geometry structure. | Normal forms and finite cases are useful tests but not full performance guarantees. |
+| 213 | 202 / V.5.2-5.6 | Quasitopology, restriction/gluing, recursive morphisms, and invariance questions. | Storage-independent equivalence must specify the ambient structure preserved. |
+| 214 | 203 / V.5.6 | Recursive bijections between infinite enumerable sets and limitations of intrinsic classification. | A bijection of carriers alone can erase essential embedding information; relevant to graph identity boundaries. |
+| 215 | 204 / V.5.7-5.8 | Enumerable families, versality, and diagonal construction of an enumerable undecidable set. | Broad family coverage can enable diagonal failure cases; motivates adversarial generation. |
+| 216 | 205 / V.5.9-5.11 | Enumerable unions, infinite gluing, recursive products, and boundary maps. | Family-level closure requires a total-space theorem. |
+| 217 | 206 / V.5.11-5.13 | Recursive Cech analogy, simple enumerable sets, and maximal elements modulo finite sets. | Geometric analogy is explicitly exploratory, not a proof-net result. |
+| 218 | 207 / VI.1.1-1.2 | Diophantine sets and statement/roadmap of the Davis-Putnam-Robinson-Matiyasevich theorem. | Major computability theorem outside current project scope. |
+| 219 | 208 / VI.1.3-1.4 | Hilbert's tenth problem, effective reduction, constructive nature of the representation, and prime-value polynomials. | “Effective” is supported by an explicit transformation, a useful API standard. |
+| 220 | 209 / VI.1.5-1.9; VI.2.1 | Positive-value representation and examples, then proof plan via bounded quantification. | Examples are consequences of the theorem, not independent correctness evidence. |
+| 221 | 210 / VI.2.1-2.2 | Enumerable, D-, and Diophantine classes and closure under bounded universal quantification. | Intermediate classes make proof dependencies explicit. |
+| 222 | 211 / VI.2.2-2.4; VI.3 | Goedel encoding closes bounded quantification, proof plan, and reduction to primitive-recursive graphs. | Finite witness vectors can be packed only after a proved decoding property. |
+| 223 | 212 / VI.3.1-3.3 | Graphs of basic recursive functions as D-sets and Diophantine graph of the Goedel remainder function. | Constructor-preservation proof pattern only. |
+| 224 | 213 / VI.3.4 | Recursion graph is a D-set via initial, step, and bounded universal constraints. | Exhaustive initial/recursive decomposition mirrors a total recursive proof. |
+| 225 | 214 / VI.4.1-4.3 | Reduction of bounded universal quantification to exponential, factorial, and binomial Diophantine graphs. | Long dependency chain is recorded rather than collapsed into the headline theorem. |
+| 226 | 215 / VI.4.3 | Forward inclusion using large coprime moduli and encoded witnesses. | Completeness direction depends on explicit lifting of every bounded witness. |
+| 227 | 216 / VI.4.3 | Reverse inclusion via prime divisors and size bounds, then reduction conclusion. | Soundness direction uses independent bounds; both directions are necessary. |
+| 228 | 217 / VI.5.1-5.2 | Pell equations and exponentially growing solution coordinates for a special Diophantine set. | Number-theory construction only. |
+| 229 | 218 / VI.5.3-5.5 | Diophantine encoding of a Pell-solution index and forward construction. | Auxiliary witnesses are fully enumerated before projection. |
+| 230 | 219 / VI.5.5-5.7 | Reverse implication using congruence and solution-index lemmas. | Equality recovery depends on bounds plus congruence, not congruence alone. |
+| 231 | 220 / VI.5.8 | Proofs of the Pell sequence congruence and divisibility lemmas. | No project dependency. |
+| 232 | 221 / VI.6; VI.7.1 | Diophantine graph of exponentiation and start of binomial/factorial graphs. | No project dependency. |
+| 233 | 222 / VI.7.2-7.5 | Binomial remainder lemma and Diophantine factorial construction. | No project dependency. |
+| 234 | 223 / VI.7.6-7.8; VI.8.1 | Generalized binomial graph completes DPRM, then versal-family existence theorem. | Completion is tied to the earlier reductions; headline theorem alone hides many hypotheses. |
+| 235 | 224 / VI.8.1 | Effective enumeration of polynomials and construction of a versal family of enumerable sets. | Effective universality requires a uniform total-space proof. |
+| 236 | 225 / VI.8.1-8.2 | Versal families of higher-arity sets/functions and nonuniqueness of indexing. | A universal enumeration is not a canonical identity; crucial distinction for generated certificates. |
+| 237 | 226 / VI.9.1-9.3 | Relative Kolmogorov complexity, optimal enumerable families, and invariance up to multiplicative constants. | Complexity depends on representation except up to a stated equivalence and constant. |
+| 238 | 227 / VI.9.4-9.5 | Construction of an optimal family and integer-complexity examples. | Performance comparisons require a fixed cost model and admitted invariance notion. |
+| 239 | 228 / VI.9.5-9.8 | Complexity examples and composition bounds. | Supports reporting asymptotic search cost rather than one benchmark number. |
+| 240 | 229 / VI.9.8-9.9 | Proof of composition bounds and statement that Kolmogorov complexity is not computable. | Exact intrinsic proof complexity cannot generally be a computable library metric. |
 
 ## Current claim boundary
 
 The completed interval supports the motivation for treating diagrams and
 decorated graphs as formal languages whose syntax and semantics must be stated
 precisely. It does not state the Danos-Regnier switching criterion, MLL proof-net
-correctness, or a sequentialization theorem. The remaining 197 pages are not
+correctness, or a sequentialization theorem. The remaining 149 pages are not
 yet represented as directly read in order.
