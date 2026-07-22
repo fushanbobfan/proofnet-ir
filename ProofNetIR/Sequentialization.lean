@@ -3153,6 +3153,265 @@ theorem prefixToFirstIntersection {certificate : Certificate}
       (beforeAvoids earlier earlierMembership (earlierTarget.symm ▸ inVertices))
   · simpa using atLast
 
+/-- An intersection between a continuation prefix and a later continuation
+determines a simple return suffix inside the first path. -/
+theorem returnSuffixFromIntersection {certificate : Certificate}
+    {incoming middle outgoing : certificate.fullGraph.DirectedEdge}
+    (first : CuspFreeContinuation certificate incoming middle)
+    (later : CuspFreeContinuation certificate middle outgoing)
+    {vertex : Vertex}
+    (inFirst : vertex ∈ first.path.vertices)
+    (inLater : vertex ∈ later.path.vertices.tail) :
+    ∃ returnPath : certificate.fullGraph.EdgeSimplePath,
+      returnPath.start = vertex ∧
+      returnPath.finish = middle.target ∧
+      (∀ candidate, candidate ∈ returnPath.vertices →
+        candidate ∈ first.path.vertices) ∧
+      certificate.CuspFreeTraversal returnPath.traversed ∧
+      returnPath.traversed.getLast? = some middle := by
+  have notFinish : vertex ≠ first.path.finish := by
+    intro atFinish
+    have atLaterStart : vertex = later.path.start :=
+      atFinish.trans (first.endsAt.trans later.startsAt.symm)
+    apply later.path.start_not_mem_vertices_tail
+    rw [← atLaterStart]
+    exact inLater
+  rcases first.path.outgoingAtVertex inFirst notFinish with
+    ⟨before, next, after, traversalEquation, nextSource⟩
+  rcases first.path.suffixPath traversalEquation with
+    ⟨returnPath, returnStarts, returnFinishes, returnSteps,
+      returnSubset⟩
+  have fullLast : first.path.traversed.getLast? = some middle := by
+    rw [List.getLast?_eq_some_getLast first.nonempty, first.lastEdge]
+  rw [traversalEquation] at fullLast
+  have returnLast : returnPath.traversed.getLast? = some middle := by
+    rw [returnSteps]
+    simpa using fullLast
+  have suffixFree : certificate.CuspFreeTraversal (next :: after) := by
+    have fullFree : certificate.CuspFreeTraversal
+        (before ++ next :: after) := by
+      rw [← traversalEquation]
+      exact first.cuspFree
+    exact CuspFreeTraversal.suffix certificate fullFree
+  have returnFree : certificate.CuspFreeTraversal returnPath.traversed := by
+    rw [returnSteps]
+    exact suffixFree
+  exact ⟨returnPath, returnStarts.trans nextSource,
+    returnFinishes.trans first.endsAt, returnSubset, returnFree, returnLast⟩
+
+/-- First-intersection normalization gives exactly the vertex separation
+needed to close the later prefix with the return suffix. -/
+theorem firstIntersection_vertexDisjoint {certificate : Certificate}
+    {incoming middle last : certificate.fullGraph.DirectedEdge}
+    (first : CuspFreeContinuation certificate incoming middle)
+    (later : CuspFreeContinuation certificate middle last)
+    (returnPath : certificate.fullGraph.EdgeSimplePath)
+    (returnStarts : returnPath.start = last.target)
+    (returnFinishes : returnPath.finish = middle.target)
+    (returnSubset : ∀ candidate, candidate ∈ returnPath.vertices →
+      candidate ∈ first.path.vertices)
+    (uniqueIntersection : ∀ vertex,
+      vertex ∈ later.path.vertices.tail →
+      vertex ∈ first.path.vertices → vertex = last.target)
+    (returnNonempty : returnPath.traversed ≠ []) :
+    ∀ vertex, vertex ∈ later.path.vertices →
+      vertex ∈ returnPath.vertices.tail.dropLast → False := by
+  intro vertex inLater inReturnInterior
+  have inReturnTail : vertex ∈ returnPath.vertices.tail :=
+    Graph.mem_of_mem_dropLast inReturnInterior
+  have inReturn : vertex ∈ returnPath.vertices :=
+    List.mem_of_mem_tail inReturnTail
+  have inFirst := returnSubset vertex inReturn
+  by_cases atLaterStart : vertex = later.path.start
+  · apply returnPath.finish_not_mem_vertices_tail_dropLast returnNonempty
+    have atReturnFinish : vertex = returnPath.finish := by
+      calc
+        vertex = later.path.start := atLaterStart
+        _ = middle.target := later.startsAt
+        _ = returnPath.finish := returnFinishes.symm
+    rw [← atReturnFinish]
+    exact inReturnInterior
+  · have inLaterTail : vertex ∈ later.path.vertices.tail := by
+      change vertex ∈
+        later.path.traversed.map Graph.DirectedEdge.target
+      simp only [Graph.EdgeSimplePath.vertices,
+        Graph.EdgeWalk.visitedVertices, List.mem_cons] at inLater
+      exact inLater.resolve_left atLaterStart
+    have atLastTarget := uniqueIntersection vertex inLaterTail inFirst
+    apply returnPath.start_not_mem_vertices_tail
+    rw [returnStarts, ← atLastTarget]
+    exact inReturnTail
+
+/-- The later prefix and its return suffix share no exact edge occurrence.
+Any hypothetical shared occurrence is forced to be both the later head and the
+return last edge, contradicting continuation initial-freedom. -/
+theorem firstIntersection_edgeDisjoint {certificate : Certificate}
+    {incoming middle last : certificate.fullGraph.DirectedEdge}
+    (first : CuspFreeContinuation certificate incoming middle)
+    (later : CuspFreeContinuation certificate middle last)
+    (returnPath : certificate.fullGraph.EdgeSimplePath)
+    (returnStarts : returnPath.start = last.target)
+    (returnFinishes : returnPath.finish = middle.target)
+    (returnSubset : ∀ candidate, candidate ∈ returnPath.vertices →
+      candidate ∈ first.path.vertices)
+    (uniqueIntersection : ∀ vertex,
+      vertex ∈ later.path.vertices.tail →
+      vertex ∈ first.path.vertices → vertex = last.target)
+    (returnLast : returnPath.traversed.getLast? = some middle) :
+    ∀ index,
+      index ∈ later.path.traversed.map Graph.DirectedEdge.index →
+      index ∈ returnPath.traversed.map Graph.DirectedEdge.index →
+      False := by
+  intro index inLaterIndices inReturnIndices
+  rcases List.mem_map.mp inLaterIndices with
+    ⟨laterEdge, laterEdgeMembership, laterIndex⟩
+  rcases List.mem_map.mp inReturnIndices with
+    ⟨returnEdge, returnEdgeMembership, returnIndex⟩
+  have sameIndex : laterEdge.index = returnEdge.index :=
+    laterIndex.trans returnIndex.symm
+  rcases Graph.DirectedEdge.eq_or_eq_reverse_of_index_eq
+      laterEdge returnEdge sameIndex with same | reversed
+  · have laterTargetInTail : laterEdge.target ∈
+        later.path.vertices.tail := by
+      change laterEdge.target ∈
+        later.path.traversed.map Graph.DirectedEdge.target
+      exact List.mem_map.mpr ⟨laterEdge, laterEdgeMembership, rfl⟩
+    have returnTargetInReturn : returnEdge.target ∈ returnPath.vertices :=
+      (returnPath.walk.endpoints_mem_visitedVertices
+        returnEdgeMembership).2
+    have laterTargetInFirst : laterEdge.target ∈ first.path.vertices := by
+      rw [same]
+      exact returnSubset returnEdge.target returnTargetInReturn
+    have targetAtIntersection := uniqueIntersection laterEdge.target
+      laterTargetInTail laterTargetInFirst
+    apply returnPath.start_not_mem_vertices_tail
+    have returnTargetInTail : returnEdge.target ∈ returnPath.vertices.tail := by
+      change returnEdge.target ∈
+        returnPath.traversed.map Graph.DirectedEdge.target
+      exact List.mem_map.mpr ⟨returnEdge, returnEdgeMembership, rfl⟩
+    rw [returnStarts, ← targetAtIntersection, same]
+    exact returnTargetInTail
+  · have laterTargetInTail : laterEdge.target ∈
+        later.path.vertices.tail := by
+      change laterEdge.target ∈
+        later.path.traversed.map Graph.DirectedEdge.target
+      exact List.mem_map.mpr ⟨laterEdge, laterEdgeMembership, rfl⟩
+    have returnSourceInReturn : returnEdge.source ∈ returnPath.vertices :=
+      (returnPath.walk.endpoints_mem_visitedVertices
+        returnEdgeMembership).1
+    have targetSource : laterEdge.target = returnEdge.source := by
+      calc
+        laterEdge.target = returnEdge.reverse.target :=
+          congrArg Graph.DirectedEdge.target reversed
+        _ = returnEdge.source := Graph.DirectedEdge.reverse_target returnEdge
+    have laterTargetInFirst : laterEdge.target ∈ first.path.vertices := by
+      rw [targetSource]
+      exact returnSubset returnEdge.source returnSourceInReturn
+    have targetAtIntersection := uniqueIntersection laterEdge.target
+      laterTargetInTail laterTargetInFirst
+    have returnTargetInReturn : returnEdge.target ∈ returnPath.vertices :=
+      (returnPath.walk.endpoints_mem_visitedVertices
+        returnEdgeMembership).2
+    have laterSourceInFirst : laterEdge.source ∈ first.path.vertices := by
+      have sourceTarget : laterEdge.source = returnEdge.target := by
+        calc
+          laterEdge.source = returnEdge.reverse.source :=
+            congrArg Graph.DirectedEdge.source reversed
+          _ = returnEdge.target := Graph.DirectedEdge.reverse_source returnEdge
+      rw [sourceTarget]
+      exact returnSubset returnEdge.target returnTargetInReturn
+    have laterSourceAtStart : laterEdge.source = later.path.start := by
+      apply Classical.byContradiction
+      intro notAtStart
+      have laterSourceInTail : laterEdge.source ∈ later.path.vertices.tail := by
+        have inVertices :=
+          (later.path.walk.endpoints_mem_visitedVertices
+            laterEdgeMembership).1
+        simp only [Graph.EdgeWalk.visitedVertices, List.mem_cons] at inVertices
+        exact inVertices.resolve_left notAtStart
+      have sourceAtIntersection := uniqueIntersection laterEdge.source
+        laterSourceInTail laterSourceInFirst
+      apply later.path.directed_source_ne_target laterEdgeMembership
+      exact sourceAtIntersection.trans targetAtIntersection.symm
+    have returnNonempty : returnPath.traversed ≠ [] := by
+      intro empty
+      simp [empty] at returnLast
+    let returnEnd := returnPath.traversed.getLast returnNonempty
+    have returnEndMembership : returnEnd ∈ returnPath.traversed :=
+      List.getLast_mem returnNonempty
+    have returnEndTarget : returnEnd.target = returnPath.finish :=
+      returnPath.walk.getLast_target returnNonempty
+    have returnEdgeTarget : returnEdge.target = returnPath.finish := by
+      calc
+        returnEdge.target = laterEdge.source := by
+          symm
+          calc
+            laterEdge.source = returnEdge.reverse.source :=
+              congrArg Graph.DirectedEdge.source reversed
+            _ = returnEdge.target := Graph.DirectedEdge.reverse_source returnEdge
+        _ = later.path.start := laterSourceAtStart
+        _ = middle.target := later.startsAt
+        _ = returnPath.finish := returnFinishes.symm
+    have returnEdgeIsEnd : returnEdge = returnEnd :=
+      returnPath.eq_of_target_eq returnEdgeMembership returnEndMembership
+        (returnEdgeTarget.trans returnEndTarget.symm)
+    have returnEndIsMiddle : returnEnd = middle :=
+      List.getLast_of_getLast?_eq_some returnLast
+    let headEdge := later.path.traversed.head later.nonempty
+    have headMembership : headEdge ∈ later.path.traversed := by
+      simp [headEdge]
+    have headSource : headEdge.source = later.path.start := by
+      cases traversalEquation : later.path.traversed with
+      | nil => exact False.elim (later.nonempty traversalEquation)
+      | cons firstEdge remaining =>
+          have chain := later.path.walk.toChain
+          rw [traversalEquation] at chain
+          simpa [headEdge, traversalEquation] using chain.head_source
+    have laterEdgeIsHead : laterEdge = headEdge :=
+      later.path.eq_of_source_eq laterEdgeMembership headMembership
+        (laterSourceAtStart.trans headSource.symm)
+    apply later.head_index_ne_incoming
+    calc
+      (later.path.traversed.head later.nonempty).index = headEdge.index := rfl
+      _ = laterEdge.index := congrArg Graph.DirectedEdge.index laterEdgeIsHead.symm
+      _ = returnEdge.index := sameIndex
+      _ = returnEnd.index := congrArg Graph.DirectedEdge.index returnEdgeIsEnd
+      _ = middle.index := congrArg Graph.DirectedEdge.index returnEndIsMiddle
+
+/-- The normalized later prefix and return suffix form a genuine exact-edge
+simple cycle. This is the closed graph object on which the remaining bungee
+cusp-count contradiction is carried out. -/
+theorem firstIntersection_cycle {certificate : Certificate}
+    {incoming middle last : certificate.fullGraph.DirectedEdge}
+    (first : CuspFreeContinuation certificate incoming middle)
+    (later : CuspFreeContinuation certificate middle last)
+    (returnPath : certificate.fullGraph.EdgeSimplePath)
+    (returnStarts : returnPath.start = last.target)
+    (returnFinishes : returnPath.finish = middle.target)
+    (returnSubset : ∀ candidate, candidate ∈ returnPath.vertices →
+      candidate ∈ first.path.vertices)
+    (uniqueIntersection : ∀ vertex,
+      vertex ∈ later.path.vertices.tail →
+      vertex ∈ first.path.vertices → vertex = last.target)
+    (returnLast : returnPath.traversed.getLast? = some middle) :
+    ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
+      cycle.traversed = later.path.traversed ++ returnPath.traversed := by
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    intro empty
+    simp [empty] at returnLast
+  have meeting : later.path.finish = returnPath.start :=
+    later.endsAt.trans returnStarts.symm
+  have closing : returnPath.finish = later.path.start :=
+    returnFinishes.trans later.startsAt.symm
+  have vertexDisjoint := firstIntersection_vertexDisjoint first later
+    returnPath returnStarts returnFinishes returnSubset uniqueIntersection
+    returnNonempty
+  have edgeDisjoint := firstIntersection_edgeDisjoint first later returnPath
+    returnStarts returnFinishes returnSubset uniqueIntersection returnLast
+  let cycle := Graph.EdgeSimpleCycle.ofTwoPaths later.path returnPath
+    later.nonempty returnNonempty meeting closing vertexDisjoint edgeDisjoint
+  exact ⟨cycle, rfl⟩
+
 end CuspFreeContinuation
 
 /-- The strengthened continuation used as the strict generalized-Yeo order:
@@ -3606,6 +3865,67 @@ is no nonempty simple cycle whose every local transition avoids a cusp. -/
 def CuspAcyclic (certificate : Certificate) : Prop :=
   ∀ cycle : certificate.fullGraph.EdgeSimpleCycle,
     ¬certificate.CuspFreeCycle cycle
+
+/-- In the simple cycle produced by first-intersection normalization, the
+transition from the later prefix into the old return suffix must be a cusp.
+Otherwise both pieces and both closing boundaries are cusp-free, contradicting
+colored acyclicity directly. -/
+theorem CuspAcyclic.firstIntersection_boundary_cusp
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    {incoming middle last : certificate.fullGraph.DirectedEdge}
+    (first : certificate.CuspFreeContinuation incoming middle)
+    (later : certificate.CuspFreeContinuation middle last)
+    (returnPath : certificate.fullGraph.EdgeSimplePath)
+    (returnStarts : returnPath.start = last.target)
+    (returnFinishes : returnPath.finish = middle.target)
+    (returnSubset : ∀ candidate, candidate ∈ returnPath.vertices →
+      candidate ∈ first.path.vertices)
+    (returnFree : certificate.CuspFreeTraversal returnPath.traversed)
+    (uniqueIntersection : ∀ vertex,
+      vertex ∈ later.path.vertices.tail →
+      vertex ∈ first.path.vertices → vertex = last.target)
+    (returnLast : returnPath.traversed.getLast? = some middle) :
+    certificate.Cusp last
+      (returnPath.traversed.head (by
+        intro empty
+        simp [empty] at returnLast)) := by
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    intro empty
+    simp [empty] at returnLast
+  rcases CuspFreeContinuation.firstIntersection_cycle first later returnPath
+      returnStarts returnFinishes returnSubset uniqueIntersection returnLast with
+    ⟨cycle, cycleSteps⟩
+  apply Classical.byContradiction
+  intro boundaryFree
+  have joinFree : ¬certificate.Cusp
+      (later.path.traversed.getLast later.nonempty)
+      (returnPath.traversed.head returnNonempty) := by
+    rw [later.lastEdge]
+    exact boundaryFree
+  have traversalFree : certificate.CuspFreeTraversal cycle.traversed := by
+    rw [cycleSteps]
+    exact CuspFreeTraversal.append certificate later.cuspFree returnFree
+      later.nonempty returnNonempty joinFree
+  have cycleLast : cycle.traversed.getLast cycle.nonempty = middle := by
+    have cycleLastOption : cycle.traversed.getLast? = some middle := by
+      rw [cycleSteps, List.getLast?_append, returnLast]
+      rfl
+    exact List.getLast_of_getLast?_eq_some cycleLastOption
+  have cycleHead : cycle.traversed.head cycle.nonempty =
+      later.path.traversed.head later.nonempty := by
+    have cycleHeadOption : cycle.traversed.head? =
+        some (later.path.traversed.head later.nonempty) := by
+      rw [cycleSteps, List.head?_append,
+        List.head?_eq_some_head later.nonempty]
+      rfl
+    exact List.head_of_head?_eq_some cycleHeadOption
+  have closingFree : ¬certificate.ClosingCusp cycle := by
+    intro closing
+    unfold ClosingCusp at closing
+    rw [cycleLast, cycleHead] at closing
+    exact later.initialFree closing
+  exact acyclic cycle ((certificate.cuspFreeCycle_iff cycle).2
+    ⟨traversalFree, closingFree⟩)
 
 /-- A colored splitting vertex is one at which every based simple cycle closes
 with a cusp. This is the representation-independent target of generalized

@@ -922,6 +922,35 @@ def cyclicTriangle : cyclicGraph.EdgeSimpleCycle where
   edgeIndicesNodup := by decide
   interiorNodup := by decide
 
+def cyclicPath02 : cyclicGraph.EdgeSimplePath where
+  start := 0
+  finish := 2
+  traversed := [cyclicDirected01, cyclicDirected12]
+  walk := by
+    apply Graph.EdgeWalk.step
+      (Graph.EdgeWalk.step (.refl 0) cyclicDirected01 rfl rfl)
+      cyclicDirected12 rfl rfl
+  verticesNodup := by decide
+
+def cyclicReturn20 : cyclicGraph.EdgeSimplePath where
+  start := 2
+  finish := 0
+  traversed := [cyclicDirected20]
+  walk := by
+    exact Graph.EdgeWalk.step (.refl 2) cyclicDirected20 rfl rfl
+  verticesNodup := by decide
+
+def cyclicTriangleFromPaths : cyclicGraph.EdgeSimpleCycle :=
+  Graph.EdgeSimpleCycle.ofTwoPaths cyclicPath02 cyclicReturn20
+    (by simp [cyclicPath02]) (by simp [cyclicReturn20]) rfl rfl
+    (by native_decide) (by native_decide)
+
+example : cyclicTriangleFromPaths.traversed = cyclicTriangle.traversed := rfl
+example : cyclicPath02.reverse.vertices = cyclicPath02.vertices.reverse :=
+  cyclicPath02.reverse_vertices
+example : cyclicPath02.traversed.map Graph.DirectedEdge.index |>.Nodup :=
+  cyclicPath02.edgeIndicesNodup
+
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,
       cyclicDirected01.reverse] := by

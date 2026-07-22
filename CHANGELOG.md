@@ -90,6 +90,13 @@
   their first intersection with a finite vertex list, structural looplessness
   of full proof-net occurrences, and the two cusp-adjacent head-edge exclusion
   lemmas needed by the remaining bungee contradiction.
+- proved exact simple-path reversal, suffix extraction, source/target and edge
+  occurrence uniqueness, and a constructor closing two oppositely directed
+  simple paths into an occurrence-aware simple cycle.
+- constructed the normalized first-intersection bungee cycle with verified
+  vertex and edge disjointness, and proved cusp-acyclicity forces a cusp at its
+  splice from the later prefix into the old return suffix. Minimal-cycle cusp
+  arithmetic remains the next bungee obligation.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

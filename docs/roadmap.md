@@ -114,8 +114,11 @@
   minimal non-closing cusp count, and continuation to the first nontrivial
   cusping edge are now kernel checked. Cusp-count reversal/additivity, first
   intersection truncation, full-graph looplessness, and cusp-adjacent
-  occurrence exclusion now supply the next bungee layer. The remaining
-  universal-separation contradiction and generalized-Yeo instantiation are in
+  occurrence exclusion now supply the next bungee layer. The normalized
+  intersection and return paths now close into an exact simple cycle with
+  disjoint occurrences, and cusp-acyclicity forces its splice boundary to be
+  a cusp. The remaining minimal-cycle cusp arithmetic, universal-separation
+  conclusion, and generalized-Yeo instantiation are in
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

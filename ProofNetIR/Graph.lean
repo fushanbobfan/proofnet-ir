@@ -47,6 +47,49 @@ theorem exists_first_decomposition {α : Type} (values : List α)
             exact headProperty
           · exact first earlier inBefore
 
+/-- Reversal preserves duplicate-freedom for arbitrary finite lists. -/
+theorem nodup_reverse_of_nodup {α : Type} (values : List α)
+    (nodup : values.Nodup) : values.reverse.Nodup := by
+  induction values with
+  | nil => simp
+  | cons head tail ih =>
+      rw [List.reverse_cons, List.nodup_append]
+      refine ⟨ih (List.nodup_cons.mp nodup).2, by simp, ?_⟩
+      intro first firstMembership second secondMembership same
+      simp at secondMembership
+      subst second
+      subst first
+      exact (List.nodup_cons.mp nodup).1
+        (by simpa using firstMembership)
+
+theorem mem_of_mem_dropLast {α : Type} {value : α} {values : List α}
+    (membership : value ∈ values.dropLast) : value ∈ values := by
+  have nonempty : values ≠ [] := by
+    intro empty
+    simp [empty] at membership
+  rw [← List.dropLast_concat_getLast nonempty]
+  exact List.mem_append.mpr (.inl membership)
+
+theorem eq_of_map_eq_of_mem_of_nodup {α β : Type}
+    {values : List α} {function : α → β} {first second : α}
+    (nodup : (values.map function).Nodup)
+    (firstMembership : first ∈ values)
+    (secondMembership : second ∈ values)
+    (same : function first = function second) : first = second := by
+  induction values with
+  | nil => simp at firstMembership
+  | cons head tail ih =>
+      simp only [List.map_cons, List.nodup_cons] at nodup
+      simp only [List.mem_cons] at firstMembership secondMembership
+      rcases firstMembership with rfl | firstTail <;>
+        rcases secondMembership with rfl | secondTail
+      · rfl
+      · exact False.elim (nodup.1
+          (List.mem_map.mpr ⟨second, secondTail, same.symm⟩))
+      · exact False.elim (nodup.1
+          (List.mem_map.mpr ⟨first, firstTail, same⟩))
+      · exact ih nodup.2 firstTail secondTail
+
 /-- Number of retained Boolean mask entries strictly before an original edge
 index. This is the compacted index of a kept edge. -/
 def retainedIndex (mask : List Bool) (index : Nat) : Nat :=
@@ -449,6 +492,28 @@ theorem reverse {graph : Graph} {start finish : Vertex}
       have combined := first.trans ih
       simpa [reverseTraversal] using combined
 
+/-- Reversing a valid traversal reverses its visited-vertex list exactly. -/
+theorem visitedVertices_reverse {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish) :
+    visitedVertices finish (reverseTraversal traversed) =
+      (visitedVertices start traversed).reverse := by
+  induction walk with
+  | refl => simp [visitedVertices, reverseTraversal]
+  | @step stepStart stepFinish priorSteps prior directed starts finishes ih =>
+      have reversedEquation :
+          reverseTraversal (priorSteps ++ [directed]) =
+            directed.reverse :: reverseTraversal priorSteps := by
+        simp [reverseTraversal]
+      rw [reversedEquation]
+      simp only [visitedVertices, List.map_cons,
+        DirectedEdge.reverse_target]
+      rw [starts]
+      change stepFinish :: visitedVertices stepStart
+          (reverseTraversal priorSteps) = _
+      rw [ih]
+      simp [visitedVertices, List.map_append, finishes]
+
 end EdgeWalk
 
 namespace EdgeChain
@@ -506,6 +571,50 @@ theorem toWalk {graph : Graph} {start finish : Vertex}
         exact EdgeWalk.step (.refl start) directed starts rfl
       exact first.trans ih
 
+/-- A walk whose visited vertices are duplicate-free cannot reuse an exact
+stored edge occurrence in either orientation. -/
+theorem edgeIndicesNodup_of_visitedVertices_nodup {graph : Graph}
+    {start finish : Vertex} {traversed : List graph.DirectedEdge}
+    (chain : graph.EdgeChain start traversed finish)
+    (verticesNodup :
+      (EdgeWalk.visitedVertices start traversed).Nodup) :
+    (traversed.map DirectedEdge.index).Nodup := by
+  induction chain with
+  | nil => simp
+  | @cons chainStart chainFinish rest first starts tail ih =>
+      simp only [EdgeWalk.visitedVertices, List.map_cons] at verticesNodup ⊢
+      have tailVerticesNodup :
+          (first.target :: rest.map DirectedEdge.target).Nodup :=
+        (List.nodup_cons.mp verticesNodup).2
+      rw [List.nodup_cons]
+      constructor
+      · intro indexMembership
+        rcases List.mem_map.mp indexMembership with
+          ⟨later, laterMembership, sameIndex⟩
+        have laterTargetMembership : later.target ∈
+            rest.map DirectedEdge.target :=
+          List.mem_map.mpr ⟨later, laterMembership, rfl⟩
+        rcases DirectedEdge.eq_or_eq_reverse_of_index_eq first later
+            sameIndex.symm with same | reversed
+        · have targetRepeat : first.target ∈
+              rest.map DirectedEdge.target := by
+            simpa [same] using laterTargetMembership
+          exact (List.nodup_cons.mp tailVerticesNodup).1 targetRepeat
+        · have startInTail : chainStart ∈
+              first.target :: rest.map DirectedEdge.target := by
+            right
+            have : later.target = chainStart := by
+              calc
+                later.target = later.reverse.source :=
+                  (DirectedEdge.reverse_source later).symm
+                _ = first.source :=
+                  (congrArg DirectedEdge.source reversed).symm
+                _ = chainStart := starts
+            rw [this] at laterTargetMembership
+            exact laterTargetMembership
+          exact (List.nodup_cons.mp verticesNodup).1 startInTail
+      · exact ih tailVerticesNodup
+
 end EdgeChain
 
 /-- An edge-identity-aware path with no repeated visited vertex. Unlike
@@ -528,6 +637,40 @@ def vertices {graph : Graph} (path : graph.EdgeSimplePath) : List Vertex :=
     (path : graph.EdgeSimplePath) : path.vertices.Nodup :=
   path.verticesNodup
 
+theorem start_not_mem_vertices_tail {graph : Graph}
+    (path : graph.EdgeSimplePath) : path.start ∉ path.vertices.tail := by
+  have nodup := path.verticesNodup
+  simpa [vertices, EdgeWalk.visitedVertices] using
+    (List.nodup_cons.mp nodup).1
+
+@[simp] theorem edgeIndicesNodup {graph : Graph}
+    (path : graph.EdgeSimplePath) :
+    (path.traversed.map DirectedEdge.index).Nodup :=
+  path.walk.toChain.edgeIndicesNodup_of_visitedVertices_nodup
+    path.verticesNodup
+
+/-- Reverse a simple open path, preserving its exact edge occurrences and
+reversing its visited-vertex list. -/
+def reverse {graph : Graph} (path : graph.EdgeSimplePath) :
+    graph.EdgeSimplePath where
+  start := path.finish
+  finish := path.start
+  traversed := EdgeWalk.reverseTraversal path.traversed
+  walk := path.walk.reverse
+  verticesNodup := by
+    rw [path.walk.visitedVertices_reverse]
+    exact nodup_reverse_of_nodup _ path.verticesNodup
+
+@[simp] theorem reverse_vertices {graph : Graph}
+    (path : graph.EdgeSimplePath) :
+    path.reverse.vertices = path.vertices.reverse := by
+  exact path.walk.visitedVertices_reverse
+
+@[simp] theorem reverse_reverse {graph : Graph}
+    (path : graph.EdgeSimplePath) : path.reverse.reverse = path := by
+  cases path
+  simp [reverse, EdgeWalk.reverseTraversal, List.map_map, Function.comp_def]
+
 theorem start_ne_finish_of_nonempty {graph : Graph}
     (path : graph.EdgeSimplePath) (nonempty : path.traversed ≠ []) :
     path.start ≠ path.finish := by
@@ -545,6 +688,111 @@ theorem start_ne_finish_of_nonempty {graph : Graph}
       simpa [EdgeWalk.visitedVertices] using path.verticesNodup
     exact (List.nodup_cons.mp nodup).1
   exact startFresh (same ▸ finishInTail)
+
+/-- For a nonempty simple path, its visited vertices are exactly the source of
+each traversal edge followed by the final endpoint. -/
+theorem vertices_eq_sources_append_finish {graph : Graph}
+    (path : graph.EdgeSimplePath) (nonempty : path.traversed ≠ []) :
+    path.vertices =
+      path.traversed.map DirectedEdge.source ++ [path.finish] := by
+  have sources := path.walk.toChain.sources_eq_start_targets_dropLast
+    nonempty
+  have targetDecomposition := congrArg (List.map DirectedEdge.target)
+    (List.dropLast_concat_getLast nonempty)
+  simp only [List.map_append, List.map_singleton, List.map_dropLast]
+    at targetDecomposition
+  rw [path.walk.getLast_target nonempty] at targetDecomposition
+  rw [vertices, EdgeWalk.visitedVertices, ← targetDecomposition]
+  change (path.start ::
+    (path.traversed.map DirectedEdge.target).dropLast) ++ [path.finish] = _
+  rw [← sources]
+
+theorem targets_nodup {graph : Graph} (path : graph.EdgeSimplePath) :
+    (path.traversed.map DirectedEdge.target).Nodup := by
+  have tailNodup := path.verticesNodup.tail
+  change (path.traversed.map DirectedEdge.target).Nodup at tailNodup
+  exact tailNodup
+
+theorem sources_nodup {graph : Graph} (path : graph.EdgeSimplePath) :
+    (path.traversed.map DirectedEdge.source).Nodup := by
+  by_cases nonempty : path.traversed ≠ []
+  · have nodup := path.verticesNodup
+    change path.vertices.Nodup at nodup
+    rw [path.vertices_eq_sources_append_finish nonempty,
+      List.nodup_append] at nodup
+    exact nodup.1
+  · simp at nonempty
+    simp [nonempty]
+
+theorem finish_not_mem_vertices_dropLast {graph : Graph}
+    (path : graph.EdgeSimplePath) (nonempty : path.traversed ≠ []) :
+    path.finish ∉ path.vertices.dropLast := by
+  have nodup := path.verticesNodup
+  change path.vertices.Nodup at nodup
+  rw [path.vertices_eq_sources_append_finish nonempty,
+    List.nodup_append] at nodup
+  have finishNotInSources : path.finish ∉
+      path.traversed.map DirectedEdge.source := by
+    intro membership
+    exact nodup.2.2 path.finish membership path.finish (by simp) rfl
+  rw [path.vertices_eq_sources_append_finish nonempty]
+  simpa using finishNotInSources
+
+theorem finish_not_mem_vertices_tail_dropLast {graph : Graph}
+    (path : graph.EdgeSimplePath) (nonempty : path.traversed ≠ []) :
+    path.finish ∉ path.vertices.tail.dropLast := by
+  have targetDecomposition := congrArg (List.map DirectedEdge.target)
+    (List.dropLast_concat_getLast nonempty)
+  simp only [List.map_append, List.map_singleton, List.map_dropLast]
+    at targetDecomposition
+  rw [path.walk.getLast_target nonempty] at targetDecomposition
+  have targetNodup := path.targets_nodup
+  rw [← targetDecomposition, List.nodup_append] at targetNodup
+  intro membership
+  apply targetNodup.2.2 path.finish membership path.finish (by simp)
+  rfl
+
+theorem eq_of_source_eq {graph : Graph} (path : graph.EdgeSimplePath)
+    {first second : graph.DirectedEdge}
+    (firstMembership : first ∈ path.traversed)
+    (secondMembership : second ∈ path.traversed)
+    (sameSource : first.source = second.source) : first = second := by
+  apply eq_of_map_eq_of_mem_of_nodup path.sources_nodup
+    firstMembership secondMembership sameSource
+
+theorem eq_of_target_eq {graph : Graph} (path : graph.EdgeSimplePath)
+    {first second : graph.DirectedEdge}
+    (firstMembership : first ∈ path.traversed)
+    (secondMembership : second ∈ path.traversed)
+    (sameTarget : first.target = second.target) : first = second := by
+  apply eq_of_map_eq_of_mem_of_nodup path.targets_nodup
+    firstMembership secondMembership sameTarget
+
+/-- Every visited vertex other than the finish is the source of an exact edge
+occurrence, yielding a traversal decomposition at that outgoing edge. -/
+theorem outgoingAtVertex {graph : Graph} (path : graph.EdgeSimplePath)
+    {vertex : Vertex} (membership : vertex ∈ path.vertices)
+    (notFinish : vertex ≠ path.finish) :
+    ∃ before next after,
+      path.traversed = before ++ next :: after ∧ next.source = vertex := by
+  have nonempty : path.traversed ≠ [] := by
+    intro empty
+    have chain := path.walk.toChain
+    rw [empty] at chain
+    have startFinish := chain.eq_of_nil
+    have atStart : vertex = path.start := by
+      simpa [vertices, EdgeWalk.visitedVertices, empty] using membership
+    exact notFinish (atStart.trans startFinish)
+  rw [path.vertices_eq_sources_append_finish nonempty,
+    List.mem_append] at membership
+  rcases membership with inSources | atFinish
+  · rcases List.mem_map.mp inSources with
+      ⟨next, nextMembership, nextSource⟩
+    rcases List.mem_iff_append.mp nextMembership with
+      ⟨before, after, traversalEquation⟩
+    exact ⟨before, next, after, traversalEquation, nextSource⟩
+  · simp at atFinish
+    exact False.elim (notFinish atFinish)
 
 /-- Concatenate two simple edge paths when, after deleting the shared start of
 the second path, their visited vertex lists are disjoint. -/
@@ -643,6 +891,88 @@ theorem prefixPath {graph : Graph} (path : graph.EdgeSimplePath)
       fullNodup
   exact (List.nodup_append.mp decomposedNodup).1
 
+/-- A traversal suffix beginning at a selected exact edge occurrence remains
+a simple path from that edge's source to the original finish. -/
+theorem suffixPath {graph : Graph} (path : graph.EdgeSimplePath)
+    {before after : List graph.DirectedEdge} {first : graph.DirectedEdge}
+    (traversalEquation : path.traversed = before ++ first :: after) :
+    ∃ suffix : graph.EdgeSimplePath,
+      suffix.start = first.source ∧
+      suffix.finish = path.finish ∧
+      suffix.traversed = first :: after ∧
+      ∀ vertex, vertex ∈ suffix.vertices → vertex ∈ path.vertices := by
+  have fullChain := path.walk.toChain
+  rw [traversalEquation] at fullChain
+  rcases fullChain.split_append with
+    ⟨middle, prefixChain, suffixChain⟩
+  have suffixStart : middle = first.source :=
+    suffixChain.head_source.symm
+  have suffixWalk := suffixChain.toWalk
+  rw [suffixStart] at suffixWalk
+  refine ⟨
+    { start := first.source
+      finish := path.finish
+      traversed := first :: after
+      walk := suffixWalk
+      verticesNodup := ?_ }, rfl, rfl, rfl, ?_⟩
+  have fullNodup := path.verticesNodup
+  rw [traversalEquation] at fullNodup
+  have decomposedNodup :
+      ((path.start :: before.map DirectedEdge.target) ++
+        (first :: after).map DirectedEdge.target).Nodup := by
+    simpa [EdgeWalk.visitedVertices, List.map_append] using fullNodup
+  have parts := List.nodup_append.mp decomposedNodup
+  change (first.source ::
+    (first :: after).map DirectedEdge.target).Nodup
+  rw [List.nodup_cons]
+  constructor
+  · intro firstTargetMembership
+    have middleMembership : middle ∈
+        EdgeWalk.visitedVertices path.start before :=
+      prefixChain.toWalk.finish_mem_visitedVertices
+    have firstSourceMembership : first.source ∈
+        path.start :: before.map DirectedEdge.target := by
+      simpa [EdgeWalk.visitedVertices, suffixStart] using middleMembership
+    exact parts.2.2 first.source firstSourceMembership first.source
+      firstTargetMembership rfl
+  · exact parts.2.1
+  intro vertex membership
+  simp only [vertices, EdgeWalk.visitedVertices, List.mem_cons,
+    List.mem_map] at membership ⊢
+  rcases membership with atSource | atTarget
+  · have firstMembership : first ∈ path.traversed := by
+      rw [traversalEquation]
+      simp
+    have sourceMembership :=
+      (path.walk.endpoints_mem_visitedVertices firstMembership).1
+    rw [atSource]
+    simpa [EdgeWalk.visitedVertices] using sourceMembership
+  · rcases atTarget with ⟨directed, directedMembership, targetEquation⟩
+    have fullMembership : directed ∈ path.traversed := by
+      rw [traversalEquation]
+      simp only [List.mem_append, List.mem_cons]
+      exact .inr directedMembership
+    have targetMembership :=
+      (path.walk.endpoints_mem_visitedVertices fullMembership).2
+    rw [targetEquation] at targetMembership
+    simpa [EdgeWalk.visitedVertices] using targetMembership
+
+/-- Every edge occurrence traversed by a simple path has distinct endpoints. -/
+theorem directed_source_ne_target {graph : Graph}
+    (path : graph.EdgeSimplePath) {directed : graph.DirectedEdge}
+    (membership : directed ∈ path.traversed) :
+    directed.source ≠ directed.target := by
+  rcases List.mem_iff_append.mp membership with
+    ⟨before, after, traversalEquation⟩
+  rcases path.suffixPath traversalEquation with
+    ⟨suffix, _suffixStarts, _suffixFinishes, suffixSteps, _subset⟩
+  have nodup := suffix.verticesNodup
+  rw [suffixSteps] at nodup
+  rw [_suffixStarts] at nodup
+  change (directed.source :: directed.target ::
+    after.map DirectedEdge.target).Nodup at nodup
+  exact fun same => (List.nodup_cons.mp nodup).1 (by simp [same])
+
 /-- Every visited vertex after the start is the endpoint of a simple traversal
 prefix, with an exact list decomposition at its last edge. -/
 theorem prefixToTailVertex {graph : Graph} (path : graph.EdgeSimplePath)
@@ -683,25 +1013,77 @@ structure EdgeSimpleCycle (graph : Graph) where
 
 namespace EdgeSimpleCycle
 
-private theorem eq_of_map_eq_of_mem_of_nodup {α β : Type}
-    {values : List α} {function : α → β} {first second : α}
-    (nodup : (values.map function).Nodup)
-    (firstMembership : first ∈ values)
-    (secondMembership : second ∈ values)
-    (same : function first = function second) : first = second := by
-  induction values with
-  | nil => simp at firstMembership
-  | cons head tail ih =>
-      simp only [List.map_cons, List.nodup_cons] at nodup
-      simp only [List.mem_cons] at firstMembership secondMembership
-      rcases firstMembership with rfl | firstTail <;>
-        rcases secondMembership with rfl | secondTail
-      · rfl
-      · exact False.elim (nodup.1
-          (List.mem_map.mpr ⟨second, secondTail, same.symm⟩))
-      · exact False.elim (nodup.1
-          (List.mem_map.mpr ⟨first, firstTail, same⟩))
-      · exact ih nodup.2 firstTail secondTail
+/-- Close two oppositely directed simple paths into an exact simple cycle.
+The second path's final return to the first start is omitted from the interior
+vertex comparison, while edge-occurrence disjointness remains explicit. -/
+def ofTwoPaths {graph : Graph}
+    (first second : graph.EdgeSimplePath)
+    (firstNonempty : first.traversed ≠ [])
+    (secondNonempty : second.traversed ≠ [])
+    (meeting : first.finish = second.start)
+    (closing : second.finish = first.start)
+    (vertexDisjoint : ∀ vertex, vertex ∈ first.vertices →
+      vertex ∈ second.vertices.tail.dropLast → False)
+    (edgeDisjoint : ∀ index,
+      index ∈ first.traversed.map DirectedEdge.index →
+      index ∈ second.traversed.map DirectedEdge.index → False) :
+    graph.EdgeSimpleCycle := by
+  have secondWalk : graph.EdgeWalk first.finish second.traversed
+      first.start := by
+    rw [meeting]
+    simpa only [closing] using second.walk
+  refine
+    { start := first.start
+      traversed := first.traversed ++ second.traversed
+      nonempty := by simp [firstNonempty]
+      walk := first.walk.trans secondWalk
+      edgeIndicesNodup := ?_
+      interiorNodup := ?_ }
+  · rw [List.map_append, List.nodup_append]
+    exact ⟨first.edgeIndicesNodup, second.edgeIndicesNodup,
+      fun firstIndex firstMembership secondIndex secondMembership same =>
+        edgeDisjoint firstIndex firstMembership (same ▸ secondMembership)⟩
+  · change (first.start ::
+      (first.traversed ++ second.traversed).dropLast.map
+        DirectedEdge.target).Nodup
+    rw [List.dropLast_append_of_ne_nil secondNonempty, List.map_append]
+    change (first.vertices ++
+      second.traversed.dropLast.map DirectedEdge.target).Nodup
+    rw [List.nodup_append]
+    refine ⟨first.verticesNodup, ?_, ?_⟩
+    · have secondTargetsNodup :
+          (second.traversed.map DirectedEdge.target).Nodup := by
+        have tailNodup := second.verticesNodup.tail
+        change (second.traversed.map DirectedEdge.target).Nodup at tailNodup
+        exact tailNodup
+      have targetsNonempty :
+          second.traversed.map DirectedEdge.target ≠ [] := by
+        simp [secondNonempty]
+      have targetDecomposition :=
+        List.dropLast_concat_getLast targetsNonempty
+      rw [← targetDecomposition] at secondTargetsNodup
+      rw [List.map_dropLast]
+      exact (List.nodup_append.mp secondTargetsNodup).1
+    · intro firstVertex firstMembership secondVertex secondMembership same
+      subst secondVertex
+      apply vertexDisjoint firstVertex firstMembership
+      simpa [EdgeSimplePath.vertices, EdgeWalk.visitedVertices,
+        List.map_dropLast] using secondMembership
+
+@[simp] theorem ofTwoPaths_traversed {graph : Graph}
+    (first second : graph.EdgeSimplePath)
+    (firstNonempty : first.traversed ≠ [])
+    (secondNonempty : second.traversed ≠ [])
+    (meeting : first.finish = second.start)
+    (closing : second.finish = first.start)
+    (vertexDisjoint : ∀ vertex, vertex ∈ first.vertices →
+      vertex ∈ second.vertices.tail.dropLast → False)
+    (edgeDisjoint : ∀ index,
+      index ∈ first.traversed.map DirectedEdge.index →
+      index ∈ second.traversed.map DirectedEdge.index → False) :
+    (ofTwoPaths first second firstNonempty secondNonempty meeting closing
+      vertexDisjoint edgeDisjoint).traversed =
+      first.traversed ++ second.traversed := rfl
 
 def vertices {graph : Graph} (cycle : graph.EdgeSimpleCycle) : List Vertex :=
   cycle.start :: cycle.traversed.dropLast.map DirectedEdge.target
@@ -880,20 +1262,8 @@ def reverse {graph : Graph} (cycle : graph.EdgeSimpleCycle) :
       walk := cycle.walk.reverse
       edgeIndicesNodup := ?_
       interiorNodup := ?_ }
-  · have nodupReverse : ∀ values : List Nat,
-        values.Nodup → values.reverse.Nodup := by
-      intro values nodup
-      induction values with
-      | nil => simp
-      | cons head tail ih =>
-          rw [List.reverse_cons, List.nodup_append]
-          refine ⟨ih (List.nodup_cons.mp nodup).2, by simp, ?_⟩
-          intro first firstMembership second secondMembership same
-          simp at secondMembership
-          subst second
-          subst first
-          exact (List.nodup_cons.mp nodup).1 (by simpa using firstMembership)
-    have reversedIndices := nodupReverse _ cycle.edgeIndicesNodup
+  · have reversedIndices :=
+      nodup_reverse_of_nodup _ cycle.edgeIndicesNodup
     simpa [EdgeWalk.reverseTraversal, List.map_map, Function.comp_def] using
       reversedIndices
   · have reversedTargets :
@@ -910,22 +1280,8 @@ def reverse {graph : Graph} (cycle : graph.EdgeSimpleCycle) :
     rw [List.nodup_cons] at originalNodup ⊢
     have interiorReverseNodup :
         (cycle.traversed.dropLast.map
-          Graph.DirectedEdge.target).reverse.Nodup := by
-      have nodupReverse : ∀ values : List Vertex,
-          values.Nodup → values.reverse.Nodup := by
-        intro values nodup
-        induction values with
-        | nil => simp
-        | cons head tail ih =>
-            rw [List.reverse_cons, List.nodup_append]
-            refine ⟨ih (List.nodup_cons.mp nodup).2, by simp, ?_⟩
-            intro first firstMembership second secondMembership same
-            simp at secondMembership
-            subst second
-            subst first
-            exact (List.nodup_cons.mp nodup).1
-              (by simpa using firstMembership)
-      exact nodupReverse _ originalNodup.2
+          Graph.DirectedEdge.target).reverse.Nodup :=
+      nodup_reverse_of_nodup _ originalNodup.2
     exact ⟨by simpa using originalNodup.1, interiorReverseNodup⟩
 
 /-- The prefix ending at an internal incoming edge of a simple cycle is a
