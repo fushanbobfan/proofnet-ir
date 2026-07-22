@@ -11,7 +11,7 @@ Audit started: 2026-07-22
 - Extent: 389 physical PDF pages.
 - Text extraction: 388 pages have extractable text. Physical page 1 has no
   extracted text and was therefore rendered and checked visually as the cover.
-- Current direct ordered reading: physical pages 1-48. This is an in-progress
+- Current direct ordered reading: physical pages 1-96. This is an in-progress
   page audit, not a completed-source claim.
 
 ## Page-by-page matrix for the completed interval
@@ -66,11 +66,59 @@ Audit started: 2026-07-22
 | 46 | 32 / II.3 | Capture-sensitive inductive completion of the specialization proof. | Reinforces exact hypotheses in transformation theorems. |
 | 47 | 33 / Natural Logic | Limits of imposing formal logic on natural language and logico-semantic word classes. | Warns against treating informal linguistic analogy as mathematical validation. |
 | 48 | 34 / Natural Logic | Natural-language connective ambiguity, formal implication versus modus ponens, and algorithmic modality. | Directly supports strict connective naming/scope rather than surface-word analogies. |
+| 49 | 35 / II.3 | Luria's Zasetsky case study on asemia, syntactic organization, symbol meaning, and preserved metalinguistic reflection. | Human ability to discuss a formal system does not imply reliable low-level checking; kernel verification remains essential. |
+| 50 | 36 / II.3-II.4.1 | Completion of the case study; rejection of the claim that a human can trivially check symbolic proofs; formal definition of deduction and of a fully annotated deduction description. | Distinguishes a bare sequence from a checkable witness carrying rule and premise indices, analogous to requiring proof-bearing API output. |
+| 51 | 37 / II.4.1-4.3 | Soundness motivation for formal deduction, completeness as a separate converse, inconsistency/explosion, and ways to establish deducibility or independence. | Reinforces separate soundness/completeness obligations and the need not to replace an explicit witness with an existence claim silently. |
+| 52 | 38 / II.4.3-4.5 | Proof-existence versus proof-object discussion, conjunction lemma, and the deduction lemma with explicit induction cases. | Supports keeping proposition-level existence distinct from executable reconstruction and auditing every induction branch. |
+| 53 | 39 / II.4.5-4.6 | Completion of the deduction lemma and equality axioms, including substitution across selected free occurrences. | Highlights exact side conditions and occurrence sensitivity in transformation theorems. |
+| 54 | 40 / II.4.6 | Detailed equality-axiom deductions and quotient-model compatibility argument. | Equality or quotient claims require explicit preservation proofs; this is methodological evidence, not a proof-net identity theorem. |
+| 55 | 41 / II.4.6-4.7 | Completion of quotient interpretation and arithmetic axiom schemata, including induction. | A schema is a family of obligations, not one finite test; no direct MLL dependency. |
+| 56 | 42 / II.4.7-4.8 | Formal versus informal induction strength and initial Zermelo-Fraenkel axioms with an extensionality calculation. | Warns that encoded formal scope can be strictly weaker than informal intent; current fragment boundaries must remain explicit. |
+| 57 | 43 / II.4.8-4.9 | Model-relative set axioms, hereditarily finite sets, the axiom of infinity, and introduction of replacement. | No direct proof-net theorem; illustrates how one extension changes the semantic universe and proof obligations. |
+| 58 | 44 / II.4.9 | Replacement and separation schemata, inaccessible-cardinal motivation, and the tension between formal language and intended interpretation. | Supports documenting intended semantics rather than treating a passing formal game as sufficient library meaning. |
+| 59 | 45 / II.4.9-4.10; Proof digression | Axiom of choice, decidable axiom recognition versus generability, and the social/explicit character of proof acceptance. | Directly motivates a decidable checker plus a distinct theorem connecting it to the declarative specification. |
+| 60 | 46 / Proof digression | Formal-deduction hygiene, external checks, differing logical commitments, and levels of proof existence. | Supports independent checking and the distinction between `Nonempty` existence and an executable returned derivation. |
+| 61 | 47 / Proof digression | Human error in long formal deductions, reproducibility, computer-assisted checking, and the historical Fermat computation example. | Testing and reputation are not substitutes for a small trusted kernel; long generated proofs need machine rechecking. |
+| 62 | 48 / Proof digression | Swinnerton-Dyer's computer-assisted enumeration example, hardware/software/data risks, and redundancy-based confidence. | Independent reruns and diverse validation are empirical safeguards, not mathematical completeness proofs. |
+| 63 | 49 / Proof digression; II.5.1 | Independent recomputation as experimental verification, the value of explanatory proofs, and a finite tautology basis. | Justifies differential audits while keeping them categorically separate from Lean theorems. |
+| 64 | 50 / II.5.1-5.4 | Fundamental lemma for valuation-forced formulas and the induction reducing tautology derivability to a finite basis. | Finite exhaustive search needs an explicit coverage lemma; this directly parallels the new occurrence-enumerator completeness proof. |
+| 65 | 51 / II.5.4 | Completion of the Fundamental Lemma by enumerating connective/truth-value cases and deriving each required formula. | A finite case table is meaningful only with a proof that all cases are covered; analogous to exhaustive regression plus an enumeration theorem. |
+| 66 | 52 / II.5.5-5.7 | Boolean algebras, examples, and Boolean-valued extensions of propositional truth functions. | Semantics can be generalized only after operations and laws are restated; no direct MLL consequence. |
+| 67 | 53 / II.5.8; Kennings | Boolean validity of tautologies via the finite basis and MP preservation; contrast between generative grammars and probabilistic speech. | Shows how a finite generator proof transports validity; the linguistic discussion remains motivation rather than theorem-proving evidence. |
+| 68 | 54 / Kennings | Recursive substitution rules for complex kennings and their decomposition into simple kennings. | Illustrates explicit compositional syntax, but not proof-net sequentialization or proof identity. |
+| 69 | 55 / Kennings; II.6.1 | Completion and exercises on maximal kennings; setup for Gödel completeness. | The maximum-length exercise is an analogy for termination bounds only; no imported result. |
+| 70 | 56 / II.6.2-6.3 | Completeness theorem, cardinality bound, deducibility/independence corollary, and proof via models or inconsistency. | Reinforces that soundness and completeness are converse theorems with different witnesses and assumptions. |
+| 71 | 57 / II.6.4-6.8 | Sufficient alphabets, Henkin witnesses, completion and language-extension lemmas, and the need to alternate constructions. | Local constructions can interfere globally; totality arguments must track invariants across every iteration. |
+| 72 | 58 / II.6.9 | Term-model construction and induction proving closed-formula truth exactly matches membership in a complete consistent set. | Exemplifies a representation-to-semantics iff proved by structural induction, not inferred from construction. |
+| 73 | 59 / II.6.9-6.10 | Quantifier cases for the term model and maximal consistent extension via Zorn's lemma. | Explicit witnesses and consistency hypotheses remain essential; classical existence is not executable search. |
+| 74 | 60 / II.6.11-6.12 | Adding ranked witness constants while preserving consistency and iterating completion/sufficiency. | A useful warning that one pass can destroy another invariant; relevant to staged library proofs. |
+| 75 | 61 / II.6.12-6.14; II.7.1 | Limit construction, deduction of completeness, equality quotient, and transition to countable submodels. | Quotienting needs a preservation theorem; no claim about the project's graph equivalence follows automatically. |
+| 76 | 62 / II.7.2-7.4 | Absoluteness, Löwenheim-Skolem, and construction of a small subset preserving selected formulas. | Preserving a selected observation set is weaker than arbitrary structural isomorphism; equivalence APIs must state the preserved interface. |
+| 77 | 63 / II.7.5-7.7 | Countable set-theory models, Mostowski collapse statement, and transfinite construction. | Demonstrates the need to distinguish internal representation from external interpretation. |
+| 78 | 64 / II.7.7-7.8 | Completion of Mostowski collapse and start of Skolem's paradox. | Isomorphism and uniqueness require explicit hypotheses; reinforces narrow, proved certificate equivalence. |
+| 79 | 65 / II.7.8 | Model-relative power sets, Cantor's theorem, countable models, and the interpretive content of Skolem's paradox. | Passing the same formal sentence in different models need not preserve informal meaning; library semantics must be fixed. |
+| 80 | 66 / II.8.1-8.3 | Conservative language extensions by definable function symbols and an explicit translation back to the poorer language. | API sugar or new serialization should come with a translation/conservativity or migration theorem. |
+| 81 | 67 / II.8.3 | Inductive elimination of a newly defined function symbol and the distinction between an explicit translation and an easier but ineffective semantic proof. | A nonconstructive conservativity proof does not itself yield a usable converter; executable APIs need algorithms in addition to existence. |
+| 82 | 68 / II.8.3-8.4 | Normal-model correspondence and truth-preserving translation proof for definitional extensions. | A migration path should preserve semantics in both directions under stated model assumptions. |
+| 83 | 69 / II.8.4; II.9.1-9.2 | Examples of definable notation, then SELF syntax for minimal self-reference and the setup for Tarski-style undefinability. | New notation is safe only with a conservativity result; self-reference material has no direct MLL dependency. |
+| 84 | 70 / II.9.3-9.5 | Names, displays, standard interpretations, and diagonal formulas proving no property captures exactly its true or false formulas. | Formal syntax must separate object, name, and serialization; reflection claims require a carefully delimited metalanguage. |
+| 85 | 71 / II.10.1-10.3 | Smullyan arithmetic syntax with class terms and simultaneous rank-indexed syntax/semantics definitions. | Mutually staged representations need a well-founded construction and unique-reading argument. |
+| 86 | 72 / II.10.3 | Continuation of rank-indexed term/formula formation, bound occurrences, and truth interpretation. | Supports explicit scoping and termination measures in richer future front ends. |
+| 87 | 73 / II.10.3-10.4 | Expressive equivalence of two arithmetic languages via truth/free-variable preserving translations. | Representation equivalence may be non-invertible while still preserving a specified interface; this is narrower than graph isomorphism. |
+| 88 | 74 / II.10.4-II.11.1 | Completion of bidirectional translations and Gödel numbering of expressions. | Stable encoding needs unique decoding and preservation theorems; numbering itself is not semantic identity. |
+| 89 | 75 / II.11.1-11.5 | Labels, displays, diagonalization, and the Tarski-Smulleyan undefinability theorem. | A serialization capable of self-description still cannot collapse truth into one internal predicate; no direct proof-net result. |
+| 90 | 76 / II.11.5-11.6 | Generalization to broader arithmetic languages and discussion of numbering independence and definable provability. | Robust claims should not depend on a clever encoding accident; canonicalization tests must accompany representation-level theorems. |
+| 91 | 77 / II.11.6-11.7; Self-reference | Algorithmic proof recognition, definability of provability, incompleteness, and performative self-reference. | Directly supports the project's separation of decidable proof checking from semantic truth and completeness claims. |
+| 92 | 78 / Self-reference; II.12.1-12.2 | Self-reference in algorithms, then motivation and physical setup for quantum logic. | Looping/feedback requires explicit termination controls; quantum material is outside project scope. |
+| 93 | 79 / II.12.2-12.4 | Orthohelium spin measurements, hidden-variable assumptions, and the Kochen-Specker noncolorability statement. | Illustrates a global obstruction not detectable from isolated local assignments, but it is not evidence for switching correctness. |
+| 94 | 80 / II.12.4-12.5 | Link from spin assignments to Kochen-Specker, followed by the Hilbert-space language of quantum mechanics. | General local/global analogy only; no theorem transfers to proof nets. |
+| 95 | 81 / II.12.5-12.7 | Observables, compatible operators, symmetries, and the hydrogen-atom example. | No direct project dependency; reinforces keeping mathematical language and physical interpretation separate. |
+| 96 | 82 / II.12.8 | Two-layer interpretation of free evolution, observation, probability, and post-measurement state. | Demonstrates that one syntax can have layered operational interpretation; outside current certificate semantics. |
 
 ## Current claim boundary
 
 The completed interval supports the motivation for treating diagrams and
 decorated graphs as formal languages whose syntax and semantics must be stated
 precisely. It does not state the Danos-Regnier switching criterion, MLL proof-net
-correctness, or a sequentialization theorem. The remaining 341 pages are not
+correctness, or a sequentialization theorem. The remaining 293 pages are not
 yet represented as directly read in order.
