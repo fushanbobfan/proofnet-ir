@@ -127,6 +127,25 @@ example : reindexedCanonical.check = true := by native_decide
 example : reindexedCanonical.reindex
     (canonical.inverseReindexing swapCanonicalZeroOne) = canonical :=
   canonical.reindex_inverse swapCanonicalZeroOne
+example : canonical.ReindexEquivalent reindexedCanonical :=
+  ⟨swapCanonicalZeroOne, rfl⟩
+example : reindexedCanonical.ReindexEquivalent canonical :=
+  (show canonical.ReindexEquivalent reindexedCanonical from
+    ⟨swapCanonicalZeroOne, rfl⟩).symm
+example : canonical.check = reindexedCanonical.check :=
+  (show canonical.ReindexEquivalent reindexedCanonical from
+    ⟨swapCanonicalZeroOne, rfl⟩).check_eq
+example : canonical.DeclarativelyCorrect ↔
+    reindexedCanonical.DeclarativelyCorrect :=
+  (show canonical.ReindexEquivalent reindexedCanonical from
+    ⟨swapCanonicalZeroOne, rfl⟩).declarativelyCorrect_iff
+example : canonical.canonicalString ≠ reindexedCanonical.canonicalString := by
+  native_decide
+
+example (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).check = certificate.check :=
+  certificate.check_reindex r
 
 def scrambledCanonical : Certificate :=
   { canonical with

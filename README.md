@@ -64,12 +64,12 @@ The repository currently contains:
   checker-gated API for untrusted certificates;
 - a runnable focused cut-free sequent-search baseline with eager invertible par
   steps and exhaustive tensor resource partitions;
-- lossless bounded vertex reindexing with inverse round trips and invariance of
-  formula lookup, local link typing, and node ownership/count predicates.
+- lossless bounded vertex reindexing with inverse round trips, a proved
+  equivalence relation, and whole-checker/declarative-correctness invariance.
 
 This is a research prototype. It does not yet include general reverse
 sequentialization of every accepted net, cut elimination, exponentials, additives,
-quantifiers, a whole-checker reindexing-invariance theorem, or a Lean tactic.
+quantifiers, equivalence-class canonical serialization, or a Lean tactic.
 
 ## Trust path
 

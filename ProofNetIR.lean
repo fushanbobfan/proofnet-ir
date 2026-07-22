@@ -1,8 +1,8 @@
 import ProofNetIR.Formula
 import ProofNetIR.Certificate
-import ProofNetIR.Reindex
 import ProofNetIR.Graph
 import ProofNetIR.Checker
+import ProofNetIR.Reindex
 import ProofNetIR.Generate
 import ProofNetIR.Reconstruct
 import ProofNetIR.Mutation

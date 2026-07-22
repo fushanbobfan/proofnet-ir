@@ -34,9 +34,13 @@
   renamings preserve out-of-bounds status, transport ordered links and
   conclusions, commute with formula lookup, and recover the literal source
   certificate after applying the transported inverse; local link typing and
-  node ownership/count predicates are proved invariant. Whole-certificate
-  structural and checker invariance under arbitrary reindexing remain explicit
-  next theorems, not current claims.
+  node ownership/count predicates are proved invariant;
+- completed whole-certificate reindexing invariance for structural validation,
+  graph adjacency and walks, boundedness, connectedness, declarative tree
+  semantics, switching correctness, and the executable checker; added the
+  reflexive, symmetric, and transitive `ReindexEquivalent` relation and proved
+  it preserves `Correct` and `DeclarativelyCorrect`. Canonical v0.2 JSON remains
+  intentionally numbering-sensitive pending an equivalence-class canonicalizer.
 
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 

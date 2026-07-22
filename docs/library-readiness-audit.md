@@ -35,6 +35,9 @@ Lean object, but that closes only one engineering gap.
   sequent, and the reference checker accepted the certificate.
 - the post-release parser accepts the canonical serializer for all 250
   generated derivation-tree fixtures and returns the normalized certificate.
+- after v0.2.0, bounded vertex reindexing is lossless and forms an explicit
+  equivalence relation; structural validation, graph/tree semantics, switching
+  correctness, and the final checker are invariant under it.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -45,8 +48,9 @@ Lean object, but that closes only one engineering gap.
 2. General sequentialization of every accepted MLL proof net is absent.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
-4. Canonicalization preservation and invariance under vertex reindexing are
-   not proved.
+4. Reindexing invariance is proved, but canonical v0.2 serialization remains
+   numbering-sensitive. No canonical representative or decision procedure for
+   `ReindexEquivalent` is implemented yet.
 
 ## Engineering gaps blocking a mature-library claim
 

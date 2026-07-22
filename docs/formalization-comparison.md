@@ -82,12 +82,12 @@ than a completed proof-net library.
 
 ## Current implementation checkpoint
 
-`ProofNetIR/Reindex.lean` now supplies the transport half of obligation 1: a
-bounded bijection of natural-number vertices, consistent transport of formula
-occurrences and ordered links, formula-lookup commutation, and a literal
-inverse round trip. Local link typing and node ownership/count predicates are
-also invariant. It deliberately does not yet mark obligation 1 complete. The
-explicit certificate equivalence relation and whole-certificate structural,
-switching, and checker invariance theorems remain open, after which
-sequentialization can return a derivation together with that relation rather
-than literal array equality.
+`ProofNetIR/Reindex.lean` now completes obligations 1 and 2. It defines bounded
+vertex bijections, transports formula occurrences and ordered links, proves a
+literal inverse round trip, and exposes `ReindexEquivalent` as a reflexive,
+symmetric, and transitive certificate relation. Structural validation,
+adjacency and walk semantics, declarative tree/switching correctness, and the
+Boolean checker are invariant under that relation. The current v0.2 serializer
+is still numbering-sensitive: this equivalence theorem supplies the target
+relation for sequentialization, but is not itself a canonical-labeling
+algorithm.

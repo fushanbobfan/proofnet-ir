@@ -40,6 +40,14 @@ criterion and proof-order bureaucracy can be measured cleanly.
 16. `check_iff_declarativelyCorrect` proves soundness and completeness for the
     Boolean-free structural, independent switching, and unbounded path
     semantics. The fuel-indexed iff remains as a second executable contract.
+17. `Reindex.lean` transports certificates and switching graphs along bounded
+    vertex bijections. `check_reindex` proves exact Boolean invariance, while
+    `ReindexEquivalent` packages renaming as an equivalence relation preserving
+    executable and declarative correctness.
+
+The reindexing relation is mathematical infrastructure, not yet a canonical
+labeling algorithm. Canonical v0.2 JSON continues to preserve the submitted
+formula-array numbering, so equivalent certificates may serialize differently.
 
 ## Why exhaustive switchings first
 

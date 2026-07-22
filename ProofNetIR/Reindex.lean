@@ -1,4 +1,4 @@
-import ProofNetIR.Certificate
+import ProofNetIR.Checker
 
 namespace ProofNetIR
 
@@ -64,6 +64,31 @@ theorem forward_injective {bound : Nat} (r : VertexRenaming bound) :
   | cons head tail ih =>
       simp [ih, r.forward_lt_iff]
 
+/-- Deduplication commutes with an injective vertex renaming. This theorem is
+stronger than the length fact needed by structural validation and records the
+preserved conclusion order explicitly. -/
+@[simp] theorem eraseDups_map_forward {bound : Nat}
+    (r : VertexRenaming bound) (vertices : List Vertex) :
+    (vertices.map r.forward).eraseDups =
+      vertices.eraseDups.map r.forward := by
+  match vertices with
+  | [] => rfl
+  | head :: tail =>
+      rw [List.map_cons, List.eraseDups_cons, List.eraseDups_cons,
+        List.filter_map]
+      have predicates :
+          ((fun vertex => !vertex == r.forward head) ∘ r.forward) =
+            (fun vertex => !vertex == head) := by
+        funext vertex
+        simp
+      rw [predicates]
+      rw [eraseDups_map_forward r
+        (tail.filter fun vertex => !vertex == head)]
+      rfl
+termination_by vertices.length
+decreasing_by
+  exact Nat.lt_succ_of_le (List.length_filter_le _ _)
+
 def symm {bound : Nat} (r : VertexRenaming bound) :
     VertexRenaming bound where
   forward := r.inverse
@@ -71,6 +96,31 @@ def symm {bound : Nat} (r : VertexRenaming bound) :
   inverse_forward := r.forward_inverse
   forward_inverse := r.inverse_forward
   forward_lt_iff := r.inverse_lt_iff
+
+def trans {bound : Nat} (first second : VertexRenaming bound) :
+    VertexRenaming bound where
+  forward := second.forward ∘ first.forward
+  inverse := first.inverse ∘ second.inverse
+  inverse_forward := by
+    intro vertex
+    simp [first.inverse_forward,
+      second.inverse_forward]
+  forward_inverse := by
+    intro vertex
+    simp [first.forward_inverse,
+      second.forward_inverse]
+  forward_lt_iff := by
+    intro vertex
+    simp [second.forward_lt_iff,
+      first.forward_lt_iff]
+
+@[simp] theorem trans_forward {bound : Nat}
+    (first second : VertexRenaming bound) :
+    (first.trans second).forward = second.forward ∘ first.forward := rfl
+
+@[simp] theorem trans_inverse {bound : Nat}
+    (first second : VertexRenaming bound) :
+    (first.trans second).inverse = first.inverse ∘ second.inverse := rfl
 
 /-- Transport only the type-level bound along an equality. -/
 def changeBound {oldBound newBound : Nat} (same : oldBound = newBound)
@@ -175,6 +225,13 @@ def reindex {bound : Nat} (r : VertexRenaming bound) : Link → Link
   cases link <;> simp [reindex, VertexRenaming.symm,
     r.inverse_forward]
 
+@[simp] theorem reindex_trans {bound : Nat}
+    (first second : VertexRenaming bound) (link : Link) :
+    (link.reindex first).reindex second =
+      link.reindex (first.trans second) := by
+  cases link <;>
+    simp [reindex, VertexRenaming.trans, Function.comp_def]
+
 @[simp] theorem produces_reindex {bound : Nat}
     (r : VertexRenaming bound) (vertex : Vertex) (link : Link) :
     (link.reindex r).produces (r.forward vertex) = link.produces vertex := by
@@ -195,6 +252,191 @@ def reindex {bound : Nat} (r : VertexRenaming bound) : Link → Link
     simp [reindex, usesAsPremise, premises]
 
 end Link
+
+namespace Edge
+
+def reindex {bound : Nat} (r : VertexRenaming bound) (edge : Edge) : Edge :=
+  { first := r.forward edge.first, second := r.forward edge.second }
+
+@[simp] theorem reindex_first {bound : Nat} (r : VertexRenaming bound)
+    (edge : Edge) : (edge.reindex r).first = r.forward edge.first := rfl
+
+@[simp] theorem reindex_second {bound : Nat} (r : VertexRenaming bound)
+    (edge : Edge) : (edge.reindex r).second = r.forward edge.second := rfl
+
+@[simp] theorem reindex_symm {bound : Nat} (r : VertexRenaming bound)
+    (edge : Edge) : (edge.reindex r).reindex r.symm = edge := by
+  cases edge
+  simp [reindex, VertexRenaming.symm, r.inverse_forward]
+
+def reindexPair {bound : Nat} (r : VertexRenaming bound)
+    (choice : Edge × Edge) : Edge × Edge :=
+  (choice.1.reindex r, choice.2.reindex r)
+
+@[simp] theorem reindexPair_symm {bound : Nat}
+    (r : VertexRenaming bound) (choice : Edge × Edge) :
+    Edge.reindexPair r.symm (Edge.reindexPair r choice) = choice := by
+  rcases choice with ⟨left, right⟩
+  simp [reindexPair]
+
+end Edge
+
+namespace Graph
+
+def reindex (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) : Graph where
+  vertexCount := graph.vertexCount
+  edges := graph.edges.map (Edge.reindex r)
+
+@[simp] theorem reindex_vertexCount (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).vertexCount = graph.vertexCount := rfl
+
+@[simp] theorem reindex_edges (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).edges = graph.edges.map (Edge.reindex r) := rfl
+
+@[simp] theorem reindex_symm (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).reindex r.symm = graph := by
+  cases graph with
+  | mk vertexCount edges =>
+      simp [reindex, List.map_map, Function.comp_def]
+
+theorem adjacent_reindex_iff (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) (left right : Vertex) :
+    (graph.reindex r).Adjacent (r.forward left) (r.forward right) ↔
+      graph.Adjacent left right := by
+  constructor
+  · rintro ⟨renamedEdge, membership, direction⟩
+    rcases List.mem_map.mp membership with ⟨edge, edgeMembership, same⟩
+    subst renamedEdge
+    refine ⟨edge, edgeMembership, ?_⟩
+    rcases direction with forward | backward
+    · exact .inl ⟨r.forward_injective forward.1,
+        r.forward_injective forward.2⟩
+    · exact .inr ⟨r.forward_injective backward.1,
+        r.forward_injective backward.2⟩
+  · rintro ⟨edge, edgeMembership, direction⟩
+    refine ⟨edge.reindex r, List.mem_map.mpr ⟨edge, edgeMembership, rfl⟩, ?_⟩
+    rcases direction with forward | backward
+    · exact .inl ⟨congrArg r.forward forward.1,
+        congrArg r.forward forward.2⟩
+    · exact .inr ⟨congrArg r.forward backward.1,
+        congrArg r.forward backward.2⟩
+
+theorem adjacent_unreindex_iff (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) (left right : Vertex) :
+    (graph.reindex r).Adjacent left right ↔
+      graph.Adjacent (r.inverse left) (r.inverse right) := by
+  simpa only [r.forward_inverse] using
+    graph.adjacent_reindex_iff r (r.inverse left) (r.inverse right)
+
+namespace Walk
+
+theorem trans {graph : Graph} {start middle finish : Vertex}
+    (first : graph.Walk start middle) (second : graph.Walk middle finish) :
+    graph.Walk start finish := by
+  induction second with
+  | refl => exact first
+  | step prior adjacency ih => exact .step ih adjacency
+
+theorem reverse {graph : Graph} {start finish : Vertex}
+    (walk : graph.Walk start finish) : graph.Walk finish start := by
+  induction walk with
+  | refl => exact .refl start
+  | @step middle finish prior adjacency ih =>
+      have backward : graph.Adjacent finish middle := by
+        rcases adjacency with ⟨edge, membership, direction⟩
+        exact ⟨edge, membership, direction.elim .inr .inl⟩
+      exact (Graph.Walk.step (Graph.Walk.refl finish) backward).trans ih
+
+theorem reindex {graph : Graph} {start finish : Vertex}
+    (r : VertexRenaming graph.vertexCount)
+    (walk : graph.Walk start finish) :
+    (graph.reindex r).Walk (r.forward start) (r.forward finish) := by
+  induction walk with
+  | refl => exact .refl (r.forward start)
+  | step prior adjacency ih =>
+      exact .step ih ((graph.adjacent_reindex_iff r _ _).mpr adjacency)
+
+theorem unreindex {graph : Graph} {start finish : Vertex}
+    (r : VertexRenaming graph.vertexCount)
+    (walk : (graph.reindex r).Walk start finish) :
+    graph.Walk (r.inverse start) (r.inverse finish) := by
+  induction walk with
+  | refl => exact .refl (r.inverse start)
+  | step prior adjacency ih =>
+      exact .step ih ((graph.adjacent_unreindex_iff r _ _).mp adjacency)
+
+end Walk
+
+theorem Bounded.reindex {graph : Graph}
+    (bounded : graph.Bounded) (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).Bounded := by
+  intro renamedEdge membership
+  rcases List.mem_map.mp membership with ⟨edge, edgeMembership, same⟩
+  subst renamedEdge
+  have bounds := bounded edge edgeMembership
+  exact ⟨(r.forward_lt_iff edge.first).mpr bounds.1,
+    (r.forward_lt_iff edge.second).mpr bounds.2.1,
+    fun equality => bounds.2.2 (r.forward_injective equality)⟩
+
+theorem bounded_reindex_iff (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).Bounded ↔ graph.Bounded := by
+  constructor
+  · intro bounded
+    have restored := bounded.reindex r.symm
+    simpa only [graph.reindex_symm r] using restored
+  · exact fun bounded => bounded.reindex r
+
+theorem Connected.reindex {graph : Graph}
+    (connected : graph.Connected) (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).Connected := by
+  refine ⟨by simpa using connected.1, ?_⟩
+  intro vertex inBounds
+  have zeroInBounds : 0 < graph.vertexCount := connected.1
+  have inverseZeroInBounds : r.inverse 0 < graph.vertexCount :=
+    (r.inverse_lt_iff 0).mpr zeroInBounds
+  have inverseVertexInBounds : r.inverse vertex < graph.vertexCount :=
+    (r.inverse_lt_iff vertex).mpr (by simpa using inBounds)
+  have fromZero := connected.2 (r.inverse 0) inverseZeroInBounds
+  have toVertex := connected.2 (r.inverse vertex) inverseVertexInBounds
+  have between := fromZero.reverse.trans toVertex
+  simpa only [r.forward_inverse] using between.reindex r
+
+theorem connected_reindex_iff (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).Connected ↔ graph.Connected := by
+  constructor
+  · intro connected
+    have restored := connected.reindex r.symm
+    simpa only [graph.reindex_symm r] using restored
+  · exact fun connected => connected.reindex r
+
+theorem IsTree.reindex {graph : Graph}
+    (tree : graph.IsTree) (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).IsTree :=
+  ⟨tree.1.reindex r, tree.2.1.reindex r, by simpa using tree.2.2⟩
+
+theorem isTree_reindex_iff (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).IsTree ↔ graph.IsTree := by
+  constructor
+  · intro tree
+    have restored := tree.reindex r.symm
+    simpa only [graph.reindex_symm r] using restored
+  · exact fun tree => tree.reindex r
+
+@[simp] theorem isTree_reindex (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).isTree = graph.isTree := by
+  apply Bool.eq_iff_iff.mpr
+  rw [(graph.reindex r).isTree_iff_isTree, graph.isTree_iff_isTree]
+  exact graph.isTree_reindex_iff r
+
+end Graph
 
 namespace Certificate
 
@@ -223,6 +465,55 @@ def reindex (certificate : Certificate)
       certificate.formulas.size := by
   simp [reindex]
 
+/-- Regard a second renaming of an already-reindexed certificate at the
+original certificate's (provably equal) bound. -/
+def alignNextRenaming (certificate : Certificate)
+    (first : VertexRenaming certificate.formulas.size)
+    (second : VertexRenaming (certificate.reindex first).formulas.size) :
+    VertexRenaming certificate.formulas.size :=
+  second.changeBound (certificate.reindex_formulas_size first)
+
+@[simp] theorem alignNextRenaming_forward (certificate : Certificate)
+    (first : VertexRenaming certificate.formulas.size)
+    (second : VertexRenaming (certificate.reindex first).formulas.size) :
+    (certificate.alignNextRenaming first second).forward = second.forward := by
+  simp [alignNextRenaming]
+
+@[simp] theorem alignNextRenaming_inverse (certificate : Certificate)
+    (first : VertexRenaming certificate.formulas.size)
+    (second : VertexRenaming (certificate.reindex first).formulas.size) :
+    (certificate.alignNextRenaming first second).inverse = second.inverse := by
+  simp [alignNextRenaming]
+
+@[simp] theorem reindex_trans (certificate : Certificate)
+    (first : VertexRenaming certificate.formulas.size)
+    (second : VertexRenaming (certificate.reindex first).formulas.size) :
+    (certificate.reindex first).reindex second =
+      certificate.reindex
+        (first.trans (certificate.alignNextRenaming first second)) := by
+  apply ext_fields
+  · apply Array.ext
+    · simp
+    · intro vertex leftInBounds rightInBounds
+      simp [reindex, alignNextRenaming, VertexRenaming.trans,
+        Function.comp_def]
+  · change List.map (Link.reindex second)
+      (List.map (Link.reindex first) certificate.links) =
+        List.map
+          (Link.reindex
+            (first.trans (certificate.alignNextRenaming first second)))
+          certificate.links
+    induction certificate.links with
+    | nil => rfl
+    | cons head tail ih =>
+        simp only [List.map_cons, List.cons.injEq]
+        exact ⟨by
+          cases head <;>
+            simp [Link.reindex, VertexRenaming.trans, alignNextRenaming,
+              Function.comp_def], ih⟩
+  · simp [reindex, List.map_map, VertexRenaming.trans,
+      Function.comp_def]
+
 @[simp] theorem reindex_links (certificate : Certificate)
     (r : VertexRenaming certificate.formulas.size) :
     (certificate.reindex r).links =
@@ -232,6 +523,44 @@ def reindex (certificate : Certificate)
     (r : VertexRenaming certificate.formulas.size) :
     (certificate.reindex r).conclusions =
       certificate.conclusions.map r.forward := rfl
+
+@[simp] theorem fixedEdges_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).fixedEdges =
+      certificate.fixedEdges.map (Edge.reindex r) := by
+  simp only [fixedEdges, reindex_links]
+  induction certificate.links with
+  | nil => rfl
+  | cons head tail ih =>
+      cases head <;> simp [Link.reindex, Edge.reindex, ih]
+
+@[simp] theorem parChoices_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).parChoices =
+      certificate.parChoices.map (Edge.reindexPair r) := by
+  simp only [parChoices, reindex_links]
+  induction certificate.links with
+  | nil => rfl
+  | cons head tail ih =>
+      cases head <;> simp [Link.reindex, Edge.reindex, Edge.reindexPair, ih]
+
+theorem ChoiceSelection.reindex {bound : Nat}
+    {choices : List (Edge × Edge)} {selected : List Edge}
+    (selection : ChoiceSelection choices selected)
+    (r : VertexRenaming bound) :
+    ChoiceSelection (choices.map (Edge.reindexPair r))
+      (selected.map (Edge.reindex r)) := by
+  induction selection with
+  | nil => exact .nil
+  | left prior ih => exact .left ih
+  | right prior ih => exact .right ih
+
+@[simp] theorem graphForSelection_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) (selected : List Edge) :
+    (certificate.reindex r).graphForSelection
+        (selected.map (Edge.reindex r)) =
+      (certificate.graphForSelection selected).reindex r := by
+  simp [graphForSelection, Graph.reindex, List.map_append]
 
 /-- Formula lookup commutes with renaming, including for malformed
 out-of-bounds vertices. -/
@@ -257,9 +586,15 @@ theorem reindex_formula?_forward (certificate : Certificate)
     rw [formula?, Array.getElem?_eq_none_iff.mpr renamedOutOfBounds,
       formula?, Array.getElem?_eq_none_iff.mpr originalOutOfBounds]
 
+@[simp] theorem inBounds_reindex_forward (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) (vertex : Vertex) :
+    (certificate.reindex r).inBounds (r.forward vertex) =
+      certificate.inBounds vertex := by
+  simp [inBounds, r.forward_lt_iff]
+
 /-- Local formula/link typing is invariant under any bounded bijective vertex
 renaming. -/
-theorem linkLocallyWellFormed_reindex (certificate : Certificate)
+@[simp] theorem linkLocallyWellFormed_reindex (certificate : Certificate)
     (r : VertexRenaming certificate.formulas.size) (link : Link) :
     (certificate.reindex r).linkLocallyWellFormed (link.reindex r) =
       certificate.linkLocallyWellFormed link := by
@@ -331,12 +666,92 @@ theorem nodeWellFormed_reindex_iff (certificate : Certificate)
     certificate.nodeWellFormed_reindex,
     certificate.nodeWellFormed_iff]
 
+@[simp] theorem linksAll_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).links.all
+        (certificate.reindex r).linkLocallyWellFormed =
+      certificate.links.all certificate.linkLocallyWellFormed := by
+  simp only [reindex_links]
+  induction certificate.links with
+  | nil => rfl
+  | cons head tail ih =>
+      simp [certificate.linkLocallyWellFormed_reindex, ih]
+
+@[simp] theorem conclusionsAllInBounds_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).conclusions.all
+        (certificate.reindex r).inBounds =
+      certificate.conclusions.all certificate.inBounds := by
+  simp only [reindex_conclusions]
+  induction certificate.conclusions with
+  | nil => rfl
+  | cons head tail ih =>
+      simp [certificate.inBounds_reindex_forward, ih]
+
+@[simp] theorem nodesAll_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (List.range (certificate.reindex r).formulas.size).all
+        (certificate.reindex r).nodeWellFormed =
+      (List.range certificate.formulas.size).all
+        certificate.nodeWellFormed := by
+  apply Bool.eq_iff_iff.mpr
+  simp only [List.all_eq_true, List.mem_range]
+  constructor
+  · intro allRenamed vertex inBounds
+    have renamedInBounds := (r.forward_lt_iff vertex).mpr inBounds
+    have accepted := allRenamed (r.forward vertex) (by simpa using renamedInBounds)
+    rw [certificate.nodeWellFormed_reindex] at accepted
+    exact accepted
+  · intro allOriginal vertex inBounds
+    have originalInBounds := (r.inverse_lt_iff vertex).mpr (by simpa using inBounds)
+    have accepted := allOriginal (r.inverse vertex) originalInBounds
+    have transported := certificate.nodeWellFormed_reindex r (r.inverse vertex)
+    rw [← transported] at accepted
+    simpa only [r.forward_inverse] using accepted
+
+/-- The complete executable structural checker is invariant under arbitrary
+bounded vertex reindexing, including malformed-certificate rejection. -/
+@[simp] theorem wellFormed_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).wellFormed = certificate.wellFormed := by
+  unfold wellFormed
+  rw [certificate.conclusionsAllInBounds_reindex,
+    certificate.linksAll_reindex, certificate.nodesAll_reindex]
+  simp
+
+theorem structurallyWellFormed_reindex_iff (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).StructurallyWellFormed ↔
+      certificate.StructurallyWellFormed := by
+  rw [← (certificate.reindex r).wellFormed_iff_structurallyWellFormed,
+    certificate.wellFormed_reindex,
+    certificate.wellFormed_iff_structurallyWellFormed]
+
 /-- The inverse renaming, transported to the definitionally new formula-array
 size produced by `reindex`. -/
 def inverseReindexing (certificate : Certificate)
     (r : VertexRenaming certificate.formulas.size) :
     VertexRenaming (certificate.reindex r).formulas.size :=
   r.symm.changeBound (certificate.reindex_formulas_size r).symm
+
+@[simp] theorem reindex_refl (certificate : Certificate) :
+    certificate.reindex (VertexRenaming.refl certificate.formulas.size) =
+      certificate := by
+  apply ext_fields
+  · apply Array.ext
+    · simp
+    · intro vertex leftInBounds rightInBounds
+      simp [reindex, VertexRenaming.refl]
+  · change List.map
+      (Link.reindex (VertexRenaming.refl certificate.formulas.size))
+        certificate.links = certificate.links
+    induction certificate.links with
+    | nil => rfl
+    | cons head tail ih =>
+        cases head <;>
+          simp only [List.map_cons, List.cons.injEq]
+        all_goals exact ⟨rfl, ih⟩
+  · simp [reindex, VertexRenaming.refl]
 
 @[simp] theorem inverseReindexing_forward (certificate : Certificate)
     (r : VertexRenaming certificate.formulas.size) :
@@ -374,6 +789,106 @@ theorem reindex_inverse (certificate : Certificate)
         rw [certificate.link_reindex_inverseReindexing r head, ih]
   · simp [reindex, inverseReindexing, List.map_map, Function.comp_def,
       r.inverse_forward]
+
+theorem DeclarativelyCorrect.reindex {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).DeclarativelyCorrect := by
+  let renamed := certificate.reindex r
+  let inverse := certificate.inverseReindexing r
+  refine ⟨(certificate.structurallyWellFormed_reindex_iff r).mpr correct.1,
+    ?_⟩
+  intro graph switching
+  rcases switching with ⟨selected, selection, rfl⟩
+  have restoredCertificate : renamed.reindex inverse = certificate :=
+    certificate.reindex_inverse r
+  have restoredSelection := selection.reindex inverse
+  rw [← renamed.parChoices_reindex inverse, restoredCertificate] at restoredSelection
+  have graphTransport := renamed.graphForSelection_reindex inverse selected
+  rw [restoredCertificate] at graphTransport
+  have restoredSwitching :
+      certificate.SwitchingGraph
+        ((renamed.graphForSelection selected).reindex inverse) :=
+    ⟨selected.map (Edge.reindex inverse), restoredSelection,
+      graphTransport.symm⟩
+  have restoredTree := correct.2 _ restoredSwitching
+  exact ((renamed.graphForSelection selected).isTree_reindex_iff inverse).mp
+    restoredTree
+
+theorem declarativelyCorrect_reindex_iff (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).DeclarativelyCorrect ↔
+      certificate.DeclarativelyCorrect := by
+  constructor
+  · intro correct
+    have restored := correct.reindex (certificate.inverseReindexing r)
+    simpa only [certificate.reindex_inverse r] using restored
+  · exact fun correct => correct.reindex r
+
+/-- The public Boolean proof-net checker is independent of all admissible
+vertex names, not merely for known-valid examples but for every certificate. -/
+@[simp] theorem check_reindex (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).check = certificate.check := by
+  apply Bool.eq_iff_iff.mpr
+  rw [(certificate.reindex r).check_iff_declarativelyCorrect,
+    certificate.check_iff_declarativelyCorrect]
+  exact certificate.declarativelyCorrect_reindex_iff r
+
+theorem correct_reindex_iff (certificate : Certificate)
+    (r : VertexRenaming certificate.formulas.size) :
+    (certificate.reindex r).Correct ↔ certificate.Correct := by
+  rw [← (certificate.reindex r).check_iff_correct,
+    certificate.check_reindex, certificate.check_iff_correct]
+
+/-- Certificate equality modulo an explicit bounded vertex bijection. Formula
+syntax, ordered tensor/par premises, link order, and conclusion order are all
+preserved; only vertex names change. -/
+def ReindexEquivalent (left right : Certificate) : Prop :=
+  ∃ r : VertexRenaming left.formulas.size, right = left.reindex r
+
+theorem ReindexEquivalent.refl (certificate : Certificate) :
+    certificate.ReindexEquivalent certificate :=
+  ⟨VertexRenaming.refl certificate.formulas.size,
+    certificate.reindex_refl.symm⟩
+
+theorem ReindexEquivalent.symm {left right : Certificate}
+    (equivalent : left.ReindexEquivalent right) :
+    right.ReindexEquivalent left := by
+  rcases equivalent with ⟨r, rfl⟩
+  exact ⟨left.inverseReindexing r, (left.reindex_inverse r).symm⟩
+
+theorem ReindexEquivalent.trans {left middle right : Certificate}
+    (first : left.ReindexEquivalent middle)
+    (second : middle.ReindexEquivalent right) :
+    left.ReindexEquivalent right := by
+  rcases first with ⟨firstRenaming, rfl⟩
+  rcases second with ⟨secondRenaming, rfl⟩
+  exact ⟨firstRenaming.trans
+      (left.alignNextRenaming firstRenaming secondRenaming),
+    left.reindex_trans firstRenaming secondRenaming⟩
+
+theorem reindexEquivalent_equivalence : Equivalence ReindexEquivalent :=
+  ⟨ReindexEquivalent.refl, ReindexEquivalent.symm,
+    ReindexEquivalent.trans⟩
+
+theorem ReindexEquivalent.check_eq {left right : Certificate}
+    (equivalent : left.ReindexEquivalent right) :
+    left.check = right.check := by
+  rcases equivalent with ⟨r, rfl⟩
+  exact (left.check_reindex r).symm
+
+theorem ReindexEquivalent.declarativelyCorrect_iff
+    {left right : Certificate} (equivalent : left.ReindexEquivalent right) :
+    left.DeclarativelyCorrect ↔ right.DeclarativelyCorrect := by
+  rcases equivalent with ⟨r, rfl⟩
+  exact (left.declarativelyCorrect_reindex_iff r).symm
+
+theorem ReindexEquivalent.correct_iff {left right : Certificate}
+    (equivalent : left.ReindexEquivalent right) :
+    left.Correct ↔ right.Correct := by
+  rcases equivalent with ⟨r, rfl⟩
+  exact (left.correct_reindex_iff r).symm
 
 end Certificate
 

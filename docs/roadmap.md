@@ -33,8 +33,12 @@
   cut-free derivation trees.
 - [x] Define lossless bounded vertex renaming, formula/link/conclusion
   transport, and a kernel-checked inverse round trip.
-- [ ] Prove structural, switching, and checker/declarative correctness
+- [x] Prove structural, switching, and checker/declarative correctness
   invariant under arbitrary bounded vertex renaming.
+- [x] Define `ReindexEquivalent`, prove it is an equivalence relation, and
+  prove it preserves executable and declarative correctness.
+- [ ] Compute a stable serialization representative for each supported
+  reindexing-equivalence class and add migration/property tests.
 
 ## v0.2 - Dataset and repair loop
 
