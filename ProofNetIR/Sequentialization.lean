@@ -482,6 +482,69 @@ theorem CutFreeDerivation.reorder?_idxOf_of_nodup_perm
   rw [candidate]
   simp [permutation]
 
+/-- Recover the two final occurrence roots from a formula projection. This is
+the bridge from an inferred sequent to the occurrence-aware fragment entries
+used by desequentialization. -/
+theorem list_pair_decompose_map_fst_append_two
+    {entries : List (Formula × Vertex)} {context : List Formula}
+    {left right : Formula}
+    (equation : entries.map Prod.fst = context ++ [left, right]) :
+    ∃ contextEntries leftRoot rightRoot,
+      entries = contextEntries ++ [(left, leftRoot), (right, rightRoot)] ∧
+      contextEntries.map Prod.fst = context := by
+  rcases List.map_eq_append_iff.mp equation with
+    ⟨contextEntries, suffixEntries, entriesEquation, contextEquation,
+      suffixEquation⟩
+  have suffixSplit : suffixEntries.map Prod.fst = [left] ++ [right] := by
+    simpa using suffixEquation
+  rcases List.map_eq_append_iff.mp suffixSplit with
+    ⟨leftEntries, rightEntries, suffixEntriesEquation, leftEquation,
+      rightEquation⟩
+  rcases List.map_eq_singleton_iff.mp leftEquation with
+    ⟨leftEntry, leftEntriesEquation, leftLabel⟩
+  rcases List.map_eq_singleton_iff.mp rightEquation with
+    ⟨rightEntry, rightEntriesEquation, rightLabel⟩
+  rcases leftEntry with ⟨leftEntryFormula, leftRoot⟩
+  rcases rightEntry with ⟨rightEntryFormula, rightRoot⟩
+  simp only at leftLabel rightLabel
+  subst leftEntryFormula
+  subst rightEntryFormula
+  refine ⟨contextEntries, leftRoot, rightRoot, ?_, contextEquation⟩
+  rw [entriesEquation, suffixEntriesEquation, leftEntriesEquation,
+    rightEntriesEquation]
+  simp
+
+/-- A successful ordered lookup certifies every formula/root pair in the
+lockstep zip. -/
+theorem list_zip_labelled_of_mapM_eq_some
+    {formulas : List Formula} {roots : List Vertex}
+    {lookup : Vertex → Option Formula}
+    (balanced : formulas.length = roots.length)
+    (equation : roots.mapM lookup = some formulas) :
+    ∀ entry ∈ formulas.zip roots,
+      lookup entry.2 = some entry.1 := by
+  induction formulas generalizing roots with
+  | nil => simp
+  | cons formula tail ih =>
+      cases roots with
+      | nil => simp at balanced
+      | cons root rest =>
+          simp only [List.length_cons, Nat.succ.injEq] at balanced
+          simp only [List.mapM_cons] at equation
+          cases rootEquation : lookup root with
+          | none => simp [rootEquation] at equation
+          | some rootFormula =>
+              cases restEquation : rest.mapM lookup with
+              | none => simp [rootEquation, restEquation] at equation
+              | some restFormulas =>
+                  simp [rootEquation, restEquation] at equation
+                  obtain ⟨rfl, rfl⟩ := equation
+                  intro entry membership
+                  simp only [List.zip_cons_cons, List.mem_cons] at membership
+                  rcases membership with rfl | tailMembership
+                  · exact rootEquation
+                  · exact ih balanced restEquation entry tailMembership
+
 /-- Certificate-level effect of introducing one fresh final par occurrence.
 The boundary is explicit because a following exchange may place the new
 conclusion at any occurrence position. -/
@@ -12084,6 +12147,72 @@ theorem TerminalPar.logicalBoundaryData
                   labelPermutation
               rw [conclusionLabel] at normalizedLabelPermutation
               exact normalizedLabelPermutation
+
+/-- Exact premise boundary for caller-selected formula witnesses from the
+terminal link. Unlike the existential logical interface, this theorem keeps the
+formula witnesses synchronized with subsequent occurrence reconstruction. -/
+theorem TerminalPar.premiseBoundaryData_of_formulaData
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {leftFormula rightFormula : Formula}
+    (leftEquation : certificate.formula? left = some leftFormula)
+    (rightEquation : certificate.formula? right = some rightFormula) :
+    ∃ context,
+      (certificate.peelTerminalPar left right conclusion).conclusionFormulas? =
+        some (context ++ [leftFormula, rightFormula]) := by
+  let fallback : Formula := .atom "" false
+  let contextVertices := certificate.conclusions.erase conclusion
+  let context := contextVertices.map fun vertex =>
+    certificate.formulas.getD vertex fallback
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have leftNotConclusion : left ≠ conclusion := terminalWellFormed.2.1
+  have rightNotConclusion : right ≠ conclusion := terminalWellFormed.2.2.1
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have filteredEquation :
+      certificate.conclusions.filter (· != conclusion) = contextVertices := by
+    exact (List.Nodup.erase_eq_filter originalNodup conclusion).symm
+  have contextLabels :
+      ((certificate.conclusions.filter (· != conclusion)).map
+        (compactVertex conclusion)).mapM
+          (certificate.peelTerminalPar left right conclusion).formula? =
+        some context := by
+    rw [filteredEquation]
+    rw [List.mapM_map]
+    apply list_mapM_eq_some_map_of_forall
+    intro vertex membership
+    change (certificate.peelTerminalPar left right conclusion).formula?
+      (compactVertex conclusion vertex) = _
+    have originalMembership : vertex ∈ certificate.conclusions :=
+      List.mem_of_mem_erase membership
+    have vertexNotConclusion : vertex ≠ conclusion :=
+      (originalNodup.mem_erase_iff.mp membership).1
+    rw [peelTerminalPar_formula?_compact structural terminal
+      vertexNotConclusion]
+    have vertexInBounds := structural.2.2.1 vertex originalMembership
+    simp [formula?, vertexInBounds]
+  have leftPremiseLabel :
+      (certificate.peelTerminalPar left right conclusion).formula?
+        (compactVertex conclusion left) = some leftFormula := by
+    rw [peelTerminalPar_formula?_compact structural terminal
+      leftNotConclusion, leftEquation]
+  have rightPremiseLabel :
+      (certificate.peelTerminalPar left right conclusion).formula?
+        (compactVertex conclusion right) = some rightFormula := by
+    rw [peelTerminalPar_formula?_compact structural terminal
+      rightNotConclusion, rightEquation]
+  refine ⟨context, ?_⟩
+  unfold conclusionFormulas?
+  change
+    (((certificate.conclusions.filter (· != conclusion)).map
+        (compactVertex conclusion) ++
+      [compactVertex conclusion left,
+        compactVertex conclusion right]).mapM
+        (Certificate.formula?
+          (certificate.peelTerminalPar left right conclusion))) = _
+  rw [List.mapM_append, contextLabels]
+  simp [leftPremiseLabel, rightPremiseLabel]
 
 /-- Occurrence-level boundary reconstruction for a terminal par inverse.
 After peeling, applying par to the two final premise roots yields the old

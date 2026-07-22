@@ -1067,11 +1067,14 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check VertexRenaming.extendLast
 #check VertexRenaming.insertLastAt
 #check CutFreeDerivation.reorder?_idxOf_of_nodup_perm
+#check list_pair_decompose_map_fst_append_two
+#check list_zip_labelled_of_mapM_eq_some
 #check Certificate.appendParOccurrence
 #check Certificate.appendParPlacement
 #check Certificate.appendParOccurrence_reindex_formulas
 #check Certificate.DirectProofNetEquivalent.appendParOccurrence
 #check Certificate.TerminalPar.occurrenceBoundaryReconstruction
+#check Certificate.TerminalPar.premiseBoundaryData_of_formulaData
 #check Link.reindex_insertLastAt_compactVertices
 #check Certificate.TerminalPar.producer_filter_eq
 #check Certificate.TerminalPar.terminal_not_mem_remaining
