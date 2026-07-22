@@ -183,12 +183,22 @@ example : canonicalSequentialization.output.check = true :=
 example : (1, 3, 5) ∈ canonical.terminalPars := by native_decide
 example : canonical.TerminalPar 1 3 5 :=
   (canonical.mem_terminalPars_iff 1 3 5).mp (by native_decide)
+example : canonical.TerminalTensor 0 2 4 :=
+  (canonical.mem_terminalTensors_iff 0 2 4).mp (by native_decide)
 example : ∀ graph, canonical.SwitchingGraph graph → graph.Leaf 5 := by
   intro graph switching
   rcases switching with ⟨selected, selection, rfl⟩
   exact Certificate.TerminalPar.graphForSelection_leaf
     (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
     (canonical.mem_terminalPars_iff 1 3 5 |>.mp (by native_decide))
+    selection
+example : ∀ graph, canonical.SwitchingGraph graph →
+    graph.incidentCount 4 = 2 := by
+  intro graph switching
+  rcases switching with ⟨selected, selection, rfl⟩
+  exact Certificate.TerminalTensor.graphForSelection_incidentCount
+    (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+    (canonical.mem_terminalTensors_iff 0 2 4 |>.mp (by native_decide))
     selection
 
 def canonicalParPremise : Certificate where

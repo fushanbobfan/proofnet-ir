@@ -123,6 +123,14 @@ permutation, so terminal-par correctness preservation is complete. The
 universal splitting-tensor existence and preservation theorems remain current
 proof obligations.
 
+For the tensor branch, the local theorem layer now proves unique conclusion
+ownership, absence of any other incident link, non-boundary premises, zero
+incident selected-par edges, and exactly the two fixed tensor edges at the
+terminal conclusion in every switching. Thus terminal tensor degree is
+universally two; proving that some terminal tensor splits the remaining graph
+and that both restricted certificates preserve all switchings is the next
+global combinatorial step.
+
 ## v0.2 derivation-first path
 
 `DerivationTree.lean` represents arbitrary first-order cut-free rule trees.

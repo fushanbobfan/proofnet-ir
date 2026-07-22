@@ -962,6 +962,27 @@ theorem LinkWellFormed.par_conclusionFormula
               subst conclusionFormula
               exact ⟨leftFormula, rightFormula, rfl⟩
 
+theorem LinkWellFormed.tensor_conclusionFormula
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (wellFormed : certificate.LinkWellFormed (.tensor left right conclusion)) :
+    ∃ leftFormula rightFormula,
+      certificate.formula? conclusion =
+        some (.tensor leftFormula rightFormula) := by
+  rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases rightEquation : certificate.formula? right with
+      | none => simp [leftEquation, rightEquation] at typing
+      | some rightFormula =>
+          cases conclusionEquation : certificate.formula? conclusion with
+          | none =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+          | some conclusionFormula =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+              subst conclusionFormula
+              exact ⟨leftFormula, rightFormula, rfl⟩
+
 theorem LinkWellFormed.axiom_endpointFormula
     {certificate : Certificate} {left right vertex : Vertex}
     (wellFormed : certificate.LinkWellFormed (.axiom left right))
@@ -1119,6 +1140,141 @@ theorem deletion_none_iff_eq
 
 end TerminalPar
 
+namespace TerminalTensor
+
+theorem ownership {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    certificate.producerCount conclusion = 1 ∧
+      certificate.parentUseCount conclusion = 0 ∧
+      ∃ leftFormula rightFormula,
+        certificate.formula? conclusion =
+          some (.tensor leftFormula rightFormula) := by
+  rcases structural with ⟨_, _, conclusionsInBounds, _, linksWellFormed,
+    nodesWellFormed⟩
+  have terminalWellFormed := linksWellFormed _ terminal.1
+  rcases terminalWellFormed.tensor_conclusionFormula with
+    ⟨leftFormula, rightFormula, conclusionFormula⟩
+  have node := nodesWellFormed conclusion
+    (conclusionsInBounds conclusion terminal.2)
+  simp [NodeWellFormed, conclusionFormula, terminal.2] at node
+  exact ⟨node.1, node.2, leftFormula, rightFormula, conclusionFormula⟩
+
+theorem premises_not_conclusions
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    left ∉ certificate.conclusions ∧ right ∉ certificate.conclusions := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases terminalWellFormed with
+    ⟨_, _, _, leftInBounds, rightInBounds, _, _⟩
+  constructor
+  · intro leftConclusion
+    have node := structural.2.2.2.2.2 left leftInBounds
+    have parentZero := node.2
+    simp [leftConclusion] at parentZero
+    change (certificate.links.filter (·.usesAsPremise left)).length = 0 at parentZero
+    exact false_of_mem_filter_length_zero parentZero terminal.1
+      (by simp [Link.usesAsPremise, Link.premises])
+  · intro rightConclusion
+    have node := structural.2.2.2.2.2 right rightInBounds
+    have parentZero := node.2
+    simp [rightConclusion] at parentZero
+    change (certificate.links.filter (·.usesAsPremise right)).length = 0 at parentZero
+    exact false_of_mem_filter_length_zero parentZero terminal.1
+      (by simp [Link.usesAsPremise, Link.premises])
+
+theorem producer_unique {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (produces : link.produces conclusion = true) :
+    link = .tensor left right conclusion := by
+  have producerCount := (TerminalTensor.ownership structural terminal).1
+  change (certificate.links.filter (·.produces conclusion)).length = 1 at producerCount
+  apply eq_of_mem_filter_length_one
+    (predicate := (·.produces conclusion))
+    producerCount membership produces terminal.1
+  simp [Link.produces]
+
+theorem producer_filter_eq {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    certificate.links.filter (·.produces conclusion) =
+      [.tensor left right conclusion] := by
+  have count := (TerminalTensor.ownership structural terminal).1
+  change (certificate.links.filter (·.produces conclusion)).length = 1 at count
+  rcases List.length_eq_one_iff.mp count with ⟨only, equation⟩
+  have terminalFiltered : Link.tensor left right conclusion ∈
+      certificate.links.filter (·.produces conclusion) := by
+    simp [terminal.1, Link.produces]
+  rw [equation] at terminalFiltered
+  simp at terminalFiltered
+  subst only
+  exact equation
+
+theorem no_parentUse {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (uses : link.usesAsPremise conclusion = true) : False := by
+  have parentCount := (TerminalTensor.ownership structural terminal).2.1
+  change (certificate.links.filter (·.usesAsPremise conclusion)).length = 0 at parentCount
+  exact false_of_mem_filter_length_zero
+    (predicate := (·.usesAsPremise conclusion))
+    parentCount membership uses
+
+theorem unique_incident {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (incident : conclusion ∈ link.vertices) :
+    link = .tensor left right conclusion := by
+  have conclusionFormula :=
+    (TerminalTensor.ownership structural terminal).2.2
+  cases link with
+  | «axiom» first second =>
+      have endpoint : conclusion = first ∨ conclusion = second := by
+        simpa [Link.vertices] using incident
+      have axiomWellFormed := structural.2.2.2.2.1 _ membership
+      rcases axiomWellFormed.axiom_endpointFormula endpoint with
+        ⟨name, positive, atomFormula⟩
+      rcases conclusionFormula with
+        ⟨leftFormula, rightFormula, tensorFormula⟩
+      rw [tensorFormula] at atomFormula
+      cases atomFormula
+  | tensor first second result =>
+      simp [Link.vertices] at incident
+      rcases incident with same | same | same
+      · subst first
+        exact False.elim (TerminalTensor.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst second
+        exact False.elim (TerminalTensor.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst result
+        exact TerminalTensor.producer_unique structural terminal membership
+          (by simp [Link.produces])
+  | par first second result =>
+      simp [Link.vertices] at incident
+      rcases incident with same | same | same
+      · subst first
+        exact False.elim (TerminalTensor.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst second
+        exact False.elim (TerminalTensor.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst result
+        have impossible := TerminalTensor.producer_unique structural terminal
+          membership (by simp [Link.produces])
+        cases impossible
+
+end TerminalTensor
+
 theorem ChoiceSelection.filter_length_eq_of_pair_agreement
     {choices : List (Edge × Edge)} {selected : List Edge}
     (selection : ChoiceSelection choices selected)
@@ -1245,6 +1401,132 @@ theorem TerminalPar.parChoice_deletion_agreement
       (choice.2.deleteVertex? conclusion).isSome := by
   rw [Edge.deleteVertex?_isSome, Edge.deleteVertex?_isSome,
     TerminalPar.parChoice_incident_agreement structural terminal membership]
+
+theorem TerminalTensor.parChoice_not_incident
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {choice : Edge × Edge} (membership : choice ∈ certificate.parChoices) :
+    choice.1.incident conclusion = false ∧
+      choice.2.incident conclusion = false := by
+  simp only [parChoices, List.mem_filterMap] at membership
+  rcases membership with ⟨link, linkMembership, emitted⟩
+  cases link with
+  | «axiom» first second => simp at emitted
+  | tensor first second result => simp at emitted
+  | par first second result =>
+      simp at emitted
+      subst choice
+      have avoids : conclusion ∉ (Link.par first second result).vertices := by
+        intro incident
+        have impossible := TerminalTensor.unique_incident structural terminal
+          linkMembership incident
+        cases impossible
+      simp [Link.vertices] at avoids
+      have firstNotConclusion : first ≠ conclusion := Ne.symm avoids.1
+      have secondNotConclusion : second ≠ conclusion := Ne.symm avoids.2.1
+      have resultNotConclusion : result ≠ conclusion := Ne.symm avoids.2.2
+      simp [Edge.incident, firstNotConclusion, secondNotConclusion,
+        resultNotConclusion]
+
+theorem TerminalTensor.selected_incidentCount
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    (selected.filter (·.incident conclusion)).length = 0 := by
+  rw [selection.filter_length_eq_of_pair_agreement
+    (·.incident conclusion) (by
+      intro choice membership
+      have avoids := TerminalTensor.parChoice_not_incident structural terminal
+        membership
+      rw [avoids.1, avoids.2])]
+  rw [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+  intro choice membership
+  have avoids := TerminalTensor.parChoice_not_incident structural terminal
+    membership
+  simp [avoids.1]
+
+theorem TerminalTensor.fixedEdges_incident
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    certificate.fixedEdges.filter (·.incident conclusion) =
+      [{ first := left, second := conclusion },
+       { first := right, second := conclusion }] := by
+  let emitFixed : Link → List Edge := fun
+    | .axiom first second => [{ first, second }]
+    | .tensor first second result =>
+        [{ first := first, second := result },
+         { first := second, second := result }]
+    | .par _ _ _ => []
+  change (certificate.links.flatMap emitFixed).filter
+      (·.incident conclusion) = _
+  have general : ∀ links : List Link,
+      (∀ link ∈ links, link ∈ certificate.links) →
+      (links.flatMap emitFixed).filter (·.incident conclusion) =
+        (links.filter (·.produces conclusion)).flatMap emitFixed := by
+    intro links subset
+    induction links with
+    | nil => rfl
+    | cons head tail ih =>
+        have headMembership : head ∈ certificate.links :=
+          subset head (by simp)
+        have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+          intro link membership
+          exact subset link (by simp [membership])
+        have tailEquality := ih tailSubset
+        by_cases produced : head.produces conclusion = true
+        · have same := TerminalTensor.producer_unique structural terminal
+            headMembership produced
+          subst head
+          simpa [emitFixed, Link.produces, Edge.incident]
+            using tailEquality
+        · have avoids : conclusion ∉ head.vertices := by
+            intro incident
+            have same := TerminalTensor.unique_incident structural terminal
+              headMembership incident
+            subst head
+            simp [Link.produces] at produced
+          cases head with
+          | «axiom» first second =>
+              simp [Link.vertices] at avoids
+              have firstNotConclusion : first ≠ conclusion := Ne.symm avoids.1
+              have secondNotConclusion : second ≠ conclusion :=
+                Ne.symm avoids.2
+              simpa [emitFixed, produced, Edge.incident,
+                firstNotConclusion, secondNotConclusion] using tailEquality
+          | tensor first second result =>
+              simp [Link.vertices] at avoids
+              have firstNotConclusion : first ≠ conclusion := Ne.symm avoids.1
+              have secondNotConclusion : second ≠ conclusion :=
+                Ne.symm avoids.2.1
+              have resultNotConclusion : result ≠ conclusion :=
+                Ne.symm avoids.2.2
+              simpa [emitFixed, produced, Edge.incident,
+                firstNotConclusion, secondNotConclusion,
+                resultNotConclusion] using tailEquality
+          | par first second result =>
+              simpa [emitFixed, produced] using tailEquality
+  rw [general certificate.links (by simp),
+    TerminalTensor.producer_filter_eq structural terminal]
+  rfl
+
+theorem TerminalTensor.graphForSelection_incidentCount
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    (certificate.graphForSelection selected).incidentCount conclusion = 2 := by
+  unfold Graph.incidentCount
+  change ((certificate.fixedEdges ++ selected).filter
+    (·.incident conclusion)).length = 2
+  rw [List.filter_append, List.length_append,
+    TerminalTensor.fixedEdges_incident structural terminal,
+    TerminalTensor.selected_incidentCount structural terminal selection]
+  rfl
 
 theorem TerminalPar.parChoices_incidentCount
     {certificate : Certificate} {left right conclusion : Vertex}
