@@ -1183,6 +1183,25 @@ theorem edge_endpoints_mem_vertices {graph : Graph}
   | true =>
       simpa [DirectedEdge.source, DirectedEdge.target, direction] using endpoints
 
+/-- A path whose start and every exact directed occurrence lie in a simple
+cycle visits only vertices of that cycle. -/
+theorem path_vertices_subset {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) (path : graph.EdgeSimplePath)
+    (startInCycle : path.start ∈ cycle.vertices)
+    (edgeSubset : ∀ directed, directed ∈ path.traversed →
+      directed ∈ cycle.traversed) :
+    ∀ vertex, vertex ∈ path.vertices → vertex ∈ cycle.vertices := by
+  intro vertex membership
+  simp only [EdgeSimplePath.vertices, EdgeWalk.visitedVertices,
+    List.mem_cons] at membership
+  rcases membership with atStart | inTargets
+  · simpa [atStart] using startInCycle
+  · rcases List.mem_map.mp inTargets with
+      ⟨directed, directedMembership, targetEquation⟩
+    rw [← targetEquation]
+    exact (cycle.directed_endpoints_mem_vertices
+      (edgeSubset directed directedMembership)).2
+
 theorem sources_eq_vertices {graph : Graph}
     (cycle : graph.EdgeSimpleCycle) :
     cycle.traversed.map Graph.DirectedEdge.source = cycle.vertices := by
@@ -1675,6 +1694,127 @@ theorem middlePath {graph : Graph} (cycle : graph.EdgeSimpleCycle)
       · simp
     have inOriginal := traversalPermutation.mem_iff.mp inRotated
     exact List.mem_map.mpr ⟨directed, inOriginal, indexEquation⟩
+
+/-- For a selected cusp followed later by a hit vertex, extract the
+wrap-around return path from that hit through the old base and prefix back to
+the cusp. -/
+theorem wrapPathAfterCusp {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {initial between suffix : List graph.DirectedEdge}
+    {incoming partner outgoingAtHit : graph.DirectedEdge}
+    (traversalEquation : cycle.traversed =
+      initial ++ incoming :: partner :: between ++ outgoingAtHit :: suffix) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = outgoingAtHit.source ∧
+      path.finish = incoming.target ∧
+      path.traversed =
+        ((outgoingAtHit :: suffix) ++ initial) ++ [incoming] ∧
+      (∀ vertex, vertex ∈ path.vertices → vertex ∈ cycle.vertices) ∧
+      ∀ index, index ∈ path.traversed.map DirectedEdge.index →
+        index ∈ cycle.traversed.map DirectedEdge.index := by
+  let beforeRotation := initial ++ incoming :: partner :: between
+  have rotationEquation : cycle.traversed =
+      beforeRotation ++ outgoingAtHit :: suffix := by
+    simpa [beforeRotation, List.append_assoc] using traversalEquation
+  rcases cycle.rotateAt_exists rotationEquation with
+    ⟨rotated, rotatedStarts, rotatedSteps⟩
+  have rotatedDecomposition : rotated.traversed =
+      (((outgoingAtHit :: suffix) ++ initial) ++
+        incoming :: partner :: between) := by
+    rw [rotatedSteps]
+    simp [beforeRotation, List.append_assoc]
+  rcases rotated.prefixPath rotatedDecomposition with
+    ⟨path, pathStarts, pathFinishes, pathSteps⟩
+  have traversalPermutation : rotated.traversed.Perm cycle.traversed := by
+    rw [rotatedSteps, traversalEquation]
+    simpa [beforeRotation, List.append_assoc] using
+      ((List.perm_append_comm :
+        (beforeRotation ++ (outgoingAtHit :: suffix)).Perm
+          ((outgoingAtHit :: suffix) ++ beforeRotation)).symm)
+  have pathEdgeSubset : ∀ directed, directed ∈ path.traversed →
+      directed ∈ cycle.traversed := by
+    intro directed membership
+    have inRotated : directed ∈ rotated.traversed := by
+      rw [rotatedDecomposition]
+      rw [pathSteps] at membership
+      rcases List.mem_append.mp membership with inInitial | atIncoming
+      · exact List.mem_append.mpr (.inl inInitial)
+      · simp at atIncoming
+        subst directed
+        simp
+    exact traversalPermutation.mem_iff.mp inRotated
+  have outgoingMembership : outgoingAtHit ∈ cycle.traversed := by
+    rw [traversalEquation]
+    simp
+  have startInCycle : outgoingAtHit.source ∈ cycle.vertices :=
+    (cycle.directed_endpoints_mem_vertices outgoingMembership).1
+  refine ⟨path, pathStarts.trans rotatedStarts, pathFinishes, pathSteps,
+    cycle.path_vertices_subset path (by
+      rw [pathStarts, rotatedStarts]
+      exact startInCycle) pathEdgeSubset, ?_⟩
+  intro index membership
+  rcases List.mem_map.mp membership with
+    ⟨directed, directedMembership, indexEquation⟩
+  exact List.mem_map.mpr
+    ⟨directed, pathEdgeSubset directed directedMembership, indexEquation⟩
+
+/-- Extract the old post-cusp arc from the outgoing cusp edge up to, but not
+including, the outgoing occurrence at the first hit. -/
+theorem segmentBeforeAfterCuspHit {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle)
+    {initial between suffix : List graph.DirectedEdge}
+    {incoming partner outgoingAtHit : graph.DirectedEdge}
+    (traversalEquation : cycle.traversed =
+      initial ++ incoming :: partner :: between ++ outgoingAtHit :: suffix) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = partner.source ∧
+      path.finish = outgoingAtHit.source ∧
+      path.traversed = partner :: between ∧
+      (∀ vertex, vertex ∈ path.vertices → vertex ∈ cycle.vertices) ∧
+      ∀ index, index ∈ path.traversed.map DirectedEdge.index →
+        index ∈ cycle.traversed.map DirectedEdge.index := by
+  let beforeRotation := initial ++ [incoming]
+  have rotationEquation : cycle.traversed =
+      beforeRotation ++ partner :: (between ++ outgoingAtHit :: suffix) := by
+    simpa [beforeRotation, List.append_assoc] using traversalEquation
+  rcases cycle.rotateAt_exists rotationEquation with
+    ⟨rotated, rotatedStarts, rotatedSteps⟩
+  have rotatedDecomposition : rotated.traversed =
+      (partner :: between) ++ outgoingAtHit ::
+        (suffix ++ beforeRotation) := by
+    rw [rotatedSteps]
+    simp [beforeRotation, List.append_assoc]
+  rcases rotated.prefixBefore rotatedDecomposition with
+    ⟨path, pathStarts, pathFinishes, pathSteps, _pathSubsetRotated⟩
+  have traversalPermutation : rotated.traversed.Perm cycle.traversed := by
+    rw [rotatedSteps, traversalEquation]
+    simpa [beforeRotation, List.append_assoc] using
+      ((List.perm_append_comm :
+        (beforeRotation ++ (partner ::
+          (between ++ outgoingAtHit :: suffix))).Perm
+        ((partner :: (between ++ outgoingAtHit :: suffix)) ++
+          beforeRotation)).symm)
+  have pathEdgeSubset : ∀ directed, directed ∈ path.traversed →
+      directed ∈ cycle.traversed := by
+    intro directed membership
+    have inRotated : directed ∈ rotated.traversed := by
+      rw [rotatedDecomposition]
+      rw [pathSteps] at membership
+      exact List.mem_append.mpr (.inl membership)
+    exact traversalPermutation.mem_iff.mp inRotated
+  have partnerMembership : partner ∈ cycle.traversed := by
+    rw [traversalEquation]
+    simp
+  have startInCycle : partner.source ∈ cycle.vertices :=
+    (cycle.directed_endpoints_mem_vertices partnerMembership).1
+  refine ⟨path, pathStarts.trans rotatedStarts, pathFinishes, pathSteps,
+    cycle.path_vertices_subset path (by
+      rw [pathStarts, rotatedStarts]
+      exact startInCycle) pathEdgeSubset, ?_⟩
+  intro index membership
+  rcases List.mem_map.mp membership with
+    ⟨directed, directedMembership, indexEquation⟩
+  exact List.mem_map.mpr
+    ⟨directed, pathEdgeSubset directed directedMembership, indexEquation⟩
 
 end EdgeSimpleCycle
 

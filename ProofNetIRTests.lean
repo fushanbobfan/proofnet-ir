@@ -991,6 +991,12 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Graph.EdgeWalk.getLast_reverseTraversal
 #check Graph.EdgeSimpleCycle.middlePath
 #check Graph.EdgeSimpleCycle.mem_reverse_vertices_iff
+#check Graph.EdgeSimpleCycle.wrapPathAfterCusp
+#check Graph.EdgeSimpleCycle.segmentBeforeAfterCuspHit
+#check Certificate.CuspFreeContinuation.bungee_afterCusp_exactSameBaseCycle
+#check Certificate.bungee_afterCusp_exactSameBase_closingFree
+#check Certificate.bungee_afterCusp_minimal_count_constraints
+#check Certificate.CuspAcyclic.no_minimal_bungee_afterCusp
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

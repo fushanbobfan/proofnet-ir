@@ -119,6 +119,11 @@
   contradiction is complete for every first hit at or before the selected
   cusp; the symmetric wrap-around case where the first cycle hit lies after
   the cusp remains.
+- completed the symmetric after-cusp wrap-around branch: extracted exact old
+  wrap/segment paths, built the same-base replacement, proved closing and
+  minimal cusp-count constraints, and closed the final forbidden cusp-free
+  cycle. What remains is the exhaustive first-intersection position classifier
+  and the adjacent hit at the incoming cusp edge's source.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

@@ -123,8 +123,9 @@
   formalized. The same-base closing proof and strict minimal-cycle inequality
   now close the full contradiction for every first hit away from the old base,
   and both hit-at-base endpoint orientations are complete. The remaining
-  after-cusp wrap-around branch, universal-separation conclusion, and
-  generalized-Yeo instantiation are in
+  after-cusp wrap-around branch is now complete as well. The remaining
+  exhaustive first-intersection classifier, adjacent incoming-edge hit,
+  universal-separation conclusion, and generalized-Yeo instantiation are in
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

@@ -105,8 +105,11 @@ name-level restatement of Yeo:
    cusp-free-cycle contradiction whenever the first hit is not the old base.
    Both endpoint orientations of the degenerate hit-at-base branch are now
    kernel checked as well. Thus every first hit at or before the selected cusp
-   is impossible. The remaining bungee obligation is the symmetric
-   wrap-around construction for a first cycle hit after the cusp; after that,
+   is impossible. The symmetric wrap-around construction for a first cycle
+   hit after the cusp is now also complete through its final cusp-free-cycle
+   contradiction. The remaining bungee obligation is to classify an arbitrary
+   normalized first intersection into the proved positional branches and
+   discharge the adjacent hit at the incoming cusp edge's source. After that,
    the first-cusp continuation can become an `OrderingPath`, followed by its
    ProofNet-IR sequentialization-edge instantiation.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored

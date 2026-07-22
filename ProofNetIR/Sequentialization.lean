@@ -3955,6 +3955,96 @@ theorem bungee_firstIntersection_exactSameBaseCycle
       rw [basedSteps, ← baseArcEquation]
       simp [baseArc, List.append_assoc]
 
+/-- Symmetric exact same-base splice when the first cycle hit lies after the
+selected cusp. The old post-cusp segment is replaced by the later path while
+the old base prefix and suffix remain in their original orientation. -/
+theorem bungee_afterCusp_exactSameBaseCycle
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle)
+    {initial between suffix : List certificate.fullGraph.DirectedEdge}
+    {middle partner outgoingAtHit last :
+      certificate.fullGraph.DirectedEdge}
+    (cycleSteps : cycle.traversed =
+      initial ++ middle :: partner :: between ++ outgoingAtHit :: suffix)
+    (cusp : certificate.Cusp middle partner)
+    (later : CuspFreeContinuation certificate middle last)
+    (hit : last.target = outgoingAtHit.source)
+    (uniqueIntersection : ∀ vertex,
+      vertex ∈ later.path.vertices.tail →
+      vertex ∈ cycle.vertices → vertex = last.target) :
+    ∃ based : certificate.fullGraph.EdgeSimpleCycle,
+      based.start = cycle.start ∧
+      based.traversed =
+        (initial ++ [middle]) ++ later.path.traversed ++
+          (outgoingAtHit :: suffix) := by
+  rcases cycle.wrapPathAfterCusp cycleSteps with
+    ⟨returnPath, returnStartsAtHit, returnFinishesAtCusp, returnSteps,
+      returnVertexSubset, returnEdgeSubset⟩
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    simp [returnSteps]
+  have returnStarts : returnPath.start = last.target :=
+    returnStartsAtHit.trans hit.symm
+  have returnFinishes : returnPath.finish = later.path.start :=
+    returnFinishesAtCusp.trans later.startsAt.symm
+  have middleMembership : middle ∈ cycle.traversed := by
+    rw [cycleSteps]
+    simp
+  have partnerMembership : partner ∈ cycle.traversed := by
+    rw [cycleSteps]
+    simp
+  have cuspMeeting : middle.target = partner.source := by
+    have fullChain := cycle.walk.toChain
+    rw [cycleSteps] at fullChain
+    have regrouped : certificate.fullGraph.EdgeChain cycle.start
+        (initial ++ (middle :: partner :: between ++
+          outgoingAtHit :: suffix)) cycle.start := by
+      simpa [List.append_assoc] using fullChain
+    rcases regrouped.split_append with
+      ⟨splitVertex, _initialChain, suffixChain⟩
+    cases suffixChain with
+    | cons _middle middleStarts middleTail =>
+        cases middleTail with
+        | cons _partner partnerStarts partnerTail =>
+            exact partnerStarts.symm
+  rcases firstIntersection_withCycle_cycle structural cycle later
+      middleMembership partnerMembership cuspMeeting cusp returnPath
+      returnNonempty returnStarts returnFinishes returnVertexSubset
+      returnEdgeSubset uniqueIntersection with
+    ⟨closed, _closedStarts, closedSteps⟩
+  let baseArc := initial ++ [middle]
+  have baseArcNonempty : baseArc ≠ [] := by simp [baseArc]
+  have returnDecomposition : returnPath.traversed =
+      (outgoingAtHit :: suffix) ++ baseArc := by
+    rw [returnSteps]
+    simp [baseArc, List.append_assoc]
+  cases baseArcEquation : baseArc with
+  | nil => exact False.elim (baseArcNonempty baseArcEquation)
+  | cons baseEdge baseAfter =>
+      have cyclePrefixEquation : cycle.traversed =
+          initial ++ middle :: partner ::
+            (between ++ outgoingAtHit :: suffix) := by
+        simpa [List.append_assoc] using cycleSteps
+      rcases cycle.prefixPath cyclePrefixEquation with
+        ⟨prefixPath, prefixStarts, _prefixFinishes, prefixSteps⟩
+      have prefixChain := prefixPath.walk.toChain
+      rw [prefixSteps] at prefixChain
+      change certificate.fullGraph.EdgeChain prefixPath.start baseArc
+        prefixPath.finish at prefixChain
+      rw [baseArcEquation] at prefixChain
+      have baseEdgeSource : baseEdge.source = cycle.start :=
+        prefixChain.head_source.trans prefixStarts
+      have closedDecomposition : closed.traversed =
+          (later.path.traversed ++ (outgoingAtHit :: suffix)) ++
+            baseEdge :: baseAfter := by
+        rw [closedSteps, returnDecomposition, baseArcEquation]
+        simp [List.append_assoc]
+      rcases closed.rotateAt_exists closedDecomposition with
+        ⟨based, basedStarts, basedSteps⟩
+      refine ⟨based, basedStarts.trans baseEdgeSource, ?_⟩
+      rw [basedSteps, ← baseArcEquation]
+      simp [baseArc, List.append_assoc]
+
 /-- The normalized later prefix and return suffix form a genuine exact-edge
 simple cycle. This is the closed graph object on which the remaining bungee
 cusp-count contradiction is carried out. -/
@@ -4279,6 +4369,71 @@ theorem bungee_exactSameBase_closingFree (certificate : Certificate)
       ((partner :: after).getLast suffixNonempty)
       (before.head beforeEmpty)).mpr closing
 
+/-- The after-cusp replacement keeps the original base prefix and final
+suffix, so its closing pair is literally the old cycle's closing pair. -/
+theorem bungee_afterCusp_exactSameBase_closingFree
+    (certificate : Certificate)
+    (cycle based : certificate.fullGraph.EdgeSimpleCycle)
+    {initial between suffix : List certificate.fullGraph.DirectedEdge}
+    {middle partner outgoingAtHit last :
+      certificate.fullGraph.DirectedEdge}
+    (later : certificate.CuspFreeContinuation middle last)
+    (cycleSteps : cycle.traversed =
+      initial ++ middle :: partner :: between ++ outgoingAtHit :: suffix)
+    (basedSteps : based.traversed =
+      (initial ++ [middle]) ++ later.path.traversed ++
+        (outgoingAtHit :: suffix))
+    (cycleClosingFree : ¬certificate.ClosingCusp cycle) :
+    ¬certificate.ClosingCusp based := by
+  let baseArc := initial ++ [middle]
+  let suffixArc := outgoingAtHit :: suffix
+  have baseArcNonempty : baseArc ≠ [] := by simp [baseArc]
+  have suffixArcNonempty : suffixArc ≠ [] := by simp [suffixArc]
+  have cycleGrouped : cycle.traversed =
+      (baseArc ++ (partner :: between)) ++ suffixArc := by
+    simpa [baseArc, suffixArc, List.append_assoc] using cycleSteps
+  have basedGrouped : based.traversed =
+      (baseArc ++ later.path.traversed) ++ suffixArc := by
+    simpa [baseArc, suffixArc, List.append_assoc] using basedSteps
+  have cycleHeadOption : cycle.traversed.head? =
+      some (baseArc.head baseArcNonempty) := by
+    rw [cycleGrouped, List.head?_append, List.head?_append,
+      List.head?_eq_some_head baseArcNonempty]
+    rfl
+  have basedHeadOption : based.traversed.head? =
+      some (baseArc.head baseArcNonempty) := by
+    rw [basedGrouped, List.head?_append, List.head?_append,
+      List.head?_eq_some_head baseArcNonempty]
+    rfl
+  have cycleLastOption : cycle.traversed.getLast? =
+      some (suffixArc.getLast suffixArcNonempty) := by
+    rw [cycleGrouped, List.getLast?_append,
+      List.getLast?_eq_some_getLast suffixArcNonempty]
+    simp
+  have basedLastOption : based.traversed.getLast? =
+      some (suffixArc.getLast suffixArcNonempty) := by
+    rw [basedGrouped, List.getLast?_append,
+      List.getLast?_eq_some_getLast suffixArcNonempty]
+    simp
+  have cycleHead : cycle.traversed.head cycle.nonempty =
+      baseArc.head baseArcNonempty :=
+    List.head_of_head?_eq_some cycleHeadOption
+  have basedHead : based.traversed.head based.nonempty =
+      baseArc.head baseArcNonempty :=
+    List.head_of_head?_eq_some basedHeadOption
+  have cycleLast : cycle.traversed.getLast cycle.nonempty =
+      suffixArc.getLast suffixArcNonempty :=
+    List.getLast_of_getLast?_eq_some cycleLastOption
+  have basedLast : based.traversed.getLast based.nonempty =
+      suffixArc.getLast suffixArcNonempty :=
+    List.getLast_of_getLast?_eq_some basedLastOption
+  intro closing
+  apply cycleClosingFree
+  unfold ClosingCusp at closing ⊢
+  rw [basedLast, basedHead] at closing
+  rw [cycleLast, cycleHead]
+  exact closing
+
 /-- Package the exact same-base first-return splice together with the free
 closing property required to invoke minimality of the original cycle. -/
 theorem bungee_firstIntersection_nonclosingSameBase
@@ -4430,6 +4585,163 @@ theorem bungee_minimal_count_constraints (certificate : Certificate)
     omega
   exact ⟨(certificate.cuspCount_eq_zero_iff removed).mp removedCountZero,
     oldIncomingBoundaryZero, newExitBoundaryOne⟩
+
+/-- Numeric core of the symmetric after-cusp replacement. Minimality forces
+the skipped post-cusp arc to be free, its exit into the old suffix to be free,
+and the later path to use the unique available cusp at that same suffix. -/
+theorem bungee_afterCusp_minimal_count_constraints
+    (certificate : Certificate)
+    (cycle based : certificate.fullGraph.EdgeSimpleCycle)
+    {initial between suffix : List certificate.fullGraph.DirectedEdge}
+    {middle partner outgoingAtHit last :
+      certificate.fullGraph.DirectedEdge}
+    (later : certificate.CuspFreeContinuation middle last)
+    (cycleSteps : cycle.traversed =
+      initial ++ middle :: partner :: between ++ outgoingAtHit :: suffix)
+    (basedSteps : based.traversed =
+      (initial ++ [middle]) ++ later.path.traversed ++
+        (outgoingAtHit :: suffix))
+    (cusp : certificate.Cusp middle partner)
+    (minimal : certificate.cuspCount cycle.traversed ≤
+      certificate.cuspCount based.traversed) :
+    certificate.CuspFreeTraversal (partner :: between) ∧
+      certificate.cuspBoundaryCount (partner :: between)
+        (outgoingAtHit :: suffix) = 0 ∧
+      certificate.cuspBoundaryCount
+        ((initial ++ [middle]) ++ later.path.traversed)
+        (outgoingAtHit :: suffix) = 1 := by
+  let baseArc := initial ++ [middle]
+  let oldArc := partner :: between
+  let suffixArc := outgoingAtHit :: suffix
+  have baseArcNonempty : baseArc ≠ [] := by simp [baseArc]
+  have oldArcNonempty : oldArc ≠ [] := by simp [oldArc]
+  have suffixArcNonempty : suffixArc ≠ [] := by simp [suffixArc]
+  have baseArcLastOption : baseArc.getLast? = some middle := by
+    rw [show baseArc = initial ++ [middle] by rfl, List.getLast?_append]
+    simp
+  have baseArcLast : baseArc.getLast baseArcNonempty = middle :=
+    List.getLast_of_getLast?_eq_some baseArcLastOption
+  have selectedBoundaryCusp : certificate.Cusp
+      (baseArc.getLast baseArcNonempty)
+      (oldArc.head oldArcNonempty) := by
+    rw [baseArcLast]
+    simpa [oldArc] using cusp
+  have selectedBoundaryOne := certificate.cuspBoundaryCount_eq_one
+    baseArcNonempty oldArcNonempty selectedBoundaryCusp
+  have replacementBoundaryFree : ¬certificate.Cusp
+      (baseArc.getLast baseArcNonempty)
+      (later.path.traversed.head later.nonempty) := by
+    rw [baseArcLast]
+    exact later.initialFree
+  have replacementBoundaryZero := certificate.cuspBoundaryCount_eq_zero
+    baseArcNonempty later.nonempty replacementBoundaryFree
+  have originalEquation : cycle.traversed =
+      (baseArc ++ oldArc) ++ suffixArc := by
+    simpa [baseArc, oldArc, suffixArc, List.append_assoc] using cycleSteps
+  have candidateEquation : based.traversed =
+      (baseArc ++ later.path.traversed) ++ suffixArc := by
+    simpa [baseArc, suffixArc, List.append_assoc] using basedSteps
+  have oldFormula : certificate.cuspCount cycle.traversed =
+      certificate.cuspCount baseArc + certificate.cuspCount oldArc + 1 +
+        certificate.cuspCount suffixArc +
+        certificate.cuspBoundaryCount (baseArc ++ oldArc) suffixArc := by
+    rw [originalEquation, certificate.cuspCount_append,
+      certificate.cuspCount_append, selectedBoundaryOne]
+  have candidateFormula : certificate.cuspCount based.traversed =
+      certificate.cuspCount baseArc +
+        certificate.cuspCount later.path.traversed + 0 +
+        certificate.cuspCount suffixArc +
+        certificate.cuspBoundaryCount
+          (baseArc ++ later.path.traversed) suffixArc := by
+    rw [candidateEquation, certificate.cuspCount_append,
+      certificate.cuspCount_append, replacementBoundaryZero]
+  have laterCountZero := certificate.cuspCount_eq_zero_of_free later.cuspFree
+  have newBoundaryBound := certificate.cuspBoundaryCount_le_one
+    (baseArc ++ later.path.traversed) suffixArc
+  have normalizedMinimal := minimal
+  rw [oldFormula, candidateFormula, laterCountZero] at normalizedMinimal
+  have oldArcCountZero : certificate.cuspCount oldArc = 0 := by omega
+  have oldExitBoundaryZero :
+      certificate.cuspBoundaryCount (baseArc ++ oldArc) suffixArc = 0 := by
+    omega
+  have newExitBoundaryOne : certificate.cuspBoundaryCount
+      (baseArc ++ later.path.traversed) suffixArc = 1 := by
+    omega
+  have oldArcExitBoundaryZero : certificate.cuspBoundaryCount
+      oldArc suffixArc = 0 := by
+    have baseOldNonempty : baseArc ++ oldArc ≠ [] := by
+      simp [baseArcNonempty]
+    have sameLast : (baseArc ++ oldArc).getLast baseOldNonempty =
+        oldArc.getLast oldArcNonempty :=
+      List.getLast_append_of_ne_nil baseOldNonempty oldArcNonempty
+    have combinedFree :=
+      (certificate.cuspBoundaryCount_eq_zero_iff
+        baseOldNonempty suffixArcNonempty).mp oldExitBoundaryZero
+    have oldFree : ¬certificate.Cusp (oldArc.getLast oldArcNonempty)
+        (suffixArc.head suffixArcNonempty) := by
+      rw [← sameLast]
+      exact combinedFree
+    exact certificate.cuspBoundaryCount_eq_zero oldArcNonempty
+      suffixArcNonempty oldFree
+  exact ⟨(certificate.cuspCount_eq_zero_iff oldArc).mp oldArcCountZero,
+    oldArcExitBoundaryZero, newExitBoundaryOne⟩
+
+/-- Boundary-color consequence of the symmetric minimality comparison: the
+later path joins the reverse of the skipped old arc without a cusp. -/
+theorem bungee_afterCusp_joinFree_of_minimal
+    (certificate : Certificate)
+    (cycle based : certificate.fullGraph.EdgeSimpleCycle)
+    {initial between suffix : List certificate.fullGraph.DirectedEdge}
+    {middle partner outgoingAtHit last :
+      certificate.fullGraph.DirectedEdge}
+    (later : certificate.CuspFreeContinuation middle last)
+    (cycleSteps : cycle.traversed =
+      initial ++ middle :: partner :: between ++ outgoingAtHit :: suffix)
+    (basedSteps : based.traversed =
+      (initial ++ [middle]) ++ later.path.traversed ++
+        (outgoingAtHit :: suffix))
+    (cusp : certificate.Cusp middle partner)
+    (minimal : certificate.cuspCount cycle.traversed ≤
+      certificate.cuspCount based.traversed) :
+    ¬certificate.Cusp last
+      ((partner :: between).getLast (by simp)).reverse := by
+  rcases certificate.bungee_afterCusp_minimal_count_constraints cycle based
+      later cycleSteps basedSteps cusp minimal with
+    ⟨_oldArcFree, oldExitZero, newExitOne⟩
+  let oldArc := partner :: between
+  let suffixArc := outgoingAtHit :: suffix
+  let baseLater := (initial ++ [middle]) ++ later.path.traversed
+  have oldArcNonempty : oldArc ≠ [] := by simp [oldArc]
+  have suffixArcNonempty : suffixArc ≠ [] := by simp [suffixArc]
+  have baseLaterNonempty : baseLater ≠ [] := by simp [baseLater]
+  have oldExitFree :=
+    (certificate.cuspBoundaryCount_eq_zero_iff
+      oldArcNonempty suffixArcNonempty).mp oldExitZero
+  have newExitCusp :=
+    (certificate.cuspBoundaryCount_eq_one_iff
+      baseLaterNonempty suffixArcNonempty).mp newExitOne
+  have baseLaterLastOption : baseLater.getLast? = some last := by
+    change ((initial ++ [middle]) ++ later.path.traversed).getLast? =
+      some last
+    rw [List.getLast?_append,
+      List.getLast?_eq_some_getLast later.nonempty, later.lastEdge]
+    rfl
+  have baseLaterLast : baseLater.getLast baseLaterNonempty = last :=
+    List.getLast_of_getLast?_eq_some baseLaterLastOption
+  have suffixArcHead : suffixArc.head suffixArcNonempty = outgoingAtHit := by
+    simp [suffixArc]
+  have newExitCuspExact : certificate.Cusp last outgoingAtHit := by
+    rw [← baseLaterLast, ← suffixArcHead]
+    exact newExitCusp
+  have oldExitFreeExact : ¬certificate.Cusp
+      (oldArc.getLast oldArcNonempty) outgoingAtHit := by
+    rw [← suffixArcHead]
+    exact oldExitFree
+  intro badJoin
+  apply oldExitFreeExact
+  unfold Cusp at newExitCuspExact badJoin ⊢
+  rw [Graph.DirectedEdge.reverse_reverse] at badJoin
+  exact badJoin.symm.trans newExitCuspExact
 
 /-- Minimality of the old non-closing cycle forces the whole removed arc from
 the first hit through the chosen incoming cusp edge to be internally
@@ -5283,6 +5595,167 @@ theorem CuspAcyclic.no_minimal_bungee_firstIntersection
   · exact acyclic.no_minimal_bungee_firstIntersection_nonempty certificate
       structural cycle cycleSteps cusp later hit uniqueIntersection
       cycleClosingFree minimal beforeEmpty
+
+/-- Symmetric bungee contradiction when the first cycle intersection lies
+after the selected cusp. -/
+theorem CuspAcyclic.no_minimal_bungee_afterCusp
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    (structural : certificate.StructurallyWellFormed)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle)
+    {initial between suffix : List certificate.fullGraph.DirectedEdge}
+    {middle partner outgoingAtHit last :
+      certificate.fullGraph.DirectedEdge}
+    (cycleSteps : cycle.traversed =
+      initial ++ middle :: partner :: between ++ outgoingAtHit :: suffix)
+    (cusp : certificate.Cusp middle partner)
+    (later : certificate.CuspFreeContinuation middle last)
+    (hit : last.target = outgoingAtHit.source)
+    (uniqueIntersection : ∀ vertex,
+      vertex ∈ later.path.vertices.tail →
+      vertex ∈ cycle.vertices → vertex = last.target)
+    (cycleClosingFree : ¬certificate.ClosingCusp cycle)
+    (minimal : ∀ other : certificate.fullGraph.EdgeSimpleCycle,
+      other.start = cycle.start → ¬certificate.ClosingCusp other →
+      certificate.cuspCount cycle.traversed ≤
+        certificate.cuspCount other.traversed) : False := by
+  rcases CuspFreeContinuation.bungee_afterCusp_exactSameBaseCycle
+      structural cycle cycleSteps cusp later hit uniqueIntersection with
+    ⟨based, basedStarts, basedSteps⟩
+  have basedClosingFree :=
+    certificate.bungee_afterCusp_exactSameBase_closingFree cycle based later
+      cycleSteps basedSteps cycleClosingFree
+  have minimalBound := minimal based basedStarts basedClosingFree
+  rcases certificate.bungee_afterCusp_minimal_count_constraints cycle based
+      later cycleSteps basedSteps cusp minimalBound with
+    ⟨oldArcFree, _oldExitFree, _newExitCusp⟩
+  have joinFree := certificate.bungee_afterCusp_joinFree_of_minimal
+    cycle based later cycleSteps basedSteps cusp minimalBound
+  rcases cycle.segmentBeforeAfterCuspHit cycleSteps with
+    ⟨oldPath, oldStarts, oldFinishes, oldSteps, oldVertexSubset,
+      oldEdgeSubset⟩
+  let returnPath := oldPath.reverse
+  have oldNonempty : oldPath.traversed ≠ [] := by
+    simp [oldSteps]
+  have oldArcNonempty : partner :: between ≠ [] := by simp
+  have oldLastOption : oldPath.traversed.getLast? =
+      some ((partner :: between).getLast oldArcNonempty) := by
+    rw [oldSteps, List.getLast?_eq_some_getLast oldArcNonempty]
+  have oldLast : oldPath.traversed.getLast oldNonempty =
+      (partner :: between).getLast oldArcNonempty :=
+    List.getLast_of_getLast?_eq_some oldLastOption
+  have oldHeadOption : oldPath.traversed.head? = some partner := by
+    rw [oldSteps]
+    simp
+  have oldHead : oldPath.traversed.head oldNonempty = partner :=
+    List.head_of_head?_eq_some oldHeadOption
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    simp [returnPath, Graph.EdgeSimplePath.reverse,
+      Graph.EdgeWalk.reverseTraversal, oldNonempty]
+  have cuspMeeting : middle.target = partner.source := by
+    have fullChain := cycle.walk.toChain
+    rw [cycleSteps] at fullChain
+    have regrouped : certificate.fullGraph.EdgeChain cycle.start
+        (initial ++ (middle :: partner :: between ++
+          outgoingAtHit :: suffix)) cycle.start := by
+      simpa [List.append_assoc] using fullChain
+    rcases regrouped.split_append with
+      ⟨splitVertex, _initialChain, suffixChain⟩
+    cases suffixChain with
+    | cons _middle middleStarts middleTail =>
+        cases middleTail with
+        | cons _partner partnerStarts partnerTail =>
+            exact partnerStarts.symm
+  have returnStarts : returnPath.start = last.target := by
+    change oldPath.finish = last.target
+    exact oldFinishes.trans hit.symm
+  have returnFinishes : returnPath.finish = later.path.start := by
+    change oldPath.start = later.path.start
+    exact oldStarts.trans (cuspMeeting.symm.trans later.startsAt.symm)
+  have returnVertexSubset : ∀ vertex,
+      vertex ∈ returnPath.vertices → vertex ∈ cycle.vertices := by
+    intro vertex membership
+    apply oldVertexSubset vertex
+    simpa [returnPath] using membership
+  have returnEdgeSubset : ∀ index,
+      index ∈ returnPath.traversed.map Graph.DirectedEdge.index →
+      index ∈ cycle.traversed.map Graph.DirectedEdge.index := by
+    intro index membership
+    apply oldEdgeSubset index
+    simpa [returnPath, Graph.EdgeSimplePath.reverse,
+      Graph.EdgeWalk.reverseTraversal, List.map_map, Function.comp_def] using
+      membership
+  have middleMembership : middle ∈ cycle.traversed := by
+    rw [cycleSteps]
+    simp
+  have partnerMembership : partner ∈ cycle.traversed := by
+    rw [cycleSteps]
+    simp
+  rcases CuspFreeContinuation.firstIntersection_withCycle_cycle structural
+      cycle later middleMembership partnerMembership cuspMeeting cusp
+      returnPath returnNonempty returnStarts returnFinishes returnVertexSubset
+      returnEdgeSubset uniqueIntersection with
+    ⟨closed, _closedStarts, closedSteps⟩
+  have oldTraversalFree : certificate.CuspFreeTraversal oldPath.traversed := by
+    rw [oldSteps]
+    exact oldArcFree
+  have returnTraversalFree : certificate.CuspFreeTraversal
+      returnPath.traversed := by
+    change certificate.CuspFreeTraversal
+      (Graph.EdgeWalk.reverseTraversal oldPath.traversed)
+    exact (certificate.cuspFreeTraversal_reverse_iff oldPath.traversed).2
+      oldTraversalFree
+  have returnHead : returnPath.traversed.head returnNonempty =
+      ((partner :: between).getLast (by simp)).reverse := by
+    change (Graph.EdgeWalk.reverseTraversal oldPath.traversed).head _ = _
+    calc
+      (Graph.EdgeWalk.reverseTraversal oldPath.traversed).head _ =
+          (oldPath.traversed.getLast oldNonempty).reverse :=
+        Graph.EdgeWalk.head_reverseTraversal oldPath.traversed oldNonempty
+      _ = ((partner :: between).getLast oldArcNonempty).reverse :=
+        congrArg Graph.DirectedEdge.reverse oldLast
+  have listJoinFree : ¬certificate.Cusp
+      (later.path.traversed.getLast later.nonempty)
+      (returnPath.traversed.head returnNonempty) := by
+    rw [later.lastEdge, returnHead]
+    exact joinFree
+  have closedTraversalFree : certificate.CuspFreeTraversal
+      closed.traversed := by
+    rw [closedSteps]
+    exact CuspFreeTraversal.append certificate later.cuspFree
+      returnTraversalFree later.nonempty returnNonempty listJoinFree
+  have returnLast : returnPath.traversed.getLast returnNonempty =
+      partner.reverse := by
+    change (Graph.EdgeWalk.reverseTraversal oldPath.traversed).getLast _ = _
+    calc
+      (Graph.EdgeWalk.reverseTraversal oldPath.traversed).getLast _ =
+          (oldPath.traversed.head oldNonempty).reverse :=
+        Graph.EdgeWalk.getLast_reverseTraversal oldPath.traversed oldNonempty
+      _ = partner.reverse := congrArg Graph.DirectedEdge.reverse oldHead
+  have closedLastOption : closed.traversed.getLast? = some partner.reverse := by
+    rw [closedSteps, List.getLast?_append,
+      List.getLast?_eq_some_getLast returnNonempty, returnLast]
+    rfl
+  have closedLast : closed.traversed.getLast closed.nonempty =
+      partner.reverse :=
+    List.getLast_of_getLast?_eq_some closedLastOption
+  have closedHeadOption : closed.traversed.head? =
+      some (later.path.traversed.head later.nonempty) := by
+    rw [closedSteps, List.head?_append,
+      List.head?_eq_some_head later.nonempty]
+    rfl
+  have closedHead : closed.traversed.head closed.nonempty =
+      later.path.traversed.head later.nonempty :=
+    List.head_of_head?_eq_some closedHeadOption
+  have closedClosingFree : ¬certificate.ClosingCusp closed := by
+    intro closing
+    unfold ClosingCusp at closing
+    rw [closedLast, closedHead] at closing
+    apply later.initialFree
+    unfold Cusp at cusp closing ⊢
+    exact cusp.trans closing
+  have closedFree := (certificate.cuspFreeCycle_iff closed).2
+    ⟨closedTraversalFree, closedClosingFree⟩
+  exact acyclic closed closedFree
 
 /-- In the simple cycle produced by first-intersection normalization, the
 transition from the later prefix into the old return suffix must be a cusp.
