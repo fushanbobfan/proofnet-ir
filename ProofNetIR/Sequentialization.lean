@@ -177,6 +177,36 @@ private theorem exists_least_nat (property : Nat → Prop)
   rcases existsProperty with ⟨bound, propertyBound⟩
   exact exists_least_nat_up_to property bound ⟨bound, by omega, propertyBound⟩
 
+private theorem exists_maximal_measure {α : Type}
+    (head : α) (tail : List α) (measure : α → Nat) :
+    ∃ maximal ∈ head :: tail,
+      ∀ value ∈ head :: tail, measure value ≤ measure maximal := by
+  induction tail generalizing head with
+  | nil =>
+      refine ⟨head, by simp, ?_⟩
+      intro value membership
+      simp at membership
+      subst value
+      exact Nat.le_refl _
+  | cons second rest ih =>
+      rcases ih second with ⟨maximal, maximalMembership, maximalBound⟩
+      by_cases headBound : measure head ≤ measure maximal
+      · refine ⟨maximal, by simp [maximalMembership], ?_⟩
+        intro value membership
+        simp at membership
+        rcases membership with rfl | tailMembership
+        · exact headBound
+        · exact maximalBound value (by simpa using tailMembership)
+      · have maximalBelowHead : measure maximal ≤ measure head := by omega
+        refine ⟨head, by simp, ?_⟩
+        intro value membership
+        simp at membership
+        rcases membership with rfl | tailMembership
+        · exact Nat.le_refl _
+        · exact Nat.le_trans
+            (maximalBound value (by simpa using tailMembership))
+            maximalBelowHead
+
 private theorem length_filter_filterMap_eq {α β : Type}
     (values : List α) (transform : α → Option β)
     (after : β → Bool) (before : α → Bool)
@@ -2473,6 +2503,67 @@ theorem restrictTo?_fixedEdges_of_tensor_partition
             simp [Link.restrictTo?, emitFixed,
               firstEquation, secondEquation, resultEquation, tailEquality]
 
+def formulaComplexityAt (certificate : Certificate) (vertex : Vertex) : Nat :=
+  (certificate.formula? vertex).map Formula.complexity |>.getD 0
+
+def linkConclusionComplexity (certificate : Certificate) : Link → Nat
+  | .axiom _ _ => 0
+  | .tensor _ _ conclusion => certificate.formulaComplexityAt conclusion
+  | .par _ _ conclusion => certificate.formulaComplexityAt conclusion
+
+theorem LinkWellFormed.premise_complexity_lt_conclusion
+    {certificate : Certificate} {link : Link} {premise : Vertex}
+    (wellFormed : certificate.LinkWellFormed link)
+    (membership : premise ∈ link.premises) :
+    certificate.formulaComplexityAt premise <
+      certificate.linkConclusionComplexity link := by
+  cases link with
+  | «axiom» left right => simp [Link.premises] at membership
+  | tensor left right conclusion =>
+      rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+      cases leftEquation : certificate.formula? left with
+      | none => simp [leftEquation] at typing
+      | some leftFormula =>
+          cases rightEquation : certificate.formula? right with
+          | none => simp [leftEquation, rightEquation] at typing
+          | some rightFormula =>
+              cases conclusionEquation : certificate.formula? conclusion with
+              | none =>
+                  simp [leftEquation, rightEquation, conclusionEquation] at typing
+              | some conclusionFormula =>
+                  simp [leftEquation, rightEquation, conclusionEquation] at typing
+                  subst conclusionFormula
+                  simp [Link.premises] at membership
+                  rcases membership with rfl | rfl
+                  · simpa [formulaComplexityAt, linkConclusionComplexity,
+                      leftEquation, conclusionEquation] using
+                      Formula.complexity_lt_tensor_left leftFormula rightFormula
+                  · simpa [formulaComplexityAt, linkConclusionComplexity,
+                      rightEquation, conclusionEquation] using
+                      Formula.complexity_lt_tensor_right leftFormula rightFormula
+  | par left right conclusion =>
+      rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+      cases leftEquation : certificate.formula? left with
+      | none => simp [leftEquation] at typing
+      | some leftFormula =>
+          cases rightEquation : certificate.formula? right with
+          | none => simp [leftEquation, rightEquation] at typing
+          | some rightFormula =>
+              cases conclusionEquation : certificate.formula? conclusion with
+              | none =>
+                  simp [leftEquation, rightEquation, conclusionEquation] at typing
+              | some conclusionFormula =>
+                  simp [leftEquation, rightEquation, conclusionEquation] at typing
+                  subst conclusionFormula
+                  simp [Link.premises] at membership
+                  rcases membership with rfl | rfl
+                  · simpa [formulaComplexityAt, linkConclusionComplexity,
+                      leftEquation, conclusionEquation] using
+                      Formula.complexity_lt_par_left leftFormula rightFormula
+                  · simpa [formulaComplexityAt, linkConclusionComplexity,
+                      rightEquation, conclusionEquation] using
+                      Formula.complexity_lt_par_right leftFormula rightFormula
+
 /-- A par link is terminal when its conclusion occurrence is on the ordered
 public boundary. Such a link is the unary inverse-rule case of
 sequentialization. -/
@@ -2496,6 +2587,100 @@ def SplittingTensor (certificate : Certificate)
     (left right conclusion : Vertex) : Prop :=
   certificate.TerminalTensor left right conclusion ∧
     ¬(certificate.fullGraphWithoutVertex conclusion).Walk left right
+
+/-- Every structurally well-formed certificate containing a multiplicative
+link has a terminal multiplicative link. Choose a connective conclusion of
+maximal formula complexity; if it had a parent, local typing would give a
+strictly more complex connective conclusion, contradicting maximality. -/
+theorem terminalConnective_exists
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (connectiveExists : ∃ link ∈ certificate.links,
+      link.isConnective = true) :
+    ∃ left right conclusion,
+      certificate.TerminalPar left right conclusion ∨
+      certificate.TerminalTensor left right conclusion := by
+  let connectiveLinks := certificate.links.filter Link.isConnective
+  have connectiveNonempty : connectiveLinks ≠ [] := by
+    intro empty
+    rcases connectiveExists with ⟨link, linkMembership, connective⟩
+    have filteredMembership : link ∈ connectiveLinks :=
+      List.mem_filter.mpr ⟨linkMembership, connective⟩
+    rw [empty] at filteredMembership
+    simp at filteredMembership
+  cases listEquation : connectiveLinks with
+  | nil => exact False.elim (connectiveNonempty listEquation)
+  | cons head tail =>
+      rcases exists_maximal_measure head tail
+          certificate.linkConclusionComplexity with
+        ⟨maximal, maximalMembership, maximalBound⟩
+      have maximalFiltered : maximal ∈ connectiveLinks := by
+        rw [listEquation]
+        exact maximalMembership
+      have maximalData := List.mem_filter.mp maximalFiltered
+      have maximalBoundary : ∀ left right conclusion,
+          maximal = .tensor left right conclusion ∨
+            maximal = .par left right conclusion →
+          conclusion ∈ certificate.conclusions := by
+        intro left right conclusion connectiveShape
+        have maximalWellFormed := structural.2.2.2.2.1 maximal maximalData.1
+        have conclusionInBounds : conclusion < certificate.formulas.size := by
+          rcases connectiveShape with tensorShape | parShape
+          · subst maximal
+            exact maximalWellFormed.2.2.2.2.2.1
+          · subst maximal
+            exact maximalWellFormed.2.2.2.2.2.1
+        by_cases boundary : conclusion ∈ certificate.conclusions
+        · exact boundary
+        · have notBoundary := boundary
+          have conclusionNode :=
+            structural.2.2.2.2.2 conclusion conclusionInBounds
+          have parentCount : certificate.parentUseCount conclusion = 1 := by
+            simpa [Certificate.NodeWellFormed, notBoundary] using conclusionNode.2
+          unfold parentUseCount at parentCount
+          rcases List.length_eq_one_iff.mp parentCount with
+            ⟨parent, parentFilterEquation⟩
+          have parentFiltered : parent ∈ certificate.links.filter
+              (fun link => link.usesAsPremise conclusion) := by
+            rw [parentFilterEquation]
+            simp
+          rcases List.mem_filter.mp parentFiltered with
+            ⟨parentMembership, parentUses⟩
+          have premiseMembership : conclusion ∈ parent.premises := by
+            simpa [Link.usesAsPremise] using parentUses
+          have parentConnective : parent.isConnective = true := by
+            cases parent with
+            | «axiom» first second => simp [Link.premises] at premiseMembership
+            | tensor first second result => rfl
+            | par first second result => rfl
+          have parentInConnectives : parent ∈ connectiveLinks :=
+            List.mem_filter.mpr ⟨parentMembership, parentConnective⟩
+          have parentInMaximalList : parent ∈ head :: tail := by
+            rw [← listEquation]
+            exact parentInConnectives
+          have parentUpper := maximalBound parent parentInMaximalList
+          have parentWellFormed := structural.2.2.2.2.1 parent parentMembership
+          have strictGrowth :=
+            parentWellFormed.premise_complexity_lt_conclusion premiseMembership
+          rcases connectiveShape with tensorShape | parShape
+          · subst maximal
+            change certificate.linkConclusionComplexity parent ≤
+              certificate.formulaComplexityAt conclusion at parentUpper
+            omega
+          · subst maximal
+            change certificate.linkConclusionComplexity parent ≤
+              certificate.formulaComplexityAt conclusion at parentUpper
+            omega
+      cases maximal with
+      | «axiom» first second => simp [Link.isConnective] at maximalData
+      | tensor left right conclusion =>
+          exact ⟨left, right, conclusion, Or.inr
+            ⟨maximalData.1,
+              maximalBoundary left right conclusion (Or.inl rfl)⟩⟩
+      | par left right conclusion =>
+          exact ⟨left, right, conclusion, Or.inl
+            ⟨maximalData.1,
+              maximalBoundary left right conclusion (Or.inr rfl)⟩⟩
 
 theorem LinkWellFormed.par_conclusionFormula
     {certificate : Certificate} {left right conclusion : Vertex}

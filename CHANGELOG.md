@@ -43,6 +43,9 @@
   vertex/edge partitions, and full `IsTree` preservation for both induced
   components; added `TerminalTensorReduction`, declarative/checker preservation,
   and total checker-gated splitting for every accepted splitting input.
+- added formula-complexity ranks and proved that every structurally well-formed
+  certificate containing a tensor/par link has a terminal connective link;
+  the global existence of a splitting tensor remains separate.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

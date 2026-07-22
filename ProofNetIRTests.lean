@@ -239,6 +239,14 @@ example : canonicalParPremise.SplittingTensor 0 2 4 := by
       (by native_decide))).mpr
   native_decide
 
+example : ∃ left right conclusion,
+    canonicalParPremise.TerminalPar left right conclusion ∨
+      canonicalParPremise.TerminalTensor left right conclusion := by
+  apply Certificate.terminalConnective_exists
+    (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+  exact ⟨.tensor 0 2 4, by native_decide, rfl⟩
+
 example : ∃ leftCertificate rightCertificate,
     canonicalParPremise.splitTerminalTensorCandidate? 0 2 4 =
       some (leftCertificate, rightCertificate) :=

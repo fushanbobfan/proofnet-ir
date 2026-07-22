@@ -35,6 +35,11 @@ def containsAxiomEndpoint (vertex : Vertex) : Link → Bool
 def usesAsPremise (vertex : Vertex) (link : Link) : Bool :=
   link.premises.contains vertex
 
+def isConnective : Link → Bool
+  | .axiom _ _ => false
+  | .tensor _ _ _ => true
+  | .par _ _ _ => true
+
 end Link
 
 /-- A cut-free proof-net certificate over an explicit formula-occurrence array. -/

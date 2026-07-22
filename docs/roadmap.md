@@ -101,6 +101,10 @@
   edge-count equation and derive full checker/declarative correctness,
   including totality of the checker-gated split on accepted inputs.
 - [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor.
+  The finite-rank sublemma that every structurally well-formed net containing a
+  connective has some terminal tensor or par is now complete; the remaining
+  case is the global splitting lemma for terminal tensors when no terminal par
+  exists.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all
   preserved under vertex compaction.
