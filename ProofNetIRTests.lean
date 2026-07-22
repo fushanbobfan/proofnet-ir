@@ -194,6 +194,38 @@ def canonicalParRightIn : canonical.fullGraph.DirectedEdge where
   lookup := rfl
   forward := true
 
+theorem canonicalFullLeftSelection :
+    Certificate.FullSwitchingSelection canonical.links
+    [{ first := 1, second := 5 }]
+    [{ first := 0, second := 1 },
+     { first := 2, second := 3 },
+     { first := 0, second := 4 },
+     { first := 2, second := 4 },
+     { first := 1, second := 5 }]
+    [true, true, true, true, true, false] :=
+  .axiom (.axiom (.tensor (.parLeft .nil)))
+
+example : Certificate.ChoiceSelection canonical.parChoices
+    [{ first := 1, second := 5 }] :=
+  canonicalFullLeftSelection.choiceSelection
+example : Certificate.retainByMask canonical.fullEdges
+    [true, true, true, true, true, false] =
+      [{ first := 0, second := 1 },
+       { first := 2, second := 3 },
+       { first := 0, second := 4 },
+       { first := 2, second := 4 },
+       { first := 1, second := 5 }] := by native_decide
+example : [true, true, true, true, true, false].length =
+    canonical.fullEdges.length := by
+  simpa using canonicalFullLeftSelection.mask_length
+example : ∃ retained mask,
+    Certificate.FullSwitchingSelection canonical.links
+      [{ first := 1, second := 5 }] retained mask ∧
+      retained.Perm
+        (canonical.graphForSelection [{ first := 1, second := 5 }]).edges :=
+  canonical.occurrenceSwitching_exists
+    canonicalFullLeftSelection.choiceSelection
+
 example : canonical.fullEdgeParTargets =
     [none, none, none, none, some 5, some 5] := by native_decide
 example : canonical.fullEdgeAnnotations.map Prod.fst = canonical.fullEdges :=

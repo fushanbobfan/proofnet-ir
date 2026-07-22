@@ -54,6 +54,9 @@
   local switching-incidence colors, cusp semantics, and reversal invariance;
   proved that every stored par link yields two exact indexed incidences aimed
   at its conclusion with the shared par color.
+- added a full-occurrence switching mask relation, proved it equivalent to the
+  independent one-edge-per-par `ChoiceSelection`, and proved its retained
+  multiset is exactly the checker switching graph up to edge-list order.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

@@ -1737,6 +1737,189 @@ def fullEdges (certificate : Certificate) : List Edge :=
         [{ first := left, second := conclusion },
          { first := right, second := conclusion }]
 
+/-- Par choices computed directly from a link list. This is definitionally the
+same projection used by `Certificate.parChoices`, but makes structural
+induction over links explicit. -/
+def linkParChoices (links : List Link) : List (Edge × Edge) :=
+  links.filterMap fun
+    | .par left right conclusion =>
+        some ({ first := left, second := conclusion },
+          { first := right, second := conclusion })
+    | _ => none
+
+/-- Fixed switching edges computed directly from a link list. -/
+def linkFixedEdges (links : List Link) : List Edge :=
+  links.flatMap fun
+    | .axiom left right => [{ first := left, second := right }]
+    | .tensor left right conclusion =>
+        [{ first := left, second := conclusion },
+         { first := right, second := conclusion }]
+    | .par _ _ _ => []
+
+/-- All occurrence edges computed directly from a link list. -/
+def linkFullEdges (links : List Link) : List Edge :=
+  links.flatMap fun
+    | .axiom left right => [{ first := left, second := right }]
+    | .tensor left right conclusion =>
+        [{ first := left, second := conclusion },
+         { first := right, second := conclusion }]
+    | .par left right conclusion =>
+        [{ first := left, second := conclusion },
+         { first := right, second := conclusion }]
+
+@[simp] theorem linkParChoices_certificate (certificate : Certificate) :
+    linkParChoices certificate.links = certificate.parChoices := rfl
+
+@[simp] theorem linkFixedEdges_certificate (certificate : Certificate) :
+    linkFixedEdges certificate.links = certificate.fixedEdges := rfl
+
+@[simp] theorem linkFullEdges_certificate (certificate : Certificate) :
+    linkFullEdges certificate.links = certificate.fullEdges := rfl
+
+/-- Keep exactly those edge occurrences whose parallel Boolean mask entry is
+true. Mismatched tails are rejected by truncation; `FullSwitchingSelection`
+proves exact length alignment for all masks it constructs. -/
+def retainByMask : List Edge → List Bool → List Edge
+  | edge :: edges, keep :: mask =>
+      if keep then edge :: retainByMask edges mask
+      else retainByMask edges mask
+  | _, _ => []
+
+/-- An occurrence-order realization of a switching. It walks the stored link
+list once, retains every axiom/tensor edge, and retains exactly one indexed
+position from each par pair while separately recording the ordinary selected
+par-edge list. -/
+inductive FullSwitchingSelection :
+    List Link → List Edge → List Edge → List Bool → Prop where
+  | nil : FullSwitchingSelection [] [] [] []
+  | axiom {links selected retained mask left right}
+      (prior : FullSwitchingSelection links selected retained mask) :
+      FullSwitchingSelection (.axiom left right :: links) selected
+        ({ first := left, second := right } :: retained) (true :: mask)
+  | tensor {links selected retained mask left right conclusion}
+      (prior : FullSwitchingSelection links selected retained mask) :
+      FullSwitchingSelection (.tensor left right conclusion :: links) selected
+        ({ first := left, second := conclusion } ::
+          { first := right, second := conclusion } :: retained)
+        (true :: true :: mask)
+  | parLeft {links selected retained mask left right conclusion}
+      (prior : FullSwitchingSelection links selected retained mask) :
+      FullSwitchingSelection (.par left right conclusion :: links)
+        ({ first := left, second := conclusion } :: selected)
+        ({ first := left, second := conclusion } :: retained)
+        (true :: false :: mask)
+  | parRight {links selected retained mask left right conclusion}
+      (prior : FullSwitchingSelection links selected retained mask) :
+      FullSwitchingSelection (.par left right conclusion :: links)
+        ({ first := right, second := conclusion } :: selected)
+        ({ first := right, second := conclusion } :: retained)
+        (false :: true :: mask)
+
+namespace FullSwitchingSelection
+
+theorem choiceSelection {links : List Link} {selected retained : List Edge}
+    {mask : List Bool}
+    (selection : FullSwitchingSelection links selected retained mask) :
+    ChoiceSelection (linkParChoices links) selected := by
+  induction selection with
+  | nil => exact .nil
+  | «axiom» prior ih => simpa [linkParChoices] using ih
+  | tensor prior ih => simpa [linkParChoices] using ih
+  | parLeft prior ih => simpa [linkParChoices] using ChoiceSelection.left ih
+  | parRight prior ih => simpa [linkParChoices] using ChoiceSelection.right ih
+
+theorem edgePermutation {links : List Link} {selected retained : List Edge}
+    {mask : List Bool}
+    (selection : FullSwitchingSelection links selected retained mask) :
+    retained.Perm (linkFixedEdges links ++ selected) := by
+  induction selection with
+  | nil => exact .nil
+  | @«axiom» links selected retained mask left right prior ih =>
+      simpa [linkFixedEdges] using
+        ih.cons ({ first := left, second := right } : Edge)
+  | @tensor links selected retained mask left right conclusion prior ih =>
+      simpa [linkFixedEdges] using
+        (ih.cons ({ first := right, second := conclusion } : Edge)).cons
+          ({ first := left, second := conclusion } : Edge)
+  | @parLeft links selected retained mask left right conclusion prior ih =>
+      exact (ih.cons ({ first := left, second := conclusion } : Edge)).trans
+        (List.perm_middle.symm)
+  | @parRight links selected retained mask left right conclusion prior ih =>
+      exact (ih.cons ({ first := right, second := conclusion } : Edge)).trans
+        (List.perm_middle.symm)
+
+theorem mask_length {links : List Link} {selected retained : List Edge}
+    {mask : List Bool}
+    (selection : FullSwitchingSelection links selected retained mask) :
+    mask.length = (linkFullEdges links).length := by
+  induction selection with
+  | nil => rfl
+  | «axiom» prior ih => simp [linkFullEdges, ih]
+  | tensor prior ih => simp [linkFullEdges, ih]
+  | parLeft prior ih => simp [linkFullEdges, ih]
+  | parRight prior ih => simp [linkFullEdges, ih]
+
+theorem retained_eq_retainByMask {links : List Link}
+    {selected retained : List Edge} {mask : List Bool}
+    (selection : FullSwitchingSelection links selected retained mask) :
+    retained = retainByMask (linkFullEdges links) mask := by
+  induction selection with
+  | nil => rfl
+  | «axiom» prior ih => simp [linkFullEdges, retainByMask, ih]
+  | tensor prior ih => simp [linkFullEdges, retainByMask, ih]
+  | parLeft prior ih => simp [linkFullEdges, retainByMask, ih]
+  | parRight prior ih => simp [linkFullEdges, retainByMask, ih]
+
+end FullSwitchingSelection
+
+theorem fullSwitchingSelection_exists {links : List Link}
+    {selected : List Edge}
+    (selection : ChoiceSelection (linkParChoices links) selected) :
+    ∃ retained mask, FullSwitchingSelection links selected retained mask := by
+  induction links generalizing selected with
+  | nil =>
+      cases selection
+      exact ⟨[], [], .nil⟩
+  | cons link rest ih =>
+      cases link with
+      | «axiom» left right =>
+          change ChoiceSelection (linkParChoices rest) selected at selection
+          rcases ih selection with ⟨retained, mask, realized⟩
+          exact ⟨_, _, .axiom realized⟩
+      | tensor left right conclusion =>
+          change ChoiceSelection (linkParChoices rest) selected at selection
+          rcases ih selection with ⟨retained, mask, realized⟩
+          exact ⟨_, _, .tensor realized⟩
+      | par left right conclusion =>
+          change ChoiceSelection
+            (({ first := left, second := conclusion },
+              { first := right, second := conclusion }) ::
+                linkParChoices rest) selected at selection
+          cases selection with
+          | left prior =>
+              rcases ih prior with ⟨retained, mask, realized⟩
+              exact ⟨_, _, .parLeft realized⟩
+          | right prior =>
+              rcases ih prior with ⟨retained, mask, realized⟩
+              exact ⟨_, _, .parRight realized⟩
+
+/-- Every independent checker switching has an occurrence-order realization;
+its retained edge list differs from the actual checker graph only by storage
+order, not by multiplicity or edge identity. -/
+theorem occurrenceSwitching_exists (certificate : Certificate)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    ∃ retained mask,
+      FullSwitchingSelection certificate.links selected retained mask ∧
+        retained.Perm (certificate.graphForSelection selected).edges := by
+  have linkSelection : ChoiceSelection
+      (linkParChoices certificate.links) selected := by
+    simpa using selection
+  rcases fullSwitchingSelection_exists linkSelection with
+    ⟨retained, mask, realized⟩
+  refine ⟨retained, mask, realized, ?_⟩
+  simpa [graphForSelection] using realized.edgePermutation
+
 /-- The unswitched occurrence multigraph. Its stored edge order is part of the
 internal incidence identity used by the colored-path layer. -/
 def fullGraph (certificate : Certificate) : Graph where

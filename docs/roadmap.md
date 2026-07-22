@@ -105,8 +105,10 @@
   connective has some terminal tensor or par is now complete; the remaining
   case is the global splitting lemma for terminal tensors when no terminal par
   exists. Its edge-aware multigraph paths/simple cycles and exact local
-  switching colors/cusps are now formalized; the correctness-to-cusp-acyclic
-  bridge and generalized-Yeo theorem remain, as specified in
+  switching colors/cusps are now formalized, and every independent checker
+  switching has a proved exact full-edge mask realization; the remaining
+  cycle-containment/tree-acyclic bridge and generalized-Yeo theorem are
+  specified in
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

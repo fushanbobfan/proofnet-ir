@@ -72,6 +72,11 @@ name-level restatement of Yeo:
 3. **Correctness bridge.** Prove that `DeclarativelyCorrect` implies
    cusp-acyclicity of the colored occurrence multigraph. This must cover every
    independent `ChoiceSelection`, not merely executable enumeration examples.
+   The new `FullSwitchingSelection` sublemma already gives every such choice
+   an exact full-edge Boolean mask and proves that the retained edge multiset
+   is the checker switching graph up to storage order. What remains is the
+   cycle-containment construction and the theorem that `IsTree` excludes an
+   edge-aware simple cycle.
 4. **Finite maximality/Yeo.** Prove the generalized finite colored-graph
    splitting theorem or an equivalent self-contained lemma in Lean.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored
