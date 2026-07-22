@@ -149,7 +149,12 @@
   boundary entries, and prove that premise derivations compose through par or
   tensor plus explicit exchange while preserving the exact ordered input
   sequent. This step deliberately omits graph reconstruction/equivalence.
-- [ ] Recursively construct a cut-free derivation modulo explicit exchange.
+- [x] Recursively construct a kernel-typed cut-free `Derivation` modulo
+  explicit exchange for every checker-accepted certificate, with a
+  well-founded proof over formula-occurrence count and exact preservation of
+  the ordered input sequent. This is the logical theorem
+  `logicallySequentializable`; it does not yet manufacture a first-order
+  `CutFreeDerivation` tree or prove graph reconstruction.
 - [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
 
 ## v0.5 - Persistent LeanProp bridge

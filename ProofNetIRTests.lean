@@ -1047,6 +1047,15 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check LogicalSequentializationResult.ofSequentialization
 #check LogicalSequentializationResult.parRule
 #check LogicalSequentializationResult.tensorRule
+#check Certificate.StructurallyWellFormed.conclusionFormulas?_eq_getD
+#check Certificate.restrictTo?_conclusionFormulas?_eq_some
+#check Certificate.TerminalPar.logicalBoundaryData
+#check Certificate.SplittingTensor.logicalBoundaryData
+#check Certificate.logicalSequentialization_of_check
+#check Certificate.logicallySequentializable
+
+example : Nonempty (LogicalSequentializationResult canonical) :=
+  canonical.logicalSequentialization_of_check (by native_decide)
 
 example : Nonempty (SequentializationResult axiomOnly) := by
   apply (axiomOnly.check_sound_declarative (by native_decide)).axiomOnly_sequentialization

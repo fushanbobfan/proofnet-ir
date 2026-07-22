@@ -481,6 +481,14 @@ structure LogicalSequentializationResult (input : Certificate) where
   derivation : Nonempty (Derivation sequent)
   inputLabels : input.conclusionFormulas? = some sequent
 
+/-- Every checker-accepted certificate has a kernel sequent derivation with
+exactly its ordered conclusion formulas.  This intentionally omits the
+stronger requirement that desequentializing a first-order tree reconstructs
+an equivalent proof net. -/
+def LogicallySequentializable : Prop :=
+  ∀ input : Certificate,
+    input.check = true → Nonempty (LogicalSequentializationResult input)
+
 namespace LogicalSequentializationResult
 
 /-- Forget only the graph-reconstruction fields of a full sequentialization
@@ -560,6 +568,22 @@ def tensorRule {input leftPremise rightPremise : Certificate}
 end LogicalSequentializationResult
 
 namespace Certificate
+
+/-- Structural well-formedness makes every ordered boundary lookup total.
+The result is stated using `getD` only to expose a concrete list without
+introducing dependent array indices; the fallback is unreachable. -/
+theorem StructurallyWellFormed.conclusionFormulas?_eq_getD
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (fallback : Formula) :
+    certificate.conclusionFormulas? = some
+      (certificate.conclusions.map fun vertex =>
+        certificate.formulas.getD vertex fallback) := by
+  unfold conclusionFormulas?
+  apply list_mapM_eq_some_map_of_forall
+  intro vertex membership
+  have inBounds := structural.2.2.1 vertex membership
+  simp [formula?, inBounds]
 
 /-- Total compaction map used once the deleted occurrence is known not to be
 the input vertex. -/
@@ -7930,6 +7954,38 @@ theorem restrictTo?_formula?_idxOf
   have vertexInBounds := verticesInBounds vertex membership
   simpa [formula?, retained, vertexInBounds] using retained
 
+/-- A successful occurrence restriction preserves the exact ordered formula
+labels of its requested boundary.  Local vertex names disappear from the
+statement, which is the interface needed by recursive sequentialization. -/
+theorem restrictTo?_conclusionFormulas?_eq_some
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (equation : certificate.restrictTo? vertices boundary = some restricted)
+    (fallback : Formula) :
+    restricted.conclusionFormulas? = some
+      (boundary.map fun vertex => certificate.formulas.getD vertex fallback) := by
+  have conclusionsEquation :
+      restricted.conclusions = boundary.map vertices.idxOf := by
+    have exactEquation := certificate.restrictTo?_eq_some_of_conditions
+      vertices boundary verticesInBounds boundaryContained fallback
+    rw [exactEquation] at equation
+    cases equation
+    rfl
+  unfold conclusionFormulas?
+  rw [conclusionsEquation]
+  rw [List.mapM_map]
+  apply list_mapM_eq_some_map_of_forall
+  intro vertex membership
+  change restricted.formula? (vertices.idxOf vertex) = _
+  rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+    boundaryContained equation (boundaryContained vertex membership)]
+  have inBounds := verticesInBounds vertex
+    (boundaryContained vertex membership)
+  simp [formula?, inBounds]
+
 theorem restrictTo?_formulas_size {certificate restricted : Certificate}
     {vertices boundary : List Vertex}
     (equation : certificate.restrictTo? vertices boundary = some restricted) :
@@ -11510,6 +11566,118 @@ theorem peelTerminalPar_formula?_compact
       conclusionInBounds, compactVertex, before, Array.getElem?_eraseIdx,
       compactNotBefore, restore]
 
+/-- Exact logical boundary interface for a terminal-par inverse step.  The
+peeled premise ends in the two premise formulas, while rebuilding their par is
+a permutation of the original ordered boundary. -/
+theorem TerminalPar.logicalBoundaryData
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    ∃ context leftFormula rightFormula inputSequent,
+      (certificate.peelTerminalPar left right conclusion).conclusionFormulas? =
+        some (context ++ [leftFormula, rightFormula]) ∧
+      certificate.conclusionFormulas? = some inputSequent ∧
+      (context ++ [Formula.par leftFormula rightFormula]).Perm
+        inputSequent := by
+  let fallback : Formula := .atom "" false
+  have linkWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases linkWellFormed with
+    ⟨_leftRightDifferent, leftNotConclusion, rightNotConclusion,
+      leftInBounds, rightInBounds, conclusionInBounds, typing⟩
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases rightEquation : certificate.formula? right with
+      | none => simp [leftEquation, rightEquation] at typing
+      | some rightFormula =>
+          cases conclusionEquation : certificate.formula? conclusion with
+          | none =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+          | some conclusionFormula =>
+              have conclusionFormulaEquation :
+                  conclusionFormula = Formula.par leftFormula rightFormula := by
+                simpa [leftEquation, rightEquation, conclusionEquation]
+                  using typing
+              subst conclusionFormula
+              let contextVertices := certificate.conclusions.erase conclusion
+              let context := contextVertices.map fun vertex =>
+                certificate.formulas.getD vertex fallback
+              let inputSequent := certificate.conclusions.map fun vertex =>
+                certificate.formulas.getD vertex fallback
+              have originalNodup : certificate.conclusions.Nodup :=
+                nodup_of_eraseDups_length_eq structural.2.2.2.1
+              have filteredEquation :
+                  certificate.conclusions.filter (· != conclusion) =
+                    contextVertices := by
+                exact (List.Nodup.erase_eq_filter originalNodup conclusion).symm
+              have contextLabels :
+                  ((certificate.conclusions.filter (· != conclusion)).map
+                    (compactVertex conclusion)).mapM
+                      (certificate.peelTerminalPar left right conclusion).formula? =
+                    some context := by
+                rw [filteredEquation]
+                rw [List.mapM_map]
+                apply list_mapM_eq_some_map_of_forall
+                intro vertex membership
+                change
+                  (certificate.peelTerminalPar left right conclusion).formula?
+                      (compactVertex conclusion vertex) = _
+                have originalMembership : vertex ∈ certificate.conclusions :=
+                  List.mem_of_mem_erase membership
+                have vertexNotConclusion : vertex ≠ conclusion := by
+                  exact (originalNodup.mem_erase_iff.mp membership).1
+                rw [peelTerminalPar_formula?_compact structural terminal
+                  vertexNotConclusion]
+                have vertexInBounds := structural.2.2.1 vertex originalMembership
+                simp [formula?, vertexInBounds]
+              have leftPremiseLabel :
+                  (certificate.peelTerminalPar left right conclusion).formula?
+                      (compactVertex conclusion left) = some leftFormula := by
+                rw [peelTerminalPar_formula?_compact structural terminal
+                  leftNotConclusion, leftEquation]
+              have rightPremiseLabel :
+                  (certificate.peelTerminalPar left right conclusion).formula?
+                      (compactVertex conclusion right) = some rightFormula := by
+                rw [peelTerminalPar_formula?_compact structural terminal
+                  rightNotConclusion, rightEquation]
+              have premiseLabels :
+                  Certificate.conclusionFormulas?
+                      (certificate.peelTerminalPar left right conclusion) =
+                    some (context ++ [leftFormula, rightFormula]) := by
+                unfold conclusionFormulas?
+                change
+                  (((certificate.conclusions.filter (· != conclusion)).map
+                      (compactVertex conclusion) ++
+                    [compactVertex conclusion left,
+                      compactVertex conclusion right]).mapM
+                      (Certificate.formula?
+                        (certificate.peelTerminalPar left right conclusion))) = _
+                rw [List.mapM_append, contextLabels]
+                simp [leftPremiseLabel, rightPremiseLabel]
+              have inputLabels : certificate.conclusionFormulas? =
+                  some inputSequent := by
+                exact structural.conclusionFormulas?_eq_getD fallback
+              have vertexPermutation :
+                  (contextVertices ++ [conclusion]).Perm
+                    certificate.conclusions := by
+                exact List.perm_append_comm.trans
+                  (List.perm_cons_erase terminal.2).symm
+              have labelPermutation := vertexPermutation.map fun vertex =>
+                certificate.formulas.getD vertex fallback
+              have conclusionLabel :
+                  certificate.formulas.getD conclusion fallback =
+                    Formula.par leftFormula rightFormula := by
+                simpa [formula?, conclusionInBounds] using conclusionEquation
+              refine ⟨context, leftFormula, rightFormula, inputSequent,
+                premiseLabels, inputLabels, ?_⟩
+              have normalizedLabelPermutation :
+                  (context ++ [certificate.formulas.getD conclusion fallback]).Perm
+                    inputSequent := by
+                simpa only [List.map_append, List.map_singleton] using
+                  labelPermutation
+              rw [conclusionLabel] at normalizedLabelPermutation
+              exact normalizedLabelPermutation
+
 theorem peelTerminalPar_conclusions_nodup
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -12400,6 +12568,168 @@ theorem splitTerminalTensorCandidate?_restriction_equations
           subst leftCertificate
           subst rightCertificate
           exact ⟨rfl, rfl⟩
+
+/-- Exact logical boundary interface for a splitting-tensor inverse step.
+Each restricted premise ends in its tensor premise, and the two remaining
+contexts partition the original boundary modulo explicit exchange. -/
+theorem SplittingTensor.logicalBoundaryData
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate)) :
+    ∃ leftContext rightContext leftFormula rightFormula inputSequent,
+      leftCertificate.conclusionFormulas? =
+        some (leftContext ++ [leftFormula]) ∧
+      rightCertificate.conclusionFormulas? =
+        some (rightContext ++ [rightFormula]) ∧
+      certificate.conclusionFormulas? = some inputSequent ∧
+      (Formula.tensor leftFormula rightFormula ::
+        (leftContext ++ rightContext)).Perm inputSequent := by
+  let fallback : Formula := .atom "" false
+  have terminal := splitting.1
+  have linkWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases linkWellFormed with
+    ⟨_leftRightDifferent, _leftNotConclusion, _rightNotConclusion,
+      leftInBounds, rightInBounds, conclusionInBounds, typing⟩
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases rightEquation : certificate.formula? right with
+      | none => simp [leftEquation, rightEquation] at typing
+      | some rightFormula =>
+          cases conclusionEquation : certificate.formula? conclusion with
+          | none =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+          | some conclusionFormula =>
+              have conclusionFormulaEquation : conclusionFormula =
+                  Formula.tensor leftFormula rightFormula := by
+                simpa [leftEquation, rightEquation, conclusionEquation]
+                  using typing
+              subst conclusionFormula
+              rcases certificate.splitTerminalTensorCandidate?_restriction_equations
+                  structural splitting equation with
+                ⟨leftRestriction, rightRestriction⟩
+              let leftVertices :=
+                certificate.tensorLeftVertices left conclusion
+              let rightVertices :=
+                certificate.tensorRightVertices left conclusion
+              let otherConclusions :=
+                certificate.tensorOtherConclusions conclusion
+              let leftContextVertices :=
+                otherConclusions.filter leftVertices.contains
+              let rightContextVertices :=
+                otherConclusions.filter rightVertices.contains
+              let leftContext := leftContextVertices.map fun vertex =>
+                certificate.formulas.getD vertex fallback
+              let rightContext := rightContextVertices.map fun vertex =>
+                certificate.formulas.getD vertex fallback
+              let inputSequent := certificate.conclusions.map fun vertex =>
+                certificate.formulas.getD vertex fallback
+              have leftLabelsRaw :=
+                certificate.restrictTo?_conclusionFormulas?_eq_some
+                  (TerminalTensor.tensorLeftVertices_in_bounds certificate
+                    left conclusion)
+                  (TerminalTensor.tensorLeftBoundary_contained structural
+                    terminal)
+                  leftRestriction fallback
+              have rightLabelsRaw :=
+                certificate.restrictTo?_conclusionFormulas?_eq_some
+                  (TerminalTensor.tensorRightVertices_in_bounds certificate
+                    left conclusion)
+                  (TerminalTensor.tensorRightBoundary_contained structural
+                    splitting)
+                  rightRestriction fallback
+              have leftLabel : certificate.formulas.getD left fallback =
+                  leftFormula := by
+                simpa [formula?, leftInBounds] using leftEquation
+              have rightLabel : certificate.formulas.getD right fallback =
+                  rightFormula := by
+                simpa [formula?, rightInBounds] using rightEquation
+              have leftLabels : leftCertificate.conclusionFormulas? =
+                  some (leftContext ++ [leftFormula]) := by
+                simpa only [tensorLeftBoundary, tensorOtherConclusions,
+                  leftVertices, otherConclusions, leftContextVertices,
+                  leftContext, List.map_append, List.map_singleton,
+                  leftLabel] using leftLabelsRaw
+              have rightLabels : rightCertificate.conclusionFormulas? =
+                  some (rightContext ++ [rightFormula]) := by
+                simpa only [tensorRightBoundary, tensorOtherConclusions,
+                  rightVertices, otherConclusions, rightContextVertices,
+                  rightContext, List.map_append, List.map_singleton,
+                  rightLabel] using rightLabelsRaw
+              have inputLabels : certificate.conclusionFormulas? =
+                  some inputSequent :=
+                structural.conclusionFormulas?_eq_getD fallback
+              have originalNodup : certificate.conclusions.Nodup :=
+                nodup_of_eraseDups_length_eq structural.2.2.2.1
+              have rightFilterEquation :
+                  otherConclusions.filter rightVertices.contains =
+                    otherConclusions.filter
+                      (fun vertex => !leftVertices.contains vertex) := by
+                apply List.filter_congr
+                intro vertex membership
+                have erasedMembership :
+                    vertex ∈ certificate.conclusions.erase conclusion := by
+                  exact membership
+                have originalMembership : vertex ∈ certificate.conclusions :=
+                  List.mem_of_mem_erase erasedMembership
+                have vertexNotConclusion : vertex ≠ conclusion :=
+                  (originalNodup.mem_erase_iff.mp erasedMembership).1
+                have vertexInBounds :=
+                  structural.2.2.1 vertex originalMembership
+                by_cases leftMembership : vertex ∈ leftVertices
+                · have rightNotMembership : vertex ∉ rightVertices := by
+                    intro rightMembership
+                    exact TerminalTensor.vertex_partition_disjoint certificate
+                      left conclusion vertex leftMembership rightMembership
+                  simp [leftMembership, rightNotMembership]
+                · have rightMembership : vertex ∈ rightVertices := by
+                    exact Or.resolve_left
+                      (TerminalTensor.vertex_partition certificate left
+                        conclusion vertex vertexInBounds vertexNotConclusion)
+                      leftMembership
+                  simp [leftMembership, rightMembership]
+              have contextVertexPermutation :
+                  (leftContextVertices ++ rightContextVertices).Perm
+                    otherConclusions := by
+                change
+                  (otherConclusions.filter leftVertices.contains ++
+                    otherConclusions.filter rightVertices.contains).Perm
+                    otherConclusions
+                rw [rightFilterEquation]
+                exact List.filter_append_perm leftVertices.contains
+                  otherConclusions
+              have contextLabelPermutation := contextVertexPermutation.map
+                fun vertex => certificate.formulas.getD vertex fallback
+              have normalizedContextLabelPermutation :
+                  (leftContext ++ rightContext).Perm
+                    (otherConclusions.map fun vertex =>
+                      certificate.formulas.getD vertex fallback) := by
+                simpa only [List.map_append, leftContext, rightContext] using
+                  contextLabelPermutation
+              have inputVertexPermutation :=
+                List.perm_cons_erase terminal.2
+              have inputLabelPermutation := inputVertexPermutation.map
+                fun vertex => certificate.formulas.getD vertex fallback
+              have conclusionLabel :
+                  certificate.formulas.getD conclusion fallback =
+                    Formula.tensor leftFormula rightFormula := by
+                simpa [formula?, conclusionInBounds] using conclusionEquation
+              have normalizedInputLabelPermutation :
+                  inputSequent.Perm
+                    (Formula.tensor leftFormula rightFormula ::
+                      (otherConclusions.map fun vertex =>
+                        certificate.formulas.getD vertex fallback)) := by
+                simpa only [inputSequent, otherConclusions,
+                  tensorOtherConclusions, List.map_cons, conclusionLabel] using
+                    inputLabelPermutation
+              refine ⟨leftContext, rightContext, leftFormula, rightFormula,
+                inputSequent, leftLabels, rightLabels, inputLabels, ?_⟩
+              exact (normalizedContextLabelPermutation.cons
+                (Formula.tensor leftFormula rightFormula)).trans
+                  normalizedInputLabelPermutation.symm
 
 /-- Peeling a terminal par strictly decreases the number of formula
 occurrences.  This is the unary branch of the well-founded measure used by
@@ -13336,6 +13666,75 @@ theorem DeclarativelyCorrect.axiomOnly_sequentialization
         refine ⟨swapZeroOne, ?_⟩
         simpa [atom, dual, swapZeroOne, VertexRenaming.swap] using
           (axiomCertificate_reindex_swap name positive [0, 1]).symm }⟩
+
+/-- Logical sequentialization for every checker-accepted unit-free cut-free
+MLL certificate.  Recursion follows the mathematical terminal-rule
+dichotomy, and termination is justified by the strictly smaller occurrence
+arrays of the peeled/split premises. -/
+theorem logicalSequentialization_of_check
+    (certificate : Certificate) (accepted : certificate.check = true) :
+    Nonempty (LogicalSequentializationResult certificate) := by
+  have correct : certificate.DeclarativelyCorrect :=
+    certificate.check_iff_declarativelyCorrect.mp accepted
+  have structural : certificate.StructurallyWellFormed := correct.1
+  by_cases connectiveExists : ∃ link ∈ certificate.links,
+      link.isConnective = true
+  · rcases correct.terminalPar_or_splittingTensor_exists connectiveExists with
+      ⟨left, right, conclusion, terminalPar | splittingTensor⟩
+    · let premise := certificate.peelTerminalPar left right conclusion
+      have premiseAccepted : premise.check = true := by
+        exact certificate.peelTerminalPar_check_of_check structural terminalPar
+          accepted
+      rcases logicalSequentialization_of_check premise premiseAccepted with
+        ⟨premiseResult⟩
+      rcases terminalPar.logicalBoundaryData structural with
+        ⟨context, leftFormula, rightFormula, inputSequent, premiseLabels,
+          inputLabels, rebuiltBoundary⟩
+      have premiseSequent : premiseResult.sequent =
+          context ++ [leftFormula, rightFormula] := by
+        exact Option.some.inj
+          (premiseResult.inputLabels.symm.trans premiseLabels)
+      exact ⟨LogicalSequentializationResult.parRule premiseResult context
+        leftFormula rightFormula premiseSequent inputSequent inputLabels
+        rebuiltBoundary⟩
+    · rcases certificate.splitTerminalTensorCandidate?_eq_some_exists
+          structural splittingTensor with
+        ⟨leftPremise, rightPremise, splitEquation⟩
+      rcases certificate.splitTerminalTensorCandidate?_check_of_check
+          structural splittingTensor splitEquation accepted with
+        ⟨leftAccepted, rightAccepted⟩
+      rcases logicalSequentialization_of_check leftPremise leftAccepted with
+        ⟨leftResult⟩
+      rcases logicalSequentialization_of_check rightPremise rightAccepted with
+        ⟨rightResult⟩
+      rcases splittingTensor.logicalBoundaryData structural splitEquation with
+        ⟨leftContext, rightContext, leftFormula, rightFormula, inputSequent,
+          leftLabels, rightLabels, inputLabels, rebuiltBoundary⟩
+      have leftSequent : leftResult.sequent =
+          leftContext ++ [leftFormula] := by
+        exact Option.some.inj (leftResult.inputLabels.symm.trans leftLabels)
+      have rightSequent : rightResult.sequent =
+          rightContext ++ [rightFormula] := by
+        exact Option.some.inj (rightResult.inputLabels.symm.trans rightLabels)
+      exact ⟨LogicalSequentializationResult.tensorRule leftResult rightResult
+        leftContext rightContext leftFormula rightFormula leftSequent
+        rightSequent inputSequent inputLabels rebuiltBoundary⟩
+  · rcases correct.axiomOnly_sequentialization connectiveExists with
+      ⟨result⟩
+    exact ⟨LogicalSequentializationResult.ofSequentialization result⟩
+termination_by certificate.formulas.size
+decreasing_by
+  · exact certificate.peelTerminalPar_formulas_size_lt structural terminalPar
+  · exact certificate.splitTerminalTensorCandidate?_left_formulas_size_lt
+      structural splittingTensor splitEquation
+  · exact certificate.splitTerminalTensorCandidate?_right_formulas_size_lt
+      structural splittingTensor splitEquation
+
+/-- The public proposition-level logical theorem, separated from the stronger
+proof-net reconstruction theorem `GenerallySequentializable`. -/
+theorem logicallySequentializable : LogicallySequentializable := by
+  intro certificate accepted
+  exact certificate.logicalSequentialization_of_check accepted
 
 end Certificate
 

@@ -60,9 +60,10 @@ part of the engineering and proof-identity gap.
   input restriction and remains an `IsTree`. Checker/declarative preservation
   for this reduction is complete. Universal terminal-par-or-splitting-tensor
   existence, strict decrease of both reductions, and the axiom-only recursive
-  base are now kernel checked. The logical par/tensor composition layer is
-  also complete, but reduction-specific boundary alignment, well-founded
-  recursion, and desequentialized-net equivalence remain open.
+  base are now kernel checked. Boundary transport and well-founded logical
+  recursion are also complete: every accepted certificate has a kernel
+  `Derivation` of exactly its ordered conclusion formulas. First-order rule
+  tree construction and desequentialized-net equivalence remain open.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -70,10 +71,11 @@ part of the engineering and proof-identity gap.
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`
    succeed is still missing.
-2. General sequentialization of every accepted MLL proof net is not yet
-   complete: its decomposition theorem, measure, base case, and rule-level
-   logical composition are proved, while recursive boundary transport and the
-   final graph-equivalence construction remain.
+2. Logical sequentialization of every accepted MLL proof net is proved, but
+   the stronger `GenerallySequentializable` result is not yet complete: the
+   current recursion returns a kernel `Derivation`, not a first-order tree
+   whose executable desequentialization is proved `ProofNetEquivalent` to the
+   input.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
 4. A semantic relation modulo reordered links is now defined, but it does not
@@ -114,7 +116,8 @@ It can currently be used for:
 It should not yet be presented as:
 
 - a general Lean/mathlib proof assistant extension;
-- a complete proof-net sequentializer;
+- a complete proof-net-to-first-order-tree sequentializer with certified
+  graph reconstruction;
 - a complete isomorphism-canonical proof identity library;
 - evidence that proof-net generation reduces search redundancy in practice.
 

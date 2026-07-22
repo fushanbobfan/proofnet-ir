@@ -71,11 +71,16 @@ The repository currently contains:
 - a theorem that this normal form is an in-class representative and a complete
   invariant for structurally well-formed certificates, plus the executable
   `Certificate.reindexEquivalent?` decision procedure.
+- a well-founded logical sequentialization theorem: every checker-accepted
+  certificate has a kernel `Derivation` whose sequent is exactly the ordered
+  list of its conclusion formulas.
 
-This is a research prototype. It does not yet include general reverse
-sequentialization of every accepted net, cut elimination, exponentials, additives,
-quantifiers, canonicalization modulo reordered links/conclusions or arbitrary
-graph isomorphism, or a Lean tactic.
+This is a research prototype. Logical reverse sequentialization into the
+kernel sequent calculus is proved, but the repository does not yet construct a
+first-order rule tree for every accepted net and prove its executable
+desequentialization graph-equivalent to the input. It also does not include cut
+elimination, exponentials, additives, quantifiers, canonicalization modulo
+reordered conclusions or arbitrary graph isomorphism, or a Lean tactic.
 
 ## Trust path
 
@@ -92,7 +97,7 @@ structural well-formedness + every switching is a tree
 Lean theorem: accepted -> declarative correctness
         |
         v
-supported sequential reconstruction
+kernel `Derivation` with the exact ordered input sequent
         |
         v
 Lean kernel

@@ -168,13 +168,20 @@ name-level restatement of Yeo:
   constructors restore the ordered input sequent by explicit exchange. This
   isolates logical proof reconstruction from the later graph-equivalence
   composition proof.
+- reduction-specific boundary alignment and well-founded logical recursion are
+  now complete. `logicalSequentialization_of_check` proves that every accepted
+  certificate has a kernel `Derivation` whose sequent is exactly its ordered
+  conclusion-formula list. Tensor contexts are obtained from the proved
+  disjoint/exhaustive component partition; par compaction is transported back
+  to the original occurrence labels.
 
 ## Claim boundary
 
 The universal terminal-rule existence theorem, strict recursive measure,
-axiom-only recursive base, and logical par/tensor rule composition are now
-complete; generated examples and successful checker-gated candidates remain
-regression evidence, not part of those proofs. `GenerallySequentializable`
-must remain unproved until reduction-specific boundary alignment,
-well-founded recursion, graph reconstruction/equivalence composition, and the
-final theorem are kernel checked with no `sorry` or `admit`.
+axiom-only recursive base, boundary alignment, and full logical
+sequentialization are now complete; generated examples and successful
+checker-gated candidates remain regression evidence, not part of those
+proofs. `GenerallySequentializable` must remain unproved until the recursion
+also constructs first-order rule trees, composes graph reconstruction and
+`ProofNetEquivalent` witnesses, and closes the stronger final theorem with no
+`sorry` or `admit`.

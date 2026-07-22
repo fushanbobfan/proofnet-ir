@@ -161,6 +161,13 @@
   equations and kernel-checked par/tensor composition now reconstruct the
   ordered input sequent using explicit exchange, without prematurely claiming
   the still-open recursive graph-equivalence theorem.
+- proved full logical sequentialization by well-founded recursion on formula
+  occurrences: every checker-accepted certificate has a kernel-typed
+  `Derivation` of exactly its ordered conclusion formulas. The proof includes
+  exact par-compaction labels, tensor restriction labels, context partitioning,
+  strict recursive descent, and the classified axiom base. The stronger
+  first-order-tree reconstruction and `ProofNetEquivalent` theorem remain
+  separate and open.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 
