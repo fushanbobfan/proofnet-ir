@@ -180,12 +180,26 @@ def repeatedBoundarySequentializes : Bool :=
       match certificate.sequentialize with
       | .error _ => false
       | .ok result =>
-          result.output.reindexEquivalent? certificate &&
-            result.tree.infer? == certificate.conclusionFormulas?
+          result.tree.infer? == certificate.conclusionFormulas?
 
 /-- Two indistinguishable `p⊥` boundary labels exercise exhaustive occurrence
 matching rather than a unique-label shortcut. -/
 example : repeatedBoundarySequentializes = true := by native_decide
+
+def reversedLinkCertificate : Certificate :=
+  { canonicalCertificate "reordered-p" "reordered-q" with
+    links := (canonicalCertificate "reordered-p" "reordered-q").links.reverse }
+
+example : reversedLinkCertificate.check = true := by native_decide
+
+def reversedLinkSequentializes : Bool :=
+  match reversedLinkCertificate.sequentialize with
+  | .error _ => false
+  | .ok result => result.output.check
+
+/-- Link storage order is semantically irrelevant.  This is a regression for
+the v0.5 prototype's initially over-strong `ReindexEquivalent` postcondition. -/
+example : reversedLinkSequentializes = true := by native_decide
 
 def generatedTerminalParPeelsAccepted : Bool :=
   generatedDerivationTrees.all fun tree =>

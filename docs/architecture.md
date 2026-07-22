@@ -97,12 +97,15 @@ enumerates checker-preserving terminal-par and splitting-tensor inverses with
 an occurrence-count fuel bound. At each rebuilt node it enumerates all boundary
 permutations compatible with formula labels, independently infers and
 desequentializes the tree, reruns the checker, and requires the executable
-v0.3 reindex-equivalence decision to succeed. A returned
+direct proof-net-equivalence search to find a bounded vertex renaming followed
+by a link permutation. A returned
 `ExecutableSequentializationResult` therefore carries a kernel derivation and
-an exact `ReindexEquivalent`, hence `ProofNetEquivalent`, output proof. What is
-not yet proved is totality of this particular search function for every
-accepted input; the older proposition-level theorem remains the universal
-mathematical result.
+an exact `ProofNetEquivalent` output proof. The broader relation is necessary:
+the checker deliberately ignores link-list storage order, and an early
+`ReindexEquivalent`-only prototype failed on a reversed-link-order accepted
+certificate. What is not yet proved is totality of this particular search
+function for every accepted input; the older proposition-level theorem remains
+the universal mathematical result.
 
 The same module now discovers terminal splitting-tensor candidates by deleting
 the tensor conclusion in the full occurrence graph, partitioning reachable

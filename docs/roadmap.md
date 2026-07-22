@@ -175,11 +175,13 @@
 - [x] Add a runtime certificate-to-tree search over checker-preserving terminal
   par and splitting-tensor inverses.
 - [x] Return a proof-bearing result with exact ordered input labels, accepted
-  desequentialization, and `ReindexEquivalent`/`ProofNetEquivalent` output.
+  desequentialization, and `ProofNetEquivalent` output.
 - [x] Exhaustively backtrack over repeated boundary formula occurrences rather
   than assuming formula labels are unique.
 - [x] Add structured staged errors and 250 broad generated regressions plus a
   repeated-label regression.
+- [x] Reject the over-strong link-order-sensitive identity contract and retain
+  an accepted reversed-link-order certificate as a regression.
 - [x] Exercise the runtime API from a clean path-dependency consumer and pin
   the public theorem trust boundary in CI.
 - [ ] Prove the executable search succeeds for every checker-accepted

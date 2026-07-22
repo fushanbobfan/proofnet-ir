@@ -5,7 +5,12 @@
 - added the proof-bearing executable `Certificate.sequentialize` API with
   staged errors, checker-gated inverse-rule search, exhaustive repeated-label
   boundary matching, accepted desequentialization, and an exact
-  `ReindexEquivalent`/`ProofNetEquivalent` result on success;
+  `ProofNetEquivalent` result on success;
+- corrected the first development checkpoint's over-strong
+  `ReindexEquivalent` postcondition after a reversed-link-order accepted
+  certificate exposed a false runtime failure; executable identity now
+  enumerates formula-compatible vertex bijections and checks link permutation,
+  with the counterexample retained as a regression;
 - added 250 broad generated executable-sequentialization regressions plus a
   dedicated repeated-formula-boundary test; the universal totality theorem for
   this specific search remains an explicit pre-release obligation;

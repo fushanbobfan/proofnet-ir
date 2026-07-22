@@ -34,9 +34,12 @@ The unreleased v0.5 development line adds
 `Certificate.sequentialize`, `ExecutableSequentializationResult`, and
 `SequentializationError` without changing either wire payload. These APIs are
 additive, but their names and error-stage vocabulary remain pre-release until a
-v0.5 tag is cut. The result's `ReindexEquivalent` field preserves the narrower
-order-sensitive v0.3 identity contract; it does not introduce arbitrary graph
-isomorphism or reorder link/conclusion lists.
+v0.5 tag is cut. The result carries v0.4 `ProofNetEquivalent`: a bounded vertex
+renaming followed by semantically irrelevant link-list permutation, while the
+ordered conclusion boundary is still preserved. This is broader than the
+order-sensitive v0.3 `ReindexEquivalent` key but remains narrower than
+arbitrary graph isomorphism and never reorders conclusions or connective
+premises.
 
 ## Deprecation and release checks
 

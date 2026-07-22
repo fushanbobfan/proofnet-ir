@@ -33,7 +33,7 @@ structure ExecutableSequentializationResult (input : Certificate) where
   inputLabels : input.conclusionFormulas? = some sequent
   desequentialized : tree.desequentialize? = some output
   outputAccepted : output.check = true
-  equivalent : output.ReindexEquivalent input
+  equivalent : output.ProofNetEquivalent input
 
 namespace ExecutableSequentializationResult
 
@@ -47,7 +47,7 @@ theorem kernelDerivation {input : Certificate}
 theorem proofNetEquivalent {input : Certificate}
     (result : ExecutableSequentializationResult input) :
     result.output.ProofNetEquivalent input :=
-  result.equivalent.toProofNetEquivalent
+  result.equivalent
 
 end ExecutableSequentializationResult
 
@@ -89,6 +89,59 @@ sequentializer itself tries the complete list until reindex-equivalence holds. -
 def matchingFormulaOrder? (source target : List Formula) : Option (List Nat) :=
   (matchingFormulaOrders source target).head?
 
+/-- A computational witness for the flattened proof-net equivalence relation. -/
+structure DirectEquivalenceWitness (left right : Certificate) where
+  vertexMap : VertexRenaming left.formulas.size
+  linkPermutation :
+    (left.reindex vertexMap).LinkPermutationEquivalent right
+
+namespace DirectEquivalenceWitness
+
+theorem proofNetEquivalent {left right : Certificate}
+    (witness : DirectEquivalenceWitness left right) :
+    left.ProofNetEquivalent right :=
+  (show left.DirectProofNetEquivalent right from
+    ⟨witness.vertexMap, witness.linkPermutation⟩).toProofNetEquivalent
+
+end DirectEquivalenceWitness
+
+private def renamingOfOrder? (bound : Nat) (order : List Vertex) :
+    Option (VertexRenaming bound) :=
+  if permutation : order.Perm (List.range bound) then
+    let lengthEquation : order.length = bound := by
+      simpa using permutation.length_eq
+    let nodup : order.Nodup :=
+      permutation.nodup_iff.mpr List.nodup_range
+    let complete : ∀ vertex, vertex < bound ↔ vertex ∈ order := by
+      intro vertex
+      rw [permutation.mem_iff]
+      simp
+    some (VertexRenaming.ofOrder bound order lengthEquation nodup complete)
+  else
+    none
+
+/-- Decide the exact v0.4 proof-net identity relation by enumerating only
+formula-compatible vertex bijections, then checking link multiset equality and
+the ordered conclusion boundary.  Unlike `reindexEquivalent?`, this decision
+is intentionally insensitive to link-list storage order. -/
+def directProofNetEquivalentWitness? (left right : Certificate) :
+    Option (DirectEquivalenceWitness left right) :=
+  firstSome (fun order => do
+    let vertexMap ← renamingOfOrder? left.formulas.size order
+    let reindexed := left.reindex vertexMap
+    if formulas : reindexed.formulas = right.formulas then
+      if links : reindexed.links.Perm right.links then
+        if conclusions : reindexed.conclusions = right.conclusions then
+          some {
+            vertexMap
+            linkPermutation := ⟨formulas, links, conclusions⟩ }
+        else
+          none
+      else
+        none
+    else
+      none) (matchingFormulaOrders left.formulas.toList right.formulas.toList)
+
 private def alignTree? (input : Certificate) (tree : CutFreeDerivation)
     (target : List Formula) : Option CutFreeDerivation := do
   let source ← tree.infer?
@@ -99,10 +152,9 @@ private def alignTree? (input : Certificate) (tree : CutFreeDerivation)
     else
       match aligned.desequentializeChecked? with
       | some checked =>
-          if checked.certificate.reindexEquivalent? input then
-            some aligned
-          else
-            none
+          match directProofNetEquivalentWitness? checked.certificate input with
+          | some _ => some aligned
+          | none => none
       | none => none) (matchingFormulaOrders source target)
 
 private def axiomTree? (certificate : Certificate)
@@ -201,7 +253,7 @@ size instead of collapsing to `none`. -/
 def sequentialize (certificate : Certificate) :
     Except SequentializationError
       (ExecutableSequentializationResult certificate) := do
-  if inputAccepted : certificate.check = true then
+  if _inputAccepted : certificate.check = true then
     let tree ← certificate.executableTreeWithFuel
       (certificate.formulas.size + 1)
     match labels : certificate.conclusionFormulas? with
@@ -216,11 +268,10 @@ def sequentialize (certificate : Certificate) :
                 "reconstructed tree did not desequentialize")
           | some output =>
               if outputAccepted : output.check = true then
-                if equivalentCheck : output.reindexEquivalent? certificate =
-                    true then
-                  have equivalent : output.ReindexEquivalent certificate :=
-                    (reindexEquivalent?_eq_true_iff_of_check outputAccepted
-                      inputAccepted).mp equivalentCheck
+                match directProofNetEquivalentWitness? output certificate with
+                | some witness =>
+                  have equivalent : output.ProofNetEquivalent certificate :=
+                    witness.proofNetEquivalent
                   pure {
                     tree
                     sequent
@@ -230,9 +281,9 @@ def sequentialize (certificate : Certificate) :
                     desequentialized
                     outputAccepted
                     equivalent }
-                else
+                | none =>
                   throw (sequentializationError certificate "equivalence"
-                    "reconstructed output was not reindex-equivalent to the input")
+                    "reconstructed output was not proof-net-equivalent to the input")
               else
                 throw (sequentializationError certificate "output"
                   "desequentialized tree was rejected by the proof-net checker")
