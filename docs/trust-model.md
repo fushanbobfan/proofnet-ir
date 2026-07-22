@@ -5,12 +5,17 @@
 - the Lean 4 kernel selected by `lean-toolchain`;
 - the compiled definitions and theorems in this repository, after `lake build`;
 - the small object-logic derivation type used for supported reconstruction.
+- the `CutFreeDerivation` rule syntax only after its occurrence positions and
+  explicit exchange have passed `build?`;
+- the proof carried by `desequentializeChecked?` that the resulting
+  certificate passed the reference checker.
 
 ## Untrusted
 
 - an AI model or graph neural network proposing certificates;
 - prompts, retrieved text, local-model summaries, and imported papers;
 - a future Python/TypeScript dataset generator or visualizer;
+- the Python focused-search baseline and dataset regeneration wrapper;
 - a future JSON parser until its output is revalidated in Lean;
 - benchmark labels not regenerated from checked certificates;
 - the high-level claim that proof geometry improves proof search.
@@ -64,6 +69,18 @@ still explicit: `Derivation.identity` and `identityCertificate` cover the
 recursive family `A, A-dual`, and `reconstructIdentity?` requires exact
 certificate equality. It does not treat checker acceptance alone as permission
 to return a preselected derivation.
+
+v0.2 adds the opposite direction for arbitrary first-order cut-free derivation
+trees: validated desequentialization constructs a candidate certificate and
+then gates the checked API on `Certificate.check = true`. This is not the
+general sequentialization theorem from arbitrary accepted nets back to
+derivations.
+
+Canonical v0.2 serialization trusts the formula-array numbering as occurrence
+identity. Sorting links/conclusions and orienting axiom endpoints is a stable
+wire-format rule, not a graph-isomorphism theorem. Dataset labels are emitted
+by Lean and cross-checked by the independent Python oracle; the committed
+dataset itself remains untrusted input when consumed by later experiments.
 
 ## Failure containment
 

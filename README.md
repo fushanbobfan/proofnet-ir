@@ -3,7 +3,7 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.1.1` (audited MLL reference core). See
+Current release: `v0.2.0` (derivation/data/search baseline). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -40,24 +40,37 @@ The repository currently contains:
   correspondences to the complete certificate checker;
 - explicit exchange/permutation plus recursive identity expansion proving
   `|- A, A-dual` for every unit-free MLL formula;
+- a first-order arbitrary cut-free derivation-tree language with explicit
+  resource positions and exchange permutations;
+- general validated desequentialization of those trees, with a checked return
+  type carrying `certificate.check = true`;
+- a deterministic broad-family derivation generator whose first 250
+  depth-two trees all produce accepted certificates;
 - a derivation-first generator for the corresponding canonical identity
   certificate at arbitrary formula depth, with exact certificate-gated
   reconstruction;
 - a finite formula enumerator whose depth-two one-atom corpus checks all 210
   generated identity certificates;
-- labeled negative-certificate mutations, 64 positive/negative compile-time
+- labeled negative-certificate mutations, 69 positive/negative compile-time
   assertions, and an executable smoke test.
 - an independent CI differential audit over 33,868 exhaustive graphs and
   1,000 generated or mutated certificates.
+- versioned canonical v0.2 JSON plus a committed deterministic dataset of 250
+  positive and 750 negative checker-labeled records;
+- a runnable focused cut-free sequent-search baseline with eager invertible par
+  steps and exhaustive tensor resource partitions.
 
-This is a research prototype. It does not yet include a general
-sequentialization theorem, cut elimination, exponentials, additives,
+This is a research prototype. It does not yet include general reverse
+sequentialization of every accepted net, cut elimination, exponentials, additives,
 quantifiers, or a Lean tactic.
 
 ## Trust path
 
 ```text
-untrusted certificate
+untrusted derivation tree or certificate
+        |
+        v
+validated desequentialization (when starting from a derivation)
         |
         v
 structural well-formedness + every switching is a tree
@@ -83,6 +96,8 @@ Lean version is recorded in `lean-toolchain`.
 ```powershell
 lake build
 lake exe proofnet_ir_tests
+python scripts/generate_dataset.py --check
+python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 ```
 
 Expected smoke-test output:
@@ -101,9 +116,14 @@ ProofNetIR/Checker.lean       switchings, executable checker, soundness/complete
 ProofNetIR/Reconstruct.lean   supported sequent derivation reconstruction
 ProofNetIR/Generate.lean      recursive derivation-first identity certificates
 ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
+ProofNetIR/DerivationTree.lean arbitrary cut-free trees and desequentialization
+ProofNetIR/Serialization.lean canonical v0.2 certificate JSON
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
+ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
+datasets/v0.2/                committed checker-labeled corpus and manifest
+scripts/focused_search.py     focused cut-free comparison baseline
 docs/                         architecture, literature map, roadmap, trust boundary
 ```
 

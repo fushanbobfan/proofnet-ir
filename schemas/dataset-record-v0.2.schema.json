@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fushanbobfan/proofnet-ir/schemas/dataset-record-v0.2.schema.json",
+  "title": "ProofNet-IR checker-labeled dataset record v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "label", "provenance", "derivationSeed", "certificate"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "label": { "type": "boolean" },
+    "provenance": {
+      "enum": ["valid-derivation", "missing-link", "duplicated-resource", "self-axiom"]
+    },
+    "derivationSeed": { "type": "integer", "minimum": 0, "maximum": 249 },
+    "certificate": { "$ref": "certificate-v0.2.schema.json" }
+  }
+}

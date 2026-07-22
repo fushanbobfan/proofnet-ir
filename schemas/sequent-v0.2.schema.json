@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fushanbobfan/proofnet-ir/schemas/sequent-v0.2.schema.json",
+  "title": "ProofNet-IR focused-search sequent v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "sequent"],
+  "properties": {
+    "version": { "const": "0.2" },
+    "sequent": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/formula" }
+    }
+  },
+  "$defs": {
+    "formula": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name", "positive"],
+          "properties": {
+            "kind": { "const": "atom" },
+            "name": { "type": "string", "minLength": 1 },
+            "positive": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "left", "right"],
+          "properties": {
+            "kind": { "enum": ["tensor", "par"] },
+            "left": { "$ref": "#/$defs/formula" },
+            "right": { "$ref": "#/$defs/formula" }
+          }
+        }
+      ]
+    }
+  }
+}

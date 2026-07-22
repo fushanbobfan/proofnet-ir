@@ -12,18 +12,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> None:
-    schema_path = ROOT / "schemas" / "certificate-v0.1.schema.json"
-    schema = json.loads(schema_path.read_text(encoding="utf-8"))
-    Draft202012Validator.check_schema(schema)
-    validator = Draft202012Validator(schema)
+    schemas: dict[str, dict] = {}
+    for schema_path in sorted((ROOT / "schemas").glob("*.schema.json")):
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        schemas[schema_path.name] = schema
+        print(f"schema-definition-valid: {schema_path.name}")
 
-    fixtures = sorted((ROOT / "examples").glob("*.json"))
-    if not fixtures:
-        raise RuntimeError("no JSON fixtures found")
-
-    for fixture in fixtures:
+    fixtures = {
+        "canonical.json": "certificate-v0.1.schema.json",
+        "invalid-disconnected.json": "certificate-v0.1.schema.json",
+        "focused-sequent-v0.2.json": "sequent-v0.2.schema.json",
+    }
+    for fixture_name, schema_name in fixtures.items():
+        fixture = ROOT / "examples" / fixture_name
         value = json.loads(fixture.read_text(encoding="utf-8"))
-        validator.validate(value)
+        Draft202012Validator(schemas[schema_name]).validate(value)
         print(f"schema-valid: {fixture.name}")
 
 

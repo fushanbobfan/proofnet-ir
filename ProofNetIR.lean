@@ -5,3 +5,5 @@ import ProofNetIR.Checker
 import ProofNetIR.Generate
 import ProofNetIR.Reconstruct
 import ProofNetIR.Mutation
+import ProofNetIR.DerivationTree
+import ProofNetIR.Serialization

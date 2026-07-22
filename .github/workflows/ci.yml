@@ -22,5 +22,9 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check jsonschema==4.26.0
           python scripts/validate_schema.py
+      - name: Verify deterministic v0.2 dataset
+        run: python scripts/generate_dataset.py --check
+      - name: Run focused cut-free search baseline
+        run: python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
       - name: Run independent differential mathematics audit
         run: python scripts/audit_v010.py

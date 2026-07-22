@@ -29,18 +29,24 @@
   simple graphs through six vertices and 1,000 generated/mutated certificates.
 - [x] Replace the Boolean premise in declarative structural correctness with
   an independent proposition and prove the executable/specification iff.
-- [ ] Generalize generation/reconstruction from identity nets to arbitrary
+- [x] Generalize generation/desequentialization from identity nets to arbitrary
   cut-free derivation trees.
 
 ## v0.2 - Dataset and repair loop
 
 - [x] Specify a controlled comparison against focused cut-free proof search.
-- Generate valid derivation trees first, then desequentialize to proof nets.
-- Produce labeled invalid mutations: non-dual axiom, missing edge, duplicated
-  resource, cycle, disconnection, and wrong connective attachment.
-- Canonicalize certificates and define graph edit operations.
-- Compare direct sequent generation, graph generation, and graph repair.
-- Report validity, repair success, Lean calls, token cost, and redundancy
+- [x] Generate valid derivation trees first, then desequentialize to proof nets.
+- [x] Produce dataset mutations for missing links, duplicated resources, and
+  self-axioms; retain regression fixtures for non-dual axioms, cycles,
+  disconnection, and wrong connective attachment.
+- [x] Canonicalize v0.2 certificate serialization under the documented fixed
+  occurrence-numbering contract.
+- [x] Publish 1,000 checker-labeled records with a deterministic generator,
+  independent-oracle verification, and a content hash.
+- [x] Implement a runnable focused cut-free search baseline.
+- [ ] Define graph edit operations and compare direct sequent generation,
+  graph generation, and graph repair in a model-backed experiment.
+- [ ] Report validity, repair success, Lean calls, token cost, and redundancy
   collapse without claiming theorem-proving gains before measurement.
 
 ## v0.3 - Persistent LeanProp bridge

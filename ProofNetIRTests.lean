@@ -49,6 +49,19 @@ example : generatedDepthTwo.all (fun formula =>
     (identityCertificate formula).check) = true := by
   native_decide
 
+def generatedDerivationTrees : List CutFreeDerivation :=
+  (List.range 250).map fun seed => CutFreeDerivation.generate seed 2
+
+example : generatedDerivationTrees.all (fun tree =>
+    tree.desequentializeChecked?.isSome) = true := by
+  native_decide
+
+example : generatedDerivationTrees.all (fun tree =>
+    match tree.desequentialize? with
+    | some certificate => certificate.check
+    | none => false) = true := by
+  native_decide
+
 /-- The canonical net for `⊢ p ⊗ q, p⊥ ⅋ q⊥`. -/
 def canonical : Certificate where
   formulas := #[p, pDual, q, qDual, .tensor p q, .par pDual qDual]
@@ -74,6 +87,20 @@ example : canonical.FuelDeclarativelyCorrect :=
   canonical.check_iff_fuelDeclarativelyCorrect.mp (by native_decide)
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide
+
+def scrambledCanonical : Certificate :=
+  { canonical with
+    links := canonical.links.reverse
+    conclusions := canonical.conclusions.reverse }
+
+example : scrambledCanonical.canonicalize.check = true := by native_decide
+example : scrambledCanonical.canonicalString = canonical.canonicalString := by
+  native_decide
+
+def malformedExchange : CutFreeDerivation :=
+  .exchange [0, 0] (.axiom "p" true)
+
+example : malformedExchange.desequentialize?.isNone = true := by native_decide
 
 example : (reconstructCanonical? canonical "p" "q").isSome = true := by
   native_decide

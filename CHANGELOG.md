@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.2.0 - Derivation trees, canonical data, and focused baseline
+
+### Included
+
+- first-order arbitrary cut-free MLL derivation trees with explicit resource
+  positions and exchange permutations;
+- validated general desequentialization from those trees to proof-net
+  certificates, plus a checked result that carries `certificate.check = true`;
+- a deterministic derivation generator whose first 250 depth-two trees all
+  desequentialize and pass the reference checker;
+- versioned canonical certificate JSON that normalizes link order, conclusion
+  order, and symmetric axiom orientation while preserving formula-array vertex
+  identities;
+- a committed, deterministic 1,000-record JSONL dataset with 250 valid
+  derivation outputs and 750 labeled corruptions, checked again by the
+  independent Python oracle;
+- a runnable focused cut-free one-sided MLL search baseline with eager par
+  decomposition, exhaustive tensor/resource-split search, memoization, and
+  search counters;
+- schemas, dataset manifest/checksum, regeneration checks, smoke fixtures, and
+  GitHub CI coverage for the entire path.
+
+### Explicit boundaries
+
+- canonical serialization is not graph-isomorphism canonicalization;
+- desequentialization is general, but reverse sequentialization of every
+  checker-accepted proof net is still not implemented;
+- the dataset is a correctness/repair substrate, not evidence that graph
+  generation outperforms focused proof search.
+
 ## v0.1.1 - Mathematical audit hardening
 
 ### Changed

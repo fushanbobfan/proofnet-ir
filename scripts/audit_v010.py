@@ -120,7 +120,7 @@ Formula = tuple[Any, ...]
 
 
 def parse_formula(value: dict[str, Any]) -> Formula:
-    tag = value["tag"]
+    tag = value.get("tag", value.get("kind"))
     if tag == "atom":
         return ("atom", value["name"], bool(value["positive"]))
     if tag in {"tensor", "par"}:
@@ -159,7 +159,7 @@ def independent_certificate_check(raw: dict[str, Any]) -> bool:
     par_choices: list[tuple[tuple[int, int], tuple[int, int]]] = []
 
     for link in links:
-        tag = link.get("tag")
+        tag = link.get("tag", link.get("kind"))
         if tag == "axiom":
             left, right = link["left"], link["right"]
             if not (0 <= left < size and 0 <= right < size and left != right):

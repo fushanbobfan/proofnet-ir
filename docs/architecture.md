@@ -4,8 +4,8 @@
 
 ProofNet-IR separates proof proposal from proof checking. A model proposes a
 certificate; deterministic Lean code validates its local typing and global
-switching behavior; a sequentializer reconstructs an object-logic derivation;
-the Lean kernel checks the final artifact.
+switching behavior; supported reconstruction or derivation-first generation
+produces an object-logic artifact; the Lean kernel checks the final artifact.
 
 The v0.1 fragment is cut-free, unit-free multiplicative linear logic. This is
 the smallest setting in which proof nets have a nontrivial global correctness
@@ -18,6 +18,8 @@ criterion and proof-order bureaucracy can be measured cleanly.
 3. `Link` records axiom pairings and tensor/par construction links.
 4. `Certificate.wellFormed` checks local duality, connective labels, unique
    producers, unique axiom use, parent use, and conclusion boundaries.
+   `wellFormed_iff_structurallyWellFormed` identifies this executable pass with
+   its proposition-level specification.
 5. `fixedEdges` emits axiom and tensor graph edges.
 6. `parChoices` emits the two possible premise edges of each par link.
 7. `switchingGraphs` exhaustively enumerates the resulting `2^k` graphs.
@@ -65,6 +67,20 @@ This still does not claim the general sequentialization theorem: an arbitrary
 accepted proof net need not be a canonical identity net. The next formal step
 is to represent the splitting-tensor argument and recursively turn every
 accepted net into a `Derivation`, modulo explicit exchange.
+
+## v0.2 derivation-first path
+
+`DerivationTree.lean` represents arbitrary first-order cut-free rule trees.
+Tensor/par nodes name the resource positions they consume and exchange nodes
+store a full occurrence permutation. `build?` validates those choices while
+constructing a net fragment; `desequentialize?` emits the certificate and
+`desequentializeChecked?` returns it only with a proof of checker acceptance.
+
+`Serialization.lean` supplies the versioned canonical wire format under fixed
+formula-array vertex numbering. `ProofNetIRDataset.lean` deterministically
+emits the 1,000-record corpus, while the Python wrapper checks every label with
+an independent oracle. The focused Python baseline is deliberately separate
+from this trust path.
 
 ## Representation invariants
 

@@ -1,0 +1,15 @@
+{
+  "version": "0.2",
+  "sequent": [
+    {
+      "kind": "tensor",
+      "left": { "kind": "atom", "name": "p", "positive": true },
+      "right": { "kind": "atom", "name": "q", "positive": true }
+    },
+    {
+      "kind": "par",
+      "left": { "kind": "atom", "name": "p", "positive": false },
+      "right": { "kind": "atom", "name": "q", "positive": false }
+    }
+  ]
+}

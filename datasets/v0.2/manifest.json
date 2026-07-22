@@ -1,0 +1,15 @@
+{
+  "generator": "lake exe proofnet_ir_dataset",
+  "independentOracle": "scripts/audit_v010.py",
+  "negative": 750,
+  "positive": 250,
+  "provenanceCounts": {
+    "duplicated-resource": 250,
+    "missing-link": 250,
+    "self-axiom": 250,
+    "valid-derivation": 250
+  },
+  "records": 1000,
+  "sha256": "d554bcfe84782e28a1452a4c29ff670d35ce62572e8f9f09ef607dfd6d0054b8",
+  "version": "0.2"
+}
