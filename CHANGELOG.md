@@ -83,6 +83,13 @@
   with a nontrivial internal cusp, and that a freely oriented such cycle yields
   a simple cusp-free continuation to its first cusping edge. The universal
   separation condition required by generalized Yeo remains open.
+- proved cusp-count additivity with an explicit concatenation boundary and
+  invariance under full traversal reversal; minimal freely closing cycles can
+  therefore be reoriented without losing minimality.
+- added exact simple-path prefixing, truncation of cusp-free continuations at
+  their first intersection with a finite vertex list, structural looplessness
+  of full proof-net occurrences, and the two cusp-adjacent head-edge exclusion
+  lemmas needed by the remaining bungee contradiction.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

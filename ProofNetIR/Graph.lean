@@ -15,6 +15,38 @@ structure Graph where
 
 namespace Graph
 
+/-- A finite list containing a value with property `P` has a decomposition at
+the first such value. -/
+theorem exists_first_decomposition {α : Type} (values : List α)
+    (P : α → Prop) (existsValue : ∃ value ∈ values, P value) :
+    ∃ before value after,
+      values = before ++ value :: after ∧
+      P value ∧
+      ∀ earlier ∈ before, ¬P earlier := by
+  classical
+  induction values with
+  | nil => simp at existsValue
+  | cons head tail ih =>
+      by_cases headProperty : P head
+      · exact ⟨[], head, tail, by simp, headProperty, by simp⟩
+      · have tailExists : ∃ value ∈ tail, P value := by
+          rcases existsValue with ⟨value, membership, property⟩
+          rw [List.mem_cons] at membership
+          rcases membership with same | inTail
+          · subst value
+            exact False.elim (headProperty property)
+          · exact ⟨value, inTail, property⟩
+        rcases ih tailExists with
+          ⟨before, value, after, equation, property, first⟩
+        refine ⟨head :: before, value, after, ?_, property, ?_⟩
+        · simp [equation]
+        · intro earlier membership
+          rw [List.mem_cons] at membership
+          rcases membership with same | inBefore
+          · subst earlier
+            exact headProperty
+          · exact first earlier inBefore
+
 /-- Number of retained Boolean mask entries strictly before an original edge
 index. This is the compacted index of a kept edge. -/
 def retainedIndex (mask : List Bool) (index : Nat) : Nat :=
@@ -136,6 +168,24 @@ def reverse {graph : Graph} (directed : graph.DirectedEdge) :
     (directed : graph.DirectedEdge) : directed.reverse.reverse = directed := by
   rcases directed with ⟨index, edge, lookup, forward⟩
   cases forward <;> rfl
+
+/-- An exact stored occurrence has exactly two orientations. Thus equal
+occurrence indices determine either the same directed edge or its reverse. -/
+theorem eq_or_eq_reverse_of_index_eq {graph : Graph}
+    (first second : graph.DirectedEdge)
+    (sameIndex : first.index = second.index) :
+    first = second ∨ first = second.reverse := by
+  have sameEdge : first.edge = second.edge := by
+    have lookupEquation : some first.edge = some second.edge := by
+      rw [← first.lookup, ← second.lookup, sameIndex]
+    exact Option.some.inj lookupEquation
+  rcases first with ⟨firstIndex, firstEdge, firstLookup, firstForward⟩
+  rcases second with ⟨secondIndex, secondEdge, secondLookup, secondForward⟩
+  simp only at sameIndex sameEdge
+  subst secondIndex
+  subst secondEdge
+  cases firstForward <;> cases secondForward <;>
+    simp [reverse]
 
 theorem edge_mem {graph : Graph} (directed : graph.DirectedEdge) :
     directed.edge ∈ graph.edges := by
@@ -554,6 +604,68 @@ def append {graph : Graph} (first second : graph.EdgeSimplePath)
     (first.append second meeting disjoint).vertices =
       first.vertices ++ second.vertices.tail := by
   simp [append, vertices, EdgeWalk.visitedVertices, List.map_append]
+
+/-- A traversal prefix ending at a selected exact edge occurrence remains a
+simple path. -/
+theorem prefixPath {graph : Graph} (path : graph.EdgeSimplePath)
+    {before after : List graph.DirectedEdge} {last : graph.DirectedEdge}
+    (traversalEquation : path.traversed = before ++ last :: after) :
+    ∃ initialPath : graph.EdgeSimplePath,
+      initialPath.start = path.start ∧
+      initialPath.finish = last.target ∧
+      initialPath.traversed = before ++ [last] := by
+  let prefixSteps := before ++ [last]
+  have fullChain := path.walk.toChain
+  rw [traversalEquation] at fullChain
+  have decomposedChain : graph.EdgeChain path.start
+      (prefixSteps ++ after) path.finish := by
+    simpa [prefixSteps, List.append_assoc] using fullChain
+  rcases decomposedChain.split_append with
+    ⟨middle, prefixChain, _⟩
+  have prefixWalk := prefixChain.toWalk
+  have prefixNonempty : prefixSteps ≠ [] := by simp [prefixSteps]
+  have finishEquation : middle = last.target := by
+    have lastTarget := prefixWalk.getLast_target prefixNonempty
+    simpa [prefixSteps] using lastTarget.symm
+  rw [finishEquation] at prefixWalk
+  refine ⟨
+    { start := path.start
+      finish := last.target
+      traversed := prefixSteps
+      walk := prefixWalk
+      verticesNodup := ?_ }, rfl, rfl, by rfl⟩
+  have fullNodup := path.verticesNodup
+  rw [traversalEquation] at fullNodup
+  have decomposedNodup :
+      ((path.start :: prefixSteps.map DirectedEdge.target) ++
+        after.map DirectedEdge.target).Nodup := by
+    simpa [EdgeWalk.visitedVertices, prefixSteps, List.append_assoc] using
+      fullNodup
+  exact (List.nodup_append.mp decomposedNodup).1
+
+/-- Every visited vertex after the start is the endpoint of a simple traversal
+prefix, with an exact list decomposition at its last edge. -/
+theorem prefixToTailVertex {graph : Graph} (path : graph.EdgeSimplePath)
+    {vertex : Vertex} (membership : vertex ∈ path.vertices.tail) :
+    ∃ (initialPath : graph.EdgeSimplePath)
+      (before after : List graph.DirectedEdge) (last : graph.DirectedEdge),
+      path.traversed = before ++ last :: after ∧
+      initialPath.start = path.start ∧
+      initialPath.finish = vertex ∧
+      initialPath.traversed = before ++ [last] ∧
+      last.target = vertex := by
+  have targetMembership :
+      vertex ∈ path.traversed.map DirectedEdge.target := by
+    simpa [vertices, EdgeWalk.visitedVertices] using membership
+  rcases List.mem_map.mp targetMembership with
+    ⟨last, lastMembership, lastTarget⟩
+  rcases List.mem_iff_append.mp lastMembership with
+    ⟨before, after, traversalEquation⟩
+  rcases path.prefixPath traversalEquation with
+    ⟨initialPath, prefixStarts, prefixFinishes, prefixSteps⟩
+  refine ⟨initialPath, before, after, last, traversalEquation, prefixStarts,
+    ?_, prefixSteps, lastTarget⟩
+  exact prefixFinishes.trans lastTarget
 
 end EdgeSimplePath
 

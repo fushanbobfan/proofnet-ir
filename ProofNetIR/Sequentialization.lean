@@ -2383,6 +2383,48 @@ def fullGraph (certificate : Certificate) : Graph where
   vertexCount := certificate.formulas.size
   edges := certificate.fullEdges
 
+/-- Local link well-formedness makes every stored full-graph occurrence
+loopless. -/
+theorem fullEdge_loopless (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    {edge : Edge} (membership : edge ∈ certificate.fullEdges) :
+    edge.first ≠ edge.second := by
+  simp only [fullEdges, List.mem_flatMap] at membership
+  rcases membership with ⟨link, linkMembership, edgeMembership⟩
+  have localWellFormed := structural.2.2.2.2.1 link linkMembership
+  cases link with
+  | «axiom» left right =>
+      simp at edgeMembership
+      subst edge
+      exact localWellFormed.1
+  | tensor left right conclusion =>
+      simp at edgeMembership
+      rcases edgeMembership with same | same <;> subst edge
+      · exact localWellFormed.2.1
+      · exact localWellFormed.2.2.1
+  | par left right conclusion =>
+      simp at edgeMembership
+      rcases edgeMembership with same | same <;> subst edge
+      · exact localWellFormed.2.1
+      · exact localWellFormed.2.2.1
+
+/-- Both orientations of every structurally valid full-graph occurrence have
+distinct endpoints. -/
+theorem fullDirectedEdge_loopless (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    (directed : certificate.fullGraph.DirectedEdge) :
+    directed.source ≠ directed.target := by
+  have edgeMembership : directed.edge ∈ certificate.fullEdges := by
+    simpa [fullGraph] using directed.edge_mem
+  have edgeDistinct := certificate.fullEdge_loopless structural edgeMembership
+  cases direction : directed.forward with
+  | false =>
+      simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target,
+        direction] using edgeDistinct.symm
+  | true =>
+      simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target,
+        direction] using edgeDistinct
+
 /-- Full occurrence edges paired with their exact local par annotation. This
 single source-level list is useful for proving that the independently exposed
 edge and color projections remain aligned. -/
@@ -2637,6 +2679,19 @@ theorem CuspFreeTraversal.suffix (certificate : Certificate)
   | cons first rest ih =>
       exact ih (CuspFreeTraversal.tail certificate free)
 
+/-- Every list prefix of a cusp-free traversal is cusp-free. -/
+theorem CuspFreeTraversal.prefix (certificate : Certificate)
+    {initial suffix : List certificate.fullGraph.DirectedEdge}
+    (free : certificate.CuspFreeTraversal (initial ++ suffix)) :
+    certificate.CuspFreeTraversal initial := by
+  induction initial with
+  | nil => trivial
+  | cons first rest ih =>
+      cases rest with
+      | nil => trivial
+      | cons second tail =>
+          exact ⟨free.1, ih free.2⟩
+
 /-- Two nonempty cusp-free traversals concatenate when their boundary
 transition is not a cusp. -/
 theorem CuspFreeTraversal.append (certificate : Certificate)
@@ -2739,6 +2794,69 @@ def cuspCount (certificate : Certificate) :
         certificate.cuspCount (outgoing :: rest)
   | _ => 0
 
+/-- Numeric contribution of one adjacent directed-edge pair. -/
+def cuspIndicator (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge) : Nat :=
+  if certificate.Cusp incoming outgoing then 1 else 0
+
+/-- The single possible cusp contribution across a list concatenation. -/
+def cuspBoundaryCount (certificate : Certificate)
+    (first second : List certificate.fullGraph.DirectedEdge) : Nat :=
+  match first.getLast?, second.head? with
+  | some incoming, some outgoing =>
+      certificate.cuspIndicator incoming outgoing
+  | _, _ => 0
+
+/-- Internal cusp counting is additive up to the unique concatenation
+boundary. This arithmetic form is the bookkeeping interface used by the
+bungee argument. -/
+theorem cuspCount_append (certificate : Certificate)
+    (first second : List certificate.fullGraph.DirectedEdge) :
+    certificate.cuspCount (first ++ second) =
+      certificate.cuspCount first + certificate.cuspCount second +
+        certificate.cuspBoundaryCount first second := by
+  induction first with
+  | nil => simp [cuspCount, cuspBoundaryCount]
+  | cons incoming rest ih =>
+      cases rest with
+      | nil =>
+          cases second with
+          | nil => simp [cuspCount, cuspBoundaryCount]
+          | cons outgoing tail =>
+              simp [cuspCount, cuspBoundaryCount, cuspIndicator]
+              omega
+      | cons next tail =>
+          simp only [List.cons_append, cuspCount]
+          change (if certificate.Cusp incoming next then 1 else 0) +
+              certificate.cuspCount ((next :: tail) ++ second) = _
+          rw [ih]
+          simp [cuspBoundaryCount, cuspIndicator, Nat.add_assoc]
+
+/-- Reversing a traversal and every directed incidence preserves its number
+of internal cusps. -/
+theorem cuspCount_reverseTraversal (certificate : Certificate)
+    (traversed : List certificate.fullGraph.DirectedEdge) :
+    certificate.cuspCount
+        (Graph.EdgeWalk.reverseTraversal traversed) =
+      certificate.cuspCount traversed := by
+  induction traversed with
+  | nil => simp [Graph.EdgeWalk.reverseTraversal, cuspCount]
+  | cons incoming rest ih =>
+      cases rest with
+      | nil => simp [Graph.EdgeWalk.reverseTraversal, cuspCount]
+      | cons outgoing tail =>
+          have reversedEquation :
+              Graph.EdgeWalk.reverseTraversal
+                  (incoming :: outgoing :: tail) =
+                Graph.EdgeWalk.reverseTraversal (outgoing :: tail) ++
+                  [incoming.reverse] := by
+            simp [Graph.EdgeWalk.reverseTraversal, List.map_append]
+          rw [reversedEquation, certificate.cuspCount_append, ih]
+          simp [cuspCount, cuspBoundaryCount, cuspIndicator,
+            Graph.EdgeWalk.reverseTraversal,
+            certificate.cusp_reverse_iff incoming outgoing,
+            Nat.add_comm]
+
 theorem cuspCount_eq_zero_iff (certificate : Certificate)
     (traversed : List certificate.fullGraph.DirectedEdge) :
     certificate.cuspCount traversed = 0 ↔
@@ -2752,6 +2870,25 @@ theorem cuspCount_eq_zero_iff (certificate : Certificate)
           by_cases cusp : certificate.Cusp first second
           · simp [cuspCount, CuspFreeTraversal, cusp]
           · simp [cuspCount, CuspFreeTraversal, cusp, ih]
+
+/-- Cusp-freedom is invariant under reversing the order and orientation of
+the whole traversal. -/
+theorem cuspFreeTraversal_reverse_iff (certificate : Certificate)
+    (traversed : List certificate.fullGraph.DirectedEdge) :
+    certificate.CuspFreeTraversal
+        (Graph.EdgeWalk.reverseTraversal traversed) ↔
+      certificate.CuspFreeTraversal traversed := by
+  calc
+    certificate.CuspFreeTraversal
+          (Graph.EdgeWalk.reverseTraversal traversed) ↔
+        certificate.cuspCount
+            (Graph.EdgeWalk.reverseTraversal traversed) = 0 :=
+      (certificate.cuspCount_eq_zero_iff
+        (Graph.EdgeWalk.reverseTraversal traversed)).symm
+    _ ↔ certificate.cuspCount traversed = 0 := by
+      rw [certificate.cuspCount_reverseTraversal traversed]
+    _ ↔ certificate.CuspFreeTraversal traversed :=
+      certificate.cuspCount_eq_zero_iff traversed
 
 /-- A simple, open, cusp-free continuation from the target of `incoming` to
 the target of `outgoing`, ending with that exact directed edge. -/
@@ -2767,6 +2904,76 @@ structure CuspFreeContinuation (certificate : Certificate)
   lastEdge : path.traversed.getLast nonempty = outgoing
 
 namespace CuspFreeContinuation
+
+/-- The first step of a continuation cannot reuse the incoming stored edge in
+either orientation. The forward orientation would revisit the path start; the
+reverse orientation would form the forbidden immediate cusp. -/
+theorem head_index_ne_incoming {certificate : Certificate}
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (continuation : CuspFreeContinuation certificate incoming outgoing) :
+    (continuation.path.traversed.head continuation.nonempty).index ≠
+      incoming.index := by
+  intro sameIndex
+  let first := continuation.path.traversed.head continuation.nonempty
+  have alternatives := Graph.DirectedEdge.eq_or_eq_reverse_of_index_eq
+    first incoming sameIndex
+  rcases alternatives with same | reversed
+  · have startFresh : continuation.path.start ∉
+        continuation.path.traversed.map Graph.DirectedEdge.target := by
+      have nodup : (continuation.path.start ::
+          continuation.path.traversed.map
+            Graph.DirectedEdge.target).Nodup := by
+        simpa [Graph.EdgeSimplePath.vertices,
+          Graph.EdgeWalk.visitedVertices] using
+            continuation.path.verticesNodup
+      exact (List.nodup_cons.mp nodup).1
+    apply startFresh
+    have firstMembership : first ∈ continuation.path.traversed := by
+      exact List.head_mem continuation.nonempty
+    apply List.mem_map.mpr
+    refine ⟨first, firstMembership, ?_⟩
+    rw [same]
+    exact continuation.startsAt.symm
+  · apply continuation.initialFree
+    change certificate.Cusp incoming first
+    rw [reversed]
+    unfold Cusp
+    simp
+
+/-- If `partner` is the next edge at the incoming cusp, the first step of a
+continuation cannot reuse that occurrence either. The equal orientation is
+excluded by initial cusp-freedom; the reverse orientation would force a loop.
+-/
+theorem head_index_ne_cusp_partner {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {incoming outgoing partner : certificate.fullGraph.DirectedEdge}
+    (continuation : CuspFreeContinuation certificate incoming outgoing)
+    (meeting : incoming.target = partner.source)
+    (cusp : certificate.Cusp incoming partner) :
+    (continuation.path.traversed.head continuation.nonempty).index ≠
+      partner.index := by
+  intro sameIndex
+  let first := continuation.path.traversed.head continuation.nonempty
+  rcases Graph.DirectedEdge.eq_or_eq_reverse_of_index_eq first partner
+      sameIndex with same | reversed
+  · apply continuation.initialFree
+    change certificate.Cusp incoming first
+    rw [same]
+    exact cusp
+  · have headSource : first.source = continuation.path.start := by
+      cases traversalEquation : continuation.path.traversed with
+      | nil => exact False.elim (continuation.nonempty traversalEquation)
+      | cons head tail =>
+          have chain := continuation.path.walk.toChain
+          rw [traversalEquation] at chain
+          simpa [first, traversalEquation] using chain.head_source
+    apply certificate.fullDirectedEdge_loopless structural partner
+    calc
+      partner.source = incoming.target := meeting.symm
+      _ = continuation.path.start := continuation.startsAt.symm
+      _ = first.source := headSource.symm
+      _ = partner.reverse.source := by rw [reversed]
+      _ = partner.target := Graph.DirectedEdge.reverse_source partner
 
 /-- Concatenate compatible continuations. The explicit vertex-disjointness
 hypothesis is exactly what preserves simplicity after the shared endpoint is
@@ -2830,6 +3037,121 @@ def append {certificate : Certificate}
     (first.append second disjoint).path.vertices =
       first.path.vertices ++ second.path.vertices.tail := by
   simp [append]
+
+/-- Truncate a continuation at a specified exact edge occurrence in its
+traversal. The returned continuation exposes its precise prefix list. -/
+theorem prefixAtEdge {certificate : Certificate}
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (continuation : CuspFreeContinuation certificate incoming outgoing)
+    {before after : List certificate.fullGraph.DirectedEdge}
+    {last : certificate.fullGraph.DirectedEdge}
+    (traversalEquation :
+      continuation.path.traversed = before ++ last :: after) :
+    ∃ truncated : CuspFreeContinuation certificate incoming last,
+      truncated.path.traversed = before ++ [last] := by
+  rcases continuation.path.prefixPath traversalEquation with
+    ⟨initialPath, prefixStarts, prefixFinishes, prefixSteps⟩
+  have prefixNonempty : initialPath.traversed ≠ [] := by
+    rw [prefixSteps]
+    simp
+  have decomposedFree : certificate.CuspFreeTraversal
+      ((before ++ [last]) ++ after) := by
+    simpa [traversalEquation, List.append_assoc] using
+      continuation.cuspFree
+  have prefixFree : certificate.CuspFreeTraversal (before ++ [last]) :=
+    CuspFreeTraversal.prefix certificate decomposedFree
+  have headEquation :
+      initialPath.traversed.head prefixNonempty =
+        continuation.path.traversed.head continuation.nonempty := by
+    cases before <;> simp [prefixSteps, traversalEquation]
+  let truncated : CuspFreeContinuation certificate incoming last :=
+    { path := initialPath
+      nonempty := prefixNonempty
+      startsAt := prefixStarts.trans continuation.startsAt
+      endsAt := prefixFinishes
+      cuspFree := by simpa [prefixSteps] using prefixFree
+      initialFree := by simpa [headEquation] using continuation.initialFree
+      lastEdge := by simp [prefixSteps] }
+  exact ⟨truncated, by simpa [truncated] using prefixSteps⟩
+
+/-- Truncate a continuation at any visited vertex after its start. The exact
+last directed edge becomes the new outgoing occurrence. -/
+theorem prefixToTailVertex {certificate : Certificate}
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (continuation : CuspFreeContinuation certificate incoming outgoing)
+    {vertex : Vertex}
+    (membership : vertex ∈ continuation.path.vertices.tail) :
+    ∃ last : certificate.fullGraph.DirectedEdge,
+      Nonempty (CuspFreeContinuation certificate incoming last) ∧
+        last.target = vertex := by
+  rcases continuation.path.prefixToTailVertex membership with
+    ⟨initialPath, before, after, last, traversalEquation,
+      prefixStarts, prefixFinishes, prefixSteps, lastTarget⟩
+  have prefixNonempty : initialPath.traversed ≠ [] := by
+    rw [prefixSteps]
+    simp
+  have decomposedFree : certificate.CuspFreeTraversal
+      ((before ++ [last]) ++ after) := by
+    simpa [traversalEquation, List.append_assoc] using
+      continuation.cuspFree
+  have prefixFree : certificate.CuspFreeTraversal (before ++ [last]) :=
+    CuspFreeTraversal.prefix certificate decomposedFree
+  have headEquation :
+      initialPath.traversed.head prefixNonempty =
+        continuation.path.traversed.head continuation.nonempty := by
+    cases before <;> simp [prefixSteps, traversalEquation]
+  refine ⟨last, ⟨?_⟩, lastTarget⟩
+  exact
+    { path := initialPath
+      nonempty := prefixNonempty
+      startsAt := prefixStarts.trans continuation.startsAt
+      endsAt := prefixFinishes.trans lastTarget.symm
+      cuspFree := by simpa [prefixSteps] using prefixFree
+      initialFree := by simpa [headEquation] using continuation.initialFree
+      lastEdge := by simp [prefixSteps] }
+
+/-- Truncate at the first endpoint that enters a specified finite vertex list.
+Within the returned prefix, that endpoint is the only visited tail vertex in
+the list. -/
+theorem prefixToFirstIntersection {certificate : Certificate}
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (continuation : CuspFreeContinuation certificate incoming outgoing)
+    (vertices : List Vertex)
+    (intersects : ∃ vertex,
+      vertex ∈ continuation.path.vertices.tail ∧ vertex ∈ vertices) :
+    ∃ (last : certificate.fullGraph.DirectedEdge)
+      (truncated : CuspFreeContinuation certificate incoming last),
+      last.target ∈ vertices ∧
+      ∀ vertex, vertex ∈ truncated.path.vertices.tail →
+        vertex ∈ vertices → vertex = last.target := by
+  have edgeExists : ∃ directed ∈ continuation.path.traversed,
+      directed.target ∈ vertices := by
+    rcases intersects with ⟨vertex, inTail, inVertices⟩
+    have targetMembership : vertex ∈
+        continuation.path.traversed.map Graph.DirectedEdge.target := by
+      simpa [Graph.EdgeSimplePath.vertices,
+        Graph.EdgeWalk.visitedVertices] using inTail
+    rcases List.mem_map.mp targetMembership with
+      ⟨directed, directedMembership, targetEquation⟩
+    exact ⟨directed, directedMembership, targetEquation.symm ▸ inVertices⟩
+  rcases Graph.exists_first_decomposition continuation.path.traversed
+      (fun directed => directed.target ∈ vertices) edgeExists with
+    ⟨before, last, after, traversalEquation, lastIn, beforeAvoids⟩
+  rcases continuation.prefixAtEdge traversalEquation with
+    ⟨truncated, truncatedSteps⟩
+  refine ⟨last, truncated, lastIn, ?_⟩
+  intro vertex inTruncated inVertices
+  have targetMembership : vertex ∈
+      truncated.path.traversed.map Graph.DirectedEdge.target := by
+    simpa [Graph.EdgeSimplePath.vertices,
+      Graph.EdgeWalk.visitedVertices] using inTruncated
+  rw [truncatedSteps, List.map_append] at targetMembership
+  rcases List.mem_append.mp targetMembership with inBefore | atLast
+  · rcases List.mem_map.mp inBefore with
+      ⟨earlier, earlierMembership, earlierTarget⟩
+    exact False.elim
+      (beforeAvoids earlier earlierMembership (earlierTarget.symm ▸ inVertices))
+  · simpa using atLast
 
 end CuspFreeContinuation
 
@@ -3045,17 +3367,20 @@ theorem orient_cycle_initial_free (certificate : Certificate)
       oriented.start = cycle.start ∧
       ¬certificate.ClosingCusp oriented ∧
       ¬certificate.Cusp incoming
-        (oriented.traversed.head oriented.nonempty) := by
+        (oriented.traversed.head oriented.nonempty) ∧
+      certificate.cuspCount oriented.traversed =
+        certificate.cuspCount cycle.traversed := by
   rcases certificate.initial_or_reverse_initial_free cycle closingFree incoming with
     forwardFree | reverseFree
-  · exact ⟨cycle, rfl, closingFree, forwardFree⟩
+  · exact ⟨cycle, rfl, closingFree, forwardFree, rfl⟩
   · have reverseClosingFree : ¬certificate.ClosingCusp cycle.reverse := by
       intro reverseClosing
       exact closingFree
         ((certificate.closingCusp_reverse_iff cycle).mp reverseClosing)
-    refine ⟨cycle.reverse, rfl, reverseClosingFree, ?_⟩
-    simpa [Graph.EdgeSimpleCycle.reverse,
-      Graph.EdgeWalk.reverseTraversal] using reverseFree
+    refine ⟨cycle.reverse, rfl, reverseClosingFree, ?_, ?_⟩
+    · simpa [Graph.EdgeSimpleCycle.reverse,
+        Graph.EdgeWalk.reverseTraversal] using reverseFree
+    · exact certificate.cuspCount_reverseTraversal cycle.traversed
 
 theorem CuspFreeCycle.no_cusp_of_successor (certificate : Certificate)
     {cycle : certificate.fullGraph.EdgeSimpleCycle}
@@ -3336,6 +3661,32 @@ theorem exists_minimal_nonclosing_cycle (certificate : Certificate)
   rw [cycleCount]
   exact leastBound _ ⟨other, otherStarts, otherClosingFree, rfl⟩
 
+/-- A minimal freely closing cycle can be oriented relative to an incoming
+edge without changing its internal cusp count. -/
+theorem exists_minimal_oriented_nonclosing_cycle (certificate : Certificate)
+    (incoming : certificate.fullGraph.DirectedEdge)
+    (notSplitting :
+      ¬certificate.SplittingVertex incoming.target) :
+    ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
+      cycle.start = incoming.target ∧
+      ¬certificate.ClosingCusp cycle ∧
+      ¬certificate.Cusp incoming
+        (cycle.traversed.head cycle.nonempty) ∧
+      ∀ other : certificate.fullGraph.EdgeSimpleCycle,
+        other.start = incoming.target →
+        ¬certificate.ClosingCusp other →
+        certificate.cuspCount cycle.traversed ≤
+          certificate.cuspCount other.traversed := by
+  rcases certificate.exists_minimal_nonclosing_cycle notSplitting with
+    ⟨cycle, starts, closingFree, minimal⟩
+  rcases certificate.orient_cycle_initial_free cycle closingFree incoming with
+    ⟨oriented, sameStart, orientedClosingFree, initialFree, sameCount⟩
+  refine ⟨oriented, sameStart.trans starts, orientedClosingFree,
+    initialFree, ?_⟩
+  intro other otherStarts otherClosingFree
+  rw [sameCount]
+  exact minimal other otherStarts otherClosingFree
+
 theorem CuspAcyclic.minimal_nonclosing_cycle_has_cusp
     (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
     {cycle : certificate.fullGraph.EdgeSimpleCycle}
@@ -3414,6 +3765,24 @@ theorem CuspAcyclic.continuation_to_first_cusping_edge
       cuspFree := by simpa [pathSteps] using prefixFree
       initialFree := by simpa [headEquation] using initialFree
       lastEdge := lastEquation }
+
+/-- A cusp-acyclic non-splitting target already yields the unseparated
+continuation part of the generalized-Yeo order. The bungee lemma is precisely
+the remaining proof that a minimal choice also satisfies `OrderingPath`'s
+universal separation field. -/
+theorem CuspAcyclic.continuation_of_not_splitting
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    (incoming : certificate.fullGraph.DirectedEdge)
+    (notSplitting :
+      ¬certificate.SplittingVertex incoming.target) :
+    ∃ cusping : certificate.fullGraph.DirectedEdge,
+      Nonempty (certificate.CuspFreeContinuation incoming cusping) ∧
+        certificate.CuspingEdge cusping := by
+  rcases certificate.exists_minimal_oriented_nonclosing_cycle incoming
+      notSplitting with
+    ⟨cycle, starts, closingFree, initialFree, _minimal⟩
+  exact CuspAcyclic.continuation_to_first_cusping_edge certificate acyclic
+    incoming cycle starts closingFree initialFree
 
 /-- In a cusp-acyclic graph, a non-splitting vertex has a based simple cycle
 whose closing pair is free but which contains an internal, nontrivial cusping

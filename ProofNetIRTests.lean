@@ -268,6 +268,36 @@ example : canonical.CuspingEdge canonicalParLeftIn := by
   have sameIndex := congrArg Graph.DirectedEdge.index same
   exact (by decide : canonicalParLeftIn.index ≠
     canonicalParRightIn.reverse.index) sameIndex
+example (directed : canonical.fullGraph.DirectedEdge) :
+    directed.source ≠ directed.target :=
+  canonical.fullDirectedEdge_loopless
+    (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+    directed
+example : canonical.cuspCount
+      ([canonicalParLeftIn] ++ [canonicalParRightIn.reverse]) =
+    canonical.cuspCount [canonicalParLeftIn] +
+      canonical.cuspCount [canonicalParRightIn.reverse] +
+      canonical.cuspBoundaryCount [canonicalParLeftIn]
+        [canonicalParRightIn.reverse] :=
+  canonical.cuspCount_append _ _
+example : canonical.cuspCount
+      (Graph.EdgeWalk.reverseTraversal
+        [canonicalParLeftIn, canonicalParRightIn.reverse]) =
+    canonical.cuspCount
+      [canonicalParLeftIn, canonicalParRightIn.reverse] :=
+  canonical.cuspCount_reverseTraversal _
+
+example {incoming outgoing : canonical.fullGraph.DirectedEdge}
+    (continuation : canonical.CuspFreeContinuation incoming outgoing)
+    (vertices : List Vertex)
+    (intersects : ∃ vertex,
+      vertex ∈ continuation.path.vertices.tail ∧ vertex ∈ vertices) :
+    ∃ (last : canonical.fullGraph.DirectedEdge)
+      (truncated : canonical.CuspFreeContinuation incoming last),
+      last.target ∈ vertices ∧
+      ∀ vertex, vertex ∈ truncated.path.vertices.tail →
+        vertex ∈ vertices → vertex = last.target :=
+  continuation.prefixToFirstIntersection vertices intersects
 
 example : canonical.wellFormed = true := by native_decide
 example : canonical.StructurallyWellFormed :=
@@ -904,6 +934,14 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
     cyclicTriangle.prefixPath
     (before := []) (incoming := cyclicDirected01)
     (outgoing := cyclicDirected12) (after := [cyclicDirected20]) rfl
+
+example : ∃ initialPath : cyclicGraph.EdgeSimplePath,
+    initialPath.start = 0 ∧ initialPath.finish = 2 ∧
+      initialPath.traversed = [cyclicDirected01, cyclicDirected12] := by
+  simpa [cyclicTriangle, cyclicDirected12, Graph.DirectedEdge.target] using
+    cyclicTriangle.prefixPath
+      (before := [cyclicDirected01]) (incoming := cyclicDirected12)
+      (outgoing := cyclicDirected20) (after := []) rfl
 
 example : cyclicGraph.connected = true := by native_decide
 example : cyclicGraph.isTree = false := by native_decide
