@@ -25,9 +25,11 @@ def find_lake() -> str:
     on_path = shutil.which("lake")
     if on_path is not None:
         return on_path
-    elan_lake = Path.home() / ".elan" / "bin" / "lake.exe"
-    if elan_lake.is_file():
-        return str(elan_lake)
+    elan_bin = Path.home() / ".elan" / "bin"
+    for executable in ("lake", "lake.exe"):
+        elan_lake = elan_bin / executable
+        if elan_lake.is_file():
+            return str(elan_lake)
     raise FileNotFoundError("lake was not found on PATH or under ~/.elan/bin")
 
 
