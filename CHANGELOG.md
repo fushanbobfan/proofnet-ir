@@ -159,15 +159,13 @@
 - factored the recursive rule layer into a separate
   `LogicalSequentializationResult`: exact terminal-boundary inference/build
   equations and kernel-checked par/tensor composition now reconstruct the
-  ordered input sequent using explicit exchange, without prematurely claiming
-  the still-open recursive graph-equivalence theorem.
+  ordered input sequent using explicit exchange, providing an independently
+  auditable precursor to graph reconstruction.
 - proved full logical sequentialization by well-founded recursion on formula
   occurrences: every checker-accepted certificate has a kernel-typed
   `Derivation` of exactly its ordered conclusion formulas. The proof includes
   exact par-compaction labels, tensor restriction labels, context partitioning,
-  strict recursive descent, and the classified axiom base. The stronger
-  first-order-tree reconstruction and `ProofNetEquivalent` theorem remain
-  separate and open.
+  strict recursive descent, and the classified axiom base.
 - proved that the generated `ProofNetEquivalent` relation flattens to one
   composite bounded vertex reindexing followed by one link permutation;
   added the functorial reindexing and symmetry/transitivity lemmas needed to
@@ -177,8 +175,16 @@
   formula boundary is exactly the result of the independent `infer?` pass.
   Projection laws for positional `pick?` and validated `reorder?`, plus an
   internal-fragment witness for every `SequentializationResult`, make the
-  remaining occurrence-level reconstruction proof stateable without trusting
-  runtime coincidence.
+  occurrence-level reconstruction proof stateable without trusting runtime
+  coincidence.
+- completed full first-order reverse sequentialization. Exact terminal-par
+  reconstruction and splitting-tensor occurrence-boundary reconstruction now
+  compose child renamings by a bounded block sum, build concrete par/tensor
+  rules plus executable exchange, and prove the resulting certificate
+  `ProofNetEquivalent` to the input. The well-founded
+  `sequentialization_of_check` theorem returns a `SequentializationResult` for
+  every accepted certificate, and `generallySequentializable` exposes the
+  public proposition-level result.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

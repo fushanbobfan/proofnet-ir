@@ -74,11 +74,14 @@ recursive family `A, A-dual`, and `reconstructIdentity?` requires exact
 certificate equality. It does not treat checker acceptance alone as permission
 to return a preselected derivation.
 
-v0.2 adds the opposite direction for arbitrary first-order cut-free derivation
+v0.2 added the derivation-first direction for arbitrary first-order cut-free
 trees: validated desequentialization constructs a candidate certificate and
-then gates the checked API on `Certificate.check = true`. This is not the
-general sequentialization theorem from arbitrary accepted nets back to
-derivations.
+gates the checked API on `Certificate.check = true`. Post-v0.3.1 `main` now
+also proves the reverse direction for the supported representation:
+`sequentialization_of_check` maps every accepted certificate to a concrete
+first-order tree whose executable output is `ProofNetEquivalent` to the
+input. The theorem preserves the ordered formula boundary and does not identify
+arbitrary unlabeled graphs.
 
 Canonical v0.2 serialization trusts the formula-array numbering as occurrence
 identity. Sorting links/conclusions and orienting axiom endpoints is a stable

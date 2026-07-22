@@ -1,15 +1,16 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.3.0 plus the v0.3.1 release candidate on `main`
+Audited baseline: v0.3.1 plus post-release v0.4 sequentialization work on `main`
 
 ## Verdict
 
 ProofNet-IR v0.3.1 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
-baseline can be reproduced. It cannot yet support the stronger claim that any
-accepted net can be converted back into a derivation. Post-release `main` now
+baseline can be reproduced. Post-release `main` now proves that any accepted
+certificate can be converted into a concrete first-order derivation whose
+desequentialization is `ProofNetEquivalent` to the input. It also
 lets a downstream consumer parse v0.2/v0.3 JSON directly into a checked Lean
 object and migrate v0.2 to a reindex-invariant v0.3 key, but that closes only
 part of the engineering and proof-identity gap.
@@ -61,9 +62,12 @@ part of the engineering and proof-identity gap.
   for this reduction is complete. Universal terminal-par-or-splitting-tensor
   existence, strict decrease of both reductions, and the axiom-only recursive
   base are now kernel checked. Boundary transport and well-founded logical
-  recursion are also complete: every accepted certificate has a kernel
-  `Derivation` of exactly its ordered conclusion formulas. First-order rule
-  tree construction and desequentialized-net equivalence remain open.
+  recursion are also complete. Exact par/tensor occurrence reconstruction and
+  inverse-rule congruence now close `sequentialization_of_check` and
+  `generallySequentializable`: every accepted certificate has a concrete
+  first-order tree whose executable desequentialization is
+  `ProofNetEquivalent` to the input and has exactly its ordered conclusion
+  formulas.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -71,14 +75,10 @@ part of the engineering and proof-identity gap.
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`
    succeed is still missing.
-2. Logical sequentialization of every accepted MLL proof net is proved, but
-   the stronger `GenerallySequentializable` result is not yet complete: the
-   current recursion returns a kernel `Derivation`, not a first-order tree
-   whose executable desequentialization is proved `ProofNetEquivalent` to the
-   input. The generated equivalence is now proved to flatten to one reindexing
-   plus link permutation, and `build?`/`infer?` boundary synchronization is
-   kernel checked; inverse-rule congruence for reconstructed certificates is
-   the remaining mathematical step.
+2. The stronger `GenerallySequentializable` result is complete for the
+   documented unit-free, cut-free MLL representation. Remaining logical scope
+   gaps concern unsupported connectives/units/cuts and broader notions of
+   canonical graph identity, not the accepted-net reverse theorem.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
 4. A semantic relation modulo reordered links is now defined, but it does not

@@ -54,8 +54,10 @@ research-source count.
 - Finite reachability and tree checking now have full iff theorems against both
   the fuel-indexed and unbounded inductive-walk semantics; the former open
   walk-normalization obligation was discharged by kernel-checked loop erasure.
-- Reverse sequentialization of every checker-accepted net remains the central
-  post-v0.2 proof obligation.
+- Reverse sequentialization of every checker-accepted unit-free, cut-free MLL
+  net is now kernel checked via `sequentialization_of_check` and
+  `generallySequentializable`. Broader logic fragments and library-readiness
+  validation remain separate obligations.
 
 ## Reading record
 

@@ -1069,6 +1069,7 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check CutFreeDerivation.reorder?_idxOf_of_nodup_perm
 #check CutFreeDerivation.build?_exchange_of_reorder
 #check list_pair_decompose_map_fst_append_two
+#check list_pair_decompose_map_fst_append_one
 #check list_zip_labelled_of_mapM_eq_some
 #check list_zip_eq_map_option_getD_of_mapM_eq_some
 #check list_pairs_eq_map_option_getD
@@ -1097,8 +1098,16 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.DirectProofNetEquivalent.appendTensorOccurrenceExtended
 #check Certificate.LinkWellFormed.tensor_formulaData
 #check Certificate.TerminalTensor.tensorPlacement
+#check Certificate.TerminalTensor.tensorPlacement_inverse_left
+#check Certificate.TerminalTensor.tensorPlacement_inverse_right
+#check Certificate.TerminalTensor.tensorPlacement_inverse_conclusion
+#check Certificate.TerminalTensor.occurrenceBoundaryReconstruction
 #check Certificate.TerminalTensor.restrictLinks_reindex_append_perm
 #check Certificate.TerminalTensor.rebuild_directProofNetEquivalent
+#check Certificate.SplittingTensor.premiseBoundaryData_of_formulaData
+#check Certificate.TerminalTensor.sequentializationResult
+#check Certificate.sequentialization_of_check
+#check Certificate.generallySequentializable
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =

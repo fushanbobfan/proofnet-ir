@@ -83,21 +83,14 @@ derivation recursively to build a canonical identity certificate, and
 Consequently, the supported family now has arbitrary formula depth rather than
 only two hand-written examples.
 
-This still does not claim the general sequentialization theorem: an arbitrary
-accepted proof net need not be a canonical identity net. The new
-`ProofNetEquivalent` relation fixes the previously too-narrow conclusion type
-by quotienting link storage order. The next formal step is to represent the
-splitting-tensor argument and recursively turn every accepted net into a
-`Derivation`, modulo explicit exchange, whose desequentialization is
-`ProofNetEquivalent` to the input.
-
-`Sequentialization.lean` now makes that final result type explicit: a successful
-result must connect first-order inference, a kernel-typed derivation,
-desequentialization, ordered boundary labels, and `ProofNetEquivalent` output.
-It also implements vertex deletion/compaction and a checker-gated inverse for
-terminal par links. All terminal-par candidates found across the 250 generated
-derivation-tree regressions produce accepted premises. This is implementation
-and regression evidence; the universal preservation theorem remains open.
+The general theorem is now stated and proved against `ProofNetEquivalent`,
+which quotients bounded vertex renaming and semantically irrelevant link-list
+order while preserving ordered conclusions and connective premises.
+`SequentializationResult` connects first-order inference, a kernel-typed
+derivation, executable desequentialization, ordered boundary labels, and an
+equivalent output certificate. `sequentialization_of_check` constructs that
+result for every checker-accepted certificate, and
+`generallySequentializable` exposes the proposition-level theorem.
 
 The same module now discovers terminal splitting-tensor candidates by deleting
 the tensor conclusion in the full occurrence graph, partitioning reachable
@@ -109,19 +102,16 @@ boundedness preservation, exact incident-edge accounting, the tree edge-count
 equation for a deleted leaf, exact adjacency/walk embedding, simple-walk leaf
 avoidance, connectedness after deletion, and the full `IsTree` preservation
 theorem. Transporting each terminal-par switching to this general graph lemma
-is now halfway formalized: structural ownership and par-choice counting prove
-that a terminal par conclusion is a leaf in every switching. Exact equality up
-to edge order between the generated premise switching and the deleted input
-switching remains open. On the structural side, the pure reduction is now
+is formalized: structural ownership and par-choice counting prove that a
+terminal par conclusion is a leaf in every switching. On the structural side,
+the pure reduction is now
 proved equal to the executable candidate on well-formed terminal pars; formula
 lookup under compaction, nonempty and bounded duplicate-free boundary output,
 local well-formedness of every surviving link, and global node ownership are
 all kernel theorems; hence the complete proposition-level structural
 specification is preserved. Choice lifting now also proves every premise
 switching is the terminal-leaf deletion of an input switching up to edge-order
-permutation, so terminal-par correctness preservation is complete. The
-universal existence of a terminal par or splitting tensor remains the current
-global proof obligation.
+permutation, so terminal-par correctness preservation is complete.
 
 For the tensor branch, the local theorem layer now proves unique conclusion
 ownership, absence of any other incident link, non-boundary premises, zero
@@ -129,9 +119,9 @@ incident selected-par edges, and exactly the two fixed tensor edges at the
 terminal conclusion in every switching. Thus terminal tensor degree is
 universally two. A genuine splitting tensor now yields two structurally
 well-formed restricted certificates. Every child switching is now an induced
-restriction of an input switching and is proved to remain a tree; proving that
-some terminal tensor is splitting when no terminal par is available is the
-next global combinatorial step.
+restriction of an input switching and is proved to remain a tree. The
+generalized-Yeo layer proves that when no terminal par is available, a
+splitting terminal tensor exists.
 
 `SplittingTensor` now states that global condition without mentioning the
 algorithm: after removing the terminal conclusion from the full occurrence
@@ -140,7 +130,7 @@ proved bounded from certificate structural well-formedness, and a general
 finite-graph theorem proves `vertexCount` closure rounds equivalent to the
 unbounded `Walk` relation. Consequently the candidate finder's reachability
 rejection is sound and complete for this exact splitting condition; universal
-existence remains a separate obligation.
+existence follows from the proved terminal-rule dichotomy.
 
 The component constructor is now connected to that semantics as well. The
 reachable and unreachable vertex lists are proved disjoint and exhaustive off
@@ -158,8 +148,11 @@ tensor conclusion, so both induced graphs are bounded and connected. A finite
 connected-graph parent-edge theorem supplies the lower edge bounds; exact
 vertex and edge partitions then force `E + 1 = V` in both components. Thus the
 concrete `TerminalTensorReduction` preserves declarative correctness and the
-Boolean checker for both premises. Universal decomposition existence and the
-well-founded derivation reconstruction remain open.
+Boolean checker for both premises. Exact occurrence-boundary reconstruction,
+block-sum renaming, and binary inverse-rule composition rebuild a concrete
+first-order tensor tree equivalent to the input. Together with the terminal-par
+branch, strict decrease, and axiom base, this closes the well-founded
+sequentialization proof.
 
 ## v0.2 derivation-first path
 

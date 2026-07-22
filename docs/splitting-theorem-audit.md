@@ -4,7 +4,8 @@ Review date: 2026-07-22
 
 ## Claim under audit
 
-The remaining decomposition theorem needed by `GenerallySequentializable` is:
+The decomposition theorem used by `GenerallySequentializable`, now proved in
+Lean, is:
 
 > Every checker-accepted non-axiom certificate has either a terminal par link
 > or a terminal tensor whose removal separates its two premise occurrences.
@@ -174,14 +175,20 @@ name-level restatement of Yeo:
   conclusion-formula list. Tensor contexts are obtained from the proved
   disjoint/exhaustive component partition; par compaction is transported back
   to the original occurrence labels.
+- exact terminal-par and splitting-tensor certificate reconstruction is now
+  complete. The tensor branch proves canonical occurrence-boundary
+  reconstruction, composes the two child vertex renamings by a bounded block
+  sum, constructs a concrete first-order tensor rule plus exchange, and proves
+  its output `ProofNetEquivalent` to the input.
+- `sequentialization_of_check` closes the well-founded strong recursion, and
+  `generallySequentializable` exposes the full accepted-net theorem.
 
 ## Claim boundary
 
 The universal terminal-rule existence theorem, strict recursive measure,
-axiom-only recursive base, boundary alignment, and full logical
-sequentialization are now complete; generated examples and successful
-checker-gated candidates remain regression evidence, not part of those
-proofs. `GenerallySequentializable` must remain unproved until the recursion
-also constructs first-order rule trees, composes graph reconstruction and
-`ProofNetEquivalent` witnesses, and closes the stronger final theorem with no
-`sorry` or `admit`.
+axiom-only base, occurrence boundary alignment, full logical sequentialization,
+and first-order graph reconstruction are now complete with no `sorry` or
+`admit`. Generated examples and successful checker-gated candidates remain
+regression evidence, not premises of the proof. This closes the supported MLL
+sequentialization theorem but does not claim library maturity, broader logic
+fragments, or arbitrary graph-isomorphism canonicalization.

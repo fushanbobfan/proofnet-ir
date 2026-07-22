@@ -33,7 +33,7 @@ state the representation translation it proves.
 | Conclusions | occurrence indices | an order list containing every conclusion edge once |
 | Cuts | absent | represented and sequentialized |
 | Correctness implementation | explicitly enumerate each par switching and test its undirected tree | colored-path formulation on one multigraph |
-| Sequentialization result | not yet general | a sequent proof whose desequentialization is graph-isomorphic to the input |
+| Sequentialization result | first-order tree whose desequentialization is `ProofNetEquivalent` to the input | a sequent proof whose desequentialization is graph-isomorphic to the input |
 
 The two correctness presentations are mathematically related, but the Rocq
 theorem cannot simply be restated for the Lean structure. In particular, the
@@ -60,28 +60,32 @@ serialization convenience.
 
 ## Lean implementation obligations
 
-Before general sequentialization can be claimed here, ProofNet-IR must:
+The representation-specific general-sequentialization checklist is:
 
 1. define certificate reindexing and an equivalence/isomorphism relation that
    preserves formulas, ordered tensor/par premises, conclusions, and axiom
    pairing while quotienting semantically irrelevant link storage order;
 2. prove the checker and declarative correctness predicates invariant under
    that relation;
-3. prove arbitrary inferred derivations desequentialize to accepted nets,
-   rather than relying only on the post-checking safe API;
+3. keep derivation-first soundness and reverse sequentialization distinct:
+   successful inference denotes a kernel derivation, while reverse
+   sequentialization proves the generated tree's output equivalent to the
+   accepted input;
 4. define terminal par and splitting tensor decomposition for the current
    occurrence graph;
 5. prove each decomposition preserves proof-net correctness for its subnets;
 6. prove a correct non-axiom net has an admissible terminal decomposition;
-7. recurse on a strict size measure and return a `Derivation` together with an
-   isomorphism to the original certificate.
+7. recurse on a strict size measure and return a first-order derivation together
+   with an equivalence to the original certificate.
 
-The exact representation-level obligations for the remaining generalized-Yeo
-step are maintained in [splitting-theorem-audit.md](splitting-theorem-audit.md).
+Items 1-7 are now kernel checked for the supported unit-free, cut-free MLL
+representation. The exact generalized-Yeo and reconstruction evidence is
+recorded in [splitting-theorem-audit.md](splitting-theorem-audit.md).
 
 These obligations replace the earlier informal plan of simply "finding a
-splitting tensor". They also explain why v0.2.0 is a research prototype rather
-than a completed proof-net library.
+splitting tensor". Their completion establishes the mathematical reverse
+theorem; it does not by itself satisfy the separate engineering and empirical
+requirements for a mature library.
 
 ## Current implementation checkpoint
 

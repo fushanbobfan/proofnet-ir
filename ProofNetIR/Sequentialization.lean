@@ -526,6 +526,26 @@ theorem list_pair_decompose_map_fst_append_two
     rightEntriesEquation]
   simp
 
+/-- Recover the final occurrence root from a formula projection ending in one
+distinguished formula. -/
+theorem list_pair_decompose_map_fst_append_one
+    {entries : List (Formula × Vertex)} {context : List Formula}
+    {formula : Formula}
+    (equation : entries.map Prod.fst = context ++ [formula]) :
+    ∃ contextEntries root,
+      entries = contextEntries ++ [(formula, root)] ∧
+      contextEntries.map Prod.fst = context := by
+  rcases List.map_eq_append_iff.mp equation with
+    ⟨contextEntries, suffixEntries, entriesEquation, contextEquation,
+      suffixEquation⟩
+  rcases List.map_eq_singleton_iff.mp suffixEquation with
+    ⟨entry, suffixEntriesEquation, labelEquation⟩
+  rcases entry with ⟨entryFormula, root⟩
+  simp only at labelEquation
+  subst entryFormula
+  refine ⟨contextEntries, root, ?_, contextEquation⟩
+  rw [entriesEquation, suffixEntriesEquation]
+
 /-- A successful ordered lookup certifies every formula/root pair in the
 lockstep zip. -/
 theorem list_zip_labelled_of_mapM_eq_some
@@ -1472,10 +1492,9 @@ def toElaboratedCertificate {input : Certificate}
 
 end SequentializationResult
 
-/-- The exact macro theorem still to be constructed by terminal-par peeling,
-splitting-tensor decomposition, and well-founded recursion. Keeping it as a
-named proposition prevents a search routine from being mistaken for the
-mathematical theorem. -/
+/-- Full first-order sequentializability: every checker-accepted certificate
+has an inferred rule tree whose desequentialization is proof-net equivalent to
+the input and has the same ordered formula boundary. -/
 def GenerallySequentializable : Prop :=
   ∀ input : Certificate,
     input.check = true → Nonempty (SequentializationResult input)
@@ -10451,6 +10470,154 @@ theorem tensorPlacement_forward_last
   rw [List.getElem_append_right (by omega)]
   simp
 
+theorem tensorPlacement_inverse_left
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    (membership :
+      vertex ∈ certificate.tensorLeftVertices left conclusion) :
+    (TerminalTensor.tensorPlacement structural terminal).inverse vertex =
+      (certificate.tensorLeftVertices left conclusion).idxOf vertex := by
+  let placement := TerminalTensor.tensorPlacement structural terminal
+  have forward := TerminalTensor.tensorPlacement_forward_left_idxOf structural
+    terminal membership
+  calc
+    placement.inverse vertex = placement.inverse
+        (placement.forward
+          ((certificate.tensorLeftVertices left conclusion).idxOf vertex)) := by
+      exact congrArg placement.inverse forward.symm
+    _ = (certificate.tensorLeftVertices left conclusion).idxOf vertex :=
+      placement.inverse_forward _
+
+theorem tensorPlacement_inverse_right
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    (membership :
+      vertex ∈ certificate.tensorRightVertices left conclusion) :
+    (TerminalTensor.tensorPlacement structural terminal).inverse vertex =
+      (certificate.tensorLeftVertices left conclusion).length +
+        (certificate.tensorRightVertices left conclusion).idxOf vertex := by
+  let placement := TerminalTensor.tensorPlacement structural terminal
+  have forward := TerminalTensor.tensorPlacement_forward_right_idxOf structural
+    terminal membership
+  calc
+    placement.inverse vertex = placement.inverse
+        (placement.forward
+          ((certificate.tensorLeftVertices left conclusion).length +
+            (certificate.tensorRightVertices left conclusion).idxOf vertex)) := by
+      exact congrArg placement.inverse forward.symm
+    _ = (certificate.tensorLeftVertices left conclusion).length +
+          (certificate.tensorRightVertices left conclusion).idxOf vertex :=
+      placement.inverse_forward _
+
+theorem tensorPlacement_inverse_conclusion
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    (TerminalTensor.tensorPlacement structural terminal).inverse conclusion =
+      (certificate.tensorLeftVertices left conclusion).length +
+        (certificate.tensorRightVertices left conclusion).length := by
+  let placement := TerminalTensor.tensorPlacement structural terminal
+  have forward := TerminalTensor.tensorPlacement_forward_last structural terminal
+  calc
+    placement.inverse conclusion = placement.inverse
+        (placement.forward
+          ((certificate.tensorLeftVertices left conclusion).length +
+            (certificate.tensorRightVertices left conclusion).length)) := by
+      exact congrArg placement.inverse forward.symm
+    _ = (certificate.tensorLeftVertices left conclusion).length +
+          (certificate.tensorRightVertices left conclusion).length :=
+      placement.inverse_forward _
+
+/-- The tensor rule's canonical boundary order (new tensor first, followed by
+the left and right contexts) is a vertex-occurrence permutation of the input
+boundary pulled back through the canonical component placement. -/
+theorem occurrenceBoundaryReconstruction
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    let leftVertices := certificate.tensorLeftVertices left conclusion
+    let rightVertices := certificate.tensorRightVertices left conclusion
+    let otherConclusions := certificate.tensorOtherConclusions conclusion
+    let leftContext := otherConclusions.filter leftVertices.contains
+    let rightContext := otherConclusions.filter rightVertices.contains
+    let placement := TerminalTensor.tensorPlacement structural terminal
+    ([leftVertices.length + rightVertices.length] ++
+      leftContext.map leftVertices.idxOf ++
+      (rightContext.map rightVertices.idxOf).map
+        (fun vertex => vertex + leftVertices.length)).Perm
+      (certificate.conclusions.map placement.inverse) := by
+  dsimp only
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  let otherConclusions := certificate.tensorOtherConclusions conclusion
+  let leftContext := otherConclusions.filter leftVertices.contains
+  let rightContext := otherConclusions.filter rightVertices.contains
+  let placement := TerminalTensor.tensorPlacement structural terminal
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have rightFilterEquation : rightContext =
+      otherConclusions.filter (fun vertex => !leftVertices.contains vertex) := by
+    apply List.filter_congr
+    intro vertex membership
+    have erasedMembership : vertex ∈ certificate.conclusions.erase conclusion := by
+      exact membership
+    have originalMembership : vertex ∈ certificate.conclusions :=
+      List.mem_of_mem_erase erasedMembership
+    have vertexNotConclusion : vertex ≠ conclusion :=
+      (originalNodup.mem_erase_iff.mp erasedMembership).1
+    have vertexInBounds := structural.2.2.1 vertex originalMembership
+    by_cases leftMembership : vertex ∈ leftVertices
+    · have rightNotMembership : vertex ∉ rightVertices := by
+        intro rightMembership
+        exact TerminalTensor.vertex_partition_disjoint certificate left
+          conclusion vertex leftMembership rightMembership
+      simp [leftMembership, rightNotMembership]
+    · have rightMembership : vertex ∈ rightVertices := by
+        exact Or.resolve_left
+          (TerminalTensor.vertex_partition certificate left conclusion vertex
+            vertexInBounds vertexNotConclusion) leftMembership
+      simp [leftMembership, rightMembership]
+  have contextPermutation : (leftContext ++ rightContext).Perm
+      otherConclusions := by
+    change (otherConclusions.filter leftVertices.contains ++
+      rightContext).Perm otherConclusions
+    rw [rightFilterEquation]
+    exact List.filter_append_perm leftVertices.contains otherConclusions
+  have orderedVertices : (conclusion :: (leftContext ++ rightContext)).Perm
+      certificate.conclusions := by
+    exact (contextPermutation.cons conclusion).trans
+      (List.perm_cons_erase terminal.2).symm
+  have leftMapped : leftContext.map placement.inverse =
+      leftContext.map leftVertices.idxOf := by
+    apply List.map_congr_left
+    intro vertex membership
+    have contained : vertex ∈ leftVertices := by
+      simpa using (List.mem_filter.mp membership).2
+    simpa [placement, leftVertices] using
+      (TerminalTensor.tensorPlacement_inverse_left structural terminal contained)
+  have rightMapped : rightContext.map placement.inverse =
+      (rightContext.map rightVertices.idxOf).map
+        (fun vertex => vertex + leftVertices.length) := by
+    rw [List.map_map]
+    apply List.map_congr_left
+    intro vertex membership
+    have contained : vertex ∈ rightVertices := by
+      simpa using (List.mem_filter.mp membership).2
+    have inverse := TerminalTensor.tensorPlacement_inverse_right structural
+      terminal contained
+    simpa [placement, leftVertices, rightVertices, Nat.add_comm] using inverse
+  have conclusionMapped : placement.inverse conclusion =
+      leftVertices.length + rightVertices.length := by
+    simpa [placement, leftVertices, rightVertices] using
+      (TerminalTensor.tensorPlacement_inverse_conclusion structural terminal)
+  have mapped := orderedVertices.map placement.inverse
+  rw [List.map_cons, List.map_append, leftMapped, rightMapped,
+    conclusionMapped] at mapped
+  simpa [leftVertices, rightVertices, otherConclusions, leftContext,
+    rightContext, placement] using mapped
+
 theorem Link.restrictTo?_reindex_tensorPlacement_left
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -15493,6 +15660,547 @@ theorem SplittingTensor.logicalBoundaryData
                 (Formula.tensor leftFormula rightFormula)).trans
                   normalizedInputLabelPermutation.symm
 
+/-- Boundary labels for the two exact tensor restrictions, specialized to
+formula witnesses already extracted from the terminal link. -/
+theorem SplittingTensor.premiseBoundaryData_of_formulaData
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate))
+    {leftFormula rightFormula : Formula}
+    (leftEquation : certificate.formula? left = some leftFormula)
+    (rightEquation : certificate.formula? right = some rightFormula) :
+    ∃ leftContext rightContext,
+      leftCertificate.conclusionFormulas? =
+          some (leftContext ++ [leftFormula]) ∧
+        rightCertificate.conclusionFormulas? =
+          some (rightContext ++ [rightFormula]) := by
+  let fallback : Formula := .atom "" false
+  rcases certificate.splitTerminalTensorCandidate?_restriction_equations
+      structural splitting equation with
+    ⟨leftRestriction, rightRestriction⟩
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  let otherConclusions := certificate.tensorOtherConclusions conclusion
+  let leftContextVertices :=
+    otherConclusions.filter leftVertices.contains
+  let rightContextVertices :=
+    otherConclusions.filter rightVertices.contains
+  let leftContext := leftContextVertices.map fun vertex =>
+    certificate.formulas.getD vertex fallback
+  let rightContext := rightContextVertices.map fun vertex =>
+    certificate.formulas.getD vertex fallback
+  have linkWellFormed := structural.2.2.2.2.1 _ splitting.1.1
+  have leftInBounds : left < certificate.formulas.size :=
+    linkWellFormed.2.2.2.1
+  have rightInBounds : right < certificate.formulas.size :=
+    linkWellFormed.2.2.2.2.1
+  have leftLabel : certificate.formulas.getD left fallback = leftFormula := by
+    simpa [Certificate.formula?, leftInBounds] using leftEquation
+  have rightLabel : certificate.formulas.getD right fallback = rightFormula := by
+    simpa [Certificate.formula?, rightInBounds] using rightEquation
+  have leftLabelsRaw :=
+    certificate.restrictTo?_conclusionFormulas?_eq_some
+      (TerminalTensor.tensorLeftVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorLeftBoundary_contained structural splitting.1)
+      leftRestriction fallback
+  have rightLabelsRaw :=
+    certificate.restrictTo?_conclusionFormulas?_eq_some
+      (TerminalTensor.tensorRightVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorRightBoundary_contained structural splitting)
+      rightRestriction fallback
+  refine ⟨leftContext, rightContext, ?_, ?_⟩
+  · simpa only [tensorLeftBoundary, tensorOtherConclusions,
+      leftVertices, otherConclusions, leftContextVertices, leftContext,
+      List.map_append, List.map_singleton, leftLabel] using leftLabelsRaw
+  · simpa only [tensorRightBoundary, tensorOtherConclusions,
+      rightVertices, otherConclusions, rightContextVertices, rightContext,
+      List.map_append, List.map_singleton, rightLabel] using rightLabelsRaw
+
+/-- Compose two recursively reconstructed first-order derivations across a
+splitting terminal tensor.  This is the binary counterpart of
+`TerminalPar.sequentializationResult`: it constructs the concrete tensor rule,
+an executable exchange, and a certificate equivalent to the original net. -/
+theorem TerminalTensor.sequentializationResult
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (splitEquation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate))
+    (leftAccepted : leftCertificate.check = true)
+    (rightAccepted : rightCertificate.check = true)
+    (leftResult : SequentializationResult leftCertificate)
+    (rightResult : SequentializationResult rightCertificate) :
+    Nonempty (SequentializationResult certificate) := by
+  rcases certificate.splitTerminalTensorCandidate?_restriction_equations
+      structural splitting splitEquation with
+    ⟨leftRestriction, rightRestriction⟩
+  rcases TerminalTensor.rebuild_directProofNetEquivalent structural splitting
+      leftRestriction rightRestriction with
+    ⟨leftFormula, rightFormula, leftFormulaEquation, rightFormulaEquation,
+      _conclusionFormulaEquation, rebuildEvidence⟩
+  rcases splitting.premiseBoundaryData_of_formulaData structural splitEquation
+      leftFormulaEquation rightFormulaEquation with
+    ⟨leftContext, rightContext, leftLabels, rightLabels⟩
+  have leftSequent : leftResult.sequent =
+      leftContext ++ [leftFormula] := by
+    exact Option.some.inj (leftResult.inputLabels.symm.trans leftLabels)
+  have rightSequent : rightResult.sequent =
+      rightContext ++ [rightFormula] := by
+    exact Option.some.inj (rightResult.inputLabels.symm.trans rightLabels)
+  rcases leftResult.fragment_exists with
+    ⟨leftFragment, leftBuild, leftFragmentCertificate,
+      leftFragmentConclusions⟩
+  rcases rightResult.fragment_exists with
+    ⟨rightFragment, rightBuild, rightFragmentCertificate,
+      rightFragmentConclusions⟩
+  have leftOutputAccepted : leftResult.output.check = true :=
+    leftResult.outputAccepted leftAccepted
+  have rightOutputAccepted : rightResult.output.check = true :=
+    rightResult.outputAccepted rightAccepted
+  have leftFragmentStructural :
+      leftFragment.toCertificate.StructurallyWellFormed := by
+    simpa [leftFragmentCertificate] using
+      (leftResult.output.check_sound_declarative leftOutputAccepted).1
+  have rightFragmentStructural :
+      rightFragment.toCertificate.StructurallyWellFormed := by
+    simpa [rightFragmentCertificate] using
+      (rightResult.output.check_sound_declarative rightOutputAccepted).1
+  have leftBalanced : leftFragment.Balanced :=
+    CutFreeDerivation.build?_balanced leftBuild
+  have rightBalanced : rightFragment.Balanced :=
+    CutFreeDerivation.build?_balanced rightBuild
+  have leftEntryLabels : leftFragment.entries.map Prod.fst =
+      leftContext ++ [leftFormula] := by
+    rw [leftFragment.entries_map_fst leftBalanced, leftFragmentConclusions,
+      leftSequent]
+  have rightEntryLabels : rightFragment.entries.map Prod.fst =
+      rightContext ++ [rightFormula] := by
+    rw [rightFragment.entries_map_fst rightBalanced, rightFragmentConclusions,
+      rightSequent]
+  rcases list_pair_decompose_map_fst_append_one leftEntryLabels with
+    ⟨leftContextEntries, leftRoot, leftEntries, leftContextLabels⟩
+  rcases list_pair_decompose_map_fst_append_one rightEntryLabels with
+    ⟨rightContextEntries, rightRoot, rightEntries, rightContextLabels⟩
+  have leftRoots : leftFragment.roots =
+      leftContextEntries.map Prod.snd ++ [leftRoot] := by
+    rw [← leftFragment.entries_map_snd leftBalanced, leftEntries]
+    simp
+  have rightRoots : rightFragment.roots =
+      rightContextEntries.map Prod.snd ++ [rightRoot] := by
+    rw [← rightFragment.entries_map_snd rightBalanced, rightEntries]
+    simp
+  have leftFragmentLabels :
+      leftFragment.toCertificate.conclusionFormulas? =
+        some leftFragment.conclusions := by
+    rw [leftFragmentCertificate, leftFragmentConclusions]
+    exact leftResult.outputLabels
+  have rightFragmentLabels :
+      rightFragment.toCertificate.conclusionFormulas? =
+        some rightFragment.conclusions := by
+    rw [rightFragmentCertificate, rightFragmentConclusions]
+    exact rightResult.outputLabels
+  have leftEntriesLabelled : ∀ entry ∈ leftFragment.entries,
+      leftFragment.toCertificate.formula? entry.2 = some entry.1 :=
+    list_zip_labelled_of_mapM_eq_some leftBalanced (by
+      simpa [NetFragment.toCertificate, Certificate.conclusionFormulas?]
+        using leftFragmentLabels)
+  have rightEntriesLabelled : ∀ entry ∈ rightFragment.entries,
+      rightFragment.toCertificate.formula? entry.2 = some entry.1 :=
+    list_zip_labelled_of_mapM_eq_some rightBalanced (by
+      simpa [NetFragment.toCertificate, Certificate.conclusionFormulas?]
+        using rightFragmentLabels)
+  have leftEquivalent :
+      leftFragment.toCertificate.ProofNetEquivalent leftCertificate := by
+    simpa [leftFragmentCertificate] using leftResult.equivalent
+  have rightEquivalent :
+      rightFragment.toCertificate.ProofNetEquivalent rightCertificate := by
+    simpa [rightFragmentCertificate] using rightResult.equivalent
+  rcases leftEquivalent.toDirect with ⟨leftMap, leftPermutation⟩
+  rcases rightEquivalent.toDirect with ⟨rightMap, rightPermutation⟩
+  let leftVertices := certificate.tensorLeftVertices left conclusion
+  let rightVertices := certificate.tensorRightVertices left conclusion
+  let otherConclusions := certificate.tensorOtherConclusions conclusion
+  let leftContextVertices := otherConclusions.filter leftVertices.contains
+  let rightContextVertices := otherConclusions.filter rightVertices.contains
+  have leftCertificateConclusions : leftCertificate.conclusions =
+      leftContextVertices.map leftVertices.idxOf ++ [leftVertices.idxOf left] := by
+    rw [certificate.restrictTo?_conclusions
+      (TerminalTensor.tensorLeftVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorLeftBoundary_contained structural splitting.1)
+      leftRestriction]
+    simp [tensorLeftBoundary, tensorOtherConclusions, leftVertices,
+      otherConclusions, leftContextVertices]
+  have rightCertificateConclusions : rightCertificate.conclusions =
+      rightContextVertices.map rightVertices.idxOf ++
+        [rightVertices.idxOf right] := by
+    rw [certificate.restrictTo?_conclusions
+      (TerminalTensor.tensorRightVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorRightBoundary_contained structural splitting)
+      rightRestriction]
+    simp [tensorRightBoundary, tensorOtherConclusions, rightVertices,
+      otherConclusions, rightContextVertices]
+  have leftMappedConclusions := leftPermutation.conclusions
+  change leftFragment.roots.map leftMap.forward =
+      leftCertificate.conclusions at leftMappedConclusions
+  rw [leftRoots, List.map_append, leftCertificateConclusions]
+    at leftMappedConclusions
+  have leftMappedParts := List.append_inj' leftMappedConclusions (by simp)
+  have leftContextRootsMapped :
+      (leftContextEntries.map Prod.snd).map leftMap.forward =
+        leftContextVertices.map leftVertices.idxOf := leftMappedParts.1
+  have leftRootMapped : leftMap.forward leftRoot =
+      leftVertices.idxOf left := by
+    simpa using congrArg List.head? leftMappedParts.2
+  have rightMappedConclusions := rightPermutation.conclusions
+  change rightFragment.roots.map rightMap.forward =
+      rightCertificate.conclusions at rightMappedConclusions
+  rw [rightRoots, List.map_append, rightCertificateConclusions]
+    at rightMappedConclusions
+  have rightMappedParts := List.append_inj' rightMappedConclusions (by simp)
+  have rightContextRootsMapped :
+      (rightContextEntries.map Prod.snd).map rightMap.forward =
+        rightContextVertices.map rightVertices.idxOf := rightMappedParts.1
+  have rightRootMapped : rightMap.forward rightRoot =
+      rightVertices.idxOf right := by
+    simpa using congrArg List.head? rightMappedParts.2
+  have leftContextRootInBounds : ∀ root ∈ leftContextEntries.map Prod.snd,
+      root < leftFragment.formulas.size := by
+    intro root membership
+    have rootMembership : root ∈ leftFragment.roots := by
+      rw [leftRoots]
+      simp [membership]
+    exact leftFragmentStructural.2.2.1 root (by
+      simpa [NetFragment.toCertificate] using rootMembership)
+  have rightContextRootInBounds : ∀ root ∈ rightContextEntries.map Prod.snd,
+      root < rightFragment.formulas.size := by
+    intro root membership
+    have rootMembership : root ∈ rightFragment.roots := by
+      rw [rightRoots]
+      simp [membership]
+    exact rightFragmentStructural.2.2.1 root (by
+      simpa [NetFragment.toCertificate] using rootMembership)
+  have leftRootInBounds : leftRoot < leftFragment.formulas.size := by
+    exact leftFragmentStructural.2.2.1 leftRoot (by
+      simp [NetFragment.toCertificate, leftRoots])
+  have rightRootInBounds : rightRoot < rightFragment.formulas.size := by
+    exact rightFragmentStructural.2.2.1 rightRoot (by
+      simp [NetFragment.toCertificate, rightRoots])
+  let combinedLast := leftFragment.formulas.size + rightFragment.formulas.size
+  let sourceEntries :=
+    ((.tensor leftFormula rightFormula, combinedLast) ::
+      (leftContextEntries ++ rightContextEntries.map
+        (CutFreeDerivation.shiftEntry leftFragment.formulas.size)))
+  let sourceBoundary := sourceEntries.map Prod.snd
+  let sourceCertificate := leftFragment.toCertificate.appendTensorOccurrence
+    rightFragment.toCertificate leftFormula rightFormula leftRoot rightRoot
+    sourceBoundary
+  have sourceEntriesLabelled : ∀ entry ∈ sourceEntries,
+      sourceCertificate.formula? entry.2 = some entry.1 := by
+    intro entry membership
+    simp only [sourceEntries, List.mem_cons, List.mem_append] at membership
+    rcases membership with rfl | leftMembership | rightMembership
+    · simp [sourceCertificate, combinedLast,
+        Certificate.appendTensorOccurrence, NetFragment.toCertificate,
+        Certificate.formula?]
+    · have oldMembership : entry ∈ leftFragment.entries := by
+        rw [leftEntries]
+        simp [leftMembership]
+      have oldLabel := leftEntriesLabelled entry oldMembership
+      have rootMembership : entry.2 ∈ leftContextEntries.map Prod.snd :=
+        List.mem_map.mpr ⟨entry, leftMembership, rfl⟩
+      have rootInBounds := leftContextRootInBounds entry.2 rootMembership
+      simpa [sourceCertificate, Certificate.appendTensorOccurrence,
+        NetFragment.toCertificate, Certificate.formula?, rootInBounds,
+        Array.getElem?_push, Array.getElem?_append_left] using oldLabel
+    · rcases List.mem_map.mp rightMembership with
+        ⟨original, originalMembership, rfl⟩
+      have oldMembership : original ∈ rightFragment.entries := by
+        rw [rightEntries]
+        simp [originalMembership]
+      have oldLabel := rightEntriesLabelled original oldMembership
+      have rootMembership : original.2 ∈ rightContextEntries.map Prod.snd :=
+        List.mem_map.mpr ⟨original, originalMembership, rfl⟩
+      have rootInBounds := rightContextRootInBounds original.2 rootMembership
+      simpa [sourceCertificate, Certificate.appendTensorOccurrence,
+        NetFragment.toCertificate, Certificate.formula?,
+        CutFreeDerivation.shiftEntry, rootInBounds, Array.getElem?_push,
+        Array.getElem?_append_right, Nat.add_comm,
+        Nat.ne_of_lt rootInBounds] using oldLabel
+  have sourceEntryRoots : sourceEntries.map Prod.snd = sourceBoundary := rfl
+  have sourceEntriesNormalized : sourceEntries =
+      sourceBoundary.map fun root =>
+        ((sourceCertificate.formula? root).getD (.atom "" false), root) :=
+    list_pairs_eq_map_option_getD (.atom "" false) sourceEntryRoots
+      sourceEntriesLabelled
+  have leftFormulaSize : leftFragment.formulas.size =
+      leftCertificate.formulas.size := by
+    simpa [NetFragment.toCertificate] using
+      congrArg Array.size leftPermutation.formulas
+  have rightFormulaSize : rightFragment.formulas.size =
+      rightCertificate.formulas.size := by
+    simpa [NetFragment.toCertificate] using
+      congrArg Array.size rightPermutation.formulas
+  have leftRestrictionSize : leftCertificate.formulas.size =
+      leftVertices.length := by
+    simpa [leftVertices] using
+      certificate.restrictTo?_formulas_size leftRestriction
+  have rightRestrictionSize : rightCertificate.formulas.size =
+      rightVertices.length := by
+    simpa [rightVertices] using
+      certificate.restrictTo?_formulas_size rightRestriction
+  let extended := leftFragment.toCertificate.appendTensorRenaming
+    rightFragment.toCertificate leftMap rightMap leftFormula rightFormula
+    leftRoot rightRoot sourceBoundary
+  have mapLeftVertex (vertex : Vertex)
+      (inBounds : vertex < leftFragment.formulas.size) :
+      extended.forward vertex = leftMap.forward vertex := by
+    have inCombined : vertex < leftFragment.formulas.size +
+        rightFragment.formulas.size :=
+      Nat.lt_of_lt_of_le inBounds (Nat.le_add_right _ _)
+    simp only [extended, NetFragment.toCertificate,
+      Certificate.appendTensorRenaming_forward]
+    exact (VertexRenaming.extendLast_forward_old
+      (leftMap.blockSum rightMap) inCombined).trans
+        (VertexRenaming.blockSum_forward_left leftMap rightMap inBounds)
+  have mapRightVertex (vertex : Vertex)
+      (inBounds : vertex < rightFragment.formulas.size) :
+      extended.forward (vertex + leftFragment.formulas.size) =
+        rightMap.forward vertex + leftCertificate.formulas.size := by
+    have inCombined : vertex + leftFragment.formulas.size <
+        leftFragment.formulas.size + rightFragment.formulas.size := by
+      rw [Nat.add_comm vertex leftFragment.formulas.size]
+      exact Nat.add_lt_add_left inBounds _
+    simp only [extended, NetFragment.toCertificate,
+      Certificate.appendTensorRenaming_forward]
+    calc
+      (leftMap.blockSum rightMap).extendLast.forward
+          (vertex + leftFragment.formulas.size) =
+          (leftMap.blockSum rightMap).forward
+            (vertex + leftFragment.formulas.size) :=
+        VertexRenaming.extendLast_forward_old
+          (leftMap.blockSum rightMap) inCombined
+      _ = leftFragment.formulas.size + rightMap.forward vertex := by
+        rw [show vertex + leftFragment.formulas.size =
+          leftFragment.formulas.size + vertex by exact Nat.add_comm _ _]
+        exact VertexRenaming.blockSum_forward_right leftMap rightMap vertex
+      _ = rightMap.forward vertex + leftCertificate.formulas.size := by
+        rw [← leftFormulaSize]
+        exact Nat.add_comm _ _
+  have mapCombinedLast : extended.forward combinedLast =
+      leftCertificate.formulas.size + rightCertificate.formulas.size := by
+    simp only [extended, combinedLast, NetFragment.toCertificate,
+      Certificate.appendTensorRenaming_forward]
+    rw [VertexRenaming.extendLast_forward_last]
+    calc
+      leftFragment.formulas.size + rightFragment.formulas.size =
+          leftCertificate.formulas.size + rightFragment.formulas.size :=
+        congrArg (fun size => size + rightFragment.formulas.size)
+          leftFormulaSize
+      _ = leftCertificate.formulas.size + rightCertificate.formulas.size :=
+        congrArg (fun size => leftCertificate.formulas.size + size)
+          rightFormulaSize
+  have sourceBoundaryEquation : sourceBoundary =
+      [combinedLast] ++ leftContextEntries.map Prod.snd ++
+        (rightContextEntries.map Prod.snd).map
+          (fun root => root + leftFragment.formulas.size) := by
+    simp [sourceBoundary, sourceEntries, CutFreeDerivation.shiftEntry,
+      List.map_map, Function.comp_def]
+  have leftContextMapped :
+      (leftContextEntries.map Prod.snd).map extended.forward =
+        leftContextVertices.map leftVertices.idxOf := by
+    calc
+      (leftContextEntries.map Prod.snd).map extended.forward =
+          (leftContextEntries.map Prod.snd).map leftMap.forward := by
+        apply List.map_congr_left
+        intro root membership
+        exact mapLeftVertex root (leftContextRootInBounds root membership)
+      _ = leftContextVertices.map leftVertices.idxOf :=
+        leftContextRootsMapped
+  have rightContextMapped :
+      ((rightContextEntries.map Prod.snd).map
+          (fun root => root + leftFragment.formulas.size)).map
+          extended.forward =
+        (rightContextVertices.map rightVertices.idxOf).map
+          (fun root => root + leftVertices.length) := by
+    calc
+      ((rightContextEntries.map Prod.snd).map
+          (fun root => root + leftFragment.formulas.size)).map
+          extended.forward =
+        (rightContextEntries.map Prod.snd).map
+          (fun root => rightMap.forward root +
+            leftCertificate.formulas.size) := by
+          rw [List.map_map]
+          apply List.map_congr_left
+          intro root membership
+          simpa [Function.comp_def] using mapRightVertex root
+            (rightContextRootInBounds root membership)
+      _ = (rightContextEntries.map Prod.snd).map
+          ((fun root => root + leftCertificate.formulas.size) ∘
+            rightMap.forward) := rfl
+      _ = (rightContextVertices.map rightVertices.idxOf).map
+          (fun root => root + leftCertificate.formulas.size) := by
+          rw [← List.map_map, rightContextRootsMapped]
+      _ = (rightContextVertices.map rightVertices.idxOf).map
+          (fun root => root + leftVertices.length) := by
+          rw [leftRestrictionSize]
+  have sourceBoundaryMapped : sourceBoundary.map extended.forward =
+      [leftVertices.length + rightVertices.length] ++
+        leftContextVertices.map leftVertices.idxOf ++
+        (rightContextVertices.map rightVertices.idxOf).map
+          (fun root => root + leftVertices.length) := by
+    rw [sourceBoundaryEquation, List.map_append, List.map_append,
+      List.map_singleton, mapCombinedLast, leftContextMapped,
+      rightContextMapped, leftRestrictionSize, rightRestrictionSize]
+  let rawPlacement := TerminalTensor.tensorPlacement structural splitting.1
+  let premiseTarget := certificate.conclusions.map rawPlacement.inverse
+  have occurrencePermutation :=
+    TerminalTensor.occurrenceBoundaryReconstruction structural splitting.1
+  have mappedBoundaryPermutation :
+      (sourceBoundary.map extended.forward).Perm premiseTarget := by
+    rw [sourceBoundaryMapped]
+    simpa [leftVertices, rightVertices, otherConclusions,
+      leftContextVertices, rightContextVertices, rawPlacement, premiseTarget]
+      using occurrencePermutation
+  let targetBoundary := premiseTarget.map extended.inverse
+  have boundaryPermutation : sourceBoundary.Perm targetBoundary := by
+    have pulled := mappedBoundaryPermutation.map extended.inverse
+    simpa [targetBoundary, List.map_map, Function.comp_def,
+      extended.inverse_forward] using pulled
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have premiseTargetNodup : premiseTarget.Nodup := by
+    apply nodup_map_of_injective_on originalNodup
+    intro first _ second _ same
+    exact rawPlacement.symm.forward_injective same
+  have targetBoundaryNodup : targetBoundary.Nodup := by
+    apply nodup_map_of_injective_on premiseTargetNodup
+    intro first _ second _ same
+    exact extended.symm.forward_injective same
+  have sourceBoundaryNodup : sourceBoundary.Nodup :=
+    boundaryPermutation.nodup_iff.mpr targetBoundaryNodup
+  have sourceEntriesNodup : sourceEntries.Nodup := by
+    rw [sourceEntriesNormalized]
+    exact list_map_pair_self_nodup
+      (fun root => (sourceCertificate.formula? root).getD (.atom "" false))
+      sourceBoundaryNodup
+  let targetEntries := targetBoundary.map fun root =>
+    ((sourceCertificate.formula? root).getD (.atom "" false), root)
+  have entryPermutation : sourceEntries.Perm targetEntries := by
+    rw [sourceEntriesNormalized]
+    exact boundaryPermutation.map fun root =>
+      ((sourceCertificate.formula? root).getD (.atom "" false), root)
+  let order := targetEntries.map sourceEntries.idxOf
+  have reordered : CutFreeDerivation.reorder? sourceEntries order =
+      some targetEntries :=
+    CutFreeDerivation.reorder?_idxOf_of_nodup_perm sourceEntriesNodup
+      entryPermutation
+  let tensorTree := CutFreeDerivation.tensor leftContextEntries.length
+    rightContextEntries.length leftResult.tree rightResult.tree
+  let tensorFragment := NetFragment.ofEntries
+    ((leftFragment.formulas ++ rightFragment.formulas).push
+      (.tensor leftFormula rightFormula))
+    (leftFragment.links ++
+      rightFragment.links.map (·.shift leftFragment.formulas.size) ++ [
+        .tensor leftRoot (rightRoot + leftFragment.formulas.size)
+          (leftFragment.formulas ++ rightFragment.formulas).size])
+    sourceEntries
+  have tensorBuild : tensorTree.build? = some tensorFragment := by
+    simpa [tensorTree, tensorFragment, sourceEntries, combinedLast] using
+      (CutFreeDerivation.build?_tensorLast leftBuild rightBuild leftEntries
+        rightEntries)
+  have tensorEntries : tensorFragment.entries = sourceEntries := by
+    simpa [tensorFragment, NetFragment.entries, NetFragment.ofEntries] using
+      (list_zip_map_fst_snd sourceEntries)
+  have tensorReordered : CutFreeDerivation.reorder? tensorFragment.entries order =
+      some targetEntries := by
+    simpa [tensorEntries] using reordered
+  let tree := CutFreeDerivation.exchange order tensorTree
+  let outputFragment := NetFragment.ofEntries tensorFragment.formulas
+    tensorFragment.links targetEntries
+  have outputBuild : tree.build? = some outputFragment := by
+    simpa [tree, outputFragment] using
+      (CutFreeDerivation.build?_exchange_of_reorder tensorBuild tensorReordered)
+  have targetEntriesLabelled : ∀ entry ∈ targetEntries,
+      sourceCertificate.formula? entry.2 = some entry.1 := by
+    intro entry membership
+    exact sourceEntriesLabelled entry (entryPermutation.mem_iff.mpr membership)
+  have outputLabels : outputFragment.toCertificate.conclusionFormulas? =
+      some outputFragment.conclusions := by
+    unfold Certificate.conclusionFormulas?
+    change (targetEntries.map Prod.snd).mapM sourceCertificate.formula? =
+      some (targetEntries.map Prod.fst)
+    rw [List.mapM_map]
+    exact list_mapM_eq_some_map_of_forall targetEntries
+      (fun entry => sourceCertificate.formula? entry.2) Prod.fst
+      targetEntriesLabelled
+  let targetCertificate := leftFragment.toCertificate.appendTensorOccurrence
+    rightFragment.toCertificate leftFormula rightFormula leftRoot rightRoot
+    targetBoundary
+  have outputCertificate : outputFragment.toCertificate = targetCertificate := by
+    apply Certificate.ext_fields
+    · rfl
+    · rfl
+    · simp [outputFragment, tensorFragment, targetEntries, targetCertificate,
+        NetFragment.toCertificate, NetFragment.ofEntries,
+        Certificate.appendTensorOccurrence, Function.comp_def]
+  have leftFragmentLinksInBounds : ∀ link ∈ leftFragment.links,
+      ∀ vertex ∈ link.vertices, vertex < leftFragment.formulas.size := by
+    intro link membership vertex vertexMembership
+    exact (leftFragmentStructural.2.2.2.2.1 link (by
+      simpa [NetFragment.toCertificate] using membership)).vertex_in_bounds
+        vertexMembership
+  have rightFragmentLinksInBounds : ∀ link ∈ rightFragment.links,
+      ∀ vertex ∈ link.vertices, vertex < rightFragment.formulas.size := by
+    intro link membership vertex vertexMembership
+    exact (rightFragmentStructural.2.2.2.2.1 link (by
+      simpa [NetFragment.toCertificate] using membership)).vertex_in_bounds
+        vertexMembership
+  have lifted :=
+    Certificate.DirectProofNetEquivalent.appendTensorOccurrenceExtended
+      leftMap leftPermutation rightMap rightPermutation leftFormula rightFormula
+      leftRoot rightRoot targetBoundary leftFragmentLinksInBounds
+      rightFragmentLinksInBounds leftRootInBounds rightRootInBounds
+  let liftedExtended := leftFragment.toCertificate.appendTensorRenaming
+    rightFragment.toCertificate leftMap rightMap leftFormula rightFormula
+    leftRoot rightRoot targetBoundary
+  have liftedForward : liftedExtended.forward = extended.forward := by
+    simp [liftedExtended, extended]
+  have targetMapped : targetBoundary.map liftedExtended.forward =
+      premiseTarget := by
+    rw [liftedForward]
+    simp [targetBoundary, List.map_map, Function.comp_def,
+      extended.forward_inverse]
+  have liftedDirect : targetCertificate.DirectProofNetEquivalent
+      (leftCertificate.appendTensorOccurrence rightCertificate
+        leftFormula rightFormula (leftVertices.idxOf left)
+        (rightVertices.idxOf right) premiseTarget) := by
+    dsimp only at lifted
+    rw [leftRootMapped, rightRootMapped, targetMapped] at lifted
+    simpa [targetCertificate, liftedExtended] using lifted
+  have rebuildDirect : Certificate.DirectProofNetEquivalent
+      (leftCertificate.appendTensorOccurrence rightCertificate
+        leftFormula rightFormula (leftVertices.idxOf left)
+        (rightVertices.idxOf right) premiseTarget) certificate := by
+    simpa [leftVertices, rightVertices, rawPlacement, premiseTarget] using
+      rebuildEvidence
+  have totalDirect :
+      outputFragment.toCertificate.DirectProofNetEquivalent certificate := by
+    rw [outputCertificate]
+    exact liftedDirect.trans rebuildDirect
+  exact ⟨{
+    tree := tree
+    sequent := outputFragment.conclusions
+    output := outputFragment.toCertificate
+    inferred := CutFreeDerivation.infer?_of_build? outputBuild
+    desequentialized := by
+      simp [CutFreeDerivation.desequentialize?, outputBuild]
+    outputLabels := outputLabels
+    equivalent := totalDirect.toProofNetEquivalent }⟩
+
 /-- Peeling a terminal par strictly decreases the number of formula
 occurrences.  This is the unary branch of the well-founded measure used by
 general sequentialization. -/
@@ -16428,6 +17136,55 @@ theorem DeclarativelyCorrect.axiomOnly_sequentialization
         refine ⟨swapZeroOne, ?_⟩
         simpa [atom, dual, swapZeroOne, VertexRenaming.swap] using
           (axiomCertificate_reindex_swap name positive [0, 1]).symm }⟩
+
+/-- Full sequentialization for every checker-accepted unit-free cut-free MLL
+certificate.  The recursion follows the proved terminal-par/splitting-tensor
+dichotomy.  Each recursive premise is strictly smaller in formula occurrences,
+and each inverse rule reconstructs a concrete first-order derivation together
+with proof-net equivalence evidence. -/
+theorem sequentialization_of_check
+    (certificate : Certificate) (accepted : certificate.check = true) :
+    Nonempty (SequentializationResult certificate) := by
+  have correct : certificate.DeclarativelyCorrect :=
+    certificate.check_iff_declarativelyCorrect.mp accepted
+  have structural : certificate.StructurallyWellFormed := correct.1
+  by_cases connectiveExists : ∃ link ∈ certificate.links,
+      link.isConnective = true
+  · rcases correct.terminalPar_or_splittingTensor_exists connectiveExists with
+      ⟨left, right, conclusion, terminalPar | splittingTensor⟩
+    · let premise := certificate.peelTerminalPar left right conclusion
+      have premiseAccepted : premise.check = true :=
+        certificate.peelTerminalPar_check_of_check structural terminalPar
+          accepted
+      rcases sequentialization_of_check premise premiseAccepted with
+        ⟨premiseResult⟩
+      exact TerminalPar.sequentializationResult structural terminalPar
+        premiseAccepted premiseResult
+    · rcases certificate.splitTerminalTensorCandidate?_eq_some_exists
+          structural splittingTensor with
+        ⟨leftPremise, rightPremise, splitEquation⟩
+      rcases certificate.splitTerminalTensorCandidate?_check_of_check
+          structural splittingTensor splitEquation accepted with
+        ⟨leftAccepted, rightAccepted⟩
+      rcases sequentialization_of_check leftPremise leftAccepted with
+        ⟨leftResult⟩
+      rcases sequentialization_of_check rightPremise rightAccepted with
+        ⟨rightResult⟩
+      exact TerminalTensor.sequentializationResult structural splittingTensor
+        splitEquation leftAccepted rightAccepted leftResult rightResult
+  · exact correct.axiomOnly_sequentialization connectiveExists
+termination_by certificate.formulas.size
+decreasing_by
+  · exact certificate.peelTerminalPar_formulas_size_lt structural terminalPar
+  · exact certificate.splitTerminalTensorCandidate?_left_formulas_size_lt
+      structural splittingTensor splitEquation
+  · exact certificate.splitTerminalTensorCandidate?_right_formulas_size_lt
+      structural splittingTensor splitEquation
+
+/-- Public full sequentialization theorem. -/
+theorem generallySequentializable : GenerallySequentializable := by
+  intro certificate accepted
+  exact certificate.sequentialization_of_check accepted
 
 /-- Logical sequentialization for every checker-accepted unit-free cut-free
 MLL certificate.  Recursion follows the mathematical terminal-rule

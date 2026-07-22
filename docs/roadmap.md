@@ -21,7 +21,7 @@
   exists, and lift the iff through `isTree` and `Certificate.check`.
 - [x] Prove every arbitrary in-bounds graph walk reduces to a path within the
   `vertexCount` budget, identifying `Correct` and `FuelCorrect`.
-- [ ] Prove general sequentialization for the supported representation.
+- [x] Prove general sequentialization for the supported representation.
 - [x] Add a second generated proof-tree/net family and labeled mutation tests.
 - [x] Generalize derivation-first generation and gated reconstruction to the
   recursive identity family `A, A-dual` at arbitrary formula depth.
@@ -160,7 +160,15 @@
   permutation; prove `pick?` and accepted `reorder?` commute with boundary
   projection; and prove every successful first-order `build?` is balanced and
   has exactly the same formula boundary as `infer?`.
-- [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
+- [x] Prove exact terminal-par reconstruction and full inverse-rule
+  composition into a first-order tree with executable exchange.
+- [x] Prove exact splitting-tensor occurrence-boundary reconstruction,
+  block-sum renaming, binary inverse-rule composition, and equivalence to the
+  input certificate.
+- [x] Close the well-founded `sequentialization_of_check` recursion and public
+  `generallySequentializable` theorem: every accepted certificate returns a
+  `SequentializationResult` whose desequentialization is
+  `ProofNetEquivalent` to the input.
 
 ## v0.5 - Persistent LeanProp bridge
 
