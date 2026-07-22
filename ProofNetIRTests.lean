@@ -52,9 +52,12 @@ def indexedParallelCycle : indexedParallelGraph.EdgeSimpleCycle where
       parallelDirectedOne.reverse
     · rfl
     · rfl
+  edgeIndicesNodup := by decide
   interiorNodup := by decide
 
 example : indexedParallelCycle.traversed.map (·.index) = [0, 1] := rfl
+example : indexedParallelCycle.traversed.length ≤
+    indexedParallelGraph.edges.length := indexedParallelCycle.length_le_edges
 
 def mixedFormula : Formula := .par (.tensor p q) (.atom "r" true)
 

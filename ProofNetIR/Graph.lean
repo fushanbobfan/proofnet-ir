@@ -158,6 +158,7 @@ structure EdgeSimpleCycle (graph : Graph) where
   traversed : List graph.DirectedEdge
   nonempty : traversed ≠ []
   walk : graph.EdgeWalk start traversed start
+  edgeIndicesNodup : (traversed.map DirectedEdge.index).Nodup
   interiorNodup :
     (start :: traversed.dropLast.map DirectedEdge.target).Nodup
 
@@ -290,6 +291,18 @@ private theorem length_le_of_nodup_subset [BEq alpha] [LawfulBEq alpha]
         List.length_pos_of_mem headMembership
       simp only [List.length_cons]
       omega
+
+theorem EdgeSimpleCycle.length_le_edges {graph : Graph}
+    (cycle : graph.EdgeSimpleCycle) :
+    cycle.traversed.length ≤ graph.edges.length := by
+  have indexSubset : ∀ index ∈ cycle.traversed.map DirectedEdge.index,
+      index ∈ List.range graph.edges.length := by
+    intro index membership
+    rcases List.mem_map.mp membership with ⟨directed, directedMembership, rfl⟩
+    exact List.mem_range.mpr
+      (List.getElem?_eq_some_iff.mp directed.lookup).1
+  have bound := length_le_of_nodup_subset cycle.edgeIndicesNodup indexSubset
+  simpa using bound
 
 /-- Existence of a graph walk with no more than `fuel` edge steps. -/
 def WalkWithin (graph : Graph) (start : Vertex) (fuel : Nat)

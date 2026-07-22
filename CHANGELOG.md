@@ -54,6 +54,8 @@
   local switching-incidence colors, cusp semantics, and reversal invariance;
   proved that every stored par link yields two exact indexed incidences aimed
   at its conclusion with the shared par color.
+- proved simple-cycle edge indices are duplicate-free and bounded by the
+  stored multigraph edge count, including genuine two-parallel-edge cycles.
 - added a full-occurrence switching mask relation, proved it equivalent to the
   independent one-edge-per-par `ChoiceSelection`, and proved its retained
   multiset is exactly the checker switching graph up to edge-list order.
