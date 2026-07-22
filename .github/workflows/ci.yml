@@ -1,0 +1,24 @@
+name: Lean CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Elan
+        run: curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+      - name: Build and check compile-time fixtures
+        run: ~/.elan/bin/lake build
+      - name: Run smoke test
+        run: ~/.elan/bin/lake exe proofnet_ir_tests
+      - name: Validate JSON certificate contract
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.26.0
+          python scripts/validate_schema.py

@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "formulas": [
+    { "kind": "atom", "name": "p", "positive": true },
+    { "kind": "atom", "name": "p", "positive": false },
+    { "kind": "atom", "name": "q", "positive": true },
+    { "kind": "atom", "name": "q", "positive": false }
+  ],
+  "links": [
+    { "kind": "axiom", "left": 0, "right": 1 },
+    { "kind": "axiom", "left": 2, "right": 3 }
+  ],
+  "conclusions": [0, 1, 2, 3]
+}

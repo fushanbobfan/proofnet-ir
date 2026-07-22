@@ -1,0 +1,10 @@
+/.lake/
+/.vscode/
+*.olean
+*.ilean
+*.c
+*.o
+*.obj
+*.exe
+__pycache__/
+*.pyc

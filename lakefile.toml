@@ -1,0 +1,10 @@
+name = "proofnet-ir"
+version = "0.1.0"
+defaultTargets = ["ProofNetIR", "proofnet_ir_tests"]
+
+[[lean_lib]]
+name = "ProofNetIR"
+
+[[lean_exe]]
+name = "proofnet_ir_tests"
+root = "ProofNetIRTests"
