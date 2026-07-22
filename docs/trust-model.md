@@ -81,7 +81,9 @@ also proves the reverse direction for the supported representation:
 `sequentialization_of_check` maps every accepted certificate to a concrete
 first-order tree whose executable output is `ProofNetEquivalent` to the
 input. The theorem preserves the ordered formula boundary and does not identify
-arbitrary unlabeled graphs.
+arbitrary unlabeled graphs. The post-v0.4 runtime path is independently tied to
+that guarantee: `sequentialize_complete` proves that the public finite search
+returns a proof-bearing result on every checker-accepted certificate.
 
 Canonical v0.2 serialization trusts the formula-array numbering as occurrence
 identity. Sorting links/conclusions and orienting axiom endpoints is a stable

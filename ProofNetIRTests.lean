@@ -1205,6 +1205,7 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.TerminalTensor.sequentializationResult
 #check Certificate.sequentialization_of_check
 #check Certificate.generallySequentializable
+#check Certificate.sequentialize_complete
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =
@@ -1217,6 +1218,10 @@ example : Nonempty (LogicalSequentializationResult canonical) :=
 example : Nonempty (SequentializationResult axiomOnly) := by
   apply (axiomOnly.check_sound_declarative (by native_decide)).axiomOnly_sequentialization
   simp [axiomOnly, Link.isConnective]
+
+example : ∃ result : ExecutableSequentializationResult canonical,
+    canonical.sequentialize = .ok result :=
+  canonical.sequentialize_complete (by native_decide)
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

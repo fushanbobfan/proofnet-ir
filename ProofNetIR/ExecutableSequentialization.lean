@@ -49,6 +49,22 @@ theorem proofNetEquivalent {input : Certificate}
     result.output.ProofNetEquivalent input :=
   result.equivalent
 
+/-- Forget only the runtime error channel while retaining the complete
+proposition-level sequentialization contract.  Recursive totality proofs use
+this bridge to reuse the graph reconstruction theorems. -/
+def toSequentializationResult {input : Certificate}
+    (result : ExecutableSequentializationResult input) :
+    SequentializationResult input where
+  tree := result.tree
+  sequent := result.sequent
+  output := result.output
+  inferred := result.inferred
+  desequentialized := result.desequentialized
+  outputLabels := by
+    rw [result.equivalent.conclusionFormulas?_eq]
+    exact result.inputLabels
+  equivalent := result.equivalent
+
 end ExecutableSequentializationResult
 
 namespace Certificate
@@ -243,6 +259,24 @@ private theorem firstSome_isSome_of_mem (function : α → Option β)
         | none => simpa [firstSome, equation] using ih membership
         | some value => simp [firstSome, equation]
 
+private theorem firstSome_eq_some {function : α → Option β}
+    {inputs : List α} {output : β}
+    (equation : firstSome function inputs = some output) :
+    ∃ input ∈ inputs, function input = some output := by
+  induction inputs with
+  | nil => simp [firstSome] at equation
+  | cons head tail ih =>
+      cases headEquation : function head with
+      | none =>
+          rcases ih (by simpa [firstSome, headEquation] using equation) with
+            ⟨input, membership, success⟩
+          exact ⟨input, by simp [membership], success⟩
+      | some value =>
+          have same : value = output := by
+            simpa [firstSome, headEquation] using equation
+          subst value
+          exact ⟨head, by simp, headEquation⟩
+
 /-- Backtracking kernel for `matchingFormulaOrders`.  Keeping the recursive
 enumerator named makes its completeness contract available to the totality
 proof instead of burying it in a local definition. -/
@@ -340,6 +374,46 @@ theorem matchingFormulaOrders_complete (source target : List Formula)
   have generated := matchingFormulaOrdersVisit_complete source target [] order
     (by simp) nodup lookup
   simpa [matchingFormulaOrders, sameLength] using generated
+
+private theorem matchingFormulaOrders_complete_of_reorder?
+    {source target : List Formula} {order : List Nat}
+    (accepted : CutFreeDerivation.reorder? source order = some target) :
+    order ∈ matchingFormulaOrders source target := by
+  have permutation : source.Perm target :=
+    CutFreeDerivation.reorder?_perm accepted
+  have candidateEquation :
+      CutFreeDerivation.reorderCandidate? source order = some target := by
+    unfold CutFreeDerivation.reorder? at accepted
+    cases candidateResult :
+        CutFreeDerivation.reorderCandidate? source order with
+    | none => simp [candidateResult] at accepted
+    | some candidate =>
+        by_cases candidatePermutation : source.Perm candidate
+        · have same : candidate = target := by
+            simpa [candidateResult, candidatePermutation] using accepted
+          exact congrArg some same
+        · simp [candidateResult, candidatePermutation] at accepted
+  have lookup :
+      order.mapM (fun index => source[index]?) = some target := by
+    unfold CutFreeDerivation.reorderCandidate? at candidateEquation
+    split at candidateEquation
+    · exact candidateEquation
+    · contradiction
+  have guard :
+      (order.length == source.length &&
+        order.eraseDups.length == order.length &&
+        order.all (fun index => index < source.length)) = true := by
+    unfold CutFreeDerivation.reorderCandidate? at candidateEquation
+    split at candidateEquation
+    · assumption
+    · contradiction
+  simp only [Bool.and_eq_true, beq_iff_eq, List.all_eq_true] at guard
+  rcases guard with ⟨⟨_orderLength, eraseLength⟩, _bounds⟩
+  have nodup : order.Nodup :=
+    nodup_of_eraseDups_length_eq eraseLength
+  have generated := matchingFormulaOrdersVisit_complete source target [] order
+    (by simp) nodup lookup
+  simpa [matchingFormulaOrders, permutation.length_eq] using generated
 
 /-- Deterministic first matching occurrence permutation.  The executable
 sequentializer itself tries the complete list until proof-net equivalence holds. -/
@@ -524,6 +598,63 @@ private theorem alignTree?_complete {input : Certificate}
   | none => simp [equation] at equivalenceFound
   | some witness => simp
 
+private theorem alignTree?_sound {input : Certificate}
+    {tree aligned : CutFreeDerivation} {target : List Formula}
+    (labels : input.conclusionFormulas? = some target)
+    (equation : alignTree? input tree target = some aligned) :
+    ∃ result : ExecutableSequentializationResult input,
+      result.tree = aligned := by
+  unfold alignTree? at equation
+  cases sourceEquation : tree.infer? with
+  | none => simp [sourceEquation] at equation
+  | some source =>
+      simp only [sourceEquation] at equation
+      rcases firstSome_eq_some equation with
+        ⟨order, _orderMembership, branchEquation⟩
+      let candidate := CutFreeDerivation.exchange order tree
+      by_cases inferred : candidate.infer? = some target
+      · cases checkedEquation : candidate.desequentializeChecked? with
+        | none =>
+            simp [candidate, inferred, checkedEquation] at branchEquation
+        | some checked =>
+            cases witnessEquation :
+                directProofNetEquivalentWitness? checked.certificate input with
+            | none =>
+                simp [candidate, inferred, checkedEquation, witnessEquation]
+                  at branchEquation
+            | some witness =>
+                have same : candidate = aligned := by
+                  simpa [candidate, inferred, checkedEquation,
+                    witnessEquation] using branchEquation
+                have desequentialized :
+                    candidate.desequentialize? = some checked.certificate := by
+                  unfold CutFreeDerivation.desequentializeChecked?
+                    at checkedEquation
+                  cases outputEquation : candidate.desequentialize? with
+                  | none => simp [outputEquation] at checkedEquation
+                  | some output =>
+                      by_cases outputAccepted : output.check = true
+                      · have checkedSame :
+                            CutFreeDerivation.CheckedCertificate.mk output
+                              outputAccepted = checked := by
+                          simpa [outputEquation, outputAccepted] using
+                            checkedEquation
+                        have outputSame : output = checked.certificate :=
+                          congrArg (·.certificate) checkedSame
+                        exact congrArg some outputSame
+                      · simp [outputEquation, outputAccepted] at checkedEquation
+                let result : ExecutableSequentializationResult input := {
+                  tree := candidate
+                  sequent := target
+                  output := checked.certificate
+                  inferred := inferred
+                  inputLabels := labels
+                  desequentialized := desequentialized
+                  outputAccepted := checked.accepted
+                  equivalent := witness.proofNetEquivalent }
+                exact ⟨result, by simpa [result] using same⟩
+      · simp [candidate, inferred] at branchEquation
+
 private theorem alignTree?_complete_of_desequentialize
     {input output : Certificate} {tree : CutFreeDerivation}
     {source target : List Formula} {order : List Nat}
@@ -676,6 +807,23 @@ private theorem axiomTree?_of_alignedAxiom {certificate : Certificate}
     formulaMembership
   exact aligned
 
+private theorem axiomTree?_sound {certificate : Certificate}
+    {target : List Formula} {tree : CutFreeDerivation}
+    (labels : certificate.conclusionFormulas? = some target)
+    (equation : axiomTree? certificate target = some tree) :
+    ∃ result : ExecutableSequentializationResult certificate,
+      result.tree = tree := by
+  unfold axiomTree? at equation
+  split at equation
+  · contradiction
+  · rcases firstSome_eq_some equation with
+      ⟨formula, _formulaMembership, branchEquation⟩
+    cases formula with
+    | atom name positive =>
+        exact alignTree?_sound labels branchEquation
+    | tensor left right => simp at branchEquation
+    | par left right => simp at branchEquation
+
 /-- The executable axiom branch is total on the checker-accepted base case.
 This is the first inverse-rule case where the proposition-level
 sequentialization theorem is connected all the way to the runtime search. -/
@@ -760,6 +908,73 @@ private def rebuildParTree? (input : Certificate)
     let focus := premiseSequent.length - 2
     alignTree? input (.par focus focus premiseTree) target
 
+private theorem rebuildParTree?_complete
+    {input : Certificate} {left right conclusion : Vertex}
+    (structural : input.StructurallyWellFormed)
+    (terminal : input.TerminalPar left right conclusion)
+    (inputAccepted : input.check = true)
+    (premiseAccepted :
+      (input.peelTerminalPar left right conclusion).check = true)
+    (premiseResult : ExecutableSequentializationResult
+      (input.peelTerminalPar left right conclusion))
+    {target : List Formula}
+    (labels : input.conclusionFormulas? = some target) :
+    (rebuildParTree? input premiseResult.tree target).isSome = true := by
+  let propositionResult := premiseResult.toSequentializationResult
+  rcases TerminalPar.sequentializationResultShaped structural terminal
+      premiseAccepted propositionResult with
+    ⟨result, order, treeShape, premiseLength⟩
+  have resultSequent : result.sequent = target := by
+    exact Option.some.inj (result.inputLabels.symm.trans labels)
+  let rawTree := CutFreeDerivation.par
+    (propositionResult.sequent.length - 2)
+    (propositionResult.sequent.length - 2) propositionResult.tree
+  have alignedInfer :
+      (CutFreeDerivation.exchange order rawTree).infer? = some target := by
+    rw [← treeShape]
+    simpa [resultSequent] using result.inferred
+  have alignedDeselect :
+      (CutFreeDerivation.exchange order rawTree).desequentialize? =
+        some result.output := by
+    rw [← treeShape]
+    exact result.desequentialized
+  have premiseLength' : 2 ≤ premiseResult.sequent.length := by
+    simpa [propositionResult,
+      ExecutableSequentializationResult.toSequentializationResult] using
+      premiseLength
+  cases sourceEquation : rawTree.infer? with
+  | none =>
+      simp [CutFreeDerivation.infer?, sourceEquation] at alignedInfer
+  | some source =>
+      have reordered : CutFreeDerivation.reorder? source order = some target := by
+        simpa [CutFreeDerivation.infer?, sourceEquation] using alignedInfer
+      have orderMembership :=
+        matchingFormulaOrders_complete_of_reorder? reordered
+      have alignmentFound := alignTree?_complete_of_desequentialize
+        inputAccepted sourceEquation orderMembership alignedInfer
+        alignedDeselect result.equivalent.toDirect
+      have notShort : ¬ premiseResult.sequent.length < 2 :=
+        Nat.not_lt.mpr premiseLength'
+      simpa [rebuildParTree?, premiseResult.inferred, notShort, rawTree,
+        propositionResult,
+        ExecutableSequentializationResult.toSequentializationResult] using
+        alignmentFound
+
+private theorem rebuildParTree?_sound {input : Certificate}
+    {premiseTree tree : CutFreeDerivation} {target : List Formula}
+    (labels : input.conclusionFormulas? = some target)
+    (equation : rebuildParTree? input premiseTree target = some tree) :
+    ∃ result : ExecutableSequentializationResult input,
+      result.tree = tree := by
+  unfold rebuildParTree? at equation
+  cases premiseEquation : premiseTree.infer? with
+  | none => simp [premiseEquation] at equation
+  | some premiseSequent =>
+      by_cases short : premiseSequent.length < 2
+      · simp [premiseEquation, short] at equation
+      · exact alignTree?_sound labels (by
+          simpa [premiseEquation, short] using equation)
+
 private def rebuildTensorTree? (input : Certificate)
     (leftTree rightTree : CutFreeDerivation)
     (target : List Formula) : Option CutFreeDerivation := do
@@ -770,6 +985,266 @@ private def rebuildTensorTree? (input : Certificate)
   else
     alignTree? input (.tensor (leftSequent.length - 1)
       (rightSequent.length - 1) leftTree rightTree) target
+
+private theorem rebuildTensorTree?_complete
+    {input leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : input.StructurallyWellFormed)
+    (splitting : input.SplittingTensor left right conclusion)
+    (splitEquation : input.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate))
+    (inputAccepted : input.check = true)
+    (leftAccepted : leftCertificate.check = true)
+    (rightAccepted : rightCertificate.check = true)
+    (leftResult : ExecutableSequentializationResult leftCertificate)
+    (rightResult : ExecutableSequentializationResult rightCertificate)
+    {target : List Formula}
+    (labels : input.conclusionFormulas? = some target) :
+    (rebuildTensorTree? input leftResult.tree rightResult.tree target).isSome =
+      true := by
+  let leftPropositionResult := leftResult.toSequentializationResult
+  let rightPropositionResult := rightResult.toSequentializationResult
+  rcases TerminalTensor.sequentializationResultShaped structural splitting
+      splitEquation leftAccepted rightAccepted leftPropositionResult
+      rightPropositionResult with
+    ⟨result, order, treeShape, leftLength, rightLength⟩
+  have resultSequent : result.sequent = target := by
+    exact Option.some.inj (result.inputLabels.symm.trans labels)
+  let rawTree := CutFreeDerivation.tensor
+    (leftPropositionResult.sequent.length - 1)
+    (rightPropositionResult.sequent.length - 1)
+    leftPropositionResult.tree rightPropositionResult.tree
+  have alignedInfer :
+      (CutFreeDerivation.exchange order rawTree).infer? = some target := by
+    rw [← treeShape]
+    simpa [resultSequent] using result.inferred
+  have alignedDeselect :
+      (CutFreeDerivation.exchange order rawTree).desequentialize? =
+        some result.output := by
+    rw [← treeShape]
+    exact result.desequentialized
+  have leftLength' : 1 ≤ leftResult.sequent.length := by
+    simpa [leftPropositionResult,
+      ExecutableSequentializationResult.toSequentializationResult] using
+      leftLength
+  have rightLength' : 1 ≤ rightResult.sequent.length := by
+    simpa [rightPropositionResult,
+      ExecutableSequentializationResult.toSequentializationResult] using
+      rightLength
+  cases sourceEquation : rawTree.infer? with
+  | none =>
+      simp [CutFreeDerivation.infer?, sourceEquation] at alignedInfer
+  | some source =>
+      have reordered : CutFreeDerivation.reorder? source order = some target := by
+        simpa [CutFreeDerivation.infer?, sourceEquation] using alignedInfer
+      have orderMembership :=
+        matchingFormulaOrders_complete_of_reorder? reordered
+      have alignmentFound := alignTree?_complete_of_desequentialize
+        inputAccepted sourceEquation orderMembership alignedInfer
+        alignedDeselect result.equivalent.toDirect
+      have leftNonNil : leftResult.sequent ≠ [] := by
+        intro empty
+        rw [empty] at leftLength'
+        change 1 ≤ 0 at leftLength'
+        omega
+      have rightNonNil : rightResult.sequent ≠ [] := by
+        intro empty
+        rw [empty] at rightLength'
+        change 1 ≤ 0 at rightLength'
+        omega
+      simpa [rebuildTensorTree?, leftResult.inferred, rightResult.inferred,
+        leftNonNil, rightNonNil, rawTree, leftPropositionResult,
+        rightPropositionResult,
+        ExecutableSequentializationResult.toSequentializationResult] using
+        alignmentFound
+
+private theorem rebuildTensorTree?_sound {input : Certificate}
+    {leftTree rightTree tree : CutFreeDerivation} {target : List Formula}
+    (labels : input.conclusionFormulas? = some target)
+    (equation : rebuildTensorTree? input leftTree rightTree target = some tree) :
+    ∃ result : ExecutableSequentializationResult input,
+      result.tree = tree := by
+  unfold rebuildTensorTree? at equation
+  cases leftEquation : leftTree.infer? with
+  | none => simp [leftEquation] at equation
+  | some leftSequent =>
+      cases rightEquation : rightTree.infer? with
+      | none => simp [leftEquation, rightEquation] at equation
+      | some rightSequent =>
+          cases leftSequent with
+          | nil => simp [leftEquation, rightEquation] at equation
+          | cons leftHead leftTail =>
+              cases rightSequent with
+              | nil => simp [leftEquation, rightEquation] at equation
+              | cons rightHead rightTail =>
+                  exact alignTree?_sound labels (by
+                    simpa [leftEquation, rightEquation] using equation)
+
+private def parTreeFrom
+    (recurse : Certificate → Except SequentializationError CutFreeDerivation)
+    (certificate : Certificate) (target : List Formula) :
+    Option CutFreeDerivation :=
+  firstSome (fun candidate =>
+    let (left, right, conclusion) := candidate
+    match certificate.peelTerminalParChecked? left right conclusion with
+    | none => none
+    | some premise =>
+        match recurse premise.certificate with
+        | .error _ => none
+        | .ok premiseTree =>
+            rebuildParTree? certificate premiseTree target)
+    certificate.terminalPars
+
+private def tensorTreeFrom
+    (recurse : Certificate → Except SequentializationError CutFreeDerivation)
+    (certificate : Certificate) (target : List Formula) :
+    Option CutFreeDerivation :=
+  firstSome (fun candidate =>
+    let (left, right, conclusion) := candidate
+    match certificate.splitTerminalTensorChecked? left right conclusion with
+    | none => none
+    | some premises =>
+        match recurse premises.leftPremise.certificate with
+        | .error _ => none
+        | .ok leftTree =>
+            match recurse premises.rightPremise.certificate with
+            | .error _ => none
+            | .ok rightTree =>
+                rebuildTensorTree? certificate leftTree rightTree target)
+    certificate.terminalTensors
+
+private theorem parTreeFrom_sound
+    (recurse : Certificate →
+      Except SequentializationError CutFreeDerivation)
+    {certificate : Certificate} {target : List Formula}
+    {tree : CutFreeDerivation}
+    (labels : certificate.conclusionFormulas? = some target)
+    (equation : parTreeFrom recurse certificate target = some tree) :
+    ∃ result : ExecutableSequentializationResult certificate,
+      result.tree = tree := by
+  unfold parTreeFrom at equation
+  rcases firstSome_eq_some equation with
+    ⟨candidate, _membership, branchEquation⟩
+  rcases candidate with ⟨left, ⟨right, conclusion⟩⟩
+  cases premiseEquation :
+      certificate.peelTerminalParChecked? left right conclusion with
+  | none => simp [premiseEquation] at branchEquation
+  | some premise =>
+      cases recursiveEquation : recurse premise.certificate with
+      | error error =>
+          simp [premiseEquation, recursiveEquation] at branchEquation
+      | ok premiseTree =>
+          exact rebuildParTree?_sound labels (by
+            simpa [premiseEquation, recursiveEquation] using branchEquation)
+
+private theorem tensorTreeFrom_sound
+    (recurse : Certificate →
+      Except SequentializationError CutFreeDerivation)
+    {certificate : Certificate} {target : List Formula}
+    {tree : CutFreeDerivation}
+    (labels : certificate.conclusionFormulas? = some target)
+    (equation : tensorTreeFrom recurse certificate target = some tree) :
+    ∃ result : ExecutableSequentializationResult certificate,
+      result.tree = tree := by
+  unfold tensorTreeFrom at equation
+  rcases firstSome_eq_some equation with
+    ⟨candidate, _membership, branchEquation⟩
+  rcases candidate with ⟨left, ⟨right, conclusion⟩⟩
+  cases premisesEquation :
+      certificate.splitTerminalTensorChecked? left right conclusion with
+  | none => simp [premisesEquation] at branchEquation
+  | some premises =>
+      cases leftEquation : recurse premises.leftPremise.certificate with
+      | error error =>
+          simp [premisesEquation, leftEquation] at branchEquation
+      | ok leftTree =>
+          cases rightEquation : recurse premises.rightPremise.certificate with
+          | error error =>
+              simp [premisesEquation, leftEquation, rightEquation]
+                at branchEquation
+          | ok rightTree =>
+              exact rebuildTensorTree?_sound labels (by
+                simpa [premisesEquation, leftEquation, rightEquation] using
+                  branchEquation)
+
+private theorem parTreeFrom_complete_of_candidate
+    (recurse : Certificate →
+      Except SequentializationError CutFreeDerivation)
+    {certificate : Certificate} {target : List Formula}
+    {left right conclusion : Vertex}
+    (membership :
+      (left, right, conclusion) ∈ certificate.terminalPars)
+    {premise : CutFreeDerivation.CheckedCertificate}
+    (premiseEquation :
+      certificate.peelTerminalParChecked? left right conclusion = some premise)
+    (premiseResult :
+      ExecutableSequentializationResult premise.certificate)
+    (recursiveEquation : recurse premise.certificate = .ok premiseResult.tree)
+    (rebuildFound :
+      (rebuildParTree? certificate premiseResult.tree target).isSome = true) :
+    (parTreeFrom recurse certificate target).isSome = true := by
+  unfold parTreeFrom
+  apply firstSome_isSome_of_mem _ _ (left, right, conclusion) membership
+  simpa [premiseEquation, recursiveEquation] using rebuildFound
+
+private theorem tensorTreeFrom_complete_of_candidate
+    (recurse : Certificate →
+      Except SequentializationError CutFreeDerivation)
+    {certificate : Certificate} {target : List Formula}
+    {left right conclusion : Vertex}
+    (membership :
+      (left, right, conclusion) ∈ certificate.terminalTensors)
+    {premises : CheckedTensorPremises}
+    (premisesEquation :
+      certificate.splitTerminalTensorChecked? left right conclusion =
+        some premises)
+    (leftResult : ExecutableSequentializationResult
+      premises.leftPremise.certificate)
+    (rightResult : ExecutableSequentializationResult
+      premises.rightPremise.certificate)
+    (leftRecursive :
+      recurse premises.leftPremise.certificate = .ok leftResult.tree)
+    (rightRecursive :
+      recurse premises.rightPremise.certificate = .ok rightResult.tree)
+    (rebuildFound :
+      (rebuildTensorTree? certificate leftResult.tree rightResult.tree target).isSome =
+        true) :
+    (tensorTreeFrom recurse certificate target).isSome = true := by
+  unfold tensorTreeFrom
+  apply firstSome_isSome_of_mem _ _ (left, right, conclusion) membership
+  simpa [premisesEquation, leftRecursive, rightRecursive] using rebuildFound
+
+private theorem splitTerminalTensorChecked?_candidateEquation
+    {certificate : Certificate} {left right conclusion : Vertex}
+    {premises : CheckedTensorPremises}
+    (equation : certificate.splitTerminalTensorChecked?
+      left right conclusion = some premises) :
+    certificate.splitTerminalTensorCandidate? left right conclusion =
+      some (premises.leftPremise.certificate,
+        premises.rightPremise.certificate) := by
+  unfold splitTerminalTensorChecked? at equation
+  cases candidateEquation :
+      certificate.splitTerminalTensorCandidate? left right conclusion with
+  | none => simp [candidateEquation] at equation
+  | some pair =>
+      rcases pair with ⟨leftCertificate, rightCertificate⟩
+      by_cases leftAccepted : leftCertificate.check = true
+      · by_cases rightAccepted : rightCertificate.check = true
+        · have same : ({
+              leftPremise := ⟨leftCertificate, leftAccepted⟩
+              rightPremise := ⟨rightCertificate, rightAccepted⟩ } :
+              CheckedTensorPremises) = premises := by
+            simpa [candidateEquation, leftAccepted, rightAccepted] using
+              equation
+          have leftSame : leftCertificate =
+              premises.leftPremise.certificate :=
+            congrArg (fun value => value.leftPremise.certificate) same
+          have rightSame : rightCertificate =
+              premises.rightPremise.certificate :=
+            congrArg (fun value => value.rightPremise.certificate) same
+          exact congrArg some (Prod.ext leftSame rightSame)
+        · simp [candidateEquation, leftAccepted, rightAccepted] at equation
+      · simp [candidateEquation, leftAccepted] at equation
 
 /-- Fuel-bounded executable inverse-rule search.  Every recursive premise is
 independently checker-gated.  Fuel is exposed only for diagnostics and tests;
@@ -792,37 +1267,13 @@ def executableTreeWithFuel : Nat → Certificate →
             match axiomTree? certificate target with
             | some tree => .ok tree
             | none =>
-                let parTree := firstSome (fun candidate =>
-                  let (left, right, conclusion) := candidate
-                  match certificate.peelTerminalParChecked?
-                      left right conclusion with
-                  | none => none
-                  | some premise =>
-                      match executableTreeWithFuel fuel premise.certificate with
-                      | .error _ => none
-                      | .ok premiseTree =>
-                          rebuildParTree? certificate premiseTree target)
-                    certificate.terminalPars
+                let parTree := parTreeFrom
+                  (executableTreeWithFuel fuel) certificate target
                 match parTree with
                 | some tree => .ok tree
                 | none =>
-                    let tensorTree := firstSome (fun candidate =>
-                      let (left, right, conclusion) := candidate
-                      match certificate.splitTerminalTensorChecked?
-                          left right conclusion with
-                      | none => none
-                      | some premises =>
-                          match executableTreeWithFuel fuel
-                              premises.leftPremise.certificate with
-                          | .error _ => none
-                          | .ok leftTree =>
-                              match executableTreeWithFuel fuel
-                                  premises.rightPremise.certificate with
-                              | .error _ => none
-                              | .ok rightTree =>
-                                  rebuildTensorTree? certificate leftTree
-                                    rightTree target)
-                        certificate.terminalTensors
+                    let tensorTree := tensorTreeFrom
+                      (executableTreeWithFuel fuel) certificate target
                     match tensorTree with
                     | some tree => .ok tree
                     | none =>
@@ -846,6 +1297,161 @@ private theorem executableTreeWithFuel_axiomOnly
   | some tree =>
       refine ⟨tree, ?_⟩
       simp [executableTreeWithFuel, accepted, labels, equation]
+
+/-- The fuel-bounded runtime search is complete whenever its fuel strictly
+exceeds the input occurrence count.  The returned witness is already packaged
+with the same proof-bearing contract used by the public API. -/
+private theorem executableTreeWithFuel_complete
+    (fuel : Nat) (certificate : Certificate)
+    (accepted : certificate.check = true)
+    (fuelBound : certificate.formulas.size < fuel) :
+    ∃ result : ExecutableSequentializationResult certificate,
+      certificate.executableTreeWithFuel fuel = .ok result.tree := by
+  induction fuel generalizing certificate with
+  | zero => omega
+  | succ fuel ih =>
+      have correct : certificate.DeclarativelyCorrect :=
+        certificate.check_iff_declarativelyCorrect.mp accepted
+      have structural : certificate.StructurallyWellFormed := correct.1
+      rcases certificate.sequentialization_of_check accepted with
+        ⟨existenceResult⟩
+      let target := existenceResult.sequent
+      have labels : certificate.conclusionFormulas? = some target := by
+        simpa [target] using existenceResult.inputLabels
+      by_cases connectiveExists : ∃ link ∈ certificate.links,
+          link.isConnective = true
+      · rcases connectiveExists with ⟨connective, connectiveMembership,
+          connectiveTrue⟩
+        have connectiveAny :
+            certificate.links.any (fun link => link.isConnective) = true := by
+          simp only [List.any_eq_true]
+          exact ⟨connective, connectiveMembership, connectiveTrue⟩
+        have axiomNone : axiomTree? certificate target = none := by
+          simp [axiomTree?, connectiveAny]
+        have connectiveExists' : ∃ link ∈ certificate.links,
+            link.isConnective = true :=
+          ⟨connective, connectiveMembership, connectiveTrue⟩
+        rcases correct.terminalPar_or_splittingTensor_exists
+            connectiveExists' with
+          ⟨left, right, conclusion, terminal | splitting⟩
+        · let premiseCertificate :=
+            certificate.peelTerminalPar left right conclusion
+          have premiseAccepted : premiseCertificate.check = true := by
+            exact certificate.peelTerminalPar_check_of_check structural
+              terminal accepted
+          have premiseSmaller : premiseCertificate.formulas.size <
+              certificate.formulas.size := by
+            exact certificate.peelTerminalPar_formulas_size_lt structural
+              terminal
+          have premiseFuel : premiseCertificate.formulas.size < fuel := by
+            omega
+          rcases ih premiseCertificate premiseAccepted premiseFuel with
+            ⟨premiseResult, recursiveEquation⟩
+          let checked : CutFreeDerivation.CheckedCertificate :=
+            ⟨premiseCertificate, premiseAccepted⟩
+          have checkedEquation :
+              certificate.peelTerminalParChecked? left right conclusion =
+                some checked := by
+            simp [peelTerminalParChecked?,
+              certificate.peelTerminalParCandidate?_eq_some structural
+                terminal,
+              premiseCertificate, premiseAccepted, checked]
+          let checkedResult :
+              ExecutableSequentializationResult checked.certificate := by
+            simpa [checked] using premiseResult
+          have recursiveChecked :
+              checked.certificate.executableTreeWithFuel fuel =
+                .ok checkedResult.tree := by
+            simpa [checked, checkedResult] using recursiveEquation
+          have rebuildFound :
+              (rebuildParTree? certificate checkedResult.tree target).isSome =
+                true := by
+            simpa [checked, checkedResult, premiseCertificate] using
+              rebuildParTree?_complete structural terminal accepted
+                premiseAccepted premiseResult labels
+          have membership :
+              (left, right, conclusion) ∈ certificate.terminalPars :=
+            (certificate.mem_terminalPars_iff left right conclusion).mpr
+              terminal
+          have parFound := parTreeFrom_complete_of_candidate
+            (executableTreeWithFuel fuel) membership checkedEquation
+            checkedResult recursiveChecked rebuildFound
+          cases parEquation : parTreeFrom
+              (executableTreeWithFuel fuel) certificate target with
+          | none => simp [parEquation] at parFound
+          | some tree =>
+              rcases parTreeFrom_sound
+                  (executableTreeWithFuel fuel) labels parEquation
+                with ⟨result, resultTree⟩
+              refine ⟨result, ?_⟩
+              simp [executableTreeWithFuel, accepted, labels, axiomNone,
+                parEquation, resultTree]
+        · rcases certificate.splitTerminalTensorChecked?_eq_some_exists
+              structural splitting accepted with
+            ⟨premises, premisesEquation⟩
+          have candidateEquation :=
+            splitTerminalTensorChecked?_candidateEquation premisesEquation
+          have leftSmaller : premises.leftPremise.certificate.formulas.size <
+              certificate.formulas.size :=
+            certificate.splitTerminalTensorCandidate?_left_formulas_size_lt
+              structural splitting candidateEquation
+          have rightSmaller : premises.rightPremise.certificate.formulas.size <
+              certificate.formulas.size :=
+            certificate.splitTerminalTensorCandidate?_right_formulas_size_lt
+              structural splitting candidateEquation
+          have leftFuel : premises.leftPremise.certificate.formulas.size <
+              fuel := by omega
+          have rightFuel : premises.rightPremise.certificate.formulas.size <
+              fuel := by omega
+          rcases ih premises.leftPremise.certificate
+              premises.leftPremise.accepted leftFuel with
+            ⟨leftResult, leftRecursive⟩
+          rcases ih premises.rightPremise.certificate
+              premises.rightPremise.accepted rightFuel with
+            ⟨rightResult, rightRecursive⟩
+          have rebuildFound := rebuildTensorTree?_complete structural splitting
+            candidateEquation accepted premises.leftPremise.accepted
+              premises.rightPremise.accepted leftResult rightResult labels
+          have membership :
+              (left, right, conclusion) ∈ certificate.terminalTensors :=
+            (certificate.mem_terminalTensors_iff left right conclusion).mpr
+              splitting.1
+          have tensorFound := tensorTreeFrom_complete_of_candidate
+            (executableTreeWithFuel fuel) membership
+              premisesEquation leftResult rightResult leftRecursive
+              rightRecursive rebuildFound
+          cases parEquation : parTreeFrom
+              (executableTreeWithFuel fuel) certificate target with
+          | some tree =>
+              rcases parTreeFrom_sound
+                  (executableTreeWithFuel fuel) labels parEquation
+                with ⟨result, resultTree⟩
+              refine ⟨result, ?_⟩
+              simp [executableTreeWithFuel, accepted, labels, axiomNone,
+                parEquation, resultTree]
+          | none =>
+              cases tensorEquation : tensorTreeFrom
+                  (executableTreeWithFuel fuel) certificate target
+              with
+              | none => simp [tensorEquation] at tensorFound
+              | some tree =>
+                  rcases tensorTreeFrom_sound
+                      (executableTreeWithFuel fuel) labels
+                        tensorEquation with
+                    ⟨result, resultTree⟩
+                  refine ⟨result, ?_⟩
+                  simp [executableTreeWithFuel, accepted, labels, axiomNone,
+                    parEquation, tensorEquation, resultTree]
+      · have axiomFound :=
+          axiomTree?_complete accepted labels connectiveExists
+        cases axiomEquation : axiomTree? certificate target with
+        | none => simp [axiomEquation] at axiomFound
+        | some tree =>
+            rcases axiomTree?_sound labels axiomEquation with
+              ⟨result, resultTree⟩
+            refine ⟨result, ?_⟩
+            simp [executableTreeWithFuel, accepted, labels, axiomEquation,
+              resultTree]
 
 /-- Executable certificate-to-derivation API.  Successful results are
 proof-bearing values, while failures retain a stable stage and certificate
@@ -893,6 +1499,69 @@ def sequentialize (certificate : Certificate) :
   else
     throw (sequentializationError certificate "input"
       "certificate was rejected by the proof-net checker")
+
+/-- Universal success theorem for the public runtime API.  Every certificate
+accepted by the reference checker evaluates to a proof-bearing executable
+sequentialization result; staged errors are therefore reserved for rejected
+inputs or violations of the proved implementation contract. -/
+theorem sequentialize_complete (certificate : Certificate)
+    (accepted : certificate.check = true) :
+    ∃ result : ExecutableSequentializationResult certificate,
+      certificate.sequentialize = .ok result := by
+  rcases executableTreeWithFuel_complete
+      (certificate.formulas.size + 1) certificate accepted (by omega) with
+    ⟨treeResult, treeEquation⟩
+  have outputStructural : treeResult.output.StructurallyWellFormed :=
+    (treeResult.output.check_sound_declarative
+      treeResult.outputAccepted).1
+  have witnessFound := directProofNetEquivalentWitness?_complete
+    outputStructural treeResult.equivalent.toDirect
+  cases witnessEquation :
+      directProofNetEquivalentWitness? treeResult.output certificate with
+  | none => simp [witnessEquation] at witnessFound
+  | some witness =>
+      let result : ExecutableSequentializationResult certificate := {
+        tree := treeResult.tree
+        sequent := treeResult.sequent
+        output := treeResult.output
+        inferred := treeResult.inferred
+        inputLabels := treeResult.inputLabels
+        desequentialized := treeResult.desequentialized
+        outputAccepted := treeResult.outputAccepted
+        equivalent := witness.proofNetEquivalent }
+      refine ⟨result, ?_⟩
+      unfold sequentialize
+      rw [dif_pos accepted]
+      rw [treeEquation]
+      simp only [bind, Except.bind]
+      split
+      · rename_i labelsEquation
+        have impossible := treeResult.inputLabels
+        rw [labelsEquation] at impossible
+        contradiction
+      · rename_i sequent labelsEquation
+        have sameSequent : sequent = treeResult.sequent := by
+          exact Option.some.inj
+            (labelsEquation.symm.trans treeResult.inputLabels)
+        subst sequent
+        split
+        · rename_i inferredEquation
+          split
+          · rename_i desequentializedEquation
+            have impossible := treeResult.desequentialized
+            rw [desequentializedEquation] at impossible
+            contradiction
+          · rename_i output desequentializedEquation
+            have outputSame : output = treeResult.output := by
+              exact Option.some.inj
+                (desequentializedEquation.symm.trans
+                  treeResult.desequentialized)
+            subst output
+            rw [dif_pos treeResult.outputAccepted]
+            rw [witnessEquation]
+            rfl
+        · rename_i notInferred
+          exact (notInferred treeResult.inferred).elim
 
 end Certificate
 

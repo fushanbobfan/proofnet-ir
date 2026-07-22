@@ -19,6 +19,7 @@ EXPECTED_THEOREMS = {
     "ProofNetIR.Certificate.matchingFormulaOrders_complete",
     "ProofNetIR.Certificate.directProofNetEquivalentWitness?_complete",
     "ProofNetIR.Certificate.proofNetEquivalent?_eq_true_iff",
+    "ProofNetIR.Certificate.sequentialize_complete",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
 }

@@ -13,8 +13,7 @@
   with the counterexample and all 250 generated nets under reversed link order
   retained as regressions;
 - added 250 broad generated executable-sequentialization regressions plus a
-  dedicated repeated-formula-boundary test; the universal totality theorem for
-  this specific search remains an explicit pre-release obligation;
+  dedicated repeated-formula-boundary test;
 - extended the path-dependency consumer to execute the new API and consume its
   proof-net-equivalence theorem;
 - proved that the optimized repeated-label occurrence backtracker enumerates
@@ -23,9 +22,10 @@
   structurally well-formed certificates, including link-list permutations;
 - connected the finite boundary-alignment search to a proved candidate and
   proved that the executable axiom branch succeeds on all four possible
-  checker-accepted axiom-only representations; any positive fuel now has a
-  kernel-checked successful base-case result, while par/tensor recursive
-  totality remains open;
+  checker-accepted axiom-only representations; proved terminal-par and
+  splitting-tensor rebuild completeness/soundness, strict recursive descent,
+  and fuel induction, closing universal totality of the public
+  `Certificate.sequentialize` API on every checker-accepted certificate;
 - exposed `Certificate.proofNetEquivalent?` and proved that on structurally
   well-formed certificates it decides `ProofNetEquivalent` exactly;
 - added a deterministic 5,000-case malformed-JSON fuzz harness around the
@@ -33,7 +33,7 @@
   CI;
 - added a verified 291-case depth-2/3/4 runtime workload with a 45-second CI
   regression budget and documented the observed depth-sensitive search cost;
-- added a CI trust audit pinning nine public logical-boundary theorems to exactly
+- added a CI trust audit pinning ten public logical-boundary theorems to exactly
   `propext`, `Classical.choice`, and `Quot.sound`;
 - corrected the Pfenning PDF duplicate audit from 178 to 168 unique pages and
   completed ordered text and rendered-image inspection of every unique page;

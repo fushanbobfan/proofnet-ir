@@ -103,9 +103,11 @@ by a link permutation. A returned
 an exact `ProofNetEquivalent` output proof. The broader relation is necessary:
 the checker deliberately ignores link-list storage order, and an early
 `ReindexEquivalent`-only prototype failed on a reversed-link-order accepted
-certificate. What is not yet proved is totality of this particular search
-function for every accepted input; the older proposition-level theorem remains
-the universal mathematical result.
+certificate. `Certificate.sequentialize_complete` proves totality of this
+particular runtime search for every checker-accepted input. Its proof connects
+the terminal-rule dichotomy and checker-gated inverse candidates to complete
+par/tensor rebuilding, exhaustive boundary alignment, and a strict
+formula-occurrence fuel induction.
 
 The same module now discovers terminal splitting-tensor candidates by deleting
 the tensor conclusion in the full occurrence graph, partitioning reachable

@@ -82,19 +82,20 @@ The repository currently contains:
 - an unreleased executable `Certificate.sequentialize` API that searches
   checker-preserving inverse rules and returns a proof-bearing tree, exact
   ordered input boundary, accepted desequentialization, and
-  `ProofNetEquivalent` output; it currently passes all 250 broad generated
-  regressions, the same 250 nets with every link list reversed, and a dedicated
-  repeated-boundary-label regression.
+  `ProofNetEquivalent` output. `Certificate.sequentialize_complete` proves this
+  runtime search succeeds for every checker-accepted certificate; it also
+  passes all 250 broad generated regressions, the same 250 nets with every link
+  list reversed, and a dedicated repeated-boundary-label regression.
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does
 not extract that witness by choice: it performs finite inverse-rule and
 occurrence-permutation search, permits semantically irrelevant link-list
-permutation, and rechecks its output. A Lean theorem that this
-specific executable search succeeds for every accepted certificate remains a
-v0.5 obligation; generated success is regression evidence, not that theorem.
-The path-based downstream consumer executes this API, and CI separately audits
-nine public logical-boundary theorems against the exact accepted axiom set
+permutation, and rechecks its output. Its separate totality theorem is proved
+by the terminal-rule dichotomy, checker-gated candidate totality, complete
+finite boundary alignment, and well-founded fuel induction. The path-based
+downstream consumer executes the API and consumes that theorem, and CI
+separately audits ten public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose

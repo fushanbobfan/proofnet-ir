@@ -25,6 +25,10 @@ def consumedSequentialization :
 
 example : consumedSequentialization.isOk = true := by native_decide
 
+example : ∃ result : ExecutableSequentializationResult consumedCertificate,
+    consumedCertificate.sequentialize = .ok result :=
+  consumedCertificate.sequentialize_complete (by native_decide)
+
 example : Certificate.proofNetEquivalent? consumedCertificate
     reorderedConsumedCertificate = true := by native_decide
 

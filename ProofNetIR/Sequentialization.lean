@@ -45,7 +45,10 @@ termination_by values.length
 decreasing_by
   exact Nat.lt_add_one_of_le (List.length_filter_le _ tail)
 
-private theorem nodup_of_eraseDups_length_eq [BEq α] [LawfulBEq α]
+/-- If duplicate erasure preserves the full list length, the original list
+contained no duplicates.  This small bridge is also used by the executable
+sequentializer to recover a proof from its Boolean permutation guard. -/
+theorem nodup_of_eraseDups_length_eq [BEq α] [LawfulBEq α]
     {values : List α}
     (sameLength : values.eraseDups.length = values.length) :
     values.Nodup := by
@@ -14308,7 +14311,7 @@ terminal-par step.  The construction is occurrence-aware throughout: it
 builds an actual first-order par node, computes an executable exchange on
 formula/root pairs, and reconstructs a certificate directly equivalent to the
 input. -/
-theorem TerminalPar.sequentializationResult
+theorem TerminalPar.sequentializationResultShaped
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
     (terminal : certificate.TerminalPar left right conclusion)
@@ -14316,7 +14319,11 @@ theorem TerminalPar.sequentializationResult
       (certificate.peelTerminalPar left right conclusion).check = true)
     (premiseResult : SequentializationResult
       (certificate.peelTerminalPar left right conclusion)) :
-    Nonempty (SequentializationResult certificate) := by
+    ∃ result : SequentializationResult certificate, ∃ order : List Nat,
+      result.tree = CutFreeDerivation.exchange order
+        (.par (premiseResult.sequent.length - 2)
+          (premiseResult.sequent.length - 2) premiseResult.tree) ∧
+        2 ≤ premiseResult.sequent.length := by
   let premise := certificate.peelTerminalPar left right conclusion
   have outputAccepted : premiseResult.output.check = true :=
     premiseResult.outputAccepted premiseAccepted
@@ -14597,7 +14604,12 @@ theorem TerminalPar.sequentializationResult
       outputFragment.toCertificate.DirectProofNetEquivalent certificate := by
     rw [outputCertificate]
     exact liftedDirect.trans rebuildDirect
-  exact ⟨{
+  have contextLength : contextEntries.length = context.length := by
+    simpa using congrArg List.length contextEntryLabels
+  have focusEquation :
+      contextEntries.length = premiseResult.sequent.length - 2 := by
+    simp [premiseSequent, contextLength]
+  let result : SequentializationResult certificate := {
     tree := tree
     sequent := outputFragment.conclusions
     output := outputFragment.toCertificate
@@ -14605,7 +14617,25 @@ theorem TerminalPar.sequentializationResult
     desequentialized := by
       simp [CutFreeDerivation.desequentialize?, outputBuild]
     outputLabels := outputLabels
-    equivalent := totalDirect.toProofNetEquivalent }⟩
+    equivalent := totalDirect.toProofNetEquivalent }
+  refine ⟨result, order, ?_, ?_⟩
+  · simp [result, tree, parTree, focusEquation]
+  · simp [premiseSequent]
+
+/-- Compatibility projection of the shaped terminal-par composition theorem. -/
+theorem TerminalPar.sequentializationResult
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    (premiseAccepted :
+      (certificate.peelTerminalPar left right conclusion).check = true)
+    (premiseResult : SequentializationResult
+      (certificate.peelTerminalPar left right conclusion)) :
+    Nonempty (SequentializationResult certificate) := by
+  rcases TerminalPar.sequentializationResultShaped structural terminal
+      premiseAccepted premiseResult with
+    ⟨result, _order, _shape, _premiseLength⟩
+  exact ⟨result⟩
 
 theorem peelTerminalPar_conclusions_nodup
     {certificate : Certificate} {left right conclusion : Vertex}
@@ -15723,7 +15753,7 @@ theorem SplittingTensor.premiseBoundaryData_of_formulaData
 splitting terminal tensor.  This is the binary counterpart of
 `TerminalPar.sequentializationResult`: it constructs the concrete tensor rule,
 an executable exchange, and a certificate equivalent to the original net. -/
-theorem TerminalTensor.sequentializationResult
+theorem TerminalTensor.sequentializationResultShaped
     {certificate leftCertificate rightCertificate : Certificate}
     {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -15734,7 +15764,13 @@ theorem TerminalTensor.sequentializationResult
     (rightAccepted : rightCertificate.check = true)
     (leftResult : SequentializationResult leftCertificate)
     (rightResult : SequentializationResult rightCertificate) :
-    Nonempty (SequentializationResult certificate) := by
+    ∃ result : SequentializationResult certificate, ∃ order : List Nat,
+      result.tree = CutFreeDerivation.exchange order
+        (.tensor (leftResult.sequent.length - 1)
+          (rightResult.sequent.length - 1)
+          leftResult.tree rightResult.tree) ∧
+        1 ≤ leftResult.sequent.length ∧
+        1 ≤ rightResult.sequent.length := by
   rcases certificate.splitTerminalTensorCandidate?_restriction_equations
       structural splitting splitEquation with
     ⟨leftRestriction, rightRestriction⟩
@@ -16191,7 +16227,18 @@ theorem TerminalTensor.sequentializationResult
       outputFragment.toCertificate.DirectProofNetEquivalent certificate := by
     rw [outputCertificate]
     exact liftedDirect.trans rebuildDirect
-  exact ⟨{
+  have leftContextLength : leftContextEntries.length = leftContext.length := by
+    simpa using congrArg List.length leftContextLabels
+  have rightContextLength :
+      rightContextEntries.length = rightContext.length := by
+    simpa using congrArg List.length rightContextLabels
+  have leftFocusEquation :
+      leftContextEntries.length = leftResult.sequent.length - 1 := by
+    simp [leftSequent, leftContextLength]
+  have rightFocusEquation :
+      rightContextEntries.length = rightResult.sequent.length - 1 := by
+    simp [rightSequent, rightContextLength]
+  let result : SequentializationResult certificate := {
     tree := tree
     sequent := outputFragment.conclusions
     output := outputFragment.toCertificate
@@ -16199,7 +16246,29 @@ theorem TerminalTensor.sequentializationResult
     desequentialized := by
       simp [CutFreeDerivation.desequentialize?, outputBuild]
     outputLabels := outputLabels
-    equivalent := totalDirect.toProofNetEquivalent }⟩
+    equivalent := totalDirect.toProofNetEquivalent }
+  refine ⟨result, order, ?_, ?_, ?_⟩
+  · simp [result, tree, tensorTree, leftFocusEquation, rightFocusEquation]
+  · simp [leftSequent]
+  · simp [rightSequent]
+
+/-- Compatibility projection of the shaped splitting-tensor composition. -/
+theorem TerminalTensor.sequentializationResult
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (splitEquation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate))
+    (leftAccepted : leftCertificate.check = true)
+    (rightAccepted : rightCertificate.check = true)
+    (leftResult : SequentializationResult leftCertificate)
+    (rightResult : SequentializationResult rightCertificate) :
+    Nonempty (SequentializationResult certificate) := by
+  rcases TerminalTensor.sequentializationResultShaped structural splitting
+      splitEquation leftAccepted rightAccepted leftResult rightResult with
+    ⟨result, _order, _shape, _leftLength, _rightLength⟩
+  exact ⟨result⟩
 
 /-- Peeling a terminal par strictly decreases the number of formula
 occurrences.  This is the unary branch of the well-founded measure used by
