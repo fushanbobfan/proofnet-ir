@@ -1004,6 +1004,17 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.CuspFreeContinuation.toOrderingPathOfMinimalCycle
 #check Certificate.CuspAcyclic.ordering_of_not_splitting
 #check Certificate.CuspAcyclic.exists_splittingVertex_of_directedEdge
+#check Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+#check Graph.SimpleWalk.liftToEdgeSimplePath
+#check Certificate.tensor_fullEdgeAnnotations
+#check Certificate.fullEdgeAnnotation_some_par_origin
+#check Certificate.incidenceColor_eq_unique_of_not_par
+#check Certificate.tensor_incidenceColors_exist
+#check Certificate.CuspingEdge.incidenceColor_eq_par
+#check Certificate.CuspingEdge.par_origin
+#check Certificate.CuspAcyclic.exists_splitting_par_of_cuspingEdge
+#check Certificate.fullGraphWithoutVertex_simpleWalk_avoids
+#check Certificate.SplittingVertex.toSplittingTensor
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

@@ -230,6 +230,24 @@ theorem eq_or_eq_reverse_of_index_eq {graph : Graph}
   cases firstForward <;> cases secondForward <;>
     simp [reverse]
 
+/-- An occurrence index together with its orientation determines the complete
+directed-edge value; the stored edge and lookup proof are forced by the graph
+list. -/
+theorem eq_of_index_eq_of_forward_eq {graph : Graph}
+    (first second : graph.DirectedEdge)
+    (sameIndex : first.index = second.index)
+    (sameForward : first.forward = second.forward) : first = second := by
+  rcases first with ⟨firstIndex, firstEdge, firstLookup, firstForward⟩
+  rcases second with ⟨secondIndex, secondEdge, secondLookup, secondForward⟩
+  simp only at sameIndex sameForward
+  subst secondIndex
+  subst secondForward
+  have sameEdge : firstEdge = secondEdge := by
+    apply Option.some.inj
+    exact firstLookup.symm.trans secondLookup
+  subst secondEdge
+  rfl
+
 theorem edge_mem {graph : Graph} (directed : graph.DirectedEdge) :
     directed.edge ∈ graph.edges := by
   rcases List.getElem?_eq_some_iff.mp directed.lookup with
@@ -1903,6 +1921,107 @@ theorem restrict {graph : Graph} {start finish vertex : Vertex} {steps : Nat}
       · subst vertex
         exact ⟨priorSteps + 1, priorVisited ++ [current],
           .step prior adjacency fresh⟩
+
+/-- Lift a duplicate-free vertex walk through an edge-inclusion map to an
+exact occurrence-aware simple path in the ambient multigraph.  The visited
+vertex list is preserved literally. -/
+theorem liftToEdgeSimplePath {subgraph graph : Graph}
+    {start finish : Vertex} {steps : Nat} {visited : List Vertex}
+    (simple : subgraph.SimpleWalk start steps visited finish)
+    (edgeSubset : ∀ edge ∈ subgraph.edges, edge ∈ graph.edges) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = start ∧ path.finish = finish ∧
+        path.vertices = visited := by
+  induction simple with
+  | refl =>
+      let path : graph.EdgeSimplePath :=
+        { start := start
+          finish := start
+          traversed := []
+          walk := .refl start
+          verticesNodup := by simp [EdgeWalk.visitedVertices] }
+      exact ⟨path, rfl, rfl, by simp [path, EdgeSimplePath.vertices,
+        EdgeWalk.visitedVertices]⟩
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      rcases ih with ⟨priorPath, priorStarts, priorFinishes,
+        priorVertices⟩
+      rcases adjacency with ⟨edge, edgeMembership, direction⟩
+      have ambientMembership := edgeSubset edge edgeMembership
+      rcases List.getElem?_of_mem ambientMembership with
+        ⟨index, edgeLookup⟩
+      rcases direction with forward | backward
+      · let directed : graph.DirectedEdge :=
+          { index := index
+            edge := edge
+            lookup := edgeLookup
+            forward := true }
+        have starts : directed.source = priorPath.finish := by
+          rw [priorFinishes]
+          simpa [directed, DirectedEdge.source] using forward.1
+        have finishes : directed.target = current := by
+          simpa [directed, DirectedEdge.target] using forward.2
+        have extendedVertices : EdgeWalk.visitedVertices priorPath.start
+            (priorPath.traversed ++ [directed]) =
+              priorPath.vertices ++ [current] := by
+          simp [EdgeSimplePath.vertices, EdgeWalk.visitedVertices,
+            List.map_append, finishes]
+        let path : graph.EdgeSimplePath :=
+          { start := priorPath.start
+            finish := current
+            traversed := priorPath.traversed ++ [directed]
+            walk := EdgeWalk.step priorPath.walk directed starts finishes
+            verticesNodup := by
+              rw [extendedVertices]
+              rw [List.nodup_append]
+              refine ⟨priorPath.verticesNodup, by simp, ?_⟩
+              intro vertex membership singleton singletonMembership
+              simp at singletonMembership
+              subst singleton
+              intro same
+              subst vertex
+              apply fresh
+              rw [← priorVertices]
+              exact membership }
+        refine ⟨path, priorStarts, rfl, ?_⟩
+        change EdgeWalk.visitedVertices priorPath.start
+          (priorPath.traversed ++ [directed]) = priorVisited ++ [current]
+        rw [extendedVertices, priorVertices]
+      · let directed : graph.DirectedEdge :=
+          { index := index
+            edge := edge
+            lookup := edgeLookup
+            forward := false }
+        have starts : directed.source = priorPath.finish := by
+          rw [priorFinishes]
+          simpa [directed, DirectedEdge.source] using backward.2
+        have finishes : directed.target = current := by
+          simpa [directed, DirectedEdge.target] using backward.1
+        have extendedVertices : EdgeWalk.visitedVertices priorPath.start
+            (priorPath.traversed ++ [directed]) =
+              priorPath.vertices ++ [current] := by
+          simp [EdgeSimplePath.vertices, EdgeWalk.visitedVertices,
+            List.map_append, finishes]
+        let path : graph.EdgeSimplePath :=
+          { start := priorPath.start
+            finish := current
+            traversed := priorPath.traversed ++ [directed]
+            walk := EdgeWalk.step priorPath.walk directed starts finishes
+            verticesNodup := by
+              rw [extendedVertices]
+              rw [List.nodup_append]
+              refine ⟨priorPath.verticesNodup, by simp, ?_⟩
+              intro vertex membership singleton singletonMembership
+              simp at singletonMembership
+              subst singleton
+              intro same
+              subst vertex
+              apply fresh
+              rw [← priorVertices]
+              exact membership }
+        refine ⟨path, priorStarts, rfl, ?_⟩
+        change EdgeWalk.visitedVertices priorPath.start
+          (priorPath.traversed ++ [directed]) = priorVisited ++ [current]
+        rw [extendedVertices, priorVertices]
 
 end SimpleWalk
 

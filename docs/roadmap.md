@@ -125,9 +125,12 @@
   and both hit-at-base endpoint orientations are complete. The after-cusp
   branch, adjacent incoming-edge case, exhaustive first-intersection
   classifier, universal-separation conclusion, and finite generalized-Yeo
-  maximality theorem are now kernel checked. The remaining
-  representation-specific work is to turn the resulting colored
-  `SplittingVertex` into a terminal `SplittingTensor`; see
+  maximality theorem are now kernel checked. Exact annotation inversion
+  identifies maximal cusping occurrences with stored par links, while
+  `SplittingVertex.toSplittingTensor` now turns any colored splitting terminal
+  tensor into the existing deletion/non-reachability separator. The remaining
+  global step is the terminality propagation that yields either a public
+  terminal par or such a terminal splitting tensor; see
   `docs/splitting-theorem-audit.md`.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all

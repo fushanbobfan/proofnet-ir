@@ -133,8 +133,13 @@
   proved that every non-splitting target has a strict cusping
   `EdgeOrdering` successor, and closed finite generalized-Yeo maximality to
   obtain a colored `SplittingVertex` in every nonempty cusp-acyclic occurrence
-  graph. The representation-specific bridge from that colored vertex to a
-  terminal `SplittingTensor` remains separate.
+  graph.
+- added exact par/tensor annotation-origin lemmas, cusping-occurrence inversion,
+  cusping-restricted maximality, and a generic lift from duplicate-free vertex
+  walks to exact occurrence-aware simple paths; proved
+  `SplittingVertex.toSplittingTensor`, closing the colored-to-deletion splitting
+  bridge for terminal tensors without collapsing parallel stored edges. The
+  remaining global existence step is terminality propagation.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

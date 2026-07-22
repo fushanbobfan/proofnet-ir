@@ -115,14 +115,23 @@ name-level restatement of Yeo:
    first-cusp continuation is now an `OrderingPath`; finite maximality proves
    existence of a colored `SplittingVertex` in every nonempty cusp-acyclic
    occurrence graph.
-5. **Terminal bridge (remaining).** Relate the colored `SplittingVertex`
-   produced by generalized Yeo to the stored
-   link and ordered public boundary. The formula-complexity theorem already
-   proves that connective structure has some terminal connective, but does not
-   prove that a terminal tensor splits.
-6. **Splitting equivalence.** For a terminal tensor, prove that the colored
-   splitting condition is equivalent to the existing
-   `fullGraphWithoutVertex` non-reachability predicate.
+5. **Stored-link and terminal bridge (partially complete).** Exact annotation
+   inversion now proves every nontrivially cusping occurrence is a concrete
+   stored par premise occurrence aimed at that par conclusion. Finite
+   maximality restricted to cusping occurrences therefore returns a stored par
+   conclusion satisfying `SplittingVertex`. What remains is the global
+   terminality argument: when such a par conclusion has a parent, propagate
+   the strict occurrence ordering toward the ordered public boundary and
+   derive either a terminal par or a terminal splitting tensor.
+6. **Terminal-tensor splitting bridge (required direction complete).**
+   `SplittingVertex.toSplittingTensor` proves that a structurally well-formed
+   terminal tensor satisfying the colored splitting condition has no walk
+   between its premises in `fullGraphWithoutVertex`. The proof loop-erases and
+   lifts a vertex walk to an exact occurrence-aware simple path, closes it with
+   the two distinct tensor occurrences, rotates the resulting cycle to the
+   tensor conclusion, and contradicts the two unequal unique closing colors.
+   No converse is used by recursive sequentialization and none is currently
+   claimed.
 
 ## What is already complete
 
@@ -138,6 +147,8 @@ name-level restatement of Yeo:
   are defined without collapsing parallel edge occurrences.
 - declarative switching correctness now implies the exact proposition-level
   colored-cycle criterion `CuspAcyclic`.
+- a colored splitting terminal tensor now implies the existing mathematical
+  `SplittingTensor` separator proposition, with exact multiedge identity.
 
 ## Claim boundary
 

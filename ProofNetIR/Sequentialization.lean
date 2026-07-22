@@ -2483,6 +2483,18 @@ theorem par_fullEdgeAnnotations (certificate : Certificate)
   · exact ⟨.par left right conclusion, membership, by simp⟩
   · exact ⟨.par left right conclusion, membership, by simp⟩
 
+theorem tensor_fullEdgeAnnotations (certificate : Certificate)
+    {left right conclusion : Vertex}
+    (membership : Link.tensor left right conclusion ∈ certificate.links) :
+    (({ first := left, second := conclusion }, none) ∈
+        certificate.fullEdgeAnnotations) ∧
+      (({ first := right, second := conclusion }, none) ∈
+        certificate.fullEdgeAnnotations) := by
+  simp only [fullEdgeAnnotations, List.mem_flatMap]
+  constructor
+  · exact ⟨.tensor left right conclusion, membership, by simp⟩
+  · exact ⟨.tensor left right conclusion, membership, by simp⟩
+
 theorem fullEdgeAnnotation_lookup (certificate : Certificate)
     {index : Nat} {edge : Edge} {parTarget : Option Vertex}
     (lookup : certificate.fullEdgeAnnotations[index]? =
@@ -2556,6 +2568,32 @@ theorem fullEdgeAnnotation_some_second (certificate : Certificate)
       · rcases second with ⟨rfl, colorEquation⟩
         exact colorEquation.symm
 
+/-- A nonempty par annotation at an exact full-edge index comes from a stored
+par link, not merely from an equal-valued parallel edge. -/
+theorem fullEdgeAnnotation_some_par_origin (certificate : Certificate)
+    {index : Nat} {edge : Edge} {conclusion : Vertex}
+    (lookup : certificate.fullEdgeAnnotations[index]? =
+      some (edge, some conclusion)) :
+    ∃ left right,
+      Link.par left right conclusion ∈ certificate.links ∧
+        (edge = { first := left, second := conclusion } ∨
+          edge = { first := right, second := conclusion }) := by
+  have membership := List.mem_of_getElem? lookup
+  simp only [fullEdgeAnnotations, List.mem_flatMap] at membership
+  rcases membership with ⟨link, linkMembership, emitted⟩
+  cases link with
+  | «axiom» left right => simp at emitted
+  | tensor left right result => simp at emitted
+  | par left right result =>
+      simp at emitted
+      rcases emitted with first | second
+      · rcases first with ⟨rfl, resultEquation⟩
+        subst result
+        exact ⟨left, right, linkMembership, .inl rfl⟩
+      · rcases second with ⟨rfl, resultEquation⟩
+        subst result
+        exact ⟨left, right, linkMembership, .inr rfl⟩
+
 @[simp] theorem fullEdgeParTargets_length (certificate : Certificate) :
     certificate.fullEdgeParTargets.length = certificate.fullEdges.length := by
   change (linkFullEdgeParTargets certificate.links).length =
@@ -2591,6 +2629,27 @@ theorem incidenceColor_eq_par_iff (certificate : Certificate)
           cases parTarget <;>
             simp [incidenceColor, forward, targetLookup]
 
+/-- If a directed incidence has no shared par color, its color is exactly its
+own occurrence index and orientation. -/
+theorem incidenceColor_eq_unique_of_not_par (certificate : Certificate)
+    (directed : certificate.fullGraph.DirectedEdge)
+    (notPar : ∀ conclusion,
+      certificate.incidenceColor directed ≠ .par conclusion) :
+    certificate.incidenceColor directed =
+      .unique directed.index directed.forward := by
+  cases forward : directed.forward with
+  | false => simp [incidenceColor, forward]
+  | true =>
+      cases targetLookup :
+          certificate.fullEdgeParTargets[directed.index]? with
+      | none => simp [incidenceColor, forward, targetLookup]
+      | some parTarget =>
+          cases parTarget with
+          | none => simp [incidenceColor, forward, targetLookup]
+          | some conclusion =>
+              exact False.elim (notPar conclusion (by
+                simp [incidenceColor, forward, targetLookup]))
+
 theorem par_incidenceColors_exist (certificate : Certificate)
     {left right conclusion : Vertex}
     (membership : Link.par left right conclusion ∈ certificate.links) :
@@ -2621,6 +2680,51 @@ theorem par_incidenceColors_exist (certificate : Certificate)
   · rfl
   · rfl
   · rfl
+  · simp [incidenceColor, leftIncidence, leftProjection.2]
+  · simp [incidenceColor, rightIncidence, rightProjection.2]
+
+/-- The two premise occurrences of a concrete tensor link are represented by
+distinct exact indices and carry distinct unique incidence colors at the
+tensor conclusion. -/
+theorem tensor_incidenceColors_exist (certificate : Certificate)
+    {left right conclusion : Vertex}
+    (membership : Link.tensor left right conclusion ∈ certificate.links)
+    (leftNeRight : left ≠ right) :
+    ∃ leftIncidence rightIncidence : certificate.fullGraph.DirectedEdge,
+      leftIncidence.source = left ∧
+      leftIncidence.target = conclusion ∧
+      rightIncidence.source = right ∧
+      rightIncidence.target = conclusion ∧
+      certificate.incidenceColor leftIncidence =
+        .unique leftIncidence.index true ∧
+      certificate.incidenceColor rightIncidence =
+        .unique rightIncidence.index true ∧
+      leftIncidence.index ≠ rightIncidence.index := by
+  have annotations := certificate.tensor_fullEdgeAnnotations membership
+  rcases List.getElem?_of_mem annotations.1 with ⟨leftIndex, leftLookup⟩
+  rcases List.getElem?_of_mem annotations.2 with ⟨rightIndex, rightLookup⟩
+  have leftProjection := certificate.fullEdgeAnnotation_lookup leftLookup
+  have rightProjection := certificate.fullEdgeAnnotation_lookup rightLookup
+  let leftIncidence : certificate.fullGraph.DirectedEdge :=
+    { index := leftIndex
+      edge := { first := left, second := conclusion }
+      lookup := leftProjection.1
+      forward := true }
+  let rightIncidence : certificate.fullGraph.DirectedEdge :=
+    { index := rightIndex
+      edge := { first := right, second := conclusion }
+      lookup := rightProjection.1
+      forward := true }
+  have indicesDifferent : leftIncidence.index ≠ rightIncidence.index := by
+    intro sameIndex
+    have sameOccurrence := Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+      leftIncidence rightIncidence sameIndex rfl
+    apply leftNeRight
+    have sameSource := congrArg Graph.DirectedEdge.source sameOccurrence
+    simpa [leftIncidence, rightIncidence, Graph.DirectedEdge.source] using
+      sameSource
+  refine ⟨leftIncidence, rightIncidence, rfl, rfl, rfl, rfl, ?_, ?_,
+    indicesDifferent⟩
   · simp [incidenceColor, leftIncidence, leftProjection.2]
   · simp [incidenceColor, rightIncidence, rightProjection.2]
 
@@ -6425,6 +6529,69 @@ def CuspingEdge (certificate : Certificate)
   ∃ outgoing, certificate.Cusp incoming outgoing ∧
     incoming ≠ outgoing.reverse
 
+/-- A nontrivially cusping occurrence necessarily carries a shared par color.
+Two unique colors can agree only when both the stored occurrence index and its
+orientation agree, which would make the purported partner the immediate
+reverse excluded by `CuspingEdge`. -/
+theorem CuspingEdge.incidenceColor_eq_par
+    {certificate : Certificate}
+    {incoming : certificate.fullGraph.DirectedEdge}
+    (cusping : certificate.CuspingEdge incoming) :
+    ∃ conclusion,
+      certificate.incidenceColor incoming = .par conclusion := by
+  rcases cusping with ⟨outgoing, cusp, different⟩
+  apply Classical.byContradiction
+  intro noParExists
+  have incomingNotPar : ∀ conclusion,
+      certificate.incidenceColor incoming ≠ .par conclusion := by
+    intro conclusion equality
+    exact noParExists ⟨conclusion, equality⟩
+  have incomingUnique := certificate.incidenceColor_eq_unique_of_not_par
+    incoming incomingNotPar
+  have outgoingNotPar : ∀ conclusion,
+      certificate.incidenceColor outgoing.reverse ≠ .par conclusion := by
+    intro conclusion equality
+    apply incomingNotPar conclusion
+    unfold Cusp at cusp
+    exact cusp.trans equality
+  have outgoingUnique := certificate.incidenceColor_eq_unique_of_not_par
+    outgoing.reverse outgoingNotPar
+  unfold Cusp at cusp
+  rw [incomingUnique, outgoingUnique] at cusp
+  have sameIndex : incoming.index = outgoing.reverse.index := by
+    injection cusp
+  have sameForward : incoming.forward = outgoing.reverse.forward := by
+    injection cusp
+  exact different (Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+    incoming outgoing.reverse sameIndex sameForward)
+
+/-- Exact representation bridge for cusping occurrences: the occurrence is a
+stored premise-to-conclusion edge of a concrete par link and its directed
+target is that par conclusion. -/
+theorem CuspingEdge.par_origin
+    {certificate : Certificate}
+    {incoming : certificate.fullGraph.DirectedEdge}
+    (cusping : certificate.CuspingEdge incoming) :
+    ∃ left right conclusion,
+      Link.par left right conclusion ∈ certificate.links ∧
+        incoming.target = conclusion ∧
+        (incoming.edge = { first := left, second := conclusion } ∨
+          incoming.edge = { first := right, second := conclusion }) := by
+  rcases cusping.incidenceColor_eq_par with ⟨conclusion, color⟩
+  have colorData :=
+    (certificate.incidenceColor_eq_par_iff incoming conclusion).mp color
+  have annotation : certificate.fullEdgeAnnotations[incoming.index]? =
+      some (incoming.edge, some conclusion) :=
+    certificate.fullEdgeAnnotation_lookup_iff.mpr
+      ⟨incoming.lookup, colorData.2⟩
+  rcases certificate.fullEdgeAnnotation_some_par_origin annotation with
+    ⟨left, right, membership, edgeShape⟩
+  have edgeSecond : incoming.edge.second = conclusion :=
+    certificate.fullEdgeAnnotation_some_second annotation
+  have target : incoming.target = conclusion := by
+    simp [Graph.DirectedEdge.target, colorData.1, edgeSecond]
+  exact ⟨left, right, conclusion, membership, target, edgeShape⟩
+
 theorem not_splittingVertex_witness (certificate : Certificate)
     {vertex : Vertex} (notSplitting : ¬certificate.SplittingVertex vertex) :
     ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
@@ -6722,6 +6889,56 @@ theorem CuspAcyclic.exists_splittingVertex_of_directedEdge
       successor.mem_directedEdges
   exact noSuccessor successor successorInValues maximalBeforeSuccessor
 
+/-- Restrict finite maximality to genuinely cusping occurrences.  Starting
+from one such occurrence, the maximal target is a colored splitting vertex;
+the exact color-origin theorem then identifies it as the conclusion of a
+stored par link. -/
+theorem CuspAcyclic.exists_splitting_par_of_cuspingEdge
+    (certificate : Certificate) (acyclic : certificate.CuspAcyclic)
+    (structural : certificate.StructurallyWellFormed)
+    (seed : certificate.fullGraph.DirectedEdge)
+    (seedCusping : certificate.CuspingEdge seed) :
+    ∃ left right conclusion,
+      Link.par left right conclusion ∈ certificate.links ∧
+        certificate.SplittingVertex conclusion := by
+  classical
+  letI : BEq certificate.fullGraph.DirectedEdge :=
+    ⟨fun first second => decide (first = second)⟩
+  letI : LawfulBEq certificate.fullGraph.DirectedEdge := inferInstance
+  let values : List certificate.fullGraph.DirectedEdge :=
+    certificate.fullGraph.directedEdges.eraseDups.filter fun directed =>
+      decide (certificate.CuspingEdge directed)
+  have valuesNodup : values.Nodup := by
+    exact (eraseDups_nodup_generic
+      certificate.fullGraph.directedEdges).filter _
+  have seedInValues : seed ∈ values := by
+    simp [values, seed.mem_directedEdges, seedCusping]
+  have valuesNonempty : values ≠ [] := by
+    intro empty
+    rw [empty] at seedInValues
+    simp at seedInValues
+  rcases exists_relation_maximal values valuesNodup valuesNonempty
+      certificate.EdgeOrdering
+      (fun value => EdgeOrdering.irrefl certificate value)
+      (fun {_first _middle _last} firstMiddle middleLast =>
+        EdgeOrdering.transitive certificate firstMiddle middleLast) with
+    ⟨maximal, maximalInValues, noSuccessor⟩
+  have maximalCusping : certificate.CuspingEdge maximal := by
+    have filtered := List.mem_filter.mp maximalInValues
+    exact of_decide_eq_true filtered.2
+  by_cases splitting : certificate.SplittingVertex maximal.target
+  · rcases maximalCusping.par_origin with
+      ⟨left, right, conclusion, membership, target, _edgeShape⟩
+    subst conclusion
+    exact ⟨left, right, maximal.target, membership, splitting⟩
+  · rcases acyclic.ordering_of_not_splitting certificate structural maximal
+        splitting with
+      ⟨successor, maximalBeforeSuccessor, successorCusping⟩
+    have successorInValues : successor ∈ values := by
+      simp [values, successor.mem_directedEdges, successorCusping]
+    exact False.elim
+      (noSuccessor successor successorInValues maximalBeforeSuccessor)
+
 /-- In a cusp-acyclic graph, a non-splitting vertex has a based simple cycle
 whose closing pair is free but which contains an internal, nontrivial cusping
 edge occurrence. -/
@@ -6878,6 +7095,36 @@ def fullGraphWithoutVertex (certificate : Certificate)
     (removed : Vertex) : Graph where
   vertexCount := certificate.formulas.size
   edges := certificate.fullEdges.filter fun edge => !edge.incident removed
+
+/-- A duplicate-free walk in the full occurrence graph with one vertex deleted
+cannot visit that vertex, provided its starting point is different.  This is
+the vertex-level side of the bridge from ordinary reachability to exact
+occurrence-aware paths. -/
+theorem fullGraphWithoutVertex_simpleWalk_avoids
+    (certificate : Certificate) (removed : Vertex)
+    {start finish : Vertex} {steps : Nat} {visited : List Vertex}
+    (simple : (certificate.fullGraphWithoutVertex removed).SimpleWalk
+      start steps visited finish)
+    (startNe : start ≠ removed) : removed ∉ visited := by
+  induction simple with
+  | refl => simpa using fun same => startNe same.symm
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      rcases adjacency with ⟨edge, edgeMembership, endpoints⟩
+      have nonincident := (List.mem_filter.mp edgeMembership).2
+      have currentNe : current ≠ removed := by
+        intro same
+        subst current
+        rcases endpoints with forward | backward
+        · rcases forward with ⟨_, edgeSecond⟩
+          simp [Edge.incident, edgeSecond] at nonincident
+        · rcases backward with ⟨edgeFirst, _⟩
+          simp [Edge.incident, edgeFirst] at nonincident
+      rw [List.mem_append]
+      simp only [List.mem_singleton]
+      intro membership
+      rcases membership with earlier | atCurrent
+      · exact ih earlier
+      · exact currentNe atCurrent.symm
 
 def tensorLeftReachable (certificate : Certificate)
     (left conclusion : Vertex) : List Vertex :=
@@ -7673,6 +7920,147 @@ def SplittingTensor (certificate : Certificate)
     (left right conclusion : Vertex) : Prop :=
   certificate.TerminalTensor left right conclusion ∧
     ¬(certificate.fullGraphWithoutVertex conclusion).Walk left right
+
+/-- Representation bridge from generalized-Yeo colored splitting to the
+terminal-tensor separation proposition used by recursive sequentialization.
+If the two tensor premises remained connected after deleting the conclusion,
+an exact lifted path together with the two distinct tensor occurrences would
+form a cycle based at the conclusion whose closing colors are different. -/
+theorem SplittingVertex.toSplittingTensor
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    (splitting : certificate.SplittingVertex conclusion) :
+    certificate.SplittingTensor left right conclusion := by
+  classical
+  refine ⟨terminal, ?_⟩
+  intro connected
+  have tensorWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have leftNeRight : left ≠ right := tensorWellFormed.1
+  have leftNeConclusion : left ≠ conclusion := tensorWellFormed.2.1
+  have rightNeConclusion : right ≠ conclusion := tensorWellFormed.2.2.1
+  rcases connected.toSimple with ⟨steps, visited, simple⟩
+  have avoidsVisited : conclusion ∉ visited :=
+    certificate.fullGraphWithoutVertex_simpleWalk_avoids conclusion simple
+      leftNeConclusion
+  have edgeSubset : ∀ edge ∈
+      (certificate.fullGraphWithoutVertex conclusion).edges,
+      edge ∈ certificate.fullGraph.edges := by
+    intro edge membership
+    have fullMembership := (List.mem_filter.mp membership).1
+    simpa [fullGraph] using fullMembership
+  rcases simple.liftToEdgeSimplePath edgeSubset with
+    ⟨path, pathStarts, pathFinishes, pathVertices⟩
+  have pathAvoidsConclusion : conclusion ∉ path.vertices := by
+    rw [pathVertices]
+    exact avoidsVisited
+  have pathNonempty : path.traversed ≠ [] := by
+    intro empty
+    have chain := path.walk.toChain
+    rw [empty] at chain
+    have startFinish := chain.eq_of_nil
+    apply leftNeRight
+    exact pathStarts.symm.trans (startFinish.trans pathFinishes)
+  rcases certificate.tensor_incidenceColors_exist terminal.1 leftNeRight with
+    ⟨leftIncidence, rightIncidence, leftSource, leftTarget, rightSource,
+      rightTarget, leftColor, rightColor, indicesDifferent⟩
+  let returnPath : certificate.fullGraph.EdgeSimplePath :=
+    { start := right
+      finish := left
+      traversed := [rightIncidence, leftIncidence.reverse]
+      walk := by
+        have firstStep : certificate.fullGraph.EdgeWalk right
+            [rightIncidence] conclusion := by
+          simpa using Graph.EdgeWalk.step (.refl right) rightIncidence
+            rightSource rightTarget
+        have secondStep := Graph.EdgeWalk.step firstStep leftIncidence.reverse
+          (by simpa using leftTarget) (by simpa using leftSource)
+        simpa using secondStep
+      verticesNodup := by
+        change (right :: rightIncidence.target ::
+          leftIncidence.reverse.target :: []).Nodup
+        rw [rightTarget, Graph.DirectedEdge.reverse_target, leftSource]
+        simp [rightNeConclusion, leftNeConclusion, leftNeRight, ne_comm] }
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    simp [returnPath]
+  have vertexDisjoint : ∀ vertex, vertex ∈ path.vertices →
+      vertex ∈ returnPath.vertices.tail.dropLast → False := by
+    intro vertex inPath inReturnInterior
+    have atConclusion : vertex = conclusion := by
+      simpa [returnPath, Graph.EdgeSimplePath.vertices,
+        Graph.EdgeWalk.visitedVertices, rightTarget, leftSource] using
+        inReturnInterior
+    subst vertex
+    exact pathAvoidsConclusion inPath
+  have edgeDisjoint : ∀ index,
+      index ∈ path.traversed.map Graph.DirectedEdge.index →
+      index ∈ returnPath.traversed.map Graph.DirectedEdge.index → False := by
+    intro index inPathIndices inReturnIndices
+    rcases List.mem_map.mp inPathIndices with
+      ⟨directed, directedMembership, directedIndex⟩
+    have endpoints := path.walk.endpoints_mem_visitedVertices directedMembership
+    change directed.source ∈ path.vertices ∧
+      directed.target ∈ path.vertices at endpoints
+    have returnIndex : index = rightIncidence.index ∨
+        index = leftIncidence.index := by
+      simpa [returnPath] using inReturnIndices
+    rcases returnIndex with atRight | atLeft
+    · have sameIndex : directed.index = rightIncidence.index :=
+        directedIndex.trans atRight
+      rcases Graph.DirectedEdge.eq_or_eq_reverse_of_index_eq
+          directed rightIncidence sameIndex with same | reversed
+      · apply pathAvoidsConclusion
+        rw [same, rightTarget] at endpoints
+        exact endpoints.2
+      · apply pathAvoidsConclusion
+        rw [reversed, Graph.DirectedEdge.reverse_source, rightTarget] at endpoints
+        exact endpoints.1
+    · have sameIndex : directed.index = leftIncidence.index :=
+        directedIndex.trans atLeft
+      rcases Graph.DirectedEdge.eq_or_eq_reverse_of_index_eq
+          directed leftIncidence sameIndex with same | reversed
+      · apply pathAvoidsConclusion
+        rw [same, leftTarget] at endpoints
+        exact endpoints.2
+      · apply pathAvoidsConclusion
+        rw [reversed, Graph.DirectedEdge.reverse_source, leftTarget] at endpoints
+        exact endpoints.1
+  let closed := Graph.EdgeSimpleCycle.ofTwoPaths path returnPath pathNonempty
+    returnNonempty (by simpa [returnPath] using pathFinishes)
+      (by simpa [returnPath] using pathStarts.symm) vertexDisjoint edgeDisjoint
+  have closedSteps : closed.traversed =
+      (path.traversed ++ [rightIncidence]) ++
+        leftIncidence.reverse :: [] := by
+    simp [closed, returnPath, List.append_assoc]
+  rcases closed.rotateAt_exists closedSteps with
+    ⟨based, basedStarts, basedSteps⟩
+  have basedAtConclusion : based.start = conclusion := by
+    exact basedStarts.trans (by simpa using leftTarget)
+  have basedHeadOption : based.traversed.head? =
+      some leftIncidence.reverse := by
+    rw [basedSteps]
+    simp
+  have basedHead : based.traversed.head based.nonempty =
+      leftIncidence.reverse :=
+    List.head_of_head?_eq_some basedHeadOption
+  have basedLastOption : based.traversed.getLast? =
+      some rightIncidence := by
+    rw [basedSteps, List.getLast?_append]
+    simp
+  have basedLast : based.traversed.getLast based.nonempty =
+      rightIncidence :=
+    List.getLast_of_getLast?_eq_some basedLastOption
+  have closingFree : ¬certificate.ClosingCusp based := by
+    intro closing
+    unfold ClosingCusp at closing
+    rw [basedLast, basedHead] at closing
+    unfold Cusp at closing
+    simp only [Graph.DirectedEdge.reverse_reverse] at closing
+    rw [rightColor, leftColor] at closing
+    have sameIndex : rightIncidence.index = leftIncidence.index := by
+      injection closing
+    exact indicesDifferent sameIndex.symm
+  exact closingFree (splitting based basedAtConclusion)
 
 /-- Every structurally well-formed certificate containing a multiplicative
 link has a terminal multiplicative link. Choose a connective conclusion of
