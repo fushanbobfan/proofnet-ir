@@ -1053,6 +1053,17 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.SplittingTensor.logicalBoundaryData
 #check Certificate.logicalSequentialization_of_check
 #check Certificate.logicallySequentializable
+#check Certificate.DirectProofNetEquivalent
+#check Certificate.ProofNetEquivalent.toDirect
+#check Certificate.proofNetEquivalent_iff_direct
+#check NetFragment.Balanced
+#check CutFreeDerivation.pick?_map
+#check CutFreeDerivation.reorderCandidate?_map
+#check CutFreeDerivation.reorder?_map_of_eq_some
+#check CutFreeDerivation.build?_balanced
+#check CutFreeDerivation.infer?_of_build?
+#check CutFreeDerivation.build?_exists_of_desequentialize?
+#check SequentializationResult.fragment_exists
 
 example : Nonempty (LogicalSequentializationResult canonical) :=
   canonical.logicalSequentialization_of_check (by native_decide)

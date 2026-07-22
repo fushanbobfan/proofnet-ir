@@ -422,6 +422,22 @@ structure SequentializationResult (input : Certificate) where
 
 namespace SequentializationResult
 
+/-- Recover the exact internal fragment behind the public output certificate;
+its stored formula boundary is the independently inferred sequent. -/
+theorem fragment_exists {input : Certificate}
+    (result : SequentializationResult input) :
+    ∃ fragment : NetFragment,
+      result.tree.build? = some fragment ∧
+      fragment.toCertificate = result.output ∧
+      fragment.conclusions = result.sequent := by
+  rcases CutFreeDerivation.build?_exists_of_desequentialize?
+      result.desequentialized with
+    ⟨fragment, buildEquation, certificateEquation⟩
+  have inferredFromBuild := CutFreeDerivation.infer?_of_build? buildEquation
+  have conclusionsEquation : fragment.conclusions = result.sequent := by
+    exact Option.some.inj (inferredFromBuild.symm.trans result.inferred)
+  exact ⟨fragment, buildEquation, certificateEquation, conclusionsEquation⟩
+
 /-- A sequentialization result always contains a kernel-typed object-logic
 derivation; this does not trust the proof-net checker. -/
 theorem kernelDerivation {input : Certificate}

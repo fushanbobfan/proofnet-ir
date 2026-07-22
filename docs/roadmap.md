@@ -155,6 +155,11 @@
   the ordered input sequent. This is the logical theorem
   `logicallySequentializable`; it does not yet manufacture a first-order
   `CutFreeDerivation` tree or prove graph reconstruction.
+- [x] Establish the strong-reconstruction foundation: flatten every generated
+  `ProofNetEquivalent` proof to one bounded reindexing followed by one link
+  permutation; prove `pick?` and accepted `reorder?` commute with boundary
+  projection; and prove every successful first-order `build?` is balanced and
+  has exactly the same formula boundary as `infer?`.
 - [ ] Prove its desequentialization is `ProofNetEquivalent` to the input.
 
 ## v0.5 - Persistent LeanProp bridge

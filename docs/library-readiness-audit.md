@@ -75,7 +75,10 @@ part of the engineering and proof-identity gap.
    the stronger `GenerallySequentializable` result is not yet complete: the
    current recursion returns a kernel `Derivation`, not a first-order tree
    whose executable desequentialization is proved `ProofNetEquivalent` to the
-   input.
+   input. The generated equivalence is now proved to flatten to one reindexing
+   plus link permutation, and `build?`/`infer?` boundary synchronization is
+   kernel checked; inverse-rule congruence for reconstructed certificates is
+   the remaining mathematical step.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
 4. A semantic relation modulo reordered links is now defined, but it does not

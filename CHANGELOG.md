@@ -168,6 +168,17 @@
   strict recursive descent, and the classified axiom base. The stronger
   first-order-tree reconstruction and `ProofNetEquivalent` theorem remain
   separate and open.
+- proved that the generated `ProofNetEquivalent` relation flattens to one
+  composite bounded vertex reindexing followed by one link permutation;
+  added the functorial reindexing and symmetry/transitivity lemmas needed to
+  compose those direct witnesses.
+- proved the first-order desequentializer's central synchronization invariant:
+  every successful `build?` has balanced formula/root boundaries, and its
+  formula boundary is exactly the result of the independent `infer?` pass.
+  Projection laws for positional `pick?` and validated `reorder?`, plus an
+  internal-fragment witness for every `SequentializationResult`, make the
+  remaining occurrence-level reconstruction proof stateable without trusting
+  runtime coincidence.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 
