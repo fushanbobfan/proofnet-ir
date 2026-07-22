@@ -1093,6 +1093,8 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.appendTensorOccurrence
 #check VertexRenaming.blockSum
 #check Certificate.appendTensorRenaming
+#check Certificate.appendTensorOccurrence_reindex_formulas
+#check Certificate.DirectProofNetEquivalent.appendTensorOccurrenceExtended
 #check Certificate.LinkWellFormed.tensor_formulaData
 #check Certificate.TerminalTensor.tensorPlacement
 #check Certificate.TerminalTensor.restrictLinks_reindex_append_perm

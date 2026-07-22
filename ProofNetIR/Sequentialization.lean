@@ -796,6 +796,156 @@ def Certificate.appendTensorRenaming (leftPremise rightPremise : Certificate)
       (leftMap.blockSum rightMap).extendLast.inverse := by
   simp [Certificate.appendTensorRenaming]
 
+/-- Formula storage commutes with the disjoint sum of two premise renamings and
+the extension fixing the freshly appended tensor occurrence. -/
+theorem Certificate.appendTensorOccurrence_reindex_formulas
+    (leftPremise rightPremise : Certificate)
+    (leftMap : VertexRenaming leftPremise.formulas.size)
+    (rightMap : VertexRenaming rightPremise.formulas.size)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) :
+    ((leftPremise.appendTensorOccurrence rightPremise left right leftRoot
+      rightRoot boundary).reindex
+        (leftPremise.appendTensorRenaming rightPremise leftMap rightMap left
+          right leftRoot rightRoot boundary)).formulas =
+      ((leftPremise.reindex leftMap).formulas ++
+        (rightPremise.reindex rightMap).formulas).push (.tensor left right) := by
+  let source := leftPremise.appendTensorOccurrence rightPremise left right
+    leftRoot rightRoot boundary
+  let extended := leftPremise.appendTensorRenaming rightPremise leftMap rightMap
+    left right leftRoot rightRoot boundary
+  apply Array.ext_getElem?
+  intro index
+  have renamedLookup : (source.reindex extended).formula? index =
+      source.formula? (extended.inverse index) := by
+    calc
+      (source.reindex extended).formula? index =
+          (source.reindex extended).formula?
+            (extended.forward (extended.inverse index)) := by
+              rw [extended.forward_inverse]
+      _ = source.formula? (extended.inverse index) :=
+        source.reindex_formula?_forward extended (extended.inverse index)
+  change (source.reindex extended).formula? index = _
+  rw [renamedLookup]
+  by_cases inLeft : index < leftPremise.formulas.size
+  · have inverseInLeft : leftMap.inverse index < leftPremise.formulas.size :=
+      (leftMap.inverse_lt_iff index).mpr inLeft
+    have inCombined : index < leftPremise.formulas.size +
+        rightPremise.formulas.size := by omega
+    have inverseEquation : extended.inverse index = leftMap.inverse index := by
+      simp only [extended, Certificate.appendTensorRenaming_inverse]
+      rw [VertexRenaming.extendLast_inverse_old
+        (leftMap.blockSum rightMap) inCombined]
+      exact VertexRenaming.blockSum_inverse_left leftMap rightMap inLeft
+    rw [inverseEquation]
+    change ((leftPremise.formulas ++ rightPremise.formulas).push
+        (.tensor left right))[leftMap.inverse index]? =
+      (((leftPremise.reindex leftMap).formulas ++
+        (rightPremise.reindex rightMap).formulas).push
+          (.tensor left right))[index]?
+    rw [Array.getElem?_push, if_neg (by
+      simp only [Array.size_append]
+      exact Nat.ne_of_lt (Nat.lt_of_lt_of_le inverseInLeft
+        (Nat.le_add_right _ _)))]
+    rw [Array.getElem?_append_left inverseInLeft]
+    rw [Array.getElem?_push, if_neg (by
+      simp only [Array.size_append, Certificate.reindex_formulas_size]
+      exact Nat.ne_of_lt (Nat.lt_of_lt_of_le inLeft
+        (Nat.le_add_right _ _)))]
+    rw [Array.getElem?_append_left (by simpa using inLeft)]
+    change leftPremise.formula? (leftMap.inverse index) =
+      (leftPremise.reindex leftMap).formula? index
+    simpa [leftMap.forward_inverse] using
+      (leftPremise.reindex_formula?_forward leftMap
+        (leftMap.inverse index)).symm
+  · by_cases inRight : index < leftPremise.formulas.size +
+        rightPremise.formulas.size
+    · let localIndex := index - leftPremise.formulas.size
+      have leftLe : leftPremise.formulas.size ≤ index := Nat.le_of_not_gt inLeft
+      have localInBounds : localIndex < rightPremise.formulas.size := by
+        simp only [localIndex]
+        omega
+      have indexEquation : index = leftPremise.formulas.size + localIndex := by
+        simp [localIndex, Nat.add_sub_of_le leftLe]
+      have inverseEquation : extended.inverse index =
+          leftPremise.formulas.size + rightMap.inverse localIndex := by
+        simp only [extended, Certificate.appendTensorRenaming_inverse]
+        rw [VertexRenaming.extendLast_inverse_old
+          (leftMap.blockSum rightMap) inRight]
+        rw [indexEquation]
+        exact VertexRenaming.blockSum_inverse_right leftMap rightMap localIndex
+      rw [inverseEquation]
+      change ((leftPremise.formulas ++ rightPremise.formulas).push
+          (.tensor left right))[leftPremise.formulas.size +
+            rightMap.inverse localIndex]? =
+        (((leftPremise.reindex leftMap).formulas ++
+          (rightPremise.reindex rightMap).formulas).push
+            (.tensor left right))[index]?
+      rw [Array.getElem?_push, if_neg (by
+        simp only [Array.size_append]
+        have inverseLocalInBounds :=
+          (rightMap.inverse_lt_iff localIndex).mpr localInBounds
+        exact Nat.ne_of_lt (Nat.add_lt_add_left inverseLocalInBounds _))]
+      rw [Array.getElem?_append_right (by simp)]
+      simp only [Nat.add_sub_cancel_left]
+      rw [Array.getElem?_push, if_neg (by simp; omega)]
+      rw [Array.getElem?_append_right (by simpa using leftLe)]
+      rw [show index - (leftPremise.reindex leftMap).formulas.size =
+          localIndex by simp [localIndex, Certificate.reindex_formulas_size]]
+      change rightPremise.formula? (rightMap.inverse localIndex) =
+        (rightPremise.reindex rightMap).formula? localIndex
+      simpa [rightMap.forward_inverse] using
+        (rightPremise.reindex_formula?_forward rightMap
+          (rightMap.inverse localIndex)).symm
+    · by_cases atLast : index = leftPremise.formulas.size +
+          rightPremise.formulas.size
+      · rw [atLast]
+        have inverseEquation : extended.inverse
+            (leftPremise.formulas.size + rightPremise.formulas.size) =
+              leftPremise.formulas.size + rightPremise.formulas.size := by
+          simp [extended, VertexRenaming.extendLast]
+        rw [inverseEquation]
+        change ((leftPremise.formulas ++ rightPremise.formulas).push
+            (.tensor left right))[leftPremise.formulas.size +
+              rightPremise.formulas.size]? =
+          (((leftPremise.reindex leftMap).formulas ++
+            (rightPremise.reindex rightMap).formulas).push
+              (.tensor left right))[leftPremise.formulas.size +
+                rightPremise.formulas.size]?
+        have sourceLast :
+            ((leftPremise.formulas ++ rightPremise.formulas).push
+              (.tensor left right))[leftPremise.formulas.size +
+                rightPremise.formulas.size]? = some (.tensor left right) := by
+          rw [show leftPremise.formulas.size + rightPremise.formulas.size =
+              (leftPremise.formulas ++ rightPremise.formulas).size by simp]
+          exact Array.getElem?_push_size
+        have targetSize : ((leftPremise.reindex leftMap).formulas ++
+            (rightPremise.reindex rightMap).formulas).size =
+              leftPremise.formulas.size + rightPremise.formulas.size := by
+          simp
+        have targetLast :
+            (((leftPremise.reindex leftMap).formulas ++
+              (rightPremise.reindex rightMap).formulas).push
+                (.tensor left right))[leftPremise.formulas.size +
+                  rightPremise.formulas.size]? = some (.tensor left right) := by
+          rw [← targetSize]
+          exact Array.getElem?_push_size
+        rw [sourceLast, targetLast]
+      · have outside : leftPremise.formulas.size +
+            rightPremise.formulas.size + 1 ≤ index := by omega
+        have inverseEquation : extended.inverse index = index := by
+          simp [extended, VertexRenaming.extendLast, inRight, atLast]
+        rw [inverseEquation]
+        change ((leftPremise.formulas ++ rightPremise.formulas).push
+            (.tensor left right))[index]? =
+          (((leftPremise.reindex leftMap).formulas ++
+            (rightPremise.reindex rightMap).formulas).push
+              (.tensor left right))[index]?
+        rw [Array.getElem?_eq_none_iff.mpr (by simp; omega)]
+        rw [Array.getElem?_eq_none_iff.mpr (by
+          simp [Certificate.reindex_formulas_size]
+          omega)]
+
 @[simp] theorem Certificate.appendParOccurrence_formulas_size
     (premise : Certificate) (left right : Formula)
     (leftRoot rightRoot : Vertex) (boundary : List Vertex) :
@@ -1067,6 +1217,188 @@ theorem Certificate.DirectProofNetEquivalent.appendParOccurrence
     apply List.map_congr_left
     intro vertex membership
     simp [boundaryInBounds vertex membership]
+
+/-- Tensor introduction preserves direct proof-net equivalence for two
+disjoint, independently renamed premises.  The fresh tensor occurrence may
+itself occur in the boundary, so the target boundary is mapped by the full
+block-sum extension. -/
+theorem Certificate.DirectProofNetEquivalent.appendTensorOccurrenceExtended
+    {leftSource leftTarget rightSource rightTarget : Certificate}
+    (leftMap : VertexRenaming leftSource.formulas.size)
+    (leftPermutation :
+      (leftSource.reindex leftMap).LinkPermutationEquivalent leftTarget)
+    (rightMap : VertexRenaming rightSource.formulas.size)
+    (rightPermutation :
+      (rightSource.reindex rightMap).LinkPermutationEquivalent rightTarget)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (sourceBoundary : List Vertex)
+    (leftLinksInBounds : ∀ link ∈ leftSource.links,
+      ∀ vertex ∈ link.vertices, vertex < leftSource.formulas.size)
+    (rightLinksInBounds : ∀ link ∈ rightSource.links,
+      ∀ vertex ∈ link.vertices, vertex < rightSource.formulas.size)
+    (leftRootInBounds : leftRoot < leftSource.formulas.size)
+    (rightRootInBounds : rightRoot < rightSource.formulas.size) :
+    let extended := leftSource.appendTensorRenaming rightSource leftMap rightMap
+      left right leftRoot rightRoot sourceBoundary
+    Certificate.DirectProofNetEquivalent
+      (leftSource.appendTensorOccurrence rightSource left right leftRoot
+        rightRoot sourceBoundary)
+      (leftTarget.appendTensorOccurrence rightTarget left right
+        (leftMap.forward leftRoot) (rightMap.forward rightRoot)
+        (sourceBoundary.map extended.forward)) := by
+  dsimp only
+  let extended := leftSource.appendTensorRenaming rightSource leftMap rightMap
+    left right leftRoot rightRoot sourceBoundary
+  have leftSize : leftSource.formulas.size = leftTarget.formulas.size := by
+    simpa using congrArg Array.size leftPermutation.formulas
+  have rightSize : rightSource.formulas.size = rightTarget.formulas.size := by
+    simpa using congrArg Array.size rightPermutation.formulas
+  have mapLeftVertex (vertex : Vertex)
+      (inBounds : vertex < leftSource.formulas.size) :
+      extended.forward vertex = leftMap.forward vertex := by
+    have inCombined : vertex < leftSource.formulas.size +
+        rightSource.formulas.size :=
+      Nat.lt_of_lt_of_le inBounds
+        (Nat.le_add_right leftSource.formulas.size rightSource.formulas.size)
+    simp only [extended, Certificate.appendTensorRenaming_forward]
+    rw [VertexRenaming.extendLast_forward_old
+      (leftMap.blockSum rightMap) inCombined]
+    exact VertexRenaming.blockSum_forward_left leftMap rightMap inBounds
+  have mapRightVertex (vertex : Vertex)
+      (inBounds : vertex < rightSource.formulas.size) :
+      extended.forward (vertex + leftSource.formulas.size) =
+        rightMap.forward vertex + leftTarget.formulas.size := by
+    have shiftedInCombined : vertex + leftSource.formulas.size <
+        leftSource.formulas.size + rightSource.formulas.size := by
+      rw [Nat.add_comm vertex leftSource.formulas.size]
+      exact Nat.add_lt_add_left inBounds leftSource.formulas.size
+    simp only [extended, Certificate.appendTensorRenaming_forward]
+    rw [VertexRenaming.extendLast_forward_old
+      (leftMap.blockSum rightMap) shiftedInCombined]
+    rw [show vertex + leftSource.formulas.size =
+        leftSource.formulas.size + vertex by exact Nat.add_comm _ _]
+    rw [VertexRenaming.blockSum_forward_right]
+    rw [← leftSize]
+    exact Nat.add_comm _ _
+  have mapLast : extended.forward
+      (leftSource.formulas.size + rightSource.formulas.size) =
+        leftTarget.formulas.size + rightTarget.formulas.size := by
+    simp only [extended, Certificate.appendTensorRenaming_forward]
+    rw [VertexRenaming.extendLast_forward_last]
+    calc
+      leftSource.formulas.size + rightSource.formulas.size =
+          leftTarget.formulas.size + rightSource.formulas.size :=
+        congrArg (fun size => size + rightSource.formulas.size) leftSize
+      _ = leftTarget.formulas.size + rightTarget.formulas.size :=
+        congrArg (fun size => leftTarget.formulas.size + size) rightSize
+  refine ⟨extended, {
+    formulas := ?_
+    links := ?_
+    conclusions := rfl }⟩
+  · rw [Certificate.appendTensorOccurrence_reindex_formulas]
+    simp only [Certificate.appendTensorOccurrence]
+    rw [leftPermutation.formulas, rightPermutation.formulas]
+  · have leftOldLinks :
+        leftSource.links.map (Link.reindex extended) =
+          leftSource.links.map (Link.reindex leftMap) := by
+      apply List.map_congr_left
+      intro link membership
+      cases link with
+      | «axiom» first second =>
+          have firstBound := leftLinksInBounds _ membership first (by
+            simp [Link.vertices])
+          have secondBound := leftLinksInBounds _ membership second (by
+            simp [Link.vertices])
+          simp [Link.reindex, mapLeftVertex first firstBound,
+            mapLeftVertex second secondBound]
+      | tensor first second conclusion =>
+          have firstBound := leftLinksInBounds _ membership first (by
+            simp [Link.vertices])
+          have secondBound := leftLinksInBounds _ membership second (by
+            simp [Link.vertices])
+          have conclusionBound := leftLinksInBounds _ membership conclusion (by
+            simp [Link.vertices])
+          simp [Link.reindex, mapLeftVertex first firstBound,
+            mapLeftVertex second secondBound,
+            mapLeftVertex conclusion conclusionBound]
+      | par first second conclusion =>
+          have firstBound := leftLinksInBounds _ membership first (by
+            simp [Link.vertices])
+          have secondBound := leftLinksInBounds _ membership second (by
+            simp [Link.vertices])
+          have conclusionBound := leftLinksInBounds _ membership conclusion (by
+            simp [Link.vertices])
+          simp [Link.reindex, mapLeftVertex first firstBound,
+            mapLeftVertex second secondBound,
+            mapLeftVertex conclusion conclusionBound]
+    have rightOldLinks :
+        (rightSource.links.map
+          (fun link : Link => link.shift leftSource.formulas.size)).map
+            (Link.reindex extended) =
+          (rightSource.links.map (Link.reindex rightMap)).map
+            (fun link : Link => link.shift leftTarget.formulas.size) := by
+      rw [List.map_map, List.map_map]
+      apply List.map_congr_left
+      intro link membership
+      cases link with
+      | «axiom» first second =>
+          have firstBound := rightLinksInBounds _ membership first (by
+            simp [Link.vertices])
+          have secondBound := rightLinksInBounds _ membership second (by
+            simp [Link.vertices])
+          simp [Link.shift, Link.reindex,
+            mapRightVertex first firstBound,
+            mapRightVertex second secondBound]
+      | tensor first second conclusion =>
+          have firstBound := rightLinksInBounds _ membership first (by
+            simp [Link.vertices])
+          have secondBound := rightLinksInBounds _ membership second (by
+            simp [Link.vertices])
+          have conclusionBound := rightLinksInBounds _ membership conclusion (by
+            simp [Link.vertices])
+          simp [Link.shift, Link.reindex,
+            mapRightVertex first firstBound,
+            mapRightVertex second secondBound,
+            mapRightVertex conclusion conclusionBound]
+      | par first second conclusion =>
+          have firstBound := rightLinksInBounds _ membership first (by
+            simp [Link.vertices])
+          have secondBound := rightLinksInBounds _ membership second (by
+            simp [Link.vertices])
+          have conclusionBound := rightLinksInBounds _ membership conclusion (by
+            simp [Link.vertices])
+          simp [Link.shift, Link.reindex,
+            mapRightVertex first firstBound,
+            mapRightVertex second secondBound,
+            mapRightVertex conclusion conclusionBound]
+    have newLink : Link.reindex extended
+        (.tensor leftRoot (rightRoot + leftSource.formulas.size)
+          (leftSource.formulas ++ rightSource.formulas).size) =
+        .tensor (leftMap.forward leftRoot)
+          (rightMap.forward rightRoot + leftTarget.formulas.size)
+          (leftTarget.formulas ++ rightTarget.formulas).size := by
+      simp only [Link.reindex, Array.size_append]
+      rw [mapLeftVertex leftRoot leftRootInBounds,
+        mapRightVertex rightRoot rightRootInBounds, mapLast]
+    rw [Certificate.reindex_links]
+    change ((leftSource.links ++
+      rightSource.links.map
+        (fun link : Link => link.shift leftSource.formulas.size) ++
+      [Link.tensor leftRoot (rightRoot + leftSource.formulas.size)
+        (leftSource.formulas ++ rightSource.formulas).size]).map
+          (Link.reindex extended)).Perm
+      (leftTarget.links ++
+        rightTarget.links.map
+          (fun link : Link => link.shift leftTarget.formulas.size) ++
+        [Link.tensor (leftMap.forward leftRoot)
+          (rightMap.forward rightRoot + leftTarget.formulas.size)
+          (leftTarget.formulas ++ rightTarget.formulas).size])
+    rw [List.map_append, List.map_append, List.map_singleton,
+      leftOldLinks, rightOldLinks, newLink]
+    have rightShifted := rightPermutation.links.map
+      (fun link : Link => link.shift leftTarget.formulas.size)
+    have premises := leftPermutation.links.append rightShifted
+    exact premises.append_right _
 
 /-- Evidence returned by the future general sequentializer. The result is
 deliberately stronger than an `Option CutFreeDerivation`: it connects
