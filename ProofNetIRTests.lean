@@ -1068,6 +1068,7 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check VertexRenaming.insertLastAt
 #check CutFreeDerivation.reorder?_idxOf_of_nodup_perm
 #check Certificate.appendParOccurrence
+#check Certificate.appendParPlacement
 #check Certificate.appendParOccurrence_reindex_formulas
 #check Certificate.DirectProofNetEquivalent.appendParOccurrence
 #check Certificate.TerminalPar.occurrenceBoundaryReconstruction
@@ -1075,6 +1076,9 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.TerminalPar.producer_filter_eq
 #check Certificate.TerminalPar.terminal_not_mem_remaining
 #check Certificate.TerminalPar.peelLinks_reindex_append_perm
+#check Certificate.LinkWellFormed.par_formulaData
+#check Certificate.TerminalPar.peelFormulas_reindex_append_eq
+#check Certificate.TerminalPar.rebuild_directProofNetEquivalent
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =

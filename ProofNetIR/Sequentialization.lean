@@ -500,6 +500,40 @@ def Certificate.appendParOccurrence (premise : Certificate)
       premise.formulas.size + 1 := by
   simp [Certificate.appendParOccurrence]
 
+/-- Type-align the insertion which moves a freshly appended par occurrence to
+an arbitrary target vertex of the rebuilt certificate. -/
+def Certificate.appendParPlacement (premise : Certificate)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (boundary : List Vertex) (removed : Vertex)
+    (removedInBounds : removed < premise.formulas.size + 1) :
+    VertexRenaming
+      ((premise.appendParOccurrence left right leftRoot rightRoot boundary).formulas.size) :=
+  (VertexRenaming.insertLastAt premise.formulas.size removed removedInBounds).changeBound
+    (premise.appendParOccurrence_formulas_size left right leftRoot rightRoot
+      boundary).symm
+
+@[simp] theorem Certificate.appendParPlacement_forward
+    (premise : Certificate) (left right : Formula)
+    (leftRoot rightRoot : Vertex) (boundary : List Vertex)
+    (removed : Vertex)
+    (removedInBounds : removed < premise.formulas.size + 1) :
+    (premise.appendParPlacement left right leftRoot rightRoot boundary removed
+      removedInBounds).forward =
+      (VertexRenaming.insertLastAt premise.formulas.size removed
+        removedInBounds).forward := by
+  simp [Certificate.appendParPlacement]
+
+@[simp] theorem Certificate.appendParPlacement_inverse
+    (premise : Certificate) (left right : Formula)
+    (leftRoot rightRoot : Vertex) (boundary : List Vertex)
+    (removed : Vertex)
+    (removedInBounds : removed < premise.formulas.size + 1) :
+    (premise.appendParPlacement left right leftRoot rightRoot boundary removed
+      removedInBounds).inverse =
+      (VertexRenaming.insertLastAt premise.formulas.size removed
+        removedInBounds).inverse := by
+  simp [Certificate.appendParPlacement]
+
 /-- The type-aligned extension of an old renaming to the concrete certificate
 obtained by appending one par occurrence. -/
 def Certificate.appendParRenaming (premise : Certificate)
@@ -9112,6 +9146,34 @@ theorem LinkWellFormed.par_conclusionFormula
               subst conclusionFormula
               exact ⟨leftFormula, rightFormula, rfl⟩
 
+/-- Full formula data carried by a well-formed par link, including both premise
+occurrences. -/
+theorem LinkWellFormed.par_formulaData
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (wellFormed : certificate.LinkWellFormed (.par left right conclusion)) :
+    ∃ leftFormula rightFormula,
+      certificate.formula? left = some leftFormula ∧
+      certificate.formula? right = some rightFormula ∧
+      certificate.formula? conclusion =
+        some (.par leftFormula rightFormula) := by
+  rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases rightEquation : certificate.formula? right with
+      | none => simp [leftEquation, rightEquation] at typing
+      | some rightFormula =>
+          cases conclusionEquation : certificate.formula? conclusion with
+          | none =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+          | some conclusionFormula =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+              subst conclusionFormula
+              refine ⟨leftFormula, rightFormula, ?_, ?_, ?_⟩
+              · simpa using leftEquation
+              · simpa using rightEquation
+              · simpa using conclusionEquation
+
 theorem LinkWellFormed.tensor_conclusionFormula
     {certificate : Certificate} {left right conclusion : Vertex}
     (wellFormed : certificate.LinkWellFormed (.tensor left right conclusion)) :
@@ -12248,6 +12310,214 @@ theorem TerminalPar.peelLinks_reindex_append_perm
   rw [restoredRemaining]
   exact List.perm_append_comm.trans (by
     simpa [terminalLink] using (List.perm_cons_erase terminal.1).symm)
+
+/-- Restoring the deleted position and appending the typed par formula recovers
+the input formula-occurrence array exactly. -/
+theorem TerminalPar.peelFormulas_reindex_append_eq
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    (boundary : List Vertex)
+    (placementInBounds : conclusion <
+      (certificate.peelTerminalPar left right conclusion).formulas.size + 1) :
+    ∃ leftFormula rightFormula,
+      let premise := certificate.peelTerminalPar left right conclusion
+      let rebuilt := premise.appendParOccurrence leftFormula rightFormula
+        (Certificate.compactVertex conclusion left)
+        (Certificate.compactVertex conclusion right) boundary
+      let placement := premise.appendParPlacement leftFormula rightFormula
+        (Certificate.compactVertex conclusion left)
+        (Certificate.compactVertex conclusion right) boundary conclusion
+        placementInBounds
+      (rebuilt.reindex placement).formulas = certificate.formulas := by
+  let premise := certificate.peelTerminalPar left right conclusion
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  rcases terminalWellFormed.par_formulaData with
+    ⟨leftFormula, rightFormula, leftEquation, rightEquation,
+      conclusionEquation⟩
+  refine ⟨leftFormula, rightFormula, ?_⟩
+  dsimp only
+  let rebuilt := premise.appendParOccurrence leftFormula rightFormula
+    (Certificate.compactVertex conclusion left)
+    (Certificate.compactVertex conclusion right) boundary
+  let placement := premise.appendParPlacement leftFormula rightFormula
+    (Certificate.compactVertex conclusion left)
+    (Certificate.compactVertex conclusion right) boundary conclusion
+    placementInBounds
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  have sizeEquation : premise.formulas.size + 1 = certificate.formulas.size := by
+    have peelSize : premise.formulas.size = certificate.formulas.size - 1 := by
+      simp [premise, peelTerminalPar, Array.eraseIdxIfInBounds,
+        conclusionInBounds]
+    rw [peelSize]
+    exact Nat.sub_add_cancel structural.1
+  apply Array.ext_getElem?
+  intro index
+  change (rebuilt.reindex placement).formula? index =
+    certificate.formula? index
+  by_cases indexInBounds : index < certificate.formulas.size
+  · by_cases atConclusion : index = conclusion
+    · subst index
+      have lastForward : placement.forward premise.formulas.size = conclusion := by
+        simp [placement, Certificate.appendParPlacement]
+      have lookup := rebuilt.reindex_formula?_forward placement
+        premise.formulas.size
+      rw [lastForward] at lookup
+      have rebuiltLast : rebuilt.formula? premise.formulas.size =
+          some (.par leftFormula rightFormula) := by
+        simp [rebuilt, Certificate.appendParOccurrence, Certificate.formula?]
+      exact lookup.trans (rebuiltLast.trans conclusionEquation.symm)
+    · have compactInBounds : Certificate.compactVertex conclusion index <
+          premise.formulas.size := by
+        have compactBound := Certificate.compactVertex_lt conclusionInBounds
+          indexInBounds atConclusion
+        have peelSize : premise.formulas.size = certificate.formulas.size - 1 := by
+          simp [premise, peelTerminalPar, Array.eraseIdxIfInBounds,
+            conclusionInBounds]
+        simpa [peelSize] using compactBound
+      have oldForward : placement.forward
+          (Certificate.compactVertex conclusion index) = index := by
+        simp only [placement, Certificate.appendParPlacement_forward]
+        rw [VertexRenaming.insertLastAt_forward_old _ _ placementInBounds
+          compactInBounds]
+        change Certificate.expandVertex conclusion
+          (Certificate.compactVertex conclusion index) = index
+        exact Certificate.expandVertex_compactVertex_of_ne atConclusion
+      have lookup := rebuilt.reindex_formula?_forward placement
+        (Certificate.compactVertex conclusion index)
+      rw [oldForward] at lookup
+      have rebuiltOld : rebuilt.formula?
+          (Certificate.compactVertex conclusion index) =
+          premise.formula? (Certificate.compactVertex conclusion index) := by
+        have compactNotLast : Certificate.compactVertex conclusion index ≠
+            premise.formulas.size := Nat.ne_of_lt compactInBounds
+        simp [rebuilt, Certificate.appendParOccurrence, Certificate.formula?,
+          Array.getElem?_push, compactInBounds, compactNotLast]
+      exact lookup.trans (rebuiltOld.trans
+        (certificate.peelTerminalPar_formula?_compact structural terminal
+          atConclusion))
+  · have inputOutside : certificate.formulas.size ≤ index :=
+      Nat.le_of_not_gt indexInBounds
+    have rebuiltSize : (rebuilt.reindex placement).formulas.size =
+        certificate.formulas.size := by
+      simp [rebuilt, premise, sizeEquation]
+    have rebuiltOutside : (rebuilt.reindex placement).formulas.size ≤ index := by
+      rw [rebuiltSize]
+      exact inputOutside
+    simp [Certificate.formula?, Array.getElem?_eq_none_iff.mpr inputOutside,
+      Array.getElem?_eq_none_iff.mpr rebuiltOutside]
+
+/-- A peeled terminal par can be rebuilt, exchanged into the pullback of the
+original boundary, and related to the input by one bounded renaming followed by
+one link permutation. -/
+theorem TerminalPar.rebuild_directProofNetEquivalent
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    ∃ (leftFormula rightFormula : Formula)
+        (placementInBounds : conclusion <
+          (certificate.peelTerminalPar left right conclusion).formulas.size + 1),
+      let premise := certificate.peelTerminalPar left right conclusion
+      let placement := VertexRenaming.insertLastAt premise.formulas.size
+        conclusion placementInBounds
+      let targetBoundary := certificate.conclusions.map placement.inverse
+      Certificate.DirectProofNetEquivalent
+        (premise.appendParOccurrence leftFormula rightFormula
+          (Certificate.compactVertex conclusion left)
+          (Certificate.compactVertex conclusion right) targetBoundary)
+        certificate := by
+  let premise := certificate.peelTerminalPar left right conclusion
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  have sizeEquation : premise.formulas.size + 1 = certificate.formulas.size := by
+    have peelSize : premise.formulas.size = certificate.formulas.size - 1 := by
+      simp [premise, peelTerminalPar, Array.eraseIdxIfInBounds,
+        conclusionInBounds]
+    rw [peelSize]
+    exact Nat.sub_add_cancel structural.1
+  have placementInBounds : conclusion < premise.formulas.size + 1 := by
+    simpa [sizeEquation] using conclusionInBounds
+  let rawPlacement := VertexRenaming.insertLastAt premise.formulas.size
+    conclusion placementInBounds
+  let targetBoundary := certificate.conclusions.map rawPlacement.inverse
+  rcases TerminalPar.peelFormulas_reindex_append_eq structural terminal
+      targetBoundary placementInBounds with
+    ⟨leftFormula, rightFormula, formulaEquality⟩
+  refine ⟨leftFormula, rightFormula, placementInBounds, ?_⟩
+  dsimp only
+  let rebuilt := premise.appendParOccurrence leftFormula rightFormula
+    (Certificate.compactVertex conclusion left)
+    (Certificate.compactVertex conclusion right) targetBoundary
+  let placement := premise.appendParPlacement leftFormula rightFormula
+    (Certificate.compactVertex conclusion left)
+    (Certificate.compactVertex conclusion right) targetBoundary conclusion
+    placementInBounds
+  refine ⟨placement, {
+    formulas := ?_
+    links := ?_
+    conclusions := ?_ }⟩
+  · simpa [rebuilt, placement, premise, targetBoundary, rawPlacement] using
+      formulaEquality
+  · have linkPermutation := TerminalPar.peelLinks_reindex_append_perm
+      structural terminal placementInBounds
+    have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+    have leftInBounds := terminalWellFormed.vertex_in_bounds
+      (vertex := left) (by simp [Link.vertices])
+    have rightInBounds := terminalWellFormed.vertex_in_bounds
+      (vertex := right) (by simp [Link.vertices])
+    have leftNotConclusion : left ≠ conclusion := terminalWellFormed.2.1
+    have rightNotConclusion : right ≠ conclusion := terminalWellFormed.2.2.1
+    have compactLeftInBounds : Certificate.compactVertex conclusion left <
+        premise.formulas.size := by
+      have bound := Certificate.compactVertex_lt conclusionInBounds
+        leftInBounds leftNotConclusion
+      have peelSize : premise.formulas.size = certificate.formulas.size - 1 := by
+        simp [premise, peelTerminalPar, Array.eraseIdxIfInBounds,
+          conclusionInBounds]
+      simpa [peelSize] using bound
+    have compactRightInBounds : Certificate.compactVertex conclusion right <
+        premise.formulas.size := by
+      have bound := Certificate.compactVertex_lt conclusionInBounds
+        rightInBounds rightNotConclusion
+      have peelSize : premise.formulas.size = certificate.formulas.size - 1 := by
+        simp [premise, peelTerminalPar, Array.eraseIdxIfInBounds,
+          conclusionInBounds]
+      simpa [peelSize] using bound
+    have leftRestored : rawPlacement.forward
+        (Certificate.compactVertex conclusion left) = left := by
+      rw [VertexRenaming.insertLastAt_forward_old _ _ placementInBounds
+        compactLeftInBounds]
+      exact Certificate.expandVertex_compactVertex_of_ne leftNotConclusion
+    have rightRestored : rawPlacement.forward
+        (Certificate.compactVertex conclusion right) = right := by
+      rw [VertexRenaming.insertLastAt_forward_old _ _ placementInBounds
+        compactRightInBounds]
+      exact Certificate.expandVertex_compactVertex_of_ne rightNotConclusion
+    have oldLinks : premise.links.map (Link.reindex placement) =
+        premise.links.map (Link.reindex rawPlacement) := by
+      apply List.map_congr_left
+      intro link _membership
+      cases link <;>
+        simp [Link.reindex, placement, Certificate.appendParPlacement,
+          rawPlacement]
+    have newLink : Link.reindex placement
+        (.par (Certificate.compactVertex conclusion left)
+          (Certificate.compactVertex conclusion right) premise.formulas.size) =
+        .par left right conclusion := by
+      simp [Link.reindex, placement, Certificate.appendParPlacement,
+        rawPlacement, leftRestored, rightRestored]
+    change ((premise.links ++ [
+      Link.par (Certificate.compactVertex conclusion left)
+        (Certificate.compactVertex conclusion right)
+        premise.formulas.size]).map (Link.reindex placement)).Perm
+      certificate.links
+    rw [List.map_append, List.map_singleton, oldLinks, newLink]
+    simpa [premise, rawPlacement] using linkPermutation
+  · change targetBoundary.map placement.forward = certificate.conclusions
+    have placementForward : placement.forward = rawPlacement.forward := by
+      simp [placement, rawPlacement]
+    rw [placementForward]
+    simp [targetBoundary, List.map_map, Function.comp_def,
+      rawPlacement.forward_inverse]
 
 theorem peelTerminalPar_conclusions_nodup
     {certificate : Certificate} {left right conclusion : Vertex}
