@@ -102,6 +102,12 @@
 - added exact simple-cycle rotation and complementary wrap-around path
   extraction, preserving occurrence identity and vertex simplicity; these are
   the graph constructors needed for the minimal-cycle rerouting step.
+- proved cyclic cusp-count invariance under list rotation; strengthened the
+  complementary arc with base-vertex and edge-occurrence containment; and
+  constructed the first-return bungee splice as an exact simple cycle that can
+  be rotated back to the original base. The remaining obligation is to prove
+  the rotated splice closes cusp-free and derive the strict minimality
+  inequality.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

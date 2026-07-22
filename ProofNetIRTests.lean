@@ -961,12 +961,23 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
     path.start = 2 ∧ path.finish = 0 ∧
       path.traversed = [cyclicDirected20] ∧
       ∀ vertex, vertex ∈ path.vertices → vertex ∈ cyclicTriangle.vertices := by
-  simpa [cyclicDirected20, cyclicDirected01,
-    Graph.DirectedEdge.source] using
-      cyclicTriangle.complementPath
-        (before := []) (outgoingAtVertex := cyclicDirected01)
-        (between := []) (cuspIncoming := cyclicDirected12)
-        (cuspOutgoing := cyclicDirected20) (after := []) rfl
+  rcases cyclicTriangle.complementPath
+      (before := []) (outgoingAtVertex := cyclicDirected01)
+      (between := []) (cuspIncoming := cyclicDirected12)
+      (cuspOutgoing := cyclicDirected20) (after := []) rfl with
+    ⟨path, starts, finishes, steps, _baseInTail, subset, _edgeSubset⟩
+  exact ⟨path, by
+    simpa [cyclicDirected20, Graph.DirectedEdge.source] using starts,
+    by simpa [cyclicDirected01, Graph.DirectedEdge.source] using finishes,
+    by simpa using steps, subset⟩
+
+#check Certificate.cyclicCuspCount_append_comm
+#check Certificate.CuspFreeContinuation.firstIntersection_cycle_edgeDisjoint
+#check Certificate.CuspFreeContinuation.firstIntersection_withCycle_cycle
+#check Certificate.CuspFreeContinuation.bungee_firstIntersection_cycle
+#check Certificate.CuspFreeContinuation.rotate_spliced_cycle_to_return_vertex
+#check Certificate.CuspFreeContinuation.bungee_firstIntersection_sameBaseCycle
+#check Certificate.cuspCount_rotateAt_of_closing_free
 
 example : cyclicTriangle.reverse.traversed =
     [cyclicDirected20.reverse, cyclicDirected12.reverse,

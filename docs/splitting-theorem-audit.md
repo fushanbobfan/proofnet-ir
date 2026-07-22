@@ -96,10 +96,14 @@ name-level restatement of Yeo:
    simple occurrence cycle. Cusp-acyclicity proves its splice boundary must be
    its unique internal cusp. A one-cusp split now yields cusp-free pieces, and
    exact cycle rotation extracts the complementary wrap-around path needed for
-   the final reroute. The remaining generalized-Yeo obligation is the
-   minimal-cycle rerouting inequality completing the bungee contradiction and
-   turning the first-cusp continuation into an `OrderingPath`, followed by its
-   ProofNet-IR sequentialization-edge instantiation.
+   the final reroute. The first-return path is now proved edge-disjoint from the
+   entire original cycle (including parallel occurrences), closes with the
+   reversed complementary arc, and rotates to an exact simple cycle at the
+   original base while preserving cyclic cusp count. The remaining
+   generalized-Yeo obligation is the rotated splice's cusp-free closing proof
+   and strict minimal-cycle inequality, completing the bungee contradiction
+   and turning the first-cusp continuation into an `OrderingPath`, followed by
+   its ProofNet-IR sequentialization-edge instantiation.
 5. **Terminal bridge.** Relate a selected directed edge target to the stored
    link and ordered public boundary. The formula-complexity theorem already
    proves that connective structure has some terminal connective, but does not
