@@ -269,6 +269,117 @@ def refl (bound : Nat) : VertexRenaming bound where
   forward_inverse := by simp
   forward_lt_iff := by simp
 
+/-- Extend an `oldBound`-vertex numbering by one final source vertex and move
+that new vertex to `removed` in the target numbering. Existing source
+vertices below `removed` stay fixed; the rest shift up by one. -/
+def insertLastAt (oldBound removed : Nat)
+    (removedInBounds : removed < oldBound + 1) :
+    VertexRenaming (oldBound + 1) where
+  forward vertex :=
+    if oldVertex : vertex < oldBound then
+      if vertex < removed then vertex else vertex + 1
+    else if vertex = oldBound then removed else vertex
+  inverse vertex :=
+    if targetVertex : vertex < oldBound + 1 then
+      if vertex = removed then oldBound
+      else if vertex < removed then vertex else vertex - 1
+    else vertex
+  inverse_forward := by
+    intro vertex
+    have removedLe : removed ≤ oldBound :=
+      Nat.lt_succ_iff.mp (by simpa using removedInBounds)
+    by_cases oldVertex : vertex < oldBound
+    · by_cases before : vertex < removed
+      · have targetVertex : vertex < oldBound + 1 := by
+          exact Nat.lt_succ_of_lt oldVertex
+        have different : vertex ≠ removed := Nat.ne_of_lt before
+        simp [oldVertex, before, targetVertex, different]
+      · have targetVertex : vertex + 1 < oldBound + 1 :=
+          Nat.add_lt_add_right oldVertex 1
+        have different : vertex + 1 ≠ removed := by
+          intro same
+          apply before
+          calc
+            vertex < vertex + 1 := Nat.lt_succ_self vertex
+            _ = removed := same
+        have notBefore : ¬vertex + 1 < removed := by
+          intro shiftedBefore
+          exact before (Nat.lt_trans (Nat.lt_succ_self vertex) shiftedBefore)
+        simp [oldVertex, before, targetVertex, different, notBefore]
+    · by_cases atLast : vertex = oldBound
+      · subst vertex
+        simp [removedInBounds]
+      · have outside : ¬vertex < oldBound + 1 := by
+          intro inBounds
+          have atMost : vertex ≤ oldBound :=
+            Nat.lt_succ_iff.mp (by simpa using inBounds)
+          exact (Nat.lt_or_eq_of_le atMost).elim oldVertex atLast
+        simp [oldVertex, atLast, outside]
+  forward_inverse := by
+    intro vertex
+    have removedLe : removed ≤ oldBound :=
+      Nat.lt_succ_iff.mp (by simpa using removedInBounds)
+    by_cases targetVertex : vertex < oldBound + 1
+    · by_cases inserted : vertex = removed
+      · subst vertex
+        simp [removedInBounds]
+      · by_cases before : vertex < removed
+        · have oldVertex : vertex < oldBound :=
+            Nat.lt_of_lt_of_le before removedLe
+          simp [targetVertex, inserted, before, oldVertex]
+        · have positive : 0 < vertex := by
+            apply Nat.pos_of_ne_zero
+            intro zero
+            subst vertex
+            apply inserted
+            exact (Nat.eq_zero_of_not_pos before).symm
+          have atMost : vertex ≤ oldBound :=
+            Nat.lt_succ_iff.mp (by simpa using targetVertex)
+          have oldVertex : vertex - 1 < oldBound :=
+            Nat.lt_of_lt_of_le (Nat.sub_one_lt (Nat.ne_zero_of_lt positive)) atMost
+          have removedLt : removed < vertex :=
+            Nat.lt_of_le_of_ne (Nat.le_of_not_gt before)
+              (fun same => inserted same.symm)
+          have shiftedNotBefore : ¬vertex - 1 < removed :=
+            Nat.not_lt_of_ge (Nat.le_sub_one_of_lt removedLt)
+          have restore : vertex - 1 + 1 = vertex :=
+            Nat.sub_add_cancel positive
+          simp [targetVertex, inserted, before, oldVertex,
+            shiftedNotBefore, restore]
+    · have oldVertex : ¬vertex < oldBound := by
+        exact fun inOldBounds => targetVertex (Nat.lt_succ_of_lt inOldBounds)
+      have notLast : vertex ≠ oldBound := by
+        intro atLast
+        subst vertex
+        exact targetVertex (Nat.lt_succ_self oldBound)
+      simp [targetVertex, oldVertex, notLast]
+  forward_lt_iff := by
+    intro vertex
+    have removedLe : removed ≤ oldBound :=
+      Nat.lt_succ_iff.mp (by simpa using removedInBounds)
+    by_cases oldVertex : vertex < oldBound
+    · by_cases before : vertex < removed
+      · simp [oldVertex, before]
+      · simp [oldVertex, before, Nat.lt_succ_of_lt oldVertex,
+          Nat.add_lt_add_iff_right]
+    · by_cases atLast : vertex = oldBound
+      · subst vertex
+        simp [removedInBounds]
+      · simp [oldVertex, atLast]
+
+@[simp] theorem insertLastAt_forward_old
+    (oldBound removed : Nat) (removedInBounds : removed < oldBound + 1)
+    {vertex : Vertex} (oldVertex : vertex < oldBound) :
+    (insertLastAt oldBound removed removedInBounds).forward vertex =
+      if vertex < removed then vertex else vertex + 1 := by
+  simp [insertLastAt, oldVertex]
+
+@[simp] theorem insertLastAt_forward_last
+    (oldBound removed : Nat) (removedInBounds : removed < oldBound + 1) :
+    (insertLastAt oldBound removed removedInBounds).forward oldBound =
+      removed := by
+  simp [insertLastAt]
+
 /-- Swap two in-bounds vertices and fix every other natural number. -/
 def swap (bound left right : Nat) (leftInBounds : left < bound)
     (rightInBounds : right < bound) : VertexRenaming bound where
