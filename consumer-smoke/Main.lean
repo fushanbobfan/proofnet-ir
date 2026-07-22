@@ -7,6 +7,9 @@ def consumedCertificate : Certificate :=
 
 example : consumedCertificate.check = true := by native_decide
 
+example : consumedCertificate.DeclarativelyCorrect :=
+  consumedCertificate.check_iff_declarativelyCorrect.mp (by native_decide)
+
 def consumedTree : CutFreeDerivation :=
   CutFreeDerivation.generate 42 2
 

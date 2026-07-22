@@ -1,3 +1,4 @@
+import Lean.Elab.Tactic.Omega
 import ProofNetIR.Certificate
 
 namespace ProofNetIR
@@ -48,6 +49,115 @@ theorem toWalk {graph : Graph} {start finish : Vertex} {steps : Nat} :
   | step prior adjacency ih => exact .step ih adjacency
 
 end WalkN
+
+/-- A walk together with the duplicate-free list of vertices it visits. This
+is the finite combinatorial object used to bound arbitrary inductive walks. -/
+inductive SimpleWalk (graph : Graph) (start : Vertex) :
+    Nat → List Vertex → Vertex → Prop where
+  | refl : SimpleWalk graph start 0 [start] start
+  | step {steps : Nat} {visited : List Vertex} {middle finish : Vertex} :
+      SimpleWalk graph start steps visited middle →
+      graph.Adjacent middle finish →
+      finish ∉ visited →
+      SimpleWalk graph start (steps + 1) (visited ++ [finish]) finish
+
+namespace SimpleWalk
+
+theorem toWalkN {graph : Graph} {start finish : Vertex} {steps : Nat}
+    {visited : List Vertex} :
+    graph.SimpleWalk start steps visited finish →
+      graph.WalkN start steps finish := by
+  intro walk
+  induction walk with
+  | refl => exact .refl
+  | step prior adjacency fresh ih => exact .step ih adjacency
+
+theorem nodup {graph : Graph} {start finish : Vertex} {steps : Nat}
+    {visited : List Vertex} :
+    graph.SimpleWalk start steps visited finish → visited.Nodup := by
+  intro walk
+  induction walk with
+  | refl => simp
+  | step prior adjacency fresh ih =>
+      rw [List.nodup_append]
+      refine ⟨ih, by simp, ?_⟩
+      intro vertex membership singleton singletonMembership
+      simp at singletonMembership
+      subst singleton
+      intro same
+      subst vertex
+      exact fresh membership
+
+theorem length_eq {graph : Graph} {start finish : Vertex} {steps : Nat}
+    {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish) :
+    visited.length = steps + 1 := by
+  induction walk with
+  | refl => simp
+  | step prior adjacency fresh ih => simp [ih, Nat.add_assoc]
+
+theorem restrict {graph : Graph} {start finish vertex : Vertex} {steps : Nat}
+    {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish)
+    (membership : vertex ∈ visited) :
+    ∃ restrictedSteps restricted,
+      graph.SimpleWalk start restrictedSteps restricted vertex := by
+  induction walk with
+  | refl =>
+      simp at membership
+      subst vertex
+      exact ⟨0, [start], .refl⟩
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      simp at membership
+      rcases membership with membership | same
+      · exact ih membership
+      · subst vertex
+        exact ⟨priorSteps + 1, priorVisited ++ [current],
+          .step prior adjacency fresh⟩
+
+end SimpleWalk
+
+namespace Walk
+
+/-- Every finite walk can have its loops erased. The result preserves the
+endpoints while visiting no vertex twice. -/
+theorem toSimple {graph : Graph} {start finish : Vertex}
+    (walk : graph.Walk start finish) :
+    ∃ steps visited, graph.SimpleWalk start steps visited finish := by
+  induction walk with
+  | refl => exact ⟨0, [start], .refl⟩
+  | @step middle finish prior adjacency ih =>
+      rcases ih with ⟨steps, visited, simple⟩
+      by_cases repeated : finish ∈ visited
+      · exact simple.restrict repeated
+      · exact ⟨steps + 1, visited ++ [finish],
+          .step simple adjacency repeated⟩
+
+end Walk
+
+private theorem length_le_of_nodup_subset [BEq alpha] [LawfulBEq alpha]
+    {values ambient : List alpha} (nodup : values.Nodup)
+    (subset : ∀ value ∈ values, value ∈ ambient) :
+    values.length ≤ ambient.length := by
+  induction values generalizing ambient with
+  | nil => simp
+  | cons head tail ih =>
+      have headMembership : head ∈ ambient := subset head (by simp)
+      have tailSubset : ∀ value ∈ tail, value ∈ ambient.erase head := by
+        intro value membership
+        have valueMembership : value ∈ ambient :=
+          subset value (by simp [membership])
+        have different : value ≠ head := by
+          intro same
+          subst value
+          exact (List.nodup_cons.mp nodup).1 membership
+        exact (List.mem_erase_of_ne different).2 valueMembership
+      have tailBound := ih (List.nodup_cons.mp nodup).2 tailSubset
+      rw [List.length_erase_of_mem headMembership] at tailBound
+      have positive : 0 < ambient.length :=
+        List.length_pos_of_mem headMembership
+      simp only [List.length_cons]
+      omega
 
 /-- Existence of a graph walk with no more than `fuel` edge steps. -/
 def WalkWithin (graph : Graph) (start : Vertex) (fuel : Nat)
@@ -261,6 +371,41 @@ theorem adjacent_right_in_bounds (graph : Graph) (bounded : graph.Bounded)
   · exact forward.2 ▸ edgeBounds.2.1
   · exact backward.1 ▸ edgeBounds.1
 
+theorem SimpleWalk.vertices_in_bounds {graph : Graph}
+    {start finish : Vertex} {steps : Nat} {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish)
+    (bounded : graph.Bounded) (startInBounds : start < graph.vertexCount) :
+    ∀ vertex ∈ visited, vertex < graph.vertexCount := by
+  induction walk with
+  | refl => simpa using startInBounds
+  | step prior adjacency fresh ih =>
+      intro vertex membership
+      simp at membership
+      rcases membership with membership | same
+      · exact ih vertex membership
+      · subst vertex
+        exact graph.adjacent_right_in_bounds bounded adjacency
+
+/-- A duplicate-free walk in a bounded `vertexCount`-vertex graph uses at
+most `vertexCount` edge steps. -/
+theorem SimpleWalk.toWalkWithin {graph : Graph}
+    {start finish : Vertex} {steps : Nat} {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish)
+    (bounded : graph.Bounded) (startInBounds : start < graph.vertexCount) :
+    graph.WalkWithin start graph.vertexCount finish := by
+  have allInBounds := walk.vertices_in_bounds bounded startInBounds
+  have subsetRange : ∀ vertex ∈ visited,
+      vertex ∈ List.range graph.vertexCount := by
+    intro vertex membership
+    simpa using allInBounds vertex membership
+  have vertexBound : visited.length ≤ (List.range graph.vertexCount).length :=
+    length_le_of_nodup_subset walk.nodup subsetRange
+  have stepBound : steps ≤ graph.vertexCount := by
+    rw [List.length_range] at vertexBound
+    have exactLength := walk.length_eq
+    omega
+  exact ⟨steps, stepBound, walk.toWalkN⟩
+
 theorem walkN_mem_closureN (graph : Graph) (bounded : graph.Bounded)
     {start finish : Vertex} {steps : Nat}
     (walk : graph.WalkN start steps finish) :
@@ -316,6 +461,17 @@ def FuelConnected (graph : Graph) : Prop :=
     ∀ vertex, vertex < graph.vertexCount →
       graph.WalkWithin 0 graph.vertexCount vertex
 
+/-- Loop erasure supplies the uniform finite path budget needed by the
+executable reachability closure. -/
+theorem Connected.toFuelConnected {graph : Graph}
+    (connected : graph.Connected) (bounded : graph.Bounded) :
+    graph.FuelConnected :=
+  ⟨connected.1, by
+    intro vertex inBounds
+    rcases (connected.2 vertex inBounds).toSimple with
+      ⟨steps, visited, simple⟩
+    exact simple.toWalkWithin bounded connected.1⟩
+
 /-- The exact finite-closure contract decided by `isTree`. -/
 def ComputationalTree (graph : Graph) : Prop :=
   graph.Bounded ∧ graph.ReachablyConnected ∧
@@ -359,6 +515,20 @@ theorem connected_iff_fuelConnected (graph : Graph) (bounded : graph.Bounded) :
       have atVertexDepth := graph.mem_closureN_mono stepBound inBounds atExactDepth
       simpa [reachable, Nat.ne_of_gt semantic.1] using atVertexDepth⟩
 
+/-- Executable connectedness is sound and complete for the standard
+unbounded inductive-walk semantics on bounded finite graphs. -/
+theorem connected_iff_connected (graph : Graph) (bounded : graph.Bounded) :
+    graph.connected = true ↔ graph.Connected := by
+  constructor
+  · intro accepted
+    have reachableContract := graph.connected_iff.mp accepted
+    exact ⟨reachableContract.1, by
+      intro vertex inBounds
+      exact graph.reachable_sound (reachableContract.2 vertex inBounds)⟩
+  · intro connected
+    exact (graph.connected_iff_fuelConnected bounded).mpr
+      (connected.toFuelConnected bounded)
+
 theorem connected_sound (graph : Graph) (accepted : graph.connected = true) :
     graph.Connected := by
   have reachableContract := (graph.connected_iff).mp accepted
@@ -395,6 +565,17 @@ theorem isTree_iff_fuelTree (graph : Graph) :
       (graph.connected_iff_fuelConnected semantic.1).mpr semantic.2.1
     apply graph.isTree_iff_computational.mpr
     exact ⟨semantic.1, graph.connected_iff.mp connectedAccepted, semantic.2.2⟩
+
+/-- The finite executable tree checker decides the public declarative tree
+property, not only an auxiliary fuel-indexed approximation. -/
+theorem isTree_iff_isTree (graph : Graph) :
+    graph.isTree = true ↔ graph.IsTree := by
+  constructor
+  · intro accepted
+    exact (graph.isTree_iff_fuelTree.mp accepted).toIsTree
+  · intro tree
+    exact graph.isTree_iff_fuelTree.mpr
+      ⟨tree.1, tree.2.1.toFuelConnected tree.1, tree.2.2⟩
 
 theorem isTree_sound (graph : Graph) (accepted : graph.isTree = true) :
     graph.IsTree := by

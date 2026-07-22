@@ -31,13 +31,16 @@ The repository currently contains:
 - a finite undirected graph checker for boundedness, connectedness, and the
   `|E| + 1 = |V|` tree condition;
 - a Lean theorem `check_sound` connecting executable acceptance to an
-  independent inductive walk semantics, plus completeness/iff theorems for the
-  exact finite-computation contract;
+  independent inductive walk semantics;
+- kernel-checked loop erasure and a finite-vertex path bound, yielding full
+  checker soundness and completeness for that standard unbounded semantics;
 - exact soundness and completeness against an independent fuel-indexed path
   semantics: `closureN fuel` iff a path of at most `fuel` steps is available
   when stored edges are in bounds;
 - `check_iff_fuelDeclarativelyCorrect`, lifting both the path and switching
   correspondences to the complete certificate checker;
+- `check_iff_declarativelyCorrect`, proving the Boolean checker decides the
+  public Boolean-free, unbounded switching specification;
 - explicit exchange/permutation plus recursive identity expansion proving
   `|- A, A-dual` for every unit-free MLL formula;
 - a first-order arbitrary cut-free derivation-tree language with explicit

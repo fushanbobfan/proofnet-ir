@@ -22,6 +22,9 @@ Lean object, but that closes only one engineering gap.
 - checker soundness for independent unbounded walk semantics;
 - checker soundness and completeness for the independent fuel-indexed path
   semantics;
+- after v0.2.0, loop erasure and finite vertex counting prove completeness for
+  the standard unbounded walk semantics as well
+  (`check_iff_declarativelyCorrect`);
 - exhaustive differential agreement for all 33,868 simple graphs through six
   vertices and two separate 1,000-certificate corpora;
 - exact reconstruction for the recursive identity family;
@@ -35,17 +38,14 @@ Lean object, but that closes only one engineering gap.
 
 ## Logical gaps blocking a mature-library claim
 
-1. `Connected` versus `FuelConnected` completeness is not proved for arbitrary
-   finite walks, so the standard unbounded correctness predicate lacks an iff
-   theorem even though executable behavior has extensive differential tests.
-2. The safe `elaborate?` return type relates inference, derivation existence,
+1. The safe `elaborate?` return type relates inference, derivation existence,
    certificate boundary labels, and checker acceptance. A general theorem that
    every successfully inferred well-formed rule tree must make `elaborate?`
    succeed is still missing.
-3. General sequentialization of every accepted MLL proof net is absent.
-4. The edge-count tree characterization is used correctly, but no explicit
+2. General sequentialization of every accepted MLL proof net is absent.
+3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
-5. Canonicalization preservation and invariance under vertex reindexing are
+4. Canonicalization preservation and invariance under vertex reindexing are
    not proved.
 
 ## Engineering gaps blocking a mature-library claim

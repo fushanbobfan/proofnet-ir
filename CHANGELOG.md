@@ -20,6 +20,12 @@
 - added a native Lean parser for canonical v0.2 JSON, path-aware parse errors,
   canonical-form validation, and a safe checked-input boundary for untrusted
   external certificates.
+- formalized loop erasure for arbitrary inductive graph walks and proved the
+  uniform `vertexCount` path bound on bounded graphs;
+- strengthened the public specification to full iff theorems
+  `isTree_iff_isTree`, `check_iff_correct`, and
+  `check_iff_declarativelyCorrect` for unbounded walk semantics, and proved
+  the unbounded and fuel-indexed correctness contracts equivalent.
 
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 

@@ -54,11 +54,13 @@ steps, provided stored edges are in bounds. `isTree_iff_fuelTree` and
 `check_iff_fuelDeclarativelyCorrect` lifts both independent relations to the
 complete certificate checker.
 
-The stronger normalization theorem saying that every arbitrary `Graph.Walk`
-in an `n`-vertex graph has an equivalent walk of at most `n` steps remains
-open. This no longer weakens completeness for `FuelCorrect`, but it is needed
-to identify the original unbounded `Correct` predicate with `FuelCorrect`.
-None of these results is the proof-net sequentialization theorem.
+`Walk.toSimple` now erases loops from every arbitrary `Graph.Walk`.
+`SimpleWalk.toWalkWithin` uses duplicate-free vertex counting to bound the
+result by `vertexCount` when stored edges are bounded. Consequently
+`connected_iff_connected`, `isTree_iff_isTree`, `check_iff_correct`, and
+`check_iff_declarativelyCorrect` identify the executable checker with the
+original unbounded public semantics. None of these results is the proof-net
+sequentialization theorem.
 
 An independent differential audit additionally compares the compiled checker
 against a Python union-find/certificate oracle on every simple graph through

@@ -96,12 +96,21 @@ example : canonical.StructurallyWellFormed :=
 example : canonical.switchingGraphs.length = 2 := by native_decide
 example : canonical.check = true := by native_decide
 example : canonical.Correct := canonical.check_sound (by native_decide)
+example : canonical.check = true ↔ canonical.Correct :=
+  canonical.check_iff_correct
 example : canonical.DeclarativelyCorrect :=
   canonical.check_sound_declarative (by native_decide)
+example : canonical.check = true ↔ canonical.DeclarativelyCorrect :=
+  canonical.check_iff_declarativelyCorrect
 example : canonical.FuelCorrect :=
   canonical.check_iff_fuelCorrect.mp (by native_decide)
+example : canonical.Correct ↔ canonical.FuelCorrect :=
+  canonical.correct_iff_fuelCorrect
 example : canonical.FuelDeclarativelyCorrect :=
   canonical.check_iff_fuelDeclarativelyCorrect.mp (by native_decide)
+example : canonical.DeclarativelyCorrect ↔
+    canonical.FuelDeclarativelyCorrect :=
+  canonical.declarativelyCorrect_iff_fuelDeclarativelyCorrect
 
 example : canonical = canonicalCertificate "p" "q" := by native_decide
 
@@ -292,6 +301,8 @@ def treeGraph : Graph where
 
 example : treeGraph.isTree = true := by native_decide
 example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
+example : treeGraph.isTree = true ↔ treeGraph.IsTree :=
+  treeGraph.isTree_iff_isTree
 example : treeGraph.FuelTree :=
   treeGraph.isTree_iff_fuelTree.mp (by native_decide)
 example : treeGraph.Walk 0 3 :=
@@ -308,6 +319,13 @@ theorem treeWalk03 : treeGraph.Walk 0 3 :=
 
 theorem treeWalkN03 : treeGraph.WalkN 0 2 3 :=
   .step (.step .refl treeEdge01) treeEdge13
+
+example : ∃ steps visited, treeGraph.SimpleWalk 0 steps visited 3 :=
+  treeWalk03.toSimple
+
+example : treeGraph.FuelConnected :=
+  (treeGraph.isTree_sound (by native_decide)).2.1.toFuelConnected
+    (treeGraph.isTree_sound (by native_decide)).1
 
 example : 3 ∈ treeGraph.closureN 2 [0] := by native_decide
 example : 3 ∈ treeGraph.closureN 2 [0] :=
@@ -357,6 +375,44 @@ def unboundedGraph : Graph where
 
 example : unboundedGraph.boundedEdges = false := by native_decide
 example : unboundedGraph.isTree = false := by native_decide
+
+/-- The unbounded walk semantics can cross an out-of-bounds bridge that the
+finite checker intentionally filters. This witnesses why the `Bounded`
+hypothesis of `connected_iff_connected` is necessary. -/
+def unboundedBridgeGraph : Graph where
+  vertexCount := 2
+  edges := [
+    { first := 0, second := 2 },
+    { first := 2, second := 1 }
+  ]
+
+theorem unboundedBridgeEdge02 : unboundedBridgeGraph.Adjacent 0 2 :=
+  ⟨{ first := 0, second := 2 }, by simp [unboundedBridgeGraph],
+    .inl ⟨rfl, rfl⟩⟩
+
+theorem unboundedBridgeEdge21 : unboundedBridgeGraph.Adjacent 2 1 :=
+  ⟨{ first := 2, second := 1 }, by simp [unboundedBridgeGraph],
+    .inl ⟨rfl, rfl⟩⟩
+
+example : unboundedBridgeGraph.Connected := by
+  refine ⟨by decide, ?_⟩
+  intro vertex inBounds
+  simp [unboundedBridgeGraph] at inBounds
+  have cases : vertex = 0 ∨ vertex = 1 := by omega
+  rcases cases with rfl | rfl
+  · exact .refl 0
+  · exact .step (.step (.refl 0) unboundedBridgeEdge02)
+      unboundedBridgeEdge21
+
+example : unboundedBridgeGraph.Bounded → False := by
+  intro bounded
+  have edgeBounds := bounded { first := 0, second := 2 }
+    (by simp [unboundedBridgeGraph])
+  have impossible : 2 < 2 := by
+    simpa [unboundedBridgeGraph] using edgeBounds.2.1
+  omega
+
+example : unboundedBridgeGraph.connected = false := by native_decide
 
 def run : IO Unit := do
   if canonical.check then

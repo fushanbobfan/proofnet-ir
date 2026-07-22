@@ -19,7 +19,7 @@
 - [x] Prove a bounded inductive walk is found after some finite closure depth.
 - [x] Prove `closureN fuel` iff an independent path of at most `fuel` steps
   exists, and lift the iff through `isTree` and `Certificate.check`.
-- [ ] Prove every arbitrary in-bounds graph walk reduces to a path within the
+- [x] Prove every arbitrary in-bounds graph walk reduces to a path within the
   `vertexCount` budget, identifying `Correct` and `FuelCorrect`.
 - [ ] Prove general sequentialization for the supported representation.
 - [x] Add a second generated proof-tree/net family and labeled mutation tests.

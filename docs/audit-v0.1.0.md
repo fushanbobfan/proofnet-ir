@@ -93,3 +93,12 @@ No unresolved mathematical correctness finding remains from this audit.
 
 These boundaries are explicit so that an implementation test cannot be
 mistaken for the still-future general sequentialization theorem.
+
+## Post-release resolution on main
+
+Post-v0.2 `main` closes the first deliberate boundary without changing the
+historical v0.1.0 artifact. `Walk.toSimple` performs loop erasure and
+`SimpleWalk.toWalkWithin` proves the `vertexCount` bound for bounded graphs.
+The resulting `check_iff_declarativelyCorrect` is a kernel-checked completeness
+theorem for the original unbounded contract. General proof-net
+sequentialization remains open.

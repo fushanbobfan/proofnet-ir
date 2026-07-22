@@ -147,6 +147,20 @@ theorem allTrees_sound (graphs : List Graph) (accepted : allTrees graphs = true)
       | inr memberTail =>
           exact ih accepted.2 graph memberTail
 
+/-- Completeness of the executable list traversal for the standard unbounded
+tree semantics. -/
+theorem allTrees_complete (graphs : List Graph)
+    (correct : ∀ graph ∈ graphs, graph.IsTree) :
+    allTrees graphs = true := by
+  induction graphs with
+  | nil => rfl
+  | cons head tail ih =>
+      simp [allTrees]
+      exact ⟨head.isTree_iff_isTree.mpr (correct head (by simp)),
+        ih (by
+          intro graph membership
+          exact correct graph (by simp [membership]))⟩
+
 theorem allTrees_computational (graphs : List Graph)
     (accepted : allTrees graphs = true) :
     ∀ graph ∈ graphs, graph.ComputationalTree := by
@@ -201,6 +215,22 @@ theorem check_sound_declarative (certificate : Certificate)
     (accepted : certificate.check = true) :
     certificate.DeclarativelyCorrect :=
   certificate.correct_iff_declarative.mp (certificate.check_sound accepted)
+
+/-- Completeness for the public unbounded switching/tree specification. -/
+theorem check_complete (certificate : Certificate)
+    (correct : certificate.Correct) : certificate.check = true := by
+  simp [check]
+  exact ⟨correct.1,
+    allTrees_complete certificate.switchingGraphs correct.2⟩
+
+/-- The Boolean checker decides the public unbounded correctness contract. -/
+theorem check_iff_correct (certificate : Certificate) :
+    certificate.check = true ↔ certificate.Correct :=
+  ⟨certificate.check_sound, certificate.check_complete⟩
+
+theorem check_iff_declarativelyCorrect (certificate : Certificate) :
+    certificate.check = true ↔ certificate.DeclarativelyCorrect := by
+  rw [certificate.check_iff_correct, certificate.correct_iff_declarative]
 
 /-- The exact finite-computation contract used for an executable completeness theorem. -/
 def ComputationallyCorrect (certificate : Certificate) : Prop :=
@@ -262,10 +292,21 @@ theorem check_iff_fuelCorrect (certificate : Certificate) :
     exact ⟨correct.1,
       allTrees_complete_fuel certificate.switchingGraphs correct.2⟩
 
+theorem correct_iff_fuelCorrect (certificate : Certificate) :
+    certificate.Correct ↔ certificate.FuelCorrect := by
+  rw [← certificate.check_iff_correct, certificate.check_iff_fuelCorrect]
+
 theorem check_iff_fuelDeclarativelyCorrect (certificate : Certificate) :
     certificate.check = true ↔ certificate.FuelDeclarativelyCorrect := by
   rw [certificate.check_iff_fuelCorrect,
     certificate.fuelCorrect_iff_declarative]
+
+theorem declarativelyCorrect_iff_fuelDeclarativelyCorrect
+    (certificate : Certificate) :
+    certificate.DeclarativelyCorrect ↔
+      certificate.FuelDeclarativelyCorrect := by
+  rw [← certificate.check_iff_declarativelyCorrect,
+    certificate.check_iff_fuelDeclarativelyCorrect]
 
 theorem FuelCorrect.toCorrect {certificate : Certificate}
     (correct : certificate.FuelCorrect) : certificate.Correct :=

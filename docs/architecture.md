@@ -32,13 +32,14 @@ criterion and proof-order bureaucracy can be measured cleanly.
     independent `WalkN` whose edge count is at most the supplied fuel.
 12. `Graph.walkN_mem_closureN` and `mem_closureN_mono` prove the converse for
     bounded stored edges.
-13. `isTree_iff_fuelTree` lifts the correspondence to the executable tree
+13. `SimpleWalk` loop erasure proves that an arbitrary bounded inductive walk
+    has an equivalent duplicate-free path within the `vertexCount` budget.
+14. `isTree_iff_isTree` lifts the correspondence to the public unbounded tree
     predicate.
-14. `Certificate.check` accepts only when both local and global checks pass.
-15. `check_sound_declarative` transports executable acceptance into the
-    independent switching semantics;
-    `check_iff_fuelDeclarativelyCorrect` additionally gives soundness and
-    completeness for both the independent switching and path semantics.
+15. `Certificate.check` accepts only when both local and global checks pass.
+16. `check_iff_declarativelyCorrect` proves soundness and completeness for the
+    Boolean-free structural, independent switching, and unbounded path
+    semantics. The fuel-indexed iff remains as a second executable contract.
 
 ## Why exhaustive switchings first
 
