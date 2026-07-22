@@ -50,7 +50,8 @@ consumer parse arbitrary v0.2 JSON directly into a checked Lean object.
 - serialization is write-only; there is no trusted Lean JSON parser with
   structured errors and validation;
 - many APIs return `Option`, losing the location and reason for failure;
-- no clean-room downstream Lake project currently consumes a pinned release;
+- separate path-dependency and clean pinned-v0.2.0 Lake consumers now pass;
+  they must remain in CI for future compatibility releases;
 - no API stability/compatibility policy or migration test suite exists;
 - no generated API reference or tutorial beyond repository-local examples;
 - no fuzz/property suite covers arbitrary malformed serialized inputs;

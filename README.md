@@ -120,6 +120,8 @@ ProofNetIR/DerivationTree.lean arbitrary cut-free trees and desequentialization
 ProofNetIR/Serialization.lean canonical v0.2 certificate JSON
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
+consumer-smoke/               independent downstream Lake dependency test
+consumer-release-smoke/       clean consumer pinned to public v0.2.0 tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
@@ -142,7 +144,9 @@ evaluation is specified in
 [docs/experiment-protocol.md](docs/experiment-protocol.md).
 The stricter post-v0.2 coverage and reuse assessments are in
 [docs/source-coverage-audit.md](docs/source-coverage-audit.md) and
-[docs/library-readiness-audit.md](docs/library-readiness-audit.md).
+[docs/library-readiness-audit.md](docs/library-readiness-audit.md). The
+representation comparison that guides general sequentialization is in
+[docs/formalization-comparison.md](docs/formalization-comparison.md).
 
 ## License
 

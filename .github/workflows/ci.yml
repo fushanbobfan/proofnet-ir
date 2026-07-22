@@ -18,6 +18,12 @@ jobs:
         run: ~/.elan/bin/lake build
       - name: Run smoke test
         run: ~/.elan/bin/lake exe proofnet_ir_tests
+      - name: Build as a downstream Lake dependency
+        working-directory: consumer-smoke
+        run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_consumer_smoke
+      - name: Consume the pinned public v0.2.0 release
+        working-directory: consumer-release-smoke
+        run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_release_consumer_smoke
       - name: Validate JSON certificate contract
         run: |
           python -m pip install --disable-pip-version-check jsonschema==4.26.0

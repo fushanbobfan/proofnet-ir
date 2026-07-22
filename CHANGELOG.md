@@ -12,6 +12,11 @@
   acceptance in one public boundary;
 - added honest source-coverage and library-readiness audits so targeted reading
   and research-prototype functionality cannot be presented as completion.
+- added a separate downstream Lake consumer that imports the public library,
+  exercises certificate checking and `elaborate?`, and runs in CI.
+- recorded a representation-level comparison with the primary Rocq proof-net
+  formalization to guide sequentialization without silently copying a theorem
+  for a different graph model.
 
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 

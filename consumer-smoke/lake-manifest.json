@@ -1,0 +1,13 @@
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
+ "packages":
+ [{"type": "path",
+   "scope": "",
+   "name": "«proofnet-ir»",
+   "manifestFile": "lake-manifest.json",
+   "inherited": false,
+   "dir": "..",
+   "configFile": "lakefile.toml"}],
+ "name": "«proofnet-ir-consumer-smoke»",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}

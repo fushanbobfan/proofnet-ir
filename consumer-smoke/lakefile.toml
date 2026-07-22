@@ -1,0 +1,11 @@
+name = "proofnet-ir-consumer-smoke"
+version = "0.0.0"
+defaultTargets = ["proofnet_ir_consumer_smoke"]
+
+[[require]]
+name = "proofnet-ir"
+path = ".."
+
+[[lean_exe]]
+name = "proofnet_ir_consumer_smoke"
+root = "Main"
