@@ -482,6 +482,18 @@ theorem CutFreeDerivation.reorder?_idxOf_of_nodup_perm
   rw [candidate]
   simp [permutation]
 
+/-- An executable exchange preserves the fragment storage and replaces only
+the occurrence-aware boundary entries. -/
+theorem CutFreeDerivation.build?_exchange_of_reorder
+    {premise : CutFreeDerivation} {fragment : NetFragment}
+    {order : List Nat} {target : List (Formula × Vertex)}
+    (premiseBuild : premise.build? = some fragment)
+    (reordered : CutFreeDerivation.reorder? fragment.entries order =
+      some target) :
+    (CutFreeDerivation.exchange order premise).build? =
+      some (NetFragment.ofEntries fragment.formulas fragment.links target) := by
+  simp [CutFreeDerivation.build?, premiseBuild, reordered]
+
 /-- Recover the two final occurrence roots from a formula projection. This is
 the bridge from an inferred sequent to the occurrence-aware fragment entries
 used by desequentialization. -/
@@ -544,6 +556,87 @@ theorem list_zip_labelled_of_mapM_eq_some
                   rcases membership with rfl | tailMembership
                   · exact rootEquation
                   · exact ih balanced restEquation entry tailMembership
+
+/-- A successful lockstep lookup determines the zipped occurrence entries
+pointwise.  The `getD` fallback is unreachable but makes the resulting entry
+list computationally usable by an exchange constructor. -/
+theorem list_zip_eq_map_option_getD_of_mapM_eq_some
+    {formulas : List Formula} {roots : List Vertex}
+    {lookup : Vertex → Option Formula} (fallback : Formula)
+    (balanced : formulas.length = roots.length)
+    (equation : roots.mapM lookup = some formulas) :
+    formulas.zip roots = roots.map fun root =>
+      ((lookup root).getD fallback, root) := by
+  induction formulas generalizing roots with
+  | nil =>
+      cases roots with
+      | nil => rfl
+      | cons root rest => simp at balanced
+  | cons formula tail ih =>
+      cases roots with
+      | nil => simp at balanced
+      | cons root rest =>
+          simp only [List.length_cons, Nat.succ.injEq] at balanced
+          simp only [List.mapM_cons] at equation
+          cases rootEquation : lookup root with
+          | none => simp [rootEquation] at equation
+          | some rootFormula =>
+              cases restEquation : rest.mapM lookup with
+              | none => simp [rootEquation, restEquation] at equation
+              | some restFormulas =>
+                  simp [rootEquation, restEquation] at equation
+                  obtain ⟨rfl, rfl⟩ := equation
+                  simp [rootEquation, ih balanced restEquation]
+
+/-- Pointwise lookup evidence plus the exact root projection determines an
+occurrence-entry list. -/
+theorem list_pairs_eq_map_option_getD
+    {entries : List (Formula × Vertex)} {roots : List Vertex}
+    {lookup : Vertex → Option Formula} (fallback : Formula)
+    (rootsEquation : entries.map Prod.snd = roots)
+    (labelled : ∀ entry ∈ entries,
+      lookup entry.2 = some entry.1) :
+    entries = roots.map fun root => ((lookup root).getD fallback, root) := by
+  subst roots
+  induction entries with
+  | nil => rfl
+  | cons head tail ih =>
+      have headLabel := labelled head (by simp)
+      have tailLabelled : ∀ entry ∈ tail,
+          lookup entry.2 = some entry.1 := by
+        intro entry membership
+        exact labelled entry (by simp [membership])
+      have headPair :
+          ((lookup head.2).getD fallback, head.2) = head := by
+        rcases head with ⟨formula, root⟩
+        simp [headLabel]
+      simp only [List.map_cons]
+      rw [headPair]
+      exact congrArg (List.cons head) (ih tailLabelled)
+
+theorem list_zip_map_fst_snd (entries : List (α × β)) :
+    (entries.map Prod.fst).zip (entries.map Prod.snd) = entries := by
+  induction entries with
+  | nil => rfl
+  | cons head tail ih => simp [ih]
+
+/-- Pairing each value with data that retains the value itself preserves
+duplicate-freedom. -/
+theorem list_map_pair_self_nodup {roots : List α} (data : α → β)
+    (nodup : roots.Nodup) :
+    (roots.map fun root => (data root, root)).Nodup := by
+  induction roots with
+  | nil => exact .nil
+  | cons head tail ih =>
+      rcases List.nodup_cons.mp nodup with ⟨headFresh, tailNodup⟩
+      apply List.nodup_cons.mpr
+      refine ⟨?_, ih tailNodup⟩
+      intro membership
+      rcases List.mem_map.mp membership with
+        ⟨value, valueMembership, same⟩
+      have sameValue : value = head := by
+        exact congrArg Prod.snd same
+      exact headFresh (sameValue ▸ valueMembership)
 
 /-- Certificate-level effect of introducing one fresh final par occurrence.
 The boundary is explicit because a following exchange may place the new
@@ -675,6 +768,76 @@ theorem Certificate.appendParOccurrence_reindex_formulas
       simp [Certificate.appendParOccurrence, Certificate.reindex,
         Array.getElem?_push, oldIndex, atLast, outside, notBelow,
         VertexRenaming.extendLast]
+
+/-- Adding the same typed par rule to equivalent premises while allowing the
+fresh par root itself to occur in the boundary.  The target boundary is mapped
+by the extension of the old vertex renaming, so this is the form needed by an
+inverse terminal-par rule. -/
+theorem Certificate.DirectProofNetEquivalent.appendParOccurrenceExtended
+    {leftPremise rightPremise : Certificate}
+    (vertexMap : VertexRenaming leftPremise.formulas.size)
+    (linkPermutation :
+      (leftPremise.reindex vertexMap).LinkPermutationEquivalent rightPremise)
+    (left right : Formula) (leftRoot rightRoot : Vertex)
+    (leftBoundary : List Vertex)
+    (linksInBounds : ∀ link ∈ leftPremise.links,
+      ∀ vertex ∈ link.vertices,
+        vertex < leftPremise.formulas.size)
+    (leftRootInBounds : leftRoot < leftPremise.formulas.size)
+    (rightRootInBounds : rightRoot < leftPremise.formulas.size) :
+    let extended := leftPremise.appendParRenaming vertexMap left right
+      leftRoot rightRoot leftBoundary
+    Certificate.DirectProofNetEquivalent
+      (leftPremise.appendParOccurrence left right leftRoot rightRoot
+        leftBoundary)
+      (rightPremise.appendParOccurrence left right
+        (vertexMap.forward leftRoot) (vertexMap.forward rightRoot)
+        (leftBoundary.map extended.forward)) := by
+  dsimp only
+  let extended := leftPremise.appendParRenaming vertexMap left right leftRoot
+    rightRoot leftBoundary
+  refine ⟨extended, ?_⟩
+  refine {
+    formulas := ?_
+    links := ?_
+    conclusions := rfl }
+  · rw [Certificate.appendParOccurrence_reindex_formulas]
+    exact congrArg (fun formulas => formulas.push (.par left right))
+      linkPermutation.formulas
+  · have oldLinks :
+        leftPremise.links.map (Link.reindex extended) =
+          leftPremise.links.map (Link.reindex vertexMap) := by
+      apply List.map_congr_left
+      intro link membership
+      have extendedLink := Link.reindex_extendLast vertexMap link
+        (linksInBounds link membership)
+      cases link <;>
+        simpa [Link.reindex, extended] using extendedLink
+    have newLink : Link.reindex extended
+        (.par leftRoot rightRoot leftPremise.formulas.size) =
+        .par (vertexMap.forward leftRoot) (vertexMap.forward rightRoot)
+          rightPremise.formulas.size := by
+      have sizeEquation : leftPremise.formulas.size =
+          rightPremise.formulas.size := by
+        simpa using congrArg Array.size linkPermutation.formulas
+      simp only [Link.reindex, extended,
+        Certificate.appendParRenaming_forward]
+      rw [VertexRenaming.extendLast_forward_old vertexMap leftRootInBounds,
+        VertexRenaming.extendLast_forward_old vertexMap rightRootInBounds,
+        VertexRenaming.extendLast_forward_last]
+      exact congrArg
+        (fun result => Link.par (vertexMap.forward leftRoot)
+          (vertexMap.forward rightRoot) result)
+        sizeEquation
+    rw [Certificate.reindex_links]
+    change ((leftPremise.links ++ [
+      Link.par leftRoot rightRoot leftPremise.formulas.size]).map
+        (Link.reindex extended)).Perm
+      (rightPremise.links ++ [
+        Link.par (vertexMap.forward leftRoot) (vertexMap.forward rightRoot)
+          rightPremise.formulas.size])
+    rw [List.map_append, List.map_singleton, oldLinks, newLink]
+    exact linkPermutation.links.append_right _
 
 /-- Adding the same typed par rule to equivalent premises preserves direct
 proof-net equivalence. Endpoint boundedness is stated explicitly so this
@@ -12214,6 +12377,104 @@ theorem TerminalPar.premiseBoundaryData_of_formulaData
   rw [List.mapM_append, contextLabels]
   simp [leftPremiseLabel, rightPremiseLabel]
 
+/-- Fixed-renaming form of occurrence-level terminal-par reconstruction.  A
+caller may reuse the very same proof-relevant insertion renaming in formula,
+link, and boundary reconstruction, avoiding any mismatch between separately
+chosen existential witnesses. -/
+theorem TerminalPar.occurrenceBoundaryReconstruction_at
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    (placementInBounds : conclusion <
+      (certificate.peelTerminalPar left right conclusion).formulas.size + 1) :
+    let premise := certificate.peelTerminalPar left right conclusion
+    let placement := VertexRenaming.insertLastAt premise.formulas.size
+      conclusion placementInBounds
+    let sourceBoundary :=
+      (certificate.conclusions.filter (· != conclusion)).map
+          (Certificate.compactVertex conclusion) ++
+        [premise.formulas.size]
+    sourceBoundary.map placement.forward =
+        certificate.conclusions.erase conclusion ++ [conclusion] ∧
+      sourceBoundary.Perm
+        (certificate.conclusions.map placement.inverse) := by
+  dsimp only
+  let premise := certificate.peelTerminalPar left right conclusion
+  let placement := VertexRenaming.insertLastAt premise.formulas.size
+    conclusion placementInBounds
+  let context := certificate.conclusions.filter (· != conclusion)
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  have contextMapped :
+      (context.map (Certificate.compactVertex conclusion)).map
+          placement.forward = context := by
+    rw [List.map_map]
+    calc
+      List.map (placement.forward ∘ Certificate.compactVertex conclusion)
+          context = List.map id context := by
+        apply List.map_congr_left
+        intro vertex membership
+        have filtered := List.mem_filter.mp membership
+        have vertexMembership : vertex ∈ certificate.conclusions := filtered.1
+        have vertexNotConclusion : vertex ≠ conclusion := by
+          simpa using filtered.2
+        have vertexInBounds := structural.2.2.1 vertex vertexMembership
+        have compactInBounds : Certificate.compactVertex conclusion vertex <
+            premise.formulas.size := by
+          have compactBound := Certificate.compactVertex_lt conclusionInBounds
+            vertexInBounds vertexNotConclusion
+          have peelSize : premise.formulas.size =
+              certificate.formulas.size - 1 := by
+            simp [premise, peelTerminalPar, Array.eraseIdxIfInBounds,
+              conclusionInBounds]
+          simpa [peelSize] using compactBound
+        simp only [Function.comp_apply, id_eq, placement]
+        rw [VertexRenaming.insertLastAt_forward_old _ _ placementInBounds
+          compactInBounds]
+        change Certificate.expandVertex conclusion
+          (Certificate.compactVertex conclusion vertex) = vertex
+        exact Certificate.expandVertex_compactVertex_of_ne vertexNotConclusion
+      _ = context := by simpa using (List.map_id context)
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have contextEquation : context = certificate.conclusions.erase conclusion := by
+    simpa [context] using
+      (List.Nodup.erase_eq_filter originalNodup conclusion).symm
+  let sourceBoundary :=
+    context.map (Certificate.compactVertex conclusion) ++
+      [premise.formulas.size]
+  have sourceMapped : sourceBoundary.map placement.forward =
+      certificate.conclusions.erase conclusion ++ [conclusion] := by
+    calc
+      sourceBoundary.map placement.forward = context ++ [conclusion] := by
+        simp only [sourceBoundary, List.map_append, List.map_singleton]
+        rw [contextMapped]
+        simp [placement]
+      _ = certificate.conclusions.erase conclusion ++ [conclusion] := by
+        rw [contextEquation]
+  have erasedPermutation :
+      (certificate.conclusions.erase conclusion ++ [conclusion]).Perm
+        certificate.conclusions := by
+    have rotation :
+        (certificate.conclusions.erase conclusion ++ [conclusion]).Perm
+          ([conclusion] ++ certificate.conclusions.erase conclusion) :=
+      List.perm_append_comm
+    exact rotation.trans (by
+      simpa using (List.perm_cons_erase terminal.2).symm)
+  have targetMapped :
+      (certificate.conclusions.map placement.inverse).map placement.forward =
+        certificate.conclusions := by
+    simp [List.map_map, Function.comp_def, placement.forward_inverse]
+  have mappedPermutation :
+      (sourceBoundary.map placement.forward).Perm
+        ((certificate.conclusions.map placement.inverse).map
+          placement.forward) := by
+    rw [sourceMapped, targetMapped]
+    exact erasedPermutation
+  have pulled := mappedPermutation.map placement.inverse
+  exact ⟨sourceMapped, by
+    simpa [List.map_map, Function.comp_def, placement.inverse_forward]
+      using pulled⟩
+
 /-- Occurrence-level boundary reconstruction for a terminal par inverse.
 After peeling, applying par to the two final premise roots yields the old
 boundary with the par conclusion rotated to the end. Pulling the original
@@ -12450,21 +12711,26 @@ theorem TerminalPar.peelFormulas_reindex_append_eq
     (placementInBounds : conclusion <
       (certificate.peelTerminalPar left right conclusion).formulas.size + 1) :
     ∃ leftFormula rightFormula,
-      let premise := certificate.peelTerminalPar left right conclusion
-      let rebuilt := premise.appendParOccurrence leftFormula rightFormula
-        (Certificate.compactVertex conclusion left)
-        (Certificate.compactVertex conclusion right) boundary
-      let placement := premise.appendParPlacement leftFormula rightFormula
-        (Certificate.compactVertex conclusion left)
-        (Certificate.compactVertex conclusion right) boundary conclusion
-        placementInBounds
-      (rebuilt.reindex placement).formulas = certificate.formulas := by
+      certificate.formula? left = some leftFormula ∧
+      certificate.formula? right = some rightFormula ∧
+      certificate.formula? conclusion =
+        some (.par leftFormula rightFormula) ∧
+        let premise := certificate.peelTerminalPar left right conclusion
+        let rebuilt := premise.appendParOccurrence leftFormula rightFormula
+          (Certificate.compactVertex conclusion left)
+          (Certificate.compactVertex conclusion right) boundary
+        let placement := premise.appendParPlacement leftFormula rightFormula
+          (Certificate.compactVertex conclusion left)
+          (Certificate.compactVertex conclusion right) boundary conclusion
+          placementInBounds
+        (rebuilt.reindex placement).formulas = certificate.formulas := by
   let premise := certificate.peelTerminalPar left right conclusion
   have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
   rcases terminalWellFormed.par_formulaData with
     ⟨leftFormula, rightFormula, leftEquation, rightEquation,
       conclusionEquation⟩
-  refine ⟨leftFormula, rightFormula, ?_⟩
+  refine ⟨leftFormula, rightFormula, leftEquation, rightEquation,
+    conclusionEquation, ?_⟩
   dsimp only
   let rebuilt := premise.appendParOccurrence leftFormula rightFormula
     (Certificate.compactVertex conclusion left)
@@ -12546,15 +12812,19 @@ theorem TerminalPar.rebuild_directProofNetEquivalent
     ∃ (leftFormula rightFormula : Formula)
         (placementInBounds : conclusion <
           (certificate.peelTerminalPar left right conclusion).formulas.size + 1),
-      let premise := certificate.peelTerminalPar left right conclusion
-      let placement := VertexRenaming.insertLastAt premise.formulas.size
-        conclusion placementInBounds
-      let targetBoundary := certificate.conclusions.map placement.inverse
-      Certificate.DirectProofNetEquivalent
-        (premise.appendParOccurrence leftFormula rightFormula
-          (Certificate.compactVertex conclusion left)
-          (Certificate.compactVertex conclusion right) targetBoundary)
-        certificate := by
+      certificate.formula? left = some leftFormula ∧
+      certificate.formula? right = some rightFormula ∧
+      certificate.formula? conclusion =
+        some (.par leftFormula rightFormula) ∧
+        let premise := certificate.peelTerminalPar left right conclusion
+        let placement := VertexRenaming.insertLastAt premise.formulas.size
+          conclusion placementInBounds
+        let targetBoundary := certificate.conclusions.map placement.inverse
+        Certificate.DirectProofNetEquivalent
+          (premise.appendParOccurrence leftFormula rightFormula
+            (Certificate.compactVertex conclusion left)
+            (Certificate.compactVertex conclusion right) targetBoundary)
+          certificate := by
   let premise := certificate.peelTerminalPar left right conclusion
   have conclusionInBounds := structural.2.2.1 conclusion terminal.2
   have sizeEquation : premise.formulas.size + 1 = certificate.formulas.size := by
@@ -12570,8 +12840,10 @@ theorem TerminalPar.rebuild_directProofNetEquivalent
   let targetBoundary := certificate.conclusions.map rawPlacement.inverse
   rcases TerminalPar.peelFormulas_reindex_append_eq structural terminal
       targetBoundary placementInBounds with
-    ⟨leftFormula, rightFormula, formulaEquality⟩
-  refine ⟨leftFormula, rightFormula, placementInBounds, ?_⟩
+    ⟨leftFormula, rightFormula, leftEquation, rightEquation,
+      conclusionEquation, formulaEquality⟩
+  refine ⟨leftFormula, rightFormula, placementInBounds, leftEquation,
+    rightEquation, conclusionEquation, ?_⟩
   dsimp only
   let rebuilt := premise.appendParOccurrence leftFormula rightFormula
     (Certificate.compactVertex conclusion left)
@@ -12647,6 +12919,310 @@ theorem TerminalPar.rebuild_directProofNetEquivalent
     rw [placementForward]
     simp [targetBoundary, List.map_map, Function.comp_def,
       rawPlacement.forward_inverse]
+
+/-- Compose a recursively sequentialized peeled premise with one inverse
+terminal-par step.  The construction is occurrence-aware throughout: it
+builds an actual first-order par node, computes an executable exchange on
+formula/root pairs, and reconstructs a certificate directly equivalent to the
+input. -/
+theorem TerminalPar.sequentializationResult
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    (premiseAccepted :
+      (certificate.peelTerminalPar left right conclusion).check = true)
+    (premiseResult : SequentializationResult
+      (certificate.peelTerminalPar left right conclusion)) :
+    Nonempty (SequentializationResult certificate) := by
+  let premise := certificate.peelTerminalPar left right conclusion
+  have outputAccepted : premiseResult.output.check = true :=
+    premiseResult.outputAccepted premiseAccepted
+  have outputStructural : premiseResult.output.StructurallyWellFormed :=
+    (premiseResult.output.check_sound_declarative outputAccepted).1
+  rcases TerminalPar.rebuild_directProofNetEquivalent structural terminal with
+    ⟨leftFormula, rightFormula, placementInBounds, leftFormulaEquation,
+      rightFormulaEquation, _conclusionFormulaEquation, rebuildEvidence⟩
+  rcases TerminalPar.premiseBoundaryData_of_formulaData structural terminal
+      leftFormulaEquation rightFormulaEquation with
+    ⟨context, premiseLabels⟩
+  have premiseSequent : premiseResult.sequent =
+      context ++ [leftFormula, rightFormula] := by
+    exact Option.some.inj
+      (premiseResult.inputLabels.symm.trans premiseLabels)
+  rcases premiseResult.fragment_exists with
+    ⟨fragment, fragmentBuild, fragmentCertificate,
+      fragmentConclusions⟩
+  have fragmentBalanced : fragment.Balanced :=
+    CutFreeDerivation.build?_balanced fragmentBuild
+  have fragmentEntryLabels : fragment.entries.map Prod.fst =
+      context ++ [leftFormula, rightFormula] := by
+    rw [fragment.entries_map_fst fragmentBalanced, fragmentConclusions,
+      premiseSequent]
+  rcases list_pair_decompose_map_fst_append_two fragmentEntryLabels with
+    ⟨contextEntries, leftRoot, rightRoot, fragmentEntries,
+      contextEntryLabels⟩
+  have fragmentRoots : fragment.roots =
+      contextEntries.map Prod.snd ++ [leftRoot, rightRoot] := by
+    rw [← fragment.entries_map_snd fragmentBalanced, fragmentEntries]
+    simp
+  have fragmentStructural :
+      fragment.toCertificate.StructurallyWellFormed := by
+    simpa [fragmentCertificate] using outputStructural
+  have fragmentLabels :
+      fragment.toCertificate.conclusionFormulas? =
+        some fragment.conclusions := by
+    rw [fragmentCertificate, fragmentConclusions]
+    exact premiseResult.outputLabels
+  have fragmentEntriesLabelled : ∀ entry ∈ fragment.entries,
+      fragment.toCertificate.formula? entry.2 = some entry.1 := by
+    exact list_zip_labelled_of_mapM_eq_some fragmentBalanced
+      (by simpa [NetFragment.toCertificate,
+        Certificate.conclusionFormulas?] using fragmentLabels)
+  have fragmentEquivalent :
+      fragment.toCertificate.ProofNetEquivalent premise := by
+    simpa [fragmentCertificate] using premiseResult.equivalent
+  rcases fragmentEquivalent.toDirect with ⟨vertexMap, linkPermutation⟩
+  have formulaSize : fragment.formulas.size = premise.formulas.size := by
+    have sizes := congrArg Array.size linkPermutation.formulas
+    simpa [NetFragment.toCertificate, Certificate.reindex] using sizes
+  have mappedConclusions :
+      contextEntries.map (vertexMap.forward ∘ Prod.snd) ++
+          [vertexMap.forward leftRoot, vertexMap.forward rightRoot] =
+        (certificate.conclusions.filter (· != conclusion)).map
+            (Certificate.compactVertex conclusion) ++
+          [Certificate.compactVertex conclusion left,
+            Certificate.compactVertex conclusion right] := by
+    have conclusions := linkPermutation.conclusions
+    change fragment.roots.map vertexMap.forward = premise.conclusions
+      at conclusions
+    rw [fragmentRoots, List.map_append] at conclusions
+    simpa [premise, Certificate.peelTerminalPar, List.map_map,
+      Function.comp_def] using conclusions
+  have mappedParts := List.append_inj' mappedConclusions (by simp)
+  have contextRootsMapped :
+      contextEntries.map (vertexMap.forward ∘ Prod.snd) =
+        (certificate.conclusions.filter (· != conclusion)).map
+          (Certificate.compactVertex conclusion) := mappedParts.1
+  have endpointRootsMapped :
+      [vertexMap.forward leftRoot, vertexMap.forward rightRoot] =
+        [Certificate.compactVertex conclusion left,
+          Certificate.compactVertex conclusion right] := mappedParts.2
+  have leftRootMapped : vertexMap.forward leftRoot =
+      Certificate.compactVertex conclusion left := by
+    simpa using congrArg List.head? endpointRootsMapped
+  have rightRootMapped : vertexMap.forward rightRoot =
+      Certificate.compactVertex conclusion right := by
+    have tails := congrArg List.tail endpointRootsMapped
+    simpa using congrArg List.head? tails
+  have contextRootInBounds : ∀ root ∈ contextEntries.map Prod.snd,
+      root < fragment.formulas.size := by
+    intro root rootMembership
+    have inAllRoots : root ∈ fragment.roots := by
+      rw [fragmentRoots]
+      simp [rootMembership]
+    exact fragmentStructural.2.2.1 root (by
+      simpa [NetFragment.toCertificate] using inAllRoots)
+  have leftRootInBounds : leftRoot < fragment.formulas.size := by
+    exact fragmentStructural.2.2.1 leftRoot (by
+      simp [NetFragment.toCertificate, fragmentRoots])
+  have rightRootInBounds : rightRoot < fragment.formulas.size := by
+    exact fragmentStructural.2.2.1 rightRoot (by
+      simp [NetFragment.toCertificate, fragmentRoots])
+  let placement := VertexRenaming.insertLastAt premise.formulas.size
+    conclusion placementInBounds
+  let premiseTarget := certificate.conclusions.map placement.inverse
+  have premiseBoundary :=
+    TerminalPar.occurrenceBoundaryReconstruction_at structural terminal
+      placementInBounds
+  let premiseSource :=
+    (certificate.conclusions.filter (· != conclusion)).map
+        (Certificate.compactVertex conclusion) ++ [premise.formulas.size]
+  have premiseBoundaryPermutation : premiseSource.Perm premiseTarget := by
+    simpa [premise, placement, premiseSource, premiseTarget] using
+      premiseBoundary.2
+  let extended := vertexMap.extendLast
+  let sourceBoundary :=
+    contextEntries.map Prod.snd ++ [fragment.formulas.size]
+  have sourceBoundaryMapped : sourceBoundary.map extended.forward =
+      premiseSource := by
+    have oldContext :
+        (contextEntries.map Prod.snd).map extended.forward =
+          contextEntries.map (vertexMap.forward ∘ Prod.snd) := by
+      rw [List.map_map]
+      apply List.map_congr_left
+      intro entry entryMembership
+      have rootMembership : entry.2 ∈ contextEntries.map Prod.snd :=
+        List.mem_map.mpr ⟨entry, entryMembership, rfl⟩
+      simpa [Function.comp_def, extended] using
+        (VertexRenaming.extendLast_forward_old vertexMap
+          (contextRootInBounds entry.2 rootMembership))
+    simp only [sourceBoundary, premiseSource, List.map_append,
+      List.map_singleton]
+    rw [oldContext, contextRootsMapped]
+    have lastMapped : extended.forward fragment.formulas.size =
+        premise.formulas.size := by
+      change vertexMap.extendLast.forward fragment.formulas.size =
+        premise.formulas.size
+      calc
+        vertexMap.extendLast.forward fragment.formulas.size =
+            fragment.formulas.size := by
+          simpa [NetFragment.toCertificate] using
+            (VertexRenaming.extendLast_forward_last vertexMap)
+        _ = premise.formulas.size := formulaSize
+    rw [lastMapped]
+  let targetBoundary := premiseTarget.map extended.inverse
+  have boundaryPermutation : sourceBoundary.Perm targetBoundary := by
+    rw [← sourceBoundaryMapped] at premiseBoundaryPermutation
+    have pulled := premiseBoundaryPermutation.map extended.inverse
+    simpa [targetBoundary, List.map_map, Function.comp_def,
+      extended.inverse_forward] using pulled
+  let sourceEntries := contextEntries ++
+    [(.par leftFormula rightFormula, fragment.formulas.size)]
+  let sourceCertificate := fragment.toCertificate.appendParOccurrence
+    leftFormula rightFormula leftRoot rightRoot sourceBoundary
+  have sourceEntriesLabelled : ∀ entry ∈ sourceEntries,
+      sourceCertificate.formula? entry.2 = some entry.1 := by
+    intro entry entryMembership
+    simp only [sourceEntries, List.mem_append, List.mem_singleton]
+      at entryMembership
+    rcases entryMembership with contextMembership | rfl
+    · have oldMembership : entry ∈ fragment.entries := by
+        rw [fragmentEntries]
+        simp [contextMembership]
+      have oldLabel := fragmentEntriesLabelled entry oldMembership
+      have rootInBounds : entry.2 < fragment.formulas.size := by
+        have rootMembership : entry.2 ∈ contextEntries.map Prod.snd :=
+          List.mem_map.mpr ⟨entry, contextMembership, rfl⟩
+        exact contextRootInBounds entry.2 rootMembership
+      simpa [sourceCertificate, Certificate.appendParOccurrence,
+        NetFragment.toCertificate, Certificate.formula?,
+        Array.getElem?_push, rootInBounds, Nat.ne_of_lt rootInBounds]
+        using oldLabel
+    · simp [sourceCertificate, Certificate.appendParOccurrence,
+        NetFragment.toCertificate, Certificate.formula?]
+  have sourceEntryRoots : sourceEntries.map Prod.snd = sourceBoundary := by
+    simp [sourceEntries, sourceBoundary]
+  have sourceEntriesNormalized : sourceEntries =
+      sourceBoundary.map fun root =>
+        ((sourceCertificate.formula? root).getD (.atom "" false), root) :=
+    list_pairs_eq_map_option_getD (.atom "" false) sourceEntryRoots
+      sourceEntriesLabelled
+  let targetEntries := targetBoundary.map fun root =>
+    ((sourceCertificate.formula? root).getD (.atom "" false), root)
+  have entryPermutation : sourceEntries.Perm targetEntries := by
+    rw [sourceEntriesNormalized]
+    exact boundaryPermutation.map fun root =>
+      ((sourceCertificate.formula? root).getD (.atom "" false), root)
+  have contextRootsNodup : (contextEntries.map Prod.snd).Nodup := by
+    have allRootsNodup : fragment.roots.Nodup :=
+      nodup_of_eraseDups_length_eq fragmentStructural.2.2.2.1
+    rw [fragmentRoots, List.nodup_append] at allRootsNodup
+    exact allRootsNodup.1
+  have sourceBoundaryNodup : sourceBoundary.Nodup := by
+    simp only [sourceBoundary, List.nodup_append]
+    refine ⟨contextRootsNodup, by simp, ?_⟩
+    intro root rootMembership fresh freshMembership
+    simp only [List.mem_singleton] at freshMembership
+    subst fresh
+    exact Nat.ne_of_lt (contextRootInBounds root rootMembership)
+  have sourceEntriesNodup : sourceEntries.Nodup := by
+    rw [sourceEntriesNormalized]
+    exact list_map_pair_self_nodup
+      (fun root => (sourceCertificate.formula? root).getD (.atom "" false))
+      sourceBoundaryNodup
+  let order := targetEntries.map sourceEntries.idxOf
+  have reordered : CutFreeDerivation.reorder? sourceEntries order =
+      some targetEntries := by
+    exact CutFreeDerivation.reorder?_idxOf_of_nodup_perm
+      sourceEntriesNodup entryPermutation
+  let parTree := CutFreeDerivation.par contextEntries.length
+    contextEntries.length premiseResult.tree
+  let parFragment := NetFragment.ofEntries
+    (fragment.formulas.push (.par leftFormula rightFormula))
+    (fragment.links ++ [.par leftRoot rightRoot fragment.formulas.size])
+    sourceEntries
+  have parBuild : parTree.build? = some parFragment := by
+    simpa [parTree, parFragment, sourceEntries] using
+      (CutFreeDerivation.build?_parLast fragmentBuild fragmentEntries)
+  have parEntries : parFragment.entries = sourceEntries := by
+    simpa [parFragment, NetFragment.entries, NetFragment.ofEntries] using
+      (list_zip_map_fst_snd sourceEntries)
+  have parReordered : CutFreeDerivation.reorder? parFragment.entries order =
+      some targetEntries := by
+    simpa [parEntries] using reordered
+  let tree := CutFreeDerivation.exchange order parTree
+  let outputFragment := NetFragment.ofEntries parFragment.formulas
+    parFragment.links targetEntries
+  have outputBuild : tree.build? = some outputFragment := by
+    simpa [tree, outputFragment] using
+      (CutFreeDerivation.build?_exchange_of_reorder parBuild parReordered)
+  have targetEntriesLabelled : ∀ entry ∈ targetEntries,
+      sourceCertificate.formula? entry.2 = some entry.1 := by
+    intro entry membership
+    exact sourceEntriesLabelled entry (entryPermutation.mem_iff.mpr membership)
+  have outputLabels : outputFragment.toCertificate.conclusionFormulas? =
+      some outputFragment.conclusions := by
+    unfold Certificate.conclusionFormulas?
+    change (targetEntries.map Prod.snd).mapM
+        sourceCertificate.formula? = some (targetEntries.map Prod.fst)
+    rw [List.mapM_map]
+    exact list_mapM_eq_some_map_of_forall targetEntries
+      (fun entry => sourceCertificate.formula? entry.2) Prod.fst
+      targetEntriesLabelled
+  let targetCertificate := fragment.toCertificate.appendParOccurrence
+    leftFormula rightFormula leftRoot rightRoot targetBoundary
+  have outputCertificate : outputFragment.toCertificate = targetCertificate := by
+    apply Certificate.ext_fields
+    · rfl
+    · rfl
+    · simp [outputFragment, parFragment, targetEntries, targetCertificate,
+        NetFragment.toCertificate, NetFragment.ofEntries,
+        Certificate.appendParOccurrence, Function.comp_def]
+  have fragmentLinksInBounds : ∀ link ∈ fragment.links,
+      ∀ vertex ∈ link.vertices, vertex < fragment.formulas.size := by
+    intro link linkMembership vertex vertexMembership
+    exact (fragmentStructural.2.2.2.2.1 link (by
+      simpa [NetFragment.toCertificate] using linkMembership)).vertex_in_bounds
+        vertexMembership
+  have lifted :=
+    Certificate.DirectProofNetEquivalent.appendParOccurrenceExtended
+      vertexMap linkPermutation leftFormula rightFormula leftRoot rightRoot
+      targetBoundary fragmentLinksInBounds leftRootInBounds rightRootInBounds
+  have targetMapped :
+      targetBoundary.map
+          (fragment.toCertificate.appendParRenaming vertexMap leftFormula
+            rightFormula leftRoot rightRoot targetBoundary).forward =
+        premiseTarget := by
+    rw [Certificate.appendParRenaming_forward]
+    change targetBoundary.map vertexMap.extendLast.forward = premiseTarget
+    simp [targetBoundary, extended, List.map_map, Function.comp_def,
+      vertexMap.extendLast.forward_inverse]
+  have liftedDirect : targetCertificate.DirectProofNetEquivalent
+      (premise.appendParOccurrence leftFormula rightFormula
+        (Certificate.compactVertex conclusion left)
+        (Certificate.compactVertex conclusion right) premiseTarget) := by
+    dsimp only at lifted
+    rw [leftRootMapped, rightRootMapped, targetMapped] at lifted
+    simpa [targetCertificate] using lifted
+  have rebuildDirect : Certificate.DirectProofNetEquivalent
+      (premise.appendParOccurrence leftFormula rightFormula
+        (Certificate.compactVertex conclusion left)
+        (Certificate.compactVertex conclusion right) premiseTarget)
+      certificate := by
+    simpa [premise, placement, premiseTarget] using rebuildEvidence
+  have totalDirect :
+      outputFragment.toCertificate.DirectProofNetEquivalent certificate := by
+    rw [outputCertificate]
+    exact liftedDirect.trans rebuildDirect
+  exact ⟨{
+    tree := tree
+    sequent := outputFragment.conclusions
+    output := outputFragment.toCertificate
+    inferred := CutFreeDerivation.infer?_of_build? outputBuild
+    desequentialized := by
+      simp [CutFreeDerivation.desequentialize?, outputBuild]
+    outputLabels := outputLabels
+    equivalent := totalDirect.toProofNetEquivalent }⟩
 
 theorem peelTerminalPar_conclusions_nodup
     {certificate : Certificate} {left right conclusion : Vertex}

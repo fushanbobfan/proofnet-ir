@@ -1067,12 +1067,19 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check VertexRenaming.extendLast
 #check VertexRenaming.insertLastAt
 #check CutFreeDerivation.reorder?_idxOf_of_nodup_perm
+#check CutFreeDerivation.build?_exchange_of_reorder
 #check list_pair_decompose_map_fst_append_two
 #check list_zip_labelled_of_mapM_eq_some
+#check list_zip_eq_map_option_getD_of_mapM_eq_some
+#check list_pairs_eq_map_option_getD
+#check list_zip_map_fst_snd
+#check list_map_pair_self_nodup
 #check Certificate.appendParOccurrence
 #check Certificate.appendParPlacement
 #check Certificate.appendParOccurrence_reindex_formulas
+#check Certificate.DirectProofNetEquivalent.appendParOccurrenceExtended
 #check Certificate.DirectProofNetEquivalent.appendParOccurrence
+#check Certificate.TerminalPar.occurrenceBoundaryReconstruction_at
 #check Certificate.TerminalPar.occurrenceBoundaryReconstruction
 #check Certificate.TerminalPar.premiseBoundaryData_of_formulaData
 #check Link.reindex_insertLastAt_compactVertices
@@ -1082,6 +1089,7 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.LinkWellFormed.par_formulaData
 #check Certificate.TerminalPar.peelFormulas_reindex_append_eq
 #check Certificate.TerminalPar.rebuild_directProofNetEquivalent
+#check Certificate.TerminalPar.sequentializationResult
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =
