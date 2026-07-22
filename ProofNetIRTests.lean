@@ -1071,6 +1071,10 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.appendParOccurrence_reindex_formulas
 #check Certificate.DirectProofNetEquivalent.appendParOccurrence
 #check Certificate.TerminalPar.occurrenceBoundaryReconstruction
+#check Link.reindex_insertLastAt_compactVertices
+#check Certificate.TerminalPar.producer_filter_eq
+#check Certificate.TerminalPar.terminal_not_mem_remaining
+#check Certificate.TerminalPar.peelLinks_reindex_append_perm
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =

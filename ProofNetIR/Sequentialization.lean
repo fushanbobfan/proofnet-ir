@@ -981,6 +981,50 @@ def compactVertices (removed : Vertex) : Link → Link
         (Certificate.compactVertex removed second)
         (Certificate.compactVertex removed result)
 
+/-- Inserting the deleted position back at the final compacted vertex restores
+every endpoint of a link which avoided that position. -/
+theorem reindex_insertLastAt_compactVertices
+    {oldBound removed : Nat}
+    (removedInBounds : removed < oldBound + 1) (link : Link)
+    (inBounds : ∀ vertex ∈ link.vertices, vertex < oldBound + 1)
+    (avoids : removed ∉ link.vertices) :
+    (link.compactVertices removed).reindex
+        (VertexRenaming.insertLastAt oldBound removed removedInBounds) =
+      link := by
+  let placement := VertexRenaming.insertLastAt oldBound removed removedInBounds
+  have restored : ∀ vertex ∈ link.vertices,
+      placement.forward (Certificate.compactVertex removed vertex) = vertex := by
+    intro vertex membership
+    have vertexInBounds := inBounds vertex membership
+    have vertexNotRemoved : vertex ≠ removed := by
+      intro same
+      subst vertex
+      exact avoids membership
+    have compactInBounds : Certificate.compactVertex removed vertex < oldBound := by
+      have compactBound := Certificate.compactVertex_lt removedInBounds
+        vertexInBounds vertexNotRemoved
+      simpa using compactBound
+    rw [VertexRenaming.insertLastAt_forward_old _ _ removedInBounds
+      compactInBounds]
+    change Certificate.expandVertex removed
+      (Certificate.compactVertex removed vertex) = vertex
+    exact Certificate.expandVertex_compactVertex_of_ne vertexNotRemoved
+  cases link with
+  | «axiom» left right =>
+      simp only [compactVertices, reindex]
+      rw [restored left (by simp [vertices]),
+        restored right (by simp [vertices])]
+  | tensor left right conclusion =>
+      simp only [compactVertices, reindex]
+      rw [restored left (by simp [vertices]),
+        restored right (by simp [vertices]),
+        restored conclusion (by simp [vertices])]
+  | par left right conclusion =>
+      simp only [compactVertices, reindex]
+      rw [restored left (by simp [vertices]),
+        restored right (by simp [vertices]),
+        restored conclusion (by simp [vertices])]
+
 theorem deleteVertex?_eq_some_iff (link compacted : Link)
     (removed : Vertex) :
     link.deleteVertex? removed = some compacted ↔
@@ -9196,6 +9240,23 @@ theorem producer_unique {certificate : Certificate}
     membership produces terminal.1
   simp [Link.produces]
 
+theorem producer_filter_eq {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    certificate.links.filter (·.produces conclusion) =
+      [.par left right conclusion] := by
+  have count := (TerminalPar.ownership structural terminal).1
+  change (certificate.links.filter (·.produces conclusion)).length = 1 at count
+  rcases List.length_eq_one_iff.mp count with ⟨only, equation⟩
+  have terminalFiltered : Link.par left right conclusion ∈
+      certificate.links.filter (·.produces conclusion) := by
+    simp [terminal.1, Link.produces]
+  rw [equation] at terminalFiltered
+  simp at terminalFiltered
+  subst only
+  exact equation
+
 theorem no_parentUse {certificate : Certificate}
     {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -9267,6 +9328,20 @@ theorem deletion_none_iff_eq
   · intro same
     subst link
     simp [Link.deleteVertex?, Certificate.deleteVertex?]
+
+theorem terminal_not_mem_remaining
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    Link.par left right conclusion ∉
+      certificate.links.erase (.par left right conclusion) := by
+  have countOriginal : certificate.links.count (.par left right conclusion) = 1 := by
+    rw [← List.count_filter (p := (·.produces conclusion)) (by
+      simp [Link.produces])]
+    rw [TerminalPar.producer_filter_eq structural terminal]
+    simp
+  apply List.count_eq_zero.mp
+  simp [countOriginal]
 
 end TerminalPar
 
@@ -12054,6 +12129,125 @@ theorem TerminalPar.occurrenceBoundaryReconstruction
   have pulled := mappedPermutation.map placement.inverse
   refine ⟨placement, sourceMapped, ?_⟩
   simpa [List.map_map, Function.comp_def, placement.inverse_forward] using pulled
+
+/-- The old links surviving a terminal-par peel are restored pointwise by the
+insertion renaming. Appending the unique terminal link then recovers the input
+link multiset, independently of its storage position. -/
+theorem TerminalPar.peelLinks_reindex_append_perm
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    (placementInBounds : conclusion <
+      (certificate.peelTerminalPar left right conclusion).formulas.size + 1) :
+    let placement := VertexRenaming.insertLastAt
+      (certificate.peelTerminalPar left right conclusion).formulas.size
+      conclusion placementInBounds
+    ((certificate.peelTerminalPar left right conclusion).links.map
+        (Link.reindex placement) ++ [Link.par left right conclusion]).Perm
+      certificate.links := by
+  dsimp only
+  let premise := certificate.peelTerminalPar left right conclusion
+  let terminalLink : Link := .par left right conclusion
+  let placement := VertexRenaming.insertLastAt premise.formulas.size
+    conclusion placementInBounds
+  have conclusionInBounds := structural.2.2.1 conclusion terminal.2
+  have sizeEquation : premise.formulas.size + 1 = certificate.formulas.size := by
+    have peelSize : premise.formulas.size = certificate.formulas.size - 1 := by
+      simp [premise, peelTerminalPar, Array.eraseIdxIfInBounds,
+        conclusionInBounds]
+    rw [peelSize]
+    exact Nat.sub_add_cancel structural.1
+  have restoreSegment : ∀ segment : List Link,
+      (∀ link ∈ segment, link ∈ certificate.links) →
+      terminalLink ∉ segment →
+      (segment.filterMap (Link.deleteVertex? conclusion)).map
+          (Link.reindex placement) = segment := by
+    intro segment subset avoidsTerminal
+    induction segment with
+    | nil => rfl
+    | cons head tail ih =>
+        have headMembership : head ∈ certificate.links :=
+          subset head (by simp)
+        have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+          intro link membership
+          exact subset link (by simp [membership])
+        have headDifferent : head ≠ terminalLink := by
+          intro same
+          subst head
+          exact avoidsTerminal (by simp)
+        have tailAvoids : terminalLink ∉ tail := by
+          intro membership
+          exact avoidsTerminal (by simp [membership])
+        have tailIH := ih tailSubset tailAvoids
+        cases deleted : head.deleteVertex? conclusion with
+        | none =>
+            have same := (TerminalPar.deletion_none_iff_eq structural terminal
+              headMembership).mp deleted
+            exact False.elim (headDifferent same)
+        | some compacted =>
+            rcases (Link.deleteVertex?_eq_some_iff head compacted conclusion).mp
+                deleted with ⟨headAvoids, rfl⟩
+            have headWellFormed := structural.2.2.2.2.1 head headMembership
+            have headInBounds : ∀ vertex ∈ head.vertices,
+                vertex < premise.formulas.size + 1 := by
+              intro vertex membership
+              have originalBound := headWellFormed.vertex_in_bounds membership
+              simpa [sizeEquation] using originalBound
+            have restored := Link.reindex_insertLastAt_compactVertices
+              placementInBounds head headInBounds headAvoids
+            have restoredAtPlacement :
+                (head.compactVertices conclusion).reindex placement = head := by
+              simpa [premise, placement] using restored
+            simp [deleted, restoredAtPlacement, tailIH]
+  have countOriginal : certificate.links.count terminalLink = 1 := by
+    change certificate.links.count (.par left right conclusion) = 1
+    rw [← List.count_filter (p := (·.produces conclusion)) (by
+      simp [Link.produces])]
+    rw [TerminalPar.producer_filter_eq structural terminal]
+    simp
+  rcases List.mem_iff_append.mp terminal.1 with
+    ⟨before, after, linksEquation⟩
+  have beforeSubset : ∀ link ∈ before, link ∈ certificate.links := by
+    intro link membership
+    rw [linksEquation]
+    simp [membership]
+  have afterSubset : ∀ link ∈ after, link ∈ certificate.links := by
+    intro link membership
+    rw [linksEquation]
+    simp [membership]
+  have countDecomposition := congrArg (List.count terminalLink) linksEquation
+  rw [countOriginal] at countDecomposition
+  have countSplit : before.count terminalLink + after.count terminalLink = 0 := by
+    simp [terminalLink, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] at countDecomposition
+    rcases countDecomposition with ⟨beforeZero, afterZero⟩
+    simp [terminalLink, beforeZero, afterZero]
+  have beforeAvoids : terminalLink ∉ before := by
+    apply List.count_eq_zero.mp
+    omega
+  have afterAvoids : terminalLink ∉ after := by
+    apply List.count_eq_zero.mp
+    omega
+  have beforeRestored := restoreSegment before beforeSubset beforeAvoids
+  have afterRestored := restoreSegment after afterSubset afterAvoids
+  have restoredRemaining :
+      (premise.links.map (Link.reindex placement)) =
+        certificate.links.erase terminalLink := by
+    change ((certificate.links.filterMap
+      (Link.deleteVertex? conclusion)).map (Link.reindex placement)) = _
+    rw [linksEquation, List.filterMap_append, List.map_append]
+    simp only [List.filterMap_cons]
+    have terminalDeleted : terminalLink.deleteVertex? conclusion = none := by
+      simp [terminalLink, Link.deleteVertex?, Certificate.deleteVertex?]
+    rw [terminalDeleted]
+    simp only [List.filterMap_nil, List.nil_append, List.map_append,
+      List.map_nil, List.append_nil]
+    rw [beforeRestored, afterRestored]
+    symm
+    simp only [terminalLink] at beforeAvoids ⊢
+    rw [List.erase_append_right _ beforeAvoids, List.erase_cons_head]
+  rw [restoredRemaining]
+  exact List.perm_append_comm.trans (by
+    simpa [terminalLink] using (List.perm_cons_erase terminal.1).symm)
 
 theorem peelTerminalPar_conclusions_nodup
     {certificate : Certificate} {left right conclusion : Vertex}
