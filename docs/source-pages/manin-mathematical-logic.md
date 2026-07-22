@@ -11,7 +11,7 @@ Audit started: 2026-07-22
 - Extent: 389 physical PDF pages.
 - Text extraction: 388 pages have extractable text. Physical page 1 has no
   extracted text and was therefore rendered and checked visually as the cover.
-- Current direct ordered reading: physical pages 1-240. This is an in-progress
+- Current direct ordered reading: physical pages 1-288. This is an in-progress
   page audit, not a completed-source claim.
 
 ## Page-by-page matrix for the completed interval
@@ -258,11 +258,59 @@ Audit started: 2026-07-22
 | 238 | 227 / VI.9.4-9.5 | Construction of an optimal family and integer-complexity examples. | Performance comparisons require a fixed cost model and admitted invariance notion. |
 | 239 | 228 / VI.9.5-9.8 | Complexity examples and composition bounds. | Supports reporting asymptotic search cost rather than one benchmark number. |
 | 240 | 229 / VI.9.8-9.9 | Proof of composition bounds and statement that Kolmogorov complexity is not computable. | Exact intrinsic proof complexity cannot generally be a computable library metric. |
+| 241 | 230 / VI.9.9-9.10 | Proof of noncomputability of complexity and consequences for first appearances in optimal families. | No algorithm can generally certify minimal representation length; avoid “smallest proof” claims. |
+| 242 | 231 / VI.9.10 | Distinction between program length, execution time, parallelism, and practical complexity. | Existing runtime budget is a regression guard, not evidence of scalable asymptotics. |
+| 243 | Part III divider | Divider introducing provability and computability. | Accounted for; no mathematical claim. |
+| 244 | 235 / VII.1.1-1.2 | Arithmetic encoding of syntax and definitions of numberings/equivalent numberings. | A canonical representation is canonical only relative to a specified effective equivalence class. |
+| 245 | 236 / VII.1.2-1.6 | Equivalence properties, recursion relative to numberings, invariance, and compatible tuple numberings. | Representation independence requires computable translations both ways. |
+| 246 | 237 / VII.1.7-1.9 | Compatible product encodings and admissible numberings of expressions with length, coordinate, and concatenation operations. | A serialization contract should expose decidable membership and computable structural operations. |
+| 247 | 238 / VII.1.9 | Proof that compatible expression numberings are equivalent and prime-factor encoding begins. | Uniqueness is up to effective equivalence, not literal code equality. |
+| 248 | 239 / VII.1.9-1.10 | Decidability/admissibility of the prime encoding and invariant syntactic operations. | Directly rules out calling the current key a solution to arbitrary graph isomorphism. |
+| 249 | 240 / VII.1.10; VII.2.1-2.3 | Canonical numbering via finite protoalphabets and setup of truth versus enumerable provability. | Canonical encodings still depend on a declared syntactic universe. |
+| 250 | 241 / VII.2.3-2.5; VII.3.1-3.2 | Enumerability of proofs, nonenumerability of rich truth, general incompleteness, and Tarski reductions. | A decidable proof checker can never be conflated with a general truth decider. |
+| 251 | 242 / VII.3.2-3.3 | Concrete nonenumerable family of true arithmetic formulas from an undecidable enumerable set. | Uniform generated cases may expose limits no finite test suite can close. |
+| 252 | 243 / VII.3.4-3.5; VII.4.1 | Transfer to richer languages, Diophantine consequences, and syntactic-analysis setup. | Translation preserves the limit only when it preserves truth and is recursive. |
+| 253 | 244 / VII.4.1-4.2 | Goedel numbering assumptions and a computable matching-parenthesis function. | Parser operations need decidable domains and explicit failure behavior. |
+| 254 | 245 / VII.4.3 | Recursive syntactic analysis deciding concatenations of terms. | Structural recognition is proved by a terminating recursion, not samples. |
+| 255 | 246 / VII.4.3 | Conversion of recursion over arbitrary smaller encodings to ordinary primitive recursion. | Well-founded recursive calls need a stored-history invariant. |
+| 256 | 247 / VII.4.3-4.5 | Decidability of terms, atomic formulas, and all formulas. | A parser library should similarly prove grammar recognition exactness. |
+| 257 | 248 / VII.4.5-4.7 | Formula recognizer, single-position substitution, and free-variable decision. | Substitution and occurrence identity must remain separate from label equality. |
+| 258 | 249 / VII.4.7-4.9; VII.5.1 | Capture avoidance, simultaneous free substitution, and general axioms/rules setup. | Reinforces occurrence-sensitive transformations and explicit capture conditions. |
+| 259 | 250 / VII.5.1-5.4 | Enumerability of deducible expressions and realization of generalization/modus ponens. | A proof-producing runtime should enumerate only outputs justified by checked rules. |
+| 260 | 251 / VII.5.4-5.7 | Enumerability of tautology, quantifier, and equality axiom schemes. | A schema is handled by a uniform generator plus side-condition decision procedure. |
+| 261 | 252 / VII.5.7-5.8; VII.6.1-6.2 | Special axiom schemes and definition of the arithmetical hierarchy. | Background only. |
+| 262 | 253 / VII.6.2 | Hierarchy characterization by quantifier alternation and closure proof. | Bound-variable renaming is required to combine projected witnesses correctly. |
+| 263 | 254 / VII.6.2-6.4 | Strictness of the arithmetical hierarchy by diagonalization. | No finite checker can be promoted beyond its stated decision problem. |
+| 264 | 255 / VII.6.4; VII.7.1-7.3 | Quantifier-complexity remarks and setup for productive truth/self-reference. | Complexity classifications are representation-sensitive background. |
+| 265 | 256 / VII.7.3-7.4 | Effective diagonal/self-reference lemma and comparison of Tarski and Goedel arguments. | Reflection claims require an explicitly delimited metalanguage and numbering. |
+| 266 | 257 / VII.7.4-7.7 | Productive truth and effective construction of a new true unprovable formula from any enumerable subsystem. | Prevents interpreting library completeness outside the precise proof-net theorem. |
+| 267 | 258 / VII.7.7-7.10 | Feferman transfinite axiom progressions and omitted exhaustion theorem. | The cited theorem is not locally proved; no project dependency. |
+| 268 | 259 / VII.8.1-8.3 | Proof-length speedup principles and abstract deduction-complexity data. | Proof size is a separate metric from formula size and runtime. |
+| 269 | 260 / VII.8.3-8.4 | Decidability and recursive-bounds axioms for deduction complexity, then speedup theorem. | Any performance theorem needs an explicit cost model and computable measurement. |
+| 270 | 261 / VII.8.4 | Proof of unbounded proof-length reduction after adding an independent axiom. | Benchmark speedups do not establish intrinsic superiority of one proof representation. |
+| 271 | 263 / VIII.1.1-1.2 | Free-group words, computable reduction, and enumerable subgroup preliminaries. | Algebraic word machinery outside MLL. |
+| 272 | 264 / VIII.1.2-1.6 | Recursive groups, Higman embedding theorem, and universal finitely presented groups. | No current project dependency. |
+| 273 | 265 / VIII.1.6-1.8 | Universal groups and finitely presented groups with undecidable word problem. | A finite presentation need not give a decidable equality checker; analogous warning for compact certificates. |
+| 274 | 266 / VIII.1.8-1.9; VIII.2.1-2.2 | Natural recursive groups, relation to DPRM, and free products with amalgamation. | No current project dependency. |
+| 275 | 267 / VIII.2.3-2.4 | Canonical expansions and subgroup intersections in amalgamated products; presentation notation. | Canonical normal forms require a uniqueness theorem. |
+| 276 | 268 / VIII.2.4-2.6 | HNN extensions and embedding theorem proof begins. | No current project dependency. |
+| 277 | 269 / VIII.2.6-2.7 | Completion and generalization to iterated HNN extensions/subgroups. | No current project dependency. |
+| 278 | 270 / VIII.2.7; VIII.3.1 | Embedding/intersection proof and start of two-generator embedding. | Tracks repeated embeddings explicitly, a useful formalization discipline. |
+| 279 | 271 / VIII.3.1; VIII.4.1 | Completion of effective two-generator embedding and equivalent definitions of benign subgroups. | Equivalent characterizations need explicit maps and intersection equalities. |
+| 280 | 272 / VIII.4.1-4.2 | Benign subgroup equivalence and quotient embedding lemma. | No current project dependency. |
+| 281 | 273 / VIII.4.2-4.4 | Completion of quotient lemma, reduction of Higman's theorem, and closure properties. | Long algebraic reduction chain outside MLL. |
+| 282 | 274 / VIII.4.4-4.5 | Benign subgroups closed under intersections/generated joins and homomorphic images. | Closure claims are proved operation by operation. |
+| 283 | 275 / VIII.5.1-5.3 | Bounded word systems and first reduction for benign enumerable subgroups. | No current project dependency. |
+| 284 | 276 / VIII.5.4 | DPRM reduction of an enumerable exponent set to elementary polynomial equations. | No current project dependency. |
+| 285 | 277 / VIII.5.4-5.5 | Decomposition of polynomial equations and second subgroup reduction. | No current project dependency. |
+| 286 | 278 / VIII.5.5-5.6 | Completion of the reduction and construction of multiple HNN extensions. | No current project dependency. |
+| 287 | 279 / VIII.5.6-5.8 | Finitely presented extension, finitely generated witness subgroups, and conjugation equations. | No current project dependency. |
+| 288 | 280 / VIII.5.8; VIII.6.1 | Completion of intersection proof and final Higman reduction begins. | No current project dependency. |
 
 ## Current claim boundary
 
 The completed interval supports the motivation for treating diagrams and
 decorated graphs as formal languages whose syntax and semantics must be stated
 precisely. It does not state the Danos-Regnier switching criterion, MLL proof-net
-correctness, or a sequentialization theorem. The remaining 149 pages are not
+correctness, or a sequentialization theorem. The remaining 101 pages are not
 yet represented as directly read in order.
