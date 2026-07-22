@@ -21,7 +21,7 @@ jobs:
       - name: Build as a downstream Lake dependency
         working-directory: consumer-smoke
         run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_consumer_smoke
-      - name: Consume the pinned public v0.3.0 release
+      - name: Consume the pinned public v0.3.1 release
         working-directory: consumer-release-smoke
         run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_release_consumer_smoke
       - name: Validate JSON certificate contract

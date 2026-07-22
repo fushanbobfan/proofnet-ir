@@ -147,7 +147,7 @@ ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundar
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 consumer-smoke/               independent downstream Lake dependency test
-consumer-release-smoke/       clean consumer pinned to a public release tag
+consumer-release-smoke/       clean consumer pinned to public v0.3.1 tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
