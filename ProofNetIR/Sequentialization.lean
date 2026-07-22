@@ -174,6 +174,89 @@ private theorem list_mapM_eq_some_of_forall {α β : Type}
       exact ⟨headResult :: tailResults, by
         simp [headEquation, tailEquation]⟩
 
+private theorem list_mapM_length_of_eq_some {α β : Type}
+    {values : List α} {function : α → Option β} {results : List β}
+    (equation : values.mapM function = some results) :
+    results.length = values.length := by
+  induction values generalizing results with
+  | nil =>
+      simp at equation
+      subst results
+      rfl
+  | cons head tail ih =>
+      cases headEquation : function head with
+      | none => simp [headEquation] at equation
+      | some headResult =>
+          cases tailEquation : tail.mapM function with
+          | none => simp [headEquation, tailEquation] at equation
+          | some tailResults =>
+              simp [headEquation, tailEquation] at equation
+              subst results
+              simp [ih tailEquation]
+
+private theorem list_mapM_eq_some_map_of_forall {α β : Type}
+    (values : List α) (function : α → Option β) (result : α → β)
+    (defined : ∀ value ∈ values, function value = some (result value)) :
+    values.mapM function = some (values.map result) := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+      have headDefined := defined head (by simp)
+      have tailDefined : ∀ value ∈ tail,
+          function value = some (result value) := by
+        intro value membership
+        exact defined value (by simp [membership])
+      simp [headDefined, ih tailDefined]
+
+private theorem idxOf?_eq_some_idxOf_of_mem [BEq α] [LawfulBEq α]
+    {values : List α} {value : α} (membership : value ∈ values) :
+    values.idxOf? value = some (values.idxOf value) := by
+  unfold List.idxOf? List.idxOf
+  apply List.findIdx?_eq_some_of_exists
+  exact ⟨value, membership, by simp⟩
+
+private theorem mem_of_idxOf?_eq_some [BEq α] [LawfulBEq α]
+    {values : List α} {value : α} {index : Nat}
+    (equation : values.idxOf? value = some index) : value ∈ values := by
+  rw [← List.isSome_idxOf?]
+  simp [equation]
+
+private theorem list_map_getElem?_idxOf_eq_some
+    [BEq α] [LawfulBEq α]
+    (values : List α) (function : α → β) {value : α}
+    (membership : value ∈ values) :
+    (values.map function)[values.idxOf value]? = some (function value) := by
+  have found := (List.idxOf?_eq_some_iff).mp
+    (idxOf?_eq_some_idxOf_of_mem membership)
+  rcases found with ⟨indexInBounds, valueAtIndex, _⟩
+  have mappedInBounds : values.idxOf value < (values.map function).length := by
+    simpa using indexInBounds
+  rw [List.getElem?_eq_getElem mappedInBounds]
+  simp [valueAtIndex]
+
+private theorem idxOf_injective_of_mem
+    [BEq α] [LawfulBEq α]
+    {values : List α} {left right : α}
+    (leftMembership : left ∈ values) (rightMembership : right ∈ values)
+    (sameIndex : values.idxOf left = values.idxOf right) : left = right := by
+  have leftFound := list_map_getElem?_idxOf_eq_some values id leftMembership
+  have rightFound := list_map_getElem?_idxOf_eq_some values id rightMembership
+  rw [sameIndex, rightFound] at leftFound
+  simpa using leftFound.symm
+
+private theorem idxOf_getElem_eq_index
+    [BEq α] [LawfulBEq α]
+    {values : List α} (nodup : values.Nodup)
+    (index : Nat) (inBounds : index < values.length) :
+    values.idxOf values[index] = index := by
+  have membership : values[index] ∈ values := List.getElem_mem inBounds
+  have firstInBounds := List.idxOf_lt_length_of_mem membership
+  have firstOccurrence :
+      values[values.idxOf values[index]]? = some values[index] := by
+    simpa using list_map_getElem?_idxOf_eq_some values id membership
+  apply (List.getElem?_inj firstInBounds nodup).mp
+  rw [firstOccurrence, List.getElem?_eq_getElem inBounds]
+
 /-- Evidence returned by the future general sequentializer. The result is
 deliberately stronger than an `Option CutFreeDerivation`: it connects
 first-order inference, desequentialization, ordered boundary labels, and the
@@ -533,6 +616,229 @@ def restrictTo? (vertices : List Vertex) : Link → Option Link
       let right' ← vertices.idxOf? right
       let conclusion' ← vertices.idxOf? conclusion
       pure (.par left' right' conclusion')
+
+theorem restrictTo?_eq_some_of_vertices
+    (link : Link) (vertices : List Vertex)
+    (contained : ∀ vertex ∈ link.vertices, vertex ∈ vertices) :
+    link.restrictTo? vertices = some (match link with
+      | .axiom left right =>
+          .axiom (vertices.idxOf left) (vertices.idxOf right)
+      | .tensor left right conclusion =>
+          .tensor (vertices.idxOf left) (vertices.idxOf right)
+            (vertices.idxOf conclusion)
+      | .par left right conclusion =>
+          .par (vertices.idxOf left) (vertices.idxOf right)
+            (vertices.idxOf conclusion)) := by
+  cases link with
+  | «axiom» left right =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      simp [restrictTo?, idxOf?_eq_some_idxOf_of_mem leftContained,
+        idxOf?_eq_some_idxOf_of_mem rightContained]
+  | tensor left right conclusion =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      have conclusionContained := contained conclusion (by simp [Link.vertices])
+      simp [restrictTo?, idxOf?_eq_some_idxOf_of_mem leftContained,
+        idxOf?_eq_some_idxOf_of_mem rightContained,
+        idxOf?_eq_some_idxOf_of_mem conclusionContained]
+  | par left right conclusion =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      have conclusionContained := contained conclusion (by simp [Link.vertices])
+      simp [restrictTo?, idxOf?_eq_some_idxOf_of_mem leftContained,
+        idxOf?_eq_some_idxOf_of_mem rightContained,
+        idxOf?_eq_some_idxOf_of_mem conclusionContained]
+
+theorem vertices_mem_of_restrictTo?_eq_some
+    {link restricted : Link} {vertices : List Vertex}
+    (equation : link.restrictTo? vertices = some restricted) :
+    ∀ vertex ∈ link.vertices, vertex ∈ vertices := by
+  cases link with
+  | «axiom» left right =>
+      cases leftEquation : vertices.idxOf? left with
+      | none => simp [restrictTo?, leftEquation] at equation
+      | some leftIndex =>
+          cases rightEquation : vertices.idxOf? right with
+          | none => simp [restrictTo?, leftEquation, rightEquation] at equation
+          | some rightIndex =>
+              intro vertex membership
+              simp [Link.vertices] at membership
+              rcases membership with rfl | rfl
+              · exact mem_of_idxOf?_eq_some leftEquation
+              · exact mem_of_idxOf?_eq_some rightEquation
+  | tensor left right conclusion =>
+      cases leftEquation : vertices.idxOf? left with
+      | none => simp [restrictTo?, leftEquation] at equation
+      | some leftIndex =>
+          cases rightEquation : vertices.idxOf? right with
+          | none => simp [restrictTo?, leftEquation, rightEquation] at equation
+          | some rightIndex =>
+              cases conclusionEquation : vertices.idxOf? conclusion with
+              | none =>
+                  simp [restrictTo?, leftEquation, rightEquation,
+                    conclusionEquation] at equation
+              | some conclusionIndex =>
+                  intro vertex membership
+                  simp [Link.vertices] at membership
+                  rcases membership with rfl | rfl | rfl
+                  · exact mem_of_idxOf?_eq_some leftEquation
+                  · exact mem_of_idxOf?_eq_some rightEquation
+                  · exact mem_of_idxOf?_eq_some conclusionEquation
+  | par left right conclusion =>
+      cases leftEquation : vertices.idxOf? left with
+      | none => simp [restrictTo?, leftEquation] at equation
+      | some leftIndex =>
+          cases rightEquation : vertices.idxOf? right with
+          | none => simp [restrictTo?, leftEquation, rightEquation] at equation
+          | some rightIndex =>
+              cases conclusionEquation : vertices.idxOf? conclusion with
+              | none =>
+                  simp [restrictTo?, leftEquation, rightEquation,
+                    conclusionEquation] at equation
+              | some conclusionIndex =>
+                  intro vertex membership
+                  simp [Link.vertices] at membership
+                  rcases membership with rfl | rfl | rfl
+                  · exact mem_of_idxOf?_eq_some leftEquation
+                  · exact mem_of_idxOf?_eq_some rightEquation
+                  · exact mem_of_idxOf?_eq_some conclusionEquation
+
+theorem restrictTo?_produces
+    {link restricted : Link} {vertices : List Vertex} {vertex : Vertex}
+    (equation : link.restrictTo? vertices = some restricted)
+    (vertexContained : vertex ∈ vertices) :
+    restricted.produces (vertices.idxOf vertex) = link.produces vertex := by
+  have contained := Link.vertices_mem_of_restrictTo?_eq_some equation
+  have exactEquation := Link.restrictTo?_eq_some_of_vertices link vertices contained
+  rw [exactEquation] at equation
+  cases equation
+  cases link with
+  | «axiom» left right => rfl
+  | tensor left right conclusion =>
+      have conclusionContained := contained conclusion (by simp [Link.vertices])
+      apply Bool.eq_iff_iff.mpr
+      simp only [produces, beq_iff_eq]
+      constructor
+      · exact idxOf_injective_of_mem conclusionContained vertexContained
+      · intro same
+        subst conclusion
+        rfl
+  | par left right conclusion =>
+      have conclusionContained := contained conclusion (by simp [Link.vertices])
+      apply Bool.eq_iff_iff.mpr
+      simp only [produces, beq_iff_eq]
+      constructor
+      · exact idxOf_injective_of_mem conclusionContained vertexContained
+      · intro same
+        subst conclusion
+        rfl
+
+theorem restrictTo?_containsAxiomEndpoint
+    {link restricted : Link} {vertices : List Vertex} {vertex : Vertex}
+    (equation : link.restrictTo? vertices = some restricted)
+    (vertexContained : vertex ∈ vertices) :
+    restricted.containsAxiomEndpoint (vertices.idxOf vertex) =
+      link.containsAxiomEndpoint vertex := by
+  have contained := Link.vertices_mem_of_restrictTo?_eq_some equation
+  have exactEquation := Link.restrictTo?_eq_some_of_vertices link vertices contained
+  rw [exactEquation] at equation
+  cases equation
+  cases link with
+  | «axiom» left right =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      apply Bool.eq_iff_iff.mpr
+      simp only [containsAxiomEndpoint, Bool.or_eq_true, beq_iff_eq]
+      constructor
+      · intro endpoint
+        rcases endpoint with endpoint | endpoint
+        · exact Or.inl
+            (idxOf_injective_of_mem leftContained vertexContained endpoint)
+        · exact Or.inr
+            (idxOf_injective_of_mem rightContained vertexContained endpoint)
+      · intro endpoint
+        rcases endpoint with rfl | rfl <;> simp
+  | tensor left right conclusion => rfl
+  | par left right conclusion => rfl
+
+theorem restrictTo?_usesAsPremise
+    {link restricted : Link} {vertices : List Vertex} {vertex : Vertex}
+    (equation : link.restrictTo? vertices = some restricted)
+    (vertexContained : vertex ∈ vertices) :
+    restricted.usesAsPremise (vertices.idxOf vertex) =
+      link.usesAsPremise vertex := by
+  have contained := Link.vertices_mem_of_restrictTo?_eq_some equation
+  have exactEquation := Link.restrictTo?_eq_some_of_vertices link vertices contained
+  rw [exactEquation] at equation
+  cases equation
+  cases link with
+  | «axiom» left right => rfl
+  | tensor left right conclusion =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      apply Bool.eq_iff_iff.mpr
+      simp only [usesAsPremise, premises, List.contains_cons,
+        List.contains_nil, Bool.or_false, Bool.or_eq_true, beq_iff_eq]
+      constructor
+      · intro premise
+        rcases premise with premise | premise
+        · exact Or.inl
+            (idxOf_injective_of_mem vertexContained leftContained premise)
+        · exact Or.inr
+            (idxOf_injective_of_mem vertexContained rightContained premise)
+      · intro premise
+        rcases premise with rfl | rfl <;> simp
+  | par left right conclusion =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      apply Bool.eq_iff_iff.mpr
+      simp only [usesAsPremise, premises, List.contains_cons,
+        List.contains_nil, Bool.or_false, Bool.or_eq_true, beq_iff_eq]
+      constructor
+      · intro premise
+        rcases premise with premise | premise
+        · exact Or.inl
+            (idxOf_injective_of_mem vertexContained leftContained premise)
+        · exact Or.inr
+            (idxOf_injective_of_mem vertexContained rightContained premise)
+      · intro premise
+        rcases premise with rfl | rfl <;> simp
+
+theorem produces_eq_false_of_not_mem_vertices
+    (link : Link) {vertex : Vertex} (notIncident : vertex ∉ link.vertices) :
+    link.produces vertex = false := by
+  cases link with
+  | «axiom» left right => rfl
+  | tensor left right conclusion =>
+      simp [Link.vertices] at notIncident
+      simp [produces, Ne.symm notIncident.2.2]
+  | par left right conclusion =>
+      simp [Link.vertices] at notIncident
+      simp [produces, Ne.symm notIncident.2.2]
+
+theorem containsAxiomEndpoint_eq_false_of_not_mem_vertices
+    (link : Link) {vertex : Vertex} (notIncident : vertex ∉ link.vertices) :
+    link.containsAxiomEndpoint vertex = false := by
+  cases link with
+  | «axiom» left right =>
+      simp [Link.vertices] at notIncident
+      simp [containsAxiomEndpoint, Ne.symm notIncident.1,
+        Ne.symm notIncident.2]
+  | tensor left right conclusion => rfl
+  | par left right conclusion => rfl
+
+theorem usesAsPremise_eq_false_of_not_mem_vertices
+    (link : Link) {vertex : Vertex} (notIncident : vertex ∉ link.vertices) :
+    link.usesAsPremise vertex = false := by
+  cases link with
+  | «axiom» left right => rfl
+  | tensor left right conclusion =>
+      simp [Link.vertices] at notIncident
+      simp [usesAsPremise, premises, notIncident.1, notIncident.2.1]
+  | par left right conclusion =>
+      simp [Link.vertices] at notIncident
+      simp [usesAsPremise, premises, notIncident.1, notIncident.2.1]
 
 end Link
 
@@ -1159,6 +1465,358 @@ theorem restrictTo?_eq_some_exists (certificate : Certificate)
     conclusions := conclusions }, ?_⟩
   simp [restrictTo?, formulasEquation, conclusionsEquation]
 
+/-- Exact value returned by `restrictTo?` when all requested occurrences are
+in bounds and every requested boundary occurrence belongs to the restricted
+vertex list.  This is the rewriting interface used by the structural and
+switching-preservation proofs for tensor splitting. -/
+theorem restrictTo?_eq_some_of_conditions (certificate : Certificate)
+    (vertices boundary : List Vertex)
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (fallback : Formula) :
+    certificate.restrictTo? vertices boundary = some {
+      formulas := (vertices.map fun vertex =>
+        certificate.formulas.getD vertex fallback).toArray
+      links := certificate.links.filterMap (Link.restrictTo? vertices)
+      conclusions := boundary.map vertices.idxOf } := by
+  have formulasEquation :
+      vertices.mapM certificate.formula? = some
+        (vertices.map fun vertex => certificate.formulas.getD vertex fallback) := by
+    apply list_mapM_eq_some_map_of_forall
+    intro vertex membership
+    have inBounds := verticesInBounds vertex membership
+    simp [formula?, inBounds]
+  have conclusionsEquation :
+      boundary.mapM vertices.idxOf? = some (boundary.map vertices.idxOf) := by
+    apply list_mapM_eq_some_map_of_forall
+    intro vertex membership
+    exact idxOf?_eq_some_idxOf_of_mem
+      (boundaryContained vertex membership)
+  simp [restrictTo?, formulasEquation, conclusionsEquation]
+
+/-- Looking up a retained occurrence at its local index returns exactly the
+formula that labelled the original occurrence. -/
+theorem restrictTo?_formula?_idxOf
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (equation : certificate.restrictTo? vertices boundary = some restricted)
+    {vertex : Vertex} (membership : vertex ∈ vertices) :
+    restricted.formula? (vertices.idxOf vertex) = certificate.formula? vertex := by
+  let fallback : Formula := .atom "" false
+  have exactEquation := certificate.restrictTo?_eq_some_of_conditions
+    vertices boundary verticesInBounds boundaryContained fallback
+  rw [exactEquation] at equation
+  cases equation
+  have retained := list_map_getElem?_idxOf_eq_some vertices
+    (fun candidate => certificate.formulas.getD candidate fallback) membership
+  have vertexInBounds := verticesInBounds vertex membership
+  simpa [formula?, retained, vertexInBounds] using retained
+
+theorem restrictTo?_formulas_size {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    (equation : certificate.restrictTo? vertices boundary = some restricted) :
+    restricted.formulas.size = vertices.length := by
+  unfold restrictTo? at equation
+  cases formulasEquation : vertices.mapM certificate.formula? with
+  | none => simp [formulasEquation] at equation
+  | some formulas =>
+      cases conclusionsEquation : boundary.mapM vertices.idxOf? with
+      | none => simp [formulasEquation, conclusionsEquation] at equation
+      | some conclusions =>
+          simp [formulasEquation, conclusionsEquation] at equation
+          subst restricted
+          simpa using list_mapM_length_of_eq_some formulasEquation
+
+theorem restrictTo?_conclusions_length
+    {certificate restricted : Certificate} {vertices boundary : List Vertex}
+    (equation : certificate.restrictTo? vertices boundary = some restricted) :
+    restricted.conclusions.length = boundary.length := by
+  unfold restrictTo? at equation
+  cases formulasEquation : vertices.mapM certificate.formula? with
+  | none => simp [formulasEquation] at equation
+  | some formulas =>
+      cases conclusionsEquation : boundary.mapM vertices.idxOf? with
+      | none => simp [formulasEquation, conclusionsEquation] at equation
+      | some conclusions =>
+          simp [formulasEquation, conclusionsEquation] at equation
+          subst restricted
+          exact list_mapM_length_of_eq_some conclusionsEquation
+
+theorem restrictTo?_links
+    {certificate restricted : Certificate} {vertices boundary : List Vertex}
+    (equation : certificate.restrictTo? vertices boundary = some restricted) :
+    restricted.links = certificate.links.filterMap
+      (Link.restrictTo? vertices) := by
+  unfold restrictTo? at equation
+  cases formulasEquation : vertices.mapM certificate.formula? with
+  | none => simp [formulasEquation] at equation
+  | some formulas =>
+      cases conclusionsEquation : boundary.mapM vertices.idxOf? with
+      | none => simp [formulasEquation, conclusionsEquation] at equation
+      | some conclusions =>
+          simp [formulasEquation, conclusionsEquation] at equation
+          subst restricted
+          rfl
+
+theorem restrictTo?_conclusions
+    {certificate restricted : Certificate} {vertices boundary : List Vertex}
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (equation : certificate.restrictTo? vertices boundary = some restricted) :
+    restricted.conclusions = boundary.map vertices.idxOf := by
+  let fallback : Formula := .atom "" false
+  have exactEquation := certificate.restrictTo?_eq_some_of_conditions
+    vertices boundary verticesInBounds boundaryContained fallback
+  rw [exactEquation] at equation
+  cases equation
+  rfl
+
+theorem restrictTo?_idxOf_mem_conclusions_iff
+    {certificate restricted : Certificate} {vertices boundary : List Vertex}
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (equation : certificate.restrictTo? vertices boundary = some restricted)
+    {vertex : Vertex} (vertexContained : vertex ∈ vertices) :
+    vertices.idxOf vertex ∈ restricted.conclusions ↔ vertex ∈ boundary := by
+  rw [certificate.restrictTo?_conclusions verticesInBounds
+    boundaryContained equation]
+  constructor
+  · intro membership
+    rcases List.mem_map.mp membership with
+      ⟨boundaryVertex, boundaryMembership, sameIndex⟩
+    have same := idxOf_injective_of_mem
+      (boundaryContained boundaryVertex boundaryMembership)
+      vertexContained sameIndex
+    simpa [same] using boundaryMembership
+  · intro membership
+    exact List.mem_map.mpr ⟨vertex, membership, rfl⟩
+
+private theorem restrictTo?_filter_count_eq_of_partition
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex} {terminalLink : Link}
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    (after before : Link → Bool)
+    (partition : ∀ link ∈ certificate.links,
+      link = terminalLink ∨
+        (∀ vertex ∈ link.vertices, vertex ∈ vertices) ∨
+        (∀ vertex ∈ link.vertices, vertex ∉ vertices))
+    (terminalRejected : before terminalLink = false)
+    (avoidingRejected : ∀ link,
+      (∀ vertex ∈ link.vertices, vertex ∉ vertices) → before link = false)
+    (preserved : ∀ link transformed,
+      link.restrictTo? vertices = some transformed →
+        after transformed = before link) :
+    (restricted.links.filter after).length =
+      (certificate.links.filter before).length := by
+  rw [certificate.restrictTo?_links certificateEquation]
+  apply length_filter_filterMap_eq
+  intro link membership
+  cases linkEquation : link.restrictTo? vertices with
+  | none =>
+      rcases partition link membership with terminal | contained | avoids
+      · subst link
+        exact terminalRejected
+      · have accepted := Link.restrictTo?_eq_some_of_vertices
+          link vertices contained
+        rw [accepted] at linkEquation
+        cases linkEquation
+      · exact avoidingRejected link avoids
+  | some transformed =>
+      exact preserved link transformed linkEquation
+
+/-- Local link typing is invariant under restriction to a vertex set containing
+all endpoints of the link. -/
+theorem LinkWellFormed.restrictTo
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    {link restrictedLink : Link}
+    (wellFormed : certificate.LinkWellFormed link)
+    (linkEquation : link.restrictTo? vertices = some restrictedLink) :
+    restricted.LinkWellFormed restrictedLink := by
+  have contained := Link.vertices_mem_of_restrictTo?_eq_some linkEquation
+  have exactLinkEquation := Link.restrictTo?_eq_some_of_vertices
+    link vertices contained
+  rw [exactLinkEquation] at linkEquation
+  cases linkEquation
+  have formulasSize := certificate.restrictTo?_formulas_size certificateEquation
+  cases link with
+  | «axiom» left right =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      have leftInBounds : vertices.idxOf left < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem leftContained
+      have rightInBounds : vertices.idxOf right < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem rightContained
+      have different : vertices.idxOf left ≠ vertices.idxOf right := by
+        intro same
+        exact wellFormed.1
+          (idxOf_injective_of_mem leftContained rightContained same)
+      rcases wellFormed with ⟨_, _, _, typing⟩
+      refine ⟨different, leftInBounds, rightInBounds, ?_⟩
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation leftContained]
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation rightContained]
+      exact typing
+  | tensor left right conclusion =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      have conclusionContained := contained conclusion (by simp [Link.vertices])
+      have leftInBounds : vertices.idxOf left < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem leftContained
+      have rightInBounds : vertices.idxOf right < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem rightContained
+      have conclusionInBounds :
+          vertices.idxOf conclusion < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem conclusionContained
+      have leftRightDifferent : vertices.idxOf left ≠ vertices.idxOf right := by
+        intro same
+        exact wellFormed.1
+          (idxOf_injective_of_mem leftContained rightContained same)
+      have leftConclusionDifferent :
+          vertices.idxOf left ≠ vertices.idxOf conclusion := by
+        intro same
+        exact wellFormed.2.1
+          (idxOf_injective_of_mem leftContained conclusionContained same)
+      have rightConclusionDifferent :
+          vertices.idxOf right ≠ vertices.idxOf conclusion := by
+        intro same
+        exact wellFormed.2.2.1
+          (idxOf_injective_of_mem rightContained conclusionContained same)
+      rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+      refine ⟨leftRightDifferent, leftConclusionDifferent,
+        rightConclusionDifferent, leftInBounds, rightInBounds,
+        conclusionInBounds, ?_⟩
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation leftContained]
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation rightContained]
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation conclusionContained]
+      exact typing
+  | par left right conclusion =>
+      have leftContained := contained left (by simp [Link.vertices])
+      have rightContained := contained right (by simp [Link.vertices])
+      have conclusionContained := contained conclusion (by simp [Link.vertices])
+      have leftInBounds : vertices.idxOf left < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem leftContained
+      have rightInBounds : vertices.idxOf right < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem rightContained
+      have conclusionInBounds :
+          vertices.idxOf conclusion < restricted.formulas.size := by
+        rw [formulasSize]
+        exact List.idxOf_lt_length_of_mem conclusionContained
+      have leftRightDifferent : vertices.idxOf left ≠ vertices.idxOf right := by
+        intro same
+        exact wellFormed.1
+          (idxOf_injective_of_mem leftContained rightContained same)
+      have leftConclusionDifferent :
+          vertices.idxOf left ≠ vertices.idxOf conclusion := by
+        intro same
+        exact wellFormed.2.1
+          (idxOf_injective_of_mem leftContained conclusionContained same)
+      have rightConclusionDifferent :
+          vertices.idxOf right ≠ vertices.idxOf conclusion := by
+        intro same
+        exact wellFormed.2.2.1
+          (idxOf_injective_of_mem rightContained conclusionContained same)
+      rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+      refine ⟨leftRightDifferent, leftConclusionDifferent,
+        rightConclusionDifferent, leftInBounds, rightInBounds,
+        conclusionInBounds, ?_⟩
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation leftContained]
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation rightContained]
+      rw [certificate.restrictTo?_formula?_idxOf verticesInBounds
+        boundaryContained certificateEquation conclusionContained]
+      exact typing
+
+theorem restrictTo?_linksWellFormed
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    (linksWellFormed : ∀ link ∈ certificate.links,
+      certificate.LinkWellFormed link) :
+    ∀ link ∈ restricted.links, restricted.LinkWellFormed link := by
+  intro link membership
+  rw [certificate.restrictTo?_links certificateEquation] at membership
+  rcases List.mem_filterMap.mp membership with
+    ⟨original, originalMembership, linkEquation⟩
+  exact (linksWellFormed original originalMembership).restrictTo
+    verticesInBounds boundaryContained certificateEquation linkEquation
+
+/-- All structural obligations for a restriction except per-occurrence source
+and parent ownership.  The omitted ownership field is where component closure
+is used by tensor splitting. -/
+theorem restrictTo?_structuralPrefix
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    (verticesInBounds : ∀ vertex ∈ vertices,
+      vertex < certificate.formulas.size)
+    (boundaryContained : ∀ vertex ∈ boundary, vertex ∈ vertices)
+    (verticesNonempty : 0 < vertices.length)
+    (boundaryNonempty : 0 < boundary.length)
+    (boundaryNodup : boundary.Nodup)
+    (linksWellFormed : ∀ link ∈ certificate.links,
+      certificate.LinkWellFormed link)
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted) :
+    0 < restricted.formulas.size ∧
+      0 < restricted.conclusions.length ∧
+      (∀ vertex ∈ restricted.conclusions,
+        vertex < restricted.formulas.size) ∧
+      restricted.conclusions.eraseDups.length =
+        restricted.conclusions.length ∧
+      (∀ link ∈ restricted.links, restricted.LinkWellFormed link) := by
+  have formulasSize := certificate.restrictTo?_formulas_size certificateEquation
+  have conclusionsLength :=
+    certificate.restrictTo?_conclusions_length certificateEquation
+  have conclusionsEquation := certificate.restrictTo?_conclusions
+    verticesInBounds boundaryContained certificateEquation
+  have localBoundaryNodup : (boundary.map vertices.idxOf).Nodup := by
+    apply nodup_map_of_injective_on boundaryNodup
+    intro first firstMembership second secondMembership same
+    exact idxOf_injective_of_mem
+      (boundaryContained first firstMembership)
+      (boundaryContained second secondMembership) same
+  refine ⟨by simpa [formulasSize] using verticesNonempty,
+    by simpa [conclusionsLength] using boundaryNonempty, ?_, ?_,
+    certificate.restrictTo?_linksWellFormed verticesInBounds
+      boundaryContained certificateEquation linksWellFormed⟩
+  · intro localVertex localMembership
+    rw [conclusionsEquation] at localMembership
+    rcases List.mem_map.mp localMembership with
+      ⟨originalVertex, originalMembership, rfl⟩
+    rw [formulasSize]
+    exact List.idxOf_lt_length_of_mem
+      (boundaryContained originalVertex originalMembership)
+  · rw [conclusionsEquation,
+      eraseDups_eq_self_of_nodup localBoundaryNodup]
+
 /-- A par link is terminal when its conclusion occurrence is on the ordered
 public boundary. Such a link is the unary inverse-rule case of
 sequentialization. -/
@@ -1556,6 +2214,80 @@ theorem tensorRightBoundary_contained
     subst vertex
     exact TerminalTensor.right_mem_tensorRightVertices structural splitting
 
+theorem mem_tensorLeftBoundary_iff
+    {certificate : Certificate} {left conclusion vertex : Vertex}
+    (vertexMembership :
+      vertex ∈ certificate.tensorLeftVertices left conclusion) :
+    vertex ∈ certificate.tensorLeftBoundary left conclusion ↔
+      vertex ∈ certificate.conclusions ∨ vertex = left := by
+  have vertexNotConclusion :=
+    (TerminalTensor.mem_tensorLeftVertices_iff certificate
+      left conclusion vertex).mp vertexMembership |>.2.1
+  constructor
+  · intro membership
+    rw [tensorLeftBoundary, List.mem_append] at membership
+    rcases membership with filtered | root
+    · exact Or.inl (List.mem_of_mem_erase (List.mem_filter.mp filtered).1)
+    · exact Or.inr (by simpa using root)
+  · intro membership
+    rw [tensorLeftBoundary, List.mem_append]
+    rcases membership with original | rfl
+    · left
+      apply List.mem_filter.mpr
+      exact ⟨(List.mem_erase_of_ne vertexNotConclusion).mpr original,
+        by simpa using vertexMembership⟩
+    · simp
+
+theorem mem_tensorRightBoundary_iff
+    {certificate : Certificate} {left right conclusion vertex : Vertex}
+    (vertexMembership :
+      vertex ∈ certificate.tensorRightVertices left conclusion) :
+    vertex ∈ certificate.tensorRightBoundary left right conclusion ↔
+      vertex ∈ certificate.conclusions ∨ vertex = right := by
+  have vertexNotConclusion :=
+    (TerminalTensor.mem_tensorRightVertices_iff certificate
+      left conclusion vertex).mp vertexMembership |>.2.1
+  constructor
+  · intro membership
+    rw [tensorRightBoundary, List.mem_append] at membership
+    rcases membership with filtered | root
+    · exact Or.inl (List.mem_of_mem_erase (List.mem_filter.mp filtered).1)
+    · exact Or.inr (by simpa using root)
+  · intro membership
+    rw [tensorRightBoundary, List.mem_append]
+    rcases membership with original | rfl
+    · left
+      apply List.mem_filter.mpr
+      exact ⟨(List.mem_erase_of_ne vertexNotConclusion).mpr original,
+        by simpa using vertexMembership⟩
+    · simp
+
+theorem tensorLeftVertices_length_pos
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    0 < (certificate.tensorLeftVertices left conclusion).length :=
+  List.length_pos_of_mem
+    (TerminalTensor.left_mem_tensorLeftVertices structural terminal)
+
+theorem tensorRightVertices_length_pos
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion) :
+    0 < (certificate.tensorRightVertices left conclusion).length :=
+  List.length_pos_of_mem
+    (TerminalTensor.right_mem_tensorRightVertices structural splitting)
+
+theorem tensorLeftBoundary_length_pos (certificate : Certificate)
+    (left conclusion : Vertex) :
+    0 < (certificate.tensorLeftBoundary left conclusion).length := by
+  simp [tensorLeftBoundary]
+
+theorem tensorRightBoundary_length_pos (certificate : Certificate)
+    (left right conclusion : Vertex) :
+    0 < (certificate.tensorRightBoundary left right conclusion).length := by
+  simp [tensorRightBoundary]
+
 theorem splitting_iff_reachability_rejected
     {certificate : Certificate} {left right conclusion : Vertex}
     (structural : certificate.StructurallyWellFormed)
@@ -1624,6 +2356,108 @@ theorem premises_not_conclusions
     change (certificate.links.filter (·.usesAsPremise right)).length = 0 at parentZero
     exact false_of_mem_filter_length_zero parentZero terminal.1
       (by simp [Link.usesAsPremise, Link.premises])
+
+theorem left_parent_unique
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (uses : link.usesAsPremise left = true) :
+    link = .tensor left right conclusion := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have node := structural.2.2.2.2.2 left terminalWellFormed.2.2.2.1
+  have parentCount := node.2
+  simp [TerminalTensor.premises_not_conclusions structural terminal |>.1]
+    at parentCount
+  change (certificate.links.filter (·.usesAsPremise left)).length = 1
+    at parentCount
+  apply eq_of_mem_filter_length_one parentCount membership uses terminal.1
+  simp [Link.usesAsPremise, Link.premises]
+
+theorem right_parent_unique
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (uses : link.usesAsPremise right = true) :
+    link = .tensor left right conclusion := by
+  have terminalWellFormed := structural.2.2.2.2.1 _ terminal.1
+  have node := structural.2.2.2.2.2 right terminalWellFormed.2.2.2.2.1
+  have parentCount := node.2
+  simp [TerminalTensor.premises_not_conclusions structural terminal |>.2]
+    at parentCount
+  change (certificate.links.filter (·.usesAsPremise right)).length = 1
+    at parentCount
+  apply eq_of_mem_filter_length_one parentCount membership uses terminal.1
+  simp [Link.usesAsPremise, Link.premises]
+
+theorem tensorLeftBoundary_nodup
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    (certificate.tensorLeftBoundary left conclusion).Nodup := by
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have remainingNodup :
+      (certificate.tensorOtherConclusions conclusion).Nodup := by
+    exact originalNodup.erase conclusion
+  have filteredNodup :
+      ((certificate.tensorOtherConclusions conclusion).filter
+        (certificate.tensorLeftVertices left conclusion).contains).Nodup :=
+    List.filter_sublist.nodup remainingNodup
+  have leftFresh : left ∉
+      (certificate.tensorOtherConclusions conclusion).filter
+        (certificate.tensorLeftVertices left conclusion).contains := by
+    intro membership
+    have remaining := (List.mem_filter.mp membership).1
+    have original := List.mem_of_mem_erase remaining
+    exact (TerminalTensor.premises_not_conclusions structural terminal).1
+      original
+  change (((certificate.tensorOtherConclusions conclusion).filter
+      (certificate.tensorLeftVertices left conclusion).contains) ++
+    [left]).Nodup
+  rw [List.nodup_append]
+  refine ⟨filteredNodup, by simp, ?_⟩
+  intro vertex vertexMembership boundary boundaryMembership
+  simp at boundaryMembership
+  subst boundary
+  intro same
+  subst vertex
+  exact leftFresh vertexMembership
+
+theorem tensorRightBoundary_nodup
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalTensor left right conclusion) :
+    (certificate.tensorRightBoundary left right conclusion).Nodup := by
+  have originalNodup : certificate.conclusions.Nodup :=
+    nodup_of_eraseDups_length_eq structural.2.2.2.1
+  have remainingNodup :
+      (certificate.tensorOtherConclusions conclusion).Nodup := by
+    exact originalNodup.erase conclusion
+  have filteredNodup :
+      ((certificate.tensorOtherConclusions conclusion).filter
+        (certificate.tensorRightVertices left conclusion).contains).Nodup :=
+    List.filter_sublist.nodup remainingNodup
+  have rightFresh : right ∉
+      (certificate.tensorOtherConclusions conclusion).filter
+        (certificate.tensorRightVertices left conclusion).contains := by
+    intro membership
+    have remaining := (List.mem_filter.mp membership).1
+    have original := List.mem_of_mem_erase remaining
+    exact (TerminalTensor.premises_not_conclusions structural terminal).2
+      original
+  change (((certificate.tensorOtherConclusions conclusion).filter
+      (certificate.tensorRightVertices left conclusion).contains) ++
+    [right]).Nodup
+  rw [List.nodup_append]
+  refine ⟨filteredNodup, by simp, ?_⟩
+  intro vertex vertexMembership boundary boundaryMembership
+  simp at boundaryMembership
+  subst boundary
+  intro same
+  subst vertex
+  exact rightFresh vertexMembership
 
 theorem producer_unique {certificate : Certificate}
     {left right conclusion : Vertex}
@@ -1895,6 +2729,495 @@ theorem remainingLinks_partitioned
     rw [List.all_eq_true]
     intro vertex vertexMembership
     simpa using allRight vertex vertexMembership
+
+theorem link_terminal_or_left_or_avoids_left
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links) :
+    link = .tensor left right conclusion ∨
+      (∀ vertex ∈ link.vertices,
+        vertex ∈ certificate.tensorLeftVertices left conclusion) ∨
+      (∀ vertex ∈ link.vertices,
+        vertex ∉ certificate.tensorLeftVertices left conclusion) := by
+  by_cases terminal : link = .tensor left right conclusion
+  · exact Or.inl terminal
+  · have remainingMembership : link ∈
+        certificate.links.erase (.tensor left right conclusion) :=
+      (List.mem_erase_of_ne terminal).mpr membership
+    rcases TerminalTensor.remaining_link_partition structural splitting.1
+        membership terminal with allLeft | allRight
+    · exact Or.inr (Or.inl allLeft)
+    · exact Or.inr (Or.inr (by
+        intro vertex vertexMembership leftMembership
+        exact TerminalTensor.vertex_partition_disjoint certificate left conclusion
+          vertex leftMembership (allRight vertex vertexMembership)))
+
+theorem link_terminal_or_right_or_avoids_right
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links) :
+    link = .tensor left right conclusion ∨
+      (∀ vertex ∈ link.vertices,
+        vertex ∈ certificate.tensorRightVertices left conclusion) ∨
+      (∀ vertex ∈ link.vertices,
+        vertex ∉ certificate.tensorRightVertices left conclusion) := by
+  by_cases terminal : link = .tensor left right conclusion
+  · exact Or.inl terminal
+  · have remainingMembership : link ∈
+        certificate.links.erase (.tensor left right conclusion) :=
+      (List.mem_erase_of_ne terminal).mpr membership
+    rcases TerminalTensor.remaining_link_partition structural splitting.1
+        membership terminal with allLeft | allRight
+    · exact Or.inr (Or.inr (by
+        intro vertex vertexMembership rightMembership
+        exact TerminalTensor.vertex_partition_disjoint certificate left conclusion
+          vertex (allLeft vertex vertexMembership) rightMembership))
+    · exact Or.inr (Or.inl allRight)
+
+private theorem restrictTo?_axiomCount_of_tensor_partition
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    {left right conclusion vertex : Vertex}
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    (partition : ∀ link ∈ certificate.links,
+      link = .tensor left right conclusion ∨
+        (∀ candidate ∈ link.vertices, candidate ∈ vertices) ∨
+        (∀ candidate ∈ link.vertices, candidate ∉ vertices))
+    (vertexContained : vertex ∈ vertices) :
+    restricted.axiomCount (vertices.idxOf vertex) =
+      certificate.axiomCount vertex := by
+  unfold Certificate.axiomCount
+  apply restrictTo?_filter_count_eq_of_partition certificateEquation
+    (fun link => link.containsAxiomEndpoint (vertices.idxOf vertex))
+    (fun link => link.containsAxiomEndpoint vertex) partition
+  · rfl
+  · intro link avoids
+    apply Link.containsAxiomEndpoint_eq_false_of_not_mem_vertices
+    intro incident
+    exact (avoids vertex incident) vertexContained
+  · intro link transformed linkEquation
+    exact Link.restrictTo?_containsAxiomEndpoint linkEquation vertexContained
+
+private theorem restrictTo?_producerCount_of_tensor_partition
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    {left right conclusion vertex : Vertex}
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    (partition : ∀ link ∈ certificate.links,
+      link = .tensor left right conclusion ∨
+        (∀ candidate ∈ link.vertices, candidate ∈ vertices) ∨
+        (∀ candidate ∈ link.vertices, candidate ∉ vertices))
+    (vertexContained : vertex ∈ vertices)
+    (vertexNotConclusion : vertex ≠ conclusion) :
+    restricted.producerCount (vertices.idxOf vertex) =
+      certificate.producerCount vertex := by
+  unfold Certificate.producerCount
+  apply restrictTo?_filter_count_eq_of_partition certificateEquation
+    (fun link => link.produces (vertices.idxOf vertex))
+    (fun link => link.produces vertex) partition
+  · simp [Link.produces, Ne.symm vertexNotConclusion]
+  · intro link avoids
+    apply Link.produces_eq_false_of_not_mem_vertices
+    intro incident
+    exact (avoids vertex incident) vertexContained
+  · intro link transformed linkEquation
+    exact Link.restrictTo?_produces linkEquation vertexContained
+
+private theorem restrictTo?_parentUseCount_of_tensor_partition
+    {certificate restricted : Certificate}
+    {vertices boundary : List Vertex}
+    {left right conclusion vertex : Vertex}
+    (certificateEquation :
+      certificate.restrictTo? vertices boundary = some restricted)
+    (partition : ∀ link ∈ certificate.links,
+      link = .tensor left right conclusion ∨
+        (∀ candidate ∈ link.vertices, candidate ∈ vertices) ∨
+        (∀ candidate ∈ link.vertices, candidate ∉ vertices))
+    (vertexContained : vertex ∈ vertices)
+    (terminalRejected :
+      (Link.tensor left right conclusion).usesAsPremise vertex = false) :
+    restricted.parentUseCount (vertices.idxOf vertex) =
+      certificate.parentUseCount vertex := by
+  unfold Certificate.parentUseCount
+  apply restrictTo?_filter_count_eq_of_partition certificateEquation
+    (fun link => link.usesAsPremise (vertices.idxOf vertex))
+    (fun link => link.usesAsPremise vertex) partition terminalRejected
+  · intro link avoids
+    apply Link.usesAsPremise_eq_false_of_not_mem_vertices
+    intro incident
+    exact (avoids vertex incident) vertexContained
+  · intro link transformed linkEquation
+    exact Link.restrictTo?_usesAsPremise linkEquation vertexContained
+
+theorem restrictTo?_leftRoot_parentUseCount
+    {certificate restricted : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) = some restricted) :
+    restricted.parentUseCount
+      ((certificate.tensorLeftVertices left conclusion).idxOf left) = 0 := by
+  have leftContained :=
+    TerminalTensor.left_mem_tensorLeftVertices structural splitting.1
+  unfold Certificate.parentUseCount
+  rw [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+  intro transformed transformedMembership transformedUses
+  rw [certificate.restrictTo?_links certificateEquation] at transformedMembership
+  rcases List.mem_filterMap.mp transformedMembership with
+    ⟨original, originalMembership, linkEquation⟩
+  have originalUses : original.usesAsPremise left = true := by
+    rw [← Link.restrictTo?_usesAsPremise linkEquation leftContained]
+    exact transformedUses
+  have terminal := TerminalTensor.left_parent_unique structural splitting.1
+    originalMembership originalUses
+  subst original
+  have contained := Link.vertices_mem_of_restrictTo?_eq_some linkEquation
+  have rightInLeft := contained right (by simp [Link.vertices])
+  exact TerminalTensor.vertex_partition_disjoint certificate left conclusion
+    right rightInLeft
+    (TerminalTensor.right_mem_tensorRightVertices structural splitting)
+
+theorem restrictTo?_rightRoot_parentUseCount
+    {certificate restricted : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion) = some restricted) :
+    restricted.parentUseCount
+      ((certificate.tensorRightVertices left conclusion).idxOf right) = 0 := by
+  have rightContained :=
+    TerminalTensor.right_mem_tensorRightVertices structural splitting
+  unfold Certificate.parentUseCount
+  rw [List.length_eq_zero_iff, List.filter_eq_nil_iff]
+  intro transformed transformedMembership transformedUses
+  rw [certificate.restrictTo?_links certificateEquation] at transformedMembership
+  rcases List.mem_filterMap.mp transformedMembership with
+    ⟨original, originalMembership, linkEquation⟩
+  have originalUses : original.usesAsPremise right = true := by
+    rw [← Link.restrictTo?_usesAsPremise linkEquation rightContained]
+    exact transformedUses
+  have terminal := TerminalTensor.right_parent_unique structural splitting.1
+    originalMembership originalUses
+  subst original
+  have contained := Link.vertices_mem_of_restrictTo?_eq_some linkEquation
+  have leftInRight := contained left (by simp [Link.vertices])
+  exact TerminalTensor.vertex_partition_disjoint certificate left conclusion
+    left (TerminalTensor.left_mem_tensorLeftVertices structural splitting.1)
+    leftInRight
+
+theorem restrictTo?_leftNodeWellFormed_idxOf
+    {certificate restricted : Certificate}
+    {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) = some restricted)
+    (vertexContained :
+      vertex ∈ certificate.tensorLeftVertices left conclusion) :
+    restricted.NodeWellFormed
+      ((certificate.tensorLeftVertices left conclusion).idxOf vertex) := by
+  let vertices := certificate.tensorLeftVertices left conclusion
+  let boundary := certificate.tensorLeftBoundary left conclusion
+  have verticesInBounds :=
+    TerminalTensor.tensorLeftVertices_in_bounds certificate left conclusion
+  have boundaryContained :=
+    TerminalTensor.tensorLeftBoundary_contained structural splitting.1
+  have vertexInBounds := verticesInBounds vertex vertexContained
+  have vertexNotConclusion :=
+    (TerminalTensor.mem_tensorLeftVertices_iff certificate
+      left conclusion vertex).mp vertexContained |>.2.1
+  have originalNode := structural.2.2.2.2.2 vertex vertexInBounds
+  have formulaEquation := certificate.restrictTo?_formula?_idxOf
+    verticesInBounds boundaryContained certificateEquation vertexContained
+  have partition : ∀ link ∈ certificate.links,
+      link = .tensor left right conclusion ∨
+        (∀ candidate ∈ link.vertices,
+          candidate ∈ certificate.tensorLeftVertices left conclusion) ∨
+        (∀ candidate ∈ link.vertices,
+          candidate ∉ certificate.tensorLeftVertices left conclusion) := by
+    intro link membership
+    exact TerminalTensor.link_terminal_or_left_or_avoids_left
+      structural splitting membership
+  have axiomCountEquation :=
+    TerminalTensor.restrictTo?_axiomCount_of_tensor_partition
+      certificateEquation partition vertexContained
+  have producerCountEquation :=
+    TerminalTensor.restrictTo?_producerCount_of_tensor_partition
+      certificateEquation partition vertexContained vertexNotConclusion
+  unfold Certificate.NodeWellFormed
+  constructor
+  · rw [formulaEquation]
+    cases formula : certificate.formula? vertex with
+    | none => simpa [formula] using originalNode.1
+    | some value =>
+        cases value with
+        | atom name positive =>
+            simpa [formula, axiomCountEquation] using originalNode.1
+        | tensor first second =>
+            simpa [formula, producerCountEquation] using originalNode.1
+        | par first second =>
+            simpa [formula, producerCountEquation] using originalNode.1
+  · have localBoundaryIff :
+        (certificate.tensorLeftVertices left conclusion).idxOf vertex ∈
+            restricted.conclusions ↔
+          vertex ∈ certificate.tensorLeftBoundary left conclusion :=
+      certificate.restrictTo?_idxOf_mem_conclusions_iff verticesInBounds
+        boundaryContained certificateEquation vertexContained
+    by_cases isRoot : vertex = left
+    · subst vertex
+      have rootBoundary : left ∈
+          certificate.tensorLeftBoundary left conclusion := by
+        simp [tensorLeftBoundary]
+      have localBoundary := localBoundaryIff.mpr rootBoundary
+      simp [localBoundary,
+        TerminalTensor.restrictTo?_leftRoot_parentUseCount
+          structural splitting certificateEquation]
+    · have notRight : vertex ≠ right := by
+        intro same
+        subst vertex
+        exact TerminalTensor.vertex_partition_disjoint certificate left conclusion
+          right vertexContained
+          (TerminalTensor.right_mem_tensorRightVertices structural splitting)
+      have terminalRejected :
+          (Link.tensor left right conclusion).usesAsPremise vertex = false := by
+        simp [Link.usesAsPremise, Link.premises, isRoot, notRight]
+      have parentCountEquation :=
+        TerminalTensor.restrictTo?_parentUseCount_of_tensor_partition
+          certificateEquation partition vertexContained terminalRejected
+      have boundaryIffOriginal :
+          (certificate.tensorLeftVertices left conclusion).idxOf vertex ∈
+              restricted.conclusions ↔
+            vertex ∈ certificate.conclusions := by
+        rw [localBoundaryIff,
+          TerminalTensor.mem_tensorLeftBoundary_iff vertexContained]
+        simp [isRoot]
+      by_cases originalBoundary : vertex ∈ certificate.conclusions
+      · have localBoundary := boundaryIffOriginal.mpr originalBoundary
+        simp [localBoundary]
+        rw [parentCountEquation]
+        simpa [originalBoundary] using originalNode.2
+      · have localNotBoundary :
+            (certificate.tensorLeftVertices left conclusion).idxOf vertex ∉
+              restricted.conclusions := by
+          intro localBoundary
+          exact originalBoundary (boundaryIffOriginal.mp localBoundary)
+        simp [localNotBoundary]
+        rw [parentCountEquation]
+        simpa [originalBoundary] using originalNode.2
+
+theorem restrictTo?_leftNodesWellFormed
+    {certificate restricted : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) = some restricted) :
+    ∀ localVertex, localVertex < restricted.formulas.size →
+      restricted.NodeWellFormed localVertex := by
+  intro localVertex localInBounds
+  have formulasSize := certificate.restrictTo?_formulas_size certificateEquation
+  have localInVertices : localVertex <
+      (certificate.tensorLeftVertices left conclusion).length := by
+    rw [← formulasSize]
+    exact localInBounds
+  let originalVertex :=
+    (certificate.tensorLeftVertices left conclusion)[localVertex]
+  have originalMembership : originalVertex ∈
+      certificate.tensorLeftVertices left conclusion :=
+    List.getElem_mem localInVertices
+  have indexEquation :
+      (certificate.tensorLeftVertices left conclusion).idxOf originalVertex =
+        localVertex :=
+    idxOf_getElem_eq_index
+      (TerminalTensor.tensorLeftVertices_nodup certificate left conclusion)
+      localVertex localInVertices
+  rw [← indexEquation]
+  exact TerminalTensor.restrictTo?_leftNodeWellFormed_idxOf
+    structural splitting certificateEquation originalMembership
+
+theorem restrictTo?_leftStructurallyWellFormed
+    {certificate restricted : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion) = some restricted) :
+    restricted.StructurallyWellFormed := by
+  have structuralPrefix := certificate.restrictTo?_structuralPrefix
+    (TerminalTensor.tensorLeftVertices_in_bounds certificate left conclusion)
+    (TerminalTensor.tensorLeftBoundary_contained structural splitting.1)
+    (TerminalTensor.tensorLeftVertices_length_pos structural splitting.1)
+    (TerminalTensor.tensorLeftBoundary_length_pos certificate left conclusion)
+    (TerminalTensor.tensorLeftBoundary_nodup structural splitting.1)
+    structural.2.2.2.2.1 certificateEquation
+  exact ⟨structuralPrefix.1, structuralPrefix.2.1,
+    structuralPrefix.2.2.1, structuralPrefix.2.2.2.1,
+    structuralPrefix.2.2.2.2,
+    TerminalTensor.restrictTo?_leftNodesWellFormed
+      structural splitting certificateEquation⟩
+
+theorem restrictTo?_rightNodeWellFormed_idxOf
+    {certificate restricted : Certificate}
+    {left right conclusion vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion) = some restricted)
+    (vertexContained :
+      vertex ∈ certificate.tensorRightVertices left conclusion) :
+    restricted.NodeWellFormed
+      ((certificate.tensorRightVertices left conclusion).idxOf vertex) := by
+  have verticesInBounds :=
+    TerminalTensor.tensorRightVertices_in_bounds certificate left conclusion
+  have boundaryContained :=
+    TerminalTensor.tensorRightBoundary_contained structural splitting
+  have vertexInBounds := verticesInBounds vertex vertexContained
+  have vertexNotConclusion :=
+    (TerminalTensor.mem_tensorRightVertices_iff certificate
+      left conclusion vertex).mp vertexContained |>.2.1
+  have originalNode := structural.2.2.2.2.2 vertex vertexInBounds
+  have formulaEquation := certificate.restrictTo?_formula?_idxOf
+    verticesInBounds boundaryContained certificateEquation vertexContained
+  have partition : ∀ link ∈ certificate.links,
+      link = .tensor left right conclusion ∨
+        (∀ candidate ∈ link.vertices,
+          candidate ∈ certificate.tensorRightVertices left conclusion) ∨
+        (∀ candidate ∈ link.vertices,
+          candidate ∉ certificate.tensorRightVertices left conclusion) := by
+    intro link membership
+    exact TerminalTensor.link_terminal_or_right_or_avoids_right
+      structural splitting membership
+  have axiomCountEquation :=
+    TerminalTensor.restrictTo?_axiomCount_of_tensor_partition
+      certificateEquation partition vertexContained
+  have producerCountEquation :=
+    TerminalTensor.restrictTo?_producerCount_of_tensor_partition
+      certificateEquation partition vertexContained vertexNotConclusion
+  unfold Certificate.NodeWellFormed
+  constructor
+  · rw [formulaEquation]
+    cases formula : certificate.formula? vertex with
+    | none => simpa [formula] using originalNode.1
+    | some value =>
+        cases value with
+        | atom name positive =>
+            simpa [formula, axiomCountEquation] using originalNode.1
+        | tensor first second =>
+            simpa [formula, producerCountEquation] using originalNode.1
+        | par first second =>
+            simpa [formula, producerCountEquation] using originalNode.1
+  · have localBoundaryIff :
+        (certificate.tensorRightVertices left conclusion).idxOf vertex ∈
+            restricted.conclusions ↔
+          vertex ∈ certificate.tensorRightBoundary left right conclusion :=
+      certificate.restrictTo?_idxOf_mem_conclusions_iff verticesInBounds
+        boundaryContained certificateEquation vertexContained
+    by_cases isRoot : vertex = right
+    · subst vertex
+      have rootBoundary : right ∈
+          certificate.tensorRightBoundary left right conclusion := by
+        simp [tensorRightBoundary]
+      have localBoundary := localBoundaryIff.mpr rootBoundary
+      simp [localBoundary,
+        TerminalTensor.restrictTo?_rightRoot_parentUseCount
+          structural splitting certificateEquation]
+    · have notLeft : vertex ≠ left := by
+        intro same
+        subst vertex
+        exact TerminalTensor.vertex_partition_disjoint certificate left conclusion
+          left (TerminalTensor.left_mem_tensorLeftVertices structural splitting.1)
+          vertexContained
+      have terminalRejected :
+          (Link.tensor left right conclusion).usesAsPremise vertex = false := by
+        simp [Link.usesAsPremise, Link.premises, notLeft, isRoot]
+      have parentCountEquation :=
+        TerminalTensor.restrictTo?_parentUseCount_of_tensor_partition
+          certificateEquation partition vertexContained terminalRejected
+      have boundaryIffOriginal :
+          (certificate.tensorRightVertices left conclusion).idxOf vertex ∈
+              restricted.conclusions ↔
+            vertex ∈ certificate.conclusions := by
+        rw [localBoundaryIff,
+          TerminalTensor.mem_tensorRightBoundary_iff vertexContained]
+        simp [isRoot]
+      by_cases originalBoundary : vertex ∈ certificate.conclusions
+      · have localBoundary := boundaryIffOriginal.mpr originalBoundary
+        simp [localBoundary]
+        rw [parentCountEquation]
+        simpa [originalBoundary] using originalNode.2
+      · have localNotBoundary :
+            (certificate.tensorRightVertices left conclusion).idxOf vertex ∉
+              restricted.conclusions := by
+          intro localBoundary
+          exact originalBoundary (boundaryIffOriginal.mp localBoundary)
+        simp [localNotBoundary]
+        rw [parentCountEquation]
+        simpa [originalBoundary] using originalNode.2
+
+theorem restrictTo?_rightNodesWellFormed
+    {certificate restricted : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion) = some restricted) :
+    ∀ localVertex, localVertex < restricted.formulas.size →
+      restricted.NodeWellFormed localVertex := by
+  intro localVertex localInBounds
+  have formulasSize := certificate.restrictTo?_formulas_size certificateEquation
+  have localInVertices : localVertex <
+      (certificate.tensorRightVertices left conclusion).length := by
+    rw [← formulasSize]
+    exact localInBounds
+  let originalVertex :=
+    (certificate.tensorRightVertices left conclusion)[localVertex]
+  have originalMembership : originalVertex ∈
+      certificate.tensorRightVertices left conclusion :=
+    List.getElem_mem localInVertices
+  have indexEquation :
+      (certificate.tensorRightVertices left conclusion).idxOf originalVertex =
+        localVertex :=
+    idxOf_getElem_eq_index
+      (TerminalTensor.tensorRightVertices_nodup certificate left conclusion)
+      localVertex localInVertices
+  rw [← indexEquation]
+  exact TerminalTensor.restrictTo?_rightNodeWellFormed_idxOf
+    structural splitting certificateEquation originalMembership
+
+theorem restrictTo?_rightStructurallyWellFormed
+    {certificate restricted : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (certificateEquation : certificate.restrictTo?
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion) = some restricted) :
+    restricted.StructurallyWellFormed := by
+  have structuralPrefix := certificate.restrictTo?_structuralPrefix
+    (TerminalTensor.tensorRightVertices_in_bounds certificate left conclusion)
+    (TerminalTensor.tensorRightBoundary_contained structural splitting)
+    (TerminalTensor.tensorRightVertices_length_pos structural splitting)
+    (TerminalTensor.tensorRightBoundary_length_pos certificate left right conclusion)
+    (TerminalTensor.tensorRightBoundary_nodup structural splitting.1)
+    structural.2.2.2.2.1 certificateEquation
+  exact ⟨structuralPrefix.1, structuralPrefix.2.1,
+    structuralPrefix.2.2.1, structuralPrefix.2.2.2.1,
+    structuralPrefix.2.2.2.2,
+    TerminalTensor.restrictTo?_rightNodesWellFormed
+      structural splitting certificateEquation⟩
 
 end TerminalTensor
 
@@ -3200,6 +4523,71 @@ theorem splitTerminalTensorCandidate?_eq_some_exists
   exact ⟨leftCertificate, rightCertificate, by
     simp [splitTerminalTensorCandidate?, splitting.1.1, splitting.1.2,
       rightUnreachable, partitioned, leftEquation, rightEquation]⟩
+
+/-- A mathematical splitting tensor produces two structurally well-formed
+premises.  This is stronger than executable candidate totality: it establishes
+all local typing, boundary, and occurrence-ownership obligations for both
+components. -/
+theorem splitTerminalTensorCandidate?_structural_exists
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion) :
+    ∃ leftCertificate rightCertificate,
+      certificate.splitTerminalTensorCandidate? left right conclusion =
+        some (leftCertificate, rightCertificate) ∧
+      leftCertificate.StructurallyWellFormed ∧
+      rightCertificate.StructurallyWellFormed := by
+  have reachabilityRejected :
+      (certificate.tensorLeftReachable left conclusion).contains right = false := by
+    simpa [tensorLeftReachable] using
+      (TerminalTensor.splitting_iff_reachability_rejected structural
+        splitting.1).mp splitting
+  have rightUnreachable :
+      right ∉ certificate.tensorLeftReachable left conclusion := by
+    simpa using reachabilityRejected
+  have partitioned :
+      (certificate.links.erase (.tensor left right conclusion)).all fun link =>
+        link.vertices.all
+            (certificate.tensorLeftVertices left conclusion).contains ||
+          link.vertices.all
+            (certificate.tensorRightVertices left conclusion).contains :=
+    TerminalTensor.remainingLinks_partitioned structural splitting
+  rcases certificate.restrictTo?_eq_some_exists
+      (certificate.tensorLeftVertices left conclusion)
+      (certificate.tensorLeftBoundary left conclusion)
+      (TerminalTensor.tensorLeftVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorLeftBoundary_contained structural splitting.1) with
+    ⟨leftCertificate, leftEquation⟩
+  rcases certificate.restrictTo?_eq_some_exists
+      (certificate.tensorRightVertices left conclusion)
+      (certificate.tensorRightBoundary left right conclusion)
+      (TerminalTensor.tensorRightVertices_in_bounds certificate left conclusion)
+      (TerminalTensor.tensorRightBoundary_contained structural splitting) with
+    ⟨rightCertificate, rightEquation⟩
+  refine ⟨leftCertificate, rightCertificate, ?_,
+    TerminalTensor.restrictTo?_leftStructurallyWellFormed
+      structural splitting leftEquation,
+    TerminalTensor.restrictTo?_rightStructurallyWellFormed
+      structural splitting rightEquation⟩
+  simp [splitTerminalTensorCandidate?, splitting.1.1, splitting.1.2,
+    rightUnreachable, partitioned, leftEquation, rightEquation]
+
+theorem splitTerminalTensorCandidate?_structurallyWellFormed
+    {certificate leftCertificate rightCertificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (splitting : certificate.SplittingTensor left right conclusion)
+    (equation : certificate.splitTerminalTensorCandidate?
+      left right conclusion = some (leftCertificate, rightCertificate)) :
+    leftCertificate.StructurallyWellFormed ∧
+      rightCertificate.StructurallyWellFormed := by
+  rcases certificate.splitTerminalTensorCandidate?_structural_exists
+      structural splitting with
+    ⟨expectedLeft, expectedRight, expectedEquation,
+      leftStructural, rightStructural⟩
+  rw [expectedEquation] at equation
+  cases equation
+  exact ⟨leftStructural, rightStructural⟩
 
 /-- Checker-gated tensor split. No recursive caller can consume a proposed
 component unless both independent proof-net checks succeed. -/

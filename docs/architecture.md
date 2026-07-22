@@ -120,15 +120,16 @@ all kernel theorems; hence the complete proposition-level structural
 specification is preserved. Choice lifting now also proves every premise
 switching is the terminal-leaf deletion of an input switching up to edge-order
 permutation, so terminal-par correctness preservation is complete. The
-universal splitting-tensor existence and preservation theorems remain current
-proof obligations.
+universal existence of a splitting tensor and tensor-component switching
+preservation remain current proof obligations.
 
 For the tensor branch, the local theorem layer now proves unique conclusion
 ownership, absence of any other incident link, non-boundary premises, zero
 incident selected-par edges, and exactly the two fixed tensor edges at the
 terminal conclusion in every switching. Thus terminal tensor degree is
-universally two; proving that some terminal tensor splits the remaining graph
-and that both restricted certificates preserve all switchings is the next
+universally two. A genuine splitting tensor now yields two structurally
+well-formed restricted certificates; proving that some terminal tensor is
+splitting and that both restrictions preserve every switching is the next
 global combinatorial step.
 
 `SplittingTensor` now states that global condition without mentioning the
@@ -137,8 +138,8 @@ graph, no graph walk connects its two premises. The full occurrence graph is
 proved bounded from certificate structural well-formedness, and a general
 finite-graph theorem proves `vertexCount` closure rounds equivalent to the
 unbounded `Walk` relation. Consequently the candidate finder's reachability
-rejection is sound and complete for this exact splitting condition; component
-restriction and universal existence remain separate obligations.
+rejection is sound and complete for this exact splitting condition; universal
+existence remains a separate obligation.
 
 The component constructor is now connected to that semantics as well. The
 reachable and unreachable vertex lists are proved disjoint and exhaustive off
@@ -146,9 +147,11 @@ the removed conclusion. Internal full-graph walks force every remaining link
 to lie wholly in one component, so the executable no-crossing guard is a
 theorem for every splitting tensor. Both component boundaries are contained in
 their vertex lists, making formula lookup and `idxOf?` reindexing total; hence
-`splitTerminalTensorCandidate?` is proved to return two certificates. Full
-structural and switching preservation of those returned certificates remains
-the next obligation.
+`splitTerminalTensorCandidate?` is proved to return two certificates. Exact
+restriction equations, formula/index transport, local link typing, boundary
+discipline, source ownership, and parent-use accounting prove both returned
+certificates `StructurallyWellFormed`. Switching-tree preservation remains the
+next tensor obligation.
 
 ## v0.2 derivation-first path
 

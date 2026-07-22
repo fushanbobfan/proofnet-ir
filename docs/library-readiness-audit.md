@@ -54,8 +54,10 @@ part of the engineering and proof-identity gap.
 - the v0.4 worktree implements checker-gated terminal-par and splitting-tensor
   inverse candidates, with 250 generated nets exposing an accepted recursive
   step; the supporting vertex-deletion graph layer now proves the complete
-  theorem that deleting a leaf preserves `IsTree`. Certificate-level
-  switching transport and universal splitting existence remain open.
+  theorem that deleting a leaf preserves `IsTree`. Terminal-par preservation is
+  complete, and a genuine splitting tensor now produces two universally
+  structurally well-formed components. Tensor-component switching transport
+  and universal splitting existence remain open.
 
 ## Logical gaps blocking a mature-library claim
 

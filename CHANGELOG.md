@@ -31,6 +31,10 @@
   semantics that every terminal par conclusion is a degree-one leaf in every
   switching graph; also added the exact `TerminalParReduction` interface that
   turns switching-deletion evidence into checker preservation.
+- proved that every proposition-level splitting tensor makes the executable
+  candidate return two structurally well-formed certificates, including exact
+  restriction/index transport, local link typing, duplicate-free boundaries,
+  source ownership, and the root parent-use decrement on both components.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 

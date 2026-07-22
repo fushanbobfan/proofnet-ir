@@ -243,6 +243,22 @@ example : ∃ leftCertificate rightCertificate,
           (by native_decide))).mpr
       native_decide)
 
+example : ∃ leftCertificate rightCertificate,
+    canonicalParPremise.splitTerminalTensorCandidate? 0 2 4 =
+        some (leftCertificate, rightCertificate) ∧
+      leftCertificate.StructurallyWellFormed ∧
+      rightCertificate.StructurallyWellFormed :=
+  Certificate.splitTerminalTensorCandidate?_structural_exists
+    (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (by
+      apply (Certificate.TerminalTensor.splitting_iff_reachability_rejected
+        (canonicalParPremise.wellFormed_iff_structurallyWellFormed.mp
+          (by native_decide))
+        (canonicalParPremise.mem_terminalTensors_iff 0 2 4 |>.mp
+          (by native_decide))).mpr
+      native_decide)
+
 example : canonical.peelTerminalParCandidate? 1 3 5 =
     some canonicalParPremise := by native_decide
 example : canonical.peelTerminalPar 1 3 5 = canonicalParPremise := by

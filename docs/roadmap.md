@@ -93,9 +93,10 @@
 - [x] Prove a genuine splitting tensor induces a disjoint exhaustive vertex
   partition with no crossing remaining link, both boundary reindexings are
   defined, and `splitTerminalTensorCandidate?` necessarily returns two
-  certificates.
-- [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor
-  and that both inverse constructions preserve correctness.
+  certificates that are both structurally well formed.
+- [ ] Prove both splitting-tensor restrictions preserve every switching tree
+  and therefore checker/declarative correctness.
+- [ ] Prove every accepted non-axiom net has a terminal par or splitting tensor.
 - [x] Prove the general graph leaf-deletion theorem: boundedness, exact edge
   accounting, simple-walk leaf avoidance, connectedness, and `IsTree` are all
   preserved under vertex compaction.
