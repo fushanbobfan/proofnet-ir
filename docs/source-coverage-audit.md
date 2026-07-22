@@ -39,18 +39,18 @@ extractable text and requires visual/OCR treatment.
 | *ProofNet-IR Research Plan* | 19 | complete end-to-end reading and selected-page visual verification | complete, but treated as a generated design input rather than authority |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | complete ordered text reading and rendered inspection of all 19 numbered figures and three algebraic tables in a [page matrix](source-pages/marcolli-syntax-semantics.md) | complete |
 | *Geometry of Neuroscience* | 33 | complete ordered text reading and visual inspection of all 33 pages and Figures 1--10; [page matrix and claim boundary](source-pages/geometry-of-neuroscience.md) | complete, but adjacent generated exposition rather than core authority |
-| Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | theorem sweep and targeted proof-architecture reading; diagrams sampled visually | not read cover to cover |
+| Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | complete ordered text reading and rendered inspection of pages 1--74, covering every mathematical diagram, code listing, and data table; [page matrix and claim boundary](source-pages/park-four-punctured-sphere.md) | complete |
 | `Rowling_s chat history.txt` | short text | read completely | complete |
 
-Consequently, the statement "all local papers and textbooks were seriously
-read in full" is still false at this checkpoint. Six PDFs and the chat are
-complete; Park retains structured and targeted coverage only. Completing an
-adjacent source does not strengthen the core MLL theorems when that source
-contains no proof-net result.
+Consequently, all seven original project PDFs and the complete Rowling chat
+have now been read in full under the recorded protocol. This is a corpus
+coverage result, not a mathematical endorsement of every source or a claim
+that every source supports ProofNet-IR: Park and the generated adjacent
+expositions contain no theorem that strengthens the core MLL results.
 
-## Reading protocol required before completion
+## Reading protocol used for completion
 
-For each incomplete source:
+For each source:
 
 1. record every chapter/section and physical-page interval;
 2. read extracted text page by page, recording definitions, theorem statements,
@@ -61,5 +61,6 @@ For each incomplete source:
 5. record a completion line only when every unique page has been accounted for;
 6. recheck every code-level mathematical claim against the resulting matrix.
 
-This document is a coverage ledger, not evidence that the remaining reading is
-already complete.
+The linked page matrices are the evidence behind the completion claim. This
+ledger does not turn adjacent sources into proof-net authorities and does not
+replace kernel checking of the implementation.

@@ -46,8 +46,11 @@
 - completed the ordered 75-page Marcolli-Berwick-Chomsky source matrix and
   rendered all 19 numbered figures plus three algebraic tables, explicitly
   separating its linguistic Merge “Minimal Search” theorem from proof-net
-  sequentialization and focused MLL search; the targeted-only Park source
-  remains incomplete.
+  sequentialization and focused MLL search;
+- completed the ordered 76-page Park source matrix and rendered every page
+  carrying mathematical diagrams, code, or data, explicitly separating its
+  contact-topology computations from ProofNet-IR claims; all seven original
+  project PDFs and the Rowling chat now have complete recorded coverage.
 
 ## v0.4.0 - General sequentialization
 

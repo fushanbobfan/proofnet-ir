@@ -15,16 +15,15 @@ sources.
 
 All original PDFs were extracted to searchable text without modifying the
 source files. A section/theorem sweep was performed across the full extracted
-corpus. Close reading is complete for the two project-specific ProofNet
-documents, *Geometry of Neuroscience*, Pfenning, Manin, the
-*Syntax-Semantics Interface* paper, and the project chat.
+corpus. Close reading is complete for all seven original PDFs and the project
+chat: the two project-specific ProofNet documents, *Geometry of Neuroscience*,
+Pfenning, Manin, the *Syntax-Semantics Interface* paper, and Park.
 The Pfenning audit covers every unique page in both ordered text and
 rendered-image form; the Manin audit accounts for all 389 physical pages and
 renders every relevant non-text anomaly or diagram. The Marcolli et al. audit
 also covers all 75 pages, all 19 figures, and all three algebraic tables. The
-remaining Park paper has a structural pass plus targeted close readings
-recorded below. Its further cover-to-cover close reading remains ongoing and
-must not be represented as finished.
+Park audit covers all 76 pages and renders every page carrying the paper's
+mathematical diagrams, program listing, or data table.
 
 | Source | Physical pages | Extracted words | Coverage in this pass | SHA-256 prefix |
 |---|---:|---:|---|---|
@@ -34,7 +33,7 @@ must not be represented as finished.
 | *ProofNet-IR Research Plan* | 19 | 5,904 | direct end-to-end reading and visual inspection | `4c934e603f8a` |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface* | 75 | 44,391 | [completed page audit](source-pages/marcolli-syntax-semantics.md) records ordered reading of all 75 pages and rendered checks of all 19 figures and three algebraic tables | `ed4daccfdf3e` |
 | *Geometry of Neuroscience* | 33 | 15,797 | complete page-by-page text reading and visual inspection; [page matrix](source-pages/geometry-of-neuroscience.md) records every page and the strict claim boundary | `e7730b0731bb` |
-| Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | 25,013 | full theorem sweep; introduction, main statements, proof architecture, and concluding open question close read; Chinese guide checked against the source | `7b756a8759e1` |
+| Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | 25,013 | [completed page audit](source-pages/park-four-punctured-sphere.md) records ordered reading of all 76 pages and rendered inspection of pages 1--74, including every diagram, program listing, and data table | `7b756a8759e1` |
 
 ### Duplicate-page finding
 
@@ -135,6 +134,10 @@ hash of the unaltered original PDF.
 - It is deliberately excluded from the first MLL implementation fragment; a
   premature encoding would confound proof-graph evaluation with a large amount
   of domain formalization.
+- The complete [76-page audit](source-pages/park-four-punctured-sphere.md)
+  confirms that the source contains no proof-net correctness,
+  sequentialization, canonicalization, graph-isomorphism, or MLL performance
+  result. Its `hf-hat-obd-nice` table is a different domain experiment.
 
 ## Visual verification
 
@@ -150,7 +153,8 @@ extraction can corrupt:
   directedness, graph isomorphism, contraction, decorated trees, and `Op(τ)`;
 - all 19 numbered figures and all three algebraic tables in the
   *Syntax-Semantics Interface* paper;
-- Park's four-punctured-sphere mapping-class formulas and surface diagram;
+- all pages 1--74 of Park, covering every surface/movie/Heegaard diagram,
+  decorated Type A/D graph, code listing, and data table;
 - all 33 pages and all ten numbered figures in *Geometry of Neuroscience*.
 
 The rendered formulas agree with the descriptions used in the repository.

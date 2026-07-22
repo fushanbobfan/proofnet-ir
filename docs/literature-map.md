@@ -62,15 +62,14 @@ research-source count.
 ## Reading record
 
 All seven source PDFs have been converted to searchable text without modifying
-the originals. A corpus-wide section/theorem sweep, targeted close readings,
-and formula/diagram spot checks are recorded in
-[reading-ledger.md](reading-ledger.md). The two ProofNet documents and
-*Geometry of Neuroscience* were read directly end to end; the latter also has a
-[33-page text-and-visual audit](source-pages/geometry-of-neuroscience.md) that
-explicitly excludes it as evidence for core logic claims. The remaining larger
-books and adjacent papers stay on an explicit ongoing close-reading track.
-Claims used by code are checked against the original local text, not accepted
-from local-model summaries.
+the originals. A corpus-wide section/theorem sweep and completed ordered
+reading are recorded in [reading-ledger.md](reading-ledger.md) and the
+[coverage audit](source-coverage-audit.md). Page matrices cover Pfenning,
+Manin, Marcolli et al., *Geometry of Neuroscience*, and Park; the shorter
+ProofNet documents and Rowling chat were read directly end to end. The matrices
+also identify adjacent sources that cannot support core logic claims. Claims
+used by code are checked against the original local text, not accepted from
+local-model summaries.
 
 The resulting controlled evaluation design is specified in
 [experiment-protocol.md](experiment-protocol.md).
