@@ -4,6 +4,33 @@ import ProofNetIR.NetEquivalence
 
 namespace ProofNetIR
 
+private theorem eq_of_mem_filter_length_one {α : Type}
+    {values : List α} {predicate : α → Bool} {first second : α}
+    (count : (values.filter predicate).length = 1)
+    (firstMembership : first ∈ values) (firstAccepted : predicate first = true)
+    (secondMembership : second ∈ values)
+    (secondAccepted : predicate second = true) :
+    first = second := by
+  have firstFiltered : first ∈ values.filter predicate := by
+    simp [firstMembership, firstAccepted]
+  have secondFiltered : second ∈ values.filter predicate := by
+    simp [secondMembership, secondAccepted]
+  rcases List.length_eq_one_iff.mp count with ⟨only, filterEquation⟩
+  rw [filterEquation] at firstFiltered secondFiltered
+  simp at firstFiltered secondFiltered
+  exact firstFiltered.trans secondFiltered.symm
+
+private theorem false_of_mem_filter_length_zero {α : Type}
+    {values : List α} {predicate : α → Bool} {value : α}
+    (count : (values.filter predicate).length = 0)
+    (membership : value ∈ values) (accepted : predicate value = true) :
+    False := by
+  have filtered : value ∈ values.filter predicate := by
+    simp [membership, accepted]
+  have positive := List.length_pos_of_mem filtered
+  rw [count] at positive
+  exact Nat.not_lt_zero 0 positive
+
 /-- Evidence returned by the future general sequentializer. The result is
 deliberately stronger than an `Option CutFreeDerivation`: it connects
 first-order inference, desequentialization, ordered boundary labels, and the
@@ -595,6 +622,364 @@ def TerminalTensor (certificate : Certificate)
   Link.tensor left right conclusion ∈ certificate.links ∧
     conclusion ∈ certificate.conclusions
 
+theorem LinkWellFormed.par_conclusionFormula
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (wellFormed : certificate.LinkWellFormed (.par left right conclusion)) :
+    ∃ leftFormula rightFormula,
+      certificate.formula? conclusion =
+        some (.par leftFormula rightFormula) := by
+  rcases wellFormed with ⟨_, _, _, _, _, _, typing⟩
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases rightEquation : certificate.formula? right with
+      | none => simp [leftEquation, rightEquation] at typing
+      | some rightFormula =>
+          cases conclusionEquation : certificate.formula? conclusion with
+          | none =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+          | some conclusionFormula =>
+              simp [leftEquation, rightEquation, conclusionEquation] at typing
+              subst conclusionFormula
+              exact ⟨leftFormula, rightFormula, rfl⟩
+
+theorem LinkWellFormed.axiom_endpointFormula
+    {certificate : Certificate} {left right vertex : Vertex}
+    (wellFormed : certificate.LinkWellFormed (.axiom left right))
+    (endpoint : vertex = left ∨ vertex = right) :
+    ∃ name positive,
+      certificate.formula? vertex = some (.atom name positive) := by
+  rcases wellFormed with ⟨_, _, _, typing⟩
+  cases leftEquation : certificate.formula? left with
+  | none => simp [leftEquation] at typing
+  | some leftFormula =>
+      cases leftFormula with
+      | tensor first second => simp [leftEquation] at typing
+      | par first second => simp [leftEquation] at typing
+      | atom name positive =>
+          cases rightEquation : certificate.formula? right with
+          | none => simp [leftEquation, rightEquation] at typing
+          | some rightFormula =>
+              simp [leftEquation, rightEquation] at typing
+              rcases endpoint with rfl | rfl
+              · exact ⟨name, positive, by simpa using leftEquation⟩
+              · subst rightFormula
+                exact ⟨name, !positive, by
+                  simpa [Formula.dual] using rightEquation⟩
+
+namespace TerminalPar
+
+theorem ownership {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    certificate.producerCount conclusion = 1 ∧
+      certificate.parentUseCount conclusion = 0 ∧
+      ∃ leftFormula rightFormula,
+        certificate.formula? conclusion =
+          some (.par leftFormula rightFormula) := by
+  rcases structural with ⟨_, _, conclusionsInBounds, _, linksWellFormed,
+    nodesWellFormed⟩
+  have terminalWellFormed := linksWellFormed _ terminal.1
+  rcases terminalWellFormed.par_conclusionFormula with
+    ⟨leftFormula, rightFormula, conclusionFormula⟩
+  have node := nodesWellFormed conclusion
+    (conclusionsInBounds conclusion terminal.2)
+  simp [NodeWellFormed, conclusionFormula, terminal.2] at node
+  exact ⟨node.1, node.2, leftFormula, rightFormula, conclusionFormula⟩
+
+theorem producer_unique {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (produces : link.produces conclusion = true) :
+    link = .par left right conclusion := by
+  have producerCount := (TerminalPar.ownership structural terminal).1
+  change (certificate.links.filter (·.produces conclusion)).length = 1 at producerCount
+  apply eq_of_mem_filter_length_one
+    (predicate := (·.produces conclusion))
+    producerCount
+    membership produces terminal.1
+  simp [Link.produces]
+
+theorem no_parentUse {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (uses : link.usesAsPremise conclusion = true) : False := by
+  have parentCount := (TerminalPar.ownership structural terminal).2.1
+  change (certificate.links.filter (·.usesAsPremise conclusion)).length = 0 at parentCount
+  exact false_of_mem_filter_length_zero
+    (predicate := (·.usesAsPremise conclusion))
+    parentCount membership uses
+
+theorem unique_incident {certificate : Certificate}
+    {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {link : Link} (membership : link ∈ certificate.links)
+    (incident : conclusion ∈ link.vertices) :
+    link = .par left right conclusion := by
+  have conclusionFormula :=
+    (TerminalPar.ownership structural terminal).2.2
+  cases link with
+  | «axiom» first second =>
+      have endpoint : conclusion = first ∨ conclusion = second := by
+        simpa [Link.vertices] using incident
+      have axiomWellFormed := structural.2.2.2.2.1 _ membership
+      rcases axiomWellFormed.axiom_endpointFormula endpoint with
+        ⟨name, positive, atomFormula⟩
+      rcases conclusionFormula with
+        ⟨leftFormula, rightFormula, parFormula⟩
+      rw [parFormula] at atomFormula
+      cases atomFormula
+  | tensor first second result =>
+      simp [Link.vertices] at incident
+      rcases incident with same | same | same
+      · subst first
+        exact False.elim (TerminalPar.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst second
+        exact False.elim (TerminalPar.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst result
+        exact TerminalPar.producer_unique structural terminal membership
+          (by simp [Link.produces])
+  | par first second result =>
+      simp [Link.vertices] at incident
+      rcases incident with same | same | same
+      · subst first
+        exact False.elim (TerminalPar.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst second
+        exact False.elim (TerminalPar.no_parentUse structural terminal
+          membership (by simp [Link.usesAsPremise, Link.premises]))
+      · subst result
+        exact TerminalPar.producer_unique structural terminal membership
+          (by simp [Link.produces])
+
+end TerminalPar
+
+theorem ChoiceSelection.filter_length_eq_of_pair_agreement
+    {choices : List (Edge × Edge)} {selected : List Edge}
+    (selection : ChoiceSelection choices selected)
+    (predicate : Edge → Bool)
+    (pairAgreement : ∀ choice ∈ choices,
+      predicate choice.1 = predicate choice.2) :
+    (selected.filter predicate).length =
+      (choices.filter fun choice => predicate choice.1).length := by
+  induction selection with
+  | nil => rfl
+  | @left left right rest selected prior ih =>
+      have restAgreement : ∀ choice ∈ rest,
+          predicate choice.1 = predicate choice.2 := by
+        intro choice membership
+        exact pairAgreement choice (by simp [membership])
+      by_cases accepted : predicate left = true <;>
+        simp [accepted, ih restAgreement]
+  | @right left right rest selected prior ih =>
+      have headAgreement : predicate left = predicate right :=
+        pairAgreement (left, right) (by simp)
+      have restAgreement : ∀ choice ∈ rest,
+          predicate choice.1 = predicate choice.2 := by
+        intro choice membership
+        exact pairAgreement choice (by simp [membership])
+      by_cases accepted : predicate left = true <;>
+        simp [accepted, ← headAgreement, ih restAgreement]
+
+theorem TerminalPar.parChoice_incident_agreement
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {choice : Edge × Edge} (membership : choice ∈ certificate.parChoices) :
+    choice.1.incident conclusion = choice.2.incident conclusion := by
+  simp only [parChoices, List.mem_filterMap] at membership
+  rcases membership with ⟨link, linkMembership, emitted⟩
+  cases link with
+  | «axiom» first second => simp at emitted
+  | tensor first second result => simp at emitted
+  | par first second result =>
+      simp at emitted
+      subst choice
+      have firstNotConclusion : first ≠ conclusion := by
+        intro same
+        subst first
+        exact TerminalPar.no_parentUse structural terminal linkMembership
+          (by simp [Link.usesAsPremise, Link.premises])
+      have secondNotConclusion : second ≠ conclusion := by
+        intro same
+        subst second
+        exact TerminalPar.no_parentUse structural terminal linkMembership
+          (by simp [Link.usesAsPremise, Link.premises])
+      have firstBoolean : (first == conclusion) = false :=
+        beq_eq_false_iff_ne.mpr firstNotConclusion
+      have secondBoolean : (second == conclusion) = false :=
+        beq_eq_false_iff_ne.mpr secondNotConclusion
+      simp [Edge.incident, firstBoolean, secondBoolean]
+
+theorem TerminalPar.parChoices_incidentCount
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    (certificate.parChoices.filter fun choice =>
+      choice.1.incident conclusion).length =
+        certificate.producerCount conclusion := by
+  let emitChoice : Link → Option (Edge × Edge) := fun
+    | .par first second result =>
+        some ({ first := first, second := result },
+          { first := second, second := result })
+    | _ => none
+  change
+    ((certificate.links.filterMap emitChoice).filter fun choice =>
+      choice.1.incident conclusion).length =
+        (certificate.links.filter (·.produces conclusion)).length
+  suffices general : ∀ links : List Link,
+      (∀ link ∈ links, link ∈ certificate.links) →
+      ((links.filterMap emitChoice).filter fun choice =>
+        choice.1.incident conclusion).length =
+        (links.filter (·.produces conclusion)).length by
+    exact general certificate.links (by simp)
+  intro links subset
+  induction links with
+  | nil => rfl
+  | cons head tail ih =>
+      have headMembership : head ∈ certificate.links :=
+        subset head (by simp)
+      have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+        intro link membership
+        exact subset link (by simp [membership])
+      have tailEquality := ih tailSubset
+      cases head with
+      | «axiom» first second => simpa [emitChoice, Link.produces] using tailEquality
+      | tensor first second result =>
+          have resultNotConclusion : result ≠ conclusion := by
+            intro same
+            subst result
+            have impossible := TerminalPar.producer_unique structural terminal
+              headMembership (by simp [Link.produces])
+            cases impossible
+          simpa [emitChoice, Link.produces, resultNotConclusion] using tailEquality
+      | par first second result =>
+          simp only [emitChoice, Edge.incident, Link.produces] at tailEquality
+          have firstNotConclusion : first ≠ conclusion := by
+            intro same
+            subst first
+            exact TerminalPar.no_parentUse structural terminal headMembership
+              (by simp [Link.usesAsPremise, Link.premises])
+          have firstBoolean : (first == conclusion) = false :=
+            beq_eq_false_iff_ne.mpr firstNotConclusion
+          cases resultBoolean : (result == conclusion) <;>
+            simp [emitChoice, Link.produces, Edge.incident,
+              firstBoolean, resultBoolean, tailEquality]
+
+theorem TerminalPar.selected_incidentCount
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    (selected.filter (·.incident conclusion)).length = 1 := by
+  rw [selection.filter_length_eq_of_pair_agreement
+    (·.incident conclusion) (by
+      intro choice membership
+      exact TerminalPar.parChoice_incident_agreement structural terminal
+        membership)]
+  rw [TerminalPar.parChoices_incidentCount structural terminal]
+  exact (TerminalPar.ownership structural terminal).1
+
+theorem TerminalPar.fixedEdges_incidentCount
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion) :
+    (certificate.fixedEdges.filter (·.incident conclusion)).length = 0 := by
+  let emitFixed : Link → List Edge := fun
+    | .axiom first second => [{ first, second }]
+    | .tensor first second result =>
+        [{ first := first, second := result },
+         { first := second, second := result }]
+    | .par _ _ _ => []
+  change
+    ((certificate.links.flatMap emitFixed).filter
+      (·.incident conclusion)).length = 0
+  suffices general : ∀ links : List Link,
+      (∀ link ∈ links, link ∈ certificate.links) →
+      ((links.flatMap emitFixed).filter
+        (·.incident conclusion)).length = 0 by
+    exact general certificate.links (by simp)
+  intro links subset
+  induction links with
+  | nil => rfl
+  | cons head tail ih =>
+      have headMembership : head ∈ certificate.links :=
+        subset head (by simp)
+      have tailSubset : ∀ link ∈ tail, link ∈ certificate.links := by
+        intro link membership
+        exact subset link (by simp [membership])
+      have tailEquality := ih tailSubset
+      cases head with
+      | «axiom» first second =>
+          have firstNotConclusion : first ≠ conclusion := by
+            intro same
+            subst first
+            have impossible := TerminalPar.unique_incident structural terminal
+              headMembership (by simp [Link.vertices])
+            cases impossible
+          have secondNotConclusion : second ≠ conclusion := by
+            intro same
+            subst second
+            have impossible := TerminalPar.unique_incident structural terminal
+              headMembership (by simp [Link.vertices])
+            cases impossible
+          have firstBoolean : (first == conclusion) = false :=
+            beq_eq_false_iff_ne.mpr firstNotConclusion
+          have secondBoolean : (second == conclusion) = false :=
+            beq_eq_false_iff_ne.mpr secondNotConclusion
+          simpa [emitFixed, Edge.incident, firstBoolean, secondBoolean]
+            using tailEquality
+      | tensor first second result =>
+          have firstNotConclusion : first ≠ conclusion := by
+            intro same
+            subst first
+            exact TerminalPar.no_parentUse structural terminal headMembership
+              (by simp [Link.usesAsPremise, Link.premises])
+          have secondNotConclusion : second ≠ conclusion := by
+            intro same
+            subst second
+            exact TerminalPar.no_parentUse structural terminal headMembership
+              (by simp [Link.usesAsPremise, Link.premises])
+          have resultNotConclusion : result ≠ conclusion := by
+            intro same
+            subst result
+            have impossible := TerminalPar.producer_unique structural terminal
+              headMembership (by simp [Link.produces])
+            cases impossible
+          have firstBoolean : (first == conclusion) = false :=
+            beq_eq_false_iff_ne.mpr firstNotConclusion
+          have secondBoolean : (second == conclusion) = false :=
+            beq_eq_false_iff_ne.mpr secondNotConclusion
+          have resultBoolean : (result == conclusion) = false :=
+            beq_eq_false_iff_ne.mpr resultNotConclusion
+          simpa [emitFixed, Edge.incident, firstBoolean, secondBoolean,
+            resultBoolean] using tailEquality
+      | par first second result => simpa [emitFixed] using tailEquality
+
+theorem TerminalPar.graphForSelection_leaf
+    {certificate : Certificate} {left right conclusion : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (terminal : certificate.TerminalPar left right conclusion)
+    {selected : List Edge}
+    (selection : ChoiceSelection certificate.parChoices selected) :
+    (certificate.graphForSelection selected).Leaf conclusion := by
+  constructor
+  · exact structural.2.2.1 conclusion terminal.2
+  · unfold Graph.incidentCount
+    change ((certificate.fixedEdges ++ selected).filter
+      (·.incident conclusion)).length = 1
+    rw [List.filter_append, List.length_append,
+      TerminalPar.fixedEdges_incidentCount structural terminal,
+      TerminalPar.selected_incidentCount structural terminal selection]
+
 /-- Executable list of terminal par links. It is only a candidate finder; the
 subnet construction and preservation theorem remain proof obligations. -/
 def terminalPars (certificate : Certificate) :
@@ -701,6 +1086,48 @@ def splitTerminalTensorChecked? (certificate : Certificate)
       none
   else
     none
+
+/-- Exact proof interface for a terminal-par inverse. It isolates the
+certificate bookkeeping obligation from the already-proved graph theorem:
+every premise switching must be an edge-order permutation of an original
+switching with the terminal par conclusion deleted as a leaf. -/
+structure TerminalParReduction (input premise : Certificate)
+    (conclusion : Vertex) : Prop where
+  premiseStructural : premise.StructurallyWellFormed
+  switchingDeletion : ∀ premiseGraph,
+    premise.SwitchingGraph premiseGraph →
+      ∃ inputGraph,
+        input.SwitchingGraph inputGraph ∧
+        inputGraph.Leaf conclusion ∧
+        premiseGraph.vertexCount =
+          (inputGraph.deleteVertex conclusion).vertexCount ∧
+        premiseGraph.edges.Perm
+          (inputGraph.deleteVertex conclusion).edges
+
+namespace TerminalParReduction
+
+theorem declarativelyCorrect {input premise : Certificate}
+    {conclusion : Vertex}
+    (reduction : TerminalParReduction input premise conclusion)
+    (correct : input.DeclarativelyCorrect) :
+    premise.DeclarativelyCorrect := by
+  refine ⟨reduction.premiseStructural, ?_⟩
+  intro premiseGraph premiseSwitching
+  rcases reduction.switchingDeletion premiseGraph premiseSwitching with
+    ⟨inputGraph, inputSwitching, leaf, vertexCount, edgePermutation⟩
+  have inputTree := correct.2 inputGraph inputSwitching
+  have deletedTree := inputTree.deleteLeaf leaf
+  exact deletedTree.permuteEdges vertexCount.symm edgePermutation.symm
+
+theorem check_of_check {input premise : Certificate} {conclusion : Vertex}
+    (reduction : TerminalParReduction input premise conclusion)
+    (accepted : input.check = true) :
+    premise.check = true := by
+  apply premise.check_iff_declarativelyCorrect.mpr
+  exact reduction.declarativelyCorrect
+    (input.check_iff_declarativelyCorrect.mp accepted)
+
+end TerminalParReduction
 
 theorem mem_terminalPars_iff (certificate : Certificate)
     (left right conclusion : Vertex) :

@@ -109,8 +109,11 @@ boundedness preservation, exact incident-edge accounting, the tree edge-count
 equation for a deleted leaf, exact adjacency/walk embedding, simple-walk leaf
 avoidance, connectedness after deletion, and the full `IsTree` preservation
 theorem. Transporting each terminal-par switching to this general graph lemma
-and proving the universal terminal-splitting existence theorem remain the
-current proof obligations.
+is now halfway formalized: structural ownership and par-choice counting prove
+that a terminal par conclusion is a leaf in every switching. Exact equality up
+to edge order between the generated premise switching and the deleted input
+switching, premise structural preservation, and the universal
+terminal-splitting existence theorem remain the current proof obligations.
 
 ## v0.2 derivation-first path
 

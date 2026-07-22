@@ -27,6 +27,10 @@
 - completed the graph theorem that deleting any leaf of an `IsTree` graph
   yields another `IsTree`, including unique incident-edge reasoning,
   simple-walk leaf avoidance, and connectedness preservation.
+- proved from certificate ownership and independent `ChoiceSelection`
+  semantics that every terminal par conclusion is a degree-one leaf in every
+  switching graph; also added the exact `TerminalParReduction` interface that
+  turns switching-deletion evidence into checker preservation.
 
 ## v0.3.1 - Complete order-preserving reindex normal forms
 
