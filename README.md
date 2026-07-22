@@ -23,8 +23,9 @@ The repository currently contains:
 - exhaustive enumeration of all par switchings;
 - a finite undirected graph checker for boundedness, connectedness, and the
   `|E| + 1 = |V|` tree condition;
-- Lean theorems `check_sound`, `check_complete`, and `check_iff` connecting the
-  executable checker to the declarative contract;
+- a Lean theorem `check_sound` connecting executable acceptance to an
+  independent inductive walk semantics, plus completeness/iff theorems for the
+  exact finite-computation contract;
 - a kernel-checked sequent derivation for the first supported canonical net;
 - positive and negative compile-time fixtures, plus an executable smoke test.
 

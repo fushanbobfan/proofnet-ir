@@ -48,8 +48,8 @@ research-source count.
   and a tractable estimator.
 - General proof-net correctness beyond unit-free MLL is not canonical; units,
   additives, exponentials, and quantifiers each change the representation.
-- A finite reachability implementation is not yet independently related to an
-  inductive walk semantics in Lean.
+- Finite reachability is proved sound with respect to an inductive walk
+  semantics, but the converse/completeness direction remains open.
 - Full sequentialization remains the central proof obligation for v0.1.
 
 ## Reading record

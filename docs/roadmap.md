@@ -8,11 +8,13 @@
 - [x] Check local structural invariants.
 - [x] Enumerate all switchings.
 - [x] Implement the reference tree checker.
-- [x] Prove executable checker soundness and completeness for its contract.
+- [x] Prove semantic soundness against an independent inductive walk relation.
+- [x] Prove completeness/iff for the exact finite-computation contract.
 - [x] Reconstruct one supported canonical sequent derivation.
 - [x] Add at least 20 compile-time positive/negative assertions.
 - [x] Add a versioned JSON Schema and fixtures.
-- [ ] Prove finite closure equivalent to an inductive path relation.
+- [x] Prove finite closure membership implies an inductive graph walk.
+- [ ] Prove every in-bounds graph walk is found by finite closure.
 - [ ] Prove general sequentialization for the supported representation.
 - [ ] Add generated proof-tree-to-net fixtures and mutation tests.
 

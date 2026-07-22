@@ -22,13 +22,16 @@
 1. structural `wellFormed` acceptance;
 2. every enumerated switching satisfies `Graph.IsTree`.
 
-`Graph.IsTree` is a proposition over bounded edges, finite reachability from
-vertex zero, and the edge-count equation. The current reachability engine is a
-finite closure computation. A path-inductive equivalence theorem is planned so
-that connectedness is also related to an independent walk semantics.
+`Graph.IsTree` is a proposition over bounded edges, an independent inductive
+`Graph.Walk` from vertex zero to every in-bounds vertex, and the edge-count
+equation. `reachable_sound` proves that membership in the finite closure really
+produces such a walk; the proof proceeds through closure preservation and does
+not define a walk to mean "the algorithm returned true."
 
-`Certificate.check_complete` proves the converse for the implemented
-declarative contract. It is not the proof-net sequentialization theorem.
+`check_complete_computational` and `check_iff_computational` prove the converse
+only for the exact finite-closure contract. The converse from arbitrary
+inductive walks to the finite closure is still open. None of these results is
+the proof-net sequentialization theorem.
 
 ## Failure containment
 

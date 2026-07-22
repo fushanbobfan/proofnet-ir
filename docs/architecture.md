@@ -22,8 +22,10 @@ criterion and proof-order bureaucracy can be measured cleanly.
 6. `parChoices` emits the two possible premise edges of each par link.
 7. `switchingGraphs` exhaustively enumerates the resulting `2^k` graphs.
 8. `Graph.isTree` checks every switching.
-9. `Certificate.check` accepts only when both local and global checks pass.
-10. `check_sound` transports executable acceptance into `Certificate.Correct`.
+9. `Graph.reachable_sound` proves computed reachability yields an inductive
+   `Graph.Walk`, independent of the closure implementation.
+10. `Certificate.check` accepts only when both local and global checks pass.
+11. `check_sound` transports executable acceptance into `Certificate.Correct`.
 
 ## Why exhaustive switchings first
 

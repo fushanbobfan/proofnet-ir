@@ -108,7 +108,9 @@ def treeGraph : Graph where
   ]
 
 example : treeGraph.isTree = true := by native_decide
-example : treeGraph.IsTree := (Graph.isTree_iff treeGraph).mp (by native_decide)
+example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
+example : treeGraph.Walk 0 3 :=
+  (treeGraph.isTree_sound (by native_decide)).2.1.2 3 (by decide)
 
 def singletonGraph : Graph where
   vertexCount := 1

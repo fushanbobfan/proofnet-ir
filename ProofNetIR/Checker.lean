@@ -54,18 +54,35 @@ theorem allTrees_sound (graphs : List Graph) (accepted : allTrees graphs = true)
       cases membership with
       | inl same =>
           subst graph
-          exact (Graph.isTree_iff head).mp accepted.1
+          exact head.isTree_sound accepted.1
       | inr memberTail =>
           exact ih accepted.2 graph memberTail
 
-theorem allTrees_complete (graphs : List Graph)
-    (correct : ∀ graph ∈ graphs, graph.IsTree) : allTrees graphs = true := by
+theorem allTrees_computational (graphs : List Graph)
+    (accepted : allTrees graphs = true) :
+    ∀ graph ∈ graphs, graph.ComputationalTree := by
+  induction graphs with
+  | nil => simp
+  | cons head tail ih =>
+      simp [allTrees] at accepted
+      intro graph membership
+      simp at membership
+      cases membership with
+      | inl same =>
+          subst graph
+          exact head.isTree_iff_computational.mp accepted.1
+      | inr memberTail =>
+          exact ih accepted.2 graph memberTail
+
+theorem allTrees_complete_computational (graphs : List Graph)
+    (correct : ∀ graph ∈ graphs, graph.ComputationalTree) :
+    allTrees graphs = true := by
   induction graphs with
   | nil => rfl
   | cons head tail ih =>
       simp [allTrees]
       constructor
-      · exact (Graph.isTree_iff head).mpr (correct head (by simp))
+      · exact head.isTree_iff_computational.mpr (correct head (by simp))
       · exact ih (by
           intro graph membership
           exact correct graph (by simp [membership]))
@@ -76,15 +93,27 @@ theorem check_sound (certificate : Certificate) (accepted : certificate.check = 
   simp [check] at accepted
   exact ⟨accepted.1, allTrees_sound certificate.switchingGraphs accepted.2⟩
 
-/-- On the implemented fragment, the checker is also complete for `Correct`. -/
-theorem check_complete (certificate : Certificate) (correct : certificate.Correct) :
+/-- The exact finite-computation contract used for an executable completeness theorem. -/
+def ComputationallyCorrect (certificate : Certificate) : Prop :=
+  certificate.wellFormed = true ∧
+    ∀ graph ∈ certificate.switchingGraphs, graph.ComputationalTree
+
+/-- The checker is complete for its exact finite-computation contract. -/
+theorem check_complete_computational (certificate : Certificate)
+    (correct : certificate.ComputationallyCorrect) :
     certificate.check = true := by
   simp [check]
-  exact ⟨correct.1, allTrees_complete certificate.switchingGraphs correct.2⟩
+  exact ⟨correct.1,
+    allTrees_complete_computational certificate.switchingGraphs correct.2⟩
 
-theorem check_iff (certificate : Certificate) :
-    certificate.check = true ↔ certificate.Correct :=
-  ⟨certificate.check_sound, certificate.check_complete⟩
+theorem check_iff_computational (certificate : Certificate) :
+    certificate.check = true ↔ certificate.ComputationallyCorrect := by
+  constructor
+  · intro accepted
+    simp [check] at accepted
+    exact ⟨accepted.1,
+      allTrees_computational certificate.switchingGraphs accepted.2⟩
+  · exact certificate.check_complete_computational
 
 end Certificate
 end ProofNetIR
