@@ -86,6 +86,14 @@ wire-format rule, not a graph-isomorphism theorem. Dataset labels are emitted
 by Lean and cross-checked by the independent Python oracle; the committed
 dataset itself remains untrusted input when consumed by later experiments.
 
+The separate v0.3 `reindex-v1` path first relabels vertices by their ordered
+first occurrence in conclusions and links. Lean proves this value unchanged by
+every bounded `VertexRenaming`, and the generic parser validates the declared
+algorithm and normalized payload. Lean does not yet prove the converse that
+equal keys imply `ReindexEquivalent`, nor that normalization is an in-class
+representative for every structurally well-formed input. Those stronger claims
+remain outside the trusted theorem boundary.
+
 ## Failure containment
 
 Even if a future graph proposer, optimized checker, or sequentializer is wrong,

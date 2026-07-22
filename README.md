@@ -3,7 +3,7 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.2.0` (derivation/data/search baseline). See
+Current release: `v0.3.0` (checked input and reindex-invariant wire keys). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -54,22 +54,25 @@ The repository currently contains:
   reconstruction;
 - a finite formula enumerator whose depth-two one-atom corpus checks all 210
   generated identity certificates;
-- labeled negative-certificate mutations, 69 positive/negative compile-time
-  assertions, and an executable smoke test.
+- labeled negative-certificate mutations, compile-time regression assertions,
+  and an executable smoke test.
 - an independent CI differential audit over 33,868 exhaustive graphs and
   1,000 generated or mutated certificates.
 - versioned canonical v0.2 JSON plus a committed deterministic dataset of 250
   positive and 750 negative checker-labeled records;
-- a native canonical-v0.2 JSON parser with path-aware errors and a
-  checker-gated API for untrusted certificates;
+- a native v0.2/v0.3 JSON parser with path-aware errors, a v0.2-to-v0.3
+  migration API, and a checker-gated API for untrusted certificates;
 - a runnable focused cut-free sequent-search baseline with eager invertible par
   steps and exhaustive tensor resource partitions;
 - lossless bounded vertex reindexing with inverse round trips, a proved
   equivalence relation, and whole-checker/declarative-correctness invariance.
+- a v0.3 `reindex-v1` serialized normal-form key proved invariant under that
+  relation, plus an independent 1,000-record permutation/property audit.
 
 This is a research prototype. It does not yet include general reverse
 sequentialization of every accepted net, cut elimination, exponentials, additives,
-quantifiers, equivalence-class canonical serialization, or a Lean tactic.
+quantifiers, a completeness/converse theorem for the v0.3 reindex key,
+arbitrary graph-isomorphism canonicalization, or a Lean tactic.
 
 ## Trust path
 
@@ -94,7 +97,7 @@ Lean kernel
 
 The external AI, JSON input, and future graph proposer are untrusted. Use
 `Certificate.checkedFromString` to parse and validate an external canonical
-v0.2 certificate before exposing it to trusted code.
+v0.2 or reindex-normalized v0.3 certificate before exposing it to trusted code.
 See [docs/trust-model.md](docs/trust-model.md) for the exact boundary.
 
 ```lean
@@ -114,13 +117,14 @@ Lean version is recorded in `lean-toolchain`.
 lake build
 lake exe proofnet_ir_tests
 python scripts/generate_dataset.py --check
+python scripts/audit_v03_canonical.py
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 ```
 
 Expected smoke-test output:
 
 ```text
-ProofNetIR: all compile-time certificate checks passed
+ProofNetIR: all certificate and v0.3 fixture checks passed
 ```
 
 ## Repository map
@@ -135,16 +139,17 @@ ProofNetIR/Reconstruct.lean   supported sequent derivation reconstruction
 ProofNetIR/Generate.lean      recursive derivation-first identity certificates
 ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
 ProofNetIR/DerivationTree.lean arbitrary cut-free trees and desequentialization
-ProofNetIR/Serialization.lean canonical v0.2 certificate JSON
-ProofNetIR/Parser.lean        v0.2 JSON parser and checked-input boundary
+ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
+ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 consumer-smoke/               independent downstream Lake dependency test
-consumer-release-smoke/       clean consumer pinned to public v0.2.0 tag
+consumer-release-smoke/       clean consumer pinned to a public release tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
 scripts/focused_search.py     focused cut-free comparison baseline
+scripts/audit_v03_canonical.py independent 1,000-record reindex-key audit
 docs/                         architecture, literature map, roadmap, trust boundary
 ```
 
@@ -169,6 +174,9 @@ representation comparison that guides general sequentialization is in
 page-level source audits, including the 33-page text-and-visual audit of
 *Geometry of Neuroscience*, live under
 [docs/source-pages/](docs/source-pages/geometry-of-neuroscience.md).
+Wire-version stability and migration rules are in
+[docs/compatibility.md](docs/compatibility.md), and the exact v0.3 guarantees
+are in [docs/v0.3-design.md](docs/v0.3-design.md).
 
 ## License
 

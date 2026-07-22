@@ -20,10 +20,22 @@ example :
       true := by
   native_decide
 
+example :
+    (Certificate.checkedFromString
+      consumedCertificate.equivalenceCanonicalString).isOk = true := by
+  native_decide
+
+example :
+    (Certificate.migrateV02StringToV03
+      consumedCertificate.canonicalString).isOk = true := by
+  native_decide
+
 def main : IO Unit := do
   if consumedCertificate.check && consumedTree.elaborate?.isSome &&
       (Certificate.checkedFromString
-        consumedCertificate.canonicalString).isOk then
+        consumedCertificate.canonicalString).isOk &&
+      (Certificate.checkedFromString
+        consumedCertificate.equivalenceCanonicalString).isOk then
     IO.println "ProofNetIR downstream consumer smoke test passed"
   else
     throw <| IO.userError "ProofNetIR downstream consumer smoke test failed"

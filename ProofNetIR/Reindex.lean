@@ -55,6 +55,15 @@ theorem forward_injective {bound : Nat} (r : VertexRenaming bound) :
   · intro membership
     exact ⟨vertex, membership, rfl⟩
 
+@[simp] theorem idxOf_map_forward {bound : Nat}
+    (r : VertexRenaming bound) (vertices : List Vertex) (vertex : Vertex) :
+    (vertices.map r.forward).idxOf (r.forward vertex) =
+      vertices.idxOf vertex := by
+  induction vertices with
+  | nil => rfl
+  | cons head tail ih =>
+      simp [List.idxOf_cons, r.forward_beq, ih]
+
 @[simp] theorem all_map_forward_lt {bound : Nat}
     (r : VertexRenaming bound) (vertices : List Vertex) :
     (vertices.map r.forward).all (fun vertex => vertex < bound) =
@@ -218,6 +227,11 @@ def reindex {bound : Nat} (r : VertexRenaming bound) : Link → Link
   | .par left right conclusion =>
       .par (r.forward left) (r.forward right)
         (r.forward conclusion)
+
+@[simp] theorem vertices_reindex {bound : Nat}
+    (r : VertexRenaming bound) (link : Link) :
+    (link.reindex r).vertices = link.vertices.map r.forward := by
+  cases link <;> simp [reindex, vertices]
 
 @[simp] theorem reindex_symm {bound : Nat}
     (r : VertexRenaming bound) (link : Link) :

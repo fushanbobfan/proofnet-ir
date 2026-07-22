@@ -1,17 +1,18 @@
 # Library-readiness audit
 
-Audit date: 2026-07-21  
-Audited baseline: v0.2.0 (`f4ec45b`), plus post-release `main`
+Audit date: 2026-07-22
+Audited baseline: v0.2.0 plus the v0.3.0 release candidate on `main`
 
 ## Verdict
 
-ProofNet-IR v0.2.0 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.3.0 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. It cannot yet support the stronger claim that any
 accepted net can be converted back into a derivation. Post-release `main` now
-lets a downstream consumer parse canonical v0.2 JSON directly into a checked
-Lean object, but that closes only one engineering gap.
+lets a downstream consumer parse v0.2/v0.3 JSON directly into a checked Lean
+object and migrate v0.2 to a reindex-invariant v0.3 key, but that closes only
+part of the engineering and proof-identity gap.
 
 ## What is logically established
 
@@ -38,6 +39,10 @@ Lean object, but that closes only one engineering gap.
 - after v0.2.0, bounded vertex reindexing is lossless and forms an explicit
   equivalence relation; structural validation, graph/tree semantics, switching
   correctness, and the final checker are invariant under it.
+- v0.3 proves that every `ReindexEquivalent` certificate has the same
+  `reindex-v1` serialized key; 250 generated certificates round-trip through
+  the native checked parser and an independent audit exercises all 1,000
+  committed records under deterministic vertex permutations.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -48,18 +53,22 @@ Lean object, but that closes only one engineering gap.
 2. General sequentialization of every accepted MLL proof net is absent.
 3. The edge-count tree characterization is used correctly, but no explicit
    acyclicity predicate/equivalence theorem is exposed as public API.
-4. Reindexing invariance is proved, but canonical v0.2 serialization remains
-   numbering-sensitive. No canonical representative or decision procedure for
-   `ReindexEquivalent` is implemented yet.
+4. The v0.3 key is proved invariant under reindexing, but the converse from key
+   equality to `ReindexEquivalent` and a theorem that normalization returns an
+   in-class representative for every structurally well-formed certificate are
+   absent. Therefore it is not yet a proved decision procedure for the exact
+   equivalence relation.
 
 ## Engineering gaps blocking a mature-library claim
 
-- canonical v0.2 serialization now has a native Lean parser, path-aware parse
-  errors, normalization validation, and a checker-gated untrusted-input API;
+- v0.2/v0.3 serialization now has a native Lean parser, path-aware parse
+  errors, normalization validation, migration, and a checker-gated
+  untrusted-input API;
 - many APIs return `Option`, losing the location and reason for failure;
 - separate path-dependency and clean pinned-v0.2.0 Lake consumers now pass;
   they must remain in CI for future compatibility releases;
-- no API stability/compatibility policy or migration test suite exists;
+- an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
+  long-term API documentation and deprecation automation are still incomplete;
 - no generated API reference or tutorial beyond repository-local examples;
 - no fuzz/property suite covers arbitrary malformed serialized inputs;
 - no performance budget protects users from exponential switching blowups;
@@ -76,13 +85,14 @@ It can currently be used for:
 - generating/desequentializing the first-order derivation syntax and retaining
   only checker-accepted results;
 - regenerating the labeled v0.2 corpus;
+- producing stable v0.3 cache/dataset keys across bounded vertex renamings;
 - running the focused-search comparison baseline.
 
 It should not yet be presented as:
 
 - a general Lean/mathlib proof assistant extension;
 - a complete proof-net sequentializer;
-- an isomorphism-canonical proof identity library;
+- a complete isomorphism-canonical proof identity library;
 - evidence that proof-net generation reduces search redundancy in practice.
 
 ## Release gate for library readiness

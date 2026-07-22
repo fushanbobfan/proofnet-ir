@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+## v0.3.0 - Checked input and reindex-invariant wire keys
+
+### Included
+
+- added a `VertexRenaming` equivalence layer with inverse round trips and
+  kernel-checked invariance of structural validation, switching semantics,
+  declarative correctness, and the complete Boolean checker;
+- added the versioned v0.3 `reindex-v1` normal-form key and proved that every
+  pair of `ReindexEquivalent` certificates has exactly the same serialized
+  key;
+- retained v0.2 decoding, added v0.3 decoding and a v0.2-to-v0.3 migration API,
+  and validated both formats through the checker-gated untrusted-input
+  boundary;
+- added a v0.3 JSON Schema and fixture, 250 generated Lean round trips, and an
+  independent 1,000-record property audit covering deterministic vertex
+  permutations, schema validity, idempotence, and link-order sensitivity;
+- published an explicit compatibility policy for Lean and wire-format APIs.
+
+### Explicit boundaries
+
+- the proved direction is `ReindexEquivalent -> equal reindex-v1 key`; a
+  converse/completeness theorem and a proof that normalization constructs an
+  in-class representative for every structurally well-formed certificate are
+  still open;
+- `reindex-v1` preserves link order, conclusion order, tensor/par premise
+  order, and axiom endpoint order. It is not arbitrary graph-isomorphism
+  canonical labeling;
+- general sequentialization of every checker-accepted net remains open.
+
 - added an independent conclusion-inference pass for first-order derivation
   trees and proved `infer?_sound`: every successful inference denotes a
   kernel-typed `Derivation`;
@@ -40,7 +69,8 @@
   semantics, switching correctness, and the executable checker; added the
   reflexive, symmetric, and transitive `ReindexEquivalent` relation and proved
   it preserves `Correct` and `DeclarativelyCorrect`. Canonical v0.2 JSON remains
-  intentionally numbering-sensitive pending an equivalence-class canonicalizer.
+  intentionally numbering-sensitive; v0.3 adds a separate reindex-invariant
+  key without changing the v0.2 contract.
 
 ## v0.2.0 - Derivation trees, canonical data, and focused baseline
 

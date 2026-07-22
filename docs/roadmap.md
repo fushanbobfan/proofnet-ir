@@ -37,8 +37,11 @@
   invariant under arbitrary bounded vertex renaming.
 - [x] Define `ReindexEquivalent`, prove it is an equivalence relation, and
   prove it preserves executable and declarative correctness.
-- [ ] Compute a stable serialization representative for each supported
-  reindexing-equivalence class and add migration/property tests.
+- [x] Compute a stable v0.3 serialization key proved invariant under
+  `ReindexEquivalent`, with v0.2 migration and 1,000-record property tests.
+- [ ] Prove the converse/completeness theorem for the v0.3 key and prove that
+  normalization returns an in-class representative for every structurally
+  well-formed certificate.
 
 ## v0.2 - Dataset and repair loop
 
@@ -57,7 +60,22 @@
 - [ ] Report validity, repair success, Lean calls, token cost, and redundancy
   collapse without claiming theorem-proving gains before measurement.
 
-## v0.3 - Persistent LeanProp bridge
+## v0.3 - Reindex-invariant wire keys
+
+- [x] Prove whole-checker invariance under bounded vertex bijections.
+- [x] Add `reindex-v1` JSON, schema, native parser, migration, fixtures, and
+  downstream-consumer coverage.
+- [x] Audit invariance, schema validity, idempotence, and documented order
+  sensitivity on all 1,000 committed records.
+- [ ] Complete the reindex-key converse and representative-membership proofs.
+
+## v0.4 - General sequentialization
+
+- [ ] Formalize splitting tensor/par decomposition for accepted nets.
+- [ ] Recursively construct a cut-free derivation modulo explicit exchange.
+- [ ] Prove its desequentialization is `ReindexEquivalent` to the input.
+
+## v0.5 - Persistent LeanProp bridge
 
 - Add a two-context design for persistent and linear hypotheses.
 - Make weakening and contraction explicit.

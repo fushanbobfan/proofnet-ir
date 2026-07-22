@@ -44,10 +44,16 @@ criterion and proof-order bureaucracy can be measured cleanly.
     vertex bijections. `check_reindex` proves exact Boolean invariance, while
     `ReindexEquivalent` packages renaming as an equivalence relation preserving
     executable and declarative correctness.
+18. `Serialization.lean` discovers vertices from ordered conclusions and links
+    and assigns first-occurrence indices. `equivalenceCanonicalString_reindex`
+    proves that the v0.3 `reindex-v1` key is invariant under every admissible
+    bounded vertex renaming.
 
-The reindexing relation is mathematical infrastructure, not yet a canonical
-labeling algorithm. Canonical v0.2 JSON continues to preserve the submitted
-formula-array numbering, so equivalent certificates may serialize differently.
+Canonical v0.2 JSON continues to preserve submitted formula-array numbering.
+The separate v0.3 key removes that numbering. It is not an arbitrary graph
+canonical-labeling algorithm: list order and logical premise order remain part
+of identity, and the converse from equal keys to `ReindexEquivalent` is not yet
+kernel-proved.
 
 ## Why exhaustive switchings first
 
@@ -90,6 +96,15 @@ formula-array vertex numbering. `ProofNetIRDataset.lean` deterministically
 emits the 1,000-record corpus, while the Python wrapper checks every label with
 an independent oracle. The focused Python baseline is deliberately separate
 from this trust path.
+
+## v0.3 reindex wire path
+
+`traversalVertices` visits ordered conclusions and then ordered link vertices.
+`traversalRelabel` uses first-occurrence positions as new names. The reindexing
+proof shows this traversal commutes exactly with every `VertexRenaming`, so the
+serialized v0.3 value is a stable key across submitted vertex permutations.
+The parser retains both wire versions, and migration validates v0.2 before
+emitting v0.3. Logical validity remains a separate checker-gated boundary.
 
 ## Representation invariants
 

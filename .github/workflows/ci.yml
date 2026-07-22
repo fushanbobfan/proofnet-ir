@@ -30,6 +30,8 @@ jobs:
           python scripts/validate_schema.py
       - name: Verify deterministic v0.2 dataset
         run: python scripts/generate_dataset.py --check
+      - name: Audit v0.3 reindex-invariant canonical keys
+        run: python scripts/audit_v03_canonical.py
       - name: Run focused cut-free search baseline
         run: python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
       - name: Run independent differential mathematics audit

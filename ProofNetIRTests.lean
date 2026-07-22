@@ -73,6 +73,19 @@ def generatedJsonRoundTrips : Bool :=
 
 example : generatedJsonRoundTrips = true := by native_decide
 
+def generatedV03JsonRoundTrips : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        match Certificate.checkedFromString
+            certificate.equivalenceCanonicalString with
+        | .error _ => false
+        | .ok checked =>
+            checked.certificate == certificate.equivalenceCanonicalize
+
+example : generatedV03JsonRoundTrips = true := by native_decide
+
 example : generatedDerivationTrees.all (fun tree =>
     match tree.desequentialize? with
     | some certificate => certificate.check
@@ -141,6 +154,12 @@ example : canonical.DeclarativelyCorrect ↔
     ⟨swapCanonicalZeroOne, rfl⟩).declarativelyCorrect_iff
 example : canonical.canonicalString ≠ reindexedCanonical.canonicalString := by
   native_decide
+example : canonical.equivalenceCanonicalize.check = true := by native_decide
+example : canonical.equivalenceCanonicalString =
+    reindexedCanonical.equivalenceCanonicalString := by native_decide
+example : (canonical.reindex swapCanonicalZeroOne).equivalenceCanonicalString =
+    canonical.equivalenceCanonicalString :=
+  canonical.equivalenceCanonicalString_reindex swapCanonicalZeroOne
 
 example (certificate : Certificate)
     (r : VertexRenaming certificate.formulas.size) :
@@ -165,6 +184,46 @@ example : parsedCanonicalMatches = true := by native_decide
 
 example :
     (Certificate.checkedFromString canonical.canonicalString).isOk = true := by
+  native_decide
+
+def parsedEquivalenceCanonicalMatches : Bool :=
+  match Certificate.fromString canonical.equivalenceCanonicalString with
+  | .ok certificate => certificate == canonical.equivalenceCanonicalize
+  | .error _ => false
+
+example : parsedEquivalenceCanonicalMatches = true := by native_decide
+
+example :
+    (Certificate.checkedFromString
+      canonical.equivalenceCanonicalString).isOk = true := by
+  native_decide
+
+def migratedCanonicalMatches : Bool :=
+  match Certificate.migrateV02StringToV03 canonical.canonicalString with
+  | .ok output => output == canonical.equivalenceCanonicalString
+  | .error _ => false
+
+example : migratedCanonicalMatches = true := by native_decide
+
+def unsupportedCanonicalizationJson : Lean.Json :=
+  let normalized := canonical.equivalenceCanonicalize
+  Lean.Json.mkObj [
+    ("version", "0.3"),
+    ("canonical", true),
+    ("canonicalization", "unknown"),
+    ("formulas", .arr (normalized.formulas.map Certificate.formulaJson)),
+    ("links", .arr (normalized.links.toArray.map Certificate.linkJson)),
+    ("conclusions", .arr (normalized.conclusions.toArray.map
+      (fun value : Vertex => .num (Lean.JsonNumber.fromNat value))))]
+
+def unsupportedCanonicalizationDiagnosticMatches : Bool :=
+  match Certificate.fromJson unsupportedCanonicalizationJson with
+  | .error error => error == {
+      path := "$.canonicalization"
+      message := "unsupported canonicalization 'unknown'" }
+  | .ok _ => false
+
+example : unsupportedCanonicalizationDiagnosticMatches = true := by
   native_decide
 
 def rejectedCanonicalJson : Lean.Json :=
@@ -448,10 +507,16 @@ example : unboundedBridgeGraph.Bounded → False := by
 example : unboundedBridgeGraph.connected = false := by native_decide
 
 def run : IO Unit := do
-  if canonical.check then
-    IO.println "ProofNetIR: all compile-time certificate checks passed"
-  else
+  if !canonical.check then
     throw <| IO.userError "canonical proof net was unexpectedly rejected"
+  let fixture ← IO.FS.readFile "examples/canonical-v0.3.json"
+  match Certificate.checkedFromString fixture with
+  | .error error =>
+      throw <| IO.userError s!"v0.3 fixture rejected: {error.render}"
+  | .ok checked =>
+      if checked.certificate != canonical.equivalenceCanonicalize then
+        throw <| IO.userError "v0.3 fixture differs from Lean serializer output"
+  IO.println "ProofNetIR: all certificate and v0.3 fixture checks passed"
 
 end ProofNetIRTests
 

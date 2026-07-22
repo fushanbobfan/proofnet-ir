@@ -129,21 +129,7 @@ def linkFromJsonAt (path : String) (json : Lean.Json) : ParseResult Link := do
 def linkFromJson (json : Lean.Json) : ParseResult Link :=
   linkFromJsonAt "$" json
 
-/-- Decode the canonical v0.2 wire format. Besides decoding field types, this
-checks the version marker and verifies that the claimed canonical ordering is
-actually canonical. Logical proof-net validity is deliberately a separate
-step, provided by `checkedFromJson`. -/
-def fromJson (json : Lean.Json) : ParseResult Certificate := do
-  requireKeys "$" json
-    ["version", "canonical", "formulas", "links", "conclusions"]
-  let versionJson ← field "$" json "version"
-  let version : String ← decode "$.version" versionJson
-  if version != "0.2" then
-    throw { path := "$.version", message := s!"unsupported certificate version '{version}'" }
-  let canonicalJson ← field "$" json "canonical"
-  let claimedCanonical : Bool ← decode "$.canonical" canonicalJson
-  if !claimedCanonical then
-    throw { path := "$.canonical", message := "v0.2 input must declare canonical=true" }
+private def payloadFromJson (json : Lean.Json) : ParseResult Certificate := do
   let formulasJson ← field "$" json "formulas"
   let formulas ← parseArray "$.formulas" formulasJson formulaFromJsonAt
   if formulas.isEmpty then
@@ -161,17 +147,76 @@ def fromJson (json : Lean.Json) : ParseResult Certificate := do
     formulas
     links := links.toList
     conclusions := conclusions.toList }
+  pure certificate
+
+/-- Decode the fixed-numbering canonical v0.2 wire format. -/
+def fromJsonV02 (json : Lean.Json) : ParseResult Certificate := do
+  requireKeys "$" json
+    ["version", "canonical", "formulas", "links", "conclusions"]
+  let versionJson ← field "$" json "version"
+  let version : String ← decode "$.version" versionJson
+  if version != "0.2" then
+    throw { path := "$.version", message := "v0.2 input required" }
+  let canonicalJson ← field "$" json "canonical"
+  let claimedCanonical : Bool ← decode "$.canonical" canonicalJson
+  if !claimedCanonical then
+    throw { path := "$.canonical", message := "v0.2 input must declare canonical=true" }
+  let certificate ← payloadFromJson json
   if certificate.canonicalize == certificate then
     pure certificate
   else
     throw { path := "$", message := "certificate claims canonical=true but is not normalized" }
 
+/-- Decode the reindexing-invariant v0.3 wire format. The canonicalization
+algorithm is named in the payload so later algorithms can be versioned without
+silently changing proof identity. -/
+def fromJsonV03 (json : Lean.Json) : ParseResult Certificate := do
+  requireKeys "$" json
+    ["version", "canonical", "canonicalization", "formulas", "links",
+      "conclusions"]
+  let versionJson ← field "$" json "version"
+  let version : String ← decode "$.version" versionJson
+  if version != "0.3" then
+    throw { path := "$.version", message := "v0.3 input required" }
+  let canonicalJson ← field "$" json "canonical"
+  let claimedCanonical : Bool ← decode "$.canonical" canonicalJson
+  if !claimedCanonical then
+    throw { path := "$.canonical", message := "v0.3 input must declare canonical=true" }
+  let algorithmJson ← field "$" json "canonicalization"
+  let algorithm : String ← decode "$.canonicalization" algorithmJson
+  if algorithm != "reindex-v1" then
+    throw { path := "$.canonicalization", message := s!"unsupported canonicalization '{algorithm}'" }
+  let certificate ← payloadFromJson json
+  if certificate.equivalenceCanonicalize == certificate then
+    pure certificate
+  else
+    throw { path := "$", message := "v0.3 certificate is not reindex-v1 canonical" }
+
+/-- Dispatch between every supported certificate wire version. Logical
+proof-net validity remains a separate checker-gated step. -/
+def fromJson (json : Lean.Json) : ParseResult Certificate := do
+  let versionJson ← field "$" json "version"
+  let version : String ← decode "$.version" versionJson
+  match version with
+  | "0.2" => fromJsonV02 json
+  | "0.3" => fromJsonV03 json
+  | other =>
+      throw { path := "$.version", message := s!"unsupported certificate version '{other}'" }
+
 def fromString (input : String) : ParseResult Certificate := do
   let json ← atPath "$" (Lean.Json.parse input)
   fromJson json
 
-/-- Decode v0.2 JSON and expose a certificate only when the kernel-executable
-checker accepts it. This is the safe boundary for untrusted external input. -/
+/-- Parse a v0.2 certificate and emit its deterministic v0.3
+`reindex-v1` representation. -/
+def migrateV02StringToV03 (input : String) : ParseResult String := do
+  let json ← atPath "$" (Lean.Json.parse input)
+  let certificate ← fromJsonV02 json
+  pure certificate.equivalenceCanonicalString
+
+/-- Decode supported JSON and expose a certificate only when the
+kernel-executable checker accepts it. This is the safe boundary for untrusted
+external input. -/
 def checkedFromJson (json : Lean.Json) :
     ParseResult CutFreeDerivation.CheckedCertificate := do
   let certificate ← fromJson json

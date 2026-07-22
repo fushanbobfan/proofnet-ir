@@ -1,0 +1,28 @@
+{
+  "version": "0.3",
+  "canonical": true,
+  "canonicalization": "reindex-v1",
+  "formulas": [
+    {
+      "kind": "tensor",
+      "left": { "kind": "atom", "name": "p", "positive": true },
+      "right": { "kind": "atom", "name": "q", "positive": true }
+    },
+    {
+      "kind": "par",
+      "left": { "kind": "atom", "name": "p", "positive": false },
+      "right": { "kind": "atom", "name": "q", "positive": false }
+    },
+    { "kind": "atom", "name": "p", "positive": true },
+    { "kind": "atom", "name": "p", "positive": false },
+    { "kind": "atom", "name": "q", "positive": true },
+    { "kind": "atom", "name": "q", "positive": false }
+  ],
+  "links": [
+    { "kind": "axiom", "left": 2, "right": 3 },
+    { "kind": "axiom", "left": 4, "right": 5 },
+    { "kind": "tensor", "left": 2, "right": 4, "conclusion": 0 },
+    { "kind": "par", "left": 3, "right": 5, "conclusion": 1 }
+  ],
+  "conclusions": [0, 1]
+}

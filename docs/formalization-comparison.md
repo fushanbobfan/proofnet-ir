@@ -87,7 +87,8 @@ vertex bijections, transports formula occurrences and ordered links, proves a
 literal inverse round trip, and exposes `ReindexEquivalent` as a reflexive,
 symmetric, and transitive certificate relation. Structural validation,
 adjacency and walk semantics, declarative tree/switching correctness, and the
-Boolean checker are invariant under that relation. The current v0.2 serializer
-is still numbering-sensitive: this equivalence theorem supplies the target
-relation for sequentialization, but is not itself a canonical-labeling
-algorithm.
+Boolean checker are invariant under that relation. The v0.2 serializer remains
+numbering-sensitive, while v0.3 adds a first-occurrence normal-form key proved
+invariant under the relation. The converse/completeness theorem is still open,
+so the reindexing relation remains the target relation for sequentialization
+rather than being silently replaced by arbitrary graph-key equality.

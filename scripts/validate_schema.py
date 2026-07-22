@@ -21,6 +21,7 @@ def main() -> None:
 
     fixtures = {
         "canonical.json": "certificate-v0.1.schema.json",
+        "canonical-v0.3.json": "certificate-v0.3.schema.json",
         "invalid-disconnected.json": "certificate-v0.1.schema.json",
         "focused-sequent-v0.2.json": "sequent-v0.2.schema.json",
     }
