@@ -111,6 +111,18 @@ equality `reconstructsDerivation = check`. The proof may use the reference
 semantics; the compiled search definition does not. No polynomial or linear
 runtime theorem is currently claimed.
 
+`unificationReconstruct?` adds a deterministic Guerrini-style candidate
+producer. It manipulates ordinary runtime token/partition state and partial
+derivation trees; none of that state is trusted. A result exists only after
+`verifyDerivation?` validates the completed tree, and
+`unificationFastCheck_sound` proves the resulting Boolean fast path cannot
+accept an invalid certificate. `unificationCheck` is the exact public
+decision: it short-circuits on the verified fast path and otherwise invokes
+the already complete checker-free reconstruction decision. Lean proves
+`unificationCheck = check`. Fast-path rejection alone is inconclusive, and no
+linearity claim is made until its completeness and worklist/union-find
+invariants are proved.
+
 For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
 formula-only raw checker and typed elaborator agree on acceptance, rejection,
 error category, detail, and child path. `elaborate?_complete` proves every raw

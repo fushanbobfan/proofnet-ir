@@ -123,7 +123,8 @@ part of the engineering and proof-identity gap.
    `CuspAcyclic`, and `ReferenceSwitchingConnected`. The executable
    `compactCheck` evaluates these three fields without enumerating switching
    graphs and is proved Boolean-equal to `check`; its exhaustive
-   colored-cycle phase still leaves the non-enumerative performance gap open.
+   colored-cycle phase remains a specification oracle rather than the
+   scalable implementation.
    The v0.9 development API now additionally provides
    `Certificate.verifyDerivation?`, which avoids both input-switching
    enumeration and vertex-permutation search when a caller supplies a
@@ -142,6 +143,13 @@ part of the engineering and proof-identity gap.
    remaining gap is a proved worst-case complexity/resource bound: fallback
    backtracking and repeated-label enumeration are not yet polynomially
    bounded.
+   The v0.9 `Certificate.unificationFastCheck` layer now executes the
+   Guerrini Figure-5 token rules while constructing a derivation and is proved
+   sound through independent verification. `Certificate.unificationCheck`
+   combines it with the complete checker-free reconstruction fallback and is
+   proved exactly equal to `check`. The clean consumer compiles and executes
+   both APIs. The pure fast path is not yet proved complete; the hybrid's
+   fallback means this is not yet a linear-time production contract.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
@@ -201,7 +209,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for seventy-five public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for eighty-three public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the two public graph-acyclicity transport theorems are separately locked to

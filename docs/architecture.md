@@ -152,9 +152,20 @@ check = true ↔
 Boolean-equal to the all-switchings checker. The proof builds bounded,
 acyclic retained graphs, derives their common maximal forest count from the
 reference graph, and transports their tree property across the exact
-edge-list permutation used by the public switching graph. Future contraction
-work replaces the exhaustive `isCuspAcyclic` implementation, not this proved
-semantic boundary.
+edge-list permutation used by the public switching graph.
+
+`Certificate.unificationFastCheck` now implements the Figure-5
+start/forward/unify token rules from Guerrini for the supported cut-free
+fragment while constructing partial derivations. A completed tree is accepted
+only after `verifyDerivation?` independently checks inference,
+desequentialization, and intrinsic proof-net identity, so Lean proves the fast
+path sound. `Certificate.unificationCheck` short-circuits through that path
+and invokes the already complete checker-free recursive sequentializer on a
+miss; Lean therefore proves `unificationCheck = check` for every input. This
+is a switching-free exact API, but not yet the pure complete or linear
+algorithm: the eager pass lacks a completeness proof and the fallback remains
+exhaustive. The exact source/code boundary is recorded in
+[guerrini-unification-audit.md](guerrini-unification-audit.md).
 
 ## Persistent LeanProp bridge
 

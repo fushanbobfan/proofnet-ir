@@ -23,6 +23,7 @@ import ProofNetIR.IntrinsicCanonical
 import ProofNetIR.IntrinsicCanonicalKeyWire
 import ProofNetIR.DerivationVerifier
 import ProofNetIR.ReconstructionChecker
+import ProofNetIR.Unification
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

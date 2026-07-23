@@ -59,6 +59,7 @@ def run : IO Unit := do
   let mut checksum := 0
   let mut completed := 0
   let mut checkMs := 0
+  let mut unificationMs := 0
   let mut sequentializeMs := 0
   let mut reconstructionMs := 0
   let mut equivalenceMs := 0
@@ -75,6 +76,14 @@ def run : IO Unit := do
       { certificate with links := certificate.links.reverse }
     else
       certificate
+    let unificationStart ← IO.monoMsNow
+    let unification ← match input.unificationReconstruct? with
+      | none =>
+          throw <| IO.userError
+            "benchmark deterministic unification fast path failed"
+      | some value => pure value
+    unificationMs :=
+      unificationMs + ((← IO.monoMsNow) - unificationStart)
     let reconstructionStart ← IO.monoMsNow
     let reconstruction ← match input.reconstructDerivation? with
       | none =>
@@ -94,7 +103,9 @@ def run : IO Unit := do
       throw <| IO.userError "benchmark equivalence decision rejected a sequentialization result"
     checksum := checksum + result.output.formulas.size + result.output.links.length +
       result.sequent.length + reconstruction.output.formulas.size +
-      reconstruction.output.links.length + reconstruction.sequent.length
+      reconstruction.output.links.length + reconstruction.sequent.length +
+      unification.output.formulas.size + unification.output.links.length +
+      unification.sequent.length
     completed := completed + 1
   let identityLeft := repeatedBoundaryCertificate identityStressPairs 0
   let identityRight := repeatedBoundaryCertificate identityStressPairs 1
@@ -181,7 +192,7 @@ def run : IO Unit := do
   let elapsed := (← IO.monoMsNow) - start
   if elapsed > budgetMs then
     throw <| IO.userError s!"performance budget exceeded: {elapsed}ms > {budgetMs}ms"
-  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkMs} sequentialize_ms={sequentializeMs} reconstruction_ms={reconstructionMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} intrinsic_canonical_key_cases={intrinsicCanonicalKeyCases} intrinsic_canonical_key_max_links={intrinsicCanonicalKeyMaxLinks} intrinsic_canonical_key_ms={intrinsicCanonicalKeyMs} intrinsic_canonical_key_budget_ms={intrinsicCanonicalKeyBudgetMs} budget_ms={budgetMs}"
+  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkMs} unification_ms={unificationMs} sequentialize_ms={sequentializeMs} reconstruction_ms={reconstructionMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} intrinsic_canonical_key_cases={intrinsicCanonicalKeyCases} intrinsic_canonical_key_max_links={intrinsicCanonicalKeyMaxLinks} intrinsic_canonical_key_ms={intrinsicCanonicalKeyMs} intrinsic_canonical_key_budget_ms={intrinsicCanonicalKeyBudgetMs} budget_ms={budgetMs}"
 
 end ProofNetIRBenchmark
 

@@ -64,3 +64,19 @@ For each source:
 The linked page matrices are the evidence behind the completion claim. This
 ledger does not turn adjacent sources into proof-net authorities and does not
 replace kernel checking of the implementation.
+
+## Supplemental primary-source audit
+
+On 2026-07-23 the project added Stefano Guerrini's ten-page LICS 1999 paper
+*Correctness of Multiplicative Proof Nets is Linear* as external primary
+literature for the contraction/unification implementation. It is not counted
+among the seven original user-provided PDFs above. The complete extracted text
+and all eight figures were inspected. The local audit copy's SHA-256 is
+`47c2b9fe82c73db3bcbb5c0dab183cb2130c9c446a1ae0f9c72fe59e53cbb149`.
+
+The audit confirms the exact axiom/start, unary-par/forward, and
+binary-tensor/unify rules, the waiting-par/deadlocked-tensor distinction, the
+total-marking/single-thread acceptance condition, and the extra worklist,
+`NEXTAXIOM`, and special union-find structure needed for the paper's linear
+theorem. The code-level mapping and nonclaims are recorded in
+[guerrini-unification-audit.md](guerrini-unification-audit.md).

@@ -19,6 +19,7 @@ research-source count.
 | Frank Pfenning, *Linear Logic* (2002 draft) | textbook/notes | Linear natural deduction, sequent calculus, cut elimination, focusing, proof search, linear lambda calculus, dependent linear type theory | Formal prerequisites and search baselines |
 | Yu. I. Manin, *A Course in Mathematical Logic for Mathematicians*, 2nd ed. (2010) | textbook | Formal languages, truth/deducibility, computability, and the explicit contrast between linear strings and nonlinear graph languages | Original motivation; formal-language and graph-language framing |
 | *Proof Nets as Graphical Proof Objects* (2026) | technical exposition | Formula occurrences, switchings, Danos-Regnier correctness, contraction, sequentialization, proof identity | Direct checker specification |
+| Stefano Guerrini, *Correctness of Multiplicative Proof Nets is Linear* (LICS 1999) | supplemental primary paper | Danos contractibility as token unification; ready/waiting links; sequential unification and special union-find | Exact source for the v0.9 unification rules and the boundary of any future linearity claim |
 | *ProofNet-IR Research Plan* (2026) | project plan | Verified graph IR, MLL-Core/LeanProp/LeanStruct staging, trust model, datasets, evaluation | Initial requirements, revised into testable milestones here |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface: An Algebraic Model* (arXiv:2311.06189) | preprint | Hopf/Rota-Baxter/operadic and geometric models of Merge, parsing, semantics, and attention | Adjacent evidence that tree/graph/algebra IRs can expose composition; not evidence for proof-net gains |
 | *Geometry of Neuroscience* (2026 expository notes) | expository notes | Fractals, graph Laplacians, random graphs, variational methods, GFFs, contact geometry, and algebraic language models | Broad mathematical training; graph and energy intuitions, not a proof-net foundation |
@@ -39,7 +40,11 @@ research-source count.
    “graphical” with “automatically easier to search.”
 6. The neuroscience and contact-topology sources provide graph-rich and
    dependency-rich mathematics, but they belong to later case-study work.
-7. Pfenning's focusing result changes the experimental baseline: comparison
+7. Guerrini supplies the primary operational rules behind the new
+   unification path. The current eager repeated-scan implementation matches
+   Figure 5 but does not yet implement or inherit the linear sequential
+   strategy of Figures 7--8.
+8. Pfenning's focusing result changes the experimental baseline: comparison
    against naive rule enumeration alone would exaggerate the benefit of
    quotienting harmless inference order.
 
@@ -70,6 +75,11 @@ ProofNet documents and Rowling chat were read directly end to end. The matrices
 also identify adjacent sources that cannot support core logic claims. Claims
 used by code are checked against the original local text, not accepted from
 local-model summaries.
+
+The later Guerrini primary-source audit is supplemental to that frozen local
+corpus: all ten pages of extracted text and Figures 1--8 were inspected, and
+the implementation/claim boundary is recorded separately in
+[guerrini-unification-audit.md](guerrini-unification-audit.md).
 
 The resulting controlled evaluation design is specified in
 [experiment-protocol.md](experiment-protocol.md).

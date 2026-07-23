@@ -88,6 +88,14 @@ expansion.
 #print axioms Certificate.reconstructDerivationWithinLimits_sound
 #print axioms Certificate.reconstructDerivationWithinLimits_accepted
 #print axioms Certificate.reconstructDerivationWithinLimits_implies_reconstructs
+#print axioms Certificate.unificationReconstruct_accepted
+#print axioms Certificate.unificationReconstruct?_sound
+#print axioms Certificate.unificationReconstruct?_accepted
+#print axioms Certificate.unificationFastCheck_eq_true_iff
+#print axioms Certificate.unificationFastCheck_sound
+#print axioms Certificate.unificationCheck_eq_check
+#print axioms Certificate.unificationCheck_eq_true_iff_check
+#print axioms Certificate.unificationCheck_eq_true_iff_declarativelyCorrect
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent
 #print axioms LeanProp.Derivation.toProof

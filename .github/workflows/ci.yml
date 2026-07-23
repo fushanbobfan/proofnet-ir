@@ -49,6 +49,8 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_benchmark
       - name: Audit checker-free reconstruction against the reference checker
         run: ~/.elan/bin/lake exe proofnet_ir_reconstruction_audit
+      - name: Audit deterministic unification and exact fallback
+        run: ~/.elan/bin/lake exe proofnet_ir_unification_audit
       - name: Stress checker-free reconstruction shapes and repeated labels
         run: ~/.elan/bin/lake exe proofnet_ir_reconstruction_stress
       - name: Build as a downstream Lake dependency

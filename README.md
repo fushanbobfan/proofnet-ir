@@ -40,8 +40,14 @@ check = true ↔
 `Certificate.compactCheck` executes this criterion and is proved
 Boolean-equal to `Certificate.check`. It does not enumerate switchings, but
 its current colored-cycle oracle is still exhaustive and exponential. A
-verified complexity-bounded contraction implementation remains work in
-progress.
+new Guerrini-style token-unification fast path constructs a derivation while
+firing par/forward and tensor/unify rules, then independently verifies that
+derivation. Lean proves the fast path sound. The public
+`Certificate.unificationCheck` short-circuits through that path and uses the
+already complete checker-free sequentializer only on a miss, so it is proved
+Boolean-equal to `Certificate.check` without enumerating switchings. Fast-path
+completeness and Guerrini's linear complexity bound are still separate open
+proof obligations.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -96,6 +102,14 @@ The repository currently contains:
   correctness, plus `Certificate.compactCheck`, a switching-free executable
   specification checker proved Boolean-equal to `Certificate.check`. Its
   exhaustive colored-cycle phase is not yet a scalable contraction checker;
+- a deterministic Guerrini-style unification fast path that starts axiom
+  tokens, forwards par links when premise classes agree, unifies tensor links
+  when they differ, carries partial derivations, and independently verifies
+  the final tree. Lean proves fast-path soundness. The exact
+  `Certificate.unificationCheck` API combines it with the complete
+  checker-free reconstruction fallback and is proved equal to `check`; the
+  detailed tier returns stable `UnificationErrorCode` diagnostics, while the
+  pure fast path is not yet proved complete or linear;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -270,7 +284,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits seventy-five public MLL logical-boundary theorems against the exact axiom set
+  separately audits eighty-three public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.

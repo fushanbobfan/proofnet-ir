@@ -405,9 +405,19 @@
   - [x] Add `compactCheck`, which evaluates structural well-formedness,
     exhaustive cusp-acyclicity, and one reference connectivity check without
     enumerating switchings; prove `compactCheck = check`.
-  - [ ] Replace the exhaustive colored-cycle phase with a verified
-    complexity-bounded contraction/forest algorithm and differential-test it
-    against both exhaustive oracles.
+  - [x] Implement the Figure-5 Guerrini token rules as a deterministic
+    derivation-producing fast path, prove successful results sound through
+    independent derivation verification, and differentially test 1,500
+    positive/reordered/malformed inputs.
+  - [x] Expose an exact switching-free `unificationCheck` by using the
+    deterministic pass first and the proved checker-free sequentializer only
+    as a completeness fallback; prove `unificationCheck = check`.
+  - [ ] Prove the pure deterministic unification path complete, removing the
+    recursive fallback from the logical decision.
+  - [ ] Replace eager repeated scans with proved ready/waiting worklists,
+    formalize the sequential `NEXTAXIOM`/union-find invariants, and establish
+    the complexity bound actually implemented before claiming Guerrini
+    linearity.
 
 ## Later research
 

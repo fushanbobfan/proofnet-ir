@@ -35,6 +35,13 @@ mathematical diagrams, program listing, or data table.
 | *Geometry of Neuroscience* | 33 | 15,797 | complete page-by-page text reading and visual inspection; [page matrix](source-pages/geometry-of-neuroscience.md) records every page and the strict claim boundary | `e7730b0731bb` |
 | Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | 25,013 | [completed page audit](source-pages/park-four-punctured-sphere.md) records ordered reading of all 76 pages and rendered inspection of pages 1--74, including every diagram, program listing, and data table | `7b756a8759e1` |
 
+The frozen table above describes the original local corpus. A supplemental
+primary source was added for the v0.9 algorithm audit:
+
+| Source | Physical pages | Extracted words | Coverage | SHA-256 prefix |
+|---|---:|---:|---|---|
+| Guerrini, *Correctness of Multiplicative Proof Nets is Linear* (LICS 1999) | 10 | 8,788 | complete extracted-text reading and rendered inspection of Figures 1--8; [implementation audit](guerrini-unification-audit.md) | `47c2b9fe82c7` |
+
 ### Duplicate-page finding
 
 `linearlogic.pdf` contains two exact repetitions, confirmed independently by
@@ -93,6 +100,20 @@ hash of the unaltered original PDF.
   gains. The chat identifies the first and third files as generated drafts, so
   every mathematical claim used by code is independently checked or stated as
   an assumption/open obligation.
+
+### Guerrini: contractibility as unification
+
+- Unary links are par links in the switching abstraction; binary links are
+  tensor links (and cuts in the paper's broader dummy-link encoding).
+- Start assigns a fresh token to an axiom pair; forward requires equal premise
+  classes; unify requires distinct premise classes and merges them.
+- A same-class armed tensor is a permanent deadlock, whereas a different-class
+  armed par is waiting and may become ready after a later merge.
+- Correctness is equivalent to a total marking with one token class, but the
+  paper's linear bound additionally depends on its sequential strategy,
+  ready/waiting organization, `NEXTAXIOM`, and special ordered union-find.
+- The v0.9 eager repeated-scan implementation is therefore source-faithful at
+  the Figure-5 rule level but does not claim Theorem 16's linear bound.
 
 ### Syntax-semantics interface
 

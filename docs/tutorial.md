@@ -134,6 +134,28 @@ validated key.
 
 ## 4. Sequentialize every accepted certificate
 
+For a switching-free Boolean decision, the v0.9 unification API first tries
+the deterministic Guerrini-style token pass and then uses the complete
+checker-free recursive sequentializer only if that pass misses:
+
+```lean
+example : axiomCertificate.unificationFastCheck = true := by native_decide
+example : axiomCertificate.unificationCheck = true := by native_decide
+
+example :
+    axiomCertificate.unificationCheck = axiomCertificate.check :=
+  axiomCertificate.unificationCheck_eq_check
+```
+
+Every fast-path success has passed independent derivation verification and is
+formally sound. The hybrid equality theorem is unconditional. The pure fast
+path is not yet proved complete, and the fallback prevents a linear
+worst-case claim; see
+[the Guerrini implementation audit](guerrini-unification-audit.md).
+Use `unificationReconstruct` instead of the `?` wrapper when a caller needs
+stable malformed/incomplete/deadlock/boundary/verification diagnostics; only
+`malformedInput` is itself a logical structural rejection.
+
 The runtime API reconstructs a first-order cut-free derivation:
 
 ```lean

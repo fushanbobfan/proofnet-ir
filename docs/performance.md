@@ -2,9 +2,9 @@
 
 ## CI workload
 
-`ProofNetIRBenchmark.lean` runs the native checker, executable
-sequentializer, checker-free automatic reconstruction, and
-`ProofNetEquivalent` decision procedure on 291 deterministic
+`ProofNetIRBenchmark.lean` runs the native checker, deterministic
+unification fast path, executable sequentializer, checker-free automatic
+reconstruction, and `ProofNetEquivalent` decision procedure on 291 deterministic
 derivation-generated certificates, followed by one adversarial pairwise-
 identity case:
 
@@ -44,6 +44,15 @@ formula-compatible occurrence orders. Its separate `reconstruction_ms`
 counter is therefore a regression and comparison metric, not an asymptotic
 guarantee.
 
+`unificationReconstruct?` is an independent deterministic candidate path
+based on axiom/start, par/forward, and tensor/unify token rules. It carries a
+partial derivation per live token class and accepts only after the completed
+tree passes `verifyDerivation?`. The benchmark requires this fast path to
+succeed on every one of the 291 accepted inputs and records a separate
+`unification_ms` counter. The eager repeated scan can revisit waiting links,
+and the exact `unificationCheck` wrapper retains the exhaustive recursive
+fallback on a miss, so the counter is not a linearity theorem.
+
 A separate `proofnet_ir_reconstruction_audit` executable runs the exact
 v0.2-shaped 1,000-case family: 250 derivation positives plus missing-link,
 duplicated-resource, and self-axiom mutations. It fails on any Boolean
@@ -56,6 +65,22 @@ checker-free-reconstruction-audit-ok cases=1000 positives=250 negatives=750
 checksum=6124 elapsed_ms=413 budget_ms=15000
 ```
 
+`proofnet_ir_unification_audit` adds reversed-link and reversed-boundary
+positive variants and checks 1,500 inputs total. It requires exact
+`unificationCheck`/reference agreement, rejects any fast-path false positive,
+and reports rather than conceals a fast-path positive miss. The first recorded
+Windows run reported:
+
+```text
+unification-audit-ok cases=1500 structural_negative_sentinels=1
+reference_positives=750
+reference_negatives=750 fast_positive_hits=750 fast_positive_misses=0
+fast_false_positives=0 checksum=18372 elapsed_ms=331 budget_ms=15000
+```
+
+Zero observed misses are evidence for the pending completeness proof, not a
+replacement for it.
+
 A separate `proofnet_ir_reconstruction_stress` executable exercises 18
 accepted identity nets with a single repeated internal atom. It crosses
 right-skewed tensor, balanced tensor, balanced par, and alternating shapes;
@@ -66,9 +91,14 @@ occurrences and 94 links. It calls
 formula-order fallback. The recorded Windows run reported:
 
 ```text
-checker-free-reconstruction-stress-ok cases=18 checksum=39390
-elapsed_ms=34416 budget_ms=45000
+checker-free-reconstruction-stress-ok cases=18 checksum=41224
+elapsed_ms=32761 budget_ms=45000
 ```
+
+The same stress run now first requires deterministic unification success.
+Individual unification times ranged from below one millisecond to five
+milliseconds on the recorded run; the much larger total remains dominated by
+the independently qualified bounded recursive reconstruction.
 
 Exploratory pre-fix runs exceeded 8-second per-case timeouts at right-tensor
 depth 8 and exceeded 30-second timeouts at balanced depth 4. After boundary
@@ -131,8 +161,9 @@ On the Windows development machine on 2026-07-23, the qualified workload
 reported:
 
 ```text
-cases=291 checksum=1032554 elapsed_ms=10198
-check_ms=0 sequentialize_ms=6680 reconstruction_ms=1752 equivalence_ms=0
+cases=291 checksum=1040800 elapsed_ms=9589
+check_ms=0 unification_ms=58 sequentialize_ms=6238
+reconstruction_ms=1635 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
 canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=754
 canonical_key_budget_ms=10000 canonical_key_max_links=7
@@ -146,9 +177,10 @@ calls performed inside sequentialization are included in `sequentialize_ms`.
 Ordered-boundary pruning removes a severe repeated-label case, but formulas on
 internal non-boundary vertices can still require combinatorial search. This
 measurement is not a polynomial-time or general scalability result.
-On this workload the new checker-free reconstruction aggregate was lower than
-the legacy checker-gated sequentializer aggregate, but the single run is a
-regression receipt rather than a statistically controlled speedup claim.
+On this workload both the deterministic unification and checker-free
+reconstruction aggregates were lower than the legacy checker-gated
+sequentializer aggregate, but the single run is a regression receipt rather
+than a statistically controlled speedup or asymptotic claim.
 
 The independent intrinsic wire envelope was also exercised negatively during
 development: a depth-64 identity certificate produced 45,022 tokens and

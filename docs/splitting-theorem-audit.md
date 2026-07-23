@@ -97,8 +97,14 @@ name-level restatement of Yeo:
    `check = true` are both proved equivalent to structural well-formedness,
    `CuspAcyclic`, and `ReferenceSwitchingConnected`. The executable
    `compactCheck` evaluates those fields and is proved equal to `check`.
-   Replacing exhaustive colored-cycle enumeration with a verified
-   complexity-bounded contraction remains separate.
+   A separate token-unification implementation now fires axiom/start,
+   par/forward, and tensor/unify rules and independently verifies any produced
+   derivation. Its fast path is proved sound; the hybrid
+   `unificationCheck`, with complete checker-free reconstruction fallback, is
+   proved equal to `check` without enumerating switchings. Proving the pure
+   eager schedule complete and replacing it by the sequential
+   ready/waiting/union-find strategy remain the separate complexity
+   obligations.
 4. **Finite maximality/Yeo (order foundation complete).** `EdgeSimplePath`,
    `CuspFreeContinuation`, and the strengthened `OrderingPath` now encode the
    simple open cusp-free continuation and universal path-separation condition.

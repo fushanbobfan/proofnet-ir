@@ -2395,6 +2395,211 @@ ProofNetIR.Certificate.reconstructDerivationWithinLimits_implies_reconstructs : 
   input.reconstructDerivationWithinLimits limits = Except.ok result → input.reconstructsDerivation = true
 ```
 
+### `ProofNetIR.UnificationErrorCode`
+
+Kind: inductive type.
+
+Stable failure category for deterministic unification. A fast-path failure
+does not by itself prove that the submitted certificate is incorrect.
+
+```lean
+ProofNetIR.UnificationErrorCode : Type
+```
+
+### `ProofNetIR.UnificationError`
+
+Kind: inductive type.
+
+Structured diagnostic for the deterministic unification tier.
+
+```lean
+ProofNetIR.UnificationError : Type
+```
+
+### `ProofNetIR.UnificationError.render`
+
+Kind: definition.
+
+Human-readable diagnostic preserving the stable machine category.
+
+```lean
+ProofNetIR.UnificationError.render : ProofNetIR.UnificationError → String
+```
+
+### `ProofNetIR.Certificate.unificationDerivationCandidate`
+
+Kind: definition.
+
+Detailed deterministic Guerrini-style parsing candidate.
+
+This executable does not enumerate switchings or cycles. It starts one thread
+per axiom, forwards unary/par links whose premise tokens agree, and unifies
+binary/tensor links whose premise tokens differ. A candidate is returned only
+when every formula occurrence is marked, every connective fired, exactly one
+component remains, and its frontier is exactly the public conclusion boundary.
+
+The returned tree is still untrusted data. `unificationReconstruct` below
+independently verifies it before exposing a proof-bearing result. Errors from
+this tier are inconclusive except for `malformedInput`.
+
+```lean
+ProofNetIR.Certificate.unificationDerivationCandidate : ProofNetIR.Certificate → Except ProofNetIR.UnificationError ProofNetIR.CutFreeDerivation
+```
+
+### `ProofNetIR.Certificate.unificationDerivationCandidate?`
+
+Kind: definition.
+
+Option compatibility wrapper for the detailed unification candidate.
+
+```lean
+ProofNetIR.Certificate.unificationDerivationCandidate? : ProofNetIR.Certificate → Option ProofNetIR.CutFreeDerivation
+```
+
+### `ProofNetIR.Certificate.unificationReconstruct`
+
+Kind: definition.
+
+Detailed proof-bearing deterministic unification fast path.
+
+```lean
+ProofNetIR.Certificate.unificationReconstruct : (certificate : ProofNetIR.Certificate) →
+  Except ProofNetIR.UnificationError (ProofNetIR.DerivationVerificationResult certificate)
+```
+
+### `ProofNetIR.Certificate.unificationReconstruct?`
+
+Kind: definition.
+
+Proof-bearing fast path for deterministic unification. The generated tree
+must pass the independent derivation verifier, including formula inference,
+desequentialization, and intrinsic proof-net equivalence.
+
+```lean
+ProofNetIR.Certificate.unificationReconstruct? : (certificate : ProofNetIR.Certificate) → Option (ProofNetIR.DerivationVerificationResult certificate)
+```
+
+### `ProofNetIR.Certificate.unificationFastCheck`
+
+Kind: definition.
+
+Boolean deterministic-unification fast path. A `false` result is a
+heuristic miss, not yet a mathematical rejection.
+
+```lean
+ProofNetIR.Certificate.unificationFastCheck : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.unificationReconstruct_accepted`
+
+Kind: theorem.
+
+A detailed unification success is reference-checker accepted.
+
+```lean
+ProofNetIR.Certificate.unificationReconstruct_accepted : ∀ {certificate : ProofNetIR.Certificate} {result : ProofNetIR.DerivationVerificationResult certificate},
+  certificate.unificationReconstruct = Except.ok result → certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationReconstruct?_sound`
+
+Kind: theorem.
+
+Successful deterministic unification exposes the complete proof-bearing
+verification contract.
+
+```lean
+ProofNetIR.Certificate.unificationReconstruct?_sound : ∀ {certificate : ProofNetIR.Certificate} {result : ProofNetIR.DerivationVerificationResult certificate},
+  certificate.unificationReconstruct? = some result →
+    certificate.StructurallyWellFormed ∧
+      certificate.conclusionFormulas? = some result.sequent ∧
+        result.tree.infer? = some result.sequent ∧
+          result.tree.desequentialize? = some result.output ∧
+            result.output.check = true ∧ result.output.ProofNetEquivalent certificate
+```
+
+### `ProofNetIR.Certificate.unificationReconstruct?_accepted`
+
+Kind: theorem.
+
+Every successful deterministic unification result is accepted by the
+reference proof-net semantics.
+
+```lean
+ProofNetIR.Certificate.unificationReconstruct?_accepted : ∀ {certificate : ProofNetIR.Certificate} {result : ProofNetIR.DerivationVerificationResult certificate},
+  certificate.unificationReconstruct? = some result → certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationFastCheck_eq_true_iff`
+
+Kind: theorem.
+
+Boolean fast-path success is exactly the existence of a proof-bearing
+unification result.
+
+```lean
+ProofNetIR.Certificate.unificationFastCheck_eq_true_iff : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.unificationFastCheck = true ↔ ∃ result, certificate.unificationReconstruct? = some result
+```
+
+### `ProofNetIR.Certificate.unificationFastCheck_sound`
+
+Kind: theorem.
+
+Soundness of the Boolean deterministic-unification fast path.
+
+```lean
+ProofNetIR.Certificate.unificationFastCheck_sound : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationFastCheck = true → certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationCheck`
+
+Kind: definition.
+
+Exact switching-free decision procedure with deterministic unification as
+its fast path and the previously certified recursive sequentializer as its
+completeness fallback.
+
+The fallback is exhaustive in the worst case. Consequently this definition
+does not yet constitute the linear-time algorithm from Guerrini's theorem.
+
+```lean
+ProofNetIR.Certificate.unificationCheck : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.unificationCheck_eq_check`
+
+Kind: theorem.
+
+The hybrid unification decision is extensionally equal to the reference
+all-switchings checker.
+
+```lean
+ProofNetIR.Certificate.unificationCheck_eq_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = certificate.check
+```
+
+### `ProofNetIR.Certificate.unificationCheck_eq_true_iff_check`
+
+Kind: theorem.
+
+Iff form of exact agreement between the hybrid unification decision and
+the reference checker.
+
+```lean
+ProofNetIR.Certificate.unificationCheck_eq_true_iff_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = true ↔ certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect`
+
+Kind: theorem.
+
+Proposition-level correctness interface for the hybrid unification
+decision.
+
+```lean
+ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationCheck = true ↔ certificate.DeclarativelyCorrect
+```
+
 ### `ProofNetIR.ExecutableSequentializationResult.kernelDerivation`
 
 Kind: theorem.

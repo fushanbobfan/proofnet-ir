@@ -127,6 +127,19 @@
   `Certificate.check`. Its current `isCuspAcyclic` phase is an exhaustive
   colored-cycle specification oracle, so this is not yet a linear-time or
   contraction-complexity claim;
+- audited all ten pages and eight figures of Guerrini's LICS 1999 primary
+  paper and mapped its axiom/start, unary-par/forward, and
+  binary-tensor/unify rules to the current cut-free certificate syntax. Added
+  a deterministic token-unification pass that carries partial derivations and
+  independently verifies its completed tree. Lean proves every fast-path
+  success checker-accepted. The exact `Certificate.unificationCheck` API
+  short-circuits through this pass and uses the already complete
+  checker-free sequentializer on a miss, yielding the theorem
+  `unificationCheck = check` without switching enumeration. A new 1,500-case
+  CI audit plus a structurally well-formed disconnected sentinel recorded 750
+  positive hits, zero positive misses, and zero false positives in its first
+  Windows run. Pure fast-path completeness,
+  ready/waiting worklists, and Guerrini's linear bound remain explicitly open;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

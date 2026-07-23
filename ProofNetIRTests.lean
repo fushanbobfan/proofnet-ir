@@ -731,6 +731,45 @@ example : canonical.reconstructsDerivation = true := by
 example : canonical.reconstructsDerivation = canonical.check :=
   canonical.reconstructsDerivation_eq_check
 
+example : canonical.unificationFastCheck = true := by
+  native_decide
+
+example : canonical.unificationReconstruct.isOk = true := by
+  native_decide
+
+example :
+    (match (Mutation.dropFirstLink.apply canonical).unificationReconstruct with
+    | .error error => error.code == .malformedInput
+    | .ok _ => false) = true := by
+  native_decide
+
+example :
+    ({ canonical with links := canonical.links.reverse } :
+      Certificate).unificationFastCheck = true := by
+  native_decide
+
+example :
+    ({ canonical with conclusions := canonical.conclusions.reverse } :
+      Certificate).unificationFastCheck = true := by
+  native_decide
+
+example :
+    (Mutation.dropFirstLink.apply canonical).unificationFastCheck = false := by
+  native_decide
+
+example : canonical.unificationCheck = true := by
+  native_decide
+
+example : canonical.unificationCheck = canonical.check :=
+  canonical.unificationCheck_eq_check
+
+example : canonical.unificationCheck = true ↔ canonical.check = true :=
+  canonical.unificationCheck_eq_true_iff_check
+
+example : canonical.unificationCheck = true ↔
+    canonical.DeclarativelyCorrect :=
+  canonical.unificationCheck_eq_true_iff_declarativelyCorrect
+
 example : ∃ result : DerivationVerificationResult canonical,
     canonical.reconstructDerivation? = some result :=
   canonical.reconstructDerivation?_complete (by native_decide)
@@ -1497,6 +1536,13 @@ def disconnected : Certificate where
 example : disconnected.wellFormed = true := by native_decide
 example : disconnected.check = false := by native_decide
 example : disconnected.compactCheck = false := by native_decide
+example : disconnected.unificationFastCheck = false := by native_decide
+example :
+    (match disconnected.unificationReconstruct with
+    | .error error => error.code == .nonUniqueThread
+    | .ok _ => false) = true := by
+  native_decide
+example : disconnected.unificationCheck = false := by native_decide
 
 def axiomOnly : Certificate where
   formulas := #[p, pDual]
@@ -1505,6 +1551,7 @@ def axiomOnly : Certificate where
 
 example : axiomOnly.wellFormed = true := by native_decide
 example : axiomOnly.check = true := by native_decide
+example : axiomOnly.unificationFastCheck = true := by native_decide
 
 def duplicateConclusion : Certificate :=
   { axiomOnly with conclusions := [0, 0, 1] }
