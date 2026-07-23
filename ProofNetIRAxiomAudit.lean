@@ -99,6 +99,8 @@ expansion.
 #print axioms UnificationState.Abstractable.markConclusion
 #print axioms UnificationState.markConclusion_toMarking_mark
 #print axioms UnificationState.markConclusion_forwardStep
+#print axioms UnificationState.tokenAt?_some_witness
+#print axioms UnificationState.Abstractable.tokenAt?_sameThread_witness
 #print axioms UnificationState.Abstractable.tokenAt?_bound
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound

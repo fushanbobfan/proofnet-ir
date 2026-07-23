@@ -42,6 +42,14 @@ example (certificate : ProofNetIR.Certificate)
     token < state.parents.size :=
   abstractable.tokenAt?_bound yielded
 
+example {state : ProofNetIR.UnificationState}
+    {vertex token : Nat}
+    (yielded : state.tokenAt? vertex = some token) :
+    ∃ rawToken,
+      state.assignedToken? vertex = some rawToken ∧
+        state.representative rawToken = token :=
+  state.tokenAt?_some_witness yielded
+
 example (certificate : ProofNetIR.Certificate)
     (state : ProofNetIR.UnificationState)
     (abstractable : state.Abstractable certificate)

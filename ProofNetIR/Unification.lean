@@ -340,6 +340,49 @@ def tokenAt? (state : UnificationState) (vertex : Vertex) : Option Nat := do
   let token ← assigned
   pure (state.representative token)
 
+/-- A successful representative lookup always comes from a concrete raw mark
+on the queried occurrence. -/
+theorem tokenAt?_some_witness
+    {state : UnificationState} {vertex token : Nat}
+    (yielded : state.tokenAt? vertex = some token) :
+    ∃ rawToken,
+      state.assignedToken? vertex = some rawToken ∧
+        state.representative rawToken = token := by
+  unfold tokenAt? at yielded
+  cases lookup : state.marks[vertex]? with
+  | none =>
+      rw [lookup] at yielded
+      contradiction
+  | some assigned =>
+      rw [lookup] at yielded
+      cases assigned with
+      | none =>
+          contradiction
+      | some rawToken =>
+          injection yielded with representativeEquation
+          exact ⟨rawToken, by
+            unfold assignedToken?
+            rw [lookup]
+            rfl, representativeEquation⟩
+
+/-- In an abstractable state, the representative returned by `tokenAt?` lies
+in the same semantic thread as its witnessed raw mark. -/
+theorem Abstractable.tokenAt?_sameThread_witness
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {vertex token : Nat}
+    (yielded : state.tokenAt? vertex = some token) :
+    ∃ rawToken,
+      state.assignedToken? vertex = some rawToken ∧
+        state.SameThread token rawToken := by
+  rcases state.tokenAt?_some_witness yielded with
+    ⟨rawToken, marked, representativeEquation⟩
+  refine ⟨rawToken, marked, ?_⟩
+  unfold SameThread
+  rw [← representativeEquation]
+  apply abstractable.representativeIdempotent
+  exact abstractable.markedTokenBound marked
+
 /-- Every representative yielded by a marked occurrence in an abstractable
 executable state remains inside the allocated union-find token range. -/
 theorem Abstractable.tokenAt?_bound

@@ -31,8 +31,10 @@
   theorem proves that marking an in-domain conclusion with an allocated token
   preserves the abstraction contract. A second theorem proves this concrete
   update refines the independent forward rule under its exact executable
-  guards; start/unify preservation and end-to-end firing refinement remain
-  open;
+  guards. Axiom-free witness theorems now recover the raw mark behind every
+  successful representative lookup and place that representative in the same
+  semantic thread; start/unify preservation and end-to-end firing refinement
+  remain open;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 

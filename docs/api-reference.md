@@ -2667,6 +2667,34 @@ ProofNetIR.UnificationState.markConclusion_forwardStep : ∀ {certificate : Proo
                     ((state.markConclusion conclusion outputToken).toMarking certificate ⋯)
 ```
 
+### `ProofNetIR.UnificationState.tokenAt?_some_witness`
+
+Kind: theorem.
+
+A successful representative lookup always comes from a concrete raw mark
+on the queried occurrence.
+
+```lean
+ProofNetIR.UnificationState.tokenAt?_some_witness : ∀ {state : ProofNetIR.UnificationState} {vertex token : Nat},
+  state.tokenAt? vertex = some token →
+    ∃ rawToken, state.assignedToken? vertex = some rawToken ∧ state.representative rawToken = token
+```
+
+### `ProofNetIR.UnificationState.Abstractable.tokenAt?_sameThread_witness`
+
+Kind: theorem.
+
+In an abstractable state, the representative returned by `tokenAt?` lies
+in the same semantic thread as its witnessed raw mark.
+
+```lean
+ProofNetIR.UnificationState.Abstractable.tokenAt?_sameThread_witness : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate state →
+    ∀ {vertex token : Nat},
+      state.tokenAt? vertex = some token →
+        ∃ rawToken, state.assignedToken? vertex = some rawToken ∧ state.SameThread token rawToken
+```
+
 ### `ProofNetIR.UnificationState.Abstractable.tokenAt?_bound`
 
 Kind: theorem.
