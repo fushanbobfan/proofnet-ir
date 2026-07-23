@@ -110,6 +110,15 @@ form is in the original class, and proves normal-form equality iff
 `ReindexEquivalent`. The generic parser validates the declared algorithm and
 normalized payload; logical acceptance is still rechecked separately.
 
+For checker-accepted values, the supported production pairwise identity API is
+`CheckedCertificate.sameProofNet?`. Lean proves its Boolean result is true iff
+the two certificates satisfy exactly `ProofNetEquivalent`: bounded vertex
+renaming followed by link-list permutation, preserving ordered conclusions,
+connective premises, formula labels, and axiom orientation. The optimized
+candidate generator enforces the ordered boundary during enumeration, and its
+completeness feeds the already-audited exact decision theorem. This is neither
+an arbitrary graph-isomorphism oracle nor a canonical serialization theorem.
+
 ## Failure containment
 
 Even if a future graph proposer, optimized checker, or sequentializer is wrong,

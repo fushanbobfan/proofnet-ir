@@ -13,4 +13,5 @@ import ProofNetIR.Sequentialization
 import ProofNetIR.DesequentializationSoundness
 import ProofNetIR.ExecutableSequentialization
 import ProofNetIR.ProofNetCanonical
+import ProofNetIR.ProofNetIdentity
 import ProofNetIR.Parser

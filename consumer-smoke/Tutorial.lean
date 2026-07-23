@@ -17,6 +17,17 @@ example : axiomCertificate.check = true := by native_decide
 example : axiomCertificate.DeclarativelyCorrect :=
   axiomCertificate.check_iff_declarativelyCorrect.mp (by native_decide)
 
+def checkedAxiomCertificate : CutFreeDerivation.CheckedCertificate :=
+  ⟨axiomCertificate, by native_decide⟩
+
+example : checkedAxiomCertificate.sameProofNet? checkedAxiomCertificate = true := by
+  native_decide
+
+example : checkedAxiomCertificate.certificate.ProofNetEquivalent
+    checkedAxiomCertificate.certificate :=
+  CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff.mp
+    (by native_decide)
+
 def parsed := Certificate.checkedFromString axiomCertificate.canonicalString
 
 example : parsed.isOk = true := by native_decide

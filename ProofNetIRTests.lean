@@ -176,6 +176,8 @@ example : Certificate.matchingFormulaOrder? [p, p, q] [p, q, p] =
 example : Certificate.matchingFormulaOrders [p, p, q] [p, q, p] =
     [[0, 2, 1], [1, 2, 0]] := by native_decide
 
+#check Certificate.matchingFormulaOrdersForCertificates_complete
+
 def repeatedBoundaryTree : CutFreeDerivation :=
   .tensor 0 0 (.axiom "p" true) (.axiom "p" true)
 
@@ -223,6 +225,20 @@ example : reversedLinkCertificate.check = true := by native_decide
 example : Certificate.proofNetEquivalent?
     (canonicalCertificate "reordered-p" "reordered-q")
       reversedLinkCertificate = true := by native_decide
+
+def checkedCanonicalCertificate : CutFreeDerivation.CheckedCertificate :=
+  ⟨canonicalCertificate "reordered-p" "reordered-q", by native_decide⟩
+
+def checkedReversedLinkCertificate : CutFreeDerivation.CheckedCertificate :=
+  ⟨reversedLinkCertificate, by native_decide⟩
+
+example : checkedCanonicalCertificate.sameProofNet?
+    checkedReversedLinkCertificate = true := by native_decide
+
+example : checkedCanonicalCertificate.certificate.ProofNetEquivalent
+    checkedReversedLinkCertificate.certificate :=
+  CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff.mp
+    (by native_decide)
 
 example : (canonicalCertificate "reordered-p" "reordered-q").ProofNetEquivalent
     reversedLinkCertificate := by
@@ -1206,6 +1222,8 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.DirectProofNetEquivalent
 #check Certificate.ProofNetEquivalent.toDirect
 #check Certificate.proofNetEquivalent_iff_direct
+#check CutFreeDerivation.CheckedCertificate.sameProofNet?
+#check CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff
 #check NetFragment.Balanced
 #check CutFreeDerivation.pick?_map
 #check CutFreeDerivation.pick?_exists_of_map_eq_some

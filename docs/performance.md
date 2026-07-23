@@ -4,12 +4,22 @@
 
 `ProofNetIRBenchmark.lean` runs the native checker, executable
 sequentializer, and `ProofNetEquivalent` decision procedure on 291 deterministic
-derivation-generated certificates:
+derivation-generated certificates, followed by one adversarial pairwise-
+identity case:
 
 - 250 depth-2 trees;
 - 40 depth-3 trees;
 - one depth-4 sentinel;
 - every even-numbered input has its link storage order reversed.
+
+The identity stress fixture contains 64 identical positive atoms and 64
+identical negative atoms, with every vertex fixed by the ordered conclusion
+boundary. The old unconstrained formula-label enumerator therefore has
+`(64!)^2` theoretical alignments. The constrained generator now produces one
+candidate and rejects a shifted axiom matching immediately. The fixture is
+structurally well formed but, for more than one pair, not switching-connected;
+it deliberately isolates the exact identity engine's structural theorem
+domain rather than posing as an accepted proof net.
 
 The executable verifies every result and accumulates a stable checksum so the
 work cannot be optimized away silently. Timing begins after process startup and
@@ -21,8 +31,10 @@ claim of constant, polynomial, interactive, or production-grade performance.
 workload. It enumerates every link-list permutation and is therefore factorial
 in the link count. Its purpose is to provide an executable, kernel-proved
 complete invariant for the exact `ProofNetEquivalent` relation. Production
-identity checks should use `Certificate.proofNetEquivalent?`, whose
-completeness theorem does not require materializing the family.
+identity checks should use `CheckedCertificate.sameProofNet?` after checker
+acceptance (or the lower-level `Certificate.proofNetEquivalent?` when a caller
+already manages its structural premise). The checked API has an iff theorem
+for exactly `ProofNetEquivalent`; neither path materializes the family.
 
 ## Baseline measurement
 
@@ -30,13 +42,17 @@ On the Windows development machine on 2026-07-22, the committed workload
 reported:
 
 ```text
-cases=291 checksum=8246 elapsed_ms=8107
-check_ms=0 sequentialize_ms=7133 equivalence_ms=0
+cases=291 checksum=8246 elapsed_ms=8678
+check_ms=0 sequentialize_ms=7622 equivalence_ms=0
+identity_stress_pairs=64 identity_candidates=1 identity_ms=0
 ```
 
 The millisecond counters are coarse; zero means below one aggregate measured
 millisecond at those isolated call sites. Recursive checker and equivalence
 calls performed inside sequentialization are included in `sequentialize_ms`.
+Ordered-boundary pruning removes a severe repeated-label case, but formulas on
+internal non-boundary vertices can still require combinatorial search. This
+measurement is not a polynomial-time or general scalability result.
 
 An exploratory workload with eight depth-4 cases took 60,409 ms and failed an
 initial 15,000 ms budget. Removing those eight cases reduced the depth-2/3

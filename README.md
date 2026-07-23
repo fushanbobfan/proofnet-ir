@@ -101,6 +101,14 @@ The repository currently contains:
   equality is proved equivalent to exactly `ProofNetEquivalent` on
   structurally well-formed certificates. This is a factorial specification
   oracle, not a compact wire key or arbitrary unlabeled-graph canonicalizer.
+- a checked pairwise identity API,
+  `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
+  exactly `ProofNetEquivalent`. Its search enforces the ordered conclusion
+  boundary while generating formula-occurrence alignments; a 64-pair
+  repeated-label stress case generates one candidate instead of the
+  unconstrained label enumerator's theoretical `(64!)^2` orders. This remains
+  an exact scoped decision procedure, not a compact canonical wire key or an
+  arbitrary graph-isomorphism algorithm.
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does
@@ -110,7 +118,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits eleven public logical-boundary theorems against the exact axiom set
+separately audits twenty-four public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
@@ -199,6 +207,7 @@ ProofNetIR/DesequentializationSoundness.lean derivation-to-certificate invariant
 ProofNetIR/NetEquivalence.lean semantic equivalence and checker invariance
 ProofNetIR/Sequentialization.lean general theorem contract and inverse-rule work
 ProofNetIR/ExecutableSequentialization.lean runtime inverse search and diagnostics
+ProofNetIR/ProofNetIdentity.lean checked exact pairwise proof-net identity API
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures

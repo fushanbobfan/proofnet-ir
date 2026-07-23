@@ -57,6 +57,11 @@ criterion and proof-order bureaucracy can be measured cleanly.
     extensional family membership is an iff for `ProofNetEquivalent` on
     structurally well-formed certificates. The family is executable but
     factorial in the link count and is intended as a specification oracle.
+21. `ProofNetIdentity.lean` exposes the production pairwise identity boundary
+    for checker-accepted certificates. `sameProofNet?` is proved equivalent to
+    exactly `ProofNetEquivalent`. Its underlying candidate generator applies
+    ordered-conclusion constraints during repeated-label occurrence search,
+    and completeness is proved for every direct equivalence witness.
 
 Canonical v0.2 JSON continues to preserve submitted formula-array numbering.
 The separate v0.3 key removes that numbering. For structurally well-formed
@@ -70,6 +75,13 @@ family rather than a single compact representative. In this family, link-list
 storage order is quotiented, while ordered conclusions, tensor/par premise
 order, formula labels, and axiom endpoint orientation remain significant. It
 therefore still does not claim arbitrary graph isomorphism.
+
+The project deliberately chooses exact pairwise decision, rather than the
+factorial family, as its supported production identity API. This does not
+create a compact single canonical representative. Ordered conclusions,
+connective premise order, formula labels, and axiom orientation are still part
+of identity, and worst-case internal repeated-label search is not claimed to
+be polynomial.
 
 ## Why exhaustive switchings first
 

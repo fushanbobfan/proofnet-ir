@@ -377,6 +377,175 @@ theorem matchingFormulaOrders_complete (source target : List Formula)
     (by simp) nodup lookup
   simpa [matchingFormulaOrders, sameLength] using generated
 
+/-- A formula-occurrence alignment kernel with a position-sensitive admissibility
+predicate.  The proof-net identity search uses this to enforce the ordered
+conclusion boundary while candidates are generated, rather than after a full
+duplicate-label permutation has already been materialized. -/
+def matchingFormulaOrdersVisitConstrained (source : List Formula)
+    (allowed : Nat → Nat → Bool) (position : Nat) (used : List Nat) :
+    List Formula → List (List Nat)
+  | [] => [[]]
+  | formula :: rest =>
+      (List.range source.length).filter (fun index =>
+        !used.contains index && source[index]? == some formula &&
+          allowed position index) |>.flatMap fun index =>
+            (matchingFormulaOrdersVisitConstrained source allowed
+              (position + 1) (index :: used) rest).map fun suffix =>
+                index :: suffix
+
+/-- Completeness of the constrained occurrence backtracker.  Every explicit
+fresh alignment satisfying the pointwise admissibility predicate is generated. -/
+theorem matchingFormulaOrdersVisitConstrained_complete
+    (source target : List Formula) (allowed : Nat → Nat → Bool)
+    (position : Nat) (used order : List Nat)
+    (fresh : ∀ index ∈ order, index ∉ used)
+    (nodup : order.Nodup)
+    (lookup : order.mapM (fun index => source[index]?) = some target)
+    (allowedOrder : ∀ offset (inBounds : offset < order.length),
+      allowed (position + offset) order[offset] = true) :
+    order ∈ matchingFormulaOrdersVisitConstrained source allowed position
+      used target := by
+  induction target generalizing position used order with
+  | nil =>
+      cases order with
+      | nil => simp [matchingFormulaOrdersVisitConstrained]
+      | cons index suffix =>
+          cases headLookup : source[index]? with
+          | none => simp [headLookup] at lookup
+          | some value =>
+              cases tailLookup :
+                  suffix.mapM (fun candidate => source[candidate]?) with
+              | none => simp [headLookup, tailLookup] at lookup
+              | some values => simp [headLookup, tailLookup] at lookup
+  | cons formula rest ih =>
+      cases order with
+      | nil => simp at lookup
+      | cons index suffix =>
+          cases headLookup : source[index]? with
+          | none => simp [headLookup] at lookup
+          | some actual =>
+              cases tailLookup :
+                  suffix.mapM (fun candidate => source[candidate]?) with
+              | none => simp [headLookup, tailLookup] at lookup
+              | some values =>
+                  have consEquation : actual :: values = formula :: rest := by
+                    simpa [headLookup, tailLookup] using lookup
+                  have actualEquation : actual = formula :=
+                    (List.cons.inj consEquation).1
+                  have valuesEquation : values = rest :=
+                    (List.cons.inj consEquation).2
+                  subst actual
+                  subst values
+                  rcases getElem?_eq_some_iff.mp headLookup with
+                    ⟨indexInBounds, indexValue⟩
+                  have indexFresh : index ∉ used :=
+                    fresh index (by simp)
+                  have nodupParts := List.nodup_cons.mp nodup
+                  have suffixFresh : ∀ candidate ∈ suffix,
+                      candidate ∉ index :: used := by
+                    intro candidate membership
+                    simp only [List.mem_cons, not_or]
+                    exact ⟨fun same => nodupParts.1 (same ▸ membership),
+                      fresh candidate (by simp [membership])⟩
+                  have headAllowed : allowed position index = true := by
+                    have sourceAllowed := allowedOrder 0 (by simp)
+                    change allowed position index = true at sourceAllowed
+                    exact sourceAllowed
+                  have suffixAllowed : ∀ offset
+                      (inBounds : offset < suffix.length),
+                      allowed (position + 1 + offset) suffix[offset] = true := by
+                    intro offset inBounds
+                    have sourceAllowed := allowedOrder (offset + 1) (by
+                      simpa using Nat.succ_lt_succ inBounds)
+                    simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+                      sourceAllowed
+                  have suffixMembership : suffix ∈
+                      matchingFormulaOrdersVisitConstrained source allowed
+                        (position + 1) (index :: used) rest :=
+                    ih (position + 1) (index :: used) suffix
+                      suffixFresh nodupParts.2 tailLookup suffixAllowed
+                  simp only [matchingFormulaOrdersVisitConstrained,
+                    List.mem_flatMap]
+                  refine ⟨index, ?_, ?_⟩
+                  · simp [indexInBounds, indexFresh, indexValue, headAllowed]
+                  · exact List.mem_map.mpr
+                      ⟨suffix, suffixMembership, rfl⟩
+
+/-- Ordered conclusion positions constrain a target vertex to the source
+vertex occurring at the same boundary position.  Non-boundary targets remain
+unconstrained. -/
+def conclusionCompatible (left right : Certificate)
+    (targetVertex sourceVertex : Vertex) : Bool :=
+  (left.conclusions.zip right.conclusions).all fun pair =>
+    pair.2 != targetVertex || pair.1 == sourceVertex
+
+/-- Enumerate formula-compatible occurrence bijections while applying the
+ordered-boundary constraints during generation. -/
+def matchingFormulaOrdersForCertificates (left right : Certificate) :
+    List (List Nat) :=
+  if left.formulas.size != right.formulas.size then
+    []
+  else
+    matchingFormulaOrdersVisitConstrained left.formulas.toList
+      (conclusionCompatible left right) 0 [] right.formulas.toList
+
+private theorem conclusionCompatibility_all_inverse
+    (conclusions : List Vertex) {bound : Nat}
+    (vertexMap : VertexRenaming bound) (target : Vertex) :
+    (conclusions.zip (conclusions.map vertexMap.forward)).all
+        (fun pair =>
+          pair.2 != target || pair.1 == vertexMap.inverse target) = true := by
+  induction conclusions with
+  | nil => simp
+  | cons head tail ih =>
+      by_cases same : vertexMap.forward head = target
+      · have inverseSame : head = vertexMap.inverse target := by
+          rw [← same]
+          exact (vertexMap.inverse_forward head).symm
+        simp [inverseSame, ih]
+      · simp [same, ih]
+
+/-- The constrained certificate enumerator remains complete for every direct
+proof-net equivalence witness. -/
+theorem matchingFormulaOrdersForCertificates_complete
+    {left right : Certificate}
+    (vertexMap : VertexRenaming left.formulas.size)
+    (relation : (left.reindex vertexMap).LinkPermutationEquivalent right) :
+    let order := (List.range left.formulas.size).map vertexMap.inverse
+    order ∈ matchingFormulaOrdersForCertificates left right := by
+  let order := (List.range left.formulas.size).map vertexMap.inverse
+  have sameSize : left.formulas.size = right.formulas.size := by
+    rw [← left.reindex_formulas_size vertexMap, relation.formulas]
+  have sameLength : left.formulas.toList.length = right.formulas.toList.length := by
+    simpa using congrArg Array.size relation.formulas
+  have permutation : order.Perm (List.range left.formulas.toList.length) := by
+    simpa [order] using vertexRenaming_inverse_range_perm vertexMap
+  have lookup : order.mapM (fun index => left.formulas.toList[index]?) =
+      some right.formulas.toList := by
+    have generated := reindexFormulaOrder_lookup left vertexMap
+    rw [relation.formulas] at generated
+    simpa [order] using generated
+  have nodup : order.Nodup :=
+    permutation.nodup_iff.mpr List.nodup_range
+  have allowedOrder : ∀ offset (inBounds : offset < order.length),
+      conclusionCompatible left right offset order[offset] = true := by
+    intro offset inBounds
+    have offsetInBounds : offset < left.formulas.size := by
+      simpa [order] using inBounds
+    have orderAt : order[offset] = vertexMap.inverse offset := by
+      simp [order]
+    rw [orderAt]
+    unfold conclusionCompatible
+    rw [← relation.conclusions]
+    simpa [Certificate.reindex_conclusions] using
+      conclusionCompatibility_all_inverse left.conclusions vertexMap offset
+  have generated := matchingFormulaOrdersVisitConstrained_complete
+    left.formulas.toList right.formulas.toList (conclusionCompatible left right)
+    0 [] order (by simp) nodup lookup (by
+      intro offset inBounds
+      simpa using allowedOrder offset inBounds)
+  simpa [matchingFormulaOrdersForCertificates, sameSize, order] using generated
+
 private theorem matchingFormulaOrders_complete_of_reorder?
     {source target : List Formula} {order : List Nat}
     (accepted : CutFreeDerivation.reorder? source order = some target) :
@@ -495,7 +664,7 @@ def directProofNetEquivalentWitness? (left right : Certificate) :
       else
         none
     else
-      none) (matchingFormulaOrders left.formulas.toList right.formulas.toList)
+      none) (matchingFormulaOrdersForCertificates left right)
 
 /-- The executable direct-equivalence search is complete on structurally
 well-formed left certificates.  In particular, link-list reordering cannot hide
@@ -506,19 +675,9 @@ theorem directProofNetEquivalentWitness?_complete {left right : Certificate}
     (directProofNetEquivalentWitness? left right).isSome = true := by
   rcases equivalent with ⟨vertexMap, relation⟩
   let order := (List.range left.formulas.size).map vertexMap.inverse
-  have sameLength : left.formulas.toList.length = right.formulas.toList.length := by
-    simpa using congrArg Array.size relation.formulas
-  have permutation : order.Perm (List.range left.formulas.toList.length) := by
-    simpa [order] using vertexRenaming_inverse_range_perm vertexMap
-  have lookup : order.mapM (fun index => left.formulas.toList[index]?) =
-      some right.formulas.toList := by
-    have generated := reindexFormulaOrder_lookup left vertexMap
-    rw [relation.formulas] at generated
-    simpa [order] using generated
   have orderMembership : order ∈
-      matchingFormulaOrders left.formulas.toList right.formulas.toList :=
-    matchingFormulaOrders_complete left.formulas.toList right.formulas.toList
-      order sameLength permutation lookup
+      matchingFormulaOrdersForCertificates left right :=
+    matchingFormulaOrdersForCertificates_complete vertexMap relation
   rcases renamingOfOrder?_inverseRange vertexMap with
     ⟨canonicalMap, canonicalResult, forwardEquation⟩
   have reindexEquation : left.reindex canonicalMap = left.reindex vertexMap :=

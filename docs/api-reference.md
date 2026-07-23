@@ -470,6 +470,46 @@ ProofNetIR.Certificate.proofNetEquivalent?_eq_true_iff : ∀ {left right : Proof
   left.StructurallyWellFormed → (left.proofNetEquivalent? right = true ↔ left.ProofNetEquivalent right)
 ```
 
+### `ProofNetIR.Certificate.proofNetIdentityCandidateCount`
+
+Kind: definition.
+
+Number of formula-compatible vertex orders that the exact proof-net
+identity decision will consider after enforcing the ordered conclusion
+boundary during generation.  This diagnostic exposes search pressure without
+changing the exact Boolean contract.
+
+```lean
+ProofNetIR.Certificate.proofNetIdentityCandidateCount : ProofNetIR.Certificate → ProofNetIR.Certificate → Nat
+```
+
+### `ProofNetIR.CutFreeDerivation.CheckedCertificate.sameProofNet?`
+
+Kind: definition.
+
+Exact pairwise proof-net identity for checker-accepted certificates.
+
+This is the supported production identity boundary.  It quotients bounded
+vertex renaming and link-list storage order, while preserving ordered
+conclusions, connective premise order, formula labels, and axiom orientation.
+It is deliberately not arbitrary graph isomorphism.
+
+```lean
+ProofNetIR.CutFreeDerivation.CheckedCertificate.sameProofNet? : ProofNetIR.CutFreeDerivation.CheckedCertificate → ProofNetIR.CutFreeDerivation.CheckedCertificate → Bool
+```
+
+### `ProofNetIR.CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff`
+
+Kind: theorem.
+
+The checked identity API decides exactly `ProofNetEquivalent`; callers do
+not need to recover structural premises from checker acceptance themselves.
+
+```lean
+ProofNetIR.CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff : ∀ {left right : ProofNetIR.CutFreeDerivation.CheckedCertificate},
+  left.sameProofNet? right = true ↔ left.certificate.ProofNetEquivalent right.certificate
+```
+
 ### `ProofNetIR.Certificate.proofNetCanonicalFamily`
 
 Kind: definition.

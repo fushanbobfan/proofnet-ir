@@ -217,9 +217,14 @@
   equality iff `ProofNetEquivalent` on structurally well-formed inputs,
   without quotienting ordered conclusions or claiming arbitrary graph
   isomorphism.
-- [ ] Replace the factorial specification family with a compact, performance-
-  qualified single-representative wire algorithm, or prove that the existing
-  exact decision API is the supported production identity boundary.
+- [x] Establish the existing exact decision procedure as the supported
+  production pairwise identity boundary: checker-accepted callers use
+  `CheckedCertificate.sameProofNet?`, whose iff theorem decides exactly
+  `ProofNetEquivalent`. Ordered conclusions now prune occurrence candidates
+  during generation with a proved completeness theorem and a 64-pair
+  repeated-label regression. The factorial family remains a specification
+  oracle; a compact single-representative wire key is still a separate future
+  feature, not part of this completed alternative.
 
 ## Post-v0.5 derivation-first soundness
 

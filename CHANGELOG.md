@@ -15,6 +15,16 @@
 - proved totality of `desequentializeChecked?` and `elaborate?` on every
   successful independent `infer?` result, with exact ordered boundary labels
   and a kernel `Derivation` retained in the returned value.
+- made ordered conclusions constrain occurrence alignments during exact
+  `ProofNetEquivalent` search and proved the constrained generator remains
+  complete for every direct equivalence witness;
+- added `CheckedCertificate.sameProofNet?` with an iff theorem exposing the
+  supported exact pairwise identity boundary for checker-accepted inputs,
+  without changing the wire formats or claiming arbitrary graph isomorphism;
+- added a 64-pair repeated-label structural stress case: the previous
+  unconstrained label search has `(64!)^2` theoretical orders, while the new
+  boundary-constrained generator creates exactly one candidate. This is a
+  regression result, not a polynomial-time complexity claim.
 
 ## v0.5.0 - Executable totality, canonical family, and matched experiment
 

@@ -30,6 +30,11 @@ introducing a new wire version or changing the v0.2/v0.3 payload contracts.
 `Certificate.sequentialization_of_check` and
 `Certificate.generallySequentializable` are additive public declarations.
 
+The post-v0.5 additive `CheckedCertificate.sameProofNet?` API wraps the same
+`ProofNetEquivalent` semantics in a checker-accepted input type. Integrating
+ordered-conclusion constraints into candidate generation changes performance,
+not accepted-certificate semantics or v0.2/v0.3 wire output.
+
 Release v0.5.0 adds
 `Certificate.sequentialize`, `ExecutableSequentializationResult`, and
 `SequentializationError` without changing either wire payload. These APIs are

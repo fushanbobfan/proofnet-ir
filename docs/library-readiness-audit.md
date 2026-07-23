@@ -97,6 +97,12 @@ part of the engineering and proof-identity gap.
    Conclusion-order canonicalization and arbitrary graph isomorphism remain
    outside the current claim. The v0.3.1 wire theorem remains intentionally
    about the narrower, order-preserving `ReindexEquivalent` relation.
+   For accepted certificates, `CheckedCertificate.sameProofNet?` is now the
+   supported production pairwise identity boundary and has an exact iff
+   theorem. Ordered conclusions constrain candidate generation, reducing the
+   64-pair repeated-label stress case from `(64!)^2` theoretical unconstrained
+   orders to one generated candidate. This does not provide a compact wire key
+   or a polynomial worst-case bound for duplicate internal formulas.
 
 ## Engineering gaps blocking a mature-library claim
 
@@ -110,7 +116,7 @@ part of the engineering and proof-identity gap.
   equivalence theorem, while the pinned consumer protects the v0.5.0 API;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for twenty-three public logical-boundary theorems and
+- CI now parses `#print axioms` for twenty-four public logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
@@ -149,6 +155,8 @@ It can currently be used for:
   only checker-accepted results;
 - regenerating the labeled v0.2 corpus;
 - producing stable v0.3 cache/dataset keys across bounded vertex renamings;
+- deciding exact `ProofNetEquivalent` pairwise identity between
+  checker-accepted certificates through a checked API;
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
