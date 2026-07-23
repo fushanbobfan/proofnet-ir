@@ -331,9 +331,25 @@
 - [x] Publish `v0.8.0`, verify both automatic tag-push and explicit
   `release_ref=v0.8.0` CI, and pin a clean consumer to the exact public tag.
 
+## v0.9 - Graph semantics and correctness performance
+
+- [x] Expose occurrence-aware `Graph.Acyclic` as the absence of an exact
+  `EdgeSimpleCycle`, preserving parallel stored edges as distinct cycle
+  occurrences.
+- [x] Prove every public declarative `Graph.IsTree` is `Graph.Acyclic`, add
+  cyclic/tree regressions, generate the API reference, and lock the theorem's
+  trust dependencies in CI.
+- [ ] Prove the converse finite-multigraph forest theorem and derive
+  `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` without retaining the current
+  edge-count equation as a redundant premise.
+- [ ] Introduce a certified cycle/forest decision procedure and relate it to
+  the existing reachability-plus-edge-count `isTree` checker.
+- [ ] Use the certified graph layer to design and qualify a non-enumerative
+  correctness checker while retaining the all-switchings implementation as a
+  differential specification oracle.
+
 ## Later research
 
-- certified contraction/linear-time correctness checking;
 - indexed/streaming intrinsic encoding to reduce the current repeated-formula
   serialization cost and adversarially qualify the public wire envelope;
 - cut links and cut elimination as graph rewriting;

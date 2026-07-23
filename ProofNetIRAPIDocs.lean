@@ -30,6 +30,19 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Finite graph semantics"
+    declarations := [
+      `ProofNetIR.Graph.Bounded,
+      `ProofNetIR.Graph.Connected,
+      `ProofNetIR.Graph.EdgeSimpleCycle,
+      `ProofNetIR.Graph.Acyclic,
+      `ProofNetIR.Graph.acyclic_iff_not_nonempty_edgeSimpleCycle,
+      `ProofNetIR.Graph.IsTree,
+      `ProofNetIR.Graph.isTree_iff_isTree,
+      `ProofNetIR.Graph.IsTree.acyclic
+    ]
+  },
+  {
     title := "First-order derivations"
     declarations := [
       `ProofNetIR.CutFreeDerivation,

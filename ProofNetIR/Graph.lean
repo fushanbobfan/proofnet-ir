@@ -2442,6 +2442,23 @@ def IsTree (graph : Graph) : Prop :=
   graph.Bounded ∧ graph.Connected ∧
     graph.edges.length + 1 = graph.vertexCount
 
+/-- Occurrence-aware acyclicity for finite undirected multigraphs. Parallel
+stored edges remain distinct, so two parallel occurrences can form a
+length-two `EdgeSimpleCycle`. -/
+def Acyclic (graph : Graph) : Prop :=
+  ∀ _cycle : graph.EdgeSimpleCycle, False
+
+/-- The public acyclicity predicate is exactly the nonexistence of an
+occurrence-aware simple cycle. -/
+theorem acyclic_iff_not_nonempty_edgeSimpleCycle (graph : Graph) :
+    graph.Acyclic ↔ ¬Nonempty graph.EdgeSimpleCycle := by
+  constructor
+  · intro acyclic cycle
+    rcases cycle with ⟨cycle⟩
+    exact acyclic cycle
+  · intro noCycle cycle
+    exact noCycle ⟨cycle⟩
+
 /-- Independent fuel-indexed tree semantics with an executable completeness
 theorem. -/
 def FuelTree (graph : Graph) : Prop :=

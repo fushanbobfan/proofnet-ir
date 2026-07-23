@@ -101,6 +101,95 @@ structural plus all-switchings-tree specification.
 ProofNetIR.Certificate.check_iff_declarativelyCorrect : ∀ (certificate : ProofNetIR.Certificate), certificate.check = true ↔ certificate.DeclarativelyCorrect
 ```
 
+## Finite graph semantics
+
+### `ProofNetIR.Graph.Bounded`
+
+Kind: definition.
+
+Every stored edge names two distinct vertices of the finite graph.
+
+```lean
+ProofNetIR.Graph.Bounded : ProofNetIR.Graph → Prop
+```
+
+### `ProofNetIR.Graph.Connected`
+
+Kind: definition.
+
+Connectedness stated independently using graph walks.
+
+```lean
+ProofNetIR.Graph.Connected : ProofNetIR.Graph → Prop
+```
+
+### `ProofNetIR.Graph.EdgeSimpleCycle`
+
+Kind: inductive type.
+
+A nonempty closed edge-aware walk with no repeated vertex except its
+identified start/end. The exact edge indices allow two parallel stored edges
+to form a genuine length-two multigraph cycle.
+
+```lean
+ProofNetIR.Graph.EdgeSimpleCycle : ProofNetIR.Graph → Type
+```
+
+### `ProofNetIR.Graph.Acyclic`
+
+Kind: definition.
+
+Occurrence-aware acyclicity for finite undirected multigraphs. Parallel
+stored edges remain distinct, so two parallel occurrences can form a
+length-two `EdgeSimpleCycle`.
+
+```lean
+ProofNetIR.Graph.Acyclic : ProofNetIR.Graph → Prop
+```
+
+### `ProofNetIR.Graph.acyclic_iff_not_nonempty_edgeSimpleCycle`
+
+Kind: theorem.
+
+The public acyclicity predicate is exactly the nonexistence of an
+occurrence-aware simple cycle.
+
+```lean
+ProofNetIR.Graph.acyclic_iff_not_nonempty_edgeSimpleCycle : ∀ (graph : ProofNetIR.Graph), graph.Acyclic ↔ ¬Nonempty graph.EdgeSimpleCycle
+```
+
+### `ProofNetIR.Graph.IsTree`
+
+Kind: definition.
+
+Declarative tree property used by the semantic checker soundness theorem.
+
+```lean
+ProofNetIR.Graph.IsTree : ProofNetIR.Graph → Prop
+```
+
+### `ProofNetIR.Graph.isTree_iff_isTree`
+
+Kind: theorem.
+
+The finite executable tree checker decides the public declarative tree
+property, not only an auxiliary fuel-indexed approximation.
+
+```lean
+ProofNetIR.Graph.isTree_iff_isTree : ∀ (graph : ProofNetIR.Graph), graph.isTree = true ↔ graph.IsTree
+```
+
+### `ProofNetIR.Graph.IsTree.acyclic`
+
+Kind: theorem.
+
+Every graph satisfying the public declarative tree contract is acyclic in
+the exact stored-edge-occurrence sense.
+
+```lean
+ProofNetIR.Graph.IsTree.acyclic : ∀ {graph : ProofNetIR.Graph}, graph.IsTree → graph.Acyclic
+```
+
 ## First-order derivations
 
 ### `ProofNetIR.CutFreeDerivation`

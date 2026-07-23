@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- started `v0.9.0-dev` by exposing `Graph.Acyclic` as absence of an exact
+  stored-edge `EdgeSimpleCycle`, including genuine length-two cycles from
+  parallel edge occurrences;
+- proved `Graph.IsTree.acyclic`, added positive and negative compile-time
+  regressions, generated public API documentation, and expanded the locked
+  MLL trust boundary to 46 theorems;
+- retained the converse `Bounded ∧ Connected ∧ Acyclic → IsTree` as an
+  explicit finite-multigraph forest-count obligation rather than silently
+  assuming the current edge-count equation;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

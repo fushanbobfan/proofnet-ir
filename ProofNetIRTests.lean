@@ -1597,6 +1597,9 @@ example : ∃ initialPath : cyclicGraph.EdgeSimplePath,
 
 example : cyclicGraph.connected = true := by native_decide
 example : cyclicGraph.isTree = false := by native_decide
+example : ¬cyclicGraph.Acyclic := by
+  intro acyclic
+  exact acyclic cyclicTriangle
 example : ¬cyclicGraph.IsTree := by
   intro tree
   exact tree.no_edgeSimpleCycle cyclicTriangle
@@ -1620,6 +1623,8 @@ def treeGraph : Graph where
 
 example : treeGraph.isTree = true := by native_decide
 example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
+example : treeGraph.Acyclic :=
+  (treeGraph.isTree_sound (by native_decide)).acyclic
 example : ∃ vertex, vertex < treeGraph.vertexCount ∧ vertex ≠ 0 := by
   rcases (treeGraph.isTree_sound (by native_decide)).every_edge_index_is_parent
       (index := 1) (by decide) with

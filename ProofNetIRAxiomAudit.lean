@@ -10,6 +10,7 @@ expansion.
 -/
 
 #print axioms Certificate.check_iff_declarativelyCorrect
+#print axioms Graph.IsTree.acyclic
 #print axioms CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #print axioms CutFreeDerivation.build?_structurallyWellFormed
 #print axioms CutFreeDerivation.build?_switchingCorrect

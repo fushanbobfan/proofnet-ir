@@ -17,10 +17,20 @@ def consumerRightNestedFormula : Nat → Formula
 def largeConsumedCertificate : Certificate :=
   identityCertificate (consumerRightNestedFormula 8)
 
+def consumedTreeGraph : Graph where
+  vertexCount := 3
+  edges := [
+    { first := 0, second := 1 },
+    { first := 1, second := 2 }
+  ]
+
 example : consumedCertificate.check = true := by native_decide
 
 example : consumedCertificate.DeclarativelyCorrect :=
   consumedCertificate.check_iff_declarativelyCorrect.mp (by native_decide)
+
+example : consumedTreeGraph.Acyclic :=
+  (consumedTreeGraph.isTree_sound (by native_decide)).acyclic
 
 def consumedTree : CutFreeDerivation :=
   CutFreeDerivation.generate 42 2
@@ -98,7 +108,8 @@ example :
   native_decide
 
 def main : IO Unit := do
-  if consumedCertificate.check && consumedTree.elaborate?.isSome &&
+  if consumedTreeGraph.isTree &&
+      consumedCertificate.check && consumedTree.elaborate?.isSome &&
       consumedSequentialization.isOk &&
       Certificate.proofNetEquivalent? consumedCertificate
         reorderedConsumedCertificate &&

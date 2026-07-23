@@ -100,8 +100,11 @@ part of the engineering and proof-identity gap.
    documented unit-free, cut-free MLL representation. Remaining logical scope
    gaps concern unsupported connectives/units/cuts and broader notions of
    canonical graph identity, not the accepted-net reverse theorem.
-3. The edge-count tree characterization is used correctly, but no explicit
-   acyclicity predicate/equivalence theorem is exposed as public API.
+3. `Graph.Acyclic` is now exposed as absence of an exact stored-edge
+   `EdgeSimpleCycle`, and `Graph.IsTree.acyclic` proves the sound direction
+   against that occurrence-aware semantics. The converse finite-multigraph
+   forest-count theorem, and therefore the standard
+   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` characterization, remain open.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional
@@ -154,7 +157,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for forty-five public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for forty-six public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the separate LeanProp trust boundary locks four theorems as axiom-free,

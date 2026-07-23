@@ -2642,6 +2642,12 @@ theorem IsTree.no_edgeSimpleCycle {graph : Graph} (tree : graph.IsTree)
     simpa [Graph.EdgeSimpleCycle.vertices] using predecessorInCycle)
   omega
 
+/-- Every graph satisfying the public declarative tree contract is acyclic in
+the exact stored-edge-occurrence sense. -/
+theorem IsTree.acyclic {graph : Graph} (tree : graph.IsTree) :
+    graph.Acyclic :=
+  fun cycle => tree.no_edgeSimpleCycle cycle
+
 /-- A simple cycle survives any occurrence mask that keeps all of its exact
 stored edge indices. Compacted edge indices remain duplicate-free because the
 retained-index map is strictly monotone at kept positions. -/

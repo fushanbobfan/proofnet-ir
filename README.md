@@ -9,6 +9,11 @@ wire contract, and measured qualification through 145 links, without claiming
 arbitrary graph isomorphism or general checker/sequentializer scalability). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
+Development on `main` is now `v0.9.0-dev`. The first v0.9 increment exposes
+occurrence-aware multigraph acyclicity and proves that every declarative
+`IsTree` is acyclic. The converse forest-count theorem and an optimized
+correctness checker remain explicit work in progress.
+
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
 structurally well-formed certificates, equality of the new typed key is proved
@@ -188,7 +193,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits forty-five public MLL logical-boundary theorems against the exact axiom set
+  separately audits forty-six public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
