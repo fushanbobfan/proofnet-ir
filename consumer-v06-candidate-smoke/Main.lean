@@ -4,6 +4,8 @@ open ProofNetIR
 
 namespace ProofNetIRV06CandidateConsumerSmoke
 
+universe u
+
 open LeanProp.Schema
 
 def proposition : LeanProp.Schema.Formula := .atom "remote-p"
@@ -36,6 +38,24 @@ example (checked : Raw.CheckedDerivation) (valuation : String → Prop)
       (checked.elaborated.linear.map (Formula.evaluate valuation))) :
     checked.elaborated.goal.evaluate valuation :=
   checked.sound valuation persistentValues linearValues
+
+example {left right : List Prop} :
+    Nonempty (LeanProp.ContextPermutation left right) ↔ left.Perm right :=
+  LeanProp.ContextPermutation.nonempty_iff_listPerm
+
+example {left right : List Prop}
+    (permutation : LeanProp.ContextPermutation left right)
+    (values : LeanProp.Assumptions right) :
+    LeanProp.Assumptions.permute permutation
+        (LeanProp.Assumptions.permute permutation.symm values) = values :=
+  LeanProp.Assumptions.permute_symm_right permutation values
+
+example {persistent source target : List Prop} {goal : Prop}
+    (permutation : source.Perm target)
+    (derivation : LeanProp.Derivation.{u} persistent source goal) :
+    Nonempty (LeanProp.Derivation.{u} persistent target goal) :=
+  LeanProp.Derivation.linearExchange_nonempty_of_listPerm
+    permutation derivation
 
 def run : IO Unit := do
   if checkedValid.isOk &&
