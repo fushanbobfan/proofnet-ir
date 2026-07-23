@@ -64,6 +64,36 @@ example {persistent source target : List Prop} {goal : Prop}
   LeanProp.Derivation.linearExchange_nonempty_of_listPerm
     permutation derivation
 
+def redundantPersistentIdentity (proposition : Prop) :
+    LeanProp.Derivation [proposition] [] proposition :=
+  .persistentContract (.persistentWeaken (.persistentAxiom))
+
+example (proposition : Prop) :
+    (redundantPersistentIdentity proposition).normalizePersistentStructural =
+      LeanProp.Derivation.persistentAxiom := by
+  rfl
+
+example (proposition : Prop) :
+    (redundantPersistentIdentity proposition).persistentStructuralSize = 2 := by
+  rfl
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.PersistentStructurallyReduced :=
+  derivation.normalizePersistentStructural_reduced
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.normalizePersistentStructural =
+      derivation.normalizePersistentStructural :=
+  derivation.normalizePersistentStructural_idempotent
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.persistentStructuralSize ≤
+      derivation.persistentStructuralSize :=
+  derivation.normalizePersistentStructural_size_le
+
 def indexedParallelGraph : Graph where
   vertexCount := 2
   edges := [{ first := 0, second := 1 }, { first := 0, second := 1 }]

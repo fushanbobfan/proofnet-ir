@@ -113,7 +113,9 @@ theorems and `CheckedDerivation.inferred` use `[propext, Quot.sound]`; the
 permutation-boundary agreement and checked soundness theorem use `[propext]`.
 At the typed context layer, permutation completeness and the two exchange-
 admissibility theorems are axiom-free; the two dependent-environment inverse
-laws use `[propext]`.
+laws use `[propext]`. Six public persistent-normalization theorems use
+`[propext]`; the structural-size nonincrease theorem, whose arithmetic proof
+uses the kernel-checked omega procedure, uses `[propext, Quot.sound]`.
 
 Canonical v0.2 serialization trusts the formula-array numbering as occurrence
 identity. Sorting links/conclusions and orienting axiom endpoints is a stable

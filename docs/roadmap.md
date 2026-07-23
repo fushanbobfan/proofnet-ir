@@ -270,9 +270,12 @@
 - [x] Prove proof-relevant exchange complete for `List.Perm` under `Nonempty`,
   both dependent-environment inverse laws, and persistent/linear exchange
   admissibility for every proposition-level permutation.
+- [x] Implement typed recursive cancellation of persistent
+  contraction-over-weakening redexes and prove reducedness, fixed points,
+  idempotence, structural-size nonincrease, linear-resource preservation, and
+  pointwise proof preservation.
 - [ ] Add migration fixtures when a second schema wire version exists.
-- [ ] Prove persistent weakening/contraction commuting or normal-form laws and
-  qualify the public bridge through a final v0.6-tag-pinned downstream
+- [ ] Qualify the public bridge through a final v0.6-tag-pinned downstream
   consumer.
 
 ## Later research

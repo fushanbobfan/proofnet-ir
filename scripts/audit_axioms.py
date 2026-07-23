@@ -50,6 +50,12 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Assumptions.permute_symm",
     "ProofNetIR.LeanProp.Assumptions.permute_symm_right",
     "ProofNetIR.LeanProp.ContextPermutation.symm_symm",
+    "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_reduced",
+    "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_eq_self_of_reduced",
+    "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_idempotent",
+    "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_contract_weaken",
+    "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_linearAxiomCount",
+    "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_toProof",
     "ProofNetIR.LeanProp.Schema.PackedDerivation.sound",
     "ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?_ofIndexed",
     "ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate?",
@@ -59,6 +65,7 @@ EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.Derivation.inferAt_eq_elaborateAt",
     "ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborate?_complete",
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.inferred",
+    "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_size_le",
 }
 EXPECTED_THEOREMS = (
     EXPECTED_CLASSICAL_THEOREMS

@@ -89,6 +89,36 @@ example {source target linear : List Prop} {goal : Prop}
 
 end ContextExchange
 
+namespace PersistentNormalization
+
+def redundantIdentity (proposition : Prop) :
+    LeanProp.Derivation [proposition] [] proposition :=
+  .persistentContract (.persistentWeaken (.persistentAxiom))
+
+example (proposition : Prop) :
+    (redundantIdentity proposition).normalizePersistentStructural =
+      LeanProp.Derivation.persistentAxiom := by
+  rfl
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.PersistentStructurallyReduced :=
+  derivation.normalizePersistentStructural_reduced
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.normalizePersistentStructural =
+      derivation.normalizePersistentStructural :=
+  derivation.normalizePersistentStructural_idempotent
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.persistentStructuralSize ≤
+      derivation.persistentStructuralSize :=
+  derivation.normalizePersistentStructural_size_le
+
+end PersistentNormalization
+
 namespace RawSchema
 
 open LeanProp.Schema

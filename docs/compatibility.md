@@ -28,6 +28,9 @@ migration tests; typed equality and quantifier terms are outside v0.1.
 The v0.6-development `CheckedDerivation` API is intentionally typed: successful
 checking retains an indexed derivation and exposes `toPacked`/`sound`. This API
 is not compatibility-stable until the first v0.6 tag is published.
+The additive `normalizePersistentStructural` API is under the same
+v0.6-development stability boundary; its current theorem scope is the explicit
+contraction-over-weakening normal form, not arbitrary proof-term equivalence.
 
 The generic parser accepts every supported version. Version-specific parsers
 remain available for migration boundaries. The v0.2-to-v0.3 migration parses

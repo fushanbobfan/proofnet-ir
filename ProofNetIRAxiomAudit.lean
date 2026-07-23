@@ -43,6 +43,13 @@ expansion.
 #print axioms LeanProp.ContextPermutation.nonempty_iff_listPerm
 #print axioms LeanProp.Derivation.persistentExchange_nonempty_of_listPerm
 #print axioms LeanProp.Derivation.linearExchange_nonempty_of_listPerm
+#print axioms LeanProp.Derivation.normalizePersistentStructural_reduced
+#print axioms LeanProp.Derivation.normalizePersistentStructural_eq_self_of_reduced
+#print axioms LeanProp.Derivation.normalizePersistentStructural_idempotent
+#print axioms LeanProp.Derivation.normalizePersistentStructural_size_le
+#print axioms LeanProp.Derivation.normalizePersistentStructural_contract_weaken
+#print axioms LeanProp.Derivation.normalizePersistentStructural_linearAxiomCount
+#print axioms LeanProp.Derivation.normalizePersistentStructural_toProof
 #print axioms LeanProp.Schema.PackedDerivation.sound
 #print axioms LeanProp.Schema.Raw.Derivation.infer?_ofIndexed
 #print axioms LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate?

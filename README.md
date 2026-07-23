@@ -120,7 +120,10 @@ The repository currently contains:
   exchange syntax represents exactly `List.Perm` under `Nonempty`; every such
   persistent or linear exchange is admissible, and transporting a dependent
   proof environment through exchange and its inverse is identity in both
-  directions;
+  directions. A typed normalizer recursively removes every immediate
+  persistent contraction-over-weakening redex; Lean proves the result reduced,
+  the operation idempotent and size-nonincreasing, and the linear-resource
+  count and proof interpretation preserved;
 - a proposition-independent schema layer for generated atoms/conjunctions/
   implications. Its 600-template deterministic corpus covers persistent
   duplication/discard, linear pairing/exchange/modus ponens, and projection;
@@ -149,9 +152,10 @@ separately audits twenty-five public logical-boundary theorems against the exact
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
 Resource-count, dependent-environment round trips, packed-schema soundness,
-permutation elaboration, and checked-wire soundness use exactly `propext`.
-Exact agreement between formula-only inference and typed elaboration, its
-acceptance-lifting corollary, and checked-wire inference use exactly
+permutation elaboration, checked-wire soundness, and six structural-
+normalization theorems use exactly `propext`. Exact agreement between
+formula-only inference and typed elaboration, its acceptance-lifting
+corollary, checked-wire inference, and the normalizer size bound use exactly
 `[propext, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
@@ -258,6 +262,7 @@ ProofNetIR/ExecutableSequentialization.lean runtime inverse search and diagnosti
 ProofNetIR/ProofNetIdentity.lean checked exact pairwise proof-net identity API
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
+ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

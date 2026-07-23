@@ -114,6 +114,15 @@ exchange-admissibility theorems are axiom-free. Ordinary Lean `And` and
 implication are not identified with MLL tensor/par, and this layer does not
 alter any v0.5 sequentialization or identity theorem.
 
+`LeanProp.Derivation.normalizePersistentStructural` is a typed recursive
+normalizer for the local contraction-over-weakening redex. Its result retains
+the identical persistent context, linear context, and goal by construction.
+Lean proves that the output contains no such redex, reduced derivations are
+fixed points, normalization is idempotent, the persistent structural-node
+count does not increase, the linear-axiom count is unchanged, and `toProof`
+is preserved pointwise. This is not a claim that all intuitionistic proof
+terms are canonical modulo every commuting conversion.
+
 The proposition-independent `LeanProp.Schema` layer codes atoms, conjunction,
 and implication. `Schema.Raw.Derivation` is the unindexed boundary for
 generated or otherwise untrusted in-memory templates. Its total `infer?`

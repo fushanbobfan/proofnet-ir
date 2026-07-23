@@ -937,6 +937,127 @@ A closed bridge derivation reconstructs a closed Lean theorem.
 ProofNetIR.LeanProp.Derivation.close : ∀ {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation [] [] goal), goal
 ```
 
+### `ProofNetIR.LeanProp.Derivation.persistentStructuralSize`
+
+Kind: definition.
+
+Count persistent weakening and contraction nodes. Exchange and logical
+rules do not contribute to this normalization measure.
+
+```lean
+ProofNetIR.LeanProp.Derivation.persistentStructuralSize : {persistent linear : List Prop} → {goal : Prop} → ProofNetIR.LeanProp.Derivation persistent linear goal → Nat
+```
+
+### `ProofNetIR.LeanProp.Derivation.PersistentStructurallyReduced`
+
+Kind: definition.
+
+A derivation contains no contraction whose immediate premise is a
+persistent weakening, and all of its subderivations have the same property.
+
+```lean
+ProofNetIR.LeanProp.Derivation.PersistentStructurallyReduced : {persistent linear : List Prop} → {goal : Prop} → ProofNetIR.LeanProp.Derivation persistent linear goal → Prop
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural`
+
+Kind: definition.
+
+Recursively cancel every immediate persistent contraction/weakening pair.
+The dependent result type makes preservation of persistent context, linear
+context, and goal part of the normalizer's kernel-checked type.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural : {persistent linear : List Prop} →
+  {goal : Prop} →
+    ProofNetIR.LeanProp.Derivation persistent linear goal → ProofNetIR.LeanProp.Derivation persistent linear goal
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_reduced`
+
+Kind: theorem.
+
+Normalization removes every persistent contraction/weakening redex,
+including redexes nested below logical and exchange rules.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_reduced : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal),
+  derivation.normalizePersistentStructural.PersistentStructurallyReduced
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_eq_self_of_reduced`
+
+Kind: theorem.
+
+A reduced derivation is a fixed point of persistent structural
+normalization.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_eq_self_of_reduced : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal),
+  derivation.PersistentStructurallyReduced → derivation.normalizePersistentStructural = derivation
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_idempotent`
+
+Kind: theorem.
+
+Persistent structural normalization is idempotent on every derivation.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_idempotent : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal),
+  derivation.normalizePersistentStructural.normalizePersistentStructural = derivation.normalizePersistentStructural
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_size_le`
+
+Kind: theorem.
+
+Persistent structural normalization never increases the number of
+weakening/contraction nodes.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_size_le : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal),
+  derivation.normalizePersistentStructural.persistentStructuralSize ≤ derivation.persistentStructuralSize
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_contract_weaken`
+
+Kind: theorem.
+
+The typed normalizer cancels the persistent contraction/weakening
+redex after recursively normalizing its premise.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_contract_weaken : ∀ {persistent linear : List Prop} {shared goal : Prop}
+  (derivation : ProofNetIR.LeanProp.Derivation (shared :: persistent) linear goal),
+  derivation.persistentWeaken.persistentContract.normalizePersistentStructural =
+    derivation.normalizePersistentStructural
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_linearAxiomCount`
+
+Kind: theorem.
+
+Typed normalization preserves the exact linear-resource count.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_linearAxiomCount : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal),
+  derivation.normalizePersistentStructural.linearAxiomCount = derivation.linearAxiomCount
+```
+
+### `ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_toProof`
+
+Kind: theorem.
+
+Interpreting a normalized derivation yields the same proof proposition.
+The theorem is pointwise so it does not require function extensionality.
+
+```lean
+ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_toProof : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal)
+  (persistentValues : ProofNetIR.LeanProp.Assumptions persistent)
+  (linearValues : ProofNetIR.LeanProp.Assumptions linear), ⋯ = ⋯
+```
+
 ### `ProofNetIR.LeanProp.Schema.Formula`
 
 Kind: inductive type.

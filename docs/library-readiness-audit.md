@@ -133,8 +133,8 @@ part of the engineering and proof-identity gap.
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the separate LeanProp trust boundary locks four theorems as axiom-free,
-  nine dependent metatheorems to exactly `propext`, and three raw-inference/
-  typed-elaboration bridge theorems to exactly
+  fifteen dependent metatheorems to exactly `propext`, and four theorems to
+  exactly
   `[propext, Quot.sound]`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;

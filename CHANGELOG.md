@@ -36,6 +36,11 @@
 - proved that the Type-valued context-permutation syntax represents exactly
   proposition-level `List.Perm` under `Nonempty`, made every such persistent
   or linear exchange admissible, and proved both environment round trips;
+- added a typed persistent structural normalizer that recursively cancels
+  contraction-over-weakening redexes; kernel theorems prove reduced output,
+  fixed points for reduced derivations, idempotence, structural-size
+  nonincrease, exact linear-resource preservation, and pointwise proof
+  interpretation preservation;
 - added independent JSON Schema fixtures and a deterministic 5,000-case native
   LeanProp parser mutation-fuzz gate;
 - added a Lean corpus exporter and CI-checked SHA-256 manifest over all 1,600
