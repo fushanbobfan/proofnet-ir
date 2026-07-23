@@ -111,8 +111,12 @@ The repository currently contains:
   Its underlying structural encoder is proved injective, and Lean proves on
   structurally well-formed certificates (hence on checker-accepted inputs) that
   code equality is equivalent to exactly `ProofNetEquivalent`. It still
-  materializes the factorial family and is not yet a public wire format, so
-  production pairwise comparisons continue to use
+  materializes the factorial family;
+- an unreleased `proofnet-canonical-key-0.1` JSON wire wrapper with a bounded
+  parser, structured errors, schema and fixture, v0.3-to-key semantic migration,
+  and a safe matcher theorem for untrusted parsed keys. Its 1,000-case wire
+  property corpus and 5,000-case malformed-key fuzz corpus pass, but production
+  pairwise comparisons continue to use
   `CheckedCertificate.sameProofNet?`;
 - a checked pairwise identity API,
   `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
@@ -182,8 +186,8 @@ semantics; its wire layer intentionally covers only named atoms, ordinary
 conjunction, and implication, not typed equality/quantifier terms or broad
 mathlib expressions. The
 repository also lacks canonicalization modulo reordered conclusions or
-arbitrary graph isomorphism, a performance-qualified versioned wire codec for
-the exact typed `ProofNetEquivalent` key, and a Lean tactic. The API,
+arbitrary graph isomorphism, a performance-qualified canonical-key
+implementation, a stable release of that wire contract, and a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.

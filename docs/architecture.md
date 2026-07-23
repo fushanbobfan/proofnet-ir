@@ -63,7 +63,11 @@ criterion and proof-order bureaucracy can be measured cleanly.
     an explicitly framed token encoder proved injective, and
     `proofNetCanonicalCode?` minimizes that encoding. Equality of this typed
     code is proved equivalent to `ProofNetEquivalent` on structurally
-    well-formed certificates.
+    well-formed certificates. `CanonicalKeyWire.lean` wraps the exact payload
+    in the distinct `proofnet-canonical-key-0.1` JSON contract, enforces bounded
+    parsing, supports semantic migration from checked v0.3 certificates, and
+    proves that two accepted certificates matching one parsed opaque key are
+    equivalent.
 21. `ProofNetIdentity.lean` exposes the production pairwise identity boundary
     for checker-accepted certificates. `sameProofNet?` is proved equivalent to
     exactly `ProofNetEquivalent`. Its underlying candidate generator applies
@@ -85,12 +89,12 @@ ordered conclusions, tensor/par premise order, formula labels, and axiom
 endpoint orientation remain significant. The JSON fingerprint has only the
 forward equivalence-invariance theorem; the typed code has the exact iff
 theorem. Both inherit factorial materialization. Neither is yet a production
-canonical wire key, and neither claims arbitrary graph isomorphism.
+canonical-key implementation, and neither claims arbitrary graph isomorphism.
 
 The project deliberately keeps exact pairwise decision as its supported
 production identity API. The typed canonical code settles the logical
-single-key question, but its factorial implementation and lack of a versioned
-wire parser keep it outside that production boundary.
+single-key question and now has a distinct versioned parser; its factorial
+implementation keeps it outside that production boundary.
 Ordered conclusions, connective premise order, formula labels, and axiom
 orientation are still part of identity, and neither canonical construction
 nor worst-case internal repeated-label search is claimed to be polynomial.

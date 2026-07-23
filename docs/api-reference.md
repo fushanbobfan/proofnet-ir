@@ -771,6 +771,77 @@ ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalCode_of_check : ∀ {left
     right.check = true → (left.ProofNetEquivalent right ↔ left.proofNetCanonicalCode? = right.proofNetCanonicalCode?)
 ```
 
+### `ProofNetIR.CanonicalKey`
+
+Kind: inductive type.
+
+Opaque, equality-comparable canonical key payload.  Values produced by
+`Certificate.proofNetCanonicalKey?` carry the exact `ProofNetEquivalent`
+semantics; arbitrary parsed values must be matched against such a local key.
+
+```lean
+ProofNetIR.CanonicalKey : Type
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalKey?`
+
+Kind: definition.
+
+Exact typed canonical key for the generated `ProofNetEquivalent` relation.
+The option is total by `proofNetCanonicalKey?_exists`.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalKey? : ProofNetIR.Certificate → Option ProofNetIR.CanonicalKey
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalKey?_exists`
+
+Kind: theorem.
+
+Every certificate has a typed canonical key.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalKey?_exists : ∀ (certificate : ProofNetIR.Certificate), ∃ key, certificate.proofNetCanonicalKey? = some key
+```
+
+### `ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalKey?_eq`
+
+Kind: theorem.
+
+Generated proof-net equivalence preserves the typed wire key.
+
+```lean
+ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalKey?_eq : ∀ {left right : ProofNetIR.Certificate},
+  left.ProofNetEquivalent right → left.proofNetCanonicalKey? = right.proofNetCanonicalKey?
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey`
+
+Kind: theorem.
+
+On structurally well-formed certificates, typed wire-key equality is
+equivalent to exactly `ProofNetEquivalent`.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey : ∀ {left right : ProofNetIR.Certificate},
+  left.StructurallyWellFormed →
+    right.StructurallyWellFormed →
+      (left.ProofNetEquivalent right ↔ left.proofNetCanonicalKey? = right.proofNetCanonicalKey?)
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey_of_check`
+
+Kind: theorem.
+
+Checker acceptance supplies the premises for exact typed wire-key
+comparison.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey_of_check : ∀ {left right : ProofNetIR.Certificate},
+  left.check = true →
+    right.check = true → (left.ProofNetEquivalent right ↔ left.proofNetCanonicalKey? = right.proofNetCanonicalKey?)
+```
+
 ### `ProofNetIR.Certificate.equivalenceCanonicalString`
 
 Kind: definition.
@@ -952,6 +1023,165 @@ Parse a v0.2 certificate and emit its deterministic v0.3
 
 ```lean
 ProofNetIR.Certificate.migrateV02StringToV03 : String → ProofNetIR.ParseResult String
+```
+
+### `ProofNetIR.CanonicalKey.wireVersion`
+
+Kind: definition.
+
+Wire version for the first exact proof-net canonical key.
+
+```lean
+ProofNetIR.CanonicalKey.wireVersion : String
+```
+
+### `ProofNetIR.CanonicalKey.canonicalization`
+
+Kind: definition.
+
+Named semantic relation implemented by the key.
+
+```lean
+ProofNetIR.CanonicalKey.canonicalization : String
+```
+
+### `ProofNetIR.CanonicalKey.maxTokens`
+
+Kind: definition.
+
+Defensive token-count limit for untrusted key JSON.
+
+```lean
+ProofNetIR.CanonicalKey.maxTokens : Nat
+```
+
+### `ProofNetIR.CanonicalKey.maxCharacters`
+
+Kind: definition.
+
+Defensive aggregate character-count limit for untrusted key JSON.
+
+```lean
+ProofNetIR.CanonicalKey.maxCharacters : Nat
+```
+
+### `ProofNetIR.CanonicalKey.WireAdmissible`
+
+Kind: definition.
+
+The supported wire envelope is deliberately bounded even though the typed
+canonical key remains total for every finite certificate.
+
+```lean
+ProofNetIR.CanonicalKey.WireAdmissible : ProofNetIR.CanonicalKey → Prop
+```
+
+### `ProofNetIR.CanonicalKey.isWireAdmissible`
+
+Kind: definition.
+
+Executable supported-wire predicate.
+
+```lean
+ProofNetIR.CanonicalKey.isWireAdmissible : ProofNetIR.CanonicalKey → Bool
+```
+
+### `ProofNetIR.CanonicalKey.toJson`
+
+Kind: definition.
+
+Deterministic JSON representation of a canonical key.
+
+```lean
+ProofNetIR.CanonicalKey.toJson : ProofNetIR.CanonicalKey → Lean.Json
+```
+
+### `ProofNetIR.CanonicalKey.toString`
+
+Kind: definition.
+
+Compact canonical-key JSON string.
+
+```lean
+ProofNetIR.CanonicalKey.toString : ProofNetIR.CanonicalKey → String
+```
+
+### `ProofNetIR.CanonicalKey.fromJson`
+
+Kind: definition.
+
+Decode the first canonical-key wire version.  This validates the envelope
+and resource bounds but does not claim that arbitrary tokens came from a proof
+net.
+
+```lean
+ProofNetIR.CanonicalKey.fromJson : Lean.Json → ProofNetIR.ParseResult ProofNetIR.CanonicalKey
+```
+
+### `ProofNetIR.CanonicalKey.fromString`
+
+Kind: definition.
+
+Parse an untrusted canonical-key string with structured diagnostics.
+
+```lean
+ProofNetIR.CanonicalKey.fromString : String → ProofNetIR.ParseResult ProofNetIR.CanonicalKey
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalKeyJson?`
+
+Kind: definition.
+
+Deterministic JSON wire value for the exact typed canonical key.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalKeyJson? : ProofNetIR.Certificate → Option Lean.Json
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalKeyString?`
+
+Kind: definition.
+
+Deterministic JSON wire string for the exact typed canonical key.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalKeyString? : ProofNetIR.Certificate → Option String
+```
+
+### `ProofNetIR.Certificate.matchesCanonicalKey`
+
+Kind: definition.
+
+Compare a locally computed key with a parsed opaque key.
+
+```lean
+ProofNetIR.Certificate.matchesCanonicalKey : ProofNetIR.Certificate → ProofNetIR.CanonicalKey → Bool
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_of_matchesCanonicalKey`
+
+Kind: theorem.
+
+A parsed key shared by two accepted certificates is sufficient to prove
+that the certificates are `ProofNetEquivalent`.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_of_matchesCanonicalKey : ∀ {left right : ProofNetIR.Certificate} {key : ProofNetIR.CanonicalKey},
+  left.check = true →
+    right.check = true →
+      left.matchesCanonicalKey key = true → right.matchesCanonicalKey key = true → left.ProofNetEquivalent right
+```
+
+### `ProofNetIR.Certificate.migrateV03StringToCanonicalKey`
+
+Kind: definition.
+
+Parse a checker-accepted v0.3 certificate and emit the new exact
+`proofnet-equivalent-v1` key.  This is a semantic migration to a separate wire
+type; it does not reinterpret the input certificate bytes.
+
+```lean
+ProofNetIR.Certificate.migrateV03StringToCanonicalKey : String → ProofNetIR.ParseResult String
 ```
 
 ## Persistent and linear LeanProp bridge

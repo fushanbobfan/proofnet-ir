@@ -151,8 +151,16 @@ proved in Lean. On structurally well-formed certificates, and therefore on
 checker-accepted inputs, equality of this typed code is proved iff exactly
 `ProofNetEquivalent`. These public boundary proofs use exactly
 `[propext, Classical.choice, Quot.sound]`; no project-specific axiom or
-unproved serializer premise is added. The typed code is not yet a parsed wire
-format and still uses factorial family materialization.
+unproved serializer premise is added.
+
+`CanonicalKey.fromString` parses the distinct
+`proofnet-canonical-key-0.1` envelope with token-count and aggregate-character
+limits. Parsing establishes only wire shape: tokens arriving from outside are
+opaque and are not trusted as proof-net evidence. The safe boundary recomputes
+`proofNetCanonicalKey?` locally from checker-accepted certificates.
+`proofNetEquivalent_of_matchesCanonicalKey` proves that two accepted
+certificates matching one parsed key are equivalent. The generator still uses
+factorial family materialization.
 
 ## Failure containment
 

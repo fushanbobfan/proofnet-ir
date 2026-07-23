@@ -91,6 +91,12 @@ def sections : List Section := [
       `ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalCode?_eq,
       `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalCode,
       `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalCode_of_check,
+      `ProofNetIR.CanonicalKey,
+      `ProofNetIR.Certificate.proofNetCanonicalKey?,
+      `ProofNetIR.Certificate.proofNetCanonicalKey?_exists,
+      `ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalKey?_eq,
+      `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey,
+      `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey_of_check,
       `ProofNetIR.Certificate.equivalenceCanonicalString
     ]
   },
@@ -115,7 +121,22 @@ def sections : List Section := [
       `ProofNetIR.Certificate.canonicalString,
       `ProofNetIR.Certificate.fromString,
       `ProofNetIR.Certificate.checkedFromString,
-      `ProofNetIR.Certificate.migrateV02StringToV03
+      `ProofNetIR.Certificate.migrateV02StringToV03,
+      `ProofNetIR.CanonicalKey.wireVersion,
+      `ProofNetIR.CanonicalKey.canonicalization,
+      `ProofNetIR.CanonicalKey.maxTokens,
+      `ProofNetIR.CanonicalKey.maxCharacters,
+      `ProofNetIR.CanonicalKey.WireAdmissible,
+      `ProofNetIR.CanonicalKey.isWireAdmissible,
+      `ProofNetIR.CanonicalKey.toJson,
+      `ProofNetIR.CanonicalKey.toString,
+      `ProofNetIR.CanonicalKey.fromJson,
+      `ProofNetIR.CanonicalKey.fromString,
+      `ProofNetIR.Certificate.proofNetCanonicalKeyJson?,
+      `ProofNetIR.Certificate.proofNetCanonicalKeyString?,
+      `ProofNetIR.Certificate.matchesCanonicalKey,
+      `ProofNetIR.Certificate.proofNetEquivalent_of_matchesCanonicalKey,
+      `ProofNetIR.Certificate.migrateV03StringToCanonicalKey
     ]
   },
   {

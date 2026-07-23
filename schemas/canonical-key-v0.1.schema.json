@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fushanbobfan/proofnet-ir/schemas/canonical-key-v0.1.schema.json",
+  "title": "ProofNet-IR exact canonical key v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "canonicalization",
+    "tokens"
+  ],
+  "properties": {
+    "version": {
+      "const": "proofnet-canonical-key-0.1"
+    },
+    "canonicalization": {
+      "const": "proofnet-equivalent-v1"
+    },
+    "tokens": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "string",
+        "maxLength": 1000000
+      }
+    }
+  }
+}

@@ -291,8 +291,10 @@
   compression.
 - [x] Derive the exact theorem: equal typed canonical codes iff
   `ProofNetEquivalent` under precise structural/checked preconditions.
-- [ ] Introduce a new explicit wire canonicalization marker instead of
-  reinterpreting v0.3, with parser, migration, negative, and property tests.
+- [x] Introduce `proofnet-canonical-key-0.1` /
+  `proofnet-equivalent-v1` instead of reinterpreting v0.3, with a bounded
+  parser, schema, v0.3 semantic migration, negative tests, 1,000 wire
+  properties, and 5,000 malformed-key fuzz cases.
 - [ ] Replace or qualify factorial family materialization with measured
   performance evidence before calling the typed code a production key.
 - [ ] Pin a clean downstream consumer to the eventual public v0.7 release and

@@ -34,24 +34,12 @@ def nested_formula(depth: int) -> str:
     )
 
 
-def generated_cases(valid: str) -> list[str]:
-    cases = [
-        "null",
-        "{}",
-        "[]",
-        '"certificate"',
-        '{"version":"0.3"}',
-        '{"version":3,"canonical":true}',
-        '{"version":"9.9","canonical":true}',
-        '{"version":"0.3","canonical":true,"canonicalization":"unknown",'
-        '"formulas":[],"links":[],"conclusions":[]}',
-        '{"version":"0.3","canonical":true,"canonicalization":"reindex-v1",'
-        '"formulas":[{"kind":"atom","name":"","positive":true}],'
-        '"links":[],"conclusions":[0]}',
-        nested_formula(1_025),
-    ]
+def mutate_cases(
+    valid: str, initial: list[str], seed: int
+) -> list[str]:
+    cases = list(initial)
     alphabet = '{}[],:"\\0123456789truefalsenullxyz'
-    state = 0x5EED_C0DE
+    state = seed
     while len(cases) < TARGET_CASES:
         state = (1_664_525 * state + 1_013_904_223) & 0xFFFF_FFFF
         position = state % len(valid)
@@ -70,10 +58,49 @@ def generated_cases(valid: str) -> list[str]:
             mutated = valid[:position] + valid[position + width :]
         else:
             width = 1 + ((state >> 20) % min(31, len(valid) - position))
-            mutated = valid[:position] + f'"fuzz-{state:08x}"' + valid[position + width :]
+            mutated = (
+                valid[:position]
+                + f'"fuzz-{state:08x}"'
+                + valid[position + width :]
+            )
         if mutated and "\n" not in mutated and "\r" not in mutated:
             cases.append(mutated)
     return cases[:TARGET_CASES]
+
+
+def generated_cases(valid: str) -> list[str]:
+    initial = [
+        "null",
+        "{}",
+        "[]",
+        '"certificate"',
+        '{"version":"0.3"}',
+        '{"version":3,"canonical":true}',
+        '{"version":"9.9","canonical":true}',
+        '{"version":"0.3","canonical":true,"canonicalization":"unknown",'
+        '"formulas":[],"links":[],"conclusions":[]}',
+        '{"version":"0.3","canonical":true,"canonicalization":"reindex-v1",'
+        '"formulas":[{"kind":"atom","name":"","positive":true}],'
+        '"links":[],"conclusions":[0]}',
+        nested_formula(1_025),
+    ]
+    return mutate_cases(valid, initial, 0x5EED_C0DE)
+
+
+def canonical_key_cases(valid: str) -> list[str]:
+    initial = [
+        "null",
+        "{}",
+        "[]",
+        '"canonical-key"',
+        '{"version":"proofnet-canonical-key-0.1"}',
+        '{"version":3,"canonicalization":"proofnet-equivalent-v1","tokens":[]}',
+        '{"version":"wrong","canonicalization":"proofnet-equivalent-v1","tokens":["x"]}',
+        '{"version":"proofnet-canonical-key-0.1","canonicalization":"wrong","tokens":["x"]}',
+        '{"version":"proofnet-canonical-key-0.1","canonicalization":"proofnet-equivalent-v1","tokens":[]}',
+        '{"version":"proofnet-canonical-key-0.1","canonicalization":"proofnet-equivalent-v1","tokens":[1]}',
+    ]
+    return mutate_cases(valid, initial, 0xC0DE_0A71)
 
 
 def main() -> None:
@@ -94,6 +121,30 @@ def main() -> None:
     if expected not in output:
         raise RuntimeError(f"unexpected fuzz harness output: {output!r}")
     print(output)
+
+    key_fixture = (
+        ROOT / "examples" / "canonical-key-v0.1.json"
+    ).read_text(encoding="utf-8")
+    valid_key = json.dumps(
+        json.loads(key_fixture), separators=(",", ":"), ensure_ascii=False
+    )
+    key_inputs = canonical_key_cases(valid_key)
+    key_completed = subprocess.run(
+        [find_lake(), "exe", "proofnet_ir_parser_fuzz", "--canonical-key"],
+        cwd=ROOT,
+        input="\n".join(key_inputs) + "\n",
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
+    key_output = key_completed.stdout.strip()
+    key_expected = f"canonical-key-parser-fuzz-ok cases={TARGET_CASES}"
+    if key_expected not in key_output:
+        raise RuntimeError(
+            f"unexpected canonical-key fuzz harness output: {key_output!r}"
+        )
+    print(key_output)
 
 
 if __name__ == "__main__":

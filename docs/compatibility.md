@@ -46,10 +46,12 @@ finite `ProofNetEquivalent` family and has a forward invariance theorem.
 The separate `proofNetCanonicalCode?` token value uses an explicitly versioned,
 proved-injective structural encoder; code equality is proved equivalent to
 `ProofNetEquivalent` on structurally well-formed or checker-accepted inputs.
-Neither value is yet a wire contract, and both still materialize the factorial
-family. A future public wire key must use a new explicit canonicalization
-marker, provide a parser/checked decoder, and add migration fixtures; existing
-v0.2/v0.3 strings will not be reinterpreted.
+The JSON fingerprint is not a wire contract. The typed code now has the
+separate `proofnet-canonical-key-0.1` /
+`proofnet-equivalent-v1` wire wrapper, bounded parser, schema, and semantic
+migration from checker-accepted v0.3 certificates. Existing v0.2/v0.3 strings
+are not reinterpreted. The new wire remains unreleased and its generator still
+materializes the factorial family.
 
 Release v0.4.0 adds the general sequentialization Lean API and theorem without
 introducing a new wire version or changing the v0.2/v0.3 payload contracts.

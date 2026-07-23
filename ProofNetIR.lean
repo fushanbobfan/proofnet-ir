@@ -17,6 +17,7 @@ import ProofNetIR.StructuralCode
 import ProofNetIR.ProofNetCanonical
 import ProofNetIR.ProofNetIdentity
 import ProofNetIR.Parser
+import ProofNetIR.CanonicalKeyWire
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

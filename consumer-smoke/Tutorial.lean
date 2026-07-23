@@ -61,6 +61,21 @@ example :
   Certificate.proofNetEquivalent_iff_canonicalCode_of_check
     (by native_decide) (by native_decide)
 
+def axiomCanonicalKey : CanonicalKey :=
+  axiomCertificate.proofNetCanonicalKey?.get (by native_decide)
+
+example : axiomCanonicalKey.isWireAdmissible = true := by native_decide
+
+def parsedCanonicalKey :=
+  CanonicalKey.fromString axiomCanonicalKey.toString
+
+def parsedCanonicalKeyMatches : Bool :=
+  match parsedCanonicalKey with
+  | .ok parsed => parsed == axiomCanonicalKey
+  | .error _ => false
+
+example : parsedCanonicalKeyMatches = true := by native_decide
+
 def parsed := Certificate.checkedFromString axiomCertificate.canonicalString
 
 example : parsed.isOk = true := by native_decide

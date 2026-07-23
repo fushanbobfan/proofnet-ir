@@ -109,9 +109,11 @@ part of the engineering and proof-identity gap.
    fingerprint is total and forward invariant. A separate explicitly
    versioned, length-framed structural code is proved injective, and equality
    of its canonical minimum is proved equivalent to `ProofNetEquivalent` on
-   structurally well-formed or checker-accepted inputs. The implementation
-   still materializes the factorial family and has no public wire parser, so it
-   is not yet a production single-representative wire key.
+   structurally well-formed or checker-accepted inputs. A distinct bounded JSON
+   parser, schema, migration function, and safe parsed-key matcher now expose
+   the payload as `proofnet-canonical-key-0.1`. The implementation still
+   materializes the factorial family and is not yet a production
+   single-representative key.
    Conclusion-order canonicalization and arbitrary graph isomorphism remain
    outside the current claim. The v0.3.1 wire theorem remains intentionally
    about the narrower, order-preserving `ReindexEquivalent` relation.
@@ -205,6 +207,8 @@ It can currently be used for:
 - computing an experimental typed canonical code whose equality is kernel
   proved equivalent to `ProofNetEquivalent`, while retaining
   `sameProofNet?` as the performance-qualified pairwise identity API;
+- parsing and migrating the bounded `proofnet-canonical-key-0.1` wire, with
+  1,000 generated wire properties and 5,000 malformed-key fuzz cases;
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.

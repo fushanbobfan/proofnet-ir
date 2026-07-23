@@ -37,6 +37,10 @@ expansion.
 #print axioms Certificate.proofNetCanonicalCode?_exists
 #print axioms Certificate.ProofNetEquivalent.proofNetCanonicalCode?_eq
 #print axioms Certificate.proofNetEquivalent_iff_canonicalCode_of_check
+#print axioms Certificate.proofNetCanonicalKey?_exists
+#print axioms Certificate.ProofNetEquivalent.proofNetCanonicalKey?_eq
+#print axioms Certificate.proofNetEquivalent_iff_canonicalKey_of_check
+#print axioms Certificate.proofNetEquivalent_of_matchesCanonicalKey
 #print axioms Certificate.sequentialize_complete
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent

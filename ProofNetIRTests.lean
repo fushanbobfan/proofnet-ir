@@ -994,6 +994,97 @@ example :
     (canonicalCertificate "ordered-p" "ordered-q").proofNetCanonicalCode? ≠
       reversedConclusionCertificate.proofNetCanonicalCode? := by
   native_decide
+
+def generatedCanonicalKey : CanonicalKey :=
+  canonical.proofNetCanonicalKey?.get (by native_decide)
+
+example :
+    canonical.matchesCanonicalKey generatedCanonicalKey = true := by
+  native_decide
+example :
+    linkScrambledCanonical.matchesCanonicalKey generatedCanonicalKey = true := by
+  native_decide
+example : canonical.ProofNetEquivalent linkScrambledCanonical :=
+  Certificate.proofNetEquivalent_of_matchesCanonicalKey
+    (key := generatedCanonicalKey)
+    (by native_decide) (by native_decide)
+    (by native_decide) (by native_decide)
+example :
+    canonical.ProofNetEquivalent linkScrambledCanonical ↔
+      canonical.proofNetCanonicalKey? =
+        linkScrambledCanonical.proofNetCanonicalKey? :=
+  Certificate.proofNetEquivalent_iff_canonicalKey_of_check
+    (by native_decide) (by native_decide)
+
+def generatedCanonicalKeyRoundTrips : Bool :=
+  match CanonicalKey.fromString generatedCanonicalKey.toString with
+  | .ok parsed => parsed == generatedCanonicalKey
+  | .error _ => false
+
+example : generatedCanonicalKeyRoundTrips = true := by native_decide
+example :
+    (CanonicalKey.fromString
+      "{\"version\":\"wrong\",\"canonicalization\":\"proofnet-equivalent-v1\",\"tokens\":[\"x\"]}").isOk =
+        false := by
+  native_decide
+example :
+    (CanonicalKey.fromString
+      "{\"version\":\"proofnet-canonical-key-0.1\",\"canonicalization\":\"wrong\",\"tokens\":[\"x\"]}").isOk =
+        false := by
+  native_decide
+example :
+    (CanonicalKey.fromString
+      "{\"version\":\"proofnet-canonical-key-0.1\",\"canonicalization\":\"proofnet-equivalent-v1\",\"tokens\":[]}").isOk =
+        false := by
+  native_decide
+example :
+    (CanonicalKey.fromString
+      "{\"version\":\"proofnet-canonical-key-0.1\",\"canonicalization\":\"proofnet-equivalent-v1\",\"tokens\":[1]}").isOk =
+        false := by
+  native_decide
+example :
+    (Certificate.migrateV03StringToCanonicalKey
+      canonical.equivalenceCanonicalString).isOk = true := by
+  native_decide
+example :
+    (Certificate.migrateV03StringToCanonicalKey
+      canonical.canonicalString).isOk = false := by
+  native_decide
+
+def migratedCanonicalKeyMatches : Bool :=
+  match Certificate.migrateV03StringToCanonicalKey
+      canonical.equivalenceCanonicalString with
+  | .error _ => false
+  | .ok wire =>
+      match CanonicalKey.fromString wire with
+      | .error _ => false
+      | .ok key => canonical.matchesCanonicalKey key
+
+example : migratedCanonicalKeyMatches = true := by native_decide
+
+/-- One thousand cheap, deterministic wire properties vary atom labels while
+exercising exact-key equality across reversed link storage and JSON
+encode/decode.  This is a wire regression corpus, not a performance claim for
+large factorial families. -/
+def generatedCanonicalKeyWireProperties : Bool :=
+  (List.range 1000).all fun seed =>
+    let formula :=
+      Formula.tensor
+        (.atom s!"wire-p-{seed}" true)
+        (.atom s!"wire-q-{seed}" true)
+    let certificate := identityCertificate formula
+    let reordered : Certificate :=
+      { certificate with links := certificate.links.reverse }
+    match certificate.proofNetCanonicalKey?,
+        reordered.proofNetCanonicalKey? with
+    | some leftKey, some rightKey =>
+        leftKey == rightKey &&
+          match CanonicalKey.fromString leftKey.toString with
+          | .ok parsed => parsed == leftKey
+          | .error _ => false
+    | _, _ => false
+
+example : generatedCanonicalKeyWireProperties = true := by native_decide
 example : ¬ canonical.ReindexEquivalent linkScrambledCanonical := by
   rw [← Certificate.reindexEquivalent?_eq_true_iff_of_check
     (left := canonical) (right := linkScrambledCanonical)

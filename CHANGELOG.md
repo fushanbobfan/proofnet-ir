@@ -12,8 +12,14 @@
   code in the complete finite family. On structurally well-formed certificates,
   `proofNetEquivalent_iff_canonicalCode` proves code equality iff exactly
   `ProofNetEquivalent`; checker acceptance supplies those premises. This typed
-  exact key still materializes the factorial family and is not yet a public
-  wire codec;
+  exact key still materializes the factorial family;
+- added the separate `proofnet-canonical-key-0.1` /
+  `proofnet-equivalent-v1` JSON contract, bounded native parser with structured
+  errors, JSON Schema and real axiom-key fixture, v0.3-to-key semantic
+  migration, and the untrusted-key-safe
+  `proofNetEquivalent_of_matchesCanonicalKey` theorem. The wire passes 1,000
+  deterministic encode/decode and reversed-link properties plus 5,000
+  deterministic malformed-key fuzz cases;
 
 ## v0.6.0 - Persistent LeanProp bridge
 
