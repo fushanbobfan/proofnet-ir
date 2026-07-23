@@ -42,9 +42,11 @@ def sections : List Section := [
       `ProofNetIR.Graph.acyclic_iff_not_nonempty_edgeSimpleCycle,
       `ProofNetIR.Graph.Acyclic.reindex,
       `ProofNetIR.Graph.acyclic_reindex_iff,
+      `ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount,
       `ProofNetIR.Graph.IsTree,
       `ProofNetIR.Graph.isTree_iff_isTree,
-      `ProofNetIR.Graph.IsTree.acyclic
+      `ProofNetIR.Graph.IsTree.acyclic,
+      `ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic
     ]
   },
   {

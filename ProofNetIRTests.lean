@@ -145,6 +145,41 @@ example : ¬indexedParallelGraph.Acyclic := by
   intro acyclic
   exact acyclic indexedParallelCycle
 
+def reversedParallelGraph : Graph where
+  vertexCount := 2
+  edges := [{ first := 0, second := 1 }, { first := 1, second := 0 }]
+
+def reversedParallelZero : reversedParallelGraph.DirectedEdge where
+  index := 0
+  edge := { first := 0, second := 1 }
+  lookup := rfl
+  forward := true
+
+def reversedParallelOne : reversedParallelGraph.DirectedEdge where
+  index := 1
+  edge := { first := 1, second := 0 }
+  lookup := rfl
+  forward := true
+
+def reversedParallelCycle : reversedParallelGraph.EdgeSimpleCycle where
+  start := 0
+  traversed := [reversedParallelZero, reversedParallelOne]
+  nonempty := by simp
+  walk := by
+    exact Graph.EdgeWalk.step
+      (Graph.EdgeWalk.step (.refl 0) reversedParallelZero rfl rfl)
+      reversedParallelOne rfl rfl
+  edgeIndicesNodup := by decide
+  interiorNodup := by decide
+
+example : ¬reversedParallelGraph.Acyclic := by
+  intro acyclic
+  exact acyclic reversedParallelCycle
+example : reversedParallelGraph.IsTree ↔
+    reversedParallelGraph.Bounded ∧ reversedParallelGraph.Connected ∧
+      reversedParallelGraph.Acyclic :=
+  reversedParallelGraph.isTree_iff_bounded_connected_acyclic
+
 def mixedFormula : Formula := .par (.tensor p q) (.atom "r" true)
 
 example : Derivation [mixedFormula, mixedFormula.dual] :=
@@ -1614,6 +1649,9 @@ example : cyclicGraph.isTree = false := by native_decide
 example : ¬cyclicGraph.Acyclic := by
   intro acyclic
   exact acyclic cyclicTriangle
+example : cyclicGraph.IsTree ↔
+    cyclicGraph.Bounded ∧ cyclicGraph.Connected ∧ cyclicGraph.Acyclic :=
+  cyclicGraph.isTree_iff_bounded_connected_acyclic
 example : ¬(cyclicGraph.reindex swapCyclicZeroOne).Acyclic := by
   intro acyclic
   exact acyclic reindexedCyclicTriangle
@@ -1648,6 +1686,14 @@ example : treeGraph.isTree = true := by native_decide
 example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
 example : treeGraph.Acyclic :=
   (treeGraph.isTree_sound (by native_decide)).acyclic
+example : treeGraph.IsTree ↔
+    treeGraph.Bounded ∧ treeGraph.Connected ∧ treeGraph.Acyclic :=
+  treeGraph.isTree_iff_bounded_connected_acyclic
+example : treeGraph.edges.length + 1 ≤ treeGraph.vertexCount :=
+  ((treeGraph.isTree_sound (by native_decide)).acyclic)
+    |>.edges_add_one_le_vertexCount
+      (treeGraph.isTree_sound (by native_decide)).1
+      (treeGraph.isTree_sound (by native_decide)).2.1
 example : (treeGraph.reindex swapTreeZeroThree).Acyclic :=
   ((treeGraph.isTree_sound (by native_decide)).acyclic).reindex
     swapTreeZeroThree

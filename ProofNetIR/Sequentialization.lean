@@ -95,6 +95,32 @@ private theorem length_le_of_nodup_subset' [BEq α] [LawfulBEq α]
       simp only [List.length_cons]
       omega
 
+private theorem nodup_of_getElem?_value_injective {α : Type}
+    (values : List α)
+    (unique : ∀ {first second : Nat} {value : α},
+      values[first]? = some value →
+      values[second]? = some value →
+      first = second) :
+    values.Nodup := by
+  induction values with
+  | nil => exact .nil
+  | cons head tail ih =>
+      apply List.nodup_cons.mpr
+      constructor
+      · intro headInTail
+        rcases List.getElem?_of_mem headInTail with
+          ⟨index, lookup⟩
+        have same := unique (first := 0) (second := index + 1)
+          (value := head)
+          (by simp) (by simpa using lookup)
+        omega
+      · apply ih
+        intro first second value firstLookup secondLookup
+        have same := unique (first := first + 1) (second := second + 1)
+          (value := value)
+          (by simpa using firstLookup) (by simpa using secondLookup)
+        omega
+
 private theorem exists_least_nat_up_to (property : Nat → Prop) :
     ∀ bound, (∃ value, value ≤ bound ∧ property value) →
       ∃ least, property least ∧ ∀ value, property value → least ≤ value := by
@@ -2385,6 +2411,114 @@ private theorem parentEdgeIndex_lookup (graph : Graph)
   simpa [parentEdgeIndex] using
     (list_map_getElem?_idxOf_eq_some graph.edges id membership)
 
+/-- The canonical shortest-path spanning graph: one selected parent edge for
+each non-root vertex, ordered by the child vertex. -/
+private noncomputable def spanningParentGraph (graph : Graph) : Graph where
+  vertexCount := graph.vertexCount
+  edges :=
+    (List.range (graph.vertexCount - 1)).map
+      (fun offset => graph.parentEdge (offset + 1))
+
+@[simp] private theorem spanningParentGraph_vertexCount (graph : Graph) :
+    graph.spanningParentGraph.vertexCount = graph.vertexCount := rfl
+
+@[simp] private theorem spanningParentGraph_edges (graph : Graph) :
+    graph.spanningParentGraph.edges =
+      (List.range (graph.vertexCount - 1)).map
+        (fun offset => graph.parentEdge (offset + 1)) := rfl
+
+private theorem parentEdge_mem_spanningParentGraph (graph : Graph)
+    {vertex : Vertex} (inBounds : vertex < graph.vertexCount)
+    (nonRoot : vertex ≠ 0) :
+    graph.parentEdge vertex ∈ graph.spanningParentGraph.edges := by
+  simp only [spanningParentGraph_edges, List.mem_map]
+  refine ⟨vertex - 1, List.mem_range.mpr ?_, ?_⟩
+  · simpa [Nat.pred_eq_sub_one] using
+      Nat.pred_lt_pred nonRoot inBounds
+  · rw [Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr nonRoot)]
+
+private theorem spanningParentGraph_edges_subset (graph : Graph)
+    (connected : graph.Connected) :
+    ∀ edge ∈ graph.spanningParentGraph.edges, edge ∈ graph.edges := by
+  intro edge membership
+  simp only [spanningParentGraph_edges, List.mem_map] at membership
+  rcases membership with ⟨offset, offsetMembership, rfl⟩
+  have offsetBound := List.mem_range.mp offsetMembership
+  have positive : 0 < graph.vertexCount := by omega
+  have inBounds : offset + 1 < graph.vertexCount := by
+    have shifted := Nat.add_lt_add_right offsetBound 1
+    simpa [Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr
+      (Nat.ne_of_gt positive))] using shifted
+  have nonRoot : offset + 1 ≠ 0 := Nat.succ_ne_zero offset
+  rcases graph.parentEdge_spec connected inBounds nonRoot with
+    ⟨predecessor, edgeMembership, direction, decrease⟩
+  exact edgeMembership
+
+private theorem spanningParentGraph_bounded (graph : Graph)
+    (bounded : graph.Bounded) (connected : graph.Connected) :
+    graph.spanningParentGraph.Bounded := by
+  intro edge membership
+  exact bounded edge (graph.spanningParentGraph_edges_subset connected
+    edge membership)
+
+private theorem spanningParentGraph_walk_aux (graph : Graph)
+    (bounded : graph.Bounded) (connected : graph.Connected) :
+    ∀ fuel vertex,
+      graph.shortestWalkSteps vertex ≤ fuel →
+      vertex < graph.vertexCount →
+      graph.spanningParentGraph.Walk 0 vertex := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro vertex distanceBound inBounds
+      by_cases root : vertex = 0
+      · subst vertex
+        exact .refl 0
+      · rcases graph.parentEdge_spec connected inBounds root with
+          ⟨predecessor, edgeMembership, direction, decrease⟩
+        omega
+  | succ fuel ih =>
+      intro vertex distanceBound inBounds
+      by_cases root : vertex = 0
+      · subst vertex
+        exact .refl 0
+      · rcases graph.parentEdge_spec connected inBounds root with
+          ⟨predecessor, edgeMembership, direction, decrease⟩
+        have edgeBounds := bounded (graph.parentEdge vertex) edgeMembership
+        have predecessorInBounds : predecessor < graph.vertexCount := by
+          rcases direction with forward | backward
+          · rw [← forward.1]
+            exact edgeBounds.1
+          · rw [← backward.2]
+            exact edgeBounds.2.1
+        have predecessorWalk := ih predecessor (by omega)
+          predecessorInBounds
+        exact .step predecessorWalk
+          ⟨graph.parentEdge vertex,
+            graph.parentEdge_mem_spanningParentGraph inBounds root,
+            direction⟩
+
+private theorem spanningParentGraph_connected (graph : Graph)
+    (bounded : graph.Bounded) (connected : graph.Connected) :
+    graph.spanningParentGraph.Connected :=
+  ⟨by simpa using connected.1, by
+    intro vertex inBounds
+    exact graph.spanningParentGraph_walk_aux bounded connected
+      (graph.shortestWalkSteps vertex) vertex (Nat.le_refl _) (by
+        simpa using inBounds)⟩
+
+/-- Every finite bounded connected graph contains a canonical spanning tree
+formed from shortest-path parent edges. -/
+private theorem spanningParentGraph_isTree (graph : Graph)
+    (bounded : graph.Bounded) (connected : graph.Connected) :
+    graph.spanningParentGraph.IsTree := by
+  refine ⟨graph.spanningParentGraph_bounded bounded connected,
+    graph.spanningParentGraph_connected bounded connected, ?_⟩
+  simp only [spanningParentGraph_edges, List.length_map, List.length_range,
+    spanningParentGraph_vertexCount]
+  exact Nat.sub_add_cancel
+    (Nat.one_le_iff_ne_zero.mpr (Nat.ne_of_gt connected.1))
+
 /-- A finite connected graph contains at least one distinct stored edge for
 every non-root vertex. The proof selects a shortest-walk parent edge and uses
 strict distance decrease to show that two vertices cannot select the same
@@ -2642,6 +2776,170 @@ the exact stored-edge-occurrence sense. -/
 theorem IsTree.acyclic {graph : Graph} (tree : graph.IsTree) :
     graph.Acyclic :=
   fun cycle => tree.no_edgeSimpleCycle cycle
+
+/-- In a bounded occurrence-acyclic multigraph, one stored edge value cannot
+occur at two distinct list indices: the two occurrences would themselves form
+a length-two cycle. -/
+private theorem edge_lookup_indices_eq_of_acyclic {graph : Graph}
+    (bounded : graph.Bounded) (acyclic : graph.Acyclic)
+    {first second : Nat} {edge : Edge}
+    (firstLookup : graph.edges[first]? = some edge)
+    (secondLookup : graph.edges[second]? = some edge) :
+    first = second := by
+  by_cases same : first = second
+  · exact same
+  have different : first ≠ second := same
+  let firstDirected : graph.DirectedEdge :=
+    { index := first
+      edge := edge
+      lookup := firstLookup
+      forward := true }
+  let secondDirected : graph.DirectedEdge :=
+    { index := second
+      edge := edge
+      lookup := secondLookup
+      forward := true }
+  have edgeMembership : edge ∈ graph.edges :=
+    firstDirected.edge_mem
+  have loopless : edge.first ≠ edge.second :=
+    (bounded edge edgeMembership).2.2
+  let cycle : graph.EdgeSimpleCycle :=
+    { start := edge.first
+      traversed := [firstDirected, secondDirected.reverse]
+      nonempty := by simp
+      walk := by
+        apply EdgeWalk.step
+          (EdgeWalk.step (.refl edge.first) firstDirected rfl rfl)
+          secondDirected.reverse
+        · rfl
+        · rfl
+      edgeIndicesNodup := by
+        simp [firstDirected, secondDirected, different]
+      interiorNodup := by
+        simpa [firstDirected, secondDirected, DirectedEdge.target] using
+          loopless }
+  exact (acyclic cycle).elim
+
+private theorem edges_nodup_of_acyclic {graph : Graph}
+    (bounded : graph.Bounded) (acyclic : graph.Acyclic) :
+    graph.edges.Nodup := by
+  apply nodup_of_getElem?_value_injective graph.edges
+  intro first second edge firstLookup secondLookup
+  exact edge_lookup_indices_eq_of_acyclic bounded acyclic
+    firstLookup secondLookup
+
+/-- Every edge of a bounded connected acyclic graph belongs to its canonical
+shortest-path spanning graph. Any extra occurrence closes the simple
+spanning-tree path between its endpoints into an exact cycle. -/
+private theorem edge_mem_spanningParentGraph_of_acyclic {graph : Graph}
+    (bounded : graph.Bounded) (connected : graph.Connected)
+    (acyclic : graph.Acyclic) {edge : Edge}
+    (edgeMembership : edge ∈ graph.edges) :
+    edge ∈ graph.spanningParentGraph.edges := by
+  by_cases alreadyPresent : edge ∈ graph.spanningParentGraph.edges
+  · exact alreadyPresent
+  have edgeBounds := bounded edge edgeMembership
+  have parentConnected :=
+    graph.spanningParentGraph_connected bounded connected
+  have fromRoot := parentConnected.2 edge.first (by
+    simpa using edgeBounds.1)
+  have toFinish := parentConnected.2 edge.second (by
+    simpa using edgeBounds.2.1)
+  have between :
+      graph.spanningParentGraph.Walk edge.first edge.second :=
+    fromRoot.reverse.trans toFinish
+  rcases between.toSimple with ⟨steps, visited, simple⟩
+  rcases simple.liftToEdgeSimplePathWithEdges
+      (graph.spanningParentGraph_edges_subset connected) with
+    ⟨path, pathStarts, pathFinishes, pathVertices, pathEdges⟩
+  have pathNonempty : path.traversed ≠ [] := by
+    intro empty
+    have chain := path.walk.toChain
+    rw [empty] at chain
+    have sameEndpoints : path.start = path.finish :=
+      chain.eq_of_nil
+    exact edgeBounds.2.2
+      (pathStarts.symm.trans (sameEndpoints.trans pathFinishes))
+  rcases List.getElem?_of_mem edgeMembership with
+    ⟨extraIndex, edgeLookup⟩
+  let returnDirected : graph.DirectedEdge :=
+    { index := extraIndex
+      edge := edge
+      lookup := edgeLookup
+      forward := false }
+  let returnPath : graph.EdgeSimplePath :=
+    { start := edge.second
+      finish := edge.first
+      traversed := [returnDirected]
+      walk := by
+        exact EdgeWalk.step (.refl edge.second) returnDirected rfl rfl
+      verticesNodup := by
+        simpa [EdgeWalk.visitedVertices, returnDirected,
+          DirectedEdge.target] using (Ne.symm edgeBounds.2.2) }
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    simp [returnPath]
+  have meeting : path.finish = returnPath.start := by
+    simpa [returnPath] using pathFinishes
+  have closing : returnPath.finish = path.start := by
+    simpa [returnPath] using pathStarts.symm
+  have vertexDisjoint : ∀ vertex,
+      vertex ∈ path.vertices →
+      vertex ∈ returnPath.vertices.tail.dropLast → False := by
+    intro vertex pathMembership returnMembership
+    simp [returnPath, EdgeSimplePath.vertices,
+      EdgeWalk.visitedVertices] at returnMembership
+  have edgeDisjoint : ∀ index,
+      index ∈ path.traversed.map DirectedEdge.index →
+      index ∈ returnPath.traversed.map DirectedEdge.index → False := by
+    intro index pathIndex returnIndex
+    rcases List.mem_map.mp pathIndex with
+      ⟨directed, directedMembership, directedIndex⟩
+    have indexIsExtra : index = extraIndex := by
+      simpa [returnPath, returnDirected] using returnIndex
+    have sameIndex : directed.index = extraIndex :=
+      directedIndex.trans indexIsExtra
+    have sameEdge : directed.edge = edge := by
+      apply Option.some.inj
+      rw [← directed.lookup, ← edgeLookup, sameIndex]
+    have parentMembership := pathEdges directed directedMembership
+    exact alreadyPresent (sameEdge ▸ parentMembership)
+  let cycle := EdgeSimpleCycle.ofTwoPaths path returnPath pathNonempty
+    returnNonempty meeting closing vertexDisjoint edgeDisjoint
+  exact (acyclic cycle).elim
+
+/-- A bounded connected occurrence-acyclic finite multigraph has at most one
+fewer stored edge occurrences than vertices. -/
+theorem Acyclic.edges_add_one_le_vertexCount {graph : Graph}
+    (acyclic : graph.Acyclic) (bounded : graph.Bounded)
+    (connected : graph.Connected) :
+    graph.edges.length + 1 ≤ graph.vertexCount := by
+  have edgeBound : graph.edges.length ≤
+      graph.spanningParentGraph.edges.length :=
+    length_le_of_nodup_subset'
+      (edges_nodup_of_acyclic bounded acyclic)
+      (fun edge membership =>
+        edge_mem_spanningParentGraph_of_acyclic bounded connected acyclic
+          membership)
+  simp only [spanningParentGraph_edges, List.length_map,
+    List.length_range] at edgeBound
+  have shifted := Nat.add_le_add_right edgeBound 1
+  simpa [Nat.sub_add_cancel
+    (Nat.one_le_iff_ne_zero.mpr (Nat.ne_of_gt connected.1))] using shifted
+
+/-- Standard finite-multigraph tree characterization for the exact public
+semantics. Parallel stored occurrences are handled by occurrence-aware
+acyclicity rather than silently collapsed to a simple graph. -/
+theorem isTree_iff_bounded_connected_acyclic (graph : Graph) :
+    graph.IsTree ↔
+      graph.Bounded ∧ graph.Connected ∧ graph.Acyclic := by
+  constructor
+  · intro tree
+    exact ⟨tree.1, tree.2.1, tree.acyclic⟩
+  · rintro ⟨bounded, connected, acyclic⟩
+    refine ⟨bounded, connected, ?_⟩
+    have upper := acyclic.edges_add_one_le_vertexCount bounded connected
+    have lower := connected.vertexCount_le_edges_add_one
+    omega
 
 /-- A simple cycle survives any occurrence mask that keeps all of its exact
 stored edge indices. Compacted edge indices remain duplicate-free because the

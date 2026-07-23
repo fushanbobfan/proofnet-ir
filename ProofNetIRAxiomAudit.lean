@@ -13,6 +13,8 @@ expansion.
 #print axioms Graph.IsTree.acyclic
 #print axioms Graph.Acyclic.reindex
 #print axioms Graph.acyclic_reindex_iff
+#print axioms Graph.Acyclic.edges_add_one_le_vertexCount
+#print axioms Graph.isTree_iff_bounded_connected_acyclic
 #print axioms CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #print axioms CutFreeDerivation.build?_structurallyWellFormed
 #print axioms CutFreeDerivation.build?_switchingCorrect

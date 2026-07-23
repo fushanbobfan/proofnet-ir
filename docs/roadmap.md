@@ -342,7 +342,7 @@
 - [x] Prove exact directed-edge, edge-walk, simple-cycle, and acyclicity
   transport under bounded vertex renaming, including negative cyclic and
   positive tree regressions after nontrivial swaps.
-- [ ] Prove the converse finite-multigraph forest theorem and derive
+- [x] Prove the converse finite-multigraph forest theorem and derive
   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` without retaining the current
   edge-count equation as a redundant premise.
 - [ ] Introduce a certified cycle/forest decision procedure and relate it to

@@ -14,6 +14,8 @@ AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
 EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",
     "ProofNetIR.Graph.IsTree.acyclic",
+    "ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount",
+    "ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic",
     "ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions",
     "ProofNetIR.CutFreeDerivation.build?_structurallyWellFormed",
     "ProofNetIR.CutFreeDerivation.build?_switchingCorrect",

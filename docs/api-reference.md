@@ -220,6 +220,18 @@ ProofNetIR.Graph.acyclic_reindex_iff : ∀ (graph : ProofNetIR.Graph) (r : Proof
   (graph.reindex r).Acyclic ↔ graph.Acyclic
 ```
 
+### `ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount`
+
+Kind: theorem.
+
+A bounded connected occurrence-acyclic finite multigraph has at most one
+fewer stored edge occurrences than vertices.
+
+```lean
+ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount : ∀ {graph : ProofNetIR.Graph},
+  graph.Acyclic → graph.Bounded → graph.Connected → graph.edges.length + 1 ≤ graph.vertexCount
+```
+
 ### `ProofNetIR.Graph.IsTree`
 
 Kind: definition.
@@ -250,6 +262,18 @@ the exact stored-edge-occurrence sense.
 
 ```lean
 ProofNetIR.Graph.IsTree.acyclic : ∀ {graph : ProofNetIR.Graph}, graph.IsTree → graph.Acyclic
+```
+
+### `ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic`
+
+Kind: theorem.
+
+Standard finite-multigraph tree characterization for the exact public
+semantics. Parallel stored occurrences are handled by occurrence-aware
+acyclicity rather than silently collapsed to a simple graph.
+
+```lean
+ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic : ∀ (graph : ProofNetIR.Graph), graph.IsTree ↔ graph.Bounded ∧ graph.Connected ∧ graph.Acyclic
 ```
 
 ## First-order derivations

@@ -19,6 +19,13 @@
   generated API and locked both public theorems to exactly
   `[propext, Quot.sound]`; the path-based downstream consumer compiles both
   transport directions and executes successfully;
+- completed the finite-multigraph forest converse without assuming the old
+  edge-count equation: shortest-path parent edges form a canonical spanning
+  tree, every extra stored edge closes an exact occurrence cycle, and
+  acyclicity therefore gives `|E| + 1 ≤ |V|`; together with the connected
+  lower bound this proves
+  `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` and brings the locked public MLL
+  trust boundary to 48 theorems;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

@@ -1963,15 +1963,18 @@ theorem restrict {graph : Graph} {start finish vertex : Vertex} {steps : Nat}
           .step prior adjacency fresh⟩
 
 /-- Lift a duplicate-free vertex walk through an edge-inclusion map to an
-exact occurrence-aware simple path in the ambient multigraph.  The visited
-vertex list is preserved literally. -/
-theorem liftToEdgeSimplePath {subgraph graph : Graph}
+exact occurrence-aware simple path in the ambient multigraph. The visited
+vertex list is preserved literally, and every lifted directed edge records a
+stored edge value from the source subgraph. -/
+theorem liftToEdgeSimplePathWithEdges {subgraph graph : Graph}
     {start finish : Vertex} {steps : Nat} {visited : List Vertex}
     (simple : subgraph.SimpleWalk start steps visited finish)
     (edgeSubset : ∀ edge ∈ subgraph.edges, edge ∈ graph.edges) :
     ∃ path : graph.EdgeSimplePath,
       path.start = start ∧ path.finish = finish ∧
-        path.vertices = visited := by
+        path.vertices = visited ∧
+        ∀ directed ∈ path.traversed,
+          directed.edge ∈ subgraph.edges := by
   induction simple with
   | refl =>
       let path : graph.EdgeSimplePath :=
@@ -1981,10 +1984,10 @@ theorem liftToEdgeSimplePath {subgraph graph : Graph}
           walk := .refl start
           verticesNodup := by simp [EdgeWalk.visitedVertices] }
       exact ⟨path, rfl, rfl, by simp [path, EdgeSimplePath.vertices,
-        EdgeWalk.visitedVertices]⟩
+        EdgeWalk.visitedVertices], by simp [path]⟩
   | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
       rcases ih with ⟨priorPath, priorStarts, priorFinishes,
-        priorVertices⟩
+        priorVertices, priorEdges⟩
       rcases adjacency with ⟨edge, edgeMembership, direction⟩
       have ambientMembership := edgeSubset edge edgeMembership
       rcases List.getElem?_of_mem ambientMembership with
@@ -2022,10 +2025,17 @@ theorem liftToEdgeSimplePath {subgraph graph : Graph}
               apply fresh
               rw [← priorVertices]
               exact membership }
-        refine ⟨path, priorStarts, rfl, ?_⟩
-        change EdgeWalk.visitedVertices priorPath.start
-          (priorPath.traversed ++ [directed]) = priorVisited ++ [current]
-        rw [extendedVertices, priorVertices]
+        refine ⟨path, priorStarts, rfl, ?_, ?_⟩
+        · change EdgeWalk.visitedVertices priorPath.start
+            (priorPath.traversed ++ [directed]) = priorVisited ++ [current]
+          rw [extendedVertices, priorVertices]
+        · intro candidate membership
+          change candidate ∈ priorPath.traversed ++ [directed] at membership
+          rcases List.mem_append.mp membership with earlier | final
+          · exact priorEdges candidate earlier
+          · have same : candidate = directed := by simpa using final
+            subst candidate
+            exact edgeMembership
       · let directed : graph.DirectedEdge :=
           { index := index
             edge := edge
@@ -2058,10 +2068,30 @@ theorem liftToEdgeSimplePath {subgraph graph : Graph}
               apply fresh
               rw [← priorVertices]
               exact membership }
-        refine ⟨path, priorStarts, rfl, ?_⟩
-        change EdgeWalk.visitedVertices priorPath.start
-          (priorPath.traversed ++ [directed]) = priorVisited ++ [current]
-        rw [extendedVertices, priorVertices]
+        refine ⟨path, priorStarts, rfl, ?_, ?_⟩
+        · change EdgeWalk.visitedVertices priorPath.start
+            (priorPath.traversed ++ [directed]) = priorVisited ++ [current]
+          rw [extendedVertices, priorVertices]
+        · intro candidate membership
+          change candidate ∈ priorPath.traversed ++ [directed] at membership
+          rcases List.mem_append.mp membership with earlier | final
+          · exact priorEdges candidate earlier
+          · have same : candidate = directed := by simpa using final
+            subst candidate
+            exact edgeMembership
+
+/-- Compatibility projection of `liftToEdgeSimplePathWithEdges` for clients
+that need only endpoints and the exact visited-vertex list. -/
+theorem liftToEdgeSimplePath {subgraph graph : Graph}
+    {start finish : Vertex} {steps : Nat} {visited : List Vertex}
+    (simple : subgraph.SimpleWalk start steps visited finish)
+    (edgeSubset : ∀ edge ∈ subgraph.edges, edge ∈ graph.edges) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = start ∧ path.finish = finish ∧
+        path.vertices = visited := by
+  rcases simple.liftToEdgeSimplePathWithEdges edgeSubset with
+    ⟨path, starts, finishes, vertices, _⟩
+  exact ⟨path, starts, finishes, vertices⟩
 
 end SimpleWalk
 

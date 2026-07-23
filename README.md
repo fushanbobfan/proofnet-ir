@@ -13,8 +13,10 @@ Development on `main` is now `v0.9.0-dev`. The first v0.9 increment exposes
 occurrence-aware multigraph acyclicity and proves that every declarative
 `IsTree` is acyclic. Exact edge occurrences, walks, cycles, and acyclicity are
 also proved invariant under bounded bijective vertex renaming. The converse
-forest-count theorem and an optimized correctness checker remain explicit
-work in progress.
+forest-count theorem is now complete, yielding
+`IsTree ↔ Bounded ∧ Connected ∧ Acyclic`. A certified executable cycle
+decision procedure and an optimized correctness checker remain explicit work
+in progress.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -48,8 +50,9 @@ The repository currently contains:
   `|E| + 1 = |V|` tree condition;
 - an occurrence-aware `Graph.Acyclic` predicate in which parallel stored
   edges remain distinct and can form a length-two cycle; every declarative
-  tree is proved acyclic, and exact cycles plus acyclicity are proved
-  invariant under bounded bijective vertex renaming;
+  tree is proved acyclic, exact cycles plus acyclicity are proved invariant
+  under bounded bijective vertex renaming, and the converse forest theorem
+  proves `IsTree ↔ Bounded ∧ Connected ∧ Acyclic`;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -199,7 +202,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits forty-six public MLL logical-boundary theorems against the exact axiom set
+  separately audits forty-eight public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.

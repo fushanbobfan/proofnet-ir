@@ -105,8 +105,11 @@ part of the engineering and proof-identity gap.
    against that occurrence-aware semantics. Exact directed edges, walks,
    simple cycles, and acyclicity now transport through bounded bijective
    vertex renamings, with `acyclic_reindex_iff` exposed publicly. The converse
-   finite-multigraph forest-count theorem, and therefore the standard
-   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` characterization, remain open.
+   finite-multigraph forest-count theorem is now kernel checked without
+   assuming the edge-count equation: a canonical shortest-parent spanning
+   tree and exact extra-edge cycle construction establish
+   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic`. A certified executable
+   acyclicity decision procedure remains open.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional
@@ -159,7 +162,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for forty-six public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for forty-eight public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the two public graph-acyclicity transport theorems are separately locked to
