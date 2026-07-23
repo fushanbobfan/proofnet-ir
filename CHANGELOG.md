@@ -47,8 +47,8 @@
   LeanProp parser mutation-fuzz gate;
 - added a Lean corpus exporter and CI-checked SHA-256 manifest over all 1,600
   labeled wire records, with no independent Python acceptance oracle;
-- added a clean remote Lake consumer pinned to the public v0.6-development
-  commit. It checks valid/invalid wire inputs and typechecks the retained
+- added a clean remote Lake consumer pinned to the public `v0.6.0` tag. It
+  checks valid/invalid wire inputs and typechecks the retained
   boundary, packed witness, universal soundness theorem, and persistent
   structural-normalization API without using the source checkout as a path
   dependency.

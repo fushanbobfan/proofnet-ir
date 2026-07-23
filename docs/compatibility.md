@@ -85,7 +85,6 @@ A public API scheduled for removal will remain for at least one tagged minor
 release when technically possible. CI builds a path-based downstream consumer,
 a clean consumer pinned to the latest public release, and a separate clean
 consumer pinned to the exact public v0.6 API revision. The final v0.6 release
-gate additionally changes that consumer to the public `v0.6.0` tag and rebuilds
-it before the GitHub release is created. Schema fixtures, round trips,
-applicable migration tests, and the independent property audit are release
-gates.
+gate changes that consumer to the public `v0.6.0` tag and rebuilds it before
+the GitHub release is created. Schema fixtures, round trips, applicable
+migration tests, and the independent property audit are release gates.

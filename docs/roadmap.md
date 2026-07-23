@@ -276,7 +276,7 @@
   pointwise proof preservation.
 - [x] Freeze `leanprop-schema-0.1` as the sole v0.6 LeanProp wire contract and
   require explicit migration fixtures when a second wire version is added.
-- [ ] Qualify the public bridge through a final v0.6-tag-pinned downstream
+- [x] Qualify the public bridge through a final v0.6-tag-pinned downstream
   consumer.
 
 ## Later research

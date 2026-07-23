@@ -154,9 +154,8 @@ part of the engineering and proof-identity gap.
   mutation gate plus JSON Schema fixtures and a SHA-256 manifest over 1,600
   Lean-emitted labeled records; every accepted wire value now retains an
   indexed derivation and exposes universal `sound`. A clean consumer pins the
-  exact public v0.6 candidate commit and typechecks that API; the final release
-  gate is a clean rebuild after changing the dependency to the public v0.6.0
-  tag;
+  exact public `v0.6.0` tag and typechecks that API, including the structural
+  normalizer;
 - a 291-case depth-2/3/4 native CI workload now has a 45-second catastrophic
   regression budget; it explicitly does not establish favorable asymptotics,
   and the measured depth-4 cost remains a library-readiness limitation;
