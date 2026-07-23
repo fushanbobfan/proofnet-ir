@@ -86,7 +86,9 @@ part of the engineering and proof-identity gap.
    structural rules, ordinary Lean connective/quantifier nodes, an axiom-free
    proof-term interpreter, and an exact linear-leaf count theorem. It remains
    separate from MLL certificate semantics and lacks untrusted-input parsing,
-   a generated corpus, and release-level qualification.
+   negative raw-schema checking, and release-level qualification. A
+   deterministic 600-template positive schema corpus and its universal
+   atom-valuation soundness theorem are now present.
 2. The stronger `GenerallySequentializable` result and the public executable
    totality theorem are complete for the
    documented unit-free, cut-free MLL representation. Remaining logical scope

@@ -252,6 +252,8 @@
 - [x] Support conjunction, implication, equality rewriting, universal
   instantiation, and existential witness nodes.
 - [x] Reconstruct Lean proof terms for a hand-curated cross-rule smoke corpus.
+- [x] Add a deterministic 600-item positive schema corpus across six resource
+  and connective strata, with universal reconstruction under atom valuations.
 - [ ] Add a generated, stratified template corpus with negative inputs,
   versioned untrusted-input diagnostics, and reproducible manifest hashes.
 - [ ] Prove further exchange/structural normalization metatheory and qualify

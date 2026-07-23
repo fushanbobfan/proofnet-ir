@@ -116,7 +116,12 @@ The repository currently contains:
   weakening/contraction constructors exist. Conjunction, implication,
   equality rewriting, universal instantiation, and existential witnesses are
   interpreted into actual Lean proof terms; a kernel theorem proves that the
-  number of linear-axiom leaves equals the linear-context length.
+  number of linear-axiom leaves equals the linear-context length;
+- a proposition-independent schema layer for generated atoms/conjunctions/
+  implications. Its 600-template deterministic corpus covers persistent
+  duplication/discard, linear pairing/exchange/modus ponens, and projection;
+  every packed schema has a universal theorem reconstructing a Lean proof
+  under every atom valuation. This is not yet an untrusted-input parser.
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does

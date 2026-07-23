@@ -869,3 +869,90 @@ A closed bridge derivation reconstructs a closed Lean theorem.
 ProofNetIR.LeanProp.Derivation.close : ∀ {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation [] [] goal), goal
 ```
 
+### `ProofNetIR.LeanProp.Schema.Formula`
+
+Kind: inductive type.
+
+Serializable proposition syntax for the first schema version.
+
+```lean
+ProofNetIR.LeanProp.Schema.Formula : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Formula.evaluate`
+
+Kind: definition.
+
+Interpret schema atoms under an arbitrary Lean proposition valuation.
+
+```lean
+ProofNetIR.LeanProp.Schema.Formula.evaluate : (String → Prop) → ProofNetIR.LeanProp.Schema.Formula → Prop
+```
+
+### `ProofNetIR.LeanProp.Schema.Derivation`
+
+Kind: inductive type.
+
+Resource-explicit derivations over first-order proposition codes. The
+indices make malformed rule applications unrepresentable after checking.
+
+```lean
+ProofNetIR.LeanProp.Schema.Derivation : List ProofNetIR.LeanProp.Schema.Formula →
+  List ProofNetIR.LeanProp.Schema.Formula → ProofNetIR.LeanProp.Schema.Formula → Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Derivation.instantiate`
+
+Kind: definition.
+
+Instantiate a first-order schema as a typed LeanProp derivation under any
+atom valuation. This is the conservative bridge from generated data to the
+kernel-interpreted calculus.
+
+```lean
+ProofNetIR.LeanProp.Schema.Derivation.instantiate : (valuation : String → Prop) →
+  {persistent linear : List ProofNetIR.LeanProp.Schema.Formula} →
+    {goal : ProofNetIR.LeanProp.Schema.Formula} →
+      ProofNetIR.LeanProp.Schema.Derivation persistent linear goal →
+        ProofNetIR.LeanProp.Derivation (List.map (ProofNetIR.LeanProp.Schema.Formula.evaluate valuation) persistent)
+          (List.map (ProofNetIR.LeanProp.Schema.Formula.evaluate valuation) linear)
+          (ProofNetIR.LeanProp.Schema.Formula.evaluate valuation goal)
+```
+
+### `ProofNetIR.LeanProp.Schema.PackedDerivation`
+
+Kind: inductive type.
+
+An existentially packed, named schema derivation for generated corpora.
+
+```lean
+ProofNetIR.LeanProp.Schema.PackedDerivation : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.PackedDerivation.sound`
+
+Kind: theorem.
+
+Every packed schema reconstructs a Lean proof for every valuation and
+matching pair of proof environments.
+
+```lean
+ProofNetIR.LeanProp.Schema.PackedDerivation.sound : ∀ (packed : ProofNetIR.LeanProp.Schema.PackedDerivation) (valuation : String → Prop)
+  (persistentValues :
+    ProofNetIR.LeanProp.Assumptions
+      (List.map (ProofNetIR.LeanProp.Schema.Formula.evaluate valuation) packed.persistent))
+  (linearValues :
+    ProofNetIR.LeanProp.Assumptions (List.map (ProofNetIR.LeanProp.Schema.Formula.evaluate valuation) packed.linear)),
+  ProofNetIR.LeanProp.Schema.Formula.evaluate valuation packed.goal
+```
+
+### `ProofNetIR.LeanProp.Schema.Corpus.generated`
+
+Kind: definition.
+
+Six rule strata per index, with disjoint atom names across indices.
+
+```lean
+ProofNetIR.LeanProp.Schema.Corpus.generated : Nat → List ProofNetIR.LeanProp.Schema.PackedDerivation
+```
+

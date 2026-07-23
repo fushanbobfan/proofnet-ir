@@ -18,6 +18,8 @@ jobs:
         run: ~/.elan/bin/lake build
       - name: Run smoke test
         run: ~/.elan/bin/lake exe proofnet_ir_tests
+      - name: Validate generated LeanProp template corpus
+        run: ~/.elan/bin/lake exe proofnet_ir_leanprop_corpus
       - name: Audit theorem trust dependencies
         run: python scripts/audit_axioms.py
       - name: Verify generated public API reference

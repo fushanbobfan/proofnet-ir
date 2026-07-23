@@ -15,6 +15,11 @@
 - added kernel-checked smoke templates for persistent duplication/discard,
   linear pairing/modus ponens, equality transport, universal instantiation,
   and existential introduction, including path-dependent downstream use.
+- added a proposition-independent schema calculus and a universal
+  instantiation theorem using exactly `propext` for its dependent proposition
+  indices, plus a deterministic 600-template corpus across six
+  persistent/linear rule strata and a CI uniqueness/size gate; parsing
+  untrusted schema data remains a separate unreleased obligation.
 
 ## v0.5.2 - Repeated-label pruning and model-backed audit
 

@@ -32,6 +32,13 @@ example {α : Type u} (predicate : α → Prop) (term : α) :
     predicate term → ∃ value, predicate value :=
   LeanProp.Templates.witness_proof predicate term
 
+example (proposition : Prop) : proposition → proposition ∧ proposition :=
+  (LeanProp.Schema.Corpus.duplicate "schema-p").sound
+    (fun _ => proposition) .nil .nil
+
+example : (LeanProp.Schema.Corpus.generated 100).length = 600 := by
+  native_decide
+
 def indexedParallelGraph : Graph where
   vertexCount := 2
   edges := [{ first := 0, second := 1 }, { first := 0, second := 1 }]

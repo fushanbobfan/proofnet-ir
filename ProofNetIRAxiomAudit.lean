@@ -38,3 +38,4 @@ expansion.
 #print axioms LeanProp.Derivation.linearAxiomCount_eq_length
 #print axioms LeanProp.Assumptions.split_append
 #print axioms LeanProp.Assumptions.permute_symm
+#print axioms LeanProp.Schema.PackedDerivation.sound

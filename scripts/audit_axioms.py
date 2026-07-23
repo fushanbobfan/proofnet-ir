@@ -45,6 +45,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
     "ProofNetIR.LeanProp.Assumptions.split_append",
     "ProofNetIR.LeanProp.Assumptions.permute_symm",
+    "ProofNetIR.LeanProp.Schema.PackedDerivation.sound",
 }
 EXPECTED_THEOREMS = (
     EXPECTED_CLASSICAL_THEOREMS

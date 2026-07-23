@@ -112,7 +112,14 @@ def sections : List Section := [
       `ProofNetIR.LeanProp.Derivation.linearAxiomCount,
       `ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length,
       `ProofNetIR.LeanProp.Derivation.toProof,
-      `ProofNetIR.LeanProp.Derivation.close
+      `ProofNetIR.LeanProp.Derivation.close,
+      `ProofNetIR.LeanProp.Schema.Formula,
+      `ProofNetIR.LeanProp.Schema.Formula.evaluate,
+      `ProofNetIR.LeanProp.Schema.Derivation,
+      `ProofNetIR.LeanProp.Schema.Derivation.instantiate,
+      `ProofNetIR.LeanProp.Schema.PackedDerivation,
+      `ProofNetIR.LeanProp.Schema.PackedDerivation.sound,
+      `ProofNetIR.LeanProp.Schema.Corpus.generated
     ]
   }
 ]
