@@ -787,6 +787,21 @@ ProofNetIR.LeanProp.Assumptions.permute_symm : ∀ {left right : List Prop} (per
     values
 ```
 
+### `ProofNetIR.LeanProp.Assumptions.permute_symm_right`
+
+Kind: theorem.
+
+The opposite round trip also restores the proof environment. Together
+with `permute_symm`, exchange is an explicit environment isomorphism.
+
+```lean
+ProofNetIR.LeanProp.Assumptions.permute_symm_right : ∀ {left right : List Prop} (permutation : ProofNetIR.LeanProp.ContextPermutation left right)
+  (values : ProofNetIR.LeanProp.Assumptions right),
+  ProofNetIR.LeanProp.Assumptions.permute permutation
+      (ProofNetIR.LeanProp.Assumptions.permute permutation.symm values) =
+    values
+```
+
 ### `ProofNetIR.LeanProp.ContextPermutation`
 
 Kind: inductive type.
@@ -809,6 +824,30 @@ Forget proof-relevant permutation data to the proposition-level relation.
 ProofNetIR.LeanProp.ContextPermutation.toListPerm : ∀ {left right : List Prop} (a : ProofNetIR.LeanProp.ContextPermutation left right), left.Perm right
 ```
 
+### `ProofNetIR.LeanProp.ContextPermutation.symm_symm`
+
+Kind: theorem.
+
+Reversing a proof-relevant permutation twice recovers the same witness.
+
+```lean
+ProofNetIR.LeanProp.ContextPermutation.symm_symm : ∀ {left right : List Prop} (permutation : ProofNetIR.LeanProp.ContextPermutation left right),
+  permutation.symm.symm = permutation
+```
+
+### `ProofNetIR.LeanProp.ContextPermutation.nonempty_iff_listPerm`
+
+Kind: theorem.
+
+The proof-relevant exchange syntax represents exactly `List.Perm`, after
+forgetting the computational witness behind `Nonempty`. The `Nonempty` wrapper
+is essential: proposition-level `List.Perm` evidence cannot be eliminated
+directly into the Type-valued permutation syntax.
+
+```lean
+ProofNetIR.LeanProp.ContextPermutation.nonempty_iff_listPerm : ∀ {left right : List Prop}, Nonempty (ProofNetIR.LeanProp.ContextPermutation left right) ↔ left.Perm right
+```
+
 ### `ProofNetIR.LeanProp.Derivation`
 
 Kind: inductive type.
@@ -821,6 +860,35 @@ must be discharged by `persistentContract`; discarding one must pass through
 
 ```lean
 ProofNetIR.LeanProp.Derivation : List Prop → List Prop → Prop → Type (u + 1)
+```
+
+### `ProofNetIR.LeanProp.Derivation.persistentExchange_nonempty_of_listPerm`
+
+Kind: theorem.
+
+Every proposition-level persistent-context permutation is admissible.
+The result remains in `Nonempty` because `List.Perm` is proposition-valued,
+whereas an explicit derivation is Type-valued computational data.
+
+```lean
+ProofNetIR.LeanProp.Derivation.persistentExchange_nonempty_of_listPerm : ∀ {source target linear : List Prop} {goal : Prop},
+  source.Perm target →
+    ∀ (derivation : ProofNetIR.LeanProp.Derivation source linear goal),
+      Nonempty (ProofNetIR.LeanProp.Derivation target linear goal)
+```
+
+### `ProofNetIR.LeanProp.Derivation.linearExchange_nonempty_of_listPerm`
+
+Kind: theorem.
+
+Every proposition-level linear-context permutation is admissible, while
+preserving the exact multiset of linear occurrences.
+
+```lean
+ProofNetIR.LeanProp.Derivation.linearExchange_nonempty_of_listPerm : ∀ {persistent source target : List Prop} {goal : Prop},
+  source.Perm target →
+    ∀ (derivation : ProofNetIR.LeanProp.Derivation persistent source goal),
+      Nonempty (ProofNetIR.LeanProp.Derivation persistent target goal)
 ```
 
 ### `ProofNetIR.LeanProp.Derivation.linearAxiomCount`

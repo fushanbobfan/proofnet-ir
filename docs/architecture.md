@@ -99,15 +99,20 @@ rules concatenate both contexts; persistent weakening and contraction are
 explicit; no linear weakening or contraction constructor exists. Exchange is
 carried by a proof-relevant `ContextPermutation`, because proposition-level
 `List.Perm` cannot be eliminated into the heterogeneous proof-value
-environment.
+environment. Kernel theorems prove the converse at the correct constructive
+boundary: `Nonempty (ContextPermutation left right)` is equivalent to
+`left.Perm right`, and any such proposition-level permutation makes both
+persistent and linear exchange admissible. The dependent proof environment
+round trip is identity in both directions.
 
 `LeanProp.Derivation.toProof` recursively interprets every template as a Lean
 proof. `linearAxiomCount_eq_length` separately proves exact linear-resource
 accounting. Under `#print axioms`, the interpreter is axiom-free; the resource
 count and dependent-environment round-trip theorems use exactly `propext`, as
-their indices contain propositions. Ordinary Lean `And` and implication are
-not identified with MLL tensor/par, and this layer does not alter any v0.5
-sequentialization or identity theorem.
+their indices contain propositions. Permutation completeness and the two
+exchange-admissibility theorems are axiom-free. Ordinary Lean `And` and
+implication are not identified with MLL tensor/par, and this layer does not
+alter any v0.5 sequentialization or identity theorem.
 
 The proposition-independent `LeanProp.Schema` layer codes atoms, conjunction,
 and implication. `Schema.Raw.Derivation` is the unindexed boundary for

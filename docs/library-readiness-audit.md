@@ -124,15 +124,17 @@ part of the engineering and proof-identity gap.
   executable sequentialization now returns a staged `SequentializationError`;
 - separate path-dependency and clean pinned-v0.5.0 Lake consumers now pass;
   the path dependency executes the v0.5 sequentializer and consumes its
-  equivalence theorem, while the pinned consumer protects the v0.5.0 API;
+  equivalence theorem, while the pinned consumer protects the v0.5.0 API. A
+  third clean consumer installs the exact public v0.6-development Git commit
+  and typechecks the retained-boundary, packed-witness, and soundness APIs;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
 - CI now parses `#print axioms` for twenty-five public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
-- the separate LeanProp trust boundary locks one proof interpreter as
-  axiom-free, seven dependent metatheorems to exactly `propext`, and three
-  raw-inference/typed-elaboration bridge theorems to exactly
+- the separate LeanProp trust boundary locks four theorems as axiom-free,
+  nine dependent metatheorems to exactly `propext`, and three raw-inference/
+  typed-elaboration bridge theorems to exactly
   `[propext, Quot.sound]`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;

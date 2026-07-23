@@ -111,6 +111,9 @@ forwards the resulting indexed term to `Schema.PackedDerivation.sound`. The
 trust audit records the exact dependencies: the agreement/completeness
 theorems and `CheckedDerivation.inferred` use `[propext, Quot.sound]`; the
 permutation-boundary agreement and checked soundness theorem use `[propext]`.
+At the typed context layer, permutation completeness and the two exchange-
+admissibility theorems are axiom-free; the two dependent-environment inverse
+laws use `[propext]`.
 
 Canonical v0.2 serialization trusts the formula-array numbering as occurrence
 identity. Sorting links/conclusions and orienting axiom endpoints is a stable

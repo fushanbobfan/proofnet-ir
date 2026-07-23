@@ -33,6 +33,9 @@
   exactly the same result/diagnostic boundary as `infer?` and exists for every
   checker acceptance; checked wire values now retain the indexed derivation
   and expose universal `toPacked`/`sound` proof reconstruction;
+- proved that the Type-valued context-permutation syntax represents exactly
+  proposition-level `List.Perm` under `Nonempty`, made every such persistent
+  or linear exchange admissible, and proved both environment round trips;
 - added independent JSON Schema fixtures and a deterministic 5,000-case native
   LeanProp parser mutation-fuzz gate;
 - added a Lean corpus exporter and CI-checked SHA-256 manifest over all 1,600

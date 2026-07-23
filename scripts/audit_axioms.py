@@ -40,11 +40,16 @@ EXPECTED_CLASSICAL_THEOREMS = {
 }
 EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.toProof",
+    "ProofNetIR.LeanProp.ContextPermutation.nonempty_iff_listPerm",
+    "ProofNetIR.LeanProp.Derivation.persistentExchange_nonempty_of_listPerm",
+    "ProofNetIR.LeanProp.Derivation.linearExchange_nonempty_of_listPerm",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
     "ProofNetIR.LeanProp.Assumptions.split_append",
     "ProofNetIR.LeanProp.Assumptions.permute_symm",
+    "ProofNetIR.LeanProp.Assumptions.permute_symm_right",
+    "ProofNetIR.LeanProp.ContextPermutation.symm_symm",
     "ProofNetIR.LeanProp.Schema.PackedDerivation.sound",
     "ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?_ofIndexed",
     "ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate?",
@@ -128,7 +133,7 @@ def main() -> None:
         "ProofNet-IR axiom audit passed: "
         f"{len(EXPECTED_CLASSICAL_THEOREMS)} public MLL theorems use exactly "
         "[propext, Classical.choice, Quot.sound]; "
-        f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} LeanProp theorem is axiom-free; "
+        f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} LeanProp theorems are axiom-free; "
         f"{len(EXPECTED_PROPEXT_ONLY_THEOREMS)} use exactly [propext]; "
         f"{len(EXPECTED_PROPEXT_QUOT_THEOREMS)} use exactly "
         "[propext, Quot.sound]"

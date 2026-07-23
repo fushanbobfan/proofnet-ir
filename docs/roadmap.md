@@ -267,9 +267,13 @@
   expose the universal checked-input soundness theorem to downstream users.
 - [x] Build a clean downstream Lake consumer from an exact public
   v0.6-development Git commit and typecheck the checked-input theorems there.
+- [x] Prove proof-relevant exchange complete for `List.Perm` under `Nonempty`,
+  both dependent-environment inverse laws, and persistent/linear exchange
+  admissibility for every proposition-level permutation.
 - [ ] Add migration fixtures when a second schema wire version exists.
-- [ ] Prove further exchange/structural normalization metatheory and qualify
-  the public bridge through a final v0.6-tag-pinned downstream consumer.
+- [ ] Prove persistent weakening/contraction commuting or normal-form laws and
+  qualify the public bridge through a final v0.6-tag-pinned downstream
+  consumer.
 
 ## Later research
 

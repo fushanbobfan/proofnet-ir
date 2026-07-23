@@ -38,6 +38,11 @@ expansion.
 #print axioms LeanProp.Derivation.linearAxiomCount_eq_length
 #print axioms LeanProp.Assumptions.split_append
 #print axioms LeanProp.Assumptions.permute_symm
+#print axioms LeanProp.Assumptions.permute_symm_right
+#print axioms LeanProp.ContextPermutation.symm_symm
+#print axioms LeanProp.ContextPermutation.nonempty_iff_listPerm
+#print axioms LeanProp.Derivation.persistentExchange_nonempty_of_listPerm
+#print axioms LeanProp.Derivation.linearExchange_nonempty_of_listPerm
 #print axioms LeanProp.Schema.PackedDerivation.sound
 #print axioms LeanProp.Schema.Raw.Derivation.infer?_ofIndexed
 #print axioms LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate?

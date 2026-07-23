@@ -4,6 +4,8 @@ open ProofNetIR
 
 namespace ProofNetIRTutorialSmoke
 
+universe u
+
 def p : Formula := .atom "p" true
 def pDual : Formula := .atom "p" false
 
@@ -64,6 +66,28 @@ example (antecedent consequent : Prop)
     consequent :=
   LeanProp.Templates.linearModusPonens_proof antecedent consequent
     functionProof argumentProof
+
+namespace ContextExchange
+
+example {left right : List Prop} :
+    Nonempty (LeanProp.ContextPermutation left right) ↔ left.Perm right :=
+  LeanProp.ContextPermutation.nonempty_iff_listPerm
+
+example {left right : List Prop}
+    (permutation : LeanProp.ContextPermutation left right)
+    (values : LeanProp.Assumptions right) :
+    LeanProp.Assumptions.permute permutation
+        (LeanProp.Assumptions.permute permutation.symm values) = values :=
+  LeanProp.Assumptions.permute_symm_right permutation values
+
+example {source target linear : List Prop} {goal : Prop}
+    (permutation : source.Perm target)
+    (derivation : LeanProp.Derivation.{u} source linear goal) :
+    Nonempty (LeanProp.Derivation.{u} target linear goal) :=
+  LeanProp.Derivation.persistentExchange_nonempty_of_listPerm
+    permutation derivation
+
+end ContextExchange
 
 namespace RawSchema
 

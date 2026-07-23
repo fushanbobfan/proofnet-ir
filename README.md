@@ -116,7 +116,11 @@ The repository currently contains:
   weakening/contraction constructors exist. Conjunction, implication,
   equality rewriting, universal instantiation, and existential witnesses are
   interpreted into actual Lean proof terms; a kernel theorem proves that the
-  number of linear-axiom leaves equals the linear-context length;
+  number of linear-axiom leaves equals the linear-context length. The explicit
+  exchange syntax represents exactly `List.Perm` under `Nonempty`; every such
+  persistent or linear exchange is admissible, and transporting a dependent
+  proof environment through exchange and its inverse is identity in both
+  directions;
 - a proposition-independent schema layer for generated atoms/conjunctions/
   implications. Its 600-template deterministic corpus covers persistent
   duplication/discard, linear pairing/exchange/modus ponens, and projection;
@@ -142,11 +146,13 @@ finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
 separately audits twenty-five public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
-separately: the proof-term interpreter is axiom-free, while resource-count,
-dependent-environment round-trip, packed-schema soundness, permutation
-elaboration, and checked-wire soundness use exactly `propext`. Exact agreement
-between formula-only inference and typed elaboration, its acceptance-lifting
-corollary, and checked-wire inference use exactly `[propext, Quot.sound]`.
+separately: the proof-term interpreter, proposition-level permutation
+completeness, and the two exchange-admissibility theorems are axiom-free.
+Resource-count, dependent-environment round trips, packed-schema soundness,
+permutation elaboration, and checked-wire soundness use exactly `propext`.
+Exact agreement between formula-only inference and typed elaboration, its
+acceptance-lifting corollary, and checked-wire inference use exactly
+`[propext, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization

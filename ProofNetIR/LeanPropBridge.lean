@@ -53,6 +53,39 @@ theorem toListPerm {left right : List Prop} :
   | .swap first second rest => .swap first second rest
   | .trans first second => first.toListPerm.trans second.toListPerm
 
+/-- Reversing a proof-relevant permutation twice recovers the same witness. -/
+theorem symm_symm {left right : List Prop}
+    (permutation : ContextPermutation left right) :
+    permutation.symm.symm = permutation := by
+  induction permutation with
+  | nil => rfl
+  | cons permutation inductionHypothesis =>
+      simp [symm, inductionHypothesis]
+  | swap => rfl
+  | trans first second firstIH secondIH =>
+      simp [symm, firstIH, secondIH]
+
+/-- The proof-relevant exchange syntax represents exactly `List.Perm`, after
+forgetting the computational witness behind `Nonempty`. The `Nonempty` wrapper
+is essential: proposition-level `List.Perm` evidence cannot be eliminated
+directly into the Type-valued permutation syntax. -/
+theorem nonempty_iff_listPerm {left right : List Prop} :
+    Nonempty (ContextPermutation left right) ↔ left.Perm right := by
+  constructor
+  · rintro ⟨permutation⟩
+    exact permutation.toListPerm
+  · intro permutation
+    induction permutation with
+    | nil => exact ⟨.nil⟩
+    | cons _ _ inductionHypothesis =>
+        obtain ⟨witness⟩ := inductionHypothesis
+        exact ⟨.cons witness⟩
+    | swap first second rest => exact ⟨.swap first second rest⟩
+    | trans _ _ firstIH secondIH =>
+        obtain ⟨firstWitness⟩ := firstIH
+        obtain ⟨secondWitness⟩ := secondIH
+        exact ⟨.trans firstWitness secondWitness⟩
+
 end ContextPermutation
 
 namespace Assumptions
@@ -123,6 +156,15 @@ theorem permute_symm {left right : List Prop}
         (permute second.symm (permute second (permute first values))) = values
       rw [secondIH, firstIH]
 
+/-- The opposite round trip also restores the proof environment. Together
+with `permute_symm`, exchange is an explicit environment isomorphism. -/
+theorem permute_symm_right {left right : List Prop}
+    (permutation : ContextPermutation left right)
+    (values : Assumptions right) :
+    permute permutation (permute permutation.symm values) = values := by
+  simpa [ContextPermutation.symm_symm] using
+    (permute_symm permutation.symm values)
+
 end Assumptions
 
 /-- A proof template indexed by an explicit persistent context, an exact-use
@@ -185,6 +227,29 @@ inductive Derivation : List Prop → List Prop → Prop → Type (u + 1) where
       Derivation persistent linear (∃ value, predicate value)
 
 namespace Derivation
+
+/-- Every proposition-level persistent-context permutation is admissible.
+The result remains in `Nonempty` because `List.Perm` is proposition-valued,
+whereas an explicit derivation is Type-valued computational data. -/
+theorem persistentExchange_nonempty_of_listPerm
+    {source target linear : List Prop} {goal : Prop}
+    (permutation : source.Perm target)
+    (derivation : Derivation.{u} source linear goal) :
+    Nonempty (Derivation.{u} target linear goal) := by
+  obtain ⟨witness⟩ :=
+    ContextPermutation.nonempty_iff_listPerm.mpr permutation
+  exact ⟨.persistentExchange witness derivation⟩
+
+/-- Every proposition-level linear-context permutation is admissible, while
+preserving the exact multiset of linear occurrences. -/
+theorem linearExchange_nonempty_of_listPerm
+    {persistent source target : List Prop} {goal : Prop}
+    (permutation : source.Perm target)
+    (derivation : Derivation.{u} persistent source goal) :
+    Nonempty (Derivation.{u} persistent target goal) := by
+  obtain ⟨witness⟩ :=
+    ContextPermutation.nonempty_iff_listPerm.mpr permutation
+  exact ⟨.linearExchange witness derivation⟩
 
 /-- Number of linear-axiom leaves in a proof template. Persistent structural
 rules do not alter this count, while binary rules add the disjoint branches. -/

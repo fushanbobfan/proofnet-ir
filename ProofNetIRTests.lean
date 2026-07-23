@@ -39,6 +39,31 @@ example (proposition : Prop) : proposition → proposition ∧ proposition :=
 example : (LeanProp.Schema.Corpus.generated 100).length = 600 := by
   native_decide
 
+example {left right : List Prop} :
+    Nonempty (LeanProp.ContextPermutation left right) ↔ left.Perm right :=
+  LeanProp.ContextPermutation.nonempty_iff_listPerm
+
+example {left right : List Prop}
+    (permutation : LeanProp.ContextPermutation left right)
+    (values : LeanProp.Assumptions right) :
+    LeanProp.Assumptions.permute permutation
+        (LeanProp.Assumptions.permute permutation.symm values) = values :=
+  LeanProp.Assumptions.permute_symm_right permutation values
+
+example {source target linear : List Prop} {goal : Prop}
+    (permutation : source.Perm target)
+    (derivation : LeanProp.Derivation.{u} source linear goal) :
+    Nonempty (LeanProp.Derivation.{u} target linear goal) :=
+  LeanProp.Derivation.persistentExchange_nonempty_of_listPerm
+    permutation derivation
+
+example {persistent source target : List Prop} {goal : Prop}
+    (permutation : source.Perm target)
+    (derivation : LeanProp.Derivation.{u} persistent source goal) :
+    Nonempty (LeanProp.Derivation.{u} persistent target goal) :=
+  LeanProp.Derivation.linearExchange_nonempty_of_listPerm
+    permutation derivation
+
 def indexedParallelGraph : Graph where
   vertexCount := 2
   edges := [{ first := 0, second := 1 }, { first := 0, second := 1 }]
