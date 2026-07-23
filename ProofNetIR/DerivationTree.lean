@@ -1,3 +1,4 @@
+import Lean.Elab.Tactic.Omega
 import ProofNetIR.Reconstruct
 
 namespace ProofNetIR
@@ -74,6 +75,163 @@ def pick? : List α → Nat → Option (α × List α)
       let (selected, remaining) ← pick? tail index
       pure (selected, head :: remaining)
 
+private theorem length_eraseDups_le [BEq α] (values : List α) :
+    values.eraseDups.length ≤ values.length := by
+  cases values with
+  | nil => simp
+  | cons head tail =>
+      rw [List.eraseDups_cons]
+      simp only [List.length_cons, Nat.add_le_add_iff_right]
+      exact Nat.le_trans
+        (length_eraseDups_le (tail.filter fun value => !value == head))
+        (List.length_filter_le _ tail)
+termination_by values.length
+decreasing_by
+  exact Nat.lt_add_one_of_le (List.length_filter_le _ tail)
+
+/-- If duplicate erasure preserves the full list length, the original list
+contained no duplicates. This bridges Boolean permutation guards to `Nodup`. -/
+theorem nodup_of_eraseDups_length_eq [BEq α] [LawfulBEq α]
+    {values : List α}
+    (sameLength : values.eraseDups.length = values.length) :
+    values.Nodup := by
+  induction values with
+  | nil => exact .nil
+  | cons head tail ih =>
+      rw [List.eraseDups_cons] at sameLength
+      simp only [List.length_cons] at sameLength
+      let retained := tail.filter fun value => !value == head
+      have erasedEqualsTail : retained.eraseDups.length = tail.length := by
+        change (tail.filter fun value => !value == head).eraseDups.length =
+          tail.length
+        exact Nat.add_right_cancel sameLength
+      have retainedAtMost : retained.length ≤ tail.length :=
+        List.length_filter_le _ tail
+      have erasedAtMost : retained.eraseDups.length ≤ retained.length :=
+        length_eraseDups_le retained
+      have retainedAtLeast : tail.length ≤ retained.length := by
+        rw [← erasedEqualsTail]
+        exact erasedAtMost
+      have retainedLength : retained.length = tail.length :=
+        Nat.le_antisymm retainedAtMost retainedAtLeast
+      have allRetained : ∀ value ∈ tail, value != head :=
+        List.length_filter_eq_length_iff.mp retainedLength
+      have retainedEquation : retained = tail :=
+        List.filter_eq_self.mpr allRetained
+      have headFresh : head ∉ tail := by
+        intro membership
+        have rejected := allRetained head membership
+        simp at rejected
+      apply List.nodup_cons.mpr
+      refine ⟨headFresh, ih ?_⟩
+      simpa only [retainedEquation] using erasedEqualsTail
+
+private theorem perm_of_nodup_subset_length [BEq α] [LawfulBEq α]
+    {left right : List α}
+    (leftNodup : left.Nodup) (rightNodup : right.Nodup)
+    (subset : left ⊆ right) (sameLength : left.length = right.length) :
+    left.Perm right := by
+  induction left generalizing right with
+  | nil =>
+      have : right = [] := List.eq_nil_of_length_eq_zero sameLength.symm
+      subst right
+      exact .refl []
+  | cons head tail ih =>
+      have headMembership : head ∈ right := subset (by simp)
+      have tailNodup := (List.nodup_cons.mp leftNodup).2
+      have headFresh := (List.nodup_cons.mp leftNodup).1
+      have erasedNodup := rightNodup.erase head
+      have tailSubset : tail ⊆ right.erase head := by
+        intro value membership
+        apply (List.mem_erase_of_ne (b := head) (by
+          intro same
+          subst value
+          exact headFresh membership)).mpr
+        exact subset (by simp [membership])
+      have tailLength : tail.length = (right.erase head).length := by
+        rw [List.length_erase_of_mem headMembership]
+        have rightPositive := List.length_pos_of_mem headMembership
+        have totalLength : tail.length + 1 = right.length := by
+          simpa [Nat.add_comm] using sameLength
+        omega
+      exact (ih tailNodup erasedNodup tailSubset tailLength).cons head |>.trans
+        (List.perm_cons_erase headMembership).symm
+
+private theorem mapM_some_perm {function : α → Option β}
+    {left right : List α} (permutation : left.Perm right)
+    {leftResult : List β}
+    (accepted : left.mapM function = some leftResult) :
+    ∃ rightResult : List β,
+      right.mapM function = some rightResult ∧
+        leftResult.Perm rightResult := by
+  induction permutation generalizing leftResult
+  case nil =>
+      simp at accepted
+      subst leftResult
+      exact ⟨[], rfl, .refl []⟩
+  case cons head leftTail rightTail permutation ih =>
+      simp only [List.mapM_cons] at accepted ⊢
+      cases headResult : function head with
+      | none => simp [headResult] at accepted
+      | some mappedHead =>
+          cases leftTailResult : List.mapM function leftTail with
+          | none => simp [headResult, leftTailResult] at accepted
+          | some mappedTail =>
+              simp [headResult, leftTailResult] at accepted
+              subst leftResult
+              rcases ih leftTailResult with
+                ⟨rightTail, rightEquation, tailPermutation⟩
+              refine ⟨mappedHead :: rightTail, ?_,
+                tailPermutation.cons mappedHead⟩
+              simp [rightEquation]
+  case swap first second tail =>
+      simp only [List.mapM_cons] at accepted ⊢
+      cases firstResult : function first with
+      | none => simp [firstResult] at accepted
+      | some mappedFirst =>
+          cases secondResult : function second with
+          | none => simp [firstResult, secondResult] at accepted
+          | some mappedSecond =>
+              cases tailResult : tail.mapM function with
+              | none =>
+                  simp [firstResult, secondResult, tailResult] at accepted
+              | some mappedTail =>
+                  simp [firstResult, secondResult, tailResult] at accepted
+                  subst leftResult
+                  refine ⟨mappedFirst :: mappedSecond :: mappedTail, ?_, ?_⟩
+                  · simp
+                  · exact .swap mappedFirst mappedSecond mappedTail
+  case trans firstPermutation secondPermutation firstIH secondIH =>
+      rcases firstIH accepted with
+        ⟨middleResult, middleEquation, firstResultPermutation⟩
+      rcases secondIH middleEquation with
+        ⟨rightResult, rightEquation, secondResultPermutation⟩
+      exact ⟨rightResult, rightEquation,
+        firstResultPermutation.trans secondResultPermutation⟩
+
+private theorem range_mapM_getElem? (values : List α) :
+    (List.range values.length).mapM (fun index => values[index]?) =
+      some values := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+      simp only [List.length_cons]
+      rw [List.range_succ_eq_map]
+      simp only [List.mapM_cons, List.getElem?_cons_zero, List.mapM_map]
+      have shifted :
+          (List.range tail.length).mapM
+              ((fun index => (head :: tail)[index]?) ∘ Nat.succ) =
+            some tail := by
+        have functionEquation :
+            ((fun index => (head :: tail)[index]?) ∘ Nat.succ) =
+              (fun index => tail[index]?) := by
+          funext index
+          rfl
+        rw [functionEquation]
+        exact ih
+      rw [shifted]
+      rfl
+
 /-- Apply an explicit permutation written as original occurrence indices.
 Malformed, duplicated, missing, or out-of-bounds orders are rejected. -/
 def reorderCandidate? (values : List α) (order : List Nat) : Option (List α) :=
@@ -84,12 +242,60 @@ def reorderCandidate? (values : List α) (order : List Nat) : Option (List α) :
   else
     none
 
+/-- Every accepted index candidate is already a genuine permutation of the
+input occurrences. Thus the later element-level `Perm` guard is redundant,
+including when projected formula labels contain duplicates. -/
+theorem reorderCandidate?_perm [DecidableEq α]
+    {values reordered : List α} {order : List Nat}
+    (accepted : reorderCandidate? values order = some reordered) :
+    values.Perm reordered := by
+  unfold reorderCandidate? at accepted
+  split at accepted
+  · rename_i guard
+    have guardParts :
+        (order.length = values.length ∧
+          order.eraseDups.length = order.length) ∧
+          ∀ index ∈ order, index < values.length := by
+      simpa [Bool.and_eq_true, List.all_eq_true] using guard
+    rcases guardParts with ⟨⟨lengthEquation, eraseLength⟩, bounded⟩
+    have orderNodup : order.Nodup :=
+      nodup_of_eraseDups_length_eq eraseLength
+    have rangeNodup : (List.range values.length).Nodup :=
+      List.nodup_range
+    have orderSubset : order ⊆ List.range values.length := by
+      intro index membership
+      simp only [List.mem_range]
+      exact bounded index membership
+    have orderPermutation : order.Perm (List.range values.length) :=
+      perm_of_nodup_subset_length orderNodup rangeNodup orderSubset
+        (by simpa using lengthEquation)
+    rcases mapM_some_perm orderPermutation accepted with
+      ⟨rangeResult, rangeEquation, resultPermutation⟩
+    rw [range_mapM_getElem?] at rangeEquation
+    simp at rangeEquation
+    subst rangeResult
+    exact resultPermutation.symm
+  · simp at accepted
+
 /-- Reordering additionally validates the mathematical permutation relation.
 This redundant check exposes a direct proof boundary for downstream theorems. -/
 def reorder? [DecidableEq α] (values : List α) (order : List Nat) :
     Option (List α) := do
   let reordered ← reorderCandidate? values order
   if values.Perm reordered then some reordered else none
+
+/-- The explicit index guard already implies the redundant element-level
+permutation check, so both executable reorder layers agree exactly. -/
+theorem reorder?_eq_reorderCandidate? [DecidableEq α]
+    (values : List α) (order : List Nat) :
+    reorder? values order = reorderCandidate? values order := by
+  unfold reorder?
+  cases accepted : reorderCandidate? values order with
+  | none => rfl
+  | some reordered =>
+      change (if values.Perm reordered then some reordered else none) =
+        some reordered
+      rw [if_pos (reorderCandidate?_perm accepted)]
 
 theorem reorder?_perm [DecidableEq α] {values reordered : List α}
     {order : List Nat} (accepted : reorder? values order = some reordered) :
@@ -176,6 +382,27 @@ theorem pick?_map (function : α → β) (values : List α) (index : Nat) :
           rw [ih]
           cases pick? tail prior <;> rfl
 
+/-- A successful selection after projection comes from a unique occurrence
+selection before projection, even when projected labels are duplicated. -/
+theorem pick?_exists_of_map_eq_some (function : α → β)
+    {values : List α} {index : Nat} {selected : β}
+    {remaining : List β}
+    (accepted : pick? (values.map function) index =
+      some (selected, remaining)) :
+    ∃ actualSelected : α, ∃ actualRemaining : List α,
+      pick? values index = some (actualSelected, actualRemaining) ∧
+        function actualSelected = selected ∧
+        actualRemaining.map function = remaining := by
+  rw [pick?_map] at accepted
+  cases actual : pick? values index with
+  | none => simp [actual] at accepted
+  | some pair =>
+      rcases pair with ⟨actualSelected, actualRemaining⟩
+      simp [actual] at accepted
+      rcases accepted with ⟨selectedEquation, remainingEquation⟩
+      exact ⟨actualSelected, actualRemaining, rfl,
+        selectedEquation, remainingEquation⟩
+
 private theorem mapM_getElem?_map (function : α → β)
     (values : List α) (indices : List Nat) :
     indices.mapM (fun index => (values.map function)[index]?) =
@@ -236,6 +463,26 @@ theorem reorder?_map_of_eq_some [DecidableEq α] [DecidableEq β]
           rfl
         simp [mappedCandidate, permutation.map function]
       · simp [candidateEquation, permutation] at accepted
+
+/-- A successful reorder after projection lifts to the same occurrence-index
+reorder before projection. This direction does not require projection to be
+injective because the index guard, rather than formula equality, controls the
+permutation. -/
+theorem reorder?_exists_of_map_eq_some [DecidableEq α] [DecidableEq β]
+    (function : α → β) {values : List α} {mapped : List β}
+    {order : List Nat}
+    (accepted : reorder? (values.map function) order = some mapped) :
+    ∃ reordered : List α,
+      reorder? values order = some reordered ∧
+        reordered.map function = mapped := by
+  rw [reorder?_eq_reorderCandidate?] at accepted ⊢
+  rw [reorderCandidate?_map] at accepted
+  cases candidate : reorderCandidate? values order with
+  | none => simp [candidate] at accepted
+  | some reordered =>
+      simp [candidate] at accepted
+      subst mapped
+      exact ⟨reordered, rfl, rfl⟩
 
 /-- A par rule focused on the final two occurrences has the expected
 right-boundary sequent, independently of the size of the preceding context. -/
@@ -548,6 +795,150 @@ theorem infer?_of_build? {tree : CutFreeDerivation} {fragment : NetFragment}
               simp [infer?, ih premiseEquation, formulaReorder,
                 NetFragment.ofEntries]
 
+/-- Formula-level validation and occurrence-aware fragment construction have
+the same success domain. In particular, a first-order rule tree accepted by
+`infer?` cannot later fail in `build?`, including exchanges over duplicate
+formula labels. -/
+theorem build?_exists_of_infer?
+    {tree : CutFreeDerivation} {sequent : List Formula}
+    (accepted : tree.infer? = some sequent) :
+    ∃ fragment : NetFragment, tree.build? = some fragment := by
+  induction tree generalizing sequent with
+  | «axiom» name positive =>
+      exact ⟨_, rfl⟩
+  | tensor leftFocus rightFocus leftTree rightTree leftIH rightIH =>
+      simp only [infer?] at accepted
+      cases leftInference : leftTree.infer? with
+      | none => simp [leftInference] at accepted
+      | some leftSequent =>
+          cases rightInference : rightTree.infer? with
+          | none => simp [leftInference, rightInference] at accepted
+          | some rightSequent =>
+              cases leftFormulaPick : pick? leftSequent leftFocus with
+              | none =>
+                  simp [leftInference, rightInference, leftFormulaPick]
+                    at accepted
+              | some leftPair =>
+                  rcases leftPair with ⟨leftFormula, leftContext⟩
+                  cases rightFormulaPick : pick? rightSequent rightFocus with
+                  | none =>
+                      simp [leftInference, rightInference, rightFormulaPick]
+                        at accepted
+                  | some rightPair =>
+                      rcases rightPair with ⟨rightFormula, rightContext⟩
+                      rcases leftIH leftInference with
+                        ⟨leftFragment, leftBuild⟩
+                      rcases rightIH rightInference with
+                        ⟨rightFragment, rightBuild⟩
+                      have leftConclusions :
+                          leftFragment.conclusions = leftSequent := by
+                        have agreement := infer?_of_build? leftBuild
+                        rw [leftInference] at agreement
+                        exact Option.some.inj agreement |>.symm
+                      have rightConclusions :
+                          rightFragment.conclusions = rightSequent := by
+                        have agreement := infer?_of_build? rightBuild
+                        rw [rightInference] at agreement
+                        exact Option.some.inj agreement |>.symm
+                      have leftEntries := leftFragment.entries_map_fst
+                        (build?_balanced leftBuild)
+                      have rightEntries := rightFragment.entries_map_fst
+                        (build?_balanced rightBuild)
+                      have projectedLeftPick :
+                          pick? (leftFragment.entries.map Prod.fst) leftFocus =
+                            some (leftFormula, leftContext) := by
+                        rw [leftEntries, leftConclusions]
+                        exact leftFormulaPick
+                      have projectedRightPick :
+                          pick? (rightFragment.entries.map Prod.fst) rightFocus =
+                            some (rightFormula, rightContext) := by
+                        rw [rightEntries, rightConclusions]
+                        exact rightFormulaPick
+                      rcases pick?_exists_of_map_eq_some Prod.fst
+                          projectedLeftPick with
+                        ⟨leftSelected, leftRemaining, leftPick, _, _⟩
+                      rcases pick?_exists_of_map_eq_some Prod.fst
+                          projectedRightPick with
+                        ⟨rightSelected, rightRemaining, rightPick, _, _⟩
+                      simp [build?, leftBuild, rightBuild, leftPick, rightPick]
+  | par leftFocus rightFocus premise ih =>
+      simp only [infer?] at accepted
+      cases premiseInference : premise.infer? with
+      | none => simp [premiseInference] at accepted
+      | some premiseSequent =>
+          cases leftFormulaPick : pick? premiseSequent leftFocus with
+          | none => simp [premiseInference, leftFormulaPick] at accepted
+          | some leftPair =>
+              rcases leftPair with ⟨leftFormula, afterLeft⟩
+              cases rightFormulaPick : pick? afterLeft rightFocus with
+              | none =>
+                  simp [premiseInference, leftFormulaPick, rightFormulaPick]
+                    at accepted
+              | some rightPair =>
+                  rcases rightPair with ⟨rightFormula, context⟩
+                  rcases ih premiseInference with ⟨fragment, premiseBuild⟩
+                  have conclusions : fragment.conclusions = premiseSequent := by
+                    have agreement := infer?_of_build? premiseBuild
+                    rw [premiseInference] at agreement
+                    exact Option.some.inj agreement |>.symm
+                  have entries := fragment.entries_map_fst
+                    (build?_balanced premiseBuild)
+                  have projectedLeftPick :
+                      pick? (fragment.entries.map Prod.fst) leftFocus =
+                        some (leftFormula, afterLeft) := by
+                    rw [entries, conclusions]
+                    exact leftFormulaPick
+                  rcases pick?_exists_of_map_eq_some Prod.fst
+                      projectedLeftPick with
+                    ⟨leftSelected, afterLeftEntries, leftPick,
+                      leftFormulaEquation, afterLeftFormulas⟩
+                  have projectedRightPick :
+                      pick? (afterLeftEntries.map Prod.fst) rightFocus =
+                        some (rightFormula, context) := by
+                    rw [afterLeftFormulas]
+                    exact rightFormulaPick
+                  rcases pick?_exists_of_map_eq_some Prod.fst
+                      projectedRightPick with
+                    ⟨rightSelected, remaining, rightPick, _, _⟩
+                  simp [build?, premiseBuild, leftPick, rightPick]
+  | exchange order premise ih =>
+      simp only [infer?] at accepted
+      cases premiseInference : premise.infer? with
+      | none => simp [premiseInference] at accepted
+      | some premiseSequent =>
+          simp [premiseInference] at accepted
+          rcases ih premiseInference with ⟨fragment, premiseBuild⟩
+          have conclusions : fragment.conclusions = premiseSequent := by
+            have agreement := infer?_of_build? premiseBuild
+            rw [premiseInference] at agreement
+            exact Option.some.inj agreement |>.symm
+          have entries := fragment.entries_map_fst
+            (build?_balanced premiseBuild)
+          have projectedReorder :
+              reorder? (fragment.entries.map Prod.fst) order =
+                some sequent := by
+            rw [entries, conclusions]
+            exact accepted
+          rcases reorder?_exists_of_map_eq_some Prod.fst projectedReorder with
+            ⟨reordered, entryReorder, _⟩
+          simp [build?, premiseBuild, entryReorder]
+
+/-- Exact synchronization of the independent formula pass and the
+occurrence-aware builder. -/
+theorem infer?_eq_some_iff_build?_conclusions
+    {tree : CutFreeDerivation} {sequent : List Formula} :
+    tree.infer? = some sequent ↔
+      ∃ fragment : NetFragment,
+        tree.build? = some fragment ∧ fragment.conclusions = sequent := by
+  constructor
+  · intro accepted
+    rcases build?_exists_of_infer? accepted with ⟨fragment, build⟩
+    have agreement := infer?_of_build? build
+    rw [accepted] at agreement
+    exact ⟨fragment, build, Option.some.inj agreement |>.symm⟩
+  · rintro ⟨fragment, build, rfl⟩
+    exact infer?_of_build? build
+
 /-- Exact fragment equation for applying par to the last two boundary
 entries. This is the certificate-building counterpart of `infer?_parLast`. -/
 theorem build?_parLast
@@ -701,5 +1092,13 @@ def generate (seed : Nat) : Nat → CutFreeDerivation
         withPar
 
 end CutFreeDerivation
+
+/-- Backward-compatible root-namespace bridge used by the sequentialization
+proofs and downstream code. -/
+theorem nodup_of_eraseDups_length_eq [BEq α] [LawfulBEq α]
+    {values : List α}
+    (sameLength : values.eraseDups.length = values.length) :
+    values.Nodup :=
+  CutFreeDerivation.nodup_of_eraseDups_length_eq sameLength
 
 end ProofNetIR

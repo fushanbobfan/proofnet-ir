@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- proved that the explicit exchange index guard already implies the redundant
+  element-level `List.Perm` check, and that accepted reorders lift through
+  non-injective formula projection without assuming unique labels;
+- proved `CutFreeDerivation.build?_exists_of_infer?` and the exact
+  `infer?_eq_some_iff_build?_conclusions` synchronization theorem: formula
+  inference and occurrence-aware fragment construction now have the same
+  success domain and exactly the same ordered formula boundary;
+- retained checker acceptance as a separate open proof obligation: these new
+  theorems do not yet claim that every inferred tree makes `elaborate?`
+  succeed.
+
 ## v0.5.0 - Executable totality, canonical family, and matched experiment
 
 - added the proof-bearing executable `Certificate.sequentialize` API with

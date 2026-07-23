@@ -47,6 +47,9 @@ The repository currently contains:
   `|- A, A-dual` for every unit-free MLL formula;
 - a first-order arbitrary cut-free derivation-tree language with explicit
   resource positions and exchange permutations;
+- an exact synchronization theorem proving that formula inference succeeds iff
+  occurrence-aware fragment construction succeeds with the same ordered
+  formula boundary, including exchanges between duplicate labels;
 - general validated desequentialization of those trees, with a checked return
   type carrying `certificate.check = true`;
 - a deterministic broad-family derivation generator whose first 250

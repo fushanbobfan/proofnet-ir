@@ -34,6 +34,8 @@ def sections : List Section := [
     declarations := [
       `ProofNetIR.CutFreeDerivation,
       `ProofNetIR.CutFreeDerivation.infer?,
+      `ProofNetIR.CutFreeDerivation.build?_exists_of_infer?,
+      `ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions,
       `ProofNetIR.CutFreeDerivation.desequentialize?,
       `ProofNetIR.CutFreeDerivation.CheckedCertificate,
       `ProofNetIR.CutFreeDerivation.desequentializeChecked?,

@@ -10,6 +10,7 @@ expansion.
 -/
 
 #print axioms Certificate.check_iff_declarativelyCorrect
+#print axioms CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #print axioms Certificate.sequentialization_of_check
 #print axioms Certificate.generallySequentializable
 #print axioms Certificate.reindexEquivalent?_eq_true_iff_of_check

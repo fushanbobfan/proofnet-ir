@@ -126,6 +126,32 @@ the proof-net fragment construction.
 ProofNetIR.CutFreeDerivation.infer? : ProofNetIR.CutFreeDerivation → Option (List ProofNetIR.Formula)
 ```
 
+### `ProofNetIR.CutFreeDerivation.build?_exists_of_infer?`
+
+Kind: theorem.
+
+Formula-level validation and occurrence-aware fragment construction have
+the same success domain. In particular, a first-order rule tree accepted by
+`infer?` cannot later fail in `build?`, including exchanges over duplicate
+formula labels.
+
+```lean
+ProofNetIR.CutFreeDerivation.build?_exists_of_infer? : ∀ {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
+  tree.infer? = some sequent → ∃ fragment, tree.build? = some fragment
+```
+
+### `ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions`
+
+Kind: theorem.
+
+Exact synchronization of the independent formula pass and the
+occurrence-aware builder.
+
+```lean
+ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions : ∀ {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
+  tree.infer? = some sequent ↔ ∃ fragment, tree.build? = some fragment ∧ fragment.conclusions = sequent
+```
+
 ### `ProofNetIR.CutFreeDerivation.desequentialize?`
 
 Kind: definition.

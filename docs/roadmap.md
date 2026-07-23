@@ -221,6 +221,15 @@
   qualified single-representative wire algorithm, or prove that the existing
   exact decision API is the supported production identity boundary.
 
+## Post-v0.5 derivation-first soundness
+
+- [x] Prove that a successful formula-only `infer?` pass always lifts through
+  positional picks and exchanges to a successful occurrence-aware `build?`,
+  with exactly the same ordered conclusion formulas even for duplicate labels.
+- [ ] Prove that every successfully inferred first-order rule tree produces a
+  structurally well-formed, switching-correct certificate with matching
+  conclusion lookup, and derive totality of `elaborate?` on `infer?` success.
+
 ## v0.6 - Persistent LeanProp bridge
 
 - Add a two-context design for persistent and linear hypotheses.

@@ -173,6 +173,21 @@ example : Certificate.matchingFormulaOrders [p, p, q] [p, q, p] =
 def repeatedBoundaryTree : CutFreeDerivation :=
   .tensor 0 0 (.axiom "p" true) (.axiom "p" true)
 
+/-- The final two formula labels are identical, but the exchange swaps their
+distinct occurrence roots. This is the non-injective projection case for the
+formula-to-fragment synchronization theorem. -/
+def repeatedLabelExchangeTree : CutFreeDerivation :=
+  .exchange [0, 2, 1] repeatedBoundaryTree
+
+example : repeatedLabelExchangeTree.infer? =
+    some [.tensor p p, pDual, pDual] := by
+  native_decide
+
+example : ∃ fragment : NetFragment,
+    repeatedLabelExchangeTree.build? = some fragment :=
+  CutFreeDerivation.build?_exists_of_infer?
+    (sequent := [.tensor p p, pDual, pDual]) (by native_decide)
+
 def repeatedBoundarySequentializes : Bool :=
   match repeatedBoundaryTree.desequentialize? with
   | none => false
@@ -1180,10 +1195,16 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.proofNetEquivalent_iff_direct
 #check NetFragment.Balanced
 #check CutFreeDerivation.pick?_map
+#check CutFreeDerivation.pick?_exists_of_map_eq_some
+#check CutFreeDerivation.reorderCandidate?_perm
+#check CutFreeDerivation.reorder?_eq_reorderCandidate?
 #check CutFreeDerivation.reorderCandidate?_map
 #check CutFreeDerivation.reorder?_map_of_eq_some
+#check CutFreeDerivation.reorder?_exists_of_map_eq_some
 #check CutFreeDerivation.build?_balanced
 #check CutFreeDerivation.infer?_of_build?
+#check CutFreeDerivation.build?_exists_of_infer?
+#check CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #check CutFreeDerivation.build?_exists_of_desequentialize?
 #check SequentializationResult.fragment_exists
 #check VertexRenaming.extendLast

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
 EXPECTED_THEOREMS = {
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",
+    "ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions",
     "ProofNetIR.Certificate.sequentialization_of_check",
     "ProofNetIR.Certificate.generallySequentializable",
     "ProofNetIR.Certificate.reindexEquivalent?_eq_true_iff_of_check",

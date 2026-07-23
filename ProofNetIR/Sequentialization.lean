@@ -31,58 +31,6 @@ private theorem false_of_mem_filter_length_zero {α : Type}
   rw [count] at positive
   exact Nat.not_lt_zero 0 positive
 
-private theorem length_eraseDups_le [BEq α] (values : List α) :
-    values.eraseDups.length ≤ values.length := by
-  cases values with
-  | nil => simp
-  | cons head tail =>
-      rw [List.eraseDups_cons]
-      simp only [List.length_cons, Nat.add_le_add_iff_right]
-      exact Nat.le_trans
-        (length_eraseDups_le (tail.filter fun value => !value == head))
-        (List.length_filter_le _ tail)
-termination_by values.length
-decreasing_by
-  exact Nat.lt_add_one_of_le (List.length_filter_le _ tail)
-
-/-- If duplicate erasure preserves the full list length, the original list
-contained no duplicates.  This small bridge is also used by the executable
-sequentializer to recover a proof from its Boolean permutation guard. -/
-theorem nodup_of_eraseDups_length_eq [BEq α] [LawfulBEq α]
-    {values : List α}
-    (sameLength : values.eraseDups.length = values.length) :
-    values.Nodup := by
-  induction values with
-  | nil => exact .nil
-  | cons head tail ih =>
-      rw [List.eraseDups_cons] at sameLength
-      simp only [List.length_cons] at sameLength
-      let retained := tail.filter fun value => !value == head
-      have erasedEqualsTail : retained.eraseDups.length = tail.length := by
-        change (tail.filter fun value => !value == head).eraseDups.length =
-          tail.length
-        exact Nat.add_right_cancel sameLength
-      have retainedAtMost : retained.length ≤ tail.length :=
-        List.length_filter_le _ tail
-      have erasedAtMost : retained.eraseDups.length ≤ retained.length :=
-        length_eraseDups_le retained
-      have retainedAtLeast : tail.length ≤ retained.length := by
-        rw [← erasedEqualsTail]
-        exact erasedAtMost
-      have retainedLength : retained.length = tail.length :=
-        Nat.le_antisymm retainedAtMost retainedAtLeast
-      have allRetained : ∀ value ∈ tail, value != head :=
-        List.length_filter_eq_length_iff.mp retainedLength
-      have retainedEquation : retained = tail :=
-        List.filter_eq_self.mpr allRetained
-      have headFresh : head ∉ tail := by
-        intro membership
-        have rejected := allRetained head membership
-        simp at rejected
-      apply List.nodup_cons.mpr
-      refine ⟨headFresh, ih ?_⟩
-      simpa only [retainedEquation] using erasedEqualsTail
-
 private theorem eraseDups_eq_self_of_nodup [BEq α] [LawfulBEq α]
     {values : List α} (nodup : values.Nodup) :
     values.eraseDups = values := by

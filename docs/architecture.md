@@ -189,6 +189,12 @@ Tensor/par nodes name the resource positions they consume and exchange nodes
 store a full occurrence permutation. `build?` validates those choices while
 constructing a net fragment; `desequentialize?` emits the certificate and
 `desequentializeChecked?` returns it only with a proof of checker acceptance.
+The kernel theorem `infer?_eq_some_iff_build?_conclusions` proves that the
+independent formula pass and occurrence-aware builder have exactly the same
+success domain and ordered formula boundary. Its exchange case works at the
+index level, so duplicate formula labels do not require an invalid projection-
+injectivity assumption. This theorem does not by itself prove that every built
+fragment passes the switching checker.
 
 `Serialization.lean` supplies the versioned canonical wire format under fixed
 formula-array vertex numbering. `ProofNetIRDataset.lean` deterministically
