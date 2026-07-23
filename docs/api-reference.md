@@ -135,6 +135,106 @@ to form a genuine length-two multigraph cycle.
 ProofNetIR.Graph.EdgeSimpleCycle : ProofNetIR.Graph → Type
 ```
 
+### `ProofNetIR.Graph.DirectedEdge.ne_reverse`
+
+Kind: theorem.
+
+Reversing a directed occurrence always changes its orientation.
+
+```lean
+ProofNetIR.Graph.DirectedEdge.ne_reverse : ∀ {graph : ProofNetIR.Graph} (directed : graph.DirectedEdge), directed ≠ directed.reverse
+```
+
+### `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq`
+
+Kind: theorem.
+
+Within a simple cycle, an exact occurrence index identifies the unique
+directed traversal value carrying it.
+
+```lean
+ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq : ∀ {graph : ProofNetIR.Graph} (cycle : graph.EdgeSimpleCycle) {first second : graph.DirectedEdge},
+  first ∈ cycle.traversed → second ∈ cycle.traversed → first.index = second.index → first = second
+```
+
+### `ProofNetIR.Graph.retainEdgesByMask_lookup_exists_original`
+
+Kind: theorem.
+
+Every compacted retained-edge occurrence comes from a kept occurrence at
+an exact original index. The retained-position equation preserves occurrence
+identity even when equal-valued parallel edges are present.
+
+```lean
+ProofNetIR.Graph.retainEdgesByMask_lookup_exists_original : ∀ {edges : List ProofNetIR.Edge} {mask : List Bool},
+  edges.length = mask.length →
+    ∀ {retainedPosition : Nat} {edge : ProofNetIR.Edge},
+      (ProofNetIR.Graph.retainEdgesByMask edges mask)[retainedPosition]? = some edge →
+        ∃ originalIndex,
+          edges[originalIndex]? = some edge ∧
+            mask[originalIndex]? = some true ∧ ProofNetIR.Graph.retainedIndex mask originalIndex = retainedPosition
+```
+
+### `ProofNetIR.Graph.DirectedEdge.inflateRetained_exists`
+
+Kind: theorem.
+
+Invert one directed occurrence of a retained graph back to its exact kept
+occurrence in the original graph. Source, target, and orientation are
+preserved, while the compacted index is related by `retainedIndex`.
+
+```lean
+ProofNetIR.Graph.DirectedEdge.inflateRetained_exists : ∀ {graph : ProofNetIR.Graph} {mask : List Bool},
+  graph.edges.length = mask.length →
+    ∀ (directed : (graph.retainEdges mask).DirectedEdge),
+      ∃ original,
+        original.source = directed.source ∧
+          original.target = directed.target ∧
+            ProofNetIR.Graph.retainedIndex mask original.index = directed.index ∧ mask[original.index]? = some true
+```
+
+### `ProofNetIR.Graph.EdgeWalk.inflateRetained`
+
+Kind: theorem.
+
+Lift an edge-aware walk in a masked subgraph back to exact kept
+occurrences of the original graph. The compacted-index sequence and target
+sequence are preserved pointwise.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.inflateRetained : ∀ {graph : ProofNetIR.Graph} {mask : List Bool} {start finish : ProofNetIR.Vertex}
+  {traversed : List (graph.retainEdges mask).DirectedEdge},
+  (graph.retainEdges mask).EdgeWalk start traversed finish →
+    graph.edges.length = mask.length →
+      ∃ originalTraversal,
+        graph.EdgeWalk start originalTraversal finish ∧
+          List.map (fun directed => ProofNetIR.Graph.retainedIndex mask directed.index) originalTraversal =
+              List.map ProofNetIR.Graph.DirectedEdge.index traversed ∧
+            List.map ProofNetIR.Graph.DirectedEdge.target originalTraversal =
+                List.map ProofNetIR.Graph.DirectedEdge.target traversed ∧
+              ∀ (directed : graph.DirectedEdge), directed ∈ originalTraversal → mask[directed.index]? = some true
+```
+
+### `ProofNetIR.Graph.EdgeSimpleCycle.inflateRetained`
+
+Kind: theorem.
+
+Lift an exact simple cycle in a masked subgraph back to exact kept
+occurrences of the original graph. This is the converse occurrence transport
+to `EdgeSimpleCycle.retainEdges`; it does not collapse parallel equal-valued
+edges.
+
+```lean
+ProofNetIR.Graph.EdgeSimpleCycle.inflateRetained : ∀ {graph : ProofNetIR.Graph} {mask : List Bool} (cycle : (graph.retainEdges mask).EdgeSimpleCycle),
+  graph.edges.length = mask.length →
+    ∃ originalCycle,
+      List.map (fun directed => ProofNetIR.Graph.retainedIndex mask directed.index) originalCycle.traversed =
+          List.map ProofNetIR.Graph.DirectedEdge.index cycle.traversed ∧
+        List.map ProofNetIR.Graph.DirectedEdge.target originalCycle.traversed =
+            List.map ProofNetIR.Graph.DirectedEdge.target cycle.traversed ∧
+          ∀ (directed : graph.DirectedEdge), directed ∈ originalCycle.traversed → mask[directed.index]? = some true
+```
+
 ### `ProofNetIR.Graph.DirectedEdge.reindex`
 
 Kind: definition.
@@ -413,6 +513,155 @@ is no nonempty simple cycle whose every local transition avoids a cusp.
 
 ```lean
 ProofNetIR.Certificate.CuspAcyclic : ProofNetIR.Certificate → Prop
+```
+
+### `ProofNetIR.Certificate.linkFullEdgeParTargets_some_origin`
+
+Kind: theorem.
+
+A nonempty par-target annotation in an arbitrary link list comes from a
+stored par link with that exact conclusion.
+
+```lean
+ProofNetIR.Certificate.linkFullEdgeParTargets_some_origin : ∀ {links : List ProofNetIR.Link} {index : Nat} {conclusion : ProofNetIR.Vertex},
+  (ProofNetIR.Certificate.linkFullEdgeParTargets links)[index]? = some (some conclusion) →
+    ∃ left right, ProofNetIR.Link.par left right conclusion ∈ links
+```
+
+### `ProofNetIR.Certificate.FullSwitchingSelection.mask_parPairSparse`
+
+Kind: theorem.
+
+The true entries of an occurrence-order switching mask are sparse at every
+par pair: exactly one of the two emitted premise occurrences is retained.
+
+```lean
+ProofNetIR.Certificate.FullSwitchingSelection.mask_parPairSparse : ∀ {links : List ProofNetIR.Link} {selected retained : List ProofNetIR.Edge} {mask : List Bool},
+  ProofNetIR.Certificate.FullSwitchingSelection links selected retained mask →
+    ProofNetIR.Certificate.ParPairSparse links 0 fun index => mask[index]? = some true
+```
+
+### `ProofNetIR.Certificate.FullSwitchingSelection.kept_parTarget_index_unique`
+
+Kind: theorem.
+
+A legal occurrence-order switching retains at most one occurrence carrying
+the same par conclusion, provided that conclusion has at most one producing
+link in the stored list. This is the exact-index form needed to rule out local
+cusps after lifting a masked cycle.
+
+```lean
+ProofNetIR.Certificate.FullSwitchingSelection.kept_parTarget_index_unique : ∀ {links : List ProofNetIR.Link} {selected retained : List ProofNetIR.Edge} {mask : List Bool},
+  ProofNetIR.Certificate.FullSwitchingSelection links selected retained mask →
+    ∀ {firstIndex secondIndex : Nat} {conclusion : ProofNetIR.Vertex},
+      (List.filter (fun x => ProofNetIR.Link.produces conclusion x) links).length ≤ 1 →
+        (ProofNetIR.Certificate.linkFullEdgeParTargets links)[firstIndex]? = some (some conclusion) →
+          (ProofNetIR.Certificate.linkFullEdgeParTargets links)[secondIndex]? = some (some conclusion) →
+            mask[firstIndex]? = some true → mask[secondIndex]? = some true → firstIndex = secondIndex
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.parTarget_producerCount`
+
+Kind: theorem.
+
+A nonempty par target at an exact full-edge occurrence is owned by exactly
+one stored producer in every structurally well-formed certificate.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.parTarget_producerCount : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {index : Nat} {conclusion : ProofNetIR.Vertex},
+      certificate.fullEdgeParTargets[index]? = some (some conclusion) → certificate.producerCount conclusion = 1
+```
+
+### `ProofNetIR.Certificate.FullSwitchingSelection.kept_parTarget_index_unique_of_structural`
+
+Kind: theorem.
+
+Structural ownership discharges the producer-side premise of
+`kept_parTarget_index_unique` for an actual certificate.
+
+```lean
+ProofNetIR.Certificate.FullSwitchingSelection.kept_parTarget_index_unique_of_structural : ∀ {certificate : ProofNetIR.Certificate} {selected retained : List ProofNetIR.Edge} {mask : List Bool},
+  ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retained mask →
+    certificate.StructurallyWellFormed →
+      ∀ {firstIndex secondIndex : Nat} {conclusion : ProofNetIR.Vertex},
+        certificate.fullEdgeParTargets[firstIndex]? = some (some conclusion) →
+          certificate.fullEdgeParTargets[secondIndex]? = some (some conclusion) →
+            mask[firstIndex]? = some true → mask[secondIndex]? = some true → firstIndex = secondIndex
+```
+
+### `ProofNetIR.Certificate.FullSwitchingSelection.no_cusp_of_kept`
+
+Kind: theorem.
+
+Two nontrivially consecutive occurrences retained by a legal switching
+cannot form a cusp. Exact par annotations force both occurrences to have the
+same index and orientation, contradicting nontriviality.
+
+```lean
+ProofNetIR.Certificate.FullSwitchingSelection.no_cusp_of_kept : ∀ {certificate : ProofNetIR.Certificate} {selected retained : List ProofNetIR.Edge} {mask : List Bool},
+  ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retained mask →
+    certificate.StructurallyWellFormed →
+      ∀ {cycle : certificate.fullGraph.EdgeSimpleCycle},
+        (∀ (directed : certificate.fullGraph.DirectedEdge),
+            directed ∈ cycle.traversed → mask[directed.index]? = some true) →
+          ∀ {incoming outgoing : certificate.fullGraph.DirectedEdge},
+            incoming ∈ cycle.traversed →
+              outgoing ∈ cycle.traversed → incoming ≠ outgoing.reverse → ¬certificate.Cusp incoming outgoing
+```
+
+### `ProofNetIR.Certificate.fullSwitchingSelection_cycle_cuspFree`
+
+Kind: theorem.
+
+Every exact simple cycle surviving an occurrence-order switching is
+cusp-free in the unswitched full graph. This is the reverse transport lemma
+complementing `DeclarativelyCorrect.cuspAcyclic`.
+
+```lean
+ProofNetIR.Certificate.fullSwitchingSelection_cycle_cuspFree : ∀ {certificate : ProofNetIR.Certificate} (cycle : certificate.fullGraph.EdgeSimpleCycle),
+  certificate.StructurallyWellFormed →
+    ∀ {selected retained : List ProofNetIR.Edge} {mask : List Bool},
+      ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retained mask →
+        (∀ (directed : certificate.fullGraph.DirectedEdge),
+            directed ∈ cycle.traversed → mask[directed.index]? = some true) →
+          certificate.CuspFreeCycle cycle
+```
+
+### `ProofNetIR.Certificate.CuspAcyclic.occurrenceSwitching_acyclic`
+
+Kind: theorem.
+
+Cusp-acyclicity rules out every cycle in every exact occurrence-order
+switching. This conclusion is non-enumerative: the switching is arbitrary and
+the proof transports a hypothetical cycle back to the full graph.
+
+```lean
+ProofNetIR.Certificate.CuspAcyclic.occurrenceSwitching_acyclic : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.CuspAcyclic →
+    certificate.StructurallyWellFormed →
+      ∀ {selected retained : List ProofNetIR.Edge} {mask : List Bool},
+        ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retained mask →
+          (certificate.fullGraph.retainEdges mask).Acyclic
+```
+
+### `ProofNetIR.Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic`
+
+Kind: theorem.
+
+For structurally well-formed certificates, cusp-acyclicity is exactly
+ordinary occurrence-aware acyclicity of every switching. The reverse
+direction covers a hypothetical cusp-free cycle by one switching; the forward
+direction lifts an arbitrary switching cycle through its exact mask.
+
+```lean
+ProofNetIR.Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.StructurallyWellFormed →
+    (certificate.CuspAcyclic ↔
+      ∀ (selected retained : List ProofNetIR.Edge) (mask : List Bool),
+        ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retained mask →
+          (certificate.fullGraph.retainEdges mask).Acyclic)
 ```
 
 ### `ProofNetIR.Certificate.isCuspFreeTraversal`

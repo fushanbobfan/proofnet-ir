@@ -20,8 +20,13 @@ second tree checker proved Boolean-equal to the existing
 reachability-plus-count implementation. The new path is an exponential
 specification oracle. A second exhaustive oracle now decides the exact colored
 `CuspAcyclic` proposition used by the generalized-Yeo splitting proof, and
-reference-checker acceptance is proved to imply its acceptance. The reverse
-bridge and a non-enumerative implementation remain explicit work in progress.
+reference-checker acceptance is proved to imply its acceptance. For
+structurally well-formed certificates, Lean now also proves that
+`CuspAcyclic` is equivalent to occurrence-aware acyclicity of every switching,
+using exact mask-index transport even in the presence of parallel
+equal-valued edges. This closes the acyclicity half of the reverse bridge.
+Connectedness/tree reconstruction from a compact reference condition and a
+non-enumerative implementation remain explicit work in progress.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -65,8 +70,10 @@ The repository currently contains:
 - an exhaustive colored-cycle oracle `Certificate.isCuspAcyclic`, proved
   sound and complete for the proposition-level `CuspAcyclic` criterion used
   by the splitting theorem; every reference-checker-accepted certificate
-  passes it, while the converse correctness bridge and an optimized
-  non-enumerative implementation remain open;
+  passes it, and structural well-formedness gives the exact equivalence
+  `CuspAcyclic ↔ every occurrence-order switching is Acyclic`. The remaining
+  reverse bridge is connectedness/tree correctness, not switching
+  acyclicity; an optimized non-enumerative implementation also remains open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

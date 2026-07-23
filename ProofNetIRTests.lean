@@ -549,6 +549,10 @@ example : ∃ retained mask,
         (canonical.graphForSelection [{ first := 1, second := 5 }]).edges :=
   canonical.occurrenceSwitching_exists
     canonicalFullLeftSelection.choiceSelection
+example : Certificate.ParPairSparse canonical.links 0
+    (fun index =>
+      [true, true, true, true, true, false][index]? = some true) :=
+  canonicalFullLeftSelection.mask_parPairSparse
 
 example : canonical.fullEdgeParTargets =
     [none, none, none, none, some 5, some 5] := by native_decide
@@ -638,6 +642,21 @@ example : canonical.DeclarativelyCorrect :=
   canonical.check_sound_declarative (by native_decide)
 example : canonical.CuspAcyclic :=
   (canonical.check_sound_declarative (by native_decide)).cuspAcyclic
+example :
+    (canonical.fullGraph.retainEdges
+      [true, true, true, true, true, false]).Acyclic :=
+  (show canonical.CuspAcyclic from
+      (canonical.check_sound_declarative (by native_decide)).cuspAcyclic)
+    |>.occurrenceSwitching_acyclic
+      (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+      canonicalFullLeftSelection
+example : canonical.CuspAcyclic ↔
+    ∀ selected retained mask,
+      Certificate.FullSwitchingSelection canonical.links
+          selected retained mask →
+        (canonical.fullGraph.retainEdges mask).Acyclic :=
+  canonical.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
+    (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
 example : canonical.isCuspAcyclic = true :=
   canonical.isCuspAcyclic_of_check (by native_decide)
 example : canonical.isCuspAcyclic = true ↔ canonical.CuspAcyclic :=
@@ -1827,6 +1846,20 @@ example : disconnectedForestGraph.isAcyclic = true ↔
 example : ¬cyclicGraph.Acyclic := by
   intro acyclic
   exact acyclic cyclicTriangle
+#check Graph.retainEdgesByMask_lookup_exists_original
+#check Graph.DirectedEdge.inflateRetained_exists
+#check Graph.EdgeWalk.inflateRetained
+#check Graph.EdgeSimpleCycle.inflateRetained
+#check Graph.DirectedEdge.ne_reverse
+#check Graph.EdgeSimpleCycle.eq_of_index_eq
+#check Certificate.FullSwitchingSelection.mask_parPairSparse
+#check Certificate.FullSwitchingSelection.kept_parTarget_index_unique
+#check Certificate.StructurallyWellFormed.parTarget_producerCount
+#check Certificate.FullSwitchingSelection.no_cusp_of_kept
+#check Certificate.fullSwitchingSelection_cycle_cuspFree
+#check Certificate.CuspAcyclic.occurrenceSwitching_acyclic
+#check Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
+#check Certificate.StructurallyWellFormed.par_producer_unique
 example : cyclicGraph.IsTree ↔
     cyclicGraph.Bounded ∧ cyclicGraph.Connected ∧ cyclicGraph.Acyclic :=
   cyclicGraph.isTree_iff_bounded_connected_acyclic

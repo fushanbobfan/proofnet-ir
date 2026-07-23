@@ -31,6 +31,13 @@ private theorem false_of_mem_filter_length_zero {α : Type}
   rw [count] at positive
   exact Nat.not_lt_zero 0 positive
 
+private theorem filter_tail_length_le {α : Type}
+    {predicate : α → Bool} {head : α} {tail : List α} :
+    (tail.filter predicate).length ≤
+      ((head :: tail).filter predicate).length := by
+  cases accepted : predicate head <;>
+    simp [accepted]
+
 private theorem eraseDups_eq_self_of_nodup [BEq α] [LawfulBEq α]
     {values : List α} (nodup : values.Nodup) :
     values.eraseDups = values := by
@@ -71,6 +78,20 @@ private theorem nodup_map_of_injective_on {α β : Type}
         intro first firstMembership second secondMembership same
         exact injectiveOn first (by simp [firstMembership]) second
           (by simp [secondMembership]) same
+
+private theorem nodup_of_map_nodup {α β : Type}
+    {values : List α} {function : α → β}
+    (mappedNodup : (values.map function).Nodup) :
+    values.Nodup := by
+  induction values with
+  | nil => simp
+  | cons head tail ih =>
+      simp only [List.map_cons, List.nodup_cons] at mappedNodup ⊢
+      constructor
+      · intro headMembership
+        exact mappedNodup.1
+          (List.mem_map.mpr ⟨head, headMembership, rfl⟩)
+      · exact ih mappedNodup.2
 
 private theorem length_le_of_nodup_subset' [BEq α] [LawfulBEq α]
     {values ambient : List α} (nodup : values.Nodup)
@@ -2992,6 +3013,59 @@ theorem EdgeSimpleCycle.retainEdges {graph : Graph} {mask : List Bool}
   · rw [interiorTargets]
     exact cycle.interiorNodup
 
+/-- Lift an exact simple cycle in a masked subgraph back to exact kept
+occurrences of the original graph. This is the converse occurrence transport
+to `EdgeSimpleCycle.retainEdges`; it does not collapse parallel equal-valued
+edges. -/
+theorem EdgeSimpleCycle.inflateRetained {graph : Graph} {mask : List Bool}
+    (cycle : (graph.retainEdges mask).EdgeSimpleCycle)
+    (aligned : graph.edges.length = mask.length) :
+    ∃ originalCycle : graph.EdgeSimpleCycle,
+      originalCycle.traversed.map
+          (fun directed => Graph.retainedIndex mask directed.index) =
+        cycle.traversed.map Graph.DirectedEdge.index ∧
+      originalCycle.traversed.map Graph.DirectedEdge.target =
+        cycle.traversed.map Graph.DirectedEdge.target ∧
+      ∀ directed ∈ originalCycle.traversed,
+        mask[directed.index]? = some true := by
+  rcases cycle.walk.inflateRetained aligned with
+    ⟨originalTraversal, originalWalk, indexEquation, targetEquation,
+      allKept⟩
+  have traversalLength :
+      originalTraversal.length = cycle.traversed.length := by
+    simpa using congrArg List.length indexEquation
+  have originalNonempty : originalTraversal ≠ [] := by
+    intro empty
+    rw [empty] at traversalLength
+    simp at traversalLength
+    exact cycle.nonempty
+      (List.eq_nil_of_length_eq_zero traversalLength.symm)
+  have compactedIndicesNodup :
+      (originalTraversal.map
+        (fun directed => Graph.retainedIndex mask directed.index)).Nodup := by
+    rw [indexEquation]
+    exact cycle.edgeIndicesNodup
+  have originalIndicesNodup :
+      (originalTraversal.map Graph.DirectedEdge.index).Nodup := by
+    apply nodup_of_map_nodup
+      (values := originalTraversal.map Graph.DirectedEdge.index)
+      (function := Graph.retainedIndex mask)
+    simpa [List.map_map, Function.comp_def] using compactedIndicesNodup
+  have interiorTargets :
+      originalTraversal.dropLast.map Graph.DirectedEdge.target =
+        cycle.traversed.dropLast.map Graph.DirectedEdge.target := by
+    simpa only [List.map_dropLast] using congrArg List.dropLast targetEquation
+  let originalCycle : graph.EdgeSimpleCycle := {
+    start := cycle.start
+    traversed := originalTraversal
+    nonempty := originalNonempty
+    walk := originalWalk
+    edgeIndicesNodup := originalIndicesNodup
+    interiorNodup := by
+      rw [interiorTargets]
+      exact cycle.interiorNodup }
+  exact ⟨originalCycle, indexEquation, targetEquation, allKept⟩
+
 theorem Adjacent.symm {graph : Graph} {left right : Vertex}
     (adjacency : graph.Adjacent left right) : graph.Adjacent right left := by
   rcases adjacency with ⟨edge, membership, direction⟩
@@ -3556,6 +3630,26 @@ def linkFullEdgeParTargets (links : List Link) : List (Option Vertex) :=
   | cons link rest ih =>
       cases link <;> simp [ih]
 
+/-- A nonempty par-target annotation in an arbitrary link list comes from a
+stored par link with that exact conclusion. -/
+theorem linkFullEdgeParTargets_some_origin {links : List Link}
+    {index : Nat} {conclusion : Vertex}
+    (lookup :
+      (linkFullEdgeParTargets links)[index]? = some (some conclusion)) :
+    ∃ left right, Link.par left right conclusion ∈ links := by
+  have membership :
+      some conclusion ∈ linkFullEdgeParTargets links :=
+    List.mem_of_getElem? lookup
+  simp only [linkFullEdgeParTargets, List.mem_flatMap] at membership
+  rcases membership with ⟨link, linkMembership, emitted⟩
+  cases link with
+  | «axiom» left right => simp at emitted
+  | tensor left right result => simp at emitted
+  | par left right result =>
+      simp at emitted
+      subst result
+      exact ⟨left, right, linkMembership⟩
+
 @[simp] theorem linkParChoices_certificate (certificate : Certificate) :
     linkParChoices certificate.links = certificate.parChoices := rfl
 
@@ -3613,6 +3707,44 @@ def ParPairSparse : List Link → Nat → (Nat → Prop) → Prop
   | .par _ _ _ :: links, offset, uses =>
       ¬(uses offset ∧ uses (offset + 1)) ∧
         ParPairSparse links (offset + 2) uses
+
+private def RelativeParPairSparse : List Link → (Nat → Prop) → Prop
+  | [], _ => True
+  | .axiom _ _ :: links, uses =>
+      RelativeParPairSparse links (fun index => uses (index + 1))
+  | .tensor _ _ _ :: links, uses =>
+      RelativeParPairSparse links (fun index => uses (index + 2))
+  | .par _ _ _ :: links, uses =>
+      ¬(uses 0 ∧ uses 1) ∧
+        RelativeParPairSparse links (fun index => uses (index + 2))
+
+private theorem relativeParPairSparse_iff
+    (links : List Link) (offset : Nat) (uses : Nat → Prop) :
+    RelativeParPairSparse links (fun index => uses (offset + index)) ↔
+      ParPairSparse links offset uses := by
+  induction links generalizing offset with
+  | nil => simp [RelativeParPairSparse, ParPairSparse]
+  | cons link rest ih =>
+      cases link with
+      | «axiom» left right =>
+          simpa [RelativeParPairSparse, ParPairSparse, Nat.add_assoc,
+            Nat.add_comm, Nat.add_left_comm] using ih (offset + 1)
+      | tensor left right conclusion =>
+          simpa [RelativeParPairSparse, ParPairSparse, Nat.add_assoc,
+            Nat.add_comm, Nat.add_left_comm] using ih (offset + 2)
+      | par left right conclusion =>
+          rw [RelativeParPairSparse, ParPairSparse]
+          constructor
+          · rintro ⟨head, tail⟩
+            exact ⟨by simpa using head,
+              (ih (offset + 2)).mp (by
+                simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+                  using tail)⟩
+          · rintro ⟨head, tail⟩
+            have transformed := (ih (offset + 2)).mpr tail
+            exact ⟨by simpa using head, by
+              simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+                using transformed⟩
 
 namespace FullSwitchingSelection
 
@@ -3672,6 +3804,212 @@ theorem retained_eq_retainByMask {links : List Link}
       simp [linkFullEdges, retainByMask, Graph.retainEdgesByMask, ih]
   | parRight prior ih =>
       simp [linkFullEdges, retainByMask, Graph.retainEdgesByMask, ih]
+
+/-- The true entries of an occurrence-order switching mask are sparse at every
+par pair: exactly one of the two emitted premise occurrences is retained. -/
+theorem mask_parPairSparse {links : List Link}
+    {selected retained : List Edge} {mask : List Bool}
+    (selection : FullSwitchingSelection links selected retained mask) :
+    ParPairSparse links 0
+      (fun index => mask[index]? = some true) := by
+  apply (relativeParPairSparse_iff links 0
+    (fun index => mask[index]? = some true)).mp
+  simp only [Nat.zero_add]
+  induction selection with
+  | nil => trivial
+  | «axiom» prior ih =>
+      simpa [RelativeParPairSparse] using ih
+  | tensor prior ih =>
+      simpa [RelativeParPairSparse] using ih
+  | parLeft prior ih =>
+      constructor
+      · simp
+      · simpa [RelativeParPairSparse] using ih
+  | parRight prior ih =>
+      constructor
+      · simp
+      · simpa [RelativeParPairSparse] using ih
+
+/-- A legal occurrence-order switching retains at most one occurrence carrying
+the same par conclusion, provided that conclusion has at most one producing
+link in the stored list. This is the exact-index form needed to rule out local
+cusps after lifting a masked cycle. -/
+theorem kept_parTarget_index_unique {links : List Link}
+    {selected retained : List Edge} {mask : List Bool}
+    (selection : FullSwitchingSelection links selected retained mask)
+    {firstIndex secondIndex : Nat} {conclusion : Vertex}
+    (producerBound :
+      (links.filter (·.produces conclusion)).length ≤ 1)
+    (firstTarget :
+      (linkFullEdgeParTargets links)[firstIndex]? =
+        some (some conclusion))
+    (secondTarget :
+      (linkFullEdgeParTargets links)[secondIndex]? =
+        some (some conclusion))
+    (firstKept : mask[firstIndex]? = some true)
+    (secondKept : mask[secondIndex]? = some true) :
+    firstIndex = secondIndex := by
+  induction selection generalizing firstIndex secondIndex with
+  | nil =>
+      simp [linkFullEdgeParTargets] at firstTarget
+  | @«axiom» links selected retained mask left right prior ih =>
+      have tailBound :
+          (links.filter (·.produces conclusion)).length ≤ 1 := by
+        exact Nat.le_trans filter_tail_length_le producerBound
+      cases firstIndex with
+      | zero => simp at firstTarget
+      | succ firstIndex =>
+          cases secondIndex with
+          | zero => simp at secondTarget
+          | succ secondIndex =>
+              simp only [linkFullEdgeParTargets_axiom_cons,
+                List.getElem?_cons_succ] at firstTarget secondTarget
+              simp only [List.getElem?_cons_succ] at firstKept secondKept
+              exact congrArg Nat.succ
+                (ih tailBound firstTarget secondTarget firstKept secondKept)
+  | @tensor links selected retained mask left right result prior ih =>
+      have tailBound :
+          (links.filter (·.produces conclusion)).length ≤ 1 := by
+        exact Nat.le_trans filter_tail_length_le producerBound
+      cases firstIndex with
+      | zero => simp at firstTarget
+      | succ firstIndex =>
+          cases firstIndex with
+          | zero => simp at firstTarget
+          | succ firstIndex =>
+              cases secondIndex with
+              | zero => simp at secondTarget
+              | succ secondIndex =>
+                  cases secondIndex with
+                  | zero => simp at secondTarget
+                  | succ secondIndex =>
+                      simp only [linkFullEdgeParTargets_tensor_cons,
+                        List.getElem?_cons_succ] at firstTarget secondTarget
+                      have firstKeptTail :
+                          mask[firstIndex]? = some true := by
+                        simpa using firstKept
+                      have secondKeptTail :
+                          mask[secondIndex]? = some true := by
+                        simpa using secondKept
+                      have same := ih tailBound firstTarget secondTarget
+                        firstKeptTail secondKeptTail
+                      omega
+  | @parLeft links selected retained mask left right result prior ih =>
+      have tailBound :
+          (links.filter (·.produces conclusion)).length ≤ 1 := by
+        exact Nat.le_trans filter_tail_length_le producerBound
+      have headTailImpossible
+          {tailIndex : Nat}
+          (headTarget : result = conclusion)
+          (tailTarget :
+            (linkFullEdgeParTargets links)[tailIndex]? =
+              some (some conclusion)) : False := by
+        subst result
+        rcases linkFullEdgeParTargets_some_origin tailTarget with
+          ⟨tailLeft, tailRight, tailMembership⟩
+        simp [Link.produces] at producerBound
+        have rejected := producerBound
+          (Link.par tailLeft tailRight conclusion) tailMembership
+        simp at rejected
+      cases firstIndex with
+      | zero =>
+          have resultEquation : result = conclusion := by
+            simpa using Option.some.inj firstTarget
+          cases secondIndex with
+          | zero => rfl
+          | succ secondIndex =>
+              cases secondIndex with
+              | zero => simp at secondKept
+              | succ secondIndex =>
+                  simp only [linkFullEdgeParTargets_par_cons,
+                    List.getElem?_cons_succ] at secondTarget
+                  exact False.elim
+                    (headTailImpossible resultEquation secondTarget)
+      | succ firstIndex =>
+          cases firstIndex with
+          | zero => simp at firstKept
+          | succ firstIndex =>
+              cases secondIndex with
+              | zero =>
+                  have resultEquation : result = conclusion := by
+                    simpa using Option.some.inj secondTarget
+                  simp only [linkFullEdgeParTargets_par_cons,
+                    List.getElem?_cons_succ] at firstTarget
+                  exact False.elim
+                    (headTailImpossible resultEquation firstTarget)
+              | succ secondIndex =>
+                  cases secondIndex with
+                  | zero => simp at secondKept
+                  | succ secondIndex =>
+                      simp only [linkFullEdgeParTargets_par_cons,
+                        List.getElem?_cons_succ] at firstTarget secondTarget
+                      have firstKeptTail :
+                          mask[firstIndex]? = some true := by
+                        simpa using firstKept
+                      have secondKeptTail :
+                          mask[secondIndex]? = some true := by
+                        simpa using secondKept
+                      have same := ih tailBound firstTarget secondTarget
+                        firstKeptTail secondKeptTail
+                      omega
+  | @parRight links selected retained mask left right result prior ih =>
+      have tailBound :
+          (links.filter (·.produces conclusion)).length ≤ 1 := by
+        exact Nat.le_trans filter_tail_length_le producerBound
+      have headTailImpossible
+          {tailIndex : Nat}
+          (headTarget : result = conclusion)
+          (tailTarget :
+            (linkFullEdgeParTargets links)[tailIndex]? =
+              some (some conclusion)) : False := by
+        subst result
+        rcases linkFullEdgeParTargets_some_origin tailTarget with
+          ⟨tailLeft, tailRight, tailMembership⟩
+        simp [Link.produces] at producerBound
+        have rejected := producerBound
+          (Link.par tailLeft tailRight conclusion) tailMembership
+        simp at rejected
+      cases firstIndex with
+      | zero => simp at firstKept
+      | succ firstIndex =>
+          cases firstIndex with
+          | zero =>
+              have resultEquation : result = conclusion := by
+                simpa using Option.some.inj firstTarget
+              cases secondIndex with
+              | zero => simp at secondKept
+              | succ secondIndex =>
+                  cases secondIndex with
+                  | zero => rfl
+                  | succ secondIndex =>
+                      simp only [linkFullEdgeParTargets_par_cons,
+                        List.getElem?_cons_succ] at secondTarget
+                      exact False.elim
+                        (headTailImpossible resultEquation secondTarget)
+          | succ firstIndex =>
+              cases secondIndex with
+              | zero => simp at secondKept
+              | succ secondIndex =>
+                  cases secondIndex with
+                  | zero =>
+                      have resultEquation : result = conclusion := by
+                        simpa using Option.some.inj secondTarget
+                      simp only [linkFullEdgeParTargets_par_cons,
+                        List.getElem?_cons_succ] at firstTarget
+                      exact False.elim
+                        (headTailImpossible resultEquation firstTarget)
+                  | succ secondIndex =>
+                      simp only [linkFullEdgeParTargets_par_cons,
+                        List.getElem?_cons_succ] at firstTarget secondTarget
+                      have firstKeptTail :
+                          mask[firstIndex]? = some true := by
+                        simpa using firstKept
+                      have secondKeptTail :
+                          mask[secondIndex]? = some true := by
+                        simpa using secondKept
+                      have same := ih tailBound firstTarget secondTarget
+                        firstKeptTail secondKeptTail
+                      omega
 
 end FullSwitchingSelection
 
@@ -10166,6 +10504,276 @@ theorem LinkWellFormed.par_formulaData
               · rfl
               · rfl
               · rfl
+
+/-- Structural ownership makes the stored par producer of a conclusion
+unique. This theorem does not require the conclusion to be terminal. -/
+theorem StructurallyWellFormed.par_producer_unique
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {firstLeft firstRight secondLeft secondRight conclusion : Vertex}
+    (firstMembership :
+      Link.par firstLeft firstRight conclusion ∈ certificate.links)
+    (secondMembership :
+      Link.par secondLeft secondRight conclusion ∈ certificate.links) :
+    Link.par firstLeft firstRight conclusion =
+      Link.par secondLeft secondRight conclusion := by
+  have firstWellFormed := structural.2.2.2.2.1 _ firstMembership
+  rcases firstWellFormed.par_conclusionFormula with
+    ⟨leftFormula, rightFormula, conclusionFormula⟩
+  have conclusionInBounds :
+      conclusion < certificate.formulas.size :=
+    firstWellFormed.2.2.2.2.2.1
+  have node := structural.2.2.2.2.2 conclusion conclusionInBounds
+  have producerCount : certificate.producerCount conclusion = 1 := by
+    simpa [Certificate.NodeWellFormed, conclusionFormula] using node.1
+  change (certificate.links.filter
+    (·.produces conclusion)).length = 1 at producerCount
+  apply eq_of_mem_filter_length_one producerCount
+    firstMembership (by simp [Link.produces])
+    secondMembership (by simp [Link.produces])
+
+/-- A nonempty par target at an exact full-edge occurrence is owned by exactly
+one stored producer in every structurally well-formed certificate. -/
+theorem StructurallyWellFormed.parTarget_producerCount
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {index : Nat} {conclusion : Vertex}
+    (target :
+      certificate.fullEdgeParTargets[index]? =
+        some (some conclusion)) :
+    certificate.producerCount conclusion = 1 := by
+  change
+    (linkFullEdgeParTargets certificate.links)[index]? =
+      some (some conclusion) at target
+  rcases linkFullEdgeParTargets_some_origin target with
+    ⟨left, right, membership⟩
+  have wellFormed := structural.2.2.2.2.1 _ membership
+  rcases wellFormed.par_conclusionFormula with
+    ⟨leftFormula, rightFormula, conclusionFormula⟩
+  have conclusionInBounds :
+      conclusion < certificate.formulas.size :=
+    wellFormed.2.2.2.2.2.1
+  have node := structural.2.2.2.2.2 conclusion conclusionInBounds
+  simpa [Certificate.NodeWellFormed, conclusionFormula] using node.1
+
+namespace FullSwitchingSelection
+
+/-- Structural ownership discharges the producer-side premise of
+`kept_parTarget_index_unique` for an actual certificate. -/
+theorem kept_parTarget_index_unique_of_structural
+    {certificate : Certificate}
+    {selected retained : List Edge} {mask : List Bool}
+    (selection :
+      FullSwitchingSelection certificate.links selected retained mask)
+    (structural : certificate.StructurallyWellFormed)
+    {firstIndex secondIndex : Nat} {conclusion : Vertex}
+    (firstTarget :
+      certificate.fullEdgeParTargets[firstIndex]? =
+        some (some conclusion))
+    (secondTarget :
+      certificate.fullEdgeParTargets[secondIndex]? =
+        some (some conclusion))
+    (firstKept : mask[firstIndex]? = some true)
+    (secondKept : mask[secondIndex]? = some true) :
+    firstIndex = secondIndex := by
+  have producerCount :=
+    structural.parTarget_producerCount firstTarget
+  have producerBound :
+      (certificate.links.filter
+        (·.produces conclusion)).length ≤ 1 := by
+    change certificate.producerCount conclusion ≤ 1
+    rw [producerCount]
+    exact Nat.le_refl 1
+  change
+    (linkFullEdgeParTargets certificate.links)[firstIndex]? =
+      some (some conclusion) at firstTarget
+  change
+    (linkFullEdgeParTargets certificate.links)[secondIndex]? =
+      some (some conclusion) at secondTarget
+  apply selection.kept_parTarget_index_unique producerBound
+  · exact firstTarget
+  · exact secondTarget
+  · exact firstKept
+  · exact secondKept
+
+/-- Two nontrivially consecutive occurrences retained by a legal switching
+cannot form a cusp. Exact par annotations force both occurrences to have the
+same index and orientation, contradicting nontriviality. -/
+theorem no_cusp_of_kept
+    {certificate : Certificate}
+    {selected retained : List Edge} {mask : List Bool}
+    (selection :
+      FullSwitchingSelection certificate.links selected retained mask)
+    (structural : certificate.StructurallyWellFormed)
+    {cycle : certificate.fullGraph.EdgeSimpleCycle}
+    (allKept : ∀ directed ∈ cycle.traversed,
+      mask[directed.index]? = some true)
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (incomingMembership : incoming ∈ cycle.traversed)
+    (outgoingMembership : outgoing ∈ cycle.traversed)
+    (differentReverse : incoming ≠ outgoing.reverse) :
+    ¬certificate.Cusp incoming outgoing := by
+  intro cusp
+  have cusping : certificate.CuspingEdge incoming :=
+    ⟨outgoing, cusp, differentReverse⟩
+  rcases cusping.incidenceColor_eq_par with
+    ⟨conclusion, incomingColor⟩
+  have outgoingColor :
+      certificate.incidenceColor outgoing.reverse =
+        .par conclusion := by
+    unfold Cusp at cusp
+    exact cusp.symm.trans incomingColor
+  have incomingData :=
+    (certificate.incidenceColor_eq_par_iff
+      incoming conclusion).mp incomingColor
+  have outgoingData :=
+    (certificate.incidenceColor_eq_par_iff
+      outgoing.reverse conclusion).mp outgoingColor
+  have incomingKept := allKept incoming incomingMembership
+  have outgoingKept :
+      mask[outgoing.reverse.index]? = some true := by
+    simpa using allKept outgoing outgoingMembership
+  have sameIndex :=
+    selection.kept_parTarget_index_unique_of_structural structural
+      incomingData.2 outgoingData.2 incomingKept outgoingKept
+  have sameForward :
+      incoming.forward = outgoing.reverse.forward :=
+    incomingData.1.trans outgoingData.1.symm
+  exact differentReverse
+    (Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+      incoming outgoing.reverse sameIndex sameForward)
+
+end FullSwitchingSelection
+
+/-- Every exact simple cycle surviving an occurrence-order switching is
+cusp-free in the unswitched full graph. This is the reverse transport lemma
+complementing `DeclarativelyCorrect.cuspAcyclic`. -/
+theorem fullSwitchingSelection_cycle_cuspFree
+    {certificate : Certificate}
+    (cycle : certificate.fullGraph.EdgeSimpleCycle)
+    (structural : certificate.StructurallyWellFormed)
+    {selected retained : List Edge} {mask : List Bool}
+    (selection :
+      FullSwitchingSelection certificate.links selected retained mask)
+    (allKept : ∀ directed ∈ cycle.traversed,
+      mask[directed.index]? = some true) :
+    certificate.CuspFreeCycle cycle := by
+  constructor
+  · apply Classical.byContradiction
+    intro notFree
+    rcases CuspFreeTraversal.exists_cusp_of_not_free certificate
+        notFree with
+      ⟨before, incoming, outgoing, after, traversalEquation, cusp⟩
+    have incomingMembership : incoming ∈ cycle.traversed := by
+      rw [traversalEquation]
+      simp
+    have outgoingMembership : outgoing ∈ cycle.traversed := by
+      rw [traversalEquation]
+      simp
+    have differentIndex : incoming.index ≠ outgoing.index := by
+      intro sameIndex
+      have indicesNodup := cycle.edgeIndicesNodup
+      rw [traversalEquation] at indicesNodup
+      simp only [List.map_append, List.map_cons] at indicesNodup
+      rw [sameIndex] at indicesNodup
+      have suffixNodup :
+          (outgoing.index :: outgoing.index ::
+            after.map Graph.DirectedEdge.index).Nodup :=
+        (List.nodup_append.mp indicesNodup).2.1
+      exact (List.nodup_cons.mp suffixNodup).1 (by simp)
+    have differentReverse : incoming ≠ outgoing.reverse := by
+      intro same
+      apply differentIndex
+      simpa using congrArg Graph.DirectedEdge.index same
+    exact selection.no_cusp_of_kept structural allKept
+      incomingMembership outgoingMembership differentReverse cusp
+  · cases traversalEquation : cycle.traversed with
+    | nil => exact False.elim (cycle.nonempty traversalEquation)
+    | cons first rest =>
+        change ¬certificate.Cusp
+          ((first :: rest).getLast (by simp)) first
+        intro cusp
+        let incoming :=
+          (first :: rest).getLast (by simp)
+        have incomingMembership :
+            incoming ∈ cycle.traversed := by
+          rw [traversalEquation]
+          exact List.getLast_mem (by simp)
+        have firstMembership : first ∈ cycle.traversed := by
+          rw [traversalEquation]
+          simp
+        have differentReverse : incoming ≠ first.reverse := by
+          intro sameReverse
+          have sameIndex : incoming.index = first.index := by
+            simpa using congrArg Graph.DirectedEdge.index sameReverse
+          have sameDirected := cycle.eq_of_index_eq incomingMembership
+            firstMembership sameIndex
+          have selfReverse : first = first.reverse :=
+            sameDirected.symm.trans sameReverse
+          exact first.ne_reverse selfReverse
+        exact selection.no_cusp_of_kept structural allKept
+          incomingMembership firstMembership differentReverse cusp
+
+/-- Cusp-acyclicity rules out every cycle in every exact occurrence-order
+switching. This conclusion is non-enumerative: the switching is arbitrary and
+the proof transports a hypothetical cycle back to the full graph. -/
+theorem CuspAcyclic.occurrenceSwitching_acyclic
+    {certificate : Certificate}
+    (cuspAcyclic : certificate.CuspAcyclic)
+    (structural : certificate.StructurallyWellFormed)
+    {selected retained : List Edge} {mask : List Bool}
+    (selection :
+      FullSwitchingSelection certificate.links selected retained mask) :
+    (certificate.fullGraph.retainEdges mask).Acyclic := by
+  intro retainedCycle
+  have aligned : certificate.fullGraph.edges.length = mask.length := by
+    change (linkFullEdges certificate.links).length = mask.length
+    exact selection.mask_length.symm
+  rcases retainedCycle.inflateRetained aligned with
+    ⟨originalCycle, _indexEquation, _targetEquation, allKept⟩
+  have cuspFree :=
+    fullSwitchingSelection_cycle_cuspFree originalCycle structural
+      selection allKept
+  exact cuspAcyclic originalCycle cuspFree
+
+/-- For structurally well-formed certificates, cusp-acyclicity is exactly
+ordinary occurrence-aware acyclicity of every switching. The reverse
+direction covers a hypothetical cusp-free cycle by one switching; the forward
+direction lifts an arbitrary switching cycle through its exact mask. -/
+theorem cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed) :
+    certificate.CuspAcyclic ↔
+      ∀ selected retained mask,
+        FullSwitchingSelection certificate.links selected retained mask →
+          (certificate.fullGraph.retainEdges mask).Acyclic := by
+  constructor
+  · intro cuspAcyclic selected retained mask selection
+    exact cuspAcyclic.occurrenceSwitching_acyclic structural selection
+  · intro allAcyclic cycle cuspFree
+    have sparse : ParPairSparse certificate.links 0
+        (CycleUsesIndex cycle) := by
+      have suffixSparse := CuspFreeCycle.parPairSparse_suffix certificate
+        cuspFree (priorLinks := []) (suffix := certificate.links) (by simp)
+      simpa using suffixSparse
+    rcases fullSwitchingSelection_covering_exists sparse with
+      ⟨selected, retained, mask, selection, keeps⟩
+    have aligned : certificate.fullGraph.edges.length = mask.length := by
+      change (linkFullEdges certificate.links).length = mask.length
+      exact selection.mask_length.symm
+    have allKept : ∀ directed ∈ cycle.traversed,
+        mask[directed.index]? = some true := by
+      intro directed membership
+      have indexInBounds :
+          directed.index < (linkFullEdges certificate.links).length :=
+        (List.getElem?_eq_some_iff.mp directed.lookup).1
+      apply keeps directed.index indexInBounds
+      simpa using
+        (show CycleUsesIndex cycle directed.index from
+          ⟨directed, membership, rfl⟩)
+    rcases cycle.retainEdges aligned allKept with
+      ⟨retainedCycle⟩
+    exact allAcyclic selected retained mask selection retainedCycle
 
 theorem LinkWellFormed.tensor_conclusionFormula
     {certificate : Certificate} {left right conclusion : Vertex}

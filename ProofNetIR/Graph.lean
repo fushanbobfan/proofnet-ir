@@ -127,6 +127,56 @@ theorem retainEdgesByMask_lookup_kept {edges : List Edge} {mask : List Bool}
               cases keep <;>
                 simp_all [retainEdgesByMask, retainedIndex]
 
+/-- Every compacted retained-edge occurrence comes from a kept occurrence at
+an exact original index. The retained-position equation preserves occurrence
+identity even when equal-valued parallel edges are present. -/
+theorem retainEdgesByMask_lookup_exists_original
+    {edges : List Edge} {mask : List Bool}
+    (aligned : edges.length = mask.length)
+    {retainedPosition : Nat} {edge : Edge}
+    (lookup :
+      (retainEdgesByMask edges mask)[retainedPosition]? = some edge) :
+    ∃ originalIndex,
+      edges[originalIndex]? = some edge ∧
+        mask[originalIndex]? = some true ∧
+        retainedIndex mask originalIndex = retainedPosition := by
+  induction edges generalizing mask retainedPosition with
+  | nil =>
+      simp [retainEdgesByMask] at lookup
+  | cons head tail ih =>
+      cases mask with
+      | nil => simp at aligned
+      | cons keep rest =>
+          have tailAligned : tail.length = rest.length := by
+            simpa using Nat.succ.inj aligned
+          cases keep with
+          | false =>
+              simp only [retainEdgesByMask, Bool.false_eq_true, if_false]
+                at lookup
+              rcases ih tailAligned lookup with
+                ⟨originalIndex, edgeLookup, kept, position⟩
+              refine ⟨originalIndex + 1, ?_, ?_, ?_⟩
+              · simpa [Nat.add_comm] using edgeLookup
+              · simpa [Nat.add_comm] using kept
+              · simpa [retainedIndex, Nat.add_comm] using position
+          | true =>
+              cases retainedPosition with
+              | zero =>
+                  simp only [retainEdgesByMask, if_true,
+                    List.getElem?_cons_zero] at lookup
+                  have same : head = edge := Option.some.inj lookup
+                  subst edge
+                  exact ⟨0, by simp, by simp, rfl⟩
+              | succ retainedPosition =>
+                  simp only [retainEdgesByMask, if_true,
+                    List.getElem?_cons_succ] at lookup
+                  rcases ih tailAligned lookup with
+                    ⟨originalIndex, edgeLookup, kept, position⟩
+                  refine ⟨originalIndex + 1, ?_, ?_, ?_⟩
+                  · simpa [Nat.add_comm] using edgeLookup
+                  · simpa [Nat.add_comm] using kept
+                  · simpa [retainedIndex, Nat.add_comm] using position
+
 theorem retainedIndex_lt_of_lt_of_kept {mask : List Bool} {first second : Nat}
     (less : first < second) (firstKept : mask[first]? = some true) :
     retainedIndex mask first < retainedIndex mask second := by
@@ -212,6 +262,14 @@ def reverse {graph : Graph} (directed : graph.DirectedEdge) :
   rcases directed with ⟨index, edge, lookup, forward⟩
   cases forward <;> rfl
 
+/-- Reversing a directed occurrence always changes its orientation. -/
+theorem ne_reverse {graph : Graph} (directed : graph.DirectedEdge) :
+    directed ≠ directed.reverse := by
+  intro same
+  have forwardEquation :=
+    congrArg DirectedEdge.forward same
+  cases directed.forward <;> simp [reverse] at forwardEquation
+
 /-- An exact stored occurrence has exactly two orientations. Thus equal
 occurrence indices determine either the same directed edge or its reverse. -/
 theorem eq_or_eq_reverse_of_index_eq {graph : Graph}
@@ -286,6 +344,30 @@ def retain {graph : Graph} {mask : List Bool}
     (aligned : graph.edges.length = mask.length)
     (kept : mask[directed.index]? = some true) :
     (directed.retain aligned kept).target = directed.target := rfl
+
+/-- Invert one directed occurrence of a retained graph back to its exact kept
+occurrence in the original graph. Source, target, and orientation are
+preserved, while the compacted index is related by `retainedIndex`. -/
+theorem inflateRetained_exists {graph : Graph} {mask : List Bool}
+    (aligned : graph.edges.length = mask.length)
+    (directed : (graph.retainEdges mask).DirectedEdge) :
+    ∃ original : graph.DirectedEdge,
+      original.source = directed.source ∧
+        original.target = directed.target ∧
+        retainedIndex mask original.index = directed.index ∧
+        mask[original.index]? = some true := by
+  have retainedLookup :
+      (retainEdgesByMask graph.edges mask)[directed.index]? =
+        some directed.edge := by
+    exact directed.lookup
+  rcases retainEdgesByMask_lookup_exists_original aligned retainedLookup with
+    ⟨originalIndex, originalLookup, kept, position⟩
+  let original : graph.DirectedEdge := {
+    index := originalIndex
+    edge := directed.edge
+    lookup := originalLookup
+    forward := directed.forward }
+  exact ⟨original, rfl, rfl, position, kept⟩
 
 end DirectedEdge
 
@@ -470,6 +552,44 @@ theorem retainEdges {graph : Graph} {mask : List Bool}
       · simp [List.map_append, indexEquation, retainedDirected,
           DirectedEdge.retain]
       · simp [List.map_append, targetEquation, retainedDirected]
+
+/-- Lift an edge-aware walk in a masked subgraph back to exact kept
+occurrences of the original graph. The compacted-index sequence and target
+sequence are preserved pointwise. -/
+theorem inflateRetained {graph : Graph} {mask : List Bool}
+    {start finish : Vertex}
+    {traversed : List (graph.retainEdges mask).DirectedEdge}
+    (walk : (graph.retainEdges mask).EdgeWalk start traversed finish)
+    (aligned : graph.edges.length = mask.length) :
+    ∃ originalTraversal : List graph.DirectedEdge,
+      graph.EdgeWalk start originalTraversal finish ∧
+        originalTraversal.map
+            (fun directed => retainedIndex mask directed.index) =
+          traversed.map DirectedEdge.index ∧
+        originalTraversal.map DirectedEdge.target =
+          traversed.map DirectedEdge.target ∧
+        ∀ directed ∈ originalTraversal,
+          mask[directed.index]? = some true := by
+  induction walk with
+  | refl =>
+      exact ⟨[], .refl _, rfl, rfl, by simp⟩
+  | @step start finish priorSteps prior directed starts finishes ih =>
+      rcases ih with
+        ⟨originalPrior, originalWalk, indexEquation, targetEquation,
+          priorKept⟩
+      rcases directed.inflateRetained_exists aligned with
+        ⟨original, sourceEquation, targetEdgeEquation, indexPosition,
+          originalKept⟩
+      refine ⟨originalPrior ++ [original], ?_, ?_, ?_, ?_⟩
+      · exact EdgeWalk.step originalWalk original
+          (sourceEquation.trans starts) (targetEdgeEquation.trans finishes)
+      · simp [List.map_append, indexEquation, indexPosition]
+      · simp [List.map_append, targetEquation, targetEdgeEquation]
+      · intro candidate membership
+        simp only [List.mem_append, List.mem_singleton] at membership
+        rcases membership with earlier | rfl
+        · exact priorKept candidate earlier
+        · exact originalKept
 
 def reverseTraversal {graph : Graph}
     (traversed : List graph.DirectedEdge) : List graph.DirectedEdge :=
@@ -1348,6 +1468,16 @@ theorem eq_of_target_eq {graph : Graph} (cycle : graph.EdgeSimpleCycle)
     (secondMembership : second ∈ cycle.traversed)
     (same : first.target = second.target) : first = second :=
   eq_of_map_eq_of_mem_of_nodup cycle.targets_nodup firstMembership
+    secondMembership same
+
+/-- Within a simple cycle, an exact occurrence index identifies the unique
+directed traversal value carrying it. -/
+theorem eq_of_index_eq {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    {first second : graph.DirectedEdge}
+    (firstMembership : first ∈ cycle.traversed)
+    (secondMembership : second ∈ cycle.traversed)
+    (same : first.index = second.index) : first = second :=
+  eq_of_map_eq_of_mem_of_nodup cycle.edgeIndicesNodup firstMembership
     secondMembership same
 
 /-- Consecutive traversal edges, including the wrap-around transition from the

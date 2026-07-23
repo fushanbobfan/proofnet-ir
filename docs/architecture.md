@@ -124,9 +124,18 @@ recognizers should be tested against this implementation before replacing it.
 unswitched occurrence multigraph. It validates exact simple-cycle traversals
 and cyclic local colors, and Lean proves it decides precisely the
 `CuspAcyclic` proposition used by the generalized-Yeo splitting development.
-The current candidate enumeration is itself exponential. The proved bridge is
-one-way (`DeclarativelyCorrect → CuspAcyclic`); no production-checker
-equivalence or improved asymptotic bound is inferred from this oracle.
+The current candidate enumeration is itself exponential. Exact retained-edge
+transport and structural producer ownership now prove the acyclicity bridge
+in both directions:
+
+```text
+StructurallyWellFormed →
+  (CuspAcyclic ↔ every occurrence-order switching is Acyclic)
+```
+
+This does not yet supply switching connectedness, so it is not a replacement
+for the production all-trees checker. No improved asymptotic bound is inferred
+from the exhaustive oracle.
 
 ## Persistent LeanProp bridge
 

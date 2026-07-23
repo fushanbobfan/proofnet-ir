@@ -70,7 +70,7 @@ name-level restatement of Yeo:
    proposition-level colored-cycle criterion. The projection and existence
    theorems prove that every stored par link supplies two exact indexed
    incidences aimed at its conclusion with that shared color.
-3. **Correctness bridge (complete).**
+3. **Acyclic correctness bridge (complete; tree bridge pending).**
    `DeclarativelyCorrect.cuspAcyclic` now proves cusp-acyclicity of the colored
    occurrence multigraph for every independent `ChoiceSelection`, not merely
    executable enumeration examples. The proof treats stored edge indices as
@@ -82,9 +82,15 @@ name-level restatement of Yeo:
    `AcyclicDecision.lean` additionally exposes the finite executable
    `isCuspAcyclic` oracle and proves
    `isCuspAcyclic = true ↔ CuspAcyclic`; checker acceptance is proved to imply
-   oracle acceptance. Candidate traversal enumeration is exponential, so this
-   is a differential specification. The reverse bridge needed to replace the
-   all-switchings checker is tracked separately and is not claimed here.
+   oracle acceptance. The converse acyclicity direction is now also
+   kernel-checked: a cycle in any retained occurrence switching lifts back to
+   exact full-edge indices; one-producer ownership and the switching mask make
+   that lifted cycle cusp-free. Thus structural well-formedness yields
+   `CuspAcyclic ↔ all occurrence-order switchings are Acyclic`, including
+   parallel equal-valued edges and the closing transition. Candidate traversal
+   enumeration is exponential, so this remains a differential specification.
+   The remaining reverse bridge is switching connectedness/tree correctness,
+   not acyclicity, and is tracked separately.
 4. **Finite maximality/Yeo (order foundation complete).** `EdgeSimplePath`,
    `CuspFreeContinuation`, and the strengthened `OrderingPath` now encode the
    simple open cusp-free continuation and universal path-separation condition.

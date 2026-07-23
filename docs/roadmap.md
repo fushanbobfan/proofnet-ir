@@ -354,7 +354,12 @@
   `isCuspAcyclic = true ↔ CuspAcyclic`, and prove every declaratively correct
   or reference-checker-accepted certificate passes it. This is the executable
   differential specification for the generalized-Yeo route, not yet a
-  replacement checker; the reverse correctness bridge remains open.
+  replacement checker.
+- [x] Prove the acyclicity half of the reverse bridge:
+  under structural well-formedness,
+  `CuspAcyclic ↔ every occurrence-order switching is Acyclic`, with exact
+  occurrence-index transport through switching masks and regressions covering
+  the public canonical net.
 - [x] Add a proof-bearing verifier for a supplied cut-free derivation that
   performs structural validation, inference/desequentialization, and
   non-factorial intrinsic identity checking without evaluating input
@@ -388,7 +393,9 @@
     below the current input-size envelope; do not infer a polynomial or linear
     guarantee from the bounded stress suite.
 - [ ] Prove the reverse bridge from structural well-formedness, a connected
-  reference switching, and `CuspAcyclic` to full switching correctness; then
+  reference switching, and `CuspAcyclic` to full switching correctness. The
+  all-switchings acyclicity component is complete; the remaining theorem must
+  derive connectedness/tree correctness without enumerating switchings. Then
   implement and verify a non-enumerative colored-cycle/contraction algorithm
   against both exhaustive oracles.
 

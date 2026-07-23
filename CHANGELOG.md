@@ -95,8 +95,16 @@
   proposition-level `CuspFreeTraversal`, `CuspFreeCycle`, witness, and
   `CuspAcyclic` contracts. Declarative/reference-checker correctness implies
   oracle acceptance. This is deliberately an exponential differential
-  specification; the reverse correctness bridge and non-enumerative
-  implementation remain open;
+  specification;
+- proved the exact acyclicity half of the reverse colored correctness bridge.
+  Masked walks and simple cycles now lift to their original stored occurrences;
+  structural producer ownership and one-choice-per-par masks rule out every
+  local and closing cusp in a retained cycle. Consequently, for every
+  structurally well-formed certificate,
+  `CuspAcyclic ↔ all occurrence-order switchings are Acyclic`. This theorem
+  distinguishes parallel equal-valued edges by list index. It does not yet
+  promote acyclicity to the connected tree property; the connectedness/
+  contraction bridge and a non-enumerative implementation remain open;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

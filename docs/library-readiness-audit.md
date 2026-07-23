@@ -113,6 +113,12 @@ part of the engineering and proof-identity gap.
    and the derived `isTreeViaAcyclic` is proved Boolean-equal to the existing
    tree checker. This closes the reference-decision gap but not the
    non-enumerative performance gap.
+   The colored criterion now additionally has an exact semantic acyclicity
+   converse: structural well-formedness proves
+   `CuspAcyclic ↔ every occurrence-order switching is Acyclic`, with retained
+   cycles lifted by exact edge occurrence rather than endpoint value. This is
+   not yet full checker equivalence because `IsTree` also requires
+   connectedness.
    The v0.9 development API now additionally provides
    `Certificate.verifyDerivation?`, which avoids both input-switching
    enumeration and vertex-permutation search when a caller supplies a
