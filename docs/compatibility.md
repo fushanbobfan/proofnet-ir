@@ -119,5 +119,5 @@ wire version or promise a compact canonical representative.
 A public API scheduled for removal will remain for at least one tagged minor
 release when technically possible. CI builds a path-based downstream consumer,
 clean consumers pinned to retained public releases, including the exact public
-`v0.7.0` tag. Schema fixtures, round trips, applicable migration tests, and the
-independent property audit are release gates.
+`v0.8.0` and `v0.7.0` tags. Schema fixtures, round trips, applicable migration
+tests, and the independent property audit are release gates.

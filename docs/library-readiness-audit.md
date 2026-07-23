@@ -1,11 +1,11 @@
 # Library-readiness audit
 
 Audit date: 2026-07-23
-Audited baseline: published v0.7.0 plus its tag-pinned downstream consumer
+Audited baseline: published v0.8.0 plus its tag-pinned downstream consumer
 
 ## Verdict
 
-ProofNet-IR v0.7.0 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.8.0 is a usable research library and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. v0.5.0 proves that any accepted
@@ -257,4 +257,5 @@ compatibility rules are published, performance limits are measured, and the
 matched algorithmic and model-backed experiments report their results whether
 positive or negative. Both controlled runs are now complete; the broader-
 logic/corpus, hard checking/sequentialization performance, adversarial
-large-key qualification, and final v0.8 tagged-consumer gates remain open.
+large-key qualification, and broader Lean/tactic integration remain open. The
+v0.8 release and exact-tag consumer gates are closed.

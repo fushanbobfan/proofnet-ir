@@ -1,12 +1,12 @@
-name = "proofnet-ir-v08-candidate-consumer-smoke"
+name = "proofnet-ir-v08-release-consumer-smoke"
 version = "0.0.0"
-defaultTargets = ["proofnet_ir_v08_candidate_consumer_smoke"]
+defaultTargets = ["proofnet_ir_v08_release_consumer_smoke"]
 
 [[require]]
 name = "proofnet-ir"
 git = "https://github.com/fushanbobfan/proofnet-ir.git"
-rev = "925855572b316376445eafa36e043596f49637bc"
+rev = "v0.8.0"
 
 [[lean_exe]]
-name = "proofnet_ir_v08_candidate_consumer_smoke"
+name = "proofnet_ir_v08_release_consumer_smoke"
 root = "Main"

@@ -2,7 +2,7 @@ import ProofNetIR
 
 open ProofNetIR
 
-namespace ProofNetIRV08CandidateConsumerSmoke
+namespace ProofNetIRV08ReleaseConsumerSmoke
 
 def rightNestedFormula : Nat → Formula
   | 0 => .atom "remote-intrinsic-base" true
@@ -67,12 +67,12 @@ def run : IO Unit := do
       reordered.matchesIntrinsicCanonicalKey generatedKey &&
       parsedKey.isOk &&
       migratedKey.isOk then
-    IO.println "ProofNetIR pinned-v0.8 candidate consumer smoke test passed"
+    IO.println "ProofNetIR pinned-v0.8.0 consumer smoke test passed"
   else
     throw <| IO.userError
-      "ProofNetIR pinned-v0.8 candidate consumer smoke test failed"
+      "ProofNetIR pinned-v0.8.0 consumer smoke test failed"
 
-end ProofNetIRV08CandidateConsumerSmoke
+end ProofNetIRV08ReleaseConsumerSmoke
 
 def main : IO Unit :=
-  ProofNetIRV08CandidateConsumerSmoke.run
+  ProofNetIRV08ReleaseConsumerSmoke.run

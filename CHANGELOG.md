@@ -2,9 +2,10 @@
 
 ## Unreleased
 
-- published `v0.7.0` and changed the clean external consumer from the candidate
-  commit to the exact public tag; Lake resolves it to release commit
-  `dab12d48d1af62daa5c2fe96cc7fdff4b86e16eb`;
+- published `v0.8.0` and changed the clean external consumer from candidate
+  commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
+  Lake resolves that tag to release commit
+  `09a21c328070d53e9fe26b09ed13d2650ab756db`;
 
 ## v0.8.0 - Intrinsic non-factorial canonical key
 

@@ -328,8 +328,8 @@
 - [x] Qualify the direct polynomial implementation beyond the old ceiling:
   four structural identity cases through 145 links complete under a separate
   five-second budget on the development machine.
-- [ ] Publish `v0.8.0`, pin a clean consumer to the exact public tag, and retain
-  a successful post-tag CI receipt.
+- [x] Publish `v0.8.0`, verify both automatic tag-push and explicit
+  `release_ref=v0.8.0` CI, and pin a clean consumer to the exact public tag.
 
 ## Later research
 
