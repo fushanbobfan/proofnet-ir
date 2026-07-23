@@ -58,6 +58,9 @@ jobs:
       - name: Build as a downstream Lake dependency
         working-directory: consumer-smoke
         run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_consumer_smoke
+      - name: Consume the pinned v0.9.0 release candidate
+        working-directory: consumer-v09-candidate-smoke
+        run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_v09_release_consumer_smoke
       - name: Consume the pinned public v0.8.0 release
         working-directory: consumer-v08-candidate-smoke
         run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_v08_release_consumer_smoke
