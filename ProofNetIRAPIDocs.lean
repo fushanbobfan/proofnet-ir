@@ -242,6 +242,7 @@ def sections : List Section := [
       `ProofNetIR.UnificationState.toMarking_tokenCount,
       `ProofNetIR.UnificationState.toMarking_mark,
       `ProofNetIR.UnificationState.toMarking_sameThread,
+      `ProofNetIR.UnificationState.Abstractable.tokenAt?_bound,
       `ProofNetIR.UnificationScanStats,
       `ProofNetIR.UnificationCandidateResult,
       `ProofNetIR.UnificationCandidateResult.linkVisitsBound,

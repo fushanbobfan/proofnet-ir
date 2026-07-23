@@ -170,12 +170,17 @@ def SameThread (state : UnificationState) (first second : Nat) : Prop :=
 for every reachable state. -/
 structure Abstractable (certificate : Certificate)
     (state : UnificationState) : Prop where
+  markArraySize :
+    state.marks.size = certificate.formulas.size
   markedVertexBound :
     ∀ {vertex token}, state.assignedToken? vertex = some token →
       vertex < certificate.formulas.size
   markedTokenBound :
     ∀ {vertex token}, state.assignedToken? vertex = some token →
       token < state.parents.size
+  representativeBound :
+    ∀ {token}, token < state.parents.size →
+      state.representative token < state.parents.size
 
 /-- Forget arrays, parsed derivation components, counters, and worklist data,
 retaining exactly the marking and thread partition observed by the independent
@@ -230,6 +235,34 @@ def tokenAt? (state : UnificationState) (vertex : Vertex) : Option Nat := do
   let token ← assigned
   pure (state.representative token)
 
+/-- Every representative yielded by a marked occurrence in an abstractable
+executable state remains inside the allocated union-find token range. -/
+theorem Abstractable.tokenAt?_bound
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {vertex token : Nat}
+    (yielded : state.tokenAt? vertex = some token) :
+    token < state.parents.size := by
+  unfold tokenAt? at yielded
+  cases lookup : state.marks[vertex]? with
+  | none =>
+      rw [lookup] at yielded
+      contradiction
+  | some assigned =>
+      rw [lookup] at yielded
+      cases assigned with
+      | none =>
+          contradiction
+      | some rawToken =>
+          injection yielded with representativeEquation
+          subst token
+          apply abstractable.representativeBound
+          apply abstractable.markedTokenBound
+            (vertex := vertex) (token := rawToken)
+          unfold assignedToken?
+          rw [lookup]
+          rfl
+
 /-- Live parsed component for a representative token. -/
 def componentAt? (state : UnificationState) (token : Nat) :
     Option UnificationComponent := do
@@ -260,10 +293,23 @@ private def initialUnificationState (certificate : Certificate) :
 private theorem initialUnificationState_abstractable
     (certificate : Certificate) :
     certificate.initialUnificationState.Abstractable certificate := by
-  constructor <;> intro vertex token marked
-  <;> simp [initialUnificationState, UnificationState.assignedToken?,
-    Array.getElem?_replicate] at marked
-  <;> split at marked <;> simp at marked
+  refine {
+    markArraySize := by
+      simp [initialUnificationState]
+    markedVertexBound := ?_
+    markedTokenBound := ?_
+    representativeBound := ?_
+  }
+  · intro vertex token marked
+    simp [initialUnificationState, UnificationState.assignedToken?,
+      Array.getElem?_replicate] at marked
+    split at marked <;> simp at marked
+  · intro vertex token marked
+    simp [initialUnificationState, UnificationState.assignedToken?,
+      Array.getElem?_replicate] at marked
+    split at marked <;> simp at marked
+  · intro token bound
+    simp [initialUnificationState] at bound
 
 private def unificationError (certificate : Certificate)
     (code : UnificationErrorCode) (message : String) :

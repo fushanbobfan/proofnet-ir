@@ -113,6 +113,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.UnificationState.toMarking_tokenCount",
     "ProofNetIR.UnificationState.toMarking_mark",
     "ProofNetIR.UnificationState.toMarking_sameThread",
+    "ProofNetIR.UnificationState.Abstractable.tokenAt?_bound",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",

@@ -34,6 +34,14 @@ example (certificate : ProofNetIR.Certificate)
       state.representative first = state.representative second :=
   state.toMarking_sameThread certificate abstractable first second
 
+example (certificate : ProofNetIR.Certificate)
+    (state : ProofNetIR.UnificationState)
+    (abstractable : state.Abstractable certificate)
+    {vertex token : Nat}
+    (yielded : state.tokenAt? vertex = some token) :
+    token < state.parents.size :=
+  abstractable.tokenAt?_bound yielded
+
 open ProofNetIR
 
 namespace ProofNetIRTests

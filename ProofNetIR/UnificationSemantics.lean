@@ -82,7 +82,7 @@ inductive UnificationStep (certificate : Certificate) :
   | forward
       {state next : UnificationMarking certificate}
       {left right conclusion : Vertex}
-      {leftToken rightToken : Nat}
+      {leftToken rightToken outputToken : Nat}
       (linkMembership :
         Link.par left right conclusion ∈ certificate.links)
       (conclusionUnmarked : state.mark conclusion = none)
@@ -90,18 +90,21 @@ inductive UnificationStep (certificate : Certificate) :
       (rightMarked : state.mark right = some rightToken)
       (premisesSynchronized :
         state.sameThread leftToken rightToken)
+      (outputTokenAllocated : outputToken < state.tokenCount)
+      (outputTokenSynchronized :
+        state.sameThread outputToken leftToken)
       (tokenCount :
         next.tokenCount = state.tokenCount)
       (marking :
         next.mark =
-          UnificationMarking.setMark state.mark conclusion leftToken)
+          UnificationMarking.setMark state.mark conclusion outputToken)
       (threads :
         next.sameThread = state.sameThread) :
       UnificationStep certificate state next
   | unify
       {state next : UnificationMarking certificate}
       {left right conclusion : Vertex}
-      {leftToken rightToken : Nat}
+      {leftToken rightToken outputToken : Nat}
       (linkMembership :
         Link.tensor left right conclusion ∈ certificate.links)
       (conclusionUnmarked : state.mark conclusion = none)
@@ -109,11 +112,15 @@ inductive UnificationStep (certificate : Certificate) :
       (rightMarked : state.mark right = some rightToken)
       (premisesDistinct :
         ¬state.sameThread leftToken rightToken)
+      (outputTokenAllocated : outputToken < state.tokenCount)
+      (outputTokenFromPremiseThread :
+        state.sameThread outputToken leftToken ∨
+          state.sameThread outputToken rightToken)
       (tokenCount :
         next.tokenCount = state.tokenCount)
       (marking :
         next.mark =
-          UnificationMarking.setMark state.mark conclusion leftToken)
+          UnificationMarking.setMark state.mark conclusion outputToken)
       (threads :
         ∀ first second,
           next.sameThread first second ↔
@@ -164,13 +171,15 @@ theorem marks_fired_conclusion {certificate : Certificate}
       · simp [marking, UnificationMarking.setMark]
       · simp [marking, UnificationMarking.setMark]
   | forward membership conclusionUnmarked leftMarked rightMarked
-      premisesSynchronized tokenCount marking threads =>
+      premisesSynchronized outputTokenAllocated outputTokenSynchronized
+      tokenCount marking threads =>
       right
       left
       refine ⟨_, _, _, membership, ?_⟩
       simp [marking, UnificationMarking.setMark]
   | unify membership conclusionUnmarked leftMarked rightMarked
-      premisesDistinct tokenCount marking threads =>
+      premisesDistinct outputTokenAllocated outputTokenFromPremiseThread
+      tokenCount marking threads =>
       right
       right
       refine ⟨_, _, _, membership, ?_⟩
@@ -186,9 +195,9 @@ theorem tokenCount_mono {certificate : Certificate}
   | start _ _ _ tokenCount _ _ =>
       rw [tokenCount]
       exact Nat.le_add_right _ _
-  | forward _ _ _ _ _ tokenCount _ _ =>
+  | forward _ _ _ _ _ _ _ tokenCount _ _ =>
       exact Nat.le_of_eq tokenCount.symm
-  | unify _ _ _ _ _ tokenCount _ _ =>
+  | unify _ _ _ _ _ _ _ tokenCount _ _ =>
       exact Nat.le_of_eq tokenCount.symm
 
 end UnificationStep

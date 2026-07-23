@@ -2601,6 +2601,19 @@ ProofNetIR.UnificationState.toMarking_sameThread : ∀ (state : ProofNetIR.Unifi
     state.representative first = state.representative second
 ```
 
+### `ProofNetIR.UnificationState.Abstractable.tokenAt?_bound`
+
+Kind: theorem.
+
+Every representative yielded by a marked occurrence in an abstractable
+executable state remains inside the allocated union-find token range.
+
+```lean
+ProofNetIR.UnificationState.Abstractable.tokenAt?_bound : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate state →
+    ∀ {vertex token : Nat}, state.tokenAt? vertex = some token → token < state.parents.size
+```
+
 ### `ProofNetIR.UnificationScanStats`
 
 Kind: inductive type.

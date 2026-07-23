@@ -14,13 +14,21 @@
   generated API and exact axiom audit include this new boundary. Executable
   state abstraction/refinement remains the next theorem rather than being
   assumed from matching constructor names;
+- distinguished raw token identities from semantic thread equivalence in the
+  abstract forward/unify rules: an executable representative token may label
+  a new conclusion when it belongs to the required premise thread, rather
+  than being numerically identical to the premise's originally assigned
+  token;
 - added the executable-state abstraction boundary:
-  `UnificationState.Abstractable` states occurrence/token bounds,
+  `UnificationState.Abstractable` states exact mark-array size plus
+  occurrence/token and representative bounds,
   `toMarking` forgets arrays, derivation components, counters, and scheduler
   data, and three axiom-free projection theorems lock raw marks, parent-count
   allocation, and representative equality to the independent semantics. The
-  all-unmarked initial state satisfies the bounds internally; preservation by
-  start/forward/unify and refinement into `UnificationStep` remain open;
+  all-unmarked initial state satisfies the bounds internally, and an
+  axiom-free theorem shows every yielded representative is allocated;
+  preservation by start/forward/unify and refinement into `UnificationStep`
+  remain open;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 
