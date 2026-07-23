@@ -121,7 +121,9 @@ Lean proves that the output contains no such redex, reduced derivations are
 fixed points, normalization is idempotent, the persistent structural-node
 count does not increase, the linear-axiom count is unchanged, and `toProof`
 is preserved pointwise. This is not a claim that all intuitionistic proof
-terms are canonical modulo every commuting conversion.
+terms are canonical modulo every commuting conversion. The normalizer is a
+noncomputable proof-construction API over proposition-indexed derivations;
+runtime checking and elaboration of untrusted schema values remain separate.
 
 The proposition-independent `LeanProp.Schema` layer codes atoms, conjunction,
 and implication. `Schema.Raw.Derivation` is the unindexed boundary for

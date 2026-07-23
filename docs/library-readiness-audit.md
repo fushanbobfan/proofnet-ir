@@ -1,11 +1,11 @@
 # Library-readiness audit
 
-Audit date: 2026-07-22
-Audited baseline: v0.5.2 release plus v0.6 development
+Audit date: 2026-07-23
+Audited baseline: v0.6.0 release candidate
 
 ## Verdict
 
-ProofNet-IR v0.5.2 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.6.0 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. v0.5.0 proves that any accepted
@@ -90,7 +90,11 @@ part of the engineering and proof-identity gap.
    universal atom-valuation soundness theorem, unindexed raw checker, positive
    erasure/recovery theorem, strict versioned JSON/checker-gated parser, and
    1,000 malformed cases with exact raw/wire diagnostic expectations are now
-   present. Equality and quantifier terms remain outside the wire fragment.
+   present. A typed structural normalizer recursively removes immediate
+   persistent contraction-over-weakening redexes and has proved reducedness,
+   fixed-point, idempotence, size, linear-count, and pointwise interpretation
+   laws. It is noncomputable and does not normalize raw wire schemas. Equality
+   and quantifier terms remain outside the wire fragment.
 2. The stronger `GenerallySequentializable` result and the public executable
    totality theorem are complete for the
    documented unit-free, cut-free MLL representation. Remaining logical scope
@@ -125,8 +129,9 @@ part of the engineering and proof-identity gap.
 - separate path-dependency and clean pinned-v0.5.0 Lake consumers now pass;
   the path dependency executes the v0.5 sequentializer and consumes its
   equivalence theorem, while the pinned consumer protects the v0.5.0 API. A
-  third clean consumer installs the exact public v0.6-development Git commit
-  and typechecks the retained-boundary, packed-witness, and soundness APIs;
+  third clean consumer installs the exact public v0.6 candidate Git commit
+  and typechecks the retained-boundary, packed-witness, soundness, and
+  persistent-normalization APIs;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
 - CI now parses `#print axioms` for twenty-five public MLL logical-boundary theorems and
@@ -149,8 +154,9 @@ part of the engineering and proof-identity gap.
   mutation gate plus JSON Schema fixtures and a SHA-256 manifest over 1,600
   Lean-emitted labeled records; every accepted wire value now retains an
   indexed derivation and exposes universal `sound`. A clean consumer pins the
-  exact public v0.6-development commit and typechecks that API, but no v0.6 tag
-  has been published or release-pinned yet;
+  exact public v0.6 candidate commit and typechecks that API; the final release
+  gate is a clean rebuild after changing the dependency to the public v0.6.0
+  tag;
 - a 291-case depth-2/3/4 native CI workload now has a 45-second catastrophic
   regression budget; it explicitly does not establish favorable asymptotics,
   and the measured depth-4 cost remains a library-readiness limitation;

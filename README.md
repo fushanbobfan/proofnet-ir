@@ -3,9 +3,10 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.5.2` (proved internal repeated-label identity pruning and
-the completed, failure-reporting model-backed audit, in addition to v0.5.1
-derivation soundness and exact pairwise identity). See
+Current release: `v0.6.0` (a conservative persistent/linear LeanProp bridge,
+checker-gated typed wire elaboration, proof-relevant exchange completeness,
+and scoped persistent structural normalization, without changing the MLL
+certificate semantics). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -123,7 +124,9 @@ The repository currently contains:
   directions. A typed normalizer recursively removes every immediate
   persistent contraction-over-weakening redex; Lean proves the result reduced,
   the operation idempotent and size-nonincreasing, and the linear-resource
-  count and proof interpretation preserved;
+  count and proof interpretation preserved. This is a noncomputable
+  proof-construction API over proposition-indexed derivations, not a runtime
+  raw-schema normalizer;
 - a proposition-independent schema layer for generated atoms/conjunctions/
   implications. Its 600-template deterministic corpus covers persistent
   duplication/discard, linear pairing/exchange/modus ponens, and projection;
@@ -273,7 +276,7 @@ ProofNetIRModelExperimentCorpus.lean held-out model-task base emitter
 ProofNetIRExperimentVerify.lean Lean checker/sequentializer batch boundary
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
-consumer-v06-candidate-smoke/  clean consumer pinned to public v0.6-dev commit
+consumer-v06-candidate-smoke/  clean consumer for the public v0.6 API boundary
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
@@ -323,6 +326,8 @@ evaluation is specified in
 The stricter post-v0.2 coverage and reuse assessments are in
 [docs/source-coverage-audit.md](docs/source-coverage-audit.md) and
 [docs/library-readiness-audit.md](docs/library-readiness-audit.md). The
+scoped v0.6 claims and release evidence are in
+[docs/v0.6-release-audit.md](docs/v0.6-release-audit.md). The
 external-consumer walkthrough is in [docs/tutorial.md](docs/tutorial.md), and
 the kernel-environment-generated declaration surface is in
 [docs/api-reference.md](docs/api-reference.md). The

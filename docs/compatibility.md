@@ -25,12 +25,14 @@ explicit persistent structural rules, exchange witnesses, and linear rule
 syntax. It is not a certificate wire version and does not reinterpret MLL
 tensor/par. Later LeanProp payload changes require a new explicit marker and
 migration tests; typed equality and quantifier terms are outside v0.1.
-The v0.6-development `CheckedDerivation` API is intentionally typed: successful
+The v0.6.0 `CheckedDerivation` API is intentionally typed: successful
 checking retains an indexed derivation and exposes `toPacked`/`sound`. This API
-is not compatibility-stable until the first v0.6 tag is published.
+is additive to the MLL certificate API and is compatibility-stable within the
+v0.6 minor line under the policy above.
 The additive `normalizePersistentStructural` API is under the same
-v0.6-development stability boundary; its current theorem scope is the explicit
-contraction-over-weakening normal form, not arbitrary proof-term equivalence.
+v0.6 stability boundary; its theorem scope is the explicit
+contraction-over-weakening normal form, not arbitrary proof-term equivalence,
+and the function is not a runtime raw-schema transformer.
 
 The generic parser accepts every supported version. Version-specific parsers
 remain available for migration boundaries. The v0.2-to-v0.3 migration parses
@@ -58,6 +60,13 @@ an identity, accepted-certificate, or wire-format change. The model-experiment
 runner, amendment, raw responses, results, and report are research artifacts
 and do not alter the Lean or JSON API.
 
+Release v0.6.0 adds the separate persistent/linear LeanProp derivation,
+`leanprop-schema-0.1` checked wire boundary, typed elaboration and universal
+soundness API, proof-relevant exchange completeness, and scoped persistent
+structural normalization. It does not change MLL certificate acceptance,
+v0.2/v0.3 serialization, or `ProofNetEquivalent`, and it does not identify
+ordinary Lean conjunction/implication with MLL tensor/par.
+
 Release v0.5.0 adds
 `Certificate.sequentialize`, `ExecutableSequentializationResult`, and
 `SequentializationError` without changing either wire payload. These APIs are
@@ -75,7 +84,8 @@ wire version or promise a compact canonical representative.
 A public API scheduled for removal will remain for at least one tagged minor
 release when technically possible. CI builds a path-based downstream consumer,
 a clean consumer pinned to the latest public release, and a separate clean
-consumer pinned to the exact public v0.6-development commit. The development
-pin proves remote consumability but does not replace the required v0.6 release
-tag. Schema fixtures, round trips, migration tests, and the independent
-property audit are release gates.
+consumer pinned to the exact public v0.6 API revision. The final v0.6 release
+gate additionally changes that consumer to the public `v0.6.0` tag and rebuilds
+it before the GitHub release is created. Schema fixtures, round trips,
+applicable migration tests, and the independent property audit are release
+gates.
