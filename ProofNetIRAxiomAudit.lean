@@ -21,6 +21,12 @@ expansion.
 #print axioms Graph.isAcyclic_eq_true_iff
 #print axioms Graph.isTreeViaAcyclic_eq_true_iff
 #print axioms Graph.isTreeViaAcyclic_eq_isTree
+#print axioms Certificate.isCuspFreeTraversal_eq_true_iff
+#print axioms Certificate.isCuspFreeCycleTraversal_eq_true_iff
+#print axioms Certificate.hasCuspFreeEdgeSimpleCycle_eq_true_iff
+#print axioms Certificate.isCuspAcyclic_eq_true_iff
+#print axioms Certificate.DeclarativelyCorrect.isCuspAcyclic
+#print axioms Certificate.isCuspAcyclic_of_check
 #print axioms CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #print axioms CutFreeDerivation.build?_structurallyWellFormed
 #print axioms CutFreeDerivation.build?_switchingCorrect

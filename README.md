@@ -18,8 +18,10 @@ forest-count theorem is now complete, yielding
 decision procedure now decides that exact `Acyclic` semantics and yields a
 second tree checker proved Boolean-equal to the existing
 reachability-plus-count implementation. The new path is an exponential
-specification oracle; an optimized correctness checker remains explicit work
-in progress.
+specification oracle. A second exhaustive oracle now decides the exact colored
+`CuspAcyclic` proposition used by the generalized-Yeo splitting proof, and
+reference-checker acceptance is proved to imply its acceptance. The reverse
+bridge and a non-enumerative implementation remain explicit work in progress.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -60,6 +62,11 @@ The repository currently contains:
   for exact occurrence-aware cycles, plus `Graph.isTreeViaAcyclic`, proved
   Boolean-equal to the existing `Graph.isTree`; both are deliberately
   specification paths rather than scalability claims;
+- an exhaustive colored-cycle oracle `Certificate.isCuspAcyclic`, proved
+  sound and complete for the proposition-level `CuspAcyclic` criterion used
+  by the splitting theorem; every reference-checker-accepted certificate
+  passes it, while the converse correctness bridge and an optimized
+  non-enumerative implementation remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

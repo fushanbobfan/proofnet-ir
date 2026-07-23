@@ -120,6 +120,14 @@ right reference implementation because it is simple, transparent, and useful
 as an oracle for later linear-time or contraction-based checkers. Optimized
 recognizers should be tested against this implementation before replacing it.
 
+`Certificate.isCuspAcyclic` is a second reference oracle over the single
+unswitched occurrence multigraph. It validates exact simple-cycle traversals
+and cyclic local colors, and Lean proves it decides precisely the
+`CuspAcyclic` proposition used by the generalized-Yeo splitting development.
+The current candidate enumeration is itself exponential. The proved bridge is
+one-way (`DeclarativelyCorrect → CuspAcyclic`); no production-checker
+equivalence or improved asymptotic bound is inferred from this oracle.
+
 ## Persistent LeanProp bridge
 
 The v0.6-development bridge is a separate typed calculus, not an extension of

@@ -350,6 +350,11 @@
   `isTreeViaAcyclic` Boolean-equal to the existing
   reachability-plus-edge-count `isTree` checker. This remains an exponential
   specification oracle.
+- [x] Introduce an exhaustive certified colored-cycle oracle, prove
+  `isCuspAcyclic = true ↔ CuspAcyclic`, and prove every declaratively correct
+  or reference-checker-accepted certificate passes it. This is the executable
+  differential specification for the generalized-Yeo route, not yet a
+  replacement checker; the reverse correctness bridge remains open.
 - [x] Add a proof-bearing verifier for a supplied cut-free derivation that
   performs structural validation, inference/desequentialization, and
   non-factorial intrinsic identity checking without evaluating input
@@ -382,6 +387,10 @@
     backtracking and repeated-label enumeration, or add a step/deadline budget
     below the current input-size envelope; do not infer a polynomial or linear
     guarantee from the bounded stress suite.
+- [ ] Prove the reverse bridge from structural well-formedness, a connected
+  reference switching, and `CuspAcyclic` to full switching correctness; then
+  implement and verify a non-enumerative colored-cycle/contraction algorithm
+  against both exhaustive oracles.
 
 ## Later research
 

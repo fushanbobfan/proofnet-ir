@@ -82,6 +82,14 @@
   the reference semantics, and lies in the complete unbounded decision's
   accepted set. Limit and heuristic errors remain explicitly inconclusive;
   the clean downstream consumer compiles and executes the bounded API;
+- added an exhaustive executable colored-cycle oracle over exact full-graph
+  edge occurrences. Lean proves its local traversal test, cyclic cusp test,
+  witness search, and `Certificate.isCuspAcyclic` decision equivalent to the
+  proposition-level `CuspFreeTraversal`, `CuspFreeCycle`, witness, and
+  `CuspAcyclic` contracts. Declarative/reference-checker correctness implies
+  oracle acceptance. This is deliberately an exponential differential
+  specification; the reverse correctness bridge and non-enumerative
+  implementation remain open;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

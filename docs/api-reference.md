@@ -404,6 +404,134 @@ acyclicity rather than silently collapsed to a simple graph.
 ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic : ∀ (graph : ProofNetIR.Graph), graph.IsTree ↔ graph.Bounded ∧ graph.Connected ∧ graph.Acyclic
 ```
 
+### `ProofNetIR.Certificate.CuspAcyclic`
+
+Kind: definition.
+
+Proposition-level colored acyclicity used by the splitting theorem: there
+is no nonempty simple cycle whose every local transition avoids a cusp.
+
+```lean
+ProofNetIR.Certificate.CuspAcyclic : ProofNetIR.Certificate → Prop
+```
+
+### `ProofNetIR.Certificate.isCuspFreeTraversal`
+
+Kind: definition.
+
+Executable local test for a cusp-free directed-edge traversal. This is the
+Boolean counterpart of `CuspFreeTraversal`; exact edge occurrences and their
+orientations are retained in the input type.
+
+```lean
+ProofNetIR.Certificate.isCuspFreeTraversal : (certificate : ProofNetIR.Certificate) → List certificate.fullGraph.DirectedEdge → Bool
+```
+
+### `ProofNetIR.Certificate.isCuspFreeTraversal_eq_true_iff`
+
+Kind: theorem.
+
+The executable local traversal test decides the proposition-level
+colored-transition contract exactly.
+
+```lean
+ProofNetIR.Certificate.isCuspFreeTraversal_eq_true_iff : ∀ (certificate : ProofNetIR.Certificate) (traversed : List certificate.fullGraph.DirectedEdge),
+  certificate.isCuspFreeTraversal traversed = true ↔ certificate.CuspFreeTraversal traversed
+```
+
+### `ProofNetIR.Certificate.isCuspFreeCycleTraversal`
+
+Kind: definition.
+
+Executable cyclic cusp-freedom. Besides checking every internal
+transition, it checks the transition from the last edge back to the first.
+
+```lean
+ProofNetIR.Certificate.isCuspFreeCycleTraversal : (certificate : ProofNetIR.Certificate) → List certificate.fullGraph.DirectedEdge → Bool
+```
+
+### `ProofNetIR.Certificate.isCuspFreeCycleTraversal_eq_true_iff`
+
+Kind: theorem.
+
+On a proved exact simple cycle, the executable cyclic test is equivalent
+to the proposition used by the generalized-Yeo development.
+
+```lean
+ProofNetIR.Certificate.isCuspFreeCycleTraversal_eq_true_iff : ∀ (certificate : ProofNetIR.Certificate) (cycle : certificate.fullGraph.EdgeSimpleCycle),
+  certificate.isCuspFreeCycleTraversal cycle.traversed = true ↔ certificate.CuspFreeCycle cycle
+```
+
+### `ProofNetIR.Certificate.hasCuspFreeEdgeSimpleCycle`
+
+Kind: definition.
+
+Exhaustive search for an exact simple cycle whose cyclic transitions are
+all cusp-free. This is a finite specification oracle, not the intended
+optimized correctness algorithm.
+
+```lean
+ProofNetIR.Certificate.hasCuspFreeEdgeSimpleCycle : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.hasCuspFreeEdgeSimpleCycle_eq_true_iff`
+
+Kind: theorem.
+
+Exhaustive colored-cycle search returns true exactly when the
+proposition-level witness used by `CuspAcyclic` exists.
+
+```lean
+ProofNetIR.Certificate.hasCuspFreeEdgeSimpleCycle_eq_true_iff : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.hasCuspFreeEdgeSimpleCycle = true ↔ ∃ cycle, certificate.CuspFreeCycle cycle
+```
+
+### `ProofNetIR.Certificate.isCuspAcyclic`
+
+Kind: definition.
+
+Certified finite decision procedure for the colored acyclicity proposition
+used by the splitting theorem. Candidate enumeration is exponential and this
+definition is deliberately a differential oracle.
+
+```lean
+ProofNetIR.Certificate.isCuspAcyclic : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.isCuspAcyclic_eq_true_iff`
+
+Kind: theorem.
+
+The exhaustive Boolean colored-cycle oracle exactly decides
+`CuspAcyclic`.
+
+```lean
+ProofNetIR.Certificate.isCuspAcyclic_eq_true_iff : ∀ (certificate : ProofNetIR.Certificate), certificate.isCuspAcyclic = true ↔ certificate.CuspAcyclic
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.isCuspAcyclic`
+
+Kind: theorem.
+
+Every declaratively correct certificate is accepted by the independently
+executable colored-cycle oracle.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.isCuspAcyclic : ∀ {certificate : ProofNetIR.Certificate}, certificate.DeclarativelyCorrect → certificate.isCuspAcyclic = true
+```
+
+### `ProofNetIR.Certificate.isCuspAcyclic_of_check`
+
+Kind: theorem.
+
+Checker acceptance implies acceptance by the colored-cycle oracle. This is
+the first differential bridge; the converse requires the separately audited
+switching-connectedness/tree argument.
+
+```lean
+ProofNetIR.Certificate.isCuspAcyclic_of_check : ∀ (certificate : ProofNetIR.Certificate), certificate.check = true → certificate.isCuspAcyclic = true
+```
+
 ## First-order derivations
 
 ### `ProofNetIR.CutFreeDerivation`

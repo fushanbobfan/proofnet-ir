@@ -79,6 +79,12 @@ name-level restatement of Yeo:
    preserves every requested cycle occurrence, transports the cycle through
    mask compaction, and contradicts the selected switching's `IsTree` theorem.
    This includes parallel equal-valued edges and the cycle's closing cusp.
+   `AcyclicDecision.lean` additionally exposes the finite executable
+   `isCuspAcyclic` oracle and proves
+   `isCuspAcyclic = true ↔ CuspAcyclic`; checker acceptance is proved to imply
+   oracle acceptance. Candidate traversal enumeration is exponential, so this
+   is a differential specification. The reverse bridge needed to replace the
+   all-switchings checker is tracked separately and is not claimed here.
 4. **Finite maximality/Yeo (order foundation complete).** `EdgeSimplePath`,
    `CuspFreeContinuation`, and the strengthened `OrderingPath` now encode the
    simple open cusp-free continuation and universal path-separation condition.

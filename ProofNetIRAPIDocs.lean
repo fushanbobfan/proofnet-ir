@@ -57,7 +57,18 @@ def sections : List Section := [
       `ProofNetIR.Graph.IsTree,
       `ProofNetIR.Graph.isTree_iff_isTree,
       `ProofNetIR.Graph.IsTree.acyclic,
-      `ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic
+      `ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic,
+      `ProofNetIR.Certificate.CuspAcyclic,
+      `ProofNetIR.Certificate.isCuspFreeTraversal,
+      `ProofNetIR.Certificate.isCuspFreeTraversal_eq_true_iff,
+      `ProofNetIR.Certificate.isCuspFreeCycleTraversal,
+      `ProofNetIR.Certificate.isCuspFreeCycleTraversal_eq_true_iff,
+      `ProofNetIR.Certificate.hasCuspFreeEdgeSimpleCycle,
+      `ProofNetIR.Certificate.hasCuspFreeEdgeSimpleCycle_eq_true_iff,
+      `ProofNetIR.Certificate.isCuspAcyclic,
+      `ProofNetIR.Certificate.isCuspAcyclic_eq_true_iff,
+      `ProofNetIR.Certificate.DeclarativelyCorrect.isCuspAcyclic,
+      `ProofNetIR.Certificate.isCuspAcyclic_of_check
     ]
   },
   {

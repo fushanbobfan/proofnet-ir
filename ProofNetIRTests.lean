@@ -580,6 +580,12 @@ example : canonical.Cusp canonicalParLeftIn canonicalParRightIn.reverse := by
 example : canonical.Cusp canonicalParRightIn canonicalParLeftIn.reverse :=
   (canonical.cusp_reverse_iff canonicalParLeftIn
     canonicalParRightIn.reverse).mp (by rfl)
+example : canonical.isCuspFreeTraversal
+    [canonicalParLeftIn, canonicalParRightIn.reverse] = false := by
+  native_decide
+example : canonical.isCuspFreeTraversal
+    [canonicalParLeftIn] = true := by
+  native_decide
 example : canonical.cuspCount
     [canonicalParLeftIn, canonicalParRightIn.reverse] = 1 := by
   native_decide
@@ -632,6 +638,10 @@ example : canonical.DeclarativelyCorrect :=
   canonical.check_sound_declarative (by native_decide)
 example : canonical.CuspAcyclic :=
   (canonical.check_sound_declarative (by native_decide)).cuspAcyclic
+example : canonical.isCuspAcyclic = true :=
+  canonical.isCuspAcyclic_of_check (by native_decide)
+example : canonical.isCuspAcyclic = true ↔ canonical.CuspAcyclic :=
+  canonical.isCuspAcyclic_eq_true_iff
 example : canonical.check = true ↔ canonical.DeclarativelyCorrect :=
   canonical.check_iff_declarativelyCorrect
 example : canonical.FuelCorrect :=
@@ -1481,6 +1491,19 @@ def disconnectedForestGraph : Graph where
     { first := 0, second := 1 },
     { first := 2, second := 3 }
   ]
+
+/-- Three uniquely colored axiom occurrences form a cusp-free triangle. The
+certificate is intentionally not structurally well formed: this fixture tests
+the colored-cycle oracle independently of certificate acceptance. -/
+def cuspCycleCertificate : Certificate where
+  formulas := #[p, q, pDual]
+  links := [.axiom 0 1, .axiom 1 2, .axiom 2 0]
+  conclusions := [0, 1, 2]
+
+example : cuspCycleCertificate.hasCuspFreeEdgeSimpleCycle = true := by
+  native_decide
+example : cuspCycleCertificate.isCuspAcyclic = false := by
+  native_decide
 
 def cyclicDirected01 : cyclicGraph.DirectedEdge where
   index := 0

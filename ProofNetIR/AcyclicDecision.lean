@@ -356,4 +356,141 @@ theorem isTreeViaAcyclic_eq_isTree (graph : Graph) :
 
 end Graph
 
+namespace Certificate
+
+/-- Executable local test for a cusp-free directed-edge traversal. This is the
+Boolean counterpart of `CuspFreeTraversal`; exact edge occurrences and their
+orientations are retained in the input type. -/
+def isCuspFreeTraversal (certificate : Certificate) :
+    List certificate.fullGraph.DirectedEdge → Bool
+  | [] => true
+  | [_] => true
+  | incoming :: outgoing :: rest =>
+      !decide (certificate.Cusp incoming outgoing) &&
+        certificate.isCuspFreeTraversal (outgoing :: rest)
+
+/-- The executable local traversal test decides the proposition-level
+colored-transition contract exactly. -/
+theorem isCuspFreeTraversal_eq_true_iff (certificate : Certificate)
+    (traversed : List certificate.fullGraph.DirectedEdge) :
+    certificate.isCuspFreeTraversal traversed = true ↔
+      certificate.CuspFreeTraversal traversed := by
+  induction traversed with
+  | nil => simp [isCuspFreeTraversal, CuspFreeTraversal]
+  | cons incoming rest ih =>
+      cases rest with
+      | nil => simp [isCuspFreeTraversal, CuspFreeTraversal]
+      | cons outgoing tail =>
+          simp [isCuspFreeTraversal, CuspFreeTraversal, ih]
+
+/-- Executable cyclic cusp-freedom. Besides checking every internal
+transition, it checks the transition from the last edge back to the first. -/
+def isCuspFreeCycleTraversal (certificate : Certificate) :
+    List certificate.fullGraph.DirectedEdge → Bool
+  | [] => false
+  | first :: rest =>
+      certificate.isCuspFreeTraversal (first :: rest) &&
+        !decide (certificate.Cusp
+          ((first :: rest).getLast (by simp)) first)
+
+/-- On a proved exact simple cycle, the executable cyclic test is equivalent
+to the proposition used by the generalized-Yeo development. -/
+theorem isCuspFreeCycleTraversal_eq_true_iff
+    (certificate : Certificate)
+    (cycle : certificate.fullGraph.EdgeSimpleCycle) :
+    certificate.isCuspFreeCycleTraversal cycle.traversed = true ↔
+      certificate.CuspFreeCycle cycle := by
+  cases traversalEquation : cycle.traversed with
+  | nil => exact False.elim (cycle.nonempty traversalEquation)
+  | cons first rest =>
+      simp [isCuspFreeCycleTraversal, CuspFreeCycle, traversalEquation,
+        certificate.isCuspFreeTraversal_eq_true_iff]
+
+/-- Exhaustive search for an exact simple cycle whose cyclic transitions are
+all cusp-free. This is a finite specification oracle, not the intended
+optimized correctness algorithm. -/
+def hasCuspFreeEdgeSimpleCycle (certificate : Certificate) : Bool :=
+  certificate.fullGraph.edgeSimpleCycleTraversalCandidates.any fun traversed =>
+    certificate.fullGraph.isEdgeSimpleCycleTraversal traversed &&
+      certificate.isCuspFreeCycleTraversal traversed
+
+/-- Exhaustive colored-cycle search returns true exactly when the
+proposition-level witness used by `CuspAcyclic` exists. -/
+theorem hasCuspFreeEdgeSimpleCycle_eq_true_iff
+    (certificate : Certificate) :
+    certificate.hasCuspFreeEdgeSimpleCycle = true ↔
+      ∃ cycle : certificate.fullGraph.EdgeSimpleCycle,
+        certificate.CuspFreeCycle cycle := by
+  constructor
+  · intro accepted
+    rcases List.any_eq_true.mp accepted with
+      ⟨traversed, _candidateMembership, candidateAccepted⟩
+    have acceptedParts :
+        certificate.fullGraph.isEdgeSimpleCycleTraversal traversed = true ∧
+          certificate.isCuspFreeCycleTraversal traversed = true := by
+      simpa only [Bool.and_eq_true] using candidateAccepted
+    rcases Graph.isEdgeSimpleCycleTraversal_sound acceptedParts.1 with
+      ⟨cycle, cycleTraversal⟩
+    have cycleAccepted :
+        certificate.isCuspFreeCycleTraversal cycle.traversed = true := by
+      rw [cycleTraversal]
+      exact acceptedParts.2
+    exact ⟨cycle,
+      (certificate.isCuspFreeCycleTraversal_eq_true_iff cycle).mp
+        cycleAccepted⟩
+  · rintro ⟨cycle, free⟩
+    apply List.any_eq_true.mpr
+    refine ⟨cycle.traversed, cycle.traversed_mem_candidates, ?_⟩
+    simp only [Bool.and_eq_true]
+    exact ⟨Graph.isEdgeSimpleCycleTraversal_complete cycle,
+      (certificate.isCuspFreeCycleTraversal_eq_true_iff cycle).mpr free⟩
+
+/-- Certified finite decision procedure for the colored acyclicity proposition
+used by the splitting theorem. Candidate enumeration is exponential and this
+definition is deliberately a differential oracle. -/
+def isCuspAcyclic (certificate : Certificate) : Bool :=
+  !certificate.hasCuspFreeEdgeSimpleCycle
+
+/-- The exhaustive Boolean colored-cycle oracle exactly decides
+`CuspAcyclic`. -/
+theorem isCuspAcyclic_eq_true_iff (certificate : Certificate) :
+    certificate.isCuspAcyclic = true ↔ certificate.CuspAcyclic := by
+  constructor
+  · intro accepted cycle free
+    have absent : certificate.hasCuspFreeEdgeSimpleCycle = false := by
+      simpa [isCuspAcyclic] using accepted
+    have present : certificate.hasCuspFreeEdgeSimpleCycle = true :=
+      certificate.hasCuspFreeEdgeSimpleCycle_eq_true_iff.mpr
+        ⟨cycle, free⟩
+    rw [present] at absent
+    contradiction
+  · intro acyclic
+    have noWitness :
+        certificate.hasCuspFreeEdgeSimpleCycle ≠ true := by
+      intro present
+      rcases certificate.hasCuspFreeEdgeSimpleCycle_eq_true_iff.mp present with
+        ⟨cycle, free⟩
+      exact acyclic cycle free
+    have absent : certificate.hasCuspFreeEdgeSimpleCycle = false :=
+      Bool.eq_false_iff.mpr noWitness
+    simp [isCuspAcyclic, absent]
+
+/-- Every declaratively correct certificate is accepted by the independently
+executable colored-cycle oracle. -/
+theorem DeclarativelyCorrect.isCuspAcyclic
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect) :
+    certificate.isCuspAcyclic = true :=
+  certificate.isCuspAcyclic_eq_true_iff.mpr correct.cuspAcyclic
+
+/-- Checker acceptance implies acceptance by the colored-cycle oracle. This is
+the first differential bridge; the converse requires the separately audited
+switching-connectedness/tree argument. -/
+theorem isCuspAcyclic_of_check (certificate : Certificate)
+    (accepted : certificate.check = true) :
+    certificate.isCuspAcyclic = true :=
+  (certificate.check_iff_declarativelyCorrect.mp accepted).isCuspAcyclic
+
+end Certificate
+
 end ProofNetIR
