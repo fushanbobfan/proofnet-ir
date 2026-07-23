@@ -81,6 +81,24 @@ fast_false_positives=0 checksum=18372 elapsed_ms=331 budget_ms=15000
 Zero observed misses are evidence for the pending completeness proof, not a
 replacement for it.
 
+`proofnet_ir_unification_completeness_search` is a separate positive-only
+counterexample search. It generates 1,000 kernel-sound derivation trees at
+depths zero through five, desequentializes them, and applies six storage-order
+variants to each certificate: original, reversed links, reversed boundary,
+rotated links, parity-partitioned links, and combined link/boundary
+permutations. A miss reports the exact seed, depth, variant, and structured
+unification error. The first recorded Windows run reported:
+
+```text
+unification-completeness-search-ok cases=6000 seeds=1000 depths=0..5
+variants_per_seed=6 max_formulas=111 max_links=79 checksum=399450
+elapsed_ms=5195 budget_ms=30000
+```
+
+This widens the counterexample search substantially, but remains finite
+empirical evidence. Its executable name does not mean that universal
+fast-path completeness has been proved.
+
 A separate `proofnet_ir_reconstruction_stress` executable exercises 18
 accepted identity nets with a single repeated internal atom. It crosses
 right-skewed tensor, balanced tensor, balanced par, and alternating shapes;

@@ -115,6 +115,15 @@ The main 291-case performance workload and the 18-case repeated-label stress
 suite also require the deterministic fast path to return a proof-bearing
 result.
 
+A second positive-only counterexample search covers 6,000 reordered
+derivation-generated certificates from 1,000 seeds, depths zero through five,
+up to 111 formula occurrences and 79 links. It observed no fast-path miss in
+its first recorded run. The source theorem
+`CutFreeDerivation.desequentialize?_check` establishes acceptance of each base
+certificate; the order variants preserve the same occurrences and links.
+This finite search is intentionally kept separate from the universal
+completeness theorem.
+
 ## Remaining formalization route
 
 1. State the operational one-step relation independently of the executable

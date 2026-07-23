@@ -412,6 +412,9 @@
   - [x] Expose an exact switching-free `unificationCheck` by using the
     deterministic pass first and the proved checker-free sequentializer only
     as a completeness fallback; prove `unificationCheck = check`.
+  - [x] Add a 6,000-case positive counterexample search across 1,000 generated
+    derivations, depths zero through five, and six link/boundary storage
+    orders; retain its zero-miss result as empirical evidence only.
   - [ ] Prove the pure deterministic unification path complete, removing the
     recursive fallback from the logical decision.
   - [ ] Replace eager repeated scans with proved ready/waiting worklists,

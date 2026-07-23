@@ -138,7 +138,11 @@
   `unificationCheck = check` without switching enumeration. A new 1,500-case
   CI audit plus a structurally well-formed disconnected sentinel recorded 750
   positive hits, zero positive misses, and zero false positives in its first
-  Windows run. Pure fast-path completeness,
+  Windows run. A separate 6,000-case positive counterexample search spans
+  1,000 derivation seeds, depths zero through five, six storage orders, up to
+  111 formula occurrences and 79 links; its first run also found no fast-path
+  miss. These finite searches remain empirical evidence. Pure fast-path
+  completeness,
   ready/waiting worklists, and Guerrini's linear bound remain explicitly open;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;

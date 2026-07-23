@@ -51,6 +51,8 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_reconstruction_audit
       - name: Audit deterministic unification and exact fallback
         run: ~/.elan/bin/lake exe proofnet_ir_unification_audit
+      - name: Search adversarial derivation-generated cases for unification misses
+        run: ~/.elan/bin/lake exe proofnet_ir_unification_completeness_search
       - name: Stress checker-free reconstruction shapes and repeated labels
         run: ~/.elan/bin/lake exe proofnet_ir_reconstruction_stress
       - name: Build as a downstream Lake dependency
