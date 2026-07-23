@@ -1,14 +1,17 @@
 # Library-readiness audit
 
 Audit date: 2026-07-23
-Audited baseline: published v0.8.0 plus its tag-pinned downstream consumer
+Audited baseline: v0.9.0 release candidate plus its commit-pinned downstream
+consumer
 
 ## Verdict
 
-ProofNet-IR v0.8.0 is a usable research library and reference checker. It is
-not yet a mature reusable Lean library. The published checker can validate its
-documented unit-free, cut-free MLL certificates; the dataset and focused-search
-baseline can be reproduced. v0.5.0 proves that any accepted
+ProofNet-IR v0.9.0 is a usable, independently consumable Lean research library
+and reference checker for its documented unit-free, cut-free MLL certificate
+model. It is not a general Lean/mathlib proof assistant or a library for all
+proof-net logics. The exact checker and automatic sequentializer are sound and
+complete for the stated model; the dataset and focused-search baseline can be
+reproduced. v0.5.0 proves that any accepted
 certificate can be converted into a concrete first-order derivation whose
 desequentialization is `ProofNetEquivalent` to the input. It also
 lets a downstream consumer parse v0.2/v0.3 JSON directly into a checked Lean
@@ -125,7 +128,7 @@ part of the engineering and proof-identity gap.
    graphs and is proved Boolean-equal to `check`; its exhaustive
    colored-cycle phase remains a specification oracle rather than the
    scalable implementation.
-   The v0.9 development API now additionally provides
+   The v0.9 API additionally provides
    `Certificate.verifyDerivation?`, which avoids both input-switching
    enumeration and vertex-permutation search when a caller supplies a
    derivation. Its soundness and relative completeness are kernel checked.
@@ -222,7 +225,7 @@ part of the engineering and proof-identity gap.
   `Classical.choice`, and `Quot.sound`;
 - the two public graph-acyclicity transport theorems are separately locked to
   exactly `propext` and `Quot.sound`, without `Classical.choice`;
-- the v0.9 development package builds with `warningAsError`; the current full
+- the v0.9 package builds with `warningAsError`; the current full
   build emits zero Lean warnings, so future linter regressions fail locally and
   in CI rather than leaking into downstream builds;
 - the separate LeanProp trust boundary locks four theorems as axiom-free,

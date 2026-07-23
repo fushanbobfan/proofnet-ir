@@ -3,13 +3,15 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.8.0` (a proved non-factorial exact typed key for
-the documented `ProofNetEquivalent` relation, a separately versioned bounded
-wire contract, and measured qualification through 145 links, without claiming
-arbitrary graph isomorphism or general checker/sequentializer scalability). See
-[CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
+Current release: `v0.9.0` (exact occurrence-aware graph semantics,
+checker-free reconstruction proved complete for every accepted certificate,
+and a sound worklist-first unification tier whose exact wrapper is proved
+equal to the reference checker). Pure-worklist completeness and a
+whole-program linear bound are not claimed. See [CHANGELOG.md](CHANGELOG.md)
+and [the release audit](docs/v0.9-release-audit.md) for the precise guarantees
+and non-goals.
 
-Development on `main` is now `v0.9.0-dev`. The first v0.9 increment exposes
+v0.9 exposes
 occurrence-aware multigraph acyclicity and proves that every declarative
 `IsTree` is acyclic. Exact edge occurrences, walks, cycles, and acyclicity are
 also proved invariant under bounded bijective vertex renaming. The converse
@@ -190,14 +192,14 @@ The repository currently contains:
   runtime search succeeds for every checker-accepted certificate; it also
   passes all 250 broad generated regressions, the same 250 nets with every link
   list reversed, and a dedicated repeated-boundary-label regression.
-- the v0.9-development `Certificate.verifyDerivation?` API for clients that
+- the v0.9 `Certificate.verifyDerivation?` API for clients that
   already have a proposed cut-free derivation. It does not enumerate
   switchings on the input or search vertex permutations: it performs
   structural validation, independently infers and desequentializes the tree,
   then uses the proved non-factorial intrinsic canonical code. A successful
   result carries checker acceptance of the produced net and exact
   `ProofNetEquivalent` identity with the submitted certificate.
-- the automatic v0.9-development `Certificate.reconstructDerivation?` path.
+- the automatic v0.9 `Certificate.reconstructDerivation?` path.
   Its structure-guided fast path recursively peels terminal par links or
   splits terminal tensors, aligns repeated boundary occurrences by
   vertex-number-free formula-tree/axiom profiles, and validates the completed
@@ -489,7 +491,11 @@ The stricter post-v0.2 coverage and reuse assessments are in
 scoped v0.6 claims and release evidence are in
 [docs/v0.6-release-audit.md](docs/v0.6-release-audit.md), and the exact-key
 v0.7 release evidence is in
-[docs/v0.7-release-audit.md](docs/v0.7-release-audit.md). The
+[docs/v0.7-release-audit.md](docs/v0.7-release-audit.md), and the v0.8
+intrinsic-key release evidence is in
+[docs/v0.8-release-audit.md](docs/v0.8-release-audit.md). The
+v0.9 graph-semantics, reconstruction, unification, and release evidence is in
+[docs/v0.9-release-audit.md](docs/v0.9-release-audit.md). The
 external-consumer walkthrough is in [docs/tutorial.md](docs/tutorial.md), and
 the kernel-environment-generated declaration surface is in
 [docs/api-reference.md](docs/api-reference.md). The

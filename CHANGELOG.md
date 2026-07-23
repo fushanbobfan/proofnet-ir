@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.9.0 - Graph semantics and checker-free correctness
+
 - started `v0.9.0-dev` by exposing `Graph.Acyclic` as absence of an exact
   stored-edge `EdgeSimpleCycle`, including genuine length-two cycles from
   parallel edge occurrences;
