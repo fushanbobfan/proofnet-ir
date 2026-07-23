@@ -42,6 +42,38 @@ example (certificate : ProofNetIR.Certificate)
     token < state.parents.size :=
   abstractable.tokenAt?_bound yielded
 
+example (certificate : ProofNetIR.Certificate)
+    (state : ProofNetIR.UnificationState)
+    (abstractable : state.Abstractable certificate)
+    {conclusion token : Nat}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (tokenBound : token < state.parents.size) :
+    (state.markConclusion conclusion token).Abstractable certificate :=
+  abstractable.markConclusion conclusionBound tokenBound
+
+example {certificate : ProofNetIR.Certificate}
+    {state : ProofNetIR.UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion leftToken rightToken outputToken : Nat}
+    (membership :
+      ProofNetIR.Link.par left right conclusion ∈ certificate.links)
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (conclusionUnmarked : state.assignedToken? conclusion = none)
+    (leftMarked : state.assignedToken? left = some leftToken)
+    (rightMarked : state.assignedToken? right = some rightToken)
+    (premisesSynchronized : state.SameThread leftToken rightToken)
+    (outputTokenAllocated : outputToken < state.parents.size)
+    (outputTokenSynchronized :
+      state.SameThread outputToken leftToken) :
+    ProofNetIR.UnificationStep certificate
+      (state.toMarking certificate abstractable)
+      ((state.markConclusion conclusion outputToken).toMarking certificate
+        (abstractable.markConclusion conclusionBound
+          outputTokenAllocated)) :=
+  state.markConclusion_forwardStep abstractable membership conclusionBound
+    conclusionUnmarked leftMarked rightMarked premisesSynchronized
+    outputTokenAllocated outputTokenSynchronized
+
 open ProofNetIR
 
 namespace ProofNetIRTests

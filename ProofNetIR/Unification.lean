@@ -181,6 +181,10 @@ structure Abstractable (certificate : Certificate)
   representativeBound :
     ∀ {token}, token < state.parents.size →
       state.representative token < state.parents.size
+  representativeIdempotent :
+    ∀ {token}, token < state.parents.size →
+      state.representative (state.representative token) =
+        state.representative token
 
 /-- Forget arrays, parsed derivation components, counters, and worklist data,
 retaining exactly the marking and thread partition observed by the independent
@@ -228,6 +232,107 @@ theorem toMarking_sameThread (state : UnificationState)
     (state.toMarking certificate abstractable).sameThread first second ↔
       state.representative first = state.representative second :=
   Iff.rfl
+
+/-- Mark one connective conclusion and increment the connective counter,
+without changing the token partition or parsed components. -/
+def markConclusion (state : UnificationState)
+    (conclusion token : Nat) : UnificationState :=
+  { state with
+    marks := state.marks.setIfInBounds conclusion (some token)
+    firedConnectives := state.firedConnectives + 1 }
+
+/-- Marking an in-domain conclusion with an allocated token preserves the
+executable-to-abstract-state contract. -/
+theorem Abstractable.markConclusion
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {conclusion token : Nat}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (tokenBound : token < state.parents.size) :
+    (state.markConclusion conclusion token).Abstractable certificate := by
+  refine {
+    markArraySize := by
+      simp [UnificationState.markConclusion,
+        abstractable.markArraySize]
+    markedVertexBound := ?_
+    markedTokenBound := ?_
+    representativeBound := abstractable.representativeBound
+    representativeIdempotent := abstractable.representativeIdempotent
+  }
+  · intro vertex markedToken marked
+    by_cases same : conclusion = vertex
+    · simpa [same] using conclusionBound
+    · apply abstractable.markedVertexBound
+      simpa [UnificationState.markConclusion, assignedToken?,
+        Array.getElem?_setIfInBounds, same] using marked
+  · intro vertex markedToken marked
+    by_cases same : conclusion = vertex
+    · subst vertex
+      simp [UnificationState.markConclusion, assignedToken?,
+        conclusionBound, abstractable.markArraySize] at marked
+      subst markedToken
+      exact tokenBound
+    · apply abstractable.markedTokenBound
+      simpa [UnificationState.markConclusion, assignedToken?,
+        Array.getElem?_setIfInBounds, same] using marked
+
+/-- Forgetting a concrete conclusion-marking update is exactly the abstract
+`setMark` update; scheduler counters and parsed components are invisible. -/
+theorem markConclusion_toMarking_mark
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {conclusion token : Nat}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (tokenBound : token < state.parents.size) :
+    ((state.markConclusion conclusion token).toMarking certificate
+      (abstractable.markConclusion conclusionBound tokenBound)).mark =
+        UnificationMarking.setMark
+          (state.toMarking certificate abstractable).mark
+          conclusion token := by
+  funext vertex
+  by_cases same : vertex = conclusion
+  · subst vertex
+    simp [UnificationState.markConclusion, toMarking, assignedToken?,
+      UnificationMarking.setMark, conclusionBound,
+      abstractable.markArraySize]
+  · have different : conclusion ≠ vertex := Ne.symm same
+    simp [UnificationState.markConclusion, toMarking, assignedToken?,
+      UnificationMarking.setMark, same, different]
+
+/-- The concrete marking update refines the independent forward rule whenever
+the executable guards and submitted par-link membership hold. Component
+construction is deliberately outside this proof-irrelevant theorem. -/
+theorem markConclusion_forwardStep
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion : Vertex}
+    {leftToken rightToken outputToken : Nat}
+    (linkMembership :
+      Link.par left right conclusion ∈ certificate.links)
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (conclusionUnmarked : state.assignedToken? conclusion = none)
+    (leftMarked : state.assignedToken? left = some leftToken)
+    (rightMarked : state.assignedToken? right = some rightToken)
+    (premisesSynchronized : state.SameThread leftToken rightToken)
+    (outputTokenAllocated : outputToken < state.parents.size)
+    (outputTokenSynchronized :
+      state.SameThread outputToken leftToken) :
+    UnificationStep certificate
+      (state.toMarking certificate abstractable)
+      ((state.markConclusion conclusion outputToken).toMarking certificate
+        (abstractable.markConclusion conclusionBound
+          outputTokenAllocated)) := by
+  apply UnificationStep.forward linkMembership
+  · exact conclusionUnmarked
+  · exact leftMarked
+  · exact rightMarked
+  · exact premisesSynchronized
+  · exact outputTokenAllocated
+  · exact outputTokenSynchronized
+  · rfl
+  · exact state.markConclusion_toMarking_mark abstractable
+      conclusionBound outputTokenAllocated
+  · rfl
 
 /-- Current token class yielded by a marked formula occurrence. -/
 def tokenAt? (state : UnificationState) (vertex : Vertex) : Option Nat := do
@@ -299,6 +404,7 @@ private theorem initialUnificationState_abstractable
     markedVertexBound := ?_
     markedTokenBound := ?_
     representativeBound := ?_
+    representativeIdempotent := ?_
   }
   · intro vertex token marked
     simp [initialUnificationState, UnificationState.assignedToken?,
@@ -308,6 +414,8 @@ private theorem initialUnificationState_abstractable
     simp [initialUnificationState, UnificationState.assignedToken?,
       Array.getElem?_replicate] at marked
     split at marked <;> simp at marked
+  · intro token bound
+    simp [initialUnificationState] at bound
   · intro token bound
     simp [initialUnificationState] at bound
 
@@ -392,12 +500,11 @@ private def firePar? (state : UnificationState)
   let nextComponent : UnificationComponent :=
     { tree := .par leftFocus rightFocus component.tree
       frontier := context ++ [conclusion] }
+  let marked := state.markConclusion conclusion leftToken
   pure {
-    state with
-    marks := state.marks.setIfInBounds conclusion (some leftToken)
+    marked with
     components :=
       state.components.setIfInBounds leftToken (some nextComponent)
-    firedConnectives := state.firedConnectives + 1
   }
 
 /-- Fire a Guerrini binary/`tensor` rule when its premises yield distinct
@@ -422,14 +529,13 @@ private def fireTensor? (state : UnificationState)
     { tree :=
         .tensor leftFocus rightFocus leftComponent.tree rightComponent.tree
       frontier := conclusion :: (leftContext ++ rightContext) }
+  let marked := state.markConclusion conclusion representative
   pure {
-    state with
-    marks := state.marks.setIfInBounds conclusion (some representative)
+    marked with
     parents := state.parents.setIfInBounds retired representative
     components :=
       (state.components.setIfInBounds representative (some nextComponent))
         |>.setIfInBounds retired none
-    firedConnectives := state.firedConnectives + 1
   }
 
 /-- Try one connective. `none` means that the link is currently idle, waiting,

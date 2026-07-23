@@ -2601,6 +2601,72 @@ ProofNetIR.UnificationState.toMarking_sameThread : ∀ (state : ProofNetIR.Unifi
     state.representative first = state.representative second
 ```
 
+### `ProofNetIR.UnificationState.markConclusion`
+
+Kind: definition.
+
+Mark one connective conclusion and increment the connective counter,
+without changing the token partition or parsed components.
+
+```lean
+ProofNetIR.UnificationState.markConclusion : ProofNetIR.UnificationState → Nat → Nat → ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.UnificationState.Abstractable.markConclusion`
+
+Kind: theorem.
+
+Marking an in-domain conclusion with an allocated token preserves the
+executable-to-abstract-state contract.
+
+```lean
+ProofNetIR.UnificationState.Abstractable.markConclusion : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate state →
+    ∀ {conclusion token : Nat},
+      conclusion < certificate.formulas.size →
+        token < state.parents.size →
+          ProofNetIR.UnificationState.Abstractable certificate (state.markConclusion conclusion token)
+```
+
+### `ProofNetIR.UnificationState.markConclusion_toMarking_mark`
+
+Kind: theorem.
+
+Forgetting a concrete conclusion-marking update is exactly the abstract
+`setMark` update; scheduler counters and parsed components are invisible.
+
+```lean
+ProofNetIR.UnificationState.markConclusion_toMarking_mark : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) {conclusion token : Nat}
+  (conclusionBound : conclusion < certificate.formulas.size) (tokenBound : token < state.parents.size),
+  ((state.markConclusion conclusion token).toMarking certificate ⋯).mark =
+    ProofNetIR.UnificationMarking.setMark (state.toMarking certificate abstractable).mark conclusion token
+```
+
+### `ProofNetIR.UnificationState.markConclusion_forwardStep`
+
+Kind: theorem.
+
+The concrete marking update refines the independent forward rule whenever
+the executable guards and submitted par-link membership hold. Component
+construction is deliberately outside this proof-irrelevant theorem.
+
+```lean
+ProofNetIR.UnificationState.markConclusion_forwardStep : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state)
+  {left right conclusion : ProofNetIR.Vertex} {leftToken rightToken outputToken : Nat},
+  ProofNetIR.Link.par left right conclusion ∈ certificate.links →
+    ∀ (conclusionBound : conclusion < certificate.formulas.size),
+      state.assignedToken? conclusion = none →
+        state.assignedToken? left = some leftToken →
+          state.assignedToken? right = some rightToken →
+            state.SameThread leftToken rightToken →
+              ∀ (outputTokenAllocated : outputToken < state.parents.size),
+                state.SameThread outputToken leftToken →
+                  ProofNetIR.UnificationStep certificate (state.toMarking certificate abstractable)
+                    ((state.markConclusion conclusion outputToken).toMarking certificate ⋯)
+```
+
 ### `ProofNetIR.UnificationState.Abstractable.tokenAt?_bound`
 
 Kind: theorem.

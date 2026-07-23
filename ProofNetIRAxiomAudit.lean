@@ -96,6 +96,9 @@ expansion.
 #print axioms UnificationState.toMarking_tokenCount
 #print axioms UnificationState.toMarking_mark
 #print axioms UnificationState.toMarking_sameThread
+#print axioms UnificationState.Abstractable.markConclusion
+#print axioms UnificationState.markConclusion_toMarking_mark
+#print axioms UnificationState.markConclusion_forwardStep
 #print axioms UnificationState.Abstractable.tokenAt?_bound
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound

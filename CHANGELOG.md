@@ -27,8 +27,12 @@
   allocation, and representative equality to the independent semantics. The
   all-unmarked initial state satisfies the bounds internally, and an
   axiom-free theorem shows every yielded representative is allocated;
-  preservation by start/forward/unify and refinement into `UnificationStep`
-  remain open;
+  representative idempotence is now explicit, and a public state-update
+  theorem proves that marking an in-domain conclusion with an allocated token
+  preserves the abstraction contract. A second theorem proves this concrete
+  update refines the independent forward rule under its exact executable
+  guards; start/unify preservation and end-to-end firing refinement remain
+  open;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 
