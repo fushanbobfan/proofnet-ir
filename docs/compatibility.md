@@ -30,16 +30,17 @@ introducing a new wire version or changing the v0.2/v0.3 payload contracts.
 `Certificate.sequentialization_of_check` and
 `Certificate.generallySequentializable` are additive public declarations.
 
-The unreleased v0.5 development line adds
+Release v0.5.0 adds
 `Certificate.sequentialize`, `ExecutableSequentializationResult`, and
 `SequentializationError` without changing either wire payload. These APIs are
-additive, but their names and error-stage vocabulary remain pre-release until a
-v0.5 tag is cut. The result carries v0.4 `ProofNetEquivalent`: a bounded vertex
+additive. The result carries v0.4 `ProofNetEquivalent`: a bounded vertex
 renaming followed by semantically irrelevant link-list permutation, while the
 ordered conclusion boundary is still preserved. This is broader than the
 order-sensitive v0.3 `ReindexEquivalent` key but remains narrower than
 arbitrary graph isomorphism and never reorders conclusions or connective
-premises.
+premises. v0.5.0 also exposes `proofNetCanonicalFamily` as a factorial
+specification oracle with a complete iff theorem; it does not introduce a new
+wire version or promise a compact canonical representative.
 
 ## Deprecation and release checks
 

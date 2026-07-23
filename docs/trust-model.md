@@ -81,7 +81,7 @@ also proves the reverse direction for the supported representation:
 `sequentialization_of_check` maps every accepted certificate to a concrete
 first-order tree whose executable output is `ProofNetEquivalent` to the
 input. The theorem preserves the ordered formula boundary and does not identify
-arbitrary unlabeled graphs. The post-v0.4 runtime path is independently tied to
+arbitrary unlabeled graphs. The v0.5 runtime path is independently tied to
 that guarantee: `sequentialize_complete` proves that the public finite search
 returns a proof-bearing result on every checker-accepted certificate.
 

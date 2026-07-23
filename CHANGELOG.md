@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.5.0 - Executable totality, canonical family, and matched experiment
+
 - added the proof-bearing executable `Certificate.sequentialize` API with
   staged errors, checker-gated inverse-rule search, exhaustive repeated-label
   boundary matching, accepted desequentialization, and an exact

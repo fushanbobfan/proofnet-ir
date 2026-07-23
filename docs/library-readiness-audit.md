@@ -1,7 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.4.0 release plus post-release downstream validation on `main`
+Audited baseline: v0.5.0 release candidate on `main`
 
 ## Verdict
 
@@ -103,7 +103,7 @@ part of the engineering and proof-identity gap.
 - many older APIs return `Option`, losing the location and reason for failure;
   executable sequentialization now returns a staged `SequentializationError`;
 - separate path-dependency and clean pinned-v0.4.0 Lake consumers now pass;
-  the path dependency executes the unreleased sequentializer and consumes its
+  the path dependency executes the v0.5 sequentializer and consumes its
   equivalence theorem, while the pinned consumer protects the v0.4.0 API;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;

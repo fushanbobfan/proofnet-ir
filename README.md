@@ -3,7 +3,9 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.4.0` (general sequentialization for unit-free, cut-free MLL). See
+Current release candidate: `v0.5.0` (proof-bearing executable totality,
+complete finite `ProofNetEquivalent` family, and a matched 1,000-task
+experiment). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -79,7 +81,7 @@ The repository currently contains:
   certificate has a concrete first-order `CutFreeDerivation`; its executable
   desequentialization is `ProofNetEquivalent` to the input and carries the
   same ordered formula boundary.
-- an unreleased executable `Certificate.sequentialize` API that searches
+- the v0.5 executable `Certificate.sequentialize` API that searches
   checker-preserving inverse rules and returns a proof-bearing tree, exact
   ordered input boundary, accepted desequentialization, and
   `ProofNetEquivalent` output. `Certificate.sequentialize_complete` proves this
