@@ -2402,9 +2402,12 @@ Kind: inductive type.
 Proof-irrelevant state for the abstract Guerrini Figure-5 rules.
 
 Unlike the executable union-find state, `sameThread` is an arbitrary
-equivalence relation over allocated token numbers. The two bound fields make
-every stored mark refer to a submitted formula occurrence and an allocated
-token.
+equivalence relation on the fixed carrier `Nat`. `tokenCount` allocates the
+initial segment below it; natural numbers at or above the count are already
+present in the carrier but cannot occur in a stored mark. This fixed-carrier
+encoding lets successive states share one relation type. The two bound fields
+make every stored mark refer to a submitted formula occurrence and an
+allocated token.
 
 ```lean
 ProofNetIR.UnificationMarking : ProofNetIR.Certificate → Type
@@ -2438,10 +2441,36 @@ ProofNetIR.UnificationMarking.setMark : (ProofNetIR.Vertex → Option Nat) → N
 
 Kind: definition.
 
-Extend an old thread partition with one fresh singleton token.
+In the fixed `Nat` carrier, allocating a fresh token preserves the global
+thread relation. Freshness is a separate side condition: before allocation,
+the newly exposed number must be unrelated to every allocated token.
 
 ```lean
 ProofNetIR.UnificationMarking.FreshExtension : {certificate : ProofNetIR.Certificate} → ProofNetIR.UnificationMarking certificate → Nat → Nat → Nat → Prop
+```
+
+### `ProofNetIR.UnificationMarking.IsFreshToken`
+
+Kind: definition.
+
+The carrier element about to be allocated is isolated from every token
+that is already allocated.
+
+```lean
+ProofNetIR.UnificationMarking.IsFreshToken : {certificate : ProofNetIR.Certificate} → ProofNetIR.UnificationMarking certificate → Nat → Prop
+```
+
+### `ProofNetIR.UnificationMarking.freshExtension_equivalence`
+
+Kind: theorem.
+
+Fresh-token allocation preserves an equivalence relation on the fixed
+carrier. This theorem is a regression guard against accidentally defining the
+extension only on the allocated initial segment.
+
+```lean
+ProofNetIR.UnificationMarking.freshExtension_equivalence : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate) (fresh : Nat),
+  Equivalence (state.FreshExtension fresh)
 ```
 
 ### `ProofNetIR.UnificationMarking.MergeExtension`
@@ -2573,6 +2602,67 @@ intentionally ignored.
 ProofNetIR.UnificationState.ObservationEquivalent : ProofNetIR.UnificationState → ProofNetIR.UnificationState → Prop
 ```
 
+### `ProofNetIR.UnificationState.IdentityParents`
+
+Kind: definition.
+
+During the eager axiom-start phase every allocated token is still its own
+union-find parent. No connective union has fired yet.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents : ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.UnificationState.IdentityParents.representative_eq`
+
+Kind: theorem.
+
+Identity-parent states return each allocated token as its own
+representative.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents.representative_eq : ∀ {state : ProofNetIR.UnificationState},
+  state.IdentityParents → ∀ {token : Nat}, token < state.parents.size → state.representative token = token
+```
+
+### `ProofNetIR.UnificationState.IdentityParents.representative_eq_all`
+
+Kind: theorem.
+
+Identity-parent states return every natural-number carrier element as its
+own representative, including token numbers not yet allocated.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents.representative_eq_all : ∀ {state : ProofNetIR.UnificationState}, state.IdentityParents → ∀ (token : Nat), state.representative token = token
+```
+
+### `ProofNetIR.UnificationState.IdentityParents.sameThread_iff`
+
+Kind: theorem.
+
+In the identity-parent phase, executable thread equivalence is ordinary
+token identity on the entire fixed carrier.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents.sameThread_iff : ∀ {state : ProofNetIR.UnificationState},
+  state.IdentityParents → ∀ (first second : Nat), state.SameThread first second ↔ first = second
+```
+
+### `ProofNetIR.UnificationState.IdentityParents.push_fresh`
+
+Kind: theorem.
+
+Appending the fresh self-parent preserves the identity-parent phase
+invariant.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents.push_fresh : ∀ {state : ProofNetIR.UnificationState},
+  state.IdentityParents →
+    ∀ {token : Nat},
+      token < (state.parents.push state.parents.size).size →
+        (state.parents.push state.parents.size)[token]? = some token
+```
+
 ### `ProofNetIR.UnificationState.ObservationEquivalent.abstractable`
 
 Kind: theorem.
@@ -2652,6 +2742,96 @@ ProofNetIR.UnificationState.ObservationEquivalent.toMarking_eq : ∀ {certificat
   (equivalent : first.ObservationEquivalent second)
   (abstractable : ProofNetIR.UnificationState.Abstractable certificate first),
   second.toMarking certificate ⋯ = first.toMarking certificate abstractable
+```
+
+### `ProofNetIR.UnificationState.startMarking`
+
+Kind: definition.
+
+Apply the token-semantic part of an axiom/start firing: mark both axiom
+occurrences with one fresh token and append that token as its own parent.
+
+```lean
+ProofNetIR.UnificationState.startMarking : ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.UnificationState.IdentityParents.startMarking`
+
+Kind: theorem.
+
+The start update stays in the pre-union identity-parent phase.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents.startMarking : ∀ {state : ProofNetIR.UnificationState},
+  state.IdentityParents → ∀ (left right : ProofNetIR.Vertex), (state.startMarking left right).IdentityParents
+```
+
+### `ProofNetIR.UnificationState.Abstractable.startMarking`
+
+Kind: theorem.
+
+Starting an in-domain axiom in the identity-parent phase preserves the
+executable abstraction contract.
+
+```lean
+ProofNetIR.UnificationState.Abstractable.startMarking : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate state →
+    state.IdentityParents →
+      ∀ {left right : ProofNetIR.Vertex},
+        left < certificate.formulas.size →
+          right < certificate.formulas.size →
+            ProofNetIR.UnificationState.Abstractable certificate (state.startMarking left right)
+```
+
+### `ProofNetIR.UnificationState.IdentityParents.toMarking_isFreshToken`
+
+Kind: theorem.
+
+In the fixed-carrier abstraction, the next token number exposed by an
+identity-parent state is isolated from every allocated token.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents.toMarking_isFreshToken : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  state.IdentityParents →
+    ∀ (abstractable : ProofNetIR.UnificationState.Abstractable certificate state),
+      (state.toMarking certificate abstractable).IsFreshToken (state.toMarking certificate abstractable).tokenCount
+```
+
+### `ProofNetIR.UnificationState.startMarking_toMarking_mark`
+
+Kind: theorem.
+
+Forgetting a concrete axiom/start marking update is exactly the two
+abstract `setMark` updates with one fresh token.
+
+```lean
+ProofNetIR.UnificationState.startMarking_toMarking_mark : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) (identity : state.IdentityParents)
+  {left right : ProofNetIR.Vertex} (leftBound : left < certificate.formulas.size)
+  (rightBound : right < certificate.formulas.size),
+  ((state.startMarking left right).toMarking certificate ⋯).mark =
+    ProofNetIR.UnificationMarking.setMark
+      (ProofNetIR.UnificationMarking.setMark (state.toMarking certificate abstractable).mark left state.parents.size)
+      right state.parents.size
+```
+
+### `ProofNetIR.UnificationState.startMarking_startStep`
+
+Kind: theorem.
+
+The concrete token-semantic axiom update refines one independent start
+step while union-find parents are still identities.
+
+```lean
+ProofNetIR.UnificationState.startMarking_startStep : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) (identity : state.IdentityParents)
+  {left right : ProofNetIR.Vertex},
+  ProofNetIR.Link.axiom left right ∈ certificate.links →
+    ∀ (leftBound : left < certificate.formulas.size) (rightBound : right < certificate.formulas.size),
+      state.assignedToken? left = none →
+        state.assignedToken? right = none →
+          ProofNetIR.UnificationStep certificate (state.toMarking certificate abstractable)
+            ((state.startMarking left right).toMarking certificate ⋯)
 ```
 
 ### `ProofNetIR.UnificationState.markConclusion`

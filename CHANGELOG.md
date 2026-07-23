@@ -7,13 +7,19 @@
   correct-state progress/pure completeness, and the later sequential
   `NEXTAXIOM` whole-program cost theorem;
 - added a proof-irrelevant `UnificationMarking` with bounded occurrence/token
-  marks and an arbitrary thread equivalence, plus an independent inductive
-  `UnificationStep` relation for Figure-5 start, forward, and unify. Kernel
-  theorems show that every abstract step uses a submitted link, marks its
-  fired conclusion, and never decreases the allocated-token count; the
-  generated API and exact axiom audit include this new boundary. Executable
-  state abstraction/refinement remains the next theorem rather than being
-  assumed from matching constructor names;
+  marks and a thread equivalence on a fixed `Nat` carrier, plus an independent
+  inductive `UnificationStep` relation for Figure-5 start, forward, and unify.
+  `tokenCount` allocates an initial segment of that carrier. Kernel theorems
+  show that every abstract step uses a submitted link, marks its fired
+  conclusion, and never decreases the allocated-token count; the generated
+  API and exact axiom audit include this new boundary;
+- found and repaired a genuine development-semantics bug before release: the
+  first `FreshExtension` definition omitted carrier elements above the fresh
+  token, so global reflexivity made every abstract start step impossible.
+  Fresh allocation now preserves the fixed-carrier equivalence relation and
+  separately requires the newly allocated carrier element to be isolated
+  from every old token. `freshExtension_equivalence` is a kernel-checked
+  regression guard for this boundary;
 - distinguished raw token identities from semantic thread equivalence in the
   abstract forward/unify rules: an executable representative token may label
   a new conclusion when it belongs to the required premise thread, rather
@@ -33,16 +39,18 @@
   update refines the independent forward rule under its exact executable
   guards. Axiom-free witness theorems now recover the raw mark behind every
   successful representative lookup and place that representative in the same
-  semantic thread; start/unify preservation and their end-to-end firing
-  refinement remain open;
+  semantic thread. Identity-parent invariants now prove start preservation,
+  global representative identity, fresh-token isolation, and exact
+  `startMarking` refinement; union/unify preservation remains open;
 - added observation equivalence for executable states that agree on exactly
   `marks` and `parents`; proved it preserves `Abstractable` and yields the same
   independent `UnificationMarking`;
 - factored the exact par guards into `forwardToken?`, proved every successful
   result refines `UnificationStep.forward`, and kernel-checked that the real
   `firePar?` path including component/frontier construction is observation-
-  equivalent to that verified update. Start and tensor/unify refinement remain
-  open;
+  equivalent to that verified update. The real `startAxiom?` path now reuses
+  the verified start update, exposes both successful guards, and is proved to
+  refine `UnificationStep.start`; tensor/unify refinement remains open;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 

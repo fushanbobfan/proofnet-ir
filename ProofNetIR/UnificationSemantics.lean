@@ -5,9 +5,12 @@ namespace ProofNetIR
 /-- Proof-irrelevant state for the abstract Guerrini Figure-5 rules.
 
 Unlike the executable union-find state, `sameThread` is an arbitrary
-equivalence relation over allocated token numbers. The two bound fields make
-every stored mark refer to a submitted formula occurrence and an allocated
-token. -/
+equivalence relation on the fixed carrier `Nat`. `tokenCount` allocates the
+initial segment below it; natural numbers at or above the count are already
+present in the carrier but cannot occur in a stored mark. This fixed-carrier
+encoding lets successive states share one relation type. The two bound fields
+make every stored mark refer to a submitted formula occurrence and an
+allocated token. -/
 structure UnificationMarking (certificate : Certificate) where
   tokenCount : Nat
   mark : Vertex → Option Nat
@@ -40,11 +43,27 @@ def setMark (mark : Vertex → Option Nat) (vertex token : Nat) :
     Vertex → Option Nat :=
   fun candidate => if candidate = vertex then some token else mark candidate
 
-/-- Extend an old thread partition with one fresh singleton token. -/
+/-- In the fixed `Nat` carrier, allocating a fresh token preserves the global
+thread relation. Freshness is a separate side condition: before allocation,
+the newly exposed number must be unrelated to every allocated token. -/
 def FreshExtension (state : UnificationMarking certificate)
-    (fresh : Nat) (left right : Nat) : Prop :=
-  (left < fresh ∧ right < fresh ∧ state.sameThread left right) ∨
-    (left = fresh ∧ right = fresh)
+    (_fresh : Nat) (left right : Nat) : Prop :=
+  state.sameThread left right
+
+/-- The carrier element about to be allocated is isolated from every token
+that is already allocated. -/
+def IsFreshToken (state : UnificationMarking certificate)
+    (fresh : Nat) : Prop :=
+  ∀ {old}, old < state.tokenCount →
+    ¬state.sameThread old fresh
+
+/-- Fresh-token allocation preserves an equivalence relation on the fixed
+carrier. This theorem is a regression guard against accidentally defining the
+extension only on the allocated initial segment. -/
+theorem freshExtension_equivalence
+    (state : UnificationMarking certificate) (fresh : Nat) :
+    Equivalence (state.FreshExtension fresh) :=
+  state.sameThreadEquivalence
 
 /-- Merge the two old equivalence classes containing `leftToken` and
 `rightToken`. This formula is the exact one-step equivalence closure because
@@ -80,6 +99,8 @@ inductive UnificationStep (certificate : Certificate) :
       (linkMembership : Link.axiom left right ∈ certificate.links)
       (leftUnmarked : state.mark left = none)
       (rightUnmarked : state.mark right = none)
+      (freshIsolated :
+        state.IsFreshToken state.tokenCount)
       (tokenCount :
         next.tokenCount = state.tokenCount + 1)
       (marking :
@@ -178,7 +199,8 @@ theorem marks_fired_conclusion {certificate : Certificate}
       Link.tensor left right conclusion ∈ certificate.links ∧
         (next.mark conclusion).isSome = true) := by
   cases step with
-  | start membership leftUnmarked rightUnmarked tokenCount marking threads =>
+  | start membership leftUnmarked rightUnmarked freshIsolated
+      tokenCount marking threads =>
       left
       refine ⟨_, _, membership, ?_, ?_⟩
       · simp [marking, UnificationMarking.setMark]
@@ -205,7 +227,7 @@ theorem tokenCount_mono {certificate : Certificate}
     (step : UnificationStep certificate state next) :
     state.tokenCount ≤ next.tokenCount := by
   cases step with
-  | start _ _ _ tokenCount _ _ =>
+  | start _ _ _ _ tokenCount _ _ =>
       rw [tokenCount]
       exact Nat.le_add_right _ _
   | forward _ _ _ _ _ _ _ tokenCount _ _ =>

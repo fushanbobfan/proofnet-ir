@@ -34,6 +34,30 @@ example (certificate : ProofNetIR.Certificate)
       state.representative first = state.representative second :=
   state.toMarking_sameThread certificate abstractable first second
 
+example {certificate : ProofNetIR.Certificate}
+    (state : ProofNetIR.UnificationMarking certificate)
+    (fresh : Nat) :
+    Equivalence (state.FreshExtension fresh) :=
+  state.freshExtension_equivalence fresh
+
+example {certificate : ProofNetIR.Certificate}
+    {state : ProofNetIR.UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (identity : state.IdentityParents)
+    {left right : Nat}
+    (membership :
+      ProofNetIR.Link.axiom left right ∈ certificate.links)
+    (leftBound : left < certificate.formulas.size)
+    (rightBound : right < certificate.formulas.size)
+    (leftUnmarked : state.assignedToken? left = none)
+    (rightUnmarked : state.assignedToken? right = none) :
+    ProofNetIR.UnificationStep certificate
+      (state.toMarking certificate abstractable)
+      ((state.startMarking left right).toMarking certificate
+        (abstractable.startMarking identity leftBound rightBound)) :=
+  state.startMarking_startStep abstractable identity membership
+    leftBound rightBound leftUnmarked rightUnmarked
+
 example (certificate : ProofNetIR.Certificate)
     (state : ProofNetIR.UnificationState)
     (abstractable : state.Abstractable certificate)

@@ -194,6 +194,69 @@ structure ObservationEquivalent
   marks : first.marks = second.marks
   parents : first.parents = second.parents
 
+/-- During the eager axiom-start phase every allocated token is still its own
+union-find parent. No connective union has fired yet. -/
+def IdentityParents (state : UnificationState) : Prop :=
+  ∀ {token}, token < state.parents.size →
+    state.parents[token]? = some token
+
+/-- Identity-parent states return each allocated token as its own
+representative. -/
+theorem IdentityParents.representative_eq
+    {state : UnificationState}
+    (identity : state.IdentityParents)
+    {token : Nat} (bound : token < state.parents.size) :
+    state.representative token = token := by
+  unfold representative
+  cases sizeEquation : state.parents.size with
+  | zero =>
+      omega
+  | succ fuel =>
+      simp [representativeWithFuel, identity bound]
+
+/-- Identity-parent states return every natural-number carrier element as its
+own representative, including token numbers not yet allocated. -/
+theorem IdentityParents.representative_eq_all
+    {state : UnificationState}
+    (identity : state.IdentityParents)
+    (token : Nat) :
+    state.representative token = token := by
+  by_cases bound : token < state.parents.size
+  · exact identity.representative_eq bound
+  · unfold representative
+    cases sizeEquation : state.parents.size with
+    | zero =>
+        simp [representativeWithFuel]
+    | succ fuel =>
+        have lookup : state.parents[token]? = none :=
+          Array.getElem?_eq_none (Nat.le_of_not_gt bound)
+        simp [representativeWithFuel, lookup]
+
+/-- In the identity-parent phase, executable thread equivalence is ordinary
+token identity on the entire fixed carrier. -/
+theorem IdentityParents.sameThread_iff
+    {state : UnificationState}
+    (identity : state.IdentityParents)
+    (first second : Nat) :
+    state.SameThread first second ↔ first = second := by
+  simp [SameThread, identity.representative_eq_all]
+
+/-- Appending the fresh self-parent preserves the identity-parent phase
+invariant. -/
+theorem IdentityParents.push_fresh
+    {state : UnificationState}
+    (identity : state.IdentityParents) :
+    ∀ {token}, token < (state.parents.push state.parents.size).size →
+      (state.parents.push state.parents.size)[token]? = some token := by
+  intro token bound
+  by_cases fresh : token = state.parents.size
+  · subst token
+    exact Array.getElem?_push_size
+  · rw [Array.getElem?_push, if_neg fresh]
+    apply identity
+    simpa using Nat.lt_of_le_of_ne
+      (Nat.le_of_lt_succ (by simpa using bound)) fresh
+
 /-- Observation-equivalent states satisfy the same abstraction contract. -/
 theorem ObservationEquivalent.abstractable
     {certificate : Certificate} {first second : UnificationState}
@@ -300,6 +363,171 @@ theorem ObservationEquivalent.toMarking_eq
     simp only [toMarking_sameThread]
     unfold representative
     rw [← equivalent.parents]
+
+/-- Apply the token-semantic part of an axiom/start firing: mark both axiom
+occurrences with one fresh token and append that token as its own parent. -/
+def startMarking (state : UnificationState)
+    (left right : Vertex) : UnificationState :=
+  let token := state.parents.size
+  { state with
+    marks :=
+      (state.marks.setIfInBounds left (some token))
+        |>.setIfInBounds right (some token)
+    parents := state.parents.push token
+    startedAxioms := state.startedAxioms + 1 }
+
+/-- The start update stays in the pre-union identity-parent phase. -/
+theorem IdentityParents.startMarking
+    {state : UnificationState}
+    (identity : state.IdentityParents)
+    (left right : Vertex) :
+    (state.startMarking left right).IdentityParents := by
+  intro token bound
+  change token < (state.parents.push state.parents.size).size at bound
+  exact identity.push_fresh bound
+
+/-- Starting an in-domain axiom in the identity-parent phase preserves the
+executable abstraction contract. -/
+theorem Abstractable.startMarking
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (identity : state.IdentityParents)
+    {left right : Vertex}
+    (leftBound : left < certificate.formulas.size)
+    (rightBound : right < certificate.formulas.size) :
+    (state.startMarking left right).Abstractable certificate := by
+  have nextIdentity :
+      (state.startMarking left right).IdentityParents :=
+    IdentityParents.startMarking identity left right
+  refine {
+    markArraySize := by
+      simp [UnificationState.startMarking, abstractable.markArraySize]
+    markedVertexBound := ?_
+    markedTokenBound := ?_
+    representativeBound := ?_
+    representativeIdempotent := ?_
+  }
+  · intro vertex token marked
+    by_cases atRight : right = vertex
+    · simpa [atRight] using rightBound
+    · by_cases atLeft : left = vertex
+      · simpa [atLeft] using leftBound
+      · apply abstractable.markedVertexBound
+        simpa [UnificationState.startMarking, assignedToken?,
+          Array.getElem?_setIfInBounds, atRight, atLeft] using marked
+  · intro vertex token marked
+    by_cases atRight : right = vertex
+    · subst vertex
+      simp [UnificationState.startMarking, assignedToken?, rightBound,
+        abstractable.markArraySize] at marked
+      subst token
+      change state.parents.size <
+        (state.parents.push state.parents.size).size
+      simp
+    · by_cases atLeft : left = vertex
+      · subst vertex
+        simp [UnificationState.startMarking, assignedToken?, atRight, leftBound,
+          abstractable.markArraySize] at marked
+        subst token
+        change state.parents.size <
+          (state.parents.push state.parents.size).size
+        simp
+      · have oldMarked :
+          state.assignedToken? vertex = some token := by
+          simpa [UnificationState.startMarking, assignedToken?,
+            Array.getElem?_setIfInBounds, atRight, atLeft] using marked
+        have oldBound := abstractable.markedTokenBound oldMarked
+        simpa [UnificationState.startMarking] using
+          Nat.lt_succ_of_lt oldBound
+  · intro token bound
+    rw [nextIdentity.representative_eq bound]
+    exact bound
+  · intro token bound
+    rw [nextIdentity.representative_eq bound]
+    exact nextIdentity.representative_eq bound
+
+/-- In the fixed-carrier abstraction, the next token number exposed by an
+identity-parent state is isolated from every allocated token. -/
+theorem IdentityParents.toMarking_isFreshToken
+    {certificate : Certificate} {state : UnificationState}
+    (identity : state.IdentityParents)
+    (abstractable : state.Abstractable certificate) :
+    (state.toMarking certificate abstractable).IsFreshToken
+      (state.toMarking certificate abstractable).tokenCount := by
+  intro old oldBound synchronized
+  change old < state.parents.size at oldBound
+  change state.SameThread old state.parents.size at synchronized
+  have equal : old = state.parents.size :=
+    (identity.sameThread_iff old state.parents.size).mp synchronized
+  omega
+
+/-- Forgetting a concrete axiom/start marking update is exactly the two
+abstract `setMark` updates with one fresh token. -/
+theorem startMarking_toMarking_mark
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (identity : state.IdentityParents)
+    {left right : Vertex}
+    (leftBound : left < certificate.formulas.size)
+    (rightBound : right < certificate.formulas.size) :
+    ((state.startMarking left right).toMarking certificate
+      (abstractable.startMarking identity leftBound rightBound)).mark =
+        UnificationMarking.setMark
+          (UnificationMarking.setMark
+            (state.toMarking certificate abstractable).mark
+            left state.parents.size)
+          right state.parents.size := by
+  funext vertex
+  by_cases atRight : vertex = right
+  · subst vertex
+    simp [UnificationState.startMarking, toMarking, assignedToken?,
+      UnificationMarking.setMark, rightBound,
+      abstractable.markArraySize]
+  · by_cases atLeft : vertex = left
+    · subst vertex
+      have different : right ≠ left := Ne.symm atRight
+      simp [UnificationState.startMarking, toMarking, assignedToken?,
+        UnificationMarking.setMark, atRight, different, leftBound,
+        abstractable.markArraySize]
+    · have rightDifferent : right ≠ vertex := Ne.symm atRight
+      have leftDifferent : left ≠ vertex := Ne.symm atLeft
+      simp [UnificationState.startMarking, toMarking, assignedToken?,
+        UnificationMarking.setMark, atRight, atLeft,
+        rightDifferent, leftDifferent]
+
+/-- The concrete token-semantic axiom update refines one independent start
+step while union-find parents are still identities. -/
+theorem startMarking_startStep
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (identity : state.IdentityParents)
+    {left right : Vertex}
+    (linkMembership :
+      Link.axiom left right ∈ certificate.links)
+    (leftBound : left < certificate.formulas.size)
+    (rightBound : right < certificate.formulas.size)
+    (leftUnmarked : state.assignedToken? left = none)
+    (rightUnmarked : state.assignedToken? right = none) :
+    UnificationStep certificate
+      (state.toMarking certificate abstractable)
+      ((state.startMarking left right).toMarking certificate
+        (abstractable.startMarking identity leftBound rightBound)) := by
+  apply UnificationStep.start linkMembership
+  · exact leftUnmarked
+  · exact rightUnmarked
+  · exact identity.toMarking_isFreshToken abstractable
+  · change (state.parents.push state.parents.size).size =
+      state.parents.size + 1
+    simp
+  · exact state.startMarking_toMarking_mark abstractable identity
+      leftBound rightBound
+  · intro first second
+    change (state.startMarking left right).SameThread first second ↔
+      state.SameThread first second
+    have nextIdentity :
+        (state.startMarking left right).IdentityParents :=
+      IdentityParents.startMarking identity left right
+    rw [nextIdentity.sameThread_iff, identity.sameThread_iff]
 
 /-- Mark one connective conclusion and increment the connective counter,
 without changing the token partition or parsed components. -/
@@ -646,19 +874,86 @@ private def startAxiom? (certificate : Certificate)
     match leftFormula with
     | .atom name positive => some (name, positive)
     | _ => none
-  let token := state.parents.size
   let component : UnificationComponent :=
     { tree := .axiom name positive
       frontier := [left, right] }
+  let marked := state.startMarking left right
   pure {
-    marks :=
-      (state.marks.setIfInBounds left (some token)).setIfInBounds right
-        (some token)
-    parents := state.parents.push token
+    marked with
     components := state.components.push (some component)
-    startedAxioms := state.startedAxioms + 1
-    firedConnectives := state.firedConnectives
   }
+
+/-- A successful axiom component construction exposes both executable guards
+and changes the observable state exactly by the token-semantic start update. -/
+private theorem startAxiom?_success
+    {certificate : Certificate} {state next : UnificationState}
+    {left right : Vertex}
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    state.marks[left]? = some none ∧
+      state.marks[right]? = some none ∧
+      UnificationState.ObservationEquivalent
+        (state.startMarking left right) next := by
+  unfold startAxiom? at equation
+  by_cases leftReady : state.marks[left]? = some none
+  · simp [guard, leftReady] at equation
+    by_cases rightReady : state.marks[right]? = some none
+    · simp [rightReady] at equation
+      cases formulaLookup : certificate.formula? left with
+      | none =>
+          simp [formulaLookup] at equation
+      | some formula =>
+          cases formula with
+          | atom name positive =>
+              simp [formulaLookup] at equation
+              subst next
+              exact ⟨leftReady, rightReady, rfl, rfl⟩
+          | tensor first second =>
+              simp [formulaLookup] at equation
+          | par first second =>
+              simp [formulaLookup] at equation
+    · have failed : (failure : Option Unit) = none := rfl
+      simp [rightReady, failed] at equation
+  · have failed : (failure : Option Unit) = none := rfl
+    simp [guard, leftReady, failed] at equation
+
+/-- Every successful concrete axiom initialization, including component
+construction, refines one independent Figure-5 start step. -/
+private theorem startAxiom?_refines_start
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (identity : state.IdentityParents)
+    {left right : Vertex}
+    (linkMembership :
+      Link.axiom left right ∈ certificate.links)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    ∃ nextAbstractable : next.Abstractable certificate,
+      UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        (next.toMarking certificate nextAbstractable) := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨leftReady, rightReady, observation⟩
+  have leftMarksBound : left < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp leftReady).choose
+  have rightMarksBound : right < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp rightReady).choose
+  have leftBound : left < certificate.formulas.size := by
+    simpa [abstractable.markArraySize] using leftMarksBound
+  have rightBound : right < certificate.formulas.size := by
+    simpa [abstractable.markArraySize] using rightMarksBound
+  have leftUnmarked : state.assignedToken? left = none := by
+    simp [UnificationState.assignedToken?, leftReady]
+  have rightUnmarked : state.assignedToken? right = none := by
+    simp [UnificationState.assignedToken?, rightReady]
+  let markedAbstractable :=
+    abstractable.startMarking identity leftBound rightBound
+  let nextAbstractable :=
+    observation.abstractable markedAbstractable
+  refine ⟨nextAbstractable, ?_⟩
+  rw [observation.toMarking_eq markedAbstractable]
+  exact state.startMarking_startStep abstractable identity
+    linkMembership leftBound rightBound leftUnmarked rightUnmarked
 
 /-- Initialize every axiom thread, preserving link-list order only as the
 deterministic fresh-token order. -/
