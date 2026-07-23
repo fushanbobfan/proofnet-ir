@@ -760,6 +760,33 @@ Heterogeneous proof values matching a proposition context exactly.
 ProofNetIR.LeanProp.Assumptions : List Prop → Type
 ```
 
+### `ProofNetIR.LeanProp.Assumptions.split_append`
+
+Kind: theorem.
+
+Splitting an appended proof environment recovers the two inputs.
+
+```lean
+ProofNetIR.LeanProp.Assumptions.split_append : ∀ {left right : List Prop} (leftValues : ProofNetIR.LeanProp.Assumptions left)
+  (rightValues : ProofNetIR.LeanProp.Assumptions right),
+  ProofNetIR.LeanProp.Assumptions.split left right (leftValues.append rightValues) = (leftValues, rightValues)
+```
+
+### `ProofNetIR.LeanProp.Assumptions.permute_symm`
+
+Kind: theorem.
+
+Executing an exchange and its explicit inverse restores the original
+heterogeneous proof environment.
+
+```lean
+ProofNetIR.LeanProp.Assumptions.permute_symm : ∀ {left right : List Prop} (permutation : ProofNetIR.LeanProp.ContextPermutation left right)
+  (values : ProofNetIR.LeanProp.Assumptions left),
+  ProofNetIR.LeanProp.Assumptions.permute permutation.symm
+      (ProofNetIR.LeanProp.Assumptions.permute permutation values) =
+    values
+```
+
 ### `ProofNetIR.LeanProp.ContextPermutation`
 
 Kind: inductive type.

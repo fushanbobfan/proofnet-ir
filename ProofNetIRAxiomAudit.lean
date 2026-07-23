@@ -36,3 +36,5 @@ expansion.
 #print axioms ExecutableSequentializationResult.proofNetEquivalent
 #print axioms LeanProp.Derivation.toProof
 #print axioms LeanProp.Derivation.linearAxiomCount_eq_length
+#print axioms LeanProp.Assumptions.split_append
+#print axioms LeanProp.Assumptions.permute_symm

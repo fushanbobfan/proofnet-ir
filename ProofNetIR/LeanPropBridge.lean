@@ -73,6 +73,20 @@ def split (left right : List Prop) :
           let (leftValues, rightValues) := split tail right rest
           (.cons proof leftValues, rightValues)
 
+/-- Splitting an appended proof environment recovers the two inputs. -/
+theorem split_append {left right : List Prop}
+    (leftValues : Assumptions left) (rightValues : Assumptions right) :
+    split left right (append leftValues rightValues) =
+      (leftValues, rightValues) := by
+  induction left with
+  | nil =>
+      cases leftValues
+      rfl
+  | cons _ tail inductionHypothesis =>
+      cases leftValues with
+      | cons proof rest =>
+          simp [append, split, inductionHypothesis rest]
+
 /-- Transport proof values along an explicit context permutation. -/
 def permute {left right : List Prop} :
     ContextPermutation left right → Assumptions left → Assumptions right
@@ -83,6 +97,31 @@ def permute {left right : List Prop} :
       .cons second (.cons first rest)
   | .trans first second, values =>
       permute second (permute first values)
+
+/-- Executing an exchange and its explicit inverse restores the original
+heterogeneous proof environment. -/
+theorem permute_symm {left right : List Prop}
+    (permutation : ContextPermutation left right)
+    (values : Assumptions left) :
+    permute permutation.symm (permute permutation values) = values := by
+  induction permutation with
+  | nil =>
+      cases values
+      rfl
+  | cons permutation inductionHypothesis =>
+      cases values with
+      | cons proof rest =>
+          simp [permute, ContextPermutation.symm,
+            inductionHypothesis rest]
+  | swap first second rest =>
+      cases values with
+      | cons secondProof tail =>
+          cases tail with
+          | cons firstProof tail => rfl
+  | trans first second firstIH secondIH =>
+      change permute first.symm
+        (permute second.symm (permute second (permute first values))) = values
+      rw [secondIH, firstIH]
 
 end Assumptions
 

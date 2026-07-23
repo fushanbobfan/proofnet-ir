@@ -103,9 +103,11 @@ environment.
 
 `LeanProp.Derivation.toProof` recursively interprets every template as a Lean
 proof. `linearAxiomCount_eq_length` separately proves exact linear-resource
-accounting. Both theorems are axiom-free under `#print axioms`. Ordinary Lean
-`And` and implication are not identified with MLL tensor/par, and this layer
-does not alter any v0.5 sequentialization or identity theorem.
+accounting. Under `#print axioms`, the interpreter is axiom-free; the resource
+count and dependent-environment round-trip theorems use exactly `propext`, as
+their indices contain propositions. Ordinary Lean `And` and implication are
+not identified with MLL tensor/par, and this layer does not alter any v0.5
+sequentialization or identity theorem.
 
 ## Sequentialization boundary
 

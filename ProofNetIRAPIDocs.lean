@@ -104,6 +104,8 @@ def sections : List Section := [
     title := "Persistent and linear LeanProp bridge"
     declarations := [
       `ProofNetIR.LeanProp.Assumptions,
+      `ProofNetIR.LeanProp.Assumptions.split_append,
+      `ProofNetIR.LeanProp.Assumptions.permute_symm,
       `ProofNetIR.LeanProp.ContextPermutation,
       `ProofNetIR.LeanProp.ContextPermutation.toListPerm,
       `ProofNetIR.LeanProp.Derivation,

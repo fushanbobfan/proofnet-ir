@@ -6,8 +6,9 @@
   certificate/checker semantics: derivations are indexed by separate
   persistent and linear proposition contexts;
 - added proof-relevant exchange data, explicit persistent weakening and
-  contraction, no linear structural rules, and an axiom-free theorem that the
-  linear-axiom leaf count is exactly the linear-context length;
+  contraction, no linear structural rules, and a theorem that the linear-axiom
+  leaf count is exactly the linear-context length; the theorem uses exactly
+  `propext` because proposition-valued contexts are dependent indices;
 - added conjunction, implication, equality-rewrite, universal-instantiation,
   and existential-witness nodes plus an axiom-free total interpreter into Lean
   proof terms at arbitrary universes;

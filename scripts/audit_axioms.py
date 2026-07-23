@@ -40,9 +40,17 @@ EXPECTED_CLASSICAL_THEOREMS = {
 }
 EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.toProof",
-    "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
 }
-EXPECTED_THEOREMS = EXPECTED_CLASSICAL_THEOREMS | EXPECTED_AXIOM_FREE_THEOREMS
+EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
+    "ProofNetIR.LeanProp.Assumptions.split_append",
+    "ProofNetIR.LeanProp.Assumptions.permute_symm",
+}
+EXPECTED_THEOREMS = (
+    EXPECTED_CLASSICAL_THEOREMS
+    | EXPECTED_AXIOM_FREE_THEOREMS
+    | EXPECTED_PROPEXT_ONLY_THEOREMS
+)
 EXPECTED_AXIOMS = {"propext", "Classical.choice", "Quot.sound"}
 
 
@@ -88,7 +96,12 @@ def main() -> None:
         )
     unexpected = {}
     for theorem, axioms in actual.items():
-        expected = set() if theorem in EXPECTED_AXIOM_FREE_THEOREMS else EXPECTED_AXIOMS
+        if theorem in EXPECTED_AXIOM_FREE_THEOREMS:
+            expected = set()
+        elif theorem in EXPECTED_PROPEXT_ONLY_THEOREMS:
+            expected = {"propext"}
+        else:
+            expected = EXPECTED_AXIOMS
         if axioms != expected:
             unexpected[theorem] = {
                 "actual": sorted(axioms),
@@ -103,7 +116,8 @@ def main() -> None:
         "ProofNet-IR axiom audit passed: "
         f"{len(EXPECTED_CLASSICAL_THEOREMS)} public MLL theorems use exactly "
         "[propext, Classical.choice, Quot.sound]; "
-        f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} LeanProp theorems are axiom-free"
+        f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} LeanProp theorem is axiom-free; "
+        f"{len(EXPECTED_PROPEXT_ONLY_THEOREMS)} use exactly [propext]"
     )
 
 

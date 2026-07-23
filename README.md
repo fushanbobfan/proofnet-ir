@@ -128,7 +128,9 @@ finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
 separately audits twenty-five public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. The two initial LeanProp boundary
-theorems are audited separately and depend on no axioms.
+classes are audited separately: the proof-term interpreter is axiom-free,
+while the resource-count and dependent-environment round-trip theorems use
+exactly `propext`.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
