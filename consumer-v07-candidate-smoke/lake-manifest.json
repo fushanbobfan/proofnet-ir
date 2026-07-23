@@ -1,0 +1,16 @@
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
+ "packages":
+ [{"url": "https://github.com/fushanbobfan/proofnet-ir.git",
+   "type": "git",
+   "subDir": null,
+   "scope": "",
+   "rev": "4e7b07077c280f0f75c9ab24d6e5ed1a6e331183",
+   "name": "«proofnet-ir»",
+   "manifestFile": "lake-manifest.json",
+   "inputRev": "4e7b07077c280f0f75c9ab24d6e5ed1a6e331183",
+   "inherited": false,
+   "configFile": "lakefile.toml"}],
+ "name": "«proofnet-ir-v07-candidate-consumer-smoke»",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}

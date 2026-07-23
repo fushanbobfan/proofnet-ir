@@ -1,0 +1,18 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": "60e7f181e2c716b7.o",
+ "log":
+ [{"message":
+   ".> c:\\Users\\fusha\\.elan\\toolchains\\leanprover--lean4---v4.32.0\\bin\\clang.exe -c -o D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\build\\ir\\Main.c.o.noexport D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\build\\ir\\Main.c -I c:\\Users\\fusha\\.elan\\toolchains\\leanprover--lean4---v4.32.0\\include -fstack-clash-protection -ffp-contract=off -fdata-sections -ffunction-sections -Wno-unused-command-line-argument --sysroot c:\\Users\\fusha\\.elan\\toolchains\\leanprover--lean4---v4.32.0 -nostdinc -isystem c:\\Users\\fusha\\.elan\\toolchains\\leanprover--lean4---v4.32.0/include/clang -O3 -DNDEBUG",
+   "level": "trace"}],
+ "inputs":
+ [["Main:c",
+   [["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\build\\ir\\Main.c",
+     "435a55dab99dbd4e"],
+    ["Lean 4.32.0, commit 8c9756b28d64dab099da31a4c09229a9e6a2ef35",
+     "5d4a267a1ba5cafb"]]],
+  ["Lean 4.32.0, commit 8c9756b28d64dab099da31a4c09229a9e6a2ef35",
+   "5d4a267a1ba5cafb"],
+  ["traceArgs: #[-O3, -DNDEBUG]", "6c7bb0eeabd8f74a"],
+  ["x86_64-w64-windows-gnu", "360db333d006d911"]],
+ "depHash": "46a720e295fb7205"}

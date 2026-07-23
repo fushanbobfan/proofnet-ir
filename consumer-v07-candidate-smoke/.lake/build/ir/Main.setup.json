@@ -1,0 +1,71 @@
+{"plugins": [],
+ "package": "proofnet-ir-v07-candidate-consumer-smoke",
+ "options": {},
+ "name": "Main",
+ "isModule": false,
+ "importArts":
+ {"ProofNetIR.SwitchingComposition":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\SwitchingComposition.olean"],
+  "ProofNetIR.StructuralComposition":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\StructuralComposition.olean"],
+  "ProofNetIR.StructuralCode":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\StructuralCode.olean"],
+  "ProofNetIR.Serialization":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Serialization.olean"],
+  "ProofNetIR.Sequentialization":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Sequentialization.olean"],
+  "ProofNetIR.Reindex":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Reindex.olean"],
+  "ProofNetIR.Reconstruct":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Reconstruct.olean"],
+  "ProofNetIR.ProofNetIdentity":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\ProofNetIdentity.olean"],
+  "ProofNetIR.ProofNetCanonical":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\ProofNetCanonical.olean"],
+  "ProofNetIR.Parser":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Parser.olean"],
+  "ProofNetIR.NetEquivalence":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\NetEquivalence.olean"],
+  "ProofNetIR.Mutation":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Mutation.olean"],
+  "ProofNetIR.LocalIdentity":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LocalIdentity.olean"],
+  "ProofNetIR.LeanPropTemplates":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropTemplates.olean"],
+  "ProofNetIR.LeanPropSchemaWire":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropSchemaWire.olean"],
+  "ProofNetIR.LeanPropSchemaCorpus":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropSchemaCorpus.olean"],
+  "ProofNetIR.LeanPropSchema":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropSchema.olean"],
+  "ProofNetIR.LeanPropRaw":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropRaw.olean"],
+  "ProofNetIR.LeanPropNormalization":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropNormalization.olean"],
+  "ProofNetIR.LeanPropElaboration":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropElaboration.olean"],
+  "ProofNetIR.LeanPropBridge":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\LeanPropBridge.olean"],
+  "ProofNetIR.GraphComposition":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\GraphComposition.olean"],
+  "ProofNetIR.Graph":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Graph.olean"],
+  "ProofNetIR.Generate":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Generate.olean"],
+  "ProofNetIR.Formula":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Formula.olean"],
+  "ProofNetIR.ExecutableSequentialization":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\ExecutableSequentialization.olean"],
+  "ProofNetIR.DesequentializationSoundness":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\DesequentializationSoundness.olean"],
+  "ProofNetIR.DerivationTree":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\DerivationTree.olean"],
+  "ProofNetIR.Checker":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Checker.olean"],
+  "ProofNetIR.Certificate":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\Certificate.olean"],
+  "ProofNetIR.CanonicalKeyWire":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR\\CanonicalKeyWire.olean"],
+  "ProofNetIR":
+  ["D:\\ucla\\Rowling的神奇知识库\\LEAN with Rowling!\\proofnet-ir\\consumer-v07-candidate-smoke\\.lake\\packages\\proofnet-ir\\.lake\\build\\lib\\lean\\ProofNetIR.olean"]},
+ "dynlibs": []}

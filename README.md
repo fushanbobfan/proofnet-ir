@@ -120,6 +120,9 @@ The repository currently contains:
   wire property corpus, 5,000-case malformed-key fuzz corpus, and measured
   1/4/7-link benchmark pass, but larger or ordinary pairwise comparisons should
   use `CheckedCertificate.sameProofNet?`;
+- a clean downstream Lake consumer pinned to the exact public v0.7 candidate
+  revision, exercising bounded-key exactness, safe matching, over-limit
+  failure, and executable sequentialization;
 - a checked pairwise identity API,
   `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
   exactly `ProofNetEquivalent`. Its search enforces the ordered conclusion

@@ -300,7 +300,8 @@
   separate 10-second budget. The unbounded typed key remains a specification
   oracle; non-factorial construction remains later research.
 - [ ] Pin a clean downstream consumer to the eventual public v0.7 release and
-  qualify local, main-branch, and exact-tag CI.
+  qualify local, main-branch, and exact-tag CI. The exact candidate-revision
+  consumer passes locally; main-branch and final tag qualification remain.
 
 ## Later research
 

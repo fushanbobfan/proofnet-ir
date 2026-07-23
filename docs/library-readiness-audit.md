@@ -140,7 +140,10 @@ part of the engineering and proof-identity gap.
   equivalence theorem, while the pinned consumer protects the v0.5.0 API. A
   third clean consumer installs the exact public v0.6 candidate Git commit
   and typechecks the retained-boundary, packed-witness, soundness, and
-  persistent-normalization APIs;
+  persistent-normalization APIs. A fourth clean consumer pins the exact public
+  v0.7 candidate revision and checks bounded canonical-key exactness, safe
+  matching, fail-closed over-limit behavior, and executable
+  sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
 - CI now parses `#print axioms` for thirty-seven public MLL logical-boundary theorems and
