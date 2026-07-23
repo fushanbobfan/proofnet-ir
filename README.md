@@ -104,10 +104,16 @@ The repository currently contains:
   oracle, not a compact wire key or arbitrary unlabeled-graph canonicalizer.
 - an unreleased `proofNetCanonicalFingerprint?` experiment that selects the
   lexicographically least serialized member of that family. Lean proves it is
-  total and invariant under `ProofNetEquivalent`, but no converse is claimed
-  until serializer injectivity or a checked decoder round trip is proved. It
-  still materializes the factorial family, so exact production comparisons
-  continue to use `CheckedCertificate.sameProofNet?`;
+  total and invariant under `ProofNetEquivalent`; the JSON-string API remains a
+  forward-only convenience because no `Json.compress` injectivity theorem is
+  assumed;
+- an unreleased, explicitly versioned `proofNetCanonicalCode?` token key.
+  Its underlying structural encoder is proved injective, and Lean proves on
+  structurally well-formed certificates (hence on checker-accepted inputs) that
+  code equality is equivalent to exactly `ProofNetEquivalent`. It still
+  materializes the factorial family and is not yet a public wire format, so
+  production pairwise comparisons continue to use
+  `CheckedCertificate.sameProofNet?`;
 - a checked pairwise identity API,
   `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
   exactly `ProofNetEquivalent`. Its search enforces the ordered conclusion
@@ -176,8 +182,8 @@ semantics; its wire layer intentionally covers only named atoms, ordinary
 conjunction, and implication, not typed equality/quantifier terms or broad
 mathlib expressions. The
 repository also lacks canonicalization modulo reordered conclusions or
-arbitrary graph isomorphism, a reverse-complete and performance-qualified
-single-representative wire key for `ProofNetEquivalent`, and a Lean tactic. The API,
+arbitrary graph isomorphism, a performance-qualified versioned wire codec for
+the exact typed `ProofNetEquivalent` key, and a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.

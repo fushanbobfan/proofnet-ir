@@ -59,8 +59,11 @@ criterion and proof-order bureaucracy can be measured cleanly.
     factorial in the link count and is intended as a specification oracle.
     The unreleased `proofNetCanonicalFingerprint?` projects this family to its
     lexicographically least v0.3 string. Its totality, candidate membership,
-    and forward invariance are proved; reverse completeness is not claimed
-    before the serializer has an injectivity or checked-decoder theorem.
+    and forward invariance are proved. `StructuralCode.lean` instead supplies
+    an explicitly framed token encoder proved injective, and
+    `proofNetCanonicalCode?` minimizes that encoding. Equality of this typed
+    code is proved equivalent to `ProofNetEquivalent` on structurally
+    well-formed certificates.
 21. `ProofNetIdentity.lean` exposes the production pairwise identity boundary
     for checker-accepted certificates. `sameProofNet?` is proved equivalent to
     exactly `ProofNetEquivalent`. Its underlying candidate generator applies
@@ -75,19 +78,21 @@ arbitrary graph canonical-labeling algorithm: list order and logical premise
 order remain part of identity.
 
 The broader `ProofNetEquivalent` relation has a complete finite canonical
-family and an experimental compact fingerprint obtained by minimizing its
-serialized image. In this family, link-list storage order is quotiented, while
+family, an experimental JSON fingerprint obtained by minimizing its serialized
+image, and an exact typed key obtained from a proved-injective structural code.
+In this family, link-list storage order is quotiented, while
 ordered conclusions, tensor/par premise order, formula labels, and axiom
-endpoint orientation remain significant. The fingerprint currently has only
-the forward equivalence-invariance theorem and inherits factorial
-materialization. It is therefore not yet a production canonical wire key and
-does not claim arbitrary graph isomorphism.
+endpoint orientation remain significant. The JSON fingerprint has only the
+forward equivalence-invariance theorem; the typed code has the exact iff
+theorem. Both inherit factorial materialization. Neither is yet a production
+canonical wire key, and neither claims arbitrary graph isomorphism.
 
 The project deliberately keeps exact pairwise decision as its supported
-production identity API. The experimental fingerprint does not change that
-boundary: equal fingerprints are not yet proved sufficient for equivalence.
+production identity API. The typed canonical code settles the logical
+single-key question, but its factorial implementation and lack of a versioned
+wire parser keep it outside that production boundary.
 Ordered conclusions, connective premise order, formula labels, and axiom
-orientation are still part of identity, and neither fingerprint construction
+orientation are still part of identity, and neither canonical construction
 nor worst-case internal repeated-label search is claimed to be polynomial.
 
 ## Why exhaustive switchings first

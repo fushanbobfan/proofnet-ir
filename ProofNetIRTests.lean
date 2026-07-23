@@ -963,6 +963,37 @@ example :
     (Certificate.ReindexEquivalent.symm
       ⟨swapCanonicalZeroOne, rfl⟩).toProofNetEquivalent)
     |>.proofNetCanonicalFingerprint?_eq
+example :
+    canonical.proofNetCanonicalCode?.isSome = true := by
+  native_decide
+example :
+    canonical.ProofNetEquivalent linkScrambledCanonical ↔
+      canonical.proofNetCanonicalCode? =
+        linkScrambledCanonical.proofNetCanonicalCode? :=
+  Certificate.proofNetEquivalent_iff_canonicalCode_of_check
+    (by native_decide) (by native_decide)
+example :
+    canonical.proofNetCanonicalCode? =
+      linkScrambledCanonical.proofNetCanonicalCode? :=
+  (show canonical.ProofNetEquivalent linkScrambledCanonical from by
+    refine (show canonical.LinkPermutationEquivalent
+      linkScrambledCanonical from ?_).toProofNetEquivalent
+    refine ⟨rfl, ?_, rfl⟩
+    simpa [linkScrambledCanonical] using
+      (List.reverse_perm canonical.links).symm)
+    |>.proofNetCanonicalCode?_eq
+example :
+    (canonical.reindex swapCanonicalZeroOne).proofNetCanonicalCode? =
+      canonical.proofNetCanonicalCode? :=
+  (show (canonical.reindex swapCanonicalZeroOne).ProofNetEquivalent
+      canonical from
+    (Certificate.ReindexEquivalent.symm
+      ⟨swapCanonicalZeroOne, rfl⟩).toProofNetEquivalent)
+    |>.proofNetCanonicalCode?_eq
+example :
+    (canonicalCertificate "ordered-p" "ordered-q").proofNetCanonicalCode? ≠
+      reversedConclusionCertificate.proofNetCanonicalCode? := by
+  native_decide
 example : ¬ canonical.ReindexEquivalent linkScrambledCanonical := by
   rw [← Certificate.reindexEquivalent?_eq_true_iff_of_check
     (left := canonical) (right := linkScrambledCanonical)

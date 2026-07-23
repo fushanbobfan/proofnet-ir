@@ -33,6 +33,10 @@ expansion.
 #print axioms Certificate.proofNetEquivalent_iff_canonicalFamily_of_check
 #print axioms Certificate.proofNetCanonicalFingerprint?_exists
 #print axioms Certificate.ProofNetEquivalent.proofNetCanonicalFingerprint?_eq
+#print axioms Certificate.structuralCode_injective
+#print axioms Certificate.proofNetCanonicalCode?_exists
+#print axioms Certificate.ProofNetEquivalent.proofNetCanonicalCode?_eq
+#print axioms Certificate.proofNetEquivalent_iff_canonicalCode_of_check
 #print axioms Certificate.sequentialize_complete
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent

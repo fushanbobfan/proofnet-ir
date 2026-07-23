@@ -44,9 +44,11 @@ for exactly `ProofNetEquivalent`; neither path materializes the family.
 
 The unreleased `Certificate.proofNetCanonicalFingerprint?` currently maps and
 minimizes that same family, so its compact return type does not imply compact
-computation. It is also excluded from the performance budget. It must not
-replace `sameProofNet?` until both the converse theorem and a separately
-measured implementation avoid or deliberately accept the factorial cost.
+computation. The exact typed `Certificate.proofNetCanonicalCode?` likewise
+minimizes the family; its iff theorem settles logical completeness but not
+runtime suitability. Both are excluded from the performance budget and must
+not replace `sameProofNet?` until a separately measured implementation avoids
+or deliberately accepts the factorial cost.
 
 ## Baseline measurement
 

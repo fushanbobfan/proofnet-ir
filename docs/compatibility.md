@@ -42,11 +42,14 @@ the payload contract changes, a new wire version.
 
 The unreleased `proofNetCanonicalFingerprint?` is a Lean-level experimental
 value, not a wire contract. It takes the least existing v0.3 string across the
-finite `ProofNetEquivalent` family, but it has only a forward invariance
-theorem and still materializes the factorial family. A future public wire key
-must use a new explicit canonicalization marker, prove checked decoding or
-serializer injectivity and the converse identity theorem, and add migration
-fixtures; existing v0.2/v0.3 strings will not be reinterpreted.
+finite `ProofNetEquivalent` family and has a forward invariance theorem.
+The separate `proofNetCanonicalCode?` token value uses an explicitly versioned,
+proved-injective structural encoder; code equality is proved equivalent to
+`ProofNetEquivalent` on structurally well-formed or checker-accepted inputs.
+Neither value is yet a wire contract, and both still materialize the factorial
+family. A future public wire key must use a new explicit canonicalization
+marker, provide a parser/checked decoder, and add migration fixtures; existing
+v0.2/v0.3 strings will not be reinterpreted.
 
 Release v0.4.0 adds the general sequentialization Lean API and theorem without
 introducing a new wire version or changing the v0.2/v0.3 payload contracts.

@@ -144,11 +144,15 @@ The unreleased `proofNetCanonicalFingerprint?` takes the lexicographic minimum
 of the v0.3 strings in the complete finite canonical family. Lean proves that
 the option is always populated, that a selected value belongs to the family
 image, and that `ProofNetEquivalent` certificates have equal fingerprints.
-These public boundary proofs use exactly
-`[propext, Classical.choice, Quot.sound]`. No reverse implication is trusted:
-until serialization is proved injective on canonical-family members or a
-checked decoder round trip is established, fingerprint equality is not an
-identity decision.
+This JSON-string result remains forward-only because the project does not
+assume `Json.compress` injectivity. The separate `proofNetCanonicalCode?`
+uses an explicitly length-framed structural token encoder whose injectivity is
+proved in Lean. On structurally well-formed certificates, and therefore on
+checker-accepted inputs, equality of this typed code is proved iff exactly
+`ProofNetEquivalent`. These public boundary proofs use exactly
+`[propext, Classical.choice, Quot.sound]`; no project-specific axiom or
+unproved serializer premise is added. The typed code is not yet a parsed wire
+format and still uses factorial family materialization.
 
 ## Failure containment
 

@@ -13,6 +13,7 @@ import ProofNetIR.Sequentialization
 import ProofNetIR.LocalIdentity
 import ProofNetIR.DesequentializationSoundness
 import ProofNetIR.ExecutableSequentialization
+import ProofNetIR.StructuralCode
 import ProofNetIR.ProofNetCanonical
 import ProofNetIR.ProofNetIdentity
 import ProofNetIR.Parser

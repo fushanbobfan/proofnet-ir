@@ -1,7 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-23
-Audited baseline: v0.6.0 plus unreleased v0.7 fingerprint work
+Audited baseline: v0.6.0 plus unreleased v0.7 exact typed-key work
 
 ## Verdict
 
@@ -105,11 +105,13 @@ part of the engineering and proof-identity gap.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional
-   family membership equality iff `ProofNetEquivalent`. An unreleased
-   lexicographic-minimum fingerprint is total and forward invariant, but
-   fingerprint equality is not yet proved to imply equivalence and the
-   implementation still materializes the factorial family. It is therefore
-   not yet a production single-representative wire key.
+   family membership equality iff `ProofNetEquivalent`. An unreleased JSON
+   fingerprint is total and forward invariant. A separate explicitly
+   versioned, length-framed structural code is proved injective, and equality
+   of its canonical minimum is proved equivalent to `ProofNetEquivalent` on
+   structurally well-formed or checker-accepted inputs. The implementation
+   still materializes the factorial family and has no public wire parser, so it
+   is not yet a production single-representative wire key.
    Conclusion-order canonicalization and arbitrary graph isomorphism remain
    outside the current claim. The v0.3.1 wire theorem remains intentionally
    about the narrower, order-preserving `ReindexEquivalent` relation.
@@ -200,9 +202,9 @@ It can currently be used for:
 - producing stable v0.3 cache/dataset keys across bounded vertex renamings;
 - deciding exact `ProofNetEquivalent` pairwise identity between
   checker-accepted certificates through a checked API;
-- computing an experimental compact fingerprint whose totality and forward
-  `ProofNetEquivalent` invariance are kernel proved, while retaining
-  `sameProofNet?` for exact identity;
+- computing an experimental typed canonical code whose equality is kernel
+  proved equivalent to `ProofNetEquivalent`, while retaining
+  `sameProofNet?` as the performance-qualified pairwise identity API;
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.

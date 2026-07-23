@@ -285,17 +285,16 @@
   `proofNetCanonicalFamily` and select its lexicographically least member.
 - [x] Prove fingerprint totality, selected-member provenance, and forward
   invariance under `ProofNetEquivalent`.
-- [x] Exercise the API in the source tests and path-based downstream consumer,
-  while documenting that `sameProofNet?` remains the exact identity boundary.
-- [ ] Prove the v0.3 canonical serializer injective on the relevant normalized
-  certificates, or prove a checker-gated decoder round trip with the same
-  consequence.
-- [ ] Derive the reverse theorem: equal fingerprints imply
-  `ProofNetEquivalent` under the precise structural/checked preconditions.
+- [x] Exercise the API in the source tests and path-based downstream consumer.
+- [x] Introduce an explicitly versioned, length-framed structural token code
+  and prove it injective, avoiding any unproved assumption about JSON
+  compression.
+- [x] Derive the exact theorem: equal typed canonical codes iff
+  `ProofNetEquivalent` under precise structural/checked preconditions.
 - [ ] Introduce a new explicit wire canonicalization marker instead of
   reinterpreting v0.3, with parser, migration, negative, and property tests.
 - [ ] Replace or qualify factorial family materialization with measured
-  performance evidence before calling the fingerprint a production key.
+  performance evidence before calling the typed code a production key.
 - [ ] Pin a clean downstream consumer to the eventual public v0.7 release and
   qualify local, main-branch, and exact-tag CI.
 

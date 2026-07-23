@@ -5,10 +5,15 @@
 - added `proofNetCanonicalFingerprint?`, the lexicographically least v0.3
   string in the complete finite `ProofNetEquivalent` canonical family; Lean
   proves totality, candidate membership, and forward invariance under
-  `ProofNetEquivalent`. This is an experimental compact return value, not yet
-  an exact decision key: serializer injectivity/checked decoding and the
-  converse theorem remain open, and the implementation still materializes the
-  factorial family;
+  `ProofNetEquivalent`. This JSON-string convenience remains forward-only
+  because the project does not assume `Json.compress` injectivity;
+- added an explicitly versioned, length-framed structural token encoder with
+  kernel-proved injectivity and `proofNetCanonicalCode?`, the least structural
+  code in the complete finite family. On structurally well-formed certificates,
+  `proofNetEquivalent_iff_canonicalCode` proves code equality iff exactly
+  `ProofNetEquivalent`; checker acceptance supplies those premises. This typed
+  exact key still materializes the factorial family and is not yet a public
+  wire codec;
 
 ## v0.6.0 - Persistent LeanProp bridge
 

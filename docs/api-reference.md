@@ -627,6 +627,150 @@ ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalFingerprint?_eq : ∀
   left.ProofNetEquivalent right → left.proofNetCanonicalFingerprint? = right.proofNetCanonicalFingerprint?
 ```
 
+### `ProofNetIR.Formula.structuralCode`
+
+Kind: definition.
+
+Explicit structural token code for one unit-free MLL formula.
+
+```lean
+ProofNetIR.Formula.structuralCode : ProofNetIR.Formula → List String
+```
+
+### `ProofNetIR.Formula.structuralCode_injective`
+
+Kind: theorem.
+
+Formula structural codes reflect literal formula equality.
+
+```lean
+ProofNetIR.Formula.structuralCode_injective : Function.Injective ProofNetIR.Formula.structuralCode
+```
+
+### `ProofNetIR.Link.structuralCode`
+
+Kind: definition.
+
+Explicit structural token code for one local proof-net link.
+
+```lean
+ProofNetIR.Link.structuralCode : ProofNetIR.Link → List String
+```
+
+### `ProofNetIR.Link.structuralCode_injective`
+
+Kind: theorem.
+
+Link structural codes reflect literal link equality.
+
+```lean
+ProofNetIR.Link.structuralCode_injective : Function.Injective ProofNetIR.Link.structuralCode
+```
+
+### `ProofNetIR.Certificate.structuralCode`
+
+Kind: definition.
+
+Versioned, equality-reflecting token code for the literal certificate
+fields.  This code does not normalize vertices or link order by itself.
+
+```lean
+ProofNetIR.Certificate.structuralCode : ProofNetIR.Certificate → List String
+```
+
+### `ProofNetIR.Certificate.structuralCode_injective`
+
+Kind: theorem.
+
+The versioned structural code reflects literal certificate equality.
+
+```lean
+ProofNetIR.Certificate.structuralCode_injective : Function.Injective ProofNetIR.Certificate.structuralCode
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalCodeCandidates`
+
+Kind: definition.
+
+Injective structural codes for every member of the complete finite
+canonical family.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalCodeCandidates : ProofNetIR.Certificate → List (List String)
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalCode?`
+
+Kind: definition.
+
+The lexicographically least injective structural code in the complete
+canonical family.  Unlike `proofNetCanonicalFingerprint?`, this typed token
+key has a reverse-completeness theorem below.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalCode? : ProofNetIR.Certificate → Option (List String)
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalCode?_exists`
+
+Kind: theorem.
+
+The exact structural canonical code is total for every certificate.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalCode?_exists : ∀ (certificate : ProofNetIR.Certificate), ∃ code, certificate.proofNetCanonicalCode? = some code
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalCode?_mem`
+
+Kind: theorem.
+
+A selected exact code comes from an actual canonical-family member.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalCode?_mem : ∀ (certificate : ProofNetIR.Certificate) {code : List String},
+  certificate.proofNetCanonicalCode? = some code → code ∈ certificate.proofNetCanonicalCodeCandidates
+```
+
+### `ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalCode?_eq`
+
+Kind: theorem.
+
+Generated proof-net equivalence preserves the exact structural canonical
+code.
+
+```lean
+ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalCode?_eq : ∀ {left right : ProofNetIR.Certificate},
+  left.ProofNetEquivalent right → left.proofNetCanonicalCode? = right.proofNetCanonicalCode?
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalCode`
+
+Kind: theorem.
+
+On structurally well-formed certificates, equality of the typed structural
+canonical code is equivalent to exactly `ProofNetEquivalent`.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalCode : ∀ {left right : ProofNetIR.Certificate},
+  left.StructurallyWellFormed →
+    right.StructurallyWellFormed →
+      (left.ProofNetEquivalent right ↔ left.proofNetCanonicalCode? = right.proofNetCanonicalCode?)
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalCode_of_check`
+
+Kind: theorem.
+
+Checker acceptance supplies the structural premises for the exact typed
+canonical-code theorem.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalCode_of_check : ∀ {left right : ProofNetIR.Certificate},
+  left.check = true →
+    right.check = true → (left.ProofNetEquivalent right ↔ left.proofNetCanonicalCode? = right.proofNetCanonicalCode?)
+```
+
 ### `ProofNetIR.Certificate.equivalenceCanonicalString`
 
 Kind: definition.

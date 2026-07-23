@@ -93,13 +93,20 @@ example : axiomCertificate.ProofNetEquivalent reordered ↔
         candidate ∈ reordered.proofNetCanonicalFamily :=
   Certificate.proofNetEquivalent_iff_canonicalFamily_of_check
     (by native_decide) (by native_decide)
+
+example : axiomCertificate.ProofNetEquivalent reordered ↔
+    axiomCertificate.proofNetCanonicalCode? =
+      reordered.proofNetCanonicalCode? :=
+  Certificate.proofNetEquivalent_iff_canonicalCode_of_check
+    (by native_decide) (by native_decide)
 ```
 
 This family enumerates link permutations, so it is factorial and intended for
-specification or small audits. Use `proofNetEquivalent?` for ordinary identity
-decisions. The family preserves ordered conclusions, tensor/par premise order,
-formula labels, and axiom endpoint orientation; it is not arbitrary graph
-isomorphism and is not a new compact JSON wire format.
+specification or small audits. The typed canonical code has an exact iff
+theorem, but it currently enumerates the same family and is not yet a parsed
+wire format. Use `proofNetEquivalent?` for ordinary identity decisions. The
+family preserves ordered conclusions, tensor/par premise order, formula labels,
+and axiom endpoint orientation; it is not arbitrary graph isomorphism.
 
 ## 4. Sequentialize every accepted certificate
 

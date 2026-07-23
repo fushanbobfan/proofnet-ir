@@ -1,4 +1,5 @@
 import ProofNetIR.ExecutableSequentialization
+import ProofNetIR.StructuralCode
 import Std
 
 namespace ProofNetIR
@@ -239,6 +240,58 @@ theorem proofNetEquivalent_iff_canonicalFamily_of_check
     (left.check_sound_declarative leftAccepted).1
     (right.check_sound_declarative rightAccepted).1
 
+/-- One shared normalized family member is already sufficient to establish
+`ProofNetEquivalent`; extensional equality of the whole family is stronger
+than the reverse proof needs. -/
+theorem proofNetEquivalent_of_common_canonicalFamily_member
+    {left right candidate : Certificate}
+    (leftStructural : left.StructurallyWellFormed)
+    (rightStructural : right.StructurallyWellFormed)
+    (leftMember : candidate ∈ left.proofNetCanonicalFamily)
+    (rightMember : candidate ∈ right.proofNetCanonicalFamily) :
+    left.ProofNetEquivalent right := by
+  rw [mem_proofNetCanonicalFamily_iff] at leftMember rightMember
+  rcases leftMember with
+    ⟨leftLinks, leftPermutation, leftEquation⟩
+  rcases rightMember with
+    ⟨rightLinks, rightPermutation, rightEquation⟩
+  let leftReordered : Certificate := { left with links := leftLinks }
+  let rightReordered : Certificate := { right with links := rightLinks }
+  have leftReorderedToLeft :
+      leftReordered.LinkPermutationEquivalent left :=
+    ⟨rfl, leftPermutation, rfl⟩
+  have rightReorderedToRight :
+      rightReordered.LinkPermutationEquivalent right :=
+    ⟨rfl, rightPermutation, rfl⟩
+  have leftReorderedStructural :
+      leftReordered.StructurallyWellFormed :=
+    leftReorderedToLeft.structurallyWellFormed_iff.mpr leftStructural
+  have rightReorderedStructural :
+      rightReordered.StructurallyWellFormed :=
+    rightReorderedToRight.structurallyWellFormed_iff.mpr rightStructural
+  have leftCandidateEquation :
+      candidate = leftReordered.equivalenceCanonicalize := by
+    simpa [leftReordered] using leftEquation
+  have rightCandidateEquation :
+      candidate = rightReordered.equivalenceCanonicalize := by
+    simpa [rightReordered] using rightEquation
+  have leftReorderedToCandidate :
+      leftReordered.ReindexEquivalent candidate := by
+    rw [leftCandidateEquation]
+    exact
+      leftReorderedStructural.equivalenceCanonicalize_reindexEquivalent
+  have rightReorderedToCandidate :
+      rightReordered.ReindexEquivalent candidate := by
+    rw [rightCandidateEquation]
+    exact
+      rightReorderedStructural.equivalenceCanonicalize_reindexEquivalent
+  exact
+    leftReorderedToLeft.symm.toProofNetEquivalent
+      |>.trans leftReorderedToCandidate.toProofNetEquivalent
+      |>.trans
+        (rightReorderedToRight.symm.toProofNetEquivalent
+          |>.trans rightReorderedToCandidate.toProofNetEquivalent).symm
+
 /-!
 ## Compact invariant fingerprint
 
@@ -270,8 +323,10 @@ def proofNetCanonicalFingerprint?
     (certificate : Certificate) : Option String :=
   certificate.proofNetCanonicalStringCandidates.min?
 
-private theorem minString_eq_of_mem_iff
-    (left right : List String)
+private theorem minList_eq_of_mem_iff
+    {α : Type} [Min α] [LE α] [Std.IsLinearOrder α]
+    [Std.LawfulOrderMin α]
+    (left right : List α)
     (sameMembers : ∀ value, value ∈ left ↔ value ∈ right) :
     left.min? = right.min? := by
   cases leftMinimum : left.min? with
@@ -282,7 +337,7 @@ private theorem minString_eq_of_mem_iff
       have rightNil : right = [] := by
         apply List.eq_nil_iff_forall_not_mem.mpr
         intro value rightMember
-        have impossible : value ∈ ([] : List String) :=
+        have impossible : value ∈ ([] : List α) :=
           (sameMembers value).mpr rightMember
         simp at impossible
       simp [rightNil]
@@ -363,8 +418,138 @@ theorem ProofNetEquivalent.proofNetCanonicalFingerprint?_eq
     (equivalent : left.ProofNetEquivalent right) :
     left.proofNetCanonicalFingerprint? =
       right.proofNetCanonicalFingerprint? := by
-  apply minString_eq_of_mem_iff
+  apply minList_eq_of_mem_iff
   exact equivalent.proofNetCanonicalStringCandidates_mem_iff
+
+/-!
+## Equality-reflecting structural canonical code
+
+The JSON-string fingerprint above remains forward-only because the repository
+does not assume an unproved `Json.compress` injectivity theorem.  The code below
+instead minimizes the explicitly versioned, kernel-proved injective structural
+token code from `StructuralCode.lean`.
+
+This yields an exact typed key for `ProofNetEquivalent` on the structurally
+well-formed domain.  It still enumerates the factorial canonical family and is
+not yet a JSON wire contract.
+-/
+
+private instance proofNetStructuralCodeMin : Min (List String) := minOfLe
+
+/-- Injective structural codes for every member of the complete finite
+canonical family. -/
+def proofNetCanonicalCodeCandidates
+    (certificate : Certificate) : List (List String) :=
+  certificate.proofNetCanonicalFamily.map structuralCode
+
+/-- The lexicographically least injective structural code in the complete
+canonical family.  Unlike `proofNetCanonicalFingerprint?`, this typed token
+key has a reverse-completeness theorem below. -/
+def proofNetCanonicalCode?
+    (certificate : Certificate) : Option (List String) :=
+  certificate.proofNetCanonicalCodeCandidates.min?
+
+theorem structuralCode_mem_proofNetCanonicalCodeCandidates
+    (certificate : Certificate) :
+    certificate.equivalenceCanonicalize.structuralCode ∈
+      certificate.proofNetCanonicalCodeCandidates := by
+  rw [proofNetCanonicalCodeCandidates, List.mem_map]
+  refine ⟨certificate.equivalenceCanonicalize, ?_, rfl⟩
+  rw [mem_proofNetCanonicalFamily_iff]
+  exact ⟨certificate.links, .refl _, rfl⟩
+
+/-- The exact structural canonical code is total for every certificate. -/
+theorem proofNetCanonicalCode?_exists
+    (certificate : Certificate) :
+    ∃ code, certificate.proofNetCanonicalCode? = some code := by
+  cases equation : certificate.proofNetCanonicalCode? with
+  | none =>
+      have candidatesNil :
+          certificate.proofNetCanonicalCodeCandidates = [] :=
+        List.min?_eq_none_iff.mp equation
+      have member :=
+        certificate.structuralCode_mem_proofNetCanonicalCodeCandidates
+      rw [candidatesNil] at member
+      simp at member
+  | some code =>
+      exact ⟨code, rfl⟩
+
+/-- A selected exact code comes from an actual canonical-family member. -/
+theorem proofNetCanonicalCode?_mem
+    (certificate : Certificate) {code : List String}
+    (equation : certificate.proofNetCanonicalCode? = some code) :
+    code ∈ certificate.proofNetCanonicalCodeCandidates :=
+  List.min?_mem equation
+
+theorem ProofNetEquivalent.proofNetCanonicalCodeCandidates_mem_iff
+    {left right : Certificate}
+    (equivalent : left.ProofNetEquivalent right)
+    (code : List String) :
+    code ∈ left.proofNetCanonicalCodeCandidates ↔
+      code ∈ right.proofNetCanonicalCodeCandidates := by
+  simp only [proofNetCanonicalCodeCandidates, List.mem_map]
+  constructor
+  · rintro ⟨candidate, membership, rfl⟩
+    exact ⟨candidate,
+      (equivalent.proofNetCanonicalFamily_mem_iff candidate).mp membership,
+      rfl⟩
+  · rintro ⟨candidate, membership, rfl⟩
+    exact ⟨candidate,
+      (equivalent.proofNetCanonicalFamily_mem_iff candidate).mpr membership,
+      rfl⟩
+
+/-- Generated proof-net equivalence preserves the exact structural canonical
+code. -/
+theorem ProofNetEquivalent.proofNetCanonicalCode?_eq
+    {left right : Certificate}
+    (equivalent : left.ProofNetEquivalent right) :
+    left.proofNetCanonicalCode? = right.proofNetCanonicalCode? := by
+  apply minList_eq_of_mem_iff
+  exact equivalent.proofNetCanonicalCodeCandidates_mem_iff
+
+/-- On structurally well-formed certificates, equality of the typed structural
+canonical code is equivalent to exactly `ProofNetEquivalent`. -/
+theorem proofNetEquivalent_iff_canonicalCode
+    {left right : Certificate}
+    (leftStructural : left.StructurallyWellFormed)
+    (rightStructural : right.StructurallyWellFormed) :
+    left.ProofNetEquivalent right ↔
+      left.proofNetCanonicalCode? = right.proofNetCanonicalCode? := by
+  constructor
+  · exact fun equivalent => equivalent.proofNetCanonicalCode?_eq
+  · intro sameCode
+    rcases left.proofNetCanonicalCode?_exists with
+      ⟨code, leftEquation⟩
+    have rightEquation :
+        right.proofNetCanonicalCode? = some code := by
+      rw [← sameCode]
+      exact leftEquation
+    have leftCodeMember := left.proofNetCanonicalCode?_mem leftEquation
+    have rightCodeMember := right.proofNetCanonicalCode?_mem rightEquation
+    rw [proofNetCanonicalCodeCandidates, List.mem_map] at leftCodeMember
+    rw [proofNetCanonicalCodeCandidates, List.mem_map] at rightCodeMember
+    rcases leftCodeMember with
+      ⟨leftCandidate, leftMember, leftCodeEquation⟩
+    rcases rightCodeMember with
+      ⟨rightCandidate, rightMember, rightCodeEquation⟩
+    have candidatesEqual : leftCandidate = rightCandidate :=
+      structuralCode_injective
+        (leftCodeEquation.trans rightCodeEquation.symm)
+    subst rightCandidate
+    exact proofNetEquivalent_of_common_canonicalFamily_member
+      leftStructural rightStructural leftMember rightMember
+
+/-- Checker acceptance supplies the structural premises for the exact typed
+canonical-code theorem. -/
+theorem proofNetEquivalent_iff_canonicalCode_of_check
+    {left right : Certificate}
+    (leftAccepted : left.check = true)
+    (rightAccepted : right.check = true) :
+    left.ProofNetEquivalent right ↔
+      left.proofNetCanonicalCode? = right.proofNetCanonicalCode? :=
+  proofNetEquivalent_iff_canonicalCode
+    (left.check_sound_declarative leftAccepted).1
+    (right.check_sound_declarative rightAccepted).1
 
 end Certificate
 

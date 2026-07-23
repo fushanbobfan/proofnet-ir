@@ -49,8 +49,17 @@ example :
       ⟨swapAxiomVertices, rfl⟩).toProofNetEquivalent)
     |>.proofNetCanonicalFingerprint?_eq
 
-/- The converse is intentionally not part of the current API.  Use the checked
-pairwise decision above when exact `ProofNetEquivalent` identity is required. -/
+/- The compact JSON fingerprint above remains a forward-only convenience API.
+The typed structural code below has a kernel-checked converse on accepted
+certificates. -/
+
+example :
+    axiomCertificate.ProofNetEquivalent
+        (axiomCertificate.reindex swapAxiomVertices) ↔
+      axiomCertificate.proofNetCanonicalCode? =
+        (axiomCertificate.reindex swapAxiomVertices).proofNetCanonicalCode? :=
+  Certificate.proofNetEquivalent_iff_canonicalCode_of_check
+    (by native_decide) (by native_decide)
 
 def parsed := Certificate.checkedFromString axiomCertificate.canonicalString
 
