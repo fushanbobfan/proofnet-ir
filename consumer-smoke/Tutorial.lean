@@ -56,4 +56,13 @@ example : ∃ result : CutFreeDerivation.ElaboratedCertificate,
   tree.elaborate?_exists_of_infer?
     (show tree.infer? = some [p, pDual] by native_decide)
 
+example (proposition : Prop) : proposition → proposition ∧ proposition :=
+  LeanProp.Templates.duplicate_proof proposition
+
+example (antecedent consequent : Prop)
+    (functionProof : antecedent → consequent) (argumentProof : antecedent) :
+    consequent :=
+  LeanProp.Templates.linearModusPonens_proof antecedent consequent
+    functionProof argumentProof
+
 end ProofNetIRTutorialSmoke

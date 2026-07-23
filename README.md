@@ -109,7 +109,14 @@ The repository currently contains:
   repeated-label stress case generates one candidate instead of the
   unconstrained label enumerator's theoretical `(64!)^2` orders. This remains
   an exact scoped decision procedure, not a compact canonical wire key or an
-  arbitrary graph-isomorphism algorithm.
+  arbitrary graph-isomorphism algorithm;
+- an initial, conservative v0.6-development LeanProp bridge with judgments
+  indexed by separate persistent and linear proposition contexts. Persistent
+  weakening/contraction and both exchanges are explicit, while no linear
+  weakening/contraction constructors exist. Conjunction, implication,
+  equality rewriting, universal instantiation, and existential witnesses are
+  interpreted into actual Lean proof terms; a kernel theorem proves that the
+  number of linear-axiom leaves equals the linear-context length.
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does
@@ -120,14 +127,18 @@ by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
 separately audits twenty-five public logical-boundary theorems against the exact axiom set
-`[propext, Classical.choice, Quot.sound]`.
+`[propext, Classical.choice, Quot.sound]`. The two initial LeanProp boundary
+theorems are audited separately and depend on no axioms.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
-theorem is now complete, but the repository does not include cut elimination,
-units, exponentials, additives, quantifiers, canonicalization modulo reordered
-conclusions or arbitrary graph isomorphism, a compact single-representative
-wire key for `ProofNetEquivalent`, or a Lean tactic. The API,
+theorem is now complete, but its certificate model does not include cut
+elimination, units, exponentials, additives, or quantifiers. The experimental
+LeanProp layer has quantifier proof-template nodes but no claim of proof-net
+semantics, untrusted-template serialization, or broad mathlib coverage. The
+repository also lacks canonicalization modulo reordered conclusions or
+arbitrary graph isomorphism, a compact single-representative wire key for
+`ProofNetEquivalent`, and a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.

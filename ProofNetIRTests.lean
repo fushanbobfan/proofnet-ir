@@ -4,12 +4,33 @@ open ProofNetIR
 
 namespace ProofNetIRTests
 
+universe u
+
 def p : Formula := .atom "p" true
 def pDual : Formula := p.dual
 def q : Formula := .atom "q" true
 def qDual : Formula := q.dual
 
 example : p.dual.dual = p := by simp
+
+example (proposition : Prop) : proposition → proposition ∧ proposition :=
+  LeanProp.Templates.duplicate_proof proposition
+
+example (left right : Prop) (leftProof : left) (rightProof : right) :
+    left ∧ right :=
+  LeanProp.Templates.linearPair_proof left right leftProof rightProof
+
+example {α : Type u} (left right : α) (motive : α → Prop) :
+    left = right → motive left → motive right :=
+  LeanProp.Templates.rewrite_proof left right motive
+
+example {α : Type u} (predicate : α → Prop) (term : α) :
+    (∀ value, predicate value) → predicate term :=
+  LeanProp.Templates.instantiate_proof predicate term
+
+example {α : Type u} (predicate : α → Prop) (term : α) :
+    predicate term → ∃ value, predicate value :=
+  LeanProp.Templates.witness_proof predicate term
 
 def indexedParallelGraph : Graph where
   vertexCount := 2

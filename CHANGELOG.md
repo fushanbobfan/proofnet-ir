@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- began the conservative v0.6 LeanProp bridge without changing the MLL
+  certificate/checker semantics: derivations are indexed by separate
+  persistent and linear proposition contexts;
+- added proof-relevant exchange data, explicit persistent weakening and
+  contraction, no linear structural rules, and an axiom-free theorem that the
+  linear-axiom leaf count is exactly the linear-context length;
+- added conjunction, implication, equality-rewrite, universal-instantiation,
+  and existential-witness nodes plus an axiom-free total interpreter into Lean
+  proof terms at arbitrary universes;
+- added kernel-checked smoke templates for persistent duplication/discard,
+  linear pairing/modus ponens, equality transport, universal instantiation,
+  and existential introduction, including path-dependent downstream use.
+
 ## v0.5.2 - Repeated-label pruning and model-backed audit
 
 - added numeric-free one-hop incident-link views to repeated-label occurrence

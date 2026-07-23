@@ -81,7 +81,12 @@ part of the engineering and proof-identity gap.
    successful construction declaratively correct and checker-accepted;
    `desequentializeChecked?` and `elaborate?` are proved total on `infer?`
    success. The remaining logical scope gaps are units, cuts, additives,
-   exponentials, and the future persistent LeanProp bridge.
+   exponentials, and integration with the initial persistent LeanProp bridge.
+   The bridge now has separate persistent/linear contexts, explicit persistent
+   structural rules, ordinary Lean connective/quantifier nodes, an axiom-free
+   proof-term interpreter, and an exact linear-leaf count theorem. It remains
+   separate from MLL certificate semantics and lacks untrusted-input parsing,
+   a generated corpus, and release-level qualification.
 2. The stronger `GenerallySequentializable` result and the public executable
    totality theorem are complete for the
    documented unit-free, cut-free MLL representation. Remaining logical scope

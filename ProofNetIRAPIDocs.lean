@@ -99,6 +99,19 @@ def sections : List Section := [
       `ProofNetIR.Certificate.checkedFromString,
       `ProofNetIR.Certificate.migrateV02StringToV03
     ]
+  },
+  {
+    title := "Persistent and linear LeanProp bridge"
+    declarations := [
+      `ProofNetIR.LeanProp.Assumptions,
+      `ProofNetIR.LeanProp.ContextPermutation,
+      `ProofNetIR.LeanProp.ContextPermutation.toListPerm,
+      `ProofNetIR.LeanProp.Derivation,
+      `ProofNetIR.LeanProp.Derivation.linearAxiomCount,
+      `ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length,
+      `ProofNetIR.LeanProp.Derivation.toProof,
+      `ProofNetIR.LeanProp.Derivation.close
+    ]
   }
 ]
 

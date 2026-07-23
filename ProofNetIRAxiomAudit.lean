@@ -34,3 +34,5 @@ expansion.
 #print axioms Certificate.sequentialize_complete
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent
+#print axioms LeanProp.Derivation.toProof
+#print axioms LeanProp.Derivation.linearAxiomCount_eq_length

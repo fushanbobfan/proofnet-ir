@@ -90,6 +90,23 @@ right reference implementation because it is simple, transparent, and useful
 as an oracle for later linear-time or contraction-based checkers. Optimized
 recognizers should be tested against this implementation before replacing it.
 
+## Persistent LeanProp bridge
+
+The v0.6-development bridge is a separate typed calculus, not an extension of
+the proof-net certificate checker. `LeanProp.Derivation persistent linear goal`
+records a Lean proposition goal with two ordered occurrence contexts. Binary
+rules concatenate both contexts; persistent weakening and contraction are
+explicit; no linear weakening or contraction constructor exists. Exchange is
+carried by a proof-relevant `ContextPermutation`, because proposition-level
+`List.Perm` cannot be eliminated into the heterogeneous proof-value
+environment.
+
+`LeanProp.Derivation.toProof` recursively interprets every template as a Lean
+proof. `linearAxiomCount_eq_length` separately proves exact linear-resource
+accounting. Both theorems are axiom-free under `#print axioms`. Ordinary Lean
+`And` and implication are not identified with MLL tensor/par, and this layer
+does not alter any v0.5 sequentialization or identity theorem.
+
 ## Sequentialization boundary
 
 `Reconstruct.lean` includes an explicit exchange rule with a `List.Perm`

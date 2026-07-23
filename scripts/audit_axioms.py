@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
-EXPECTED_THEOREMS = {
+EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",
     "ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions",
     "ProofNetIR.CutFreeDerivation.build?_structurallyWellFormed",
@@ -38,6 +38,11 @@ EXPECTED_THEOREMS = {
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
 }
+EXPECTED_AXIOM_FREE_THEOREMS = {
+    "ProofNetIR.LeanProp.Derivation.toProof",
+    "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
+}
+EXPECTED_THEOREMS = EXPECTED_CLASSICAL_THEOREMS | EXPECTED_AXIOM_FREE_THEOREMS
 EXPECTED_AXIOMS = {"propext", "Classical.choice", "Quot.sound"}
 
 
@@ -71,26 +76,34 @@ def main() -> None:
         actual[theorem] = {
             axiom.strip() for axiom in raw_axioms.split(",") if axiom.strip()
         }
+    for theorem in re.findall(
+        r"'([^']+)' does not depend on any axioms", output
+    ):
+        actual[theorem] = set()
 
     if set(actual) != EXPECTED_THEOREMS:
         raise AssertionError(
             "theorem audit boundary changed: "
             f"actual={sorted(actual)}, expected={sorted(EXPECTED_THEOREMS)}\n{output}"
         )
-    unexpected = {
-        theorem: sorted(axioms)
-        for theorem, axioms in actual.items()
-        if axioms != EXPECTED_AXIOMS
-    }
+    unexpected = {}
+    for theorem, axioms in actual.items():
+        expected = set() if theorem in EXPECTED_AXIOM_FREE_THEOREMS else EXPECTED_AXIOMS
+        if axioms != expected:
+            unexpected[theorem] = {
+                "actual": sorted(axioms),
+                "expected": sorted(expected),
+            }
     if unexpected:
         raise AssertionError(
             "theorem trust dependencies changed: "
-            f"actual={unexpected}, expected={sorted(EXPECTED_AXIOMS)}"
+            f"actual={unexpected}"
         )
     print(
         "ProofNet-IR axiom audit passed: "
-        f"{len(actual)} public theorems use exactly "
-        "[propext, Classical.choice, Quot.sound]"
+        f"{len(EXPECTED_CLASSICAL_THEOREMS)} public MLL theorems use exactly "
+        "[propext, Classical.choice, Quot.sound]; "
+        f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} LeanProp theorems are axiom-free"
     )
 
 

@@ -748,3 +748,97 @@ Parse a v0.2 certificate and emit its deterministic v0.3
 ProofNetIR.Certificate.migrateV02StringToV03 : String → ProofNetIR.ParseResult String
 ```
 
+## Persistent and linear LeanProp bridge
+
+### `ProofNetIR.LeanProp.Assumptions`
+
+Kind: inductive type.
+
+Heterogeneous proof values matching a proposition context exactly.
+
+```lean
+ProofNetIR.LeanProp.Assumptions : List Prop → Type
+```
+
+### `ProofNetIR.LeanProp.ContextPermutation`
+
+Kind: inductive type.
+
+Proof-relevant permutation syntax. `List.Perm` lives in `Prop` and cannot
+be eliminated into the heterogeneous `Assumptions` type; this Type-valued
+witness records exactly the same exchange steps as executable data.
+
+```lean
+ProofNetIR.LeanProp.ContextPermutation : List Prop → List Prop → Type
+```
+
+### `ProofNetIR.LeanProp.ContextPermutation.toListPerm`
+
+Kind: theorem.
+
+Forget proof-relevant permutation data to the proposition-level relation.
+
+```lean
+ProofNetIR.LeanProp.ContextPermutation.toListPerm : ∀ {left right : List Prop} (a : ProofNetIR.LeanProp.ContextPermutation left right), left.Perm right
+```
+
+### `ProofNetIR.LeanProp.Derivation`
+
+Kind: inductive type.
+
+A proof template indexed by an explicit persistent context, an exact-use
+linear context, and a Lean proposition. Binary rules concatenate both input
+contexts. Reusing a persistent assumption therefore produces two copies that
+must be discharged by `persistentContract`; discarding one must pass through
+`persistentWeaken`. No rule weakens or contracts the linear context.
+
+```lean
+ProofNetIR.LeanProp.Derivation : List Prop → List Prop → Prop → Type (u + 1)
+```
+
+### `ProofNetIR.LeanProp.Derivation.linearAxiomCount`
+
+Kind: definition.
+
+Number of linear-axiom leaves in a proof template. Persistent structural
+rules do not alter this count, while binary rules add the disjoint branches.
+
+```lean
+ProofNetIR.LeanProp.Derivation.linearAxiomCount : {persistent linear : List Prop} → {goal : Prop} → ProofNetIR.LeanProp.Derivation persistent linear goal → Nat
+```
+
+### `ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length`
+
+Kind: theorem.
+
+Every linear context occurrence is represented by exactly one linear
+axiom leaf. This is the bridge's syntactic exact-use invariant.
+
+```lean
+ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal),
+  derivation.linearAxiomCount = linear.length
+```
+
+### `ProofNetIR.LeanProp.Derivation.toProof`
+
+Kind: theorem.
+
+Interpret a resource-explicit derivation as an actual Lean proof term.
+The function is total and checked by the Lean kernel. Its recursion is also the
+soundness proof for every public proof-template constructor.
+
+```lean
+ProofNetIR.LeanProp.Derivation.toProof : ∀ {persistent linear : List Prop} {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation persistent linear goal)
+  (a : ProofNetIR.LeanProp.Assumptions persistent) (a : ProofNetIR.LeanProp.Assumptions linear), goal
+```
+
+### `ProofNetIR.LeanProp.Derivation.close`
+
+Kind: theorem.
+
+A closed bridge derivation reconstructs a closed Lean theorem.
+
+```lean
+ProofNetIR.LeanProp.Derivation.close : ∀ {goal : Prop} (derivation : ProofNetIR.LeanProp.Derivation [] [] goal), goal
+```
+

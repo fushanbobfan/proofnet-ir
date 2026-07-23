@@ -245,11 +245,17 @@
 
 ## v0.6 - Persistent LeanProp bridge
 
-- Add a two-context design for persistent and linear hypotheses.
-- Make weakening and contraction explicit.
-- Support conjunction, implication, equality rewriting, universal
+- [x] Add a conservative two-context derivation design for persistent and
+  linear hypotheses without changing the MLL certificate semantics.
+- [x] Make persistent weakening and contraction explicit, omit their linear
+  counterparts, and prove one linear-axiom leaf per linear occurrence.
+- [x] Support conjunction, implication, equality rewriting, universal
   instantiation, and existential witness nodes.
-- Reconstruct Lean proof terms for a generated template corpus.
+- [x] Reconstruct Lean proof terms for a hand-curated cross-rule smoke corpus.
+- [ ] Add a generated, stratified template corpus with negative inputs,
+  versioned untrusted-input diagnostics, and reproducible manifest hashes.
+- [ ] Prove further exchange/structural normalization metatheory and qualify
+  the public bridge through release-pinned downstream consumers.
 
 ## Later research
 

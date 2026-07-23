@@ -16,3 +16,5 @@ import ProofNetIR.ExecutableSequentialization
 import ProofNetIR.ProofNetCanonical
 import ProofNetIR.ProofNetIdentity
 import ProofNetIR.Parser
+import ProofNetIR.LeanPropBridge
+import ProofNetIR.LeanPropTemplates
