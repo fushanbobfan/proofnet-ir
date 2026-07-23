@@ -1,4 +1,4 @@
-import ProofNetIR.ExecutableSequentialization
+import ProofNetIR.LocalIdentity
 import ProofNetIR.StructuralCode
 import Std
 

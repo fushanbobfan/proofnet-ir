@@ -35,6 +35,16 @@
   the locked classical public MLL trust boundary to 52 theorems, with the two
   traversal-level theorems separately locked to
   `[propext, Quot.sound]`;
+- separated the factorial canonical specification module from the executable
+  sequentializer dependency and added `Certificate.verifyDerivation?`: a
+  proof-bearing verifier for a supplied cut-free derivation that checks only
+  structural well-formedness, inference/desequentialization, and the
+  non-factorial intrinsic canonical code. It never enumerates input
+  switchings or vertex permutations; Lean proves soundness and completeness
+  relative to structural well-formedness plus exact `ProofNetEquivalent`
+  desequentialization, with downstream-consumer and negative malformed-input
+  regressions, plus 250 generated derivations and the same 250 certificates
+  after reversing every stored link list;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

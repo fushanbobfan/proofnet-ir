@@ -125,6 +125,13 @@ The repository currently contains:
   runtime search succeeds for every checker-accepted certificate; it also
   passes all 250 broad generated regressions, the same 250 nets with every link
   list reversed, and a dedicated repeated-boundary-label regression.
+- the v0.9-development `Certificate.verifyDerivation?` API for clients that
+  already have a proposed cut-free derivation. It does not enumerate
+  switchings on the input or search vertex permutations: it performs
+  structural validation, independently infers and desequentializes the tree,
+  then uses the proved non-factorial intrinsic canonical code. A successful
+  result carries checker acceptance of the produced net and exact
+  `ProofNetEquivalent` identity with the submitted certificate.
 - an executable finite `proofNetCanonicalFamily` whose extensional membership
   equality is proved equivalent to exactly `ProofNetEquivalent` on
   structurally well-formed certificates. This is a factorial specification

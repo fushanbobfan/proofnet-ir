@@ -62,6 +62,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalKey_eq_of_check",
     "ProofNetIR.Certificate.proofNetEquivalent_of_matchesIntrinsicCanonicalKey",
     "ProofNetIR.Certificate.sequentialize_complete",
+    "ProofNetIR.Certificate.verifyDerivation?_sound",
+    "ProofNetIR.Certificate.verifyDerivation?_complete",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
 }

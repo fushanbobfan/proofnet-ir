@@ -1,4 +1,5 @@
 import ProofNetIR.ProofNetCanonical
+import ProofNetIR.ExecutableSequentialization
 
 namespace ProofNetIR
 

@@ -62,7 +62,22 @@ example : (consumedTreeGraph.reindex consumedTreeSwap).Acyclic ↔
 def consumedTree : CutFreeDerivation :=
   CutFreeDerivation.generate 42 2
 
+def consumedRuleTree : CutFreeDerivation :=
+  .par 1 1
+    (.tensor 0 0
+      (.axiom "consumer-p" true)
+      (.axiom "consumer-q" true))
+
 example : consumedTree.elaborate?.isSome = true := by native_decide
+
+example :
+    consumedCertificate.verifiesDerivation consumedRuleTree = true := by
+  native_decide
+
+example : ∃ result : DerivationVerificationResult consumedCertificate,
+    consumedCertificate.verifyDerivation? consumedRuleTree = some result := by
+  apply Certificate.verifiesDerivation_eq_true_iff.mp
+  native_decide
 
 def consumedSequentialization :
     Except SequentializationError
@@ -137,6 +152,7 @@ example :
 def main : IO Unit := do
   if consumedTreeGraph.isTree &&
       consumedCertificate.check && consumedTree.elaborate?.isSome &&
+      consumedCertificate.verifiesDerivation consumedRuleTree &&
       consumedSequentialization.isOk &&
       Certificate.proofNetEquivalent? consumedCertificate
         reorderedConsumedCertificate &&

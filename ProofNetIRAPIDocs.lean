@@ -156,6 +156,12 @@ def sections : List Section := [
       `ProofNetIR.Certificate.sequentialization_of_check,
       `ProofNetIR.Certificate.sequentialize,
       `ProofNetIR.Certificate.sequentialize_complete,
+      `ProofNetIR.DerivationVerificationResult,
+      `ProofNetIR.Certificate.verifyDerivation?,
+      `ProofNetIR.Certificate.verifyDerivation?_sound,
+      `ProofNetIR.Certificate.verifyDerivation?_complete,
+      `ProofNetIR.Certificate.verifiesDerivation,
+      `ProofNetIR.Certificate.verifiesDerivation_eq_true_iff,
       `ProofNetIR.ExecutableSequentializationResult.kernelDerivation,
       `ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent
     ]

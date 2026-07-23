@@ -21,6 +21,7 @@ import ProofNetIR.Parser
 import ProofNetIR.CanonicalKeyWire
 import ProofNetIR.IntrinsicCanonical
 import ProofNetIR.IntrinsicCanonicalKeyWire
+import ProofNetIR.DerivationVerifier
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

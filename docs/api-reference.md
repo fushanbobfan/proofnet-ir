@@ -1438,6 +1438,95 @@ ProofNetIR.Certificate.sequentialize_complete : ∀ (certificate : ProofNetIR.Ce
   certificate.check = true → ∃ result, certificate.sequentialize = Except.ok result
 ```
 
+### `ProofNetIR.DerivationVerificationResult`
+
+Kind: inductive type.
+
+Proof-bearing result of checking a proposed cut-free derivation against a
+certificate.
+
+Unlike `Certificate.check`, this verifier does not enumerate switching graphs.
+It validates the submitted certificate structurally, independently infers and
+desequentializes the derivation, and compares the two proof nets through the
+proved non-factorial intrinsic canonical code.
+
+```lean
+ProofNetIR.DerivationVerificationResult : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.Certificate.verifyDerivation?`
+
+Kind: definition.
+
+Verify a proposed derivation without evaluating the exponential
+all-switchings checker on the input.
+
+The only Boolean gate on the input is `wellFormed`; proof-net identity is
+decided by the polynomial intrinsic canonical code.  The acceptance proof for
+the derivation-produced output is supplied by
+`CutFreeDerivation.desequentialize?_check` and is erased at runtime.
+
+```lean
+ProofNetIR.Certificate.verifyDerivation? : (input : ProofNetIR.Certificate) → ProofNetIR.CutFreeDerivation → Option (ProofNetIR.DerivationVerificationResult input)
+```
+
+### `ProofNetIR.Certificate.verifyDerivation?_sound`
+
+Kind: theorem.
+
+Successful verification exposes the complete proof-bearing contract
+without requiring clients to unfold the executable verifier.
+
+```lean
+ProofNetIR.Certificate.verifyDerivation?_sound : ∀ {input : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation}
+  {result : ProofNetIR.DerivationVerificationResult input},
+  input.verifyDerivation? tree = some result →
+    input.StructurallyWellFormed ∧
+      input.conclusionFormulas? = some result.sequent ∧
+        result.tree.infer? = some result.sequent ∧
+          result.tree.desequentialize? = some result.output ∧
+            result.output.check = true ∧ result.output.ProofNetEquivalent input
+```
+
+### `ProofNetIR.Certificate.verifyDerivation?_complete`
+
+Kind: theorem.
+
+The verifier is complete for every structurally well-formed input and
+proposed derivation whose desequentialization is proof-net-equivalent to that
+input.
+
+```lean
+ProofNetIR.Certificate.verifyDerivation?_complete : ∀ {input output : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
+  input.StructurallyWellFormed →
+    input.conclusionFormulas? = some sequent →
+      tree.infer? = some sequent →
+        tree.desequentialize? = some output →
+          output.ProofNetEquivalent input → ∃ result, input.verifyDerivation? tree = some result
+```
+
+### `ProofNetIR.Certificate.verifiesDerivation`
+
+Kind: definition.
+
+Boolean convenience wrapper for callers that only need acceptance.
+
+```lean
+ProofNetIR.Certificate.verifiesDerivation : ProofNetIR.Certificate → ProofNetIR.CutFreeDerivation → Bool
+```
+
+### `ProofNetIR.Certificate.verifiesDerivation_eq_true_iff`
+
+Kind: theorem.
+
+Boolean acceptance is exactly the existence of a proof-bearing verifier
+result.
+
+```lean
+ProofNetIR.Certificate.verifiesDerivation_eq_true_iff : ∀ {input : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation},
+  input.verifiesDerivation tree = true ↔ ∃ result, input.verifyDerivation? tree = some result
+```
+
 ### `ProofNetIR.ExecutableSequentializationResult.kernelDerivation`
 
 Kind: theorem.

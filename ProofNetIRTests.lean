@@ -235,6 +235,26 @@ example : generatedDerivationTrees.all (fun tree =>
     tree.desequentializeChecked?.isSome) = true := by
   native_decide
 
+def generatedDerivationVerifications : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate => certificate.verifiesDerivation tree
+
+example : generatedDerivationVerifications = true := by
+  native_decide
+
+def generatedReorderedDerivationVerifications : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        ({ certificate with links := certificate.links.reverse } :
+          Certificate).verifiesDerivation tree
+
+example : generatedReorderedDerivationVerifications = true := by
+  native_decide
+
 example : generatedDerivationTrees.all (fun tree => tree.elaborate?.isSome) = true := by
   native_decide
 
@@ -606,6 +626,19 @@ example : canonical.DeclarativelyCorrect ↔
 
 def canonicalRuleTree : CutFreeDerivation :=
   .par 1 1 (.tensor 0 0 (.axiom "p" true) (.axiom "q" true))
+
+example : canonical.verifiesDerivation canonicalRuleTree = true := by
+  native_decide
+
+example :
+    ({ canonical with links := canonical.links.reverse } :
+      Certificate).verifiesDerivation canonicalRuleTree = true := by
+  native_decide
+
+example :
+    (Mutation.dropFirstLink.apply canonical).verifiesDerivation
+      canonicalRuleTree = false := by
+  native_decide
 
 def canonicalSequentialization : SequentializationResult canonical where
   tree := canonicalRuleTree
@@ -1624,6 +1657,10 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.sequentialization_of_check
 #check Certificate.generallySequentializable
 #check Certificate.sequentialize_complete
+#check Certificate.verifyDerivation?
+#check Certificate.verifyDerivation?_sound
+#check Certificate.verifyDerivation?_complete
+#check Certificate.verifiesDerivation_eq_true_iff
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =

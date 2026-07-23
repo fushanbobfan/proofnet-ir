@@ -350,9 +350,16 @@
   `isTreeViaAcyclic` Boolean-equal to the existing
   reachability-plus-edge-count `isTree` checker. This remains an exponential
   specification oracle.
+- [x] Add a proof-bearing verifier for a supplied cut-free derivation that
+  performs structural validation, inference/desequentialization, and
+  non-factorial intrinsic identity checking without evaluating input
+  switchings or enumerating vertex permutations. Prove soundness and
+  completeness relative to an equivalent supplied derivation.
 - [ ] Use the certified graph layer to design and qualify a non-enumerative
-  correctness checker while retaining the all-switchings implementation as a
-  differential specification oracle.
+  automatic correctness checker for bare certificates. The remaining step is
+  checker-free inverse-rule reconstruction and its universal completeness;
+  retain the all-switchings implementation as a differential specification
+  oracle.
 
 ## Later research
 

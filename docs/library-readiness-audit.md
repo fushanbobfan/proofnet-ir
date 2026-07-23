@@ -113,6 +113,12 @@ part of the engineering and proof-identity gap.
    and the derived `isTreeViaAcyclic` is proved Boolean-equal to the existing
    tree checker. This closes the reference-decision gap but not the
    non-enumerative performance gap.
+   The v0.9 development API now additionally provides
+   `Certificate.verifyDerivation?`, which avoids both input-switching
+   enumeration and vertex-permutation search when a caller supplies a
+   derivation. Its soundness and relative completeness are kernel checked.
+   It does not yet decide a bare certificate automatically; checker-free
+   inverse-rule reconstruction remains the performance-critical gap.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional

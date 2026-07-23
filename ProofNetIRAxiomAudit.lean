@@ -63,6 +63,8 @@ expansion.
 #print axioms Certificate.proofNetEquivalent_iff_intrinsicCanonicalKey_eq_of_check
 #print axioms Certificate.proofNetEquivalent_of_matchesIntrinsicCanonicalKey
 #print axioms Certificate.sequentialize_complete
+#print axioms Certificate.verifyDerivation?_sound
+#print axioms Certificate.verifyDerivation?_complete
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent
 #print axioms LeanProp.Derivation.toProof
