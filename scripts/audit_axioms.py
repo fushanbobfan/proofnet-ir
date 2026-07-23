@@ -105,6 +105,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.UnificationState.OrderedParents.setParent_sameThread",
     "ProofNetIR.UnificationState.OrderedParents.setParent_sameThread_all",
     "ProofNetIR.UnificationState.unifyTokens?_refines",
+    "ProofNetIR.UnificationState.ComponentsFormulaConsistent.componentAt",
 }
 EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.toProof",

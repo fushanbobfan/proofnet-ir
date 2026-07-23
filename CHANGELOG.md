@@ -90,6 +90,14 @@
   start, and continuing through the bounded saturation phase. Identity-parent
   preservation across the complete axiom phase supplies fresh-token isolation
   at every start step;
+- added `UnificationComponent.FormulaConsistent` and the state-wide
+  `ComponentsFormulaConsistent` invariant, requiring every live partial
+  derivation to infer exactly the certificate formula labels on its exposed
+  occurrence frontier. Kernel proofs cover the actual axiom, par, and tensor
+  component constructors, component replacement/retirement, whole axiom
+  initialization, complete eager passes, arbitrary saturation prefixes, and
+  the complete successful eager run. The final independent derivation verifier
+  remains an additional fail-closed boundary;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 

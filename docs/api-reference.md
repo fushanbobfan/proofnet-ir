@@ -2630,6 +2630,107 @@ ProofNetIR.UnificationStep.tokenCount_mono : ∀ {certificate : ProofNetIR.Certi
   ProofNetIR.UnificationStep certificate state next → state.tokenCount ≤ next.tokenCount
 ```
 
+### `ProofNetIR.UnificationComponent`
+
+Kind: inductive type.
+
+A partially parsed proof component used by the executable Guerrini-style
+unification pass. `frontier` records the formula occurrences currently exposed
+by `tree`, in exactly the order inferred by the derivation.
+
+```lean
+ProofNetIR.UnificationComponent : Type
+```
+
+### `ProofNetIR.UnificationComponent.FormulaConsistent`
+
+Kind: definition.
+
+A partial component is formula-consistent when its derivation infers
+exactly the certificate labels of its exposed occurrence frontier.
+
+```lean
+ProofNetIR.UnificationComponent.FormulaConsistent : ProofNetIR.Certificate → ProofNetIR.UnificationComponent → Prop
+```
+
+### `ProofNetIR.UnificationState`
+
+Kind: inductive type.
+
+Runtime state for the deterministic unification pass.
+
+`marks[v]` is the token initially assigned to `v`; `parents` represents the
+current token partition; and only representative entries of `components`
+contain a live parsed component. The implementation deliberately keeps this
+state proof-irrelevant and validates the final derivation independently with
+`Certificate.verifyDerivation?`.
+
+```lean
+ProofNetIR.UnificationState : Type
+```
+
+### `ProofNetIR.UnificationState.ComponentsFormulaConsistent`
+
+Kind: definition.
+
+Every stored live component denotes a formula-consistent partial
+derivation. Retired `none` slots impose no obligation.
+
+```lean
+ProofNetIR.UnificationState.ComponentsFormulaConsistent : ProofNetIR.Certificate → ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.UnificationState.ComponentsFormulaConsistent.push`
+
+Kind: theorem.
+
+Appending one formula-consistent live component preserves consistency of
+every previously stored slot.
+
+```lean
+ProofNetIR.UnificationState.ComponentsFormulaConsistent.push : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate state →
+    ∀ {component : ProofNetIR.UnificationComponent},
+      ProofNetIR.UnificationComponent.FormulaConsistent certificate component →
+        ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate
+          { marks := state.marks, parents := state.parents, components := state.components.push (some component),
+            startedAxioms := state.startedAxioms, firedConnectives := state.firedConnectives }
+```
+
+### `ProofNetIR.UnificationState.ComponentsFormulaConsistent.set`
+
+Kind: theorem.
+
+Replacing one component slot with a formula-consistent component
+preserves consistency of all live slots.
+
+```lean
+ProofNetIR.UnificationState.ComponentsFormulaConsistent.set : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate state →
+    ∀ {index : Nat} {component : ProofNetIR.UnificationComponent},
+      ProofNetIR.UnificationComponent.FormulaConsistent certificate component →
+        ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate
+          { marks := state.marks, parents := state.parents,
+            components := state.components.setIfInBounds index (some component), startedAxioms := state.startedAxioms,
+            firedConnectives := state.firedConnectives }
+```
+
+### `ProofNetIR.UnificationState.ComponentsFormulaConsistent.clear`
+
+Kind: theorem.
+
+Clearing one component slot cannot introduce an inconsistent live
+component.
+
+```lean
+ProofNetIR.UnificationState.ComponentsFormulaConsistent.clear : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate state →
+    ∀ (index : Nat),
+      ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate
+        { marks := state.marks, parents := state.parents, components := state.components.setIfInBounds index none,
+          startedAxioms := state.startedAxioms, firedConnectives := state.firedConnectives }
+```
+
 ### `ProofNetIR.UnificationState.assignedToken?`
 
 Kind: definition.
@@ -3469,6 +3570,31 @@ abstractable.
 ProofNetIR.UnificationState.Abstractable.tokenAt?_root : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
   ProofNetIR.UnificationState.Abstractable certificate state →
     ∀ {vertex token : Nat}, state.tokenAt? vertex = some token → state.representative token = token
+```
+
+### `ProofNetIR.UnificationState.componentAt?`
+
+Kind: definition.
+
+Live parsed component for a representative token.
+
+```lean
+ProofNetIR.UnificationState.componentAt? : ProofNetIR.UnificationState → Nat → Option ProofNetIR.UnificationComponent
+```
+
+### `ProofNetIR.UnificationState.ComponentsFormulaConsistent.componentAt`
+
+Kind: theorem.
+
+Every component returned through the representative-indexed lookup
+inherits the state's stored-component formula invariant.
+
+```lean
+ProofNetIR.UnificationState.ComponentsFormulaConsistent.componentAt : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate state →
+    ∀ {token : Nat} {component : ProofNetIR.UnificationComponent},
+      state.componentAt? token = some component →
+        ProofNetIR.UnificationComponent.FormulaConsistent certificate component
 ```
 
 ### `ProofNetIR.UnificationScanStats`

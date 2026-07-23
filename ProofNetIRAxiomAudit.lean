@@ -114,6 +114,7 @@ expansion.
 #print axioms UnificationState.Abstractable.tokenAt?_sameThread_witness
 #print axioms UnificationState.Abstractable.tokenAt?_bound
 #print axioms UnificationState.Abstractable.tokenAt?_root
+#print axioms UnificationState.ComponentsFormulaConsistent.componentAt
 #print axioms UnificationState.OrderedParents.setParent_representative
 #print axioms UnificationState.OrderedParents.setParent_sameThread
 #print axioms UnificationState.OrderedParents.setParent_sameThread_all

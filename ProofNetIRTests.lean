@@ -35,6 +35,15 @@ example (certificate : ProofNetIR.Certificate)
   state.toMarking_sameThread certificate abstractable first second
 
 example {certificate : ProofNetIR.Certificate}
+    {state : ProofNetIR.UnificationState}
+    (consistent :
+      state.ComponentsFormulaConsistent certificate)
+    {token : Nat} {component : ProofNetIR.UnificationComponent}
+    (yielded : state.componentAt? token = some component) :
+    component.FormulaConsistent certificate :=
+  consistent.componentAt yielded
+
+example {certificate : ProofNetIR.Certificate}
     (state : ProofNetIR.UnificationMarking certificate)
     (fresh : Nat) :
     Equivalence (state.FreshExtension fresh) :=

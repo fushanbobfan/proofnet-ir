@@ -10,6 +10,18 @@ structure UnificationComponent where
   frontier : List Vertex
   deriving Repr, DecidableEq
 
+namespace UnificationComponent
+
+/-- A partial component is formula-consistent when its derivation infers
+exactly the certificate labels of its exposed occurrence frontier. -/
+def FormulaConsistent (certificate : Certificate)
+    (component : UnificationComponent) : Prop :=
+  ∃ sequent,
+    component.tree.infer? = some sequent ∧
+      component.frontier.mapM certificate.formula? = some sequent
+
+end UnificationComponent
+
 /-- Runtime state for the deterministic unification pass.
 
 `marks[v]` is the token initially assigned to `v`; `parents` represents the
@@ -24,6 +36,91 @@ structure UnificationState where
   startedAxioms : Nat
   firedConnectives : Nat
   deriving Repr, DecidableEq
+
+namespace UnificationState
+
+/-- Every stored live component denotes a formula-consistent partial
+derivation. Retired `none` slots impose no obligation. -/
+def ComponentsFormulaConsistent (certificate : Certificate)
+    (state : UnificationState) : Prop :=
+  ∀ {index : Nat} {component : UnificationComponent},
+    state.components[index]? = some (some component) →
+      component.FormulaConsistent certificate
+
+/-- Appending one formula-consistent live component preserves consistency of
+every previously stored slot. -/
+theorem ComponentsFormulaConsistent.push
+    {certificate : Certificate} {state : UnificationState}
+    (consistent : state.ComponentsFormulaConsistent certificate)
+    {component : UnificationComponent}
+    (componentConsistent : component.FormulaConsistent certificate) :
+    ({ state with
+      components := state.components.push (some component) } :
+      UnificationState).ComponentsFormulaConsistent certificate := by
+  intro index candidate lookup
+  by_cases atNew : index = state.components.size
+  · subst index
+    simp at lookup
+    subst candidate
+    exact componentConsistent
+  · have oldLookup :
+        state.components[index]? = some (some candidate) := by
+      simpa [Array.getElem?_push, atNew] using lookup
+    exact consistent oldLookup
+
+/-- Replacing one component slot with a formula-consistent component
+preserves consistency of all live slots. -/
+theorem ComponentsFormulaConsistent.set
+    {certificate : Certificate} {state : UnificationState}
+    (consistent : state.ComponentsFormulaConsistent certificate)
+    {index : Nat} {component : UnificationComponent}
+    (componentConsistent : component.FormulaConsistent certificate) :
+    ({ state with
+      components :=
+        state.components.setIfInBounds index (some component) } :
+      UnificationState).ComponentsFormulaConsistent certificate := by
+  intro candidateIndex candidate lookup
+  by_cases same : index = candidateIndex
+  · subst candidateIndex
+    by_cases bound : index < state.components.size
+    · simp [bound] at lookup
+      subst candidate
+      exact componentConsistent
+    · have oldLookup :
+          state.components[index]? = some (some candidate) := by
+        simp [bound] at lookup
+      exact consistent oldLookup
+  · have oldLookup :
+        state.components[candidateIndex]? =
+          some (some candidate) := by
+      simpa [Array.getElem?_setIfInBounds, same] using lookup
+    exact consistent oldLookup
+
+/-- Clearing one component slot cannot introduce an inconsistent live
+component. -/
+theorem ComponentsFormulaConsistent.clear
+    {certificate : Certificate} {state : UnificationState}
+    (consistent : state.ComponentsFormulaConsistent certificate)
+    (index : Nat) :
+    ({ state with
+      components := state.components.setIfInBounds index none } :
+      UnificationState).ComponentsFormulaConsistent certificate := by
+  intro candidateIndex candidate lookup
+  by_cases same : index = candidateIndex
+  · subst candidateIndex
+    by_cases bound : index < state.components.size
+    · simp [bound] at lookup
+    · have oldLookup :
+          state.components[index]? = some (some candidate) := by
+        simp [bound] at lookup
+      exact consistent oldLookup
+  · have oldLookup :
+        state.components[candidateIndex]? =
+          some (some candidate) := by
+      simpa [Array.getElem?_setIfInBounds, same] using lookup
+    exact consistent oldLookup
+
+end UnificationState
 
 /-- Observable work counters for the eager repeated-scan implementation.
 
@@ -1723,6 +1820,27 @@ def componentAt? (state : UnificationState) (token : Nat) :
   let component ← state.components[state.representative token]?
   component
 
+/-- Every component returned through the representative-indexed lookup
+inherits the state's stored-component formula invariant. -/
+theorem ComponentsFormulaConsistent.componentAt
+    {certificate : Certificate} {state : UnificationState}
+    (consistent : state.ComponentsFormulaConsistent certificate)
+    {token : Nat} {component : UnificationComponent}
+    (yielded : state.componentAt? token = some component) :
+    component.FormulaConsistent certificate := by
+  unfold componentAt? at yielded
+  cases lookup : state.components[state.representative token]? with
+  | none =>
+      simp [lookup] at yielded
+  | some assigned =>
+      cases assigned with
+      | none =>
+          simp [lookup] at yielded
+      | some stored =>
+          simp [lookup] at yielded
+          subst stored
+          exact consistent lookup
+
 /-- Whether every formula occurrence has received a token. -/
 def allMarked (state : UnificationState) : Bool :=
   state.marks.all Option.isSome
@@ -1782,6 +1900,14 @@ private theorem initialUnificationState_identityParents
   intro token bound
   simp [initialUnificationState] at bound
 
+/-- The empty initial state has no inconsistent stored component. -/
+private theorem initialUnificationState_componentsFormulaConsistent
+    (certificate : Certificate) :
+    certificate.initialUnificationState.ComponentsFormulaConsistent
+      certificate := by
+  intro index component lookup
+  simp [initialUnificationState] at lookup
+
 private def unificationError (certificate : Certificate)
     (code : UnificationErrorCode) (message : String) :
     UnificationError :=
@@ -1801,6 +1927,170 @@ private def pickVertex? : List Vertex → Vertex →
       else do
         let (index, remaining) ← pickVertex? tail vertex
         pure (index + 1, head :: remaining)
+
+/-- Mapping formula labels commutes with the occurrence-oriented frontier
+picker, and the returned focus index selects the mapped formula at exactly the
+same position. -/
+private theorem pickVertex?_mapM
+    (mapping : Vertex → Option Formula)
+    {source remaining : List Vertex} {vertex index : Nat}
+    {sequent : List Formula} {formula : Formula}
+    (picked :
+      pickVertex? source vertex = some (index, remaining))
+    (mapped : source.mapM mapping = some sequent)
+    (formulaAt : mapping vertex = some formula) :
+    ∃ remainingSequent,
+      CutFreeDerivation.pick? sequent index =
+        some (formula, remainingSequent) ∧
+      remaining.mapM mapping = some remainingSequent := by
+  induction source generalizing index remaining sequent with
+  | nil =>
+      simp [pickVertex?] at picked
+  | cons head tail induction =>
+      simp only [pickVertex?] at picked
+      by_cases same : head = vertex
+      · subst head
+        simp at picked
+        obtain ⟨rfl, rfl⟩ := picked
+        cases tailMapped : tail.mapM mapping with
+        | none =>
+            simp [formulaAt, tailMapped] at mapped
+        | some tailSequent =>
+            simp [formulaAt, tailMapped] at mapped
+            subst sequent
+            exact ⟨tailSequent, rfl, rfl⟩
+      · have beqFalse : (head == vertex) = false := by
+          simpa using same
+        rw [beqFalse] at picked
+        simp only [Bool.false_eq_true, ↓reduceIte, Option.bind_eq_bind]
+          at picked
+        cases tailPick : pickVertex? tail vertex with
+        | none =>
+            simp [tailPick] at picked
+        | some result =>
+            rcases result with ⟨tailIndex, tailRemaining⟩
+            simp [tailPick] at picked
+            obtain ⟨rfl, rfl⟩ := picked
+            cases headMapped : mapping head with
+            | none =>
+                simp [headMapped] at mapped
+            | some headFormula =>
+                simp [headMapped] at mapped
+                cases tailMapped : tail.mapM mapping with
+                | none =>
+                    simp [tailMapped] at mapped
+                | some tailSequent =>
+                    simp [tailMapped] at mapped
+                    subst sequent
+                    rcases induction tailPick tailMapped with
+                      ⟨remainingSequent, selected, restMapped⟩
+                    exact ⟨headFormula :: remainingSequent, by
+                      simp [CutFreeDerivation.pick?, selected],
+                      by simp [headMapped, restMapped]⟩
+
+namespace UnificationComponent
+
+/-- The component created for a well-typed axiom infers exactly its two
+frontier occurrence labels. -/
+private theorem axiom_formulaConsistent
+    {certificate : Certificate} {left right : Vertex}
+    {name : String} {positive : Bool}
+    (leftFormula :
+      certificate.formula? left = some (.atom name positive))
+    (rightFormula :
+      certificate.formula? right =
+        some (Formula.atom name positive).dual) :
+    ({ tree := .axiom name positive
+       frontier := [left, right] } :
+      UnificationComponent).FormulaConsistent certificate := by
+  refine ⟨[.atom name positive,
+    (Formula.atom name positive).dual], rfl, ?_⟩
+  simp [leftFormula, rightFormula]
+
+/-- Applying one well-typed par rule to a consistent component preserves exact
+agreement between the derivation sequent and occurrence frontier. -/
+private theorem FormulaConsistent.par
+    {certificate : Certificate}
+    {component : UnificationComponent}
+    (consistent : component.FormulaConsistent certificate)
+    {left right conclusion leftFocus rightFocus : Nat}
+    {afterLeft context : List Vertex}
+    {leftFormula rightFormula : Formula}
+    (leftPick :
+      pickVertex? component.frontier left =
+        some (leftFocus, afterLeft))
+    (rightPick :
+      pickVertex? afterLeft right =
+        some (rightFocus, context))
+    (leftFormulaAt :
+      certificate.formula? left = some leftFormula)
+    (rightFormulaAt :
+      certificate.formula? right = some rightFormula)
+    (conclusionFormula :
+      certificate.formula? conclusion =
+        some (.par leftFormula rightFormula)) :
+    ({ tree := .par leftFocus rightFocus component.tree
+       frontier := context ++ [conclusion] } :
+      UnificationComponent).FormulaConsistent certificate := by
+  rcases consistent with ⟨sequent, inferred, mapped⟩
+  rcases pickVertex?_mapM certificate.formula? leftPick mapped
+      leftFormulaAt with
+    ⟨afterLeftSequent, leftSelected, afterLeftMapped⟩
+  rcases pickVertex?_mapM certificate.formula? rightPick
+      afterLeftMapped rightFormulaAt with
+    ⟨contextSequent, rightSelected, contextMapped⟩
+  refine ⟨contextSequent ++ [.par leftFormula rightFormula], ?_, ?_⟩
+  · simp [CutFreeDerivation.infer?, inferred,
+      leftSelected, rightSelected]
+  · simp [contextMapped, conclusionFormula]
+
+/-- Applying one well-typed tensor rule to two consistent components preserves
+exact agreement between the combined derivation sequent and frontier. -/
+private theorem FormulaConsistent.tensor
+    {certificate : Certificate}
+    {leftComponent rightComponent : UnificationComponent}
+    (leftConsistent :
+      leftComponent.FormulaConsistent certificate)
+    (rightConsistent :
+      rightComponent.FormulaConsistent certificate)
+    {left right conclusion leftFocus rightFocus : Nat}
+    {leftContext rightContext : List Vertex}
+    {leftFormula rightFormula : Formula}
+    (leftPick :
+      pickVertex? leftComponent.frontier left =
+        some (leftFocus, leftContext))
+    (rightPick :
+      pickVertex? rightComponent.frontier right =
+        some (rightFocus, rightContext))
+    (leftFormulaAt :
+      certificate.formula? left = some leftFormula)
+    (rightFormulaAt :
+      certificate.formula? right = some rightFormula)
+    (conclusionFormula :
+      certificate.formula? conclusion =
+        some (.tensor leftFormula rightFormula)) :
+    ({ tree :=
+         .tensor leftFocus rightFocus
+           leftComponent.tree rightComponent.tree
+       frontier := conclusion :: (leftContext ++ rightContext) } :
+      UnificationComponent).FormulaConsistent certificate := by
+  rcases leftConsistent with
+    ⟨leftSequent, leftInferred, leftMapped⟩
+  rcases rightConsistent with
+    ⟨rightSequent, rightInferred, rightMapped⟩
+  rcases pickVertex?_mapM certificate.formula? leftPick leftMapped
+      leftFormulaAt with
+    ⟨leftContextSequent, leftSelected, leftContextMapped⟩
+  rcases pickVertex?_mapM certificate.formula? rightPick rightMapped
+      rightFormulaAt with
+    ⟨rightContextSequent, rightSelected, rightContextMapped⟩
+  refine ⟨.tensor leftFormula rightFormula ::
+    (leftContextSequent ++ rightContextSequent), ?_, ?_⟩
+  · simp [CutFreeDerivation.infer?, leftInferred, rightInferred,
+      leftSelected, rightSelected]
+  · simp [conclusionFormula, leftContextMapped, rightContextMapped]
+
+end UnificationComponent
 
 /-- Compute the exchange order that reads `target` from `source`. -/
 private def occurrenceOrder? (source : List Vertex) :
@@ -1857,6 +2147,60 @@ private theorem startAxiom?_success
               simp [formulaLookup] at equation
               subst next
               exact ⟨leftReady, rightReady, rfl, rfl⟩
+          | tensor first second =>
+              simp [formulaLookup] at equation
+          | par first second =>
+              simp [formulaLookup] at equation
+    · have failed : (failure : Option Unit) = none := rfl
+      simp [rightReady, failed] at equation
+  · have failed : (failure : Option Unit) = none := rfl
+    simp [guard, leftReady, failed] at equation
+
+/-- A successful well-typed axiom start appends one formula-consistent partial
+derivation and preserves all previously stored components. -/
+private theorem startAxiom?_success_componentsFormulaConsistent
+    {certificate : Certificate} {state next : UnificationState}
+    (consistent :
+      state.ComponentsFormulaConsistent certificate)
+    {left right : Vertex}
+    (wellFormed :
+      certificate.LinkWellFormed (.axiom left right))
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.ComponentsFormulaConsistent certificate := by
+  unfold startAxiom? at equation
+  by_cases leftReady : state.marks[left]? = some none
+  · simp [guard, leftReady] at equation
+    by_cases rightReady : state.marks[right]? = some none
+    · simp [rightReady] at equation
+      cases formulaLookup : certificate.formula? left with
+      | none =>
+          simp [formulaLookup] at equation
+      | some formula =>
+          cases formula with
+          | atom name positive =>
+              simp [formulaLookup] at equation
+              subst next
+              have rightFormula :
+                  certificate.formula? right =
+                    some (Formula.atom name positive).dual := by
+                rcases wellFormed with
+                  ⟨_different, _leftBound, _rightBound, typing⟩
+                rw [formulaLookup] at typing
+                cases rightLookup : certificate.formula? right with
+                | none =>
+                    simp [rightLookup] at typing
+                | some rightValue =>
+                    simp [rightLookup] at typing
+                    subst rightValue
+                    rfl
+              have componentConsistent :
+                  ({ tree := .axiom name positive
+                     frontier := [left, right] } :
+                    UnificationComponent).FormulaConsistent certificate :=
+                UnificationComponent.axiom_formulaConsistent
+                  formulaLookup rightFormula
+              exact consistent.push componentConsistent
           | tensor first second =>
               simp [formulaLookup] at equation
           | par first second =>
@@ -1980,6 +2324,61 @@ private theorem startAxioms?_success_ordered
           intro token parent lookup
           exact result lookup
 
+/-- Successful eager axiom initialization preserves formula consistency of
+every stored partial derivation. -/
+private theorem startAxioms?_success_componentsFormulaConsistent
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    {links : List Link} {state next : UnificationState}
+    (consistent :
+      state.ComponentsFormulaConsistent certificate)
+    (submitted :
+      ∀ link, link ∈ links → link ∈ certificate.links)
+    (equation :
+      certificate.startAxioms? links state = some next) :
+    next.ComponentsFormulaConsistent certificate := by
+  induction links generalizing state with
+  | nil =>
+      simp [startAxioms?] at equation
+      subst next
+      exact consistent
+  | cons link links induction =>
+      have tailSubmitted :
+          ∀ candidate, candidate ∈ links →
+            candidate ∈ certificate.links := by
+        intro candidate membership
+        exact submitted candidate (by simp [membership])
+      cases link with
+      | «axiom» left right =>
+          have linkSubmitted :
+              Link.axiom left right ∈ certificate.links :=
+            submitted _ (by simp)
+          have wellFormed :
+              certificate.LinkWellFormed (.axiom left right) :=
+            structural.2.2.2.2.1 _ linkSubmitted
+          simp only [startAxioms?] at equation
+          cases startEquation :
+              certificate.startAxiom? state left right with
+          | none =>
+              rw [startEquation] at equation
+              contradiction
+          | some started =>
+              rw [startEquation] at equation
+              have startedConsistent :
+                  started.ComponentsFormulaConsistent certificate :=
+                certificate.startAxiom?_success_componentsFormulaConsistent
+                  consistent wellFormed startEquation
+              intro index component lookup
+              exact induction startedConsistent tailSubmitted equation lookup
+      | «par» left right conclusion =>
+          simp only [startAxioms?] at equation
+          intro index component lookup
+          exact induction consistent tailSubmitted equation lookup
+      | «tensor» left right conclusion =>
+          simp only [startAxioms?] at equation
+          intro index component lookup
+          exact induction consistent tailSubmitted equation lookup
+
 /-- Successful eager axiom initialization preserves abstraction and identity
 parents, and is simulated by a finite sequence of independent start steps. -/
 private theorem startAxioms?_success_refines
@@ -2097,6 +2496,75 @@ private theorem firePar?_success_observation
           subst next
           exact ⟨rfl, rfl⟩
 
+/-- A successful well-typed par firing replaces one live component with the
+formula-consistent par derivation built from its selected frontier
+occurrences. -/
+private theorem firePar?_success_componentsFormulaConsistent
+    {certificate : Certificate} {state next : UnificationState}
+    (consistent :
+      state.ComponentsFormulaConsistent certificate)
+    {left right conclusion : Vertex}
+    (wellFormed :
+      certificate.LinkWellFormed (.par left right conclusion))
+    (equation : firePar? state left right conclusion = some next) :
+    next.ComponentsFormulaConsistent certificate := by
+  unfold firePar? at equation
+  split at equation
+  · contradiction
+  · rename_i _ outputToken forwardEquation
+    split at equation
+    · contradiction
+    · rename_i _ component componentEquation
+      split at equation
+      · contradiction
+      · rename_i _ leftFocus afterLeft leftPick
+        split at equation
+        · contradiction
+        · rename_i _ rightFocus context rightPick
+          injection equation with stateEquation
+          subst next
+          have componentLookup :
+              state.components[state.representative outputToken]? =
+                some (some component) := by
+            unfold UnificationState.componentAt? at componentEquation
+            cases lookup :
+                state.components[state.representative outputToken]? with
+            | none =>
+                simp [lookup] at componentEquation
+            | some assigned =>
+                cases assigned with
+                | none =>
+                    simp [lookup] at componentEquation
+                | some stored =>
+                    simp [lookup] at componentEquation
+                    subst stored
+                    rfl
+          have componentConsistent :
+              component.FormulaConsistent certificate :=
+            consistent componentLookup
+          rcases wellFormed.par_formulaData with
+            ⟨leftFormula, rightFormula, leftFormulaAt,
+              rightFormulaAt, conclusionFormula⟩
+          have nextComponentConsistent :
+              ({ tree :=
+                   .par leftFocus rightFocus component.tree
+                 frontier := context ++ [conclusion] } :
+                UnificationComponent).FormulaConsistent certificate :=
+            UnificationComponent.FormulaConsistent.par
+              componentConsistent leftPick rightPick
+                leftFormulaAt rightFormulaAt conclusionFormula
+          change
+            ({ state with
+              components :=
+                state.components.setIfInBounds outputToken
+                  (some
+                    { tree :=
+                        .par leftFocus rightFocus component.tree
+                      frontier := context ++ [conclusion] }) } :
+              UnificationState).ComponentsFormulaConsistent certificate
+          exact consistent.set (index := outputToken)
+            nextComponentConsistent
+
 /-- Every successful concrete par firing leaves the ordered parent forest
 unchanged. -/
 private theorem firePar?_success_ordered
@@ -2213,6 +2681,92 @@ private theorem fireTensor?_success_observation
             subst next
             exact ⟨rfl, rfl⟩
 
+/-- A successful well-typed tensor firing replaces the surviving component
+with the exact combined tensor derivation and clears the retired slot, while
+preserving formula consistency of every other live component. -/
+private theorem fireTensor?_success_componentsFormulaConsistent
+    {certificate : Certificate} {state next : UnificationState}
+    (consistent :
+      state.ComponentsFormulaConsistent certificate)
+    {left right conclusion : Vertex}
+    (wellFormed :
+      certificate.LinkWellFormed (.tensor left right conclusion))
+    (equation : fireTensor? state left right conclusion = some next) :
+    next.ComponentsFormulaConsistent certificate := by
+  unfold fireTensor? at equation
+  split at equation
+  · contradiction
+  · rename_i _ leftToken rightToken unifyEquation
+    split at equation
+    · contradiction
+    · rename_i _ leftComponent leftComponentEquation
+      split at equation
+      · contradiction
+      · rename_i _ rightComponent rightComponentEquation
+        split at equation
+        · contradiction
+        · rename_i _ leftFocus leftContext leftPick
+          split at equation
+          · contradiction
+          · rename_i _ rightFocus rightContext rightPick
+            injection equation with stateEquation
+            subst next
+            have leftConsistent :
+                leftComponent.FormulaConsistent certificate :=
+              consistent.componentAt leftComponentEquation
+            have rightConsistent :
+                rightComponent.FormulaConsistent certificate :=
+              consistent.componentAt rightComponentEquation
+            rcases wellFormed.tensor_formulaData with
+              ⟨leftFormula, rightFormula, leftFormulaAt,
+                rightFormulaAt, conclusionFormula⟩
+            have nextComponentConsistent :
+                ({ tree :=
+                     .tensor leftFocus rightFocus
+                       leftComponent.tree rightComponent.tree
+                   frontier :=
+                     conclusion :: (leftContext ++ rightContext) } :
+                  UnificationComponent).FormulaConsistent certificate :=
+              UnificationComponent.FormulaConsistent.tensor
+                leftConsistent rightConsistent leftPick rightPick
+                  leftFormulaAt rightFormulaAt conclusionFormula
+            change
+              ({ state with
+                components :=
+                  (state.components.setIfInBounds
+                    (min leftToken rightToken)
+                    (some
+                      { tree :=
+                          .tensor leftFocus rightFocus
+                            leftComponent.tree rightComponent.tree
+                        frontier :=
+                          conclusion ::
+                            (leftContext ++ rightContext) }))
+                    |>.setIfInBounds
+                      (max leftToken rightToken) none } :
+                UnificationState).ComponentsFormulaConsistent certificate
+            have survivorConsistent :
+                ({ state with
+                  components :=
+                    state.components.setIfInBounds
+                      (min leftToken rightToken)
+                      (some
+                        { tree :=
+                            .tensor leftFocus rightFocus
+                              leftComponent.tree rightComponent.tree
+                          frontier :=
+                            conclusion ::
+                              (leftContext ++ rightContext) }) } :
+                  UnificationState).ComponentsFormulaConsistent
+                    certificate :=
+              consistent.set
+                (index := min leftToken rightToken)
+                nextComponentConsistent
+            intro index component lookup
+            exact
+              UnificationState.ComponentsFormulaConsistent.clear
+                survivorConsistent (max leftToken rightToken) lookup
+
 /-- Every successful concrete tensor firing preserves the ordered union-find
 forest invariant, independently of component construction. -/
 private theorem fireTensor?_success_ordered
@@ -2287,6 +2841,31 @@ private theorem fireConnective?_success_ordered
       exact firePar?_success_ordered ordered equation
   | «tensor» left right conclusion =>
       exact fireTensor?_success_ordered ordered equation
+
+/-- Every successful well-typed connective firing preserves the partial
+derivation formula invariant. -/
+private theorem fireConnective?_success_componentsFormulaConsistent
+    {certificate : Certificate} {state next : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (consistent :
+      state.ComponentsFormulaConsistent certificate)
+    {link : Link}
+    (linkMembership : link ∈ certificate.links)
+    (equation : fireConnective? state link = some next) :
+    next.ComponentsFormulaConsistent certificate := by
+  have wellFormed : certificate.LinkWellFormed link :=
+    structural.2.2.2.2.1 link linkMembership
+  cases link with
+  | «axiom» left right =>
+      simp [fireConnective?] at equation
+  | «par» left right conclusion =>
+      intro index component lookup
+      exact firePar?_success_componentsFormulaConsistent
+        consistent wellFormed equation lookup
+  | «tensor» left right conclusion =>
+      intro index component lookup
+      exact fireTensor?_success_componentsFormulaConsistent
+        consistent wellFormed equation lookup
 
 /-- Any successful real connective firing preserves abstraction and refines
 the corresponding independent Figure-5 transition. -/
@@ -2365,6 +2944,55 @@ private theorem unificationFold_ordered
           intro token parent lookup
           exact result lookup
 
+/-- A left-to-right executable fold preserves formula consistency of all live
+partial derivation components. -/
+private theorem unificationFold_componentsFormulaConsistent
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    (links : List Link)
+    {state : UnificationState}
+    (progress : Nat)
+    (consistent :
+      state.ComponentsFormulaConsistent certificate)
+    (submitted :
+      ∀ link, link ∈ links → link ∈ certificate.links) :
+    ((links.foldl unificationFoldStep
+      (state, progress)).1).ComponentsFormulaConsistent certificate := by
+  induction links generalizing state progress with
+  | nil =>
+      exact consistent
+  | cons link links induction =>
+      have linkSubmitted : link ∈ certificate.links :=
+        submitted link (by simp)
+      have tailSubmitted :
+          ∀ candidate, candidate ∈ links →
+            candidate ∈ certificate.links := by
+        intro candidate membership
+        exact submitted candidate (by simp [membership])
+      simp only [List.foldl_cons]
+      cases fireEquation : fireConnective? state link with
+      | none =>
+          have stepEquation :
+              unificationFoldStep (state, progress) link =
+                (state, progress) := by
+            simp [unificationFoldStep, fireEquation]
+          rw [stepEquation]
+          intro index component lookup
+          exact induction progress consistent tailSubmitted lookup
+      | some fired =>
+          have stepEquation :
+              unificationFoldStep (state, progress) link =
+                (fired, progress + 1) := by
+            simp [unificationFoldStep, fireEquation]
+          rw [stepEquation]
+          have firedConsistent :
+              fired.ComponentsFormulaConsistent certificate :=
+            fireConnective?_success_componentsFormulaConsistent
+              structural consistent linkSubmitted fireEquation
+          intro index component lookup
+          exact induction (progress + 1) firedConsistent
+            tailSubmitted lookup
+
 /-- A left-to-right executable fold preserves abstraction and is simulated by
 a finite execution of the independent Figure-5 semantics. Idle links
 contribute reflexive steps; every successful firing contributes exactly one
@@ -2439,6 +3067,19 @@ private theorem unificationPass_ordered
     (ordered : state.OrderedParents) :
     (unificationPass links state).1.OrderedParents := by
   exact unificationFold_ordered links 0 ordered
+
+/-- One complete eager pass over submitted links preserves every live partial
+derivation's formula frontier. -/
+private theorem unificationPass_componentsFormulaConsistent
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationState}
+    (consistent :
+      state.ComponentsFormulaConsistent certificate) :
+    (unificationPass certificate.links state).1
+      |>.ComponentsFormulaConsistent certificate := by
+  exact unificationFold_componentsFormulaConsistent certificate structural
+    certificate.links 0 consistent (fun _ membership => membership)
 
 /-- One complete eager pass over the submitted certificate links is simulated
 by a finite independent Figure-5 execution. -/
@@ -2530,6 +3171,38 @@ private theorem saturateUnification_ordered
         intro token parent lookup
         exact saturatedOrdered lookup
 
+/-- Every finite eager-saturation prefix preserves formula consistency of all
+live partial derivation components. -/
+private theorem saturateUnification_componentsFormulaConsistent
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat)
+    {state : UnificationState}
+    (consistent :
+      state.ComponentsFormulaConsistent certificate) :
+    (saturateUnification certificate.links fuel state).state
+      |>.ComponentsFormulaConsistent certificate := by
+  induction fuel generalizing state with
+  | zero =>
+      exact consistent
+  | succ fuel induction =>
+      simp only [saturateUnification]
+      have nextConsistent :
+          (unificationPass certificate.links state).1
+            |>.ComponentsFormulaConsistent certificate :=
+        unificationPass_componentsFormulaConsistent
+          certificate structural consistent
+      split
+      · intro index component lookup
+        exact nextConsistent lookup
+      · have saturatedConsistent :
+            (saturateUnification certificate.links fuel
+              (unificationPass certificate.links state).1).state
+              |>.ComponentsFormulaConsistent certificate :=
+          induction nextConsistent
+        intro index component lookup
+        exact saturatedConsistent lookup
+
 /-- Every finite eager-saturation prefix preserves abstraction and is
 simulated by a finite execution of the independent Figure-5 semantics. -/
 private theorem saturateUnification_refines
@@ -2592,6 +3265,28 @@ private theorem eagerUnification_refines
     ⟨finalAbstractable, saturationExecution⟩
   exact ⟨finalAbstractable,
     startExecution.trans saturationExecution⟩
+
+/-- On structurally well-formed input, the complete successful eager run keeps
+every stored live component equal, at the formula level, to the sequent
+inferred by its partial cut-free derivation. -/
+private theorem eagerUnification_componentsFormulaConsistent
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    {started : UnificationState}
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    (saturateUnification certificate.links certificate.links.length
+      started).state.ComponentsFormulaConsistent certificate := by
+  have startedConsistent :
+      started.ComponentsFormulaConsistent certificate :=
+    certificate.startAxioms?_success_componentsFormulaConsistent
+      structural
+      (initialUnificationState_componentsFormulaConsistent certificate)
+      (fun _ membership => membership) startEquation
+  intro index component lookup
+  exact saturateUnification_componentsFormulaConsistent
+    certificate structural certificate.links.length startedConsistent lookup
 
 private inductive WorklistEnqueueKind where
   | initial
