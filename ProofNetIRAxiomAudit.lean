@@ -93,6 +93,9 @@ expansion.
 #print axioms UnificationStep.link_exists
 #print axioms UnificationStep.marks_fired_conclusion
 #print axioms UnificationStep.tokenCount_mono
+#print axioms UnificationState.toMarking_tokenCount
+#print axioms UnificationState.toMarking_mark
+#print axioms UnificationState.toMarking_sameThread
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound
 #print axioms Certificate.unificationReconstruct?_accepted

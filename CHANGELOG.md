@@ -14,6 +14,13 @@
   generated API and exact axiom audit include this new boundary. Executable
   state abstraction/refinement remains the next theorem rather than being
   assumed from matching constructor names;
+- added the executable-state abstraction boundary:
+  `UnificationState.Abstractable` states occurrence/token bounds,
+  `toMarking` forgets arrays, derivation components, counters, and scheduler
+  data, and three axiom-free projection theorems lock raw marks, parent-count
+  allocation, and representative equality to the independent semantics. The
+  all-unmarked initial state satisfies the bounds internally; preservation by
+  start/forward/unify and refinement into `UnificationStep` remain open;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 

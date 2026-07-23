@@ -2514,6 +2514,93 @@ ProofNetIR.UnificationStep.tokenCount_mono : ∀ {certificate : ProofNetIR.Certi
   ProofNetIR.UnificationStep certificate state next → state.tokenCount ≤ next.tokenCount
 ```
 
+### `ProofNetIR.UnificationState.assignedToken?`
+
+Kind: definition.
+
+Raw token assigned to a formula occurrence, before representative lookup.
+This is the marking field used by the independent transition semantics.
+
+```lean
+ProofNetIR.UnificationState.assignedToken? : ProofNetIR.UnificationState → ProofNetIR.Vertex → Option Nat
+```
+
+### `ProofNetIR.UnificationState.SameThread`
+
+Kind: definition.
+
+Two allocated tokens lie in the same executable union-find class.
+
+```lean
+ProofNetIR.UnificationState.SameThread : ProofNetIR.UnificationState → Nat → Nat → Prop
+```
+
+### `ProofNetIR.UnificationState.Abstractable`
+
+Kind: inductive type.
+
+Bounds required to interpret an executable state as an independent
+`UnificationMarking`. Later preservation theorems will discharge this contract
+for every reachable state.
+
+```lean
+ProofNetIR.UnificationState.Abstractable : ProofNetIR.Certificate → ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.UnificationState.toMarking`
+
+Kind: definition.
+
+Forget arrays, parsed derivation components, counters, and worklist data,
+retaining exactly the marking and thread partition observed by the independent
+Figure-5 semantics.
+
+```lean
+ProofNetIR.UnificationState.toMarking : (state : ProofNetIR.UnificationState) →
+  (certificate : ProofNetIR.Certificate) →
+    ProofNetIR.UnificationState.Abstractable certificate state → ProofNetIR.UnificationMarking certificate
+```
+
+### `ProofNetIR.UnificationState.toMarking_tokenCount`
+
+Kind: theorem.
+
+Abstracting an executable state exposes exactly one token slot per
+union-find parent entry.
+
+```lean
+ProofNetIR.UnificationState.toMarking_tokenCount : ∀ (state : ProofNetIR.UnificationState) (certificate : ProofNetIR.Certificate)
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state),
+  (state.toMarking certificate abstractable).tokenCount = state.parents.size
+```
+
+### `ProofNetIR.UnificationState.toMarking_mark`
+
+Kind: theorem.
+
+Abstract-state marking lookup is the executable raw assigned token lookup,
+before representative normalization.
+
+```lean
+ProofNetIR.UnificationState.toMarking_mark : ∀ (state : ProofNetIR.UnificationState) (certificate : ProofNetIR.Certificate)
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) (vertex : ProofNetIR.Vertex),
+  (state.toMarking certificate abstractable).mark vertex = state.assignedToken? vertex
+```
+
+### `ProofNetIR.UnificationState.toMarking_sameThread`
+
+Kind: theorem.
+
+Abstract thread equivalence is equality of executable union-find
+representatives.
+
+```lean
+ProofNetIR.UnificationState.toMarking_sameThread : ∀ (state : ProofNetIR.UnificationState) (certificate : ProofNetIR.Certificate)
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) (first second : Nat),
+  (state.toMarking certificate abstractable).sameThread first second ↔
+    state.representative first = state.representative second
+```
+
 ### `ProofNetIR.UnificationScanStats`
 
 Kind: inductive type.

@@ -17,6 +17,23 @@ example {certificate : ProofNetIR.Certificate}
       ProofNetIR.Link.tensor left right conclusion ∈ certificate.links) :=
   step.link_exists
 
+example (certificate : ProofNetIR.Certificate)
+    (state : ProofNetIR.UnificationState)
+    (abstractable :
+      state.Abstractable certificate) :
+    (state.toMarking certificate abstractable).tokenCount =
+      state.parents.size :=
+  state.toMarking_tokenCount certificate abstractable
+
+example (certificate : ProofNetIR.Certificate)
+    (state : ProofNetIR.UnificationState)
+    (abstractable :
+      state.Abstractable certificate)
+    (first second : Nat) :
+    (state.toMarking certificate abstractable).sameThread first second ↔
+      state.representative first = state.representative second :=
+  state.toMarking_sameThread certificate abstractable first second
+
 open ProofNetIR
 
 namespace ProofNetIRTests

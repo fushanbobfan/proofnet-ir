@@ -155,6 +155,75 @@ private def representativeWithFuel (parents : Array Nat) :
 def representative (state : UnificationState) (token : Nat) : Nat :=
   representativeWithFuel state.parents state.parents.size token
 
+/-- Raw token assigned to a formula occurrence, before representative lookup.
+This is the marking field used by the independent transition semantics. -/
+def assignedToken? (state : UnificationState) (vertex : Vertex) :
+    Option Nat :=
+  state.marks[vertex]?.join
+
+/-- Two allocated tokens lie in the same executable union-find class. -/
+def SameThread (state : UnificationState) (first second : Nat) : Prop :=
+  state.representative first = state.representative second
+
+/-- Bounds required to interpret an executable state as an independent
+`UnificationMarking`. Later preservation theorems will discharge this contract
+for every reachable state. -/
+structure Abstractable (certificate : Certificate)
+    (state : UnificationState) : Prop where
+  markedVertexBound :
+    ∀ {vertex token}, state.assignedToken? vertex = some token →
+      vertex < certificate.formulas.size
+  markedTokenBound :
+    ∀ {vertex token}, state.assignedToken? vertex = some token →
+      token < state.parents.size
+
+/-- Forget arrays, parsed derivation components, counters, and worklist data,
+retaining exactly the marking and thread partition observed by the independent
+Figure-5 semantics. -/
+def toMarking (state : UnificationState) (certificate : Certificate)
+    (abstractable : state.Abstractable certificate) :
+    UnificationMarking certificate where
+  tokenCount := state.parents.size
+  mark := state.assignedToken?
+  sameThread := state.SameThread
+  sameThreadEquivalence :=
+    ⟨fun _ => rfl, fun equality => equality.symm,
+      fun first second => first.trans second⟩
+  markedVertexBound := abstractable.markedVertexBound
+  markedTokenBound := abstractable.markedTokenBound
+
+/-- Abstracting an executable state exposes exactly one token slot per
+union-find parent entry. -/
+@[simp]
+theorem toMarking_tokenCount (state : UnificationState)
+    (certificate : Certificate)
+    (abstractable : state.Abstractable certificate) :
+    (state.toMarking certificate abstractable).tokenCount =
+      state.parents.size :=
+  rfl
+
+/-- Abstract-state marking lookup is the executable raw assigned token lookup,
+before representative normalization. -/
+@[simp]
+theorem toMarking_mark (state : UnificationState)
+    (certificate : Certificate)
+    (abstractable : state.Abstractable certificate)
+    (vertex : Vertex) :
+    (state.toMarking certificate abstractable).mark vertex =
+      state.assignedToken? vertex :=
+  rfl
+
+/-- Abstract thread equivalence is equality of executable union-find
+representatives. -/
+@[simp]
+theorem toMarking_sameThread (state : UnificationState)
+    (certificate : Certificate)
+    (abstractable : state.Abstractable certificate)
+    (first second : Nat) :
+    (state.toMarking certificate abstractable).sameThread first second ↔
+      state.representative first = state.representative second :=
+  Iff.rfl
+
 /-- Current token class yielded by a marked formula occurrence. -/
 def tokenAt? (state : UnificationState) (vertex : Vertex) : Option Nat := do
   let assigned ← state.marks[vertex]?
@@ -187,6 +256,14 @@ private def initialUnificationState (certificate : Certificate) :
   components := #[]
   startedAxioms := 0
   firedConnectives := 0
+
+private theorem initialUnificationState_abstractable
+    (certificate : Certificate) :
+    certificate.initialUnificationState.Abstractable certificate := by
+  constructor <;> intro vertex token marked
+  <;> simp [initialUnificationState, UnificationState.assignedToken?,
+    Array.getElem?_replicate] at marked
+  <;> split at marked <;> simp at marked
 
 private def unificationError (certificate : Certificate)
     (code : UnificationErrorCode) (message : String) :
