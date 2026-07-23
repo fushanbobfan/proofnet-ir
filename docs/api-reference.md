@@ -788,7 +788,9 @@ ProofNetIR.CanonicalKey : Type
 Kind: definition.
 
 Exact typed canonical key for the generated `ProofNetEquivalent` relation.
-The option is total by `proofNetCanonicalKey?_exists`.
+The option is total by `proofNetCanonicalKey?_exists`, but its factorial
+implementation makes it a specification oracle rather than the bounded public
+wire generator.
 
 ```lean
 ProofNetIR.Certificate.proofNetCanonicalKey? : ProofNetIR.Certificate → Option ProofNetIR.CanonicalKey
@@ -840,6 +842,40 @@ comparison.
 ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey_of_check : ∀ {left right : ProofNetIR.Certificate},
   left.check = true →
     right.check = true → (left.ProofNetEquivalent right ↔ left.proofNetCanonicalKey? = right.proofNetCanonicalKey?)
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit`
+
+Kind: theorem.
+
+Within the public generation ceiling, equality of bounded keys is
+equivalent to exactly `ProofNetEquivalent`.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit : ∀ {left right : ProofNetIR.Certificate},
+  left.StructurallyWellFormed →
+    right.StructurallyWellFormed →
+      left.links.length ≤ ProofNetIR.CanonicalKey.maxGenerationLinks →
+        right.links.length ≤ ProofNetIR.CanonicalKey.maxGenerationLinks →
+          (left.ProofNetEquivalent right ↔
+            left.proofNetCanonicalKeyWithinLimit? = right.proofNetCanonicalKeyWithinLimit?)
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check`
+
+Kind: theorem.
+
+Checker acceptance supplies the structural premises for bounded exact key
+comparison.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check : ∀ {left right : ProofNetIR.Certificate},
+  left.check = true →
+    right.check = true →
+      left.links.length ≤ ProofNetIR.CanonicalKey.maxGenerationLinks →
+        right.links.length ≤ ProofNetIR.CanonicalKey.maxGenerationLinks →
+          (left.ProofNetEquivalent right ↔
+            left.proofNetCanonicalKeyWithinLimit? = right.proofNetCanonicalKeyWithinLimit?)
 ```
 
 ### `ProofNetIR.Certificate.equivalenceCanonicalString`
@@ -1065,6 +1101,18 @@ Defensive aggregate character-count limit for untrusted key JSON.
 ProofNetIR.CanonicalKey.maxCharacters : Nat
 ```
 
+### `ProofNetIR.CanonicalKey.maxGenerationLinks`
+
+Kind: definition.
+
+Public factorial-generator ceiling.  Seven links means at most `7! = 5040`
+link orders.  Larger inputs must use the exact pairwise identity API until a
+non-factorial canonical construction is proved.
+
+```lean
+ProofNetIR.CanonicalKey.maxGenerationLinks : Nat
+```
+
 ### `ProofNetIR.CanonicalKey.WireAdmissible`
 
 Kind: definition.
@@ -1128,6 +1176,17 @@ Parse an untrusted canonical-key string with structured diagnostics.
 ProofNetIR.CanonicalKey.fromString : String → ProofNetIR.ParseResult ProofNetIR.CanonicalKey
 ```
 
+### `ProofNetIR.Certificate.proofNetCanonicalKeyWithinLimit?`
+
+Kind: definition.
+
+Resource-qualified exact key generation.  This checks the link limit before
+evaluating the factorial specification oracle.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalKeyWithinLimit? : ProofNetIR.Certificate → Option ProofNetIR.CanonicalKey
+```
+
 ### `ProofNetIR.Certificate.proofNetCanonicalKeyJson?`
 
 Kind: definition.
@@ -1152,7 +1211,9 @@ ProofNetIR.Certificate.proofNetCanonicalKeyString? : ProofNetIR.Certificate → 
 
 Kind: definition.
 
-Compare a locally computed key with a parsed opaque key.
+Compare a bounded locally computed key with a parsed opaque key.  Inputs
+above `CanonicalKey.maxGenerationLinks` return `false` before factorial
+materialization.
 
 ```lean
 ProofNetIR.Certificate.matchesCanonicalKey : ProofNetIR.Certificate → ProofNetIR.CanonicalKey → Bool

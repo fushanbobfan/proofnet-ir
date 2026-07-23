@@ -50,8 +50,11 @@ The JSON fingerprint is not a wire contract. The typed code now has the
 separate `proofnet-canonical-key-0.1` /
 `proofnet-equivalent-v1` wire wrapper, bounded parser, schema, and semantic
 migration from checker-accepted v0.3 certificates. Existing v0.2/v0.3 strings
-are not reinterpreted. The new wire remains unreleased and its generator still
-materializes the factorial family.
+are not reinterpreted. The new wire remains unreleased. Its generator and
+parsed-key matcher check a seven-link ceiling before materializing the
+factorial family; inputs above that limit fail closed. Changing that ceiling is
+a documented resource-policy change, while changing the relation or payload
+requires the versioning rules above.
 
 Release v0.4.0 adds the general sequentialization Lean API and theorem without
 introducing a new wire version or changing the v0.2/v0.3 payload contracts.

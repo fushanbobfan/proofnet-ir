@@ -36,6 +36,11 @@ def maxTokens : Nat := 100000
 /-- Defensive aggregate character-count limit for untrusted key JSON. -/
 def maxCharacters : Nat := 1000000
 
+/-- Public factorial-generator ceiling.  Seven links means at most `7! = 5040`
+link orders.  Larger inputs must use the exact pairwise identity API until a
+non-factorial canonical construction is proved. -/
+def maxGenerationLinks : Nat := 7
+
 /-- The supported wire envelope is deliberately bounded even though the typed
 canonical key remains total for every finite certificate. -/
 def WireAdmissible (key : CanonicalKey) : Prop :=
@@ -135,21 +140,32 @@ end CanonicalKey
 namespace Certificate
 
 /-- Exact typed canonical key for the generated `ProofNetEquivalent` relation.
-The option is total by `proofNetCanonicalKey?_exists`. -/
+The option is total by `proofNetCanonicalKey?_exists`, but its factorial
+implementation makes it a specification oracle rather than the bounded public
+wire generator. -/
 def proofNetCanonicalKey? (certificate : Certificate) :
     Option CanonicalKey :=
   certificate.proofNetCanonicalCode?.map CanonicalKey.mk
 
+/-- Resource-qualified exact key generation.  This checks the link limit before
+evaluating the factorial specification oracle. -/
+def proofNetCanonicalKeyWithinLimit? (certificate : Certificate) :
+    Option CanonicalKey :=
+  if certificate.links.length ≤ CanonicalKey.maxGenerationLinks then
+    certificate.proofNetCanonicalKey?
+  else
+    none
+
 /-- Deterministic JSON wire value for the exact typed canonical key. -/
 def proofNetCanonicalKeyJson? (certificate : Certificate) :
     Option Lean.Json :=
-  certificate.proofNetCanonicalKey?.bind fun key =>
+  certificate.proofNetCanonicalKeyWithinLimit?.bind fun key =>
     if key.isWireAdmissible then some key.toJson else none
 
 /-- Deterministic JSON wire string for the exact typed canonical key. -/
 def proofNetCanonicalKeyString? (certificate : Certificate) :
     Option String :=
-  certificate.proofNetCanonicalKey?.bind fun key =>
+  certificate.proofNetCanonicalKeyWithinLimit?.bind fun key =>
     if key.isWireAdmissible then some key.toString else none
 
 /-- Every certificate has a typed canonical key. -/
@@ -204,10 +220,46 @@ theorem proofNetEquivalent_iff_canonicalKey_of_check
     (left.check_sound_declarative leftAccepted).1
     (right.check_sound_declarative rightAccepted).1
 
-/-- Compare a locally computed key with a parsed opaque key. -/
+/-- Within the public generation ceiling, equality of bounded keys is
+equivalent to exactly `ProofNetEquivalent`. -/
+theorem proofNetEquivalent_iff_canonicalKeyWithinLimit
+    {left right : Certificate}
+    (leftStructural : left.StructurallyWellFormed)
+    (rightStructural : right.StructurallyWellFormed)
+    (leftBound :
+      left.links.length ≤ CanonicalKey.maxGenerationLinks)
+    (rightBound :
+      right.links.length ≤ CanonicalKey.maxGenerationLinks) :
+    left.ProofNetEquivalent right ↔
+      left.proofNetCanonicalKeyWithinLimit? =
+        right.proofNetCanonicalKeyWithinLimit? := by
+  simpa [proofNetCanonicalKeyWithinLimit?, leftBound, rightBound] using
+    proofNetEquivalent_iff_canonicalKey leftStructural rightStructural
+
+/-- Checker acceptance supplies the structural premises for bounded exact key
+comparison. -/
+theorem proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check
+    {left right : Certificate}
+    (leftAccepted : left.check = true)
+    (rightAccepted : right.check = true)
+    (leftBound :
+      left.links.length ≤ CanonicalKey.maxGenerationLinks)
+    (rightBound :
+      right.links.length ≤ CanonicalKey.maxGenerationLinks) :
+    left.ProofNetEquivalent right ↔
+      left.proofNetCanonicalKeyWithinLimit? =
+        right.proofNetCanonicalKeyWithinLimit? :=
+  proofNetEquivalent_iff_canonicalKeyWithinLimit
+    (left.check_sound_declarative leftAccepted).1
+    (right.check_sound_declarative rightAccepted).1
+    leftBound rightBound
+
+/-- Compare a bounded locally computed key with a parsed opaque key.  Inputs
+above `CanonicalKey.maxGenerationLinks` return `false` before factorial
+materialization. -/
 def matchesCanonicalKey (certificate : Certificate)
     (key : CanonicalKey) : Bool :=
-  decide (certificate.proofNetCanonicalKey? = some key)
+  decide (certificate.proofNetCanonicalKeyWithinLimit? = some key)
 
 /-- A parsed key shared by two accepted certificates is sufficient to prove
 that the certificates are `ProofNetEquivalent`. -/
@@ -220,10 +272,22 @@ theorem proofNetEquivalent_of_matchesCanonicalKey
     left.ProofNetEquivalent right := by
   have leftEquation :
       left.proofNetCanonicalKey? = some key := by
-    exact of_decide_eq_true leftMatches
+    have limited :
+        left.proofNetCanonicalKeyWithinLimit? = some key := by
+      exact of_decide_eq_true leftMatches
+    unfold proofNetCanonicalKeyWithinLimit? at limited
+    split at limited
+    · exact limited
+    · simp at limited
   have rightEquation :
       right.proofNetCanonicalKey? = some key := by
-    exact of_decide_eq_true rightMatches
+    have limited :
+        right.proofNetCanonicalKeyWithinLimit? = some key := by
+      exact of_decide_eq_true rightMatches
+    unfold proofNetCanonicalKeyWithinLimit? at limited
+    split at limited
+    · exact limited
+    · simp at limited
   apply (proofNetEquivalent_iff_canonicalKey_of_check
     leftAccepted rightAccepted).mpr
   exact leftEquation.trans rightEquation.symm
@@ -242,7 +306,8 @@ def migrateV03StringToCanonicalKey (input : String) :
     | none =>
         throw {
           path := "$"
-          message := "internal canonical-key construction returned none" }
+          message :=
+            s!"canonical-key generation supports at most {CanonicalKey.maxGenerationLinks} links" }
   else
     throw {
       path := "$"

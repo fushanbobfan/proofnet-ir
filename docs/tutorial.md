@@ -104,8 +104,12 @@ example : axiomCertificate.ProofNetEquivalent reordered ↔
 This family enumerates link permutations, so it is factorial and intended for
 specification or small audits. The typed canonical code has an exact iff
 theorem and a distinct bounded `proofnet-canonical-key-0.1` parser, but the
-generator still enumerates the same family. Use `proofNetEquivalent?` for
-ordinary identity decisions. The family preserves ordered conclusions,
+unbounded generator still enumerates the same family. Public wire generation
+and parsed-key matching check a seven-link ceiling before computation; values
+above the ceiling return `none`/`false`. Within the ceiling,
+`proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check` gives the exact iff
+contract. Use `CheckedCertificate.sameProofNet?` for ordinary or larger
+identity decisions. The family preserves ordered conclusions,
 tensor/par premise order, formula labels, and axiom endpoint orientation; it is
 not arbitrary graph isomorphism.
 

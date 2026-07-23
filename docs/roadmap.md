@@ -295,8 +295,10 @@
   `proofnet-equivalent-v1` instead of reinterpreting v0.3, with a bounded
   parser, schema, v0.3 semantic migration, negative tests, 1,000 wire
   properties, and 5,000 malformed-key fuzz cases.
-- [ ] Replace or qualify factorial family materialization with measured
-  performance evidence before calling the typed code a production key.
+- [x] Qualify factorial wire generation with a pre-computation seven-link
+  ceiling and a measured 1/4/7-link, 5,065-candidate benchmark under a
+  separate 10-second budget. The unbounded typed key remains a specification
+  oracle; non-factorial construction remains later research.
 - [ ] Pin a clean downstream consumer to the eventual public v0.7 release and
   qualify local, main-branch, and exact-tag CI.
 

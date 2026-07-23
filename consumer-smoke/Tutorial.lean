@@ -65,6 +65,17 @@ def axiomCanonicalKey : CanonicalKey :=
   axiomCertificate.proofNetCanonicalKey?.get (by native_decide)
 
 example : axiomCanonicalKey.isWireAdmissible = true := by native_decide
+example :
+    axiomCertificate.proofNetCanonicalKeyWithinLimit?.isSome = true := by
+  native_decide
+
+example :
+    axiomCertificate.ProofNetEquivalent axiomCertificate ↔
+      axiomCertificate.proofNetCanonicalKeyWithinLimit? =
+        axiomCertificate.proofNetCanonicalKeyWithinLimit? :=
+  Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check
+    (by native_decide) (by native_decide)
+    (by native_decide) (by native_decide)
 
 def parsedCanonicalKey :=
   CanonicalKey.fromString axiomCanonicalKey.toString

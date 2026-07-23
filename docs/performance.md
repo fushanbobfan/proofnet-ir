@@ -33,32 +33,41 @@ excludes compilation. CI fails when the complete workload exceeds 45 seconds.
 The threshold is deliberately a regression guard with platform headroom, not a
 claim of constant, polynomial, interactive, or production-grade performance.
 
-`Certificate.proofNetCanonicalFamily` is deliberately excluded from this
-workload. It enumerates every link-list permutation and is therefore factorial
-in the link count. Its purpose is to provide an executable, kernel-proved
-complete invariant for the exact `ProofNetEquivalent` relation. Production
-identity checks should use `CheckedCertificate.sameProofNet?` after checker
-acceptance (or the lower-level `Certificate.proofNetEquivalent?` when a caller
-already manages its structural premise). The checked API has an iff theorem
-for exactly `ProofNetEquivalent`; neither path materializes the family.
+Unbounded `Certificate.proofNetCanonicalFamily` is excluded from the main
+291-case workload. It enumerates every link-list permutation and is therefore
+factorial in the link count. Its purpose is to provide an executable,
+kernel-proved complete invariant for the exact `ProofNetEquivalent` relation.
+Production identity checks should use `CheckedCertificate.sameProofNet?` after
+checker acceptance (or the lower-level `Certificate.proofNetEquivalent?` when
+a caller already manages its structural premise). The checked API has an iff
+theorem for exactly `ProofNetEquivalent`; neither path materializes the family.
 
 The unreleased `Certificate.proofNetCanonicalFingerprint?` currently maps and
 minimizes that same family, so its compact return type does not imply compact
 computation. The exact typed `Certificate.proofNetCanonicalCode?` likewise
 minimizes the family; its iff theorem settles logical completeness but not
-runtime suitability. Both are excluded from the performance budget and must
-not replace `sameProofNet?` until a separately measured implementation avoids
-or deliberately accepts the factorial cost.
+runtime suitability. These unbounded APIs remain specification oracles.
+
+The public `proofnet-canonical-key-0.1` generator and parsed-key matcher check
+`CanonicalKey.maxGenerationLinks = 7` before factorial evaluation. Inputs above
+the limit return `none` or `false` immediately. A dedicated benchmark covers
+accepted identity certificates with 1, 4, and 7 links, including reversed link
+storage, JSON parsing, and safe matching. It materializes 5,065 family
+candidates in total and fails above 10 seconds. This qualifies a small-input
+wire contract; it does not improve the factorial asymptotic bound. Larger
+inputs must use `sameProofNet?`.
 
 ## Baseline measurement
 
-On the Windows development machine on 2026-07-22, the committed workload
+On the Windows development machine on 2026-07-23, the qualified workload
 reported:
 
 ```text
-cases=291 checksum=8246 elapsed_ms=7040
-check_ms=0 sequentialize_ms=6260 equivalence_ms=0
+cases=291 checksum=11098 elapsed_ms=7949
+check_ms=0 sequentialize_ms=6438 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
+canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=706
+canonical_key_budget_ms=10000 canonical_key_max_links=7
 ```
 
 The millisecond counters are coarse; zero means below one aggregate measured

@@ -97,6 +97,8 @@ def sections : List Section := [
       `ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalKey?_eq,
       `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey,
       `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKey_of_check,
+      `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit,
+      `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check,
       `ProofNetIR.Certificate.equivalenceCanonicalString
     ]
   },
@@ -126,12 +128,14 @@ def sections : List Section := [
       `ProofNetIR.CanonicalKey.canonicalization,
       `ProofNetIR.CanonicalKey.maxTokens,
       `ProofNetIR.CanonicalKey.maxCharacters,
+      `ProofNetIR.CanonicalKey.maxGenerationLinks,
       `ProofNetIR.CanonicalKey.WireAdmissible,
       `ProofNetIR.CanonicalKey.isWireAdmissible,
       `ProofNetIR.CanonicalKey.toJson,
       `ProofNetIR.CanonicalKey.toString,
       `ProofNetIR.CanonicalKey.fromJson,
       `ProofNetIR.CanonicalKey.fromString,
+      `ProofNetIR.Certificate.proofNetCanonicalKeyWithinLimit?,
       `ProofNetIR.Certificate.proofNetCanonicalKeyJson?,
       `ProofNetIR.Certificate.proofNetCanonicalKeyString?,
       `ProofNetIR.Certificate.matchesCanonicalKey,

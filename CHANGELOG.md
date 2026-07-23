@@ -20,6 +20,12 @@
   `proofNetEquivalent_of_matchesCanonicalKey` theorem. The wire passes 1,000
   deterministic encode/decode and reversed-link properties plus 5,000
   deterministic malformed-key fuzz cases;
+- qualified the factorial wire generator with a hard seven-link ceiling checked
+  before canonical-family evaluation. Bounded generation and parsed-key
+  matching now fail closed above that limit, their equality has an exact
+  `ProofNetEquivalent` iff theorem under the stated bound, and the CI benchmark
+  covers 1-, 4-, and 7-link accepted certificates (5,065 total family
+  candidates) under a separate 10-second budget;
 
 ## v0.6.0 - Persistent LeanProp bridge
 

@@ -112,8 +112,10 @@ part of the engineering and proof-identity gap.
    structurally well-formed or checker-accepted inputs. A distinct bounded JSON
    parser, schema, migration function, and safe parsed-key matcher now expose
    the payload as `proofnet-canonical-key-0.1`. The implementation still
-   materializes the factorial family and is not yet a production
-   single-representative key.
+   materializes the factorial family. Public generation and matching now check
+   a seven-link ceiling before evaluation, and a 1/4/7-link benchmark enforces
+   a separate 10-second budget. This makes the wire usable under an explicit
+   small-input contract, but not a scalable single-representative key.
    Conclusion-order canonicalization and arbitrary graph isomorphism remain
    outside the current claim. The v0.3.1 wire theorem remains intentionally
    about the narrower, order-preserving `ReindexEquivalent` relation.
@@ -141,7 +143,7 @@ part of the engineering and proof-identity gap.
   persistent-normalization APIs;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for twenty-seven public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for thirty-seven public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the separate LeanProp trust boundary locks four theorems as axiom-free,
@@ -208,7 +210,9 @@ It can currently be used for:
   proved equivalent to `ProofNetEquivalent`, while retaining
   `sameProofNet?` as the performance-qualified pairwise identity API;
 - parsing and migrating the bounded `proofnet-canonical-key-0.1` wire, with
-  1,000 generated wire properties and 5,000 malformed-key fuzz cases;
+  exact equality under its seven-link generation ceiling, 1,000 generated wire
+  properties, 5,000 malformed-key fuzz cases, and a measured 1/4/7-link
+  benchmark;
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
@@ -221,8 +225,8 @@ It should not yet be presented as:
 - a performance-qualified executable sequentializer beyond the documented
   unit-free, cut-free MLL certificate model;
 - a complete isomorphism-canonical proof identity library;
-- a performance-qualified compact wire canonicalizer for the broader
-  `ProofNetEquivalent` relation;
+- a scalable compact wire canonicalizer for the broader
+  `ProofNetEquivalent` relation beyond the documented seven-link ceiling;
 - evidence that proof-net generation reduces search redundancy beyond the
   committed experiment's narrow, explicitly biased controlled setting.
 
@@ -235,5 +239,5 @@ API docs and
 compatibility rules are published, performance limits are measured, and the
 matched algorithmic and model-backed experiments report their results whether
 positive or negative. Both controlled runs are now complete; the broader-
-logic/corpus, hard performance, and compact identity/canonicalization gates
-remain open.
+logic/corpus, hard sequentialization performance, scalable canonicalization,
+and final tagged-consumer gates remain open.

@@ -40,6 +40,8 @@ expansion.
 #print axioms Certificate.proofNetCanonicalKey?_exists
 #print axioms Certificate.ProofNetEquivalent.proofNetCanonicalKey?_eq
 #print axioms Certificate.proofNetEquivalent_iff_canonicalKey_of_check
+#print axioms Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit
+#print axioms Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check
 #print axioms Certificate.proofNetEquivalent_of_matchesCanonicalKey
 #print axioms Certificate.sequentialize_complete
 #print axioms ExecutableSequentializationResult.kernelDerivation

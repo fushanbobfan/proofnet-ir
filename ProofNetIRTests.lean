@@ -1016,6 +1016,23 @@ example :
   Certificate.proofNetEquivalent_iff_canonicalKey_of_check
     (by native_decide) (by native_decide)
 
+def overLimitCanonicalKeyCertificate : Certificate :=
+  { canonical with links := List.replicate 8 (.axiom 0 1) }
+
+example : CanonicalKey.maxGenerationLinks = 7 := rfl
+example :
+    overLimitCanonicalKeyCertificate.proofNetCanonicalKeyWithinLimit?.isNone =
+      true := by
+  native_decide
+example :
+    overLimitCanonicalKeyCertificate.proofNetCanonicalKeyString?.isNone =
+      true := by
+  native_decide
+example :
+    overLimitCanonicalKeyCertificate.matchesCanonicalKey generatedCanonicalKey =
+      false := by
+  native_decide
+
 def generatedCanonicalKeyRoundTrips : Bool :=
   match CanonicalKey.fromString generatedCanonicalKey.toString with
   | .ok parsed => parsed == generatedCanonicalKey
@@ -1075,8 +1092,8 @@ def generatedCanonicalKeyWireProperties : Bool :=
     let certificate := identityCertificate formula
     let reordered : Certificate :=
       { certificate with links := certificate.links.reverse }
-    match certificate.proofNetCanonicalKey?,
-        reordered.proofNetCanonicalKey? with
+    match certificate.proofNetCanonicalKeyWithinLimit?,
+        reordered.proofNetCanonicalKeyWithinLimit? with
     | some leftKey, some rightKey =>
         leftKey == rightKey &&
           match CanonicalKey.fromString leftKey.toString with

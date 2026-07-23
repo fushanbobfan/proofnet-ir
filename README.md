@@ -114,10 +114,12 @@ The repository currently contains:
   materializes the factorial family;
 - an unreleased `proofnet-canonical-key-0.1` JSON wire wrapper with a bounded
   parser, structured errors, schema and fixture, v0.3-to-key semantic migration,
-  and a safe matcher theorem for untrusted parsed keys. Its 1,000-case wire
-  property corpus and 5,000-case malformed-key fuzz corpus pass, but production
-  pairwise comparisons continue to use
-  `CheckedCertificate.sameProofNet?`;
+  and a safe matcher theorem for untrusted parsed keys. Public generation and
+  matching reject inputs above seven links before factorial materialization;
+  the exact typed key remains an unbounded specification oracle. Its 1,000-case
+  wire property corpus, 5,000-case malformed-key fuzz corpus, and measured
+  1/4/7-link benchmark pass, but larger or ordinary pairwise comparisons should
+  use `CheckedCertificate.sameProofNet?`;
 - a checked pairwise identity API,
   `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
   exactly `ProofNetEquivalent`. Its search enforces the ordered conclusion
@@ -166,7 +168,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits twenty-five public logical-boundary theorems against the exact axiom set
+  separately audits thirty-seven public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
@@ -186,8 +188,8 @@ semantics; its wire layer intentionally covers only named atoms, ordinary
 conjunction, and implication, not typed equality/quantifier terms or broad
 mathlib expressions. The
 repository also lacks canonicalization modulo reordered conclusions or
-arbitrary graph isomorphism, a performance-qualified canonical-key
-implementation, a stable release of that wire contract, and a Lean tactic. The API,
+arbitrary graph isomorphism, a scalable non-factorial canonical-key
+implementation, a stable release of that bounded wire contract, and a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.

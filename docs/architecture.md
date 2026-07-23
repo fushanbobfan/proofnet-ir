@@ -67,7 +67,9 @@ criterion and proof-order bureaucracy can be measured cleanly.
     in the distinct `proofnet-canonical-key-0.1` JSON contract, enforces bounded
     parsing, supports semantic migration from checked v0.3 certificates, and
     proves that two accepted certificates matching one parsed opaque key are
-    equivalent.
+    equivalent. Public generation and matching check a seven-link ceiling
+    before factorial evaluation; the typed unbounded key remains a
+    specification oracle.
 21. `ProofNetIdentity.lean` exposes the production pairwise identity boundary
     for checker-accepted certificates. `sameProofNet?` is proved equivalent to
     exactly `ProofNetEquivalent`. Its underlying candidate generator applies
@@ -89,12 +91,15 @@ ordered conclusions, tensor/par premise order, formula labels, and axiom
 endpoint orientation remain significant. The JSON fingerprint has only the
 forward equivalence-invariance theorem; the typed code has the exact iff
 theorem. Both inherit factorial materialization. Neither is yet a production
-canonical-key implementation, and neither claims arbitrary graph isomorphism.
+large-input canonical-key implementation, and neither claims arbitrary graph
+isomorphism. The versioned wire generator is qualified only through seven
+links, with a measured CI budget and fail-closed behavior above the ceiling.
 
 The project deliberately keeps exact pairwise decision as its supported
 production identity API. The typed canonical code settles the logical
-single-key question and now has a distinct versioned parser; its factorial
-implementation keeps it outside that production boundary.
+single-key question and now has a distinct versioned parser; its bounded wire
+wrapper is usable for inputs through seven links, while the factorial
+implementation keeps larger inputs outside that production boundary.
 Ordered conclusions, connective premise order, formula labels, and axiom
 orientation are still part of identity, and neither canonical construction
 nor worst-case internal repeated-label search is claimed to be polynomial.

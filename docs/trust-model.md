@@ -157,10 +157,12 @@ unproved serializer premise is added.
 `proofnet-canonical-key-0.1` envelope with token-count and aggregate-character
 limits. Parsing establishes only wire shape: tokens arriving from outside are
 opaque and are not trusted as proof-net evidence. The safe boundary recomputes
-`proofNetCanonicalKey?` locally from checker-accepted certificates.
+the bounded canonical key locally from checker-accepted certificates.
 `proofNetEquivalent_of_matchesCanonicalKey` proves that two accepted
 certificates matching one parsed key are equivalent. The generator still uses
-factorial family materialization.
+factorial family materialization, so generation and matching check the
+seven-link ceiling before computation and fail closed above it. The unbounded
+typed `proofNetCanonicalKey?` remains a specification oracle.
 
 ## Failure containment
 
