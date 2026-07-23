@@ -102,8 +102,10 @@ part of the engineering and proof-identity gap.
    canonical graph identity, not the accepted-net reverse theorem.
 3. `Graph.Acyclic` is now exposed as absence of an exact stored-edge
    `EdgeSimpleCycle`, and `Graph.IsTree.acyclic` proves the sound direction
-   against that occurrence-aware semantics. The converse finite-multigraph
-   forest-count theorem, and therefore the standard
+   against that occurrence-aware semantics. Exact directed edges, walks,
+   simple cycles, and acyclicity now transport through bounded bijective
+   vertex renamings, with `acyclic_reindex_iff` exposed publicly. The converse
+   finite-multigraph forest-count theorem, and therefore the standard
    `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` characterization, remain open.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
@@ -160,6 +162,8 @@ part of the engineering and proof-identity gap.
 - CI now parses `#print axioms` for forty-six public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
+- the two public graph-acyclicity transport theorems are separately locked to
+  exactly `propext` and `Quot.sound`, without `Classical.choice`;
 - the v0.9 development package builds with `warningAsError`; the current full
   build emits zero Lean warnings, so future linter regressions fail locally and
   in CI rather than leaking into downstream builds;

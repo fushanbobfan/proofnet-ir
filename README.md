@@ -11,8 +11,10 @@ arbitrary graph isomorphism or general checker/sequentializer scalability). See
 
 Development on `main` is now `v0.9.0-dev`. The first v0.9 increment exposes
 occurrence-aware multigraph acyclicity and proves that every declarative
-`IsTree` is acyclic. The converse forest-count theorem and an optimized
-correctness checker remain explicit work in progress.
+`IsTree` is acyclic. Exact edge occurrences, walks, cycles, and acyclicity are
+also proved invariant under bounded bijective vertex renaming. The converse
+forest-count theorem and an optimized correctness checker remain explicit
+work in progress.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -44,6 +46,10 @@ The repository currently contains:
   proving the enumerator covers exactly all one-edge-per-par switchings;
 - a finite undirected graph checker for boundedness, connectedness, and the
   `|E| + 1 = |V|` tree condition;
+- an occurrence-aware `Graph.Acyclic` predicate in which parallel stored
+  edges remain distinct and can form a length-two cycle; every declarative
+  tree is proved acyclic, and exact cycles plus acyclicity are proved
+  invariant under bounded bijective vertex renaming;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -203,6 +209,8 @@ normalization theorems use exactly `propext`. Exact agreement between
 formula-only inference and typed elaboration, its acceptance-lifting
 corollary, checked-wire inference, and the normalizer size bound use exactly
 `[propext, Quot.sound]`.
+The two public graph-acyclicity transport theorems are independently locked
+to exactly `[propext, Quot.sound]` and do not add `Classical.choice`.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
@@ -213,9 +221,9 @@ semantics; its wire layer intentionally covers only named atoms, ordinary
 conjunction, and implication, not typed equality/quantifier terms or broad
 mathlib expressions. The
 repository also lacks canonicalization modulo reordered conclusions or
-arbitrary graph isomorphism, a stable release and broader adversarial
-qualification of the new non-factorial key, optimized checking and
-sequentialization, and a Lean tactic. The API,
+arbitrary graph isomorphism, long-term cross-version API stability beyond the
+documented compatibility contracts, optimized checking and sequentialization,
+and a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.

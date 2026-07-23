@@ -633,6 +633,42 @@ def reindex (graph : Graph)
   | mk vertexCount edges =>
       simp [reindex, List.map_map, Function.comp_def]
 
+namespace DirectedEdge
+
+/-- Transport an exact oriented edge occurrence through a vertex renaming.
+The stored-list index and orientation are unchanged; only the edge endpoints
+are renamed. -/
+def reindex {graph : Graph}
+    (directed : graph.DirectedEdge)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).DirectedEdge where
+  index := directed.index
+  edge := directed.edge.reindex r
+  lookup := by
+    simp [Graph.reindex, directed.lookup]
+  forward := directed.forward
+
+@[simp] theorem reindex_index {graph : Graph}
+    (directed : graph.DirectedEdge)
+    (r : VertexRenaming graph.vertexCount) :
+    (directed.reindex r).index = directed.index := rfl
+
+@[simp] theorem reindex_source {graph : Graph}
+    (directed : graph.DirectedEdge)
+    (r : VertexRenaming graph.vertexCount) :
+    (directed.reindex r).source = r.forward directed.source := by
+  rcases directed with ⟨index, edge, lookup, forward⟩
+  cases forward <;> rfl
+
+@[simp] theorem reindex_target {graph : Graph}
+    (directed : graph.DirectedEdge)
+    (r : VertexRenaming graph.vertexCount) :
+    (directed.reindex r).target = r.forward directed.target := by
+  rcases directed with ⟨index, edge, lookup, forward⟩
+  cases forward <;> rfl
+
+end DirectedEdge
+
 theorem adjacent_reindex_iff (graph : Graph)
     (r : VertexRenaming graph.vertexCount) (left right : Vertex) :
     (graph.reindex r).Adjacent (r.forward left) (r.forward right) ↔
@@ -765,6 +801,71 @@ theorem isTree_reindex_iff (graph : Graph)
   apply Bool.eq_iff_iff.mpr
   rw [(graph.reindex r).isTree_iff_isTree, graph.isTree_iff_isTree]
   exact graph.isTree_reindex_iff r
+
+namespace EdgeWalk
+
+/-- Exact edge-aware walks are preserved by a bounded vertex renaming. -/
+theorem reindex {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).EdgeWalk (r.forward start)
+      (traversed.map fun directed => directed.reindex r)
+      (r.forward finish) := by
+  induction walk with
+  | refl =>
+      exact .refl _
+  | @step start finish traversed prior directed starts finishes ih =>
+      rw [List.map_append]
+      exact .step ih (directed.reindex r)
+        (by simpa using congrArg r.forward starts)
+        (by simpa using congrArg r.forward finishes)
+
+end EdgeWalk
+
+namespace EdgeSimpleCycle
+
+/-- Exact occurrence-aware simple cycles are preserved by a bounded vertex
+renaming. -/
+def reindex {graph : Graph} (cycle : graph.EdgeSimpleCycle)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).EdgeSimpleCycle where
+  start := r.forward cycle.start
+  traversed := cycle.traversed.map fun directed => directed.reindex r
+  nonempty := by simpa using cycle.nonempty
+  walk := cycle.walk.reindex r
+  edgeIndicesNodup := by
+    simpa [List.map_map, Function.comp_def] using cycle.edgeIndicesNodup
+  interiorNodup := by
+    have renamed :
+        ((cycle.start ::
+          cycle.traversed.dropLast.map DirectedEdge.target).map
+            r.forward).Nodup :=
+      cycle.interiorNodup.map r.forward
+        (fun _ _ unequal same => unequal (r.forward_injective same))
+    simpa [List.map_dropLast, List.map_map, Function.comp_def] using renamed
+
+end EdgeSimpleCycle
+
+/-- Occurrence-aware acyclicity is preserved by a bounded vertex renaming. -/
+theorem Acyclic.reindex {graph : Graph} (acyclic : graph.Acyclic)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).Acyclic := by
+  intro renamedCycle
+  have restored : graph.EdgeSimpleCycle := by
+    simpa only [graph.reindex_symm r] using renamedCycle.reindex r.symm
+  exact acyclic restored
+
+/-- Occurrence-aware acyclicity is invariant under bounded vertex
+renaming. -/
+theorem acyclic_reindex_iff (graph : Graph)
+    (r : VertexRenaming graph.vertexCount) :
+    (graph.reindex r).Acyclic ↔ graph.Acyclic := by
+  constructor
+  · intro acyclic
+    have restored := acyclic.reindex r.symm
+    simpa only [graph.reindex_symm r] using restored
+  · exact fun acyclic => acyclic.reindex r
 
 end Graph
 

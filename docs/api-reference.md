@@ -135,6 +135,45 @@ to form a genuine length-two multigraph cycle.
 ProofNetIR.Graph.EdgeSimpleCycle : ProofNetIR.Graph → Type
 ```
 
+### `ProofNetIR.Graph.DirectedEdge.reindex`
+
+Kind: definition.
+
+Transport an exact oriented edge occurrence through a vertex renaming.
+The stored-list index and orientation are unchanged; only the edge endpoints
+are renamed.
+
+```lean
+ProofNetIR.Graph.DirectedEdge.reindex : {graph : ProofNetIR.Graph} →
+  graph.DirectedEdge → (r : ProofNetIR.VertexRenaming graph.vertexCount) → (graph.reindex r).DirectedEdge
+```
+
+### `ProofNetIR.Graph.EdgeWalk.reindex`
+
+Kind: theorem.
+
+Exact edge-aware walks are preserved by a bounded vertex renaming.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.reindex : ∀ {graph : ProofNetIR.Graph} {start finish : ProofNetIR.Vertex} {traversed : List graph.DirectedEdge},
+  graph.EdgeWalk start traversed finish →
+    ∀ (r : ProofNetIR.VertexRenaming graph.vertexCount),
+      (graph.reindex r).EdgeWalk (r.forward start) (List.map (fun directed => directed.reindex r) traversed)
+        (r.forward finish)
+```
+
+### `ProofNetIR.Graph.EdgeSimpleCycle.reindex`
+
+Kind: definition.
+
+Exact occurrence-aware simple cycles are preserved by a bounded vertex
+renaming.
+
+```lean
+ProofNetIR.Graph.EdgeSimpleCycle.reindex : {graph : ProofNetIR.Graph} →
+  graph.EdgeSimpleCycle → (r : ProofNetIR.VertexRenaming graph.vertexCount) → (graph.reindex r).EdgeSimpleCycle
+```
+
 ### `ProofNetIR.Graph.Acyclic`
 
 Kind: definition.
@@ -156,6 +195,29 @@ occurrence-aware simple cycle.
 
 ```lean
 ProofNetIR.Graph.acyclic_iff_not_nonempty_edgeSimpleCycle : ∀ (graph : ProofNetIR.Graph), graph.Acyclic ↔ ¬Nonempty graph.EdgeSimpleCycle
+```
+
+### `ProofNetIR.Graph.Acyclic.reindex`
+
+Kind: theorem.
+
+Occurrence-aware acyclicity is preserved by a bounded vertex renaming.
+
+```lean
+ProofNetIR.Graph.Acyclic.reindex : ∀ {graph : ProofNetIR.Graph},
+  graph.Acyclic → ∀ (r : ProofNetIR.VertexRenaming graph.vertexCount), (graph.reindex r).Acyclic
+```
+
+### `ProofNetIR.Graph.acyclic_reindex_iff`
+
+Kind: theorem.
+
+Occurrence-aware acyclicity is invariant under bounded vertex
+renaming.
+
+```lean
+ProofNetIR.Graph.acyclic_reindex_iff : ∀ (graph : ProofNetIR.Graph) (r : ProofNetIR.VertexRenaming graph.vertexCount),
+  (graph.reindex r).Acyclic ↔ graph.Acyclic
 ```
 
 ### `ProofNetIR.Graph.IsTree`

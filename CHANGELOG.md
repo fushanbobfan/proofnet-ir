@@ -13,6 +13,11 @@
   assuming the current edge-count equation;
 - removed all extant Lean linter warnings and enabled package-wide
   `warningAsError`, turning future warning regressions into build failures;
+- proved that exact directed-edge occurrences, edge-aware walks, simple
+  multigraph cycles, and `Graph.Acyclic` transport through bounded bijective
+  vertex renamings; exposed the resulting acyclicity equivalence in the
+  generated API and locked both public theorems to exactly
+  `[propext, Quot.sound]`;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

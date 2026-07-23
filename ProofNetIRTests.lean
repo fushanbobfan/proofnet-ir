@@ -141,6 +141,9 @@ def indexedParallelCycle : indexedParallelGraph.EdgeSimpleCycle where
 example : indexedParallelCycle.traversed.map (·.index) = [0, 1] := rfl
 example : indexedParallelCycle.traversed.length ≤
     indexedParallelGraph.edges.length := indexedParallelCycle.length_le_edges
+example : ¬indexedParallelGraph.Acyclic := by
+  intro acyclic
+  exact acyclic indexedParallelCycle
 
 def mixedFormula : Formula := .par (.tensor p q) (.atom "r" true)
 
@@ -1348,6 +1351,17 @@ def cyclicTriangle : cyclicGraph.EdgeSimpleCycle where
   edgeIndicesNodup := by decide
   interiorNodup := by decide
 
+def swapCyclicZeroOne : VertexRenaming cyclicGraph.vertexCount :=
+  VertexRenaming.swap cyclicGraph.vertexCount 0 1 (by decide) (by decide)
+
+def reindexedCyclicTriangle :
+    (cyclicGraph.reindex swapCyclicZeroOne).EdgeSimpleCycle :=
+  cyclicTriangle.reindex swapCyclicZeroOne
+
+example : reindexedCyclicTriangle.start = 1 := by native_decide
+example : reindexedCyclicTriangle.traversed.map (·.index) = [0, 1, 2] := by
+  native_decide
+
 def cyclicPath02 : cyclicGraph.EdgeSimplePath where
   start := 0
   finish := 2
@@ -1600,6 +1614,12 @@ example : cyclicGraph.isTree = false := by native_decide
 example : ¬cyclicGraph.Acyclic := by
   intro acyclic
   exact acyclic cyclicTriangle
+example : ¬(cyclicGraph.reindex swapCyclicZeroOne).Acyclic := by
+  intro acyclic
+  exact acyclic reindexedCyclicTriangle
+example : (cyclicGraph.reindex swapCyclicZeroOne).Acyclic ↔
+    cyclicGraph.Acyclic :=
+  cyclicGraph.acyclic_reindex_iff swapCyclicZeroOne
 example : ¬cyclicGraph.IsTree := by
   intro tree
   exact tree.no_edgeSimpleCycle cyclicTriangle
@@ -1621,10 +1641,16 @@ def treeGraph : Graph where
     { first := 1, second := 3 }
   ]
 
+def swapTreeZeroThree : VertexRenaming treeGraph.vertexCount :=
+  VertexRenaming.swap treeGraph.vertexCount 0 3 (by decide) (by decide)
+
 example : treeGraph.isTree = true := by native_decide
 example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
 example : treeGraph.Acyclic :=
   (treeGraph.isTree_sound (by native_decide)).acyclic
+example : (treeGraph.reindex swapTreeZeroThree).Acyclic :=
+  ((treeGraph.isTree_sound (by native_decide)).acyclic).reindex
+    swapTreeZeroThree
 example : ∃ vertex, vertex < treeGraph.vertexCount ∧ vertex ≠ 0 := by
   rcases (treeGraph.isTree_sound (by native_decide)).every_edge_index_is_parent
       (index := 1) (by decide) with

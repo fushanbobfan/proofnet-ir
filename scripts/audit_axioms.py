@@ -83,6 +83,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.Graph.Acyclic.reindex",
+    "ProofNetIR.Graph.acyclic_reindex_iff",
     "ProofNetIR.LeanProp.Schema.Raw.Derivation.inferAt_eq_elaborateAt",
     "ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborate?_complete",
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.inferred",
@@ -161,7 +163,8 @@ def main() -> None:
         "ProofNet-IR axiom audit passed: "
         f"{len(EXPECTED_CLASSICAL_THEOREMS)} public MLL theorems use exactly "
         "[propext, Classical.choice, Quot.sound]; "
-        f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} LeanProp theorems are axiom-free; "
+        f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} additional audited theorems "
+        "are axiom-free; "
         f"{len(EXPECTED_PROPEXT_ONLY_THEOREMS)} use exactly [propext]; "
         f"{len(EXPECTED_PROPEXT_QUOT_THEOREMS)} use exactly "
         "[propext, Quot.sound]"
