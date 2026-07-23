@@ -78,8 +78,11 @@ v0.2 added the derivation-first direction for arbitrary first-order cut-free
 trees: validated desequentialization constructs a candidate certificate and
 gates the checked API on `Certificate.check = true`. The post-v0.5
 `infer?_eq_some_iff_build?_conclusions` theorem proves that formula validation
-and occurrence-aware construction succeed together, but checker acceptance
-remains a distinct gate rather than an inferred fact. Release v0.4.0
+and occurrence-aware construction succeed together. The subsequent
+`desequentialize?_conclusionFormulas?` theorem proves that every successfully
+constructed public certificate reads back exactly the inferred ordered
+boundary. Switching-checker acceptance remains a distinct gate rather than an
+inferred fact. Release v0.4.0
 also proves the reverse direction for the supported representation:
 `sequentialization_of_check` maps every accepted certificate to a concrete
 first-order tree whose executable output is `ProofNetEquivalent` to the

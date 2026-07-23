@@ -10,6 +10,7 @@ import ProofNetIR.DerivationTree
 import ProofNetIR.Serialization
 import ProofNetIR.NetEquivalence
 import ProofNetIR.Sequentialization
+import ProofNetIR.DesequentializationSoundness
 import ProofNetIR.ExecutableSequentialization
 import ProofNetIR.ProofNetCanonical
 import ProofNetIR.Parser

@@ -188,6 +188,13 @@ example : ∃ fragment : NetFragment,
   CutFreeDerivation.build?_exists_of_infer?
     (sequent := [.tensor p p, pDual, pDual]) (by native_decide)
 
+example : ∃ certificate : Certificate,
+    repeatedLabelExchangeTree.desequentialize? = some certificate ∧
+      certificate.conclusionFormulas? =
+        some [.tensor p p, pDual, pDual] :=
+  CutFreeDerivation.desequentialize?_exists_with_labels_of_infer?
+    (by native_decide)
+
 def repeatedBoundarySequentializes : Bool :=
   match repeatedBoundaryTree.desequentialize? with
   | none => false
@@ -1205,6 +1212,11 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check CutFreeDerivation.infer?_of_build?
 #check CutFreeDerivation.build?_exists_of_infer?
 #check CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
+#check NetFragment.FormulaConsistent
+#check CutFreeDerivation.build?_formulaConsistent
+#check CutFreeDerivation.build?_conclusionFormulas?
+#check CutFreeDerivation.desequentialize?_conclusionFormulas?
+#check CutFreeDerivation.desequentialize?_exists_with_labels_of_infer?
 #check CutFreeDerivation.build?_exists_of_desequentialize?
 #check SequentializationResult.fragment_exists
 #check VertexRenaming.extendLast

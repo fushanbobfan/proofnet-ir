@@ -152,6 +152,30 @@ ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions : ∀ {tree :
   tree.infer? = some sequent ↔ ∃ fragment, tree.build? = some fragment ∧ fragment.conclusions = sequent
 ```
 
+### `ProofNetIR.CutFreeDerivation.build?_formulaConsistent`
+
+Kind: theorem.
+
+Every fragment produced by the occurrence-aware builder labels each
+boundary root with exactly the formula stored in its boundary entry.
+
+```lean
+ProofNetIR.CutFreeDerivation.build?_formulaConsistent : ∀ {tree : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment},
+  tree.build? = some fragment → fragment.FormulaConsistent
+```
+
+### `ProofNetIR.CutFreeDerivation.build?_conclusionFormulas?`
+
+Kind: theorem.
+
+Successful fragment construction exposes exactly its inferred boundary
+through the public certificate formula lookup API.
+
+```lean
+ProofNetIR.CutFreeDerivation.build?_conclusionFormulas? : ∀ {tree : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment},
+  tree.build? = some fragment → fragment.toCertificate.conclusionFormulas? = some fragment.conclusions
+```
+
 ### `ProofNetIR.CutFreeDerivation.desequentialize?`
 
 Kind: definition.
@@ -161,6 +185,32 @@ Malformed resource positions or exchanges return `none`.
 
 ```lean
 ProofNetIR.CutFreeDerivation.desequentialize? : ProofNetIR.CutFreeDerivation → Option ProofNetIR.Certificate
+```
+
+### `ProofNetIR.CutFreeDerivation.desequentialize?_conclusionFormulas?`
+
+Kind: theorem.
+
+Every successful public desequentialization result carries exactly the
+formula sequent inferred by its source derivation.
+
+```lean
+ProofNetIR.CutFreeDerivation.desequentialize?_conclusionFormulas? : ∀ {tree : ProofNetIR.CutFreeDerivation} {certificate : ProofNetIR.Certificate},
+  tree.desequentialize? = some certificate → certificate.conclusionFormulas? = tree.infer?
+```
+
+### `ProofNetIR.CutFreeDerivation.desequentialize?_exists_with_labels_of_infer?`
+
+Kind: theorem.
+
+Formula-level validation is sufficient to construct a public certificate
+whose boundary lookup returns the validated sequent. This theorem deliberately
+does not yet claim that the switching checker accepts that certificate.
+
+```lean
+ProofNetIR.CutFreeDerivation.desequentialize?_exists_with_labels_of_infer? : ∀ {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
+  tree.infer? = some sequent →
+    ∃ certificate, tree.desequentialize? = some certificate ∧ certificate.conclusionFormulas? = some sequent
 ```
 
 ### `ProofNetIR.CutFreeDerivation.CheckedCertificate`

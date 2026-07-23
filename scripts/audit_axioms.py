@@ -14,6 +14,8 @@ AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
 EXPECTED_THEOREMS = {
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",
     "ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions",
+    "ProofNetIR.CutFreeDerivation.desequentialize?_conclusionFormulas?",
+    "ProofNetIR.CutFreeDerivation.desequentialize?_exists_with_labels_of_infer?",
     "ProofNetIR.Certificate.sequentialization_of_check",
     "ProofNetIR.Certificate.generallySequentializable",
     "ProofNetIR.Certificate.reindexEquivalent?_eq_true_iff_of_check",
