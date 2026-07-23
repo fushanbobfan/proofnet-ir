@@ -57,6 +57,32 @@ example {persistent source target : List Prop} {goal : Prop}
   LeanProp.Derivation.linearExchange_nonempty_of_listPerm
     permutation derivation
 
+def redundantPersistentIdentity (proposition : Prop) :
+    LeanProp.Derivation [proposition] [] proposition :=
+  .persistentContract (.persistentWeaken (.persistentAxiom))
+
+example (proposition : Prop) :
+    (redundantPersistentIdentity proposition).normalizePersistentStructural =
+      LeanProp.Derivation.persistentAxiom := by
+  rfl
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.PersistentStructurallyReduced :=
+  derivation.normalizePersistentStructural_reduced
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.normalizePersistentStructural =
+      derivation.normalizePersistentStructural :=
+  derivation.normalizePersistentStructural_idempotent
+
+example {persistent linear : List Prop} {goal : Prop}
+    (derivation : LeanProp.Derivation.{u} persistent linear goal) :
+    derivation.normalizePersistentStructural.persistentStructuralSize ≤
+      derivation.persistentStructuralSize :=
+  derivation.normalizePersistentStructural_size_le
+
 def run : IO Unit := do
   if checkedValid.isOk &&
       !(Raw.Derivation.checkedFromString invalid.canonicalString).isOk then
