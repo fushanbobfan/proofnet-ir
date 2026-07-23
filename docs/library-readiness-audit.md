@@ -108,8 +108,11 @@ part of the engineering and proof-identity gap.
    finite-multigraph forest-count theorem is now kernel checked without
    assuming the edge-count equation: a canonical shortest-parent spanning
    tree and exact extra-edge cycle construction establish
-   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic`. A certified executable
-   acyclicity decision procedure remains open.
+   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic`. The exhaustive executable
+   `isAcyclic` is now proved equivalent to this exact acyclicity semantics,
+   and the derived `isTreeViaAcyclic` is proved Boolean-equal to the existing
+   tree checker. This closes the reference-decision gap but not the
+   non-enumerative performance gap.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional

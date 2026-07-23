@@ -26,6 +26,15 @@
   lower bound this proves
   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` and brings the locked public MLL
   trust boundary to 48 theorems;
+- added an exhaustive occurrence-aware cycle oracle over exact directed-edge
+  traversals, proved its traversal validator sound and complete, proved
+  `Graph.isAcyclic = true ↔ Graph.Acyclic`, and derived
+  `Graph.isTreeViaAcyclic = Graph.isTree`; self-loops, both orientations of
+  parallel edges, a triangle, a disconnected forest, and a tree are covered
+  by executable regressions. The oracle is explicitly exponential and raises
+  the locked classical public MLL trust boundary to 52 theorems, with the two
+  traversal-level theorems separately locked to
+  `[propext, Quot.sound]`;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

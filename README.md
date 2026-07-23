@@ -14,8 +14,11 @@ occurrence-aware multigraph acyclicity and proves that every declarative
 `IsTree` is acyclic. Exact edge occurrences, walks, cycles, and acyclicity are
 also proved invariant under bounded bijective vertex renaming. The converse
 forest-count theorem is now complete, yielding
-`IsTree ↔ Bounded ∧ Connected ∧ Acyclic`. A certified executable cycle
-decision procedure and an optimized correctness checker remain explicit work
+`IsTree ↔ Bounded ∧ Connected ∧ Acyclic`. A certified exhaustive cycle
+decision procedure now decides that exact `Acyclic` semantics and yields a
+second tree checker proved Boolean-equal to the existing
+reachability-plus-count implementation. The new path is an exponential
+specification oracle; an optimized correctness checker remains explicit work
 in progress.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
@@ -53,6 +56,10 @@ The repository currently contains:
   tree is proved acyclic, exact cycles plus acyclicity are proved invariant
   under bounded bijective vertex renaming, and the converse forest theorem
   proves `IsTree ↔ Bounded ∧ Connected ∧ Acyclic`;
+- an exhaustive `Graph.isAcyclic` reference oracle proved sound and complete
+  for exact occurrence-aware cycles, plus `Graph.isTreeViaAcyclic`, proved
+  Boolean-equal to the existing `Graph.isTree`; both are deliberately
+  specification paths rather than scalability claims;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

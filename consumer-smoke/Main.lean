@@ -36,6 +36,16 @@ example : consumedCertificate.DeclarativelyCorrect :=
 example : consumedTreeGraph.Acyclic :=
   (consumedTreeGraph.isTree_sound (by native_decide)).acyclic
 
+example : consumedTreeGraph.isAcyclic = true := by native_decide
+
+example : consumedTreeGraph.isAcyclic = true ↔
+    consumedTreeGraph.Acyclic :=
+  consumedTreeGraph.isAcyclic_eq_true_iff
+
+example : consumedTreeGraph.isTreeViaAcyclic =
+    consumedTreeGraph.isTree :=
+  consumedTreeGraph.isTreeViaAcyclic_eq_isTree
+
 example : consumedTreeGraph.IsTree ↔
     consumedTreeGraph.Bounded ∧ consumedTreeGraph.Connected ∧
       consumedTreeGraph.Acyclic :=

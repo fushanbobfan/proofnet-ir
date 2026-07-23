@@ -15,6 +15,12 @@ expansion.
 #print axioms Graph.acyclic_reindex_iff
 #print axioms Graph.Acyclic.edges_add_one_le_vertexCount
 #print axioms Graph.isTree_iff_bounded_connected_acyclic
+#print axioms Graph.isEdgeSimpleCycleTraversal_sound
+#print axioms Graph.isEdgeSimpleCycleTraversal_complete
+#print axioms Graph.hasEdgeSimpleCycle_eq_true_iff
+#print axioms Graph.isAcyclic_eq_true_iff
+#print axioms Graph.isTreeViaAcyclic_eq_true_iff
+#print axioms Graph.isTreeViaAcyclic_eq_isTree
 #print axioms CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #print axioms CutFreeDerivation.build?_structurallyWellFormed
 #print axioms CutFreeDerivation.build?_switchingCorrect

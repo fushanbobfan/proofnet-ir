@@ -10,6 +10,7 @@ import ProofNetIR.DerivationTree
 import ProofNetIR.Serialization
 import ProofNetIR.NetEquivalence
 import ProofNetIR.Sequentialization
+import ProofNetIR.AcyclicDecision
 import ProofNetIR.LocalIdentity
 import ProofNetIR.DesequentializationSoundness
 import ProofNetIR.ExecutableSequentialization

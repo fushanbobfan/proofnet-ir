@@ -144,6 +144,12 @@ example : indexedParallelCycle.traversed.length ≤
 example : ¬indexedParallelGraph.Acyclic := by
   intro acyclic
   exact acyclic indexedParallelCycle
+example :
+    indexedParallelGraph.isEdgeSimpleCycleTraversal
+      indexedParallelCycle.traversed = true := by
+  native_decide
+example : indexedParallelGraph.hasEdgeSimpleCycle = true := by native_decide
+example : indexedParallelGraph.isAcyclic = false := by native_decide
 
 def reversedParallelGraph : Graph where
   vertexCount := 2
@@ -175,6 +181,7 @@ def reversedParallelCycle : reversedParallelGraph.EdgeSimpleCycle where
 example : ¬reversedParallelGraph.Acyclic := by
   intro acyclic
   exact acyclic reversedParallelCycle
+example : reversedParallelGraph.isAcyclic = false := by native_decide
 example : reversedParallelGraph.IsTree ↔
     reversedParallelGraph.Bounded ∧ reversedParallelGraph.Connected ∧
       reversedParallelGraph.Acyclic :=
@@ -1355,6 +1362,17 @@ def cyclicGraph : Graph where
     { first := 2, second := 0 }
   ]
 
+def loopGraph : Graph where
+  vertexCount := 1
+  edges := [{ first := 0, second := 0 }]
+
+def disconnectedForestGraph : Graph where
+  vertexCount := 4
+  edges := [
+    { first := 0, second := 1 },
+    { first := 2, second := 3 }
+  ]
+
 def cyclicDirected01 : cyclicGraph.DirectedEdge where
   index := 0
   edge := { first := 0, second := 1 }
@@ -1646,6 +1664,14 @@ example : ∃ initialPath : cyclicGraph.EdgeSimplePath,
 
 example : cyclicGraph.connected = true := by native_decide
 example : cyclicGraph.isTree = false := by native_decide
+example : cyclicGraph.isAcyclic = false := by native_decide
+example : cyclicGraph.isTreeViaAcyclic = cyclicGraph.isTree :=
+  cyclicGraph.isTreeViaAcyclic_eq_isTree
+example : loopGraph.isAcyclic = false := by native_decide
+example : disconnectedForestGraph.isAcyclic = true := by native_decide
+example : disconnectedForestGraph.isAcyclic = true ↔
+    disconnectedForestGraph.Acyclic :=
+  disconnectedForestGraph.isAcyclic_eq_true_iff
 example : ¬cyclicGraph.Acyclic := by
   intro acyclic
   exact acyclic cyclicTriangle
@@ -1683,6 +1709,12 @@ def swapTreeZeroThree : VertexRenaming treeGraph.vertexCount :=
   VertexRenaming.swap treeGraph.vertexCount 0 3 (by decide) (by decide)
 
 example : treeGraph.isTree = true := by native_decide
+example : treeGraph.isAcyclic = true := by native_decide
+example : treeGraph.isTreeViaAcyclic = true := by native_decide
+example : treeGraph.isTreeViaAcyclic = treeGraph.isTree :=
+  treeGraph.isTreeViaAcyclic_eq_isTree
+example : treeGraph.isAcyclic = true ↔ treeGraph.Acyclic :=
+  treeGraph.isAcyclic_eq_true_iff
 example : treeGraph.IsTree := treeGraph.isTree_sound (by native_decide)
 example : treeGraph.Acyclic :=
   (treeGraph.isTree_sound (by native_decide)).acyclic

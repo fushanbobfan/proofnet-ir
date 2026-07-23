@@ -345,8 +345,11 @@
 - [x] Prove the converse finite-multigraph forest theorem and derive
   `IsTree ↔ Bounded ∧ Connected ∧ Acyclic` without retaining the current
   edge-count equation as a redundant premise.
-- [ ] Introduce a certified cycle/forest decision procedure and relate it to
-  the existing reachability-plus-edge-count `isTree` checker.
+- [x] Introduce an exhaustive certified cycle/forest decision procedure,
+  prove `isAcyclic = true ↔ Acyclic`, and prove the resulting
+  `isTreeViaAcyclic` Boolean-equal to the existing
+  reachability-plus-edge-count `isTree` checker. This remains an exponential
+  specification oracle.
 - [ ] Use the certified graph layer to design and qualify a non-enumerative
   correctness checker while retaining the all-switchings implementation as a
   differential specification oracle.

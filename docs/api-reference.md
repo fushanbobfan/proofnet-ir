@@ -232,6 +232,134 @@ ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount : ∀ {graph : ProofNetIR.
   graph.Acyclic → graph.Bounded → graph.Connected → graph.edges.length + 1 ≤ graph.vertexCount
 ```
 
+### `ProofNetIR.Graph.isEdgeSimpleCycleTraversal`
+
+Kind: definition.
+
+Executable validation of one proposed exact cycle traversal. A candidate
+must be nonempty, close endpoint-to-source in order, use no stored edge index
+twice, and visit no source vertex twice.
+
+```lean
+ProofNetIR.Graph.isEdgeSimpleCycleTraversal : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → Bool
+```
+
+### `ProofNetIR.Graph.isEdgeSimpleCycleTraversal_sound`
+
+Kind: theorem.
+
+Every traversal accepted by the executable validator reconstructs an exact
+occurrence-aware simple cycle with the same directed-edge sequence.
+
+```lean
+ProofNetIR.Graph.isEdgeSimpleCycleTraversal_sound : ∀ {graph : ProofNetIR.Graph} {traversed : List graph.DirectedEdge},
+  ProofNetIR.Graph.isEdgeSimpleCycleTraversal traversed = true → ∃ cycle, cycle.traversed = traversed
+```
+
+### `ProofNetIR.Graph.isEdgeSimpleCycleTraversal_complete`
+
+Kind: theorem.
+
+Every exact occurrence-aware simple cycle is accepted when its stored
+directed-edge traversal is presented to the executable validator.
+
+```lean
+ProofNetIR.Graph.isEdgeSimpleCycleTraversal_complete : ∀ {graph : ProofNetIR.Graph} (cycle : graph.EdgeSimpleCycle),
+  ProofNetIR.Graph.isEdgeSimpleCycleTraversal cycle.traversed = true
+```
+
+### `ProofNetIR.Graph.edgeSimpleCycleTraversalCandidates`
+
+Kind: definition.
+
+All exact directed-edge lists of lengths one through the number of stored
+edge occurrences. This is a finite reference oracle, not a scalable cycle
+enumerator.
+
+```lean
+ProofNetIR.Graph.edgeSimpleCycleTraversalCandidates : (graph : ProofNetIR.Graph) → List (List graph.DirectedEdge)
+```
+
+### `ProofNetIR.Graph.hasEdgeSimpleCycle`
+
+Kind: definition.
+
+Exhaustive occurrence-aware cycle detection. Its candidate family is
+finite and complete, but exponential; it is intended as a certified
+specification oracle for the later optimized forest checker.
+
+```lean
+ProofNetIR.Graph.hasEdgeSimpleCycle : ProofNetIR.Graph → Bool
+```
+
+### `ProofNetIR.Graph.hasEdgeSimpleCycle_eq_true_iff`
+
+Kind: theorem.
+
+Exhaustive cycle search returns true exactly when an
+occurrence-aware simple cycle exists.
+
+```lean
+ProofNetIR.Graph.hasEdgeSimpleCycle_eq_true_iff : ∀ (graph : ProofNetIR.Graph), graph.hasEdgeSimpleCycle = true ↔ Nonempty graph.EdgeSimpleCycle
+```
+
+### `ProofNetIR.Graph.isAcyclic`
+
+Kind: definition.
+
+Certified exhaustive decision procedure for occurrence-aware acyclicity.
+This reference implementation deliberately favors a direct completeness proof
+over scalability.
+
+```lean
+ProofNetIR.Graph.isAcyclic : ProofNetIR.Graph → Bool
+```
+
+### `ProofNetIR.Graph.isAcyclic_eq_true_iff`
+
+Kind: theorem.
+
+The exhaustive Boolean acyclicity oracle exactly decides the public
+occurrence-aware `Acyclic` proposition.
+
+```lean
+ProofNetIR.Graph.isAcyclic_eq_true_iff : ∀ (graph : ProofNetIR.Graph), graph.isAcyclic = true ↔ graph.Acyclic
+```
+
+### `ProofNetIR.Graph.isTreeViaAcyclic`
+
+Kind: definition.
+
+Reference tree decision through the independently specified acyclicity
+oracle. It is deliberately not the production path: `isAcyclic` is
+exponential.
+
+```lean
+ProofNetIR.Graph.isTreeViaAcyclic : ProofNetIR.Graph → Bool
+```
+
+### `ProofNetIR.Graph.isTreeViaAcyclic_eq_true_iff`
+
+Kind: theorem.
+
+The reference acyclicity-based tree decision exactly decides the public
+finite-multigraph tree semantics.
+
+```lean
+ProofNetIR.Graph.isTreeViaAcyclic_eq_true_iff : ∀ (graph : ProofNetIR.Graph), graph.isTreeViaAcyclic = true ↔ graph.IsTree
+```
+
+### `ProofNetIR.Graph.isTreeViaAcyclic_eq_isTree`
+
+Kind: theorem.
+
+The exponential acyclicity route and the existing reachability-plus-count
+tree checker return the same Boolean on every finite multigraph.
+
+```lean
+ProofNetIR.Graph.isTreeViaAcyclic_eq_isTree : ∀ (graph : ProofNetIR.Graph), graph.isTreeViaAcyclic = graph.isTree
+```
+
 ### `ProofNetIR.Graph.IsTree`
 
 Kind: definition.
