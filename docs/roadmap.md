@@ -415,11 +415,15 @@
   - [x] Add a 6,000-case positive counterexample search across 1,000 generated
     derivations, depths zero through five, and six link/boundary storage
     orders; retain its zero-miss result as empirical evidence only.
+  - [x] Expose proof-relevant saturation statistics and prove the current
+    eager schedule performs at most `|links|²` link-list visits; keep
+    frontier, union-find, verification, and fallback costs outside that
+    deliberately scoped theorem.
   - [ ] Prove the pure deterministic unification path complete, removing the
     recursive fallback from the logical decision.
   - [ ] Replace eager repeated scans with proved ready/waiting worklists,
-    formalize the sequential `NEXTAXIOM`/union-find invariants, and establish
-    the complexity bound actually implemented before claiming Guerrini
+    formalize the sequential `NEXTAXIOM`/union-find invariants, and extend the
+    cost theorem to all implemented operations before claiming Guerrini
     linearity.
 
 ## Later research

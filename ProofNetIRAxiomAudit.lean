@@ -88,6 +88,7 @@ expansion.
 #print axioms Certificate.reconstructDerivationWithinLimits_sound
 #print axioms Certificate.reconstructDerivationWithinLimits_accepted
 #print axioms Certificate.reconstructDerivationWithinLimits_implies_reconstructs
+#print axioms UnificationCandidateResult.linkVisitsBound
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound
 #print axioms Certificate.unificationReconstruct?_accepted

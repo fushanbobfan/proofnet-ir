@@ -167,6 +167,13 @@ algorithm: the eager pass lacks a completeness proof and the fallback remains
 exhaustive. The exact source/code boundary is recorded in
 [guerrini-unification-audit.md](guerrini-unification-audit.md).
 
+The `WithStats` variants retain a proof-relevant operational receipt. Their
+candidate records satisfy `passes ≤ |links|` and
+`linkVisits = passes * |links|`, yielding an axiom-free square bound on eager
+link-list visits. That result characterizes the current scan schedule only;
+the architecture still needs explicit ready/waiting worklists and a cost model
+covering frontier manipulation, union-find, verification, and fallback.
+
 ## Persistent LeanProp bridge
 
 The v0.6-development bridge is a separate typed calculus, not an extension of

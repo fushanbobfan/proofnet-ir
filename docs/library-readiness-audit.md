@@ -149,7 +149,10 @@ part of the engineering and proof-identity gap.
    combines it with the complete checker-free reconstruction fallback and is
    proved exactly equal to `check`. The clean consumer compiles and executes
    both APIs. The pure fast path is not yet proved complete; the hybrid's
-   fallback means this is not yet a linear-time production contract.
+   fallback means this is not yet a linear-time production contract. The
+   statistics-bearing API now gives callers proof-relevant scan receipts:
+   at most `|links|` passes and `|links|²` link visits. The deliberately scoped
+   theorem does not bound the complete verifier.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

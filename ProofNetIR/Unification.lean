@@ -25,6 +25,45 @@ structure UnificationState where
   firedConnectives : Nat
   deriving Repr, DecidableEq
 
+/-- Observable work counters for the eager repeated-scan implementation.
+
+`linkVisits` counts only link-list entries inspected by saturation. It
+does not count frontier search, union-find traversal, final derivation
+verification, or a hybrid fallback. -/
+structure UnificationScanStats where
+  passes : Nat
+  linkVisits : Nat
+  successfulFirings : Nat
+  deriving Repr, DecidableEq, BEq
+
+/-- A derivation candidate together with proof-relevant bounds for the exact
+eager scan schedule that produced it. -/
+structure UnificationCandidateResult (certificate : Certificate) where
+  tree : CutFreeDerivation
+  stats : UnificationScanStats
+  passesBound : stats.passes ≤ certificate.links.length
+  linkVisitsExact :
+    stats.linkVisits = stats.passes * certificate.links.length
+
+namespace UnificationCandidateResult
+
+/-- The eager candidate generator visits at most the square of the submitted
+link count. This theorem concerns link-list visits only. -/
+theorem linkVisitsBound {certificate : Certificate}
+    (result : UnificationCandidateResult certificate) :
+    result.stats.linkVisits ≤
+      certificate.links.length * certificate.links.length := by
+  rw [result.linkVisitsExact]
+  exact Nat.mul_le_mul_right certificate.links.length result.passesBound
+
+end UnificationCandidateResult
+
+/-- A proof-bearing unification result retaining the exact scan statistics of
+the candidate that passed independent verification. -/
+structure UnificationVerificationResult (certificate : Certificate) where
+  candidate : UnificationCandidateResult certificate
+  verification : DerivationVerificationResult certificate
+
 /-- Stable failure category for deterministic unification. A fast-path failure
 does not by itself prove that the submitted certificate is incorrect. -/
 inductive UnificationErrorCode where
@@ -246,17 +285,58 @@ private def unificationPass (links : List Link)
       | some next => (next, progress + 1))
     (initial, 0)
 
+private structure UnificationSaturationResult where
+  state : UnificationState
+  stats : UnificationScanStats
+
 /-- Repeat deterministic passes until saturation. Every successful firing marks
 a fresh connective conclusion, so `links.length` passes are sufficient. -/
 private def saturateUnification (links : List Link) :
-    Nat → UnificationState → UnificationState
-  | 0, state => state
+    Nat → UnificationState → UnificationSaturationResult
+  | 0, state =>
+      { state
+        stats :=
+          { passes := 0
+            linkVisits := 0
+            successfulFirings := 0 } }
   | fuel + 1, state =>
       let (next, progress) := unificationPass links state
-      if progress == 0 then next
-      else saturateUnification links fuel next
+      if progress == 0 then
+        { state := next
+          stats :=
+            { passes := 1
+              linkVisits := links.length
+              successfulFirings := 0 } }
+      else
+        let saturated := saturateUnification links fuel next
+        { state := saturated.state
+          stats :=
+            { passes := saturated.stats.passes + 1
+              linkVisits := saturated.stats.linkVisits + links.length
+              successfulFirings :=
+                saturated.stats.successfulFirings + progress } }
 
-/-- Detailed deterministic Guerrini-style parsing candidate.
+private theorem saturateUnification_stats (links : List Link)
+    (fuel : Nat) (state : UnificationState) :
+    let result := saturateUnification links fuel state
+    result.stats.passes ≤ fuel ∧
+      result.stats.linkVisits = result.stats.passes * links.length := by
+  induction fuel generalizing state with
+  | zero =>
+      simp [saturateUnification]
+  | succ fuel induction =>
+      simp only [saturateUnification]
+      split
+      · simp
+      · simp only
+        have tail := induction (unificationPass links state).1
+        constructor
+        · omega
+        · rw [tail.2]
+          simp [Nat.add_mul]
+
+/-- Detailed deterministic Guerrini-style parsing candidate with exact scan
+statistics and a proof-relevant quadratic link-visit bound.
 
 This executable does not enumerate switchings or cycles. It starts one thread
 per axiom, forwards unary/par links whose premise tokens agree, and unifies
@@ -267,8 +347,8 @@ component remains, and its frontier is exactly the public conclusion boundary.
 The returned tree is still untrusted data. `unificationReconstruct` below
 independently verifies it before exposing a proof-bearing result. Errors from
 this tier are inconclusive except for `malformedInput`. -/
-def unificationDerivationCandidate (certificate : Certificate) :
-    Except UnificationError CutFreeDerivation := do
+def unificationDerivationCandidateWithStats (certificate : Certificate) :
+    Except UnificationError (UnificationCandidateResult certificate) := do
   if certificate.wellFormed != true then
     throw <| certificate.unificationError .malformedInput
       "structural well-formedness failed"
@@ -281,15 +361,15 @@ def unificationDerivationCandidate (certificate : Certificate) :
     | some value => pure value
   let saturated :=
     saturateUnification certificate.links certificate.links.length started
-  if !saturated.allMarked then
+  if !saturated.state.allMarked then
     throw <| certificate.unificationError .incompleteMarking
-      s!"saturation left unmarked formula occurrences after {saturated.firedConnectives} connective firings"
-  if saturated.startedAxioms + saturated.firedConnectives !=
+      s!"saturation left unmarked formula occurrences after {saturated.state.firedConnectives} connective firings"
+  if saturated.state.startedAxioms + saturated.state.firedConnectives !=
       certificate.links.length then
     throw <| certificate.unificationError .incompleteLinkFiring
-      s!"fired {saturated.startedAxioms} axioms and {saturated.firedConnectives} connectives"
+      s!"fired {saturated.state.startedAxioms} axioms and {saturated.state.firedConnectives} connectives"
   let component ←
-    match saturated.liveComponents with
+    match saturated.state.liveComponents with
     | [component] => pure component
     | components =>
         throw <| certificate.unificationError .nonUniqueThread
@@ -306,22 +386,41 @@ def unificationDerivationCandidate (certificate : Certificate) :
   if order.eraseDups.length != order.length then
     throw <| certificate.unificationError .boundaryMismatch
       "the public conclusion boundary repeats a parsed frontier occurrence"
-  pure (.exchange order component.tree)
+  have bounds :=
+    saturateUnification_stats certificate.links certificate.links.length
+      started
+  pure {
+    tree := .exchange order component.tree
+    stats := saturated.stats
+    passesBound := bounds.1
+    linkVisitsExact := bounds.2
+  }
+
+/-- Compatibility projection of the derivation-only unification candidate. -/
+def unificationDerivationCandidate (certificate : Certificate) :
+    Except UnificationError CutFreeDerivation :=
+  certificate.unificationDerivationCandidateWithStats.map (·.tree)
 
 /-- Option compatibility wrapper for the detailed unification candidate. -/
 def unificationDerivationCandidate? (certificate : Certificate) :
     Option CutFreeDerivation :=
   certificate.unificationDerivationCandidate.toOption
 
-/-- Detailed proof-bearing deterministic unification fast path. -/
-def unificationReconstruct (certificate : Certificate) :
-    Except UnificationError (DerivationVerificationResult certificate) := do
-  let tree ← certificate.unificationDerivationCandidate
-  match certificate.verifyDerivation? tree with
+/-- Detailed proof-bearing deterministic unification fast path retaining scan
+statistics. -/
+def unificationReconstructWithStats (certificate : Certificate) :
+    Except UnificationError (UnificationVerificationResult certificate) := do
+  let candidate ← certificate.unificationDerivationCandidateWithStats
+  match certificate.verifyDerivation? candidate.tree with
   | none =>
       throw <| certificate.unificationError .candidateVerificationFailed
         "the completed derivation failed independent verification"
-  | some result => pure result
+  | some verification => pure { candidate, verification }
+
+/-- Compatibility projection of the proof-bearing unification result. -/
+def unificationReconstruct (certificate : Certificate) :
+    Except UnificationError (DerivationVerificationResult certificate) :=
+  certificate.unificationReconstructWithStats.map (·.verification)
 
 /-- Proof-bearing fast path for deterministic unification. The generated tree
 must pass the independent derivation verifier, including formula inference,

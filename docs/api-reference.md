@@ -2395,6 +2395,54 @@ ProofNetIR.Certificate.reconstructDerivationWithinLimits_implies_reconstructs : 
   input.reconstructDerivationWithinLimits limits = Except.ok result → input.reconstructsDerivation = true
 ```
 
+### `ProofNetIR.UnificationScanStats`
+
+Kind: inductive type.
+
+Observable work counters for the eager repeated-scan implementation.
+
+`linkVisits` counts only connective-list entries inspected by saturation. It
+does not count frontier search, union-find traversal, final derivation
+verification, or a hybrid fallback.
+
+```lean
+ProofNetIR.UnificationScanStats : Type
+```
+
+### `ProofNetIR.UnificationCandidateResult`
+
+Kind: inductive type.
+
+A derivation candidate together with proof-relevant bounds for the exact
+eager scan schedule that produced it.
+
+```lean
+ProofNetIR.UnificationCandidateResult : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.UnificationCandidateResult.linkVisitsBound`
+
+Kind: theorem.
+
+The eager candidate generator visits at most the square of the submitted
+link count. This theorem concerns link-list visits only.
+
+```lean
+ProofNetIR.UnificationCandidateResult.linkVisitsBound : ∀ {certificate : ProofNetIR.Certificate} (result : ProofNetIR.UnificationCandidateResult certificate),
+  result.stats.linkVisits ≤ certificate.links.length * certificate.links.length
+```
+
+### `ProofNetIR.UnificationVerificationResult`
+
+Kind: inductive type.
+
+A proof-bearing unification result retaining the exact scan statistics of
+the candidate that passed independent verification.
+
+```lean
+ProofNetIR.UnificationVerificationResult : ProofNetIR.Certificate → Type
+```
+
 ### `ProofNetIR.UnificationErrorCode`
 
 Kind: inductive type.
@@ -2426,11 +2474,12 @@ Human-readable diagnostic preserving the stable machine category.
 ProofNetIR.UnificationError.render : ProofNetIR.UnificationError → String
 ```
 
-### `ProofNetIR.Certificate.unificationDerivationCandidate`
+### `ProofNetIR.Certificate.unificationDerivationCandidateWithStats`
 
 Kind: definition.
 
-Detailed deterministic Guerrini-style parsing candidate.
+Detailed deterministic Guerrini-style parsing candidate with exact scan
+statistics and a proof-relevant quadratic link-visit bound.
 
 This executable does not enumerate switchings or cycles. It starts one thread
 per axiom, forwards unary/par links whose premise tokens agree, and unifies
@@ -2441,6 +2490,17 @@ component remains, and its frontier is exactly the public conclusion boundary.
 The returned tree is still untrusted data. `unificationReconstruct` below
 independently verifies it before exposing a proof-bearing result. Errors from
 this tier are inconclusive except for `malformedInput`.
+
+```lean
+ProofNetIR.Certificate.unificationDerivationCandidateWithStats : (certificate : ProofNetIR.Certificate) →
+  Except ProofNetIR.UnificationError (ProofNetIR.UnificationCandidateResult certificate)
+```
+
+### `ProofNetIR.Certificate.unificationDerivationCandidate`
+
+Kind: definition.
+
+Compatibility projection of the derivation-only unification candidate.
 
 ```lean
 ProofNetIR.Certificate.unificationDerivationCandidate : ProofNetIR.Certificate → Except ProofNetIR.UnificationError ProofNetIR.CutFreeDerivation
@@ -2456,11 +2516,23 @@ Option compatibility wrapper for the detailed unification candidate.
 ProofNetIR.Certificate.unificationDerivationCandidate? : ProofNetIR.Certificate → Option ProofNetIR.CutFreeDerivation
 ```
 
+### `ProofNetIR.Certificate.unificationReconstructWithStats`
+
+Kind: definition.
+
+Detailed proof-bearing deterministic unification fast path retaining scan
+statistics.
+
+```lean
+ProofNetIR.Certificate.unificationReconstructWithStats : (certificate : ProofNetIR.Certificate) →
+  Except ProofNetIR.UnificationError (ProofNetIR.UnificationVerificationResult certificate)
+```
+
 ### `ProofNetIR.Certificate.unificationReconstruct`
 
 Kind: definition.
 
-Detailed proof-bearing deterministic unification fast path.
+Compatibility projection of the proof-bearing unification result.
 
 ```lean
 ProofNetIR.Certificate.unificationReconstruct : (certificate : ProofNetIR.Certificate) →

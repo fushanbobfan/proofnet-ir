@@ -737,6 +737,20 @@ example : canonical.unificationFastCheck = true := by
 example : canonical.unificationReconstruct.isOk = true := by
   native_decide
 
+example : canonical.unificationReconstructWithStats.isOk = true := by
+  native_decide
+
+example : canonical.unificationDerivationCandidateWithStats.isOk = true := by
+  native_decide
+
+example :
+    (match canonical.unificationDerivationCandidateWithStats with
+    | .error _ => false
+    | .ok result =>
+        decide (result.stats.linkVisits ≤
+          canonical.links.length * canonical.links.length)) = true := by
+  native_decide
+
 example :
     (match (Mutation.dropFirstLink.apply canonical).unificationReconstruct with
     | .error error => error.code == .malformedInput

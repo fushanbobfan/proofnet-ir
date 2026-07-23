@@ -123,6 +123,13 @@ the already complete checker-free reconstruction decision. Lean proves
 linearity claim is made until its completeness and worklist/union-find
 invariants are proved.
 
+`unificationDerivationCandidateWithStats` and
+`unificationReconstructWithStats` expose scan counters without adding a trust
+assumption. Proof fields certify at most `|links|²` eager link-list visits, and
+the public bound theorem is axiom-free. Those proof fields say nothing about
+the cost of frontier search, representative lookup, verification, or fallback;
+callers must not treat them as a whole-program deadline.
+
 For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
 formula-only raw checker and typed elaborator agree on acceptance, rejection,
 error category, detail, and child path. `elaborate?_complete` proves every raw

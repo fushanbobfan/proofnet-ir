@@ -67,6 +67,14 @@ message, and input counts. Except for `malformedInput`, these diagnostics mean
 that the deterministic tier did not produce a verified result; they are not
 logical rejections. The `?` forms are convenience wrappers.
 
+The corresponding `WithStats` forms retain exact eager-scan counters. Their
+result type contains proof fields
+`passes ≤ |links|` and `linkVisits = passes * |links|`; the public axiom-free
+theorem `UnificationCandidateResult.linkVisitsBound` derives the scoped
+quadratic link-visit bound. This is not a total runtime theorem: frontier
+lookup, representative traversal, independent verification, and fallback are
+outside the counter.
+
 Lean currently proves:
 
 ```text
@@ -88,6 +96,8 @@ The following stronger claims are intentionally absent:
 - completeness or confluence of the eager repeated-scan schedule;
 - a polynomial, quasi-linear, or linear bound for the hybrid
   `unificationCheck`;
+- a polynomial bound for the complete candidate-plus-verifier execution; the
+  current proved quadratic statement counts eager link-list visits only;
 - equivalence between this eager implementation and the sequential stack,
   waiting-set, `NEXTAXIOM`, and special union-find algorithm in Figures 7--8;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
@@ -133,7 +143,7 @@ completeness theorem.
    links from tensor deadlocks.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
-4. Replace repeated scans with explicit ready/waiting worklists and prove a
-   concrete operation bound.
+4. Replace the now precisely bounded repeated scans with explicit
+   ready/waiting worklists and extend the operation model beyond link visits.
 5. Only after the worklist, `NEXTAXIOM`, and union-find invariants are
    formalized should the library expose a Guerrini-linear complexity theorem.

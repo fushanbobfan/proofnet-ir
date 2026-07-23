@@ -143,7 +143,11 @@
   111 formula occurrences and 79 links; its first run also found no fast-path
   miss. These finite searches remain empirical evidence. Pure fast-path
   completeness,
-  ready/waiting worklists, and Guerrini's linear bound remain explicitly open;
+  ready/waiting worklists, and Guerrini's linear bound remain explicitly open.
+  Added proof-relevant eager-scan statistics: Lean certifies at most
+  `|links|` passes, exactly `passes * |links|` link visits, and therefore a
+  quadratic link-visit ceiling. Frontier, union-find, verification, and
+  fallback costs remain outside that scoped theorem;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

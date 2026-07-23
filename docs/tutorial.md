@@ -156,6 +156,13 @@ Use `unificationReconstruct` instead of the `?` wrapper when a caller needs
 stable malformed/incomplete/deadlock/boundary/verification diagnostics; only
 `malformedInput` is itself a logical structural rejection.
 
+Use `unificationReconstructWithStats` when the caller also needs an auditable
+scan receipt. Its candidate contains `passes`, `linkVisits`, and
+`successfulFirings`, plus proof fields from which
+`UnificationCandidateResult.linkVisitsBound` establishes at most
+`|links|²` eager link visits. This is not a deadline or a bound on independent
+verification.
+
 The runtime API reconstructs a first-order cut-free derivation:
 
 ```lean

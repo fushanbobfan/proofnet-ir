@@ -53,6 +53,16 @@ succeed on every one of the 291 accepted inputs and records a separate
 and the exact `unificationCheck` wrapper retains the exhaustive recursive
 fallback on a miss, so the counter is not a linearity theorem.
 
+The statistics-bearing candidate and verification APIs expose `passes`,
+`linkVisits`, and `successfulFirings`. Their result type carries proofs of
+`passes ≤ |links|` and
+`linkVisits = passes * |links|`; the axiom-free theorem
+`UnificationCandidateResult.linkVisitsBound` derives
+`linkVisits ≤ |links|²`. This is an exact bound on link-list entries inspected
+by eager saturation. It deliberately excludes linear frontier searches,
+union-find representative walks, derivation verification, and any hybrid
+fallback, so it is not a quadratic whole-program theorem.
+
 A separate `proofnet_ir_reconstruction_audit` executable runs the exact
 v0.2-shaped 1,000-case family: 250 derivation positives plus missing-link,
 duplicated-resource, and self-axiom mutations. It fails on any Boolean
@@ -75,7 +85,8 @@ Windows run reported:
 unification-audit-ok cases=1500 structural_negative_sentinels=1
 reference_positives=750
 reference_negatives=750 fast_positive_hits=750 fast_positive_misses=0
-fast_false_positives=0 checksum=18372 elapsed_ms=331 budget_ms=15000
+fast_false_positives=0 max_passes=5 max_link_visits=45
+checksum=18372 elapsed_ms=352 budget_ms=15000
 ```
 
 Zero observed misses are evidence for the pending completeness proof, not a
@@ -91,8 +102,8 @@ unification error. The first recorded Windows run reported:
 
 ```text
 unification-completeness-search-ok cases=6000 seeds=1000 depths=0..5
-variants_per_seed=6 max_formulas=111 max_links=79 checksum=399450
-elapsed_ms=5195 budget_ms=30000
+variants_per_seed=6 max_formulas=111 max_links=79 max_passes=9
+max_link_visits=711 checksum=399450 elapsed_ms=5213 budget_ms=30000
 ```
 
 This widens the counterexample search substantially, but remains finite
@@ -110,7 +121,7 @@ formula-order fallback. The recorded Windows run reported:
 
 ```text
 checker-free-reconstruction-stress-ok cases=18 checksum=41224
-elapsed_ms=32761 budget_ms=45000
+elapsed_ms=33457 budget_ms=45000
 ```
 
 The same stress run now first requires deterministic unification success.
@@ -179,14 +190,15 @@ On the Windows development machine on 2026-07-23, the qualified workload
 reported:
 
 ```text
-cases=291 checksum=1040800 elapsed_ms=9589
-check_ms=0 unification_ms=58 sequentialize_ms=6238
-reconstruction_ms=1635 equivalence_ms=0
+cases=291 checksum=1040800 elapsed_ms=9895
+check_ms=1 unification_ms=63 unification_link_visits=9086
+unification_max_passes=7 sequentialize_ms=6505
+reconstruction_ms=1655 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
-canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=754
+canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=732
 canonical_key_budget_ms=10000 canonical_key_max_links=7
 intrinsic_canonical_key_cases=4 intrinsic_canonical_key_max_links=145
-intrinsic_canonical_key_ms=172 intrinsic_canonical_key_budget_ms=5000
+intrinsic_canonical_key_ms=132 intrinsic_canonical_key_budget_ms=5000
 ```
 
 The millisecond counters are coarse; zero means below one aggregate measured

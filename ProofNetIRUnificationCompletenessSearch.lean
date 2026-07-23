@@ -61,6 +61,8 @@ def run : IO Unit := do
   let mut checksum := 0
   let mut maxFormulas := 0
   let mut maxLinks := 0
+  let mut maxPasses := 0
+  let mut maxLinkVisits := 0
   for seed in List.range seeds do
     let depth := seed % 6
     let tree := CutFreeDerivation.generate seed depth
@@ -74,15 +76,24 @@ def run : IO Unit := do
       if !candidate.wellFormed then
         throw <| IO.userError
           s!"positive reorder became malformed at seed={seed}, depth={depth}, variant={variant.name}"
-      match candidate.unificationReconstruct with
+      match candidate.unificationReconstructWithStats with
       | .error error =>
           throw <| IO.userError
             s!"fast-path miss at seed={seed}, depth={depth}, variant={variant.name}: {error.render}"
       | .ok result =>
-          checksum := checksum + result.output.formulas.size +
-            result.output.links.length + result.sequent.length
+          let stats := result.candidate.stats
+          if stats.linkVisits >
+              candidate.links.length * candidate.links.length then
+            throw <| IO.userError
+              s!"proved link-visit bound failed at seed={seed}, variant={variant.name}"
+          checksum := checksum +
+            result.verification.output.formulas.size +
+            result.verification.output.links.length +
+            result.verification.sequent.length
           maxFormulas := max maxFormulas candidate.formulas.size
           maxLinks := max maxLinks candidate.links.length
+          maxPasses := max maxPasses stats.passes
+          maxLinkVisits := max maxLinkVisits stats.linkVisits
       total := total + 1
   let elapsed := (← IO.monoMsNow) - start
   if total != expectedCases then
@@ -92,7 +103,7 @@ def run : IO Unit := do
     throw <| IO.userError
       s!"unification completeness-search budget exceeded: {elapsed}ms > {budgetMs}ms"
   IO.println
-    s!"unification-completeness-search-ok cases={total} seeds={seeds} depths=0..5 variants_per_seed={variantsPerSeed} max_formulas={maxFormulas} max_links={maxLinks} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
+    s!"unification-completeness-search-ok cases={total} seeds={seeds} depths=0..5 variants_per_seed={variantsPerSeed} max_formulas={maxFormulas} max_links={maxLinks} max_passes={maxPasses} max_link_visits={maxLinkVisits} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
 
 end ProofNetIRUnificationCompletenessSearch
 

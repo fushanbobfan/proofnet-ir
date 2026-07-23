@@ -101,6 +101,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.ContextPermutation.nonempty_iff_listPerm",
     "ProofNetIR.LeanProp.Derivation.persistentExchange_nonempty_of_listPerm",
     "ProofNetIR.LeanProp.Derivation.linearExchange_nonempty_of_listPerm",
+    "ProofNetIR.UnificationCandidateResult.linkVisitsBound",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",

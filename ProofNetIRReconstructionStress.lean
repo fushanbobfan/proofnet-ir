@@ -88,16 +88,18 @@ def run (arguments : List String) : IO Unit := do
       throw <| IO.userError
         s!"stress certificate was not structurally valid: {stress.name}"
     let unificationStart ← IO.monoMsNow
-    let unification ← match input.unificationReconstruct? with
-      | none =>
+    let unification ← match input.unificationReconstructWithStats with
+      | .error _ =>
           throw <| IO.userError
             s!"deterministic unification failed: {stress.name}"
-      | some value => pure value
+      | .ok value => pure value
     let unificationMs := (← IO.monoMsNow) - unificationStart
-    checksum := checksum + unification.output.formulas.size +
-      unification.output.links.length + unification.sequent.length
+    checksum := checksum +
+      unification.verification.output.formulas.size +
+      unification.verification.output.links.length +
+      unification.verification.sequent.length
     IO.println
-      s!"reconstruction-stress-unification name={stress.name} elapsed_ms={unificationMs}"
+      s!"reconstruction-stress-unification name={stress.name} elapsed_ms={unificationMs} passes={unification.candidate.stats.passes} link_visits={unification.candidate.stats.linkVisits}"
     (← IO.getStdout).flush
     let canonicalStart ← IO.monoMsNow
     let inputCode := input.intrinsicCanonicalCode

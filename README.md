@@ -47,7 +47,11 @@ derivation. Lean proves the fast path sound. The public
 already complete checker-free sequentializer only on a miss, so it is proved
 Boolean-equal to `Certificate.check` without enumerating switchings. Fast-path
 completeness and Guerrini's linear complexity bound are still separate open
-proof obligations.
+proof obligations. The statistics-bearing candidate API carries kernel proofs
+that eager saturation performs at most `|links|` full passes and exactly
+`passes * |links|` link-list visits, hence at most `|links|²` such visits.
+That scoped bound does not cover frontier search, union-find traversal,
+independent verification, or the hybrid fallback.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -109,7 +113,9 @@ The repository currently contains:
   `Certificate.unificationCheck` API combines it with the complete
   checker-free reconstruction fallback and is proved equal to `check`; the
   detailed tier returns stable `UnificationErrorCode` diagnostics, while the
-  pure fast path is not yet proved complete or linear;
+  pure fast path is not yet proved complete or linear. Its
+  `unificationDerivationCandidateWithStats` result exposes proved eager-scan
+  counters without overstating them as a whole-program time bound;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

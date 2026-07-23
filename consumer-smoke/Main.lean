@@ -88,6 +88,12 @@ example : consumedCertificate.unificationFastCheck = true := by
 example : consumedCertificate.unificationReconstruct.isOk = true := by
   native_decide
 
+def consumedUnificationWithStats :=
+  consumedCertificate.unificationReconstructWithStats
+
+example : consumedUnificationWithStats.isOk = true := by
+  native_decide
+
 example : consumedCertificate.unificationCheck = true := by
   native_decide
 
@@ -189,6 +195,7 @@ def main : IO Unit := do
       consumedCertificate.reconstructsDerivation &&
       consumedCertificate.unificationFastCheck &&
       consumedCertificate.unificationReconstruct.isOk &&
+      consumedUnificationWithStats.isOk &&
       consumedCertificate.unificationCheck &&
       consumedBoundedReconstruction.isOk &&
       consumedSequentialization.isOk &&

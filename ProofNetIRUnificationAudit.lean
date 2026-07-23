@@ -38,6 +38,8 @@ def run : IO Unit := do
   let mut fastPositiveHits := 0
   let mut fastPositiveMisses := 0
   let mut fastFalsePositives := 0
+  let mut maxPasses := 0
+  let mut maxLinkVisits := 0
   let mut checksum := 0
   if !structuralNegative.wellFormed || structuralNegative.check ||
       structuralNegative.unificationFastCheck ||
@@ -61,8 +63,8 @@ def run : IO Unit := do
       | some value => pure value
     for candidate in casesForCertificate certificate do
       let reference := candidate.check
-      let fastResult := candidate.unificationReconstruct?
-      let fast := fastResult.isSome
+      let fastResult := candidate.unificationReconstructWithStats
+      let fast := fastResult.isOk
       let hybrid := candidate.unificationCheck
       if hybrid != reference then
         throw <| IO.userError
@@ -72,12 +74,21 @@ def run : IO Unit := do
         if fast then
           fastPositiveHits := fastPositiveHits + 1
           match fastResult with
-          | none =>
+          | .error _ =>
               throw <| IO.userError
                 "unification result disappeared after Boolean agreement"
-          | some result =>
-              checksum := checksum + result.output.formulas.size +
-                result.output.links.length + result.sequent.length
+          | .ok result =>
+              let stats := result.candidate.stats
+              if stats.linkVisits >
+                  candidate.links.length * candidate.links.length then
+                throw <| IO.userError
+                  "proved unification link-visit bound failed at runtime"
+              maxPasses := max maxPasses stats.passes
+              maxLinkVisits := max maxLinkVisits stats.linkVisits
+              checksum := checksum +
+                result.verification.output.formulas.size +
+                result.verification.output.links.length +
+                result.verification.sequent.length
         else
           fastPositiveMisses := fastPositiveMisses + 1
       else
@@ -96,7 +107,7 @@ def run : IO Unit := do
     throw <| IO.userError
       s!"unification audit budget exceeded: {elapsed}ms > {budgetMs}ms"
   IO.println
-    s!"unification-audit-ok cases={total} structural_negative_sentinels=1 reference_positives={referencePositive} reference_negatives={referenceNegative} fast_positive_hits={fastPositiveHits} fast_positive_misses={fastPositiveMisses} fast_false_positives={fastFalsePositives} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
+    s!"unification-audit-ok cases={total} structural_negative_sentinels=1 reference_positives={referencePositive} reference_negatives={referenceNegative} fast_positive_hits={fastPositiveHits} fast_positive_misses={fastPositiveMisses} fast_false_positives={fastFalsePositives} max_passes={maxPasses} max_link_visits={maxLinkVisits} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
 
 end ProofNetIRUnificationAudit
 
