@@ -433,7 +433,7 @@
     `NEXTAXIOM`/union-find invariants, prove fuel sufficiency and pure
     completeness, and extend the cost theorem to all implemented operations
     before claiming Guerrini linearity.
-- [ ] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and
+- [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and
   explicit `release_ref=v0.9.0` CI, and pin a clean consumer to the exact
   public tag.
 

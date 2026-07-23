@@ -71,10 +71,10 @@ def run : IO Unit := do
       certificate.unificationCheck &&
       certificate.intrinsicCanonicalKey =
         reordered.intrinsicCanonicalKey then
-    IO.println "ProofNetIR pinned-v0.9.0-candidate consumer smoke test passed"
+    IO.println "ProofNetIR pinned-v0.9.0 consumer smoke test passed"
   else
     throw <| IO.userError
-      "ProofNetIR pinned-v0.9.0-candidate consumer smoke test failed"
+      "ProofNetIR pinned-v0.9.0 consumer smoke test failed"
 
 end ProofNetIRV09ReleaseConsumerSmoke
 

@@ -1,8 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-23
-Audited baseline: v0.9.0 release candidate plus its commit-pinned downstream
-consumer
+Audited baseline: published v0.9.0 plus its tag-pinned downstream consumer
 
 ## Verdict
 
@@ -333,4 +332,4 @@ matched algorithmic and model-backed experiments report their results whether
 positive or negative. Both controlled runs are now complete; the broader-
 logic/corpus, hard checking/sequentialization performance, adversarial
 large-key qualification, and broader Lean/tactic integration remain open. The
-v0.8 release and exact-tag consumer gates are closed.
+v0.9 release and exact-tag consumer gates are closed.

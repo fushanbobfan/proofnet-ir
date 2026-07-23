@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- started `v0.10.0-dev` with an explicit proof plan separating independent
+  unification-step semantics, scheduler coverage, worklist fuel sufficiency,
+  correct-state progress/pure completeness, and the later sequential
+  `NEXTAXIOM` whole-program cost theorem;
+
 ## v0.9.0 - Graph semantics and checker-free correctness
 
 - started `v0.9.0-dev` by exposing `Graph.Acyclic` as absence of an exact

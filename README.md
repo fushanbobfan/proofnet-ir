@@ -11,6 +11,14 @@ whole-program linear bound are not claimed. See [CHANGELOG.md](CHANGELOG.md)
 and [the release audit](docs/v0.9-release-audit.md) for the precise guarantees
 and non-goals.
 
+Development on `main` now continues as `v0.10.0-dev`. The next proof boundary
+is pure worklist completeness: independent transition semantics, scheduler
+coverage, fuel sufficiency, and the correct-quiescent-state progress theorem
+must be established before removing the recursive fallback. The later
+`NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
+separate from that logical completeness result. See
+[the v0.10 design](docs/v0.10-design.md).
+
 v0.9 exposes
 occurrence-aware multigraph acyclicity and proves that every declarative
 `IsTree` is acyclic. Exact edge occurrences, walks, cycles, and acyclicity are
