@@ -20,8 +20,11 @@
   `Certificate.checkedFromString`, whose return value includes the revalidated
   Lean checker acceptance proof;
 - generated or external unindexed LeanProp schemas; callers must pass them
-  through `LeanProp.Schema.Raw.Derivation.infer?` before treating the inferred
-  persistent/linear sequent as valid;
+  through `LeanProp.Schema.Raw.Derivation.elaborate?` before treating them as
+  typed derivations; `infer?` alone exposes only the formula boundary;
+- LeanProp schema JSON and its parser; callers should use
+  `LeanProp.Schema.Raw.Derivation.checkedFromString`, whose result retains a
+  successful indexed elaboration and exposes `CheckedDerivation.sound`;
 - benchmark labels not regenerated from checked certificates;
 - the high-level claim that proof geometry improves proof search.
 
@@ -98,6 +101,16 @@ input. The theorem preserves the ordered formula boundary and does not identify
 arbitrary unlabeled graphs. The v0.5 runtime path is independently tied to
 that guarantee: `sequentialize_complete` proves that the public finite search
 returns a proof-bearing result on every checker-accepted certificate.
+
+For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
+formula-only raw checker and typed elaborator agree on acceptance, rejection,
+error category, detail, and child path. `elaborate?_complete` proves every raw
+checker acceptance has an indexed witness with the same boundary. The public
+wire checker runs the elaborator directly, and `CheckedDerivation.sound`
+forwards the resulting indexed term to `Schema.PackedDerivation.sound`. The
+trust audit records the exact dependencies: the agreement/completeness
+theorems and `CheckedDerivation.inferred` use `[propext, Quot.sound]`; the
+permutation-boundary agreement and checked soundness theorem use `[propext]`.
 
 Canonical v0.2 serialization trusts the formula-array numbering as occurrence
 identity. Sorting links/conclusions and orienting axiom endpoints is a stable

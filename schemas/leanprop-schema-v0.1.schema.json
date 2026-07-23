@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fushanbobfan/proofnet-ir/schemas/leanprop-schema-v0.1.schema.json",
+  "title": "ProofNet-IR LeanProp raw schema v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "derivation"],
+  "properties": {
+    "version": { "const": "leanprop-schema-0.1" },
+    "derivation": { "$ref": "#/$defs/derivation" }
+  },
+  "$defs": {
+    "formula": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name"],
+          "properties": {
+            "kind": { "const": "atom" },
+            "name": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "left", "right"],
+          "properties": {
+            "kind": { "const": "and" },
+            "left": { "$ref": "#/$defs/formula" },
+            "right": { "$ref": "#/$defs/formula" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "antecedent", "consequent"],
+          "properties": {
+            "kind": { "const": "imp" },
+            "antecedent": { "$ref": "#/$defs/formula" },
+            "consequent": { "$ref": "#/$defs/formula" }
+          }
+        }
+      ]
+    },
+    "permutation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": { "kind": { "const": "nil" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "formula", "tail"],
+          "properties": {
+            "kind": { "const": "cons" },
+            "formula": { "$ref": "#/$defs/formula" },
+            "tail": { "$ref": "#/$defs/permutation" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "first", "second", "rest"],
+          "properties": {
+            "kind": { "const": "swap" },
+            "first": { "$ref": "#/$defs/formula" },
+            "second": { "$ref": "#/$defs/formula" },
+            "rest": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/formula" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "first", "second"],
+          "properties": {
+            "kind": { "const": "trans" },
+            "first": { "$ref": "#/$defs/permutation" },
+            "second": { "$ref": "#/$defs/permutation" }
+          }
+        }
+      ]
+    },
+    "derivation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "formula"],
+          "properties": {
+            "kind": { "enum": ["persistent-axiom", "linear-axiom"] },
+            "formula": { "$ref": "#/$defs/formula" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "extra", "premise"],
+          "properties": {
+            "kind": { "const": "persistent-weaken" },
+            "extra": { "$ref": "#/$defs/formula" },
+            "premise": { "$ref": "#/$defs/derivation" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "shared", "premise"],
+          "properties": {
+            "kind": { "const": "persistent-contract" },
+            "shared": { "$ref": "#/$defs/formula" },
+            "premise": { "$ref": "#/$defs/derivation" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "permutation", "premise"],
+          "properties": {
+            "kind": { "enum": ["persistent-exchange", "linear-exchange"] },
+            "permutation": { "$ref": "#/$defs/permutation" },
+            "premise": { "$ref": "#/$defs/derivation" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "left", "right"],
+          "properties": {
+            "kind": { "const": "and-intro" },
+            "left": { "$ref": "#/$defs/derivation" },
+            "right": { "$ref": "#/$defs/derivation" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "premise"],
+          "properties": {
+            "kind": { "enum": ["and-elim-left", "and-elim-right"] },
+            "premise": { "$ref": "#/$defs/derivation" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "antecedent", "premise"],
+          "properties": {
+            "kind": { "const": "imp-intro" },
+            "antecedent": { "$ref": "#/$defs/formula" },
+            "premise": { "$ref": "#/$defs/derivation" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "function", "argument"],
+          "properties": {
+            "kind": { "const": "imp-elim" },
+            "function": { "$ref": "#/$defs/derivation" },
+            "argument": { "$ref": "#/$defs/derivation" }
+          }
+        }
+      ]
+    }
+  }
+}

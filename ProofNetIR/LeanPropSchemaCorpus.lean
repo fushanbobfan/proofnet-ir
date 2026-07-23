@@ -1,5 +1,5 @@
 import ProofNetIR.LeanPropSchema
-import ProofNetIR.LeanPropRaw
+import ProofNetIR.LeanPropSchemaWire
 
 namespace ProofNetIR.LeanProp.Schema.Corpus
 

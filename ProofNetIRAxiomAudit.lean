@@ -40,3 +40,8 @@ expansion.
 #print axioms LeanProp.Assumptions.permute_symm
 #print axioms LeanProp.Schema.PackedDerivation.sound
 #print axioms LeanProp.Schema.Raw.Derivation.infer?_ofIndexed
+#print axioms LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate?
+#print axioms LeanProp.Schema.Raw.Derivation.inferAt_eq_elaborateAt
+#print axioms LeanProp.Schema.Raw.Derivation.elaborate?_complete
+#print axioms LeanProp.Schema.Raw.CheckedDerivation.inferred
+#print axioms LeanProp.Schema.Raw.CheckedDerivation.sound

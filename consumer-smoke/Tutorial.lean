@@ -89,6 +89,27 @@ example : invalid.infer? = .error {
     detail := "left projection requires a conjunction premise"
   } := by rfl
 
+example : (Raw.Derivation.checkedFromString valid.canonicalString).isOk =
+    true := by native_decide
+
+example : (Raw.Derivation.checkedFromString invalid.canonicalString).isOk =
+    false := by native_decide
+
+example (checked : Raw.CheckedDerivation) :
+    checked.derivation.infer? = .ok checked.sequent :=
+  checked.inferred
+
+example (checked : Raw.CheckedDerivation) : PackedDerivation :=
+  checked.toPacked "consumer-checked-wire"
+
+example (checked : Raw.CheckedDerivation) (valuation : String → Prop)
+    (persistentValues : LeanProp.Assumptions
+      (checked.elaborated.persistent.map (Formula.evaluate valuation)))
+    (linearValues : LeanProp.Assumptions
+      (checked.elaborated.linear.map (Formula.evaluate valuation))) :
+    checked.elaborated.goal.evaluate valuation :=
+  checked.sound valuation persistentValues linearValues
+
 end RawSchema
 
 end ProofNetIRTutorialSmoke

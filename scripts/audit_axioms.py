@@ -47,11 +47,19 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Assumptions.permute_symm",
     "ProofNetIR.LeanProp.Schema.PackedDerivation.sound",
     "ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?_ofIndexed",
+    "ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate?",
+    "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
+}
+EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.LeanProp.Schema.Raw.Derivation.inferAt_eq_elaborateAt",
+    "ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborate?_complete",
+    "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.inferred",
 }
 EXPECTED_THEOREMS = (
     EXPECTED_CLASSICAL_THEOREMS
     | EXPECTED_AXIOM_FREE_THEOREMS
     | EXPECTED_PROPEXT_ONLY_THEOREMS
+    | EXPECTED_PROPEXT_QUOT_THEOREMS
 )
 EXPECTED_AXIOMS = {"propext", "Classical.choice", "Quot.sound"}
 
@@ -102,6 +110,8 @@ def main() -> None:
             expected = set()
         elif theorem in EXPECTED_PROPEXT_ONLY_THEOREMS:
             expected = {"propext"}
+        elif theorem in EXPECTED_PROPEXT_QUOT_THEOREMS:
+            expected = {"propext", "Quot.sound"}
         else:
             expected = EXPECTED_AXIOMS
         if axioms != expected:
@@ -119,7 +129,9 @@ def main() -> None:
         f"{len(EXPECTED_CLASSICAL_THEOREMS)} public MLL theorems use exactly "
         "[propext, Classical.choice, Quot.sound]; "
         f"{len(EXPECTED_AXIOM_FREE_THEOREMS)} LeanProp theorem is axiom-free; "
-        f"{len(EXPECTED_PROPEXT_ONLY_THEOREMS)} use exactly [propext]"
+        f"{len(EXPECTED_PROPEXT_ONLY_THEOREMS)} use exactly [propext]; "
+        f"{len(EXPECTED_PROPEXT_QUOT_THEOREMS)} use exactly "
+        "[propext, Quot.sound]"
     )
 
 

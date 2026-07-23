@@ -116,11 +116,13 @@ end Error
 
 namespace Derivation
 
-private def failure (path : List Nat) (code : ErrorCode) (detail : String) :
+/-- Internal constructor shared by checker branches with stable diagnostics. -/
+def failure (path : List Nat) (code : ErrorCode) (detail : String) :
     Except Error α :=
   .error { path, code, detail }
 
-private def projectLeft (path : List Nat) (result : Sequent) :
+/-- Check and infer a left conjunction projection. -/
+def projectLeft (path : List Nat) (result : Sequent) :
     Except Error Sequent :=
   match result.goal with
   | .and left _ => .ok {
@@ -131,7 +133,8 @@ private def projectLeft (path : List Nat) (result : Sequent) :
   | _ => failure path .expectedConjunction
       "left projection requires a conjunction premise"
 
-private def projectRight (path : List Nat) (result : Sequent) :
+/-- Check and infer a right conjunction projection. -/
+def projectRight (path : List Nat) (result : Sequent) :
     Except Error Sequent :=
   match result.goal with
   | .and _ right => .ok {
@@ -142,7 +145,8 @@ private def projectRight (path : List Nat) (result : Sequent) :
   | _ => failure path .expectedConjunction
       "right projection requires a conjunction premise"
 
-private def introduceImplication (path : List Nat) (antecedent : Formula)
+/-- Check and infer persistent implication introduction. -/
+def introduceImplication (path : List Nat) (antecedent : Formula)
     (result : Sequent) : Except Error Sequent :=
   match result.persistent with
   | first :: rest =>
@@ -158,7 +162,8 @@ private def introduceImplication (path : List Nat) (antecedent : Formula)
   | [] => failure path .implicationContextMissing
       "implication introduction requires a leading persistent antecedent"
 
-private def eliminateImplication (path : List Nat) (functionResult : Sequent)
+/-- Check and infer implication elimination. -/
+def eliminateImplication (path : List Nat) (functionResult : Sequent)
     (argumentResult : Sequent) : Except Error Sequent :=
   match functionResult.goal with
   | .imp antecedent consequent =>

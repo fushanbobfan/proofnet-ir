@@ -19,6 +19,16 @@ are never silently reinterpreted:
 - v0.3 `reindex-v1` removes bounded submitted vertex names while preserving
   all list and premise orders described in `docs/v0.3-design.md`.
 
+The independent `leanprop-schema-0.1` marker names the first raw LeanProp
+template contract. It covers named atoms, ordinary conjunction/implication,
+explicit persistent structural rules, exchange witnesses, and linear rule
+syntax. It is not a certificate wire version and does not reinterpret MLL
+tensor/par. Later LeanProp payload changes require a new explicit marker and
+migration tests; typed equality and quantifier terms are outside v0.1.
+The v0.6-development `CheckedDerivation` API is intentionally typed: successful
+checking retains an indexed derivation and exposes `toPacked`/`sound`. This API
+is not compatibility-stable until the first v0.6 tag is published.
+
 The generic parser accepts every supported version. Version-specific parsers
 remain available for migration boundaries. The v0.2-to-v0.3 migration parses
 and validates the source normal form before emitting a v0.3 string. Future

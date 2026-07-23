@@ -20,6 +20,10 @@ jobs:
         run: ~/.elan/bin/lake exe proofnet_ir_tests
       - name: Validate generated LeanProp template corpus
         run: ~/.elan/bin/lake exe proofnet_ir_leanprop_corpus
+      - name: Verify Lean-emitted LeanProp corpus manifest
+        run: python scripts/generate_leanprop_manifest.py --check
+      - name: Fuzz malformed LeanProp schema inputs
+        run: python scripts/fuzz_leanprop_parser.py
       - name: Audit theorem trust dependencies
         run: python scripts/audit_axioms.py
       - name: Verify generated public API reference

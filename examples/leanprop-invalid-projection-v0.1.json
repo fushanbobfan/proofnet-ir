@@ -1,0 +1,10 @@
+{
+  "version": "leanprop-schema-0.1",
+  "derivation": {
+    "kind": "and-elim-left",
+    "premise": {
+      "kind": "persistent-axiom",
+      "formula": { "kind": "atom", "name": "p" }
+    }
+  }
+}

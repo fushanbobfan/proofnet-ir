@@ -1,0 +1,11 @@
+{
+  "version": "leanprop-schema-0.1",
+  "derivation": {
+    "kind": "imp-intro",
+    "antecedent": { "kind": "atom", "name": "p" },
+    "premise": {
+      "kind": "persistent-axiom",
+      "formula": { "kind": "atom", "name": "p" }
+    }
+  }
+}

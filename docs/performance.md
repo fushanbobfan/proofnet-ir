@@ -82,6 +82,14 @@ Run it with:
 lake exe proofnet_ir_benchmark
 ```
 
+The separate LeanProp corpus executable checks 600
+typed/erased/elaborated/canonical-JSON positive templates and 1,000
+raw/canonical-JSON negative templates rejected by both inference and typed
+elaboration with exact diagnostics under a 10-second native execution budget. Compilation is excluded,
+and the threshold is likewise a catastrophic-regression guard rather than an
+asymptotic claim. CI also sends 5,000 deterministic mutated strings through the
+native LeanProp parser in a separate fuzz process.
+
 ## Matched algorithmic experiment
 
 The native regression above measures the executable sequentializer. It is

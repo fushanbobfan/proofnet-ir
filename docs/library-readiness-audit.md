@@ -85,11 +85,12 @@ part of the engineering and proof-identity gap.
    The bridge now has separate persistent/linear contexts, explicit persistent
    structural rules, ordinary Lean connective/quantifier nodes, an axiom-free
    proof-term interpreter, and an exact linear-leaf count theorem. It remains
-   separate from MLL certificate semantics and lacks text/JSON input and
-   release-level qualification. A deterministic 600-template positive schema
-   corpus, universal atom-valuation soundness theorem, unindexed raw checker,
-   positive erasure/recovery theorem, and 1,000 malformed cases with exact
-   diagnostic expectations are now present.
+   separate from MLL certificate semantics and lacks release-level
+   qualification. A deterministic 600-template positive schema corpus,
+   universal atom-valuation soundness theorem, unindexed raw checker, positive
+   erasure/recovery theorem, strict versioned JSON/checker-gated parser, and
+   1,000 malformed cases with exact raw/wire diagnostic expectations are now
+   present. Equality and quantifier terms remain outside the wire fragment.
 2. The stronger `GenerallySequentializable` result and the public executable
    totality theorem are complete for the
    documented unit-free, cut-free MLL representation. Remaining logical scope
@@ -126,11 +127,13 @@ part of the engineering and proof-identity gap.
   equivalence theorem, while the pinned consumer protects the v0.5.0 API;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for twenty-five public logical-boundary theorems and
+- CI now parses `#print axioms` for twenty-five public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the separate LeanProp trust boundary locks one proof interpreter as
-  axiom-free and five dependent metatheorems to exactly `propext`;
+  axiom-free, seven dependent metatheorems to exactly `propext`, and three
+  raw-inference/typed-elaboration bridge theorems to exactly
+  `[propext, Quot.sound]`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;
 - a curated public declaration manifest now generates types and docstrings
@@ -140,6 +143,11 @@ part of the engineering and proof-identity gap.
 - a deterministic 5,000-case native parser fuzz gate covers truncation,
   deletion, replacement, insertion, malformed fields, and excessive formula
   nesting; broader coverage-guided fuzzing remains future hardening;
+- the LeanProp wire boundary has an independent deterministic 5,000-case
+  mutation gate plus JSON Schema fixtures and a SHA-256 manifest over 1,600
+  Lean-emitted labeled records; every accepted wire value now retains an
+  indexed derivation and exposes universal `sound`, but the API is not
+  release-pinned yet;
 - a 291-case depth-2/3/4 native CI workload now has a 45-second catastrophic
   regression budget; it explicitly does not establish favorable asymptotics,
   and the measured depth-4 cost remains a library-readiness limitation;

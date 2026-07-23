@@ -979,6 +979,38 @@ ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_ofIndexed : ∀ {source tar
   (ProofNetIR.LeanProp.Schema.Raw.Permutation.ofIndexed permutation).boundary? = some (source, target)
 ```
 
+### `ProofNetIR.LeanProp.Schema.Raw.ElaboratedPermutation`
+
+Kind: inductive type.
+
+An unindexed exchange elaborated into proof-relevant indexed data.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.ElaboratedPermutation : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Permutation.elaborate?`
+
+Kind: definition.
+
+Elaborate raw exchange syntax, rejecting incompatible transitive steps.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Permutation.elaborate? : ProofNetIR.LeanProp.Schema.Raw.Permutation → Option ProofNetIR.LeanProp.Schema.Raw.ElaboratedPermutation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate?`
+
+Kind: theorem.
+
+Exchange elaboration succeeds on exactly the same source/target boundary
+as the raw boundary checker.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_eq_elaborate? : ∀ (permutation : ProofNetIR.LeanProp.Schema.Raw.Permutation),
+  permutation.boundary? = ProofNetIR.LeanProp.Schema.Raw.Permutation.elaboratedBoundary✝ permutation.elaborate?
+```
+
 ### `ProofNetIR.LeanProp.Schema.Raw.Derivation`
 
 Kind: inductive type.
@@ -1063,6 +1095,285 @@ ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?_ofIndexed : ∀ {persistent lin
   (derivation : ProofNetIR.LeanProp.Schema.Derivation persistent linear goal),
   (ProofNetIR.LeanProp.Schema.Raw.Derivation.ofIndexed derivation).infer? =
     Except.ok { persistent := persistent, linear := linear, goal := goal }
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation`
+
+Kind: inductive type.
+
+A raw proof template elaborated into an indexed schema derivation.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation.sequent`
+
+Kind: definition.
+
+Forget the indexed witness while retaining its exact inferred boundary.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation.sequent : ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation → ProofNetIR.LeanProp.Schema.Raw.Sequent
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation.toPacked`
+
+Kind: definition.
+
+Package an elaborated derivation for valuation-independent soundness.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation.toPacked : String → ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation → ProofNetIR.LeanProp.Schema.PackedDerivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborate?`
+
+Kind: definition.
+
+Public executable raw-to-indexed elaboration boundary.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborate? : ProofNetIR.LeanProp.Schema.Raw.Derivation →
+  Except ProofNetIR.LeanProp.Schema.Raw.Error ProofNetIR.LeanProp.Schema.Raw.ElaboratedDerivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.inferAt_eq_elaborateAt`
+
+Kind: theorem.
+
+Elaboration and inference have exactly the same success/failure result and
+diagnostics after forgetting the indexed witness.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.inferAt_eq_elaborateAt : ∀ (derivation : ProofNetIR.LeanProp.Schema.Raw.Derivation) (path : List Nat),
+  ProofNetIR.LeanProp.Schema.Raw.Derivation.inferAt path derivation =
+    ProofNetIR.LeanProp.Schema.Raw.Derivation.sequentResult
+      (ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborateAt path derivation)
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborate?_complete`
+
+Kind: theorem.
+
+Every checker-accepted raw schema has an executable indexed elaboration
+with exactly the inferred boundary.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.elaborate?_complete : ∀ {derivation : ProofNetIR.LeanProp.Schema.Raw.Derivation} {sequent : ProofNetIR.LeanProp.Schema.Raw.Sequent},
+  derivation.infer? = Except.ok sequent →
+    ∃ elaborated, derivation.elaborate? = Except.ok elaborated ∧ elaborated.sequent = sequent
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.InputError`
+
+Kind: inductive type.
+
+Structured failures at either the JSON boundary or the schema checker.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.InputError : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.InputError.render`
+
+Kind: definition.
+
+Render a wire error without discarding checker categories or child paths.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.InputError.render : ProofNetIR.LeanProp.Schema.Raw.InputError → String
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation`
+
+Kind: inductive type.
+
+A raw schema accompanied by the indexed derivation built by the checker.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sequent`
+
+Kind: definition.
+
+The exact persistent, linear, and goal boundary reconstructed by checking.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sequent : ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation → ProofNetIR.LeanProp.Schema.Raw.Sequent
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.toPacked`
+
+Kind: definition.
+
+Package checked external input for valuation-independent soundness.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.toPacked : String → ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation → ProofNetIR.LeanProp.Schema.PackedDerivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.inferred`
+
+Kind: theorem.
+
+The independent formula-only checker returns the same accepted boundary.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.inferred : ∀ (checked : ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation), checked.derivation.infer? = Except.ok checked.sequent
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound`
+
+Kind: theorem.
+
+Every checked external schema reconstructs a Lean proof for every valuation
+and matching persistent/linear proof environment.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound : ∀ (checked : ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation) (valuation : String → Prop)
+  (persistentValues :
+    ProofNetIR.LeanProp.Assumptions
+      (List.map (ProofNetIR.LeanProp.Schema.Formula.evaluate valuation) checked.elaborated.persistent))
+  (linearValues :
+    ProofNetIR.LeanProp.Assumptions
+      (List.map (ProofNetIR.LeanProp.Schema.Formula.evaluate valuation) checked.elaborated.linear)),
+  ProofNetIR.LeanProp.Schema.Formula.evaluate valuation checked.elaborated.goal
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.FormulaWire.toJson`
+
+Kind: definition.
+
+Deterministic JSON representation of a first-order schema formula.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.FormulaWire.toJson : ProofNetIR.LeanProp.Schema.Formula → Lean.Json
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.FormulaWire.fromJsonAt`
+
+Kind: definition.
+
+Parse a formula at a supplied JSON path.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.FormulaWire.fromJsonAt : String → Lean.Json → ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Formula
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Permutation.toJson`
+
+Kind: definition.
+
+Deterministic JSON representation of raw exchange data.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Permutation.toJson : ProofNetIR.LeanProp.Schema.Raw.Permutation → Lean.Json
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Permutation.fromJsonAt`
+
+Kind: definition.
+
+Parse raw exchange data at a supplied JSON path.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Permutation.fromJsonAt : String → Lean.Json → ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Raw.Permutation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.toJson`
+
+Kind: definition.
+
+Deterministic JSON representation of an unindexed proof schema.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.toJson : ProofNetIR.LeanProp.Schema.Raw.Derivation → Lean.Json
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.fromJsonAt`
+
+Kind: definition.
+
+Parse a raw proof schema at a supplied JSON path.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.fromJsonAt : String → Lean.Json → ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Raw.Derivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.canonicalJson`
+
+Kind: definition.
+
+Versioned deterministic JSON value for an unindexed LeanProp schema.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.canonicalJson : ProofNetIR.LeanProp.Schema.Raw.Derivation → Lean.Json
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.canonicalString`
+
+Kind: definition.
+
+Compact canonical LeanProp schema JSON.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.canonicalString : ProofNetIR.LeanProp.Schema.Raw.Derivation → String
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.fromJson`
+
+Kind: definition.
+
+Decode the first LeanProp schema wire version without asserting that its
+rule applications are valid.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.fromJson : Lean.Json → ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Raw.Derivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.fromString`
+
+Kind: definition.
+
+Parse versioned schema JSON into untrusted raw syntax.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.fromString : String → ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Raw.Derivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.check`
+
+Kind: definition.
+
+Check parsed raw syntax and retain its kernel-typed indexed derivation.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.check : ProofNetIR.LeanProp.Schema.Raw.Derivation →
+  ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.checkedFromJson`
+
+Kind: definition.
+
+Decode JSON and expose a schema only after resource-aware inference
+succeeds.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.checkedFromJson : Lean.Json → ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.checkedFromString`
+
+Kind: definition.
+
+Safe entry point for untrusted LeanProp schema strings.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.checkedFromString : String → ProofNetIR.LeanProp.Schema.Raw.InputResult ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation
 ```
 
 ### `ProofNetIR.LeanProp.Schema.Corpus.generated`

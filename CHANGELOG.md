@@ -25,7 +25,18 @@
   recovery is axiom-free;
 - expanded the LeanProp corpus gate to 600 erased positives and 1,000 malformed
   inputs covering every error category plus nested-path propagation with exact
-  diagnostics. Text/JSON schema parsing remains an unreleased obligation.
+  diagnostics;
+- added the strict `leanprop-schema-0.1` JSON contract, deterministic encoder,
+  depth-bounded native Lean parser, and checker-gated `checkedFromString`
+  boundary; all positive and negative corpus cases traverse the wire path;
+- added executable raw-to-indexed elaboration and kernel proofs that it has
+  exactly the same result/diagnostic boundary as `infer?` and exists for every
+  checker acceptance; checked wire values now retain the indexed derivation
+  and expose universal `toPacked`/`sound` proof reconstruction;
+- added independent JSON Schema fixtures and a deterministic 5,000-case native
+  LeanProp parser mutation-fuzz gate;
+- added a Lean corpus exporter and CI-checked SHA-256 manifest over all 1,600
+  labeled wire records, with no independent Python acceptance oracle.
 
 ## v0.5.2 - Repeated-label pruning and model-backed audit
 

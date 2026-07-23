@@ -1,0 +1,9 @@
+{
+  "format": "proofnet-ir-leanprop-corpus-manifest-v0.1",
+  "generator": "ProofNetIRLeanPropCorpusExport.lean",
+  "negative_count": 1000,
+  "positive_count": 600,
+  "record_count": 1600,
+  "sha256": "76433392981d2739c71d1478216d5cecc57cb262326587129c13bd6b908c3a91",
+  "wire_version": "leanprop-schema-0.1"
+}

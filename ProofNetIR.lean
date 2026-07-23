@@ -20,4 +20,6 @@ import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropTemplates
 import ProofNetIR.LeanPropSchema
 import ProofNetIR.LeanPropRaw
+import ProofNetIR.LeanPropElaboration
+import ProofNetIR.LeanPropSchemaWire
 import ProofNetIR.LeanPropSchemaCorpus

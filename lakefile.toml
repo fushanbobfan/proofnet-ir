@@ -49,3 +49,11 @@ root = "ProofNetIRModelExperimentCorpus"
 [[lean_exe]]
 name = "proofnet_ir_leanprop_corpus"
 root = "ProofNetIRLeanPropCorpus"
+
+[[lean_exe]]
+name = "proofnet_ir_leanprop_parser_fuzz"
+root = "ProofNetIRLeanPropParserFuzz"
+
+[[lean_exe]]
+name = "proofnet_ir_leanprop_corpus_export"
+root = "ProofNetIRLeanPropCorpusExport"

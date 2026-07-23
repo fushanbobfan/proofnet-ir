@@ -24,6 +24,8 @@ def main() -> None:
         "canonical-v0.3.json": "certificate-v0.3.schema.json",
         "invalid-disconnected.json": "certificate-v0.1.schema.json",
         "focused-sequent-v0.2.json": "sequent-v0.2.schema.json",
+        "leanprop-identity-v0.1.json": "leanprop-schema-v0.1.schema.json",
+        "leanprop-invalid-projection-v0.1.json": "leanprop-schema-v0.1.schema.json",
     }
     for fixture_name, schema_name in fixtures.items():
         fixture = ROOT / "examples" / fixture_name

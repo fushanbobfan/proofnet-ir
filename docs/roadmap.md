@@ -257,8 +257,15 @@
 - [x] Add an unindexed checker with stable path-aware diagnostics, a positive
   erasure/recovery theorem, and 1,000 stratified malformed inputs covering all
   error codes.
-- [ ] Add versioned text/JSON input, migration tests, parser fuzzing, and
-  reproducible manifest hashes for schema corpora.
+- [x] Add strict `leanprop-schema-0.1` JSON, a native checker-gated parser,
+  JSON Schema/fixtures, 600 positive and 1,000 negative wire-path checks, and a
+  deterministic 5,000-case mutation-fuzz gate.
+- [x] Pin the 1,600-record Lean-emitted corpus with a reproducible SHA-256
+  manifest without duplicating checker labels in Python.
+- [x] Elaborate every accepted raw/wire schema into an indexed derivation,
+  prove exact infer/elaborate agreement and acceptance lifting in Lean, and
+  expose the universal checked-input soundness theorem to downstream users.
+- [ ] Add migration fixtures when a second schema wire version exists.
 - [ ] Prove further exchange/structural normalization metatheory and qualify
   the public bridge through release-pinned downstream consumers.
 

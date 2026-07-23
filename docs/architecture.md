@@ -116,7 +116,17 @@ checker either reconstructs an exact persistent/linear sequent or returns a
 stable `ErrorCode`, detail, and child path. The
 `Raw.Derivation.infer?_ofIndexed` theorem proves that erasing a well-indexed
 schema and rechecking it recovers the original indices; its exact trust
-dependency is `propext`. No text/JSON decoder is part of this boundary yet.
+dependency is `propext`. `Raw.Derivation.elaborate?` additionally builds an
+indexed `Schema.Derivation`. The kernel theorem `inferAt_eq_elaborateAt` proves
+that inference and elaboration have the same success/failure result and exact
+diagnostic after erasing the typed witness, while `elaborate?_complete` proves
+every inference acceptance lifts to that witness. The independent
+`leanprop-schema-0.1` JSON format has a strict native parser and
+`checkedFromString` composes parsing with typed elaboration; the returned
+dependent record contains raw syntax, the indexed derivation, and its
+elaboration equation. `CheckedDerivation.sound` then reconstructs a Lean proof
+under every valuation and matching proof environment. This format is not an
+MLL certificate version.
 
 ## Sequentialization boundary
 

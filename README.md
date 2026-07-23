@@ -125,8 +125,12 @@ The repository currently contains:
   persistent/linear sequents, returns stable path-aware diagnostics, and has a
   theorem that every erased indexed schema is accepted with its original
   boundary. CI checks all 600 erased positives and 1,000 malformed templates
-  covering every error code. Text/JSON parsing and a versioned schema wire
-  format are not yet implemented.
+  covering every error code. A strict `leanprop-schema-0.1` JSON contract,
+  native Lean parser, checker-gated entry point, checked fixtures, and separate
+  deterministic 5,000-case mutation-fuzz gate now cover untrusted strings. A
+  Lean-emitted 1,600-record stream has a CI-checked SHA-256 manifest. Every
+  accepted raw/wire schema is now elaborated into an indexed derivation, and
+  the checked API exposes universal Lean proof reconstruction;
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does
@@ -139,16 +143,19 @@ downstream consumer executes the API and consumes that theorem, and CI
 separately audits twenty-five public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter is axiom-free, while resource-count,
-dependent-environment round-trip, packed-schema soundness, and raw-checker
-acceptance completeness use exactly `propext`.
+dependent-environment round-trip, packed-schema soundness, permutation
+elaboration, and checked-wire soundness use exactly `propext`. Exact agreement
+between formula-only inference and typed elaboration, its acceptance-lifting
+corollary, and checked-wire inference use exactly `[propext, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
 theorem is now complete, but its certificate model does not include cut
 elimination, units, exponentials, additives, or quantifiers. The experimental
 LeanProp layer has quantifier proof-template nodes but no claim of proof-net
-semantics, untrusted-template text/JSON serialization, or broad mathlib
-coverage. The
+semantics; its wire layer intentionally covers only named atoms, ordinary
+conjunction, and implication, not typed equality/quantifier terms or broad
+mathlib expressions. The
 repository also lacks canonicalization modulo reordered conclusions or
 arbitrary graph isomorphism, a compact single-representative wire key for
 `ProofNetEquivalent`, and a Lean tactic. The API,
@@ -181,6 +188,12 @@ The external AI, JSON input, and future graph proposer are untrusted. Use
 `Certificate.checkedFromString` to parse and validate an external canonical
 v0.2 or reindex-normalized v0.3 certificate before exposing it to trusted code.
 See [docs/trust-model.md](docs/trust-model.md) for the exact boundary.
+
+The separate LeanProp wire API does not expose accepted JSON as mere syntax:
+`LeanProp.Schema.Raw.Derivation.checkedFromString` returns an indexed
+derivation, `CheckedDerivation.inferred` recovers the exact checked sequent,
+and `CheckedDerivation.sound` reconstructs its Lean proposition under every
+atom valuation and matching persistent/linear proof environment.
 
 ```lean
 match Certificate.checkedFromString input with
@@ -252,6 +265,7 @@ consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
+datasets/leanprop-v0.1/       Lean-emitted schema corpus manifest
 scripts/focused_search.py     focused cut-free comparison baseline
 scripts/run_matched_experiment.py matched generation/repair experiment runner
 scripts/run_model_experiment.py preregistered held-out model experiment runner
