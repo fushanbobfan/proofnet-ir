@@ -17,7 +17,8 @@
   multigraph cycles, and `Graph.Acyclic` transport through bounded bijective
   vertex renamings; exposed the resulting acyclicity equivalence in the
   generated API and locked both public theorems to exactly
-  `[propext, Quot.sound]`;
+  `[propext, Quot.sound]`; the path-based downstream consumer compiles both
+  transport directions and executes successfully;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

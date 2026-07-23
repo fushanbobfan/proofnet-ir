@@ -24,6 +24,10 @@ def consumedTreeGraph : Graph where
     { first := 1, second := 2 }
   ]
 
+def consumedTreeSwap : VertexRenaming consumedTreeGraph.vertexCount :=
+  VertexRenaming.swap consumedTreeGraph.vertexCount 0 2
+    (by decide) (by decide)
+
 example : consumedCertificate.check = true := by native_decide
 
 example : consumedCertificate.DeclarativelyCorrect :=
@@ -31,6 +35,14 @@ example : consumedCertificate.DeclarativelyCorrect :=
 
 example : consumedTreeGraph.Acyclic :=
   (consumedTreeGraph.isTree_sound (by native_decide)).acyclic
+
+example : (consumedTreeGraph.reindex consumedTreeSwap).Acyclic :=
+  ((consumedTreeGraph.isTree_sound (by native_decide)).acyclic).reindex
+    consumedTreeSwap
+
+example : (consumedTreeGraph.reindex consumedTreeSwap).Acyclic ↔
+    consumedTreeGraph.Acyclic :=
+  consumedTreeGraph.acyclic_reindex_iff consumedTreeSwap
 
 def consumedTree : CutFreeDerivation :=
   CutFreeDerivation.generate 42 2
