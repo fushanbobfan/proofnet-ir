@@ -35,4 +35,14 @@ example : tree.infer? = some [p, pDual] := by native_decide
 example : tree.desequentializeChecked?.isSome = true := by native_decide
 example : tree.elaborate?.isSome = true := by native_decide
 
+example : ∃ result : CutFreeDerivation.CheckedCertificate,
+    tree.desequentializeChecked? = some result :=
+  tree.desequentializeChecked?_exists_of_infer?
+    (show tree.infer? = some [p, pDual] by native_decide)
+
+example : ∃ result : CutFreeDerivation.ElaboratedCertificate,
+    tree.elaborate? = some result :=
+  tree.elaborate?_exists_of_infer?
+    (show tree.infer? = some [p, pDual] by native_decide)
+
 end ProofNetIRTutorialSmoke

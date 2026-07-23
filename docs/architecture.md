@@ -193,13 +193,15 @@ The kernel theorem `infer?_eq_some_iff_build?_conclusions` proves that the
 independent formula pass and occurrence-aware builder have exactly the same
 success domain and ordered formula boundary. Its exchange case works at the
 index level, so duplicate formula labels do not require an invalid projection-
-injectivity assumption. This theorem does not by itself prove that every built
-fragment passes the switching checker. `DesequentializationSoundness.lean`
-then proves the independent formula-table invariant and derives
-`desequentialize?_conclusionFormulas?`: every successful public
-desequentialization returns exactly the source tree's inferred ordered
-boundary. Thus boundary lookup is no longer an unproved side condition; the
-remaining derivation-first logical gap is switching-checker acceptance.
+injectivity assumption. `GraphComposition.lean`,
+`SwitchingComposition.lean`, and `StructuralComposition.lean` separately prove
+that axiom/par/tensor/exchange construction preserves the graph-tree and full
+structural certificate invariants. `DesequentializationSoundness.lean`
+combines those results with the formula-table invariant: every successful
+public desequentialization has the source tree's exact ordered boundary, is
+declaratively correct, and is accepted by the executable checker.
+Consequently `desequentializeChecked?` and `elaborate?` are total whenever the
+independent `infer?` pass succeeds.
 
 `Serialization.lean` supplies the versioned canonical wire format under fixed
 formula-array vertex numbering. `ProofNetIRDataset.lean` deterministically

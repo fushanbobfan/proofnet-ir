@@ -81,8 +81,13 @@ gates the checked API on `Certificate.check = true`. The post-v0.5
 and occurrence-aware construction succeed together. The subsequent
 `desequentialize?_conclusionFormulas?` theorem proves that every successfully
 constructed public certificate reads back exactly the inferred ordered
-boundary. Switching-checker acceptance remains a distinct gate rather than an
-inferred fact. Release v0.4.0
+boundary. The composition proofs now additionally establish structural
+well-formedness and every-switching tree correctness for every successful
+build; `build?_check` and `desequentialize?_check` derive executable checker
+acceptance rather than assuming it. The checked gate remains explicit in the
+runtime API, while `desequentializeChecked?_exists_of_infer?` and
+`elaborate?_exists_of_infer?` prove it cannot fail after successful `infer?`.
+Release v0.4.0
 also proves the reverse direction for the supported representation:
 `sequentialization_of_check` maps every accepted certificate to a concrete
 first-order tree whose executable output is `ProofNetEquivalent` to the

@@ -226,7 +226,7 @@
 - [x] Prove that a successful formula-only `infer?` pass always lifts through
   positional picks and exchanges to a successful occurrence-aware `build?`,
   with exactly the same ordered conclusion formulas even for duplicate labels.
-- [ ] Prove that every successfully inferred first-order rule tree produces a
+- [x] Prove that every successfully inferred first-order rule tree produces a
   structurally well-formed, switching-correct certificate with matching
   conclusion lookup, and derive totality of `elaborate?` on `infer?` success.
 

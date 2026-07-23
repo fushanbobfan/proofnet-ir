@@ -164,6 +164,57 @@ ProofNetIR.CutFreeDerivation.build?_formulaConsistent : ∀ {tree : ProofNetIR.C
   tree.build? = some fragment → fragment.FormulaConsistent
 ```
 
+### `ProofNetIR.CutFreeDerivation.build?_structurallyWellFormed`
+
+Kind: theorem.
+
+Every successfully constructed occurrence-aware fragment satisfies the
+full structural certificate contract: local typing, unique production,
+single-parent ownership, and a duplicate-free in-bounds boundary.
+
+```lean
+ProofNetIR.CutFreeDerivation.build?_structurallyWellFormed : ∀ {tree : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment},
+  tree.build? = some fragment → fragment.toCertificate.StructurallyWellFormed
+```
+
+### `ProofNetIR.CutFreeDerivation.build?_switchingCorrect`
+
+Kind: theorem.
+
+Every switching of every successfully constructed fragment is a tree.
+This theorem is independent of the certificate ownership/typing proof needed
+for full structural well-formedness.
+
+```lean
+ProofNetIR.CutFreeDerivation.build?_switchingCorrect : ∀ {tree : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment},
+  tree.build? = some fragment → fragment.toCertificate.SwitchingCorrect
+```
+
+### `ProofNetIR.CutFreeDerivation.build?_declarativelyCorrect`
+
+Kind: theorem.
+
+A successfully built derivation fragment satisfies both independent
+halves of the public proof-net semantics.
+
+```lean
+ProofNetIR.CutFreeDerivation.build?_declarativelyCorrect : ∀ {tree : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment},
+  tree.build? = some fragment → fragment.toCertificate.DeclarativelyCorrect
+```
+
+### `ProofNetIR.CutFreeDerivation.build?_check`
+
+Kind: theorem.
+
+The executable checker accepts every certificate produced by a successful
+derivation build. This is the end-to-end desequentialization soundness theorem
+for the checker, not merely formula-boundary consistency.
+
+```lean
+ProofNetIR.CutFreeDerivation.build?_check : ∀ {tree : ProofNetIR.CutFreeDerivation} {fragment : ProofNetIR.NetFragment},
+  tree.build? = some fragment → fragment.toCertificate.check = true
+```
+
 ### `ProofNetIR.CutFreeDerivation.build?_conclusionFormulas?`
 
 Kind: theorem.
@@ -199,18 +250,57 @@ ProofNetIR.CutFreeDerivation.desequentialize?_conclusionFormulas? : ∀ {tree : 
   tree.desequentialize? = some certificate → certificate.conclusionFormulas? = tree.infer?
 ```
 
+### `ProofNetIR.CutFreeDerivation.desequentialize?_declarativelyCorrect`
+
+Kind: theorem.
+
+Every successful public desequentialization result satisfies the
+independent declarative proof-net contract.
+
+```lean
+ProofNetIR.CutFreeDerivation.desequentialize?_declarativelyCorrect : ∀ {tree : ProofNetIR.CutFreeDerivation} {certificate : ProofNetIR.Certificate},
+  tree.desequentialize? = some certificate → certificate.DeclarativelyCorrect
+```
+
+### `ProofNetIR.CutFreeDerivation.desequentialize?_check`
+
+Kind: theorem.
+
+Every successful public desequentialization result is checker-accepted.
+
+```lean
+ProofNetIR.CutFreeDerivation.desequentialize?_check : ∀ {tree : ProofNetIR.CutFreeDerivation} {certificate : ProofNetIR.Certificate},
+  tree.desequentialize? = some certificate → certificate.check = true
+```
+
 ### `ProofNetIR.CutFreeDerivation.desequentialize?_exists_with_labels_of_infer?`
 
 Kind: theorem.
 
-Formula-level validation is sufficient to construct a public certificate
-whose boundary lookup returns the validated sequent. This theorem deliberately
-does not yet claim that the switching checker accepts that certificate.
+Backward-compatible boundary-only corollary: formula-level validation is
+sufficient to construct a public certificate whose lookup returns the
+validated sequent. See `desequentialize?_exists_checked_of_infer?` for the
+stronger checker-accepted result.
 
 ```lean
 ProofNetIR.CutFreeDerivation.desequentialize?_exists_with_labels_of_infer? : ∀ {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
   tree.infer? = some sequent →
     ∃ certificate, tree.desequentialize? = some certificate ∧ certificate.conclusionFormulas? = some sequent
+```
+
+### `ProofNetIR.CutFreeDerivation.desequentialize?_exists_checked_of_infer?`
+
+Kind: theorem.
+
+Formula-level validation constructs a certificate with the requested
+boundary and a kernel proof that the executable checker accepts it.
+
+```lean
+ProofNetIR.CutFreeDerivation.desequentialize?_exists_checked_of_infer? : ∀ {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
+  tree.infer? = some sequent →
+    ∃ certificate,
+      tree.desequentialize? = some certificate ∧
+        certificate.conclusionFormulas? = some sequent ∧ certificate.check = true
 ```
 
 ### `ProofNetIR.CutFreeDerivation.CheckedCertificate`
@@ -235,6 +325,18 @@ checker accepts it.
 ProofNetIR.CutFreeDerivation.desequentializeChecked? : ProofNetIR.CutFreeDerivation → Option ProofNetIR.CutFreeDerivation.CheckedCertificate
 ```
 
+### `ProofNetIR.CutFreeDerivation.desequentializeChecked?_exists_of_infer?`
+
+Kind: theorem.
+
+The checker-gated public desequentializer is total on formula-valid rule
+trees; its returned payload retains the checker-acceptance proof.
+
+```lean
+ProofNetIR.CutFreeDerivation.desequentializeChecked?_exists_of_infer? : ∀ {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
+  tree.infer? = some sequent → ∃ result, tree.desequentializeChecked? = some result
+```
+
 ### `ProofNetIR.CutFreeDerivation.ElaboratedCertificate`
 
 Kind: inductive type.
@@ -255,6 +357,18 @@ Every returned value carries both sequent-calculus and proof-net evidence.
 
 ```lean
 ProofNetIR.CutFreeDerivation.elaborate? : ProofNetIR.CutFreeDerivation → Option ProofNetIR.CutFreeDerivation.ElaboratedCertificate
+```
+
+### `ProofNetIR.CutFreeDerivation.elaborate?_exists_of_infer?`
+
+Kind: theorem.
+
+The strongest public elaborator is total on derivation trees accepted by
+the independent formula inference pass.
+
+```lean
+ProofNetIR.CutFreeDerivation.elaborate?_exists_of_infer? : ∀ {tree : ProofNetIR.CutFreeDerivation} {sequent : List ProofNetIR.Formula},
+  tree.infer? = some sequent → ∃ result, tree.elaborate? = some result
 ```
 
 ## Equivalence and canonical keys

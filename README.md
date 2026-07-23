@@ -52,8 +52,10 @@ The repository currently contains:
   formula boundary, including exchanges between duplicate labels;
 - a kernel theorem proving that every successfully constructed fragment's
   public certificate lookup recovers exactly that ordered formula boundary;
-  switching-checker acceptance remains the separate derivation-first theorem
-  still required for total `elaborate?`;
+  separate structural-composition and switching-composition theorems now prove
+  every such fragment declaratively correct and executable-checker accepted;
+- totality of both `desequentializeChecked?` and `elaborate?` for every rule
+  tree accepted by the independent `infer?` pass;
 - general validated desequentialization of those trees, with a checked return
   type carrying `certificate.check = true`;
 - a deterministic broad-family derivation generator whose first 250
@@ -190,6 +192,9 @@ ProofNetIR/Reconstruct.lean   supported sequent derivation reconstruction
 ProofNetIR/Generate.lean      recursive derivation-first identity certificates
 ProofNetIR/Mutation.lean      labeled corruptions for negative fixtures
 ProofNetIR/DerivationTree.lean arbitrary cut-free trees and desequentialization
+ProofNetIR/GraphComposition.lean tree-preserving par/tensor graph composition
+ProofNetIR/SwitchingComposition.lean switching correctness under rule composition
+ProofNetIR/StructuralComposition.lean structural correctness under rule composition
 ProofNetIR/DesequentializationSoundness.lean derivation-to-certificate invariants
 ProofNetIR/NetEquivalence.lean semantic equivalence and checker invariance
 ProofNetIR/Sequentialization.lean general theorem contract and inverse-rule work

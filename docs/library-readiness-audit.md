@@ -75,13 +75,13 @@ part of the engineering and proof-identity gap.
 
 ## Logical gaps blocking a mature-library claim
 
-1. Formula inference and occurrence-aware construction now have a proved exact
+1. Formula inference and occurrence-aware construction have a proved exact
    success-domain/boundary equivalence, including duplicate-label exchanges.
-   Certificate boundary lookup is now also proved exact for every successful
-   construction. The safe `elaborate?` return type additionally requires
-   switching-checker acceptance. A general theorem that every successfully
-   inferred rule tree satisfies that remaining condition and therefore makes
-   `elaborate?` succeed is still missing.
+   Structural composition and all-switchings tree composition now prove every
+   successful construction declaratively correct and checker-accepted;
+   `desequentializeChecked?` and `elaborate?` are proved total on `infer?`
+   success. The remaining logical scope gaps are units, cuts, additives,
+   exponentials, and the future persistent LeanProp bridge.
 2. The stronger `GenerallySequentializable` result and the public executable
    totality theorem are complete for the
    documented unit-free, cut-free MLL representation. Remaining logical scope
@@ -110,7 +110,7 @@ part of the engineering and proof-identity gap.
   equivalence theorem, while the pinned consumer protects the v0.5.0 API;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for fourteen public logical-boundary theorems and
+- CI now parses `#print axioms` for twenty-three public logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;

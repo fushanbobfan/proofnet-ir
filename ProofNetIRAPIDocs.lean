@@ -37,14 +37,23 @@ def sections : List Section := [
       `ProofNetIR.CutFreeDerivation.build?_exists_of_infer?,
       `ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions,
       `ProofNetIR.CutFreeDerivation.build?_formulaConsistent,
+      `ProofNetIR.CutFreeDerivation.build?_structurallyWellFormed,
+      `ProofNetIR.CutFreeDerivation.build?_switchingCorrect,
+      `ProofNetIR.CutFreeDerivation.build?_declarativelyCorrect,
+      `ProofNetIR.CutFreeDerivation.build?_check,
       `ProofNetIR.CutFreeDerivation.build?_conclusionFormulas?,
       `ProofNetIR.CutFreeDerivation.desequentialize?,
       `ProofNetIR.CutFreeDerivation.desequentialize?_conclusionFormulas?,
+      `ProofNetIR.CutFreeDerivation.desequentialize?_declarativelyCorrect,
+      `ProofNetIR.CutFreeDerivation.desequentialize?_check,
       `ProofNetIR.CutFreeDerivation.desequentialize?_exists_with_labels_of_infer?,
+      `ProofNetIR.CutFreeDerivation.desequentialize?_exists_checked_of_infer?,
       `ProofNetIR.CutFreeDerivation.CheckedCertificate,
       `ProofNetIR.CutFreeDerivation.desequentializeChecked?,
+      `ProofNetIR.CutFreeDerivation.desequentializeChecked?_exists_of_infer?,
       `ProofNetIR.CutFreeDerivation.ElaboratedCertificate,
-      `ProofNetIR.CutFreeDerivation.elaborate?
+      `ProofNetIR.CutFreeDerivation.elaborate?,
+      `ProofNetIR.CutFreeDerivation.elaborate?_exists_of_infer?
     ]
   },
   {

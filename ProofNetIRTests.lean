@@ -110,6 +110,12 @@ example : generatedDerivationTrees.all (fun tree =>
 example : generatedDerivationTrees.all (fun tree => tree.elaborate?.isSome) = true := by
   native_decide
 
+example {tree : CutFreeDerivation} {sequent : List Formula}
+    (accepted : tree.infer? = some sequent) :
+    ∃ result : CutFreeDerivation.ElaboratedCertificate,
+      tree.elaborate? = some result :=
+  tree.elaborate?_exists_of_infer? accepted
+
 def generatedJsonRoundTrips : Bool :=
   generatedDerivationTrees.all fun tree =>
     match tree.desequentialize? with
@@ -1214,9 +1220,18 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #check NetFragment.FormulaConsistent
 #check CutFreeDerivation.build?_formulaConsistent
+#check CutFreeDerivation.build?_structurallyWellFormed
+#check CutFreeDerivation.build?_switchingCorrect
+#check CutFreeDerivation.build?_declarativelyCorrect
+#check CutFreeDerivation.build?_check
 #check CutFreeDerivation.build?_conclusionFormulas?
 #check CutFreeDerivation.desequentialize?_conclusionFormulas?
+#check CutFreeDerivation.desequentialize?_declarativelyCorrect
+#check CutFreeDerivation.desequentialize?_check
 #check CutFreeDerivation.desequentialize?_exists_with_labels_of_infer?
+#check CutFreeDerivation.desequentialize?_exists_checked_of_infer?
+#check CutFreeDerivation.desequentializeChecked?_exists_of_infer?
+#check CutFreeDerivation.elaborate?_exists_of_infer?
 #check CutFreeDerivation.build?_exists_of_desequentialize?
 #check SequentializationResult.fragment_exists
 #check VertexRenaming.extendLast

@@ -9,9 +9,12 @@
   `infer?_eq_some_iff_build?_conclusions` synchronization theorem: formula
   inference and occurrence-aware fragment construction now have the same
   success domain and exactly the same ordered formula boundary;
-- retained checker acceptance as a separate open proof obligation: these new
-  theorems do not yet claim that every inferred tree makes `elaborate?`
-  succeed.
+- proved graph-tree and structural-certificate composition for axiom, par,
+  tensor, and exchange, then closed full derivation-first soundness:
+  every successful `build?` is declaratively correct and checker-accepted;
+- proved totality of `desequentializeChecked?` and `elaborate?` on every
+  successful independent `infer?` result, with exact ordered boundary labels
+  and a kernel `Derivation` retained in the returned value.
 
 ## v0.5.0 - Executable totality, canonical family, and matched experiment
 
