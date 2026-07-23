@@ -74,6 +74,14 @@ example :
     consumedCertificate.verifiesDerivation consumedRuleTree = true := by
   native_decide
 
+example : consumedCertificate.reconstructsDerivation = true := by
+  native_decide
+
+example :
+    consumedCertificate.reconstructsDerivation =
+      consumedCertificate.check :=
+  consumedCertificate.reconstructsDerivation_eq_check
+
 example : ∃ result : DerivationVerificationResult consumedCertificate,
     consumedCertificate.verifyDerivation? consumedRuleTree = some result := by
   apply Certificate.verifiesDerivation_eq_true_iff.mp
@@ -153,6 +161,7 @@ def main : IO Unit := do
   if consumedTreeGraph.isTree &&
       consumedCertificate.check && consumedTree.elaborate?.isSome &&
       consumedCertificate.verifiesDerivation consumedRuleTree &&
+      consumedCertificate.reconstructsDerivation &&
       consumedSequentialization.isOk &&
       Certificate.proofNetEquivalent? consumedCertificate
         reorderedConsumedCertificate &&

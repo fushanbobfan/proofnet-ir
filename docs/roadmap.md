@@ -355,11 +355,20 @@
   non-factorial intrinsic identity checking without evaluating input
   switchings or enumerating vertex permutations. Prove soundness and
   completeness relative to an equivalent supplied derivation.
-- [ ] Use the certified graph layer to design and qualify a non-enumerative
-  automatic correctness checker for bare certificates. The remaining step is
-  checker-free inverse-rule reconstruction and its universal completeness;
+- [x] Implement checker-free automatic inverse-rule reconstruction for bare
+  certificates, prove universal completeness for every reference-accepted
+  certificate, and prove its Boolean decision equal to the all-switchings
+  checker.
+- [ ] Qualify and optimize the automatic path across the frozen corpus,
+  adversarial tensor/par shapes, and repeated-label boundaries. The current
+  path avoids switching and vertex-permutation enumeration but may backtrack;
   retain the all-switchings implementation as a differential specification
-  oracle.
+  oracle and make no linear-time claim yet.
+  - [x] CI-gate exact agreement on the 1,000-case deterministic corpus
+    (250 accepted derivations and 750 malformed mutations) under a 15-second
+    native budget.
+  - [ ] Add adversarial depth/shape and repeated-internal-label strata, then
+    profile and optimize the observed bottlenecks.
 
 ## Later research
 

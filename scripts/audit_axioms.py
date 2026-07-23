@@ -64,6 +64,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.sequentialize_complete",
     "ProofNetIR.Certificate.verifyDerivation?_sound",
     "ProofNetIR.Certificate.verifyDerivation?_complete",
+    "ProofNetIR.Certificate.reconstructDerivationWithFuel?_complete",
+    "ProofNetIR.Certificate.reconstructDerivation?_sound",
+    "ProofNetIR.Certificate.reconstructDerivation?_accepted",
+    "ProofNetIR.Certificate.reconstructDerivation?_complete",
+    "ProofNetIR.Certificate.reconstructsDerivation_eq_true_iff_check",
+    "ProofNetIR.Certificate.reconstructsDerivation_eq_check",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
 }

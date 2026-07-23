@@ -560,7 +560,9 @@ theorem matchingFormulaOrdersForCertificates_complete
       simpa using allowedOrder offset inBounds)
   simpa [matchingFormulaOrdersForCertificates, sameSize, order] using generated
 
-private theorem matchingFormulaOrders_complete_of_reorder?
+/-- Every successful executable formula reordering appears in the complete
+occurrence-aware boundary-order search. -/
+theorem matchingFormulaOrders_complete_of_reorder?
     {source target : List Formula} {order : List Nat}
     (accepted : CutFreeDerivation.reorder? source order = some target) :
     order ∈ matchingFormulaOrders source target := by
@@ -852,7 +854,9 @@ private theorem alignTree?_complete_of_desequentialize
       outputAccepted, checked]
   · exact equivalent
 
-private theorem axiomExchangeIdentity_infer (name : String)
+/-- The identity exchange on an axiom derivation preserves its ordered
+formula boundary. -/
+theorem axiomExchangeIdentity_infer (name : String)
     (positive : Bool) :
     (CutFreeDerivation.exchange [0, 1]
       (.axiom name positive)).infer? =
@@ -869,7 +873,9 @@ private theorem axiomExchangeIdentity_infer (name : String)
   rw [candidate]
   simp
 
-private theorem axiomExchangeSwap_infer (name : String)
+/-- Swapping the two axiom occurrences swaps their independently inferred
+formula boundary. -/
+theorem axiomExchangeSwap_infer (name : String)
     (positive : Bool) :
     (CutFreeDerivation.exchange [1, 0]
       (.axiom name positive)).infer? =
@@ -887,7 +893,8 @@ private theorem axiomExchangeSwap_infer (name : String)
   rw [candidate]
   simp [permutation]
 
-private theorem axiomExchangeIdentity_desequentialize (name : String)
+/-- Exact desequentialization of the identity-ordered axiom derivation. -/
+theorem axiomExchangeIdentity_desequentialize (name : String)
     (positive : Bool) :
     (CutFreeDerivation.exchange [0, 1]
       (.axiom name positive)).desequentialize? =
@@ -907,7 +914,8 @@ private theorem axiomExchangeIdentity_desequentialize (name : String)
     NetFragment.ofEntries, NetFragment.toCertificate, atom, dual,
     Formula.dual]
 
-private theorem axiomExchangeSwap_desequentialize (name : String)
+/-- Exact desequentialization of the swapped axiom derivation. -/
+theorem axiomExchangeSwap_desequentialize (name : String)
     (positive : Bool) :
     (CutFreeDerivation.exchange [1, 0]
       (.axiom name positive)).desequentialize? =
@@ -930,7 +938,9 @@ private theorem axiomExchangeSwap_desequentialize (name : String)
     NetFragment.ofEntries, NetFragment.toCertificate, atom, dual,
     Formula.dual]
 
-private theorem axiomDirectSwap (name : String) (positive : Bool)
+/-- Reversing the stored orientation of an axiom link is an exact bounded
+vertex reindexing when the formula array and boundary are swapped with it. -/
+theorem axiomDirectSwap (name : String) (positive : Bool)
     (boundary : List Vertex) :
     ({ formulas := #[.atom name positive, .atom name (!positive)]
        links := [.axiom 0 1]

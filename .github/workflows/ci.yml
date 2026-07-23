@@ -47,6 +47,8 @@ jobs:
         run: python scripts/fuzz_malformed_parser.py
       - name: Enforce representative runtime budget
         run: ~/.elan/bin/lake exe proofnet_ir_benchmark
+      - name: Audit checker-free reconstruction against the reference checker
+        run: ~/.elan/bin/lake exe proofnet_ir_reconstruction_audit
       - name: Build as a downstream Lake dependency
         working-directory: consumer-smoke
         run: ~/.elan/bin/lake build && ~/.elan/bin/lake exe proofnet_ir_consumer_smoke

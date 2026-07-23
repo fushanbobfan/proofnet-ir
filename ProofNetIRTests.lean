@@ -255,6 +255,26 @@ def generatedReorderedDerivationVerifications : Bool :=
 example : generatedReorderedDerivationVerifications = true := by
   native_decide
 
+def generatedCheckerFreeReconstructions : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate => certificate.reconstructsDerivation
+
+example : generatedCheckerFreeReconstructions = true := by
+  native_decide
+
+def generatedReorderedCheckerFreeReconstructions : Bool :=
+  generatedDerivationTrees.all fun tree =>
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        ({ certificate with links := certificate.links.reverse } :
+          Certificate).reconstructsDerivation
+
+example : generatedReorderedCheckerFreeReconstructions = true := by
+  native_decide
+
 example : generatedDerivationTrees.all (fun tree => tree.elaborate?.isSome) = true := by
   native_decide
 
@@ -638,6 +658,20 @@ example :
 example :
     (Mutation.dropFirstLink.apply canonical).verifiesDerivation
       canonicalRuleTree = false := by
+  native_decide
+
+example : canonical.reconstructsDerivation = true := by
+  native_decide
+
+example : canonical.reconstructsDerivation = canonical.check :=
+  canonical.reconstructsDerivation_eq_check
+
+example : ∃ result : DerivationVerificationResult canonical,
+    canonical.reconstructDerivation? = some result :=
+  canonical.reconstructDerivation?_complete (by native_decide)
+
+example :
+    (Mutation.dropFirstLink.apply canonical).reconstructsDerivation = false := by
   native_decide
 
 def canonicalSequentialization : SequentializationResult canonical where
@@ -1661,6 +1695,14 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.verifyDerivation?_sound
 #check Certificate.verifyDerivation?_complete
 #check Certificate.verifiesDerivation_eq_true_iff
+#check Certificate.reconstructDerivationWithFuel?
+#check Certificate.reconstructDerivation?
+#check Certificate.reconstructDerivation?_sound
+#check Certificate.reconstructDerivation?_accepted
+#check Certificate.reconstructDerivation?_complete
+#check Certificate.reconstructsDerivation_eq_true_iff
+#check Certificate.reconstructsDerivation_eq_true_iff_check
+#check Certificate.reconstructsDerivation_eq_check
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =

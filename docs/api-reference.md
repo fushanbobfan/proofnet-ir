@@ -1527,6 +1527,124 @@ ProofNetIR.Certificate.verifiesDerivation_eq_true_iff : ∀ {input : ProofNetIR.
   input.verifiesDerivation tree = true ↔ ∃ result, input.verifyDerivation? tree = some result
 ```
 
+### `ProofNetIR.Certificate.reconstructDerivationWithFuel?`
+
+Kind: definition.
+
+Fuel-bounded inverse-rule reconstruction that never evaluates
+`Certificate.check` or enumerates switching graphs.
+
+Every returned candidate has already passed `verifyDerivation?`, so the result
+contains an exact `ProofNetEquivalent` proof. Fuel bounds recursive formula
+occurrence removal; the public wrapper supplies one more than the input
+formula count.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivationWithFuel? : Nat → (input : ProofNetIR.Certificate) → Option (ProofNetIR.DerivationVerificationResult input)
+```
+
+### `ProofNetIR.Certificate.reconstructDerivationWithFuel?_complete`
+
+Kind: theorem.
+
+Universal completeness of the checker-free inverse-rule search at every
+fuel bound strictly above the input occurrence count. The theorem uses the
+reference checker only as its mathematical premise; the executable function
+itself has no checker call.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivationWithFuel?_complete : ∀ (fuel : Nat) (input : ProofNetIR.Certificate),
+  input.check = true →
+    input.formulas.size < fuel →
+      ∃ result, ProofNetIR.Certificate.reconstructDerivationWithFuel? fuel input = some result
+```
+
+### `ProofNetIR.Certificate.reconstructDerivation?`
+
+Kind: definition.
+
+Attempt to reconstruct and verify a cut-free derivation from a bare
+certificate without calling the all-switchings checker.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivation? : (input : ProofNetIR.Certificate) → Option (ProofNetIR.DerivationVerificationResult input)
+```
+
+### `ProofNetIR.Certificate.reconstructDerivation?_sound`
+
+Kind: theorem.
+
+Soundness is carried directly by the dependent result: a successful
+checker-free reconstruction has a formula-valid cut-free derivation whose
+desequentialization is accepted and exactly proof-net-equivalent to the
+input.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivation?_sound : ∀ {input : ProofNetIR.Certificate} {result : ProofNetIR.DerivationVerificationResult input},
+  input.reconstructDerivation? = some result →
+    input.StructurallyWellFormed ∧
+      input.conclusionFormulas? = some result.sequent ∧
+        result.tree.infer? = some result.sequent ∧
+          result.tree.desequentialize? = some result.output ∧
+            result.output.check = true ∧ result.output.ProofNetEquivalent input
+```
+
+### `ProofNetIR.Certificate.reconstructDerivation?_accepted`
+
+Kind: theorem.
+
+A successful checker-free reconstruction is accepted by the reference
+proof-net checker. This is a theorem about the returned proof evidence; the
+runtime reconstruction function does not evaluate the reference checker.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivation?_accepted : ∀ {input : ProofNetIR.Certificate} {result : ProofNetIR.DerivationVerificationResult input},
+  input.reconstructDerivation? = some result → input.check = true
+```
+
+### `ProofNetIR.Certificate.reconstructDerivation?_complete`
+
+Kind: theorem.
+
+Every certificate accepted by the reference all-switchings semantics is
+accepted by the executable checker-free reconstruction path.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivation?_complete : ∀ (input : ProofNetIR.Certificate), input.check = true → ∃ result, input.reconstructDerivation? = some result
+```
+
+### `ProofNetIR.Certificate.reconstructsDerivation`
+
+Kind: definition.
+
+Boolean convenience wrapper for checker-free automatic reconstruction.
+
+```lean
+ProofNetIR.Certificate.reconstructsDerivation : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.reconstructsDerivation_eq_true_iff_check`
+
+Kind: theorem.
+
+The checker-free automatic reconstruction decision accepts exactly the
+same certificates as the reference all-switchings checker.
+
+```lean
+ProofNetIR.Certificate.reconstructsDerivation_eq_true_iff_check : ∀ (input : ProofNetIR.Certificate), input.reconstructsDerivation = true ↔ input.check = true
+```
+
+### `ProofNetIR.Certificate.reconstructsDerivation_eq_check`
+
+Kind: theorem.
+
+Boolean equality between checker-free reconstruction and the reference
+all-switchings checker.
+
+```lean
+ProofNetIR.Certificate.reconstructsDerivation_eq_check : ∀ (input : ProofNetIR.Certificate), input.reconstructsDerivation = input.check
+```
+
 ### `ProofNetIR.ExecutableSequentializationResult.kernelDerivation`
 
 Kind: theorem.

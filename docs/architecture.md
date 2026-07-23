@@ -216,6 +216,17 @@ the terminal-rule dichotomy and checker-gated inverse candidates to complete
 par/tensor rebuilding, exhaustive boundary alignment, and a strict
 formula-occurrence fuel induction.
 
+`DerivationVerifier.lean` and `ReconstructionChecker.lean` provide the
+v0.9 alternative path. The verifier turns a proposed tree into a dependent
+proof-bearing result using only structural validation, inference,
+desequentialization, and intrinsic canonical-code equality. The reconstruction
+layer recursively tries raw terminal-par and splitting-tensor candidates,
+combines recursively verified trees, and admits a result only through that
+verifier. Its executable definition does not call the all-switchings checker.
+Fuel completeness and soundness combine into the kernel theorem
+`Certificate.reconstructsDerivation_eq_check`. Candidate backtracking and
+formula-order enumeration remain explicit performance concerns.
+
 The same module now discovers terminal splitting-tensor candidates by deleting
 the tensor conclusion in the full occurrence graph, partitioning reachable
 vertices, rejecting every cross-component link, locally renumbering both

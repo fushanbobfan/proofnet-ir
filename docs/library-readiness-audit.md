@@ -117,8 +117,14 @@ part of the engineering and proof-identity gap.
    `Certificate.verifyDerivation?`, which avoids both input-switching
    enumeration and vertex-permutation search when a caller supplies a
    derivation. Its soundness and relative completeness are kernel checked.
-   It does not yet decide a bare certificate automatically; checker-free
-   inverse-rule reconstruction remains the performance-critical gap.
+   The automatic `Certificate.reconstructDerivation?` layer now decides a
+   bare certificate without calling the all-switchings checker. Lean proves
+   universal success on reference-accepted inputs and exact Boolean equality
+   with `Certificate.check`. The remaining gap is complexity and adversarial
+   qualification: terminal-rule backtracking and repeated-label boundary
+   order enumeration are not yet polynomially bounded. Runtime equality is
+   additionally CI-gated on the frozen 1,000-case 250-positive/750-negative
+   corpus; adversarial shape and repeated-internal-label qualification remain.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional

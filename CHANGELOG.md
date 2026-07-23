@@ -45,6 +45,22 @@
   desequentialization, with downstream-consumer and negative malformed-input
   regressions, plus 250 generated derivations and the same 250 certificates
   after reversing every stored link list;
+- added `Certificate.reconstructDerivation?`, a fuel-bounded automatic
+  terminal-par/splitting-tensor reconstruction path whose executable
+  definition never calls `Certificate.check` and never enumerates switching
+  graphs or vertex permutations. Every returned value carries an accepted,
+  exactly `ProofNetEquivalent` derivation output; Lean proves universal
+  completeness for every reference-checker-accepted unit-free cut-free MLL
+  certificate and the exact Boolean theorem
+  `reconstructsDerivation = check`. The current implementation still
+  backtracks over terminal-rule candidates and repeated-label boundary
+  orders, so no polynomial or linear complexity claim is made. The existing
+  291-case native benchmark now measures both paths and recorded
+  `reconstruction_ms=1976` versus `sequentialize_ms=6251` in the current
+  Windows run under the unchanged 45-second aggregate budget. A separate
+  CI-gated 1,000-case audit agrees with the reference checker on exactly 250
+  positives and 750 deterministic malformed mutations in 2,798 ms under a
+  15-second budget;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

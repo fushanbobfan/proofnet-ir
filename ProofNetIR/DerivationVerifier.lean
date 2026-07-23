@@ -23,6 +23,21 @@ structure DerivationVerificationResult (input : Certificate) where
 
 namespace DerivationVerificationResult
 
+/-- Forget the extra structural and output-check fields while retaining the
+proposition-level sequentialization contract. -/
+def toSequentializationResult {input : Certificate}
+    (result : DerivationVerificationResult input) :
+    SequentializationResult input where
+  tree := result.tree
+  sequent := result.sequent
+  output := result.output
+  inferred := result.inferred
+  desequentialized := result.desequentialized
+  outputLabels := by
+    rw [result.equivalent.conclusionFormulas?_eq]
+    exact result.inputLabels
+  equivalent := result.equivalent
+
 /-- A successfully verified derivation is accepted by the independent
 formula-level inference relation. -/
 theorem inferAccepted {input : Certificate}

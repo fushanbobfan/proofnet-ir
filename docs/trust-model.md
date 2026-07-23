@@ -101,6 +101,15 @@ input. The theorem preserves the ordered formula boundary and does not identify
 arbitrary unlabeled graphs. The v0.5 runtime path is independently tied to
 that guarantee: `sequentialize_complete` proves that the public finite search
 returns a proof-bearing result on every checker-accepted certificate.
+The v0.9 development path separates verification from the reference checker:
+`verifyDerivation?` checks a supplied tree through structural validation,
+independent inference/desequentialization, and the non-factorial intrinsic
+canonical code. `reconstructDerivation?` performs fuel-bounded terminal-rule
+search and calls that verifier, never `Certificate.check`. Kernel theorems
+prove every successful result accepted and prove the exact total decision
+equality `reconstructsDerivation = check`. The proof may use the reference
+semantics; the compiled search definition does not. No polynomial or linear
+runtime theorem is currently claimed.
 
 For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
 formula-only raw checker and typed elaborator agree on acceptance, rejection,

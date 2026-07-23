@@ -132,6 +132,14 @@ The repository currently contains:
   then uses the proved non-factorial intrinsic canonical code. A successful
   result carries checker acceptance of the produced net and exact
   `ProofNetEquivalent` identity with the submitted certificate.
+- the automatic v0.9-development `Certificate.reconstructDerivation?` path.
+  Its executable definition recursively peels terminal par links or splits
+  terminal tensors and validates candidates with `verifyDerivation?`; it does
+  not call the all-switchings checker. Lean proves it succeeds on every
+  reference-checker-accepted certificate and proves
+  `Certificate.reconstructsDerivation = Certificate.check` for all inputs.
+  The current backtracking and repeated-label order search are not claimed to
+  be polynomial or linear.
 - an executable finite `proofNetCanonicalFamily` whose extensional membership
   equality is proved equivalent to exactly `ProofNetEquivalent` on
   structurally well-formed certificates. This is a factorial specification

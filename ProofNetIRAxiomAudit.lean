@@ -65,6 +65,12 @@ expansion.
 #print axioms Certificate.sequentialize_complete
 #print axioms Certificate.verifyDerivation?_sound
 #print axioms Certificate.verifyDerivation?_complete
+#print axioms Certificate.reconstructDerivationWithFuel?_complete
+#print axioms Certificate.reconstructDerivation?_sound
+#print axioms Certificate.reconstructDerivation?_accepted
+#print axioms Certificate.reconstructDerivation?_complete
+#print axioms Certificate.reconstructsDerivation_eq_true_iff_check
+#print axioms Certificate.reconstructsDerivation_eq_check
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent
 #print axioms LeanProp.Derivation.toProof

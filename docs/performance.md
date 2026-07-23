@@ -3,7 +3,8 @@
 ## CI workload
 
 `ProofNetIRBenchmark.lean` runs the native checker, executable
-sequentializer, and `ProofNetEquivalent` decision procedure on 291 deterministic
+sequentializer, checker-free automatic reconstruction, and
+`ProofNetEquivalent` decision procedure on 291 deterministic
 derivation-generated certificates, followed by one adversarial pairwise-
 identity case:
 
@@ -32,6 +33,25 @@ work cannot be optimized away silently. Timing begins after process startup and
 excludes compilation. CI fails when the complete workload exceeds 45 seconds.
 The threshold is deliberately a regression guard with platform headroom, not a
 claim of constant, polynomial, interactive, or production-grade performance.
+
+`reconstructDerivation?` does not evaluate `Certificate.check`, enumerate
+switching graphs, or invoke the explicit vertex-permutation identity search.
+It can still backtrack across terminal par/tensor candidates and enumerate
+formula-compatible occurrence orders for repeated labels. Its separate
+`reconstruction_ms` counter is therefore a regression and comparison metric,
+not an asymptotic guarantee.
+
+A separate `proofnet_ir_reconstruction_audit` executable runs the exact
+v0.2-shaped 1,000-case family: 250 derivation positives plus missing-link,
+duplicated-resource, and self-axiom mutations. It fails on any Boolean
+disagreement with the reference checker, requires every positive to return a
+proof-bearing result, checks the expected 250/750 label split, and enforces a
+15-second native budget. The recorded Windows run reported:
+
+```text
+checker-free-reconstruction-audit-ok cases=1000 positives=250 negatives=750
+checksum=6124 elapsed_ms=2798 budget_ms=15000
+```
 
 Unbounded `Certificate.proofNetCanonicalFamily` is excluded from the main
 291-case workload. It enumerates every link-list permutation and is therefore
@@ -72,13 +92,13 @@ On the Windows development machine on 2026-07-23, the qualified workload
 reported:
 
 ```text
-cases=291 checksum=1024308 elapsed_ms=7699
-check_ms=0 sequentialize_ms=6107 equivalence_ms=0
+cases=291 checksum=1032554 elapsed_ms=9860
+check_ms=0 sequentialize_ms=6251 reconstruction_ms=1976 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
-canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=717
+canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=723
 canonical_key_budget_ms=10000 canonical_key_max_links=7
 intrinsic_canonical_key_cases=4 intrinsic_canonical_key_max_links=145
-intrinsic_canonical_key_ms=120 intrinsic_canonical_key_budget_ms=5000
+intrinsic_canonical_key_ms=128 intrinsic_canonical_key_budget_ms=5000
 ```
 
 The millisecond counters are coarse; zero means below one aggregate measured
@@ -87,6 +107,9 @@ calls performed inside sequentialization are included in `sequentialize_ms`.
 Ordered-boundary pruning removes a severe repeated-label case, but formulas on
 internal non-boundary vertices can still require combinatorial search. This
 measurement is not a polynomial-time or general scalability result.
+On this workload the new checker-free reconstruction aggregate was lower than
+the legacy checker-gated sequentializer aggregate, but the single run is a
+regression receipt rather than a statistically controlled speedup claim.
 
 The independent intrinsic wire envelope was also exercised negatively during
 development: a depth-64 identity certificate produced 45,022 tokens and
