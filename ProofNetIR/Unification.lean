@@ -151,6 +151,52 @@ private def representativeWithFuel (parents : Array Nat) :
           if parent == token then token
           else representativeWithFuel parents fuel parent
 
+/-- A missing parent entry is stable under every remaining fuel value. -/
+private theorem representativeWithFuel_of_lookup_none
+    (parents : Array Nat) {token : Nat}
+    (lookup : parents[token]? = none) (fuel : Nat) :
+    representativeWithFuel parents fuel token = token := by
+  cases fuel with
+  | zero =>
+      rfl
+  | succ fuel =>
+      simp [representativeWithFuel, lookup]
+
+/-- A self-parent root is stable under every remaining fuel value. -/
+private theorem representativeWithFuel_of_lookup_self
+    (parents : Array Nat) {token : Nat}
+    (lookup : parents[token]? = some token) (fuel : Nat) :
+    representativeWithFuel parents fuel token = token := by
+  cases fuel with
+  | zero =>
+      rfl
+  | succ fuel =>
+      simp [representativeWithFuel, lookup]
+
+/-- Following `first` pointers and then `second` more is the same as following
+their total fuel in one run. -/
+private theorem representativeWithFuel_add
+    (parents : Array Nat) (first second token : Nat) :
+    representativeWithFuel parents (first + second) token =
+      representativeWithFuel parents second
+        (representativeWithFuel parents first token) := by
+  induction first generalizing token with
+  | zero =>
+      simp [representativeWithFuel]
+  | succ first induction =>
+      simp only [Nat.succ_add, representativeWithFuel]
+      cases lookup : parents[token]? with
+      | none =>
+          rw [representativeWithFuel_of_lookup_none
+            parents lookup second]
+      | some parent =>
+          by_cases self : parent = token
+          · subst parent
+            simp [representativeWithFuel_of_lookup_self
+                parents lookup second]
+          · simp [self]
+            exact induction parent
+
 /-- Current canonical representative of a token. -/
 def representative (state : UnificationState) (token : Nat) : Nat :=
   representativeWithFuel state.parents state.parents.size token
@@ -200,6 +246,130 @@ def IdentityParents (state : UnificationState) : Prop :=
   ∀ {token}, token < state.parents.size →
     state.parents[token]? = some token
 
+/-- Every parent pointer is nonincreasing in token number. Consequently each
+non-root pointer is strictly decreasing, ruling out the fuel-artifact cycles
+that the bounds-only abstraction contract intentionally does not exclude. -/
+def OrderedParents (state : UnificationState) : Prop :=
+  ∀ {token parent : Nat}, state.parents[token]? = some parent →
+    parent ≤ token
+
+/-- Following any finite number of pointers in an ordered parent array cannot
+increase the starting token. -/
+private theorem OrderedParents.representativeWithFuel_le
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (fuel token : Nat) :
+    representativeWithFuel state.parents fuel token ≤ token := by
+  induction fuel generalizing token with
+  | zero =>
+      exact Nat.le_refl token
+  | succ fuel induction =>
+      simp only [representativeWithFuel]
+      cases lookup : state.parents[token]? with
+      | none =>
+          exact Nat.le_refl token
+      | some parent =>
+          by_cases self : parent = token
+          · subst parent
+            simp
+          · simp [self]
+            exact Nat.le_trans (induction parent) (ordered lookup)
+
+/-- An ordered union-find forest always returns a no-larger representative. -/
+theorem OrderedParents.representative_le
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (token : Nat) :
+    state.representative token ≤ token := by
+  exact ordered.representativeWithFuel_le state.parents.size token
+
+/-- Representatives of allocated tokens remain allocated. -/
+theorem OrderedParents.representative_lt
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {token : Nat} (bound : token < state.parents.size) :
+    state.representative token < state.parents.size :=
+  Nat.lt_of_le_of_lt (ordered.representative_le token) bound
+
+/-- Once fuel exceeds the starting token number, ordered-parent traversal is
+independent of the exact fuel value. -/
+private theorem OrderedParents.representativeWithFuel_eq_of_token_lt
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {firstFuel secondFuel token : Nat}
+    (firstEnough : token < firstFuel)
+    (secondEnough : token < secondFuel) :
+    representativeWithFuel state.parents firstFuel token =
+      representativeWithFuel state.parents secondFuel token := by
+  induction token using Nat.strongRecOn
+      generalizing firstFuel secondFuel with
+  | ind token induction =>
+      cases firstFuel with
+      | zero =>
+          omega
+      | succ firstFuel =>
+          cases secondFuel with
+          | zero =>
+              omega
+          | succ secondFuel =>
+              simp only [representativeWithFuel]
+              cases lookup : state.parents[token]? with
+              | none =>
+                  rfl
+              | some parent =>
+                  by_cases self : parent = token
+                  · subst parent
+                    simp
+                  · have parentLt : parent < token := by
+                      have parentLe := ordered lookup
+                      omega
+                    simp [self]
+                    apply induction parent parentLt
+                    · omega
+                    · omega
+
+/-- Ordered-parent traversal is idempotent on every allocated token. -/
+theorem OrderedParents.representative_idempotent
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {token : Nat} (bound : token < state.parents.size) :
+    state.representative (state.representative token) =
+      state.representative token := by
+  unfold representative
+  calc
+    representativeWithFuel state.parents state.parents.size
+        (representativeWithFuel state.parents state.parents.size token) =
+      representativeWithFuel state.parents
+        (state.parents.size + state.parents.size) token := by
+          symm
+          exact representativeWithFuel_add state.parents
+            state.parents.size state.parents.size token
+    _ = representativeWithFuel state.parents state.parents.size token := by
+      apply ordered.representativeWithFuel_eq_of_token_lt
+      · omega
+      · exact bound
+
+/-- Mark-domain bounds plus an ordered parent forest suffice to construct the
+full executable abstraction contract; representative range and idempotence
+are consequences rather than independent assumptions. -/
+theorem OrderedParents.abstractable
+    {certificate : Certificate} {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (markArraySize :
+      state.marks.size = certificate.formulas.size)
+    (markedVertexBound :
+      ∀ {vertex token}, state.assignedToken? vertex = some token →
+        vertex < certificate.formulas.size)
+    (markedTokenBound :
+      ∀ {vertex token}, state.assignedToken? vertex = some token →
+        token < state.parents.size) :
+    state.Abstractable certificate where
+  markArraySize := markArraySize
+  markedVertexBound := markedVertexBound
+  markedTokenBound := markedTokenBound
+  representativeBound := ordered.representative_lt
+  representativeIdempotent := ordered.representative_idempotent
+
 /-- Identity-parent states return each allocated token as its own
 representative. -/
 theorem IdentityParents.representative_eq
@@ -240,6 +410,19 @@ theorem IdentityParents.sameThread_iff
     (first second : Nat) :
     state.SameThread first second ↔ first = second := by
   simp [SameThread, identity.representative_eq_all]
+
+/-- The identity-parent phase is an ordered union-find forest. -/
+theorem IdentityParents.orderedParents
+    {state : UnificationState}
+    (identity : state.IdentityParents) :
+    state.OrderedParents := by
+  intro token parent lookup
+  have tokenBound : token < state.parents.size :=
+    (Array.getElem?_eq_some_iff.mp lookup).choose
+  have self := identity tokenBound
+  rw [lookup] at self
+  injection self with equality
+  exact Nat.le_of_eq equality
 
 /-- Appending the fresh self-parent preserves the identity-parent phase
 invariant. -/
@@ -294,6 +477,18 @@ theorem ObservationEquivalent.abstractable
       simpa [equivalent.parents] using bound
     simpa [representative, equivalent.parents] using
       abstractable.representativeIdempotent oldBound
+
+/-- Observation-equivalent states either both satisfy or both violate the
+ordered-parent forest invariant. -/
+theorem ObservationEquivalent.orderedParents
+    {first second : UnificationState}
+    (equivalent : first.ObservationEquivalent second)
+    (ordered : first.OrderedParents) :
+    second.OrderedParents := by
+  intro token parent lookup
+  apply ordered
+  rw [equivalent.parents]
+  exact lookup
 
 /-- Forget arrays, parsed derivation components, counters, and worklist data,
 retaining exactly the marking and thread partition observed by the independent
@@ -385,6 +580,25 @@ theorem IdentityParents.startMarking
   intro token bound
   change token < (state.parents.push state.parents.size).size at bound
   exact identity.push_fresh bound
+
+/-- Starting an axiom preserves the ordered-forest invariant. -/
+theorem OrderedParents.startMarking
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (left right : Vertex) :
+    (state.startMarking left right).OrderedParents := by
+  intro token parent lookup
+  by_cases fresh : token = state.parents.size
+  · subst token
+    change
+      (state.parents.push state.parents.size)[state.parents.size]? =
+        some parent at lookup
+    rw [Array.getElem?_push_size] at lookup
+    injection lookup with equality
+    exact Nat.le_of_eq equality.symm
+  · apply ordered
+    simpa [UnificationState.startMarking,
+      Array.getElem?_push, fresh] using lookup
 
 /-- Starting an in-domain axiom in the identity-parent phase preserves the
 executable abstraction contract. -/
@@ -529,6 +743,55 @@ theorem startMarking_startStep
       IdentityParents.startMarking identity left right
     rw [nextIdentity.sameThread_iff, identity.sameThread_iff]
 
+/-- Update one union-find parent pointer without changing marks, parsed
+components, or work counters. -/
+def setParent (state : UnificationState)
+    (token parent : Nat) : UnificationState :=
+  { state with
+    parents := state.parents.setIfInBounds token parent }
+
+/-- Pointing a token to a no-larger parent preserves the ordered-forest
+invariant. -/
+theorem OrderedParents.setParent
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {token parent : Nat}
+    (parentLe : parent ≤ token) :
+    (state.setParent token parent).OrderedParents := by
+  intro candidate candidateParent lookup
+  by_cases same : token = candidate
+  · subst candidate
+    by_cases bound : token < state.parents.size
+    · simp [UnificationState.setParent, bound] at lookup
+      subst candidateParent
+      exact parentLe
+    · simp [UnificationState.setParent, bound] at lookup
+  · apply ordered
+    simpa [UnificationState.setParent,
+      Array.getElem?_setIfInBounds, same] using lookup
+
+/-- Updating one pointer inside an ordered forest preserves the executable
+abstraction contract; the ordered invariant supplies the new representative
+bounds and idempotence. -/
+theorem Abstractable.setParent
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {token parent : Nat}
+    (parentLe : parent ≤ token) :
+    (state.setParent token parent).Abstractable certificate := by
+  have nextOrdered :
+      (state.setParent token parent).OrderedParents :=
+    OrderedParents.setParent ordered parentLe
+  apply nextOrdered.abstractable
+  · exact abstractable.markArraySize
+  · intro vertex markedToken marked
+    apply abstractable.markedVertexBound
+    exact marked
+  · intro vertex markedToken marked
+    have oldBound := abstractable.markedTokenBound marked
+    simpa [UnificationState.setParent] using oldBound
+
 /-- Mark one connective conclusion and increment the connective counter,
 without changing the token partition or parsed components. -/
 def markConclusion (state : UnificationState)
@@ -536,6 +799,44 @@ def markConclusion (state : UnificationState)
   { state with
     marks := state.marks.setIfInBounds conclusion (some token)
     firedConnectives := state.firedConnectives + 1 }
+
+/-- Marking a conclusion leaves the ordered parent forest unchanged. -/
+theorem OrderedParents.markConclusion
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (conclusion token : Nat) :
+    (state.markConclusion conclusion token).OrderedParents := by
+  intro candidate parent lookup
+  apply ordered
+  exact lookup
+
+/-- Mark one tensor conclusion and point the retired representative at the
+surviving representative. Parsed components remain outside this token-semantic
+update. -/
+def mergeConclusion (state : UnificationState)
+    (conclusion representative retired : Nat) : UnificationState :=
+  (state.markConclusion conclusion representative)
+    |>.setParent retired representative
+
+/-- The token-semantic tensor update preserves ordered parents when the chosen
+representative is no larger than the retired root. -/
+theorem OrderedParents.mergeConclusion
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (conclusion representative retired : Nat)
+    (representativeLe : representative ≤ retired) :
+    (state.mergeConclusion conclusion representative retired)
+      |>.OrderedParents := by
+  have markedOrdered :
+      (state.markConclusion conclusion representative).OrderedParents :=
+    OrderedParents.markConclusion ordered conclusion representative
+  have mergedOrdered :
+      ((state.markConclusion conclusion representative)
+        |>.setParent retired representative).OrderedParents :=
+    OrderedParents.setParent markedOrdered representativeLe
+  change ((state.markConclusion conclusion representative)
+    |>.setParent retired representative).OrderedParents
+  exact mergedOrdered
 
 /-- Marking an in-domain conclusion with an allocated token preserves the
 executable-to-abstract-state contract. -/
@@ -571,6 +872,31 @@ theorem Abstractable.markConclusion
     · apply abstractable.markedTokenBound
       simpa [UnificationState.markConclusion, assignedToken?,
         Array.getElem?_setIfInBounds, same] using marked
+
+/-- Marking a tensor conclusion and merging two ordered roots preserves the
+full executable abstraction contract. -/
+theorem Abstractable.mergeConclusion
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {conclusion representative retired : Nat}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (representativeBound : representative < state.parents.size)
+    (representativeLe : representative ≤ retired) :
+    (state.mergeConclusion conclusion representative retired)
+      |>.Abstractable certificate := by
+  have markedAbstractable :
+      (state.markConclusion conclusion representative)
+        |>.Abstractable certificate :=
+    Abstractable.markConclusion abstractable
+      conclusionBound representativeBound
+  have markedOrdered :
+      (state.markConclusion conclusion representative).OrderedParents :=
+    OrderedParents.markConclusion ordered conclusion representative
+  change ((state.markConclusion conclusion representative)
+    |>.setParent retired representative).Abstractable certificate
+  exact Abstractable.setParent markedAbstractable
+    markedOrdered representativeLe
 
 /-- Forgetting a concrete conclusion-marking update is exactly the abstract
 `setMark` update; scheduler counters and parsed components are invisible. -/
@@ -665,6 +991,40 @@ theorem forwardToken?_success
   split at equation <;> simp_all
   split at equation <;> simp_all
   split at equation <;> simp_all
+
+/-- Check exactly the token-level guards of a binary/tensor unify firing and
+return its two distinct current representatives. -/
+def unifyTokens? (state : UnificationState)
+    (left right conclusion : Vertex) : Option (Nat × Nat) :=
+  match state.marks[conclusion]? with
+  | some none =>
+      match state.tokenAt? left with
+      | some leftToken =>
+          match state.tokenAt? right with
+          | some rightToken =>
+              if leftToken == rightToken then none
+              else some (leftToken, rightToken)
+          | none => none
+      | none => none
+  | _ => none
+
+/-- A successful token-level unify check exposes every executable guard and
+returns two distinct representatives. -/
+theorem unifyTokens?_success
+    {state : UnificationState}
+    {left right conclusion leftToken rightToken : Nat}
+    (equation :
+      state.unifyTokens? left right conclusion =
+        some (leftToken, rightToken)) :
+    state.marks[conclusion]? = some none ∧
+      state.tokenAt? left = some leftToken ∧
+      state.tokenAt? right = some rightToken ∧
+      leftToken ≠ rightToken := by
+  unfold unifyTokens? at equation
+  split at equation <;> simp_all
+  split at equation <;> simp_all
+  split at equation <;> simp_all
+  omega
 
 /-- A successful representative lookup always comes from a concrete raw mark
 on the queried occurrence. -/
@@ -833,6 +1193,13 @@ private theorem initialUnificationState_abstractable
   · intro token bound
     simp [initialUnificationState] at bound
 
+/-- The executable initial state starts with an empty ordered parent forest. -/
+private theorem initialUnificationState_orderedParents
+    (certificate : Certificate) :
+    certificate.initialUnificationState.OrderedParents := by
+  intro token parent lookup
+  simp [initialUnificationState] at lookup
+
 private def unificationError (certificate : Certificate)
     (code : UnificationErrorCode) (message : String) :
     UnificationError :=
@@ -955,6 +1322,26 @@ private theorem startAxiom?_refines_start
   exact state.startMarking_startStep abstractable identity
     linkMembership leftBound rightBound leftUnmarked rightUnmarked
 
+/-- Every successful concrete axiom initialization preserves the ordered
+parent forest. -/
+private theorem startAxiom?_success_ordered
+    {certificate : Certificate} {state next : UnificationState}
+    (ordered : state.OrderedParents)
+    {left right : Vertex}
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.OrderedParents := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨leftReady, rightReady, observation⟩
+  have markedOrdered :
+      (state.startMarking left right).OrderedParents :=
+    UnificationState.OrderedParents.startMarking ordered left right
+  have nextOrdered : next.OrderedParents :=
+    UnificationState.ObservationEquivalent.orderedParents
+      observation markedOrdered
+  intro token parent lookup
+  exact nextOrdered lookup
+
 /-- Initialize every axiom thread, preserving link-list order only as the
 deterministic fresh-token order. -/
 private def startAxioms? (certificate : Certificate) :
@@ -965,6 +1352,51 @@ private def startAxioms? (certificate : Certificate) :
       certificate.startAxioms? links next
   | _ :: links, state =>
       certificate.startAxioms? links state
+
+/-- Successful eager axiom initialization preserves the ordered parent forest
+across the whole submitted link list. -/
+private theorem startAxioms?_success_ordered
+    (certificate : Certificate)
+    {links : List Link} {state next : UnificationState}
+    (ordered : state.OrderedParents)
+    (equation :
+      certificate.startAxioms? links state = some next) :
+    next.OrderedParents := by
+  induction links generalizing state with
+  | nil =>
+      simp [startAxioms?] at equation
+      subst next
+      exact ordered
+  | cons link links induction =>
+      cases link with
+      | «axiom» left right =>
+          simp only [startAxioms?] at equation
+          cases startEquation :
+              certificate.startAxiom? state left right with
+          | none =>
+              rw [startEquation] at equation
+              contradiction
+          | some started =>
+              rw [startEquation] at equation
+              have startedOrdered : started.OrderedParents :=
+                certificate.startAxiom?_success_ordered
+                  ordered startEquation
+              have result : next.OrderedParents :=
+                induction startedOrdered equation
+              intro token parent lookup
+              exact result lookup
+      | «par» left right conclusion =>
+          simp only [startAxioms?] at equation
+          have result : next.OrderedParents :=
+            induction ordered equation
+          intro token parent lookup
+          exact result lookup
+      | «tensor» left right conclusion =>
+          simp only [startAxioms?] at equation
+          have result : next.OrderedParents :=
+            induction ordered equation
+          intro token parent lookup
+          exact result lookup
 
 /-- Fire a Guerrini unary/`par` rule when both premises yield the same token.
 The corresponding derivation component is updated in lockstep. -/
@@ -1021,6 +1453,26 @@ private theorem firePar?_success_observation
           subst next
           exact ⟨rfl, rfl⟩
 
+/-- Every successful concrete par firing leaves the ordered parent forest
+unchanged. -/
+private theorem firePar?_success_ordered
+    {state next : UnificationState}
+    (ordered : state.OrderedParents)
+    {left right conclusion : Vertex}
+    (equation : firePar? state left right conclusion = some next) :
+    next.OrderedParents := by
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, forwardEquation, observation⟩
+  have markedOrdered :
+      (state.markConclusion conclusion outputToken).OrderedParents :=
+    UnificationState.OrderedParents.markConclusion
+      ordered conclusion outputToken
+  have nextOrdered : next.OrderedParents :=
+    UnificationState.ObservationEquivalent.orderedParents
+      observation markedOrdered
+  intro token parent lookup
+  exact nextOrdered lookup
+
 /-- Every successful concrete par firing, including component construction,
 refines one independent Figure-5 forward step. -/
 private theorem firePar?_refines_forward
@@ -1051,31 +1503,95 @@ tokens, merge their components, and point the larger representative at the
 smaller one. -/
 private def fireTensor? (state : UnificationState)
     (left right conclusion : Vertex) :
-    Option UnificationState := do
-  guard (state.marks[conclusion]? = some none)
-  let leftToken ← state.tokenAt? left
-  let rightToken ← state.tokenAt? right
-  guard (leftToken != rightToken)
-  let leftComponent ← state.componentAt? leftToken
-  let rightComponent ← state.componentAt? rightToken
-  let (leftFocus, leftContext) ←
-    pickVertex? leftComponent.frontier left
-  let (rightFocus, rightContext) ←
-    pickVertex? rightComponent.frontier right
-  let representative := min leftToken rightToken
-  let retired := max leftToken rightToken
-  let nextComponent : UnificationComponent :=
-    { tree :=
-        .tensor leftFocus rightFocus leftComponent.tree rightComponent.tree
-      frontier := conclusion :: (leftContext ++ rightContext) }
-  let marked := state.markConclusion conclusion representative
-  pure {
-    marked with
-    parents := state.parents.setIfInBounds retired representative
-    components :=
-      (state.components.setIfInBounds representative (some nextComponent))
-        |>.setIfInBounds retired none
-  }
+    Option UnificationState :=
+  match state.unifyTokens? left right conclusion with
+  | none => none
+  | some (leftToken, rightToken) =>
+      match state.componentAt? leftToken with
+      | none => none
+      | some leftComponent =>
+          match state.componentAt? rightToken with
+          | none => none
+          | some rightComponent =>
+              match pickVertex? leftComponent.frontier left with
+              | none => none
+              | some (leftFocus, leftContext) =>
+                  match pickVertex? rightComponent.frontier right with
+                  | none => none
+                  | some (rightFocus, rightContext) =>
+                      let representative := min leftToken rightToken
+                      let retired := max leftToken rightToken
+                      let nextComponent : UnificationComponent :=
+                        { tree :=
+                            .tensor leftFocus rightFocus
+                              leftComponent.tree rightComponent.tree
+                          frontier :=
+                            conclusion :: (leftContext ++ rightContext) }
+                      let merged :=
+                        state.mergeConclusion conclusion
+                          representative retired
+                      some {
+                        merged with
+                        components :=
+                          (state.components.setIfInBounds representative
+                            (some nextComponent))
+                            |>.setIfInBounds retired none
+                      }
+
+/-- Successful tensor component construction changes the observable state
+exactly by the token-semantic mark-and-parent update selected by the two
+distinct representatives. -/
+private theorem fireTensor?_success_observation
+    {state next : UnificationState}
+    {left right conclusion : Vertex}
+    (equation : fireTensor? state left right conclusion = some next) :
+    ∃ leftToken rightToken,
+      state.unifyTokens? left right conclusion =
+          some (leftToken, rightToken) ∧
+        UnificationState.ObservationEquivalent
+          (state.mergeConclusion conclusion
+            (min leftToken rightToken) (max leftToken rightToken))
+          next := by
+  unfold fireTensor? at equation
+  split at equation
+  · contradiction
+  · rename_i _ leftToken rightToken unifyEquation
+    refine ⟨leftToken, rightToken, unifyEquation, ?_⟩
+    split at equation
+    · contradiction
+    · split at equation
+      · contradiction
+      · split at equation
+        · contradiction
+        · split at equation
+          · contradiction
+          · injection equation with stateEquation
+            subst next
+            exact ⟨rfl, rfl⟩
+
+/-- Every successful concrete tensor firing preserves the ordered union-find
+forest invariant, independently of component construction. -/
+private theorem fireTensor?_success_ordered
+    {state next : UnificationState}
+    (ordered : state.OrderedParents)
+    {left right conclusion : Vertex}
+    (equation : fireTensor? state left right conclusion = some next) :
+    next.OrderedParents := by
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, unifyEquation, observation⟩
+  have mergedOrdered :
+      (state.mergeConclusion conclusion
+        (min leftToken rightToken) (max leftToken rightToken))
+        |>.OrderedParents :=
+    ordered.mergeConclusion conclusion
+      (min leftToken rightToken) (max leftToken rightToken)
+      (Nat.le_trans (Nat.min_le_left leftToken rightToken)
+        (Nat.le_max_left leftToken rightToken))
+  have nextOrdered : next.OrderedParents :=
+    UnificationState.ObservationEquivalent.orderedParents
+      observation mergedOrdered
+  intro token parent lookup
+  exact nextOrdered lookup
 
 /-- Try one connective. `none` means that the link is currently idle, waiting,
 already fired, or a binary deadlock; it is not an exception. -/
@@ -1087,15 +1603,80 @@ private def fireConnective? (state : UnificationState) :
   | .tensor left right conclusion =>
       fireTensor? state left right conclusion
 
+/-- Every successful connective firing preserves the ordered parent forest. -/
+private theorem fireConnective?_success_ordered
+    {state next : UnificationState}
+    (ordered : state.OrderedParents)
+    {link : Link}
+    (equation : fireConnective? state link = some next) :
+    next.OrderedParents := by
+  cases link with
+  | «axiom» left right =>
+      simp [fireConnective?] at equation
+  | «par» left right conclusion =>
+      exact firePar?_success_ordered ordered equation
+  | «tensor» left right conclusion =>
+      exact fireTensor?_success_ordered ordered equation
+
+/-- One fold update for a deterministic connective pass. -/
+private def unificationFoldStep
+    (current : UnificationState × Nat) (link : Link) :
+    UnificationState × Nat :=
+  match fireConnective? current.1 link with
+  | none => current
+  | some next => (next, current.2 + 1)
+
 /-- One deterministic left-to-right pass over all connective links. -/
 private def unificationPass (links : List Link)
     (initial : UnificationState) : UnificationState × Nat :=
-  links.foldl
-    (fun (state, progress) link =>
-      match fireConnective? state link with
-      | none => (state, progress)
-      | some next => (next, progress + 1))
-    (initial, 0)
+  links.foldl unificationFoldStep (initial, 0)
+
+/-- The ordered parent forest is invariant under a whole eager connective
+pass, for any incoming progress counter. -/
+private theorem unificationFold_ordered
+    (links : List Link) {state : UnificationState} (progress : Nat)
+    (ordered : state.OrderedParents) :
+    ((links.foldl unificationFoldStep
+      (state, progress)).1).OrderedParents := by
+  induction links generalizing state progress with
+  | nil =>
+      exact ordered
+  | cons link links induction =>
+      simp only [List.foldl_cons]
+      cases fireEquation : fireConnective? state link with
+      | none =>
+          have stepEquation :
+              unificationFoldStep (state, progress) link =
+                (state, progress) := by
+            simp [unificationFoldStep, fireEquation]
+          rw [stepEquation]
+          have result :
+              ((links.foldl unificationFoldStep
+                (state, progress)).1).OrderedParents :=
+            induction progress ordered
+          intro token parent lookup
+          exact result lookup
+      | some fired =>
+          have stepEquation :
+              unificationFoldStep (state, progress) link =
+                (fired, progress + 1) := by
+            simp [unificationFoldStep, fireEquation]
+          rw [stepEquation]
+          have firedOrdered : fired.OrderedParents :=
+            fireConnective?_success_ordered ordered fireEquation
+          have result :
+              ((links.foldl unificationFoldStep
+                (fired, progress + 1)).1).OrderedParents :=
+            induction (progress + 1) firedOrdered
+          intro token parent lookup
+          exact result lookup
+
+/-- A deterministic eager pass preserves the ordered parent forest. -/
+private theorem unificationPass_ordered
+    (links : List Link) {state : UnificationState}
+    (ordered : state.OrderedParents) :
+    (unificationPass links state).1.OrderedParents := by
+  exact unificationFold_ordered links 0 ordered
 
 private structure UnificationSaturationResult where
   state : UnificationState
@@ -1146,6 +1727,30 @@ private theorem saturateUnification_stats (links : List Link)
         · omega
         · rw [tail.2]
           simp [Nat.add_mul]
+
+/-- Every eager saturation prefix preserves the ordered parent forest. -/
+private theorem saturateUnification_ordered
+    (links : List Link) (fuel : Nat)
+    {state : UnificationState}
+    (ordered : state.OrderedParents) :
+    (saturateUnification links fuel state).state.OrderedParents := by
+  induction fuel generalizing state with
+  | zero =>
+      exact ordered
+  | succ fuel induction =>
+      simp only [saturateUnification]
+      have nextOrdered :
+          (unificationPass links state).1.OrderedParents :=
+        unificationPass_ordered links ordered
+      split
+      · intro token parent lookup
+        exact nextOrdered lookup
+      · have saturatedOrdered :
+            (saturateUnification links fuel
+              (unificationPass links state).1).state.OrderedParents :=
+          induction nextOrdered
+        intro token parent lookup
+        exact saturatedOrdered lookup
 
 private inductive WorklistEnqueueKind where
   | initial

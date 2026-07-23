@@ -2485,6 +2485,17 @@ Merge the two old equivalence classes containing `leftToken` and
 ProofNetIR.UnificationMarking.MergeExtension : {certificate : ProofNetIR.Certificate} → ProofNetIR.UnificationMarking certificate → Nat → Nat → Nat → Nat → Prop
 ```
 
+### `ProofNetIR.UnificationMarking.mergeExtension_equivalence`
+
+Kind: theorem.
+
+Merging two equivalence classes again yields an equivalence relation.
+
+```lean
+ProofNetIR.UnificationMarking.mergeExtension_equivalence : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
+  (leftToken rightToken : Nat), Equivalence (state.MergeExtension leftToken rightToken)
+```
+
 ### `ProofNetIR.UnificationRuleKind`
 
 Kind: inductive type.
@@ -2613,6 +2624,71 @@ union-find parent. No connective union has fired yet.
 ProofNetIR.UnificationState.IdentityParents : ProofNetIR.UnificationState → Prop
 ```
 
+### `ProofNetIR.UnificationState.OrderedParents`
+
+Kind: definition.
+
+Every parent pointer is nonincreasing in token number. Consequently each
+non-root pointer is strictly decreasing, ruling out the fuel-artifact cycles
+that the bounds-only abstraction contract intentionally does not exclude.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents : ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.representative_le`
+
+Kind: theorem.
+
+An ordered union-find forest always returns a no-larger representative.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.representative_le : ∀ {state : ProofNetIR.UnificationState}, state.OrderedParents → ∀ (token : Nat), state.representative token ≤ token
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.representative_lt`
+
+Kind: theorem.
+
+Representatives of allocated tokens remain allocated.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.representative_lt : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents → ∀ {token : Nat}, token < state.parents.size → state.representative token < state.parents.size
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.representative_idempotent`
+
+Kind: theorem.
+
+Ordered-parent traversal is idempotent on every allocated token.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.representative_idempotent : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents →
+    ∀ {token : Nat},
+      token < state.parents.size → state.representative (state.representative token) = state.representative token
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.abstractable`
+
+Kind: theorem.
+
+Mark-domain bounds plus an ordered parent forest suffice to construct the
+full executable abstraction contract; representative range and idempotence
+are consequences rather than independent assumptions.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.abstractable : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  state.OrderedParents →
+    state.marks.size = certificate.formulas.size →
+      (∀ {vertex : ProofNetIR.Vertex} {token : Nat},
+          state.assignedToken? vertex = some token → vertex < certificate.formulas.size) →
+        (∀ {vertex : ProofNetIR.Vertex} {token : Nat},
+            state.assignedToken? vertex = some token → token < state.parents.size) →
+          ProofNetIR.UnificationState.Abstractable certificate state
+```
+
 ### `ProofNetIR.UnificationState.IdentityParents.representative_eq`
 
 Kind: theorem.
@@ -2648,6 +2724,16 @@ ProofNetIR.UnificationState.IdentityParents.sameThread_iff : ∀ {state : ProofN
   state.IdentityParents → ∀ (first second : Nat), state.SameThread first second ↔ first = second
 ```
 
+### `ProofNetIR.UnificationState.IdentityParents.orderedParents`
+
+Kind: theorem.
+
+The identity-parent phase is an ordered union-find forest.
+
+```lean
+ProofNetIR.UnificationState.IdentityParents.orderedParents : ∀ {state : ProofNetIR.UnificationState}, state.IdentityParents → state.OrderedParents
+```
+
 ### `ProofNetIR.UnificationState.IdentityParents.push_fresh`
 
 Kind: theorem.
@@ -2674,6 +2760,18 @@ ProofNetIR.UnificationState.ObservationEquivalent.abstractable : ∀ {certificat
   first.ObservationEquivalent second →
     ProofNetIR.UnificationState.Abstractable certificate first →
       ProofNetIR.UnificationState.Abstractable certificate second
+```
+
+### `ProofNetIR.UnificationState.ObservationEquivalent.orderedParents`
+
+Kind: theorem.
+
+Observation-equivalent states either both satisfy or both violate the
+ordered-parent forest invariant.
+
+```lean
+ProofNetIR.UnificationState.ObservationEquivalent.orderedParents : ∀ {first second : ProofNetIR.UnificationState},
+  first.ObservationEquivalent second → first.OrderedParents → second.OrderedParents
 ```
 
 ### `ProofNetIR.UnificationState.toMarking`
@@ -2766,6 +2864,17 @@ ProofNetIR.UnificationState.IdentityParents.startMarking : ∀ {state : ProofNet
   state.IdentityParents → ∀ (left right : ProofNetIR.Vertex), (state.startMarking left right).IdentityParents
 ```
 
+### `ProofNetIR.UnificationState.OrderedParents.startMarking`
+
+Kind: theorem.
+
+Starting an axiom preserves the ordered-forest invariant.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.startMarking : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents → ∀ (left right : ProofNetIR.Vertex), (state.startMarking left right).OrderedParents
+```
+
 ### `ProofNetIR.UnificationState.Abstractable.startMarking`
 
 Kind: theorem.
@@ -2834,6 +2943,45 @@ ProofNetIR.UnificationState.startMarking_startStep : ∀ {certificate : ProofNet
             ((state.startMarking left right).toMarking certificate ⋯)
 ```
 
+### `ProofNetIR.UnificationState.setParent`
+
+Kind: definition.
+
+Update one union-find parent pointer without changing marks, parsed
+components, or work counters.
+
+```lean
+ProofNetIR.UnificationState.setParent : ProofNetIR.UnificationState → Nat → Nat → ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.setParent`
+
+Kind: theorem.
+
+Pointing a token to a no-larger parent preserves the ordered-forest
+invariant.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.setParent : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents → ∀ {token parent : Nat}, parent ≤ token → (state.setParent token parent).OrderedParents
+```
+
+### `ProofNetIR.UnificationState.Abstractable.setParent`
+
+Kind: theorem.
+
+Updating one pointer inside an ordered forest preserves the executable
+abstraction contract; the ordered invariant supplies the new representative
+bounds and idempotence.
+
+```lean
+ProofNetIR.UnificationState.Abstractable.setParent : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate state →
+    state.OrderedParents →
+      ∀ {token parent : Nat},
+        parent ≤ token → ProofNetIR.UnificationState.Abstractable certificate (state.setParent token parent)
+```
+
 ### `ProofNetIR.UnificationState.markConclusion`
 
 Kind: definition.
@@ -2843,6 +2991,17 @@ without changing the token partition or parsed components.
 
 ```lean
 ProofNetIR.UnificationState.markConclusion : ProofNetIR.UnificationState → Nat → Nat → ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.markConclusion`
+
+Kind: theorem.
+
+Marking a conclusion leaves the ordered parent forest unchanged.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.markConclusion : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents → ∀ (conclusion token : Nat), (state.markConclusion conclusion token).OrderedParents
 ```
 
 ### `ProofNetIR.UnificationState.Abstractable.markConclusion`
@@ -2859,6 +3018,51 @@ ProofNetIR.UnificationState.Abstractable.markConclusion : ∀ {certificate : Pro
       conclusion < certificate.formulas.size →
         token < state.parents.size →
           ProofNetIR.UnificationState.Abstractable certificate (state.markConclusion conclusion token)
+```
+
+### `ProofNetIR.UnificationState.mergeConclusion`
+
+Kind: definition.
+
+Mark one tensor conclusion and point the retired representative at the
+surviving representative. Parsed components remain outside this token-semantic
+update.
+
+```lean
+ProofNetIR.UnificationState.mergeConclusion : ProofNetIR.UnificationState → Nat → Nat → Nat → ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.mergeConclusion`
+
+Kind: theorem.
+
+The token-semantic tensor update preserves ordered parents when the chosen
+representative is no larger than the retired root.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.mergeConclusion : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents →
+    ∀ (conclusion representative retired : Nat),
+      representative ≤ retired → (state.mergeConclusion conclusion representative retired).OrderedParents
+```
+
+### `ProofNetIR.UnificationState.Abstractable.mergeConclusion`
+
+Kind: theorem.
+
+Marking a tensor conclusion and merging two ordered roots preserves the
+full executable abstraction contract.
+
+```lean
+ProofNetIR.UnificationState.Abstractable.mergeConclusion : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate state →
+    state.OrderedParents →
+      ∀ {conclusion representative retired : Nat},
+        conclusion < certificate.formulas.size →
+          representative < state.parents.size →
+            representative ≤ retired →
+              ProofNetIR.UnificationState.Abstractable certificate
+                (state.mergeConclusion conclusion representative retired)
 ```
 
 ### `ProofNetIR.UnificationState.markConclusion_toMarking_mark`
@@ -2923,6 +3127,31 @@ ProofNetIR.UnificationState.forwardToken?_success : ∀ {state : ProofNetIR.Unif
   state.forwardToken? left right conclusion = some outputToken →
     state.marks[conclusion]? = some none ∧
       state.tokenAt? left = some outputToken ∧ state.tokenAt? right = some outputToken
+```
+
+### `ProofNetIR.UnificationState.unifyTokens?`
+
+Kind: definition.
+
+Check exactly the token-level guards of a binary/tensor unify firing and
+return its two distinct current representatives.
+
+```lean
+ProofNetIR.UnificationState.unifyTokens? : ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Option (Nat × Nat)
+```
+
+### `ProofNetIR.UnificationState.unifyTokens?_success`
+
+Kind: theorem.
+
+A successful token-level unify check exposes every executable guard and
+returns two distinct representatives.
+
+```lean
+ProofNetIR.UnificationState.unifyTokens?_success : ∀ {state : ProofNetIR.UnificationState} {left right conclusion leftToken rightToken : Nat},
+  state.unifyTokens? left right conclusion = some (leftToken, rightToken) →
+    state.marks[conclusion]? = some none ∧
+      state.tokenAt? left = some leftToken ∧ state.tokenAt? right = some rightToken ∧ leftToken ≠ rightToken
 ```
 
 ### `ProofNetIR.UnificationState.forwardToken?_refines`

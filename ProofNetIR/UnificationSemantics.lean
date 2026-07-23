@@ -71,10 +71,55 @@ theorem freshExtension_equivalence
 def MergeExtension (state : UnificationMarking certificate)
     (leftToken rightToken left right : Nat) : Prop :=
   state.sameThread left right ∨
-    (state.sameThread left leftToken ∧
-      state.sameThread right rightToken) ∨
-    (state.sameThread left rightToken ∧
-      state.sameThread right leftToken)
+    ((state.sameThread left leftToken ∨
+        state.sameThread left rightToken) ∧
+      (state.sameThread right leftToken ∨
+        state.sameThread right rightToken))
+
+/-- Merging two equivalence classes again yields an equivalence relation. -/
+theorem mergeExtension_equivalence
+    (state : UnificationMarking certificate)
+    (leftToken rightToken : Nat) :
+    Equivalence (state.MergeExtension leftToken rightToken) := by
+  rcases state.sameThreadEquivalence with
+    ⟨reflexive, symmetric, transitive⟩
+  have transportLeft {first second : Nat}
+      (related : state.sameThread first second) :
+      (state.sameThread second leftToken ∨
+          state.sameThread second rightToken) →
+        (state.sameThread first leftToken ∨
+          state.sameThread first rightToken) := by
+    intro membership
+    rcases membership with membership | membership
+    · exact Or.inl (transitive related membership)
+    · exact Or.inr (transitive related membership)
+  have transportRight {first second : Nat}
+      (related : state.sameThread first second) :
+      (state.sameThread first leftToken ∨
+          state.sameThread first rightToken) →
+        (state.sameThread second leftToken ∨
+          state.sameThread second rightToken) := by
+    exact transportLeft (symmetric related)
+  refine ⟨?_, ?_, ?_⟩
+  · intro token
+    exact Or.inl (reflexive token)
+  · intro first second related
+    rcases related with old | ⟨firstMerged, secondMerged⟩
+    · exact Or.inl (symmetric old)
+    · exact Or.inr ⟨secondMerged, firstMerged⟩
+  · intro first second third firstSecond secondThird
+    rcases firstSecond with
+      oldFirstSecond | ⟨firstMerged, secondMerged⟩
+    · rcases secondThird with
+        oldSecondThird | ⟨secondMerged', thirdMerged⟩
+      · exact Or.inl (transitive oldFirstSecond oldSecondThird)
+      · exact Or.inr
+          ⟨transportLeft oldFirstSecond secondMerged', thirdMerged⟩
+    · rcases secondThird with
+        oldSecondThird | ⟨secondMerged', thirdMerged⟩
+      · exact Or.inr
+          ⟨firstMerged, transportRight oldSecondThird secondMerged⟩
+      · exact Or.inr ⟨firstMerged, thirdMerged⟩
 
 end UnificationMarking
 

@@ -41,6 +41,12 @@ example {certificate : ProofNetIR.Certificate}
   state.freshExtension_equivalence fresh
 
 example {certificate : ProofNetIR.Certificate}
+    (state : ProofNetIR.UnificationMarking certificate)
+    (leftToken rightToken : Nat) :
+    Equivalence (state.MergeExtension leftToken rightToken) :=
+  state.mergeExtension_equivalence leftToken rightToken
+
+example {certificate : ProofNetIR.Certificate}
     {state : ProofNetIR.UnificationState}
     (abstractable : state.Abstractable certificate)
     (identity : state.IdentityParents)
@@ -57,6 +63,37 @@ example {certificate : ProofNetIR.Certificate}
         (abstractable.startMarking identity leftBound rightBound)) :=
   state.startMarking_startStep abstractable identity membership
     leftBound rightBound leftUnmarked rightUnmarked
+
+example {state : ProofNetIR.UnificationState}
+    (ordered : state.OrderedParents)
+    {token : Nat} (bound : token < state.parents.size) :
+    state.representative (state.representative token) =
+      state.representative token :=
+  ordered.representative_idempotent bound
+
+example {certificate : ProofNetIR.Certificate}
+    {state : ProofNetIR.UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {conclusion representative retired : Nat}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (representativeBound : representative < state.parents.size)
+    (representativeLe : representative ≤ retired) :
+    (state.mergeConclusion conclusion representative retired)
+      |>.Abstractable certificate :=
+  abstractable.mergeConclusion ordered conclusionBound
+    representativeBound representativeLe
+
+example {state : ProofNetIR.UnificationState}
+    {left right conclusion leftToken rightToken : Nat}
+    (equation :
+      state.unifyTokens? left right conclusion =
+        some (leftToken, rightToken)) :
+    state.marks[conclusion]? = some none ∧
+      state.tokenAt? left = some leftToken ∧
+      state.tokenAt? right = some rightToken ∧
+      leftToken ≠ rightToken :=
+  state.unifyTokens?_success equation
 
 example (certificate : ProofNetIR.Certificate)
     (state : ProofNetIR.UnificationState)

@@ -51,6 +51,23 @@
   equivalent to that verified update. The real `startAxiom?` path now reuses
   the verified start update, exposes both successful guards, and is proved to
   refine `UnificationStep.start`; tensor/unify refinement remains open;
+- restated `MergeExtension` as the equivalence closure of the two selected
+  classes and proved that it is an equivalence relation for every old thread
+  equivalence;
+- found a second development-invariant gap with a kernel-checked minimal
+  counterexample: the previous bounds/idempotence-only `Abstractable` contract
+  admitted `parents = #[1, 0]`, whose fuel-limited representatives look
+  idempotent even though a requested root merge need not change the cyclic
+  array. Added `OrderedParents`, requiring every non-root pointer to decrease,
+  and proved representative nonincrease, allocation bounds, fuel stability,
+  and idempotence from this forest invariant. The invariant is now preserved
+  by initial axiom setup, start, par/forward, tensor parent updates, whole eager
+  passes, and arbitrary saturation prefixes;
+- factored tensor guards into `unifyTokens?` and tensor token updates into
+  `mergeConclusion`; proved ordered-forest and full `Abstractable`
+  preservation for the update, and proved the real `fireTensor?` path is
+  observation-equivalent to it. The remaining tensor boundary is the exact
+  theorem identifying the updated representatives with `MergeExtension`;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 
