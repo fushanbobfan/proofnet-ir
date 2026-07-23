@@ -41,7 +41,7 @@
   successful representative lookup and place that representative in the same
   semantic thread. Identity-parent invariants now prove start preservation,
   global representative identity, fresh-token isolation, and exact
-  `startMarking` refinement; union/unify preservation remains open;
+  `startMarking` refinement;
 - added observation equivalence for executable states that agree on exactly
   `marks` and `parents`; proved it preserves `Abstractable` and yields the same
   independent `UnificationMarking`;
@@ -50,7 +50,7 @@
   `firePar?` path including component/frontier construction is observation-
   equivalent to that verified update. The real `startAxiom?` path now reuses
   the verified start update, exposes both successful guards, and is proved to
-  refine `UnificationStep.start`; tensor/unify refinement remains open;
+  refine `UnificationStep.start`;
 - restated `MergeExtension` as the equivalence closure of the two selected
   classes and proved that it is an equivalence relation for every old thread
   equivalence;
@@ -66,8 +66,25 @@
 - factored tensor guards into `unifyTokens?` and tensor token updates into
   `mergeConclusion`; proved ordered-forest and full `Abstractable`
   preservation for the update, and proved the real `fireTensor?` path is
-  observation-equivalent to it. The remaining tensor boundary is the exact
-  theorem identifying the updated representatives with `MergeExtension`;
+  observation-equivalent to it;
+- proved the exact ordered union-find update theorem on allocated tokens and
+  on the full fixed `Nat` carrier: pointing a larger root at a smaller root
+  changes `SameThread` precisely by `MergeExtension`, while unallocated
+  carrier elements remain singleton classes. `MergeExtension` is also proved
+  invariant under equivalent class representatives and under swapping its two
+  selected classes;
+- proved successful `unifyTokens?` execution refines exactly one independent
+  `UnificationStep.unify`, including raw premise marks, distinct premise
+  threads, output-thread membership, unchanged allocation count, exact
+  conclusion marking, and exact global thread relation. The real
+  `fireTensor?` component-building path inherits this refinement through
+  observation equivalence;
+- added the independent reflexive-transitive `UnificationExecution` relation
+  and proved that every real connective firing, complete eager pass, and
+  finite eager-saturation prefix preserves the abstraction contract and is
+  simulated by such an execution. These are implementation-soundness results;
+  scheduler progress and pure worklist completeness remain separate open
+  obligations;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 

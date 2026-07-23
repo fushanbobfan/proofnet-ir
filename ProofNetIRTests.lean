@@ -47,6 +47,20 @@ example {certificate : ProofNetIR.Certificate}
   state.mergeExtension_equivalence leftToken rightToken
 
 example {certificate : ProofNetIR.Certificate}
+    (state : ProofNetIR.UnificationMarking certificate)
+    (leftToken rightToken : Nat) :
+    state.MergeExtension leftToken rightToken =
+      state.MergeExtension rightToken leftToken :=
+  state.mergeExtension_comm leftToken rightToken
+
+example {certificate : ProofNetIR.Certificate}
+    {state next : ProofNetIR.UnificationMarking certificate}
+    (transition :
+      ProofNetIR.UnificationStep certificate state next) :
+    ProofNetIR.UnificationExecution certificate state next :=
+  ProofNetIR.UnificationExecution.single transition
+
+example {certificate : ProofNetIR.Certificate}
     {state : ProofNetIR.UnificationState}
     (abstractable : state.Abstractable certificate)
     (identity : state.IdentityParents)
@@ -103,6 +117,14 @@ example (certificate : ProofNetIR.Certificate)
     token < state.parents.size :=
   abstractable.tokenAt?_bound yielded
 
+example (certificate : ProofNetIR.Certificate)
+    (state : ProofNetIR.UnificationState)
+    (abstractable : state.Abstractable certificate)
+    {vertex token : Nat}
+    (yielded : state.tokenAt? vertex = some token) :
+    state.representative token = token :=
+  abstractable.tokenAt?_root yielded
+
 example {state : ProofNetIR.UnificationState}
     {vertex token : Nat}
     (yielded : state.tokenAt? vertex = some token) :
@@ -110,6 +132,27 @@ example {state : ProofNetIR.UnificationState}
       state.assignedToken? vertex = some rawToken ∧
         state.representative rawToken = token :=
   state.tokenAt?_some_witness yielded
+
+example {certificate : ProofNetIR.Certificate}
+    {state : ProofNetIR.UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right conclusion leftToken rightToken : Nat}
+    (membership :
+      ProofNetIR.Link.tensor left right conclusion ∈ certificate.links)
+    (equation :
+      state.unifyTokens? left right conclusion =
+        some (leftToken, rightToken)) :
+    ∃ nextAbstractable :
+        (state.mergeConclusion conclusion
+          (min leftToken rightToken) (max leftToken rightToken))
+          |>.Abstractable certificate,
+      ProofNetIR.UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        ((state.mergeConclusion conclusion
+          (min leftToken rightToken) (max leftToken rightToken)).toMarking
+            certificate nextAbstractable) :=
+  state.unifyTokens?_refines abstractable ordered membership equation
 
 example (certificate : ProofNetIR.Certificate)
     (state : ProofNetIR.UnificationState)

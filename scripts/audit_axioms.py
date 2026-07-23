@@ -100,6 +100,11 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.unificationCheck_eq_true_iff_declarativelyCorrect",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
+    "ProofNetIR.UnificationState.mergeConclusion_toMarking_mark",
+    "ProofNetIR.UnificationState.OrderedParents.setParent_representative",
+    "ProofNetIR.UnificationState.OrderedParents.setParent_sameThread",
+    "ProofNetIR.UnificationState.OrderedParents.setParent_sameThread_all",
+    "ProofNetIR.UnificationState.unifyTokens?_refines",
 }
 EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.toProof",
@@ -116,6 +121,9 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.UnificationState.Abstractable.tokenAt?_bound",
     "ProofNetIR.UnificationState.tokenAt?_some_witness",
     "ProofNetIR.UnificationState.Abstractable.tokenAt?_sameThread_witness",
+    "ProofNetIR.UnificationState.Abstractable.tokenAt?_root",
+    "ProofNetIR.UnificationMarking.mergeExtension_equivalence",
+    "ProofNetIR.UnificationExecution.trans",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
@@ -154,6 +162,8 @@ EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.UnificationState.ObservationEquivalent.toMarking_eq",
     "ProofNetIR.UnificationState.forwardToken?_success",
     "ProofNetIR.UnificationState.forwardToken?_refines",
+    "ProofNetIR.UnificationMarking.mergeExtension_congr",
+    "ProofNetIR.UnificationMarking.mergeExtension_comm",
 }
 EXPECTED_THEOREMS = (
     EXPECTED_CLASSICAL_THEOREMS

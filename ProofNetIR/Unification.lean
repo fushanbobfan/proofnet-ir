@@ -349,6 +349,96 @@ theorem OrderedParents.representative_idempotent
       · omega
       · exact bound
 
+/-- An allocated token that is already its own representative is stored as a
+self-parent root. -/
+theorem OrderedParents.lookup_self_of_representative_eq
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {token : Nat} (bound : token < state.parents.size)
+    (root : state.representative token = token) :
+    state.parents[token]? = some token := by
+  cases lookup : state.parents[token]? with
+  | none =>
+      have outOfBounds := Array.getElem?_eq_none_iff.mp lookup
+      omega
+  | some parent =>
+      by_cases self : parent = token
+      · subst parent
+        rfl
+      · have parentLt : parent < token := by
+          have parentLe := ordered lookup
+          omega
+        cases sizeEquation : state.parents.size with
+        | zero =>
+            omega
+        | succ fuel =>
+            have traversal :
+                representativeWithFuel state.parents fuel parent = token := by
+              simpa [representative, sizeEquation,
+                representativeWithFuel, lookup, self] using root
+            have traversalLe :=
+              ordered.representativeWithFuel_le fuel parent
+            rw [traversal] at traversalLe
+            omega
+
+/-- Every allocated representative is backed by a self-parent root entry. -/
+theorem OrderedParents.representative_lookup_self
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {token : Nat} (bound : token < state.parents.size) :
+    state.parents[state.representative token]? =
+      some (state.representative token) := by
+  apply ordered.lookup_self_of_representative_eq
+    (ordered.representative_lt bound)
+  exact ordered.representative_idempotent bound
+
+/-- An allocated token and its stored parent have the same representative. -/
+theorem OrderedParents.representative_eq_representative_parent
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {token parent : Nat}
+    (tokenBound : token < state.parents.size)
+    (lookup : state.parents[token]? = some parent) :
+    state.representative token = state.representative parent := by
+  by_cases self : parent = token
+  · subst parent
+    rfl
+  · have parentLt : parent < token := by
+      have parentLe := ordered lookup
+      omega
+    cases sizeEquation : state.parents.size with
+    | zero =>
+        omega
+    | succ fuel =>
+        unfold representative
+        simp only [sizeEquation]
+        have firstStep :
+            representativeWithFuel state.parents (fuel + 1) token =
+              representativeWithFuel state.parents fuel parent := by
+          simp [representativeWithFuel, lookup, self]
+        rw [firstStep]
+        apply ordered.representativeWithFuel_eq_of_token_lt
+        · omega
+        · omega
+
+/-- A stored self-parent entry is returned as its own representative. -/
+theorem representative_eq_of_lookup_self
+    {state : UnificationState} {token : Nat}
+    (lookup : state.parents[token]? = some token) :
+    state.representative token = token := by
+  unfold representative
+  exact representativeWithFuel_of_lookup_self
+    state.parents lookup state.parents.size
+
+/-- Unallocated carrier elements are represented by themselves. -/
+theorem representative_eq_of_size_le
+    (state : UnificationState) {token : Nat}
+    (outOfBounds : state.parents.size ≤ token) :
+    state.representative token = token := by
+  unfold representative
+  exact representativeWithFuel_of_lookup_none state.parents
+    (Array.getElem?_eq_none outOfBounds) state.parents.size
+
 /-- Mark-domain bounds plus an ordered parent forest suffice to construct the
 full executable abstraction contract; representative range and idempotence
 are consequences rather than independent assumptions. -/
@@ -792,6 +882,266 @@ theorem Abstractable.setParent
     have oldBound := abstractable.markedTokenBound marked
     simpa [UnificationState.setParent] using oldBound
 
+/-- Pointing one allocated root at a smaller allocated root changes exactly the
+old retired class to the surviving representative. -/
+theorem OrderedParents.setParent_representative
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {survivor retired : Nat}
+    (survivorBound : survivor < state.parents.size)
+    (retiredBound : retired < state.parents.size)
+    (survivorLt : survivor < retired)
+    (survivorRoot : state.representative survivor = survivor)
+    (retiredRoot : state.representative retired = retired)
+    {token : Nat} (tokenBound : token < state.parents.size) :
+    (state.setParent retired survivor).representative token =
+      if state.representative token = retired then
+        survivor
+      else
+        state.representative token := by
+  have nextOrdered :
+      (state.setParent retired survivor).OrderedParents :=
+    OrderedParents.setParent ordered (Nat.le_of_lt survivorLt)
+  induction token using Nat.strongRecOn with
+  | ind token induction =>
+      cases lookup : state.parents[token]? with
+      | none =>
+          have outOfBounds := Array.getElem?_eq_none_iff.mp lookup
+          omega
+      | some parent =>
+          by_cases atRetired : token = retired
+          · subst token
+            have nextLookup :
+                (state.setParent retired survivor).parents[retired]? =
+                  some survivor := by
+              simp [UnificationState.setParent, retiredBound]
+            have nextRetiredBound :
+                retired <
+                  (state.setParent retired survivor).parents.size := by
+              simpa [UnificationState.setParent] using retiredBound
+            have nextStep :=
+              nextOrdered.representative_eq_representative_parent
+                nextRetiredBound nextLookup
+            have survivorLookup :
+                state.parents[survivor]? = some survivor :=
+              ordered.lookup_self_of_representative_eq
+                survivorBound survivorRoot
+            have different : retired ≠ survivor := by
+              omega
+            have nextSurvivorLookup :
+                (state.setParent retired survivor).parents[survivor]? =
+                  some survivor := by
+              simpa [UnificationState.setParent,
+                Array.getElem?_setIfInBounds, different] using
+                survivorLookup
+            have nextSurvivorRoot :
+                (state.setParent retired survivor).representative survivor =
+                  survivor :=
+              representative_eq_of_lookup_self nextSurvivorLookup
+            rw [nextStep, nextSurvivorRoot, retiredRoot]
+            simp
+          · have different : retired ≠ token := Ne.symm atRetired
+            have nextLookup :
+                (state.setParent retired survivor).parents[token]? =
+                  some parent := by
+              simpa [UnificationState.setParent,
+                Array.getElem?_setIfInBounds, different] using lookup
+            have nextTokenBound :
+                token <
+                  (state.setParent retired survivor).parents.size := by
+              simpa [UnificationState.setParent] using tokenBound
+            have nextStep :=
+              nextOrdered.representative_eq_representative_parent
+                nextTokenBound nextLookup
+            have oldStep :=
+              ordered.representative_eq_representative_parent
+                tokenBound lookup
+            by_cases self : parent = token
+            · subst parent
+              have oldRoot : state.representative token = token :=
+                representative_eq_of_lookup_self lookup
+              have nextRoot :
+                  (state.setParent retired survivor).representative token =
+                    token :=
+                representative_eq_of_lookup_self nextLookup
+              rw [oldRoot, nextRoot]
+              simp [atRetired]
+            · have parentLt : parent < token := by
+                have parentLe := ordered lookup
+                omega
+              have parentBound : parent < state.parents.size := by
+                omega
+              rw [nextStep, oldStep,
+                induction parent parentLt parentBound]
+
+/-- The executable same-thread relation after a root update is exactly the
+equivalence closure that merges the surviving and retired old classes. -/
+theorem OrderedParents.setParent_sameThread
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {survivor retired : Nat}
+    (survivorBound : survivor < state.parents.size)
+    (retiredBound : retired < state.parents.size)
+    (survivorLt : survivor < retired)
+    (survivorRoot : state.representative survivor = survivor)
+    (retiredRoot : state.representative retired = retired)
+    {first second : Nat}
+    (firstBound : first < state.parents.size)
+    (secondBound : second < state.parents.size) :
+    (state.setParent retired survivor).SameThread first second ↔
+      state.SameThread first second ∨
+        ((state.SameThread first survivor ∨
+            state.SameThread first retired) ∧
+          (state.SameThread second survivor ∨
+            state.SameThread second retired)) := by
+  unfold SameThread
+  rw [ordered.setParent_representative survivorBound retiredBound
+      survivorLt survivorRoot retiredRoot firstBound,
+    ordered.setParent_representative survivorBound retiredBound
+      survivorLt survivorRoot retiredRoot secondBound]
+  have different : survivor ≠ retired := Nat.ne_of_lt survivorLt
+  by_cases firstRetired :
+      state.representative first = retired
+  · by_cases secondRetired :
+        state.representative second = retired
+    · simp [firstRetired, secondRetired, survivorRoot,
+        retiredRoot]
+    · simp [firstRetired, secondRetired, survivorRoot,
+        retiredRoot, eq_comm]
+      intro equality
+      exact (secondRetired equality.symm).elim
+  · by_cases secondRetired :
+        state.representative second = retired
+    · simp [firstRetired, secondRetired, survivorRoot,
+        retiredRoot, different, eq_comm]
+    · simp [firstRetired, secondRetired, survivorRoot,
+        retiredRoot]
+      intro firstSurvivor secondSurvivor
+      exact firstSurvivor.trans secondSurvivor.symm
+
+/-- The root-update characterization holds on the full fixed `Nat` carrier,
+including unallocated singleton elements. -/
+theorem OrderedParents.setParent_sameThread_all
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    {survivor retired : Nat}
+    (survivorBound : survivor < state.parents.size)
+    (retiredBound : retired < state.parents.size)
+    (survivorLt : survivor < retired)
+    (survivorRoot : state.representative survivor = survivor)
+    (retiredRoot : state.representative retired = retired)
+    (first second : Nat) :
+    (state.setParent retired survivor).SameThread first second ↔
+      state.SameThread first second ∨
+        ((state.SameThread first survivor ∨
+            state.SameThread first retired) ∧
+          (state.SameThread second survivor ∨
+            state.SameThread second retired)) := by
+  have nextOrdered :
+      (state.setParent retired survivor).OrderedParents :=
+    OrderedParents.setParent ordered (Nat.le_of_lt survivorLt)
+  by_cases firstBound : first < state.parents.size
+  · by_cases secondBound : second < state.parents.size
+    · exact ordered.setParent_sameThread survivorBound retiredBound
+        survivorLt survivorRoot retiredRoot firstBound secondBound
+    · have secondOut : state.parents.size ≤ second :=
+        Nat.le_of_not_gt secondBound
+      have oldSecond :
+          state.representative second = second :=
+        representative_eq_of_size_le state secondOut
+      have nextSecond :
+          (state.setParent retired survivor).representative second =
+            second :=
+        representative_eq_of_size_le
+          (state.setParent retired survivor) (by
+            simpa [UnificationState.setParent] using secondOut)
+      have oldFirstBound :
+          state.representative first < state.parents.size :=
+        ordered.representative_lt firstBound
+      have nextFirstBound :
+          (state.setParent retired survivor).representative first <
+            state.parents.size := by
+        have allocated :
+            first < (state.setParent retired survivor).parents.size := by
+          simpa [UnificationState.setParent] using firstBound
+        simpa [UnificationState.setParent] using
+          nextOrdered.representative_lt allocated
+      unfold SameThread
+      rw [oldSecond, nextSecond, survivorRoot, retiredRoot]
+      have oldDifferent :
+          state.representative first ≠ second := by omega
+      have nextDifferent :
+          (state.setParent retired survivor).representative first ≠
+            second := by omega
+      have survivorDifferent : second ≠ survivor := by omega
+      have retiredDifferent : second ≠ retired := by omega
+      simp [oldDifferent, nextDifferent,
+        survivorDifferent, retiredDifferent]
+  · have firstOut : state.parents.size ≤ first :=
+      Nat.le_of_not_gt firstBound
+    by_cases secondBound : second < state.parents.size
+    · have oldFirst :
+          state.representative first = first :=
+        representative_eq_of_size_le state firstOut
+      have nextFirst :
+          (state.setParent retired survivor).representative first =
+            first :=
+        representative_eq_of_size_le
+          (state.setParent retired survivor) (by
+            simpa [UnificationState.setParent] using firstOut)
+      have oldSecondBound :
+          state.representative second < state.parents.size :=
+        ordered.representative_lt secondBound
+      have nextSecondBound :
+          (state.setParent retired survivor).representative second <
+            state.parents.size := by
+        have allocated :
+            second < (state.setParent retired survivor).parents.size := by
+          simpa [UnificationState.setParent] using secondBound
+        simpa [UnificationState.setParent] using
+          nextOrdered.representative_lt allocated
+      unfold SameThread
+      rw [oldFirst, nextFirst, survivorRoot, retiredRoot]
+      have oldDifferent :
+          first ≠ state.representative second := by omega
+      have nextDifferent :
+          first ≠
+            (state.setParent retired survivor).representative second := by
+        omega
+      have survivorDifferent : first ≠ survivor := by omega
+      have retiredDifferent : first ≠ retired := by omega
+      simp [oldDifferent, nextDifferent,
+        survivorDifferent, retiredDifferent]
+    · have secondOut : state.parents.size ≤ second :=
+        Nat.le_of_not_gt secondBound
+      have oldFirst :
+          state.representative first = first :=
+        representative_eq_of_size_le state firstOut
+      have oldSecond :
+          state.representative second = second :=
+        representative_eq_of_size_le state secondOut
+      have nextFirst :
+          (state.setParent retired survivor).representative first =
+            first :=
+        representative_eq_of_size_le
+          (state.setParent retired survivor) (by
+            simpa [UnificationState.setParent] using firstOut)
+      have nextSecond :
+          (state.setParent retired survivor).representative second =
+            second :=
+        representative_eq_of_size_le
+          (state.setParent retired survivor) (by
+            simpa [UnificationState.setParent] using secondOut)
+      unfold SameThread
+      rw [oldFirst, oldSecond, nextFirst, nextSecond,
+        survivorRoot, retiredRoot]
+      have firstSurvivor : first ≠ survivor := by omega
+      have firstRetired : first ≠ retired := by omega
+      have secondSurvivor : second ≠ survivor := by omega
+      have secondRetired : second ≠ retired := by omega
+      simp [firstSurvivor, firstRetired,
+        secondSurvivor, secondRetired]
+
 /-- Mark one connective conclusion and increment the connective counter,
 without changing the token partition or parsed components. -/
 def markConclusion (state : UnificationState)
@@ -919,6 +1269,35 @@ theorem markConclusion_toMarking_mark
       abstractable.markArraySize]
   · have different : conclusion ≠ vertex := Ne.symm same
     simp [UnificationState.markConclusion, toMarking, assignedToken?,
+      UnificationMarking.setMark, same, different]
+
+/-- Merging two token classes does not add any further raw marks beyond the
+conclusion mark performed before the parent update. -/
+theorem mergeConclusion_toMarking_mark
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {conclusion representative retired : Nat}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (representativeBound : representative < state.parents.size)
+    (representativeLe : representative ≤ retired) :
+    ((state.mergeConclusion conclusion representative retired).toMarking
+      certificate
+      (abstractable.mergeConclusion ordered conclusionBound
+        representativeBound representativeLe)).mark =
+        UnificationMarking.setMark
+          (state.toMarking certificate abstractable).mark
+          conclusion representative := by
+  funext vertex
+  by_cases same : vertex = conclusion
+  · subst vertex
+    simp [UnificationState.mergeConclusion, UnificationState.setParent,
+      UnificationState.markConclusion, toMarking, assignedToken?,
+      UnificationMarking.setMark, conclusionBound,
+      abstractable.markArraySize]
+  · have different : conclusion ≠ vertex := Ne.symm same
+    simp [UnificationState.mergeConclusion, UnificationState.setParent,
+      UnificationState.markConclusion, toMarking, assignedToken?,
       UnificationMarking.setMark, same, different]
 
 /-- The concrete marking update refines the independent forward rule whenever
@@ -1097,6 +1476,20 @@ theorem Abstractable.tokenAt?_bound
           rw [lookup]
           rfl
 
+/-- A token returned by `tokenAt?` is a union-find root whenever the state is
+abstractable. -/
+theorem Abstractable.tokenAt?_root
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {vertex token : Nat}
+    (yielded : state.tokenAt? vertex = some token) :
+    state.representative token = token := by
+  rcases state.tokenAt?_some_witness yielded with
+    ⟨rawToken, marked, representativeEquation⟩
+  rw [← representativeEquation]
+  exact abstractable.representativeIdempotent
+    (abstractable.markedTokenBound marked)
+
 /-- A successful executable forward-token check, together with submitted link
 membership, produces one independent forward step and a valid updated
 abstraction. -/
@@ -1141,6 +1534,175 @@ theorem forwardToken?_refines
   exact state.markConclusion_forwardStep abstractable linkMembership
     conclusionBound conclusionUnmarked leftMarked rightMarked
     premisesSynchronized outputAllocated outputSynchronizedLeft
+
+/-- A successful executable tensor guard refines exactly one independent
+Figure-5 unify step. The proof relates raw premise marks, their current
+representatives, the ordered root update, and the full fixed-carrier thread
+relation; parsed component construction remains observationally irrelevant. -/
+theorem unifyTokens?_refines
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right conclusion leftRepresentative rightRepresentative : Nat}
+    (linkMembership :
+      Link.tensor left right conclusion ∈ certificate.links)
+    (equation :
+      state.unifyTokens? left right conclusion =
+        some (leftRepresentative, rightRepresentative)) :
+    ∃ nextAbstractable :
+        (state.mergeConclusion conclusion
+          (min leftRepresentative rightRepresentative)
+          (max leftRepresentative rightRepresentative))
+          |>.Abstractable certificate,
+      UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        ((state.mergeConclusion conclusion
+          (min leftRepresentative rightRepresentative)
+          (max leftRepresentative rightRepresentative)).toMarking
+            certificate nextAbstractable) := by
+  have guards := state.unifyTokens?_success equation
+  have conclusionIndexBound : conclusion < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp guards.1).1
+  have conclusionBound : conclusion < certificate.formulas.size := by
+    simpa [abstractable.markArraySize] using conclusionIndexBound
+  have conclusionUnmarked :
+      state.assignedToken? conclusion = none := by
+    unfold assignedToken?
+    rw [guards.1]
+    rfl
+  rcases abstractable.tokenAt?_sameThread_witness guards.2.1 with
+    ⟨leftRawToken, leftMarked, leftSynchronized⟩
+  rcases abstractable.tokenAt?_sameThread_witness guards.2.2.1 with
+    ⟨rightRawToken, rightMarked, rightSynchronized⟩
+  have leftBound : leftRepresentative < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.1
+  have rightBound : rightRepresentative < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.2.1
+  have leftRoot :
+      state.representative leftRepresentative = leftRepresentative :=
+    abstractable.tokenAt?_root guards.2.1
+  have rightRoot :
+      state.representative rightRepresentative = rightRepresentative :=
+    abstractable.tokenAt?_root guards.2.2.1
+  have representativesDistinct :
+      leftRepresentative ≠ rightRepresentative :=
+    guards.2.2.2
+  have premisesDistinct :
+      ¬state.SameThread leftRawToken rightRawToken := by
+    intro synchronized
+    apply representativesDistinct
+    unfold SameThread at leftSynchronized rightSynchronized synchronized
+    rw [leftRoot] at leftSynchronized
+    rw [rightRoot] at rightSynchronized
+    exact leftSynchronized.trans
+      (synchronized.trans rightSynchronized.symm)
+  have survivorBound :
+      min leftRepresentative rightRepresentative <
+        state.parents.size :=
+    Nat.lt_of_le_of_lt
+      (Nat.min_le_left leftRepresentative rightRepresentative)
+      leftBound
+  have retiredBound :
+      max leftRepresentative rightRepresentative <
+        state.parents.size :=
+    Nat.max_lt.mpr ⟨leftBound, rightBound⟩
+  have survivorLt :
+      min leftRepresentative rightRepresentative <
+        max leftRepresentative rightRepresentative := by
+    rcases Nat.lt_or_gt_of_ne representativesDistinct with
+      leftLess | rightLess
+    · simpa [Nat.min_eq_left (Nat.le_of_lt leftLess),
+        Nat.max_eq_right (Nat.le_of_lt leftLess)] using leftLess
+    · simpa [Nat.min_eq_right (Nat.le_of_lt rightLess),
+        Nat.max_eq_left (Nat.le_of_lt rightLess)] using rightLess
+  have survivorRoot :
+      state.representative
+          (min leftRepresentative rightRepresentative) =
+        min leftRepresentative rightRepresentative := by
+    rcases Nat.lt_or_gt_of_ne representativesDistinct with
+      leftLess | rightLess
+    · simpa [Nat.min_eq_left (Nat.le_of_lt leftLess)] using leftRoot
+    · simpa [Nat.min_eq_right (Nat.le_of_lt rightLess)] using rightRoot
+  have retiredRoot :
+      state.representative
+          (max leftRepresentative rightRepresentative) =
+        max leftRepresentative rightRepresentative := by
+    rcases Nat.lt_or_gt_of_ne representativesDistinct with
+      leftLess | rightLess
+    · simpa [Nat.max_eq_right (Nat.le_of_lt leftLess)] using rightRoot
+    · simpa [Nat.max_eq_left (Nat.le_of_lt rightLess)] using leftRoot
+  have outputFromPremise :
+      state.SameThread
+          (min leftRepresentative rightRepresentative) leftRawToken ∨
+        state.SameThread
+          (min leftRepresentative rightRepresentative)
+          rightRawToken := by
+    rcases Nat.lt_or_gt_of_ne representativesDistinct with
+      leftLess | rightLess
+    · exact Or.inl (by
+        simpa [Nat.min_eq_left (Nat.le_of_lt leftLess)] using
+          leftSynchronized)
+    · exact Or.inr (by
+        simpa [Nat.min_eq_right (Nat.le_of_lt rightLess)] using
+          rightSynchronized)
+  let nextAbstractable :=
+    abstractable.mergeConclusion ordered conclusionBound survivorBound
+      (Nat.le_of_lt survivorLt)
+  refine ⟨nextAbstractable, ?_⟩
+  apply UnificationStep.unify linkMembership
+  · exact conclusionUnmarked
+  · exact leftMarked
+  · exact rightMarked
+  · exact premisesDistinct
+  · exact survivorBound
+  · exact outputFromPremise
+  · simp [UnificationState.mergeConclusion,
+      UnificationState.markConclusion, UnificationState.setParent]
+  · exact state.mergeConclusion_toMarking_mark abstractable ordered
+      conclusionBound survivorBound (Nat.le_of_lt survivorLt)
+  · intro first second
+    have rootMerge :=
+      ordered.setParent_sameThread_all survivorBound retiredBound
+        survivorLt survivorRoot retiredRoot first second
+    have representativeMerge :
+        (state.toMarking certificate abstractable).MergeExtension
+            (min leftRepresentative rightRepresentative)
+            (max leftRepresentative rightRepresentative) =
+          (state.toMarking certificate abstractable).MergeExtension
+            leftRepresentative rightRepresentative := by
+      rcases Nat.lt_or_gt_of_ne representativesDistinct with
+        leftLess | rightLess
+      · simp [Nat.min_eq_left (Nat.le_of_lt leftLess),
+          Nat.max_eq_right (Nat.le_of_lt leftLess)]
+      · rw [Nat.min_eq_right (Nat.le_of_lt rightLess),
+          Nat.max_eq_left (Nat.le_of_lt rightLess)]
+        exact
+          UnificationMarking.mergeExtension_comm
+            (state.toMarking certificate abstractable)
+            rightRepresentative leftRepresentative
+    have rawMerge :
+        (state.toMarking certificate abstractable).MergeExtension
+            leftRepresentative rightRepresentative =
+          (state.toMarking certificate abstractable).MergeExtension
+            leftRawToken rightRawToken :=
+      UnificationMarking.mergeExtension_congr
+        (state.toMarking certificate abstractable)
+        leftSynchronized rightSynchronized
+    change
+      (state.setParent
+          (max leftRepresentative rightRepresentative)
+          (min leftRepresentative rightRepresentative)).SameThread
+            first second ↔
+        (state.toMarking certificate abstractable).MergeExtension
+          leftRawToken rightRawToken first second
+    rw [rootMerge]
+    change
+      (state.toMarking certificate abstractable).MergeExtension
+          (min leftRepresentative rightRepresentative)
+          (max leftRepresentative rightRepresentative) first second ↔
+        (state.toMarking certificate abstractable).MergeExtension
+          leftRawToken rightRawToken first second
+    rw [representativeMerge, rawMerge]
 
 /-- Live parsed component for a representative token. -/
 def componentAt? (state : UnificationState) (token : Nat) :
@@ -1593,6 +2155,32 @@ private theorem fireTensor?_success_ordered
   intro token parent lookup
   exact nextOrdered lookup
 
+/-- Every successful concrete tensor firing, including component construction,
+refines one independent Figure-5 unify step. -/
+private theorem fireTensor?_refines_unify
+    (certificate : Certificate)
+    {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right conclusion : Vertex}
+    (linkMembership :
+      Link.tensor left right conclusion ∈ certificate.links)
+    (equation : fireTensor? state left right conclusion = some next) :
+    ∃ nextAbstractable : next.Abstractable certificate,
+      UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        (next.toMarking certificate nextAbstractable) := by
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, unifyEquation, observation⟩
+  rcases state.unifyTokens?_refines abstractable ordered
+      linkMembership unifyEquation with
+    ⟨mergedAbstractable, mergedStep⟩
+  let nextAbstractable :=
+    observation.abstractable mergedAbstractable
+  refine ⟨nextAbstractable, ?_⟩
+  rw [observation.toMarking_eq mergedAbstractable]
+  exact mergedStep
+
 /-- Try one connective. `none` means that the link is currently idle, waiting,
 already fired, or a binary deadlock; it is not an exception. -/
 private def fireConnective? (state : UnificationState) :
@@ -1617,6 +2205,30 @@ private theorem fireConnective?_success_ordered
       exact firePar?_success_ordered ordered equation
   | «tensor» left right conclusion =>
       exact fireTensor?_success_ordered ordered equation
+
+/-- Any successful real connective firing preserves abstraction and refines
+the corresponding independent Figure-5 transition. -/
+private theorem fireConnective?_refines
+    (certificate : Certificate)
+    {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {link : Link}
+    (linkMembership : link ∈ certificate.links)
+    (equation : fireConnective? state link = some next) :
+    ∃ nextAbstractable : next.Abstractable certificate,
+      UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        (next.toMarking certificate nextAbstractable) := by
+  cases link with
+  | «axiom» left right =>
+      simp [fireConnective?] at equation
+  | «par» left right conclusion =>
+      exact firePar?_refines_forward certificate abstractable
+        linkMembership equation
+  | «tensor» left right conclusion =>
+      exact fireTensor?_refines_unify certificate abstractable ordered
+        linkMembership equation
 
 /-- One fold update for a deterministic connective pass. -/
 private def unificationFoldStep
@@ -1671,12 +2283,96 @@ private theorem unificationFold_ordered
           intro token parent lookup
           exact result lookup
 
+/-- A left-to-right executable fold preserves abstraction and is simulated by
+a finite execution of the independent Figure-5 semantics. Idle links
+contribute reflexive steps; every successful firing contributes exactly one
+semantic transition. -/
+private theorem unificationFold_refines
+    (certificate : Certificate)
+    (links : List Link)
+    {state : UnificationState}
+    (progress : Nat)
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    (submitted :
+      ∀ link, link ∈ links → link ∈ certificate.links) :
+    ∃ finalAbstractable :
+        ((links.foldl unificationFoldStep
+          (state, progress)).1).Abstractable certificate,
+      UnificationExecution certificate
+        (state.toMarking certificate abstractable)
+        (((links.foldl unificationFoldStep
+          (state, progress)).1).toMarking
+            certificate finalAbstractable) := by
+  induction links generalizing state progress with
+  | nil =>
+      exact ⟨abstractable, .refl _⟩
+  | cons link links induction =>
+      have linkSubmitted : link ∈ certificate.links :=
+        submitted link (by simp)
+      have tailSubmitted :
+          ∀ candidate, candidate ∈ links →
+            candidate ∈ certificate.links := by
+        intro candidate membership
+        exact submitted candidate (by simp [membership])
+      simp only [List.foldl_cons]
+      cases fireEquation : fireConnective? state link with
+      | none =>
+          have stepEquation :
+              unificationFoldStep (state, progress) link =
+                (state, progress) := by
+            simp [unificationFoldStep, fireEquation]
+          have result :=
+            induction progress abstractable ordered tailSubmitted
+          simpa only [stepEquation] using result
+      | some fired =>
+          have stepEquation :
+              unificationFoldStep (state, progress) link =
+                (fired, progress + 1) := by
+            simp [unificationFoldStep, fireEquation]
+          rcases fireConnective?_refines certificate abstractable ordered
+              linkSubmitted fireEquation with
+            ⟨firedAbstractable, transition⟩
+          have firedOrdered : fired.OrderedParents :=
+            fireConnective?_success_ordered ordered fireEquation
+          rcases induction (progress + 1) firedAbstractable
+              firedOrdered tailSubmitted with
+            ⟨finalAbstractable, rest⟩
+          have result :
+              ∃ completedAbstractable :
+                  ((links.foldl unificationFoldStep
+                    (fired, progress + 1)).1).Abstractable certificate,
+                UnificationExecution certificate
+                  (state.toMarking certificate abstractable)
+                  (((links.foldl unificationFoldStep
+                    (fired, progress + 1)).1).toMarking
+                      certificate completedAbstractable) :=
+            ⟨finalAbstractable,
+              UnificationExecution.step transition rest⟩
+          simpa only [stepEquation] using result
+
 /-- A deterministic eager pass preserves the ordered parent forest. -/
 private theorem unificationPass_ordered
     (links : List Link) {state : UnificationState}
     (ordered : state.OrderedParents) :
     (unificationPass links state).1.OrderedParents := by
   exact unificationFold_ordered links 0 ordered
+
+/-- One complete eager pass over the submitted certificate links is simulated
+by a finite independent Figure-5 execution. -/
+private theorem unificationPass_refines
+    (certificate : Certificate)
+    {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents) :
+    ∃ finalAbstractable :
+        (unificationPass certificate.links state).1.Abstractable certificate,
+      UnificationExecution certificate
+        (state.toMarking certificate abstractable)
+        ((unificationPass certificate.links state).1.toMarking
+          certificate finalAbstractable) := by
+  exact unificationFold_refines certificate certificate.links 0
+    abstractable ordered (fun _ membership => membership)
 
 private structure UnificationSaturationResult where
   state : UnificationState
@@ -1751,6 +2447,38 @@ private theorem saturateUnification_ordered
           induction nextOrdered
         intro token parent lookup
         exact saturatedOrdered lookup
+
+/-- Every finite eager-saturation prefix preserves abstraction and is
+simulated by a finite execution of the independent Figure-5 semantics. -/
+private theorem saturateUnification_refines
+    (certificate : Certificate)
+    (fuel : Nat)
+    {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents) :
+    ∃ finalAbstractable :
+        (saturateUnification certificate.links fuel state).state
+          |>.Abstractable certificate,
+      UnificationExecution certificate
+        (state.toMarking certificate abstractable)
+        ((saturateUnification certificate.links fuel state).state.toMarking
+          certificate finalAbstractable) := by
+  induction fuel generalizing state with
+  | zero =>
+      exact ⟨abstractable, .refl _⟩
+  | succ fuel induction =>
+      simp only [saturateUnification]
+      rcases unificationPass_refines certificate abstractable ordered with
+        ⟨nextAbstractable, passExecution⟩
+      have nextOrdered :
+          (unificationPass certificate.links state).1.OrderedParents :=
+        unificationPass_ordered certificate.links ordered
+      split
+      · exact ⟨nextAbstractable, passExecution⟩
+      · rcases induction nextAbstractable nextOrdered with
+          ⟨finalAbstractable, tailExecution⟩
+        exact ⟨finalAbstractable,
+          passExecution.trans tailExecution⟩
 
 private inductive WorklistEnqueueKind where
   | initial
