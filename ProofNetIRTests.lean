@@ -670,6 +670,29 @@ example : canonical.check = true ↔
       canonical.CuspAcyclic ∧
       canonical.AllOccurrenceSwitchingsConnected :=
   canonical.check_iff_structural_cuspAcyclic_allConnected
+example : canonical.ReferenceSwitchingConnected :=
+  canonical.referenceSwitchingConnected_of_check (by native_decide)
+example : canonical.AllOccurrenceSwitchingsConnected ↔
+    canonical.ReferenceSwitchingConnected :=
+  canonical.allOccurrenceSwitchingsConnected_iff_referenceSwitchingConnected
+    (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+    ((canonical.check_sound_declarative (by native_decide)).cuspAcyclic)
+example : canonical.DeclarativelyCorrect ↔
+    canonical.StructurallyWellFormed ∧
+      canonical.CuspAcyclic ∧
+      canonical.ReferenceSwitchingConnected :=
+  canonical.declarativelyCorrect_iff_structural_cuspAcyclic_referenceConnected
+example : canonical.check = true ↔
+    canonical.StructurallyWellFormed ∧
+      canonical.CuspAcyclic ∧
+      canonical.ReferenceSwitchingConnected :=
+  canonical.check_iff_structural_cuspAcyclic_referenceConnected
+example : canonical.compactCheck = true := by native_decide
+example : canonical.compactCheck = canonical.check :=
+  canonical.compactCheck_eq_check
+example : canonical.compactCheck = true ↔
+    canonical.DeclarativelyCorrect :=
+  canonical.compactCheck_eq_true_iff_declarativelyCorrect
 example : canonical.isCuspAcyclic = true :=
   canonical.isCuspAcyclic_of_check (by native_decide)
 example : canonical.isCuspAcyclic = true ↔ canonical.CuspAcyclic :=
@@ -1462,6 +1485,9 @@ def rewiredAxiom : Certificate :=
 example : droppedLink.check = false := by native_decide
 example : duplicatedLink.check = false := by native_decide
 example : rewiredAxiom.check = false := by native_decide
+example : droppedLink.compactCheck = false := by native_decide
+example : duplicatedLink.compactCheck = false := by native_decide
+example : rewiredAxiom.compactCheck = false := by native_decide
 
 def disconnected : Certificate where
   formulas := #[p, pDual, q, qDual]
@@ -1470,6 +1496,7 @@ def disconnected : Certificate where
 
 example : disconnected.wellFormed = true := by native_decide
 example : disconnected.check = false := by native_decide
+example : disconnected.compactCheck = false := by native_decide
 
 def axiomOnly : Certificate where
   formulas := #[p, pDual]
@@ -1873,10 +1900,22 @@ example : ¬cyclicGraph.Acyclic := by
 #check Certificate.CuspAcyclic.occurrenceSwitching_acyclic
 #check Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
 #check Graph.Bounded.retainEdges
+#check Graph.Acyclic.edges_nodup
+#check Graph.connected_of_bounded_acyclic_edgeCount
 #check Certificate.StructurallyWellFormed.fullGraph_bounded
+#check Certificate.FullSwitchingSelection.retained_length_eq
 #check Certificate.AllOccurrenceSwitchingsConnected
+#check Certificate.ReferenceSwitchingConnected
+#check Certificate.referenceFullSwitchingSelection
 #check Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected
 #check Certificate.check_iff_structural_cuspAcyclic_allConnected
+#check Certificate.allOccurrenceSwitchingsConnected_of_reference
+#check Certificate.allOccurrenceSwitchingsConnected_iff_referenceSwitchingConnected
+#check Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_referenceConnected
+#check Certificate.check_iff_structural_cuspAcyclic_referenceConnected
+#check Certificate.compactCheck
+#check Certificate.compactCheck_eq_true_iff_check
+#check Certificate.compactCheck_eq_check
 #check Certificate.StructurallyWellFormed.par_producer_unique
 example : cyclicGraph.IsTree ↔
     cyclicGraph.Bounded ∧ cyclicGraph.Connected ∧ cyclicGraph.Acyclic :=

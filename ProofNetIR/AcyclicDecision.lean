@@ -491,6 +491,88 @@ theorem isCuspAcyclic_of_check (certificate : Certificate)
     certificate.isCuspAcyclic = true :=
   (certificate.check_iff_declarativelyCorrect.mp accepted).isCuspAcyclic
 
+/-- Executable compact specification checker. It replaces exponential
+switching enumeration by one exhaustive colored-cycle oracle and one
+deterministic reference-switching connectivity check. The colored-cycle
+oracle is still exponential; a contraction implementation can refine this
+same proved contract later without changing public semantics. -/
+def compactCheck (certificate : Certificate) : Bool :=
+  certificate.wellFormed &&
+    certificate.isCuspAcyclic &&
+    certificate.referenceSwitchingGraph.connected
+
+/-- On a structurally well-formed certificate, the executable reference
+connectivity bit decides the proposition-level reference condition exactly. -/
+theorem referenceSwitchingGraph_connected_eq_true_iff
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed) :
+    certificate.referenceSwitchingGraph.connected = true ↔
+      certificate.ReferenceSwitchingConnected := by
+  apply certificate.referenceSwitchingGraph.connected_iff_connected
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change (linkFullEdges certificate.links).length =
+      certificate.referenceSwitchingMask.length
+    exact certificate.referenceFullSwitchingSelection.mask_length.symm
+  simpa [referenceSwitchingGraph] using
+    structural.fullGraph_bounded.retainEdges aligned
+
+/-- The compact specification checker accepts exactly the same certificates
+as the original all-switchings checker. -/
+theorem compactCheck_eq_true_iff_check (certificate : Certificate) :
+    certificate.compactCheck = true ↔ certificate.check = true := by
+  constructor
+  · intro accepted
+    have parts :
+        (certificate.wellFormed = true ∧
+          certificate.isCuspAcyclic = true) ∧
+          certificate.referenceSwitchingGraph.connected = true := by
+      simpa only [compactCheck, Bool.and_eq_true] using accepted
+    have structural : certificate.StructurallyWellFormed :=
+      certificate.wellFormed_iff_structurallyWellFormed.mp parts.1.1
+    have cuspAcyclic : certificate.CuspAcyclic :=
+      certificate.isCuspAcyclic_eq_true_iff.mp parts.1.2
+    have referenceConnected : certificate.ReferenceSwitchingConnected :=
+      (certificate.referenceSwitchingGraph_connected_eq_true_iff
+        structural).mp parts.2
+    exact
+      certificate.check_iff_structural_cuspAcyclic_referenceConnected.mpr
+        ⟨structural, cuspAcyclic, referenceConnected⟩
+  · intro accepted
+    have semantic :=
+      certificate.check_iff_structural_cuspAcyclic_referenceConnected.mp
+        accepted
+    have wellFormed : certificate.wellFormed = true :=
+      certificate.wellFormed_iff_structurallyWellFormed.mpr semantic.1
+    have cuspAccepted : certificate.isCuspAcyclic = true :=
+      certificate.isCuspAcyclic_eq_true_iff.mpr semantic.2.1
+    have referenceAccepted :
+        certificate.referenceSwitchingGraph.connected = true :=
+      (certificate.referenceSwitchingGraph_connected_eq_true_iff
+        semantic.1).mpr semantic.2.2
+    simpa only [compactCheck, Bool.and_eq_true] using
+      (show
+        (certificate.wellFormed = true ∧
+          certificate.isCuspAcyclic = true) ∧
+          certificate.referenceSwitchingGraph.connected = true
+        from ⟨⟨wellFormed, cuspAccepted⟩, referenceAccepted⟩)
+
+/-- Boolean extensional form of the certified checker equivalence. -/
+theorem compactCheck_eq_check (certificate : Certificate) :
+    certificate.compactCheck = certificate.check := by
+  apply Bool.eq_iff_iff.mpr
+  exact certificate.compactCheck_eq_true_iff_check
+
+/-- The compact checker also decides the independent declarative correctness
+contract directly. -/
+theorem compactCheck_eq_true_iff_declarativelyCorrect
+    (certificate : Certificate) :
+    certificate.compactCheck = true ↔
+      certificate.DeclarativelyCorrect := by
+  rw [certificate.compactCheck_eq_true_iff_check,
+    certificate.check_iff_declarativelyCorrect]
+
 end Certificate
 
 end ProofNetIR

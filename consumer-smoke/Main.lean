@@ -30,6 +30,11 @@ def consumedTreeSwap : VertexRenaming consumedTreeGraph.vertexCount :=
 
 example : consumedCertificate.check = true := by native_decide
 
+example : consumedCertificate.compactCheck = true := by native_decide
+
+example : consumedCertificate.compactCheck = consumedCertificate.check :=
+  consumedCertificate.compactCheck_eq_check
+
 example : consumedCertificate.DeclarativelyCorrect :=
   consumedCertificate.check_iff_declarativelyCorrect.mp (by native_decide)
 
@@ -165,7 +170,8 @@ example :
 
 def main : IO Unit := do
   if consumedTreeGraph.isTree &&
-      consumedCertificate.check && consumedTree.elaborate?.isSome &&
+      consumedCertificate.check && consumedCertificate.compactCheck &&
+      consumedTree.elaborate?.isSome &&
       consumedCertificate.verifiesDerivation consumedRuleTree &&
       consumedCertificate.reconstructsDerivation &&
       consumedBoundedReconstruction.isOk &&

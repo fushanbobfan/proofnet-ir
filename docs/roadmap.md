@@ -396,13 +396,18 @@
     backtracking and repeated-label enumeration, or add a step/deadline budget
     below the current input-size envelope; do not infer a polynomial or linear
     guarantee from the bounded stress suite.
-- [ ] Prove the reverse bridge from structural well-formedness, a connected
+- [x] Prove the reverse bridge from structural well-formedness, a connected
   reference switching, and `CuspAcyclic` to full switching correctness. The
-  all-switchings acyclicity component is complete; the remaining theorem must
-  replace `AllOccurrenceSwitchingsConnected` by a connected reference or
-  contraction condition without enumerating switchings. Then
-  implement and verify a non-enumerative colored-cycle/contraction algorithm
-  against both exhaustive oracles.
+  proof uses a finite maximal acyclic extension to derive
+  `Bounded ∧ Acyclic ∧ |E| + 1 = |V| → Connected`, proves all switchings have
+  the reference edge count, and eliminates
+  `AllOccurrenceSwitchingsConnected`.
+  - [x] Add `compactCheck`, which evaluates structural well-formedness,
+    exhaustive cusp-acyclicity, and one reference connectivity check without
+    enumerating switchings; prove `compactCheck = check`.
+  - [ ] Replace the exhaustive colored-cycle phase with a verified
+    complexity-bounded contraction/forest algorithm and differential-test it
+    against both exhaustive oracles.
 
 ## Later research
 

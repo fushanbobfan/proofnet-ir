@@ -116,11 +116,14 @@ part of the engineering and proof-identity gap.
    The colored criterion now additionally has an exact semantic acyclicity
    converse: structural well-formedness proves
    `CuspAcyclic ↔ every occurrence-order switching is Acyclic`, with retained
-   cycles lifted by exact edge occurrence rather than endpoint value. This is
-   not yet full checker equivalence because `IsTree` also requires
-   connectedness. The remaining boundary is nevertheless exact:
+   cycles lifted by exact edge occurrence rather than endpoint value. A
+   maximal-forest theorem now completes the connectedness half and reduces
+   all switching connectedness to one deterministic reference graph. Thus
    `check = true` is equivalent to structural well-formedness,
-   `CuspAcyclic`, and `AllOccurrenceSwitchingsConnected`.
+   `CuspAcyclic`, and `ReferenceSwitchingConnected`. The executable
+   `compactCheck` evaluates these three fields without enumerating switching
+   graphs and is proved Boolean-equal to `check`; its exhaustive
+   colored-cycle phase still leaves the non-enumerative performance gap open.
    The v0.9 development API now additionally provides
    `Certificate.verifyDerivation?`, which avoids both input-switching
    enumeration and vertex-permutation search when a caller supplies a
@@ -198,7 +201,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for sixty-three public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for seventy-five public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the two public graph-acyclicity transport theorems are separately locked to

@@ -70,7 +70,7 @@ name-level restatement of Yeo:
    proposition-level colored-cycle criterion. The projection and existence
    theorems prove that every stored par link supplies two exact indexed
    incidences aimed at its conclusion with that shared color.
-3. **Acyclic correctness bridge (complete; tree bridge pending).**
+3. **Acyclic and tree correctness bridge (complete; optimized algorithm pending).**
    `DeclarativelyCorrect.cuspAcyclic` now proves cusp-acyclicity of the colored
    occurrence multigraph for every independent `ChoiceSelection`, not merely
    executable enumeration examples. The proof treats stored edge indices as
@@ -89,13 +89,16 @@ name-level restatement of Yeo:
    `CuspAcyclic ↔ all occurrence-order switchings are Acyclic`, including
    parallel equal-valued edges and the closing transition. Candidate traversal
    enumeration is exponential, so this remains a differential specification.
-   The remaining reverse bridge is switching connectedness/tree correctness,
-   not acyclicity, and is tracked separately.
+   A separate finite maximal-forest argument now completes switching
+   connectedness/tree correctness: all exact switchings retain the same edge
+   count, and a connected all-left reference graph fixes that count at
+   `|V| - 1`.
    This boundary is exact: `DeclarativelyCorrect` and executable
    `check = true` are both proved equivalent to structural well-formedness,
-   `CuspAcyclic`, and `AllOccurrenceSwitchingsConnected`. Hence no additional
-   hidden tree obligation remains beyond reducing the last connectedness
-   quantifier to a compact reference/contraction condition.
+   `CuspAcyclic`, and `ReferenceSwitchingConnected`. The executable
+   `compactCheck` evaluates those fields and is proved equal to `check`.
+   Replacing exhaustive colored-cycle enumeration with a verified
+   complexity-bounded contraction remains separate.
 4. **Finite maximality/Yeo (order foundation complete).** `EdgeSimplePath`,
    `CuspFreeContinuation`, and the strengthened `OrderingPath` now encode the
    simple open cusp-free continuation and universal path-separation condition.

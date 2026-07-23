@@ -113,6 +113,20 @@
   edge-list permutation transports the resulting trees back to the public
   switching representation. Thus the only remaining all-switchings
   correctness quantifier is connectedness;
+- completed that connectedness bridge. A finite maximal-acyclic-extension
+  proof establishes
+  `Bounded ∧ Acyclic ∧ |E| + 1 = |V| → Connected`; exact switching selections
+  retain a common edge count, so structural well-formedness plus
+  `CuspAcyclic` makes universal switching connectedness equivalent to one
+  deterministic all-left `ReferenceSwitchingConnected` graph. Consequently
+  Lean proves
+  `check = true ↔ StructurallyWellFormed ∧ CuspAcyclic ∧
+  ReferenceSwitchingConnected`;
+- added `Certificate.compactCheck`, which executes that compact criterion
+  without enumerating switching graphs and is proved Boolean-equal to
+  `Certificate.check`. Its current `isCuspAcyclic` phase is an exhaustive
+  colored-cycle specification oracle, so this is not yet a linear-time or
+  contraction-complexity claim;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

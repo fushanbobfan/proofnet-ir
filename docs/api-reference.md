@@ -504,6 +504,32 @@ the exact stored-edge-occurrence sense.
 ProofNetIR.Graph.IsTree.acyclic : ∀ {graph : ProofNetIR.Graph}, graph.IsTree → graph.Acyclic
 ```
 
+### `ProofNetIR.Graph.Acyclic.edges_nodup`
+
+Kind: theorem.
+
+Occurrence-aware acyclicity forbids duplicate stored edge values in a
+bounded graph: distinct equal-valued occurrences would form a two-edge
+multigraph cycle.
+
+```lean
+ProofNetIR.Graph.Acyclic.edges_nodup : ∀ {graph : ProofNetIR.Graph}, graph.Acyclic → graph.Bounded → graph.edges.Nodup
+```
+
+### `ProofNetIR.Graph.connected_of_bounded_acyclic_edgeCount`
+
+Kind: theorem.
+
+Finite-forest converse: a nonempty bounded occurrence-acyclic multigraph
+with exactly one fewer stored edge occurrence than vertices is connected. The
+proof extends it to a maximal forest, proves that extension connected, and
+then uses equal cardinality to transport all extension walks back.
+
+```lean
+ProofNetIR.Graph.connected_of_bounded_acyclic_edgeCount : ∀ {graph : ProofNetIR.Graph},
+  graph.Bounded → 0 < graph.vertexCount → graph.Acyclic → graph.edges.length + 1 = graph.vertexCount → graph.Connected
+```
+
 ### `ProofNetIR.Graph.isTree_iff_bounded_connected_acyclic`
 
 Kind: theorem.
@@ -687,6 +713,21 @@ full graph.
 ProofNetIR.Certificate.StructurallyWellFormed.fullGraph_bounded : ∀ {certificate : ProofNetIR.Certificate}, certificate.StructurallyWellFormed → certificate.fullGraph.Bounded
 ```
 
+### `ProofNetIR.Certificate.FullSwitchingSelection.retained_length_eq`
+
+Kind: theorem.
+
+Any two exact occurrence-order switchings of the same link list have the
+same retained edge-occurrence count.
+
+```lean
+ProofNetIR.Certificate.FullSwitchingSelection.retained_length_eq : ∀ {links : List ProofNetIR.Link} {firstSelected firstRetained : List ProofNetIR.Edge} {firstMask : List Bool}
+  {secondSelected secondRetained : List ProofNetIR.Edge} {secondMask : List Bool},
+  ProofNetIR.Certificate.FullSwitchingSelection links firstSelected firstRetained firstMask →
+    ProofNetIR.Certificate.FullSwitchingSelection links secondSelected secondRetained secondMask →
+      firstRetained.length = secondRetained.length
+```
+
 ### `ProofNetIR.Certificate.AllOccurrenceSwitchingsConnected`
 
 Kind: definition.
@@ -696,6 +737,51 @@ same occurrence-order masks used by the exact acyclicity bridge.
 
 ```lean
 ProofNetIR.Certificate.AllOccurrenceSwitchingsConnected : ProofNetIR.Certificate → Prop
+```
+
+### `ProofNetIR.Certificate.referenceSwitchingMask`
+
+Kind: definition.
+
+Exact mask of the deterministic reference switching that chooses the left
+premise of every par link.
+
+```lean
+ProofNetIR.Certificate.referenceSwitchingMask : ProofNetIR.Certificate → List Bool
+```
+
+### `ProofNetIR.Certificate.referenceSwitchingGraph`
+
+Kind: definition.
+
+Deterministic occurrence-order reference switching graph.
+
+```lean
+ProofNetIR.Certificate.referenceSwitchingGraph : ProofNetIR.Certificate → ProofNetIR.Graph
+```
+
+### `ProofNetIR.Certificate.ReferenceSwitchingConnected`
+
+Kind: definition.
+
+Compact connectedness premise targeted by the remaining reverse bridge.
+
+```lean
+ProofNetIR.Certificate.ReferenceSwitchingConnected : ProofNetIR.Certificate → Prop
+```
+
+### `ProofNetIR.Certificate.referenceFullSwitchingSelection`
+
+Kind: theorem.
+
+The deterministic reference graph is backed by a lawful exact
+occurrence-order switching selection.
+
+```lean
+ProofNetIR.Certificate.referenceFullSwitchingSelection : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.Certificate.FullSwitchingSelection certificate.links
+    (ProofNetIR.Certificate.linkLeftSelectedEdges certificate.links)
+    (ProofNetIR.Certificate.linkLeftRetainedEdges certificate.links) certificate.referenceSwitchingMask
 ```
 
 ### `ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected`
@@ -725,6 +811,63 @@ acyclicity has been replaced by the single colored full-graph criterion.
 ProofNetIR.Certificate.check_iff_structural_cuspAcyclic_allConnected : ∀ (certificate : ProofNetIR.Certificate),
   certificate.check = true ↔
     certificate.StructurallyWellFormed ∧ certificate.CuspAcyclic ∧ certificate.AllOccurrenceSwitchingsConnected
+```
+
+### `ProofNetIR.Certificate.allOccurrenceSwitchingsConnected_of_reference`
+
+Kind: theorem.
+
+The fixed reference switching suffices for the connectivity half once
+colored cusp-acyclicity is known. Every switching is then acyclic, every
+switching retains the same edge-occurrence count, and the finite-forest
+converse transfers connectedness from the reference graph.
+
+```lean
+ProofNetIR.Certificate.allOccurrenceSwitchingsConnected_of_reference : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    certificate.CuspAcyclic → certificate.ReferenceSwitchingConnected → certificate.AllOccurrenceSwitchingsConnected
+```
+
+### `ProofNetIR.Certificate.allOccurrenceSwitchingsConnected_iff_referenceSwitchingConnected`
+
+Kind: theorem.
+
+Under structural well-formedness and cusp-acyclicity, universal
+occurrence-switching connectedness is exactly connectedness of the
+deterministic all-left reference switching.
+
+```lean
+ProofNetIR.Certificate.allOccurrenceSwitchingsConnected_iff_referenceSwitchingConnected : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.StructurallyWellFormed →
+    certificate.CuspAcyclic → (certificate.AllOccurrenceSwitchingsConnected ↔ certificate.ReferenceSwitchingConnected)
+```
+
+### `ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_referenceConnected`
+
+Kind: theorem.
+
+Compact non-enumerative declarative correctness criterion: structural
+well-formedness, colored cusp-acyclicity, and one deterministic connected
+reference switching.
+
+```lean
+ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_referenceConnected : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.DeclarativelyCorrect ↔
+    certificate.StructurallyWellFormed ∧ certificate.CuspAcyclic ∧ certificate.ReferenceSwitchingConnected
+```
+
+### `ProofNetIR.Certificate.check_iff_structural_cuspAcyclic_referenceConnected`
+
+Kind: theorem.
+
+Exact compact correctness theorem for the executable checker. The
+specification no longer quantifies over all switching graphs: only the single
+deterministic reference graph remains in the connectivity field.
+
+```lean
+ProofNetIR.Certificate.check_iff_structural_cuspAcyclic_referenceConnected : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.check = true ↔
+    certificate.StructurallyWellFormed ∧ certificate.CuspAcyclic ∧ certificate.ReferenceSwitchingConnected
 ```
 
 ### `ProofNetIR.Certificate.isCuspFreeTraversal`
@@ -842,6 +985,65 @@ switching-connectedness/tree argument.
 
 ```lean
 ProofNetIR.Certificate.isCuspAcyclic_of_check : ∀ (certificate : ProofNetIR.Certificate), certificate.check = true → certificate.isCuspAcyclic = true
+```
+
+### `ProofNetIR.Certificate.compactCheck`
+
+Kind: definition.
+
+Executable compact specification checker. It replaces exponential
+switching enumeration by one exhaustive colored-cycle oracle and one
+deterministic reference-switching connectivity check. The colored-cycle
+oracle is still exponential; a contraction implementation can refine this
+same proved contract later without changing public semantics.
+
+```lean
+ProofNetIR.Certificate.compactCheck : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.referenceSwitchingGraph_connected_eq_true_iff`
+
+Kind: theorem.
+
+On a structurally well-formed certificate, the executable reference
+connectivity bit decides the proposition-level reference condition exactly.
+
+```lean
+ProofNetIR.Certificate.referenceSwitchingGraph_connected_eq_true_iff : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.StructurallyWellFormed →
+    (certificate.referenceSwitchingGraph.connected = true ↔ certificate.ReferenceSwitchingConnected)
+```
+
+### `ProofNetIR.Certificate.compactCheck_eq_true_iff_check`
+
+Kind: theorem.
+
+The compact specification checker accepts exactly the same certificates
+as the original all-switchings checker.
+
+```lean
+ProofNetIR.Certificate.compactCheck_eq_true_iff_check : ∀ (certificate : ProofNetIR.Certificate), certificate.compactCheck = true ↔ certificate.check = true
+```
+
+### `ProofNetIR.Certificate.compactCheck_eq_check`
+
+Kind: theorem.
+
+Boolean extensional form of the certified checker equivalence.
+
+```lean
+ProofNetIR.Certificate.compactCheck_eq_check : ∀ (certificate : ProofNetIR.Certificate), certificate.compactCheck = certificate.check
+```
+
+### `ProofNetIR.Certificate.compactCheck_eq_true_iff_declarativelyCorrect`
+
+Kind: theorem.
+
+The compact checker also decides the independent declarative correctness
+contract directly.
+
+```lean
+ProofNetIR.Certificate.compactCheck_eq_true_iff_declarativelyCorrect : ∀ (certificate : ProofNetIR.Certificate), certificate.compactCheck = true ↔ certificate.DeclarativelyCorrect
 ```
 
 ## First-order derivations

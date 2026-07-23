@@ -14,6 +14,7 @@ expansion.
 #print axioms Graph.Acyclic.reindex
 #print axioms Graph.acyclic_reindex_iff
 #print axioms Graph.Acyclic.edges_add_one_le_vertexCount
+#print axioms Graph.connected_of_bounded_acyclic_edgeCount
 #print axioms Graph.isTree_iff_bounded_connected_acyclic
 #print axioms Graph.isEdgeSimpleCycleTraversal_sound
 #print axioms Graph.isEdgeSimpleCycleTraversal_complete
@@ -31,6 +32,9 @@ expansion.
 #print axioms Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
 #print axioms Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected
 #print axioms Certificate.check_iff_structural_cuspAcyclic_allConnected
+#print axioms Certificate.allOccurrenceSwitchingsConnected_of_reference
+#print axioms Certificate.check_iff_structural_cuspAcyclic_referenceConnected
+#print axioms Certificate.compactCheck_eq_check
 #print axioms CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #print axioms CutFreeDerivation.build?_structurallyWellFormed
 #print axioms CutFreeDerivation.build?_switchingCorrect

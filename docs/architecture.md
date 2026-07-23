@@ -133,9 +133,11 @@ StructurallyWellFormed →
   (CuspAcyclic ↔ every occurrence-order switching is Acyclic)
 ```
 
-This does not yet supply switching connectedness, so it is not a replacement
-for the production all-trees checker. No improved asymptotic bound is inferred
-from the exhaustive oracle.
+Finite maximal-forest counting now supplies the connectedness bridge as well.
+All occurrence switchings have the same retained edge count; therefore a
+connected, acyclic deterministic reference switching fixes the tree count for
+every other acyclic switching. No improved asymptotic bound is inferred from
+the exhaustive colored-cycle oracle.
 
 The remaining boundary is explicit rather than informal:
 
@@ -143,13 +145,16 @@ The remaining boundary is explicit rather than informal:
 check = true ↔
   StructurallyWellFormed ∧
   CuspAcyclic ∧
-  AllOccurrenceSwitchingsConnected
+  ReferenceSwitchingConnected
 ```
 
-The proof builds bounded, connected, acyclic retained graphs and transports
-their tree property across the exact edge-list permutation used by the public
-switching graph. Future contraction work must replace only the final
-all-switchings connectedness field.
+`Certificate.compactCheck` executes exactly these three fields and is proved
+Boolean-equal to the all-switchings checker. The proof builds bounded,
+acyclic retained graphs, derives their common maximal forest count from the
+reference graph, and transports their tree property across the exact
+edge-list permutation used by the public switching graph. Future contraction
+work replaces the exhaustive `isCuspAcyclic` implementation, not this proved
+semantic boundary.
 
 ## Persistent LeanProp bridge
 

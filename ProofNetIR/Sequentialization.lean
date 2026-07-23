@@ -2849,6 +2849,13 @@ private theorem edges_nodup_of_acyclic {graph : Graph}
   exact edge_lookup_indices_eq_of_acyclic bounded acyclic
     firstLookup secondLookup
 
+/-- Occurrence-aware acyclicity forbids duplicate stored edge values in a
+bounded graph: distinct equal-valued occurrences would form a two-edge
+multigraph cycle. -/
+theorem Acyclic.edges_nodup {graph : Graph} (acyclic : graph.Acyclic)
+    (bounded : graph.Bounded) : graph.edges.Nodup :=
+  edges_nodup_of_acyclic bounded acyclic
+
 /-- Every edge of a bounded connected acyclic graph belongs to its canonical
 shortest-path spanning graph. Any extra occurrence closes the simple
 spanning-tree path between its endpoints into an exact cycle. -/
@@ -2962,6 +2969,79 @@ theorem isTree_iff_bounded_connected_acyclic (graph : Graph) :
     have lower := connected.vertexCount_le_edges_add_one
     omega
 
+/-- Append one stored edge occurrence without changing the finite vertex set.
+This low-level graph operation is used to construct a maximal acyclic
+supergraph in the finite-forest counting argument below. -/
+def addEdge (graph : Graph) (edge : Edge) : Graph where
+  vertexCount := graph.vertexCount
+  edges := graph.edges ++ [edge]
+
+/-- Mask retaining exactly the pre-existing edge occurrences of `addEdge`. -/
+def oldEdgeMask (graph : Graph) : List Bool :=
+  List.replicate graph.edges.length true ++ [false]
+
+@[simp] theorem addEdge_vertexCount (graph : Graph) (edge : Edge) :
+    (graph.addEdge edge).vertexCount = graph.vertexCount := rfl
+
+@[simp] theorem addEdge_edges (graph : Graph) (edge : Edge) :
+    (graph.addEdge edge).edges = graph.edges ++ [edge] := rfl
+
+theorem oldEdgeMask_length (graph : Graph) (edge : Edge) :
+    (graph.addEdge edge).edges.length = graph.oldEdgeMask.length := by
+  simp [oldEdgeMask]
+
+theorem oldEdgeMask_getElem (graph : Graph) {index : Nat}
+    (inBounds : index < graph.edges.length) :
+    graph.oldEdgeMask[index]? = some true := by
+  simp [oldEdgeMask, List.getElem?_append, inBounds]
+
+private theorem retainEdgesByMask_oldEdgeMask
+    (edges : List Edge) (edge : Edge) :
+    retainEdgesByMask (edges ++ [edge])
+        (List.replicate edges.length true ++ [false]) = edges := by
+  induction edges with
+  | nil => simp [retainEdgesByMask]
+  | cons head tail ih =>
+      change retainEdgesByMask
+        (head :: (tail ++ [edge]))
+        (true :: (List.replicate tail.length true ++ [false])) =
+          head :: tail
+      simp [retainEdgesByMask, ih]
+
+@[simp] theorem retainEdges_oldEdgeMask (graph : Graph) (edge : Edge) :
+    (graph.addEdge edge).retainEdges graph.oldEdgeMask = graph := by
+  cases graph with
+  | mk vertexCount edges =>
+      simp [addEdge, oldEdgeMask, retainEdges,
+        retainEdgesByMask_oldEdgeMask]
+
+/-- Existing walks survive appending an edge occurrence. -/
+theorem Walk.addEdge {graph : Graph} {edge : Edge}
+    {start finish : Vertex} (walk : graph.Walk start finish) :
+    (graph.addEdge edge).Walk start finish := by
+  induction walk with
+  | refl => exact .refl _
+  | step prior adjacency ih =>
+      rcases adjacency with ⟨candidate, membership, direction⟩
+      have addedMembership :
+          candidate ∈ (graph.addEdge edge).edges := by
+        change candidate ∈ graph.edges ++ [edge]
+        exact List.mem_append.mpr (.inl membership)
+      exact .step ih ⟨candidate, addedMembership, direction⟩
+
+/-- Appending one in-bounds loopless edge preserves graph boundedness. -/
+theorem Bounded.addEdge {graph : Graph} (bounded : graph.Bounded)
+    {edge : Edge} (firstBound : edge.first < graph.vertexCount)
+    (secondBound : edge.second < graph.vertexCount)
+    (different : edge.first ≠ edge.second) :
+    (graph.addEdge edge).Bounded := by
+  intro candidate membership
+  change candidate ∈ graph.edges ++ [edge] at membership
+  simp only [List.mem_append, List.mem_singleton] at membership
+  rcases membership with old | rfl
+  · exact bounded candidate old
+  · exact ⟨firstBound, secondBound, different⟩
+
 /-- A simple cycle survives any occurrence mask that keeps all of its exact
 stored edge indices. Compacted edge indices remain duplicate-free because the
 retained-index map is strictly monotone at kept positions. -/
@@ -3012,6 +3092,321 @@ theorem EdgeSimpleCycle.retainEdges {graph : Graph} {mask : List Bool}
     exact compactIndicesNodup
   · rw [interiorTargets]
     exact cycle.interiorNodup
+
+/-- Joining two vertices that previously had no walk cannot create a cycle.
+The proof is occurrence-aware: a hypothetical new cycle must use the newly
+appended index, and deleting that occurrence exposes an old return walk. -/
+theorem Acyclic.addEdge_of_noWalk {graph : Graph}
+    (acyclic : graph.Acyclic) {edge : Edge}
+    (noWalk : ¬graph.Walk edge.first edge.second) :
+    (graph.addEdge edge).Acyclic := by
+  intro cycle
+  let mask := graph.oldEdgeMask
+  have aligned :
+      (graph.addEdge edge).edges.length = mask.length := by
+    exact graph.oldEdgeMask_length edge
+  have newPresent :
+      ∃ directed ∈ cycle.traversed,
+        directed.index = graph.edges.length := by
+    apply Classical.byContradiction
+    intro absent
+    have noNew : ∀ directed ∈ cycle.traversed,
+        directed.index ≠ graph.edges.length := by
+      intro directed membership same
+      exact absent ⟨directed, membership, same⟩
+    have allKept : ∀ directed ∈ cycle.traversed,
+        mask[directed.index]? = some true := by
+      intro directed membership
+      have indexBound :
+          directed.index < graph.edges.length + 1 := by
+        have lookupBound :=
+          (List.getElem?_eq_some_iff.mp directed.lookup).1
+        simpa [addEdge] using lookupBound
+      have different := noNew directed membership
+      have oldBound : directed.index < graph.edges.length := by
+        omega
+      exact graph.oldEdgeMask_getElem oldBound
+    rcases cycle.retainEdges aligned allKept with ⟨oldCycle⟩
+    have retainedEquation :
+        (graph.addEdge edge).retainEdges mask = graph := by
+      exact graph.retainEdges_oldEdgeMask edge
+    rw [retainedEquation] at oldCycle
+    exact acyclic oldCycle
+  rcases newPresent with ⟨newDirected, newMembership, newIndex⟩
+  rcases List.mem_iff_append.mp newMembership with
+    ⟨before, after, traversalEquation⟩
+  rcases cycle.rotateAt_exists traversalEquation with
+    ⟨rotated, rotatedStart, rotatedTraversal⟩
+  let rest := after ++ before
+  have traversalAtNew :
+      rotated.traversed = newDirected :: rest := by
+    simpa [rest] using rotatedTraversal
+  have chain := rotated.walk.toChain
+  rw [traversalAtNew] at chain
+  have tailChain :
+      (graph.addEdge edge).EdgeChain
+        newDirected.target rest rotated.start := by
+    cases chain with
+    | cons directed starts tail =>
+        exact tail
+  have tailWalk :
+      (graph.addEdge edge).EdgeWalk
+        newDirected.target rest rotated.start :=
+    tailChain.toWalk
+  have tailKept : ∀ directed ∈ rest,
+      mask[directed.index]? = some true := by
+    intro directed membership
+    have indicesNodup := rotated.edgeIndicesNodup
+    rw [traversalAtNew] at indicesNodup
+    have different : directed.index ≠ newDirected.index := by
+      intro same
+      exact (List.nodup_cons.mp indicesNodup).1
+        (List.mem_map.mpr ⟨directed, membership, same⟩)
+    have indexBound :
+        directed.index < graph.edges.length + 1 := by
+      have lookupBound :=
+        (List.getElem?_eq_some_iff.mp directed.lookup).1
+      simpa [addEdge] using lookupBound
+    have oldBound : directed.index < graph.edges.length := by
+      omega
+    exact graph.oldEdgeMask_getElem oldBound
+  rcases tailWalk.retainEdges aligned tailKept with
+    ⟨retainedTraversal, retainedWalk, _indexEquation, _targetEquation⟩
+  have retainedEquation :
+      (graph.addEdge edge).retainEdges mask = graph := by
+    exact graph.retainEdges_oldEdgeMask edge
+  have oldReturn : graph.Walk newDirected.target newDirected.source := by
+    have endpoints := retainedWalk.toWalk
+    rw [retainedEquation] at endpoints
+    rw [rotatedStart] at endpoints
+    exact endpoints
+  have newEdge : newDirected.edge = edge := by
+    have lookup := newDirected.lookup
+    rw [newIndex] at lookup
+    have same : edge = newDirected.edge := by
+      simpa [addEdge] using lookup
+    exact same.symm
+  cases direction : newDirected.forward with
+  | false =>
+      apply noWalk
+      simpa [DirectedEdge.source, DirectedEdge.target, direction,
+        newEdge] using oldReturn
+  | true =>
+      apply noWalk
+      have reversed := oldReturn.reverse
+      simpa [DirectedEdge.source, DirectedEdge.target, direction,
+        newEdge] using reversed
+
+/-- Finite universe of all ordered endpoint pairs for a given vertex count.
+It deliberately includes loops; bounded graph edges still form a subset. -/
+def edgeUniverse (vertexCount : Nat) : List Edge :=
+  (List.range vertexCount).flatMap fun first =>
+    (List.range vertexCount).map fun second => { first, second }
+
+private theorem sum_map_const (values : List α) (value : Nat) :
+    (values.map fun _ => value).sum = values.length * value := by
+  induction values with
+  | nil => simp
+  | cons head tail ih =>
+      simp [ih, Nat.add_mul, Nat.add_comm]
+
+theorem mem_edgeUniverse {vertexCount : Nat} {edge : Edge}
+    (firstBound : edge.first < vertexCount)
+    (secondBound : edge.second < vertexCount) :
+    edge ∈ edgeUniverse vertexCount := by
+  apply List.mem_flatMap.mpr
+  refine ⟨edge.first, List.mem_range.mpr firstBound, ?_⟩
+  exact List.mem_map.mpr
+    ⟨edge.second, List.mem_range.mpr secondBound, by
+      cases edge
+      rfl⟩
+
+@[simp] theorem edgeUniverse_length (vertexCount : Nat) :
+    (edgeUniverse vertexCount).length = vertexCount * vertexCount := by
+  simp [edgeUniverse, List.length_flatMap, sum_map_const]
+
+/-- A bounded acyclic supergraph with the same finite vertex set and
+containing every old edge value. Acyclicity makes old edge values unique, so
+value inclusion is sufficient for the cardinality argument. -/
+def IsAcyclicExtension (base extension : Graph) : Prop :=
+  extension.vertexCount = base.vertexCount ∧
+    (∀ edge ∈ base.edges, edge ∈ extension.edges) ∧
+    extension.Bounded ∧ extension.Acyclic
+
+theorem IsAcyclicExtension.edgeCount_le {base extension : Graph}
+    (extensionProperty : IsAcyclicExtension base extension) :
+    extension.edges.length ≤ base.vertexCount * base.vertexCount := by
+  have subset : ∀ edge ∈ extension.edges,
+      edge ∈ edgeUniverse base.vertexCount := by
+    intro edge membership
+    have bounds := extensionProperty.2.2.1 edge membership
+    exact mem_edgeUniverse (extensionProperty.1 ▸ bounds.1)
+      (extensionProperty.1 ▸ bounds.2.1)
+  have bound := length_le_of_nodup_subset'
+    (extensionProperty.2.2.2.edges_nodup extensionProperty.2.2.1) subset
+  simpa using bound
+
+private theorem exists_maximal_nat_predicate (P : Nat → Prop)
+    {bound : Nat} (existsValue : ∃ value, P value)
+    (bounded : ∀ value, P value → value ≤ bound) :
+    ∃ maximum, P maximum ∧ ∀ value, P value → value ≤ maximum := by
+  induction bound with
+  | zero =>
+      rcases existsValue with ⟨value, property⟩
+      have valueZero : value = 0 := by
+        have := bounded value property
+        omega
+      subst value
+      exact ⟨0, property, by
+        intro candidate candidateProperty
+        exact bounded candidate candidateProperty⟩
+  | succ prior ih =>
+      by_cases atTop : P (prior + 1)
+      · exact ⟨prior + 1, atTop, bounded⟩
+      · have priorBounded : ∀ value, P value → value ≤ prior := by
+          intro value property
+          have upper := bounded value property
+          have notTop : value ≠ prior + 1 := by
+            intro atTopValue
+            apply atTop
+            rw [← atTopValue]
+            exact property
+          omega
+        exact ih priorBounded
+
+/-- Every bounded acyclic finite graph is contained in an edge-count-maximal
+bounded acyclic graph on the same vertices. Finiteness is witnessed directly
+by the ordered endpoint-pair universe, without importing a graph library. -/
+theorem exists_maximal_acyclic_extension {graph : Graph}
+    (bounded : graph.Bounded) (acyclic : graph.Acyclic) :
+    ∃ extension,
+      IsAcyclicExtension graph extension ∧
+      ∀ candidate, IsAcyclicExtension graph candidate →
+        candidate.edges.length ≤ extension.edges.length := by
+  let P : Nat → Prop := fun edgeCount =>
+    ∃ extension, IsAcyclicExtension graph extension ∧
+      extension.edges.length = edgeCount
+  have existsValue : ∃ edgeCount, P edgeCount :=
+    ⟨graph.edges.length, graph, ⟨rfl, fun _ membership => membership,
+      bounded, acyclic⟩, rfl⟩
+  have countBounded :
+      ∀ edgeCount, P edgeCount →
+        edgeCount ≤ graph.vertexCount * graph.vertexCount := by
+    rintro edgeCount ⟨extension, extensionProperty, rfl⟩
+    exact extensionProperty.edgeCount_le
+  rcases exists_maximal_nat_predicate P existsValue countBounded with
+    ⟨maximum, maximumExists, maximumProperty⟩
+  rcases maximumExists with
+    ⟨extension, extensionProperty, extensionCount⟩
+  refine ⟨extension, extensionProperty, ?_⟩
+  intro candidate candidateExtends
+  rw [extensionCount]
+  apply maximumProperty candidate.edges.length
+  exact ⟨candidate, candidateExtends, rfl⟩
+
+/-- A maximal bounded acyclic extension on a nonempty fixed vertex set is
+connected: otherwise one more edge from the root to an unreachable vertex
+would preserve acyclicity and contradict maximality. -/
+theorem maximal_acyclic_extension_connected {graph extension : Graph}
+    (positive : 0 < graph.vertexCount)
+    (extensionProperty : IsAcyclicExtension graph extension)
+    (maximal : ∀ candidate, IsAcyclicExtension graph candidate →
+      candidate.edges.length ≤ extension.edges.length) :
+    extension.Connected := by
+  apply Classical.byContradiction
+  intro disconnected
+  have extensionPositive : 0 < extension.vertexCount := by
+    rw [extensionProperty.1]
+    exact positive
+  have missing :
+      ∃ vertex, vertex < extension.vertexCount ∧
+        ¬extension.Walk 0 vertex := by
+    apply Classical.byContradiction
+    intro noneMissing
+    apply disconnected
+    refine ⟨extensionPositive, ?_⟩
+    intro vertex inBounds
+    apply Classical.byContradiction
+    intro noWalk
+    exact noneMissing ⟨vertex, inBounds, noWalk⟩
+  rcases missing with ⟨vertex, vertexInBounds, noWalk⟩
+  have nonRoot : 0 ≠ vertex := by
+    intro same
+    subst vertex
+    exact noWalk (.refl 0)
+  let connector : Edge := { first := 0, second := vertex }
+  let enlarged := extension.addEdge connector
+  have enlargedProperty : IsAcyclicExtension graph enlarged := by
+    refine ⟨extensionProperty.1, ?_, ?_, ?_⟩
+    · intro edge membership
+      change edge ∈ extension.edges ++ [connector]
+      exact List.mem_append.mpr
+        (.inl (extensionProperty.2.1 edge membership))
+    · exact extensionProperty.2.2.1.addEdge extensionPositive
+        vertexInBounds nonRoot
+    · exact extensionProperty.2.2.2.addEdge_of_noWalk noWalk
+  have impossible := maximal enlarged enlargedProperty
+  have impossible' :
+      extension.edges.length + 1 ≤ extension.edges.length := by
+    simpa [enlarged, addEdge] using impossible
+  omega
+
+/-- Finite-forest converse: a nonempty bounded occurrence-acyclic multigraph
+with exactly one fewer stored edge occurrence than vertices is connected. The
+proof extends it to a maximal forest, proves that extension connected, and
+then uses equal cardinality to transport all extension walks back. -/
+theorem connected_of_bounded_acyclic_edgeCount {graph : Graph}
+    (bounded : graph.Bounded) (positive : 0 < graph.vertexCount)
+    (acyclic : graph.Acyclic)
+    (edgeCount : graph.edges.length + 1 = graph.vertexCount) :
+    graph.Connected := by
+  rcases exists_maximal_acyclic_extension bounded acyclic with
+    ⟨extension, extensionProperty, maximal⟩
+  have extensionConnected :=
+    maximal_acyclic_extension_connected positive extensionProperty maximal
+  have extensionUpper :=
+    extensionProperty.2.2.2.edges_add_one_le_vertexCount
+      extensionProperty.2.2.1 extensionConnected
+  have graphNodup := acyclic.edges_nodup bounded
+  have graphAtMostExtension := length_le_of_nodup_subset' graphNodup
+    extensionProperty.2.1
+  have sameLength :
+      graph.edges.length = extension.edges.length := by
+    have sameVertices := extensionProperty.1
+    omega
+  have extensionSubset : ∀ edge ∈ extension.edges,
+      edge ∈ graph.edges := by
+    intro edge membership
+    apply Classical.byContradiction
+    intro absent
+    have enlargedNodup : (edge :: graph.edges).Nodup :=
+      List.nodup_cons.mpr ⟨absent, graphNodup⟩
+    have enlargedSubset :
+        ∀ candidate ∈ edge :: graph.edges,
+          candidate ∈ extension.edges := by
+      intro candidate candidateMembership
+      simp only [List.mem_cons] at candidateMembership
+      rcases candidateMembership with rfl | inGraph
+      · exact membership
+      · exact extensionProperty.2.1 candidate inGraph
+    have tooMany := length_le_of_nodup_subset' enlargedNodup
+      enlargedSubset
+    simp only [List.length_cons, sameLength] at tooMany
+    omega
+  have transport : ∀ {start finish},
+      extension.Walk start finish → graph.Walk start finish := by
+    intro start finish walk
+    induction walk with
+    | refl => exact .refl _
+    | step prior adjacency ih =>
+        rcases adjacency with ⟨edge, membership, direction⟩
+        exact .step ih
+          ⟨edge, extensionSubset edge membership, direction⟩
+  refine ⟨positive, ?_⟩
+  intro vertex inBounds
+  exact transport (extensionConnected.2 vertex (by
+    rw [extensionProperty.1]
+    exact inBounds))
 
 /-- Lift an exact simple cycle in a masked subgraph back to exact kept
 occurrences of the original graph. This is the converse occurrence transport
@@ -3695,6 +4090,40 @@ inductive FullSwitchingSelection :
         ({ first := right, second := conclusion } :: retained)
         (false :: true :: mask)
 
+/-- Deterministic selected par edges for the reference switching: choose the
+stored left premise at every par link. -/
+def linkLeftSelectedEdges : List Link → List Edge
+  | [] => []
+  | .axiom _ _ :: links => linkLeftSelectedEdges links
+  | .tensor _ _ _ :: links => linkLeftSelectedEdges links
+  | .par left _ conclusion :: links =>
+      { first := left, second := conclusion } ::
+        linkLeftSelectedEdges links
+
+/-- Full occurrence-order edge list retained by the deterministic all-left
+reference switching. -/
+def linkLeftRetainedEdges : List Link → List Edge
+  | [] => []
+  | .axiom left right :: links =>
+      { first := left, second := right } ::
+        linkLeftRetainedEdges links
+  | .tensor left right conclusion :: links =>
+      { first := left, second := conclusion } ::
+        { first := right, second := conclusion } ::
+          linkLeftRetainedEdges links
+  | .par left _ conclusion :: links =>
+      { first := left, second := conclusion } ::
+        linkLeftRetainedEdges links
+
+/-- Exact full-edge mask for the deterministic all-left reference switching. -/
+def linkLeftSwitchingMask : List Link → List Bool
+  | [] => []
+  | .axiom _ _ :: links => true :: linkLeftSwitchingMask links
+  | .tensor _ _ _ :: links =>
+      true :: true :: linkLeftSwitchingMask links
+  | .par _ _ _ :: links =>
+      true :: false :: linkLeftSwitchingMask links
+
 /-- Relative occurrence indices used by a switching request are sparse at
 every par pair: the two positions emitted by one par link are never both
 requested. The running offset refers to the original full-edge list. -/
@@ -3748,6 +4177,21 @@ private theorem relativeParPairSparse_iff
 
 namespace FullSwitchingSelection
 
+/-- Every stored link list has a canonical occurrence-order realization that
+chooses the left premise of each par. -/
+theorem allLeft (links : List Link) :
+    FullSwitchingSelection links
+      (linkLeftSelectedEdges links)
+      (linkLeftRetainedEdges links)
+      (linkLeftSwitchingMask links) := by
+  induction links with
+  | nil => exact .nil
+  | cons link rest ih =>
+      cases link with
+      | «axiom» left right => exact .axiom ih
+      | tensor left right conclusion => exact .tensor ih
+      | par left right conclusion => exact .parLeft ih
+
 theorem choiceSelection {links : List Link} {selected retained : List Edge}
     {mask : List Bool}
     (selection : FullSwitchingSelection links selected retained mask) :
@@ -3789,6 +4233,31 @@ theorem mask_length {links : List Link} {selected retained : List Edge}
   | tensor prior ih => simp [linkFullEdges, ih]
   | parLeft prior ih => simp [linkFullEdges, ih]
   | parRight prior ih => simp [linkFullEdges, ih]
+
+/-- Every legal occurrence switching retains the same number of edge
+occurrences as the deterministic all-left switching. -/
+theorem retained_length_eq_left {links : List Link}
+    {selected retained : List Edge} {mask : List Bool}
+    (selection : FullSwitchingSelection links selected retained mask) :
+    retained.length = (linkLeftRetainedEdges links).length := by
+  induction selection with
+  | nil => rfl
+  | «axiom» prior ih => simp [linkLeftRetainedEdges, ih]
+  | tensor prior ih => simp [linkLeftRetainedEdges, ih]
+  | parLeft prior ih => simp [linkLeftRetainedEdges, ih]
+  | parRight prior ih => simp [linkLeftRetainedEdges, ih]
+
+/-- Any two exact occurrence-order switchings of the same link list have the
+same retained edge-occurrence count. -/
+theorem retained_length_eq {links : List Link}
+    {firstSelected firstRetained : List Edge} {firstMask : List Bool}
+    {secondSelected secondRetained : List Edge} {secondMask : List Bool}
+    (first :
+      FullSwitchingSelection links firstSelected firstRetained firstMask)
+    (second :
+      FullSwitchingSelection links secondSelected secondRetained secondMask) :
+    firstRetained.length = secondRetained.length :=
+  first.retained_length_eq_left.trans second.retained_length_eq_left.symm
 
 theorem retained_eq_retainByMask {links : List Link}
     {selected retained : List Edge} {mask : List Bool}
@@ -10806,6 +11275,29 @@ def AllOccurrenceSwitchingsConnected (certificate : Certificate) : Prop :=
     FullSwitchingSelection certificate.links selected retained mask →
       (certificate.fullGraph.retainEdges mask).Connected
 
+/-- Exact mask of the deterministic reference switching that chooses the left
+premise of every par link. -/
+def referenceSwitchingMask (certificate : Certificate) : List Bool :=
+  linkLeftSwitchingMask certificate.links
+
+/-- Deterministic occurrence-order reference switching graph. -/
+def referenceSwitchingGraph (certificate : Certificate) : Graph :=
+  certificate.fullGraph.retainEdges certificate.referenceSwitchingMask
+
+/-- Compact connectedness premise targeted by the remaining reverse bridge. -/
+def ReferenceSwitchingConnected (certificate : Certificate) : Prop :=
+  certificate.referenceSwitchingGraph.Connected
+
+/-- The deterministic reference graph is backed by a lawful exact
+occurrence-order switching selection. -/
+theorem referenceFullSwitchingSelection (certificate : Certificate) :
+    FullSwitchingSelection certificate.links
+      (linkLeftSelectedEdges certificate.links)
+      (linkLeftRetainedEdges certificate.links)
+      certificate.referenceSwitchingMask := by
+  simpa [referenceSwitchingMask] using
+    FullSwitchingSelection.allLeft certificate.links
+
 /-- Declarative all-switchings correctness decomposes exactly into structural
 well-formedness, colored cusp-acyclicity, and occurrence-switching
 connectedness. The first two fields no longer quantify over switching trees;
@@ -10887,6 +11379,145 @@ theorem check_iff_structural_cuspAcyclic_allConnected
         certificate.AllOccurrenceSwitchingsConnected := by
   rw [certificate.check_iff_declarativelyCorrect,
     certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected]
+
+/-- Full occurrence-switching connectedness implies connectedness of the fixed
+all-left reference graph. -/
+theorem AllOccurrenceSwitchingsConnected.reference
+    {certificate : Certificate}
+    (allConnected : certificate.AllOccurrenceSwitchingsConnected) :
+    certificate.ReferenceSwitchingConnected := by
+  exact allConnected
+    (linkLeftSelectedEdges certificate.links)
+    (linkLeftRetainedEdges certificate.links)
+    certificate.referenceSwitchingMask
+    certificate.referenceFullSwitchingSelection
+
+/-- Every declaratively correct certificate has a connected deterministic
+reference switching. -/
+theorem DeclarativelyCorrect.referenceSwitchingConnected
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect) :
+    certificate.ReferenceSwitchingConnected :=
+  (certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected.mp
+    correct).2.2.reference
+
+/-- Executable checker acceptance implies deterministic reference-switching
+connectedness. -/
+theorem referenceSwitchingConnected_of_check
+    (certificate : Certificate) (accepted : certificate.check = true) :
+    certificate.ReferenceSwitchingConnected :=
+  (certificate.check_iff_structural_cuspAcyclic_allConnected.mp
+    accepted).2.2.reference
+
+/-- The fixed reference switching suffices for the connectivity half once
+colored cusp-acyclicity is known. Every switching is then acyclic, every
+switching retains the same edge-occurrence count, and the finite-forest
+converse transfers connectedness from the reference graph. -/
+theorem allOccurrenceSwitchingsConnected_of_reference
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (cuspAcyclic : certificate.CuspAcyclic)
+    (referenceConnected : certificate.ReferenceSwitchingConnected) :
+    certificate.AllOccurrenceSwitchingsConnected := by
+  intro selected retained mask selection
+  let referenceSelection := certificate.referenceFullSwitchingSelection
+  have aligned : certificate.fullGraph.edges.length = mask.length := by
+    change (linkFullEdges certificate.links).length = mask.length
+    exact selection.mask_length.symm
+  have referenceAligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change (linkFullEdges certificate.links).length =
+      certificate.referenceSwitchingMask.length
+    exact referenceSelection.mask_length.symm
+  have targetBounded :
+      (certificate.fullGraph.retainEdges mask).Bounded :=
+    structural.fullGraph_bounded.retainEdges aligned
+  have targetAcyclic :
+      (certificate.fullGraph.retainEdges mask).Acyclic :=
+    cuspAcyclic.occurrenceSwitching_acyclic structural selection
+  have referenceBounded :
+      certificate.referenceSwitchingGraph.Bounded := by
+    simpa [referenceSwitchingGraph] using
+      structural.fullGraph_bounded.retainEdges referenceAligned
+  have referenceAcyclic :
+      certificate.referenceSwitchingGraph.Acyclic := by
+    simpa [referenceSwitchingGraph] using
+      cuspAcyclic.occurrenceSwitching_acyclic structural referenceSelection
+  have referenceTree : certificate.referenceSwitchingGraph.IsTree :=
+    (certificate.referenceSwitchingGraph
+      |>.isTree_iff_bounded_connected_acyclic).mpr
+        ⟨referenceBounded, referenceConnected, referenceAcyclic⟩
+  have targetRetained :
+      (certificate.fullGraph.retainEdges mask).edges = retained := by
+    change Graph.retainEdgesByMask certificate.fullEdges mask = retained
+    simpa [retainByMask] using selection.retained_eq_retainByMask.symm
+  have referenceRetained :
+      certificate.referenceSwitchingGraph.edges =
+        linkLeftRetainedEdges certificate.links := by
+    change Graph.retainEdgesByMask certificate.fullEdges
+      certificate.referenceSwitchingMask =
+        linkLeftRetainedEdges certificate.links
+    simpa [retainByMask] using
+      referenceSelection.retained_eq_retainByMask.symm
+  have sameEdgeCount :
+      (certificate.fullGraph.retainEdges mask).edges.length =
+        certificate.referenceSwitchingGraph.edges.length := by
+    rw [targetRetained, referenceRetained]
+    exact selection.retained_length_eq referenceSelection
+  have targetCount :
+      (certificate.fullGraph.retainEdges mask).edges.length + 1 =
+        (certificate.fullGraph.retainEdges mask).vertexCount := by
+    rw [sameEdgeCount]
+    simpa [referenceSwitchingGraph, Graph.retainEdges, fullGraph] using
+      referenceTree.2.2
+  exact Graph.connected_of_bounded_acyclic_edgeCount targetBounded
+    (by simpa [Graph.retainEdges, fullGraph] using structural.1)
+    targetAcyclic targetCount
+
+/-- Under structural well-formedness and cusp-acyclicity, universal
+occurrence-switching connectedness is exactly connectedness of the
+deterministic all-left reference switching. -/
+theorem allOccurrenceSwitchingsConnected_iff_referenceSwitchingConnected
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    (cuspAcyclic : certificate.CuspAcyclic) :
+    certificate.AllOccurrenceSwitchingsConnected ↔
+      certificate.ReferenceSwitchingConnected :=
+  ⟨fun allConnected => allConnected.reference,
+    fun referenceConnected =>
+      allOccurrenceSwitchingsConnected_of_reference structural cuspAcyclic
+        referenceConnected⟩
+
+/-- Compact non-enumerative declarative correctness criterion: structural
+well-formedness, colored cusp-acyclicity, and one deterministic connected
+reference switching. -/
+theorem declarativelyCorrect_iff_structural_cuspAcyclic_referenceConnected
+    (certificate : Certificate) :
+    certificate.DeclarativelyCorrect ↔
+      certificate.StructurallyWellFormed ∧
+        certificate.CuspAcyclic ∧
+        certificate.ReferenceSwitchingConnected := by
+  rw [certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected]
+  constructor
+  · rintro ⟨structural, cuspAcyclic, allConnected⟩
+    exact ⟨structural, cuspAcyclic, allConnected.reference⟩
+  · rintro ⟨structural, cuspAcyclic, referenceConnected⟩
+    exact ⟨structural, cuspAcyclic,
+      allOccurrenceSwitchingsConnected_of_reference structural cuspAcyclic
+        referenceConnected⟩
+
+/-- Exact compact correctness theorem for the executable checker. The
+specification no longer quantifies over all switching graphs: only the single
+deterministic reference graph remains in the connectivity field. -/
+theorem check_iff_structural_cuspAcyclic_referenceConnected
+    (certificate : Certificate) :
+    certificate.check = true ↔
+      certificate.StructurallyWellFormed ∧
+        certificate.CuspAcyclic ∧
+        certificate.ReferenceSwitchingConnected := by
+  rw [certificate.check_iff_declarativelyCorrect,
+    certificate.declarativelyCorrect_iff_structural_cuspAcyclic_referenceConnected]
 
 theorem LinkWellFormed.tensor_conclusionFormula
     {certificate : Certificate} {left right conclusion : Vertex}
