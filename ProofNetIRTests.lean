@@ -170,6 +170,12 @@ example {certificate : ProofNetIR.Certificate}
     second.Abstractable certificate :=
   equivalent.abstractable abstractable
 
+example {first second : ProofNetIR.UnificationState}
+    (equivalent : first.ObservationEquivalent second)
+    (identity : first.IdentityParents) :
+    second.IdentityParents :=
+  equivalent.identityParents identity
+
 example {certificate : ProofNetIR.Certificate}
     {state : ProofNetIR.UnificationState}
     (abstractable : state.Abstractable certificate)

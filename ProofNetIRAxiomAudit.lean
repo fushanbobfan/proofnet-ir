@@ -102,6 +102,7 @@ expansion.
 #print axioms UnificationState.toMarking_mark
 #print axioms UnificationState.toMarking_sameThread
 #print axioms UnificationState.ObservationEquivalent.abstractable
+#print axioms UnificationState.ObservationEquivalent.identityParents
 #print axioms UnificationState.ObservationEquivalent.toMarking_eq
 #print axioms UnificationState.Abstractable.markConclusion
 #print axioms UnificationState.markConclusion_toMarking_mark

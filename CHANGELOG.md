@@ -85,6 +85,11 @@
   simulated by such an execution. These are implementation-soundness results;
   scheduler progress and pure worklist completeness remain separate open
   obligations;
+- proved the whole successful eager token-semantic run refines one independent
+  execution, starting from the empty marking, traversing every submitted axiom
+  start, and continuing through the bounded saturation phase. Identity-parent
+  preservation across the complete axiom phase supplies fresh-token isolation
+  at every start step;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 

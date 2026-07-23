@@ -124,6 +124,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.UnificationState.Abstractable.tokenAt?_root",
     "ProofNetIR.UnificationMarking.mergeExtension_equivalence",
     "ProofNetIR.UnificationExecution.trans",
+    "ProofNetIR.UnificationState.ObservationEquivalent.identityParents",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",

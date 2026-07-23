@@ -2898,6 +2898,18 @@ ProofNetIR.UnificationState.ObservationEquivalent.orderedParents : ∀ {first se
   first.ObservationEquivalent second → first.OrderedParents → second.OrderedParents
 ```
 
+### `ProofNetIR.UnificationState.ObservationEquivalent.identityParents`
+
+Kind: theorem.
+
+Observation-equivalent states either both have identity parent arrays or
+both do not.
+
+```lean
+ProofNetIR.UnificationState.ObservationEquivalent.identityParents : ∀ {first second : ProofNetIR.UnificationState},
+  first.ObservationEquivalent second → first.IdentityParents → second.IdentityParents
+```
+
 ### `ProofNetIR.UnificationState.toMarking`
 
 Kind: definition.

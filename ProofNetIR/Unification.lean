@@ -580,6 +580,19 @@ theorem ObservationEquivalent.orderedParents
   rw [equivalent.parents]
   exact lookup
 
+/-- Observation-equivalent states either both have identity parent arrays or
+both do not. -/
+theorem ObservationEquivalent.identityParents
+    {first second : UnificationState}
+    (equivalent : first.ObservationEquivalent second)
+    (identity : first.IdentityParents) :
+    second.IdentityParents := by
+  intro token bound
+  have oldBound : token < first.parents.size := by
+    simpa [equivalent.parents] using bound
+  have oldLookup := identity oldBound
+  simpa [equivalent.parents] using oldLookup
+
 /-- Forget arrays, parsed derivation components, counters, and worklist data,
 retaining exactly the marking and thread partition observed by the independent
 Figure-5 semantics. -/
@@ -1762,6 +1775,13 @@ private theorem initialUnificationState_orderedParents
   intro token parent lookup
   simp [initialUnificationState] at lookup
 
+/-- The empty initial parent array vacuously consists only of roots. -/
+private theorem initialUnificationState_identityParents
+    (certificate : Certificate) :
+    certificate.initialUnificationState.IdentityParents := by
+  intro token bound
+  simp [initialUnificationState] at bound
+
 private def unificationError (certificate : Certificate)
     (code : UnificationErrorCode) (message : String) :
     UnificationError :=
@@ -1959,6 +1979,68 @@ private theorem startAxioms?_success_ordered
             induction ordered equation
           intro token parent lookup
           exact result lookup
+
+/-- Successful eager axiom initialization preserves abstraction and identity
+parents, and is simulated by a finite sequence of independent start steps. -/
+private theorem startAxioms?_success_refines
+    (certificate : Certificate)
+    {links : List Link} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (identity : state.IdentityParents)
+    (submitted :
+      ∀ link, link ∈ links → link ∈ certificate.links)
+    (equation :
+      certificate.startAxioms? links state = some next) :
+    ∃ nextAbstractable : next.Abstractable certificate,
+      next.IdentityParents ∧
+        UnificationExecution certificate
+          (state.toMarking certificate abstractable)
+          (next.toMarking certificate nextAbstractable) := by
+  induction links generalizing state next with
+  | nil =>
+      simp [startAxioms?] at equation
+      subst next
+      exact ⟨abstractable, identity, .refl _⟩
+  | cons link links induction =>
+      have tailSubmitted :
+          ∀ candidate, candidate ∈ links →
+            candidate ∈ certificate.links := by
+        intro candidate membership
+        exact submitted candidate (by simp [membership])
+      cases link with
+      | «axiom» left right =>
+          have linkSubmitted :
+              Link.axiom left right ∈ certificate.links :=
+            submitted _ (by simp)
+          simp only [startAxioms?] at equation
+          cases startEquation :
+              certificate.startAxiom? state left right with
+          | none =>
+              rw [startEquation] at equation
+              contradiction
+          | some started =>
+              rw [startEquation] at equation
+              rcases certificate.startAxiom?_refines_start
+                  abstractable identity linkSubmitted startEquation with
+                ⟨startedAbstractable, transition⟩
+              rcases certificate.startAxiom?_success startEquation with
+                ⟨_leftReady, _rightReady, observation⟩
+              have markedIdentity :
+                  (state.startMarking left right).IdentityParents :=
+                identity.startMarking left right
+              have startedIdentity : started.IdentityParents :=
+                observation.identityParents markedIdentity
+              rcases induction startedAbstractable startedIdentity
+                  tailSubmitted equation with
+                ⟨nextAbstractable, nextIdentity, rest⟩
+              exact ⟨nextAbstractable, nextIdentity,
+                UnificationExecution.step transition rest⟩
+      | «par» left right conclusion =>
+          simp only [startAxioms?] at equation
+          exact induction abstractable identity tailSubmitted equation
+      | «tensor» left right conclusion =>
+          simp only [startAxioms?] at equation
+          exact induction abstractable identity tailSubmitted equation
 
 /-- Fire a Guerrini unary/`par` rule when both premises yield the same token.
 The corresponding derivation component is updated in lockstep. -/
@@ -2479,6 +2561,37 @@ private theorem saturateUnification_refines
           ⟨finalAbstractable, tailExecution⟩
         exact ⟨finalAbstractable,
           passExecution.trans tailExecution⟩
+
+/-- The complete eager token-semantic run, from the empty initial state through
+all axiom starts and the bounded saturation phase, is simulated by one finite
+execution of the independent Figure-5 semantics whenever initialization
+succeeds. -/
+private theorem eagerUnification_refines
+    (certificate : Certificate)
+    {started : UnificationState}
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    ∃ finalAbstractable :
+        (saturateUnification certificate.links certificate.links.length
+          started).state.Abstractable certificate,
+      UnificationExecution certificate
+        (certificate.initialUnificationState.toMarking certificate
+          (initialUnificationState_abstractable certificate))
+        ((saturateUnification certificate.links certificate.links.length
+          started).state.toMarking certificate finalAbstractable) := by
+  rcases certificate.startAxioms?_success_refines
+      (initialUnificationState_abstractable certificate)
+      (initialUnificationState_identityParents certificate)
+      (fun _ membership => membership) startEquation with
+    ⟨startedAbstractable, startedIdentity, startExecution⟩
+  have startedOrdered : started.OrderedParents :=
+    startedIdentity.orderedParents
+  rcases saturateUnification_refines certificate certificate.links.length
+      startedAbstractable startedOrdered with
+    ⟨finalAbstractable, saturationExecution⟩
+  exact ⟨finalAbstractable,
+    startExecution.trans saturationExecution⟩
 
 private inductive WorklistEnqueueKind where
   | initial

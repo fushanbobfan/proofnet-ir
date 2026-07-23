@@ -266,6 +266,7 @@ def sections : List Section := [
       `ProofNetIR.UnificationState.IdentityParents.push_fresh,
       `ProofNetIR.UnificationState.ObservationEquivalent.abstractable,
       `ProofNetIR.UnificationState.ObservationEquivalent.orderedParents,
+      `ProofNetIR.UnificationState.ObservationEquivalent.identityParents,
       `ProofNetIR.UnificationState.toMarking,
       `ProofNetIR.UnificationState.toMarking_tokenCount,
       `ProofNetIR.UnificationState.toMarking_mark,
