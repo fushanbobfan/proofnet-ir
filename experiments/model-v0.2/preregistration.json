@@ -1,0 +1,75 @@
+{
+  "baseCount": 90,
+  "budgets": {
+    "algorithmicCompleteCandidatesPerTask": 1000,
+    "modelCallsPerTask": 2,
+    "modelCompleteProposalsPerCall": 1,
+    "modelMaxTokensPerCall": 128,
+    "modelTimeoutSeconds": 60,
+    "wallClockMsPerTask": 60000.0
+  },
+  "corpusSha256": "0bb9a950ebb5f3706cd0f0629d668801ae7174e97c6fa9f4f175c7c299d36dc2",
+  "developmentChecksBeforeRegistration": "fixture construction, independent checker agreement, and exact-distance repair enumeration were validated; no formal aggregate, task-specific model response, or result artifact existed",
+  "freshSeedRange": [
+    10000,
+    10089
+  ],
+  "implementationSha256": {
+    "focusedSearch": "8019b525b136d1ce6d97820723d18afe946224d74712cfefcf126f096d651df1",
+    "independentOracle": "dcaf38dcd2e0610889e182672a74bb4dc2258a2f54aa20171b9011ef3248a7de",
+    "leanBatchVerifier": "ad2b5ef352617f2fffebba51c89019dd4f715a512672d2fdfe408781a478b8a9",
+    "leanCorpusGenerator": "12ad6be5f0b987cb118ed69cd92cd48da7bfc3406fcb0398873e3e8b207867e4",
+    "netGenerationAndLeanBridge": "8ebf9b9ca489f96ce560db0ebe9a61018d2d09b4b40b1f04eced8e0c840aa99c",
+    "runner": "63b0e1f806b82da1cb03da1a578a3a2196605d292541b77225f65118e5a17a92"
+  },
+  "interpretationBoundary": "first local-model held-out MLL study; not evidence for ordinary Lean/mathlib, arbitrary graph isomorphism, or a general model advantage",
+  "methods": [
+    "focused search",
+    "exhaustive proof-net generation",
+    "distance-ordered checker-guided repair",
+    "model direct proposal",
+    "model repair proposal"
+  ],
+  "model": {
+    "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
+    "id": "D:\\ucla\\models\\gguf\\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "seed": 20260723,
+    "temperature": 0,
+    "thinking": false
+  },
+  "negativeConstruction": "flip one atom occurrence and recompute every connective ancestor; nonzero per-label polarity balance is an unprovability witness",
+  "positiveConstruction": "Lean-generated accepted derivation, with deterministic atom-label collapse",
+  "promptSha256": {
+    "directSystem": "49aa790cfc9025cd7646b6d70d8aef295b1f8a73bba5fdc01b684b7cbb16d95a",
+    "repairSystem": "b96c34e410c08f7f4e32bcfd72fca8bec2660c37d8e5056e9a616ca4666d5d28"
+  },
+  "registeredLocalDate": "2026-07-22 America/Los_Angeles",
+  "repairDistance": "number of reference axiom links absent from the repair source; positive tasks alternate exactly 2 and 3",
+  "resultsAbsentAtRegistration": true,
+  "strata": {
+    "depth-2:one-label:negative": 10,
+    "depth-2:one-label:positive": 10,
+    "depth-2:two-label:negative": 10,
+    "depth-2:two-label:positive": 10,
+    "depth-2:unique:negative": 10,
+    "depth-2:unique:positive": 10,
+    "depth-3:one-label:negative": 10,
+    "depth-3:one-label:positive": 10,
+    "depth-3:two-label:negative": 10,
+    "depth-3:two-label:positive": 10,
+    "depth-3:unique:negative": 10,
+    "depth-3:unique:positive": 10,
+    "depth-4:one-label:negative": 10,
+    "depth-4:one-label:positive": 10,
+    "depth-4:two-label:negative": 10,
+    "depth-4:two-label:positive": 10,
+    "depth-4:unique:negative": 10,
+    "depth-4:unique:positive": 10
+  },
+  "success": {
+    "negative": "return unprovable only when the method completed its bounded search, or for the model emit c=U",
+    "positive": "produce a certificate accepted by the independent oracle and Lean checker, then sequentialized by Lean"
+  },
+  "taskCount": 180,
+  "version": "model-v0.2"
+}

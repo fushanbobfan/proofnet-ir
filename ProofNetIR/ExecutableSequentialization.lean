@@ -1,4 +1,4 @@
-import ProofNetIR.Sequentialization
+import ProofNetIR.LocalIdentity
 
 namespace ProofNetIR
 
@@ -479,6 +479,13 @@ def conclusionCompatible (left right : Certificate)
   (left.conclusions.zip right.conclusions).all fun pair =>
     pair.2 != targetVertex || pair.1 == sourceVertex
 
+/-- The exact identity search combines ordered-boundary and numeric-free
+one-hop incidence constraints before extending an occurrence alignment. -/
+def identityCandidateCompatible (left right : Certificate)
+    (targetVertex sourceVertex : Vertex) : Bool :=
+  conclusionCompatible left right targetVertex sourceVertex &&
+    localIdentityCompatible left right targetVertex sourceVertex
+
 /-- Enumerate formula-compatible occurrence bijections while applying the
 ordered-boundary constraints during generation. -/
 def matchingFormulaOrdersForCertificates (left right : Certificate) :
@@ -487,7 +494,7 @@ def matchingFormulaOrdersForCertificates (left right : Certificate) :
     []
   else
     matchingFormulaOrdersVisitConstrained left.formulas.toList
-      (conclusionCompatible left right) 0 [] right.formulas.toList
+      (identityCandidateCompatible left right) 0 [] right.formulas.toList
 
 private theorem conclusionCompatibility_all_inverse
     (conclusions : List Vertex) {bound : Nat}
@@ -528,19 +535,26 @@ theorem matchingFormulaOrdersForCertificates_complete
   have nodup : order.Nodup :=
     permutation.nodup_iff.mpr List.nodup_range
   have allowedOrder : ∀ offset (inBounds : offset < order.length),
-      conclusionCompatible left right offset order[offset] = true := by
+      identityCandidateCompatible left right offset order[offset] = true := by
     intro offset inBounds
     have offsetInBounds : offset < left.formulas.size := by
       simpa [order] using inBounds
     have orderAt : order[offset] = vertexMap.inverse offset := by
       simp [order]
     rw [orderAt]
-    unfold conclusionCompatible
-    rw [← relation.conclusions]
-    simpa [Certificate.reindex_conclusions] using
-      conclusionCompatibility_all_inverse left.conclusions vertexMap offset
+    have conclusionAllowed : conclusionCompatible left right offset
+        (vertexMap.inverse offset) = true := by
+      unfold conclusionCompatible
+      rw [← relation.conclusions]
+      simpa [Certificate.reindex_conclusions] using
+        conclusionCompatibility_all_inverse left.conclusions vertexMap offset
+    have localAllowed : localIdentityCompatible left right offset
+        (vertexMap.inverse offset) = true :=
+      localIdentityCompatible_inverse vertexMap relation offset
+    simp [identityCandidateCompatible, conclusionAllowed, localAllowed]
   have generated := matchingFormulaOrdersVisitConstrained_complete
-    left.formulas.toList right.formulas.toList (conclusionCompatible left right)
+    left.formulas.toList right.formulas.toList
+      (identityCandidateCompatible left right)
     0 [] order (by simp) nodup lookup (by
       intro offset inBounds
       simpa using allowedOrder offset inBounds)

@@ -41,3 +41,7 @@ root = "ProofNetIRExperimentCorpus"
 [[lean_exe]]
 name = "proofnet_ir_experiment_verify"
 root = "ProofNetIRExperimentVerify"
+
+[[lean_exe]]
+name = "proofnet_ir_model_experiment_corpus"
+root = "ProofNetIRModelExperimentCorpus"

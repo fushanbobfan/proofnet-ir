@@ -21,6 +21,12 @@ structurally well formed but, for more than one pair, not switching-connected;
 it deliberately isolates the exact identity engine's structural theorem
 domain rather than posing as an accepted proof net.
 
+Internal repeated labels are additionally filtered by a numeric-free one-hop
+view of every vertex's incident link roles and endpoint formulas. Lean proves
+that any actual direct equivalence witness preserves these view multisets, so
+the filter cannot remove a genuine witness. It remains a local necessary
+condition, not a complete canonical label or a polynomial-time guarantee.
+
 The executable verifies every result and accumulates a stable checksum so the
 work cannot be optimized away silently. Timing begins after process startup and
 excludes compilation. CI fails when the complete workload exceeds 45 seconds.
@@ -42,8 +48,8 @@ On the Windows development machine on 2026-07-22, the committed workload
 reported:
 
 ```text
-cases=291 checksum=8246 elapsed_ms=8678
-check_ms=0 sequentialize_ms=7622 equivalence_ms=0
+cases=291 checksum=8246 elapsed_ms=7040
+check_ms=0 sequentialize_ms=6260 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
 ```
 
@@ -53,6 +59,14 @@ calls performed inside sequentialization are included in `sequentialize_ms`.
 Ordered-boundary pruning removes a severe repeated-label case, but formulas on
 internal non-boundary vertices can still require combinatorial search. This
 measurement is not a polynomial-time or general scalability result.
+
+The held-out model experiment's qualification batch exercises the harder
+internal repeated-label case. Across 264 distinct inputs, Lean rejected all
+176 corruptions and accepted and executably sequentialized all 88 positive
+certificates in 291.7 seconds on the same Windows machine. A previous build
+without the one-hop filter exceeded ten minutes and reached roughly 15.5 GB
+before being stopped. This before/after observation motivated the filter; it
+is not a controlled benchmark or an asymptotic claim.
 
 An exploratory workload with eight depth-4 cases took 60,409 ms and failed an
 initial 15,000 ms budget. Removing those eight cases reduced the depth-2/3
@@ -76,3 +90,7 @@ proof-net generation, and checker-guided one-edit repair. That experiment,
 including per-depth failures, Python timing/allocation data, checker calls,
 Lean batch verification, and its strict interpretation boundary, is recorded
 in [matched-v0.1](../experiments/matched-v0.1/README.md).
+
+The next 180-task model-backed comparison is frozen in
+[model-v0.2](../experiments/model-v0.2/README.md). Its result artifacts are not
+yet part of this preregistration checkpoint.

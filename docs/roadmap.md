@@ -64,6 +64,9 @@
   corpus and formula-skeleton limitations.
 - [ ] Repeat the comparison with genuinely model-backed proposals, held-out
   negative tasks, harder repeated-label strata, and repair distances above one.
+  The 180-task corpus and protocol are now preregistered with balanced
+  depth/label/polarity strata and frozen implementation/prompt hashes; the
+  task-specific model calls and result audit remain open.
 
 ## v0.3 - Reindex-invariant wire keys
 

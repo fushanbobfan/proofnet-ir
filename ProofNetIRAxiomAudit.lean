@@ -26,6 +26,7 @@ expansion.
 #print axioms Certificate.generallySequentializable
 #print axioms Certificate.reindexEquivalent?_eq_true_iff_of_check
 #print axioms Certificate.matchingFormulaOrders_complete
+#print axioms Certificate.localIdentityCompatible_inverse
 #print axioms Certificate.directProofNetEquivalentWitness?_complete
 #print axioms Certificate.proofNetEquivalent?_eq_true_iff
 #print axioms CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff

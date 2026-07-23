@@ -104,7 +104,8 @@ The repository currently contains:
 - a checked pairwise identity API,
   `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
   exactly `ProofNetEquivalent`. Its search enforces the ordered conclusion
-  boundary while generating formula-occurrence alignments; a 64-pair
+  boundary and numeric-free one-hop incident-link roles while generating
+  formula-occurrence alignments; a 64-pair
   repeated-label stress case generates one candidate instead of the
   unconstrained label enumerator's theoretical `(64!)^2` orders. This remains
   an exact scoped decision procedure, not a compact canonical wire key or an
@@ -118,7 +119,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits twenty-four public logical-boundary theorems against the exact axiom set
+separately audits twenty-five public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
@@ -180,6 +181,7 @@ python scripts/fuzz_malformed_parser.py
 lake exe proofnet_ir_benchmark
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 python scripts/run_matched_experiment.py --check-committed
+python scripts/run_model_experiment.py --check-preregistered
 ```
 
 Expected smoke-test output:
@@ -206,6 +208,7 @@ ProofNetIR/StructuralComposition.lean structural correctness under rule composit
 ProofNetIR/DesequentializationSoundness.lean derivation-to-certificate invariants
 ProofNetIR/NetEquivalence.lean semantic equivalence and checker invariance
 ProofNetIR/Sequentialization.lean general theorem contract and inverse-rule work
+ProofNetIR/LocalIdentity.lean proved local invariants for exact identity pruning
 ProofNetIR/ExecutableSequentialization.lean runtime inverse search and diagnostics
 ProofNetIR/ProofNetIdentity.lean checked exact pairwise proof-net identity API
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
@@ -216,6 +219,7 @@ ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget
 ProofNetIRAPIDocs.lean        generated public API manifest and reference
 ProofNetIRExperimentCorpus.lean deterministic matched-task corpus emitter
+ProofNetIRModelExperimentCorpus.lean held-out model-task base emitter
 ProofNetIRExperimentVerify.lean Lean checker/sequentializer batch boundary
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
@@ -224,6 +228,7 @@ examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
 scripts/focused_search.py     focused cut-free comparison baseline
 scripts/run_matched_experiment.py matched generation/repair experiment runner
+scripts/run_model_experiment.py preregistered held-out model experiment runner
 scripts/audit_v03_canonical.py independent 1,000-record reindex-key audit
 scripts/fuzz_malformed_parser.py deterministic 5,000-case parser fuzz gate
 docs/                         architecture, literature map, roadmap, trust boundary
@@ -241,6 +246,12 @@ show that proof graphs generally outperform focused search or tactic
 generation: most atom labels are unique, the graph method receives the full
 formula skeleton, repair starts one edit from a valid net, and no learned model
 or ordinary Lean goal is involved.
+
+A second 180-task study is now preregistered across depths 2--4, repeated-label
+and unique-label strata, balanced positive/negative tasks, and reference repair
+distances two/three. The committed checkpoint contains no task-specific model
+responses or formal aggregate; see
+[model-v0.2](experiments/model-v0.2/README.md) for the frozen protocol.
 
 The broader plan is in [docs/roadmap.md](docs/roadmap.md). Source screening and
 project rationale are recorded in [docs/literature-map.md](docs/literature-map.md).

@@ -29,6 +29,7 @@ EXPECTED_THEOREMS = {
     "ProofNetIR.Certificate.generallySequentializable",
     "ProofNetIR.Certificate.reindexEquivalent?_eq_true_iff_of_check",
     "ProofNetIR.Certificate.matchingFormulaOrders_complete",
+    "ProofNetIR.Certificate.localIdentityCompatible_inverse",
     "ProofNetIR.Certificate.directProofNetEquivalentWitness?_complete",
     "ProofNetIR.Certificate.proofNetEquivalent?_eq_true_iff",
     "ProofNetIR.CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff",

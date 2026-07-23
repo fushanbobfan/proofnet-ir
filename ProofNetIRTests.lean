@@ -216,6 +216,18 @@ def repeatedBoundarySequentializes : Bool :=
 matching rather than a unique-label shortcut. -/
 example : repeatedBoundarySequentializes = true := by native_decide
 
+def repeatedBoundaryIdentityCandidateCount : Nat :=
+  match repeatedBoundaryTree.desequentialize? with
+  | none => 0
+  | some certificate =>
+      certificate.proofNetIdentityCandidateCount certificate
+
+/-- One-hop role/label signatures remove all spurious self-alignments in this
+repeated-label accepted net while retaining the genuine identity witness. -/
+example : repeatedBoundaryIdentityCandidateCount = 1 := by native_decide
+
+#check Certificate.localIdentityCompatible_inverse
+
 def reversedLinkCertificate : Certificate :=
   { canonicalCertificate "reordered-p" "reordered-q" with
     links := (canonicalCertificate "reordered-p" "reordered-q").links.reverse }

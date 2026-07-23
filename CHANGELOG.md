@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added numeric-free one-hop incident-link views to repeated-label occurrence
+  alignment and proved that every direct `ProofNetEquivalent` witness satisfies
+  the new constraint; this is a completeness-preserving performance filter,
+  not a change to proof-net identity;
+- qualified the new filter on the 180-task repeated-label/negative experiment
+  corpus: Lean rejected every one of 176 distinct corruptions and accepted and
+  executably sequentialized all 88 distinct positive certificates in the
+  264-input batch;
+- preregistered a 180-task held-out model experiment across depths 2--4,
+  unique/two-label/one-label strata, positive/negative polarity, and exact
+  reference repair distances two/three, with corpus, prompt, implementation,
+  and protocol hashes committed before any task-specific model response;
+- replaced the experiment repair baseline's unmetered factorial
+  materialization with exact distance-layer enumeration. Enumeration and
+  checker time are both inside the stated 1,000-candidate/60-second budget.
+
 ## v0.5.1 - Derivation soundness and exact checked identity
 
 - proved that the explicit exchange index guard already implies the redundant

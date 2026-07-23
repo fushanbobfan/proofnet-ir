@@ -1,11 +1,11 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.5.0 release plus pinned-release downstream validation
+Audited baseline: v0.5.1 release plus the current preregistration checkpoint
 
 ## Verdict
 
-ProofNet-IR v0.5.0 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.5.1 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. v0.5.0 proves that any accepted
@@ -101,8 +101,10 @@ part of the engineering and proof-identity gap.
    supported production pairwise identity boundary and has an exact iff
    theorem. Ordered conclusions constrain candidate generation, reducing the
    64-pair repeated-label stress case from `(64!)^2` theoretical unconstrained
-   orders to one generated candidate. This does not provide a compact wire key
-   or a polynomial worst-case bound for duplicate internal formulas.
+   orders to one generated candidate. Numeric-free one-hop incident-link views
+   now also prune internal repeated-label alignments, with a proof that every
+   direct equivalence witness survives the filter. This does not provide a
+   compact wire key or a polynomial worst-case bound.
 
 ## Engineering gaps blocking a mature-library claim
 
@@ -116,7 +118,7 @@ part of the engineering and proof-identity gap.
   equivalence theorem, while the pinned consumer protects the v0.5.0 API;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for twenty-four public logical-boundary theorems and
+- CI now parses `#print axioms` for twenty-five public logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
@@ -140,7 +142,11 @@ part of the engineering and proof-identity gap.
   formula skeleton, positive derivation-first corpus, mostly unique atom
   labels, and distance-one mutations prevent this from establishing the
   research hypothesis;
-- no model-backed matched experiment has established the research hypothesis.
+- a 180-task held-out model experiment is preregistered with balanced
+  depth/label/polarity strata, exact implementation/prompt/corpus hashes,
+  negative atom-balance witnesses, and reference repair distances two/three;
+  no task-specific model response or formal aggregate existed at registration,
+  so it has not yet established the research hypothesis.
 
 ## Current usability boundary
 
@@ -160,6 +166,8 @@ It can currently be used for:
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
+- regenerating and auditing the frozen 180-task model-experiment
+  preregistration without calling the model.
 
 It should not yet be presented as:
 
