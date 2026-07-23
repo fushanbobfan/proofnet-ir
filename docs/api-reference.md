@@ -113,6 +113,18 @@ Every stored edge names two distinct vertices of the finite graph.
 ProofNetIR.Graph.Bounded : ProofNetIR.Graph → Prop
 ```
 
+### `ProofNetIR.Graph.Bounded.retainEdges`
+
+Kind: theorem.
+
+Retaining an aligned subset of stored edge occurrences preserves finite
+endpoint bounds and looplessness.
+
+```lean
+ProofNetIR.Graph.Bounded.retainEdges : ∀ {graph : ProofNetIR.Graph},
+  graph.Bounded → ∀ {mask : List Bool}, graph.edges.length = mask.length → (graph.retainEdges mask).Bounded
+```
+
 ### `ProofNetIR.Graph.Connected`
 
 Kind: definition.
@@ -662,6 +674,57 @@ ProofNetIR.Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic : ∀ (cer
       ∀ (selected retained : List ProofNetIR.Edge) (mask : List Bool),
         ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retained mask →
           (certificate.fullGraph.retainEdges mask).Acyclic)
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.fullGraph_bounded`
+
+Kind: theorem.
+
+Structural well-formedness bounds every occurrence in the unswitched
+full graph.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.fullGraph_bounded : ∀ {certificate : ProofNetIR.Certificate}, certificate.StructurallyWellFormed → certificate.fullGraph.Bounded
+```
+
+### `ProofNetIR.Certificate.AllOccurrenceSwitchingsConnected`
+
+Kind: definition.
+
+The remaining connectivity half of switching correctness, stated over the
+same occurrence-order masks used by the exact acyclicity bridge.
+
+```lean
+ProofNetIR.Certificate.AllOccurrenceSwitchingsConnected : ProofNetIR.Certificate → Prop
+```
+
+### `ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected`
+
+Kind: theorem.
+
+Declarative all-switchings correctness decomposes exactly into structural
+well-formedness, colored cusp-acyclicity, and occurrence-switching
+connectedness. The first two fields no longer quantify over switching trees;
+only the explicit connectivity field remains for the contraction route.
+
+```lean
+ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.DeclarativelyCorrect ↔
+    certificate.StructurallyWellFormed ∧ certificate.CuspAcyclic ∧ certificate.AllOccurrenceSwitchingsConnected
+```
+
+### `ProofNetIR.Certificate.check_iff_structural_cuspAcyclic_allConnected`
+
+Kind: theorem.
+
+Executable checker acceptance has the same exact three-part
+decomposition. The only remaining all-switchings quantifier is connectedness;
+acyclicity has been replaced by the single colored full-graph criterion.
+
+```lean
+ProofNetIR.Certificate.check_iff_structural_cuspAcyclic_allConnected : ∀ (certificate : ProofNetIR.Certificate),
+  certificate.check = true ↔
+    certificate.StructurallyWellFormed ∧ certificate.CuspAcyclic ∧ certificate.AllOccurrenceSwitchingsConnected
 ```
 
 ### `ProofNetIR.Certificate.isCuspFreeTraversal`

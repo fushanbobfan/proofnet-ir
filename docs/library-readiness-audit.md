@@ -118,7 +118,9 @@ part of the engineering and proof-identity gap.
    `CuspAcyclic ↔ every occurrence-order switching is Acyclic`, with retained
    cycles lifted by exact edge occurrence rather than endpoint value. This is
    not yet full checker equivalence because `IsTree` also requires
-   connectedness.
+   connectedness. The remaining boundary is nevertheless exact:
+   `check = true` is equivalent to structural well-formedness,
+   `CuspAcyclic`, and `AllOccurrenceSwitchingsConnected`.
    The v0.9 development API now additionally provides
    `Certificate.verifyDerivation?`, which avoids both input-switching
    enumeration and vertex-permutation search when a caller supplies a

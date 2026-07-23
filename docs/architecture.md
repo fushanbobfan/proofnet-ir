@@ -137,6 +137,20 @@ This does not yet supply switching connectedness, so it is not a replacement
 for the production all-trees checker. No improved asymptotic bound is inferred
 from the exhaustive oracle.
 
+The remaining boundary is explicit rather than informal:
+
+```text
+check = true ↔
+  StructurallyWellFormed ∧
+  CuspAcyclic ∧
+  AllOccurrenceSwitchingsConnected
+```
+
+The proof builds bounded, connected, acyclic retained graphs and transports
+their tree property across the exact edge-list permutation used by the public
+switching graph. Future contraction work must replace only the final
+all-switchings connectedness field.
+
 ## Persistent LeanProp bridge
 
 The v0.6-development bridge is a separate typed calculus, not an extension of

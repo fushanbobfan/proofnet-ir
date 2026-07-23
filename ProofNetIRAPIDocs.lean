@@ -33,6 +33,7 @@ def sections : List Section := [
     title := "Finite graph semantics"
     declarations := [
       `ProofNetIR.Graph.Bounded,
+      `ProofNetIR.Graph.Bounded.retainEdges,
       `ProofNetIR.Graph.Connected,
       `ProofNetIR.Graph.EdgeSimpleCycle,
       `ProofNetIR.Graph.DirectedEdge.ne_reverse,
@@ -74,6 +75,10 @@ def sections : List Section := [
       `ProofNetIR.Certificate.fullSwitchingSelection_cycle_cuspFree,
       `ProofNetIR.Certificate.CuspAcyclic.occurrenceSwitching_acyclic,
       `ProofNetIR.Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic,
+      `ProofNetIR.Certificate.StructurallyWellFormed.fullGraph_bounded,
+      `ProofNetIR.Certificate.AllOccurrenceSwitchingsConnected,
+      `ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected,
+      `ProofNetIR.Certificate.check_iff_structural_cuspAcyclic_allConnected,
       `ProofNetIR.Certificate.isCuspFreeTraversal,
       `ProofNetIR.Certificate.isCuspFreeTraversal_eq_true_iff,
       `ProofNetIR.Certificate.isCuspFreeCycleTraversal,

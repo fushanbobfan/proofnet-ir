@@ -2479,8 +2479,20 @@ def isTree (graph : Graph) : Bool :=
 def Bounded (graph : Graph) : Prop :=
   ∀ edge ∈ graph.edges,
     edge.first < graph.vertexCount ∧
-    edge.second < graph.vertexCount ∧
-    edge.first ≠ edge.second
+      edge.second < graph.vertexCount ∧
+      edge.first ≠ edge.second
+
+/-- Retaining an aligned subset of stored edge occurrences preserves finite
+endpoint bounds and looplessness. -/
+theorem Bounded.retainEdges {graph : Graph} (bounded : graph.Bounded)
+    {mask : List Bool} (aligned : graph.edges.length = mask.length) :
+    (graph.retainEdges mask).Bounded := by
+  intro edge membership
+  rcases List.getElem?_of_mem membership with
+    ⟨retainedIndex, retainedLookup⟩
+  rcases retainEdgesByMask_lookup_exists_original aligned retainedLookup with
+    ⟨originalIndex, originalLookup, _kept, _position⟩
+  exact bounded edge (List.mem_of_getElem? originalLookup)
 
 theorem adjacent_right_in_bounds (graph : Graph) (bounded : graph.Bounded)
     {left right : Vertex} (adjacency : graph.Adjacent left right) :

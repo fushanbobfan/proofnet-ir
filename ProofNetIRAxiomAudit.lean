@@ -29,6 +29,8 @@ expansion.
 #print axioms Certificate.isCuspAcyclic_of_check
 #print axioms Certificate.CuspAcyclic.occurrenceSwitching_acyclic
 #print axioms Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
+#print axioms Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected
+#print axioms Certificate.check_iff_structural_cuspAcyclic_allConnected
 #print axioms CutFreeDerivation.infer?_eq_some_iff_build?_conclusions
 #print axioms CutFreeDerivation.build?_structurallyWellFormed
 #print axioms CutFreeDerivation.build?_switchingCorrect

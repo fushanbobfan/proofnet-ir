@@ -105,6 +105,14 @@
   distinguishes parallel equal-valued edges by list index. It does not yet
   promote acyclicity to the connected tree property; the connectedness/
   contraction bridge and a non-enumerative implementation remain open;
+- factored the remaining logical obligation exactly. Lean now proves both
+  `DeclarativelyCorrect` and `check = true` equivalent to structural
+  well-formedness, `CuspAcyclic`, and
+  `AllOccurrenceSwitchingsConnected`. Retained subgraphs inherit structural
+  bounds, the colored theorem supplies every switching's acyclicity, and
+  edge-list permutation transports the resulting trees back to the public
+  switching representation. Thus the only remaining all-switchings
+  correctness quantifier is connectedness;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

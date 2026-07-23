@@ -26,6 +26,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.isCuspAcyclic_of_check",
     "ProofNetIR.Certificate.CuspAcyclic.occurrenceSwitching_acyclic",
     "ProofNetIR.Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic",
+    "ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected",
+    "ProofNetIR.Certificate.check_iff_structural_cuspAcyclic_allConnected",
     "ProofNetIR.CutFreeDerivation.infer?_eq_some_iff_build?_conclusions",
     "ProofNetIR.CutFreeDerivation.build?_structurallyWellFormed",
     "ProofNetIR.CutFreeDerivation.build?_switchingCorrect",

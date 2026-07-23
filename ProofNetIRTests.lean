@@ -657,6 +657,19 @@ example : canonical.CuspAcyclic ↔
         (canonical.fullGraph.retainEdges mask).Acyclic :=
   canonical.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
     (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+example : canonical.AllOccurrenceSwitchingsConnected :=
+  (canonical.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected.mp
+    (canonical.check_sound_declarative (by native_decide))).2.2
+example : canonical.DeclarativelyCorrect ↔
+    canonical.StructurallyWellFormed ∧
+      canonical.CuspAcyclic ∧
+      canonical.AllOccurrenceSwitchingsConnected :=
+  canonical.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected
+example : canonical.check = true ↔
+    canonical.StructurallyWellFormed ∧
+      canonical.CuspAcyclic ∧
+      canonical.AllOccurrenceSwitchingsConnected :=
+  canonical.check_iff_structural_cuspAcyclic_allConnected
 example : canonical.isCuspAcyclic = true :=
   canonical.isCuspAcyclic_of_check (by native_decide)
 example : canonical.isCuspAcyclic = true ↔ canonical.CuspAcyclic :=
@@ -1859,6 +1872,11 @@ example : ¬cyclicGraph.Acyclic := by
 #check Certificate.fullSwitchingSelection_cycle_cuspFree
 #check Certificate.CuspAcyclic.occurrenceSwitching_acyclic
 #check Certificate.cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
+#check Graph.Bounded.retainEdges
+#check Certificate.StructurallyWellFormed.fullGraph_bounded
+#check Certificate.AllOccurrenceSwitchingsConnected
+#check Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected
+#check Certificate.check_iff_structural_cuspAcyclic_allConnected
 #check Certificate.StructurallyWellFormed.par_producer_unique
 example : cyclicGraph.IsTree ↔
     cyclicGraph.Bounded ∧ cyclicGraph.Connected ∧ cyclicGraph.Acyclic :=

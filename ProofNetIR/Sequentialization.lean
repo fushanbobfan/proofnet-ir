@@ -4175,11 +4175,13 @@ def fullGraph (certificate : Certificate) : Graph where
   edges := certificate.fullEdges
 
 /-- Local link well-formedness makes every stored full-graph occurrence
-loopless. -/
-theorem fullEdge_loopless (certificate : Certificate)
+bounded and loopless. -/
+theorem fullEdge_bounded (certificate : Certificate)
     (structural : certificate.StructurallyWellFormed)
     {edge : Edge} (membership : edge ∈ certificate.fullEdges) :
-    edge.first ≠ edge.second := by
+    edge.first < certificate.formulas.size ∧
+      edge.second < certificate.formulas.size ∧
+      edge.first ≠ edge.second := by
   simp only [fullEdges, List.mem_flatMap] at membership
   rcases membership with ⟨link, linkMembership, edgeMembership⟩
   have localWellFormed := structural.2.2.2.2.1 link linkMembership
@@ -4187,17 +4189,39 @@ theorem fullEdge_loopless (certificate : Certificate)
   | «axiom» left right =>
       simp at edgeMembership
       subst edge
-      exact localWellFormed.1
+      exact ⟨localWellFormed.2.1, localWellFormed.2.2.1,
+        localWellFormed.1⟩
   | tensor left right conclusion =>
       simp at edgeMembership
       rcases edgeMembership with same | same <;> subst edge
-      · exact localWellFormed.2.1
-      · exact localWellFormed.2.2.1
+      · exact ⟨localWellFormed.2.2.2.1,
+          localWellFormed.2.2.2.2.2.1, localWellFormed.2.1⟩
+      · exact ⟨localWellFormed.2.2.2.2.1,
+          localWellFormed.2.2.2.2.2.1, localWellFormed.2.2.1⟩
   | par left right conclusion =>
       simp at edgeMembership
       rcases edgeMembership with same | same <;> subst edge
-      · exact localWellFormed.2.1
-      · exact localWellFormed.2.2.1
+      · exact ⟨localWellFormed.2.2.2.1,
+          localWellFormed.2.2.2.2.2.1, localWellFormed.2.1⟩
+      · exact ⟨localWellFormed.2.2.2.2.1,
+          localWellFormed.2.2.2.2.2.1, localWellFormed.2.2.1⟩
+
+/-- Local link well-formedness makes every stored full-graph occurrence
+loopless. -/
+theorem fullEdge_loopless (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    {edge : Edge} (membership : edge ∈ certificate.fullEdges) :
+    edge.first ≠ edge.second :=
+  (certificate.fullEdge_bounded structural membership).2.2
+
+/-- Structural well-formedness bounds every occurrence in the unswitched
+full graph. -/
+theorem StructurallyWellFormed.fullGraph_bounded
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) :
+    certificate.fullGraph.Bounded := by
+  intro edge membership
+  exact certificate.fullEdge_bounded structural membership
 
 /-- Both orientations of every structurally valid full-graph occurrence have
 distinct endpoints. -/
@@ -10774,6 +10798,95 @@ theorem cuspAcyclic_iff_allOccurrenceSwitchingsAcyclic
     rcases cycle.retainEdges aligned allKept with
       ⟨retainedCycle⟩
     exact allAcyclic selected retained mask selection retainedCycle
+
+/-- The remaining connectivity half of switching correctness, stated over the
+same occurrence-order masks used by the exact acyclicity bridge. -/
+def AllOccurrenceSwitchingsConnected (certificate : Certificate) : Prop :=
+  ∀ selected retained mask,
+    FullSwitchingSelection certificate.links selected retained mask →
+      (certificate.fullGraph.retainEdges mask).Connected
+
+/-- Declarative all-switchings correctness decomposes exactly into structural
+well-formedness, colored cusp-acyclicity, and occurrence-switching
+connectedness. The first two fields no longer quantify over switching trees;
+only the explicit connectivity field remains for the contraction route. -/
+theorem declarativelyCorrect_iff_structural_cuspAcyclic_allConnected
+    (certificate : Certificate) :
+    certificate.DeclarativelyCorrect ↔
+      certificate.StructurallyWellFormed ∧
+        certificate.CuspAcyclic ∧
+        certificate.AllOccurrenceSwitchingsConnected := by
+  constructor
+  · intro correct
+    refine ⟨correct.1, correct.cuspAcyclic, ?_⟩
+    intro selected retained mask occurrenceSelection
+    have ordinarySelection :
+        ChoiceSelection certificate.parChoices selected := by
+      simpa using occurrenceSelection.choiceSelection
+    have switchingTree :
+        (certificate.graphForSelection selected).IsTree :=
+      correct.2 _ ⟨selected, ordinarySelection, rfl⟩
+    have retainedEdges :
+        (certificate.fullGraph.retainEdges mask).edges = retained := by
+      change Graph.retainEdgesByMask certificate.fullEdges mask = retained
+      simpa [retainByMask] using
+        occurrenceSelection.retained_eq_retainByMask.symm
+    have edgePermutation :
+        (certificate.graphForSelection selected).edges.Perm
+          (certificate.fullGraph.retainEdges mask).edges := by
+      rw [retainedEdges]
+      exact occurrenceSelection.edgePermutation.symm
+    exact (switchingTree.permuteEdges
+      (right := certificate.fullGraph.retainEdges mask)
+      rfl edgePermutation).2.1
+  · rintro ⟨structural, cuspAcyclic, allConnected⟩
+    refine ⟨structural, ?_⟩
+    intro switchingGraph switching
+    rcases switching with ⟨selected, ordinarySelection, rfl⟩
+    rcases certificate.occurrenceSwitching_exists ordinarySelection with
+      ⟨retained, mask, occurrenceSelection, retainedPermutation⟩
+    have aligned : certificate.fullGraph.edges.length = mask.length := by
+      change (linkFullEdges certificate.links).length = mask.length
+      exact occurrenceSelection.mask_length.symm
+    have retainedBounded :
+        (certificate.fullGraph.retainEdges mask).Bounded :=
+      structural.fullGraph_bounded.retainEdges aligned
+    have retainedConnected :
+        (certificate.fullGraph.retainEdges mask).Connected :=
+      allConnected selected retained mask occurrenceSelection
+    have retainedAcyclic :
+        (certificate.fullGraph.retainEdges mask).Acyclic :=
+      cuspAcyclic.occurrenceSwitching_acyclic structural occurrenceSelection
+    have retainedTree :
+        (certificate.fullGraph.retainEdges mask).IsTree :=
+      (certificate.fullGraph.retainEdges mask
+        |>.isTree_iff_bounded_connected_acyclic).mpr
+          ⟨retainedBounded, retainedConnected, retainedAcyclic⟩
+    have retainedEdges :
+        (certificate.fullGraph.retainEdges mask).edges = retained := by
+      change Graph.retainEdgesByMask certificate.fullEdges mask = retained
+      simpa [retainByMask] using
+        occurrenceSelection.retained_eq_retainByMask.symm
+    have edgePermutation :
+        (certificate.fullGraph.retainEdges mask).edges.Perm
+          (certificate.graphForSelection selected).edges := by
+      rw [retainedEdges]
+      exact retainedPermutation
+    exact retainedTree.permuteEdges
+      (right := certificate.graphForSelection selected)
+      rfl edgePermutation
+
+/-- Executable checker acceptance has the same exact three-part
+decomposition. The only remaining all-switchings quantifier is connectedness;
+acyclicity has been replaced by the single colored full-graph criterion. -/
+theorem check_iff_structural_cuspAcyclic_allConnected
+    (certificate : Certificate) :
+    certificate.check = true ↔
+      certificate.StructurallyWellFormed ∧
+        certificate.CuspAcyclic ∧
+        certificate.AllOccurrenceSwitchingsConnected := by
+  rw [certificate.check_iff_declarativelyCorrect,
+    certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected]
 
 theorem LinkWellFormed.tensor_conclusionFormula
     {certificate : Certificate} {left right conclusion : Vertex}

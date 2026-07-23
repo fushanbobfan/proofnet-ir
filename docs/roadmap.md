@@ -360,6 +360,10 @@
   `CuspAcyclic ↔ every occurrence-order switching is Acyclic`, with exact
   occurrence-index transport through switching masks and regressions covering
   the public canonical net.
+- [x] Prove the exact correctness decomposition
+  `check = true ↔ StructurallyWellFormed ∧ CuspAcyclic ∧
+  AllOccurrenceSwitchingsConnected`, isolating connectedness as the sole
+  remaining all-switchings graph obligation.
 - [x] Add a proof-bearing verifier for a supplied cut-free derivation that
   performs structural validation, inference/desequentialization, and
   non-factorial intrinsic identity checking without evaluating input
@@ -395,7 +399,8 @@
 - [ ] Prove the reverse bridge from structural well-formedness, a connected
   reference switching, and `CuspAcyclic` to full switching correctness. The
   all-switchings acyclicity component is complete; the remaining theorem must
-  derive connectedness/tree correctness without enumerating switchings. Then
+  replace `AllOccurrenceSwitchingsConnected` by a connected reference or
+  contraction condition without enumerating switchings. Then
   implement and verify a non-enumerative colored-cycle/contraction algorithm
   against both exhaustive oracles.
 

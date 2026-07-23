@@ -91,6 +91,11 @@ name-level restatement of Yeo:
    enumeration is exponential, so this remains a differential specification.
    The remaining reverse bridge is switching connectedness/tree correctness,
    not acyclicity, and is tracked separately.
+   This boundary is exact: `DeclarativelyCorrect` and executable
+   `check = true` are both proved equivalent to structural well-formedness,
+   `CuspAcyclic`, and `AllOccurrenceSwitchingsConnected`. Hence no additional
+   hidden tree obligation remains beyond reducing the last connectedness
+   quantifier to a compact reference/contraction condition.
 4. **Finite maximality/Yeo (order foundation complete).** `EdgeSimplePath`,
    `CuspFreeContinuation`, and the strengthened `OrderingPath` now encode the
    simple open cusp-free continuation and universal path-separation condition.

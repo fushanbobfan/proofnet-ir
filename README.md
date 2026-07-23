@@ -27,6 +27,18 @@ using exact mask-index transport even in the presence of parallel
 equal-valued edges. This closes the acyclicity half of the reverse bridge.
 Connectedness/tree reconstruction from a compact reference condition and a
 non-enumerative implementation remain explicit work in progress.
+The exact current decomposition is kernel-checked:
+
+```text
+check = true ↔
+  StructurallyWellFormed ∧
+  CuspAcyclic ∧
+  AllOccurrenceSwitchingsConnected
+```
+
+Accordingly, acyclicity is no longer hidden inside an all-trees quantifier;
+only switching connectedness still needs to be reduced to a compact
+reference/contraction condition.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -74,6 +86,9 @@ The repository currently contains:
   `CuspAcyclic ↔ every occurrence-order switching is Acyclic`. The remaining
   reverse bridge is connectedness/tree correctness, not switching
   acyclicity; an optimized non-enumerative implementation also remains open;
+- exact decomposition theorems for both declarative and executable
+  correctness, leaving `AllOccurrenceSwitchingsConnected` as the sole
+  all-switchings graph obligation after structural and colored checks;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
