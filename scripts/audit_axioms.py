@@ -88,6 +88,11 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.unificationReconstruct_accepted",
     "ProofNetIR.Certificate.unificationReconstruct?_sound",
     "ProofNetIR.Certificate.unificationReconstruct?_accepted",
+    "ProofNetIR.Certificate.unificationWorklistReconstruct?_accepted",
+    "ProofNetIR.Certificate.unificationWorklistFastCheck_sound",
+    "ProofNetIR.Certificate.unificationWorklistCheck_eq_check",
+    "ProofNetIR.Certificate.unificationWorklistCheck_eq_true_iff_check",
+    "ProofNetIR.Certificate.unificationWorklistCheck_eq_true_iff_declarativelyCorrect",
     "ProofNetIR.Certificate.unificationFastCheck_eq_true_iff",
     "ProofNetIR.Certificate.unificationFastCheck_sound",
     "ProofNetIR.Certificate.unificationCheck_eq_check",
@@ -102,6 +107,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.persistentExchange_nonempty_of_listPerm",
     "ProofNetIR.LeanProp.Derivation.linearExchange_nonempty_of_listPerm",
     "ProofNetIR.UnificationCandidateResult.linkVisitsBound",
+    "ProofNetIR.UnificationWorklistCandidateResult.linkAttemptsWithinBudget",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",

@@ -147,7 +147,14 @@
   Added proof-relevant eager-scan statistics: Lean certifies at most
   `|links|` passes, exactly `passes * |links|` link visits, and therefore a
   quadratic link-visit ceiling. Frontier, union-find, verification, and
-  fallback costs remain outside that scoped theorem;
+  fallback costs remain outside that scoped theorem. Added an event-driven
+  premise-consumer worklist with a flat waiting-par set. Its candidate is
+  independently verified; Lean proves fast-path soundness, exact fallback
+  agreement with `check`, and the conservative `n(n+4)+1` link-attempt cap.
+  The 1,500/6,000-case gates observed no worklist miss or false positive.
+  `unificationCheck` now tries worklist, eager scan, then complete recursive
+  reconstruction. Fuel sufficiency, pure completeness, `NEXTAXIOM`, and a
+  full linear cost theorem remain open;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

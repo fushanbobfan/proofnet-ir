@@ -62,6 +62,10 @@ def run : IO Unit := do
   let mut unificationMs := 0
   let mut unificationLinkVisits := 0
   let mut unificationMaxPasses := 0
+  let mut worklistUnificationMs := 0
+  let mut worklistLinkAttempts := 0
+  let mut worklistMaxAttempts := 0
+  let mut worklistWaitingRequeues := 0
   let mut sequentializeMs := 0
   let mut reconstructionMs := 0
   let mut equivalenceMs := 0
@@ -90,6 +94,21 @@ def run : IO Unit := do
       unificationLinkVisits + unification.candidate.stats.linkVisits
     unificationMaxPasses :=
       max unificationMaxPasses unification.candidate.stats.passes
+    let worklistStart ← IO.monoMsNow
+    let worklist ←
+      match input.unificationWorklistReconstructWithStats with
+      | .error _ =>
+          throw <| IO.userError
+            "benchmark worklist unification fast path failed"
+      | .ok value => pure value
+    worklistUnificationMs :=
+      worklistUnificationMs + ((← IO.monoMsNow) - worklistStart)
+    worklistLinkAttempts :=
+      worklistLinkAttempts + worklist.candidate.stats.linkAttempts
+    worklistMaxAttempts :=
+      max worklistMaxAttempts worklist.candidate.stats.linkAttempts
+    worklistWaitingRequeues :=
+      worklistWaitingRequeues + worklist.candidate.stats.waitingRequeues
     let reconstructionStart ← IO.monoMsNow
     let reconstruction ← match input.reconstructDerivation? with
       | none =>
@@ -112,7 +131,10 @@ def run : IO Unit := do
       reconstruction.output.links.length + reconstruction.sequent.length +
       unification.verification.output.formulas.size +
       unification.verification.output.links.length +
-      unification.verification.sequent.length
+      unification.verification.sequent.length +
+      worklist.verification.output.formulas.size +
+      worklist.verification.output.links.length +
+      worklist.verification.sequent.length
     completed := completed + 1
   let identityLeft := repeatedBoundaryCertificate identityStressPairs 0
   let identityRight := repeatedBoundaryCertificate identityStressPairs 1
@@ -199,7 +221,7 @@ def run : IO Unit := do
   let elapsed := (← IO.monoMsNow) - start
   if elapsed > budgetMs then
     throw <| IO.userError s!"performance budget exceeded: {elapsed}ms > {budgetMs}ms"
-  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkMs} unification_ms={unificationMs} unification_link_visits={unificationLinkVisits} unification_max_passes={unificationMaxPasses} sequentialize_ms={sequentializeMs} reconstruction_ms={reconstructionMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} intrinsic_canonical_key_cases={intrinsicCanonicalKeyCases} intrinsic_canonical_key_max_links={intrinsicCanonicalKeyMaxLinks} intrinsic_canonical_key_ms={intrinsicCanonicalKeyMs} intrinsic_canonical_key_budget_ms={intrinsicCanonicalKeyBudgetMs} budget_ms={budgetMs}"
+  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkMs} unification_ms={unificationMs} unification_link_visits={unificationLinkVisits} unification_max_passes={unificationMaxPasses} worklist_unification_ms={worklistUnificationMs} worklist_link_attempts={worklistLinkAttempts} worklist_max_attempts={worklistMaxAttempts} worklist_waiting_requeues={worklistWaitingRequeues} sequentialize_ms={sequentializeMs} reconstruction_ms={reconstructionMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} intrinsic_canonical_key_cases={intrinsicCanonicalKeyCases} intrinsic_canonical_key_max_links={intrinsicCanonicalKeyMaxLinks} intrinsic_canonical_key_ms={intrinsicCanonicalKeyMs} intrinsic_canonical_key_budget_ms={intrinsicCanonicalKeyBudgetMs} budget_ms={budgetMs}"
 
 end ProofNetIRBenchmark
 

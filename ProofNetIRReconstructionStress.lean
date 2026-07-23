@@ -101,6 +101,20 @@ def run (arguments : List String) : IO Unit := do
     IO.println
       s!"reconstruction-stress-unification name={stress.name} elapsed_ms={unificationMs} passes={unification.candidate.stats.passes} link_visits={unification.candidate.stats.linkVisits}"
     (← IO.getStdout).flush
+    let worklistStart ← IO.monoMsNow
+    let worklist ← match input.unificationWorklistReconstructWithStats with
+      | .error _ =>
+          throw <| IO.userError
+            s!"worklist unification failed: {stress.name}"
+      | .ok value => pure value
+    let worklistMs := (← IO.monoMsNow) - worklistStart
+    checksum := checksum +
+      worklist.verification.output.formulas.size +
+      worklist.verification.output.links.length +
+      worklist.verification.sequent.length
+    IO.println
+      s!"reconstruction-stress-worklist name={stress.name} elapsed_ms={worklistMs} link_attempts={worklist.candidate.stats.linkAttempts} waiting_requeues={worklist.candidate.stats.waitingRequeues}"
+    (← IO.getStdout).flush
     let canonicalStart ← IO.monoMsNow
     let inputCode := input.intrinsicCanonicalCode
     let canonicalMs := (← IO.monoMsNow) - canonicalStart

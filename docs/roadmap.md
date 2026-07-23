@@ -419,12 +419,20 @@
     eager schedule performs at most `|links|²` link-list visits; keep
     frontier, union-find, verification, and fallback costs outside that
     deliberately scoped theorem.
+  - [x] Implement an event-driven premise-consumer worklist with a deduplicated
+    waiting-par set, verified derivation output, soundness theorem, exact
+    fallback wrapper, operational counters, and a conservative proved
+    `n(n+4)+1` link-attempt cap.
+  - [x] Differentially qualify the worklist on the 1,500-case
+    reference/mutation audit and the 6,000-case reordered positive search with
+    no observed miss or false positive.
   - [ ] Prove the pure deterministic unification path complete, removing the
     recursive fallback from the logical decision.
-  - [ ] Replace eager repeated scans with proved ready/waiting worklists,
-    formalize the sequential `NEXTAXIOM`/union-find invariants, and extend the
-    cost theorem to all implemented operations before claiming Guerrini
-    linearity.
+  - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
+    with the Figures 7--8 sequential stack, formalize
+    `NEXTAXIOM`/union-find invariants, prove fuel sufficiency and pure
+    completeness, and extend the cost theorem to all implemented operations
+    before claiming Guerrini linearity.
 
 ## Later research
 

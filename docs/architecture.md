@@ -174,6 +174,17 @@ link-list visits. That result characterizes the current scan schedule only;
 the architecture still needs explicit ready/waiting worklists and a cost model
 covering frontier manipulation, union-find, verification, and fallback.
 
+The next executable layer,
+`Certificate.unificationWorklistFastCheck`, precomputes an occurrence-to-link
+consumer table. Newly marked conclusions enqueue only their consumers; tensor
+unions requeue a deduplicated flat set of waiting par links. Its generated
+derivation crosses the same independent verifier, so Lean proves worklist
+success sound and the worklist-first fallback wrapper equal to `check`.
+`Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
+then complete recursive reconstruction. This is still not Guerrini Figures
+7--8 sequential unification: all axioms start eagerly, waiting requeues remain
+flat, and `NEXTAXIOM`/stack invariants are absent.
+
 ## Persistent LeanProp bridge
 
 The v0.6-development bridge is a separate typed calculus, not an extension of

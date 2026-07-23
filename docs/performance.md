@@ -63,6 +63,16 @@ by eager saturation. It deliberately excludes linear frontier searches,
 union-find representative walks, derivation verification, and any hybrid
 fallback, so it is not a quadratic whole-program theorem.
 
+`unificationWorklistReconstructWithStats` replaces full rescans with a
+precomputed premise-consumer table and a deduplicated flat waiting-par set.
+Newly marked conclusions enqueue their consumers; tensor unions requeue the
+waiting set. Its result records initial, dependency, and waiting enqueues,
+link attempts, and successful firings. An axiom-free proof caps link attempts
+at the executable fuel `n(n+4)+1`. Fuel sufficiency for every correct net and
+the cost of building/traversing the tables are not yet proved. In particular,
+flat waiting requeues can still be quadratic, so this is not the sequential
+linear algorithm of Guerrini Figures 7--8.
+
 A separate `proofnet_ir_reconstruction_audit` executable runs the exact
 v0.2-shaped 1,000-case family: 250 derivation positives plus missing-link,
 duplicated-resource, and self-axiom mutations. It fails on any Boolean
@@ -86,7 +96,9 @@ unification-audit-ok cases=1500 structural_negative_sentinels=1
 reference_positives=750
 reference_negatives=750 fast_positive_hits=750 fast_positive_misses=0
 fast_false_positives=0 max_passes=5 max_link_visits=45
-checksum=18372 elapsed_ms=352 budget_ms=15000
+worklist_positive_hits=750 worklist_positive_misses=0
+worklist_false_positives=0 max_worklist_attempts=10
+max_worklist_waiting_requeues=3 checksum=18372 elapsed_ms=510 budget_ms=15000
 ```
 
 Zero observed misses are evidence for the pending completeness proof, not a
@@ -103,7 +115,9 @@ unification error. The first recorded Windows run reported:
 ```text
 unification-completeness-search-ok cases=6000 seeds=1000 depths=0..5
 variants_per_seed=6 max_formulas=111 max_links=79 max_passes=9
-max_link_visits=711 checksum=399450 elapsed_ms=5213 budget_ms=30000
+max_link_visits=711 max_worklist_attempts=150
+max_worklist_waiting_requeues=75 checksum=798900 elapsed_ms=9754
+budget_ms=30000
 ```
 
 This widens the counterexample search substantially, but remains finite
@@ -120,14 +134,19 @@ occurrences and 94 links. It calls
 formula-order fallback. The recorded Windows run reported:
 
 ```text
-checker-free-reconstruction-stress-ok cases=18 checksum=41224
-elapsed_ms=33457 budget_ms=45000
+checker-free-reconstruction-stress-ok cases=18 checksum=43058
+elapsed_ms=33928 budget_ms=45000
 ```
 
 The same stress run now first requires deterministic unification success.
 Individual unification times ranged from below one millisecond to five
 milliseconds on the recorded run; the much larger total remains dominated by
 the independently qualified bounded recursive reconstruction.
+
+The worklist tier is also mandatory in that stress gate. Its recorded maximum
+was 72 link attempts and 15 waiting requeues, versus 1,342 eager link visits
+on the most storage-order-sensitive eager case. This is useful operational
+evidence, not an asymptotic theorem or an end-to-end speedup claim.
 
 Exploratory pre-fix runs exceeded 8-second per-case timeouts at right-tensor
 depth 8 and exceeded 30-second timeouts at balanced depth 4. After boundary
@@ -190,15 +209,17 @@ On the Windows development machine on 2026-07-23, the qualified workload
 reported:
 
 ```text
-cases=291 checksum=1040800 elapsed_ms=9895
-check_ms=1 unification_ms=63 unification_link_visits=9086
-unification_max_passes=7 sequentialize_ms=6505
-reconstruction_ms=1655 equivalence_ms=0
+cases=291 checksum=1049046 elapsed_ms=9679
+check_ms=0 unification_ms=56 unification_link_visits=9086
+unification_max_passes=7 worklist_unification_ms=54
+worklist_link_attempts=2095 worklist_max_attempts=25
+worklist_waiting_requeues=121 sequentialize_ms=6328
+reconstruction_ms=1602 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
-canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=732
+canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=728
 canonical_key_budget_ms=10000 canonical_key_max_links=7
 intrinsic_canonical_key_cases=4 intrinsic_canonical_key_max_links=145
-intrinsic_canonical_key_ms=132 intrinsic_canonical_key_budget_ms=5000
+intrinsic_canonical_key_ms=134 intrinsic_canonical_key_budget_ms=5000
 ```
 
 The millisecond counters are coarse; zero means below one aggregate measured
@@ -207,10 +228,13 @@ calls performed inside sequentialization are included in `sequentialize_ms`.
 Ordered-boundary pruning removes a severe repeated-label case, but formulas on
 internal non-boundary vertices can still require combinatorial search. This
 measurement is not a polynomial-time or general scalability result.
-On this workload both the deterministic unification and checker-free
+On this workload both unification tiers and checker-free
 reconstruction aggregates were lower than the legacy checker-gated
 sequentializer aggregate, but the single run is a regression receipt rather
-than a statistically controlled speedup or asymptotic claim.
+than a statistically controlled speedup or asymptotic claim. The worklist
+reduced observed link inspections from 9,086 eager visits to 2,095 attempts,
+but wall-clock time was nearly identical because independent verification and
+other uncounted work dominate this workload.
 
 The independent intrinsic wire envelope was also exercised negatively during
 development: a depth-64 identity certificate produced 45,022 tokens and

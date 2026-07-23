@@ -43,15 +43,18 @@ its current colored-cycle oracle is still exhaustive and exponential. A
 new Guerrini-style token-unification fast path constructs a derivation while
 firing par/forward and tensor/unify rules, then independently verifies that
 derivation. Lean proves the fast path sound. The public
-`Certificate.unificationCheck` short-circuits through that path and uses the
-already complete checker-free sequentializer only on a miss, so it is proved
-Boolean-equal to `Certificate.check` without enumerating switchings. Fast-path
-completeness and Guerrini's linear complexity bound are still separate open
-proof obligations. The statistics-bearing candidate API carries kernel proofs
+`Certificate.unificationCheck` now tries an event-driven dependency worklist,
+then the eager scan, then the already complete checker-free sequentializer.
+It is proved Boolean-equal to `Certificate.check` without enumerating
+switchings. Both fast paths independently verify their generated derivation.
+Pure fast-path completeness and Guerrini's linear complexity bound are still
+separate open proof obligations. The statistics-bearing eager API carries kernel proofs
 that eager saturation performs at most `|links|` full passes and exactly
 `passes * |links|` link-list visits, hence at most `|links|²` such visits.
 That scoped bound does not cover frontier search, union-find traversal,
-independent verification, or the hybrid fallback.
+independent verification, or the hybrid fallback. The worklist result
+separately carries a proof that link attempts stay within the conservative
+fuel `n(n+4)+1`; fuel sufficiency for every correct net is not yet proved.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -116,6 +119,12 @@ The repository currently contains:
   pure fast path is not yet proved complete or linear. Its
   `unificationDerivationCandidateWithStats` result exposes proved eager-scan
   counters without overstating them as a whole-program time bound;
+- an event-driven worklist prototype that precomputes premise consumers,
+  enqueues newly armed links, and requeues only waiting par links after tensor
+  unions. Every worklist success is independently verified and proved sound;
+  the worklist-first hybrid is proved equal to `check`, while completeness,
+  fuel sufficiency, flat-waiting-set complexity, and faithful
+  `NEXTAXIOM` sequentialization remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -290,7 +299,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits eighty-three public MLL logical-boundary theorems against the exact axiom set
+  separately audits eighty-eight public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.

@@ -63,6 +63,8 @@ def run : IO Unit := do
   let mut maxLinks := 0
   let mut maxPasses := 0
   let mut maxLinkVisits := 0
+  let mut maxWorklistAttempts := 0
+  let mut maxWorklistWaitingRequeues := 0
   for seed in List.range seeds do
     let depth := seed % 6
     let tree := CutFreeDerivation.generate seed depth
@@ -94,6 +96,25 @@ def run : IO Unit := do
           maxLinks := max maxLinks candidate.links.length
           maxPasses := max maxPasses stats.passes
           maxLinkVisits := max maxLinkVisits stats.linkVisits
+      match candidate.unificationWorklistReconstructWithStats with
+      | .error error =>
+          throw <| IO.userError
+            s!"worklist fast-path miss at seed={seed}, depth={depth}, variant={variant.name}: {error.render}"
+      | .ok result =>
+          if result.candidate.stats.linkAttempts >
+              UnificationWorklistStats.attemptBudget
+                candidate.links.length then
+            throw <| IO.userError
+              s!"proved worklist attempt bound failed at seed={seed}, variant={variant.name}"
+          maxWorklistAttempts :=
+            max maxWorklistAttempts result.candidate.stats.linkAttempts
+          maxWorklistWaitingRequeues :=
+            max maxWorklistWaitingRequeues
+              result.candidate.stats.waitingRequeues
+          checksum := checksum +
+            result.verification.output.formulas.size +
+            result.verification.output.links.length +
+            result.verification.sequent.length
       total := total + 1
   let elapsed := (← IO.monoMsNow) - start
   if total != expectedCases then
@@ -103,7 +124,7 @@ def run : IO Unit := do
     throw <| IO.userError
       s!"unification completeness-search budget exceeded: {elapsed}ms > {budgetMs}ms"
   IO.println
-    s!"unification-completeness-search-ok cases={total} seeds={seeds} depths=0..5 variants_per_seed={variantsPerSeed} max_formulas={maxFormulas} max_links={maxLinks} max_passes={maxPasses} max_link_visits={maxLinkVisits} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
+    s!"unification-completeness-search-ok cases={total} seeds={seeds} depths=0..5 variants_per_seed={variantsPerSeed} max_formulas={maxFormulas} max_links={maxLinks} max_passes={maxPasses} max_link_visits={maxLinkVisits} max_worklist_attempts={maxWorklistAttempts} max_worklist_waiting_requeues={maxWorklistWaitingRequeues} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
 
 end ProofNetIRUnificationCompletenessSearch
 

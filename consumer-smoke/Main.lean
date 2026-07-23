@@ -94,6 +94,17 @@ def consumedUnificationWithStats :=
 example : consumedUnificationWithStats.isOk = true := by
   native_decide
 
+def consumedWorklistUnification :=
+  consumedCertificate.unificationWorklistReconstructWithStats
+
+example : consumedWorklistUnification.isOk = true := by
+  native_decide
+
+example :
+    consumedCertificate.unificationWorklistCheck =
+      consumedCertificate.check :=
+  consumedCertificate.unificationWorklistCheck_eq_check
+
 example : consumedCertificate.unificationCheck = true := by
   native_decide
 
@@ -196,6 +207,8 @@ def main : IO Unit := do
       consumedCertificate.unificationFastCheck &&
       consumedCertificate.unificationReconstruct.isOk &&
       consumedUnificationWithStats.isOk &&
+      consumedWorklistUnification.isOk &&
+      consumedCertificate.unificationWorklistCheck &&
       consumedCertificate.unificationCheck &&
       consumedBoundedReconstruction.isOk &&
       consumedSequentialization.isOk &&

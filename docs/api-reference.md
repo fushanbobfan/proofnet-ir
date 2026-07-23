@@ -2401,7 +2401,7 @@ Kind: inductive type.
 
 Observable work counters for the eager repeated-scan implementation.
 
-`linkVisits` counts only connective-list entries inspected by saturation. It
+`linkVisits` counts only link-list entries inspected by saturation. It
 does not count frontier search, union-find traversal, final derivation
 verification, or a hybrid fallback.
 
@@ -2441,6 +2441,62 @@ the candidate that passed independent verification.
 
 ```lean
 ProofNetIR.UnificationVerificationResult : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.UnificationWorklistStats`
+
+Kind: inductive type.
+
+Observable counters for the event-driven ready/waiting worklist
+prototype. No asymptotic theorem is attached to these counters yet.
+
+```lean
+ProofNetIR.UnificationWorklistStats : Type
+```
+
+### `ProofNetIR.UnificationWorklistStats.attemptBudget`
+
+Kind: definition.
+
+Conservative executable link-attempt budget for the current worklist
+prototype. This is not a completeness theorem for the chosen fuel.
+
+```lean
+ProofNetIR.UnificationWorklistStats.attemptBudget : Nat → Nat
+```
+
+### `ProofNetIR.UnificationWorklistCandidateResult`
+
+Kind: inductive type.
+
+Derivation candidate produced by the event-driven ready/waiting worklist
+prototype.
+
+```lean
+ProofNetIR.UnificationWorklistCandidateResult : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.UnificationWorklistCandidateResult.linkAttemptsWithinBudget`
+
+Kind: theorem.
+
+Every successful worklist candidate stays within the conservative
+executable link-attempt budget. Fuel sufficiency for every correct net remains
+a separate completeness obligation.
+
+```lean
+ProofNetIR.UnificationWorklistCandidateResult.linkAttemptsWithinBudget : ∀ {certificate : ProofNetIR.Certificate} (result : ProofNetIR.UnificationWorklistCandidateResult certificate),
+  result.stats.linkAttempts ≤ ProofNetIR.UnificationWorklistStats.attemptBudget certificate.links.length
+```
+
+### `ProofNetIR.UnificationWorklistVerificationResult`
+
+Kind: inductive type.
+
+Independently verified worklist candidate with its operational counters.
+
+```lean
+ProofNetIR.UnificationWorklistVerificationResult : ProofNetIR.Certificate → Type
 ```
 
 ### `ProofNetIR.UnificationErrorCode`
@@ -2506,6 +2562,22 @@ Compatibility projection of the derivation-only unification candidate.
 ProofNetIR.Certificate.unificationDerivationCandidate : ProofNetIR.Certificate → Except ProofNetIR.UnificationError ProofNetIR.CutFreeDerivation
 ```
 
+### `ProofNetIR.Certificate.unificationWorklistDerivationCandidate`
+
+Kind: definition.
+
+Event-driven ready/waiting worklist candidate.
+
+This prototype keeps the Figure-5 token semantics and derivation components,
+but replaces full repeated scans with dependency enqueues plus a waiting-par
+set requeued after tensor unions. It has no universal completeness or linear
+complexity theorem yet.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistDerivationCandidate : (certificate : ProofNetIR.Certificate) →
+  Except ProofNetIR.UnificationError (ProofNetIR.UnificationWorklistCandidateResult certificate)
+```
+
 ### `ProofNetIR.Certificate.unificationDerivationCandidate?`
 
 Kind: definition.
@@ -2549,6 +2621,100 @@ desequentialization, and intrinsic proof-net equivalence.
 
 ```lean
 ProofNetIR.Certificate.unificationReconstruct? : (certificate : ProofNetIR.Certificate) → Option (ProofNetIR.DerivationVerificationResult certificate)
+```
+
+### `ProofNetIR.Certificate.unificationWorklistReconstructWithStats`
+
+Kind: definition.
+
+Independently verify the event-driven worklist candidate and retain its
+operational counters.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistReconstructWithStats : (certificate : ProofNetIR.Certificate) →
+  Except ProofNetIR.UnificationError (ProofNetIR.UnificationWorklistVerificationResult certificate)
+```
+
+### `ProofNetIR.Certificate.unificationWorklistReconstruct?`
+
+Kind: definition.
+
+Proof-bearing option wrapper for the event-driven worklist prototype.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistReconstruct? : (certificate : ProofNetIR.Certificate) → Option (ProofNetIR.UnificationWorklistVerificationResult certificate)
+```
+
+### `ProofNetIR.Certificate.unificationWorklistFastCheck`
+
+Kind: definition.
+
+Boolean event-driven worklist fast path. `false` is an inconclusive miss.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistFastCheck : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.unificationWorklistReconstruct?_accepted`
+
+Kind: theorem.
+
+Every verified event-driven worklist success is reference accepted.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistReconstruct?_accepted : ∀ {certificate : ProofNetIR.Certificate} {result : ProofNetIR.UnificationWorklistVerificationResult certificate},
+  certificate.unificationWorklistReconstruct? = some result → certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationWorklistFastCheck_sound`
+
+Kind: theorem.
+
+Soundness of the event-driven worklist Boolean fast path.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistFastCheck_sound : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationWorklistFastCheck = true → certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationWorklistCheck`
+
+Kind: definition.
+
+Exact worklist-first decision with the certified recursive reconstruction
+fallback. This is exact but not yet a pure-worklist or linear criterion.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistCheck : ProofNetIR.Certificate → Bool
+```
+
+### `ProofNetIR.Certificate.unificationWorklistCheck_eq_check`
+
+Kind: theorem.
+
+The worklist-first hybrid is extensionally equal to the reference checker.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistCheck_eq_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationWorklistCheck = certificate.check
+```
+
+### `ProofNetIR.Certificate.unificationWorklistCheck_eq_true_iff_check`
+
+Kind: theorem.
+
+Iff form of exact agreement for the worklist-first hybrid.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistCheck_eq_true_iff_check : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationWorklistCheck = true ↔ certificate.check = true
+```
+
+### `ProofNetIR.Certificate.unificationWorklistCheck_eq_true_iff_declarativelyCorrect`
+
+Kind: theorem.
+
+Proposition-level correctness interface for the worklist-first hybrid.
+
+```lean
+ProofNetIR.Certificate.unificationWorklistCheck_eq_true_iff_declarativelyCorrect : ∀ (certificate : ProofNetIR.Certificate), certificate.unificationWorklistCheck = true ↔ certificate.DeclarativelyCorrect
 ```
 
 ### `ProofNetIR.Certificate.unificationFastCheck`
@@ -2628,9 +2794,9 @@ ProofNetIR.Certificate.unificationFastCheck_sound : ∀ (certificate : ProofNetI
 
 Kind: definition.
 
-Exact switching-free decision procedure with deterministic unification as
-its fast path and the previously certified recursive sequentializer as its
-completeness fallback.
+Exact switching-free decision procedure with the event-driven worklist,
+then the eager deterministic scan, then the previously certified recursive
+sequentializer as its completeness fallback.
 
 The fallback is exhaustive in the worst case. Consequently this definition
 does not yet constitute the linear-time algorithm from Guerrini's theorem.

@@ -75,6 +75,19 @@ quadratic link-visit bound. This is not a total runtime theorem: frontier
 lookup, representative traversal, independent verification, and fallback are
 outside the counter.
 
+An event-driven prototype now precomputes which links consume each occurrence.
+It initially enqueues connectives once, enqueues only consumers of newly
+marked conclusions, stores armed unequal-token pars in a deduplicated waiting
+set, and requeues that set after a tensor union. Candidates still cross
+`verifyDerivation?`. Lean proves worklist fast-path soundness, its fallback
+wrapper equal to `check`, and a conservative `n(n+4)+1` link-attempt cap.
+
+This prototype is not the sequential strategy of Figures 7--8. It starts all
+axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
+stack, interval partition, or specialized union-find invariant. The attempt
+cap is imposed by fuel; its sufficiency for every correct net has not been
+proved.
+
 Lean currently proves:
 
 ```text
@@ -84,9 +97,9 @@ unificationCheck = check
 unificationCheck = true ↔ DeclarativelyCorrect
 ```
 
-The last two theorems use the deterministic pass as a short-circuiting fast
-path and the already complete checker-free recursive sequentializer as a miss
-fallback. Neither branch enumerates switching graphs.
+The default exact decision tries the event-driven worklist, then the eager
+scan, then the already complete checker-free recursive sequentializer. None of
+those branches enumerates switching graphs.
 
 ## What is not yet proved
 
@@ -134,6 +147,11 @@ certificate; the order variants preserve the same occurrences and links.
 This finite search is intentionally kept separate from the universal
 completeness theorem.
 
+The same two gates now also require the event-driven worklist. They observed
+750/750 and 6,000/6,000 worklist hits, respectively, with zero false positives
+or positive misses. The larger search recorded at most 150 link attempts and
+75 waiting requeues. These remain finite regression results.
+
 ## Remaining formalization route
 
 1. State the operational one-step relation independently of the executable
@@ -143,7 +161,7 @@ completeness theorem.
    links from tensor deadlocks.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
-4. Replace the now precisely bounded repeated scans with explicit
-   ready/waiting worklists and extend the operation model beyond link visits.
-5. Only after the worklist, `NEXTAXIOM`, and union-find invariants are
+4. Prove the event-driven worklist's fuel sufficient, then replace eager axiom
+   starts and flat waiting requeues with the Figure-7 stack discipline.
+5. Only after `NEXTAXIOM`, token-age, waiting-stack, and union-find invariants are
    formalized should the library expose a Guerrini-linear complexity theorem.

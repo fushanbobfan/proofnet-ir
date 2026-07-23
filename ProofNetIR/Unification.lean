@@ -64,6 +64,50 @@ structure UnificationVerificationResult (certificate : Certificate) where
   candidate : UnificationCandidateResult certificate
   verification : DerivationVerificationResult certificate
 
+/-- Observable counters for the event-driven ready/waiting worklist
+prototype. No asymptotic theorem is attached to these counters yet. -/
+structure UnificationWorklistStats where
+  initialEnqueues : Nat
+  dependencyEnqueues : Nat
+  waitingRequeues : Nat
+  linkAttempts : Nat
+  successfulFirings : Nat
+  deriving Repr, DecidableEq, BEq
+
+/-- Conservative executable link-attempt budget for the current worklist
+prototype. This is not a completeness theorem for the chosen fuel. -/
+def UnificationWorklistStats.attemptBudget (linkCount : Nat) : Nat :=
+  linkCount * (linkCount + 4) + 1
+
+/-- Derivation candidate produced by the event-driven ready/waiting worklist
+prototype. -/
+structure UnificationWorklistCandidateResult
+    (certificate : Certificate) where
+  tree : CutFreeDerivation
+  stats : UnificationWorklistStats
+  attemptsBound :
+    stats.linkAttempts ≤
+      UnificationWorklistStats.attemptBudget certificate.links.length
+
+namespace UnificationWorklistCandidateResult
+
+/-- Every successful worklist candidate stays within the conservative
+executable link-attempt budget. Fuel sufficiency for every correct net remains
+a separate completeness obligation. -/
+theorem linkAttemptsWithinBudget {certificate : Certificate}
+    (result : UnificationWorklistCandidateResult certificate) :
+    result.stats.linkAttempts ≤
+      UnificationWorklistStats.attemptBudget certificate.links.length :=
+  result.attemptsBound
+
+end UnificationWorklistCandidateResult
+
+/-- Independently verified worklist candidate with its operational counters. -/
+structure UnificationWorklistVerificationResult
+    (certificate : Certificate) where
+  candidate : UnificationWorklistCandidateResult certificate
+  verification : DerivationVerificationResult certificate
+
 /-- Stable failure category for deterministic unification. A fast-path failure
 does not by itself prove that the submitted certificate is incorrect. -/
 inductive UnificationErrorCode where
@@ -335,6 +379,199 @@ private theorem saturateUnification_stats (links : List Link)
         · rw [tail.2]
           simp [Nat.add_mul]
 
+private inductive WorklistEnqueueKind where
+  | initial
+  | dependency
+  | waiting
+
+private structure UnificationWorklistState where
+  core : UnificationState
+  queue : List Nat
+  queued : Array Bool
+  waiting : List Nat
+  waitingFlags : Array Bool
+  stats : UnificationWorklistStats
+
+private def pushConsumer (consumers : Array (List Nat))
+    (vertex linkIndex : Nat) : Array (List Nat) :=
+  match consumers[vertex]? with
+  | none => consumers
+  | some indices =>
+      consumers.setIfInBounds vertex (linkIndex :: indices)
+
+/-- Precompute the links that can become newly armed when a formula occurrence
+is marked. Structural well-formedness ensures resource-linear use, but this
+builder also fails closed on out-of-range vertices. -/
+private def worklistConsumers (certificate : Certificate) :
+    Array (List Nat) :=
+  certificate.links.zipIdx.foldl
+    (fun consumers (link, linkIndex) =>
+      match link with
+      | .axiom _ _ => consumers
+      | .par left right _ | .tensor left right _ =>
+          let withLeft := pushConsumer consumers left linkIndex
+          pushConsumer withLeft right linkIndex)
+    (Array.replicate certificate.formulas.size [])
+
+private def enqueueWorklist (kind : WorklistEnqueueKind)
+    (index : Nat) (state : UnificationWorklistState) :
+    UnificationWorklistState :=
+  if (state.queued[index]?).getD true then
+    state
+  else
+    let nextStats :=
+      match kind with
+      | .initial =>
+          { state.stats with
+            initialEnqueues := state.stats.initialEnqueues + 1 }
+      | .dependency =>
+          { state.stats with
+            dependencyEnqueues := state.stats.dependencyEnqueues + 1 }
+      | .waiting =>
+          { state.stats with
+            waitingRequeues := state.stats.waitingRequeues + 1 }
+    { state with
+      queue := index :: state.queue
+      queued := state.queued.setIfInBounds index true
+      stats := nextStats }
+
+private def enqueueConsumers (consumers : Array (List Nat))
+    (conclusion : Vertex) (state : UnificationWorklistState) :
+    UnificationWorklistState :=
+  match consumers[conclusion]? with
+  | none => state
+  | some indices =>
+      indices.foldl
+        (fun next index =>
+          enqueueWorklist .dependency index next)
+        state
+
+private def addWaiting (index : Nat)
+    (state : UnificationWorklistState) : UnificationWorklistState :=
+  if (state.waitingFlags[index]?).getD true then
+    state
+  else
+    { state with
+      waiting := index :: state.waiting
+      waitingFlags := state.waitingFlags.setIfInBounds index true }
+
+private def requeueWaiting (linkCount : Nat)
+    (state : UnificationWorklistState) : UnificationWorklistState :=
+  let waiting := state.waiting
+  let cleared :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  waiting.foldl
+    (fun next index => enqueueWorklist .waiting index next)
+    cleared
+
+private def initializeWorklist (certificate : Certificate)
+    (core : UnificationState) : UnificationWorklistState :=
+  let initial : UnificationWorklistState :=
+    { core
+      queue := []
+      queued := Array.replicate certificate.links.length false
+      waiting := []
+      waitingFlags := Array.replicate certificate.links.length false
+      stats :=
+        { initialEnqueues := 0
+          dependencyEnqueues := 0
+          waitingRequeues := 0
+          linkAttempts := 0
+          successfulFirings := 0 } }
+  certificate.links.zipIdx.foldl
+    (fun state (link, index) =>
+      match link with
+      | .axiom _ _ => state
+      | _ => enqueueWorklist .initial index state)
+    initial
+
+private def popWorklist? (state : UnificationWorklistState) :
+    Option (Nat × UnificationWorklistState) :=
+  match state.queue with
+  | [] => none
+  | index :: rest =>
+      some (index,
+        { state with
+          queue := rest
+          queued := state.queued.setIfInBounds index false })
+
+private def recordWorklistFiring (state : UnificationWorklistState) :
+    UnificationWorklistState :=
+  { state with
+    stats :=
+      { state.stats with
+        successfulFirings := state.stats.successfulFirings + 1 } }
+
+private def processWorklistLink (certificate : Certificate)
+    (consumers : Array (List Nat)) (index : Nat)
+    (state : UnificationWorklistState) : UnificationWorklistState :=
+  match certificate.links[index]? with
+  | none | some (.axiom _ _) => state
+  | some (.par left right conclusion) =>
+      match state.core.tokenAt? left, state.core.tokenAt? right with
+      | some leftToken, some rightToken =>
+          if leftToken == rightToken then
+            match firePar? state.core left right conclusion with
+            | none => state
+            | some nextCore =>
+                enqueueConsumers consumers conclusion <|
+                  recordWorklistFiring { state with core := nextCore }
+          else
+            addWaiting index state
+      | _, _ => state
+  | some (.tensor left right conclusion) =>
+      match state.core.tokenAt? left, state.core.tokenAt? right with
+      | some leftToken, some rightToken =>
+          if leftToken == rightToken then
+            state
+          else
+            match fireTensor? state.core left right conclusion with
+            | none => state
+            | some nextCore =>
+                let fired :=
+                  recordWorklistFiring { state with core := nextCore }
+                let requeued :=
+                  requeueWaiting certificate.links.length fired
+                enqueueConsumers consumers conclusion requeued
+      | _, _ => state
+
+/-- Event-driven saturation. Initial arming and newly marked premises enqueue
+only dependent links. A tensor union requeues the current waiting par set.
+
+The fuel is deliberately conservative. Exhaustion produces an incomplete
+candidate, never an acceptance. -/
+private structure UnificationWorklistRunResult (fuel : Nat) where
+  state : UnificationWorklistState
+  linkAttempts : Nat
+  linkAttemptsBound : linkAttempts ≤ fuel
+
+private def runUnificationWorklist (certificate : Certificate)
+    (consumers : Array (List Nat)) :
+    (fuel : Nat) → UnificationWorklistState →
+      UnificationWorklistRunResult fuel
+  | 0, state =>
+      { state
+        linkAttempts := 0
+        linkAttemptsBound := Nat.le_refl 0 }
+  | fuel + 1, state =>
+      match popWorklist? state with
+      | none =>
+          { state
+            linkAttempts := 0
+            linkAttemptsBound := Nat.zero_le _ }
+      | some (index, popped) =>
+          let tail :=
+            runUnificationWorklist certificate consumers fuel
+              (processWorklistLink certificate consumers index popped)
+          { state := tail.state
+            linkAttempts := tail.linkAttempts + 1
+            linkAttemptsBound := Nat.succ_le_succ tail.linkAttemptsBound }
+
+private def worklistFuel (linkCount : Nat) : Nat :=
+  UnificationWorklistStats.attemptBudget linkCount
+
 /-- Detailed deterministic Guerrini-style parsing candidate with exact scan
 statistics and a proof-relevant quadratic link-visit bound.
 
@@ -401,6 +638,65 @@ def unificationDerivationCandidate (certificate : Certificate) :
     Except UnificationError CutFreeDerivation :=
   certificate.unificationDerivationCandidateWithStats.map (·.tree)
 
+/-- Event-driven ready/waiting worklist candidate.
+
+This prototype keeps the Figure-5 token semantics and derivation components,
+but replaces full repeated scans with dependency enqueues plus a waiting-par
+set requeued after tensor unions. It has no universal completeness or linear
+complexity theorem yet. -/
+def unificationWorklistDerivationCandidate (certificate : Certificate) :
+    Except UnificationError
+      (UnificationWorklistCandidateResult certificate) := do
+  if certificate.wellFormed != true then
+    throw <| certificate.unificationError .malformedInput
+      "structural well-formedness failed"
+  let started ← match
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState with
+    | none =>
+        throw <| certificate.unificationError .axiomInitializationFailed
+          "axiom endpoints could not be initialized as disjoint threads"
+    | some value => pure value
+  let consumers := certificate.worklistConsumers
+  let initial := certificate.initializeWorklist started
+  let run :=
+    runUnificationWorklist certificate consumers
+      (worklistFuel certificate.links.length) initial
+  let saturated := run.state
+  let finalStats :=
+    { saturated.stats with linkAttempts := run.linkAttempts }
+  if !saturated.core.allMarked then
+    throw <| certificate.unificationError .incompleteMarking
+      s!"worklist left unmarked formula occurrences after {finalStats.linkAttempts} link attempts"
+  if saturated.core.startedAxioms + saturated.core.firedConnectives !=
+      certificate.links.length then
+    throw <| certificate.unificationError .incompleteLinkFiring
+      s!"worklist fired {saturated.core.startedAxioms} axioms and {saturated.core.firedConnectives} connectives"
+  let component ←
+    match saturated.core.liveComponents with
+    | [component] => pure component
+    | components =>
+        throw <| certificate.unificationError .nonUniqueThread
+          s!"worklist retained {components.length} live token classes"
+  if component.frontier.length != certificate.conclusions.length then
+    throw <| certificate.unificationError .boundaryMismatch
+      "the worklist frontier length differs from the public conclusion boundary"
+  let order ← match
+      occurrenceOrder? component.frontier certificate.conclusions with
+    | none =>
+        throw <| certificate.unificationError .boundaryMismatch
+          "a public conclusion occurrence is absent from the worklist frontier"
+    | some value => pure value
+  if order.eraseDups.length != order.length then
+    throw <| certificate.unificationError .boundaryMismatch
+      "the public conclusion boundary repeats a worklist frontier occurrence"
+  pure {
+    tree := .exchange order component.tree
+    stats := finalStats
+    attemptsBound := by
+      simpa [worklistFuel] using run.linkAttemptsBound
+  }
+
 /-- Option compatibility wrapper for the detailed unification candidate. -/
 def unificationDerivationCandidate? (certificate : Certificate) :
     Option CutFreeDerivation :=
@@ -428,6 +724,83 @@ desequentialization, and intrinsic proof-net equivalence. -/
 def unificationReconstruct? (certificate : Certificate) :
     Option (DerivationVerificationResult certificate) :=
   certificate.unificationReconstruct.toOption
+
+/-- Independently verify the event-driven worklist candidate and retain its
+operational counters. -/
+def unificationWorklistReconstructWithStats (certificate : Certificate) :
+    Except UnificationError
+      (UnificationWorklistVerificationResult certificate) := do
+  let candidate ← certificate.unificationWorklistDerivationCandidate
+  match certificate.verifyDerivation? candidate.tree with
+  | none =>
+      throw <| certificate.unificationError .candidateVerificationFailed
+        "the completed worklist derivation failed independent verification"
+  | some verification => pure { candidate, verification }
+
+/-- Proof-bearing option wrapper for the event-driven worklist prototype. -/
+def unificationWorklistReconstruct? (certificate : Certificate) :
+    Option (UnificationWorklistVerificationResult certificate) :=
+  certificate.unificationWorklistReconstructWithStats.toOption
+
+/-- Boolean event-driven worklist fast path. `false` is an inconclusive miss. -/
+def unificationWorklistFastCheck (certificate : Certificate) : Bool :=
+  certificate.unificationWorklistReconstruct?.isSome
+
+/-- Every verified event-driven worklist success is reference accepted. -/
+theorem unificationWorklistReconstruct?_accepted
+    {certificate : Certificate}
+    {result : UnificationWorklistVerificationResult certificate}
+    (_equation :
+      certificate.unificationWorklistReconstruct? = some result) :
+    certificate.check = true := by
+  rw [← result.verification.equivalent.check_eq]
+  exact result.verification.outputAccepted
+
+/-- Soundness of the event-driven worklist Boolean fast path. -/
+theorem unificationWorklistFastCheck_sound (certificate : Certificate)
+    (accepted : certificate.unificationWorklistFastCheck = true) :
+    certificate.check = true := by
+  unfold unificationWorklistFastCheck at accepted
+  cases equation : certificate.unificationWorklistReconstruct? with
+  | none => simp [equation] at accepted
+  | some result =>
+      exact certificate.unificationWorklistReconstruct?_accepted equation
+
+/-- Exact worklist-first decision with the certified recursive reconstruction
+fallback. This is exact but not yet a pure-worklist or linear criterion. -/
+def unificationWorklistCheck (certificate : Certificate) : Bool :=
+  certificate.unificationWorklistFastCheck ||
+    certificate.reconstructsDerivation
+
+/-- The worklist-first hybrid is extensionally equal to the reference checker. -/
+theorem unificationWorklistCheck_eq_check (certificate : Certificate) :
+    certificate.unificationWorklistCheck = certificate.check := by
+  apply Bool.eq_iff_iff.mpr
+  constructor
+  · intro accepted
+    simp only [unificationWorklistCheck, Bool.or_eq_true] at accepted
+    rcases accepted with fast | fallback
+    · exact certificate.unificationWorklistFastCheck_sound fast
+    · exact certificate.reconstructsDerivation_eq_true_iff_check.mp fallback
+  · intro accepted
+    simp only [unificationWorklistCheck, Bool.or_eq_true]
+    exact Or.inr
+      (certificate.reconstructsDerivation_eq_true_iff_check.mpr accepted)
+
+/-- Iff form of exact agreement for the worklist-first hybrid. -/
+theorem unificationWorklistCheck_eq_true_iff_check
+    (certificate : Certificate) :
+    certificate.unificationWorklistCheck = true ↔
+      certificate.check = true := by
+  rw [certificate.unificationWorklistCheck_eq_check]
+
+/-- Proposition-level correctness interface for the worklist-first hybrid. -/
+theorem unificationWorklistCheck_eq_true_iff_declarativelyCorrect
+    (certificate : Certificate) :
+    certificate.unificationWorklistCheck = true ↔
+      certificate.DeclarativelyCorrect := by
+  rw [certificate.unificationWorklistCheck_eq_check,
+    certificate.check_iff_declarativelyCorrect]
 
 /-- Boolean deterministic-unification fast path. A `false` result is a
 heuristic miss, not yet a mathematical rejection. -/
@@ -490,14 +863,16 @@ theorem unificationFastCheck_sound (certificate : Certificate)
   | some result =>
       exact certificate.unificationReconstruct?_accepted equation
 
-/-- Exact switching-free decision procedure with deterministic unification as
-its fast path and the previously certified recursive sequentializer as its
-completeness fallback.
+/-- Exact switching-free decision procedure with the event-driven worklist,
+then the eager deterministic scan, then the previously certified recursive
+sequentializer as its completeness fallback.
 
 The fallback is exhaustive in the worst case. Consequently this definition
 does not yet constitute the linear-time algorithm from Guerrini's theorem. -/
 def unificationCheck (certificate : Certificate) : Bool :=
-  certificate.unificationFastCheck || certificate.reconstructsDerivation
+  certificate.unificationWorklistFastCheck ||
+    (certificate.unificationFastCheck ||
+      certificate.reconstructsDerivation)
 
 /-- The hybrid unification decision is extensionally equal to the reference
 all-switchings checker. -/
@@ -507,12 +882,13 @@ theorem unificationCheck_eq_check (certificate : Certificate) :
   constructor
   · intro accepted
     simp only [unificationCheck, Bool.or_eq_true] at accepted
-    rcases accepted with fast | fallback
+    rcases accepted with worklist | fast | fallback
+    · exact certificate.unificationWorklistFastCheck_sound worklist
     · exact certificate.unificationFastCheck_sound fast
     · exact certificate.reconstructsDerivation_eq_true_iff_check.mp fallback
   · intro accepted
     simp only [unificationCheck, Bool.or_eq_true]
-    exact Or.inr
+    exact Or.inr <| Or.inr
       (certificate.reconstructsDerivation_eq_true_iff_check.mpr accepted)
 
 /-- Iff form of exact agreement between the hybrid unification decision and

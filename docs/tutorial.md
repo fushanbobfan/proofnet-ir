@@ -135,11 +135,13 @@ validated key.
 ## 4. Sequentialize every accepted certificate
 
 For a switching-free Boolean decision, the v0.9 unification API first tries
-the deterministic Guerrini-style token pass and then uses the complete
-checker-free recursive sequentializer only if that pass misses:
+the event-driven ready/waiting worklist, then the deterministic eager scan,
+and finally the complete checker-free recursive sequentializer:
 
 ```lean
 example : axiomCertificate.unificationFastCheck = true := by native_decide
+example : axiomCertificate.unificationWorklistFastCheck = true := by
+  native_decide
 example : axiomCertificate.unificationCheck = true := by native_decide
 
 example :
@@ -162,6 +164,12 @@ scan receipt. Its candidate contains `passes`, `linkVisits`, and
 `UnificationCandidateResult.linkVisitsBound` establishes at most
 `|links|²` eager link visits. This is not a deadline or a bound on independent
 verification.
+
+Use `unificationWorklistReconstructWithStats` for the event-driven prototype.
+It reports initial/dependency/waiting enqueues, link attempts, and firings.
+Each returned candidate proves its attempts stay below `n(n+4)+1`; this bound
+does not prove that the fuel is universally complete or that the flat waiting
+set is linear.
 
 The runtime API reconstructs a first-order cut-free derivation:
 

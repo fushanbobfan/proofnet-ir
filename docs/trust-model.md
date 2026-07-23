@@ -130,6 +130,15 @@ the public bound theorem is axiom-free. Those proof fields say nothing about
 the cost of frontier search, representative lookup, verification, or fallback;
 callers must not treat them as a whole-program deadline.
 
+The event-driven worklist tier is subject to the identical trust boundary.
+`unificationWorklistReconstructWithStats` returns only after
+`verifyDerivation?`, and Lean proves both worklist fast-path soundness and
+exact equality of its fallback wrapper with `check`. The worklist candidate
+carries an axiom-free proof of the conservative `n(n+4)+1` link-attempt cap.
+That cap is termination/resource evidence, not a proof that the fuel suffices
+for every correct net, and it excludes consumer-table construction, waiting
+list traversal, frontier work, and verification.
+
 For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
 formula-only raw checker and typed elaborator agree on acceptance, rejection,
 error category, detail, and child path. `elaborate?_complete` proves every raw
