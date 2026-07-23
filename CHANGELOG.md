@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.5.1 - Derivation soundness and exact checked identity
+
 - proved that the explicit exchange index guard already implies the redundant
   element-level `List.Perm` check, and that accepted reorders lift through
   non-injective formula projection without assuming unique labels;

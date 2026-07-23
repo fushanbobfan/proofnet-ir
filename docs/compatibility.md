@@ -34,6 +34,9 @@ The post-v0.5 additive `CheckedCertificate.sameProofNet?` API wraps the same
 `ProofNetEquivalent` semantics in a checker-accepted input type. Integrating
 ordered-conclusion constraints into candidate generation changes performance,
 not accepted-certificate semantics or v0.2/v0.3 wire output.
+These changes are released as v0.5.1 together with the additive
+derivation-first soundness theorems; the package metadata now matches the
+release tag.
 
 Release v0.5.0 adds
 `Certificate.sequentialize`, `ExecutableSequentializationResult`, and

@@ -3,9 +3,9 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.5.0` (proof-bearing executable totality,
-complete finite `ProofNetEquivalent` family, and a matched 1,000-task
-experiment). See
+Current release: `v0.5.1` (full derivation-first checker soundness and a
+checked exact pairwise identity API, in addition to v0.5.0 executable
+sequentialization). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
