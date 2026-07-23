@@ -40,6 +40,20 @@ def canonicalKeyFormulas : List Formula :=
 
 def canonicalKeyBudgetMs : Nat := 10_000
 
+def rightNestedFormula : Nat → Formula
+  | 0 => .atom "intrinsic-benchmark-base" true
+  | depth + 1 =>
+      .tensor (rightNestedFormula depth)
+        (.atom s!"intrinsic-benchmark-right-{depth}" true)
+
+/-- Structural identity certificates beyond the factorial v0.7 ceiling.
+Depth 48 remains inside the independent one-million-character wire envelope;
+an all-switchings acceptance run would intentionally be a different benchmark. -/
+def intrinsicCanonicalKeyFormulas : List Formula :=
+  [8, 16, 32, 48].map rightNestedFormula
+
+def intrinsicCanonicalKeyBudgetMs : Nat := 5_000
+
 def run : IO Unit := do
   let start ← IO.monoMsNow
   let mut checksum := 0
@@ -118,10 +132,47 @@ def run : IO Unit := do
   let canonicalKeyMs := (← IO.monoMsNow) - canonicalKeyStart
   if canonicalKeyMs > canonicalKeyBudgetMs then
     throw <| IO.userError s!"canonical-key budget exceeded: {canonicalKeyMs}ms > {canonicalKeyBudgetMs}ms"
+  let intrinsicCanonicalKeyStart ← IO.monoMsNow
+  let mut intrinsicCanonicalKeyCases := 0
+  let mut intrinsicCanonicalKeyMaxLinks := 0
+  for formula in intrinsicCanonicalKeyFormulas do
+    let certificate := identityCertificate formula
+    if !certificate.wellFormed then
+      throw <| IO.userError
+        "intrinsic canonical-key benchmark certificate was not structurally valid"
+    if certificate.links.length ≤ CanonicalKey.maxGenerationLinks then
+      throw <| IO.userError
+        "intrinsic canonical-key benchmark did not exceed the factorial ceiling"
+    let reordered : Certificate :=
+      { certificate with links := certificate.links.reverse }
+    let leftWire ← match certificate.intrinsicCanonicalKeyString? with
+      | some wire => pure wire
+      | none => throw <| IO.userError "intrinsic canonical-key generation exceeded its wire envelope"
+    let rightWire ← match reordered.intrinsicCanonicalKeyString? with
+      | some wire => pure wire
+      | none => throw <| IO.userError "reordered intrinsic canonical-key generation failed"
+    if leftWire != rightWire then
+      throw <| IO.userError
+        "intrinsic canonical-key benchmark lost link-order invariance"
+    match IntrinsicCanonicalKey.fromString leftWire with
+    | .error error => throw <| IO.userError s!"intrinsic canonical-key parser failed: {error.render}"
+    | .ok key =>
+        if !certificate.matchesIntrinsicCanonicalKey key then
+          throw <| IO.userError
+            "intrinsic canonical-key benchmark failed safe local matching"
+    intrinsicCanonicalKeyCases := intrinsicCanonicalKeyCases + 1
+    intrinsicCanonicalKeyMaxLinks :=
+      max intrinsicCanonicalKeyMaxLinks certificate.links.length
+    checksum := checksum + leftWire.length
+  let intrinsicCanonicalKeyMs :=
+    (← IO.monoMsNow) - intrinsicCanonicalKeyStart
+  if intrinsicCanonicalKeyMs > intrinsicCanonicalKeyBudgetMs then
+    throw <| IO.userError
+      s!"intrinsic canonical-key budget exceeded: {intrinsicCanonicalKeyMs}ms > {intrinsicCanonicalKeyBudgetMs}ms"
   let elapsed := (← IO.monoMsNow) - start
   if elapsed > budgetMs then
     throw <| IO.userError s!"performance budget exceeded: {elapsed}ms > {budgetMs}ms"
-  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkMs} sequentialize_ms={sequentializeMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} budget_ms={budgetMs}"
+  IO.println s!"performance-budget-ok cases={completed} checksum={checksum} elapsed_ms={elapsed} check_ms={checkMs} sequentialize_ms={sequentializeMs} equivalence_ms={equivalenceMs} identity_stress_pairs={identityStressPairs} identity_candidates={identityCandidates} identity_ms={identityMs} canonical_key_cases={canonicalKeyCases} canonical_key_candidates={canonicalKeyCandidates} canonical_key_ms={canonicalKeyMs} canonical_key_budget_ms={canonicalKeyBudgetMs} canonical_key_max_links={CanonicalKey.maxGenerationLinks} intrinsic_canonical_key_cases={intrinsicCanonicalKeyCases} intrinsic_canonical_key_max_links={intrinsicCanonicalKeyMaxLinks} intrinsic_canonical_key_ms={intrinsicCanonicalKeyMs} intrinsic_canonical_key_budget_ms={intrinsicCanonicalKeyBudgetMs} budget_ms={budgetMs}"
 
 end ProofNetIRBenchmark
 

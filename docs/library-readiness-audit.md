@@ -111,11 +111,18 @@ part of the engineering and proof-identity gap.
    of its canonical minimum is proved equivalent to `ProofNetEquivalent` on
    structurally well-formed or checker-accepted inputs. A distinct bounded JSON
    parser, schema, migration function, and safe parsed-key matcher now expose
-   the payload as `proofnet-canonical-key-0.1`. The implementation still
-   materializes the factorial family. Public generation and matching now check
-   a seven-link ceiling before evaluation, and a 1/4/7-link benchmark enforces
-   a separate 10-second budget. This makes the wire usable under an explicit
-   small-input contract, but not a scalable single-representative key.
+   the payload as `proofnet-canonical-key-0.1`. That retained implementation
+   still materializes the factorial family and remains limited to seven links.
+   The v0.8 development line adds an independent occurrence-forest
+   canonicalizer. Lean proves exact vertex coverage, exact link emission,
+   in-class representation, and intrinsic-key equality iff
+   `ProofNetEquivalent`; no link permutation is enumerated. The separate
+   `proofnet-canonical-key-0.2` wire removes the link-count ceiling while
+   retaining token/character limits, differential tests against the factorial
+   oracle, malformed-input fuzzing, and a measured qualification through 145
+   links. The current direct implementation is polynomial
+   (`O(VL + V^2)`) but serialized formula volume and broader adversarial
+   qualification remain engineering work.
    Conclusion-order canonicalization and arbitrary graph isomorphism remain
    outside the current claim. The v0.3.1 wire theorem remains intentionally
    about the narrower, order-preserving `ReindexEquivalent` relation.
@@ -126,7 +133,8 @@ part of the engineering and proof-identity gap.
    orders to one generated candidate. Numeric-free one-hop incident-link views
    now also prune internal repeated-label alignments, with a proof that every
    direct equivalence witness survives the filter. This does not provide a
-   compact wire key or a polynomial worst-case bound.
+   stronger conclusion-reordering identity or a polynomial worst-case bound
+   for pairwise search, checking, or sequentialization.
 
 ## Engineering gaps blocking a mature-library claim
 
@@ -146,7 +154,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for thirty-seven public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for forty-five public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the separate LeanProp trust boundary locks four theorems as axiom-free,
@@ -216,6 +224,10 @@ It can currently be used for:
   exact equality under its seven-link generation ceiling, 1,000 generated wire
   properties, 5,000 malformed-key fuzz cases, and a measured 1/4/7-link
   benchmark;
+- computing, parsing, migrating, and safely matching the unreleased
+  non-factorial `proofnet-canonical-key-0.2` key, with an exact iff theorem,
+  a 1,000-case differential oracle audit, 5,000 malformed cases, and a measured
+  qualification through 145 links;
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
@@ -228,8 +240,9 @@ It should not yet be presented as:
 - a performance-qualified executable sequentializer beyond the documented
   unit-free, cut-free MLL certificate model;
 - a complete isomorphism-canonical proof identity library;
-- a scalable compact wire canonicalizer for the broader
-  `ProofNetEquivalent` relation beyond the documented seven-link ceiling;
+- an arbitrary-isomorphism or conclusion-reordering canonicalizer; the new
+  key is exact only for the explicitly documented `ProofNetEquivalent`
+  relation and remains subject to its independent output-size envelope;
 - evidence that proof-net generation reduces search redundancy beyond the
   committed experiment's narrow, explicitly biased controlled setting.
 
@@ -242,5 +255,5 @@ API docs and
 compatibility rules are published, performance limits are measured, and the
 matched algorithmic and model-backed experiments report their results whether
 positive or negative. Both controlled runs are now complete; the broader-
-logic/corpus, hard sequentialization performance, scalable canonicalization,
-and final tagged-consumer gates remain open.
+logic/corpus, hard checking/sequentialization performance, adversarial
+large-key qualification, and final v0.8 tagged-consumer gates remain open.

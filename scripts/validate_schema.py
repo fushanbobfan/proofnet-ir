@@ -23,6 +23,7 @@ def main() -> None:
         "canonical.json": "certificate-v0.1.schema.json",
         "canonical-v0.3.json": "certificate-v0.3.schema.json",
         "canonical-key-v0.1.json": "canonical-key-v0.1.schema.json",
+        "canonical-key-v0.2.json": "canonical-key-v0.2.schema.json",
         "invalid-disconnected.json": "certificate-v0.1.schema.json",
         "focused-sequent-v0.2.json": "sequent-v0.2.schema.json",
         "leanprop-identity-v0.1.json": "leanprop-schema-v0.1.schema.json",

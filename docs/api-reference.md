@@ -878,6 +878,169 @@ ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalKeyWithinLimit_of_check :
             left.proofNetCanonicalKeyWithinLimit? = right.proofNetCanonicalKeyWithinLimit?)
 ```
 
+### `ProofNetIR.Certificate.intrinsicTraversalVertices`
+
+Kind: definition.
+
+Deduplicated intrinsic occurrence order.  Deduplication only affects
+malformed inputs; the structural completeness theorem establishes exact
+coverage on the supported domain.
+
+```lean
+ProofNetIR.Certificate.intrinsicTraversalVertices : ProofNetIR.Certificate → List ProofNetIR.Vertex
+```
+
+### `ProofNetIR.Certificate.IntrinsicTraversalComplete`
+
+Kind: inductive type.
+
+The intrinsic order contains exactly every formula-array vertex once on
+the structurally well-formed domain.
+
+```lean
+ProofNetIR.Certificate.IntrinsicTraversalComplete : ProofNetIR.Certificate → Prop
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.intrinsicTraversalComplete`
+
+Kind: theorem.
+
+Structural well-formedness makes the intrinsic traversal an exact
+enumeration of the formula array.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.intrinsicTraversalComplete : ∀ {certificate : ProofNetIR.Certificate}, certificate.StructurallyWellFormed → certificate.IntrinsicTraversalComplete
+```
+
+### `ProofNetIR.Certificate.intrinsicOrderedLinks`
+
+Kind: definition.
+
+Links emitted in occurrence order, once per orientation-sensitive owner.
+
+```lean
+ProofNetIR.Certificate.intrinsicOrderedLinks : ProofNetIR.Certificate → List ProofNetIR.Link
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.intrinsicOrderedLinks_perm`
+
+Kind: theorem.
+
+On structurally well-formed certificates the intrinsic owner emission is
+exactly a permutation of the submitted link multiset.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.intrinsicOrderedLinks_perm : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed → certificate.intrinsicOrderedLinks.Perm certificate.links
+```
+
+### `ProofNetIR.Certificate.intrinsicCanonicalize`
+
+Kind: definition.
+
+Non-factorial normalization.  The intrinsic order fixes link storage
+before the already proved v0.3 reindex-normalizer removes submitted vertex
+numbers.
+
+```lean
+ProofNetIR.Certificate.intrinsicCanonicalize : ProofNetIR.Certificate → ProofNetIR.Certificate
+```
+
+### `ProofNetIR.Certificate.ProofNetEquivalent.intrinsicCanonicalize_eq`
+
+Kind: theorem.
+
+The non-factorial normalization is invariant under the exact public
+proof-net identity relation.
+
+```lean
+ProofNetIR.Certificate.ProofNetEquivalent.intrinsicCanonicalize_eq : ∀ {left right : ProofNetIR.Certificate},
+  left.ProofNetEquivalent right → left.intrinsicCanonicalize = right.intrinsicCanonicalize
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.intrinsicCanonicalize_proofNetEquivalent`
+
+Kind: theorem.
+
+On the supported structural domain, intrinsic normalization stays inside
+the input's exact `ProofNetEquivalent` class.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.intrinsicCanonicalize_proofNetEquivalent : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed → certificate.ProofNetEquivalent certificate.intrinsicCanonicalize
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalize_eq_of_check`
+
+Kind: theorem.
+
+Checker acceptance supplies the structural premises of the exact
+non-factorial canonical-form theorem.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalize_eq_of_check : ∀ {left right : ProofNetIR.Certificate},
+  left.check = true →
+    right.check = true → (left.ProofNetEquivalent right ↔ left.intrinsicCanonicalize = right.intrinsicCanonicalize)
+```
+
+### `ProofNetIR.Certificate.intrinsicCanonicalCode`
+
+Kind: definition.
+
+Polynomially generated, injective structural token code for the intrinsic
+canonical form.
+
+```lean
+ProofNetIR.Certificate.intrinsicCanonicalCode : ProofNetIR.Certificate → List String
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalCode_eq_of_check`
+
+Kind: theorem.
+
+Checker acceptance supplies the structural premises of the exact
+intrinsic-code theorem.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalCode_eq_of_check : ∀ {left right : ProofNetIR.Certificate},
+  left.check = true →
+    right.check = true → (left.ProofNetEquivalent right ↔ left.intrinsicCanonicalCode = right.intrinsicCanonicalCode)
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey`
+
+Kind: inductive type.
+
+Opaque equality-comparable payload for the non-factorial canonical key.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey : Type
+```
+
+### `ProofNetIR.Certificate.intrinsicCanonicalKey`
+
+Kind: definition.
+
+Total non-factorial exact key payload.  Reverse exactness requires the
+same structural premise as `intrinsicCanonicalize`.
+
+```lean
+ProofNetIR.Certificate.intrinsicCanonicalKey : ProofNetIR.Certificate → ProofNetIR.IntrinsicCanonicalKey
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalKey_eq_of_check`
+
+Kind: theorem.
+
+Checker acceptance supplies the structural premises for exact typed
+intrinsic-key comparison.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalKey_eq_of_check : ∀ {left right : ProofNetIR.Certificate},
+  left.check = true →
+    right.check = true → (left.ProofNetEquivalent right ↔ left.intrinsicCanonicalKey = right.intrinsicCanonicalKey)
+```
+
 ### `ProofNetIR.Certificate.equivalenceCanonicalString`
 
 Kind: definition.
@@ -1243,6 +1406,169 @@ type; it does not reinterpret the input certificate bytes.
 
 ```lean
 ProofNetIR.Certificate.migrateV03StringToCanonicalKey : String → ProofNetIR.ParseResult String
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.wireVersion`
+
+Kind: definition.
+
+Wire version for the non-factorial exact canonical key.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.wireVersion : String
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.canonicalization`
+
+Kind: definition.
+
+Named semantic algorithm implemented by this key.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.canonicalization : String
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.maxTokens`
+
+Kind: definition.
+
+Defensive token-count limit for untrusted intrinsic-key JSON.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.maxTokens : Nat
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.maxCharacters`
+
+Kind: definition.
+
+Defensive aggregate character-count limit for untrusted intrinsic-key
+JSON.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.maxCharacters : Nat
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.WireAdmissible`
+
+Kind: definition.
+
+The supported intrinsic-key wire envelope.  The limit is independent of
+the number of links and is checked after polynomial key generation.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.WireAdmissible : ProofNetIR.IntrinsicCanonicalKey → Prop
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.isWireAdmissible`
+
+Kind: definition.
+
+Executable supported-wire predicate.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.isWireAdmissible : ProofNetIR.IntrinsicCanonicalKey → Bool
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.toJson`
+
+Kind: definition.
+
+Deterministic JSON representation of an intrinsic canonical key.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.toJson : ProofNetIR.IntrinsicCanonicalKey → Lean.Json
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.toString`
+
+Kind: definition.
+
+Compact intrinsic canonical-key JSON string.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.toString : ProofNetIR.IntrinsicCanonicalKey → String
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.fromJson`
+
+Kind: definition.
+
+Decode the intrinsic-key envelope and enforce resource bounds.  Parsing
+does not assert that arbitrary tokens came from a proof net.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.fromJson : Lean.Json → ProofNetIR.ParseResult ProofNetIR.IntrinsicCanonicalKey
+```
+
+### `ProofNetIR.IntrinsicCanonicalKey.fromString`
+
+Kind: definition.
+
+Parse an untrusted intrinsic canonical-key string with structured
+diagnostics.
+
+```lean
+ProofNetIR.IntrinsicCanonicalKey.fromString : String → ProofNetIR.ParseResult ProofNetIR.IntrinsicCanonicalKey
+```
+
+### `ProofNetIR.Certificate.intrinsicCanonicalKeyJson?`
+
+Kind: definition.
+
+Wire generation is available for every structurally valid certificate and
+has no link-count ceiling.  The independent token/character envelope still
+fails closed.
+
+```lean
+ProofNetIR.Certificate.intrinsicCanonicalKeyJson? : ProofNetIR.Certificate → Option Lean.Json
+```
+
+### `ProofNetIR.Certificate.intrinsicCanonicalKeyString?`
+
+Kind: definition.
+
+Deterministic intrinsic canonical-key wire string, when the structurally
+valid certificate fits the independent wire envelope.
+
+```lean
+ProofNetIR.Certificate.intrinsicCanonicalKeyString? : ProofNetIR.Certificate → Option String
+```
+
+### `ProofNetIR.Certificate.matchesIntrinsicCanonicalKey`
+
+Kind: definition.
+
+Safe comparison of an untrusted parsed key with a locally generated
+structurally validated key.
+
+```lean
+ProofNetIR.Certificate.matchesIntrinsicCanonicalKey : ProofNetIR.Certificate → ProofNetIR.IntrinsicCanonicalKey → Bool
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_of_matchesIntrinsicCanonicalKey`
+
+Kind: theorem.
+
+Two structurally validated local certificates matching the same
+wire-admissible key are proof-net equivalent.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_of_matchesIntrinsicCanonicalKey : ∀ {left right : ProofNetIR.Certificate} {key : ProofNetIR.IntrinsicCanonicalKey},
+  left.matchesIntrinsicCanonicalKey key = true →
+    right.matchesIntrinsicCanonicalKey key = true → left.ProofNetEquivalent right
+```
+
+### `ProofNetIR.Certificate.migrateV03StringToIntrinsicCanonicalKey`
+
+Kind: definition.
+
+Semantic migration from a checker-accepted v0.3 certificate.  A bare v0.1
+canonical key cannot be migrated without its source certificate because the
+new deterministic representative need not be the old factorial minimum.
+
+```lean
+ProofNetIR.Certificate.migrateV03StringToIntrinsicCanonicalKey : String → ProofNetIR.ParseResult String
 ```
 
 ## Persistent and linear LeanProp bridge

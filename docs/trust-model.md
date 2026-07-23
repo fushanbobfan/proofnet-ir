@@ -140,7 +140,7 @@ candidate generator enforces the ordered boundary during enumeration, and its
 completeness feeds the already-audited exact decision theorem. This is neither
 an arbitrary graph-isomorphism oracle nor a canonical serialization theorem.
 
-The unreleased `proofNetCanonicalFingerprint?` takes the lexicographic minimum
+The released `proofNetCanonicalFingerprint?` takes the lexicographic minimum
 of the v0.3 strings in the complete finite canonical family. Lean proves that
 the option is always populated, that a selected value belongs to the family
 image, and that `ProofNetEquivalent` certificates have equal fingerprints.
@@ -163,6 +163,16 @@ certificates matching one parsed key are equivalent. The generator still uses
 factorial family materialization, so generation and matching check the
 seven-link ceiling before computation and fail closed above it. The unbounded
 typed `proofNetCanonicalKey?` remains a specification oracle.
+
+`IntrinsicCanonicalKey.fromString` parses the separate
+`proofnet-canonical-key-0.2` envelope. Its tokens are equally untrusted until
+compared with a locally generated key. The local generator first requires
+structural well-formedness, constructs the proved intrinsic representative,
+and checks the token/character envelope. Lean proves that two such local
+certificates matching one admissible key are exactly `ProofNetEquivalent`.
+The intrinsic construction has no link-count ceiling and does not enumerate
+permutations, but parsing a key alone still proves neither origin nor checker
+acceptance.
 
 ## Failure containment
 

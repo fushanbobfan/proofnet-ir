@@ -5,6 +5,21 @@
 - published `v0.7.0` and changed the clean external consumer from the candidate
   commit to the exact public tag; Lake resolves it to release commit
   `dab12d48d1af62daa5c2fe96cc7fdff4b86e16eb`;
+- added an intrinsic occurrence-forest canonicalizer that never enumerates
+  link-list permutations. Lean proves exact formula-vertex coverage, exact
+  link permutation, invariance, in-class representation, and canonical-form
+  equality iff exactly `ProofNetEquivalent` on structurally well-formed or
+  checker-accepted inputs;
+- added the distinct `proofnet-canonical-key-0.2` /
+  `proofnet-equivalent-intrinsic-v1` typed and JSON key, bounded native parser,
+  schema and fixture, checked-v0.3 semantic migration, safe matcher theorem,
+  API documentation, and path-consumer coverage. It removes v0.1's seven-link
+  ceiling without reinterpreting any old bytes;
+- added a 1,000-case differential comparison against the factorial v0.7 oracle,
+  5,000 malformed intrinsic-key cases, and a measured four-case
+  25/49/97/145-link benchmark. The aggregate intrinsic-key time was 120 ms on
+  the recorded Windows run under a five-second budget; the independent
+  one-million-character wire envelope remains fail closed;
 
 ## v0.7.0 - Exact ProofNetEquivalent canonical key
 

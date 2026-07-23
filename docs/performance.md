@@ -42,7 +42,7 @@ checker acceptance (or the lower-level `Certificate.proofNetEquivalent?` when
 a caller already manages its structural premise). The checked API has an iff
 theorem for exactly `ProofNetEquivalent`; neither path materializes the family.
 
-The unreleased `Certificate.proofNetCanonicalFingerprint?` currently maps and
+The released `Certificate.proofNetCanonicalFingerprint?` maps and
 minimizes that same family, so its compact return type does not imply compact
 computation. The exact typed `Certificate.proofNetCanonicalCode?` likewise
 minimizes the family; its iff theorem settles logical completeness but not
@@ -57,17 +57,28 @@ candidates in total and fails above 10 seconds. This qualifies a small-input
 wire contract; it does not improve the factorial asymptotic bound. Larger
 inputs must use `sameProofNet?`.
 
+The v0.8 `proofnet-canonical-key-0.2` path does not enumerate link orders.
+Its direct list-based implementation is conservatively `O(VL + V^2)` for
+`V` formula occurrences and `L` links, excluding emitted formula-text volume.
+A separate benchmark builds, reorders, encodes, parses, and safely matches four
+structurally well-formed identity certificates through 145 links. It has a
+five-second budget. The benchmark intentionally uses the structural theorem
+domain: running the independent all-switchings checker on the same nested
+identity family would measure exponential checker work, not canonicalization.
+
 ## Baseline measurement
 
 On the Windows development machine on 2026-07-23, the qualified workload
 reported:
 
 ```text
-cases=291 checksum=11098 elapsed_ms=7949
-check_ms=0 sequentialize_ms=6438 equivalence_ms=0
+cases=291 checksum=1024308 elapsed_ms=7699
+check_ms=0 sequentialize_ms=6107 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
-canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=706
+canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=717
 canonical_key_budget_ms=10000 canonical_key_max_links=7
+intrinsic_canonical_key_cases=4 intrinsic_canonical_key_max_links=145
+intrinsic_canonical_key_ms=120 intrinsic_canonical_key_budget_ms=5000
 ```
 
 The millisecond counters are coarse; zero means below one aggregate measured
@@ -76,6 +87,13 @@ calls performed inside sequentialization are included in `sequentialize_ms`.
 Ordered-boundary pruning removes a severe repeated-label case, but formulas on
 internal non-boundary vertices can still require combinatorial search. This
 measurement is not a polynomial-time or general scalability result.
+
+The independent intrinsic wire envelope was also exercised negatively during
+development: a depth-64 identity certificate produced 45,022 tokens and
+1,292,168 aggregate token characters, so generation failed closed at the
+one-million-character limit. The qualified depth-48 case remains inside the
+envelope. This records a real output-size limit rather than silently raising
+the parser budget.
 
 The held-out model experiment's qualification batch exercises the harder
 internal repeated-label case. Across 264 distinct inputs, Lean rejected all

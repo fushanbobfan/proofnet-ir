@@ -113,6 +113,25 @@ identity decisions. The family preserves ordered conclusions,
 tensor/par premise order, formula labels, and axiom endpoint orientation; it is
 not arbitrary graph isomorphism.
 
+The v0.8 development API adds a non-factorial exact key for the same relation:
+
+```lean
+example : axiomCertificate.ProofNetEquivalent reordered ↔
+    axiomCertificate.intrinsicCanonicalKey =
+      reordered.intrinsicCanonicalKey :=
+  Certificate.proofNetEquivalent_iff_intrinsicCanonicalKey_eq_of_check
+    (by native_decide) (by native_decide)
+
+example : axiomCertificate.intrinsicCanonicalKeyString?.isSome = true := by
+  native_decide
+```
+
+This uses the separate `proofnet-canonical-key-0.2` contract and removes the
+link-count ceiling. The token/character envelope remains, and parsing an
+external key is not proof of provenance; use
+`matchesIntrinsicCanonicalKey` against a locally generated structurally
+validated key.
+
 ## 4. Sequentialize every accepted certificate
 
 The runtime API reconstructs a first-order cut-free derivation:

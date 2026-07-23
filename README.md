@@ -9,6 +9,12 @@ and fail-closed seven-link performance qualification, without claiming
 arbitrary graph isomorphism or scalable canonicalization). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
+The unreleased v0.8 development line adds a proved non-factorial intrinsic
+canonical form and the separate `proofnet-canonical-key-0.2` wire. On
+structurally well-formed certificates, equality of the new typed key is proved
+equivalent to exactly the existing `ProofNetEquivalent` relation. It does not
+change that relation or claim arbitrary graph isomorphism.
+
 The research hypothesis is that a model should sometimes predict proof
 geometry before it predicts a tactic sequence. A graph certificate can factor
 out arbitrary ordering between independent inferences, expose dependency
@@ -120,6 +126,16 @@ The repository currently contains:
   wire property corpus, 5,000-case malformed-key fuzz corpus, and measured
   1/4/7-link benchmark pass, but larger or ordinary pairwise comparisons should
   use `CheckedCertificate.sameProofNet?`;
+- an unreleased intrinsic canonicalizer that traverses the ordered conclusion
+  forest, follows each unique tensor/par producer in premise order, emits every
+  orientation-sensitive link exactly once, and then erases submitted vertex
+  numbers. Lean proves exact traversal coverage, exact link permutation,
+  in-class representation, and equality iff `ProofNetEquivalent` on the
+  structurally well-formed domain. The separate
+  `proofnet-canonical-key-0.2` wire removes the seven-link ceiling and has been
+  differentially checked against the factorial oracle on 1,000 deterministic
+  cases; its direct implementation is polynomial, currently
+  `O(VL + V^2)`, and still enforces independent token/character limits;
 - a clean downstream Lake consumer pinned to the exact public `v0.7.0` tag,
   exercising bounded-key exactness, safe matching, over-limit
   failure, and executable sequentialization;
@@ -171,7 +187,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits thirty-seven public logical-boundary theorems against the exact axiom set
+  separately audits forty-five public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
@@ -191,8 +207,9 @@ semantics; its wire layer intentionally covers only named atoms, ordinary
 conjunction, and implication, not typed equality/quantifier terms or broad
 mathlib expressions. The
 repository also lacks canonicalization modulo reordered conclusions or
-arbitrary graph isomorphism, a scalable non-factorial canonical-key
-implementation, a stable release of that bounded wire contract, and a Lean tactic. The API,
+arbitrary graph isomorphism, a stable release and broader adversarial
+qualification of the new non-factorial key, optimized checking and
+sequentialization, and a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.
@@ -286,6 +303,8 @@ ProofNetIR/ExecutableSequentialization.lean runtime inverse search and diagnosti
 ProofNetIR/ProofNetIdentity.lean checked exact pairwise proof-net identity API
 ProofNetIR/StructuralCode.lean injective exact-key structural token encoding
 ProofNetIR/CanonicalKeyWire.lean bounded exact-key wire and safe matching
+ProofNetIR/IntrinsicCanonical.lean non-factorial exact canonical representative
+ProofNetIR/IntrinsicCanonicalKeyWire.lean v0.2 intrinsic-key wire and migration
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form

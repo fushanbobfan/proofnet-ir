@@ -103,6 +103,22 @@ def canonical_key_cases(valid: str) -> list[str]:
     return mutate_cases(valid, initial, 0xC0DE_0A71)
 
 
+def intrinsic_canonical_key_cases(valid: str) -> list[str]:
+    initial = [
+        "null",
+        "{}",
+        "[]",
+        '"intrinsic-canonical-key"',
+        '{"version":"proofnet-canonical-key-0.2"}',
+        '{"version":3,"canonicalization":"proofnet-equivalent-intrinsic-v1","tokens":[]}',
+        '{"version":"wrong","canonicalization":"proofnet-equivalent-intrinsic-v1","tokens":["x"]}',
+        '{"version":"proofnet-canonical-key-0.2","canonicalization":"wrong","tokens":["x"]}',
+        '{"version":"proofnet-canonical-key-0.2","canonicalization":"proofnet-equivalent-intrinsic-v1","tokens":[]}',
+        '{"version":"proofnet-canonical-key-0.2","canonicalization":"proofnet-equivalent-intrinsic-v1","tokens":[1]}',
+    ]
+    return mutate_cases(valid, initial, 0x1A71_2026)
+
+
 def main() -> None:
     fixture = (ROOT / "examples" / "canonical-v0.3.json").read_text(encoding="utf-8")
     valid = json.dumps(json.loads(fixture), separators=(",", ":"), ensure_ascii=False)
@@ -145,6 +161,40 @@ def main() -> None:
             f"unexpected canonical-key fuzz harness output: {key_output!r}"
         )
     print(key_output)
+
+    intrinsic_key_fixture = (
+        ROOT / "examples" / "canonical-key-v0.2.json"
+    ).read_text(encoding="utf-8")
+    valid_intrinsic_key = json.dumps(
+        json.loads(intrinsic_key_fixture),
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    intrinsic_key_inputs = intrinsic_canonical_key_cases(valid_intrinsic_key)
+    intrinsic_key_completed = subprocess.run(
+        [
+            find_lake(),
+            "exe",
+            "proofnet_ir_parser_fuzz",
+            "--intrinsic-canonical-key",
+        ],
+        cwd=ROOT,
+        input="\n".join(intrinsic_key_inputs) + "\n",
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=True,
+    )
+    intrinsic_key_output = intrinsic_key_completed.stdout.strip()
+    intrinsic_key_expected = (
+        f"intrinsic-canonical-key-parser-fuzz-ok cases={TARGET_CASES}"
+    )
+    if intrinsic_key_expected not in intrinsic_key_output:
+        raise RuntimeError(
+            "unexpected intrinsic canonical-key fuzz harness output: "
+            f"{intrinsic_key_output!r}"
+        )
+    print(intrinsic_key_output)
 
 
 if __name__ == "__main__":

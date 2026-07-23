@@ -57,7 +57,7 @@ criterion and proof-order bureaucracy can be measured cleanly.
     extensional family membership is an iff for `ProofNetEquivalent` on
     structurally well-formed certificates. The family is executable but
     factorial in the link count and is intended as a specification oracle.
-    The unreleased `proofNetCanonicalFingerprint?` projects this family to its
+    The released `proofNetCanonicalFingerprint?` projects this family to its
     lexicographically least v0.3 string. Its totality, candidate membership,
     and forward invariance are proved. `StructuralCode.lean` instead supplies
     an explicitly framed token encoder proved injective, and
@@ -70,7 +70,16 @@ criterion and proof-order bureaucracy can be measured cleanly.
     equivalent. Public generation and matching check a seven-link ceiling
     before factorial evaluation; the typed unbounded key remains a
     specification oracle.
-21. `ProofNetIdentity.lean` exposes the production pairwise identity boundary
+21. `IntrinsicCanonical.lean` replaces factorial orbit enumeration with an
+    ordered occurrence-forest construction. It follows unique producers from
+    the ordered conclusions, emits links through orientation-sensitive owners,
+    and applies the proved first-occurrence relabeler. Structural
+    well-formedness proves exact vertex coverage, exact link permutation, an
+    in-class representative, and canonical equality iff
+    `ProofNetEquivalent`. `IntrinsicCanonicalKeyWire.lean` gives that code the
+    distinct `proofnet-canonical-key-0.2` contract, bounded parser, safe matcher,
+    and semantic migration from checker-accepted v0.3 certificates.
+22. `ProofNetIdentity.lean` exposes the production pairwise identity boundary
     for checker-accepted certificates. `sameProofNet?` is proved equivalent to
     exactly `ProofNetEquivalent`. Its underlying candidate generator applies
     ordered-conclusion constraints during repeated-label occurrence search,
@@ -83,26 +92,26 @@ normal-form equality is equivalent to `ReindexEquivalent`. It is not an
 arbitrary graph canonical-labeling algorithm: list order and logical premise
 order remain part of identity.
 
-The broader `ProofNetEquivalent` relation has a complete finite canonical
-family, an experimental JSON fingerprint obtained by minimizing its serialized
-image, and an exact typed key obtained from a proved-injective structural code.
-In this family, link-list storage order is quotiented, while
+The broader `ProofNetEquivalent` relation has both a complete finite factorial
+canonical family/specification oracle and an intrinsic non-factorial canonical
+form. In both constructions, link-list storage order is quotiented, while
 ordered conclusions, tensor/par premise order, formula labels, and axiom
-endpoint orientation remain significant. The JSON fingerprint has only the
-forward equivalence-invariance theorem; the typed code has the exact iff
-theorem. Both inherit factorial materialization. Neither is yet a production
-large-input canonical-key implementation, and neither claims arbitrary graph
-isomorphism. The versioned wire generator is qualified only through seven
-links, with a measured CI budget and fail-closed behavior above the ceiling.
+endpoint orientation remain significant. The old JSON fingerprint has only
+the forward equivalence-invariance theorem; both the factorial typed code and
+the intrinsic typed code have exact iff theorems. The new direct implementation
+does not enumerate permutations and has a conservative `O(VL + V^2)` bound,
+but its serialized formula volume and the separate wire envelope still bound
+large inputs. Neither construction claims arbitrary graph isomorphism.
 
-The project deliberately keeps exact pairwise decision as its supported
-production identity API. The typed canonical code settles the logical
-single-key question and now has a distinct versioned parser; its bounded wire
-wrapper is usable for inputs through seven links, while the factorial
-implementation keeps larger inputs outside that production boundary.
+The project retains exact pairwise decision as a supported identity API and
+adds the intrinsic key as the scalable-by-link-count single-key path. The
+v0.1 wrapper remains usable through seven links; the v0.2 wrapper removes that
+ceiling and instead applies the common 100,000-token/1,000,000-character
+envelope after polynomial generation.
 Ordered conclusions, connective premise order, formula labels, and axiom
-orientation are still part of identity, and neither canonical construction
-nor worst-case internal repeated-label search is claimed to be polynomial.
+orientation are still part of identity. Worst-case internal repeated-label
+pairwise search, the all-switchings checker, and sequentialization are not made
+polynomial by the canonicalizer.
 
 ## Why exhaustive switchings first
 

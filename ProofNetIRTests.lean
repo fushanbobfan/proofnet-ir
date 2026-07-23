@@ -1747,6 +1747,154 @@ example : unboundedBridgeGraph.Bounded → False := by
 
 example : unboundedBridgeGraph.connected = false := by native_decide
 
+/-! v0.8 intrinsic-canonicalization regression boundary. -/
+
+example :
+    canonical.intrinsicCanonicalize =
+      linkScrambledCanonical.intrinsicCanonicalize := by
+  native_decide
+
+example :
+    canonical.intrinsicCanonicalize =
+      reindexedCanonical.intrinsicCanonicalize := by
+  native_decide
+
+example :
+    canonical.intrinsicCanonicalize =
+      linkScrambledCanonical.intrinsicCanonicalize :=
+  (show canonical.ProofNetEquivalent linkScrambledCanonical from by
+    refine (show canonical.LinkPermutationEquivalent
+      linkScrambledCanonical from ?_).toProofNetEquivalent
+    refine ⟨rfl, ?_, rfl⟩
+    simpa [linkScrambledCanonical] using
+      (List.reverse_perm canonical.links).symm)
+    |>.intrinsicCanonicalize_eq
+
+example :
+    canonical.intrinsicCanonicalize ≠
+      reversedConclusionCertificate.intrinsicCanonicalize := by
+  native_decide
+
+example :
+    canonical.intrinsicOrderedLinks.Perm canonical.links := by
+  native_decide
+
+def rightNestedFormula : Nat → Formula
+  | 0 => .atom "intrinsic-base" true
+  | depth + 1 =>
+      .tensor (rightNestedFormula depth)
+        (.atom s!"intrinsic-right-{depth}" true)
+
+def intrinsicLargeCertificate : Certificate :=
+  identityCertificate (rightNestedFormula 8)
+
+example :
+    CanonicalKey.maxGenerationLinks <
+      intrinsicLargeCertificate.links.length := by
+  native_decide
+
+example : intrinsicLargeCertificate.check = true := by
+  native_decide
+
+example :
+    intrinsicLargeCertificate.proofNetCanonicalKeyWithinLimit?.isNone =
+      true := by
+  native_decide
+
+example :
+    intrinsicLargeCertificate.intrinsicCanonicalKeyString?.isSome =
+      true := by
+  native_decide
+
+def generatedIntrinsicCanonicalKey : IntrinsicCanonicalKey :=
+  canonical.intrinsicCanonicalKey
+
+example :
+    canonical.matchesIntrinsicCanonicalKey generatedIntrinsicCanonicalKey =
+      true := by
+  native_decide
+
+example :
+    linkScrambledCanonical.matchesIntrinsicCanonicalKey
+      generatedIntrinsicCanonicalKey = true := by
+  native_decide
+
+example : canonical.ProofNetEquivalent linkScrambledCanonical :=
+  Certificate.proofNetEquivalent_of_matchesIntrinsicCanonicalKey
+    (key := generatedIntrinsicCanonicalKey)
+    (by native_decide) (by native_decide)
+
+def generatedIntrinsicCanonicalKeyRoundTrips : Bool :=
+  match IntrinsicCanonicalKey.fromString
+      generatedIntrinsicCanonicalKey.toString with
+  | .ok parsed => parsed == generatedIntrinsicCanonicalKey
+  | .error _ => false
+
+example : generatedIntrinsicCanonicalKeyRoundTrips = true := by
+  native_decide
+
+example :
+    (IntrinsicCanonicalKey.fromString
+      "{\"version\":\"proofnet-canonical-key-0.1\",\"canonicalization\":\"proofnet-equivalent-v1\",\"tokens\":[\"x\"]}").isOk =
+        false := by
+  native_decide
+
+example :
+    (CanonicalKey.fromString generatedIntrinsicCanonicalKey.toString).isOk =
+      false := by
+  native_decide
+
+example :
+    (Certificate.migrateV03StringToIntrinsicCanonicalKey
+      canonical.equivalenceCanonicalString).isOk = true := by
+  native_decide
+
+def migratedIntrinsicCanonicalKeyMatches : Bool :=
+  match Certificate.migrateV03StringToIntrinsicCanonicalKey
+      canonical.equivalenceCanonicalString with
+  | .error _ => false
+  | .ok wire =>
+      match IntrinsicCanonicalKey.fromString wire with
+      | .error _ => false
+      | .ok key => canonical.matchesIntrinsicCanonicalKey key
+
+example : migratedIntrinsicCanonicalKeyMatches = true := by
+  native_decide
+
+/-- One thousand deterministic differential cases compare the new intrinsic
+key with the v0.7 factorial oracle on the oracle's supported small domain.
+Both positive link permutations and negative ordered-boundary changes must
+agree, and every new wire value must round-trip. -/
+def intrinsicCanonicalDifferentialProperties : Bool :=
+  (List.range 1000).all fun seed =>
+    let formula :=
+      Formula.tensor
+        (.atom s!"intrinsic-p-{seed}" true)
+        (.atom s!"intrinsic-q-{seed}" true)
+    let certificate := identityCertificate formula
+    let reordered : Certificate :=
+      { certificate with links := certificate.links.reverse }
+    let boundaryChanged : Certificate :=
+      { certificate with conclusions := certificate.conclusions.reverse }
+    let leftOld := certificate.proofNetCanonicalKeyWithinLimit?
+    let reorderedOld := reordered.proofNetCanonicalKeyWithinLimit?
+    let boundaryOld := boundaryChanged.proofNetCanonicalKeyWithinLimit?
+    let leftNew := certificate.intrinsicCanonicalKey
+    let reorderedNew := reordered.intrinsicCanonicalKey
+    let boundaryNew := boundaryChanged.intrinsicCanonicalKey
+    (leftOld == reorderedOld) &&
+      (leftNew == reorderedNew) &&
+      (leftOld != boundaryOld) &&
+      (leftNew != boundaryNew) &&
+      match IntrinsicCanonicalKey.fromString leftNew.toString with
+      | .ok parsed =>
+          parsed == leftNew &&
+            certificate.matchesIntrinsicCanonicalKey parsed
+      | .error _ => false
+
+example : intrinsicCanonicalDifferentialProperties = true := by
+  native_decide
+
 def run : IO Unit := do
   if !canonical.check then
     throw <| IO.userError "canonical proof net was unexpectedly rejected"

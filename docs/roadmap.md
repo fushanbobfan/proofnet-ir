@@ -298,14 +298,43 @@
 - [x] Qualify factorial wire generation with a pre-computation seven-link
   ceiling and a measured 1/4/7-link, 5,065-candidate benchmark under a
   separate 10-second budget. The unbounded typed key remains a specification
-  oracle; non-factorial construction remains later research.
+  oracle; the non-factorial construction was deferred to v0.8.
 - [x] Pin a clean downstream consumer to the public `v0.7.0` release and
   qualify local and exact-tag CI. The post-tag main-branch CI is the final
   publication receipt.
 
+## v0.8 - Intrinsic non-factorial canonicalization
+
+- [x] Define an occurrence-forest traversal rooted at the ordered conclusion
+  boundary and invariant under bounded vertex renaming and submitted link-list
+  permutation.
+- [x] Prove that structural well-formedness makes the traversal cover every
+  formula occurrence exactly once.
+- [x] Assign every axiom/tensor/par link an orientation-sensitive owner and
+  prove intrinsic emission is exactly a permutation of the submitted links.
+- [x] Prove the intrinsic normalized certificate is in the input's exact
+  `ProofNetEquivalent` class and derive canonical-form equality iff
+  `ProofNetEquivalent`.
+- [x] Derive exact typed structural-code and typed-key iff theorems without
+  enumerating link permutations.
+- [x] Introduce the distinct `proofnet-canonical-key-0.2` /
+  `proofnet-equivalent-intrinsic-v1` JSON wire, parser, schema, fixture,
+  checker-certificate migration, safe matcher, and trust audit.
+- [x] Differentially compare the intrinsic key with the v0.7 factorial oracle
+  on 1,000 deterministic positive/negative cases.
+- [x] Extend malformed-key fuzzing, schema validation, generated API docs, and
+  the path-based downstream consumer.
+- [x] Qualify the direct polynomial implementation beyond the old ceiling:
+  four structural identity cases through 145 links complete under a separate
+  five-second budget on the development machine.
+- [ ] Publish `v0.8.0`, pin a clean consumer to the exact public tag, and retain
+  a successful post-tag CI receipt.
+
 ## Later research
 
 - certified contraction/linear-time correctness checking;
+- indexed/streaming intrinsic encoding to reduce the current repeated-formula
+  serialization cost and adversarially qualify the public wire envelope;
 - cut links and cut elimination as graph rewriting;
 - additives, exponentials/boxes, and unification nets;
 - hierarchical proof graphs for dependency-rich mathlib theorems;
