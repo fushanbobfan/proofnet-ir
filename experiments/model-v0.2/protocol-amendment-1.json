@@ -1,0 +1,35 @@
+{
+  "amendedRunnerSha256": "4e2819087f5c270463579aeac9bcae9b9d2619f29961c31c9ed3f505655fb2a8",
+  "amendment": 1,
+  "discoveryBoundary": "The amendment was designed after all 360 frozen model calls completed but before any formal aggregate, result row, or Lean batch-verification result existed. Monitoring inspected only call counts, transport-error counts, and latency, not task outcomes.",
+  "executionChange": {
+    "algorithmicIsolation": "one fresh child process per task and method",
+    "hardTimeoutSeconds": 60,
+    "scoringCheckpoint": "atomic per-task local checkpoint",
+    "timeoutIncludesWorkerStartup": true
+  },
+  "frozenUnchanged": [
+    "corpus and task order",
+    "direct and repair prompts",
+    "model identity and parameters",
+    "all 360 captured raw responses",
+    "algorithmic method definitions and 1000-candidate/state budgets",
+    "positive and negative success criteria",
+    "independent Python oracle and final Lean verification"
+  ],
+  "originalFailureReceipt": {
+    "baselineReachedLeanVerification": false,
+    "modelCallErrors": 0,
+    "modelCallsCompleted": 360,
+    "observedPeakWorkingSetMiB": 76.8,
+    "reasonStopped": "The preregistered runner classified the 60-second wall-clock budget only after a method returned. After 120.2 minutes total wall time, including approximately 100 minutes in algorithmic scoring, it had not reached Lean batch verification.",
+    "runnerProcessId": 89536,
+    "totalObservedWallMinutes": 120.2
+  },
+  "originalPreregistrationCommit": "3d767aa5aec53060272007209e91b7531b45929e",
+  "rawResponseRows": 360,
+  "rawResponsesSha256": "5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef",
+  "registeredLocalDate": "2026-07-22 America/Los_Angeles",
+  "scope": "execution enforcement and crash recovery only; no task, prompt, response, method, budget, or success-definition change",
+  "version": "model-v0.2-amendment-1"
+}

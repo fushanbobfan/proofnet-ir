@@ -145,8 +145,12 @@ part of the engineering and proof-identity gap.
 - a 180-task held-out model experiment is preregistered with balanced
   depth/label/polarity strata, exact implementation/prompt/corpus hashes,
   negative atom-balance witnesses, and reference repair distances two/three;
-  no task-specific model response or formal aggregate existed at registration,
-  so it has not yet established the research hypothesis.
+  no task-specific model response or formal aggregate existed at registration.
+  All 360 calls are now frozen, but the original runner failed to finish
+  algorithmic scoring in 120 minutes because its wall-clock budget lacked a
+  hard interrupt. A public amendment preserves every frozen input/response
+  while adding process isolation and hard deadlines; no final aggregate exists
+  yet, so the experiment has not established the research hypothesis.
 
 ## Current usability boundary
 

@@ -92,5 +92,10 @@ Lean batch verification, and its strict interpretation boundary, is recorded
 in [matched-v0.1](../experiments/matched-v0.1/README.md).
 
 The next 180-task model-backed comparison is frozen in
-[model-v0.2](../experiments/model-v0.2/README.md). Its result artifacts are not
-yet part of this preregistration checkpoint.
+[model-v0.2](../experiments/model-v0.2/README.md). All 360 model calls finished,
+but the preregistered runner then spent roughly 100 minutes in algorithmic
+scoring without reaching Lean verification: the 60-second outcome budget was
+checked only after return. Protocol amendment 1 records that failed execution,
+preserves the raw-response hash, and moves each method/task into a child
+process with a real 60-second deadline. Final result artifacts are not yet part
+of this checkpoint.

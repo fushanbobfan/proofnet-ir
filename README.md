@@ -182,6 +182,7 @@ lake exe proofnet_ir_benchmark
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 python scripts/run_matched_experiment.py --check-committed
 python scripts/run_model_experiment.py --check-preregistered
+python scripts/run_model_experiment_amended.py --check-amendment
 ```
 
 Expected smoke-test output:
@@ -229,6 +230,7 @@ datasets/v0.2/                committed checker-labeled corpus and manifest
 scripts/focused_search.py     focused cut-free comparison baseline
 scripts/run_matched_experiment.py matched generation/repair experiment runner
 scripts/run_model_experiment.py preregistered held-out model experiment runner
+scripts/run_model_experiment_amended.py hard-timeout protocol amendment runner
 scripts/audit_v03_canonical.py independent 1,000-record reindex-key audit
 scripts/fuzz_malformed_parser.py deterministic 5,000-case parser fuzz gate
 docs/                         architecture, literature map, roadmap, trust boundary
@@ -249,9 +251,11 @@ or ordinary Lean goal is involved.
 
 A second 180-task study is now preregistered across depths 2--4, repeated-label
 and unique-label strata, balanced positive/negative tasks, and reference repair
-distances two/three. The committed checkpoint contains no task-specific model
-responses or formal aggregate; see
-[model-v0.2](experiments/model-v0.2/README.md) for the frozen protocol.
+distances two/three. All 360 model calls are frozen, but the original runner's
+soft-only wall-clock budget prevented scoring from completing in 120 minutes.
+A public amendment preserves the original runner and every response while
+adding process-level hard deadlines; no final aggregate exists yet. See
+[model-v0.2](experiments/model-v0.2/README.md) for the exact receipt.
 
 The broader plan is in [docs/roadmap.md](docs/roadmap.md). Source screening and
 project rationale are recorded in [docs/literature-map.md](docs/literature-map.md).

@@ -17,6 +17,11 @@
 - replaced the experiment repair baseline's unmetered factorial
   materialization with exact distance-layer enumeration. Enumeration and
   checker time are both inside the stated 1,000-candidate/60-second budget.
+- recorded protocol amendment 1 after the original runner completed all 360
+  model calls but spent roughly 100 minutes in algorithmic scoring without
+  reaching Lean verification: the original runner and raw responses remain
+  frozen, while a separately hashed amended runner enforces a real per-method
+  60-second process deadline and atomic per-task recovery.
 
 ## v0.5.1 - Derivation soundness and exact checked identity
 

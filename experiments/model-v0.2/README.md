@@ -6,6 +6,26 @@ engineering did validate fixture construction, the independent checker, and
 the exact-distance repair enumerator before registration; those development
 checks are disclosed in the machine-readable registration.
 
+## Protocol amendment 1
+
+All 360 frozen model calls completed with zero transport errors. Before any
+formal aggregate or task result was written or inspected, the preregistered
+runner exposed an execution bug: its 60-second algorithmic wall-clock budget
+was classified only after a method returned. After 120.2 minutes total wall
+time, including roughly 100 minutes of algorithmic scoring, it had still not
+reached Lean batch verification. The exact process was stopped and the raw
+response capture was frozen at SHA-256
+`5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef`.
+
+[Protocol amendment 1](protocol-amendment-1.json) leaves the corpus, prompts,
+model parameters, all raw responses, method definitions, candidate budgets,
+and success criteria unchanged. It runs each algorithmic task/method in a
+fresh child process with a real 60-second deadline, counts worker startup
+inside that deadline, and atomically checkpoints each scored task. The
+original preregistered runner remains unchanged and hash-verifiable; the
+amended runner is a separate file. This is a disclosed execution amendment,
+not a claim that the original formal run completed.
+
 This study is the first genuinely model-backed held-out experiment for
 ProofNet-IR. It is intentionally an MLL experiment, not a claim about ordinary
 Lean or mathlib theorem proving.
@@ -63,10 +83,16 @@ The preregistration can be regenerated and checked without calling a model:
 
 ```text
 python scripts/run_model_experiment.py --check-preregistered
+python scripts/run_model_experiment_amended.py --check-amendment
 ```
 
-The formal run uses the active local llama.cpp Qwen3.6-35B-A3B Q4 endpoint and
-will commit raw responses, per-task results, a summary, and all content hashes.
+The amended formal scoring run reuses the frozen raw calls:
+
+```text
+python scripts/run_model_experiment_amended.py --write
+```
+
+It will commit per-task results, a summary, and all content hashes.
 No positive or negative outcome is promised in advance. Even a strong result
 would remain limited to held-out unit-free, cut-free MLL with a supplied
 connective skeleton; it would not establish a general model or proof-net
