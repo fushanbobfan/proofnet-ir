@@ -2395,6 +2395,125 @@ ProofNetIR.Certificate.reconstructDerivationWithinLimits_implies_reconstructs : 
   input.reconstructDerivationWithinLimits limits = Except.ok result → input.reconstructsDerivation = true
 ```
 
+### `ProofNetIR.UnificationMarking`
+
+Kind: inductive type.
+
+Proof-irrelevant state for the abstract Guerrini Figure-5 rules.
+
+Unlike the executable union-find state, `sameThread` is an arbitrary
+equivalence relation over allocated token numbers. The two bound fields make
+every stored mark refer to a submitted formula occurrence and an allocated
+token.
+
+```lean
+ProofNetIR.UnificationMarking : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.UnificationMarking.setMark`
+
+Kind: definition.
+
+Mark one formula occurrence, leaving every other occurrence unchanged.
+
+```lean
+ProofNetIR.UnificationMarking.setMark : (ProofNetIR.Vertex → Option Nat) → Nat → Nat → ProofNetIR.Vertex → Option Nat
+```
+
+### `ProofNetIR.UnificationMarking.FreshExtension`
+
+Kind: definition.
+
+Extend an old thread partition with one fresh singleton token.
+
+```lean
+ProofNetIR.UnificationMarking.FreshExtension : {certificate : ProofNetIR.Certificate} → ProofNetIR.UnificationMarking certificate → Nat → Nat → Nat → Prop
+```
+
+### `ProofNetIR.UnificationMarking.MergeExtension`
+
+Kind: definition.
+
+Merge the two old equivalence classes containing `leftToken` and
+`rightToken`. This formula is the exact one-step equivalence closure because
+`state.sameThread` is already an equivalence relation.
+
+```lean
+ProofNetIR.UnificationMarking.MergeExtension : {certificate : ProofNetIR.Certificate} → ProofNetIR.UnificationMarking certificate → Nat → Nat → Nat → Nat → Prop
+```
+
+### `ProofNetIR.UnificationRuleKind`
+
+Kind: inductive type.
+
+The three source-level unification rules.
+
+```lean
+ProofNetIR.UnificationRuleKind : Type
+```
+
+### `ProofNetIR.UnificationStep`
+
+Kind: inductive type.
+
+Independent one-step semantics for Guerrini's Figure-5 unification.
+
+The constructors state their enabling conditions and exact state update
+without mentioning the eager scan, queue, waiting set, or executable
+union-find representation.
+
+```lean
+ProofNetIR.UnificationStep : (certificate : ProofNetIR.Certificate) →
+  ProofNetIR.UnificationMarking certificate → ProofNetIR.UnificationMarking certificate → Prop
+```
+
+### `ProofNetIR.UnificationStep.link_exists`
+
+Kind: theorem.
+
+Every abstract transition uses a submitted link of the corresponding
+Figure-5 class.
+
+```lean
+ProofNetIR.UnificationStep.link_exists : ∀ {certificate : ProofNetIR.Certificate} {state next : ProofNetIR.UnificationMarking certificate},
+  ProofNetIR.UnificationStep certificate state next →
+    (∃ left right, ProofNetIR.Link.axiom left right ∈ certificate.links) ∨
+      (∃ left right conclusion, ProofNetIR.Link.par left right conclusion ∈ certificate.links) ∨
+        ∃ left right conclusion, ProofNetIR.Link.tensor left right conclusion ∈ certificate.links
+```
+
+### `ProofNetIR.UnificationStep.marks_fired_conclusion`
+
+Kind: theorem.
+
+Each Figure-5 transition marks the conclusion occurrence of the link it
+fires. For an axiom/start transition, both axiom conclusions are marked with
+the fresh token.
+
+```lean
+ProofNetIR.UnificationStep.marks_fired_conclusion : ∀ {certificate : ProofNetIR.Certificate} {state next : ProofNetIR.UnificationMarking certificate},
+  ProofNetIR.UnificationStep certificate state next →
+    (∃ left right,
+        ProofNetIR.Link.axiom left right ∈ certificate.links ∧
+          (next.mark left).isSome = true ∧ (next.mark right).isSome = true) ∨
+      (∃ left right conclusion,
+          ProofNetIR.Link.par left right conclusion ∈ certificate.links ∧ (next.mark conclusion).isSome = true) ∨
+        ∃ left right conclusion,
+          ProofNetIR.Link.tensor left right conclusion ∈ certificate.links ∧ (next.mark conclusion).isSome = true
+```
+
+### `ProofNetIR.UnificationStep.tokenCount_mono`
+
+Kind: theorem.
+
+Abstract unification never retires an allocated token number. Start adds
+one token; forward and unify preserve the allocation count.
+
+```lean
+ProofNetIR.UnificationStep.tokenCount_mono : ∀ {certificate : ProofNetIR.Certificate} {state next : ProofNetIR.UnificationMarking certificate},
+  ProofNetIR.UnificationStep certificate state next → state.tokenCount ≤ next.tokenCount
+```
+
 ### `ProofNetIR.UnificationScanStats`
 
 Kind: inductive type.

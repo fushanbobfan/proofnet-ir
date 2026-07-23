@@ -6,6 +6,14 @@
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
   `NEXTAXIOM` whole-program cost theorem;
+- added a proof-irrelevant `UnificationMarking` with bounded occurrence/token
+  marks and an arbitrary thread equivalence, plus an independent inductive
+  `UnificationStep` relation for Figure-5 start, forward, and unify. Kernel
+  theorems show that every abstract step uses a submitted link, marks its
+  fired conclusion, and never decreases the allocated-token count; the
+  generated API and exact axiom audit include this new boundary. Executable
+  state abstraction/refinement remains the next theorem rather than being
+  assumed from matching constructor names;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 

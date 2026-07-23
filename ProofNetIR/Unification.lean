@@ -1,4 +1,4 @@
-import ProofNetIR.ReconstructionChecker
+import ProofNetIR.UnificationSemantics
 
 namespace ProofNetIR
 

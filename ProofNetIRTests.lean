@@ -1,5 +1,22 @@
 import ProofNetIR
 
+example {certificate : ProofNetIR.Certificate}
+    {state next : ProofNetIR.UnificationMarking certificate}
+    (step : ProofNetIR.UnificationStep certificate state next) :
+    state.tokenCount ≤ next.tokenCount :=
+  step.tokenCount_mono
+
+example {certificate : ProofNetIR.Certificate}
+    {state next : ProofNetIR.UnificationMarking certificate}
+    (step : ProofNetIR.UnificationStep certificate state next) :
+    (∃ left right,
+      ProofNetIR.Link.axiom left right ∈ certificate.links) ∨
+    (∃ left right conclusion,
+      ProofNetIR.Link.par left right conclusion ∈ certificate.links) ∨
+    (∃ left right conclusion,
+      ProofNetIR.Link.tensor left right conclusion ∈ certificate.links) :=
+  step.link_exists
+
 open ProofNetIR
 
 namespace ProofNetIRTests

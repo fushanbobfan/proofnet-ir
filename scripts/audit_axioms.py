@@ -108,6 +108,8 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearExchange_nonempty_of_listPerm",
     "ProofNetIR.UnificationCandidateResult.linkVisitsBound",
     "ProofNetIR.UnificationWorklistCandidateResult.linkAttemptsWithinBudget",
+    "ProofNetIR.UnificationStep.link_exists",
+    "ProofNetIR.UnificationStep.tokenCount_mono",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
@@ -117,6 +119,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.ContextPermutation.symm_symm",
     "ProofNetIR.Certificate.isCuspFreeTraversal_eq_true_iff",
     "ProofNetIR.Certificate.isCuspFreeCycleTraversal_eq_true_iff",
+    "ProofNetIR.UnificationStep.marks_fired_conclusion",
     "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_reduced",
     "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_eq_self_of_reduced",
     "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_idempotent",

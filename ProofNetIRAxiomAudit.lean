@@ -90,6 +90,9 @@ expansion.
 #print axioms Certificate.reconstructDerivationWithinLimits_implies_reconstructs
 #print axioms UnificationCandidateResult.linkVisitsBound
 #print axioms UnificationWorklistCandidateResult.linkAttemptsWithinBudget
+#print axioms UnificationStep.link_exists
+#print axioms UnificationStep.marks_fired_conclusion
+#print axioms UnificationStep.tokenCount_mono
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound
 #print axioms Certificate.unificationReconstruct?_accepted
