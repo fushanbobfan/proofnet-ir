@@ -113,7 +113,7 @@ part of the engineering and proof-identity gap.
    parser, schema, migration function, and safe parsed-key matcher now expose
    the payload as `proofnet-canonical-key-0.1`. That retained implementation
    still materializes the factorial family and remains limited to seven links.
-   The v0.8 development line adds an independent occurrence-forest
+   v0.8 adds an independent occurrence-forest
    canonicalizer. Lean proves exact vertex coverage, exact link emission,
    in-class representation, and intrinsic-key equality iff
    `ProofNetEquivalent`; no link permutation is enumerated. The separate
@@ -224,9 +224,10 @@ It can currently be used for:
   exact equality under its seven-link generation ceiling, 1,000 generated wire
   properties, 5,000 malformed-key fuzz cases, and a measured 1/4/7-link
   benchmark;
-- computing, parsing, migrating, and safely matching the unreleased
+- computing, parsing, migrating, and safely matching the
   non-factorial `proofnet-canonical-key-0.2` key, with an exact iff theorem,
-  a 1,000-case differential oracle audit, 5,000 malformed cases, and a measured
+  a 1,000-case differential oracle audit, 1,000 additional mixed
+  derivation-generated accepted nets, 5,000 malformed cases, and a measured
   qualification through 145 links;
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and

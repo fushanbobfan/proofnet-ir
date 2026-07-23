@@ -321,7 +321,8 @@
   `proofnet-equivalent-intrinsic-v1` JSON wire, parser, schema, fixture,
   checker-certificate migration, safe matcher, and trust audit.
 - [x] Differentially compare the intrinsic key with the v0.7 factorial oracle
-  on 1,000 deterministic positive/negative cases.
+  on 1,000 deterministic positive/negative cases and exercise 1,000 additional
+  mixed derivation-generated accepted nets.
 - [x] Extend malformed-key fuzzing, schema validation, generated API docs, and
   the path-based downstream consumer.
 - [x] Qualify the direct polynomial implementation beyond the old ceiling:

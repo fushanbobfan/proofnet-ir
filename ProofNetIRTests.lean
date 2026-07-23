@@ -1895,6 +1895,33 @@ def intrinsicCanonicalDifferentialProperties : Bool :=
 example : intrinsicCanonicalDifferentialProperties = true := by
   native_decide
 
+/-- A broader generated-net corpus exercises the intrinsic path independently
+of the small factorial oracle domain. Every derivation-generated accepted net
+and its reversed link storage must emit one round-tripping key that safely
+matches both inputs. -/
+def intrinsicCanonicalGeneratedProperties : Bool :=
+  (List.range 1000).all fun seed =>
+    let tree := CutFreeDerivation.generate (10_000 + seed) 2
+    match tree.desequentialize? with
+    | none => false
+    | some certificate =>
+        let reordered : Certificate :=
+          { certificate with links := certificate.links.reverse }
+        certificate.check &&
+          (certificate.intrinsicCanonicalKey ==
+            reordered.intrinsicCanonicalKey) &&
+          match certificate.intrinsicCanonicalKeyString? with
+          | none => false
+          | some wire =>
+              match IntrinsicCanonicalKey.fromString wire with
+              | .error _ => false
+              | .ok key =>
+                  certificate.matchesIntrinsicCanonicalKey key &&
+                    reordered.matchesIntrinsicCanonicalKey key
+
+example : intrinsicCanonicalGeneratedProperties = true := by
+  native_decide
+
 def run : IO Unit := do
   if !canonical.check then
     throw <| IO.userError "canonical proof net was unexpectedly rejected"

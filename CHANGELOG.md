@@ -5,6 +5,9 @@
 - published `v0.7.0` and changed the clean external consumer from the candidate
   commit to the exact public tag; Lake resolves it to release commit
   `dab12d48d1af62daa5c2fe96cc7fdff4b86e16eb`;
+
+## v0.8.0 - Intrinsic non-factorial canonical key
+
 - added an intrinsic occurrence-forest canonicalizer that never enumerates
   link-list permutations. Lean proves exact formula-vertex coverage, exact
   link permutation, invariance, in-class representation, and canonical-form
@@ -16,10 +19,15 @@
   API documentation, and path-consumer coverage. It removes v0.1's seven-link
   ceiling without reinterpreting any old bytes;
 - added a 1,000-case differential comparison against the factorial v0.7 oracle,
-  5,000 malformed intrinsic-key cases, and a measured four-case
+  a separate 1,000-case mixed derivation-generated accepted-net audit, 5,000
+  malformed intrinsic-key cases, and a measured four-case
   25/49/97/145-link benchmark. The aggregate intrinsic-key time was 120 ms on
   the recorded Windows run under a five-second budget; the independent
   one-million-character wire envelope remains fail closed;
+- added a clean downstream Lake consumer pinned to candidate commit
+  `925855572b316376445eafa36e043596f49637bc`; it installs from GitHub and
+  typechecks exact intrinsic-key equality, safe matching, v0.3 migration, and
+  generation above the retained v0.1 seven-link ceiling;
 
 ## v0.7.0 - Exact ProofNetEquivalent canonical key
 

@@ -91,7 +91,7 @@ above seven links before factorial evaluation; the unbounded typed key remains
 a specification oracle. Ordered conclusions, connective premise order,
 formula labels, and axiom orientation remain significant.
 
-The v0.8 development line adds the distinct
+Release v0.8.0 adds the distinct
 `proofnet-canonical-key-0.2` /
 `proofnet-equivalent-intrinsic-v1` contract. It does not reinterpret or replace
 v0.1 keys, certificate v0.2/v0.3 strings, or the meaning of

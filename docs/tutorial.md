@@ -113,7 +113,7 @@ identity decisions. The family preserves ordered conclusions,
 tensor/par premise order, formula labels, and axiom endpoint orientation; it is
 not arbitrary graph isomorphism.
 
-The v0.8 development API adds a non-factorial exact key for the same relation:
+The v0.8 API adds a non-factorial exact key for the same relation:
 
 ```lean
 example : axiomCertificate.ProofNetEquivalent reordered ↔

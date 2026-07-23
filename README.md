@@ -3,14 +3,14 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.7.0` (an exact typed key for the documented
-`ProofNetEquivalent` relation, a separately versioned bounded wire contract,
-and fail-closed seven-link performance qualification, without claiming
-arbitrary graph isomorphism or scalable canonicalization). See
+Current release candidate: `v0.8.0` (a proved non-factorial exact typed key for
+the documented `ProofNetEquivalent` relation, a separately versioned bounded
+wire contract, and measured qualification through 145 links, without claiming
+arbitrary graph isomorphism or general checker/sequentializer scalability). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
-The unreleased v0.8 development line adds a proved non-factorial intrinsic
-canonical form and the separate `proofnet-canonical-key-0.2` wire. On
+The v0.8 release candidate adds a proved non-factorial intrinsic canonical
+form and the separate `proofnet-canonical-key-0.2` wire. On
 structurally well-formed certificates, equality of the new typed key is proved
 equivalent to exactly the existing `ProofNetEquivalent` relation. It does not
 change that relation or claim arbitrary graph isomorphism.
@@ -126,7 +126,7 @@ The repository currently contains:
   wire property corpus, 5,000-case malformed-key fuzz corpus, and measured
   1/4/7-link benchmark pass, but larger or ordinary pairwise comparisons should
   use `CheckedCertificate.sameProofNet?`;
-- an unreleased intrinsic canonicalizer that traverses the ordered conclusion
+- an intrinsic canonicalizer that traverses the ordered conclusion
   forest, follows each unique tensor/par producer in premise order, emits every
   orientation-sensitive link exactly once, and then erases submitted vertex
   numbers. Lean proves exact traversal coverage, exact link permutation,
@@ -134,7 +134,8 @@ The repository currently contains:
   structurally well-formed domain. The separate
   `proofnet-canonical-key-0.2` wire removes the seven-link ceiling and has been
   differentially checked against the factorial oracle on 1,000 deterministic
-  cases; its direct implementation is polynomial, currently
+  cases and exercised on 1,000 additional mixed derivation-generated accepted
+  nets; its direct implementation is polynomial, currently
   `O(VL + V^2)`, and still enforces independent token/character limits;
 - a clean downstream Lake consumer pinned to the exact public `v0.7.0` tag,
   exercising bounded-key exactness, safe matching, over-limit
@@ -320,6 +321,7 @@ consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
 consumer-v06-candidate-smoke/  clean consumer pinned to public v0.6.0 tag
 consumer-v07-candidate-smoke/  clean consumer pinned to public v0.7.0 tag
+consumer-v08-candidate-smoke/  clean consumer pinned to exact v0.8 candidate
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
