@@ -73,6 +73,11 @@ def sections : List Section := [
       `ProofNetIR.Certificate.proofNetCanonicalFamily,
       `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily,
       `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily_of_check,
+      `ProofNetIR.Certificate.proofNetCanonicalStringCandidates,
+      `ProofNetIR.Certificate.proofNetCanonicalFingerprint?,
+      `ProofNetIR.Certificate.proofNetCanonicalFingerprint?_exists,
+      `ProofNetIR.Certificate.proofNetCanonicalFingerprint?_mem,
+      `ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalFingerprint?_eq,
       `ProofNetIR.Certificate.equivalenceCanonicalString
     ]
   },

@@ -279,6 +279,26 @@
 - [x] Qualify the public bridge through a final v0.6-tag-pinned downstream
   consumer.
 
+## v0.7 - ProofNetEquivalent fingerprint and wire qualification
+
+- [x] Define the finite v0.3 serialized image of
+  `proofNetCanonicalFamily` and select its lexicographically least member.
+- [x] Prove fingerprint totality, selected-member provenance, and forward
+  invariance under `ProofNetEquivalent`.
+- [x] Exercise the API in the source tests and path-based downstream consumer,
+  while documenting that `sameProofNet?` remains the exact identity boundary.
+- [ ] Prove the v0.3 canonical serializer injective on the relevant normalized
+  certificates, or prove a checker-gated decoder round trip with the same
+  consequence.
+- [ ] Derive the reverse theorem: equal fingerprints imply
+  `ProofNetEquivalent` under the precise structural/checked preconditions.
+- [ ] Introduce a new explicit wire canonicalization marker instead of
+  reinterpreting v0.3, with parser, migration, negative, and property tests.
+- [ ] Replace or qualify factorial family materialization with measured
+  performance evidence before calling the fingerprint a production key.
+- [ ] Pin a clean downstream consumer to the eventual public v0.7 release and
+  qualify local, main-branch, and exact-tag CI.
+
 ## Later research
 
 - certified contraction/linear-time correctness checking;

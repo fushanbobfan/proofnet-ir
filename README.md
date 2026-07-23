@@ -102,6 +102,12 @@ The repository currently contains:
   equality is proved equivalent to exactly `ProofNetEquivalent` on
   structurally well-formed certificates. This is a factorial specification
   oracle, not a compact wire key or arbitrary unlabeled-graph canonicalizer.
+- an unreleased `proofNetCanonicalFingerprint?` experiment that selects the
+  lexicographically least serialized member of that family. Lean proves it is
+  total and invariant under `ProofNetEquivalent`, but no converse is claimed
+  until serializer injectivity or a checked decoder round trip is proved. It
+  still materializes the factorial family, so exact production comparisons
+  continue to use `CheckedCertificate.sameProofNet?`;
 - a checked pairwise identity API,
   `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
   exactly `ProofNetEquivalent`. Its search enforces the ordered conclusion
@@ -111,7 +117,7 @@ The repository currently contains:
   unconstrained label enumerator's theoretical `(64!)^2` orders. This remains
   an exact scoped decision procedure, not a compact canonical wire key or an
   arbitrary graph-isomorphism algorithm;
-- an initial, conservative v0.6-development LeanProp bridge with judgments
+- a conservative v0.6 LeanProp bridge with judgments
   indexed by separate persistent and linear proposition contexts. Persistent
   weakening/contraction and both exchanges are explicit, while no linear
   weakening/contraction constructors exist. Conjunction, implication,
@@ -170,8 +176,8 @@ semantics; its wire layer intentionally covers only named atoms, ordinary
 conjunction, and implication, not typed equality/quantifier terms or broad
 mathlib expressions. The
 repository also lacks canonicalization modulo reordered conclusions or
-arbitrary graph isomorphism, a compact single-representative wire key for
-`ProofNetEquivalent`, and a Lean tactic. The API,
+arbitrary graph isomorphism, a reverse-complete and performance-qualified
+single-representative wire key for `ProofNetEquivalent`, and a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.

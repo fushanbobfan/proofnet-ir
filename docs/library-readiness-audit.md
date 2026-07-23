@@ -1,7 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-23
-Audited baseline: v0.6.0 release candidate
+Audited baseline: v0.6.0 plus unreleased v0.7 fingerprint work
 
 ## Verdict
 
@@ -105,8 +105,11 @@ part of the engineering and proof-identity gap.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional
-   family membership equality iff `ProofNetEquivalent`. The family is
-   factorial and is not a compact single-representative wire key.
+   family membership equality iff `ProofNetEquivalent`. An unreleased
+   lexicographic-minimum fingerprint is total and forward invariant, but
+   fingerprint equality is not yet proved to imply equivalence and the
+   implementation still materializes the factorial family. It is therefore
+   not yet a production single-representative wire key.
    Conclusion-order canonicalization and arbitrary graph isomorphism remain
    outside the current claim. The v0.3.1 wire theorem remains intentionally
    about the narrower, order-preserving `ReindexEquivalent` relation.
@@ -134,7 +137,7 @@ part of the engineering and proof-identity gap.
   persistent-normalization APIs;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for twenty-five public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for twenty-seven public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the separate LeanProp trust boundary locks four theorems as axiom-free,
@@ -197,6 +200,9 @@ It can currently be used for:
 - producing stable v0.3 cache/dataset keys across bounded vertex renamings;
 - deciding exact `ProofNetEquivalent` pairwise identity between
   checker-accepted certificates through a checked API;
+- computing an experimental compact fingerprint whose totality and forward
+  `ProofNetEquivalent` invariance are kernel proved, while retaining
+  `sameProofNet?` for exact identity;
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.

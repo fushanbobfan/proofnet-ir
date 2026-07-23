@@ -937,6 +937,32 @@ example : canonical.ProofNetEquivalent linkScrambledCanonical ↔
         candidate ∈ linkScrambledCanonical.proofNetCanonicalFamily :=
   Certificate.proofNetEquivalent_iff_canonicalFamily_of_check
     (by native_decide) (by native_decide)
+example :
+    canonical.proofNetCanonicalFingerprint?.isSome = true := by
+  native_decide
+example :
+    ∃ fingerprint,
+      canonical.proofNetCanonicalFingerprint? = some fingerprint :=
+  canonical.proofNetCanonicalFingerprint?_exists
+example :
+    canonical.proofNetCanonicalFingerprint? =
+      linkScrambledCanonical.proofNetCanonicalFingerprint? :=
+  (show canonical.ProofNetEquivalent linkScrambledCanonical from by
+    refine (show canonical.LinkPermutationEquivalent
+      linkScrambledCanonical from ?_).toProofNetEquivalent
+    refine ⟨rfl, ?_, rfl⟩
+    simpa [linkScrambledCanonical] using
+      (List.reverse_perm canonical.links).symm)
+    |>.proofNetCanonicalFingerprint?_eq
+example :
+    (canonical.reindex
+      swapCanonicalZeroOne).proofNetCanonicalFingerprint? =
+      canonical.proofNetCanonicalFingerprint? :=
+  (show (canonical.reindex swapCanonicalZeroOne).ProofNetEquivalent
+      canonical from
+    (Certificate.ReindexEquivalent.symm
+      ⟨swapCanonicalZeroOne, rfl⟩).toProofNetEquivalent)
+    |>.proofNetCanonicalFingerprint?_eq
 example : ¬ canonical.ReindexEquivalent linkScrambledCanonical := by
   rw [← Certificate.reindexEquivalent?_eq_true_iff_of_check
     (left := canonical) (right := linkScrambledCanonical)

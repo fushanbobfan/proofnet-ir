@@ -565,6 +565,68 @@ ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily_of_check : ∀ {le
           candidate ∈ left.proofNetCanonicalFamily ↔ candidate ∈ right.proofNetCanonicalFamily)
 ```
 
+### `ProofNetIR.Certificate.proofNetCanonicalStringCandidates`
+
+Kind: definition.
+
+The finite serialized image of `proofNetCanonicalFamily`.  Duplicates are
+harmless because the fingerprint depends only on the least member.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalStringCandidates : ProofNetIR.Certificate → List String
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalFingerprint?`
+
+Kind: definition.
+
+A compact, executable fingerprint obtained by taking the lexicographically
+least v0.3 string in the complete finite canonical family.
+
+This is currently an invariant, not a complete decision key: use
+`CheckedCertificate.sameProofNet?` for exact pairwise proof-net identity.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalFingerprint? : ProofNetIR.Certificate → Option String
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalFingerprint?_exists`
+
+Kind: theorem.
+
+The compact fingerprint is total, although it retains `Option` in its
+executable type to expose the finite-minimum operation directly.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalFingerprint?_exists : ∀ (certificate : ProofNetIR.Certificate), ∃ fingerprint, certificate.proofNetCanonicalFingerprint? = some fingerprint
+```
+
+### `ProofNetIR.Certificate.proofNetCanonicalFingerprint?_mem`
+
+Kind: theorem.
+
+Successful fingerprint selection returns an actual serialized member of
+the complete finite canonical family.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalFingerprint?_mem : ∀ (certificate : ProofNetIR.Certificate) {fingerprint : String},
+  certificate.proofNetCanonicalFingerprint? = some fingerprint →
+    fingerprint ∈ certificate.proofNetCanonicalStringCandidates
+```
+
+### `ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalFingerprint?_eq`
+
+Kind: theorem.
+
+`ProofNetEquivalent` certificates have exactly the same compact
+fingerprint.  No converse is claimed until the serialized encoding is proved
+injective on canonical-family members.
+
+```lean
+ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalFingerprint?_eq : ∀ {left right : ProofNetIR.Certificate},
+  left.ProofNetEquivalent right → left.proofNetCanonicalFingerprint? = right.proofNetCanonicalFingerprint?
+```
+
 ### `ProofNetIR.Certificate.equivalenceCanonicalString`
 
 Kind: definition.

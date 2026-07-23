@@ -30,6 +30,28 @@ example : checkedAxiomCertificate.certificate.ProofNetEquivalent
   CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff.mp
     (by native_decide)
 
+example : ∃ fingerprint,
+    axiomCertificate.proofNetCanonicalFingerprint? = some fingerprint :=
+  axiomCertificate.proofNetCanonicalFingerprint?_exists
+
+def swapAxiomVertices : VertexRenaming axiomCertificate.formulas.size :=
+  VertexRenaming.swap axiomCertificate.formulas.size 0 1
+    (by decide) (by decide)
+
+example :
+    axiomCertificate.proofNetCanonicalFingerprint? =
+      (axiomCertificate.reindex
+        swapAxiomVertices).proofNetCanonicalFingerprint? :=
+  (show axiomCertificate.ProofNetEquivalent
+      (axiomCertificate.reindex swapAxiomVertices) from
+    (show axiomCertificate.ReindexEquivalent
+        (axiomCertificate.reindex swapAxiomVertices) from
+      ⟨swapAxiomVertices, rfl⟩).toProofNetEquivalent)
+    |>.proofNetCanonicalFingerprint?_eq
+
+/- The converse is intentionally not part of the current API.  Use the checked
+pairwise decision above when exact `ProofNetEquivalent` identity is required. -/
+
 def parsed := Certificate.checkedFromString axiomCertificate.canonicalString
 
 example : parsed.isOk = true := by native_decide

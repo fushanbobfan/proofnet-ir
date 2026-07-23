@@ -140,6 +140,16 @@ candidate generator enforces the ordered boundary during enumeration, and its
 completeness feeds the already-audited exact decision theorem. This is neither
 an arbitrary graph-isomorphism oracle nor a canonical serialization theorem.
 
+The unreleased `proofNetCanonicalFingerprint?` takes the lexicographic minimum
+of the v0.3 strings in the complete finite canonical family. Lean proves that
+the option is always populated, that a selected value belongs to the family
+image, and that `ProofNetEquivalent` certificates have equal fingerprints.
+These public boundary proofs use exactly
+`[propext, Classical.choice, Quot.sound]`. No reverse implication is trusted:
+until serialization is proved injective on canonical-family members or a
+checked decoder round trip is established, fingerprint equality is not an
+identity decision.
+
 ## Failure containment
 
 Even if a future graph proposer, optimized checker, or sequentializer is wrong,

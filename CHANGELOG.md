@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- added `proofNetCanonicalFingerprint?`, the lexicographically least v0.3
+  string in the complete finite `ProofNetEquivalent` canonical family; Lean
+  proves totality, candidate membership, and forward invariance under
+  `ProofNetEquivalent`. This is an experimental compact return value, not yet
+  an exact decision key: serializer injectivity/checked decoding and the
+  converse theorem remain open, and the implementation still materializes the
+  factorial family;
+
 ## v0.6.0 - Persistent LeanProp bridge
 
 - began the conservative v0.6 LeanProp bridge without changing the MLL

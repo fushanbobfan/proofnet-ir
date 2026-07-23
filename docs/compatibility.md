@@ -40,6 +40,14 @@ and validates the source normal form before emitting a v0.3 string. Future
 canonicalization algorithms must use a new `canonicalization` value and, when
 the payload contract changes, a new wire version.
 
+The unreleased `proofNetCanonicalFingerprint?` is a Lean-level experimental
+value, not a wire contract. It takes the least existing v0.3 string across the
+finite `ProofNetEquivalent` family, but it has only a forward invariance
+theorem and still materializes the factorial family. A future public wire key
+must use a new explicit canonicalization marker, prove checked decoding or
+serializer injectivity and the converse identity theorem, and add migration
+fixtures; existing v0.2/v0.3 strings will not be reinterpreted.
+
 Release v0.4.0 adds the general sequentialization Lean API and theorem without
 introducing a new wire version or changing the v0.2/v0.3 payload contracts.
 `Certificate.sequentialization_of_check` and

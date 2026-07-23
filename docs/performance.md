@@ -42,6 +42,12 @@ acceptance (or the lower-level `Certificate.proofNetEquivalent?` when a caller
 already manages its structural premise). The checked API has an iff theorem
 for exactly `ProofNetEquivalent`; neither path materializes the family.
 
+The unreleased `Certificate.proofNetCanonicalFingerprint?` currently maps and
+minimizes that same family, so its compact return type does not imply compact
+computation. It is also excluded from the performance budget. It must not
+replace `sameProofNet?` until both the converse theorem and a separately
+measured implementation avoid or deliberately accept the factorial cost.
+
 ## Baseline measurement
 
 On the Windows development machine on 2026-07-22, the committed workload

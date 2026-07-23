@@ -57,6 +57,10 @@ criterion and proof-order bureaucracy can be measured cleanly.
     extensional family membership is an iff for `ProofNetEquivalent` on
     structurally well-formed certificates. The family is executable but
     factorial in the link count and is intended as a specification oracle.
+    The unreleased `proofNetCanonicalFingerprint?` projects this family to its
+    lexicographically least v0.3 string. Its totality, candidate membership,
+    and forward invariance are proved; reverse completeness is not claimed
+    before the serializer has an injectivity or checked-decoder theorem.
 21. `ProofNetIdentity.lean` exposes the production pairwise identity boundary
     for checker-accepted certificates. `sameProofNet?` is proved equivalent to
     exactly `ProofNetEquivalent`. Its underlying candidate generator applies
@@ -70,18 +74,21 @@ normal-form equality is equivalent to `ReindexEquivalent`. It is not an
 arbitrary graph canonical-labeling algorithm: list order and logical premise
 order remain part of identity.
 
-The broader `ProofNetEquivalent` relation now has a complete finite canonical
-family rather than a single compact representative. In this family, link-list
-storage order is quotiented, while ordered conclusions, tensor/par premise
-order, formula labels, and axiom endpoint orientation remain significant. It
-therefore still does not claim arbitrary graph isomorphism.
+The broader `ProofNetEquivalent` relation has a complete finite canonical
+family and an experimental compact fingerprint obtained by minimizing its
+serialized image. In this family, link-list storage order is quotiented, while
+ordered conclusions, tensor/par premise order, formula labels, and axiom
+endpoint orientation remain significant. The fingerprint currently has only
+the forward equivalence-invariance theorem and inherits factorial
+materialization. It is therefore not yet a production canonical wire key and
+does not claim arbitrary graph isomorphism.
 
-The project deliberately chooses exact pairwise decision, rather than the
-factorial family, as its supported production identity API. This does not
-create a compact single canonical representative. Ordered conclusions,
-connective premise order, formula labels, and axiom orientation are still part
-of identity, and worst-case internal repeated-label search is not claimed to
-be polynomial.
+The project deliberately keeps exact pairwise decision as its supported
+production identity API. The experimental fingerprint does not change that
+boundary: equal fingerprints are not yet proved sufficient for equivalence.
+Ordered conclusions, connective premise order, formula labels, and axiom
+orientation are still part of identity, and neither fingerprint construction
+nor worst-case internal repeated-label search is claimed to be polynomial.
 
 ## Why exhaustive switchings first
 

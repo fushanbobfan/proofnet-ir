@@ -34,6 +34,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.proofNetEquivalent?_eq_true_iff",
     "ProofNetIR.CutFreeDerivation.CheckedCertificate.sameProofNet?_eq_true_iff",
     "ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily_of_check",
+    "ProofNetIR.Certificate.proofNetCanonicalFingerprint?_exists",
+    "ProofNetIR.Certificate.ProofNetEquivalent.proofNetCanonicalFingerprint?_eq",
     "ProofNetIR.Certificate.sequentialize_complete",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",

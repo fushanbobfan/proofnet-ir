@@ -1,4 +1,5 @@
 import ProofNetIR.ExecutableSequentialization
+import Std
 
 namespace ProofNetIR
 
@@ -237,6 +238,133 @@ theorem proofNetEquivalent_iff_canonicalFamily_of_check
   proofNetEquivalent_iff_canonicalFamily
     (left.check_sound_declarative leftAccepted).1
     (right.check_sound_declarative rightAccepted).1
+
+/-!
+## Compact invariant fingerprint
+
+The complete canonical family above is finite but factorial.  The definitions
+below collapse its v0.3 serialized members to their lexicographically least
+string.  The resulting fingerprint is executable and is proved invariant
+under `ProofNetEquivalent`.
+
+Only the forward theorem is claimed here.  Until serializer injectivity (or an
+equivalent checked decoder round trip) is proved, equal fingerprints are not a
+public decision procedure for `ProofNetEquivalent`; callers needing an exact
+decision must continue to use `CheckedCertificate.sameProofNet?`.
+-/
+
+private instance proofNetCanonicalStringMin : Min String := minOfLe
+
+/-- The finite serialized image of `proofNetCanonicalFamily`.  Duplicates are
+harmless because the fingerprint depends only on the least member. -/
+def proofNetCanonicalStringCandidates
+    (certificate : Certificate) : List String :=
+  certificate.proofNetCanonicalFamily.map equivalenceCanonicalString
+
+/-- A compact, executable fingerprint obtained by taking the lexicographically
+least v0.3 string in the complete finite canonical family.
+
+This is currently an invariant, not a complete decision key: use
+`CheckedCertificate.sameProofNet?` for exact pairwise proof-net identity. -/
+def proofNetCanonicalFingerprint?
+    (certificate : Certificate) : Option String :=
+  certificate.proofNetCanonicalStringCandidates.min?
+
+private theorem minString_eq_of_mem_iff
+    (left right : List String)
+    (sameMembers : ∀ value, value ∈ left ↔ value ∈ right) :
+    left.min? = right.min? := by
+  cases leftMinimum : left.min? with
+  | none =>
+      have leftNil : left = [] :=
+        List.min?_eq_none_iff.mp leftMinimum
+      subst left
+      have rightNil : right = [] := by
+        apply List.eq_nil_iff_forall_not_mem.mpr
+        intro value rightMember
+        have impossible : value ∈ ([] : List String) :=
+          (sameMembers value).mpr rightMember
+        simp at impossible
+      simp [rightNil]
+  | some value =>
+      have leftSpec := List.min?_eq_some_iff.mp leftMinimum
+      have rightMinimum : right.min? = some value := by
+        apply List.min?_eq_some_iff.mpr
+        refine ⟨(sameMembers value).mp leftSpec.1, ?_⟩
+        intro candidate candidateMember
+        exact leftSpec.2 candidate
+          ((sameMembers candidate).mpr candidateMember)
+      exact rightMinimum.symm
+
+/-- Every certificate contributes at least its own reindex normal form to the
+serialized candidate family. -/
+theorem equivalenceCanonicalString_mem_proofNetCanonicalStringCandidates
+    (certificate : Certificate) :
+    certificate.equivalenceCanonicalize.equivalenceCanonicalString ∈
+      certificate.proofNetCanonicalStringCandidates := by
+  rw [proofNetCanonicalStringCandidates, List.mem_map]
+  refine ⟨certificate.equivalenceCanonicalize, ?_, rfl⟩
+  rw [mem_proofNetCanonicalFamily_iff]
+  exact ⟨certificate.links, .refl _, rfl⟩
+
+/-- The compact fingerprint is total, although it retains `Option` in its
+executable type to expose the finite-minimum operation directly. -/
+theorem proofNetCanonicalFingerprint?_exists
+    (certificate : Certificate) :
+    ∃ fingerprint,
+      certificate.proofNetCanonicalFingerprint? = some fingerprint := by
+  cases equation :
+      certificate.proofNetCanonicalFingerprint? with
+  | none =>
+      have candidateNil :
+          certificate.proofNetCanonicalStringCandidates = [] :=
+        List.min?_eq_none_iff.mp equation
+      have member :=
+        certificate
+          |>.equivalenceCanonicalString_mem_proofNetCanonicalStringCandidates
+      rw [candidateNil] at member
+      simp at member
+  | some fingerprint =>
+      exact ⟨fingerprint, rfl⟩
+
+/-- Successful fingerprint selection returns an actual serialized member of
+the complete finite canonical family. -/
+theorem proofNetCanonicalFingerprint?_mem
+    (certificate : Certificate) {fingerprint : String}
+    (equation :
+      certificate.proofNetCanonicalFingerprint? = some fingerprint) :
+    fingerprint ∈ certificate.proofNetCanonicalStringCandidates :=
+  List.min?_mem equation
+
+/-- Generated proof-net equivalence preserves membership in the finite
+serialized candidate set. -/
+theorem ProofNetEquivalent.proofNetCanonicalStringCandidates_mem_iff
+    {left right : Certificate}
+    (equivalent : left.ProofNetEquivalent right)
+    (value : String) :
+    value ∈ left.proofNetCanonicalStringCandidates ↔
+      value ∈ right.proofNetCanonicalStringCandidates := by
+  simp only [proofNetCanonicalStringCandidates, List.mem_map]
+  constructor
+  · rintro ⟨candidate, membership, rfl⟩
+    exact ⟨candidate,
+      (equivalent.proofNetCanonicalFamily_mem_iff candidate).mp membership,
+      rfl⟩
+  · rintro ⟨candidate, membership, rfl⟩
+    exact ⟨candidate,
+      (equivalent.proofNetCanonicalFamily_mem_iff candidate).mpr membership,
+      rfl⟩
+
+/-- `ProofNetEquivalent` certificates have exactly the same compact
+fingerprint.  No converse is claimed until the serialized encoding is proved
+injective on canonical-family members. -/
+theorem ProofNetEquivalent.proofNetCanonicalFingerprint?_eq
+    {left right : Certificate}
+    (equivalent : left.ProofNetEquivalent right) :
+    left.proofNetCanonicalFingerprint? =
+      right.proofNetCanonicalFingerprint? := by
+  apply minString_eq_of_mem_iff
+  exact equivalent.proofNetCanonicalStringCandidates_mem_iff
 
 end Certificate
 
