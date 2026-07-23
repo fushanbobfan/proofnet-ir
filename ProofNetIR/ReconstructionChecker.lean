@@ -746,17 +746,37 @@ private def alignTreeProfiled? (input : Certificate)
   | none =>
       firstVerification verify (matchingFormulaOrders source target)
 
-private def reconstructAxiomTree? (input : Certificate)
+/-- Profile-guided alignment without the exhaustive formula-permutation
+fallback. This is the only alignment policy used by the bounded public API. -/
+private def alignTreePreferred? (input : Certificate)
+    (tree : CutFreeDerivation) (target : List Formula) :
+    Option CutFreeDerivation := do
+  let source ← tree.infer?
+  let sourceCertificate ← tree.desequentialize?
+  let verify := fun order =>
+    let aligned := CutFreeDerivation.exchange order tree
+    if aligned.infer? == some target then some aligned else none
+  let preferred :=
+    (profiledBoundaryOrder? sourceCertificate input source target).toList ++
+      (intrinsicBoundaryOrder? sourceCertificate input).toList
+  firstVerification verify preferred
+
+private def reconstructAxiomTreeWith?
+    (align : Certificate → CutFreeDerivation → List Formula →
+      Option CutFreeDerivation)
+    (input : Certificate)
     (target : List Formula) : Option CutFreeDerivation :=
   firstVerification
     (fun formula =>
       match formula with
       | .atom name positive =>
-          alignTreeProfiled? input (.axiom name positive) target
+          align input (.axiom name positive) target
       | _ => none)
     input.formulas.toList
 
-private def reconstructParTree?
+private def reconstructParTreeWith?
+    (align : Certificate → CutFreeDerivation → List Formula →
+      Option CutFreeDerivation)
     (recurse : Certificate → Option CutFreeDerivation)
     (input : Certificate) (target : List Formula) :
     Option CutFreeDerivation :=
@@ -776,12 +796,14 @@ private def reconstructParTree?
                     none
                   else
                     let focus := premiseSequent.length - 2
-                    alignTreeProfiled? input
+                    align input
                       (.par focus focus premiseTree) target)
     (boundaryOrderedCandidates input input.terminalPars ++
       input.terminalPars)
 
-private def reconstructTensorTree?
+private def reconstructTensorTreeWith?
+    (align : Certificate → CutFreeDerivation → List Formula →
+      Option CutFreeDerivation)
     (recurse : Certificate → Option CutFreeDerivation)
     (input : Certificate) (target : List Formula) :
     Option CutFreeDerivation :=
@@ -798,7 +820,7 @@ private def reconstructTensorTree?
                   if leftSequent.isEmpty || rightSequent.isEmpty then
                     none
                   else
-                    alignTreeProfiled? input
+                    align input
                       (.tensor (leftSequent.length - 1)
                         (rightSequent.length - 1)
                         leftTree rightTree)
@@ -812,7 +834,10 @@ private def reconstructTensorTree?
 verification until the complete tree has been assembled.  The public
 reconstructor verifies this fast-path result once and retains the proved
 exhaustive search as a fallback. -/
-private def reconstructTreeWithFuel? : Nat → Certificate →
+private def reconstructTreeWithFuelUsing?
+    (align : Certificate → CutFreeDerivation → List Formula →
+      Option CutFreeDerivation) :
+    Nat → Certificate →
     Option CutFreeDerivation
   | 0, _ => none
   | fuel + 1, input =>
@@ -820,14 +845,25 @@ private def reconstructTreeWithFuel? : Nat → Certificate →
       | none => none
       | some target =>
           if input.links.any (·.isConnective) then
-            match reconstructParTree?
-                (reconstructTreeWithFuel? fuel) input target with
+            match reconstructParTreeWith? align
+                (reconstructTreeWithFuelUsing? align fuel) input target with
             | some tree => some tree
             | none =>
-                reconstructTensorTree?
-                  (reconstructTreeWithFuel? fuel) input target
+                reconstructTensorTreeWith? align
+                  (reconstructTreeWithFuelUsing? align fuel) input target
           else
-            reconstructAxiomTree? input target
+            reconstructAxiomTreeWith? align input target
+
+private def reconstructTreeWithFuel? : Nat → Certificate →
+    Option CutFreeDerivation :=
+  reconstructTreeWithFuelUsing? alignTreeProfiled?
+
+/-- Resource-bounded tree construction. Boundary alignment tries only the two
+deterministic preferred orders and never constructs
+`matchingFormulaOrders`. -/
+private def reconstructPreferredTreeWithFuel? : Nat → Certificate →
+    Option CutFreeDerivation :=
+  reconstructTreeWithFuelUsing? alignTreePreferred?
 
 /-- Attempt to reconstruct and verify a cut-free derivation from a bare
 certificate without calling the all-switchings checker.  A structure-guided
@@ -958,7 +994,8 @@ def reconstructDerivationWithinLimits
   else if !input.wellFormed then
     .error .structurallyMalformed
   else
-    match reconstructTreeWithFuel? (input.formulas.size + 1) input with
+    match reconstructPreferredTreeWithFuel?
+        (input.formulas.size + 1) input with
     | none => .error .noCandidate
     | some tree =>
         match input.verifyDerivation? tree with

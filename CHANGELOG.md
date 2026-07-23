@@ -82,6 +82,13 @@
   the reference semantics, and lies in the complete unbounded decision's
   accepted set. Limit and heuristic errors remain explicitly inconclusive;
   the clean downstream consumer compiles and executes the bounded API;
+- corrected the bounded execution path so that the preceding resource claim
+  is true in code, not only documentation: reconstruction now takes an
+  explicit alignment policy, the unbounded complete path retains exhaustive
+  `matchingFormulaOrders`, and `reconstructDerivationWithinLimits` uses a
+  preferred-only policy that never constructs that factorial family. All 18
+  qualified stress cases still succeed, recording 31,633 ms under the
+  unchanged 45-second budget;
 - added an exhaustive executable colored-cycle oracle over exact full-graph
   edge occurrences. Lean proves its local traversal test, cyclic cusp test,
   witness search, and `Certificate.isCuspAcyclic` decision equivalent to the
