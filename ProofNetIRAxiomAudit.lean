@@ -93,12 +93,17 @@ expansion.
 #print axioms UnificationStep.link_exists
 #print axioms UnificationStep.marks_fired_conclusion
 #print axioms UnificationStep.tokenCount_mono
+#print axioms UnificationMarking.ext
 #print axioms UnificationState.toMarking_tokenCount
 #print axioms UnificationState.toMarking_mark
 #print axioms UnificationState.toMarking_sameThread
+#print axioms UnificationState.ObservationEquivalent.abstractable
+#print axioms UnificationState.ObservationEquivalent.toMarking_eq
 #print axioms UnificationState.Abstractable.markConclusion
 #print axioms UnificationState.markConclusion_toMarking_mark
 #print axioms UnificationState.markConclusion_forwardStep
+#print axioms UnificationState.forwardToken?_success
+#print axioms UnificationState.forwardToken?_refines
 #print axioms UnificationState.tokenAt?_some_witness
 #print axioms UnificationState.Abstractable.tokenAt?_sameThread_witness
 #print axioms UnificationState.Abstractable.tokenAt?_bound

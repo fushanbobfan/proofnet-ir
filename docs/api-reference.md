@@ -2410,6 +2410,20 @@ token.
 ProofNetIR.UnificationMarking : ProofNetIR.Certificate → Type
 ```
 
+### `ProofNetIR.UnificationMarking.ext`
+
+Kind: theorem.
+
+Two proof-irrelevant markings are equal when their observable token count,
+raw marks, and thread relation are equal. Bound and equivalence witnesses are
+proof-irrelevant.
+
+```lean
+ProofNetIR.UnificationMarking.ext : ∀ {certificate : ProofNetIR.Certificate} {first second : ProofNetIR.UnificationMarking certificate},
+  first.tokenCount = second.tokenCount →
+    first.mark = second.mark → first.sameThread = second.sameThread → first = second
+```
+
 ### `ProofNetIR.UnificationMarking.setMark`
 
 Kind: definition.
@@ -2547,6 +2561,31 @@ for every reachable state.
 ProofNetIR.UnificationState.Abstractable : ProofNetIR.Certificate → ProofNetIR.UnificationState → Prop
 ```
 
+### `ProofNetIR.UnificationState.ObservationEquivalent`
+
+Kind: inductive type.
+
+Equality of exactly the executable fields observed by the independent
+unification semantics. Parsed derivation components and work counters are
+intentionally ignored.
+
+```lean
+ProofNetIR.UnificationState.ObservationEquivalent : ProofNetIR.UnificationState → ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.UnificationState.ObservationEquivalent.abstractable`
+
+Kind: theorem.
+
+Observation-equivalent states satisfy the same abstraction contract.
+
+```lean
+ProofNetIR.UnificationState.ObservationEquivalent.abstractable : ∀ {certificate : ProofNetIR.Certificate} {first second : ProofNetIR.UnificationState},
+  first.ObservationEquivalent second →
+    ProofNetIR.UnificationState.Abstractable certificate first →
+      ProofNetIR.UnificationState.Abstractable certificate second
+```
+
 ### `ProofNetIR.UnificationState.toMarking`
 
 Kind: definition.
@@ -2599,6 +2638,20 @@ ProofNetIR.UnificationState.toMarking_sameThread : ∀ (state : ProofNetIR.Unifi
   (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) (first second : Nat),
   (state.toMarking certificate abstractable).sameThread first second ↔
     state.representative first = state.representative second
+```
+
+### `ProofNetIR.UnificationState.ObservationEquivalent.toMarking_eq`
+
+Kind: theorem.
+
+Observation-equivalent executable states have identical independent
+marking abstractions.
+
+```lean
+ProofNetIR.UnificationState.ObservationEquivalent.toMarking_eq : ∀ {certificate : ProofNetIR.Certificate} {first second : ProofNetIR.UnificationState}
+  (equivalent : first.ObservationEquivalent second)
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate first),
+  second.toMarking certificate ⋯ = first.toMarking certificate abstractable
 ```
 
 ### `ProofNetIR.UnificationState.markConclusion`
@@ -2665,6 +2718,49 @@ ProofNetIR.UnificationState.markConclusion_forwardStep : ∀ {certificate : Proo
                 state.SameThread outputToken leftToken →
                   ProofNetIR.UnificationStep certificate (state.toMarking certificate abstractable)
                     ((state.markConclusion conclusion outputToken).toMarking certificate ⋯)
+```
+
+### `ProofNetIR.UnificationState.forwardToken?`
+
+Kind: definition.
+
+Check exactly the token-level guards of a unary/par forward firing and
+return the representative token to place on the conclusion.
+
+```lean
+ProofNetIR.UnificationState.forwardToken? : ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Option Nat
+```
+
+### `ProofNetIR.UnificationState.forwardToken?_success`
+
+Kind: theorem.
+
+A successful token-level forward check exposes every executable guard and
+uses the same representative for both premises.
+
+```lean
+ProofNetIR.UnificationState.forwardToken?_success : ∀ {state : ProofNetIR.UnificationState} {left right conclusion outputToken : Nat},
+  state.forwardToken? left right conclusion = some outputToken →
+    state.marks[conclusion]? = some none ∧
+      state.tokenAt? left = some outputToken ∧ state.tokenAt? right = some outputToken
+```
+
+### `ProofNetIR.UnificationState.forwardToken?_refines`
+
+Kind: theorem.
+
+A successful executable forward-token check, together with submitted link
+membership, produces one independent forward step and a valid updated
+abstraction.
+
+```lean
+ProofNetIR.UnificationState.forwardToken?_refines : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) {left right conclusion outputToken : Nat},
+  ProofNetIR.Link.par left right conclusion ∈ certificate.links →
+    state.forwardToken? left right conclusion = some outputToken →
+      ∃ nextAbstractable,
+        ProofNetIR.UnificationStep certificate (state.toMarking certificate abstractable)
+          ((state.markConclusion conclusion outputToken).toMarking certificate nextAbstractable)
 ```
 
 ### `ProofNetIR.UnificationState.tokenAt?_some_witness`

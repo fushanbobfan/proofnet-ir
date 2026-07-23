@@ -22,6 +22,19 @@ structure UnificationMarking (certificate : Certificate) where
 
 namespace UnificationMarking
 
+/-- Two proof-irrelevant markings are equal when their observable token count,
+raw marks, and thread relation are equal. Bound and equivalence witnesses are
+proof-irrelevant. -/
+@[ext]
+theorem ext {first second : UnificationMarking certificate}
+    (tokenCount : first.tokenCount = second.tokenCount)
+    (mark : first.mark = second.mark)
+    (sameThread : first.sameThread = second.sameThread) :
+    first = second := by
+  cases first
+  cases second
+  simp_all
+
 /-- Mark one formula occurrence, leaving every other occurrence unchanged. -/
 def setMark (mark : Vertex → Option Nat) (vertex token : Nat) :
     Vertex → Option Nat :=

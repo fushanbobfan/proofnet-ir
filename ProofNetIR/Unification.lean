@@ -186,6 +186,52 @@ structure Abstractable (certificate : Certificate)
       state.representative (state.representative token) =
         state.representative token
 
+/-- Equality of exactly the executable fields observed by the independent
+unification semantics. Parsed derivation components and work counters are
+intentionally ignored. -/
+structure ObservationEquivalent
+    (first second : UnificationState) : Prop where
+  marks : first.marks = second.marks
+  parents : first.parents = second.parents
+
+/-- Observation-equivalent states satisfy the same abstraction contract. -/
+theorem ObservationEquivalent.abstractable
+    {certificate : Certificate} {first second : UnificationState}
+    (equivalent : first.ObservationEquivalent second)
+    (abstractable : first.Abstractable certificate) :
+    second.Abstractable certificate := by
+  refine {
+    markArraySize := by
+      rw [← equivalent.marks]
+      exact abstractable.markArraySize
+    markedVertexBound := ?_
+    markedTokenBound := ?_
+    representativeBound := ?_
+    representativeIdempotent := ?_
+  }
+  · intro vertex token marked
+    apply abstractable.markedVertexBound
+    unfold assignedToken? at marked ⊢
+    rw [equivalent.marks]
+    exact marked
+  · intro vertex token marked
+    have oldMarked : first.assignedToken? vertex = some token := by
+      unfold assignedToken? at marked ⊢
+      rw [equivalent.marks]
+      exact marked
+    rw [← equivalent.parents]
+    exact abstractable.markedTokenBound oldMarked
+  · intro token bound
+    have oldBound : token < first.parents.size := by
+      simpa [equivalent.parents] using bound
+    simpa [representative, equivalent.parents] using
+      abstractable.representativeBound oldBound
+  · intro token bound
+    have oldBound : token < first.parents.size := by
+      simpa [equivalent.parents] using bound
+    simpa [representative, equivalent.parents] using
+      abstractable.representativeIdempotent oldBound
+
 /-- Forget arrays, parsed derivation components, counters, and worklist data,
 retaining exactly the marking and thread partition observed by the independent
 Figure-5 semantics. -/
@@ -232,6 +278,28 @@ theorem toMarking_sameThread (state : UnificationState)
     (state.toMarking certificate abstractable).sameThread first second ↔
       state.representative first = state.representative second :=
   Iff.rfl
+
+/-- Observation-equivalent executable states have identical independent
+marking abstractions. -/
+theorem ObservationEquivalent.toMarking_eq
+    {certificate : Certificate} {first second : UnificationState}
+    (equivalent : first.ObservationEquivalent second)
+    (abstractable : first.Abstractable certificate) :
+    second.toMarking certificate
+        (equivalent.abstractable abstractable) =
+      first.toMarking certificate abstractable := by
+  apply UnificationMarking.ext
+  · simp only [toMarking_tokenCount]
+    exact congrArg Array.size equivalent.parents.symm
+  · funext vertex
+    simp only [toMarking_mark]
+    unfold assignedToken?
+    rw [← equivalent.marks]
+  · funext left right
+    apply propext
+    simp only [toMarking_sameThread]
+    unfold representative
+    rw [← equivalent.parents]
 
 /-- Mark one connective conclusion and increment the connective counter,
 without changing the token partition or parsed components. -/
@@ -340,6 +408,36 @@ def tokenAt? (state : UnificationState) (vertex : Vertex) : Option Nat := do
   let token ← assigned
   pure (state.representative token)
 
+/-- Check exactly the token-level guards of a unary/par forward firing and
+return the representative token to place on the conclusion. -/
+def forwardToken? (state : UnificationState)
+    (left right conclusion : Vertex) : Option Nat :=
+  match state.marks[conclusion]? with
+  | some none =>
+      match state.tokenAt? left with
+      | some leftToken =>
+          match state.tokenAt? right with
+          | some rightToken =>
+              if leftToken == rightToken then some leftToken else none
+          | none => none
+      | none => none
+  | _ => none
+
+/-- A successful token-level forward check exposes every executable guard and
+uses the same representative for both premises. -/
+theorem forwardToken?_success
+    {state : UnificationState}
+    {left right conclusion outputToken : Nat}
+    (equation :
+      state.forwardToken? left right conclusion = some outputToken) :
+    state.marks[conclusion]? = some none ∧
+      state.tokenAt? left = some outputToken ∧
+      state.tokenAt? right = some outputToken := by
+  unfold forwardToken? at equation
+  split at equation <;> simp_all
+  split at equation <;> simp_all
+  split at equation <;> simp_all
+
 /-- A successful representative lookup always comes from a concrete raw mark
 on the queried occurrence. -/
 theorem tokenAt?_some_witness
@@ -410,6 +508,51 @@ theorem Abstractable.tokenAt?_bound
           unfold assignedToken?
           rw [lookup]
           rfl
+
+/-- A successful executable forward-token check, together with submitted link
+membership, produces one independent forward step and a valid updated
+abstraction. -/
+theorem forwardToken?_refines
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion outputToken : Nat}
+    (linkMembership :
+      Link.par left right conclusion ∈ certificate.links)
+    (equation :
+      state.forwardToken? left right conclusion = some outputToken) :
+    ∃ nextAbstractable :
+        (state.markConclusion conclusion outputToken)
+          |>.Abstractable certificate,
+      UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        ((state.markConclusion conclusion outputToken).toMarking
+          certificate nextAbstractable) := by
+  have guards := state.forwardToken?_success equation
+  have conclusionIndexBound : conclusion < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp guards.1).1
+  have conclusionBound : conclusion < certificate.formulas.size := by
+    simpa [abstractable.markArraySize] using conclusionIndexBound
+  have conclusionUnmarked :
+      state.assignedToken? conclusion = none := by
+    unfold assignedToken?
+    rw [guards.1]
+    rfl
+  rcases abstractable.tokenAt?_sameThread_witness guards.2.1 with
+    ⟨leftRawToken, leftMarked, outputSynchronizedLeft⟩
+  rcases abstractable.tokenAt?_sameThread_witness guards.2.2 with
+    ⟨rightRawToken, rightMarked, outputSynchronizedRight⟩
+  have premisesSynchronized :
+      state.SameThread leftRawToken rightRawToken := by
+    unfold SameThread at outputSynchronizedLeft outputSynchronizedRight ⊢
+    exact outputSynchronizedLeft.symm.trans outputSynchronizedRight
+  have outputAllocated : outputToken < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.1
+  let nextAbstractable :=
+    abstractable.markConclusion conclusionBound outputAllocated
+  refine ⟨nextAbstractable, ?_⟩
+  exact state.markConclusion_forwardStep abstractable linkMembership
+    conclusionBound conclusionUnmarked leftMarked rightMarked
+    premisesSynchronized outputAllocated outputSynchronizedLeft
 
 /-- Live parsed component for a representative token. -/
 def componentAt? (state : UnificationState) (token : Nat) :
@@ -532,23 +675,81 @@ private def startAxioms? (certificate : Certificate) :
 The corresponding derivation component is updated in lockstep. -/
 private def firePar? (state : UnificationState)
     (left right conclusion : Vertex) :
-    Option UnificationState := do
-  guard (state.marks[conclusion]? = some none)
-  let leftToken ← state.tokenAt? left
-  let rightToken ← state.tokenAt? right
-  guard (leftToken == rightToken)
-  let component ← state.componentAt? leftToken
-  let (leftFocus, afterLeft) ← pickVertex? component.frontier left
-  let (rightFocus, context) ← pickVertex? afterLeft right
-  let nextComponent : UnificationComponent :=
-    { tree := .par leftFocus rightFocus component.tree
-      frontier := context ++ [conclusion] }
-  let marked := state.markConclusion conclusion leftToken
-  pure {
-    marked with
-    components :=
-      state.components.setIfInBounds leftToken (some nextComponent)
-  }
+    Option UnificationState :=
+  match state.forwardToken? left right conclusion with
+  | none => none
+  | some leftToken =>
+      match state.componentAt? leftToken with
+      | none => none
+      | some component =>
+          match pickVertex? component.frontier left with
+          | none => none
+          | some (leftFocus, afterLeft) =>
+              match pickVertex? afterLeft right with
+              | none => none
+              | some (rightFocus, context) =>
+                  let nextComponent : UnificationComponent :=
+                    { tree :=
+                        .par leftFocus rightFocus component.tree
+                      frontier := context ++ [conclusion] }
+                  let marked :=
+                    state.markConclusion conclusion leftToken
+                  some {
+                    marked with
+                    components :=
+                      state.components.setIfInBounds leftToken
+                        (some nextComponent)
+                  }
+
+/-- Successful par component construction changes the abstract executable
+state exactly by the already verified conclusion-marking update. -/
+private theorem firePar?_success_observation
+    {state next : UnificationState}
+    {left right conclusion : Vertex}
+    (equation : firePar? state left right conclusion = some next) :
+    ∃ outputToken,
+      state.forwardToken? left right conclusion = some outputToken ∧
+        UnificationState.ObservationEquivalent
+          (state.markConclusion conclusion outputToken) next := by
+  unfold firePar? at equation
+  split at equation
+  · contradiction
+  · rename_i _ outputToken forwardEquation
+    refine ⟨outputToken, forwardEquation, ?_⟩
+    split at equation
+    · contradiction
+    · split at equation
+      · contradiction
+      · split at equation
+        · contradiction
+        · injection equation with stateEquation
+          subst next
+          exact ⟨rfl, rfl⟩
+
+/-- Every successful concrete par firing, including component construction,
+refines one independent Figure-5 forward step. -/
+private theorem firePar?_refines_forward
+    (certificate : Certificate)
+    {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion : Vertex}
+    (linkMembership :
+      Link.par left right conclusion ∈ certificate.links)
+    (equation : firePar? state left right conclusion = some next) :
+    ∃ nextAbstractable : next.Abstractable certificate,
+      UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        (next.toMarking certificate nextAbstractable) := by
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, forwardEquation, observation⟩
+  rcases state.forwardToken?_refines abstractable linkMembership
+      forwardEquation with
+    ⟨markedAbstractable, markedStep⟩
+  let nextAbstractable :=
+    observation.abstractable markedAbstractable
+  refine ⟨nextAbstractable, ?_⟩
+  rw [observation.toMarking_eq markedAbstractable]
+  exact markedStep
 
 /-- Fire a Guerrini binary/`tensor` rule when its premises yield distinct
 tokens, merge their components, and point the larger representative at the

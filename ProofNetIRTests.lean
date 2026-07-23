@@ -60,6 +60,13 @@ example (certificate : ProofNetIR.Certificate)
   abstractable.markConclusion conclusionBound tokenBound
 
 example {certificate : ProofNetIR.Certificate}
+    {first second : ProofNetIR.UnificationState}
+    (equivalent : first.ObservationEquivalent second)
+    (abstractable : first.Abstractable certificate) :
+    second.Abstractable certificate :=
+  equivalent.abstractable abstractable
+
+example {certificate : ProofNetIR.Certificate}
     {state : ProofNetIR.UnificationState}
     (abstractable : state.Abstractable certificate)
     {left right conclusion leftToken rightToken outputToken : Nat}
@@ -81,6 +88,23 @@ example {certificate : ProofNetIR.Certificate}
   state.markConclusion_forwardStep abstractable membership conclusionBound
     conclusionUnmarked leftMarked rightMarked premisesSynchronized
     outputTokenAllocated outputTokenSynchronized
+
+example {certificate : ProofNetIR.Certificate}
+    {state : ProofNetIR.UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion outputToken : Nat}
+    (membership :
+      ProofNetIR.Link.par left right conclusion ∈ certificate.links)
+    (equation :
+      state.forwardToken? left right conclusion = some outputToken) :
+    ∃ nextAbstractable :
+        (state.markConclusion conclusion outputToken)
+          |>.Abstractable certificate,
+      ProofNetIR.UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        ((state.markConclusion conclusion outputToken).toMarking
+          certificate nextAbstractable) :=
+  state.forwardToken?_refines abstractable membership equation
 
 open ProofNetIR
 

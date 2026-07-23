@@ -127,6 +127,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.Certificate.isCuspFreeCycleTraversal_eq_true_iff",
     "ProofNetIR.UnificationStep.marks_fired_conclusion",
     "ProofNetIR.UnificationState.Abstractable.markConclusion",
+    "ProofNetIR.UnificationMarking.ext",
+    "ProofNetIR.UnificationState.ObservationEquivalent.abstractable",
     "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_reduced",
     "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_eq_self_of_reduced",
     "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_idempotent",
@@ -149,6 +151,9 @@ EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.normalizePersistentStructural_size_le",
     "ProofNetIR.UnificationState.markConclusion_toMarking_mark",
     "ProofNetIR.UnificationState.markConclusion_forwardStep",
+    "ProofNetIR.UnificationState.ObservationEquivalent.toMarking_eq",
+    "ProofNetIR.UnificationState.forwardToken?_success",
+    "ProofNetIR.UnificationState.forwardToken?_refines",
 }
 EXPECTED_THEOREMS = (
     EXPECTED_CLASSICAL_THEOREMS

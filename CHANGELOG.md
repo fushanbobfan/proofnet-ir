@@ -33,8 +33,16 @@
   update refines the independent forward rule under its exact executable
   guards. Axiom-free witness theorems now recover the raw mark behind every
   successful representative lookup and place that representative in the same
-  semantic thread; start/unify preservation and end-to-end firing refinement
-  remain open;
+  semantic thread; start/unify preservation and their end-to-end firing
+  refinement remain open;
+- added observation equivalence for executable states that agree on exactly
+  `marks` and `parents`; proved it preserves `Abstractable` and yields the same
+  independent `UnificationMarking`;
+- factored the exact par guards into `forwardToken?`, proved every successful
+  result refines `UnificationStep.forward`, and kernel-checked that the real
+  `firePar?` path including component/frontier construction is observation-
+  equivalent to that verified update. Start and tensor/unify refinement remain
+  open;
 
 ## v0.9.0 - Graph semantics and checker-free correctness
 
