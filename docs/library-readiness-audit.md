@@ -160,6 +160,9 @@ part of the engineering and proof-identity gap.
 - CI now parses `#print axioms` for forty-six public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
+- the v0.9 development package builds with `warningAsError`; the current full
+  build emits zero Lean warnings, so future linter regressions fail locally and
+  in CI rather than leaking into downstream builds;
 - the separate LeanProp trust boundary locks four theorems as axiom-free,
   fifteen dependent metatheorems to exactly `propext`, and four theorems to
   exactly

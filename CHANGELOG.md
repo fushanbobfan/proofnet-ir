@@ -11,6 +11,8 @@
 - retained the converse `Bounded ∧ Connected ∧ Acyclic → IsTree` as an
   explicit finite-multigraph forest-count obligation rather than silently
   assuming the current edge-count equation;
+- removed all extant Lean linter warnings and enabled package-wide
+  `warningAsError`, turning future warning regressions into build failures;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

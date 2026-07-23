@@ -1,6 +1,7 @@
 name = "proofnet-ir"
 version = "0.9.0-dev"
 defaultTargets = ["ProofNetIR", "proofnet_ir_tests"]
+moreLeanArgs = ["-DwarningAsError=true"]
 
 [[lean_lib]]
 name = "ProofNetIR"

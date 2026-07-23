@@ -323,7 +323,7 @@ theorem reindex {left right : Certificate}
   · change
       left.conclusions.map transported.forward =
         right.conclusions.map r.forward
-    simpa [transported, equivalent.conclusions]
+    simp [transported, equivalent.conclusions]
 
 end LinkPermutationEquivalent
 

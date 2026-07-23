@@ -1003,15 +1003,12 @@ theorem Certificate.appendParOccurrence_reindex_formulas
   · have inverseOld : r.inverse index < premise.formulas.size :=
       (r.inverse_lt_iff index).mpr oldIndex
     have indexNotLast : index ≠ premise.formulas.size := Nat.ne_of_lt oldIndex
-    have inverseNotLast : r.inverse index ≠ premise.formulas.size :=
-      Nat.ne_of_lt inverseOld
     simp only [Certificate.appendParOccurrence, Certificate.reindex,
       Certificate.appendParRenaming_inverse]
     rw [Array.getElem?_eq_getElem (by
       simp
       exact Nat.lt_succ_of_lt oldIndex)]
-    simp [Array.getElem?_push, oldIndex, inverseOld, indexNotLast,
-      inverseNotLast]
+    simp [Array.getElem?_push, oldIndex, indexNotLast]
     rw [Array.getElem_push_lt inverseOld]
   · by_cases atLast : index = premise.formulas.size
     · subst index
@@ -1032,10 +1029,8 @@ theorem Certificate.appendParOccurrence_reindex_formulas
       simp [VertexRenaming.extendLast]
     · have outside : premise.formulas.size + 1 ≤ index := by
         omega
-      have notBelow : ¬index < premise.formulas.size := oldIndex
       simp [Certificate.appendParOccurrence, Certificate.reindex,
-        Array.getElem?_push, oldIndex, atLast, outside, notBelow,
-        VertexRenaming.extendLast]
+        outside, VertexRenaming.extendLast]
 
 /-- Adding the same typed par rule to equivalent premises while allowing the
 fresh par root itself to occur in the boundary.  The target boundary is mapped
@@ -7039,8 +7034,8 @@ theorem no_minimal_bungee_atIncoming_base
         reversedAfter ++ partner.reverse :: middle.reverse :: [] := by
       change Graph.EdgeWalk.reverseTraversal cycle.traversed = _
       rw [cycleSteps]
-      simp [Graph.EdgeSimpleCycle.reverse, Graph.EdgeWalk.reverseTraversal,
-        reversedAfter, List.map_append, List.append_assoc]
+      simp [Graph.EdgeWalk.reverseTraversal, reversedAfter, List.map_append,
+        List.append_assoc]
     rcases cycle.reverse.prefixPath reverseSteps with
       ⟨returnPath, returnStartsAtBase, returnFinishesAtPartner,
         returnSteps⟩
@@ -7063,7 +7058,7 @@ theorem no_minimal_bungee_atIncoming_base
         simpa [returnSteps] using membership))
     have returnStartInReverse : returnPath.start ∈ cycle.reverse.vertices := by
       rw [returnStartsAtBase]
-      simp [Graph.EdgeSimpleCycle.vertices, Graph.EdgeWalk.visitedVertices]
+      simp [Graph.EdgeSimpleCycle.vertices]
     have returnVertexSubset : ∀ vertex,
         vertex ∈ returnPath.vertices → vertex ∈ cycle.vertices := by
       intro vertex membership
@@ -7111,14 +7106,14 @@ theorem no_minimal_bungee_atIncoming_base
             Graph.EdgeWalk.reverseTraversal (partner :: after) := by
           rw [returnSteps]
           simp [reversedAfter, Graph.EdgeWalk.reverseTraversal,
-            List.map_append, List.append_assoc]
+            List.map_append]
         have returnHead : returnPath.traversed.head returnNonempty =
             ((partner :: after).getLast oldTailNonempty).reverse := by
           have optionEquation : returnPath.traversed.head? =
               some ((partner :: after).getLast oldTailNonempty).reverse := by
             rw [returnStepsExact,
               List.head?_eq_some_head (by
-                simpa [Graph.EdgeWalk.reverseTraversal] using oldTailNonempty)]
+                simp [Graph.EdgeWalk.reverseTraversal])]
             exact congrArg some
               (Graph.EdgeWalk.head_reverseTraversal (partner :: after)
                 oldTailNonempty)
@@ -7157,7 +7152,7 @@ theorem no_minimal_bungee_atIncoming_base
               some partner.reverse := by
             rw [returnStepsExact,
               List.getLast?_eq_some_getLast (by
-                simpa [Graph.EdgeWalk.reverseTraversal] using oldTailNonempty)]
+                simp [Graph.EdgeWalk.reverseTraversal])]
             rw [Graph.EdgeWalk.getLast_reverseTraversal
               (partner :: after) oldTailNonempty]
             simp
@@ -9870,9 +9865,9 @@ theorem LinkWellFormed.par_formulaData
               simp [leftEquation, rightEquation, conclusionEquation] at typing
               subst conclusionFormula
               refine ⟨leftFormula, rightFormula, ?_, ?_, ?_⟩
-              · simpa using leftEquation
-              · simpa using rightEquation
-              · simpa using conclusionEquation
+              · rfl
+              · rfl
+              · rfl
 
 theorem LinkWellFormed.tensor_conclusionFormula
     {certificate : Certificate} {left right conclusion : Vertex}
@@ -9918,9 +9913,9 @@ theorem LinkWellFormed.tensor_formulaData
               simp [leftEquation, rightEquation, conclusionEquation] at typing
               subst conclusionFormula
               refine ⟨leftFormula, rightFormula, ?_, ?_, ?_⟩
-              · simpa using leftEquation
-              · simpa using rightEquation
-              · simpa using conclusionEquation
+              · rfl
+              · rfl
+              · rfl
 
 theorem LinkWellFormed.vertex_in_bounds
     {certificate : Certificate} {link : Link}
@@ -10318,7 +10313,7 @@ def tensorPlacement {certificate : Certificate} {left right conclusion : Vertex}
     (TerminalTensor.tensorVertexOrder certificate left conclusion)
     (TerminalTensor.tensorVertexOrder_length structural terminal)
     (TerminalTensor.tensorVertexOrder_nodup certificate left conclusion)
-    (fun vertex => (TerminalTensor.mem_tensorVertexOrder_iff structural
+    (fun _vertex => (TerminalTensor.mem_tensorVertexOrder_iff structural
       terminal).symm)).symm
 
 theorem tensorPlacement_forward_getElem
@@ -11388,7 +11383,7 @@ theorem restrictLinks_reindex_append_perm
   have countDecomposition := congrArg (List.count terminalLink) linksEquation
   rw [countOriginal] at countDecomposition
   have countSplit : before.count terminalLink + after.count terminalLink = 0 := by
-    simp [terminalLink, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+    simp [terminalLink, Nat.add_comm, Nat.add_left_comm]
       at countDecomposition
     rcases countDecomposition with ⟨beforeZero, afterZero⟩
     simp [terminalLink, beforeZero, afterZero]
@@ -11516,7 +11511,7 @@ theorem rebuild_directProofNetEquivalent
             (leftCertificate.formulas.size + rightCertificate.formulas.size) =
               some (.tensor leftFormula rightFormula) := by
           simp [rebuilt, Certificate.appendTensorOccurrence,
-            Certificate.formula?, Nat.add_assoc]
+            Certificate.formula?]
         exact lookup.trans
           (rebuiltLast.trans conclusionFormulaEquation.symm)
       · rcases TerminalTensor.vertex_partition certificate left conclusion
@@ -13773,7 +13768,7 @@ theorem TerminalPar.occurrenceBoundaryReconstruction_at
         change Certificate.expandVertex conclusion
           (Certificate.compactVertex conclusion vertex) = vertex
         exact Certificate.expandVertex_compactVertex_of_ne vertexNotConclusion
-      _ = context := by simpa using (List.map_id context)
+      _ = context := by exact List.map_id context
   have originalNodup : certificate.conclusions.Nodup :=
     nodup_of_eraseDups_length_eq structural.2.2.2.1
   have contextEquation : context = certificate.conclusions.erase conclusion := by
@@ -13881,7 +13876,7 @@ theorem TerminalPar.occurrenceBoundaryReconstruction
         change Certificate.expandVertex conclusion
           (Certificate.compactVertex conclusion vertex) = vertex
         exact Certificate.expandVertex_compactVertex_of_ne vertexNotConclusion
-      _ = context := by simpa using (List.map_id context)
+      _ = context := by exact List.map_id context
   have originalNodup : certificate.conclusions.Nodup :=
     nodup_of_eraseDups_length_eq structural.2.2.2.1
   have contextEquation : context = certificate.conclusions.erase conclusion := by
@@ -14010,7 +14005,7 @@ theorem TerminalPar.peelLinks_reindex_append_perm
   have countDecomposition := congrArg (List.count terminalLink) linksEquation
   rw [countOriginal] at countDecomposition
   have countSplit : before.count terminalLink + after.count terminalLink = 0 := by
-    simp [terminalLink, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] at countDecomposition
+    simp [terminalLink, Nat.add_comm, Nat.add_left_comm] at countDecomposition
     rcases countDecomposition with ⟨beforeZero, afterZero⟩
     simp [terminalLink, beforeZero, afterZero]
   have beforeAvoids : terminalLink ∉ before := by
@@ -14031,8 +14026,6 @@ theorem TerminalPar.peelLinks_reindex_append_perm
     have terminalDeleted : terminalLink.deleteVertex? conclusion = none := by
       simp [terminalLink, Link.deleteVertex?, Certificate.deleteVertex?]
     rw [terminalDeleted]
-    simp only [List.filterMap_nil, List.nil_append, List.map_append,
-      List.map_nil, List.append_nil]
     rw [beforeRestored, afterRestored]
     symm
     simp only [terminalLink] at beforeAvoids ⊢
@@ -14410,8 +14403,7 @@ theorem TerminalPar.sequentializationResultShaped
       calc
         vertexMap.extendLast.forward fragment.formulas.size =
             fragment.formulas.size := by
-          simpa [NetFragment.toCertificate] using
-            (VertexRenaming.extendLast_forward_last vertexMap)
+          simp [NetFragment.toCertificate]
         _ = premise.formulas.size := formulaSize
     rw [lastMapped]
   let targetBoundary := premiseTarget.map extended.inverse
@@ -16714,9 +16706,9 @@ private theorem axiomVertices_count_eq_axiomCount
         · by_cases atRight : vertex = right
           · subst vertex
             simp [Link.vertices, Link.containsAxiomEndpoint,
-              different, atLeft, tailIH]
+              different, tailIH]
           · simp [Link.vertices, Link.containsAxiomEndpoint,
-              atLeft, atRight, Ne.symm atLeft, Ne.symm atRight, tailIH]
+              Ne.symm atLeft, Ne.symm atRight, tailIH]
   exact general certificate.links structural.2.2.2.2.1 allAxiom
 
 private theorem axiomVertices_perm_range
@@ -16937,7 +16929,7 @@ private theorem array_eq_pair
     (secondEquation : values[1]? = some second) :
     values = #[first, second] := by
   apply Array.ext
-  · simpa using sizeEquation
+  · simp [sizeEquation]
   · intro index leftInBounds rightInBounds
     rw [sizeEquation] at leftInBounds
     have indexCases : index = 0 ∨ index = 1 :=
@@ -16945,15 +16937,15 @@ private theorem array_eq_pair
         (Nat.lt_succ_iff.mp leftInBounds)
     rcases indexCases with rfl | rfl
     · have firstValue : values[0] = first := by
-        rw [Array.getElem?_eq_getElem (by simpa [sizeEquation] using leftInBounds)]
+        rw [Array.getElem?_eq_getElem (by omega)]
           at firstEquation
         exact Option.some.inj firstEquation
-      simpa [firstValue]
+      simp [firstValue]
     · have secondValue : values[1] = second := by
-        rw [Array.getElem?_eq_getElem (by simpa [sizeEquation] using leftInBounds)]
+        rw [Array.getElem?_eq_getElem (by omega)]
           at secondEquation
         exact Option.some.inj secondEquation
-      simpa [secondValue]
+      simp [secondValue]
 
 /-- Literal classification of the axiom-only base certificate.  The four
 cases are exactly axiom orientation times ordered-boundary orientation; no

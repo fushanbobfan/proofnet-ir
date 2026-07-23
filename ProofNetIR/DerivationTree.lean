@@ -413,7 +413,7 @@ private theorem mapM_getElem?_map (function : α → β)
       simp only [List.getElem?_map] at ih
       simp only [List.mapM_cons, List.getElem?_map]
       cases headEquation : values[index]? with
-      | none => simp [headEquation]
+      | none => simp
       | some value =>
           cases tailEquation : tail.mapM (fun index => values[index]?) with
           | none =>
@@ -422,14 +422,14 @@ private theorem mapM_getElem?_map (function : α → β)
                     none := by
                 rw [ih, tailEquation]
                 rfl
-              simp [headEquation, tailEquation, mappedTail]
+              simp [mappedTail]
           | some remaining =>
               have mappedTail :
                   tail.mapM (fun index => Option.map function values[index]?) =
                     some (remaining.map function) := by
                 rw [ih, tailEquation]
                 rfl
-              simp [headEquation, tailEquation, mappedTail]
+              simp [mappedTail]
 
 /-- Reorder-candidate construction commutes with pointwise projection. -/
 theorem reorderCandidate?_map (function : α → β)
@@ -660,7 +660,7 @@ theorem build?_balanced {tree : CutFreeDerivation} {fragment : NetFragment}
               | some leftPair =>
                   cases rightPick : pick? rightFragment.entries rightFocus with
                   | none =>
-                      simp [leftEquation, rightEquation, leftPick, rightPick]
+                      simp [leftEquation, rightEquation, rightPick]
                         at equation
                   | some rightPair =>
                       simp [leftEquation, rightEquation, leftPick, rightPick]
@@ -720,7 +720,7 @@ theorem infer?_of_build? {tree : CutFreeDerivation} {fragment : NetFragment}
                   rcases leftPair with ⟨leftSelected, leftRemaining⟩
                   cases rightPick : pick? rightFragment.entries rightFocus with
                   | none =>
-                      simp [leftEquation, rightEquation, leftPick, rightPick]
+                      simp [leftEquation, rightEquation, rightPick]
                         at equation
                   | some rightPair =>
                       rcases rightPair with ⟨rightSelected, rightRemaining⟩
