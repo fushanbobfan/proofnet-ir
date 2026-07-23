@@ -85,10 +85,11 @@ part of the engineering and proof-identity gap.
    The bridge now has separate persistent/linear contexts, explicit persistent
    structural rules, ordinary Lean connective/quantifier nodes, an axiom-free
    proof-term interpreter, and an exact linear-leaf count theorem. It remains
-   separate from MLL certificate semantics and lacks untrusted-input parsing,
-   negative raw-schema checking, and release-level qualification. A
-   deterministic 600-template positive schema corpus and its universal
-   atom-valuation soundness theorem are now present.
+   separate from MLL certificate semantics and lacks text/JSON input and
+   release-level qualification. A deterministic 600-template positive schema
+   corpus, universal atom-valuation soundness theorem, unindexed raw checker,
+   positive erasure/recovery theorem, and 1,000 malformed cases with exact
+   diagnostic expectations are now present.
 2. The stronger `GenerallySequentializable` result and the public executable
    totality theorem are complete for the
    documented unit-free, cut-free MLL representation. Remaining logical scope
@@ -128,6 +129,8 @@ part of the engineering and proof-identity gap.
 - CI now parses `#print axioms` for twenty-five public logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
+- the separate LeanProp trust boundary locks one proof interpreter as
+  axiom-free and five dependent metatheorems to exactly `propext`;
 - an initial compatibility policy and v0.2-to-v0.3 migration suite now exist;
   long-term API documentation and deprecation automation are still incomplete;
 - a curated public declaration manifest now generates types and docstrings

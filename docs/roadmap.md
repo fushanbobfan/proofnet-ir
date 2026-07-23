@@ -254,8 +254,11 @@
 - [x] Reconstruct Lean proof terms for a hand-curated cross-rule smoke corpus.
 - [x] Add a deterministic 600-item positive schema corpus across six resource
   and connective strata, with universal reconstruction under atom valuations.
-- [ ] Add a generated, stratified template corpus with negative inputs,
-  versioned untrusted-input diagnostics, and reproducible manifest hashes.
+- [x] Add an unindexed checker with stable path-aware diagnostics, a positive
+  erasure/recovery theorem, and 1,000 stratified malformed inputs covering all
+  error codes.
+- [ ] Add versioned text/JSON input, migration tests, parser fuzzing, and
+  reproducible manifest hashes for schema corpora.
 - [ ] Prove further exchange/structural normalization metatheory and qualify
   the public bridge through release-pinned downstream consumers.
 

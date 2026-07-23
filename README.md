@@ -121,7 +121,12 @@ The repository currently contains:
   implications. Its 600-template deterministic corpus covers persistent
   duplication/discard, linear pairing/exchange/modus ponens, and projection;
   every packed schema has a universal theorem reconstructing a Lean proof
-  under every atom valuation. This is not yet an untrusted-input parser.
+  under every atom valuation. A separate unindexed checker infers exact
+  persistent/linear sequents, returns stable path-aware diagnostics, and has a
+  theorem that every erased indexed schema is accepted with its original
+  boundary. CI checks all 600 erased positives and 1,000 malformed templates
+  covering every error code. Text/JSON parsing and a versioned schema wire
+  format are not yet implemented.
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does
@@ -132,17 +137,18 @@ by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
 separately audits twenty-five public logical-boundary theorems against the exact axiom set
-`[propext, Classical.choice, Quot.sound]`. The two initial LeanProp boundary
-classes are audited separately: the proof-term interpreter is axiom-free,
-while the resource-count and dependent-environment round-trip theorems use
-exactly `propext`.
+`[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
+separately: the proof-term interpreter is axiom-free, while resource-count,
+dependent-environment round-trip, packed-schema soundness, and raw-checker
+acceptance completeness use exactly `propext`.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
 theorem is now complete, but its certificate model does not include cut
 elimination, units, exponentials, additives, or quantifiers. The experimental
 LeanProp layer has quantifier proof-template nodes but no claim of proof-net
-semantics, untrusted-template serialization, or broad mathlib coverage. The
+semantics, untrusted-template text/JSON serialization, or broad mathlib
+coverage. The
 repository also lacks canonicalization modulo reordered conclusions or
 arbitrary graph isomorphism, a compact single-representative wire key for
 `ProofNetEquivalent`, and a Lean tactic. The API,

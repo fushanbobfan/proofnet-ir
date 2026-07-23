@@ -19,6 +19,9 @@
 - external JSON and the parsing path; callers should use
   `Certificate.checkedFromString`, whose return value includes the revalidated
   Lean checker acceptance proof;
+- generated or external unindexed LeanProp schemas; callers must pass them
+  through `LeanProp.Schema.Raw.Derivation.infer?` before treating the inferred
+  persistent/linear sequent as valid;
 - benchmark labels not regenerated from checked certificates;
 - the high-level claim that proof geometry improves proof search.
 

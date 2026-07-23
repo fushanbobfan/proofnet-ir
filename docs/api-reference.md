@@ -946,6 +946,125 @@ ProofNetIR.LeanProp.Schema.PackedDerivation.sound : ∀ (packed : ProofNetIR.Lea
   ProofNetIR.LeanProp.Schema.Formula.evaluate valuation packed.goal
 ```
 
+### `ProofNetIR.LeanProp.Schema.Raw.Permutation`
+
+Kind: inductive type.
+
+Unindexed exchange syntax accepted at the untrusted schema boundary.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Permutation : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?`
+
+Kind: definition.
+
+Infer the source and target context of unindexed exchange data.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary? : ProofNetIR.LeanProp.Schema.Raw.Permutation →
+  Option (List ProofNetIR.LeanProp.Schema.Formula × List ProofNetIR.LeanProp.Schema.Formula)
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_ofIndexed`
+
+Kind: theorem.
+
+Erasing an indexed exchange preserves its exact source/target boundary.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_ofIndexed : ∀ {source target : List ProofNetIR.LeanProp.Schema.Formula}
+  (permutation : ProofNetIR.LeanProp.Schema.ContextPermutation source target),
+  (ProofNetIR.LeanProp.Schema.Raw.Permutation.ofIndexed permutation).boundary? = some (source, target)
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation`
+
+Kind: inductive type.
+
+First-order, unindexed proof-template syntax for untrusted input.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Sequent`
+
+Kind: inductive type.
+
+A checker-inferred schema sequent.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Sequent : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.ErrorCode`
+
+Kind: inductive type.
+
+Stable categories for untrusted-template diagnostics.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.ErrorCode : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Error`
+
+Kind: inductive type.
+
+Path-aware checker failure. Child zero/one selects premise branches.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Error : Type
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Error.render`
+
+Kind: definition.
+
+Human-readable diagnostic retaining the stable error code and path.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Error.render : ProofNetIR.LeanProp.Schema.Raw.Error → String
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?`
+
+Kind: definition.
+
+Public raw-template inference boundary.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.infer? : ProofNetIR.LeanProp.Schema.Raw.Derivation →
+  Except ProofNetIR.LeanProp.Schema.Raw.Error ProofNetIR.LeanProp.Schema.Raw.Sequent
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.ofIndexed`
+
+Kind: definition.
+
+Erase an indexed schema derivation to untrusted syntax.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.ofIndexed : {persistent linear : List ProofNetIR.LeanProp.Schema.Formula} →
+  {goal : ProofNetIR.LeanProp.Schema.Formula} →
+    ProofNetIR.LeanProp.Schema.Derivation persistent linear goal → ProofNetIR.LeanProp.Schema.Raw.Derivation
+```
+
+### `ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?_ofIndexed`
+
+Kind: theorem.
+
+Exact public inference theorem for erased indexed derivations.
+
+```lean
+ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?_ofIndexed : ∀ {persistent linear : List ProofNetIR.LeanProp.Schema.Formula} {goal : ProofNetIR.LeanProp.Schema.Formula}
+  (derivation : ProofNetIR.LeanProp.Schema.Derivation persistent linear goal),
+  (ProofNetIR.LeanProp.Schema.Raw.Derivation.ofIndexed derivation).infer? =
+    Except.ok { persistent := persistent, linear := linear, goal := goal }
+```
+
 ### `ProofNetIR.LeanProp.Schema.Corpus.generated`
 
 Kind: definition.

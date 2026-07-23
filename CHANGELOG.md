@@ -18,8 +18,14 @@
 - added a proposition-independent schema calculus and a universal
   instantiation theorem using exactly `propext` for its dependent proposition
   indices, plus a deterministic 600-template corpus across six
-  persistent/linear rule strata and a CI uniqueness/size gate; parsing
-  untrusted schema data remains a separate unreleased obligation.
+  persistent/linear rule strata and a CI uniqueness/size gate;
+- added an unindexed raw-schema checker with nine stable path-aware error
+  categories and a theorem that rechecking any erased indexed schema recovers
+  its exact sequent; the theorem uses exactly `propext`, while exchange-boundary
+  recovery is axiom-free;
+- expanded the LeanProp corpus gate to 600 erased positives and 1,000 malformed
+  inputs covering every error category plus nested-path propagation with exact
+  diagnostics. Text/JSON schema parsing remains an unreleased obligation.
 
 ## v0.5.2 - Repeated-label pruning and model-backed audit
 

@@ -19,4 +19,5 @@ import ProofNetIR.Parser
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropTemplates
 import ProofNetIR.LeanPropSchema
+import ProofNetIR.LeanPropRaw
 import ProofNetIR.LeanPropSchemaCorpus

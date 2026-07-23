@@ -109,6 +109,15 @@ their indices contain propositions. Ordinary Lean `And` and implication are
 not identified with MLL tensor/par, and this layer does not alter any v0.5
 sequentialization or identity theorem.
 
+The proposition-independent `LeanProp.Schema` layer codes atoms, conjunction,
+and implication. `Schema.Raw.Derivation` is the unindexed boundary for
+generated or otherwise untrusted in-memory templates. Its total `infer?`
+checker either reconstructs an exact persistent/linear sequent or returns a
+stable `ErrorCode`, detail, and child path. The
+`Raw.Derivation.infer?_ofIndexed` theorem proves that erasing a well-indexed
+schema and rechecking it recovers the original indices; its exact trust
+dependency is `propext`. No text/JSON decoder is part of this boundary yet.
+
 ## Sequentialization boundary
 
 `Reconstruct.lean` includes an explicit exchange rule with a `List.Perm`

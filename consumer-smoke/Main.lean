@@ -75,7 +75,9 @@ def main : IO Unit := do
       (Certificate.checkedFromString
         consumedCertificate.canonicalString).isOk &&
       (Certificate.checkedFromString
-        consumedCertificate.equivalenceCanonicalString).isOk then
+        consumedCertificate.equivalenceCanonicalString).isOk &&
+      ProofNetIRTutorialSmoke.RawSchema.valid.infer?.isOk &&
+      !ProofNetIRTutorialSmoke.RawSchema.invalid.infer?.isOk then
     IO.println "ProofNetIR downstream consumer smoke test passed"
   else
     throw <| IO.userError "ProofNetIR downstream consumer smoke test failed"

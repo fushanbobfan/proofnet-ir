@@ -119,6 +119,17 @@ def sections : List Section := [
       `ProofNetIR.LeanProp.Schema.Derivation.instantiate,
       `ProofNetIR.LeanProp.Schema.PackedDerivation,
       `ProofNetIR.LeanProp.Schema.PackedDerivation.sound,
+      `ProofNetIR.LeanProp.Schema.Raw.Permutation,
+      `ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?,
+      `ProofNetIR.LeanProp.Schema.Raw.Permutation.boundary?_ofIndexed,
+      `ProofNetIR.LeanProp.Schema.Raw.Derivation,
+      `ProofNetIR.LeanProp.Schema.Raw.Sequent,
+      `ProofNetIR.LeanProp.Schema.Raw.ErrorCode,
+      `ProofNetIR.LeanProp.Schema.Raw.Error,
+      `ProofNetIR.LeanProp.Schema.Raw.Error.render,
+      `ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?,
+      `ProofNetIR.LeanProp.Schema.Raw.Derivation.ofIndexed,
+      `ProofNetIR.LeanProp.Schema.Raw.Derivation.infer?_ofIndexed,
       `ProofNetIR.LeanProp.Schema.Corpus.generated
     ]
   }

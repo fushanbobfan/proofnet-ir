@@ -65,4 +65,30 @@ example (antecedent consequent : Prop)
   LeanProp.Templates.linearModusPonens_proof antecedent consequent
     functionProof argumentProof
 
+namespace RawSchema
+
+open LeanProp.Schema
+
+def proposition : LeanProp.Schema.Formula := .atom "consumer-p"
+
+def valid : Raw.Derivation :=
+  .impIntro proposition (.persistentAxiom proposition)
+
+example : valid.infer? = .ok {
+    persistent := []
+    linear := []
+    goal := .imp proposition proposition
+  } := by rfl
+
+def invalid : Raw.Derivation :=
+  .andElimLeft (.persistentAxiom proposition)
+
+example : invalid.infer? = .error {
+    path := []
+    code := .expectedConjunction
+    detail := "left projection requires a conjunction premise"
+  } := by rfl
+
+end RawSchema
+
 end ProofNetIRTutorialSmoke

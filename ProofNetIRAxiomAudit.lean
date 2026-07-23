@@ -39,3 +39,4 @@ expansion.
 #print axioms LeanProp.Assumptions.split_append
 #print axioms LeanProp.Assumptions.permute_symm
 #print axioms LeanProp.Schema.PackedDerivation.sound
+#print axioms LeanProp.Schema.Raw.Derivation.infer?_ofIndexed
