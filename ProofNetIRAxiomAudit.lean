@@ -16,6 +16,7 @@ expansion.
 #print axioms Certificate.matchingFormulaOrders_complete
 #print axioms Certificate.directProofNetEquivalentWitness?_complete
 #print axioms Certificate.proofNetEquivalent?_eq_true_iff
+#print axioms Certificate.proofNetEquivalent_iff_canonicalFamily_of_check
 #print axioms Certificate.sequentialize_complete
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent

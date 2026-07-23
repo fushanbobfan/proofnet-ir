@@ -11,4 +11,5 @@ import ProofNetIR.Serialization
 import ProofNetIR.NetEquivalence
 import ProofNetIR.Sequentialization
 import ProofNetIR.ExecutableSequentialization
+import ProofNetIR.ProofNetCanonical
 import ProofNetIR.Parser

@@ -37,6 +37,17 @@ example : consumedCertificate.ProofNetEquivalent reorderedConsumedCertificate :=
     (consumedCertificate.check_sound_declarative (by native_decide)).1).mp
   native_decide
 
+example : ∀ candidate,
+    candidate ∈ consumedCertificate.proofNetCanonicalFamily ↔
+      candidate ∈ reorderedConsumedCertificate.proofNetCanonicalFamily :=
+  (Certificate.proofNetEquivalent_iff_canonicalFamily_of_check
+    (left := consumedCertificate) (right := reorderedConsumedCertificate)
+    (by native_decide) (by native_decide)).mp (by
+      apply (Certificate.proofNetEquivalent?_eq_true_iff
+        (consumedCertificate.check_sound_declarative
+          (by native_decide)).1).mp
+      native_decide)
+
 example (result : ExecutableSequentializationResult consumedCertificate) :
     result.output.ProofNetEquivalent consumedCertificate :=
   result.proofNetEquivalent

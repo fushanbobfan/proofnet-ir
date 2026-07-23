@@ -213,6 +213,13 @@
   documenting the current depth-sensitive cost.
 - [x] Add a kernel-environment-generated, CI drift-checked public API reference
   and an external Lake consumer tutorial.
+- [x] Add an executable finite canonical family and prove extensional family
+  equality iff `ProofNetEquivalent` on structurally well-formed inputs,
+  without quotienting ordered conclusions or claiming arbitrary graph
+  isomorphism.
+- [ ] Replace the factorial specification family with a compact, performance-
+  qualified single-representative wire algorithm, or prove that the existing
+  exact decision API is the supported production identity boundary.
 
 ## v0.6 - Persistent LeanProp bridge
 

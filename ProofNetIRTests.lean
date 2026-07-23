@@ -773,6 +773,31 @@ example : canonical.ProofNetEquivalent linkScrambledCanonical :=
     refine ⟨rfl, ?_, rfl⟩
     simpa [linkScrambledCanonical] using
       (List.reverse_perm canonical.links).symm).toProofNetEquivalent
+example : (FinitePermutations.allPermutations ([0, 1, 2] : List Nat)).length =
+    6 := by native_decide
+example : [2, 0, 1] ∈
+    FinitePermutations.allPermutations ([0, 1, 2] : List Nat) := by
+  exact FinitePermutations.mem_allPermutations_iff.mpr (by decide)
+example : canonical.equivalenceCanonicalize ∈
+    canonical.proofNetCanonicalFamily := by
+  rw [Certificate.mem_proofNetCanonicalFamily_iff]
+  exact ⟨canonical.links, .refl _, rfl⟩
+example : ∀ candidate,
+    candidate ∈ canonical.proofNetCanonicalFamily ↔
+      candidate ∈ linkScrambledCanonical.proofNetCanonicalFamily :=
+  (show canonical.ProofNetEquivalent linkScrambledCanonical from by
+    refine (show canonical.LinkPermutationEquivalent
+      linkScrambledCanonical from ?_).toProofNetEquivalent
+    refine ⟨rfl, ?_, rfl⟩
+    simpa [linkScrambledCanonical] using
+      (List.reverse_perm canonical.links).symm)
+    |>.proofNetCanonicalFamily_mem_iff
+example : canonical.ProofNetEquivalent linkScrambledCanonical ↔
+    ∀ candidate,
+      candidate ∈ canonical.proofNetCanonicalFamily ↔
+        candidate ∈ linkScrambledCanonical.proofNetCanonicalFamily :=
+  Certificate.proofNetEquivalent_iff_canonicalFamily_of_check
+    (by native_decide) (by native_decide)
 example : ¬ canonical.ReindexEquivalent linkScrambledCanonical := by
   rw [← Certificate.reindexEquivalent?_eq_true_iff_of_check
     (left := canonical) (right := linkScrambledCanonical)

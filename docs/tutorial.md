@@ -80,6 +80,27 @@ numbering. `equivalenceCanonicalString` is invariant under the narrower
 order-preserving `ReindexEquivalent` relation. Neither operation claims
 arbitrary graph-isomorphism canonical labeling.
 
+For the broader relation used by sequentialization, the library exposes a
+finite specification family:
+
+```lean
+def reordered : Certificate :=
+  { axiomCertificate with links := axiomCertificate.links.reverse }
+
+example : axiomCertificate.ProofNetEquivalent reordered ↔
+    ∀ candidate,
+      candidate ∈ axiomCertificate.proofNetCanonicalFamily ↔
+        candidate ∈ reordered.proofNetCanonicalFamily :=
+  Certificate.proofNetEquivalent_iff_canonicalFamily_of_check
+    (by native_decide) (by native_decide)
+```
+
+This family enumerates link permutations, so it is factorial and intended for
+specification or small audits. Use `proofNetEquivalent?` for ordinary identity
+decisions. The family preserves ordered conclusions, tensor/par premise order,
+formula labels, and axiom endpoint orientation; it is not arbitrary graph
+isomorphism and is not a new compact JSON wire format.
+
 ## 4. Sequentialize every accepted certificate
 
 The runtime API reconstructs a first-order cut-free derivation:

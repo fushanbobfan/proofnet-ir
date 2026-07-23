@@ -52,6 +52,11 @@ criterion and proof-order bureaucracy can be measured cleanly.
     par switching to an edge-permutation-equivalent graph and therefore leaves
     the checker unchanged. `ProofNetEquivalent` combines this storage-order
     quotient with bounded vertex renaming for the sequentialization boundary.
+20. `ProofNetCanonical.lean` enumerates the finite link-order orbit, applies
+    the proved v0.3 reindex normal form to every member, and proves that
+    extensional family membership is an iff for `ProofNetEquivalent` on
+    structurally well-formed certificates. The family is executable but
+    factorial in the link count and is intended as a specification oracle.
 
 Canonical v0.2 JSON continues to preserve submitted formula-array numbering.
 The separate v0.3 key removes that numbering. For structurally well-formed
@@ -59,6 +64,12 @@ certificates, Lean proves normalization is an in-class reindexing and that
 normal-form equality is equivalent to `ReindexEquivalent`. It is not an
 arbitrary graph canonical-labeling algorithm: list order and logical premise
 order remain part of identity.
+
+The broader `ProofNetEquivalent` relation now has a complete finite canonical
+family rather than a single compact representative. In this family, link-list
+storage order is quotiented, while ordered conclusions, tensor/par premise
+order, formula labels, and axiom endpoint orientation remain significant. It
+therefore still does not claim arbitrary graph isomorphism.
 
 ## Why exhaustive switchings first
 

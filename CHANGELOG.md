@@ -60,6 +60,16 @@
   `Certificate.sequentialize` on every accepted certificate; committed the
   hashed corpus, per-task results, report, and artifact validator without
   claiming a general or model-backed advantage.
+- added the executable finite `proofNetCanonicalFamily` specification and
+  proved that, on structurally well-formed certificates, extensional equality
+  of family membership is equivalent exactly to `ProofNetEquivalent`;
+  ordered conclusions, connective-premise order, formula labels, and axiom
+  endpoint orientation remain significant, so this is not arbitrary graph
+  isomorphism;
+- added canonical-family regressions, downstream consumption, generated API
+  documentation, and an eleventh exact-axiom trust audit boundary; the
+  factorial family is documented as a specification oracle rather than a
+  compact production wire key.
 
 ## v0.4.0 - General sequentialization
 

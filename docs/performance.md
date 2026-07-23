@@ -17,6 +17,13 @@ excludes compilation. CI fails when the complete workload exceeds 45 seconds.
 The threshold is deliberately a regression guard with platform headroom, not a
 claim of constant, polynomial, interactive, or production-grade performance.
 
+`Certificate.proofNetCanonicalFamily` is deliberately excluded from this
+workload. It enumerates every link-list permutation and is therefore factorial
+in the link count. Its purpose is to provide an executable, kernel-proved
+complete invariant for the exact `ProofNetEquivalent` relation. Production
+identity checks should use `Certificate.proofNetEquivalent?`, whose
+completeness theorem does not require materializing the family.
+
 ## Baseline measurement
 
 On the Windows development machine on 2026-07-22, the committed workload

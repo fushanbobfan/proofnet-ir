@@ -52,6 +52,9 @@ def sections : List Section := [
       `ProofNetIR.Certificate.reindexEquivalent?_eq_true_iff_of_check,
       `ProofNetIR.Certificate.proofNetEquivalent?,
       `ProofNetIR.Certificate.proofNetEquivalent?_eq_true_iff,
+      `ProofNetIR.Certificate.proofNetCanonicalFamily,
+      `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily,
+      `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily_of_check,
       `ProofNetIR.Certificate.equivalenceCanonicalString
     ]
   },

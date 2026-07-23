@@ -86,6 +86,10 @@ The repository currently contains:
   runtime search succeeds for every checker-accepted certificate; it also
   passes all 250 broad generated regressions, the same 250 nets with every link
   list reversed, and a dedicated repeated-boundary-label regression.
+- an executable finite `proofNetCanonicalFamily` whose extensional membership
+  equality is proved equivalent to exactly `ProofNetEquivalent` on
+  structurally well-formed certificates. This is a factorial specification
+  oracle, not a compact wire key or arbitrary unlabeled-graph canonicalizer.
 
 The universal v0.4 theorem still returns
 `Nonempty (SequentializationResult input)` in `Prop`. The new runtime API does
@@ -95,14 +99,15 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits ten public logical-boundary theorems against the exact axiom set
+separately audits eleven public logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`.
 
 This remains a research prototype rather than a mature general-purpose
 library. The supported unit-free, cut-free MLL reverse-sequentialization
 theorem is now complete, but the repository does not include cut elimination,
 units, exponentials, additives, quantifiers, canonicalization modulo reordered
-conclusions or arbitrary graph isomorphism, or a Lean tactic. The API,
+conclusions or arbitrary graph isomorphism, a compact single-representative
+wire key for `ProofNetEquivalent`, or a Lean tactic. The API,
 diagnostics, compatibility, performance, independent downstream, and
 large empirical readiness criteria are tracked separately and are not implied
 by the theorem.

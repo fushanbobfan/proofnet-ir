@@ -280,6 +280,61 @@ ProofNetIR.Certificate.proofNetEquivalent?_eq_true_iff : ∀ {left right : Proof
   left.StructurallyWellFormed → (left.proofNetEquivalent? right = true ↔ left.ProofNetEquivalent right)
 ```
 
+### `ProofNetIR.Certificate.proofNetCanonicalFamily`
+
+Kind: definition.
+
+The finite family of all v0.3 reindex-normal representatives obtained by
+permuting only link storage order.  Membership is the canonical object: list
+order and duplicate enumeration paths are intentionally not part of its
+meaning.
+
+For structurally well-formed certificates, extensional equality of these
+finite families is proved below to be equivalent to the public
+`ProofNetEquivalent` relation.  Ordered conclusions, tensor/par premise order,
+formula labels, and axiom endpoint orientation remain significant.
+
+```lean
+ProofNetIR.Certificate.proofNetCanonicalFamily : ProofNetIR.Certificate → List ProofNetIR.Certificate
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily`
+
+Kind: theorem.
+
+On the library's structurally well-formed domain, extensional equality of
+the finite canonical families is a complete invariant for exactly
+`ProofNetEquivalent`.
+
+This is not arbitrary graph isomorphism: ordered conclusions, ordered
+tensor/par premises, formula labels, and axiom endpoint orientation remain
+part of the identity contract.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily : ∀ {left right : ProofNetIR.Certificate},
+  left.StructurallyWellFormed →
+    right.StructurallyWellFormed →
+      (left.ProofNetEquivalent right ↔
+        ∀ (candidate : ProofNetIR.Certificate),
+          candidate ∈ left.proofNetCanonicalFamily ↔ candidate ∈ right.proofNetCanonicalFamily)
+```
+
+### `ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily_of_check`
+
+Kind: theorem.
+
+Checker acceptance supplies the structural premises of the complete
+canonical-family theorem automatically.
+
+```lean
+ProofNetIR.Certificate.proofNetEquivalent_iff_canonicalFamily_of_check : ∀ {left right : ProofNetIR.Certificate},
+  left.check = true →
+    right.check = true →
+      (left.ProofNetEquivalent right ↔
+        ∀ (candidate : ProofNetIR.Certificate),
+          candidate ∈ left.proofNetCanonicalFamily ↔ candidate ∈ right.proofNetCanonicalFamily)
+```
+
 ### `ProofNetIR.Certificate.equivalenceCanonicalString`
 
 Kind: definition.
