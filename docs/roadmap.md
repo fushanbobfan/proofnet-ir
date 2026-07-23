@@ -62,14 +62,16 @@
 - [x] Report validity, repair success, Lean/checker calls, zero model-token
   cost, timing, memory, failures, and bounded redundancy collapse with explicit
   corpus and formula-skeleton limitations.
-- [ ] Repeat the comparison with genuinely model-backed proposals, held-out
+- [x] Repeat the comparison with genuinely model-backed proposals, held-out
   negative tasks, harder repeated-label strata, and repair distances above one.
   The 180-task corpus and protocol are now preregistered with balanced
   depth/label/polarity strata and frozen implementation/prompt hashes; the
   360 task-specific model calls are captured with zero transport errors. A
   publicly recorded execution amendment adds real per-method hard timeouts
   after the original runner failed to finish scoring in 120 minutes; amended
-  scoring and the final result audit remain open.
+  scoring and the final result audit are complete. The negative result is
+  retained: model direct solved 27/90 positives and model repair 2/180 tasks;
+  every Lean-accepted output sequentialized.
 
 ## v0.3 - Reindex-invariant wire keys
 

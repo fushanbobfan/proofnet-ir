@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.5.2 - Repeated-label pruning and model-backed audit
+
 - added numeric-free one-hop incident-link views to repeated-label occurrence
   alignment and proved that every direct `ProofNetEquivalent` witness satisfies
   the new constraint; this is a completeness-preserving performance filter,
@@ -22,6 +24,11 @@
   reaching Lean verification: the original runner and raw responses remain
   frozen, while a separately hashed amended runner enforces a real per-method
   60-second process deadline and atomic per-task recovery.
+- completed the amended 180-task model experiment and committed all raw,
+  per-task, summary, and report artifacts: focused search solved 85, direct
+  net generation 160, distance-ordered repair 180, model direct 117, and model
+  repair 2; Lean rejected all 184 distinct invalid inputs and accepted and
+  sequentialized all 92 distinct accepted outputs.
 
 ## v0.5.1 - Derivation soundness and exact checked identity
 

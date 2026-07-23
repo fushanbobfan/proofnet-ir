@@ -49,6 +49,7 @@ jobs:
           python scripts/run_model_experiment.py --check-preregistered
           python scripts/run_model_experiment_amended.py --check-amendment
           python scripts/run_model_experiment_amended.py --smoke
+          python scripts/run_model_experiment_amended.py --check-committed
       - name: Smoke matched generation, repair, and Lean verification
         run: python scripts/run_matched_experiment.py --limit 8
       - name: Run independent differential mathematics audit

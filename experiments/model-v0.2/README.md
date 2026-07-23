@@ -26,6 +26,18 @@ original preregistered runner remains unchanged and hash-verifiable; the
 amended runner is a separate file. This is a disclosed execution amendment,
 not a claim that the original formal run completed.
 
+## Final outcome
+
+Amended scoring and Lean verification are complete. The headline correct-task
+counts are focused search 85/180, proof-net generation 160/180,
+distance-ordered repair 180/180, model direct 117/180, and model repair 2/180.
+All 92 distinct Lean-accepted outputs executable-sequentialized; all 184
+distinct expected-invalid inputs were rejected. The [final report](report.md)
+contains the positive/negative, depth, label, timeout, truncation, and
+interpretation breakdown. In particular, model direct was 90/90 on the
+atom-imbalanced negatives but only 27/90 on positives, so its 65% overall rate
+must not be presented as general proof-generation success.
+
 This study is the first genuinely model-backed held-out experiment for
 ProofNet-IR. It is intentionally an MLL experiment, not a claim about ordinary
 Lean or mathlib theorem proving.
@@ -92,8 +104,7 @@ The amended formal scoring run reuses the frozen raw calls:
 python scripts/run_model_experiment_amended.py --write
 ```
 
-It will commit per-task results, a summary, and all content hashes.
-No positive or negative outcome is promised in advance. Even a strong result
-would remain limited to held-out unit-free, cut-free MLL with a supplied
-connective skeleton; it would not establish a general model or proof-net
-advantage.
+The committed per-task results, summary, and content hashes can be audited
+with `--check-committed`. The outcome remains limited to held-out unit-free,
+cut-free MLL with a supplied connective skeleton; it does not establish a
+general model or proof-net advantage.

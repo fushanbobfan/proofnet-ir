@@ -1,0 +1,703 @@
+{
+  "corpusSha256": "0bb9a950ebb5f3706cd0f0629d668801ae7174e97c6fa9f4f175c7c299d36dc2",
+  "execution": {
+    "algorithmicIsolation": "one fresh child process per task and method",
+    "amendedRunElapsedMs": 2644470.592,
+    "hardTimeoutSeconds": 60,
+    "scoringCheckpoint": "atomic per-task local checkpoint",
+    "timeoutIncludesWorkerStartup": true
+  },
+  "hardware": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.14.5"
+  },
+  "interpretationBoundary": "held-out unit-free cut-free MLL local-model experiment only; no ordinary Lean/mathlib or general model-advantage claim",
+  "leanVerification": {
+    "accepted": 92,
+    "rejected": 184,
+    "sequentialized": 92,
+    "uniqueInputs": 276
+  },
+  "methods": {
+    "groups": {
+      "depth-2": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2092.2698,
+          "p95ElapsedMs": 2276.3573,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 42,
+          "totalElapsedMs": 126744.2955,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2102.2262,
+          "p95ElapsedMs": 2333.2689,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 127778.2417,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2020.1433,
+          "p95ElapsedMs": 2741.5462,
+          "predictions": {
+            "provable": 19,
+            "unprovable": 41
+          },
+          "successRate": 0.6833333333333333,
+          "successes": 41,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 133172.6033,
+          "totalTokens": 12884
+        },
+        "modelRepair": {
+          "medianElapsedMs": 2844.0639,
+          "p95ElapsedMs": 3098.527,
+          "predictions": {
+            "provable": 60
+          },
+          "successRate": 0.0,
+          "successes": 0,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 167873.196,
+          "totalTokens": 16516
+        },
+        "netGeneration": {
+          "medianElapsedMs": 2119.1562,
+          "p95ElapsedMs": 2285.0114,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 290,
+          "totalElapsedMs": 127890.0952,
+          "totalTokens": 0
+        }
+      },
+      "depth-3": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2153.0147,
+          "p95ElapsedMs": 2339.7707,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 38,
+          "totalElapsedMs": 130042.7952,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2206.0241,
+          "p95ElapsedMs": 2367.2244,
+          "predictions": {
+            "provable": 19,
+            "unknown": 41
+          },
+          "successRate": 0.31666666666666665,
+          "successes": 19,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 132645.31650000002,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2118.9627,
+          "p95ElapsedMs": 3738.3691,
+          "predictions": {
+            "error": 1,
+            "provable": 18,
+            "unprovable": 41
+          },
+          "successRate": 0.7666666666666667,
+          "successes": 46,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 155981.7457,
+          "totalTokens": 19646
+        },
+        "modelRepair": {
+          "medianElapsedMs": 4482.495,
+          "p95ElapsedMs": 4741.1151,
+          "predictions": {
+            "error": 31,
+            "provable": 29
+          },
+          "successRate": 0.03333333333333333,
+          "successes": 2,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 264638.1621,
+          "totalTokens": 27773
+        },
+        "netGeneration": {
+          "medianElapsedMs": 2220.303,
+          "p95ElapsedMs": 2743.9115,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 15770,
+          "totalElapsedMs": 137188.4645,
+          "totalTokens": 0
+        }
+      },
+      "depth-4": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2151.7715,
+          "p95ElapsedMs": 2346.4918,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 43,
+          "totalElapsedMs": 129828.8844,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2198.888,
+          "p95ElapsedMs": 2348.6099,
+          "predictions": {
+            "provable": 6,
+            "unknown": 54
+          },
+          "successRate": 0.1,
+          "successes": 6,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 131887.2377,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2686.8945,
+          "p95ElapsedMs": 5131.1906,
+          "predictions": {
+            "error": 9,
+            "unprovable": 51
+          },
+          "successRate": 0.5,
+          "successes": 30,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 181727.1693,
+          "totalTokens": 31184
+        },
+        "modelRepair": {
+          "medianElapsedMs": 5666.1309,
+          "p95ElapsedMs": 5815.9464,
+          "predictions": {
+            "error": 60
+          },
+          "successRate": 0.0,
+          "successes": 0,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 338353.4164,
+          "totalTokens": 43184
+        },
+        "netGeneration": {
+          "medianElapsedMs": 3836.5576,
+          "p95ElapsedMs": 60027.6637,
+          "predictions": {
+            "provable": 30,
+            "timeout": 20,
+            "unprovable": 10
+          },
+          "successRate": 0.6666666666666666,
+          "successes": 40,
+          "tasks": 60,
+          "totalCheckerCalls": 20320,
+          "totalElapsedMs": 1325522.3855,
+          "totalTokens": 0
+        }
+      },
+      "negative": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2140.5363,
+          "p95ElapsedMs": 2321.5398,
+          "predictions": {
+            "unprovable": 90
+          },
+          "successRate": 1.0,
+          "successes": 90,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 192845.3077,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2170.2898,
+          "p95ElapsedMs": 2360.2456,
+          "predictions": {
+            "unknown": 60,
+            "unprovable": 30
+          },
+          "successRate": 0.3333333333333333,
+          "successes": 30,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 195600.3954,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2090.2404,
+          "p95ElapsedMs": 2749.1683,
+          "predictions": {
+            "unprovable": 90
+          },
+          "successRate": 1.0,
+          "successes": 90,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 203234.2336,
+          "totalTokens": 30303
+        },
+        "modelRepair": {
+          "medianElapsedMs": 4467.4501,
+          "p95ElapsedMs": 5744.7659,
+          "predictions": {
+            "error": 49,
+            "provable": 41
+          },
+          "successRate": 0.0,
+          "successes": 0,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 389369.6254,
+          "totalTokens": 44007
+        },
+        "netGeneration": {
+          "medianElapsedMs": 2189.12,
+          "p95ElapsedMs": 60026.941,
+          "predictions": {
+            "timeout": 20,
+            "unprovable": 70
+          },
+          "successRate": 0.7777777777777778,
+          "successes": 70,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 1350664.6681,
+          "totalTokens": 0
+        }
+      },
+      "one-label": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2127.3492,
+          "p95ElapsedMs": 2400.8342,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 52,
+          "totalElapsedMs": 129168.0662,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2170.2898,
+          "p95ElapsedMs": 2335.1993,
+          "predictions": {
+            "provable": 25,
+            "unknown": 25,
+            "unprovable": 10
+          },
+          "successRate": 0.5833333333333334,
+          "successes": 35,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 130331.9592,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2559.0961,
+          "p95ElapsedMs": 4987.6168,
+          "predictions": {
+            "error": 4,
+            "provable": 11,
+            "unprovable": 45
+          },
+          "successRate": 0.6333333333333333,
+          "successes": 38,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 157280.8403,
+          "totalTokens": 21228
+        },
+        "modelRepair": {
+          "medianElapsedMs": 4471.304,
+          "p95ElapsedMs": 5757.6875,
+          "predictions": {
+            "error": 28,
+            "provable": 32
+          },
+          "successRate": 0.016666666666666666,
+          "successes": 1,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 255982.92740000002,
+          "totalTokens": 29073
+        },
+        "netGeneration": {
+          "medianElapsedMs": 2450.9576,
+          "p95ElapsedMs": 60023.2018,
+          "predictions": {
+            "provable": 30,
+            "timeout": 10,
+            "unprovable": 20
+          },
+          "successRate": 0.8333333333333334,
+          "successes": 50,
+          "tasks": 60,
+          "totalCheckerCalls": 20240,
+          "totalElapsedMs": 737424.6726,
+          "totalTokens": 0
+        }
+      },
+      "positive": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2127.0102,
+          "p95ElapsedMs": 2369.0563,
+          "predictions": {
+            "provable": 90
+          },
+          "successRate": 1.0,
+          "successes": 90,
+          "tasks": 90,
+          "totalCheckerCalls": 123,
+          "totalElapsedMs": 193770.6674,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2179.3342,
+          "p95ElapsedMs": 2348.6099,
+          "predictions": {
+            "provable": 55,
+            "unknown": 35
+          },
+          "successRate": 0.6111111111111112,
+          "successes": 55,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 196710.4005,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2703.3465,
+          "p95ElapsedMs": 5122.4884,
+          "predictions": {
+            "error": 10,
+            "provable": 37,
+            "unprovable": 43
+          },
+          "successRate": 0.3,
+          "successes": 27,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 267647.2847,
+          "totalTokens": 33411
+        },
+        "modelRepair": {
+          "medianElapsedMs": 4571.7704,
+          "p95ElapsedMs": 5782.9802,
+          "predictions": {
+            "error": 42,
+            "provable": 48
+          },
+          "successRate": 0.022222222222222223,
+          "successes": 2,
+          "tasks": 90,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 381495.1491,
+          "totalTokens": 43466
+        },
+        "netGeneration": {
+          "medianElapsedMs": 2315.1049,
+          "p95ElapsedMs": 4338.9446,
+          "predictions": {
+            "provable": 90
+          },
+          "successRate": 1.0,
+          "successes": 90,
+          "tasks": 90,
+          "totalCheckerCalls": 36380,
+          "totalElapsedMs": 239936.2771,
+          "totalTokens": 0
+        }
+      },
+      "two-label": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2145.826,
+          "p95ElapsedMs": 2276.8702,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 41,
+          "totalElapsedMs": 128708.0208,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2165.7831,
+          "p95ElapsedMs": 2333.2689,
+          "predictions": {
+            "provable": 16,
+            "unknown": 34,
+            "unprovable": 10
+          },
+          "successRate": 0.43333333333333335,
+          "successes": 26,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 130221.9753,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2630.7062,
+          "p95ElapsedMs": 3682.4847,
+          "predictions": {
+            "error": 2,
+            "provable": 14,
+            "unprovable": 44
+          },
+          "successRate": 0.6833333333333333,
+          "successes": 41,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 155074.2818,
+          "totalTokens": 21118
+        },
+        "modelRepair": {
+          "medianElapsedMs": 4482.495,
+          "p95ElapsedMs": 5768.9617,
+          "predictions": {
+            "error": 32,
+            "provable": 28
+          },
+          "successRate": 0.0,
+          "successes": 0,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 257697.2883,
+          "totalTokens": 29153
+        },
+        "netGeneration": {
+          "medianElapsedMs": 2334.1635,
+          "p95ElapsedMs": 60024.6648,
+          "predictions": {
+            "provable": 30,
+            "timeout": 10,
+            "unprovable": 20
+          },
+          "successRate": 0.8333333333333334,
+          "successes": 50,
+          "tasks": 60,
+          "totalCheckerCalls": 15800,
+          "totalElapsedMs": 723113.2641,
+          "totalTokens": 0
+        }
+      },
+      "unique": {
+        "algorithmicRepair": {
+          "medianElapsedMs": 2140.7099,
+          "p95ElapsedMs": 2301.9276,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 30,
+          "totalElapsedMs": 128739.8881,
+          "totalTokens": 0
+        },
+        "focused": {
+          "medianElapsedMs": 2198.2176,
+          "p95ElapsedMs": 2364.2729,
+          "predictions": {
+            "provable": 14,
+            "unknown": 36,
+            "unprovable": 10
+          },
+          "successRate": 0.4,
+          "successes": 24,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 131756.8614,
+          "totalTokens": 0
+        },
+        "modelDirect": {
+          "medianElapsedMs": 2544.0324,
+          "p95ElapsedMs": 4995.5443,
+          "predictions": {
+            "error": 4,
+            "provable": 12,
+            "unprovable": 44
+          },
+          "successRate": 0.6333333333333333,
+          "successes": 38,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 158526.3962,
+          "totalTokens": 21368
+        },
+        "modelRepair": {
+          "medianElapsedMs": 4635.7032,
+          "p95ElapsedMs": 5721.8149,
+          "predictions": {
+            "error": 31,
+            "provable": 29
+          },
+          "successRate": 0.016666666666666666,
+          "successes": 1,
+          "tasks": 60,
+          "totalCheckerCalls": 0,
+          "totalElapsedMs": 257184.5588,
+          "totalTokens": 29247
+        },
+        "netGeneration": {
+          "medianElapsedMs": 2155.6592,
+          "p95ElapsedMs": 2332.0402,
+          "predictions": {
+            "provable": 30,
+            "unprovable": 30
+          },
+          "successRate": 1.0,
+          "successes": 60,
+          "tasks": 60,
+          "totalCheckerCalls": 340,
+          "totalElapsedMs": 130063.0085,
+          "totalTokens": 0
+        }
+      }
+    },
+    "overall": {
+      "algorithmicRepair": {
+        "medianElapsedMs": 2138.4058,
+        "p95ElapsedMs": 2325.0069,
+        "predictions": {
+          "provable": 90,
+          "unprovable": 90
+        },
+        "successRate": 1.0,
+        "successes": 180,
+        "tasks": 180,
+        "totalCheckerCalls": 123,
+        "totalElapsedMs": 386615.9751,
+        "totalTokens": 0
+      },
+      "focused": {
+        "medianElapsedMs": 2176.9894,
+        "p95ElapsedMs": 2348.6099,
+        "predictions": {
+          "provable": 55,
+          "unknown": 95,
+          "unprovable": 30
+        },
+        "successRate": 0.4722222222222222,
+        "successes": 85,
+        "tasks": 180,
+        "totalCheckerCalls": 0,
+        "totalElapsedMs": 392310.7959,
+        "totalTokens": 0
+      },
+      "modelDirect": {
+        "medianElapsedMs": 2568.5755,
+        "p95ElapsedMs": 4485.9393,
+        "predictions": {
+          "error": 10,
+          "provable": 37,
+          "unprovable": 133
+        },
+        "successRate": 0.65,
+        "successes": 117,
+        "tasks": 180,
+        "totalCheckerCalls": 0,
+        "totalElapsedMs": 470881.5183,
+        "totalTokens": 63714
+      },
+      "modelRepair": {
+        "medianElapsedMs": 4482.495,
+        "p95ElapsedMs": 5757.6875,
+        "predictions": {
+          "error": 91,
+          "provable": 89
+        },
+        "successRate": 0.011111111111111112,
+        "successes": 2,
+        "tasks": 180,
+        "totalCheckerCalls": 0,
+        "totalElapsedMs": 770864.7745,
+        "totalTokens": 87473
+      },
+      "netGeneration": {
+        "medianElapsedMs": 2204.9614,
+        "p95ElapsedMs": 60022.8437,
+        "predictions": {
+          "provable": 90,
+          "timeout": 20,
+          "unprovable": 70
+        },
+        "successRate": 0.8888888888888888,
+        "successes": 160,
+        "tasks": 180,
+        "totalCheckerCalls": 36380,
+        "totalElapsedMs": 1590600.9452,
+        "totalTokens": 0
+      }
+    }
+  },
+  "model": {
+    "calls": 360,
+    "completionTokens": 24299,
+    "errors": 0,
+    "promptTokens": 126888,
+    "requestedId": "D:\\ucla\\models\\gguf\\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "responseModels": [
+      "D:\\ucla\\models\\gguf\\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+    ],
+    "systemFingerprints": [
+      "b10068-571d0d540"
+    ]
+  },
+  "negativeTasks": 90,
+  "positiveTasks": 90,
+  "preregistrationSha256": "09ea8a03905d75331420a126803260a74ead5b882217de58df84fac295364a98",
+  "protocolAmendmentSha256": "b678ac5e8bef72bca0c73c6ded3d8c4b32ab90994af2ebd070c026ebea6bd35c",
+  "rawResponsesSha256": "5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef",
+  "resultsSha256": "ece2210e47f18db8fda9bbe02959d6978fb084251c9127053b25bea765c87421",
+  "taskCount": 180,
+  "version": "model-v0.2-amendment-1"
+}

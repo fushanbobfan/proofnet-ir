@@ -3,9 +3,9 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.5.1` (full derivation-first checker soundness and a
-checked exact pairwise identity API, in addition to v0.5.0 executable
-sequentialization). See
+Current release: `v0.5.2` (proved internal repeated-label identity pruning and
+the completed, failure-reporting model-backed audit, in addition to v0.5.1
+derivation soundness and exact pairwise identity). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -183,6 +183,7 @@ python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-fo
 python scripts/run_matched_experiment.py --check-committed
 python scripts/run_model_experiment.py --check-preregistered
 python scripts/run_model_experiment_amended.py --check-amendment
+python scripts/run_model_experiment_amended.py --check-committed
 ```
 
 Expected smoke-test output:
@@ -254,8 +255,12 @@ and unique-label strata, balanced positive/negative tasks, and reference repair
 distances two/three. All 360 model calls are frozen, but the original runner's
 soft-only wall-clock budget prevented scoring from completing in 120 minutes.
 A public amendment preserves the original runner and every response while
-adding process-level hard deadlines; no final aggregate exists yet. See
-[model-v0.2](experiments/model-v0.2/README.md) for the exact receipt.
+adding process-level hard deadlines. Final results are now committed: focused
+search 85/180, net generation 160/180, constructed distance-ordered repair
+180/180, model direct 117/180, and model repair 2/180. Model direct was only
+27/90 on positives despite 90/90 on deliberately atom-imbalanced negatives.
+See the [final report](experiments/model-v0.2/report.md) for the exact receipt
+and limitations.
 
 The broader plan is in [docs/roadmap.md](docs/roadmap.md). Source screening and
 project rationale are recorded in [docs/literature-map.md](docs/literature-map.md).

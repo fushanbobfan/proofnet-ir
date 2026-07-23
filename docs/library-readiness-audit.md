@@ -1,11 +1,11 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.5.1 release plus the current preregistration checkpoint
+Audited baseline: v0.5.2 release candidate
 
 ## Verdict
 
-ProofNet-IR v0.5.1 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.5.2 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. v0.5.0 proves that any accepted
@@ -149,8 +149,12 @@ part of the engineering and proof-identity gap.
   All 360 calls are now frozen, but the original runner failed to finish
   algorithmic scoring in 120 minutes because its wall-clock budget lacked a
   hard interrupt. A public amendment preserves every frozen input/response
-  while adding process isolation and hard deadlines; no final aggregate exists
-  yet, so the experiment has not established the research hypothesis.
+  while adding process isolation and hard deadlines. Final scoring is now
+  complete: model direct solved 117/180 overall but only 27/90 positives,
+  model repair solved 2/180, proof-net generation solved 160/180 with 20
+  depth-4 negative hard timeouts, focused search solved 85/180, and the
+  constructed distance-ordered repair baseline solved 180/180. This does not
+  establish a general model or proof-net advantage.
 
 ## Current usability boundary
 
@@ -170,8 +174,8 @@ It can currently be used for:
 - running the focused-search comparison baseline;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
-- regenerating and auditing the frozen 180-task model-experiment
-  preregistration without calling the model.
+- auditing the frozen 180-task model experiment, amendment, raw responses,
+  results, and final Lean-verification hashes without calling the model.
 
 It should not yet be presented as:
 
@@ -186,10 +190,12 @@ It should not yet be presented as:
 
 ## Release gate for library readiness
 
-The macro goal may call the project a library only after all logical gaps above
-are closed, a clean downstream Lake consumer passes on Windows and Linux, JSON
-round trips have structured diagnostics and fuzz coverage, public API docs and
+The macro goal may call the project a mature library only after all logical
+gaps above are closed, a clean downstream Lake consumer passes on Windows and
+Linux, JSON round trips have structured diagnostics and fuzz coverage, public
+API docs and
 compatibility rules are published, performance limits are measured, and the
 matched algorithmic and model-backed experiments report their results whether
-positive or negative. The algorithmic run is complete; the model-backed and
-broader-corpus gates remain open.
+positive or negative. Both controlled runs are now complete; the broader-
+logic/corpus, hard performance, and compact identity/canonicalization gates
+remain open.

@@ -1,5 +1,5 @@
 name = "proofnet-ir"
-version = "0.5.1"
+version = "0.5.2"
 defaultTargets = ["ProofNetIR", "proofnet_ir_tests"]
 
 [[lean_lib]]

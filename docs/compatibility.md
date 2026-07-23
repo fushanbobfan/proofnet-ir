@@ -38,6 +38,13 @@ These changes are released as v0.5.1 together with the additive
 derivation-first soundness theorems; the package metadata now matches the
 release tag.
 
+Release v0.5.2 adds a proved numeric-free local-incidence constraint to the
+existing exact `ProofNetEquivalent` search. The new theorem shows every direct
+equivalence witness survives the filter, so this is a performance change, not
+an identity, accepted-certificate, or wire-format change. The model-experiment
+runner, amendment, raw responses, results, and report are research artifacts
+and do not alter the Lean or JSON API.
+
 Release v0.5.0 adds
 `Certificate.sequentialize`, `ExecutableSequentializationResult`, and
 `SequentializationError` without changing either wire payload. These APIs are

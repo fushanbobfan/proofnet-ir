@@ -97,5 +97,12 @@ but the preregistered runner then spent roughly 100 minutes in algorithmic
 scoring without reaching Lean verification: the 60-second outcome budget was
 checked only after return. Protocol amendment 1 records that failed execution,
 preserves the raw-response hash, and moves each method/task into a child
-process with a real 60-second deadline. Final result artifacts are not yet part
-of this checkpoint.
+process with a real 60-second deadline. Final result artifacts were
+deliberately absent from the preregistration checkpoint. The amended final run
+produced 20 hard timeouts, exactly the depth-4 negative tasks in the two-label
+and one-label
+strata. Proof-net generation therefore solved 160/180 within budget; focused
+search solved 85/180, distance-ordered repair 180/180, model direct 117/180,
+and model repair 2/180. See the
+[final report](../experiments/model-v0.2/report.md) for why these are controlled
+task results rather than a general performance claim.
