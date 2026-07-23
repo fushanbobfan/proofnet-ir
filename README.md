@@ -3,10 +3,10 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release: `v0.6.0` (a conservative persistent/linear LeanProp bridge,
-checker-gated typed wire elaboration, proof-relevant exchange completeness,
-and scoped persistent structural normalization, without changing the MLL
-certificate semantics). See
+Current release: `v0.7.0` (an exact typed key for the documented
+`ProofNetEquivalent` relation, a separately versioned bounded wire contract,
+and fail-closed seven-link performance qualification, without claiming
+arbitrary graph isomorphism or scalable canonicalization). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
 
 The research hypothesis is that a model should sometimes predict proof
@@ -102,17 +102,17 @@ The repository currently contains:
   equality is proved equivalent to exactly `ProofNetEquivalent` on
   structurally well-formed certificates. This is a factorial specification
   oracle, not a compact wire key or arbitrary unlabeled-graph canonicalizer.
-- an unreleased `proofNetCanonicalFingerprint?` experiment that selects the
+- a released experimental `proofNetCanonicalFingerprint?` value that selects the
   lexicographically least serialized member of that family. Lean proves it is
   total and invariant under `ProofNetEquivalent`; the JSON-string API remains a
   forward-only convenience because no `Json.compress` injectivity theorem is
   assumed;
-- an unreleased, explicitly versioned `proofNetCanonicalCode?` token key.
+- an explicitly versioned `proofNetCanonicalCode?` token key.
   Its underlying structural encoder is proved injective, and Lean proves on
   structurally well-formed certificates (hence on checker-accepted inputs) that
   code equality is equivalent to exactly `ProofNetEquivalent`. It still
   materializes the factorial family;
-- an unreleased `proofnet-canonical-key-0.1` JSON wire wrapper with a bounded
+- a released `proofnet-canonical-key-0.1` JSON wire wrapper with a bounded
   parser, structured errors, schema and fixture, v0.3-to-key semantic migration,
   and a safe matcher theorem for untrusted parsed keys. Public generation and
   matching reject inputs above seven links before factorial materialization;

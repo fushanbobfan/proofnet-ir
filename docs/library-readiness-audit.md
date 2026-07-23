@@ -1,11 +1,11 @@
 # Library-readiness audit
 
 Audit date: 2026-07-23
-Audited baseline: v0.6.0 plus unreleased v0.7 exact typed-key work
+Audited baseline: v0.7.0 release candidate
 
 ## Verdict
 
-ProofNet-IR v0.6.0 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.7.0 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
 baseline can be reproduced. v0.5.0 proves that any accepted
@@ -105,7 +105,7 @@ part of the engineering and proof-identity gap.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional
-   family membership equality iff `ProofNetEquivalent`. An unreleased JSON
+   family membership equality iff `ProofNetEquivalent`. An experimental JSON
    fingerprint is total and forward invariant. A separate explicitly
    versioned, length-framed structural code is proved injective, and equality
    of its canonical minimum is proved equivalent to `ProofNetEquivalent` on

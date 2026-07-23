@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.7.0 - Exact ProofNetEquivalent canonical key
+
 - added `proofNetCanonicalFingerprint?`, the lexicographically least v0.3
   string in the complete finite `ProofNetEquivalent` canonical family; Lean
   proves totality, candidate membership, and forward invariance under

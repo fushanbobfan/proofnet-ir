@@ -40,7 +40,7 @@ and validates the source normal form before emitting a v0.3 string. Future
 canonicalization algorithms must use a new `canonicalization` value and, when
 the payload contract changes, a new wire version.
 
-The unreleased `proofNetCanonicalFingerprint?` is a Lean-level experimental
+The released `proofNetCanonicalFingerprint?` is a Lean-level experimental
 value, not a wire contract. It takes the least existing v0.3 string across the
 finite `ProofNetEquivalent` family and has a forward invariance theorem.
 The separate `proofNetCanonicalCode?` token value uses an explicitly versioned,
@@ -50,7 +50,7 @@ The JSON fingerprint is not a wire contract. The typed code now has the
 separate `proofnet-canonical-key-0.1` /
 `proofnet-equivalent-v1` wire wrapper, bounded parser, schema, and semantic
 migration from checker-accepted v0.3 certificates. Existing v0.2/v0.3 strings
-are not reinterpreted. The new wire remains unreleased. Its generator and
+are not reinterpreted. The wire generator and
 parsed-key matcher check a seven-link ceiling before materializing the
 factorial family; inputs above that limit fail closed. Changing that ceiling is
 a documented resource-policy change, while changing the relation or payload
@@ -82,6 +82,14 @@ soundness API, proof-relevant exchange completeness, and scoped persistent
 structural normalization. It does not change MLL certificate acceptance,
 v0.2/v0.3 serialization, or `ProofNetEquivalent`, and it does not identify
 ordinary Lean conjunction/implication with MLL tensor/par.
+
+Release v0.7.0 adds the exact typed `ProofNetEquivalent` canonical key and the
+separate `proofnet-canonical-key-0.1` /
+`proofnet-equivalent-v1` wire contract. It does not reinterpret certificate
+v0.2/v0.3 strings. The public wire generator and parsed-key matcher fail closed
+above seven links before factorial evaluation; the unbounded typed key remains
+a specification oracle. Ordered conclusions, connective premise order,
+formula labels, and axiom orientation remain significant.
 
 Release v0.5.0 adds
 `Certificate.sequentialize`, `ExecutableSequentializationResult`, and
