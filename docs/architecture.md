@@ -220,12 +220,16 @@ formula-occurrence fuel induction.
 v0.9 alternative path. The verifier turns a proposed tree into a dependent
 proof-bearing result using only structural validation, inference,
 desequentialization, and intrinsic canonical-code equality. The reconstruction
-layer recursively tries raw terminal-par and splitting-tensor candidates,
-combines recursively verified trees, and admits a result only through that
-verifier. Its executable definition does not call the all-switchings checker.
-Fuel completeness and soundness combine into the kernel theorem
-`Certificate.reconstructsDerivation_eq_check`. Candidate backtracking and
-formula-order enumeration remain explicit performance concerns.
+layer has two executable tiers. A structure-guided fast path recursively
+combines raw terminal-par and splitting-tensor candidates, uses
+vertex-number-free boundary formula-tree/axiom profiles to align repeated
+occurrences, and invokes the verifier once on the completed tree. If that
+heuristic result is absent or rejected, the original recursively verified
+exhaustive path remains the fallback. Neither tier calls the all-switchings
+checker. Fuel completeness of the fallback and proof-bearing soundness combine
+into the kernel theorem `Certificate.reconstructsDerivation_eq_check`.
+Fallback backtracking and formula-order enumeration remain explicit
+worst-case performance concerns.
 
 The same module now discovers terminal splitting-tensor candidates by deleting
 the tensor conclusion in the full occurrence graph, partitioning reachable

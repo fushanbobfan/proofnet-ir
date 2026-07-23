@@ -133,13 +133,16 @@ The repository currently contains:
   result carries checker acceptance of the produced net and exact
   `ProofNetEquivalent` identity with the submitted certificate.
 - the automatic v0.9-development `Certificate.reconstructDerivation?` path.
-  Its executable definition recursively peels terminal par links or splits
-  terminal tensors and validates candidates with `verifyDerivation?`; it does
-  not call the all-switchings checker. Lean proves it succeeds on every
-  reference-checker-accepted certificate and proves
+  Its structure-guided fast path recursively peels terminal par links or
+  splits terminal tensors, aligns repeated boundary occurrences by
+  vertex-number-free formula-tree/axiom profiles, and validates the completed
+  tree once with `verifyDerivation?`. A separately proved exhaustive path is
+  retained as the fallback, so failed heuristics do not weaken completeness.
+  Neither path calls the all-switchings checker. Lean proves it succeeds on
+  every reference-checker-accepted certificate and proves
   `Certificate.reconstructsDerivation = Certificate.check` for all inputs.
-  The current backtracking and repeated-label order search are not claimed to
-  be polynomial or linear.
+  The current fallback can still backtrack and enumerate repeated-label
+  orders, so no polynomial or linear worst-case claim is made.
 - an executable finite `proofNetCanonicalFamily` whose extensional membership
   equality is proved equivalent to exactly `ProofNetEquivalent` on
   structurally well-formed certificates. This is a factorial specification
@@ -306,6 +309,8 @@ python scripts/audit_v03_canonical.py
 lake exe proofnet_ir_api_docs --check
 python scripts/fuzz_malformed_parser.py
 lake exe proofnet_ir_benchmark
+lake exe proofnet_ir_reconstruction_audit
+lake exe proofnet_ir_reconstruction_stress
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 python scripts/run_matched_experiment.py --check-committed
 python scripts/run_model_experiment.py --check-preregistered

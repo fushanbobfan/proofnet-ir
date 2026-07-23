@@ -32,6 +32,106 @@ private theorem firstVerification_isSome_of_mem
             simpa [firstVerification, equation] using ih membership
         | some result => simp [firstVerification, equation]
 
+/-- Heuristic boundary alignment induced by the two intrinsic occurrence
+traversals. A candidate is returned only when every target boundary root has a
+corresponding source traversal position and source boundary occurrence.
+`alignAndVerify?` remains authoritative and the complete formula-order list is
+retained as a fallback. -/
+private def intrinsicBoundaryOrder? (source target : Certificate) :
+    Option (List Nat) := do
+  let sourceTraversal := source.intrinsicTraversalVertices
+  let targetTraversal := target.intrinsicTraversalVertices
+  if sourceTraversal.length != targetTraversal.length then
+    none
+  target.conclusions.mapM fun targetRoot => do
+    let traversalIndex := targetTraversal.idxOf targetRoot
+    let sourceRoot ← sourceTraversal[traversalIndex]?
+    let boundaryIndex := source.conclusions.idxOf sourceRoot
+    if boundaryIndex < source.conclusions.length then
+      some boundaryIndex
+    else
+      none
+
+private def axiomMate? (certificate : Certificate) (vertex : Vertex) :
+    Option (Bool × Vertex) :=
+  match certificate.links.find?
+      (fun link => link.containsAxiomEndpoint vertex) with
+  | some (.axiom left right) =>
+      if left == vertex then
+        some (true, right)
+      else if right == vertex then
+        some (false, left)
+      else
+        none
+  | _ => none
+
+private def boundaryAddress? (certificate : Certificate)
+    (vertex : Vertex) : List Vertex → Option (Formula × Nat)
+  | [] => none
+  | root :: rest =>
+      let walk := certificate.occurrenceWalk? root
+      let offset := walk.idxOf vertex
+      if offset < walk.length then
+        match certificate.formula? root with
+        | some formula => some (formula, offset)
+        | none => none
+      else
+        boundaryAddress? certificate vertex rest
+
+/-- A vertex-number-free description of how the atomic leaves below one
+boundary root are attached to the other boundary formula trees.  Formula-tree
+preorder offsets identify leaf addresses without depending on submitted
+vertex numbers or link storage order. -/
+private def boundaryAxiomProfile (certificate : Certificate)
+    (root : Vertex) : List (Bool × Formula × Nat) :=
+  (certificate.occurrenceWalk? root).filterMap fun vertex =>
+    match certificate.formula? vertex with
+    | some (.atom _ _) =>
+        match axiomMate? certificate vertex with
+        | some (role, mate) =>
+            match boundaryAddress? certificate mate
+                certificate.conclusions with
+            | some (boundaryFormula, offset) =>
+                some (role, boundaryFormula, offset)
+            | none => none
+        | none => none
+    | _ => none
+
+private def boundaryProfileCompatible (source target : Certificate)
+    (targetPosition sourcePosition : Nat) : Bool :=
+  match target.conclusions[targetPosition]?,
+      source.conclusions[sourcePosition]? with
+  | some targetRoot, some sourceRoot =>
+      source.boundaryAxiomProfile sourceRoot ==
+        target.boundaryAxiomProfile targetRoot
+  | _, _ => false
+
+private def profiledBoundaryOrderVisit? (source target : Certificate)
+    (sourceLabels : List Formula) (position : Nat) (used : List Nat) :
+    List Formula → Option (List Nat)
+  | [] => some []
+  | formula :: rest => do
+      let sourcePosition ←
+        (List.range sourceLabels.length).find? fun candidate =>
+          !used.contains candidate &&
+            sourceLabels[candidate]? == some formula &&
+            boundaryProfileCompatible source target position candidate
+      let suffix ← profiledBoundaryOrderVisit? source target sourceLabels
+        (position + 1) (sourcePosition :: used) rest
+      pure (sourcePosition :: suffix)
+
+/-- Greedily select one boundary occurrence order whose complete
+formula-tree/axiom profiles agree. This avoids materializing factorial lists
+of repeated atomic conclusions on the preferred path. Equal profiles need not
+be globally interchangeable: the completed tree is still verified, and the
+exhaustive formula-only search remains the proved completeness fallback. -/
+private def profiledBoundaryOrder? (source target : Certificate)
+    (sourceLabels targetLabels : List Formula) : Option (List Nat) :=
+  if sourceLabels.length != targetLabels.length then
+    none
+  else
+    profiledBoundaryOrderVisit? source target sourceLabels 0 [] targetLabels
+
 /-- Try every formula-compatible boundary occurrence order and return the first
 cut-free derivation that the non-switching verifier proves equivalent to the
 input certificate. -/
@@ -41,11 +141,19 @@ private def alignAndVerify? (input : Certificate)
   match tree.infer? with
   | none => none
   | some source =>
-      firstVerification
-        (fun order =>
-          input.verifyDerivation?
-            (CutFreeDerivation.exchange order tree))
-        (matchingFormulaOrders source target)
+      let verify := fun order =>
+        input.verifyDerivation?
+          (CutFreeDerivation.exchange order tree)
+      let preferred :=
+        match tree.desequentialize? with
+        | none => []
+        | some sourceCertificate =>
+            (profiledBoundaryOrder? sourceCertificate input source target).toList ++
+              (intrinsicBoundaryOrder? sourceCertificate input).toList
+      match firstVerification verify preferred with
+      | some result => some result
+      | none =>
+          firstVerification verify (matchingFormulaOrders source target)
 
 private theorem alignAndVerify?_complete_of_sequentialization
     {input : Certificate} (inputStructural : input.StructurallyWellFormed)
@@ -84,8 +192,22 @@ private theorem alignAndVerify?_complete_of_sequentialization
         simp [verifiedEquation]
       unfold alignAndVerify?
       simp only [sourceEquation]
-      exact firstVerification_isSome_of_mem _ _ order orderMembership
-        candidateSuccess
+      let verify := fun candidateOrder =>
+        input.verifyDerivation?
+          (CutFreeDerivation.exchange candidateOrder rawTree)
+      let preferred :=
+        match rawTree.desequentialize? with
+        | none => []
+        | some sourceCertificate =>
+            (profiledBoundaryOrder? sourceCertificate input source
+              result.sequent).toList ++
+              (intrinsicBoundaryOrder? sourceCertificate input).toList
+      cases preferredEquation : firstVerification verify preferred with
+      | some preferredResult => rfl
+      | none =>
+          apply firstVerification_isSome_of_mem _ _ order
+          · exact orderMembership
+          · exact candidateSuccess
 
 private def axiomReconstruction? (input : Certificate)
     (target : List Formula) :
@@ -213,6 +335,12 @@ private theorem axiomReconstruction?_complete
     exact alignAndVerify?_complete_of_sequentialization
       inputStructural result rfl
 
+private def boundaryOrderedCandidates (input : Certificate)
+    (candidates : List (Vertex × Vertex × Vertex)) :
+    List (Vertex × Vertex × Vertex) :=
+  input.conclusions.flatMap fun conclusion =>
+    candidates.filter fun candidate => candidate.2.2 == conclusion
+
 private def parReconstruction?
     (recurse : (premise : Certificate) →
       Option (DerivationVerificationResult premise))
@@ -233,7 +361,8 @@ private def parReconstruction?
                 let focus := premiseResult.sequent.length - 2
                 alignAndVerify? input
                   (.par focus focus premiseResult.tree) target)
-    input.terminalPars
+    (boundaryOrderedCandidates input input.terminalPars ++
+      input.terminalPars)
 
 private theorem parReconstruction?_complete_of_candidate
     (recurse : (premise : Certificate) →
@@ -255,7 +384,8 @@ private theorem parReconstruction?_complete_of_candidate
     (parReconstruction? recurse input target).isSome = true := by
   unfold parReconstruction?
   apply firstVerification_isSome_of_mem _ _
-    (left, right, conclusion) membership
+    (left, right, conclusion)
+    (List.mem_append.mpr (Or.inr membership))
   have notShort : ¬ premiseResult.sequent.length < 2 :=
     Nat.not_lt.mpr premiseLength
   simp [premiseEquation, recursiveEquation, notShort, aligned]
@@ -286,7 +416,8 @@ private def tensorReconstruction?
                         (rightResult.sequent.length - 1)
                         leftResult.tree rightResult.tree)
                       target)
-    input.terminalTensors
+    (boundaryOrderedCandidates input input.terminalTensors ++
+      input.terminalTensors)
 
 private theorem tensorReconstruction?_complete_of_candidate
     (recurse : (premise : Certificate) →
@@ -313,7 +444,8 @@ private theorem tensorReconstruction?_complete_of_candidate
     (tensorReconstruction? recurse input target).isSome = true := by
   unfold tensorReconstruction?
   apply firstVerification_isSome_of_mem _ _
-    (left, right, conclusion) membership
+    (left, right, conclusion)
+    (List.mem_append.mpr (Or.inr membership))
   have leftNonempty : leftResult.sequent.isEmpty = false := by
     cases equation : leftResult.sequent with
     | nil =>
@@ -546,11 +678,122 @@ theorem reconstructDerivationWithFuel?_complete
         rw [labels]
         exact ⟨axiomResult, by simp [axiomEquation]⟩
 
+private def alignTreeProfiled? (input : Certificate)
+    (tree : CutFreeDerivation) (target : List Formula) :
+    Option CutFreeDerivation := do
+  let source ← tree.infer?
+  let sourceCertificate ← tree.desequentialize?
+  let verify := fun order =>
+    let aligned := CutFreeDerivation.exchange order tree
+    if aligned.infer? == some target then some aligned else none
+  let preferred :=
+    (profiledBoundaryOrder? sourceCertificate input source target).toList ++
+      (intrinsicBoundaryOrder? sourceCertificate input).toList
+  match firstVerification verify preferred with
+  | some aligned => some aligned
+  | none =>
+      firstVerification verify (matchingFormulaOrders source target)
+
+private def reconstructAxiomTree? (input : Certificate)
+    (target : List Formula) : Option CutFreeDerivation :=
+  firstVerification
+    (fun formula =>
+      match formula with
+      | .atom name positive =>
+          alignTreeProfiled? input (.axiom name positive) target
+      | _ => none)
+    input.formulas.toList
+
+private def reconstructParTree?
+    (recurse : Certificate → Option CutFreeDerivation)
+    (input : Certificate) (target : List Formula) :
+    Option CutFreeDerivation :=
+  firstVerification
+    (fun candidate =>
+      let (left, right, conclusion) := candidate
+      match input.peelTerminalParCandidate? left right conclusion with
+      | none => none
+      | some premise =>
+          match recurse premise with
+          | none => none
+          | some premiseTree =>
+              match premiseTree.infer? with
+              | none => none
+              | some premiseSequent =>
+                  if premiseSequent.length < 2 then
+                    none
+                  else
+                    let focus := premiseSequent.length - 2
+                    alignTreeProfiled? input
+                      (.par focus focus premiseTree) target)
+    (boundaryOrderedCandidates input input.terminalPars ++
+      input.terminalPars)
+
+private def reconstructTensorTree?
+    (recurse : Certificate → Option CutFreeDerivation)
+    (input : Certificate) (target : List Formula) :
+    Option CutFreeDerivation :=
+  firstVerification
+    (fun candidate =>
+      let (left, right, conclusion) := candidate
+      match input.splitTerminalTensorCandidate? left right conclusion with
+      | none => none
+      | some (leftPremise, rightPremise) =>
+          match recurse leftPremise, recurse rightPremise with
+          | some leftTree, some rightTree =>
+              match leftTree.infer?, rightTree.infer? with
+              | some leftSequent, some rightSequent =>
+                  if leftSequent.isEmpty || rightSequent.isEmpty then
+                    none
+                  else
+                    alignTreeProfiled? input
+                      (.tensor (leftSequent.length - 1)
+                        (rightSequent.length - 1)
+                        leftTree rightTree)
+                      target
+              | _, _ => none
+          | _, _ => none)
+    (boundaryOrderedCandidates input input.terminalTensors ++
+      input.terminalTensors)
+
+/-- Heuristic inverse-rule construction that defers proof-net equivalence
+verification until the complete tree has been assembled.  The public
+reconstructor verifies this fast-path result once and retains the proved
+exhaustive search as a fallback. -/
+private def reconstructTreeWithFuel? : Nat → Certificate →
+    Option CutFreeDerivation
+  | 0, _ => none
+  | fuel + 1, input =>
+      match input.conclusionFormulas? with
+      | none => none
+      | some target =>
+          if input.links.any (·.isConnective) then
+            match reconstructParTree?
+                (reconstructTreeWithFuel? fuel) input target with
+            | some tree => some tree
+            | none =>
+                reconstructTensorTree?
+                  (reconstructTreeWithFuel? fuel) input target
+          else
+            reconstructAxiomTree? input target
+
 /-- Attempt to reconstruct and verify a cut-free derivation from a bare
-certificate without calling the all-switchings checker. -/
+certificate without calling the all-switchings checker.  A structure-guided
+fast path constructs a complete tree and verifies it once; any failed
+heuristic attempt falls back to the proved exhaustive reconstruction. -/
 def reconstructDerivation? (input : Certificate) :
     Option (DerivationVerificationResult input) :=
-  input.reconstructDerivationWithFuel? (input.formulas.size + 1)
+  if _inputWellFormed : input.wellFormed = true then
+    match reconstructTreeWithFuel? (input.formulas.size + 1) input with
+    | some tree =>
+        match input.verifyDerivation? tree with
+        | some result => some result
+        | none =>
+            input.reconstructDerivationWithFuel? (input.formulas.size + 1)
+    | none =>
+          input.reconstructDerivationWithFuel? (input.formulas.size + 1)
+  else
+    none
 
 /-- Every certificate accepted by the reference all-switchings semantics is
 accepted by the executable checker-free reconstruction path. -/
@@ -558,8 +801,26 @@ theorem reconstructDerivation?_complete
     (input : Certificate) (accepted : input.check = true) :
     ∃ result : DerivationVerificationResult input,
       input.reconstructDerivation? = some result := by
-  exact input.reconstructDerivationWithFuel?_complete
-    (input.formulas.size + 1) accepted (by omega)
+  rcases input.reconstructDerivationWithFuel?_complete
+      (input.formulas.size + 1) accepted (by omega) with
+    ⟨fallback, fallbackEquation⟩
+  have inputWellFormed : input.wellFormed = true :=
+    input.wellFormed_iff_structurallyWellFormed.mpr
+      (input.check_sound_declarative accepted).1
+  unfold reconstructDerivation?
+  rw [dif_pos inputWellFormed]
+  cases fastEquation :
+      reconstructTreeWithFuel? (input.formulas.size + 1) input with
+  | none =>
+      exact ⟨fallback, by simp [fallbackEquation]⟩
+  | some tree =>
+      cases verificationEquation : input.verifyDerivation? tree with
+      | none =>
+          exact ⟨fallback, by
+            simp [verificationEquation, fallbackEquation]⟩
+      | some result =>
+          exact ⟨result, by
+            simp [verificationEquation]⟩
 
 /-- Soundness is carried directly by the dependent result: a successful
 checker-free reconstruction has a formula-valid cut-free derivation whose

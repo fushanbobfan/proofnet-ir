@@ -1564,7 +1564,9 @@ ProofNetIR.Certificate.reconstructDerivationWithFuel?_complete : ∀ (fuel : Nat
 Kind: definition.
 
 Attempt to reconstruct and verify a cut-free derivation from a bare
-certificate without calling the all-switchings checker.
+certificate without calling the all-switchings checker.  A structure-guided
+fast path constructs a complete tree and verifies it once; any failed
+heuristic attempt falls back to the proved exhaustive reconstruction.
 
 ```lean
 ProofNetIR.Certificate.reconstructDerivation? : (input : ProofNetIR.Certificate) → Option (ProofNetIR.DerivationVerificationResult input)

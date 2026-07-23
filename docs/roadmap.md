@@ -367,8 +367,14 @@
   - [x] CI-gate exact agreement on the 1,000-case deterministic corpus
     (250 accepted derivations and 750 malformed mutations) under a 15-second
     native budget.
-  - [ ] Add adversarial depth/shape and repeated-internal-label strata, then
-    profile and optimize the observed bottlenecks.
+  - [x] Add and CI-gate 17 adversarial skewed/balanced/alternating,
+    repeated-internal-label, and reversed-link-order cases through 126 formula
+    occurrences. Replace eager factorial fallback materialization on the fast
+    path with one greedy formula-tree/axiom-profile alignment and defer
+    equivalence verification until the complete tree.
+  - [ ] Prove or enforce a user-facing worst-case resource bound for fallback
+    backtracking and repeated-label enumeration; do not infer a polynomial or
+    linear guarantee from the bounded stress suite.
 
 ## Later research
 

@@ -120,11 +120,16 @@ part of the engineering and proof-identity gap.
    The automatic `Certificate.reconstructDerivation?` layer now decides a
    bare certificate without calling the all-switchings checker. Lean proves
    universal success on reference-accepted inputs and exact Boolean equality
-   with `Certificate.check`. The remaining gap is complexity and adversarial
-   qualification: terminal-rule backtracking and repeated-label boundary
-   order enumeration are not yet polynomially bounded. Runtime equality is
-   additionally CI-gated on the frozen 1,000-case 250-positive/750-negative
-   corpus; adversarial shape and repeated-internal-label qualification remain.
+   with `Certificate.check`. A structure-guided fast path now defers
+   verification until the complete tree and greedily aligns repeated boundary
+   occurrences by formula-tree/axiom profiles; the proved exhaustive path
+   remains its fallback. Runtime equality is CI-gated on the frozen 1,000-case
+   250-positive/750-negative corpus. A separate 17-case adversarial suite
+   covers skewed, balanced tensor, balanced par, alternating, repeated-internal
+   labels, and reversed link storage through 126 formula occurrences. The
+   remaining gap is a proved worst-case complexity/resource bound: fallback
+   backtracking and repeated-label enumeration are not yet polynomially
+   bounded.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional

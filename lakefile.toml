@@ -35,6 +35,10 @@ name = "proofnet_ir_reconstruction_audit"
 root = "ProofNetIRReconstructionAudit"
 
 [[lean_exe]]
+name = "proofnet_ir_reconstruction_stress"
+root = "ProofNetIRReconstructionStress"
+
+[[lean_exe]]
 name = "proofnet_ir_api_docs"
 root = "ProofNetIRAPIDocs"
 supportInterpreter = true

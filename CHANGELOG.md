@@ -56,11 +56,24 @@
   backtracks over terminal-rule candidates and repeated-label boundary
   orders, so no polynomial or linear complexity claim is made. The existing
   291-case native benchmark now measures both paths and recorded
-  `reconstruction_ms=1976` versus `sequentialize_ms=6251` in the current
+  `reconstruction_ms=1752` versus `sequentialize_ms=6680` in the current
   Windows run under the unchanged 45-second aggregate budget. A separate
   CI-gated 1,000-case audit agrees with the reference checker on exactly 250
-  positives and 750 deterministic malformed mutations in 2,798 ms under a
+  positives and 750 deterministic malformed mutations in 413 ms under a
   15-second budget;
+- optimized checker-free reconstruction with a structure-guided fast path
+  that aligns repeated boundary occurrences using vertex-number-free
+  formula-tree/axiom profiles, orders inverse-rule candidates independently of
+  link storage, defers equivalence verification until the completed tree, and
+  constructs the exhaustive repeated-label fallback only after the preferred
+  candidate fails. The original proved exhaustive path remains the
+  completeness fallback and every fast result still passes
+  `verifyDerivation?`, while structurally invalid inputs now fail before
+  inverse-rule search, so the exact Boolean theorem is unchanged. A new
+  CI-gated 17-case skewed/balanced/alternating repeated-label suite includes
+  reversed links and reaches 126 formula occurrences; the recorded Windows
+  run completed in 27,447 ms under a 45-second budget. No polynomial or linear
+  worst-case claim is made;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit

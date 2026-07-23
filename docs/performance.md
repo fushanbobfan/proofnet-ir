@@ -36,10 +36,13 @@ claim of constant, polynomial, interactive, or production-grade performance.
 
 `reconstructDerivation?` does not evaluate `Certificate.check`, enumerate
 switching graphs, or invoke the explicit vertex-permutation identity search.
-It can still backtrack across terminal par/tensor candidates and enumerate
-formula-compatible occurrence orders for repeated labels. Its separate
-`reconstruction_ms` counter is therefore a regression and comparison metric,
-not an asymptotic guarantee.
+Its structure-guided fast path greedily aligns repeated boundary occurrences
+by complete formula-tree/axiom profiles and verifies only the completed tree.
+If that heuristic result fails, the proved exhaustive path can still
+backtrack across terminal par/tensor candidates and enumerate
+formula-compatible occurrence orders. Its separate `reconstruction_ms`
+counter is therefore a regression and comparison metric, not an asymptotic
+guarantee.
 
 A separate `proofnet_ir_reconstruction_audit` executable runs the exact
 v0.2-shaped 1,000-case family: 250 derivation positives plus missing-link,
@@ -50,8 +53,26 @@ proof-bearing result, checks the expected 250/750 label split, and enforces a
 
 ```text
 checker-free-reconstruction-audit-ok cases=1000 positives=250 negatives=750
-checksum=6124 elapsed_ms=2798 budget_ms=15000
+checksum=6124 elapsed_ms=413 budget_ms=15000
 ```
+
+A separate `proofnet_ir_reconstruction_stress` executable exercises 17
+accepted identity nets with a single repeated internal atom. It crosses
+right-skewed tensor, balanced tensor, balanced par, and alternating shapes;
+includes original and reversed link storage; and reaches 126 formula
+occurrences and 94 links. The recorded Windows run reported:
+
+```text
+checker-free-reconstruction-stress-ok cases=17 checksum=36355
+elapsed_ms=27447 budget_ms=45000
+```
+
+Exploratory pre-fix runs exceeded 8-second per-case timeouts at right-tensor
+depth 8 and exceeded 30-second timeouts at balanced depth 4. After boundary
+profiles, storage-order-independent candidate preference, deferred top-level
+verification, and lazy fallback selection, the full bounded suite fits its CI
+budget. These observations qualify the named strata only; they do not prove a
+polynomial bound or rule out adversarial fallback behavior.
 
 Unbounded `Certificate.proofNetCanonicalFamily` is excluded from the main
 291-case workload. It enumerates every link-list permutation and is therefore
@@ -92,13 +113,13 @@ On the Windows development machine on 2026-07-23, the qualified workload
 reported:
 
 ```text
-cases=291 checksum=1032554 elapsed_ms=9860
-check_ms=0 sequentialize_ms=6251 reconstruction_ms=1976 equivalence_ms=0
+cases=291 checksum=1032554 elapsed_ms=10198
+check_ms=0 sequentialize_ms=6680 reconstruction_ms=1752 equivalence_ms=0
 identity_stress_pairs=64 identity_candidates=1 identity_ms=0
-canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=723
+canonical_key_cases=3 canonical_key_candidates=5065 canonical_key_ms=754
 canonical_key_budget_ms=10000 canonical_key_max_links=7
 intrinsic_canonical_key_cases=4 intrinsic_canonical_key_max_links=145
-intrinsic_canonical_key_ms=128 intrinsic_canonical_key_budget_ms=5000
+intrinsic_canonical_key_ms=172 intrinsic_canonical_key_budget_ms=5000
 ```
 
 The millisecond counters are coarse; zero means below one aggregate measured
@@ -138,6 +159,8 @@ Run it with:
 
 ```text
 lake exe proofnet_ir_benchmark
+lake exe proofnet_ir_reconstruction_audit
+lake exe proofnet_ir_reconstruction_stress
 ```
 
 The separate LeanProp corpus executable checks 600
