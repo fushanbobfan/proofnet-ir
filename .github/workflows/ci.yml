@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_ref:
+        description: Optional branch or tag whose exact contents should be tested
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -13,6 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.release_ref || github.ref }}
+      - name: Verify requested release revision
+        if: ${{ inputs.release_ref != '' }}
+        env:
+          REQUESTED_RELEASE_REF: ${{ inputs.release_ref }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "${REQUESTED_RELEASE_REF}^{commit}")"
+          git rev-parse HEAD
       - name: Install Elan
         run: curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
       - name: Build and check compile-time fixtures
