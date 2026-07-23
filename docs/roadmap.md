@@ -299,9 +299,9 @@
   ceiling and a measured 1/4/7-link, 5,065-candidate benchmark under a
   separate 10-second budget. The unbounded typed key remains a specification
   oracle; non-factorial construction remains later research.
-- [ ] Pin a clean downstream consumer to the eventual public v0.7 release and
-  qualify local, main-branch, and exact-tag CI. The exact candidate-revision
-  consumer passes locally; main-branch and final tag qualification remain.
+- [x] Pin a clean downstream consumer to the public `v0.7.0` release and
+  qualify local and exact-tag CI. The post-tag main-branch CI is the final
+  publication receipt.
 
 ## Later research
 

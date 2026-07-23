@@ -2,7 +2,7 @@ import ProofNetIR
 
 open ProofNetIR
 
-namespace ProofNetIRV07CandidateConsumerSmoke
+namespace ProofNetIRV07ReleaseConsumerSmoke
 
 def certificate : Certificate :=
   identityCertificate (.tensor (.atom "remote-p" true) (.atom "remote-q" true))
@@ -61,12 +61,12 @@ def run : IO Unit := do
       reordered.matchesCanonicalKey generatedKey &&
       parsedKey.isOk &&
       overLimit.proofNetCanonicalKeyWithinLimit?.isNone then
-    IO.println "ProofNetIR pinned-v0.7-candidate consumer smoke test passed"
+    IO.println "ProofNetIR pinned-v0.7.0 consumer smoke test passed"
   else
     throw <| IO.userError
-      "ProofNetIR pinned-v0.7-candidate consumer smoke test failed"
+      "ProofNetIR pinned-v0.7.0 consumer smoke test failed"
 
-end ProofNetIRV07CandidateConsumerSmoke
+end ProofNetIRV07ReleaseConsumerSmoke
 
 def main : IO Unit :=
-  ProofNetIRV07CandidateConsumerSmoke.run
+  ProofNetIRV07ReleaseConsumerSmoke.run

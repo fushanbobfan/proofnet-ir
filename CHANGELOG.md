@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- published `v0.7.0` and changed the clean external consumer from the candidate
+  commit to the exact public tag; Lake resolves it to release commit
+  `dab12d48d1af62daa5c2fe96cc7fdff4b86e16eb`;
+
 ## v0.7.0 - Exact ProofNetEquivalent canonical key
 
 - added `proofNetCanonicalFingerprint?`, the lexicographically least v0.3
@@ -28,8 +32,8 @@
   `ProofNetEquivalent` iff theorem under the stated bound, and the CI benchmark
   covers 1-, 4-, and 7-link accepted certificates (5,065 total family
   candidates) under a separate 10-second budget;
-- added a clean downstream consumer pinned to the exact public v0.7 candidate
-  revision. It compiles the bounded-key exactness theorem, safe parsed-key
+- added a clean downstream consumer pinned first to the exact public candidate
+  revision and then to the `v0.7.0` tag. It compiles the bounded-key exactness theorem, safe parsed-key
   matching, fail-closed over-limit behavior, and executable
   sequentialization independently of the working tree;
 

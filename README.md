@@ -120,8 +120,8 @@ The repository currently contains:
   wire property corpus, 5,000-case malformed-key fuzz corpus, and measured
   1/4/7-link benchmark pass, but larger or ordinary pairwise comparisons should
   use `CheckedCertificate.sameProofNet?`;
-- a clean downstream Lake consumer pinned to the exact public v0.7 candidate
-  revision, exercising bounded-key exactness, safe matching, over-limit
+- a clean downstream Lake consumer pinned to the exact public `v0.7.0` tag,
+  exercising bounded-key exactness, safe matching, over-limit
   failure, and executable sequentialization;
 - a checked pairwise identity API,
   `CutFreeDerivation.CheckedCertificate.sameProofNet?`, proved to decide
@@ -284,6 +284,8 @@ ProofNetIR/Sequentialization.lean general theorem contract and inverse-rule work
 ProofNetIR/LocalIdentity.lean proved local invariants for exact identity pruning
 ProofNetIR/ExecutableSequentialization.lean runtime inverse search and diagnostics
 ProofNetIR/ProofNetIdentity.lean checked exact pairwise proof-net identity API
+ProofNetIR/StructuralCode.lean injective exact-key structural token encoding
+ProofNetIR/CanonicalKeyWire.lean bounded exact-key wire and safe matching
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
@@ -298,6 +300,7 @@ ProofNetIRExperimentVerify.lean Lean checker/sequentializer batch boundary
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
 consumer-v06-candidate-smoke/  clean consumer pinned to public v0.6.0 tag
+consumer-v07-candidate-smoke/  clean consumer pinned to public v0.7.0 tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
@@ -348,7 +351,9 @@ The stricter post-v0.2 coverage and reuse assessments are in
 [docs/source-coverage-audit.md](docs/source-coverage-audit.md) and
 [docs/library-readiness-audit.md](docs/library-readiness-audit.md). The
 scoped v0.6 claims and release evidence are in
-[docs/v0.6-release-audit.md](docs/v0.6-release-audit.md). The
+[docs/v0.6-release-audit.md](docs/v0.6-release-audit.md), and the exact-key
+v0.7 release evidence is in
+[docs/v0.7-release-audit.md](docs/v0.7-release-audit.md). The
 external-consumer walkthrough is in [docs/tutorial.md](docs/tutorial.md), and
 the kernel-environment-generated declaration surface is in
 [docs/api-reference.md](docs/api-reference.md). The

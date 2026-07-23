@@ -1,7 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-23
-Audited baseline: v0.7.0 release candidate
+Audited baseline: published v0.7.0 plus its tag-pinned downstream consumer
 
 ## Verdict
 
@@ -141,7 +141,7 @@ part of the engineering and proof-identity gap.
   third clean consumer installs the exact public v0.6 candidate Git commit
   and typechecks the retained-boundary, packed-witness, soundness, and
   persistent-normalization APIs. A fourth clean consumer pins the exact public
-  v0.7 candidate revision and checks bounded canonical-key exactness, safe
+  `v0.7.0` tag and checks bounded canonical-key exactness, safe
   matching, fail-closed over-limit behavior, and executable
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
