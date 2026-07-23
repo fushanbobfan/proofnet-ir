@@ -33,3 +33,11 @@ root = "ProofNetIRBenchmark"
 name = "proofnet_ir_api_docs"
 root = "ProofNetIRAPIDocs"
 supportInterpreter = true
+
+[[lean_exe]]
+name = "proofnet_ir_experiment_corpus"
+root = "ProofNetIRExperimentCorpus"
+
+[[lean_exe]]
+name = "proofnet_ir_experiment_verify"
+root = "ProofNetIRExperimentVerify"

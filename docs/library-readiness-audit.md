@@ -122,6 +122,13 @@ part of the engineering and proof-identity gap.
   and the measured depth-4 cost remains a library-readiness limitation;
 - the focused baseline is a Python experiment component, not a Lean library
   module;
+- a deterministic 1,000-task matched algorithmic experiment now compares
+  focused search, direct atom-matching net generation, and one-edit repair;
+  all 930 distinct accepted outputs pass the Lean checker and runtime
+  sequentializer, while all 930 distinct mutations are rejected. The supplied
+  formula skeleton, positive derivation-first corpus, mostly unique atom
+  labels, and distance-one mutations prevent this from establishing the
+  research hypothesis;
 - no model-backed matched experiment has established the research hypothesis.
 
 ## Current usability boundary
@@ -137,7 +144,9 @@ It can currently be used for:
   only checker-accepted results;
 - regenerating the labeled v0.2 corpus;
 - producing stable v0.3 cache/dataset keys across bounded vertex renamings;
-- running the focused-search comparison baseline.
+- running the focused-search comparison baseline;
+- reproducing the first deterministic 1,000-task matched experiment and
+  validating its hashed artifacts.
 
 It should not yet be presented as:
 
@@ -145,7 +154,8 @@ It should not yet be presented as:
 - a performance-qualified executable sequentializer beyond the documented
   unit-free, cut-free MLL certificate model;
 - a complete isomorphism-canonical proof identity library;
-- evidence that proof-net generation reduces search redundancy in practice.
+- evidence that proof-net generation reduces search redundancy beyond the
+  committed experiment's narrow, explicitly biased controlled setting.
 
 ## Release gate for library readiness
 
@@ -153,4 +163,6 @@ The macro goal may call the project a library only after all logical gaps above
 are closed, a clean downstream Lake consumer passes on Windows and Linux, JSON
 round trips have structured diagnostics and fuzz coverage, public API docs and
 compatibility rules are published, performance limits are measured, and the
-matched experiment reports its result whether positive or negative.
+matched algorithmic and model-backed experiments report their results whether
+positive or negative. The algorithmic run is complete; the model-backed and
+broader-corpus gates remain open.

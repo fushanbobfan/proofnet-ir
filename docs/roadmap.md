@@ -55,10 +55,15 @@
 - [x] Publish 1,000 checker-labeled records with a deterministic generator,
   independent-oracle verification, and a content hash.
 - [x] Implement a runnable focused cut-free search baseline.
-- [ ] Define graph edit operations and compare direct sequent generation,
-  graph generation, and graph repair in a model-backed experiment.
-- [ ] Report validity, repair success, Lean calls, token cost, and redundancy
-  collapse without claiming theorem-proving gains before measurement.
+- [x] Define deterministic graph edit operations and complete a first matched
+  1,000-task algorithmic comparison of focused search, direct net generation,
+  and one-edit repair, with every unique certificate result rechecked and
+  sequentialized by Lean.
+- [x] Report validity, repair success, Lean/checker calls, zero model-token
+  cost, timing, memory, failures, and bounded redundancy collapse with explicit
+  corpus and formula-skeleton limitations.
+- [ ] Repeat the comparison with genuinely model-backed proposals, held-out
+  negative tasks, harder repeated-label strata, and repair distances above one.
 
 ## v0.3 - Reindex-invariant wire keys
 

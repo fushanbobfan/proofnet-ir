@@ -44,3 +44,12 @@ Run it with:
 ```text
 lake exe proofnet_ir_benchmark
 ```
+
+## Matched algorithmic experiment
+
+The native regression above measures the executable sequentializer. It is
+separate from the first 1,000-task comparison of focused search, direct
+proof-net generation, and checker-guided one-edit repair. That experiment,
+including per-depth failures, Python timing/allocation data, checker calls,
+Lean batch verification, and its strict interpretation boundary, is recorded
+in [matched-v0.1](../experiments/matched-v0.1/README.md).

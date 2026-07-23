@@ -68,8 +68,11 @@ class SearchLimitExceeded(RuntimeError):
 
 
 class FocusedSearch:
-    def __init__(self, max_calls: int = 1_000_000) -> None:
+    def __init__(
+        self, max_calls: int = 1_000_000, max_partitions: int = 1_000_000
+    ) -> None:
         self.max_calls = max_calls
+        self.max_partitions = max_partitions
         self.stats = Stats()
         self.memo: dict[tuple[Formula, ...], dict[str, Any] | None] = {}
 
@@ -115,6 +118,10 @@ class FocusedSearch:
             context = list(state[:tensor_index] + state[tensor_index + 1 :])
             for mask in range(1 << len(context)):
                 self.stats.partitions += 1
+                if self.stats.partitions > self.max_partitions:
+                    raise SearchLimitExceeded(
+                        f"search exceeded {self.max_partitions} resource partitions"
+                    )
                 left_context = [
                     value for index, value in enumerate(context) if (mask >> index) & 1
                 ]
@@ -144,12 +151,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("input", type=Path)
     parser.add_argument("--max-calls", type=int, default=1_000_000)
+    parser.add_argument("--max-partitions", type=int, default=1_000_000)
     parser.add_argument("--require-found", action="store_true")
     args = parser.parse_args()
 
     raw = json.loads(args.input.read_text(encoding="utf-8"))
     sequent = [parse_formula(value) for value in raw["sequent"]]
-    engine = FocusedSearch(max_calls=args.max_calls)
+    engine = FocusedSearch(
+        max_calls=args.max_calls, max_partitions=args.max_partitions
+    )
     proof = engine.search(sequent)
     output = {
         "found": proof is not None,

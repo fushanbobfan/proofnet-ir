@@ -75,3 +75,18 @@ infer a search improvement from a large quotient alone.
 - A graph method wins only if it improves checked success or cost at matched
   success against the focused baseline. A smaller textual representation or a
   visually appealing graph is not enough.
+
+## First completed deterministic run
+
+The committed [matched-v0.1 experiment](../experiments/matched-v0.1/README.md)
+applies this protocol to 1,000 matched positive tasks with a fixed 1,000-unit
+per-method budget. It compares deterministic focused search, atom-matching net
+generation over a supplied formula skeleton, and generic one-edit repair. All
+unique certificate outputs are rechecked by Lean, and every accepted output is
+executably sequentialized.
+
+This is a controlled algorithmic baseline, not the planned model-backed study.
+The supplied skeleton, mostly unique atom labels, positive-only
+derivation-first corpus, and edit-distance-one repair make the graph tasks
+substantially easier. The report therefore records the observed 76% versus
+100% versus 100% success rates without claiming a general proof-net advantage.

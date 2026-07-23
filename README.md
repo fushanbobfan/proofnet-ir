@@ -155,6 +155,7 @@ lake exe proofnet_ir_api_docs --check
 python scripts/fuzz_malformed_parser.py
 lake exe proofnet_ir_benchmark
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
+python scripts/run_matched_experiment.py --check-committed
 ```
 
 Expected smoke-test output:
@@ -185,12 +186,15 @@ ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget
 ProofNetIRAPIDocs.lean        generated public API manifest and reference
+ProofNetIRExperimentCorpus.lean deterministic matched-task corpus emitter
+ProofNetIRExperimentVerify.lean Lean checker/sequentializer batch boundary
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.4.0 tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
 scripts/focused_search.py     focused cut-free comparison baseline
+scripts/run_matched_experiment.py matched generation/repair experiment runner
 scripts/audit_v03_canonical.py independent 1,000-record reindex-key audit
 scripts/fuzz_malformed_parser.py deterministic 5,000-case parser fuzz gate
 docs/                         architecture, literature map, roadmap, trust boundary
@@ -198,10 +202,16 @@ docs/                         architecture, literature map, roadmap, trust bound
 
 ## Scientific status
 
-No performance result is claimed yet. In particular, this repository has not
-shown that proof graphs outperform tactic generation. The first meaningful
-experiment will compare direct sequent-proof generation with graph generation
-and checker-guided repair on controlled MLL tasks.
+The first deterministic matched experiment is complete: under a fixed
+1,000-unit per-method budget on 1,000 positive derivation-generated MLL tasks,
+focused search solved 760, while formula-skeleton proof-net generation and
+one-edit repair solved all 1,000. Lean rejected every distinct mutation and
+accepted plus executably sequentialized every distinct claimed certificate.
+The [full report](experiments/matched-v0.1/README.md) explains why this does not
+show that proof graphs generally outperform focused search or tactic
+generation: most atom labels are unique, the graph method receives the full
+formula skeleton, repair starts one edit from a valid net, and no learned model
+or ordinary Lean goal is involved.
 
 The broader plan is in [docs/roadmap.md](docs/roadmap.md). Source screening and
 project rationale are recorded in [docs/literature-map.md](docs/literature-map.md).
@@ -219,9 +229,9 @@ the kernel-environment-generated declaration surface is in
 [docs/api-reference.md](docs/api-reference.md). The
 representation comparison that guides general sequentialization is in
 [docs/formalization-comparison.md](docs/formalization-comparison.md). Completed
-page-level source audits, including the completed 168-unique-page Pfenning
-audit, completed 33-page *Geometry of Neuroscience* audit, and the in-progress
-Manin ordered audit, live under
+page-level source audits, including Pfenning's 168 unique pages, Manin's 389
+physical pages, Marcolli et al.'s 75 pages, the 33-page *Geometry of
+Neuroscience* audit, and Park's 76 pages, live under
 [docs/source-pages/](docs/source-pages/geometry-of-neuroscience.md).
 Wire-version stability and migration rules are in
 [docs/compatibility.md](docs/compatibility.md), and the exact v0.3 guarantees

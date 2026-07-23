@@ -1,0 +1,262 @@
+{
+  "byDepth": {
+    "2": {
+      "focused": {
+        "limitExceeded": 0,
+        "maxPeakPythonBytes": 7848,
+        "medianElapsedMs": 3.6814,
+        "p95ElapsedMs": 20.265,
+        "successRate": 1.0,
+        "successes": 700,
+        "totalCheckerCalls": 0,
+        "totalElapsedMs": 4433.5405,
+        "totalPartitions": 25017,
+        "totalStates": 18975
+      },
+      "focusedCounting": {
+        "completedTasks": 700,
+        "incompleteTasks": 0,
+        "maxProofTracesOnCompletedTask": 5,
+        "medianElapsedMs": 35.473600000000005,
+        "p95ElapsedMs": 79.4451,
+        "totalElapsedMs": 23548.2695,
+        "totalPartitions": 155807,
+        "totalStates": 47493
+      },
+      "netGeneration": {
+        "enumerationIncomplete": 0,
+        "limitExceeded": 0,
+        "maxPeakPythonBytes": 21248,
+        "medianElapsedMs": 1.1504,
+        "p95ElapsedMs": 1.717,
+        "successRate": 1.0,
+        "successes": 700,
+        "totalCandidates": 700,
+        "totalCheckerCalls": 700,
+        "totalElapsedMs": 836.4725,
+        "totalPartialNodes": 3500
+      },
+      "repair": {
+        "limitExceeded": 0,
+        "maxPeakPythonBytes": 44337,
+        "medianElapsedMs": 11.409099999999999,
+        "p95ElapsedMs": 25.8655,
+        "successRate": 1.0,
+        "successes": 700,
+        "totalCandidates": 5242,
+        "totalCheckerCalls": 5242,
+        "totalElapsedMs": 8583.8284
+      },
+      "tasks": 700
+    },
+    "3": {
+      "focused": {
+        "limitExceeded": 190,
+        "maxPeakPythonBytes": 30208,
+        "medianElapsedMs": 167.7027,
+        "p95ElapsedMs": 205.5634,
+        "successRate": 0.24,
+        "successes": 60,
+        "totalCheckerCalls": 0,
+        "totalElapsedMs": 37662.3124,
+        "totalPartitions": 211596,
+        "totalStates": 55376
+      },
+      "focusedCounting": {
+        "completedTasks": 0,
+        "incompleteTasks": 250,
+        "maxProofTracesOnCompletedTask": 0,
+        "medianElapsedMs": 174.82965000000002,
+        "p95ElapsedMs": 205.9981,
+        "totalElapsedMs": 44062.3563,
+        "totalPartitions": 250250,
+        "totalStates": 63614
+      },
+      "netGeneration": {
+        "enumerationIncomplete": 0,
+        "limitExceeded": 0,
+        "maxPeakPythonBytes": 54032,
+        "medianElapsedMs": 3.0042999999999997,
+        "p95ElapsedMs": 4.1494,
+        "successRate": 1.0,
+        "successes": 250,
+        "totalCandidates": 250,
+        "totalCheckerCalls": 250,
+        "totalElapsedMs": 919.4084,
+        "totalPartialNodes": 2250
+      },
+      "repair": {
+        "limitExceeded": 0,
+        "maxPeakPythonBytes": 146696,
+        "medianElapsedMs": 56.6357,
+        "p95ElapsedMs": 116.3556,
+        "successRate": 1.0,
+        "successes": 250,
+        "totalCandidates": 3756,
+        "totalCheckerCalls": 3756,
+        "totalElapsedMs": 14119.334
+      },
+      "tasks": 250
+    },
+    "4": {
+      "focused": {
+        "limitExceeded": 50,
+        "maxPeakPythonBytes": 32769,
+        "medianElapsedMs": 179.11880000000002,
+        "p95ElapsedMs": 217.5711,
+        "successRate": 0.0,
+        "successes": 0,
+        "totalCheckerCalls": 0,
+        "totalElapsedMs": 9216.1111,
+        "totalPartitions": 50050,
+        "totalStates": 11782
+      },
+      "focusedCounting": {
+        "completedTasks": 0,
+        "incompleteTasks": 50,
+        "maxProofTracesOnCompletedTask": 0,
+        "medianElapsedMs": 178.68185,
+        "p95ElapsedMs": 207.4812,
+        "totalElapsedMs": 9118.4719,
+        "totalPartitions": 50050,
+        "totalStates": 11782
+      },
+      "netGeneration": {
+        "enumerationIncomplete": 0,
+        "limitExceeded": 0,
+        "maxPeakPythonBytes": 149448,
+        "medianElapsedMs": 50.6032,
+        "p95ElapsedMs": 156.8699,
+        "successRate": 1.0,
+        "successes": 50,
+        "totalCandidates": 1600,
+        "totalCheckerCalls": 1600,
+        "totalElapsedMs": 3504.6006,
+        "totalPartialNodes": 15786
+      },
+      "repair": {
+        "limitExceeded": 0,
+        "maxPeakPythonBytes": 801833,
+        "medianElapsedMs": 310.7169,
+        "p95ElapsedMs": 787.0655,
+        "successRate": 1.0,
+        "successes": 50,
+        "totalCandidates": 2001,
+        "totalCheckerCalls": 2001,
+        "totalElapsedMs": 17536.7956
+      },
+      "tasks": 50
+    }
+  },
+  "canonicalDiversity": {
+    "distinctSequentPayloads": 930,
+    "reindexV1DistinctWinners": 930,
+    "scope": "v0.3 ReindexEquivalent normal form, not arbitrary graph isomorphism"
+  },
+  "corpusSha256": "fecc3bd31de256e5da91b61328eeb294a4e9049ff76262dfe0735290e41e3ee3",
+  "depthCounts": {
+    "2": 700,
+    "3": 250,
+    "4": 50
+  },
+  "deterministic": true,
+  "hardware": {
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "AMD64 Family 26 Model 112 Stepping 0, AuthenticAMD",
+    "python": "3.14.5"
+  },
+  "leanVerification": {
+    "accepted": 930,
+    "deduplication": "identical canonical certificates are checked and sequentialized once; the result covers every matching logical output",
+    "logicalAcceptedOutputs": 2000,
+    "logicalInvalidOutputs": 1000,
+    "rejected": 930,
+    "sequentialized": 930,
+    "uniqueInputs": 1860
+  },
+  "limits": {
+    "focusedPartitionsPerTask": 1000,
+    "focusedStatesPerTask": 1000,
+    "netCandidatesPerTask": 1000,
+    "repairCandidatesPerTask": 1000
+  },
+  "modelTokens": 0,
+  "overall": {
+    "focused": {
+      "limitExceeded": 240,
+      "maxPeakPythonBytes": 32769,
+      "medianElapsedMs": 7.09545,
+      "p95ElapsedMs": 193.1431,
+      "successRate": 0.76,
+      "successes": 760,
+      "totalCheckerCalls": 0,
+      "totalElapsedMs": 51311.964,
+      "totalPartitions": 286663,
+      "totalStates": 86133
+    },
+    "focusedCounting": {
+      "completedTasks": 700,
+      "incompleteTasks": 300,
+      "maxProofTracesOnCompletedTask": 5,
+      "medianElapsedMs": 47.0086,
+      "p95ElapsedMs": 193.9794,
+      "totalElapsedMs": 76729.0977,
+      "totalPartitions": 456107,
+      "totalStates": 122889
+    },
+    "netGeneration": {
+      "enumerationIncomplete": 0,
+      "limitExceeded": 0,
+      "maxPeakPythonBytes": 149448,
+      "medianElapsedMs": 1.2814999999999999,
+      "p95ElapsedMs": 14.7265,
+      "successRate": 1.0,
+      "successes": 1000,
+      "totalCandidates": 2550,
+      "totalCheckerCalls": 2550,
+      "totalElapsedMs": 5260.4815,
+      "totalPartialNodes": 21536
+    },
+    "repair": {
+      "limitExceeded": 0,
+      "maxPeakPythonBytes": 801833,
+      "medianElapsedMs": 13.33855,
+      "p95ElapsedMs": 114.816,
+      "successRate": 1.0,
+      "successes": 1000,
+      "totalCandidates": 10999,
+      "totalCheckerCalls": 10999,
+      "totalElapsedMs": 40239.958
+    }
+  },
+  "pythonAllocationMetric": "tracemalloc peak bytes; excludes Lean verifier RSS",
+  "redundancy": {
+    "completedTasks": 700,
+    "definition": "focused proof traces / max(1, accepted axiom-link proof nets)",
+    "medianLog2Ratio": 1.0,
+    "p95Log2Ratio": 2.321928094887362
+  },
+  "repairByMutation": {
+    "duplicated-link": {
+      "successes": 250,
+      "tasks": 250
+    },
+    "missing-axiom": {
+      "successes": 250,
+      "tasks": 250
+    },
+    "missing-connective": {
+      "successes": 250,
+      "tasks": 250
+    },
+    "wrong-axiom-endpoint": {
+      "successes": 250,
+      "tasks": 250
+    }
+  },
+  "resultsSha256": "c479322c3afc4b8406096d837d6af919667f0fdab23e8df4dd6a170423d259b5",
+  "stochasticSeeds": "not applicable: all three methods are deterministic",
+  "tasks": 1000,
+  "version": "matched-v0.1"
+}

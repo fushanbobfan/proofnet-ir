@@ -51,6 +51,15 @@
   carrying mathematical diagrams, code, or data, explicitly separating its
   contact-topology computations from ProofNet-IR claims; all seven original
   project PDFs and the Rowling chat now have complete recorded coverage.
+- added a deterministic 1,000-task matched MLL experiment with fixed
+  depth-2/3/4 strata and equal 1,000-unit method budgets; focused search solved
+  760 tasks, while formula-skeleton net generation and one-edit repair solved
+  all 1,000 under their deliberately easier controlled conditions;
+- batch-rechecked 930 distinct invalid and 930 distinct accepted experiment
+  certificates in Lean, rejecting every mutation and successfully executing
+  `Certificate.sequentialize` on every accepted certificate; committed the
+  hashed corpus, per-task results, report, and artifact validator without
+  claiming a general or model-backed advantage.
 
 ## v0.4.0 - General sequentialization
 
