@@ -1,14 +1,14 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.5.0 release candidate on `main`
+Audited baseline: v0.5.0 release plus pinned-release downstream validation
 
 ## Verdict
 
-ProofNet-IR v0.4.0 is a usable research prototype and reference checker. It is
+ProofNet-IR v0.5.0 is a usable research prototype and reference checker. It is
 not yet a mature reusable Lean library. The published checker can validate its
 documented unit-free, cut-free MLL certificates; the dataset and focused-search
-baseline can be reproduced. v0.4.0 proves that any accepted
+baseline can be reproduced. v0.5.0 proves that any accepted
 certificate can be converted into a concrete first-order derivation whose
 desequentialization is `ProofNetEquivalent` to the input. It also
 lets a downstream consumer parse v0.2/v0.3 JSON directly into a checked Lean
@@ -102,9 +102,9 @@ part of the engineering and proof-identity gap.
   untrusted-input API;
 - many older APIs return `Option`, losing the location and reason for failure;
   executable sequentialization now returns a staged `SequentializationError`;
-- separate path-dependency and clean pinned-v0.4.0 Lake consumers now pass;
+- separate path-dependency and clean pinned-v0.5.0 Lake consumers now pass;
   the path dependency executes the v0.5 sequentializer and consumes its
-  equivalence theorem, while the pinned consumer protects the v0.4.0 API;
+  equivalence theorem, while the pinned consumer protects the v0.5.0 API;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
 - CI now parses `#print axioms` for eleven public logical-boundary theorems and

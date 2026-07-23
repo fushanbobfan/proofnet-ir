@@ -3,7 +3,7 @@
 ProofNet-IR is an experimental, verified proof-geometry intermediate
 representation for AI-guided theorem proving in Lean 4.
 
-Current release candidate: `v0.5.0` (proof-bearing executable totality,
+Current release: `v0.5.0` (proof-bearing executable totality,
 complete finite `ProofNetEquivalent` family, and a matched 1,000-task
 experiment). See
 [CHANGELOG.md](CHANGELOG.md) for the precise guarantees and non-goals.
@@ -196,7 +196,7 @@ ProofNetIRAPIDocs.lean        generated public API manifest and reference
 ProofNetIRExperimentCorpus.lean deterministic matched-task corpus emitter
 ProofNetIRExperimentVerify.lean Lean checker/sequentializer batch boundary
 consumer-smoke/               independent downstream Lake dependency test
-consumer-release-smoke/       clean consumer pinned to public v0.4.0 tag
+consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest

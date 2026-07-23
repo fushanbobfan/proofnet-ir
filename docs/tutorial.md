@@ -20,7 +20,7 @@ For a released build, pin a tag instead of tracking `main`:
 [[require]]
 name = "proofnet-ir"
 git = "https://github.com/fushanbobfan/proofnet-ir"
-rev = "v0.4.0"
+rev = "v0.5.0"
 ```
 
 Then import the single public umbrella module:
