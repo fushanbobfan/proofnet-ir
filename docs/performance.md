@@ -56,15 +56,18 @@ checker-free-reconstruction-audit-ok cases=1000 positives=250 negatives=750
 checksum=6124 elapsed_ms=413 budget_ms=15000
 ```
 
-A separate `proofnet_ir_reconstruction_stress` executable exercises 17
+A separate `proofnet_ir_reconstruction_stress` executable exercises 18
 accepted identity nets with a single repeated internal atom. It crosses
 right-skewed tensor, balanced tensor, balanced par, and alternating shapes;
 includes original and reversed link storage; and reaches 126 formula
-occurrences and 94 links. The recorded Windows run reported:
+occurrences and 94 links. It calls
+`reconstructDerivationWithinLimits` with the qualified 128-formula,
+96-link, 24-conclusion envelope, so it never enters the exhaustive
+formula-order fallback. The recorded Windows run reported:
 
 ```text
-checker-free-reconstruction-stress-ok cases=17 checksum=36355
-elapsed_ms=27447 budget_ms=45000
+checker-free-reconstruction-stress-ok cases=18 checksum=39390
+elapsed_ms=34416 budget_ms=45000
 ```
 
 Exploratory pre-fix runs exceeded 8-second per-case timeouts at right-tensor
@@ -73,6 +76,21 @@ profiles, storage-order-independent candidate preference, deferred top-level
 verification, and lazy fallback selection, the full bounded suite fits its CI
 budget. These observations qualify the named strata only; they do not prove a
 polynomial bound or rule out adversarial fallback behavior.
+
+The repeated-boundary stratum expands a depth-20 identity to 22 conclusions
+and then reverses link storage; it completed in 6,552 ms in its isolated
+recorded run. A depth-31 expansion with 33 conclusions remained below the
+formula/link ceilings but took 47,746 ms and exceeded the original stress
+budget. That counterexample is why the qualified conclusion ceiling is 24
+rather than 128; oversized inputs fail before structure-guided search.
+
+The qualified limits are input-size gates, not a wall-clock deadline. The
+bounded function can return structured `noCandidate` or
+`candidateVerificationFailed` errors on a valid certificate; those outcomes
+are inconclusive and callers may explicitly choose the unbounded complete API
+or an external process deadline. Lean proves only the direction needed for
+fail-closed use: every bounded success is sound, reference-accepted, and
+accepted by the unbounded reconstruction decision.
 
 Unbounded `Certificate.proofNetCanonicalFamily` is excluded from the main
 291-case workload. It enumerates every link-list permutation and is therefore

@@ -124,12 +124,20 @@ part of the engineering and proof-identity gap.
    verification until the complete tree and greedily aligns repeated boundary
    occurrences by formula-tree/axiom profiles; the proved exhaustive path
    remains its fallback. Runtime equality is CI-gated on the frozen 1,000-case
-   250-positive/750-negative corpus. A separate 17-case adversarial suite
+   250-positive/750-negative corpus. A separate 18-case adversarial suite
    covers skewed, balanced tensor, balanced par, alternating, repeated-internal
-   labels, and reversed link storage through 126 formula occurrences. The
+   labels, repeated boundary labels, and reversed link storage through 126
+   formula occurrences and 22 conclusions. The
    remaining gap is a proved worst-case complexity/resource bound: fallback
    backtracking and repeated-label enumeration are not yet polynomially
    bounded.
+   For callers that require fail-closed resource handling,
+   `reconstructDerivationWithinLimits` checks explicit formula, link, and
+   conclusion ceilings and runs only the structure-guided tier. It returns
+   structured limit, malformed-input, no-candidate, or verification-failure
+   diagnostics. Lean proves that every success is sound, reference-accepted,
+   and included in the unbounded decision's accepted set; heuristic failure is
+   not exposed as logical rejection.
 4. A semantic relation modulo reordered links now has a complete executable
    decision procedure on structurally well-formed certificates. It now also
    has a complete executable finite canonical family: Lean proves extensional
@@ -182,7 +190,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for forty-eight public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for sixty-three public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the two public graph-acyclicity transport theorems are separately locked to
@@ -203,6 +211,10 @@ part of the engineering and proof-identity gap.
 - a deterministic 5,000-case native parser fuzz gate covers truncation,
   deletion, replacement, insertion, malformed fields, and excessive formula
   nesting; broader coverage-guided fuzzing remains future hardening;
+- bounded reconstruction now has structured public diagnostics and is compiled
+  by the clean path-dependent consumer; the qualified default envelope is
+  CI-stressed, while a process-level cancellation/deadline API remains future
+  integration work;
 - the LeanProp wire boundary has an independent deterministic 5,000-case
   mutation gate plus JSON Schema fixtures and a SHA-256 manifest over 1,600
   Lean-emitted labeled records; every accepted wire value now retains an

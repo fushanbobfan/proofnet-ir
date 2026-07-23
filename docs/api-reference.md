@@ -1647,6 +1647,112 @@ all-switchings checker.
 ProofNetIR.Certificate.reconstructsDerivation_eq_check : ∀ (input : ProofNetIR.Certificate), input.reconstructsDerivation = input.check
 ```
 
+### `ProofNetIR.ReconstructionLimits`
+
+Kind: inductive type.
+
+Explicit input-size envelope for the fail-closed reconstruction API.
+These limits bound formula occurrences, stored links, and ordered conclusions
+before structure-guided search begins.
+
+```lean
+ProofNetIR.ReconstructionLimits : Type
+```
+
+### `ProofNetIR.ReconstructionLimits.qualified`
+
+Kind: definition.
+
+CI-qualified default envelope.  The adversarial suite exercises accepted
+inputs through 126 formula occurrences, 94 links, and 22 conclusions below
+these ceilings.
+
+```lean
+ProofNetIR.ReconstructionLimits.qualified : ProofNetIR.ReconstructionLimits
+```
+
+### `ProofNetIR.ReconstructionError`
+
+Kind: inductive type.
+
+Structured failures from bounded structure-guided reconstruction.
+`noCandidate` and `candidateVerificationFailed` are deliberately
+inconclusive: callers must not reinterpret them as logical rejection.
+
+```lean
+ProofNetIR.ReconstructionError : Type
+```
+
+### `ProofNetIR.ReconstructionError.message`
+
+Kind: definition.
+
+Stable reader-facing diagnostic for bounded reconstruction failures.
+
+```lean
+ProofNetIR.ReconstructionError.message : ProofNetIR.ReconstructionError → String
+```
+
+### `ProofNetIR.Certificate.reconstructDerivationWithinLimits`
+
+Kind: definition.
+
+Fail-closed reconstruction within an explicit input-size envelope.
+
+Unlike `reconstructDerivation?`, this API never enters the exhaustive
+formula-order fallback.  A limit error or heuristic miss is not a logical
+rejection.  Every successful result has still passed `verifyDerivation?` and
+carries the same dependent proof evidence as the unbounded API.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivationWithinLimits : (input : ProofNetIR.Certificate) →
+  optParam ProofNetIR.ReconstructionLimits ProofNetIR.ReconstructionLimits.qualified →
+    Except ProofNetIR.ReconstructionError (ProofNetIR.DerivationVerificationResult input)
+```
+
+### `ProofNetIR.Certificate.reconstructDerivationWithinLimits_sound`
+
+Kind: theorem.
+
+A successful bounded reconstruction carries the full public soundness
+contract, independently of which limits admitted the input.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivationWithinLimits_sound : ∀ {input : ProofNetIR.Certificate} {limits : ProofNetIR.ReconstructionLimits}
+  {result : ProofNetIR.DerivationVerificationResult input},
+  input.reconstructDerivationWithinLimits limits = Except.ok result →
+    input.StructurallyWellFormed ∧
+      input.conclusionFormulas? = some result.sequent ∧
+        result.tree.infer? = some result.sequent ∧
+          result.tree.desequentialize? = some result.output ∧
+            result.output.check = true ∧ result.output.ProofNetEquivalent input
+```
+
+### `ProofNetIR.Certificate.reconstructDerivationWithinLimits_accepted`
+
+Kind: theorem.
+
+Bounded success implies acceptance by the exact reference semantics.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivationWithinLimits_accepted : ∀ {input : ProofNetIR.Certificate} {limits : ProofNetIR.ReconstructionLimits}
+  {result : ProofNetIR.DerivationVerificationResult input},
+  input.reconstructDerivationWithinLimits limits = Except.ok result → input.check = true
+```
+
+### `ProofNetIR.Certificate.reconstructDerivationWithinLimits_implies_reconstructs`
+
+Kind: theorem.
+
+Bounded success is always inside the unbounded reconstruction decision's
+accepted set.  No converse is claimed for the heuristic bounded path.
+
+```lean
+ProofNetIR.Certificate.reconstructDerivationWithinLimits_implies_reconstructs : ∀ {input : ProofNetIR.Certificate} {limits : ProofNetIR.ReconstructionLimits}
+  {result : ProofNetIR.DerivationVerificationResult input},
+  input.reconstructDerivationWithinLimits limits = Except.ok result → input.reconstructsDerivation = true
+```
+
 ### `ProofNetIR.ExecutableSequentializationResult.kernelDerivation`
 
 Kind: theorem.

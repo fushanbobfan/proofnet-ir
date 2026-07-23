@@ -70,6 +70,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.reconstructDerivation?_complete",
     "ProofNetIR.Certificate.reconstructsDerivation_eq_true_iff_check",
     "ProofNetIR.Certificate.reconstructsDerivation_eq_check",
+    "ProofNetIR.Certificate.reconstructDerivationWithinLimits_sound",
+    "ProofNetIR.Certificate.reconstructDerivationWithinLimits_accepted",
+    "ProofNetIR.Certificate.reconstructDerivationWithinLimits_implies_reconstructs",
     "ProofNetIR.ExecutableSequentializationResult.kernelDerivation",
     "ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent",
 }

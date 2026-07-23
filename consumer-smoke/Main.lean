@@ -77,6 +77,12 @@ example :
 example : consumedCertificate.reconstructsDerivation = true := by
   native_decide
 
+def consumedBoundedReconstruction :=
+  consumedCertificate.reconstructDerivationWithinLimits
+
+example : consumedBoundedReconstruction.isOk = true := by
+  native_decide
+
 example :
     consumedCertificate.reconstructsDerivation =
       consumedCertificate.check :=
@@ -162,6 +168,7 @@ def main : IO Unit := do
       consumedCertificate.check && consumedTree.elaborate?.isSome &&
       consumedCertificate.verifiesDerivation consumedRuleTree &&
       consumedCertificate.reconstructsDerivation &&
+      consumedBoundedReconstruction.isOk &&
       consumedSequentialization.isOk &&
       Certificate.proofNetEquivalent? consumedCertificate
         reorderedConsumedCertificate &&

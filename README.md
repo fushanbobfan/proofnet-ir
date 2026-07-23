@@ -143,6 +143,13 @@ The repository currently contains:
   `Certificate.reconstructsDerivation = Certificate.check` for all inputs.
   The current fallback can still backtrack and enumerate repeated-label
   orders, so no polynomial or linear worst-case claim is made.
+- a fail-closed `Certificate.reconstructDerivationWithinLimits` API with
+  explicit formula-occurrence, link, and conclusion ceilings. The qualified
+  default is 128/96/24 and never enters the exhaustive formula-order
+  fallback. Limit failures and heuristic misses are structured
+  `ReconstructionError` values, not claims that the certificate is logically
+  invalid. Every successful result carries the same soundness evidence and is
+  proved inside the unbounded reconstruction decision's accepted set;
 - an executable finite `proofNetCanonicalFamily` whose extensional membership
   equality is proved equivalent to exactly `ProofNetEquivalent` on
   structurally well-formed certificates. This is a factorial specification
@@ -227,7 +234,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits forty-eight public MLL logical-boundary theorems against the exact axiom set
+  separately audits sixty-three public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.

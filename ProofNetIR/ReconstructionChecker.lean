@@ -3,6 +3,58 @@ import ProofNetIR.ExecutableSequentialization
 
 namespace ProofNetIR
 
+/-- Explicit input-size envelope for the fail-closed reconstruction API.
+These limits bound formula occurrences, stored links, and ordered conclusions
+before structure-guided search begins. -/
+structure ReconstructionLimits where
+  maxFormulaOccurrences : Nat
+  maxLinks : Nat
+  maxConclusions : Nat
+  deriving Repr, DecidableEq
+
+namespace ReconstructionLimits
+
+/-- CI-qualified default envelope.  The adversarial suite exercises accepted
+inputs through 126 formula occurrences, 94 links, and 22 conclusions below
+these ceilings. -/
+def qualified : ReconstructionLimits where
+  maxFormulaOccurrences := 128
+  maxLinks := 96
+  maxConclusions := 24
+
+end ReconstructionLimits
+
+/-- Structured failures from bounded structure-guided reconstruction.
+`noCandidate` and `candidateVerificationFailed` are deliberately
+inconclusive: callers must not reinterpret them as logical rejection. -/
+inductive ReconstructionError where
+  | formulaLimitExceeded (actual limit : Nat)
+  | linkLimitExceeded (actual limit : Nat)
+  | conclusionLimitExceeded (actual limit : Nat)
+  | structurallyMalformed
+  | noCandidate
+  | candidateVerificationFailed
+  deriving Repr, DecidableEq
+
+namespace ReconstructionError
+
+/-- Stable reader-facing diagnostic for bounded reconstruction failures. -/
+def message : ReconstructionError → String
+  | .formulaLimitExceeded actual limit =>
+      s!"formula occurrence limit exceeded: {actual} > {limit}"
+  | .linkLimitExceeded actual limit =>
+      s!"link limit exceeded: {actual} > {limit}"
+  | .conclusionLimitExceeded actual limit =>
+      s!"conclusion limit exceeded: {actual} > {limit}"
+  | .structurallyMalformed =>
+      "certificate failed structural well-formedness"
+  | .noCandidate =>
+      "bounded structure-guided reconstruction found no candidate"
+  | .candidateVerificationFailed =>
+      "bounded reconstruction candidate failed exact proof-net verification"
+
+end ReconstructionError
+
 namespace Certificate
 
 private def firstVerification
@@ -884,6 +936,71 @@ theorem reconstructsDerivation_eq_check (input : Certificate) :
     input.reconstructsDerivation = input.check := by
   apply Bool.eq_iff_iff.mpr
   exact input.reconstructsDerivation_eq_true_iff_check
+
+/-- Fail-closed reconstruction within an explicit input-size envelope.
+
+Unlike `reconstructDerivation?`, this API never enters the exhaustive
+formula-order fallback.  A limit error or heuristic miss is not a logical
+rejection.  Every successful result has still passed `verifyDerivation?` and
+carries the same dependent proof evidence as the unbounded API. -/
+def reconstructDerivationWithinLimits
+    (input : Certificate)
+    (limits : ReconstructionLimits := ReconstructionLimits.qualified) :
+    Except ReconstructionError (DerivationVerificationResult input) :=
+  if limits.maxFormulaOccurrences < input.formulas.size then
+    .error (.formulaLimitExceeded input.formulas.size
+      limits.maxFormulaOccurrences)
+  else if limits.maxLinks < input.links.length then
+    .error (.linkLimitExceeded input.links.length limits.maxLinks)
+  else if limits.maxConclusions < input.conclusions.length then
+    .error (.conclusionLimitExceeded input.conclusions.length
+      limits.maxConclusions)
+  else if !input.wellFormed then
+    .error .structurallyMalformed
+  else
+    match reconstructTreeWithFuel? (input.formulas.size + 1) input with
+    | none => .error .noCandidate
+    | some tree =>
+        match input.verifyDerivation? tree with
+        | none => .error .candidateVerificationFailed
+        | some result => .ok result
+
+/-- A successful bounded reconstruction carries the full public soundness
+contract, independently of which limits admitted the input. -/
+theorem reconstructDerivationWithinLimits_sound
+    {input : Certificate} {limits : ReconstructionLimits}
+    {result : DerivationVerificationResult input}
+    (_equation :
+      input.reconstructDerivationWithinLimits limits = .ok result) :
+    input.StructurallyWellFormed ∧
+      input.conclusionFormulas? = some result.sequent ∧
+      result.tree.infer? = some result.sequent ∧
+      result.tree.desequentialize? = some result.output ∧
+      result.output.check = true ∧
+      result.output.ProofNetEquivalent input :=
+  ⟨result.inputStructural, result.inputLabels, result.inferred,
+    result.desequentialized, result.outputAccepted, result.equivalent⟩
+
+/-- Bounded success implies acceptance by the exact reference semantics. -/
+theorem reconstructDerivationWithinLimits_accepted
+    {input : Certificate} {limits : ReconstructionLimits}
+    {result : DerivationVerificationResult input}
+    (_equation :
+      input.reconstructDerivationWithinLimits limits = .ok result) :
+    input.check = true := by
+  rw [← result.equivalent.check_eq]
+  exact result.outputAccepted
+
+/-- Bounded success is always inside the unbounded reconstruction decision's
+accepted set.  No converse is claimed for the heuristic bounded path. -/
+theorem reconstructDerivationWithinLimits_implies_reconstructs
+    {input : Certificate} {limits : ReconstructionLimits}
+    {result : DerivationVerificationResult input}
+    (equation :
+      input.reconstructDerivationWithinLimits limits = .ok result) :
+    input.reconstructsDerivation = true :=
+  input.reconstructsDerivation_eq_true_iff_check.mpr
+    (input.reconstructDerivationWithinLimits_accepted equation)
 
 end Certificate
 

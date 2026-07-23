@@ -71,6 +71,9 @@ expansion.
 #print axioms Certificate.reconstructDerivation?_complete
 #print axioms Certificate.reconstructsDerivation_eq_true_iff_check
 #print axioms Certificate.reconstructsDerivation_eq_check
+#print axioms Certificate.reconstructDerivationWithinLimits_sound
+#print axioms Certificate.reconstructDerivationWithinLimits_accepted
+#print axioms Certificate.reconstructDerivationWithinLimits_implies_reconstructs
 #print axioms ExecutableSequentializationResult.kernelDerivation
 #print axioms ExecutableSequentializationResult.proofNetEquivalent
 #print axioms LeanProp.Derivation.toProof

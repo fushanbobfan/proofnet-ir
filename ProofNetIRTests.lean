@@ -670,6 +670,48 @@ example : ∃ result : DerivationVerificationResult canonical,
     canonical.reconstructDerivation? = some result :=
   canonical.reconstructDerivation?_complete (by native_decide)
 
+def canonicalBoundedReconstruction :=
+  canonical.reconstructDerivationWithinLimits
+
+example : canonicalBoundedReconstruction.isOk = true := by
+  native_decide
+
+def zeroReconstructionLimits : ReconstructionLimits where
+  maxFormulaOccurrences := 0
+  maxLinks := 0
+  maxConclusions := 0
+
+def zeroLimitReportsFormulaCount : Bool :=
+  match canonical.reconstructDerivationWithinLimits
+      zeroReconstructionLimits with
+  | .error (.formulaLimitExceeded actual limit) =>
+      actual == canonical.formulas.size && limit == 0
+  | _ => false
+
+example : zeroLimitReportsFormulaCount = true := by
+  native_decide
+
+def malformedBoundedReconstructionRejected : Bool :=
+  match (Mutation.dropFirstLink.apply canonical)
+      |>.reconstructDerivationWithinLimits with
+  | .error .structurallyMalformed => true
+  | _ => false
+
+example : malformedBoundedReconstructionRejected = true := by
+  native_decide
+
+def conclusionOverLimitCertificate : Certificate :=
+  { canonical with conclusions := List.replicate 25 4 }
+
+def conclusionLimitReportedBeforeSearch : Bool :=
+  match conclusionOverLimitCertificate.reconstructDerivationWithinLimits with
+  | .error (.conclusionLimitExceeded actual limit) =>
+      actual == 25 && limit == ReconstructionLimits.qualified.maxConclusions
+  | _ => false
+
+example : conclusionLimitReportedBeforeSearch = true := by
+  native_decide
+
 example :
     (Mutation.dropFirstLink.apply canonical).reconstructsDerivation = false := by
   native_decide
@@ -1703,6 +1745,14 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.reconstructsDerivation_eq_true_iff
 #check Certificate.reconstructsDerivation_eq_true_iff_check
 #check Certificate.reconstructsDerivation_eq_check
+#check ReconstructionLimits
+#check ReconstructionLimits.qualified
+#check ReconstructionError
+#check ReconstructionError.message
+#check Certificate.reconstructDerivationWithinLimits
+#check Certificate.reconstructDerivationWithinLimits_sound
+#check Certificate.reconstructDerivationWithinLimits_accepted
+#check Certificate.reconstructDerivationWithinLimits_implies_reconstructs
 
 example : CutFreeDerivation.reorder?
     [((.atom "p" true : Formula), 0), (.atom "p" true, 1)] [1, 0] =

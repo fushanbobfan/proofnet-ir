@@ -231,6 +231,15 @@ into the kernel theorem `Certificate.reconstructsDerivation_eq_check`.
 Fallback backtracking and formula-order enumeration remain explicit
 worst-case performance concerns.
 
+`reconstructDerivationWithinLimits` is the fail-closed public resource
+boundary around the fast tier. It checks configurable formula-occurrence,
+link, and conclusion ceilings before search and never enters the exhaustive
+fallback. Its structured limit and heuristic errors are intentionally
+inconclusive, while every `.ok` result has the same dependent soundness
+contract and is proved accepted by the exact reference semantics. The
+qualified 128/96/24 default is a tested input envelope, not a wall-clock or
+polynomial complexity theorem.
+
 The same module now discovers terminal splitting-tensor candidates by deleting
 the tensor conclusion in the full occurrence graph, partitioning reachable
 vertices, rejecting every cross-component link, locally renumbering both

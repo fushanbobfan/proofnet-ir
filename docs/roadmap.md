@@ -367,14 +367,21 @@
   - [x] CI-gate exact agreement on the 1,000-case deterministic corpus
     (250 accepted derivations and 750 malformed mutations) under a 15-second
     native budget.
-  - [x] Add and CI-gate 17 adversarial skewed/balanced/alternating,
-    repeated-internal-label, and reversed-link-order cases through 126 formula
-    occurrences. Replace eager factorial fallback materialization on the fast
-    path with one greedy formula-tree/axiom-profile alignment and defer
-    equivalence verification until the complete tree.
+  - [x] Add and CI-gate 18 adversarial skewed/balanced/alternating,
+    repeated-internal-label, repeated-boundary-label, and reversed-link-order
+    cases through 126 formula occurrences and 22 conclusions. Replace eager
+    factorial fallback materialization on the fast path with one greedy
+    formula-tree/axiom-profile alignment and defer equivalence verification
+    until the complete tree.
+  - [x] Add `reconstructDerivationWithinLimits`, a structured-error,
+    fail-closed API with a qualified 128-formula/96-link/24-conclusion
+    envelope. It never enters the exhaustive fallback; prove bounded success
+    sound, reference-accepted, and included in the complete unbounded
+    decision.
   - [ ] Prove or enforce a user-facing worst-case resource bound for fallback
-    backtracking and repeated-label enumeration; do not infer a polynomial or
-    linear guarantee from the bounded stress suite.
+    backtracking and repeated-label enumeration, or add a step/deadline budget
+    below the current input-size envelope; do not infer a polynomial or linear
+    guarantee from the bounded stress suite.
 
 ## Later research
 

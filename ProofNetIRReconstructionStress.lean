@@ -30,28 +30,38 @@ structure StressCase where
   name : String
   formula : Formula
   reverseLinks : Bool
+  peelPars : Nat := 0
 
 def cases : List StressCase := [
-  ⟨"right-tensor-4", rightTensor 4, false⟩,
-  ⟨"right-tensor-6", rightTensor 6, false⟩,
-  ⟨"right-tensor-7", rightTensor 7, false⟩,
-  ⟨"right-tensor-8", rightTensor 8, false⟩,
-  ⟨"right-tensor-8-reversed", rightTensor 8, true⟩,
-  ⟨"right-tensor-12", rightTensor 12, false⟩,
-  ⟨"right-tensor-16-reversed", rightTensor 16, true⟩,
-  ⟨"right-tensor-20-reversed", rightTensor 20, true⟩,
-  ⟨"balanced-tensor-3", balancedTensor 3, false⟩,
-  ⟨"balanced-tensor-4", balancedTensor 4, false⟩,
-  ⟨"balanced-tensor-4-reversed", balancedTensor 4, true⟩,
-  ⟨"balanced-tensor-5-reversed", balancedTensor 5, true⟩,
-  ⟨"balanced-par-3", balancedPar 3, false⟩,
-  ⟨"balanced-par-4", balancedPar 4, false⟩,
-  ⟨"balanced-par-4-reversed", balancedPar 4, true⟩,
-  ⟨"alternating-4", alternating true 4, false⟩,
-  ⟨"alternating-5-reversed", alternating true 5, true⟩
+  ⟨"right-tensor-4", rightTensor 4, false, 0⟩,
+  ⟨"right-tensor-6", rightTensor 6, false, 0⟩,
+  ⟨"right-tensor-7", rightTensor 7, false, 0⟩,
+  ⟨"right-tensor-8", rightTensor 8, false, 0⟩,
+  ⟨"right-tensor-8-reversed", rightTensor 8, true, 0⟩,
+  ⟨"right-tensor-12", rightTensor 12, false, 0⟩,
+  ⟨"right-tensor-16-reversed", rightTensor 16, true, 0⟩,
+  ⟨"right-tensor-20-reversed", rightTensor 20, true, 0⟩,
+  ⟨"expanded-boundary-20-reversed", rightTensor 20, true, 20⟩,
+  ⟨"balanced-tensor-3", balancedTensor 3, false, 0⟩,
+  ⟨"balanced-tensor-4", balancedTensor 4, false, 0⟩,
+  ⟨"balanced-tensor-4-reversed", balancedTensor 4, true, 0⟩,
+  ⟨"balanced-tensor-5-reversed", balancedTensor 5, true, 0⟩,
+  ⟨"balanced-par-3", balancedPar 3, false, 0⟩,
+  ⟨"balanced-par-4", balancedPar 4, false, 0⟩,
+  ⟨"balanced-par-4-reversed", balancedPar 4, true, 0⟩,
+  ⟨"alternating-4", alternating true 4, false, 0⟩,
+  ⟨"alternating-5-reversed", alternating true 5, true, 0⟩
 ]
 
 def budgetMs : Nat := 45_000
+
+def peelTerminalPars : Nat → Certificate → Option Certificate
+  | 0, certificate => some certificate
+  | count + 1, certificate => do
+      let (left, right, conclusion) ← certificate.terminalPars.head?
+      let premise ←
+        certificate.peelTerminalParCandidate? left right conclusion
+      peelTerminalPars count premise
 
 def run (arguments : List String) : IO Unit := do
   let selected :=
@@ -63,7 +73,12 @@ def run (arguments : List String) : IO Unit := do
   let start ← IO.monoMsNow
   let mut checksum := 0
   for stress in selected do
-    let original := identityCertificate stress.formula
+    let generated := identityCertificate stress.formula
+    let original ← match peelTerminalPars stress.peelPars generated with
+      | none =>
+          throw <| IO.userError
+            s!"stress par expansion failed: {stress.name}"
+      | some value => pure value
     let input :=
       if stress.reverseLinks then
         { original with links := original.links.reverse }
@@ -80,11 +95,11 @@ def run (arguments : List String) : IO Unit := do
       s!"reconstruction-stress-canonical name={stress.name} code_tokens={inputCode.length} elapsed_ms={canonicalMs}"
     (← IO.getStdout).flush
     let caseStart ← IO.monoMsNow
-    let result ← match input.reconstructDerivation? with
-      | none =>
+    let result ← match input.reconstructDerivationWithinLimits with
+      | .error error =>
           throw <| IO.userError
-            s!"checker-free reconstruction failed: {stress.name}"
-      | some value => pure value
+            s!"bounded checker-free reconstruction failed: {stress.name}: {error.message}"
+      | .ok value => pure value
     let caseMs := (← IO.monoMsNow) - caseStart
     checksum := checksum + result.output.formulas.size +
       result.output.links.length + result.sequent.length

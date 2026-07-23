@@ -70,10 +70,18 @@
   completeness fallback and every fast result still passes
   `verifyDerivation?`, while structurally invalid inputs now fail before
   inverse-rule search, so the exact Boolean theorem is unchanged. A new
-  CI-gated 17-case skewed/balanced/alternating repeated-label suite includes
-  reversed links and reaches 126 formula occurrences; the recorded Windows
-  run completed in 27,447 ms under a 45-second budget. No polynomial or linear
-  worst-case claim is made;
+  CI-gated 18-case skewed/balanced/alternating repeated-label suite includes
+  reversed links, reaches 126 formula occurrences, and includes a 22-conclusion
+  repeated-boundary case; the recorded Windows run completed in 34,416 ms
+  under a 45-second budget. No polynomial or linear worst-case claim is made;
+- added the fail-closed `reconstructDerivationWithinLimits` public API and
+  structured `ReconstructionLimits`/`ReconstructionError` types. The qualified
+  128-formula/96-link/24-conclusion envelope is checked before search and the
+  bounded path never invokes exhaustive formula-order fallback. Lean proves
+  every bounded success has the complete soundness contract, is accepted by
+  the reference semantics, and lies in the complete unbounded decision's
+  accepted set. Limit and heuristic errors remain explicitly inconclusive;
+  the clean downstream consumer compiles and executes the bounded API;
 - published `v0.8.0` and changed the clean external consumer from candidate
   commit `925855572b316376445eafa36e043596f49637bc` to the exact public tag;
   Lake resolves that tag to release commit
