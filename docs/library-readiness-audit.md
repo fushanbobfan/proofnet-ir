@@ -1,7 +1,7 @@
 # Library-readiness audit
 
 Audit date: 2026-07-22
-Audited baseline: v0.5.2 release candidate
+Audited baseline: v0.5.2 release plus v0.6 development
 
 ## Verdict
 
@@ -146,8 +146,9 @@ part of the engineering and proof-identity gap.
 - the LeanProp wire boundary has an independent deterministic 5,000-case
   mutation gate plus JSON Schema fixtures and a SHA-256 manifest over 1,600
   Lean-emitted labeled records; every accepted wire value now retains an
-  indexed derivation and exposes universal `sound`, but the API is not
-  release-pinned yet;
+  indexed derivation and exposes universal `sound`. A clean consumer pins the
+  exact public v0.6-development commit and typechecks that API, but no v0.6 tag
+  has been published or release-pinned yet;
 - a 291-case depth-2/3/4 native CI workload now has a 45-second catastrophic
   regression budget; it explicitly does not establish favorable asymptotics,
   and the measured depth-4 cost remains a library-readiness limitation;

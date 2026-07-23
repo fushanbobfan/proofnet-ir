@@ -1,6 +1,7 @@
 /.lake/
 /consumer-smoke/.lake/
 /consumer-release-smoke/.lake/
+/consumer-v06-candidate-smoke/.lake/
 /.vscode/
 *.olean
 *.ilean

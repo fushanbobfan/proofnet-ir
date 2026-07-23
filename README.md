@@ -262,6 +262,7 @@ ProofNetIRModelExperimentCorpus.lean held-out model-task base emitter
 ProofNetIRExperimentVerify.lean Lean checker/sequentializer batch boundary
 consumer-smoke/               independent downstream Lake dependency test
 consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
+consumer-v06-candidate-smoke/  clean consumer pinned to public v0.6-dev commit
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest

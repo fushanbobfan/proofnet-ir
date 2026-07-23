@@ -36,7 +36,11 @@
 - added independent JSON Schema fixtures and a deterministic 5,000-case native
   LeanProp parser mutation-fuzz gate;
 - added a Lean corpus exporter and CI-checked SHA-256 manifest over all 1,600
-  labeled wire records, with no independent Python acceptance oracle.
+  labeled wire records, with no independent Python acceptance oracle;
+- added a clean remote Lake consumer pinned to the public v0.6-development
+  commit. It checks valid/invalid wire inputs and typechecks the retained
+  boundary, packed witness, and universal soundness theorem without using the
+  source checkout as a path dependency.
 
 ## v0.5.2 - Repeated-label pruning and model-backed audit
 

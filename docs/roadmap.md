@@ -265,9 +265,11 @@
 - [x] Elaborate every accepted raw/wire schema into an indexed derivation,
   prove exact infer/elaborate agreement and acceptance lifting in Lean, and
   expose the universal checked-input soundness theorem to downstream users.
+- [x] Build a clean downstream Lake consumer from an exact public
+  v0.6-development Git commit and typecheck the checked-input theorems there.
 - [ ] Add migration fixtures when a second schema wire version exists.
 - [ ] Prove further exchange/structural normalization metatheory and qualify
-  the public bridge through release-pinned downstream consumers.
+  the public bridge through a final v0.6-tag-pinned downstream consumer.
 
 ## Later research
 
