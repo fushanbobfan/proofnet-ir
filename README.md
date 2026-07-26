@@ -94,17 +94,37 @@ actually concatenated: a retained par frontier and the reversed first tail
 incidence share the same par color and form a genuine cusp; a tensor frontier
 and tail carry exact unique colors, and color equality would force the
 prohibited immediate reversal, so the turn is free. Every edge of the finite
-closed waiting-dependency segment now carries this occurrence-geometric
-alternative and an exact composable `fullGraph` segment from its source
-waiting conclusion to its target. Lean concatenates the selected finite
-family into a genuinely nonempty closed occurrence-aware walk in the
-certificate's complete graph. That closed walk may still contain backtracking
-or repeated occurrences: proof-net correctness must next extract and exclude
-a suitably classified edge-simple switching cycle or forbidden nesting before
-the recursive fallback can be removed. The later
-`NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
-separate from that logical completeness result. See
-[the v0.10 design](docs/v0.10-design.md).
+ closed waiting-dependency segment now carries this occurrence-geometric
+ alternative and an exact composable `fullGraph` segment from its source
+ waiting conclusion to its target. Lean concatenates the selected finite
+ family into a genuinely nonempty closed occurrence-aware walk in the
+ certificate's complete graph. A reusable exact-occurrence
+ `Graph.EdgeWalk.NoImmediateReverse` predicate now proves that every individual
+ dependency segment is internally nonbacktracking: the source/prefix junction,
+ retained simple prefix, classified frontier/tail junction, and all-backward
+ tail are covered separately. This does not yet make the concatenated closed
+ walk nonbacktracking, because an immediate reversal may still occur between
+ two adjacent segments. Lean now proves that any such junction reversal forces
+ the preceding dependency's formula chase to be reflexive; a nontrivial
+ preceding tail and the next segment head are both backward, so they cannot be
+ reverses. The reflexive alternative is occurrence-exact: the final retained
+ frontier occurrence is the same stored edge used backwards as the next
+ waiting par's source incidence. A generic graph theorem and a
+ dependency-specific theorem now cancel exactly that pair while preserving the
+ walk endpoints, all other occurrences, and the nested-waiting-par witness.
+ A terminating exact-occurrence normalizer repeatedly removes internal pairs
+ and rotates away a reversing last/first cyclic pair. Lean therefore reduces
+ the nonempty closed dependency walk to a closed walk which is either empty or
+ cyclically nonbacktracking, with every surviving occurrence drawn from the
+ original obstruction. The empty alternative is real for nested out-and-back
+ tree walks and is not silently discarded. Proof-net correctness must next
+ exclude that exact nesting; in the nonempty branch it must transport the local
+ turn evidence while extracting a suitably classified edge-simple switching
+ cycle or forbidden nesting before the recursive fallback can be removed. The
+ later
+ `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
+ separate from that logical completeness result. See
+ [the v0.10 design](docs/v0.10-design.md).
 
 v0.9 exposes
 occurrence-aware multigraph acyclicity and proves that every declarative

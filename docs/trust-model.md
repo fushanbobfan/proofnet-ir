@@ -178,15 +178,31 @@ proposition now binds the classified frontier and formula edge to the actual
 last prefix and first tail occurrences. Thus parallel equal-endpoint edges
 cannot satisfy the classification on behalf of different traversed
 occurrences. Every dependency carries that same-boundary classification
-together with an exact composable complete-graph segment, and the selected
-finite family is kernel-concatenated into a genuinely nonempty closed
-occurrence-aware `fullGraph` walk. The walk may still contain backtracking or
-repeated occurrences. The remaining gap is to normalize it while preserving
-the classifications and exclude the resulting edge-simple switching cycle or
-forbidden nesting; this is not yet the correct-state progress theorem needed
-for pure-worklist completeness. The attempt accounting also excludes
-consumer-table construction, waiting-list traversal, frontier work, and
-verification.
+ together with an exact composable complete-graph segment, and the selected
+ finite family is kernel-concatenated into a genuinely nonempty closed
+ occurrence-aware `fullGraph` walk. Every individual segment is now
+ kernel-proved to satisfy the exact-occurrence
+ `Graph.EdgeWalk.NoImmediateReverse` predicate. This local theorem does not
+ cover the junction between adjacent segments, so the concatenated walk may
+ still backtrack there or repeat occurrences. Any actual junction reversal is
+ now proved to force the preceding formula chase to be reflexive; nontrivial
+ tails end backward and cannot reverse the next backward segment head. The
+ reflexive witness now records the exact retained frontier occurrence, and the
+ same full-edge index is proved to be the next waiting par's source incidence.
+ One exact reverse pair can be cancelled with the endpoints and all other
+ occurrences preserved; parallel endpoint-equal occurrences cannot stand in
+ for it. A terminating normalizer now covers internal and cyclic closing
+ reversals and returns a closed normal form which is either empty or cyclically
+ nonbacktracking; surviving occurrences are proved to come from the original
+ walk. It does not claim that nonempty input stays nonempty, because nested
+ out-and-back walks refute that claim. The remaining gap is to exclude that
+ exact empty nesting and, in the nonempty branch, transport the turn evidence
+ into an excluded edge-simple switching cycle or forbidden nesting. This is not
+ yet the correct-state progress theorem needed for pure-worklist completeness.
+ The
+ attempt accounting also excludes
+ consumer-table construction, waiting-list traversal, frontier work, and
+ verification.
 
 For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
 formula-only raw checker and typed elaborator agree on acceptance, rejection,

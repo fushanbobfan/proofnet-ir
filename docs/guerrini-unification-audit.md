@@ -149,11 +149,20 @@ is now also packaged as a composable complete-graph segment from its source
 waiting conclusion to its target, using the exact source-par incidence,
 retained reference-prefix lift, and all-backward formula tail. The finite
 closed dependency family is kernel-concatenated into a genuinely nonempty
-closed occurrence-aware `fullGraph` walk. Since that walk can still contain
-backtracking or repeated edge occurrences, the remaining argument must
-normalize it while preserving the turn classifications and exclude the
-resulting edge-simple switching cycle or forbidden nesting in a correct
-quiescent state.
+closed occurrence-aware `fullGraph` walk. Any adjacent-segment reverse pair is
+now tied to the exact retained reflexive frontier occurrence and the same
+stored full-edge index is proved to annotate the next waiting par. A generic
+exact-occurrence cancellation lemma and its dependency-level specialization
+remove one such pair while preserving the endpoints, all remaining
+occurrences, and the nesting witness. A terminating exact-occurrence
+normalization now repeatedly cancels internal pairs and rotates a reversing
+last/first pair. It reduces the nonempty dependency obstruction to a closed
+walk that is either empty or cyclically nonbacktracking, with every surviving
+occurrence inherited from the original walk. The empty branch is not an
+artifact: nested out-and-back tree walks genuinely normalize away. The
+remaining argument must exclude that exact nesting and, in the nonempty branch,
+transport the turn classifications into an excluded edge-simple switching
+cycle or forbidden nesting in a correct quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
@@ -240,10 +249,15 @@ or positive misses. The larger search recorded at most 150 link attempts and
    the remaining waiting par premises; same-thread tensor deadlock is already
    excluded by the active-path switching-cycle theorem. Exact retained-edge
    transport, par-cusp/tensor-free boundary classification, composable
-   dependency segments, and a nonempty closed `fullGraph` walk are now proved.
-   The immediate proof obligation is occurrence-preserving normalization of
-   that possibly backtracking/repeating walk into an excluded edge-simple
-   switching cycle or forbidden nesting.
+   dependency segments, a nonempty closed `fullGraph` walk, internal
+   nonbacktracking of every individual segment, the fact that any inter-segment
+   immediate reversal forces a reflexive preceding formula chase, the exact
+   retained-frontier/next-waiting-par occurrence binding, one-step
+   occurrence-preserving cancellation, and terminating internal-plus-cyclic
+   normalization to an empty or cyclically nonbacktracking closed walk are now
+   proved. The immediate proof obligation is to exclude the exact nested empty
+   branch and, in the nonempty branch, transport the turn evidence into an
+   excluded edge-simple switching cycle or forbidden nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

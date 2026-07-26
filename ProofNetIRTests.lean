@@ -350,6 +350,49 @@ example : indexedParallelGraph.EdgeWalk 1 [parallelDirectedZero.reverse] 0 := by
     .step (.refl 0) parallelDirectedZero rfl rfl
   simpa [Graph.EdgeWalk.reverseTraversal] using forward.reverse
 
+example :
+    ¬Graph.EdgeWalk.NoImmediateReverse
+      [parallelDirectedZero, parallelDirectedZero.reverse] := by
+  simp [Graph.EdgeWalk.NoImmediateReverse]
+
+example :
+    Graph.EdgeWalk.NoImmediateReverse
+      [parallelDirectedZero, parallelDirectedOne.reverse] := by
+  simp [Graph.EdgeWalk.NoImmediateReverse, parallelDirectedZero,
+    parallelDirectedOne, Graph.DirectedEdge.reverse]
+
+example : indexedParallelGraph.EdgeWalk 0 [] 0 := by
+  have outAndBack :
+      indexedParallelGraph.EdgeWalk 0
+        [parallelDirectedZero, parallelDirectedZero.reverse] 0 := by
+    simpa [parallelDirectedZero, Graph.DirectedEdge.source] using
+      Graph.EdgeWalk.step
+        (Graph.EdgeWalk.step (.refl 0) parallelDirectedZero rfl rfl)
+        parallelDirectedZero.reverse rfl rfl
+  simpa using
+    (Graph.EdgeWalk.cancelImmediateReverse
+      (before := []) (after := []) outAndBack)
+
+example :
+    Graph.EdgeWalk.ImmediateReverseNormalization
+      [parallelDirectedZero, parallelDirectedZero.reverse] [] :=
+  .step (.cancel [] [] parallelDirectedZero) (.refl [])
+
+example :
+    ∃ reduced,
+      Graph.EdgeWalk.ImmediateReverseNormalization
+          [parallelDirectedZero, parallelDirectedZero.reverse] reduced ∧
+        indexedParallelGraph.EdgeWalk 0 reduced 0 ∧
+          Graph.EdgeWalk.NoImmediateReverse reduced := by
+  have outAndBack :
+      indexedParallelGraph.EdgeWalk 0
+        [parallelDirectedZero, parallelDirectedZero.reverse] 0 := by
+    simpa [parallelDirectedZero, Graph.DirectedEdge.source] using
+      Graph.EdgeWalk.step
+        (Graph.EdgeWalk.step (.refl 0) parallelDirectedZero rfl rfl)
+        parallelDirectedZero.reverse rfl rfl
+  exact Graph.EdgeWalk.normalizeImmediateReversals _ outAndBack
+
 def indexedParallelCycle : indexedParallelGraph.EdgeSimpleCycle where
   start := 0
   traversed := [parallelDirectedZero, parallelDirectedOne.reverse]
@@ -2189,6 +2232,24 @@ example : ¬cyclicGraph.Acyclic := by
 #check Graph.DirectedEdge.inflateRetained_exists_exact
 #check Graph.EdgeWalk.inflateRetained
 #check Graph.EdgeWalk.inflateRetainedExact
+#check Graph.EdgeWalk.NoImmediateReverse
+#check Graph.EdgeWalk.NoImmediateReverse.of_map_nodup
+#check Graph.EdgeWalk.NoImmediateReverse.of_constant_forward
+#check Graph.EdgeWalk.NoImmediateReverse.append
+#check Graph.EdgeWalk.NoImmediateReverse.reduced_or_cancel
+#check Graph.EdgeWalk.cancelImmediateReverse
+#check Graph.EdgeWalk.ImmediateReverseReduction
+#check Graph.EdgeWalk.ImmediateReverseReduction.length_lt
+#check Graph.EdgeWalk.ImmediateReverseReduction.preservesWalk
+#check Graph.EdgeWalk.ImmediateReverseReduction.membership_subset
+#check Graph.EdgeWalk.ImmediateReverseNormalization
+#check Graph.EdgeWalk.ImmediateReverseNormalization.preservesWalk
+#check Graph.EdgeWalk.ImmediateReverseNormalization.membership_subset
+#check Graph.EdgeWalk.ImmediateReverseNormalization.length_le
+#check Graph.EdgeWalk.normalizeImmediateReversals
+#check Graph.EdgeWalk.rotateFirstClosed
+#check Graph.EdgeWalk.CyclicNoImmediateReverse
+#check Graph.EdgeWalk.normalizeCyclicImmediateReversals
 #check Graph.EdgeSimpleCycle.inflateRetained
 #check Graph.DirectedEdge.ne_reverse
 #check Graph.EdgeSimpleCycle.eq_of_index_eq

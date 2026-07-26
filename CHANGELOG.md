@@ -161,9 +161,33 @@
   walk: the reversed source-par left incidence, retained reference-prefix
   lift, and all-backward formula tail. A graph-generic concatenation theorem
   joins the selected finite family into a genuinely nonempty closed
-  occurrence-aware `fullGraph` walk. Because this walk may retain backtracking
-  or repeated edge occurrences, correctness still must extract and exclude a
-  suitably classified edge-simple switching cycle or forbidden nesting, so
+  occurrence-aware `fullGraph` walk. Added the reusable exact-occurrence
+  `Graph.EdgeWalk.NoImmediateReverse` predicate with duplicate-key,
+  constant-orientation, and append lemmas. Every individual dependency segment
+  now satisfies it: the source/prefix junction is excluded using the original
+  simple path's avoided conclusion, the retained prefix inherits a
+  reversal-invariant duplicate-free occurrence key, the actual frontier/tail
+  junction uses the classified non-reversal witness, and the all-backward tail
+  has constant orientation. The concatenated closed walk may still backtrack at
+  an inter-segment junction or repeat edge occurrences. A junction-reversal
+  theorem now proves that any actual reversal forces the preceding dependency
+  chase to be reflexive; the nontrivial case is impossible because both
+  boundary edges are backward. The witness is now occurrence-exact: the
+  incoming full-graph edge is tied to the retained reflexive frontier and its
+  same stored index is proved to be the next waiting par's source incidence.
+  `Graph.EdgeWalk.cancelImmediateReverse` and the dependency-level cancellation
+  theorem remove exactly that reverse pair while preserving both walk
+  endpoints, every remaining occurrence, and the nesting witness; endpoint-
+  equal parallel occurrences cannot be substituted. A terminating exact-
+  occurrence normalization relation now repeatedly cancels internal pairs,
+  rotates a closed walk when its last/first pair reverses, and returns a closed
+  normal form whose surviving occurrences all came from the original walk.
+  The result is either empty or cyclically nonbacktracking. The empty branch is
+  intentionally retained because a nested out-and-back tree walk is a real
+  counterexample to nonempty normalization. Correctness still must exclude that
+  exact nesting, and in the nonempty branch transport the local turn evidence
+  while extracting or excluding a suitably classified edge-simple switching
+  cycle or forbidden nesting. Thus
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

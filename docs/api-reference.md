@@ -344,6 +344,246 @@ ProofNetIR.Graph.EdgeWalk.inflateRetainedExact : ∀ {graph : ProofNetIR.Graph} 
                   ∀ (directed : graph.DirectedEdge), directed ∈ originalTraversal → mask[directed.index]? = some true
 ```
 
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse`
+
+Kind: definition.
+
+No two consecutive entries traverse the same stored edge occurrence in
+opposite directions.  This is deliberately a property of the exact directed
+occurrence list, not merely of its endpoint sequence.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.of_map_nodup`
+
+Kind: theorem.
+
+Duplicate-freedom under any reversal-invariant occurrence key excludes an
+immediate reversal.  The key can be the original edge index or a retained-mask
+position, so the lemma remains useful while lifting exact masked traversals.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.of_map_nodup : ∀ {graph : ProofNetIR.Graph} {α : Type} (key : graph.DirectedEdge → α),
+  (∀ (directed : graph.DirectedEdge), key directed.reverse = key directed) →
+    ∀ {traversed : List graph.DirectedEdge},
+      (List.map key traversed).Nodup → ProofNetIR.Graph.EdgeWalk.NoImmediateReverse traversed
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.of_constant_forward`
+
+Kind: theorem.
+
+A traversal whose entries all have the same orientation cannot immediately
+reverse an occurrence, because reversal flips that orientation.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.of_constant_forward : ∀ {graph : ProofNetIR.Graph} {forward : Bool} {traversed : List graph.DirectedEdge},
+  (∀ (directed : graph.DirectedEdge), directed ∈ traversed → directed.forward = forward) →
+    ProofNetIR.Graph.EdgeWalk.NoImmediateReverse traversed
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.append`
+
+Kind: theorem.
+
+Concatenating two nonbacktracking exact traversals is nonbacktracking when
+their unique junction, if both sides are nonempty, is not an immediate
+reversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.append : ∀ {graph : ProofNetIR.Graph} {first second : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.NoImmediateReverse first →
+    ProofNetIR.Graph.EdgeWalk.NoImmediateReverse second →
+      (∀ (incoming outgoing : graph.DirectedEdge),
+          first.getLast? = some incoming → second.head? = some outgoing → outgoing ≠ incoming.reverse) →
+        ProofNetIR.Graph.EdgeWalk.NoImmediateReverse (first ++ second)
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.reduced_or_cancel`
+
+Kind: theorem.
+
+Every exact traversal is either already nonbacktracking or contains an
+adjacent occurrence followed by its exact reverse.  The decomposition is by
+stored occurrence, not by endpoint equality.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.reduced_or_cancel : ∀ {graph : ProofNetIR.Graph} (traversed : List graph.DirectedEdge),
+  ProofNetIR.Graph.EdgeWalk.NoImmediateReverse traversed ∨
+    ∃ before incoming after, traversed = before ++ incoming :: incoming.reverse :: after
+```
+
+### `ProofNetIR.Graph.EdgeWalk.cancelImmediateReverse`
+
+Kind: theorem.
+
+Cancel one adjacent traversal of an exact stored occurrence followed by
+its reverse.  The endpoints and every remaining occurrence are preserved; in
+particular, endpoint-equal parallel edges cannot be cancelled by this lemma.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.cancelImmediateReverse : ∀ {graph : ProofNetIR.Graph} {start finish : ProofNetIR.Vertex} {before after : List graph.DirectedEdge}
+  {incoming : graph.DirectedEdge},
+  graph.EdgeWalk start (before ++ incoming :: incoming.reverse :: after) finish →
+    graph.EdgeWalk start (before ++ after) finish
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction`
+
+Kind: inductive type.
+
+One exact adjacent reverse-pair deletion.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.length_lt`
+
+Kind: theorem.
+
+Every exact reverse-pair deletion strictly shortens the traversal by two
+entries.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.length_lt : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction before after → after.length < before.length
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.preservesWalk`
+
+Kind: theorem.
+
+One exact reverse-pair deletion preserves a valid walk's endpoints.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.preservesWalk : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction before after →
+    ∀ {start finish : ProofNetIR.Vertex}, graph.EdgeWalk start before finish → graph.EdgeWalk start after finish
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.membership_subset`
+
+Kind: theorem.
+
+One deletion cannot introduce an occurrence that was absent from the
+source traversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.membership_subset : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction before after →
+    ∀ (directed : graph.DirectedEdge), directed ∈ after → directed ∈ before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization`
+
+Kind: inductive type.
+
+Reflexive-transitive normalization by exact adjacent reverse-pair
+deletions.  The relation records every deleted stored occurrence.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.preservesWalk`
+
+Kind: theorem.
+
+Iterated exact reverse-pair deletion preserves a valid walk's endpoints.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.preservesWalk : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization before after →
+    ∀ {start finish : ProofNetIR.Vertex}, graph.EdgeWalk start before finish → graph.EdgeWalk start after finish
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.membership_subset`
+
+Kind: theorem.
+
+Iterated deletion cannot introduce an occurrence that was absent from the
+original traversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.membership_subset : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization before after →
+    ∀ (directed : graph.DirectedEdge), directed ∈ after → directed ∈ before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.length_le`
+
+Kind: theorem.
+
+Iterated deletion never increases traversal length.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.length_le : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization before after → after.length ≤ before.length
+```
+
+### `ProofNetIR.Graph.EdgeWalk.normalizeImmediateReversals`
+
+Kind: theorem.
+
+Every finite exact-occurrence walk normalizes to a walk with the same
+endpoints and no adjacent occurrence/reverse pair.  The theorem deliberately
+does not claim that a nonempty input has a nonempty normal form: an out-and-
+back tree walk can normalize to the empty traversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.normalizeImmediateReversals : ∀ {graph : ProofNetIR.Graph} {start finish : ProofNetIR.Vertex} (traversed : List graph.DirectedEdge),
+  graph.EdgeWalk start traversed finish →
+    ∃ reduced,
+      ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization traversed reduced ∧
+        graph.EdgeWalk start reduced finish ∧ ProofNetIR.Graph.EdgeWalk.NoImmediateReverse reduced
+```
+
+### `ProofNetIR.Graph.EdgeWalk.rotateFirstClosed`
+
+Kind: theorem.
+
+Rotate the first exact occurrence of a closed walk to the end.  The
+result is closed at the old first edge's target and retains exactly the same
+directed occurrences in cyclic order.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.rotateFirstClosed : ∀ {graph : ProofNetIR.Graph} {base : ProofNetIR.Vertex} {first : graph.DirectedEdge} {rest : List graph.DirectedEdge},
+  graph.EdgeWalk base (first :: rest) base → graph.EdgeWalk first.target (rest ++ [first]) first.target
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse`
+
+Kind: definition.
+
+A cyclic traversal has no immediate exact-occurrence reversal either
+inside its list representation or across its closing last/first junction.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversals`
+
+Kind: theorem.
+
+Normalize a finite closed exact-occurrence walk both internally and across
+its cyclic closing junction.  The base vertex may rotate, every surviving
+occurrence comes from the input, and the result is either empty or cyclically
+nonbacktracking.  The empty alternative is essential: a closed tree walk can
+consist entirely of nested out-and-back pairs.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversals : ∀ {graph : ProofNetIR.Graph} {base : ProofNetIR.Vertex} (traversed : List graph.DirectedEdge),
+  graph.EdgeWalk base traversed base →
+    ∃ normalizedBase reduced,
+      graph.EdgeWalk normalizedBase reduced normalizedBase ∧
+        (reduced = [] ∨ ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse reduced) ∧
+          ∀ (directed : graph.DirectedEdge), directed ∈ reduced → directed ∈ traversed
+```
+
 ### `ProofNetIR.Graph.EdgeSimpleCycle.inflateRetained`
 
 Kind: theorem.

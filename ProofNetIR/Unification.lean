@@ -16655,29 +16655,30 @@ private def QuiescentWaitingParDependencyFullSegment
         List certificate.fullGraph.DirectedEdge),
     QuiescentWaitingParDependencyAtBoundary
         certificate state source target boundary ∧
-      ((boundary.target = target ∧ formulaTail = []) ∨
-        ∃ (frontier first :
-              certificate.fullGraph.DirectedEdge)
-            (rest : List certificate.fullGraph.DirectedEdge),
-          fullPrefix.getLast? = some frontier ∧
-            formulaTail = first :: rest ∧
-              frontier.edge = boundary.edge ∧
-                frontier.forward = boundary.forward ∧
-                  Graph.retainedIndex
-                      certificate.referenceSwitchingMask
-                      frontier.index =
-                    boundary.index ∧
-                    frontier.source = boundary.source ∧
-                      frontier.target = boundary.target ∧
-                        first.source = boundary.target ∧
-                          first.target ≠ boundary.source ∧
-                            first.forward = false ∧
-                              first ≠ frontier.reverse ∧
-                                certificate.referenceSwitchingMask[
-                                  frontier.index]? = some true ∧
-                                  ClassifiedFrontierFirstTurn
-                                    certificate frontier first
-                                      boundary.target) ∧
+      (∃ frontier : certificate.fullGraph.DirectedEdge,
+        fullPrefix.getLast? = some frontier ∧
+          frontier.edge = boundary.edge ∧
+            frontier.forward = boundary.forward ∧
+              Graph.retainedIndex
+                  certificate.referenceSwitchingMask frontier.index =
+                boundary.index ∧
+                frontier.source = boundary.source ∧
+                  frontier.target = boundary.target ∧
+                    certificate.referenceSwitchingMask[frontier.index]? =
+                        some true ∧
+                      ((boundary.target = target ∧ formulaTail = []) ∨
+                        ∃ (first :
+                              certificate.fullGraph.DirectedEdge)
+                            (rest :
+                              List certificate.fullGraph.DirectedEdge),
+                          formulaTail = first :: rest ∧
+                            first.source = boundary.target ∧
+                              first.target ≠ boundary.source ∧
+                                first.forward = false ∧
+                                  first ≠ frontier.reverse ∧
+                                    ClassifiedFrontierFirstTurn
+                                      certificate frontier first
+                                        boundary.target)) ∧
         sourceEdge.edge = { first := left, second := source } ∧
           sourceEdge.forward = false ∧
             sourceEdge.source = source ∧
@@ -16710,7 +16711,10 @@ private def QuiescentWaitingParDependencyFullSegment
                                 certificate.CuspFreeTraversal formulaTail ∧
                                   certificate.fullGraph.EdgeWalk source
                                     (([sourceEdge] ++ fullPrefix) ++
-                                      formulaTail) target
+                                      formulaTail) target ∧
+                                    Graph.EdgeWalk.NoImmediateReverse
+                                      (([sourceEdge] ++ fullPrefix) ++
+                                        formulaTail)
 
 /-- Every dependency has the exact composable full-graph segment described
 above.  In particular, the source and target of the segment are the dependency
@@ -16785,7 +16789,7 @@ private theorem quiescentWaitingParDependency_fullSegment
   rcases retainedPrefixWalk'.inflateRetainedExact aligned with
     ⟨fullPrefix, fullPrefixWalk, retainedIndices,
       fullPrefixEdges, fullPrefixForwards,
-      _retainedTargets, fullPrefixKept⟩
+      retainedTargets, fullPrefixKept⟩
   have fullPrefixNonempty : fullPrefix ≠ [] := by
     intro empty
     have mappedEmpty :
@@ -16905,29 +16909,34 @@ private theorem quiescentWaitingParDependency_fullSegment
     ⟨formulaTail, formulaTailWalk, formulaTailBackward,
       formulaTailCuspFree, formulaTailShape⟩
   have actualTurn :
-      (boundary.target = target ∧ formulaTail = []) ∨
-        ∃ (actualFrontier actualFirst :
-              certificate.fullGraph.DirectedEdge)
-            (rest : List certificate.fullGraph.DirectedEdge),
-          fullPrefix.getLast? = some actualFrontier ∧
-            formulaTail = actualFirst :: rest ∧
-              actualFrontier.edge = boundary.edge ∧
-                actualFrontier.forward = boundary.forward ∧
-                  Graph.retainedIndex
-                      certificate.referenceSwitchingMask
-                      actualFrontier.index =
-                    boundary.index ∧
-                    actualFrontier.source = boundary.source ∧
-                      actualFrontier.target = boundary.target ∧
-                        actualFirst.source = boundary.target ∧
-                          actualFirst.target ≠ boundary.source ∧
-                            actualFirst.forward = false ∧
-                              actualFirst ≠ actualFrontier.reverse ∧
-                                certificate.referenceSwitchingMask[
-                                  actualFrontier.index]? = some true ∧
-                                  ClassifiedFrontierFirstTurn certificate
-                                    actualFrontier actualFirst
-                                      boundary.target := by
+      ∃ actualFrontier : certificate.fullGraph.DirectedEdge,
+        fullPrefix.getLast? = some actualFrontier ∧
+          actualFrontier.edge = boundary.edge ∧
+            actualFrontier.forward = boundary.forward ∧
+              Graph.retainedIndex certificate.referenceSwitchingMask
+                  actualFrontier.index =
+                boundary.index ∧
+                actualFrontier.source = boundary.source ∧
+                  actualFrontier.target = boundary.target ∧
+                    certificate.referenceSwitchingMask[
+                        actualFrontier.index]? = some true ∧
+                      ((boundary.target = target ∧ formulaTail = []) ∨
+                        ∃ (actualFirst :
+                              certificate.fullGraph.DirectedEdge)
+                            (rest :
+                              List certificate.fullGraph.DirectedEdge),
+                          formulaTail = actualFirst :: rest ∧
+                            actualFirst.source = boundary.target ∧
+                              actualFirst.target ≠ boundary.source ∧
+                                actualFirst.forward = false ∧
+                                  actualFirst ≠ actualFrontier.reverse ∧
+                                    ClassifiedFrontierFirstTurn certificate
+                                      actualFrontier actualFirst
+                                        boundary.target) := by
+    refine
+      ⟨frontier, frontierLast, frontierEdge, frontierForward,
+        frontierRetainedIndex, frontierSource, frontierTarget,
+        frontierKept, ?_⟩
     rcases formulaTailShape with reflexive | nontrivial
     · exact .inl reflexive
     · rcases nontrivial with
@@ -16960,11 +16969,8 @@ private theorem quiescentWaitingParDependency_fullSegment
           frontierTarget frontierKept firstBackward notReverse
           firstOrigin
       exact .inr
-        ⟨frontier, first, rest, frontierLast, tailEquation,
-          frontierEdge, frontierForward, frontierRetainedIndex,
-          frontierSource, frontierTarget, firstSource,
-          firstTargetNe, firstBackward, notReverse,
-          frontierKept, classified⟩
+        ⟨first, rest, tailEquation, firstSource,
+          firstTargetNe, firstBackward, notReverse, classified⟩
   have sourceToBoundary :
       certificate.fullGraph.EdgeWalk source
         ([sourceEdge] ++ fullPrefix) boundary.target :=
@@ -16973,6 +16979,120 @@ private theorem quiescentWaitingParDependency_fullSegment
       certificate.fullGraph.EdgeWalk source
         (([sourceEdge] ++ fullPrefix) ++ formulaTail) target :=
     sourceToBoundary.trans formulaTailWalk
+  have retainedPrefixIndexNodup :
+      ((before ++ [boundary]).map
+        Graph.DirectedEdge.index).Nodup := by
+    have completeIndexNodup :
+        (((before ++ [boundary]) ++ after).map
+          Graph.DirectedEdge.index).Nodup := by
+      simpa [List.append_assoc, traversalEquation] using
+        referencePath.edgeIndicesNodup
+    rw [List.map_append, List.nodup_append] at completeIndexNodup
+    exact completeIndexNodup.1
+  have fullPrefixRetainedIndexNodup :
+      (fullPrefix.map (fun directed =>
+        Graph.retainedIndex certificate.referenceSwitchingMask
+          directed.index)).Nodup := by
+    rw [retainedIndices]
+    exact retainedPrefixIndexNodup
+  have fullPrefixNoImmediateReverse :
+      Graph.EdgeWalk.NoImmediateReverse
+        fullPrefix := by
+    apply Graph.EdgeWalk.NoImmediateReverse.of_map_nodup
+      (fun directed =>
+        Graph.retainedIndex certificate.referenceSwitchingMask
+          directed.index)
+    · intro directed
+      simp
+    · exact fullPrefixRetainedIndexNodup
+  have formulaTailNoImmediateReverse :
+      Graph.EdgeWalk.NoImmediateReverse
+        formulaTail :=
+    Graph.EdgeWalk.NoImmediateReverse.of_constant_forward
+      formulaTailBackward
+  have sourcePrefixNoImmediateReverse :
+      Graph.EdgeWalk.NoImmediateReverse
+        ([sourceEdge] ++ fullPrefix) := by
+    apply Graph.EdgeWalk.NoImmediateReverse.append
+      (first := [sourceEdge]) (second := fullPrefix)
+    · simp [Graph.EdgeWalk.NoImmediateReverse]
+    · exact fullPrefixNoImmediateReverse
+    · intro incoming outgoing incomingLast outgoingHead
+      have incomingEquation : incoming = sourceEdge := by
+        simpa using Option.some.inj incomingLast.symm
+      subst incoming
+      have outgoingEquation :
+          fullPrefix.head fullPrefixNonempty = outgoing :=
+        List.head_of_head?_eq_some outgoingHead
+      have outgoingMembership : outgoing ∈ fullPrefix := by
+        rw [← outgoingEquation]
+        exact List.head_mem fullPrefixNonempty
+      intro reversed
+      have outgoingTarget :
+          outgoing.target = source := by
+        calc
+          outgoing.target = sourceEdge.reverse.target :=
+            congrArg Graph.DirectedEdge.target reversed
+          _ = sourceEdge.source := by simp
+          _ = source := sourceEdgeStarts
+      have outgoingTargetMembership :
+          outgoing.target ∈
+            fullPrefix.map Graph.DirectedEdge.target :=
+        List.mem_map.mpr
+          ⟨outgoing, outgoingMembership, rfl⟩
+      have sourceRetainedTargetMembership :
+          source ∈
+            (before ++ [boundary]).map
+              Graph.DirectedEdge.target := by
+        rw [retainedTargets] at outgoingTargetMembership
+        rw [outgoingTarget] at outgoingTargetMembership
+        exact outgoingTargetMembership
+      have prefixEquation :
+          referencePath.traversed =
+            (before ++ [boundary]) ++ after := by
+        simpa [List.append_assoc] using traversalEquation
+      have sourcePathTargetMembership :
+          source ∈
+            referencePath.traversed.map
+              Graph.DirectedEdge.target := by
+        rw [prefixEquation, List.map_append]
+        exact List.mem_append.mpr
+          (.inl sourceRetainedTargetMembership)
+      apply sourceAvoided
+      simp [Graph.EdgeSimplePath.vertices,
+        Graph.EdgeWalk.visitedVertices,
+        sourcePathTargetMembership]
+  have completeNoImmediateReverse :
+      Graph.EdgeWalk.NoImmediateReverse
+        (([sourceEdge] ++ fullPrefix) ++ formulaTail) := by
+    apply Graph.EdgeWalk.NoImmediateReverse.append
+      sourcePrefixNoImmediateReverse formulaTailNoImmediateReverse
+    intro incoming outgoing incomingLast outgoingHead
+    rcases actualTurn with
+      ⟨actualFrontier, actualFrontierLast,
+        _actualFrontierEdge, _actualFrontierForward,
+        _actualFrontierRetainedIndex, _actualFrontierSource,
+        _actualFrontierTarget, _actualFrontierKept,
+        reflexive | nontrivial⟩
+    · rw [reflexive.2] at outgoingHead
+      simp at outgoingHead
+    · rcases nontrivial with
+        ⟨actualFirst, rest, actualTailEquation, _actualFirstSource,
+          _actualFirstTargetNe, _actualFirstBackward,
+          actualNotReverse, _actualClassified⟩
+      have incomingEquation : incoming = actualFrontier := by
+        have fullPrefixLast :
+            ([sourceEdge] ++ fullPrefix).getLast? =
+              some actualFrontier := by
+          rw [List.getLast?_append, actualFrontierLast]
+          simp
+        exact Option.some.inj
+          (incomingLast.symm.trans fullPrefixLast)
+      have outgoingEquation : outgoing = actualFirst := by
+        rw [actualTailEquation] at outgoingHead
+        simpa using Option.some.inj outgoingHead.symm
+      simpa [incomingEquation, outgoingEquation] using
+        actualNotReverse
   exact
     ⟨boundary, left, sourceEdge, before ++ [boundary],
       fullPrefix, formulaTail, atBoundary', actualTurn,
@@ -16981,10 +17101,35 @@ private theorem quiescentWaitingParDependency_fullSegment
       retainedPrefixLast, fullPrefixWalk, retainedIndices,
       fullPrefixEdges, fullPrefixForwards, fullPrefixKept,
       formulaTailWalk, formulaTailBackward,
-      formulaTailCuspFree, completeWalk⟩
+      formulaTailCuspFree, completeWalk,
+      completeNoImmediateReverse⟩
 
-/-- Forget the internal decomposition of one complete dependency segment while
-retaining its nonempty occurrence-aware walk and exact dependency endpoints. -/
+/-- The dependency's formula chase is reflexive exactly at the retained
+boundary endpoint, with the actual final full-graph occurrence recorded.  This
+is the only local shape whose segment can finish on a forward retained-prefix
+edge rather than on an all-backward formula edge. -/
+private def QuiescentWaitingParDependencyReflexiveEndAt
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (source target : Vertex)
+    (last : certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ boundary,
+    QuiescentWaitingParDependencyAtBoundary
+        certificate state source target boundary ∧
+      boundary.target = target ∧
+        last.edge = boundary.edge ∧
+          last.forward = boundary.forward ∧
+            Graph.retainedIndex
+                certificate.referenceSwitchingMask last.index =
+              boundary.index ∧
+              last.source = boundary.source ∧
+                last.target = boundary.target ∧
+                  certificate.referenceSwitchingMask[last.index]? =
+                    some true
+
+/-- Forget the internal decomposition while retaining the exact walk, its
+internal nonbacktracking proof, and the orientation facts needed to analyze
+junctions between adjacent dependency segments. -/
 private theorem QuiescentWaitingParDependencyFullSegment.walk_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
@@ -16994,19 +17139,190 @@ private theorem QuiescentWaitingParDependencyFullSegment.walk_exists
         certificate state source target) :
     ∃ traversed : List certificate.fullGraph.DirectedEdge,
       traversed ≠ [] ∧
-        certificate.fullGraph.EdgeWalk source traversed target := by
+        certificate.fullGraph.EdgeWalk source traversed target ∧
+          Graph.EdgeWalk.NoImmediateReverse traversed ∧
+            (∀ first,
+              traversed.head? = some first →
+                first.forward = false ∧
+                  certificate.fullEdgeParTargets[first.index]? =
+                    some (some source)) ∧
+              ∀ last,
+                traversed.getLast? = some last →
+                  last.forward = false ∨
+                    QuiescentWaitingParDependencyReflexiveEndAt
+                      certificate state source target last := by
   rcases segment with
-    ⟨_boundary, _left, sourceEdge, _retainedPrefix,
-      fullPrefix, formulaTail, _atBoundary, _classifiedTurn,
+    ⟨boundary, _left, sourceEdge, _retainedPrefix,
+      fullPrefix, formulaTail, atBoundary, classifiedTurn,
       _sourceEdgeValue, _sourceEdgeBackward, _sourceEdgeStarts,
       _sourceEdgeFinishes, _sourceEdgeParTarget, _retainedPrefixWalk,
       _retainedPrefixLast, _fullPrefixWalk, _retainedIndices,
       _fullPrefixEdges, _fullPrefixForwards, _fullPrefixKept,
       _formulaTailWalk, _formulaTailBackward,
-      _formulaTailCuspFree, completeWalk⟩
+      _formulaTailCuspFree, completeWalk,
+      noImmediateReverse⟩
   refine
-    ⟨([sourceEdge] ++ fullPrefix) ++ formulaTail, ?_, completeWalk⟩
-  simp
+    ⟨([sourceEdge] ++ fullPrefix) ++ formulaTail, ?_, completeWalk,
+      noImmediateReverse, ?_, ?_⟩
+  · simp
+  · intro first headEquation
+    have firstEquation : first = sourceEdge := by
+      simpa using Option.some.inj headEquation.symm
+    exact
+      ⟨by simpa [firstEquation] using _sourceEdgeBackward,
+        by simpa [firstEquation] using _sourceEdgeParTarget⟩
+  · intro last lastEquation
+    rcases classifiedTurn with
+      ⟨frontier, frontierLast, frontierEdge,
+        frontierForward, frontierRetainedIndex,
+        frontierSource, frontierTarget, frontierKept,
+        reflexive | nontrivial⟩
+    · have completeLast :
+          (([sourceEdge] ++ fullPrefix) ++ formulaTail).getLast? =
+            some frontier := by
+        rw [reflexive.2, List.append_nil, List.getLast?_append,
+          frontierLast]
+        simp
+      have lastValue : last = frontier :=
+        Option.some.inj (lastEquation.symm.trans completeLast)
+      exact .inr
+        ⟨boundary, atBoundary, reflexive.1,
+          by simpa [lastValue] using frontierEdge,
+          by simpa [lastValue] using frontierForward,
+          by simpa [lastValue] using frontierRetainedIndex,
+          by simpa [lastValue] using frontierSource,
+          by simpa [lastValue] using frontierTarget,
+          by simpa [lastValue] using frontierKept⟩
+    · rcases nontrivial with
+        ⟨_first, _rest, tailEquation, _firstSource,
+          _firstTargetNe, _firstBackward, _notReverse,
+          _classified⟩
+      have tailNonempty : formulaTail ≠ [] := by
+        simp [tailEquation]
+      have completeLast :
+          (([sourceEdge] ++ fullPrefix) ++ formulaTail).getLast? =
+            some (formulaTail.getLast tailNonempty) := by
+        rw [List.getLast?_append,
+          List.getLast?_eq_some_getLast tailNonempty]
+        simp
+      have lastValue :
+          last = formulaTail.getLast tailNonempty :=
+        Option.some.inj (lastEquation.symm.trans completeLast)
+      exact .inl
+        (_formulaTailBackward last
+          (by
+            rw [lastValue]
+            exact List.getLast_mem tailNonempty))
+
+/-- At a junction between two exact dependency traversals, an immediate
+reversal forces the preceding dependency's formula chase to be reflexive at
+the exact incoming occurrence.  The same occurrence is the stored left-par
+incidence of the next waiting dependency.  If the preceding segment ended in a
+nontrivial formula tail, both the incoming edge and the next segment's first
+edge would be backward, whereas reversal flips orientation. -/
+private theorem
+    quiescentWaitingParDependency_traversalJunction_reverse_implies_reflexiveEnd
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source middle : Vertex}
+    {firstTraversal secondTraversal :
+      List certificate.fullGraph.DirectedEdge}
+    (firstLastClassified :
+      ∀ last,
+        firstTraversal.getLast? = some last →
+          last.forward = false ∨
+            QuiescentWaitingParDependencyReflexiveEndAt
+              certificate state source middle last)
+    (secondHeadClassified :
+      ∀ first,
+        secondTraversal.head? = some first →
+          first.forward = false ∧
+            certificate.fullEdgeParTargets[first.index]? =
+              some (some middle))
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (firstLast : firstTraversal.getLast? = some incoming)
+    (secondHead : secondTraversal.head? = some outgoing)
+    (reversed : outgoing = incoming.reverse) :
+    QuiescentWaitingParDependencyReflexiveEndAt
+        certificate state source middle incoming ∧
+      certificate.fullEdgeParTargets[incoming.index]? =
+        some (some middle) := by
+  rcases secondHeadClassified outgoing secondHead with
+    ⟨outgoingBackward, outgoingParTarget⟩
+  rcases firstLastClassified incoming firstLast with
+    incomingBackward | reflexive
+  · have orientationEquation :=
+      congrArg Graph.DirectedEdge.forward reversed
+    simp [Graph.DirectedEdge.reverse, incomingBackward,
+      outgoingBackward] at orientationEquation
+  · have sameIndex : outgoing.index = incoming.index := by
+      simpa [Graph.DirectedEdge.reverse] using
+        congrArg Graph.DirectedEdge.index reversed
+    exact
+      ⟨reflexive,
+        by simpa [sameIndex] using outgoingParTarget⟩
+
+/-- Normalize one actual backtracking junction between adjacent dependency
+segments.  The exact reverse pair is deleted, the remaining occurrences still
+form a walk with the same endpoints, and the deleted occurrence is retained as
+an exact reflexive-boundary/next-waiting-par witness. -/
+private theorem
+    quiescentWaitingParDependency_cancel_reverse_traversalJunction
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source middle target : Vertex}
+    {firstTraversal secondTraversal :
+      List certificate.fullGraph.DirectedEdge}
+    (firstWalk :
+      certificate.fullGraph.EdgeWalk
+        source firstTraversal middle)
+    (secondWalk :
+      certificate.fullGraph.EdgeWalk
+        middle secondTraversal target)
+    (firstLastClassified :
+      ∀ last,
+        firstTraversal.getLast? = some last →
+          last.forward = false ∨
+            QuiescentWaitingParDependencyReflexiveEndAt
+              certificate state source middle last)
+    (secondHeadClassified :
+      ∀ first,
+        secondTraversal.head? = some first →
+          first.forward = false ∧
+            certificate.fullEdgeParTargets[first.index]? =
+              some (some middle))
+    {incoming outgoing : certificate.fullGraph.DirectedEdge}
+    (firstLast : firstTraversal.getLast? = some incoming)
+    (secondHead : secondTraversal.head? = some outgoing)
+    (reversed : outgoing = incoming.reverse) :
+    ∃ before after,
+      firstTraversal = before ++ [incoming] ∧
+        secondTraversal = outgoing :: after ∧
+          certificate.fullGraph.EdgeWalk
+            source (before ++ after) target ∧
+            QuiescentWaitingParDependencyReflexiveEndAt
+                certificate state source middle incoming ∧
+              certificate.fullEdgeParTargets[incoming.index]? =
+                some (some middle) := by
+  rcases List.getLast?_eq_some_iff.mp firstLast with
+    ⟨before, firstEquation⟩
+  rcases List.head?_eq_some_iff.mp secondHead with
+    ⟨after, secondEquation⟩
+  have combined := firstWalk.trans secondWalk
+  have exactBacktrackWalk :
+      certificate.fullGraph.EdgeWalk source
+        (before ++ incoming :: incoming.reverse :: after) target := by
+    simpa [firstEquation, secondEquation, reversed, List.append_assoc] using
+      combined
+  have cancelled :
+      certificate.fullGraph.EdgeWalk source (before ++ after) target :=
+    exactBacktrackWalk.cancelImmediateReverse
+  have classified :=
+    quiescentWaitingParDependency_traversalJunction_reverse_implies_reflexiveEnd
+      firstLastClassified secondHeadClassified firstLast secondHead reversed
+  exact
+    ⟨before, after, firstEquation, secondEquation, cancelled,
+      classified.1, classified.2⟩
 
 /-- Concatenate a finite successor-indexed family of nonempty exact edge walks.
 The result retains nonemptiness whenever the family has at least one segment.
@@ -17888,7 +18204,7 @@ private theorem
     rcases segments (earlier + offset) lower upper with
       ⟨_dependency, _geometry, segment⟩
     rcases segment.walk_exists with
-      ⟨traversed, nonempty, walk⟩
+      ⟨traversed, nonempty, walk, _noImmediateReverse⟩
     refine ⟨traversed, nonempty, ?_⟩
     simpa [shifted, Nat.add_assoc] using walk
   rcases
@@ -17911,6 +18227,71 @@ private theorem
   exact
     ⟨chainAt earlier, traversed,
       nonemptyOfPositive positive, closedWalk⟩
+
+/-- The nonempty closed dependency walk admits exact-occurrence cyclic
+normalization.  Every surviving occurrence comes from the original obstruction
+walk, and the normal form is either empty (the genuinely nested out-and-back
+case) or cyclically nonbacktracking.  Excluding the empty nesting or extracting
+the classified simple cycle from the nonempty case remains the final geometric
+obligation. -/
+private theorem
+    canonicalWorklistRun_waitingPar_dependency_closed_normalizedFullGraphWalk
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (originalBase normalizedBase : Vertex)
+            (original normalized :
+              List certificate.fullGraph.DirectedEdge),
+          original ≠ [] ∧
+            certificate.fullGraph.EdgeWalk
+              originalBase original originalBase ∧
+              certificate.fullGraph.EdgeWalk
+                normalizedBase normalized normalizedBase ∧
+                (normalized = [] ∨
+                  Graph.EdgeWalk.CyclicNoImmediateReverse normalized) ∧
+                  ∀ directed, directed ∈ normalized →
+                    directed ∈ original := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (originalBase normalizedBase : Vertex)
+            (original normalized :
+              List certificate.fullGraph.DirectedEdge),
+          original ≠ [] ∧
+            certificate.fullGraph.EdgeWalk
+              originalBase original originalBase ∧
+              certificate.fullGraph.EdgeWalk
+                normalizedBase normalized normalizedBase ∧
+                (normalized = [] ∨
+                  Graph.EdgeWalk.CyclicNoImmediateReverse normalized) ∧
+                  ∀ directed, directed ∈ normalized →
+                    directed ∈ original
+  intro source sourceWaiting
+  rcases
+      canonicalWorklistRun_waitingPar_dependency_closed_fullGraphWalk
+        correct startEquation sourceWaiting with
+    ⟨originalBase, original, originalNonempty, originalWalk⟩
+  rcases originalWalk.normalizeCyclicImmediateReversals with
+    ⟨normalizedBase, normalized, normalizedWalk, normalizedShape,
+      normalizedMembership⟩
+  exact
+    ⟨originalBase, normalizedBase, original, normalized,
+      originalNonempty, originalWalk, normalizedWalk, normalizedShape,
+      normalizedMembership⟩
 
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact

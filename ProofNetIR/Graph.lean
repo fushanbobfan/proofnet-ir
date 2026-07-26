@@ -668,6 +668,137 @@ def reverseTraversal {graph : Graph}
     (traversed : List graph.DirectedEdge) : List graph.DirectedEdge :=
   traversed.reverse.map DirectedEdge.reverse
 
+/-- No two consecutive entries traverse the same stored edge occurrence in
+opposite directions.  This is deliberately a property of the exact directed
+occurrence list, not merely of its endpoint sequence. -/
+def NoImmediateReverse {graph : Graph} :
+    List graph.DirectedEdge → Prop
+  | [] => True
+  | [_] => True
+  | first :: second :: rest =>
+      second ≠ first.reverse ∧ NoImmediateReverse (second :: rest)
+
+namespace NoImmediateReverse
+
+/-- Duplicate-freedom under any reversal-invariant occurrence key excludes an
+immediate reversal.  The key can be the original edge index or a retained-mask
+position, so the lemma remains useful while lifting exact masked traversals. -/
+theorem of_map_nodup {graph : Graph} {α : Type}
+    (key : graph.DirectedEdge → α)
+    (reverseKey : ∀ directed, key directed.reverse = key directed) :
+    ∀ {traversed : List graph.DirectedEdge},
+      (traversed.map key).Nodup → NoImmediateReverse traversed
+  | [], _ => by simp [NoImmediateReverse]
+  | [_], _ => by simp [NoImmediateReverse]
+  | first :: second :: rest, nodup => by
+      rw [NoImmediateReverse]
+      constructor
+      · intro reversed
+        have firstAbsent :
+            key first ∉ (second :: rest).map key :=
+          (List.nodup_cons.mp nodup).1
+        apply firstAbsent
+        simp only [List.map_cons, List.mem_cons]
+        left
+        calc
+          key first = key first.reverse := (reverseKey first).symm
+          _ = key second := congrArg key reversed.symm
+      · exact of_map_nodup key reverseKey
+          (List.nodup_cons.mp nodup).2
+
+/-- A traversal whose entries all have the same orientation cannot immediately
+reverse an occurrence, because reversal flips that orientation. -/
+theorem of_constant_forward {graph : Graph} {forward : Bool} :
+    ∀ {traversed : List graph.DirectedEdge},
+      (∀ directed ∈ traversed, directed.forward = forward) →
+        NoImmediateReverse traversed
+  | [], _ => by simp [NoImmediateReverse]
+  | [_], _ => by simp [NoImmediateReverse]
+  | first :: second :: rest, sameForward => by
+      rw [Graph.EdgeWalk.NoImmediateReverse]
+      constructor
+      · intro reversed
+        have firstForward :
+            first.forward = forward :=
+          sameForward first (by simp)
+        have secondForward :
+            second.forward = forward :=
+          sameForward second (by simp)
+        have orientationEquation :=
+          congrArg DirectedEdge.forward reversed
+        cases forward <;>
+          simp [DirectedEdge.reverse, firstForward, secondForward]
+            at orientationEquation
+      · apply of_constant_forward
+        intro directed membership
+        exact sameForward directed (by simp [membership])
+
+/-- Concatenating two nonbacktracking exact traversals is nonbacktracking when
+their unique junction, if both sides are nonempty, is not an immediate
+reversal. -/
+theorem append {graph : Graph}
+    {first second : List graph.DirectedEdge}
+    (firstReduced : NoImmediateReverse first)
+    (secondReduced : NoImmediateReverse second)
+    (junction :
+      ∀ incoming outgoing,
+        first.getLast? = some incoming →
+          second.head? = some outgoing →
+            outgoing ≠ incoming.reverse) :
+    NoImmediateReverse (first ++ second) := by
+  induction first with
+  | nil =>
+      simpa using secondReduced
+  | cons incoming rest induction =>
+      cases rest with
+      | nil =>
+          cases second with
+          | nil =>
+              simp [NoImmediateReverse]
+          | cons outgoing after =>
+              change
+                outgoing ≠ incoming.reverse ∧
+                  NoImmediateReverse (outgoing :: after)
+              constructor
+              · exact junction incoming outgoing (by simp) (by simp)
+              · exact secondReduced
+      | cons next after =>
+          change
+            next ≠ incoming.reverse ∧
+              NoImmediateReverse (next :: after) at firstReduced
+          change
+            next ≠ incoming.reverse ∧
+              NoImmediateReverse (next :: (after ++ second))
+          constructor
+          · exact firstReduced.1
+          · apply induction firstReduced.2
+            intro final outgoing lastEquation headEquation
+            apply junction final outgoing
+            · simpa using lastEquation
+            · exact headEquation
+
+/-- Every exact traversal is either already nonbacktracking or contains an
+adjacent occurrence followed by its exact reverse.  The decomposition is by
+stored occurrence, not by endpoint equality. -/
+theorem reduced_or_cancel {graph : Graph} :
+    ∀ traversed : List graph.DirectedEdge,
+      NoImmediateReverse traversed ∨
+        ∃ before incoming after,
+          traversed =
+            before ++ incoming :: incoming.reverse :: after
+  | [] => .inl (by trivial)
+  | [_single] => .inl (by trivial)
+  | first :: second :: rest => by
+      by_cases reversed : second = first.reverse
+      · exact .inr ⟨[], first, rest, by simp [reversed]⟩
+      · rcases reduced_or_cancel (second :: rest) with
+          tailReduced | ⟨before, incoming, after, tailEquation⟩
+        · exact .inl ⟨reversed, tailReduced⟩
+        · exact .inr
+            ⟨first :: before, incoming, after, by simp [tailEquation]⟩
+
+end NoImmediateReverse
+
 theorem head_reverseTraversal {graph : Graph}
     (traversed : List graph.DirectedEdge) (nonempty : traversed ≠ []) :
     (reverseTraversal traversed).head
@@ -858,6 +989,279 @@ theorem edgeIndicesNodup_of_visitedVertices_nodup {graph : Graph}
       · exact ih tailVerticesNodup
 
 end EdgeChain
+
+namespace EdgeWalk
+
+/-- Cancel one adjacent traversal of an exact stored occurrence followed by
+its reverse.  The endpoints and every remaining occurrence are preserved; in
+particular, endpoint-equal parallel edges cannot be cancelled by this lemma. -/
+theorem cancelImmediateReverse {graph : Graph} {start finish : Vertex}
+    {before after : List graph.DirectedEdge}
+    {incoming : graph.DirectedEdge}
+    (walk :
+      graph.EdgeWalk start
+        (before ++ incoming :: incoming.reverse :: after) finish) :
+    graph.EdgeWalk start (before ++ after) finish := by
+  have chain := walk.toChain
+  rcases chain.split_append with
+    ⟨middle, initialChain, suffix⟩
+  cases suffix with
+  | cons first firstStarts tail =>
+      cases tail with
+      | cons reversed _reversedStarts remaining =>
+          have returned :
+              graph.EdgeChain middle after finish := by
+            simpa [DirectedEdge.reverse_target, firstStarts] using remaining
+          exact initialChain.toWalk.trans returned.toWalk
+
+/-- One exact adjacent reverse-pair deletion. -/
+inductive ImmediateReverseReduction {graph : Graph} :
+    List graph.DirectedEdge → List graph.DirectedEdge → Prop where
+  | cancel (before after : List graph.DirectedEdge)
+      (incoming : graph.DirectedEdge) :
+      ImmediateReverseReduction
+        (before ++ incoming :: incoming.reverse :: after)
+        (before ++ after)
+
+namespace ImmediateReverseReduction
+
+/-- Every exact reverse-pair deletion strictly shortens the traversal by two
+entries. -/
+theorem length_lt {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (reduction : ImmediateReverseReduction before after) :
+    after.length < before.length := by
+  cases reduction
+  simp
+  omega
+
+/-- One exact reverse-pair deletion preserves a valid walk's endpoints. -/
+theorem preservesWalk {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (reduction : ImmediateReverseReduction before after)
+    {start finish : Vertex}
+    (walk : graph.EdgeWalk start before finish) :
+    graph.EdgeWalk start after finish := by
+  cases reduction
+  exact walk.cancelImmediateReverse
+
+/-- One deletion cannot introduce an occurrence that was absent from the
+source traversal. -/
+theorem membership_subset {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (reduction : ImmediateReverseReduction before after) :
+    ∀ directed, directed ∈ after → directed ∈ before := by
+  cases reduction with
+  | cancel initial remaining incoming =>
+      intro directed membership
+      rw [List.mem_append] at membership ⊢
+      rcases membership with inInitial | inRemaining
+      · exact .inl inInitial
+      · exact .inr (by simp [inRemaining])
+
+end ImmediateReverseReduction
+
+/-- Reflexive-transitive normalization by exact adjacent reverse-pair
+deletions.  The relation records every deleted stored occurrence. -/
+inductive ImmediateReverseNormalization {graph : Graph} :
+    List graph.DirectedEdge → List graph.DirectedEdge → Prop where
+  | refl (traversed : List graph.DirectedEdge) :
+      ImmediateReverseNormalization traversed traversed
+  | step {first middle last : List graph.DirectedEdge} :
+      ImmediateReverseReduction first middle →
+        ImmediateReverseNormalization middle last →
+          ImmediateReverseNormalization first last
+
+namespace ImmediateReverseNormalization
+
+/-- Iterated exact reverse-pair deletion preserves a valid walk's endpoints. -/
+theorem preservesWalk {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization : ImmediateReverseNormalization before after)
+    {start finish : Vertex}
+    (walk : graph.EdgeWalk start before finish) :
+    graph.EdgeWalk start after finish := by
+  induction normalization with
+  | refl => exact walk
+  | step reduction tail induction =>
+      exact induction (reduction.preservesWalk walk)
+
+/-- Iterated deletion cannot introduce an occurrence that was absent from the
+original traversal. -/
+theorem membership_subset {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization : ImmediateReverseNormalization before after) :
+    ∀ directed, directed ∈ after → directed ∈ before := by
+  induction normalization with
+  | refl =>
+      intro directed membership
+      exact membership
+  | step reduction tail induction =>
+      intro directed membership
+      exact reduction.membership_subset directed
+        (induction directed membership)
+
+/-- Iterated deletion never increases traversal length. -/
+theorem length_le {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization : ImmediateReverseNormalization before after) :
+    after.length ≤ before.length := by
+  induction normalization with
+  | refl => exact Nat.le_refl _
+  | step reduction tail induction =>
+      exact Nat.le_trans induction (Nat.le_of_lt reduction.length_lt)
+
+end ImmediateReverseNormalization
+
+/-- Every finite exact-occurrence walk normalizes to a walk with the same
+endpoints and no adjacent occurrence/reverse pair.  The theorem deliberately
+does not claim that a nonempty input has a nonempty normal form: an out-and-
+back tree walk can normalize to the empty traversal. -/
+theorem normalizeImmediateReversals {graph : Graph}
+    {start finish : Vertex}
+    (traversed : List graph.DirectedEdge)
+    (walk : graph.EdgeWalk start traversed finish) :
+    ∃ reduced,
+      ImmediateReverseNormalization traversed reduced ∧
+        graph.EdgeWalk start reduced finish ∧
+          NoImmediateReverse reduced := by
+  rcases NoImmediateReverse.reduced_or_cancel traversed with
+    reduced | ⟨before, incoming, after, traversalEquation⟩
+  · exact ⟨traversed, .refl traversed, walk, reduced⟩
+  · let shorter := before ++ after
+    have reduction :
+        ImmediateReverseReduction traversed shorter := by
+      rw [traversalEquation]
+      exact .cancel before after incoming
+    have shorterWalk : graph.EdgeWalk start shorter finish :=
+      reduction.preservesWalk walk
+    rcases normalizeImmediateReversals shorter shorterWalk with
+      ⟨normal, normalization, normalWalk, normalReduced⟩
+    exact
+      ⟨normal, .step reduction normalization, normalWalk, normalReduced⟩
+termination_by traversed.length
+decreasing_by
+  exact reduction.length_lt
+
+/-- Rotate the first exact occurrence of a closed walk to the end.  The
+result is closed at the old first edge's target and retains exactly the same
+directed occurrences in cyclic order. -/
+theorem rotateFirstClosed {graph : Graph} {base : Vertex}
+    {first : graph.DirectedEdge} {rest : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk base (first :: rest) base) :
+    graph.EdgeWalk first.target (rest ++ [first]) first.target := by
+  have chain := walk.toChain
+  cases chain with
+  | cons directed starts tail =>
+      exact EdgeWalk.step tail.toWalk first starts rfl
+
+/-- A cyclic traversal has no immediate exact-occurrence reversal either
+inside its list representation or across its closing last/first junction. -/
+def CyclicNoImmediateReverse {graph : Graph}
+    (traversed : List graph.DirectedEdge) : Prop :=
+  NoImmediateReverse traversed ∧
+    ∀ first last,
+      traversed.head? = some first →
+        traversed.getLast? = some last →
+          first ≠ last.reverse
+
+/-- Normalize a finite closed exact-occurrence walk both internally and across
+its cyclic closing junction.  The base vertex may rotate, every surviving
+occurrence comes from the input, and the result is either empty or cyclically
+nonbacktracking.  The empty alternative is essential: a closed tree walk can
+consist entirely of nested out-and-back pairs. -/
+theorem normalizeCyclicImmediateReversals {graph : Graph}
+    {base : Vertex}
+    (traversed : List graph.DirectedEdge)
+    (walk : graph.EdgeWalk base traversed base) :
+    ∃ (normalizedBase : Vertex)
+        (reduced : List graph.DirectedEdge),
+      graph.EdgeWalk normalizedBase reduced normalizedBase ∧
+        (reduced = [] ∨ CyclicNoImmediateReverse reduced) ∧
+          ∀ directed, directed ∈ reduced → directed ∈ traversed := by
+  rcases normalizeImmediateReversals traversed walk with
+    ⟨normal, normalization, normalWalk, internalReduced⟩
+  by_cases normalEmpty : normal = []
+  · exact
+      ⟨base, normal, normalWalk, .inl normalEmpty,
+        normalization.membership_subset⟩
+  · let first := normal.head normalEmpty
+    let last := normal.getLast normalEmpty
+    have firstHead : normal.head? = some first := by
+      exact List.head?_eq_some_head normalEmpty
+    have lastLast : normal.getLast? = some last := by
+      exact List.getLast?_eq_some_getLast normalEmpty
+    by_cases closingReverse : first = last.reverse
+    · rcases List.head?_eq_some_iff.mp firstHead with
+        ⟨rest, normalEquation⟩
+      have restNonempty : rest ≠ [] := by
+        intro restEmpty
+        have same : first = last := by
+          apply Option.some.inj
+          calc
+            some first = normal.getLast? := by
+              simp [normalEquation, restEmpty]
+            _ = some last := lastLast
+        have selfReverse : first = first.reverse := by
+          simpa [same] using closingReverse
+        exact first.ne_reverse selfReverse
+      have restLast : rest.getLast? = some last := by
+        rcases List.exists_cons_of_ne_nil restNonempty with
+          ⟨second, tail, restEquation⟩
+        calc
+          rest.getLast? = (first :: rest).getLast? := by
+            simp [restEquation]
+          _ = normal.getLast? :=
+            (congrArg List.getLast? normalEquation).symm
+          _ = some last := lastLast
+      rcases List.getLast?_eq_some_iff.mp restLast with
+        ⟨middle, restEquation⟩
+      have rotated :
+          graph.EdgeWalk first.target (rest ++ [first]) first.target := by
+        have normalWalk' :
+            graph.EdgeWalk base (first :: rest) base := by
+          simpa [normalEquation] using normalWalk
+        exact normalWalk'.rotateFirstClosed
+      have exactBacktrack :
+          graph.EdgeWalk first.target
+            (middle ++ last :: last.reverse :: []) first.target := by
+        simpa [restEquation, closingReverse, List.append_assoc] using rotated
+      have shortened :
+          graph.EdgeWalk first.target middle first.target := by
+        simpa using exactBacktrack.cancelImmediateReverse
+      have normalLength :
+          normal.length = middle.length + 2 := by
+        simp [normalEquation, restEquation]
+      have middleShorter : middle.length < traversed.length := by
+        have normalBound := normalization.length_le
+        omega
+      rcases normalizeCyclicImmediateReversals middle shortened with
+        ⟨normalizedBase, reduced, reducedWalk, reducedShape,
+          reducedMembership⟩
+      refine
+        ⟨normalizedBase, reduced, reducedWalk, reducedShape, ?_⟩
+      intro directed directedMembership
+      have inMiddle :=
+        reducedMembership directed directedMembership
+      have inNormal : directed ∈ normal := by
+        rw [normalEquation, restEquation]
+        simp [inMiddle]
+      exact normalization.membership_subset directed inNormal
+    · exact
+        ⟨base, normal, normalWalk,
+          .inr ⟨internalReduced, by
+            intro actualFirst actualLast actualHead actualLastEq
+            have firstEquation : actualFirst = first :=
+              Option.some.inj (actualHead.symm.trans firstHead)
+            have lastEquation : actualLast = last :=
+              Option.some.inj (actualLastEq.symm.trans lastLast)
+            simpa [firstEquation, lastEquation] using closingReverse⟩,
+          normalization.membership_subset⟩
+termination_by traversed.length
+decreasing_by
+  exact middleShorter
+
+end EdgeWalk
 
 /-- An edge-identity-aware path with no repeated visited vertex. Unlike
 `EdgeSimpleCycle`, its endpoints need not coincide; the empty reflexive path is

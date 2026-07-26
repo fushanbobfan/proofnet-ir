@@ -519,10 +519,24 @@
       segment from its source waiting conclusion to its target, then
       concatenate the selected finite family into a genuinely nonempty closed
       occurrence-aware `fullGraph` walk.
-    - [ ] Normalize that possibly backtracking/repeating closed walk while
-      preserving the local turn classification, extract an exact edge-simple
-      switching cycle or forbidden nesting, and exclude the remaining
-      path-exposed waiting-par obstruction.
+    - [x] Prove every individual dependency segment has no immediate reversal
+      of the same stored edge occurrence, covering the source/prefix junction,
+      retained simple prefix, actual classified frontier/tail junction, and
+      all-backward tail.
+    - [x] Prove the only possible adjacent-segment immediate reversal forces
+      the preceding dependency's formula chase to be reflexive.
+    - [x] Bind that reversal to the exact retained-frontier/full-edge
+      occurrence and the next waiting par's source incidence, and prove a
+      single-junction cancellation preserving endpoints, remaining
+      occurrences, and the nesting witness.
+    - [x] Iterate exact-occurrence cancellation across internal and cyclic
+      closing junctions, preserving endpoints and surviving occurrences, and
+      derive the exhaustive empty-or-cyclically-nonbacktracking closed normal
+      form. Keep the genuinely nested empty case explicit.
+    - [ ] Exclude the empty exact nesting; in the nonempty branch transport
+      the local turn classification through normalization, extract an exact
+      edge-simple switching cycle or forbidden nesting, and exclude the
+      remaining path-exposed waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize
