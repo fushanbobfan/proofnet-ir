@@ -174,8 +174,10 @@ part of the engineering and proof-identity gap.
    development further exposes an exact traversed reference-edge occurrence
    directed from a marked source into an unmarked target, then classifies it
    occurrence-exactly as a forward premise-to-conclusion edge of a concrete
-   submitted par or tensor. Deriving its local scheduler status, excluding
-   this frontier, pure worklist completeness, and a full cost theorem remain
+   submitted par or tensor. Quiescent scheduler coverage now gives the exact
+   residual cases: an omitted/unassigned par premise, a registered
+   distinct-token par, or an opposite/unassigned tensor premise. Excluding
+   these cases, pure worklist completeness, and a full cost theorem remain
    open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and

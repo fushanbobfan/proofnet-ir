@@ -185,8 +185,10 @@ The repository currently contains:
   unmarked occurrence. Exact retained-edge/source-link lookup, completed
   axiom initialization, and causal closure now classify the boundary as a
   forward premise-to-conclusion occurrence of a concrete submitted par or
-  tensor. Deriving the scheduler status of that connective and excluding the
-  resulting forward-connective region is the sole open progress obligation;
+  tensor. Quiescent scheduler coverage then proves the exact local alternatives:
+  a par has an unassigned omitted premise or remains registered on distinct
+  tokens, while a tensor has an unassigned opposite premise. Excluding these
+  path-exposed alternatives is the sole open progress obligation;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

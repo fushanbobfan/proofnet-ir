@@ -475,7 +475,9 @@
       axiom initialization and causal closure eliminate axiom and reverse
       connective orientations, leaving a forward par/tensor
       premise-to-conclusion occurrence.
-    - [ ] Derive the classified frontier connective's exact scheduler status.
+    - [x] Derive the classified frontier connective's exact scheduler status:
+      omitted-premise/unassigned or registered/distinct-token for par, and
+      opposite-premise/unassigned for tensor after deadlock exclusion.
     - [ ] Exclude the resulting path-exposed unmarked-region obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues

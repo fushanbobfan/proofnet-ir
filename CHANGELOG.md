@@ -89,8 +89,12 @@
   target, and the canonical obstruction carries that directed occurrence.
   Exact retained-edge/source-link lookup plus axiom initialization and causal
   closure now classify it as a forward premise-to-conclusion occurrence of a
-  concrete submitted par or tensor. Correctness still must derive the local
-  scheduler status and exclude this path-exposed forward-connective region, so
+  concrete submitted par or tensor. Quiescent scheduler coverage now refines
+  the classified frontier further: a par either has its omitted premise
+  unassigned or is registered with distinct live tokens, while a tensor has
+  its opposite premise unassigned because correctness excludes the
+  both-premises-marked deadlock. Correctness still must exclude these
+  path-exposed forward-connective cases, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

@@ -14040,6 +14040,223 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
           correct coreInvariant.1 connected linkMembership
           conclusionUnmarked leftMarked rightMarked)
 
+/-- At quiescence, a forward par frontier with its retained left premise
+assigned is either waiting on an unassigned right premise or is registered
+with two distinct live tokens. -/
+private theorem canonicalWorklistRun_par_frontier_status
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started)
+    {index left right conclusion : Nat}
+    (linkLookup :
+      certificate.links[index]? =
+        some (.par left right conclusion))
+    (conclusionUnmarked :
+      let final :=
+        (runUnificationWorklist certificate
+          certificate.worklistConsumers
+          (worklistFuel certificate.links.length)
+          (initializeWorklist certificate started)).state
+      final.core.assignedToken? conclusion = none)
+    (leftAssigned :
+      let final :=
+        (runUnificationWorklist certificate
+          certificate.worklistConsumers
+          (worklistFuel certificate.links.length)
+          (initializeWorklist certificate started)).state
+      final.core.assignedToken? left ≠ none) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.assignedToken? right = none ∨
+      ∃ leftToken rightToken,
+        final.core.tokenAt? left = some leftToken ∧
+          final.core.tokenAt? right = some rightToken ∧
+            leftToken ≠ rightToken ∧
+              index ∈ final.waiting := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change final.core.assignedToken? conclusion = none at conclusionUnmarked
+  change final.core.assignedToken? left ≠ none at leftAssigned
+  change
+    final.core.assignedToken? right = none ∨
+      ∃ leftToken rightToken,
+        final.core.tokenAt? left = some leftToken ∧
+          final.core.tokenAt? right = some rightToken ∧
+            leftToken ≠ rightToken ∧
+              index ∈ final.waiting
+  have unfired :
+      ¬linkFiredIn final.core (.par left right conclusion) := by
+    intro fired
+    exact fired conclusionUnmarked
+  have obstruction :
+      QuiescentConnectiveObstruction
+        final index (.par left right conclusion) := by
+    simpa [final] using
+      canonicalWorklistRun_unfired_obstruction
+        correct.1 startEquation linkLookup rfl unfired
+  rcases obstruction with
+    ⟨_conclusionUnmarked, idle | waiting⟩
+  · rcases idle with leftIdle | rightIdle
+    · rcases final.core.tokenAt?_exists_of_assigned leftAssigned with
+        ⟨leftToken, leftLookup⟩
+      rw [leftIdle] at leftLookup
+      contradiction
+    · apply Or.inl
+      apply Classical.byContradiction
+      intro rightAssigned
+      rcases final.core.tokenAt?_exists_of_assigned rightAssigned with
+        ⟨rightToken, rightLookup⟩
+      rw [rightIdle] at rightLookup
+      contradiction
+  · exact Or.inr waiting
+
+/-- At quiescence, a forward tensor frontier cannot have both premises
+assigned in a correct proof net: that would be the already-excluded
+same-thread tensor deadlock.  Therefore the premise opposite any assigned
+frontier source is exactly unassigned. -/
+private theorem canonicalWorklistRun_tensor_frontier_status
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started)
+    {index left right conclusion : Nat}
+    (linkLookup :
+      certificate.links[index]? =
+        some (.tensor left right conclusion))
+    (conclusionUnmarked :
+      let final :=
+        (runUnificationWorklist certificate
+          certificate.worklistConsumers
+          (worklistFuel certificate.links.length)
+          (initializeWorklist certificate started)).state
+      final.core.assignedToken? conclusion = none)
+    (sourceAssigned :
+      let final :=
+        (runUnificationWorklist certificate
+          certificate.worklistConsumers
+          (worklistFuel certificate.links.length)
+          (initializeWorklist certificate started)).state
+      final.core.assignedToken? left ≠ none ∨
+        final.core.assignedToken? right ≠ none) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    (final.core.assignedToken? left ≠ none ∧
+        final.core.assignedToken? right = none) ∨
+      (final.core.assignedToken? right ≠ none ∧
+        final.core.assignedToken? left = none) := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change final.core.assignedToken? conclusion = none at conclusionUnmarked
+  change
+    final.core.assignedToken? left ≠ none ∨
+      final.core.assignedToken? right ≠ none at sourceAssigned
+  change
+    (final.core.assignedToken? left ≠ none ∧
+        final.core.assignedToken? right = none) ∨
+      (final.core.assignedToken? right ≠ none ∧
+        final.core.assignedToken? left = none)
+  have unfired :
+      ¬linkFiredIn final.core (.tensor left right conclusion) := by
+    intro fired
+    exact fired conclusionUnmarked
+  have obstruction :
+      QuiescentConnectiveObstruction
+        final index (.tensor left right conclusion) := by
+    simpa [final] using
+      canonicalWorklistRun_unfired_obstruction
+        correct.1 startEquation linkLookup rfl unfired
+  rcases obstruction with
+    ⟨_conclusionUnmarked, idle | deadlock⟩
+  · rcases idle with leftIdle | rightIdle
+    · have leftUnassigned :
+          final.core.assignedToken? left = none := by
+        apply Classical.byContradiction
+        intro leftAssigned
+        rcases final.core.tokenAt?_exists_of_assigned leftAssigned with
+          ⟨leftToken, leftLookup⟩
+        rw [leftIdle] at leftLookup
+        contradiction
+      rcases sourceAssigned with leftAssigned | rightAssigned
+      · exact False.elim (leftAssigned leftUnassigned)
+      · exact Or.inr ⟨rightAssigned, leftUnassigned⟩
+    · have rightUnassigned :
+          final.core.assignedToken? right = none := by
+        apply Classical.byContradiction
+        intro rightAssigned
+        rcases final.core.tokenAt?_exists_of_assigned rightAssigned with
+          ⟨rightToken, rightLookup⟩
+        rw [rightIdle] at rightLookup
+        contradiction
+      rcases sourceAssigned with leftAssigned | rightAssigned
+      · exact Or.inl ⟨leftAssigned, rightUnassigned⟩
+      · exact False.elim (rightAssigned rightUnassigned)
+  · rcases deadlock with
+      ⟨token, leftLookup, rightLookup⟩
+    have coreInvariant :
+        WorklistCoreInvariant certificate final := by
+      simpa [final] using
+        canonicalWorklistRun_coreInvariant correct.1 startEquation
+    have connected :
+        UnificationMarking.ThreadConnected
+          (final.core.toMarking certificate coreInvariant.1) := by
+      unfold UnificationMarking.ThreadConnected
+      intro firstVertex secondVertex firstToken secondToken
+        firstMarked secondMarked synchronized
+      dsimp [final] at firstMarked secondMarked synchronized ⊢
+      exact
+        (canonicalWorklistRun_threadConnected correct.1 startEquation)
+          firstMarked secondMarked synchronized
+    have linkMembership :
+        Link.tensor left right conclusion ∈ certificate.links :=
+      List.mem_of_getElem? linkLookup
+    exact False.elim
+      (sameThread_tensorDeadlock_false
+        correct coreInvariant.1 connected linkMembership
+        conclusionUnmarked leftLookup rightLookup)
+
+/-- Exact scheduler meaning of a marked-to-unmarked forward occurrence on
+the retained reference path.  A par either waits on its unassigned omitted
+premise or is registered on two distinct threads.  A tensor's opposite
+premise must be unassigned. -/
+private def PathFrontierSchedulerObstruction
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (boundary : certificate.referenceSwitchingGraph.DirectedEdge) : Prop :=
+  (∃ (index left right conclusion : Nat),
+      certificate.links[index]? =
+          some (.par left right conclusion) ∧
+        boundary.source = left ∧
+          boundary.target = conclusion ∧
+            (state.core.assignedToken? right = none ∨
+              ∃ leftToken rightToken,
+                state.core.tokenAt? left = some leftToken ∧
+                  state.core.tokenAt? right = some rightToken ∧
+                    leftToken ≠ rightToken ∧
+                      index ∈ state.waiting)) ∨
+    ∃ (index left right conclusion : Nat),
+      certificate.links[index]? =
+          some (.tensor left right conclusion) ∧
+        boundary.target = conclusion ∧
+          ((boundary.source = left ∧
+              state.core.assignedToken? right = none) ∨
+            (boundary.source = right ∧
+              state.core.assignedToken? left = none))
+
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact
 reference-switching path between the premises which avoids the par
@@ -14276,6 +14493,123 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
       conclusionAvoided, boundaryMembership, boundarySourceAssigned,
       boundaryTargetAssignedNone, boundaryTargetNeLeft,
       boundaryTargetNeRight, boundaryTargetNeConclusion, boundaryOrigin⟩
+
+/-- Every incomplete correct canonical run now exposes a path occurrence
+with a complete local scheduler classification.  This checkpoint separates
+the remaining global geometric exclusion from queue bookkeeping: the path
+frontier is either a registered/distinct-thread par, a par with its omitted
+premise unassigned, or a tensor with its opposite premise unassigned. -/
+private theorem canonicalWorklistRun_incomplete_pathFrontierStatus
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (boundary :
+            certificate.referenceSwitchingGraph.DirectedEdge),
+        boundary ∈ path.traversed ∧
+          final.core.assignedToken? boundary.source ≠ none ∧
+            final.core.assignedToken? boundary.target = none ∧
+              PathFrontierSchedulerObstruction
+                certificate final boundary := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (boundary :
+            certificate.referenceSwitchingGraph.DirectedEdge),
+        boundary ∈ path.traversed ∧
+          final.core.assignedToken? boundary.source ≠ none ∧
+            final.core.assignedToken? boundary.target = none ∧
+              PathFrontierSchedulerObstruction
+                certificate final boundary
+  intro incomplete
+  rcases canonicalWorklistRun_incomplete_waitingParPath
+      correct startEquation incomplete with
+    ⟨index, left, right, conclusion, leftToken, rightToken,
+      path, boundary, waitingLookup, waitingConclusionUnmarked,
+      leftMarked, rightMarked, different, registered, noActiveWalk,
+      pathStarts, pathFinishes, conclusionAvoided, boundaryMembership,
+      boundarySourceAssigned, boundaryTargetUnmarked, boundaryTargetNeLeft,
+      boundaryTargetNeRight, boundaryTargetNeConclusion,
+      parOrigin | tensorOrigin⟩
+  · rcases parOrigin with
+      ⟨frontierIndex, frontierLeft, frontierRight,
+        frontierConclusion, frontierLookup, sourceEquation,
+        targetEquation⟩
+    have frontierConclusionUnmarked :
+        final.core.assignedToken? frontierConclusion = none := by
+      simpa [targetEquation] using boundaryTargetUnmarked
+    have frontierLeftAssigned :
+        final.core.assignedToken? frontierLeft ≠ none := by
+      simpa [sourceEquation] using boundarySourceAssigned
+    have frontierStatus :=
+      canonicalWorklistRun_par_frontier_status
+        correct startEquation frontierLookup frontierConclusionUnmarked
+        frontierLeftAssigned
+    exact
+      ⟨path, boundary, boundaryMembership, boundarySourceAssigned,
+        boundaryTargetUnmarked, Or.inl
+          ⟨frontierIndex, frontierLeft, frontierRight,
+            frontierConclusion, frontierLookup, sourceEquation,
+            targetEquation, frontierStatus⟩⟩
+  · rcases tensorOrigin with
+      ⟨frontierIndex, frontierLeft, frontierRight,
+        frontierConclusion, frontierLookup,
+        sourceEquation, targetEquation⟩
+    have frontierConclusionUnmarked :
+        final.core.assignedToken? frontierConclusion = none := by
+      simpa [targetEquation] using boundaryTargetUnmarked
+    have sourceAssigned :
+        final.core.assignedToken? frontierLeft ≠ none ∨
+          final.core.assignedToken? frontierRight ≠ none := by
+      rcases sourceEquation with sourceLeft | sourceRight
+      · exact Or.inl (by
+          simpa [sourceLeft] using boundarySourceAssigned)
+      · exact Or.inr (by
+          simpa [sourceRight] using boundarySourceAssigned)
+    have frontierStatus :=
+      canonicalWorklistRun_tensor_frontier_status
+        correct startEquation frontierLookup frontierConclusionUnmarked
+        sourceAssigned
+    rcases sourceEquation with sourceLeft | sourceRight
+    · rcases frontierStatus with
+        ⟨leftAssigned, rightUnassigned⟩ |
+          ⟨rightAssigned, leftUnassigned⟩
+      · exact
+          ⟨path, boundary, boundaryMembership, boundarySourceAssigned,
+            boundaryTargetUnmarked, Or.inr
+              ⟨frontierIndex, frontierLeft, frontierRight,
+                frontierConclusion, frontierLookup, targetEquation,
+                Or.inl ⟨sourceLeft, rightUnassigned⟩⟩⟩
+      · exact False.elim
+          (by
+            apply boundarySourceAssigned
+            simpa [sourceLeft] using leftUnassigned)
+    · rcases frontierStatus with
+        ⟨leftAssigned, rightUnassigned⟩ |
+          ⟨rightAssigned, leftUnassigned⟩
+      · exact False.elim
+          (by
+            apply boundarySourceAssigned
+            simpa [sourceRight] using rightUnassigned)
+      · exact
+          ⟨path, boundary, boundaryMembership, boundarySourceAssigned,
+            boundaryTargetUnmarked, Or.inr
+              ⟨frontierIndex, frontierLeft, frontierRight,
+                frontierConclusion, frontierLookup, targetEquation,
+                Or.inr ⟨sourceRight, leftUnassigned⟩⟩⟩
 
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/
