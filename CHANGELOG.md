@@ -26,9 +26,14 @@
   replacement component. Eager axiom initialization establishes this
   pending-premise coverage from the canonical empty state, every processing
   branch preserves it, and the complete production fuel-bounded run carries
-  the bundled abstraction/forest/component/frontier invariant. Whole
-  scheduler-status preservation, fuel sufficiency, and correct-state
-  progress remain open, so pure-worklist completeness is still not claimed;
+  the bundled abstraction/forest/component/frontier invariant. Popping now
+  preserves scheduler coverage for every non-head connective, successful par
+  and tensor events transport those classifications through exact dependency
+  fan-out, tensor union is proved unable to split an old shared-token class,
+  and the processed head closes the temporary coverage hole whenever it is a
+  submitted connective. Queue-entry provenance, lifting this atomic theorem
+  through the whole finite run, fuel sufficiency, and correct-state progress
+  remain open, so pure-worklist completeness is still not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential

@@ -3336,6 +3336,35 @@ private theorem firePar?_success_mark_of_ne
   rw [← observation.marks]
   simp [UnificationState.markConclusion, different.symm]
 
+/-- Par firing is monotone on the domain of marked occurrences: it marks its
+conclusion and leaves every other raw mark unchanged. -/
+private theorem firePar?_success_preserves_assigned
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion vertex : Vertex}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (marked : state.assignedToken? vertex ≠ none)
+    (equation : firePar? state left right conclusion = some next) :
+    next.assignedToken? vertex ≠ none := by
+  by_cases same : vertex = conclusion
+  · subst vertex
+    exact firePar?_success_conclusion_marked
+      abstractable conclusionBound equation
+  · cases oldLookup : state.assignedToken? vertex with
+    | none =>
+        exact False.elim (marked oldLookup)
+    | some token =>
+        have oldRaw :
+            state.marks[vertex]? = some (some token) :=
+          UnificationState.assignedToken?_some_raw oldLookup
+        have nextRaw :
+            next.marks[vertex]? = some (some token) := by
+          rw [firePar?_success_mark_of_ne same equation]
+          exact oldRaw
+        unfold UnificationState.assignedToken?
+        rw [nextRaw]
+        simp
+
 /-- A successful par firing exposes its new conclusion at the same root token
 shared by both premises. -/
 private theorem firePar?_success_conclusion_tokenAt?
@@ -3951,6 +3980,35 @@ private theorem fireTensor?_success_mark_of_ne
     UnificationState.setParent, UnificationState.markConclusion,
     different.symm]
 
+/-- Tensor firing is also monotone on marked occurrences.  The root union may
+rename their current representatives, but it never removes a raw mark. -/
+private theorem fireTensor?_success_preserves_assigned
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion vertex : Vertex}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (marked : state.assignedToken? vertex ≠ none)
+    (equation : fireTensor? state left right conclusion = some next) :
+    next.assignedToken? vertex ≠ none := by
+  by_cases same : vertex = conclusion
+  · subst vertex
+    exact fireTensor?_success_conclusion_marked
+      abstractable conclusionBound equation
+  · cases oldLookup : state.assignedToken? vertex with
+    | none =>
+        exact False.elim (marked oldLookup)
+    | some token =>
+        have oldRaw :
+            state.marks[vertex]? = some (some token) :=
+          UnificationState.assignedToken?_some_raw oldLookup
+        have nextRaw :
+            next.marks[vertex]? = some (some token) := by
+          rw [fireTensor?_success_mark_of_ne same equation]
+          exact oldRaw
+        unfold UnificationState.assignedToken?
+        rw [nextRaw]
+        simp
+
 /-- Any non-conclusion occurrence marked after a tensor firing was already
 marked before the firing, although its current representative may have
 changed through the root union. -/
@@ -3973,6 +4031,126 @@ private theorem fireTensor?_success_old_tokenAt?_of_ne
   unfold UnificationState.tokenAt?
   rw [nextRawLookup]
   rfl
+
+/-- A non-conclusion occurrence which was unmarked before a successful tensor
+firing remains unmarked afterwards.  This is the contrapositive form needed
+to transport an idle scheduler classification across a root union. -/
+private theorem fireTensor?_success_tokenAt?_none_of_ne
+    {state next : UnificationState}
+    {left right conclusion vertex : Vertex}
+    (different : vertex ≠ conclusion)
+    (unmarked : state.tokenAt? vertex = none)
+    (equation : fireTensor? state left right conclusion = some next) :
+    next.tokenAt? vertex = none := by
+  cases nextLookup : next.tokenAt? vertex with
+  | none =>
+      rfl
+  | some nextToken =>
+      rcases fireTensor?_success_old_tokenAt?_of_ne
+          different nextLookup equation with
+        ⟨oldToken, oldLookup⟩
+      rw [unmarked] at oldLookup
+      contradiction
+
+/-- A successful tensor union cannot split an already shared token class.
+For two old non-conclusion occurrences which yielded the same representative,
+their new representative may be renamed by the union, but remains shared. -/
+private theorem fireTensor?_success_same_tokenAt?_of_ne
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right conclusion first second token : Vertex}
+    (firstDifferent : first ≠ conclusion)
+    (secondDifferent : second ≠ conclusion)
+    (firstLookup : state.tokenAt? first = some token)
+    (secondLookup : state.tokenAt? second = some token)
+    (equation : fireTensor? state left right conclusion = some next) :
+    ∃ nextToken,
+      next.tokenAt? first = some nextToken ∧
+        next.tokenAt? second = some nextToken := by
+  rcases state.tokenAt?_some_witness firstLookup with
+    ⟨firstRaw, firstMarked, firstRepresentative⟩
+  rcases state.tokenAt?_some_witness secondLookup with
+    ⟨secondRaw, secondMarked, secondRepresentative⟩
+  have firstRawLookup :
+      state.marks[first]? = some (some firstRaw) :=
+    UnificationState.assignedToken?_some_raw firstMarked
+  have secondRawLookup :
+      state.marks[second]? = some (some secondRaw) :=
+    UnificationState.assignedToken?_some_raw secondMarked
+  have firstBound : firstRaw < state.parents.size :=
+    abstractable.markedTokenBound firstMarked
+  have secondBound : secondRaw < state.parents.size :=
+    abstractable.markedTokenBound secondMarked
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, unifyEquation, observation⟩
+  have guards := state.unifyTokens?_success unifyEquation
+  have leftBound : leftToken < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.1
+  have rightBound : rightToken < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.2.1
+  have leftRoot : state.representative leftToken = leftToken :=
+    abstractable.tokenAt?_root guards.2.1
+  have rightRoot : state.representative rightToken = rightToken :=
+    abstractable.tokenAt?_root guards.2.2.1
+  have tokensDifferent : leftToken ≠ rightToken :=
+    guards.2.2.2
+  let survivor := min leftToken rightToken
+  let retired := max leftToken rightToken
+  have survivorBound : survivor < state.parents.size := by
+    exact Nat.lt_of_le_of_lt
+      (Nat.min_le_left leftToken rightToken) leftBound
+  have retiredBound : retired < state.parents.size := by
+    exact Nat.max_lt.mpr ⟨leftBound, rightBound⟩
+  have survivorLt : survivor < retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [survivor, retired,
+        Nat.min_eq_left (Nat.le_of_lt leftLess),
+        Nat.max_eq_right (Nat.le_of_lt leftLess)] using leftLess
+    · simpa [survivor, retired,
+        Nat.min_eq_right (Nat.le_of_lt rightLess),
+        Nat.max_eq_left (Nat.le_of_lt rightLess)] using rightLess
+  have survivorRoot :
+      state.representative survivor = survivor := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [survivor,
+        Nat.min_eq_left (Nat.le_of_lt leftLess)] using leftRoot
+    · simpa [survivor,
+        Nat.min_eq_right (Nat.le_of_lt rightLess)] using rightRoot
+  have retiredRoot :
+      state.representative retired = retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [retired,
+        Nat.max_eq_right (Nat.le_of_lt leftLess)] using rightRoot
+    · simpa [retired,
+        Nat.max_eq_left (Nat.le_of_lt rightLess)] using leftRoot
+  have nextRepresentativesEqual :
+      next.representative firstRaw =
+        next.representative secondRaw := by
+    rw [observation.representative_eq firstRaw,
+      observation.representative_eq secondRaw]
+    change
+      (state.setParent retired survivor).representative firstRaw =
+        (state.setParent retired survivor).representative secondRaw
+    rw [ordered.setParent_representative
+          survivorBound retiredBound survivorLt
+          survivorRoot retiredRoot firstBound,
+      ordered.setParent_representative
+          survivorBound retiredBound survivorLt
+          survivorRoot retiredRoot secondBound,
+      firstRepresentative, secondRepresentative]
+  refine ⟨next.representative firstRaw, ?_, ?_⟩
+  · unfold UnificationState.tokenAt?
+    rw [fireTensor?_success_mark_of_ne firstDifferent equation,
+      firstRawLookup]
+    rfl
+  · unfold UnificationState.tokenAt?
+    rw [fireTensor?_success_mark_of_ne secondDifferent equation,
+      secondRawLookup]
+    exact congrArg some nextRepresentativesEqual.symm
 
 /-- The conclusion created by a successful tensor firing is exposed on the
 frontier of the merged live component at the surviving representative. -/
@@ -5324,6 +5502,18 @@ private def SchedulerCoverage (certificate : Certificate)
       link.isConnective = true →
         ConnectiveSchedulerStatus state index link
 
+/-- Scheduler coverage with one distinguished queue head temporarily exempt.
+Popping removes that head's operational `queued` witness before processing;
+all other connective classifications must remain available during the atomic
+pop-and-process proof. -/
+private def SchedulerCoverageExcept (certificate : Certificate)
+    (state : UnificationWorklistState) (skipped : Nat) : Prop :=
+  ∀ {index : Nat} {link : Link},
+    certificate.links[index]? = some link →
+      link.isConnective = true →
+        index ≠ skipped →
+          ConnectiveSchedulerStatus state index link
+
 /-- A `true` deduplication flag must be backed by membership in the actual
 queue.  The reverse direction and queue uniqueness belong to the later fuel
 accounting layer; this direction is enough to justify every deduplicated
@@ -5852,11 +6042,49 @@ private def enqueueConsumers (consumers : Array (List Nat))
           enqueueWorklist .dependency index next)
         state
 
+/-- A dependency-enqueue batch preserves the queue-flag carrier. -/
+@[simp] private theorem foldl_enqueueWorklist_queued_size
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist kind index next)
+      state).queued.size = state.queued.size := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
 /-- Dependency fan-out changes only scheduler fields. -/
 @[simp] private theorem enqueueConsumers_core
     (consumers : Array (List Nat)) (conclusion : Vertex)
     (state : UnificationWorklistState) :
     (enqueueConsumers consumers conclusion state).core = state.core := by
+  unfold enqueueConsumers
+  split
+  · rfl
+  · simp
+
+/-- Dependency fan-out preserves the queue-flag carrier. -/
+@[simp] private theorem enqueueConsumers_queued_size
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    (enqueueConsumers consumers conclusion state).queued.size =
+      state.queued.size := by
+  unfold enqueueConsumers
+  split
+  · rfl
+  · simp
+
+/-- Dependency fan-out does not change the waiting registry. -/
+@[simp] private theorem enqueueConsumers_waiting
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    (enqueueConsumers consumers conclusion state).waiting =
+      state.waiting := by
   unfold enqueueConsumers
   split
   · rfl
@@ -5874,6 +6102,20 @@ private theorem SchedulerCoverage.enqueueConsumers
   split
   · exact coverage
   · exact coverage.enqueueMany .dependency _
+
+/-- Dependency fan-out preserves every queue member which was already
+scheduled before the newly marked conclusion was broadcast. -/
+private theorem mem_enqueueConsumers_of_mem
+    {consumers : Array (List Nat)} {conclusion candidate : Nat}
+    {state : UnificationWorklistState}
+    (membership : candidate ∈ state.queue) :
+    candidate ∈
+      (Certificate.enqueueConsumers consumers conclusion state).queue := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact membership
+  · exact mem_foldl_enqueueWorklist_of_mem
+      .dependency _ membership
 
 /-- The concrete consumer table plus sound deduplication guarantees that
 marking a premise places every affected certificate link in the real queue. -/
@@ -6049,6 +6291,44 @@ private theorem SchedulerCoverage.addWaiting
         exact ConnectiveSchedulerStatus.tensorDeadlock
           leftMarked rightMarked
 
+/-- Waiting registration also preserves coverage when one popped queue head
+is temporarily exempt from the scheduler invariant. -/
+private theorem SchedulerCoverageExcept.addWaiting
+    {certificate : Certificate} {state : UnificationWorklistState}
+    {skipped : Nat}
+    (coverage : SchedulerCoverageExcept certificate state skipped)
+    (index : Nat) :
+    SchedulerCoverageExcept certificate
+      (addWaiting index state) skipped := by
+  intro candidateIndex link lookup connective candidateDifferent
+  have covered := coverage lookup connective candidateDifferent
+  unfold Certificate.addWaiting
+  split
+  · exact covered
+  · cases covered with
+    | queued membership =>
+        exact ConnectiveSchedulerStatus.queued membership
+    | firedPar marked =>
+        exact ConnectiveSchedulerStatus.firedPar marked
+    | firedTensor marked =>
+        exact ConnectiveSchedulerStatus.firedTensor marked
+    | idlePar idle =>
+        exact ConnectiveSchedulerStatus.idlePar idle
+    | idleTensor idle =>
+        exact ConnectiveSchedulerStatus.idleTensor idle
+    | waitingPar leftMarked rightMarked different registered bound =>
+        apply ConnectiveSchedulerStatus.waitingPar
+        · exact leftMarked
+        · exact rightMarked
+        · exact different
+        · simpa only [List.mem_cons] using
+            (show candidateIndex = index ∨
+              candidateIndex ∈ state.waiting from Or.inr registered)
+        · simpa using bound
+    | tensorDeadlock leftMarked rightMarked =>
+        exact ConnectiveSchedulerStatus.tensorDeadlock
+          leftMarked rightMarked
+
 private def requeueWaiting (linkCount : Nat)
     (state : UnificationWorklistState) : UnificationWorklistState :=
   let waiting := state.waiting
@@ -6064,6 +6344,14 @@ private def requeueWaiting (linkCount : Nat)
 @[simp] private theorem requeueWaiting_core
     (linkCount : Nat) (state : UnificationWorklistState) :
     (requeueWaiting linkCount state).core = state.core := by
+  unfold requeueWaiting
+  simp
+
+/-- Waiting requeue preserves the queue-flag carrier. -/
+@[simp] private theorem requeueWaiting_queued_size
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    (requeueWaiting linkCount state).queued.size =
+      state.queued.size := by
   unfold requeueWaiting
   simp
 
@@ -6146,6 +6434,37 @@ private theorem WaitingBounded.requeueWaiting
   intro index membership
   unfold Certificate.requeueWaiting at membership
   simp at membership
+
+/-- Requeueing waiting pars preserves every pre-existing real queue member. -/
+private theorem mem_requeueWaiting_of_queue_mem
+    {state : UnificationWorklistState} {candidate linkCount : Nat}
+    (membership : candidate ∈ state.queue) :
+    candidate ∈
+      (Certificate.requeueWaiting linkCount state).queue := by
+  unfold Certificate.requeueWaiting
+  exact mem_foldl_enqueueWorklist_of_mem
+    .waiting state.waiting membership
+
+/-- A sound, in-bounds waiting registration becomes a real queue member when
+the complete waiting registry is requeued. -/
+private theorem QueueFlagSound.mem_requeueWaiting_of_waiting
+    {state : UnificationWorklistState} {candidate linkCount : Nat}
+    (sound : QueueFlagSound state)
+    (registered : candidate ∈ state.waiting)
+    (bound : candidate < state.queued.size) :
+    candidate ∈
+      (Certificate.requeueWaiting linkCount state).queue := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have clearedSound : QueueFlagSound cleared := by
+    intro index flagged
+    exact sound flagged
+  unfold Certificate.requeueWaiting
+  apply clearedSound.mem_enqueueMany .waiting state.waiting
+  · exact registered
+  · simpa [cleared] using bound
 
 /-- Requeueing the entire waiting-par registry preserves scheduler coverage:
 every formerly waiting par becomes a concrete queue member, while queued,
@@ -6464,6 +6783,56 @@ private theorem popWorklist?_some_invariants
         have oldBound := bounded oldMembership
         simpa using oldBound
 
+/-- Popping one queue head preserves every other connective's scheduler
+classification.  The removed index is the unique temporary hole repaired by
+`processWorklistLink_processed_status`. -/
+private theorem popWorklist?_success_schedulerCoverageExcept
+    {certificate : Certificate}
+    {state popped : UnificationWorklistState} {index : Nat}
+    (coverage : SchedulerCoverage certificate state)
+    (equation : popWorklist? state = some (index, popped)) :
+    SchedulerCoverageExcept certificate popped index := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      intro candidateIndex link lookup connective different
+      have covered := coverage lookup connective
+      cases covered with
+      | queued membership =>
+          apply ConnectiveSchedulerStatus.queued
+          rw [queueEquation] at membership
+          simp only [List.mem_cons] at membership
+          rcases membership with same | inRest
+          · exact False.elim (different same)
+          · exact inRest
+      | firedPar marked =>
+          apply ConnectiveSchedulerStatus.firedPar
+          simpa using marked
+      | firedTensor marked =>
+          apply ConnectiveSchedulerStatus.firedTensor
+          simpa using marked
+      | idlePar idle =>
+          apply ConnectiveSchedulerStatus.idlePar
+          simpa using idle
+      | idleTensor idle =>
+          apply ConnectiveSchedulerStatus.idleTensor
+          simpa using idle
+      | waitingPar leftMarked rightMarked
+          tokensDifferent registered bound =>
+          apply ConnectiveSchedulerStatus.waitingPar
+          · simpa using leftMarked
+          · simpa using rightMarked
+          · exact tokensDifferent
+          · exact registered
+          · simpa using bound
+      | tensorDeadlock leftMarked rightMarked =>
+          apply ConnectiveSchedulerStatus.tensorDeadlock
+          · simpa using leftMarked
+          · simpa using rightMarked
+
 private def recordWorklistFiring (state : UnificationWorklistState) :
     UnificationWorklistState :=
   { state with
@@ -6476,6 +6845,341 @@ private def recordWorklistFiring (state : UnificationWorklistState) :
     (state : UnificationWorklistState) :
     (recordWorklistFiring state).core = state.core :=
   rfl
+
+/-- Broadcasting a successfully fired par conclusion transports scheduler
+coverage for every submitted connective.  Existing queue members remain
+queued; old fired conclusions remain marked; unaffected idle/waiting/deadlock
+statuses are stable because par does not change representatives; and every
+status whose premise is the new conclusion becomes a concrete dependency
+queue member through the exact consumer table. -/
+private theorem SchedulerCoverageExcept.afterFirePar
+    {certificate : Certificate} {state : UnificationWorklistState}
+    {next : UnificationState}
+    {left right conclusion : Vertex} {skipped : Nat}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    (coverage :
+      SchedulerCoverageExcept certificate state skipped)
+    (queueSound : QueueFlagSound state)
+    (queueSize : state.queued.size = certificate.links.length)
+    (firedMembership :
+      Link.par left right conclusion ∈ certificate.links)
+    (equation :
+      firePar? state.core left right conclusion = some next) :
+    SchedulerCoverageExcept certificate
+      (Certificate.enqueueConsumers
+        certificate.worklistConsumers conclusion <|
+        recordWorklistFiring { state with core := next })
+      skipped := by
+  have firedWellFormed :
+      certificate.LinkWellFormed
+        (.par left right conclusion) :=
+    structural.2.2.2.2.1 _ firedMembership
+  rcases firedWellFormed with
+    ⟨_premisesDifferent, _leftConclusionDifferent,
+      _rightConclusionDifferent, _leftBound, _rightBound,
+      conclusionBound, _typing⟩
+  let firedState : UnificationWorklistState :=
+    recordWorklistFiring { state with core := next }
+  have firedQueueSound : QueueFlagSound firedState := by
+    intro index flagged
+    apply queueSound
+    simpa [firedState, recordWorklistFiring] using flagged
+  have firedQueueSize :
+      firedState.queued.size = certificate.links.length := by
+    simpa [firedState, recordWorklistFiring] using queueSize
+  intro candidateIndex link lookup connective candidateDifferent
+  have covered := coverage lookup connective candidateDifferent
+  have queuedOfPremise
+      (premiseMembership : conclusion ∈ link.premises) :
+      ConnectiveSchedulerStatus
+        (Certificate.enqueueConsumers
+          certificate.worklistConsumers conclusion
+          firedState)
+        candidateIndex link := by
+    apply ConnectiveSchedulerStatus.queued
+    exact firedQueueSound.mem_enqueueConsumers_worklist
+      firedQueueSize lookup conclusionBound premiseMembership
+  cases covered with
+  | queued membership =>
+      apply ConnectiveSchedulerStatus.queued
+      apply mem_enqueueConsumers_of_mem
+      simpa [firedState, recordWorklistFiring] using membership
+  | firedPar marked =>
+      apply ConnectiveSchedulerStatus.firedPar
+      have nextMarked :=
+        firePar?_success_preserves_assigned
+          abstractable conclusionBound marked equation
+      simpa [firedState] using nextMarked
+  | firedTensor marked =>
+      apply ConnectiveSchedulerStatus.firedTensor
+      have nextMarked :=
+        firePar?_success_preserves_assigned
+          abstractable conclusionBound marked equation
+      simpa [firedState] using nextMarked
+  | @idlePar candidateLeft candidateRight
+      candidateConclusion idle =>
+      rcases idle with leftIdle | rightIdle
+      · by_cases affected : candidateLeft = conclusion
+        · apply queuedOfPremise
+          subst candidateLeft
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idlePar
+          apply Or.inl
+          have nextIdle :
+              next.tokenAt? candidateLeft = none := by
+            rw [firePar?_success_tokenAt?_of_ne affected equation]
+            exact leftIdle
+          simpa [firedState] using nextIdle
+      · by_cases affected : candidateRight = conclusion
+        · apply queuedOfPremise
+          subst candidateRight
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idlePar
+          apply Or.inr
+          have nextIdle :
+              next.tokenAt? candidateRight = none := by
+            rw [firePar?_success_tokenAt?_of_ne affected equation]
+            exact rightIdle
+          simpa [firedState] using nextIdle
+  | @idleTensor candidateLeft candidateRight
+      candidateConclusion idle =>
+      rcases idle with leftIdle | rightIdle
+      · by_cases affected : candidateLeft = conclusion
+        · apply queuedOfPremise
+          subst candidateLeft
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idleTensor
+          apply Or.inl
+          have nextIdle :
+              next.tokenAt? candidateLeft = none := by
+            rw [firePar?_success_tokenAt?_of_ne affected equation]
+            exact leftIdle
+          simpa [firedState] using nextIdle
+      · by_cases affected : candidateRight = conclusion
+        · apply queuedOfPremise
+          subst candidateRight
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idleTensor
+          apply Or.inr
+          have nextIdle :
+              next.tokenAt? candidateRight = none := by
+            rw [firePar?_success_tokenAt?_of_ne affected equation]
+            exact rightIdle
+          simpa [firedState] using nextIdle
+  | @waitingPar candidateLeft candidateRight
+      candidateConclusion leftToken rightToken
+      leftMarked rightMarked different registered bound =>
+      by_cases leftAffected : candidateLeft = conclusion
+      · apply queuedOfPremise
+        subst candidateLeft
+        simp [Link.premises]
+      · by_cases rightAffected : candidateRight = conclusion
+        · apply queuedOfPremise
+          subst candidateRight
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.waitingPar
+          · have nextLeft :
+                next.tokenAt? candidateLeft =
+                  some leftToken := by
+              rw [firePar?_success_tokenAt?_of_ne
+                leftAffected equation]
+              exact leftMarked
+            simpa [firedState] using nextLeft
+          · have nextRight :
+                next.tokenAt? candidateRight =
+                  some rightToken := by
+              rw [firePar?_success_tokenAt?_of_ne
+                rightAffected equation]
+              exact rightMarked
+            simpa [firedState] using nextRight
+          · exact different
+          · simpa [firedState, recordWorklistFiring] using
+              registered
+          · simpa [firedState, recordWorklistFiring] using bound
+  | @tensorDeadlock candidateLeft candidateRight
+      candidateConclusion token leftMarked rightMarked =>
+      by_cases leftAffected : candidateLeft = conclusion
+      · apply queuedOfPremise
+        subst candidateLeft
+        simp [Link.premises]
+      · by_cases rightAffected : candidateRight = conclusion
+        · apply queuedOfPremise
+          subst candidateRight
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.tensorDeadlock
+          · have nextLeft :
+                next.tokenAt? candidateLeft = some token := by
+              rw [firePar?_success_tokenAt?_of_ne
+                leftAffected equation]
+              exact leftMarked
+            simpa [firedState] using nextLeft
+          · have nextRight :
+                next.tokenAt? candidateRight = some token := by
+              rw [firePar?_success_tokenAt?_of_ne
+                rightAffected equation]
+              exact rightMarked
+            simpa [firedState] using nextRight
+
+/-- Broadcasting a successful tensor conclusion also transports complete
+scheduler coverage.  Tensor firing first requeues every waiting par, so the
+only token-semantic cases that must be transported directly are fired marks,
+unaffected idle premises, and an old tensor deadlock.  The ordered union-find
+theorem above ensures that the root union cannot split that old deadlock. -/
+private theorem SchedulerCoverageExcept.afterFireTensor
+    {certificate : Certificate} {state : UnificationWorklistState}
+    {next : UnificationState}
+    {left right conclusion : Vertex} {skipped : Nat}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    (ordered : state.core.OrderedParents)
+    (coverage :
+      SchedulerCoverageExcept certificate state skipped)
+    (queueSound : QueueFlagSound state)
+    (queueSize : state.queued.size = certificate.links.length)
+    (firedMembership :
+      Link.tensor left right conclusion ∈ certificate.links)
+    (equation :
+      fireTensor? state.core left right conclusion = some next) :
+    SchedulerCoverageExcept certificate
+      (Certificate.enqueueConsumers
+        certificate.worklistConsumers conclusion <|
+          Certificate.requeueWaiting certificate.links.length <|
+            recordWorklistFiring { state with core := next })
+      skipped := by
+  have firedWellFormed :
+      certificate.LinkWellFormed
+        (.tensor left right conclusion) :=
+    structural.2.2.2.2.1 _ firedMembership
+  rcases firedWellFormed with
+    ⟨_premisesDifferent, _leftConclusionDifferent,
+      _rightConclusionDifferent, _leftBound, _rightBound,
+      conclusionBound, _typing⟩
+  let firedState : UnificationWorklistState :=
+    recordWorklistFiring { state with core := next }
+  let requeuedState : UnificationWorklistState :=
+    Certificate.requeueWaiting certificate.links.length firedState
+  have firedQueueSound : QueueFlagSound firedState := by
+    intro index flagged
+    apply queueSound
+    simpa [firedState, recordWorklistFiring] using flagged
+  have firedQueueSize :
+      firedState.queued.size = certificate.links.length := by
+    simpa [firedState, recordWorklistFiring] using queueSize
+  have requeuedQueueSound : QueueFlagSound requeuedState := by
+    exact firedQueueSound.requeueWaiting certificate.links.length
+  have requeuedQueueSize :
+      requeuedState.queued.size = certificate.links.length := by
+    simpa [requeuedState] using firedQueueSize
+  intro candidateIndex link lookup connective candidateDifferent
+  have covered := coverage lookup connective candidateDifferent
+  have queuedOfPremise
+      (premiseMembership : conclusion ∈ link.premises) :
+      ConnectiveSchedulerStatus
+        (Certificate.enqueueConsumers
+          certificate.worklistConsumers conclusion requeuedState)
+        candidateIndex link := by
+    apply ConnectiveSchedulerStatus.queued
+    exact requeuedQueueSound.mem_enqueueConsumers_worklist
+      requeuedQueueSize lookup conclusionBound premiseMembership
+  cases covered with
+  | queued membership =>
+      apply ConnectiveSchedulerStatus.queued
+      apply mem_enqueueConsumers_of_mem
+      apply mem_requeueWaiting_of_queue_mem
+      simpa [firedState, recordWorklistFiring] using membership
+  | firedPar marked =>
+      apply ConnectiveSchedulerStatus.firedPar
+      have nextMarked :=
+        fireTensor?_success_preserves_assigned
+          abstractable conclusionBound marked equation
+      simpa [requeuedState, firedState] using nextMarked
+  | firedTensor marked =>
+      apply ConnectiveSchedulerStatus.firedTensor
+      have nextMarked :=
+        fireTensor?_success_preserves_assigned
+          abstractable conclusionBound marked equation
+      simpa [requeuedState, firedState] using nextMarked
+  | @idlePar candidateLeft candidateRight
+      candidateConclusion idle =>
+      rcases idle with leftIdle | rightIdle
+      · by_cases affected : candidateLeft = conclusion
+        · apply queuedOfPremise
+          subst candidateLeft
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idlePar
+          apply Or.inl
+          have nextIdle :
+              next.tokenAt? candidateLeft = none :=
+            fireTensor?_success_tokenAt?_none_of_ne
+              affected leftIdle equation
+          simpa [requeuedState, firedState] using nextIdle
+      · by_cases affected : candidateRight = conclusion
+        · apply queuedOfPremise
+          subst candidateRight
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idlePar
+          apply Or.inr
+          have nextIdle :
+              next.tokenAt? candidateRight = none :=
+            fireTensor?_success_tokenAt?_none_of_ne
+              affected rightIdle equation
+          simpa [requeuedState, firedState] using nextIdle
+  | @idleTensor candidateLeft candidateRight
+      candidateConclusion idle =>
+      rcases idle with leftIdle | rightIdle
+      · by_cases affected : candidateLeft = conclusion
+        · apply queuedOfPremise
+          subst candidateLeft
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idleTensor
+          apply Or.inl
+          have nextIdle :
+              next.tokenAt? candidateLeft = none :=
+            fireTensor?_success_tokenAt?_none_of_ne
+              affected leftIdle equation
+          simpa [requeuedState, firedState] using nextIdle
+      · by_cases affected : candidateRight = conclusion
+        · apply queuedOfPremise
+          subst candidateRight
+          simp [Link.premises]
+        · apply ConnectiveSchedulerStatus.idleTensor
+          apply Or.inr
+          have nextIdle :
+              next.tokenAt? candidateRight = none :=
+            fireTensor?_success_tokenAt?_none_of_ne
+              affected rightIdle equation
+          simpa [requeuedState, firedState] using nextIdle
+  | @waitingPar candidateLeft candidateRight
+      candidateConclusion leftToken rightToken
+      leftMarked rightMarked different registered bound =>
+      apply ConnectiveSchedulerStatus.queued
+      apply mem_enqueueConsumers_of_mem
+      have firedRegistered :
+          candidateIndex ∈ firedState.waiting := by
+        simpa [firedState, recordWorklistFiring] using registered
+      have firedBound :
+          candidateIndex < firedState.queued.size := by
+        simpa [firedState, recordWorklistFiring] using bound
+      exact firedQueueSound.mem_requeueWaiting_of_waiting
+        firedRegistered firedBound
+  | @tensorDeadlock candidateLeft candidateRight
+      candidateConclusion token leftMarked rightMarked =>
+      by_cases leftAffected : candidateLeft = conclusion
+      · apply queuedOfPremise
+        subst candidateLeft
+        simp [Link.premises]
+      · by_cases rightAffected : candidateRight = conclusion
+        · apply queuedOfPremise
+          subst candidateRight
+          simp [Link.premises]
+        · rcases fireTensor?_success_same_tokenAt?_of_ne
+              abstractable ordered leftAffected rightAffected
+              leftMarked rightMarked equation with
+            ⟨nextToken, nextLeft, nextRight⟩
+          apply ConnectiveSchedulerStatus.tensorDeadlock
+          · simpa [requeuedState, firedState] using nextLeft
+          · simpa [requeuedState, firedState] using nextRight
 
 private def processWorklistLink (certificate : Certificate)
     (consumers : Array (List Nat)) (index : Nat)
@@ -6957,6 +7661,117 @@ private theorem processWorklistLink_coreInvariant
       processWorklistLink_core_pendingPremisesCovered
         structural abstractable ordered covered⟩
 
+/-- Processing the popped head transports scheduler coverage for every other
+connective.  Successful firings use exact consumer fan-out; a waiting par
+uses scheduler-only registration; and every no-op branch preserves the
+pre-existing classification definitionally. -/
+private theorem processWorklistLink_schedulerCoverageExcept
+    {certificate : Certificate} {index : Nat}
+    {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    (ordered : state.core.OrderedParents)
+    (coverage :
+      SchedulerCoverageExcept certificate state index)
+    (queueSound : QueueFlagSound state)
+    (queueSize :
+      state.queued.size = certificate.links.length) :
+    SchedulerCoverageExcept certificate
+      (processWorklistLink certificate
+        certificate.worklistConsumers index state)
+      index := by
+  intro candidateIndex candidateLink candidateLookup
+    candidateConnective candidateDifferent
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      simpa [processWorklistLink, linkLookup] using
+        coverage candidateLookup candidateConnective candidateDifferent
+  | some link =>
+      have linkMembership : link ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      cases link with
+      | «axiom» left right =>
+          simpa [processWorklistLink, linkLookup] using
+            coverage candidateLookup candidateConnective
+              candidateDifferent
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                coverage candidateLookup candidateConnective
+                  candidateDifferent
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using
+                      coverage candidateLookup candidateConnective
+                        candidateDifferent
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, firing] using
+                            coverage candidateLookup candidateConnective
+                              candidateDifferent
+                    | some nextCore =>
+                        have transported :=
+                          (coverage.afterFirePar
+                              structural abstractable queueSound queueSize
+                                linkMembership firing)
+                            candidateLookup candidateConnective
+                              candidateDifferent
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, firing] using
+                            transported
+                  · have registered :=
+                      (coverage.addWaiting index)
+                        candidateLookup candidateConnective
+                          candidateDifferent
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup, same] using
+                        registered
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                coverage candidateLookup candidateConnective
+                  candidateDifferent
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using
+                      coverage candidateLookup candidateConnective
+                        candidateDifferent
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup] using
+                        coverage candidateLookup candidateConnective
+                          candidateDifferent
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, same, firing] using
+                            coverage candidateLookup candidateConnective
+                              candidateDifferent
+                    | some nextCore =>
+                        have transported :=
+                          (coverage.afterFireTensor
+                              structural abstractable ordered queueSound
+                                queueSize linkMembership firing)
+                            candidateLookup candidateConnective
+                              candidateDifferent
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, same, firing] using
+                            transported
+
 /-- Processing a concrete submitted connective always reclassifies that
 specific popped link: it fires, stays idle, becomes a registered waiting par,
 or exposes a tensor deadlock.  The only operational-totality premise beyond
@@ -7126,6 +7941,48 @@ private theorem processWorklistLink_processed_status
                     apply ConnectiveSchedulerStatus.firedTensor
                     simpa [processWorklistLink, lookup, leftLookup,
                       rightLookup, same, firing] using conclusionMarked
+
+/-- Once the popped connective is known to be a submitted connective, one
+processing step closes the temporary coverage hole: the dedicated processed
+status theorem covers that index and the transport theorem covers every other
+index. -/
+private theorem processWorklistLink_schedulerCoverage
+    {certificate : Certificate} {index : Nat} {link : Link}
+    {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    (ordered : state.core.OrderedParents)
+    (premisesCovered :
+      state.core.PendingPremisesCovered certificate)
+    (coverage :
+      SchedulerCoverageExcept certificate state index)
+    (queueSound : QueueFlagSound state)
+    (waitingSound : WaitingFlagSound state)
+    (queueSize :
+      state.queued.size = certificate.links.length)
+    (waitingFlagSize :
+      state.waitingFlags.size = state.queued.size)
+    (lookup : certificate.links[index]? = some link)
+    (connective : link.isConnective = true) :
+    SchedulerCoverage certificate
+      (processWorklistLink certificate
+        certificate.worklistConsumers index state) := by
+  intro candidateIndex candidateLink candidateLookup
+    candidateConnective
+  by_cases same : candidateIndex = index
+  · subst candidateIndex
+    have linkEquality : candidateLink = link := by
+      rw [lookup] at candidateLookup
+      injection candidateLookup with equality
+      exact equality.symm
+    subst candidateLink
+    exact processWorklistLink_processed_status
+      structural abstractable premisesCovered waitingSound
+        queueSize waitingFlagSize lookup connective
+  · exact
+      (processWorklistLink_schedulerCoverageExcept
+          structural abstractable ordered coverage queueSound queueSize)
+        candidateLookup candidateConnective same
 
 /-- Event-driven saturation. Initial arming and newly marked premises enqueue
 only dependent links. A tensor union requeues the current waiting par set.

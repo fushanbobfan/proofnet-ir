@@ -431,7 +431,12 @@
     - [x] Prove canonical initialization plus the complete production
       worklist run preserve abstraction, ordered parents, component/formula
       consistency, and exact pending-premise frontier coverage.
-    - [ ] Prove whole scheduler-status preservation, fuel sufficiency, and
+    - [x] Prove atomic pop-and-process scheduler coverage for a submitted
+      connective head, including the temporary popped-head exception,
+      non-head status transport, exact dependency fan-out, tensor
+      same-class preservation, and processed-head reclassification.
+    - [ ] Prove queue-entry provenance and lift scheduler coverage through
+      the complete finite run, then prove fuel sufficiency and
       correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize
