@@ -273,6 +273,26 @@ ProofNetIR.Graph.DirectedEdge.inflateRetained_exists : ∀ {graph : ProofNetIR.G
             ProofNetIR.Graph.retainedIndex mask original.index = directed.index ∧ mask[original.index]? = some true
 ```
 
+### `ProofNetIR.Graph.DirectedEdge.inflateRetained_exists_exact`
+
+Kind: theorem.
+
+Fully occurrence-exact inversion of one retained directed edge.  In
+addition to endpoints and compacted index, the original stored edge value and
+orientation are exposed explicitly for downstream colored-incidence proofs.
+
+```lean
+ProofNetIR.Graph.DirectedEdge.inflateRetained_exists_exact : ∀ {graph : ProofNetIR.Graph} {mask : List Bool},
+  graph.edges.length = mask.length →
+    ∀ (directed : (graph.retainEdges mask).DirectedEdge),
+      ∃ original,
+        original.edge = directed.edge ∧
+          original.forward = directed.forward ∧
+            original.source = directed.source ∧
+              original.target = directed.target ∧
+                ProofNetIR.Graph.retainedIndex mask original.index = directed.index ∧ mask[original.index]? = some true
+```
+
 ### `ProofNetIR.Graph.EdgeWalk.inflateRetained`
 
 Kind: theorem.
@@ -2799,15 +2819,41 @@ ProofNetIR.UnificationMarking.referenceDirectedEdge_origin : ∀ (certificate : 
           directed.edge = { first := left, second := conclusion }
 ```
 
+### `ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_exact_connective_origin`
+
+Kind: theorem.
+
+Exact occurrence strengthening of the marked-to-unmarked frontier
+classifier.  Besides the submitted-link index and endpoints, the result
+retains the stored edge value and the proved forward orientation.
+
+```lean
+ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_exact_connective_origin : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate),
+  state.MarkingCausallyClosed →
+    (∀ {linkIndex left right : Nat},
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) →
+          (state.mark left).isSome = true ∧ (state.mark right).isSome = true) →
+      ∀ (directed : certificate.referenceSwitchingGraph.DirectedEdge),
+        (state.mark directed.source).isSome = true →
+          (state.mark directed.target).isSome = false →
+            (∃ linkIndex left right conclusion,
+                certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) ∧
+                  directed.edge = { first := left, second := conclusion } ∧
+                    directed.forward = true ∧ directed.source = left ∧ directed.target = conclusion) ∨
+              ∃ linkIndex left right conclusion,
+                certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∧
+                  directed.forward = true ∧
+                    (directed.edge = { first := left, second := conclusion } ∧ directed.source = left ∨
+                        directed.edge = { first := right, second := conclusion } ∧ directed.source = right) ∧
+                      directed.target = conclusion
+```
+
 ### `ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin`
 
 Kind: theorem.
 
-Under causal closure and completed axiom initialization, an exact
-all-left reference occurrence directed from a marked source into an unmarked
-target must be a forward premise-to-conclusion edge of a submitted
-connective.  The result retains the submitted link index and distinguishes
-the sole retained par premise from either tensor premise.
+Backward-compatible endpoint projection of the exact occurrence
+classifier.
 
 ```lean
 ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate),

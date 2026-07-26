@@ -70,10 +70,22 @@ The well-founded chase inside each dependency is no longer recorded only by
 an endpoint inequality: Lean now retains a reflexive-transitive sequence of
 exact source-connective/premise steps, and proves that these paths compose,
 never increase formula complexity, and decrease it strictly when nontrivial.
+Each such formula-premise step is now lifted to the exact full occurrence
+graph edge from connective conclusion to selected premise. Lean composes a
+nontrivial chase into a vertex-simple path whose edges are all traversed
+backward and whose internal vertices are therefore cusp-free. The
+state-indexed chase also retains that every visited formula occurrence is
+unassigned, closing a gap that an endpoint-only relation could not express.
+At the scheduler boundary, an occurrence-exact retained-edge API preserves
+the concrete full-graph edge and its orientation; the previous endpoint API
+remains available as a compatibility projection. A nontrivial dependency
+tail cannot immediately reverse the lifted assigned-to-unassigned frontier.
 This is a cycle in the auxiliary waiting-dependency relation only:
 proof-net correctness still must geometrically exclude it as a
 switching-tree cycle or forbidden nesting before the recursive fallback can
-be removed. The later
+be removed. The next exact bridge must transport the retained par-color
+annotation to the lifted full-graph occurrence and classify the boundary
+turn as a genuine par cusp or tensor-colored free turn. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

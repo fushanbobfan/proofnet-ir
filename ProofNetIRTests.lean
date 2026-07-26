@@ -2186,6 +2186,7 @@ example : ¬cyclicGraph.Acyclic := by
   exact acyclic cyclicTriangle
 #check Graph.retainEdgesByMask_lookup_exists_original
 #check Graph.DirectedEdge.inflateRetained_exists
+#check Graph.DirectedEdge.inflateRetained_exists_exact
 #check Graph.EdgeWalk.inflateRetained
 #check Graph.EdgeSimpleCycle.inflateRetained
 #check Graph.DirectedEdge.ne_reverse
@@ -2201,6 +2202,8 @@ example : ¬cyclicGraph.Acyclic := by
 #check Graph.Acyclic.edges_nodup
 #check Graph.connected_of_bounded_acyclic_edgeCount
 #check Certificate.StructurallyWellFormed.fullGraph_bounded
+#check UnificationMarking.marked_to_unmarked_referenceEdge_exact_connective_origin
+#check UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin
 #check Certificate.FullSwitchingSelection.retained_length_eq
 #check Certificate.AllOccurrenceSwitchingsConnected
 #check Certificate.ReferenceSwitchingConnected

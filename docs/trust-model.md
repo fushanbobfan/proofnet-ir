@@ -165,9 +165,15 @@ endpoints. The resulting contiguous path-exposed inactive block has not yet
 been excluded. Current development does retain every exact submitted
 source-connective/premise step in the terminating formula chase and stores
 that composable path inside each edge of a finite closed waiting-dependency
-segment. The remaining gap is to turn those structural paths into a forbidden
-switching-tree cycle or nesting; this is not yet the correct-state progress
-theorem needed for pure-worklist completeness. The
+segment. Each such step is now tied to its exact full occurrence-graph
+backward edge; nontrivial chases yield vertex-simple, internally cusp-free
+paths, and a state-indexed witness retains unassigned evidence at every
+visited formula occurrence. The occurrence-exact frontier cannot be
+immediately reversed by the first nontrivial tail edge. The remaining gap is
+to synchronize retained par-color annotations with the lifted full-graph
+occurrence, classify the boundary turn, and turn those structural paths into
+a forbidden switching-tree cycle or nesting; this is not yet the
+correct-state progress theorem needed for pure-worklist completeness. The
 attempt accounting also excludes consumer-table construction, waiting-list
 traversal, frontier work, and verification.
 

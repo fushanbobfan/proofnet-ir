@@ -13657,6 +13657,109 @@ private def FormulaPremiseStep
           certificate.formulaComplexityAt child <
             certificate.formulaComplexityAt parent
 
+/-- Every formula-premise step is represented by the exact backward
+orientation of one submitted premise-to-conclusion occurrence in the full
+graph.  The occurrence index is preserved, so parallel equal-valued edges
+are not conflated. -/
+private theorem FormulaPremiseStep.backwardEdge_exists
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {parent child : Vertex}
+    (step : FormulaPremiseStep certificate parent child) :
+    ∃ directed : certificate.fullGraph.DirectedEdge,
+      directed.source = parent ∧
+        directed.target = child ∧
+          directed.forward = false := by
+  rcases step with
+    ⟨_index, link, lookup, produces, premiseMembership, _strict⟩
+  have linkMembership : link ∈ certificate.links :=
+    List.mem_of_getElem? lookup
+  have wellFormed : certificate.LinkWellFormed link :=
+    structural.2.2.2.2.1 link linkMembership
+  cases link with
+  | «axiom» left right =>
+      simp [Link.produces] at produces
+  | tensor left right conclusion =>
+      simp [Link.produces] at produces
+      subst parent
+      simp [Link.premises] at premiseMembership
+      rcases certificate.tensor_incidenceColors_exist
+          linkMembership wellFormed.1 with
+        ⟨leftIncidence, rightIncidence, leftSource, leftTarget,
+          rightSource, rightTarget, leftColor, rightColor,
+          _indicesDifferent⟩
+      have leftForward : leftIncidence.forward = true := by
+        cases forward : leftIncidence.forward with
+        | false =>
+            simp [Certificate.incidenceColor, forward] at leftColor
+        | true =>
+            rfl
+      have rightForward : rightIncidence.forward = true := by
+        cases forward : rightIncidence.forward with
+        | false =>
+            simp [Certificate.incidenceColor, forward] at rightColor
+        | true =>
+            rfl
+      rcases premiseMembership with rfl | rfl
+      · refine ⟨leftIncidence.reverse, ?_, ?_, ?_⟩
+        · calc
+            leftIncidence.reverse.source = leftIncidence.target := by simp
+            _ = conclusion := leftTarget
+        · calc
+            leftIncidence.reverse.target = leftIncidence.source := by simp
+            _ = child := leftSource
+        · simp [Graph.DirectedEdge.reverse, leftForward]
+      · refine ⟨rightIncidence.reverse, ?_, ?_, ?_⟩
+        · calc
+            rightIncidence.reverse.source = rightIncidence.target := by simp
+            _ = conclusion := rightTarget
+        · calc
+            rightIncidence.reverse.target = rightIncidence.source := by simp
+            _ = child := rightSource
+        · simp [Graph.DirectedEdge.reverse, rightForward]
+  | par left right conclusion =>
+      simp [Link.produces] at produces
+      subst parent
+      simp [Link.premises] at premiseMembership
+      rcases certificate.par_incidenceColors_exist linkMembership with
+        ⟨leftIncidence, rightIncidence, leftSource, leftTarget,
+          rightSource, rightTarget, leftColor, rightColor⟩
+      have leftForward : leftIncidence.forward = true :=
+        (certificate.incidenceColor_eq_par_iff
+          leftIncidence conclusion).mp leftColor |>.1
+      have rightForward : rightIncidence.forward = true :=
+        (certificate.incidenceColor_eq_par_iff
+          rightIncidence conclusion).mp rightColor |>.1
+      rcases premiseMembership with rfl | rfl
+      · refine ⟨leftIncidence.reverse, ?_, ?_, ?_⟩
+        · calc
+            leftIncidence.reverse.source = leftIncidence.target := by simp
+            _ = conclusion := leftTarget
+        · calc
+            leftIncidence.reverse.target = leftIncidence.source := by simp
+            _ = child := leftSource
+        · simp [Graph.DirectedEdge.reverse, leftForward]
+      · refine ⟨rightIncidence.reverse, ?_, ?_, ?_⟩
+        · calc
+            rightIncidence.reverse.source = rightIncidence.target := by simp
+            _ = conclusion := rightTarget
+        · calc
+            rightIncidence.reverse.target = rightIncidence.source := by simp
+            _ = child := rightSource
+        · simp [Graph.DirectedEdge.reverse, rightForward]
+
+/-- The explicit premise-step witness exposes its strict formula-complexity
+decrease without discarding the submitted-link data. -/
+private theorem FormulaPremiseStep.complexity_lt
+    {certificate : Certificate}
+    {parent child : Vertex}
+    (step : FormulaPremiseStep certificate parent child) :
+    certificate.formulaComplexityAt child <
+      certificate.formulaComplexityAt parent := by
+  rcases step with
+    ⟨_index, _link, _lookup, _produces, _premise, strict⟩
+  exact strict
+
 /-- Reflexive-transitive formula-premise descent with every structural step
 retained as proof data. -/
 private inductive FormulaPremiseReachable
@@ -13667,6 +13770,301 @@ private inductive FormulaPremiseReachable
       FormulaPremiseStep certificate parent child →
         FormulaPremiseReachable certificate child target →
           FormulaPremiseReachable certificate parent target
+
+/-- State-indexed formula descent retaining the scheduler fact that every
+visited occurrence is still unassigned.  The earlier endpoint-only chase
+already maintained these witnesses; packaging them in the path prevents the
+later geometric proof from accidentally returning through an assigned
+frontier occurrence. -/
+private inductive UnassignedFormulaPremiseReachable
+    (certificate : Certificate)
+    (state : UnificationWorklistState) : Vertex → Vertex → Prop
+  | refl (vertex : Vertex)
+      (unassigned : state.core.assignedToken? vertex = none) :
+      UnassignedFormulaPremiseReachable certificate state vertex vertex
+  | step {parent child target : Vertex}
+      (parentUnassigned :
+        state.core.assignedToken? parent = none)
+      (premiseStep :
+        FormulaPremiseStep certificate parent child)
+      (suffix :
+        UnassignedFormulaPremiseReachable
+          certificate state child target) :
+      UnassignedFormulaPremiseReachable
+        certificate state parent target
+
+/-- Forget only the dynamic unassigned annotations while preserving every
+exact submitted formula-premise step. -/
+private theorem UnassignedFormulaPremiseReachable.toFormulaPremiseReachable
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {parent target : Vertex}
+    (reachable :
+      UnassignedFormulaPremiseReachable
+        certificate state parent target) :
+    FormulaPremiseReachable certificate parent target := by
+  induction reachable with
+  | refl vertex _unassigned =>
+      exact FormulaPremiseReachable.refl vertex
+  | step _parentUnassigned premiseStep _suffix induction =>
+      exact FormulaPremiseReachable.step premiseStep induction
+
+/-- The source of every state-indexed formula path is unassigned. -/
+private theorem UnassignedFormulaPremiseReachable.source_unassigned
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {parent target : Vertex}
+    (reachable :
+      UnassignedFormulaPremiseReachable
+        certificate state parent target) :
+    state.core.assignedToken? parent = none := by
+  cases reachable with
+  | refl _ unassigned =>
+      exact unassigned
+  | step parentUnassigned _premiseStep _suffix =>
+      exact parentUnassigned
+
+/-- Relative to any assigned occurrence, a state-indexed formula path is
+either reflexive or its first selected premise is provably different from
+that assigned occurrence. -/
+private theorem
+    UnassignedFormulaPremiseReachable.eq_or_firstStep_ne_assigned
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {parent target assigned : Vertex}
+    (reachable :
+      UnassignedFormulaPremiseReachable
+        certificate state parent target)
+    (assignedMarked :
+      state.core.assignedToken? assigned ≠ none) :
+    parent = target ∨
+      ∃ child,
+        FormulaPremiseStep certificate parent child ∧
+          UnassignedFormulaPremiseReachable
+            certificate state child target ∧
+              child ≠ assigned := by
+  cases reachable with
+  | refl vertex _unassigned =>
+      exact .inl rfl
+  | @step parent child target _parentUnassigned premiseStep suffix =>
+      refine .inr ⟨child, premiseStep, suffix, ?_⟩
+      intro same
+      subst child
+      exact assignedMarked suffix.source_unassigned
+
+/-- Two consecutive backward incidence traversals never form a cusp.  The
+incoming target incidence has a unique `false` orientation color, whereas
+the reversed outgoing incidence is either par-colored or has a unique
+`true` orientation color. -/
+private theorem noCusp_of_backwardEdges
+    (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge)
+    (incomingBackward : incoming.forward = false)
+    (outgoingBackward : outgoing.forward = false) :
+    ¬certificate.Cusp incoming outgoing := by
+  intro cusp
+  have incomingColor :
+      certificate.incidenceColor incoming =
+        .unique incoming.index false := by
+    simp [Certificate.incidenceColor, incomingBackward]
+  by_cases outgoingPar :
+      ∃ conclusion,
+        certificate.incidenceColor outgoing.reverse = .par conclusion
+  · rcases outgoingPar with ⟨conclusion, outgoingColor⟩
+    unfold Certificate.Cusp at cusp
+    rw [incomingColor, outgoingColor] at cusp
+    have impossible : true = false :=
+      congrArg
+        (fun color =>
+          match color with
+          | .unique _ _ => true
+          | .par _ => false)
+        cusp
+    contradiction
+  · have outgoingNotPar :
+        ∀ conclusion,
+          certificate.incidenceColor outgoing.reverse ≠ .par conclusion := by
+      intro conclusion equality
+      exact outgoingPar ⟨conclusion, equality⟩
+    have outgoingColor :=
+      certificate.incidenceColor_eq_unique_of_not_par
+        outgoing.reverse outgoingNotPar
+    have reverseForward : outgoing.reverse.forward = true := by
+      simp [Graph.DirectedEdge.reverse, outgoingBackward]
+    rw [reverseForward] at outgoingColor
+    unfold Certificate.Cusp at cusp
+    rw [incomingColor, outgoingColor] at cusp
+    have impossible : false = true :=
+      congrArg
+        (fun color =>
+          match color with
+          | .unique _ orientation => orientation
+          | .par _ => false)
+        cusp
+    contradiction
+
+/-- A traversal made entirely of backward formula incidences is cusp-free. -/
+private theorem cuspFreeTraversal_of_all_backward
+    (certificate : Certificate) :
+    ∀ traversed : List certificate.fullGraph.DirectedEdge,
+      (∀ directed ∈ traversed, directed.forward = false) →
+        certificate.CuspFreeTraversal traversed
+  | [], _ => by
+      trivial
+  | [_single], _ => by
+      trivial
+  | incoming :: outgoing :: rest, allBackward => by
+      refine
+        ⟨noCusp_of_backwardEdges certificate incoming outgoing
+            (allBackward incoming (by simp))
+            (allBackward outgoing (by simp)),
+          cuspFreeTraversal_of_all_backward certificate
+            (outgoing :: rest) ?_⟩
+      intro directed membership
+      exact allBackward directed (by simp [membership])
+
+/-- Exact formula-premise reachability yields an edge-aware full-graph walk
+from the parent conclusion down to the target occurrence.  Every traversed
+edge is the backward orientation of its submitted connective incidence, so
+the complete descent is cusp-free. -/
+private theorem FormulaPremiseReachable.backwardWalk_exists
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {parent target : Vertex}
+    (reachable :
+      FormulaPremiseReachable certificate parent target) :
+    ∃ traversed : List certificate.fullGraph.DirectedEdge,
+      certificate.fullGraph.EdgeWalk parent traversed target ∧
+        (∀ directed ∈ traversed, directed.forward = false) ∧
+          certificate.CuspFreeTraversal traversed := by
+  induction reachable with
+  | refl vertex =>
+      exact ⟨[], .refl vertex, by simp, by trivial⟩
+  | @step parent child target premiseStep _suffix induction =>
+      rcases premiseStep.backwardEdge_exists structural with
+        ⟨directed, starts, finishes, backward⟩
+      rcases induction with
+        ⟨rest, restWalk, restBackward, _restCuspFree⟩
+      have firstWalk :
+          certificate.fullGraph.EdgeWalk
+            parent [directed] child := by
+        exact Graph.EdgeWalk.step (.refl parent)
+          directed starts finishes
+      have combinedWalk :
+          certificate.fullGraph.EdgeWalk
+            parent (directed :: rest) target := by
+        simpa using firstWalk.trans restWalk
+      have allBackward :
+          ∀ candidate ∈ directed :: rest,
+            candidate.forward = false := by
+        intro candidate membership
+        simp only [List.mem_cons] at membership
+        rcases membership with rfl | inRest
+        · exact backward
+        · exact restBackward candidate inRest
+      refine ⟨directed :: rest, ?_, allBackward, ?_⟩
+      · exact combinedWalk
+      · exact cuspFreeTraversal_of_all_backward certificate
+          (directed :: rest) allBackward
+
+/-- Strict complexity descent also makes the exact backward walk vertex
+simple.  This upgrades formula reachability to a full-graph simple path while
+retaining the all-backward and cusp-free certificates needed by the later
+closed-dependency argument. -/
+private theorem FormulaPremiseReachable.backwardPath_exists
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {parent target : Vertex}
+    (reachable :
+      FormulaPremiseReachable certificate parent target) :
+    ∃ path : certificate.fullGraph.EdgeSimplePath,
+      path.start = parent ∧
+        path.finish = target ∧
+          (∀ directed ∈ path.traversed,
+            directed.forward = false) ∧
+            certificate.CuspFreeTraversal path.traversed ∧
+              ∀ vertex ∈ path.vertices,
+                certificate.formulaComplexityAt vertex ≤
+                  certificate.formulaComplexityAt parent := by
+  induction reachable with
+  | refl vertex =>
+      let path : certificate.fullGraph.EdgeSimplePath := {
+        start := vertex
+        finish := vertex
+        traversed := []
+        walk := .refl vertex
+        verticesNodup := by
+          simp [Graph.EdgeWalk.visitedVertices] }
+      refine ⟨path, rfl, rfl, ?_, ?_, ?_⟩
+      · simp [path]
+      · trivial
+      · intro candidate membership
+        simp [path, Graph.EdgeSimplePath.vertices,
+          Graph.EdgeWalk.visitedVertices] at membership
+        subst candidate
+        exact Nat.le_refl _
+  | @step parent child target premiseStep _suffix induction =>
+      rcases premiseStep.backwardEdge_exists structural with
+        ⟨directed, starts, finishes, backward⟩
+      rcases induction with
+        ⟨suffixPath, suffixStarts, suffixFinishes,
+          suffixBackward, _suffixCuspFree, suffixBound⟩
+      have suffixWalk :
+          certificate.fullGraph.EdgeWalk
+            child suffixPath.traversed target := by
+        simpa [suffixStarts, suffixFinishes] using suffixPath.walk
+      have firstWalk :
+          certificate.fullGraph.EdgeWalk
+            parent [directed] child := by
+        exact Graph.EdgeWalk.step (.refl parent)
+          directed starts finishes
+      have combinedWalk :
+          certificate.fullGraph.EdgeWalk
+            parent (directed :: suffixPath.traversed) target := by
+        simpa using firstWalk.trans suffixWalk
+      have visitedEquation :
+          Graph.EdgeWalk.visitedVertices
+              parent (directed :: suffixPath.traversed) =
+            parent :: suffixPath.vertices := by
+        simp [Graph.EdgeWalk.visitedVertices,
+          Graph.EdgeSimplePath.vertices, finishes, suffixStarts]
+      have parentNotInSuffix : parent ∉ suffixPath.vertices := by
+        intro membership
+        have suffixLe := suffixBound parent membership
+        have strict := premiseStep.complexity_lt
+        omega
+      have verticesNodup :
+          (Graph.EdgeWalk.visitedVertices
+            parent (directed :: suffixPath.traversed)).Nodup := by
+        rw [visitedEquation]
+        exact List.nodup_cons.mpr
+          ⟨parentNotInSuffix, suffixPath.verticesNodup⟩
+      let path : certificate.fullGraph.EdgeSimplePath := {
+        start := parent
+        finish := target
+        traversed := directed :: suffixPath.traversed
+        walk := combinedWalk
+        verticesNodup := verticesNodup }
+      have allBackward :
+          ∀ candidate ∈ path.traversed,
+            candidate.forward = false := by
+        intro candidate membership
+        simp only [path, List.mem_cons] at membership
+        rcases membership with rfl | inSuffix
+        · exact backward
+        · exact suffixBackward candidate inSuffix
+      refine ⟨path, rfl, rfl, allBackward, ?_, ?_⟩
+      · exact cuspFreeTraversal_of_all_backward certificate
+          path.traversed allBackward
+      · intro vertex membership
+        have membership' :
+            vertex ∈ parent :: suffixPath.vertices := by
+          simpa [path, Graph.EdgeSimplePath.vertices,
+            visitedEquation] using membership
+        rcases List.mem_cons.mp membership' with rfl | inSuffix
+        · exact Nat.le_refl _
+        · exact Nat.le_trans (suffixBound vertex inSuffix)
+            (Nat.le_of_lt premiseStep.complexity_lt)
 
 /-- Explicit formula-premise descent never increases formula complexity. -/
 private theorem FormulaPremiseReachable.complexity_le
@@ -14031,8 +14429,8 @@ private theorem
         final.core.assignedToken? vertex = none →
           ∃ conclusion,
             QuiescentWaitingParAt certificate final conclusion ∧
-              FormulaPremiseReachable
-                certificate vertex conclusion := by
+              UnassignedFormulaPremiseReachable
+                certificate final vertex conclusion := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -14044,7 +14442,8 @@ private theorem
         final.core.assignedToken? vertex = none →
           ∃ conclusion,
             QuiescentWaitingParAt certificate final conclusion ∧
-              FormulaPremiseReachable certificate vertex conclusion
+              UnassignedFormulaPremiseReachable
+                certificate final vertex conclusion
   have general :
       ∀ rank vertex,
         certificate.formulaComplexityAt vertex = rank →
@@ -14052,8 +14451,8 @@ private theorem
             final.core.assignedToken? vertex = none →
               ∃ conclusion,
                 QuiescentWaitingParAt certificate final conclusion ∧
-                  FormulaPremiseReachable
-                    certificate vertex conclusion := by
+                  UnassignedFormulaPremiseReachable
+                    certificate final vertex conclusion := by
     intro rank
     induction rank using Nat.strongRecOn with
     | ind rank induction =>
@@ -14075,10 +14474,12 @@ private theorem
             ⟨conclusion, reached, reachable⟩
           exact
             ⟨conclusion, reached,
-              FormulaPremiseReachable.step premiseStep reachable⟩
+              UnassignedFormulaPremiseReachable.step
+                vertexUnassigned premiseStep reachable⟩
         · exact
             ⟨vertex, waiting,
-              FormulaPremiseReachable.refl vertex⟩
+              UnassignedFormulaPremiseReachable.refl
+                vertex vertexUnassigned⟩
   intro vertex vertexBound vertexUnassigned
   exact
     general (certificate.formulaComplexityAt vertex) vertex rfl
@@ -14739,6 +15140,57 @@ private def ForwardReferenceConnectiveOccurrence
         (boundary.source = left ∨ boundary.source = right) ∧
           boundary.target = conclusion
 
+/-- Occurrence-exact strengthening of
+`ForwardReferenceConnectiveOccurrence`.  It retains the stored edge value
+and forward orientation, so a later full-graph lift cannot silently select a
+parallel equal-valued occurrence of unrelated provenance. -/
+private def ExactForwardReferenceConnectiveOccurrence
+    (certificate : Certificate)
+    (boundary : certificate.referenceSwitchingGraph.DirectedEdge) : Prop :=
+  (∃ (index left right conclusion : Nat),
+      certificate.links[index]? =
+          some (.par left right conclusion) ∧
+        boundary.edge = { first := left, second := conclusion } ∧
+          boundary.forward = true ∧
+            boundary.source = left ∧
+              boundary.target = conclusion) ∨
+    ∃ (index left right conclusion : Nat),
+      certificate.links[index]? =
+          some (.tensor left right conclusion) ∧
+        boundary.forward = true ∧
+          ((boundary.edge = { first := left, second := conclusion } ∧
+              boundary.source = left) ∨
+            (boundary.edge = { first := right, second := conclusion } ∧
+              boundary.source = right)) ∧
+            boundary.target = conclusion
+
+/-- Endpoint projection retained for the existing scheduler API. -/
+private theorem ExactForwardReferenceConnectiveOccurrence.toForward
+    {certificate : Certificate}
+    {boundary : certificate.referenceSwitchingGraph.DirectedEdge}
+    (origin :
+      ExactForwardReferenceConnectiveOccurrence certificate boundary) :
+    ForwardReferenceConnectiveOccurrence certificate boundary := by
+  rcases origin with parOrigin | tensorOrigin
+  · rcases parOrigin with
+      ⟨index, left, right, conclusion, lookup,
+        _edgeEquation, _forward, sourceEquation, targetEquation⟩
+    exact .inl
+      ⟨index, left, right, conclusion, lookup,
+        sourceEquation, targetEquation⟩
+  · rcases tensorOrigin with
+      ⟨index, left, right, conclusion, lookup,
+        _forward, side, targetEquation⟩
+    rcases side with
+      ⟨_edgeEquation, sourceEquation⟩ |
+        ⟨_edgeEquation, sourceEquation⟩
+    · exact .inr
+        ⟨index, left, right, conclusion, lookup,
+          .inl sourceEquation, targetEquation⟩
+    · exact .inr
+        ⟨index, left, right, conclusion, lookup,
+          .inr sourceEquation, targetEquation⟩
+
 /-- Exact scheduler meaning of a marked-to-unmarked forward occurrence on
 the retained reference path.  A par either waits on its unassigned omitted
 premise or is registered on two distinct threads.  A tensor's opposite
@@ -14959,8 +15411,8 @@ private theorem
           certificate final boundary →
           ∃ conclusion,
             QuiescentWaitingParAt certificate final conclusion ∧
-              FormulaPremiseReachable
-                certificate boundary.target conclusion := by
+              UnassignedFormulaPremiseReachable
+                certificate final boundary.target conclusion := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -14974,8 +15426,8 @@ private theorem
           certificate final boundary →
           ∃ conclusion,
             QuiescentWaitingParAt certificate final conclusion ∧
-              FormulaPremiseReachable
-                certificate boundary.target conclusion
+              UnassignedFormulaPremiseReachable
+                certificate final boundary.target conclusion
   intro boundary targetUnassigned obstruction
   have alternative :=
     pathFrontierSchedulerObstruction_descent_or_waitingPar
@@ -14990,7 +15442,8 @@ private theorem
       ⟨conclusion, reached, reachable⟩
     exact
       ⟨conclusion, reached,
-        FormulaPremiseReachable.step premiseStep reachable⟩
+        UnassignedFormulaPremiseReachable.step
+          targetUnassigned premiseStep reachable⟩
   · rcases waiting with
       ⟨index, left, right, conclusion, leftToken, rightToken,
         linkLookup, _sourceEquation, targetEquation,
@@ -15001,7 +15454,8 @@ private theorem
         ⟨targetUnassigned, index, left, right,
           leftToken, rightToken, linkLookup, leftMarked,
           rightMarked, different, registered⟩,
-        FormulaPremiseReachable.refl boundary.target⟩
+        UnassignedFormulaPremiseReachable.refl
+          boundary.target targetUnassigned⟩
 
 /-- Any quiescent forward connective frontier with an assigned source and an
 unassigned conclusion has the exact residual scheduler status recorded by
@@ -15122,17 +15576,208 @@ private def QuiescentWaitingParDependency
                           state.core.assignedToken?
                               boundary.source ≠ none ∧
                             state.core.assignedToken?
-                                boundary.target = none ∧
+                              boundary.target = none ∧
                               boundary.target ≠ source ∧
-                                PathFrontierSchedulerObstruction
-                                    certificate state boundary ∧
-                                  FormulaPremiseReachable
-                                      certificate boundary.target target ∧
-                                    QuiescentWaitingParAt
-                                        certificate state target ∧
-                                      certificate.formulaComplexityAt target ≤
-                                        certificate.formulaComplexityAt
-                                          boundary.target
+                                ExactForwardReferenceConnectiveOccurrence
+                                    certificate boundary ∧
+                                  PathFrontierSchedulerObstruction
+                                      certificate state boundary ∧
+                                    UnassignedFormulaPremiseReachable
+                                        certificate state
+                                          boundary.target target ∧
+                                      QuiescentWaitingParAt
+                                          certificate state target ∧
+                                        certificate.formulaComplexityAt target ≤
+                                          certificate.formulaComplexityAt
+                                            boundary.target
+
+/-- Every waiting dependency now exposes its geometric formula tail: an exact
+vertex-simple, cusp-free full-graph path from the marked/unmarked reference
+frontier target down to the target waiting-par conclusion.  The path is
+entirely backward-oriented; the still-open proof must analyze how its first
+edge meets the retained reference frontier and how successive dependency
+segments close. -/
+private theorem quiescentWaitingParDependency_backwardPath_exists
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    (dependency :
+      QuiescentWaitingParDependency
+        certificate state source target) :
+    ∃ (boundary :
+          certificate.referenceSwitchingGraph.DirectedEdge)
+        (path : certificate.fullGraph.EdgeSimplePath),
+      boundary.target ≠ source ∧
+        path.start = boundary.target ∧
+          path.finish = target ∧
+            (∀ directed ∈ path.traversed,
+              directed.forward = false) ∧
+              certificate.CuspFreeTraversal path.traversed ∧
+                ∀ vertex ∈ path.vertices,
+                  certificate.formulaComplexityAt vertex ≤
+                    certificate.formulaComplexityAt boundary.target := by
+  rcases dependency with
+    ⟨_index, _left, _right, _leftToken, _rightToken,
+      _referencePath, boundary, _linkLookup, _sourceUnassigned,
+      _leftMarked, _rightMarked, _different, _registered,
+      _pathStarts, _pathFinishes, _sourceAvoided, _boundaryMembership,
+      _boundaryToken, _boundarySourceAssigned,
+      _boundaryTargetUnassigned, boundaryTargetNeSource,
+      _exactOrigin, _frontierStatus, formulaPath,
+      _targetWaiting, _targetRank⟩
+  rcases
+      formulaPath.toFormulaPremiseReachable.backwardPath_exists
+        structural with
+    ⟨path, pathStarts, pathFinishes, allBackward,
+      cuspFree, complexityBound⟩
+  exact
+    ⟨boundary, path, boundaryTargetNeSource, pathStarts,
+      pathFinishes, allBackward, cuspFree, complexityBound⟩
+
+/-- The unassigned annotations close an information gap in the geometric
+tail: unless the tail is reflexive, its first premise cannot be the assigned
+source of the marked-to-unmarked reference frontier.  Thus the dependency
+cannot immediately reverse the frontier occurrence. -/
+private theorem
+    quiescentWaitingParDependency_eq_or_firstStep_avoids_frontierSource
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    (dependency :
+      QuiescentWaitingParDependency
+        certificate state source target) :
+    ∃ boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge,
+      boundary.target = target ∨
+        ∃ child,
+          FormulaPremiseStep certificate boundary.target child ∧
+            UnassignedFormulaPremiseReachable
+              certificate state child target ∧
+                child ≠ boundary.source := by
+  rcases dependency with
+    ⟨_index, _left, _right, _leftToken, _rightToken,
+      _referencePath, boundary, _linkLookup, _sourceUnassigned,
+      _leftMarked, _rightMarked, _different, _registered,
+      _pathStarts, _pathFinishes, _sourceAvoided, _boundaryMembership,
+      _boundaryToken, boundarySourceAssigned,
+      _boundaryTargetUnassigned, _boundaryTargetNeSource,
+      _exactOrigin, _frontierStatus, formulaPath,
+      _targetWaiting, _targetRank⟩
+  exact
+    ⟨boundary,
+      formulaPath.eq_or_firstStep_ne_assigned
+        boundarySourceAssigned⟩
+
+/-- Occurrence-level strengthening of the preceding theorem.  A nontrivial
+dependency tail starts with an exact full-graph backward incidence which is
+not the reverse of the retained frontier occurrence.  This is the first
+non-backtracking bridge needed before classifying the frontier transition as
+either a genuine par cusp or a tensor-colored free turn. -/
+private theorem
+    quiescentWaitingParDependency_refl_or_nonbacktrackingFirstEdge
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    (dependency :
+      QuiescentWaitingParDependency
+        certificate state source target) :
+    ∃ boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge,
+      boundary.target = target ∨
+        ∃ (frontier first :
+              certificate.fullGraph.DirectedEdge),
+          frontier.edge = boundary.edge ∧
+            frontier.forward = boundary.forward ∧
+              Graph.retainedIndex
+                  certificate.referenceSwitchingMask
+                  frontier.index =
+                boundary.index ∧
+                frontier.source = boundary.source ∧
+                  frontier.target = boundary.target ∧
+                    first.source = boundary.target ∧
+                      first.target ≠ boundary.source ∧
+                        first.forward = false ∧
+                          first ≠ frontier.reverse ∧
+                            certificate.referenceSwitchingMask[
+                              frontier.index]? = some true := by
+  rcases dependency with
+    ⟨_index, _left, _right, _leftToken, _rightToken,
+      _referencePath, boundary, _linkLookup, _sourceUnassigned,
+      _leftMarked, _rightMarked, _different, _registered,
+      _pathStarts, _pathFinishes, _sourceAvoided, _boundaryMembership,
+      _boundaryToken, boundarySourceAssigned,
+      _boundaryTargetUnassigned, _boundaryTargetNeSource,
+      _exactOrigin, _frontierStatus, formulaPath,
+      _targetWaiting, _targetRank⟩
+  cases formulaPath with
+  | refl vertex _unassigned =>
+      exact ⟨boundary, .inl rfl⟩
+  | @step parent child target _parentUnassigned premiseStep suffix =>
+      have childNeSource : child ≠ boundary.source := by
+        intro same
+        subst child
+        exact boundarySourceAssigned suffix.source_unassigned
+      rcases premiseStep.backwardEdge_exists structural with
+        ⟨first, firstSource, firstTarget, firstBackward⟩
+      have aligned :
+          certificate.fullGraph.edges.length =
+            certificate.referenceSwitchingMask.length := by
+        change
+          (linkFullEdges certificate.links).length =
+            certificate.referenceSwitchingMask.length
+        exact certificate.referenceFullSwitchingSelection.mask_length.symm
+      let retainedBoundary :
+          (certificate.fullGraph.retainEdges
+            certificate.referenceSwitchingMask).DirectedEdge := by
+        simpa [Certificate.referenceSwitchingGraph] using boundary
+      rcases retainedBoundary.inflateRetained_exists_exact aligned with
+        ⟨frontier, frontierEdge, frontierForward,
+          frontierSource, frontierTarget,
+          retainedPosition, frontierKept⟩
+      have frontierEdge' :
+          frontier.edge = boundary.edge := by
+        simpa [retainedBoundary,
+          Certificate.referenceSwitchingGraph] using frontierEdge
+      have frontierForward' :
+          frontier.forward = boundary.forward := by
+        simpa [retainedBoundary,
+          Certificate.referenceSwitchingGraph] using frontierForward
+      have retainedPosition' :
+          Graph.retainedIndex
+              certificate.referenceSwitchingMask frontier.index =
+            boundary.index := by
+        simpa [retainedBoundary,
+          Certificate.referenceSwitchingGraph] using retainedPosition
+      have frontierSource' :
+          frontier.source = boundary.source := by
+        simpa [retainedBoundary,
+          Certificate.referenceSwitchingGraph] using frontierSource
+      have frontierTarget' :
+          frontier.target = boundary.target := by
+        simpa [retainedBoundary,
+          Certificate.referenceSwitchingGraph] using frontierTarget
+      have firstTargetNe :
+          first.target ≠ boundary.source := by
+        intro same
+        apply childNeSource
+        exact firstTarget.symm.trans same
+      have notReverse : first ≠ frontier.reverse := by
+        intro same
+        have sameTarget :=
+          congrArg Graph.DirectedEdge.target same
+        apply firstTargetNe
+        calc
+          first.target = frontier.reverse.target := sameTarget
+          _ = frontier.source := by simp
+          _ = boundary.source := frontierSource'
+      exact
+        ⟨boundary, .inr
+          ⟨frontier, first, frontierEdge', frontierForward',
+            retainedPosition', frontierSource', frontierTarget',
+            firstSource, firstTargetNe, firstBackward, notReverse,
+            frontierKept⟩⟩
 
 /-- Every quiescent waiting-par conclusion is an in-bounds formula
 occurrence.  This is the finite carrier used by the dependency-cycle
@@ -15175,7 +15820,8 @@ private theorem quiescentWaitingParDependency_endpoints_bound
       _different, _registered, _pathStarts, _pathFinishes,
       _sourceAvoided, _boundaryMembership, _boundaryToken,
       _boundarySourceAssigned, _boundaryTargetUnassigned,
-      _boundaryTargetNeSource, _frontierStatus, _formulaPath,
+      _boundaryTargetNeSource, _exactOrigin,
+      _frontierStatus, _formulaPath,
       targetWaiting, _targetRank⟩
   have linkMembership :
       Link.par left right source ∈ certificate.links :=
@@ -15204,7 +15850,8 @@ private theorem quiescentWaitingParDependency_target
       _different, _registered, _pathStarts, _pathFinishes,
       _sourceAvoided, _boundaryMembership, _boundaryToken,
       _boundarySourceAssigned, _boundaryTargetUnassigned,
-      _boundaryTargetNeSource, _frontierStatus, _formulaPath,
+      _boundaryTargetNeSource, _exactOrigin,
+      _frontierStatus, _formulaPath,
       targetWaiting, _targetRank⟩
   exact targetWaiting
 
@@ -15471,13 +16118,16 @@ private theorem canonicalWorklistRun_waitingPar_has_dependency
           exact False.elim (assigned.2 equation)
       | some token =>
           rfl
-  have boundaryOrigin :
-      ForwardReferenceConnectiveOccurrence certificate boundary := by
+  have boundaryExactOrigin :
+      ExactForwardReferenceConnectiveOccurrence certificate boundary := by
     have origin :=
-      marking.marked_to_unmarked_referenceEdge_connective_origin
+      marking.marked_to_unmarked_referenceEdge_exact_connective_origin
         causal axiomsMarked boundary boundarySourceMarked
         boundaryTargetUnmarked
-    simpa [ForwardReferenceConnectiveOccurrence] using origin
+    simpa [ExactForwardReferenceConnectiveOccurrence] using origin
+  have boundaryOrigin :
+      ForwardReferenceConnectiveOccurrence certificate boundary :=
+    boundaryExactOrigin.toForward
   have boundaryStatus :
       PathFrontierSchedulerObstruction certificate final boundary :=
     canonicalWorklistRun_forwardFrontier_status
@@ -15489,14 +16139,15 @@ private theorem canonicalWorklistRun_waitingPar_has_dependency
   have targetRank :
       certificate.formulaComplexityAt target ≤
         certificate.formulaComplexityAt boundary.target :=
-    formulaPath.complexity_le
+    formulaPath.toFormulaPremiseReachable.complexity_le
   exact
     ⟨target, index, left, right, leftToken, rightToken, path, boundary,
       linkLookup, sourceUnassigned, leftMarked, rightMarked, different,
       registered, pathStarts, pathFinishes, sourceAvoided,
       boundaryMembership, boundarySourceTokenLookup,
       boundarySourceAssigned, boundaryTargetUnassigned,
-      boundaryTargetNeSource, boundaryStatus, formulaPath,
+      boundaryTargetNeSource, boundaryExactOrigin,
+      boundaryStatus, formulaPath,
       targetWaiting, targetRank⟩
 
 /-- Serial waiting-par dependency is supported by the explicit finite list

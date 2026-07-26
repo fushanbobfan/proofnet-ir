@@ -189,7 +189,13 @@ part of the engineering and proof-identity gap.
    Every terminating formula chase now also retains a composable sequence of
    exact source-connective/premise steps. Iteration on the finite formula
    carrier yields a concrete nonempty closed waiting-dependency segment with
-   every structural chase preserved. Converting that segment into an exact
+   every structural chase preserved. Each descent step is now lifted to the
+   exact full occurrence-graph backward edge; a nontrivial chase is a
+   vertex-simple, internally cusp-free path, and state-indexed evidence keeps
+   every visited formula occurrence unassigned. The occurrence-exact
+   scheduler frontier cannot be immediately reversed by the first tail edge.
+   Transporting retained par colors to that full-graph occurrence,
+   classifying the boundary turn, converting the closed segment into an exact
    switching-tree cycle or forbidden nesting, pure worklist completeness, and
    a full cost theorem remain open.
    For callers that require fail-closed resource handling,

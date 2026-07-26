@@ -128,9 +128,20 @@
   dependency now additionally retains every exact source connective and
   selected premise in a composable reflexive-transitive proof object; Lean
   proves non-increasing endpoint complexity and strict decrease for every
-  nontrivial such path. Correctness still must convert the closed dependency
-  segment, including these structural descent paths, into and exclude an
-  exact switching-tree cycle or forbidden nesting, so
+  nontrivial such path. Every formula-premise step is now lifted to its exact
+  full occurrence-graph edge, traversed backward from connective conclusion
+  to selected premise. A nontrivial chase therefore supplies a vertex-simple,
+  all-backward, internally cusp-free graph path. A new state-indexed chase
+  retains unassigned evidence for every visited occurrence, rather than only
+  for its endpoints. The marked-to-unmarked frontier classifier now also has
+  an occurrence-exact API retaining the concrete full-graph edge and
+  orientation, while the former endpoint result is preserved as a
+  compatibility projection. Each nontrivial dependency tail is proved not to
+  immediately reverse that lifted frontier. Correctness still must transport
+  retained par-color annotations to the corresponding full-graph occurrence,
+  classify each boundary turn as a par cusp or tensor-colored free turn, and
+  convert the closed dependency segment into and exclude an exact
+  switching-tree cycle or forbidden nesting, so
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

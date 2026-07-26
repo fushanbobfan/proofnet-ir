@@ -506,6 +506,14 @@
       formula-descent step inside each dependency; prove that these paths
       compose, are complexity-nonincreasing, and are strictly decreasing when
       nontrivial.
+    - [x] Lift every formula-premise descent to the exact full occurrence-graph
+      backward edge; compose nontrivial chases into vertex-simple,
+      internally cusp-free paths; retain state-indexed unassigned evidence
+      for every visited occurrence; preserve the exact frontier edge; and
+      exclude immediate reverse traversal at the dependency boundary.
+    - [ ] Synchronize retained par-color annotations with the corresponding
+      lifted full-graph occurrence and classify the boundary turn as a par
+      cusp or tensor-colored free turn.
     - [ ] Convert the repeated dependency segment into an exact
       switching-tree cycle or forbidden nesting and exclude the remaining
       path-exposed waiting-par obstruction.

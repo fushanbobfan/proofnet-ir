@@ -369,6 +369,32 @@ theorem inflateRetained_exists {graph : Graph} {mask : List Bool}
     forward := directed.forward }
   exact ⟨original, rfl, rfl, position, kept⟩
 
+/-- Fully occurrence-exact inversion of one retained directed edge.  In
+addition to endpoints and compacted index, the original stored edge value and
+orientation are exposed explicitly for downstream colored-incidence proofs. -/
+theorem inflateRetained_exists_exact {graph : Graph} {mask : List Bool}
+    (aligned : graph.edges.length = mask.length)
+    (directed : (graph.retainEdges mask).DirectedEdge) :
+    ∃ original : graph.DirectedEdge,
+      original.edge = directed.edge ∧
+        original.forward = directed.forward ∧
+          original.source = directed.source ∧
+            original.target = directed.target ∧
+              retainedIndex mask original.index = directed.index ∧
+                mask[original.index]? = some true := by
+  have retainedLookup :
+      (retainEdgesByMask graph.edges mask)[directed.index]? =
+        some directed.edge := by
+    exact directed.lookup
+  rcases retainEdgesByMask_lookup_exists_original aligned retainedLookup with
+    ⟨originalIndex, originalLookup, kept, position⟩
+  let original : graph.DirectedEdge := {
+    index := originalIndex
+    edge := directed.edge
+    lookup := originalLookup
+    forward := directed.forward }
+  exact ⟨original, rfl, rfl, rfl, rfl, position, kept⟩
+
 end DirectedEdge
 
 /-- Enumerate both orientations of every stored edge occurrence. The exact

@@ -132,9 +132,18 @@ par. The general chase now retains a composable proof object containing the
 exact submitted source connective and selected premise at every downward
 step, rather than discarding the structural route after deriving its endpoint
 rank. Iterating the resulting dependency on the finite formula carrier
-produces a concrete nonempty closed segment. It must still convert that
-closed structural chase into and exclude a switching-tree cycle or forbidden
-nesting in a correct quiescent state.
+produces a concrete nonempty closed segment. Every structural step is now
+lifted to the exact full occurrence-graph edge from connective conclusion to
+selected premise. Nontrivial chases compose into vertex-simple paths whose
+edges are all traversed backward and whose internal turns are consequently
+cusp-free. A state-indexed reachability witness retains that every visited
+formula occurrence remains unassigned. The scheduler frontier is also lifted
+occurrence-exactly, and the first nontrivial chase edge is proved not to
+reverse it immediately. It must still transport the retained par-color
+annotation to that full-graph occurrence, classify the boundary turn as a
+par cusp or tensor-colored free turn, and convert the closed structural chase
+into and exclude a switching-tree cycle or forbidden nesting in a correct
+quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
@@ -219,7 +228,10 @@ or positive misses. The larger search recorded at most 150 link attempts and
 2. Use full-switching connectivity plus causal closure to exclude the
    unmarked internal region now exposed on the exact reference path between
    the remaining waiting par premises; same-thread tensor deadlock is already
-   excluded by the active-path switching-cycle theorem.
+   excluded by the active-path switching-cycle theorem. The immediate proof
+   obligation is occurrence-preserving transport of retained par colors to
+   the lifted full graph, followed by par-cusp/tensor-free boundary
+   classification.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
