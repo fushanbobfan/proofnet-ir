@@ -16,9 +16,12 @@
   claim that consumed but permanently marked premises remain exposed; under
   this exact invariant, guard-ready par/tensor component construction is
   total, and processing the popped connective always reclassifies it as
-  fired, idle, registered waiting, or tensor-deadlocked. Transporting every
-  other connective across that core update and complete-run coverage remain
-  open, so pure-worklist completeness is still not claimed;
+  fired, idle, registered waiting, or tensor-deadlocked. Every processing
+  branch is also proved to preserve the executable abstraction contract, the
+  ordered union-find forest, and formula consistency of every live partial
+  derivation component. Transporting pending-frontier coverage and every
+  other connective across that core update, then complete-run coverage,
+  remain open, so pure-worklist completeness is still not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential

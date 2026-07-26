@@ -4764,6 +4764,248 @@ private def processWorklistLink (certificate : Certificate)
                 enqueueConsumers consumers conclusion requeued
       | _, _ => state
 
+/-- Every worklist processing branch preserves the executable abstraction
+contract.  Scheduler bookkeeping is invisible to the contract; the only
+nontrivial branches are successful par and tensor firings, which already
+refine one independent Figure-5 transition. -/
+private theorem processWorklistLink_core_abstractable
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (abstractable : state.core.Abstractable certificate)
+    (ordered : state.core.OrderedParents) :
+    (processWorklistLink certificate consumers index state).core
+      |>.Abstractable certificate := by
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      simpa [processWorklistLink, linkLookup] using abstractable
+  | some link =>
+      have linkMembership : link ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      cases link with
+      | «axiom» left right =>
+          simpa [processWorklistLink, linkLookup] using abstractable
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                abstractable
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using abstractable
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, firing] using abstractable
+                    | some nextCore =>
+                        rcases firePar?_refines_forward certificate
+                            abstractable linkMembership firing with
+                          ⟨nextAbstractable, _step⟩
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, firing] using nextAbstractable
+                  · simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup, same] using abstractable
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                abstractable
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using abstractable
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup] using abstractable
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, same, firing] using abstractable
+                    | some nextCore =>
+                        rcases fireTensor?_refines_unify certificate
+                            abstractable ordered linkMembership firing with
+                          ⟨nextAbstractable, _step⟩
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, same, firing] using nextAbstractable
+
+/-- Every worklist processing branch preserves the ordered union-find forest.
+This is the concrete no-cycle guarantee needed by all later representative
+and scheduler arguments. -/
+private theorem processWorklistLink_core_ordered
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (ordered : state.core.OrderedParents) :
+    (processWorklistLink certificate consumers index state).core
+      |>.OrderedParents := by
+  intro token parent parentLookup
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      apply ordered
+      simpa [processWorklistLink, linkLookup] using parentLookup
+  | some link =>
+      cases link with
+      | «axiom» left right =>
+          apply ordered
+          simpa [processWorklistLink, linkLookup] using parentLookup
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              apply ordered
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                parentLookup
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  apply ordered
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using parentLookup
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        apply ordered
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, firing] using parentLookup
+                    | some nextCore =>
+                        have nextOrdered : nextCore.OrderedParents :=
+                          firePar?_success_ordered ordered firing
+                        apply nextOrdered
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, firing] using parentLookup
+                  · apply ordered
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup, same] using parentLookup
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              apply ordered
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                parentLookup
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  apply ordered
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using parentLookup
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    apply ordered
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup] using parentLookup
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        apply ordered
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, same, firing] using parentLookup
+                    | some nextCore =>
+                        have nextOrdered : nextCore.OrderedParents :=
+                          fireTensor?_success_ordered ordered firing
+                        apply nextOrdered
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, same, firing] using parentLookup
+
+/-- Every worklist processing branch preserves formula consistency of all live
+partial derivation components.  Thus the event-driven scheduler cannot create
+a component whose stored boundary disagrees with its derivation tree. -/
+private theorem processWorklistLink_core_componentsFormulaConsistent
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (consistent : state.core.ComponentsFormulaConsistent certificate) :
+    (processWorklistLink certificate consumers index state).core
+      |>.ComponentsFormulaConsistent certificate := by
+  intro componentIndex component componentLookup
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      apply consistent
+      simpa [processWorklistLink, linkLookup] using componentLookup
+  | some link =>
+      have linkMembership : link ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have wellFormed : certificate.LinkWellFormed link :=
+        structural.2.2.2.2.1 link linkMembership
+      cases link with
+      | «axiom» left right =>
+          apply consistent
+          simpa [processWorklistLink, linkLookup] using componentLookup
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              apply consistent
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                componentLookup
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  apply consistent
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using componentLookup
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        apply consistent
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, firing] using componentLookup
+                    | some nextCore =>
+                        have nextConsistent :
+                            nextCore.ComponentsFormulaConsistent certificate :=
+                          firePar?_success_componentsFormulaConsistent
+                            consistent wellFormed firing
+                        apply nextConsistent
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, firing] using componentLookup
+                  · apply consistent
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup, same] using componentLookup
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              apply consistent
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                componentLookup
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  apply consistent
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using componentLookup
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    apply consistent
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup] using componentLookup
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        apply consistent
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, same, firing] using componentLookup
+                    | some nextCore =>
+                        have nextConsistent :
+                            nextCore.ComponentsFormulaConsistent certificate :=
+                          fireTensor?_success_componentsFormulaConsistent
+                            consistent wellFormed firing
+                        apply nextConsistent
+                        simpa [processWorklistLink, linkLookup, leftLookup,
+                          rightLookup, same, firing] using componentLookup
+
 /-- Processing a concrete submitted connective always reclassifies that
 specific popped link: it fires, stays idle, becomes a registered waiting par,
 or exposes a tensor deadlock.  The only operational-totality premise beyond
