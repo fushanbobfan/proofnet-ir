@@ -103,8 +103,13 @@
   both sides of the bracketed middle region. Cutting the suffix at its first
   unmarked-to-marked reentry now isolates a contiguous block whose
   intervening occurrences have two unmarked endpoints, and preserves exact
-  scheduler classifications at both boundary orientations. Correctness still
-  must exclude this path-exposed inactive block, so
+  scheduler classifications at both boundary orientations. The obstruction
+  now retains the globally minimum-complexity unassigned waiting conclusion.
+  Structural premise descent normalizes each oriented boundary to one of two
+  exact alternatives: its target has formula complexity strictly above that
+  global minimum, or the boundary itself is a concrete registered
+  distinct-thread par. Correctness still must exclude this rank-normalized
+  path chase, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

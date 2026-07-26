@@ -47,8 +47,14 @@ reachable marking is causally closed, and active-graph walks between marked
 occurrences are equivalent to union-find thread equality. Consequently the
 remaining waiting-par premises are kernel-proved to lie in different active
 graph components, not merely to have different executable representatives.
-Proof-net correctness still must exclude that sole graph-level obstruction
-before the recursive fallback can be removed. The later
+The exact reference path between them is now bracketed by token-anchored,
+oppositely oriented scheduler boundaries. Cutting at the first reentry
+isolates a contiguous block whose intervening edge endpoints are unassigned.
+The selected waiting conclusion is globally minimum among unassigned formula
+complexities; each boundary is consequently proved either strictly above
+that minimum or to be another exact distinct-thread waiting par. Proof-net
+correctness still must exclude this rank-normalized chase obstruction before the
+recursive fallback can be removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

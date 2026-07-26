@@ -125,8 +125,11 @@ classification now holds at both sides of the bracketed region. What remains
 is narrower still: cutting at the first unmarked-to-marked reentry proves
 that every intervening path occurrence has two unmarked endpoints, while both
 boundary orientations retain exact scheduler classifications. The global
-progress argument must exclude this contiguous inactive block in a correct
-quiescent state.
+progress argument now also retains the globally minimum-complexity unassigned
+waiting conclusion. Strict premise descent normalizes each boundary to a
+target rank above that minimum or another exact registered distinct-thread
+par. It must exclude this rank-normalized path chase in a correct quiescent
+state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age

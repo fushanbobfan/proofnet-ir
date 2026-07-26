@@ -13795,10 +13795,17 @@ private theorem canonicalWorklistRun_incomplete_thread_obstruction
         (worklistFuel certificate.links.length)
         (initializeWorklist certificate started)).state
     final.core.allMarked = false →
-      ∃ (index : Nat) (link : Link),
+      ∃ (index vertex : Nat) (link : Link),
         certificate.links[index]? = some link ∧
-          link.isConnective = true ∧
-            QuiescentThreadObstruction final index link := by
+          link.produces vertex = true ∧
+            final.core.assignedToken? vertex = none ∧
+              (∀ {candidate : Vertex},
+                candidate < certificate.formulas.size →
+                  final.core.assignedToken? candidate = none →
+                    certificate.formulaComplexityAt vertex ≤
+                      certificate.formulaComplexityAt candidate) ∧
+                link.isConnective = true ∧
+                  QuiescentThreadObstruction final index link := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -13806,10 +13813,17 @@ private theorem canonicalWorklistRun_incomplete_thread_obstruction
       (initializeWorklist certificate started)).state
   change
     final.core.allMarked = false →
-      ∃ (index : Nat) (link : Link),
+      ∃ (index vertex : Nat) (link : Link),
         certificate.links[index]? = some link ∧
-          link.isConnective = true ∧
-            QuiescentThreadObstruction final index link
+          link.produces vertex = true ∧
+            final.core.assignedToken? vertex = none ∧
+              (∀ {candidate : Vertex},
+                candidate < certificate.formulas.size →
+                  final.core.assignedToken? candidate = none →
+                    certificate.formulaComplexityAt vertex ≤
+                      certificate.formulaComplexityAt candidate) ∧
+                link.isConnective = true ∧
+                  QuiescentThreadObstruction final index link
   intro incomplete
   have coreInvariant :
       WorklistCoreInvariant certificate final := by
@@ -13864,10 +13878,17 @@ private theorem canonicalWorklistRun_incomplete_thread_obstruction
     List.mem_of_getElem? linkLookup
   have compoundCase :
       link.produces vertex = true →
-        ∃ (resultIndex : Nat) (resultLink : Link),
+        ∃ (resultIndex resultVertex : Nat) (resultLink : Link),
           certificate.links[resultIndex]? = some resultLink ∧
-            resultLink.isConnective = true ∧
-              QuiescentThreadObstruction final resultIndex resultLink := by
+            resultLink.produces resultVertex = true ∧
+              final.core.assignedToken? resultVertex = none ∧
+                (∀ {candidate : Vertex},
+                  candidate < certificate.formulas.size →
+                    final.core.assignedToken? candidate = none →
+                      certificate.formulaComplexityAt resultVertex ≤
+                        certificate.formulaComplexityAt candidate) ∧
+                  resultLink.isConnective = true ∧
+                    QuiescentThreadObstruction final resultIndex resultLink := by
     intro produces
     have connective : link.isConnective = true := by
       cases link <;>
@@ -13891,7 +13912,9 @@ private theorem canonicalWorklistRun_incomplete_thread_obstruction
     have strengthened :=
       minimumUnassigned_threadObstruction
         structural linkLookup produces minimality obstruction
-    exact ⟨index, link, linkLookup, strengthened.1, strengthened.2⟩
+    exact
+      ⟨index, vertex, link, linkLookup, produces, vertexUnassigned,
+        minimality, strengthened.1, strengthened.2⟩
   cases formula with
   | atom name positive =>
       cases link with
@@ -13942,6 +13965,11 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
               final.core.tokenAt? right = some rightToken ∧
                 leftToken ≠ rightToken ∧
                   index ∈ final.waiting ∧
+                    (∀ {candidate : Vertex},
+                      candidate < certificate.formulas.size →
+                        final.core.assignedToken? candidate = none →
+                          certificate.formulaComplexityAt conclusion ≤
+                            certificate.formulaComplexityAt candidate) ∧
                     ¬((final.core.toMarking certificate
                         (canonicalWorklistRun_coreInvariant
                           correct.1 startEquation).1)
@@ -13961,6 +13989,11 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
               final.core.tokenAt? right = some rightToken ∧
                 leftToken ≠ rightToken ∧
                   index ∈ final.waiting ∧
+                    (∀ {candidate : Vertex},
+                      candidate < certificate.formulas.size →
+                        final.core.assignedToken? candidate = none →
+                          certificate.formulaComplexityAt conclusion ≤
+                            certificate.formulaComplexityAt candidate) ∧
                     ¬((final.core.toMarking certificate
                         (canonicalWorklistRun_coreInvariant
                           correct.1 startEquation).1)
@@ -13968,7 +14001,8 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
   intro incomplete
   rcases canonicalWorklistRun_incomplete_thread_obstruction
       correct.1 startEquation incomplete with
-    ⟨index, link, linkLookup, _connective, obstruction⟩
+    ⟨index, vertex, link, linkLookup, produces, _vertexUnassigned,
+      minimality, _connective, obstruction⟩
   have coreInvariant :
       WorklistCoreInvariant certificate final := by
     simpa [final] using
@@ -13993,6 +14027,8 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
   | «axiom» left right =>
       simp [QuiescentThreadObstruction] at obstruction
   | «par» left right conclusion =>
+      simp [Link.produces] at produces
+      subst vertex
       rcases obstruction with
         ⟨conclusionUnmarked, leftToken, rightToken,
           leftMarked, rightMarked, different, registered⟩
@@ -14027,9 +14063,11 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
       exact
         ⟨index, left, right, conclusion, leftToken, rightToken,
           linkLookup, conclusionUnmarked, leftMarked, rightMarked,
-          different, registered, by
+          different, registered, minimality, by
             simpa only using noActiveWalk⟩
   | tensor left right conclusion =>
+      simp [Link.produces] at produces
+      subst vertex
       rcases obstruction with
         ⟨conclusionUnmarked, token, leftMarked, rightMarked⟩
       have linkMembership :
@@ -14273,6 +14311,97 @@ private def PathFrontierSchedulerObstruction
             (boundary.source = right ∧
               state.core.assignedToken? left = none))
 
+/-- A quiescent forward frontier either descends strictly to an unassigned
+premise or is itself a concrete distinct-thread waiting par. -/
+private def PathFrontierDescentOrWaitingPar
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+  (boundary : certificate.referenceSwitchingGraph.DirectedEdge) : Prop :=
+  (∃ blockedPremise : Vertex,
+      blockedPremise < certificate.formulas.size ∧
+        state.core.assignedToken? blockedPremise = none ∧
+          certificate.formulaComplexityAt blockedPremise <
+            certificate.formulaComplexityAt boundary.target) ∨
+    ∃ (index left right conclusion leftToken rightToken : Nat),
+      certificate.links[index]? =
+          some (.par left right conclusion) ∧
+        boundary.source = left ∧
+          boundary.target = conclusion ∧
+            state.core.tokenAt? left = some leftToken ∧
+              state.core.tokenAt? right = some rightToken ∧
+                leftToken ≠ rightToken ∧
+                  index ∈ state.waiting
+
+/-- Structural formula descent turns the exact scheduler classification into
+the chase alternative used by the global progress proof. -/
+private theorem pathFrontierSchedulerObstruction_descent_or_waitingPar
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {boundary : certificate.referenceSwitchingGraph.DirectedEdge}
+    (obstruction :
+      PathFrontierSchedulerObstruction certificate state boundary) :
+    PathFrontierDescentOrWaitingPar certificate state boundary := by
+  rcases obstruction with parObstruction | tensorObstruction
+  · rcases parObstruction with
+      ⟨index, left, right, conclusion, linkLookup,
+        sourceEquation, targetEquation, status⟩
+    rcases status with rightUnassigned | waiting
+    · have linkMembership :
+          Link.par left right conclusion ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have wellFormed :
+          certificate.LinkWellFormed
+            (.par left right conclusion) :=
+        structural.2.2.2.2.1 _ linkMembership
+      have rightRank :
+          certificate.formulaComplexityAt right <
+            certificate.formulaComplexityAt conclusion := by
+        simpa [Certificate.linkConclusionComplexity] using
+          wellFormed.premise_complexity_lt_conclusion
+            (premise := right) (by simp [Link.premises])
+      exact .inl
+        ⟨right, wellFormed.2.2.2.2.1, rightUnassigned,
+          by simpa [targetEquation] using rightRank⟩
+    · rcases waiting with
+        ⟨leftToken, rightToken, leftMarked, rightMarked,
+          different, registered⟩
+      exact .inr
+        ⟨index, left, right, conclusion, leftToken, rightToken,
+          linkLookup, sourceEquation, targetEquation,
+          leftMarked, rightMarked, different, registered⟩
+  · rcases tensorObstruction with
+      ⟨index, left, right, conclusion, linkLookup,
+        targetEquation, status⟩
+    have linkMembership :
+        Link.tensor left right conclusion ∈ certificate.links :=
+      List.mem_of_getElem? linkLookup
+    have wellFormed :
+        certificate.LinkWellFormed
+          (.tensor left right conclusion) :=
+      structural.2.2.2.2.1 _ linkMembership
+    rcases status with
+      ⟨_sourceLeft, rightUnassigned⟩ |
+        ⟨_sourceRight, leftUnassigned⟩
+    · have rightRank :
+          certificate.formulaComplexityAt right <
+            certificate.formulaComplexityAt conclusion := by
+        simpa [Certificate.linkConclusionComplexity] using
+          wellFormed.premise_complexity_lt_conclusion
+            (premise := right) (by simp [Link.premises])
+      exact .inl
+        ⟨right, wellFormed.2.2.2.2.1, rightUnassigned,
+          by simpa [targetEquation] using rightRank⟩
+    · have leftRank :
+          certificate.formulaComplexityAt left <
+            certificate.formulaComplexityAt conclusion := by
+        simpa [Certificate.linkConclusionComplexity] using
+          wellFormed.premise_complexity_lt_conclusion
+            (premise := left) (by simp [Link.premises])
+      exact .inl
+        ⟨left, wellFormed.2.2.2.1, leftUnassigned,
+          by simpa [targetEquation] using leftRank⟩
+
 /-- Any quiescent forward connective frontier with an assigned source and an
 unassigned conclusion has the exact residual scheduler status recorded by
 `PathFrontierSchedulerObstruction`. -/
@@ -14395,10 +14524,15 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
               final.core.tokenAt? right = some rightToken ∧
                 leftToken ≠ rightToken ∧
                   index ∈ final.waiting ∧
-                    ¬((final.core.toMarking certificate
-                        (canonicalWorklistRun_coreInvariant
-                          correct.1 startEquation).1)
-                      |>.activeReferenceGraph.Walk left right) ∧
+                    (∀ {candidate : Vertex},
+                      candidate < certificate.formulas.size →
+                        final.core.assignedToken? candidate = none →
+                          certificate.formulaComplexityAt conclusion ≤
+                            certificate.formulaComplexityAt candidate) ∧
+                      ¬((final.core.toMarking certificate
+                          (canonicalWorklistRun_coreInvariant
+                            correct.1 startEquation).1)
+                        |>.activeReferenceGraph.Walk left right) ∧
                       path.start = left ∧
                         path.finish = right ∧
                           conclusion ∉ path.vertices ∧
@@ -14472,10 +14606,15 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
               final.core.tokenAt? right = some rightToken ∧
                 leftToken ≠ rightToken ∧
                   index ∈ final.waiting ∧
-                    ¬((final.core.toMarking certificate
-                        (canonicalWorklistRun_coreInvariant
-                          correct.1 startEquation).1)
-                      |>.activeReferenceGraph.Walk left right) ∧
+                    (∀ {candidate : Vertex},
+                      candidate < certificate.formulas.size →
+                        final.core.assignedToken? candidate = none →
+                          certificate.formulaComplexityAt conclusion ≤
+                            certificate.formulaComplexityAt candidate) ∧
+                      ¬((final.core.toMarking certificate
+                          (canonicalWorklistRun_coreInvariant
+                            correct.1 startEquation).1)
+                        |>.activeReferenceGraph.Walk left right) ∧
                       path.start = left ∧
                         path.finish = right ∧
                           conclusion ∉ path.vertices ∧
@@ -14534,7 +14673,7 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
       correct startEquation incomplete with
     ⟨index, left, right, conclusion, leftToken, rightToken,
       linkLookup, conclusionUnmarked, leftMarked, rightMarked,
-      different, registered, noActiveWalk⟩
+      different, registered, minimality, noActiveWalk⟩
   have linkMembership :
       Link.par left right conclusion ∈ certificate.links :=
     List.mem_of_getElem? linkLookup
@@ -14671,7 +14810,7 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
     ⟨index, left, right, conclusion, leftToken, rightToken, path, boundary,
       before, after,
       linkLookup, conclusionUnmarked, leftMarked, rightMarked, different,
-      registered, noActiveWalk, pathStarts, pathFinishes,
+      registered, minimality, noActiveWalk, pathStarts, pathFinishes,
       conclusionAvoided, traversalEquation, prefixAccepted,
       boundaryMembership, activeFromLeft,
       boundarySourceTokenLookup, boundarySourceAssigned,
@@ -14779,7 +14918,7 @@ private theorem canonicalWorklistRun_incomplete_twoSidedPathRegion
     ⟨_index, left, right, _conclusion, leftToken, rightToken,
       path, leftBoundary, leftBefore, leftAfter, _waitingLookup,
       _waitingConclusionUnmarked, leftMarked, rightMarked, different,
-      _registered, noActiveWalk, pathStarts, pathFinishes,
+      _registered, _minimality, noActiveWalk, pathStarts, pathFinishes,
       _conclusionAvoided, leftTraversalEquation, leftPrefixMarked,
       _leftBoundaryMembership, activeFromLeft, leftBoundaryToken,
       leftBoundarySourceAssigned, leftBoundaryTargetUnmarked,
@@ -15040,16 +15179,23 @@ private theorem canonicalWorklistRun_incomplete_firstInactiveBlock
         (worklistFuel certificate.links.length)
         (initializeWorklist certificate started)).state
     final.core.allMarked = false →
-      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+      ∃ (waitingConclusion : Vertex)
+          (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
           (leftBoundary reentry :
             certificate.referenceSwitchingGraph.DirectedEdge)
           (before inactive after :
             List certificate.referenceSwitchingGraph.DirectedEdge),
-        path.traversed =
-            before ++
-              leftBoundary :: (inactive ++ reentry :: after) ∧
-          leftBoundary ≠ reentry ∧
-            final.core.assignedToken? leftBoundary.target = none ∧
+        final.core.assignedToken? waitingConclusion = none ∧
+          (∀ {candidate : Vertex},
+            candidate < certificate.formulas.size →
+              final.core.assignedToken? candidate = none →
+                certificate.formulaComplexityAt waitingConclusion ≤
+                  certificate.formulaComplexityAt candidate) ∧
+          path.traversed =
+              before ++
+                leftBoundary :: (inactive ++ reentry :: after) ∧
+            leftBoundary ≠ reentry ∧
+              final.core.assignedToken? leftBoundary.target = none ∧
               (∀ candidate ∈ inactive,
                 final.core.assignedToken? candidate.source = none ∧
                   final.core.assignedToken? candidate.target = none) ∧
@@ -15066,16 +15212,23 @@ private theorem canonicalWorklistRun_incomplete_firstInactiveBlock
       (initializeWorklist certificate started)).state
   change
     final.core.allMarked = false →
-      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+      ∃ (waitingConclusion : Vertex)
+          (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
           (leftBoundary reentry :
             certificate.referenceSwitchingGraph.DirectedEdge)
           (before inactive after :
             List certificate.referenceSwitchingGraph.DirectedEdge),
-        path.traversed =
-            before ++
-              leftBoundary :: (inactive ++ reentry :: after) ∧
-          leftBoundary ≠ reentry ∧
-            final.core.assignedToken? leftBoundary.target = none ∧
+        final.core.assignedToken? waitingConclusion = none ∧
+          (∀ {candidate : Vertex},
+            candidate < certificate.formulas.size →
+              final.core.assignedToken? candidate = none →
+                certificate.formulaComplexityAt waitingConclusion ≤
+                  certificate.formulaComplexityAt candidate) ∧
+          path.traversed =
+              before ++
+                leftBoundary :: (inactive ++ reentry :: after) ∧
+            leftBoundary ≠ reentry ∧
+              final.core.assignedToken? leftBoundary.target = none ∧
               (∀ candidate ∈ inactive,
                 final.core.assignedToken? candidate.source = none ∧
                   final.core.assignedToken? candidate.target = none) ∧
@@ -15088,10 +15241,10 @@ private theorem canonicalWorklistRun_incomplete_firstInactiveBlock
   intro incomplete
   rcases canonicalWorklistRun_incomplete_waitingParPath
       correct startEquation incomplete with
-    ⟨_index, left, right, _conclusion, _leftToken, _rightToken,
+    ⟨_index, left, right, waitingConclusion, _leftToken, _rightToken,
       path, leftBoundary, leftBefore, leftAfter, _waitingLookup,
-      _waitingConclusionUnmarked, _leftMarked, rightMarked, _different,
-      _registered, _noActiveWalk, pathStarts, pathFinishes,
+      waitingConclusionUnmarked, _leftMarked, rightMarked, _different,
+      _registered, minimality, _noActiveWalk, pathStarts, pathFinishes,
       _conclusionAvoided, leftTraversalEquation, _leftPrefixMarked,
       _leftBoundaryMembership, _activeFromLeft, _leftBoundaryToken,
       leftBoundarySourceAssigned, leftBoundaryTargetUnmarked,
@@ -15212,11 +15365,165 @@ private theorem canonicalWorklistRun_incomplete_firstInactiveBlock
       (by simpa using reentrySourceAssignedNone)
       reentryOrigin
   exact
-    ⟨path, leftBoundary, reentry, leftBefore, inactive, after,
-      traversalEquation, boundariesDifferent,
+    ⟨waitingConclusion, path, leftBoundary, reentry, leftBefore, inactive,
+      after, waitingConclusionUnmarked, minimality, traversalEquation,
+      boundariesDifferent,
       leftBoundaryTargetUnmarked, inactiveAssignedNone,
       reentrySourceAssignedNone, reentryTargetAssigned,
       leftStatus, reentryStatus⟩
+
+/-- Relative to a globally minimum-complexity unassigned occurrence, a
+frontier chase either rises strictly above that minimum or stops at a
+concrete distinct-thread waiting par. -/
+private def PathFrontierAboveMinimumOrWaitingPar
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (minimum : Vertex)
+    (boundary : certificate.referenceSwitchingGraph.DirectedEdge) : Prop :=
+  certificate.formulaComplexityAt minimum <
+      certificate.formulaComplexityAt boundary.target ∨
+    ∃ (index left right conclusion leftToken rightToken : Nat),
+      certificate.links[index]? =
+          some (.par left right conclusion) ∧
+        boundary.source = left ∧
+          boundary.target = conclusion ∧
+            state.core.tokenAt? left = some leftToken ∧
+              state.core.tokenAt? right = some rightToken ∧
+                leftToken ≠ rightToken ∧
+                  index ∈ state.waiting
+
+/-- Global minimality normalizes a raw strict-premise descent into a strict
+rank gap from the selected minimum obstruction. -/
+private theorem
+    pathFrontierDescentOrWaitingPar_aboveMinimum_or_waitingPar
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {minimum : Vertex}
+    {boundary : certificate.referenceSwitchingGraph.DirectedEdge}
+    (minimality :
+      ∀ {candidate : Vertex},
+        candidate < certificate.formulas.size →
+          state.core.assignedToken? candidate = none →
+            certificate.formulaComplexityAt minimum ≤
+              certificate.formulaComplexityAt candidate)
+    (alternative :
+      PathFrontierDescentOrWaitingPar certificate state boundary) :
+    PathFrontierAboveMinimumOrWaitingPar
+      certificate state minimum boundary := by
+  rcases alternative with descent | waiting
+  · rcases descent with
+      ⟨blockedPremise, blockedBound, blockedUnassigned, strictDescent⟩
+    exact .inl
+      (Nat.lt_of_le_of_lt
+        (minimality blockedBound blockedUnassigned)
+        strictDescent)
+  · exact .inr waiting
+
+/-- The first contiguous inactive block exposes the rank-normalized chase
+alternative at both orientations: each boundary is strictly above the global
+minimum obstruction or is a concrete distinct-thread waiting par. -/
+private theorem
+    canonicalWorklistRun_incomplete_firstInactiveBlock_aboveMinimumOrWaiting
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (waitingConclusion : Vertex)
+          (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (leftBoundary reentry :
+            certificate.referenceSwitchingGraph.DirectedEdge)
+          (before inactive after :
+            List certificate.referenceSwitchingGraph.DirectedEdge),
+        final.core.assignedToken? waitingConclusion = none ∧
+          (∀ {candidate : Vertex},
+            candidate < certificate.formulas.size →
+              final.core.assignedToken? candidate = none →
+                certificate.formulaComplexityAt waitingConclusion ≤
+                  certificate.formulaComplexityAt candidate) ∧
+          path.traversed =
+              before ++
+                leftBoundary :: (inactive ++ reentry :: after) ∧
+            leftBoundary ≠ reentry ∧
+              final.core.assignedToken? leftBoundary.target = none ∧
+                (∀ candidate ∈ inactive,
+                  final.core.assignedToken? candidate.source = none ∧
+                    final.core.assignedToken? candidate.target = none) ∧
+                  final.core.assignedToken? reentry.source = none ∧
+                    final.core.assignedToken? reentry.target ≠ none ∧
+                      PathFrontierAboveMinimumOrWaitingPar
+                          certificate final waitingConclusion leftBoundary ∧
+                        PathFrontierAboveMinimumOrWaitingPar
+                          certificate final waitingConclusion
+                          reentry.reverse := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (waitingConclusion : Vertex)
+          (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (leftBoundary reentry :
+            certificate.referenceSwitchingGraph.DirectedEdge)
+          (before inactive after :
+            List certificate.referenceSwitchingGraph.DirectedEdge),
+        final.core.assignedToken? waitingConclusion = none ∧
+          (∀ {candidate : Vertex},
+            candidate < certificate.formulas.size →
+              final.core.assignedToken? candidate = none →
+                certificate.formulaComplexityAt waitingConclusion ≤
+                  certificate.formulaComplexityAt candidate) ∧
+          path.traversed =
+              before ++
+                leftBoundary :: (inactive ++ reentry :: after) ∧
+            leftBoundary ≠ reentry ∧
+              final.core.assignedToken? leftBoundary.target = none ∧
+                (∀ candidate ∈ inactive,
+                  final.core.assignedToken? candidate.source = none ∧
+                    final.core.assignedToken? candidate.target = none) ∧
+                  final.core.assignedToken? reentry.source = none ∧
+                    final.core.assignedToken? reentry.target ≠ none ∧
+                      PathFrontierAboveMinimumOrWaitingPar
+                          certificate final waitingConclusion leftBoundary ∧
+                        PathFrontierAboveMinimumOrWaitingPar
+                          certificate final waitingConclusion
+                          reentry.reverse
+  intro incomplete
+  rcases canonicalWorklistRun_incomplete_firstInactiveBlock
+      correct startEquation incomplete with
+    ⟨waitingConclusion, path, leftBoundary, reentry,
+      before, inactive, after, waitingConclusionUnmarked,
+      minimality, traversalEquation, boundariesDifferent,
+      leftBoundaryTargetUnmarked, inactiveAssignedNone,
+      reentrySourceUnmarked, reentryTargetMarked,
+      leftStatus, reentryStatus⟩
+  have leftRawAlternative :=
+    pathFrontierSchedulerObstruction_descent_or_waitingPar
+      correct.1 leftStatus
+  have reentryRawAlternative :=
+    pathFrontierSchedulerObstruction_descent_or_waitingPar
+      correct.1 reentryStatus
+  have leftAlternative :=
+    pathFrontierDescentOrWaitingPar_aboveMinimum_or_waitingPar
+      minimality leftRawAlternative
+  have reentryAlternative :=
+    pathFrontierDescentOrWaitingPar_aboveMinimum_or_waitingPar
+      minimality reentryRawAlternative
+  exact
+    ⟨waitingConclusion, path, leftBoundary, reentry,
+      before, inactive, after, waitingConclusionUnmarked,
+      minimality, traversalEquation, boundariesDifferent,
+      leftBoundaryTargetUnmarked, inactiveAssignedNone,
+      reentrySourceUnmarked, reentryTargetMarked,
+      leftAlternative, reentryAlternative⟩
 
 /-- Every incomplete correct canonical run now exposes a path occurrence
 with a complete local scheduler classification.  This checkpoint separates
@@ -15264,7 +15571,8 @@ private theorem canonicalWorklistRun_incomplete_pathFrontierStatus
     ⟨index, left, right, conclusion, leftToken, rightToken,
       path, boundary, _before, _after, waitingLookup,
       waitingConclusionUnmarked,
-      leftMarked, rightMarked, different, registered, noActiveWalk,
+      leftMarked, rightMarked, different, registered, _minimality,
+      noActiveWalk,
       pathStarts, pathFinishes, conclusionAvoided, _traversalEquation,
       _prefixAccepted, boundaryMembership,
       _activeFromLeft, _boundarySourceToken, boundarySourceAssigned,

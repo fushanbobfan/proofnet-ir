@@ -488,8 +488,11 @@
     - [x] Cut at the first unmarked-to-marked reentry and prove that every
       intervening traversed occurrence has two unmarked endpoints, retaining
       exact scheduler classifications at both boundary orientations.
+    - [x] Retain the globally minimum-complexity unassigned waiting
+      conclusion and normalize each boundary to a strict rank gap above that
+      minimum or an exact registered distinct-thread waiting par.
     - [ ] Exclude the resulting contiguous path-exposed inactive-block
-      obstruction.
+      and rank-normalized chase obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize
