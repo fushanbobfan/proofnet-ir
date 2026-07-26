@@ -187,9 +187,13 @@ within that budget. At quiescence, every submitted but unfired connective is
 kernel-classified as idle, a distinct-thread waiting par, or a same-thread
 tensor deadlock. A least-formula-complexity argument then recovers a concrete
 submitted source whose premises are already assigned, so an incomplete
-canonical run cannot be witnessed only by an idle premise. Excluding the
-remaining distinct-thread waiting-par and same-thread tensor obstructions
-from correct nonfinal nets is the missing progress argument.
+canonical run cannot be witnessed only by an idle premise. A separately
+proved active-reference invariant connects every semantic thread by already
+active all-left switching edges. Closing such a path with the two fixed edges
+of an unfired same-thread tensor would form an edge-simple reference-switching
+cycle, so declarative correctness excludes that obstruction. The remaining
+missing progress argument is now exactly the exclusion of a distinct-thread
+waiting par in a correct nonfinal net.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

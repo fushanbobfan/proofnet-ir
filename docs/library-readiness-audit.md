@@ -163,9 +163,11 @@ part of the engineering and proof-identity gap.
    unfired connective by an exact idle/waiting/deadlock witness. A
    least-formula-complexity theorem now eliminates idle premises from the
    incomplete case, leaving an exact submitted distinct-thread waiting par or
-   same-thread tensor deadlock. Correctness has not yet been connected
-   strongly enough to exclude those two witnesses; pure worklist completeness
-   and a full cost theorem are still open.
+   same-thread tensor deadlock. A kernel-checked active-reference connectivity
+   invariant plus declarative switching acyclicity now excludes the tensor
+   branch on correct inputs. The sole remaining obstruction is a submitted
+   distinct-thread waiting par; pure worklist completeness and a full cost
+   theorem are still open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

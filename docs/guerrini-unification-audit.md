@@ -92,15 +92,21 @@ Selecting an unassigned conclusion of least formula complexity now refines
 that result. Structural well-formedness recovers its concrete source link,
 strict premise complexity makes both premises assigned, and the remaining
 witness is therefore an exact submitted distinct-thread waiting par or
-same-thread tensor deadlock.
+same-thread tensor deadlock. The abstract semantics now proves that every
+semantic thread stays connected inside the active all-left reference
+subgraph, and that invariant is transported through the concrete canonical
+worklist run. Declarative reference-switching acyclicity then excludes the
+same-thread tensor branch: its two fixed edges would close the active thread
+path into an edge-simple cycle. The only remaining correct-state obstruction
+is an exact distinct-thread waiting par.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
 stack, interval partition, or specialized union-find invariant. The attempt
 cap is no longer merely imposed by fuel: its scheduler sufficiency is proved.
-That result does not yet rule out the remaining waiting-par/tensor thread
-obstructions on a correct nonfinal net; the correct-state progress theorem
-remains open.
+That result now rules out tensor deadlock on a correct nonfinal net, but not
+the remaining distinct-thread waiting par; the full correct-state progress
+theorem remains open.
 
 Lean currently proves:
 
@@ -171,8 +177,9 @@ or positive misses. The larger search recorded at most 150 link attempts and
 1. State the operational one-step relation independently of the executable
    scan and prove that every fired component denotes the corresponding parsing
    substructure.
-2. Prove progress for every nonfinal correct state, distinguishing waiting par
-   links from tensor deadlocks.
+2. Exclude the remaining distinct-thread waiting par in every nonfinal correct
+   state; same-thread tensor deadlock is already excluded by the active-path
+   switching-cycle theorem.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

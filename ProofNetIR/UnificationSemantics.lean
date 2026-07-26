@@ -171,6 +171,318 @@ theorem mergeExtension_comm
         ⟨firstMerged.elim Or.inr Or.inl,
           secondMerged.elim Or.inr Or.inl⟩
 
+/-- The deterministic all-left switching edges whose two endpoint
+occurrences have already been marked.  Filtering both endpoints makes every
+unmarked occurrence isolated in this proof-only graph. -/
+def activeReferenceEdges
+    (state : UnificationMarking certificate) : List Edge :=
+  (Certificate.linkLeftRetainedEdges certificate.links).filter fun edge =>
+    (state.mark edge.first).isSome &&
+      (state.mark edge.second).isSome
+
+/-- Proof-only subgraph recording the part of the all-left switching already
+spanned by a unification marking. -/
+def activeReferenceGraph
+    (state : UnificationMarking certificate) : Graph where
+  vertexCount := certificate.formulas.size
+  edges := state.activeReferenceEdges
+
+/-- Mark-domain extension ignores token names and records only that no
+previously marked occurrence becomes unmarked. -/
+def MarkDomainExtends
+    (first second : UnificationMarking certificate) : Prop :=
+  ∀ vertex,
+    (first.mark vertex).isSome = true →
+      (second.mark vertex).isSome = true
+
+/-- Every pair of marked occurrences in one semantic token class is connected
+inside the already active all-left switching subgraph. -/
+def ThreadConnected
+    (state : UnificationMarking certificate) : Prop :=
+  ∀ {first second firstToken secondToken : Nat},
+    state.mark first = some firstToken →
+      state.mark second = some secondToken →
+        state.sameThread firstToken secondToken →
+          state.activeReferenceGraph.Walk first second
+
+/-- Active switching edges are literal retained edges of the complete
+all-left reference switching. -/
+theorem activeReferenceEdges_subset
+    (state : UnificationMarking certificate) :
+    ∀ edge ∈ state.activeReferenceEdges,
+      edge ∈ Certificate.linkLeftRetainedEdges certificate.links := by
+  intro edge membership
+  exact (List.mem_filter.mp membership).1
+
+/-- The deterministic occurrence-level reference graph contains exactly the
+left-retained edge values, in occurrence order. -/
+theorem referenceSwitchingGraph_edges_eq_leftRetained
+    (certificate : Certificate) :
+      certificate.referenceSwitchingGraph.edges =
+        Certificate.linkLeftRetainedEdges certificate.links := by
+  change Graph.retainEdgesByMask certificate.fullEdges
+      certificate.referenceSwitchingMask =
+    Certificate.linkLeftRetainedEdges certificate.links
+  simpa [Certificate.retainByMask] using
+    certificate.referenceFullSwitchingSelection
+      |>.retained_eq_retainByMask.symm
+
+/-- Every active semantic edge is an edge value of the deterministic all-left
+occurrence switching. -/
+theorem activeReferenceEdges_subset_referenceSwitchingGraph
+    (state : UnificationMarking certificate) :
+    ∀ edge ∈ state.activeReferenceEdges,
+      edge ∈ certificate.referenceSwitchingGraph.edges := by
+  intro edge membership
+  rw [referenceSwitchingGraph_edges_eq_leftRetained]
+  exact state.activeReferenceEdges_subset edge membership
+
+/-- Extending the marked occurrence domain can only add active reference
+edges. -/
+theorem activeReferenceEdges_mono
+    {first second : UnificationMarking certificate}
+    (extension : MarkDomainExtends first second) :
+    ∀ edge ∈ first.activeReferenceEdges,
+      edge ∈ second.activeReferenceEdges := by
+  intro edge membership
+  rcases List.mem_filter.mp membership with
+    ⟨retained, endpoints⟩
+  apply List.mem_filter.mpr
+  refine ⟨retained, ?_⟩
+  simp only [Bool.and_eq_true] at endpoints ⊢
+  exact
+    ⟨extension edge.first endpoints.1,
+      extension edge.second endpoints.2⟩
+
+/-- Ordinary endpoint walks lift through inclusion of stored edge values. -/
+private theorem walk_mono
+    {first second : Graph} {start finish : Vertex}
+    (walk : first.Walk start finish)
+    (edgeSubset : ∀ edge ∈ first.edges, edge ∈ second.edges) :
+    second.Walk start finish := by
+  induction walk with
+  | refl =>
+      exact .refl _
+  | step prior adjacency induction =>
+      rcases adjacency with ⟨edge, membership, direction⟩
+      exact .step induction
+        ⟨edge, edgeSubset edge membership, direction⟩
+
+/-- Walk concatenation for the independent endpoint path semantics. -/
+private theorem walk_trans
+    {graph : Graph} {start middle finish : Vertex}
+    (first : graph.Walk start middle)
+    (second : graph.Walk middle finish) :
+    graph.Walk start finish := by
+  induction second with
+  | refl =>
+      exact first
+  | step prior adjacency induction =>
+      exact .step induction adjacency
+
+/-- Endpoint walks are symmetric in the undirected graph semantics. -/
+private theorem walk_reverse
+    {graph : Graph} {start finish : Vertex}
+    (walk : graph.Walk start finish) :
+    graph.Walk finish start := by
+  induction walk with
+  | refl =>
+      exact .refl _
+  | @step middle finish prior adjacency induction =>
+      have reverseAdjacency : graph.Adjacent finish middle := by
+        rcases adjacency with ⟨edge, membership, direction⟩
+        exact ⟨edge, membership, direction.elim
+          (fun forward => Or.inr forward)
+          (fun backward => Or.inl backward)⟩
+      exact walk_trans (.step (.refl finish) reverseAdjacency) induction
+
+/-- Existing thread paths survive a pure extension of the marked domain. -/
+theorem ThreadConnected.mono
+    {first second : UnificationMarking certificate}
+    (connected : first.ThreadConnected)
+    (extension : MarkDomainExtends first second)
+    (marks :
+      ∀ {vertex token},
+        second.mark vertex = some token →
+          first.mark vertex = some token)
+    (threads :
+      ∀ {left right},
+        second.sameThread left right →
+          first.sameThread left right) :
+    second.ThreadConnected := by
+  intro firstVertex secondVertex firstToken secondToken
+    firstMarked secondMarked synchronized
+  exact walk_mono
+    (connected (marks firstMarked) (marks secondMarked)
+      (threads synchronized))
+    (activeReferenceEdges_mono extension)
+
+end UnificationMarking
+
+private theorem axiomEdge_mem_leftRetained
+    {links : List Link} {left right : Vertex}
+    (membership : Link.axiom left right ∈ links) :
+    ({ first := left, second := right } : Edge) ∈
+      Certificate.linkLeftRetainedEdges links := by
+  induction links with
+  | nil =>
+      simp at membership
+  | cons head tail induction =>
+      rcases List.mem_cons.mp membership with same | rest
+      · subst head
+        simp [Certificate.linkLeftRetainedEdges]
+      · cases head with
+        | «axiom» headLeft headRight =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact Or.inr (induction rest)
+        | «par» headLeft headRight headConclusion =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact Or.inr (induction rest)
+        | tensor headLeft headRight headConclusion =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact Or.inr (Or.inr (induction rest))
+
+private theorem parLeftEdge_mem_leftRetained
+    {links : List Link} {left right conclusion : Vertex}
+    (membership : Link.par left right conclusion ∈ links) :
+    ({ first := left, second := conclusion } : Edge) ∈
+      Certificate.linkLeftRetainedEdges links := by
+  induction links with
+  | nil =>
+      simp at membership
+  | cons head tail induction =>
+      rcases List.mem_cons.mp membership with same | rest
+      · subst head
+        simp [Certificate.linkLeftRetainedEdges]
+      · cases head with
+        | «axiom» headLeft headRight =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact Or.inr (induction rest)
+        | «par» headLeft headRight headConclusion =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact Or.inr (induction rest)
+        | tensor headLeft headRight headConclusion =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact Or.inr (Or.inr (induction rest))
+
+theorem tensorEdges_mem_leftRetained
+    {links : List Link} {left right conclusion : Vertex}
+    (membership : Link.tensor left right conclusion ∈ links) :
+    ({ first := left, second := conclusion } : Edge) ∈
+        Certificate.linkLeftRetainedEdges links ∧
+      ({ first := right, second := conclusion } : Edge) ∈
+        Certificate.linkLeftRetainedEdges links := by
+  induction links with
+  | nil =>
+      simp at membership
+  | cons head tail induction =>
+      rcases List.mem_cons.mp membership with same | rest
+      · subst head
+        simp [Certificate.linkLeftRetainedEdges]
+      · have tailMembership := induction rest
+        cases head with
+        | «axiom» headLeft headRight =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact
+              ⟨Or.inr tailMembership.1,
+                Or.inr tailMembership.2⟩
+        | «par» headLeft headRight headConclusion =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact
+              ⟨Or.inr tailMembership.1,
+                Or.inr tailMembership.2⟩
+        | tensor headLeft headRight headConclusion =>
+            simp only [Certificate.linkLeftRetainedEdges,
+              List.mem_cons]
+            exact
+              ⟨Or.inr (Or.inr tailMembership.1),
+                Or.inr (Or.inr tailMembership.2)⟩
+
+namespace UnificationMarking
+
+/-- Both fixed edges of every submitted tensor occur in the deterministic
+all-left reference switching. -/
+theorem referenceSwitchingGraph_tensorEdges
+    (certificate : Certificate)
+    {left right conclusion : Vertex}
+    (membership : Link.tensor left right conclusion ∈ certificate.links) :
+    ({ first := left, second := conclusion } : Edge) ∈
+        certificate.referenceSwitchingGraph.edges ∧
+      ({ first := right, second := conclusion } : Edge) ∈
+        certificate.referenceSwitchingGraph.edges := by
+  rw [referenceSwitchingGraph_edges_eq_leftRetained]
+  exact tensorEdges_mem_leftRetained membership
+
+/-- A started axiom edge is active in the proof-only reference subgraph. -/
+theorem activeReferenceGraph_axiomAdjacent
+    (state : UnificationMarking certificate)
+    {left right leftToken rightToken : Nat}
+    (membership : Link.axiom left right ∈ certificate.links)
+    (leftMarked : state.mark left = some leftToken)
+    (rightMarked : state.mark right = some rightToken) :
+    state.activeReferenceGraph.Adjacent left right := by
+  let edge : Edge := { first := left, second := right }
+  have retained :
+      edge ∈ Certificate.linkLeftRetainedEdges certificate.links := by
+    exact axiomEdge_mem_leftRetained membership
+  have active : edge ∈ state.activeReferenceEdges := by
+    apply List.mem_filter.mpr
+    exact ⟨retained, by simp [edge, leftMarked, rightMarked]⟩
+  exact ⟨edge, active, Or.inl ⟨rfl, rfl⟩⟩
+
+/-- A fired par exposes its deterministic left switching edge. -/
+theorem activeReferenceGraph_parLeftAdjacent
+    (state : UnificationMarking certificate)
+    {left right conclusion leftToken conclusionToken : Nat}
+    (membership : Link.par left right conclusion ∈ certificate.links)
+    (leftMarked : state.mark left = some leftToken)
+    (conclusionMarked :
+      state.mark conclusion = some conclusionToken) :
+    state.activeReferenceGraph.Adjacent left conclusion := by
+  let edge : Edge := { first := left, second := conclusion }
+  have retained :
+      edge ∈ Certificate.linkLeftRetainedEdges certificate.links := by
+    exact parLeftEdge_mem_leftRetained membership
+  have active : edge ∈ state.activeReferenceEdges := by
+    apply List.mem_filter.mpr
+    exact ⟨retained, by
+      simp [edge, leftMarked, conclusionMarked]⟩
+  exact ⟨edge, active, Or.inl ⟨rfl, rfl⟩⟩
+
+/-- A fired tensor exposes both fixed switching edges. -/
+theorem activeReferenceGraph_tensorAdjacent
+    (state : UnificationMarking certificate)
+    {left right conclusion leftToken rightToken conclusionToken : Nat}
+    (membership : Link.tensor left right conclusion ∈ certificate.links)
+    (leftMarked : state.mark left = some leftToken)
+    (rightMarked : state.mark right = some rightToken)
+    (conclusionMarked :
+      state.mark conclusion = some conclusionToken) :
+    state.activeReferenceGraph.Adjacent left conclusion ∧
+      state.activeReferenceGraph.Adjacent right conclusion := by
+  let leftEdge : Edge := { first := left, second := conclusion }
+  let rightEdge : Edge := { first := right, second := conclusion }
+  have retained := tensorEdges_mem_leftRetained membership
+  have leftActive : leftEdge ∈ state.activeReferenceEdges := by
+    apply List.mem_filter.mpr
+    exact ⟨retained.1, by
+      simp [leftEdge, leftMarked, conclusionMarked]⟩
+  have rightActive : rightEdge ∈ state.activeReferenceEdges := by
+    apply List.mem_filter.mpr
+    exact ⟨retained.2, by
+      simp [rightEdge, rightMarked, conclusionMarked]⟩
+  exact
+    ⟨⟨leftEdge, leftActive, Or.inl ⟨rfl, rfl⟩⟩,
+      ⟨rightEdge, rightActive, Or.inl ⟨rfl, rfl⟩⟩⟩
+
 end UnificationMarking
 
 /-- The three source-level unification rules. -/
@@ -298,6 +610,395 @@ end UnificationExecution
 
 namespace UnificationStep
 
+/-- Every abstract unification rule monotonically extends the occurrence
+marking domain. -/
+theorem markDomainExtends {certificate : Certificate}
+    {state next : UnificationMarking certificate}
+    (step : UnificationStep certificate state next) :
+    state.MarkDomainExtends next := by
+  intro vertex oldMarked
+  cases step
+  case start left right linkMembership leftUnmarked rightUnmarked
+      freshIsolated tokenCount marking threads =>
+      rw [marking]
+      by_cases rightCase : vertex = right <;>
+        by_cases leftCase : vertex = left <;>
+          simp [UnificationMarking.setMark, rightCase, leftCase, oldMarked]
+  case forward left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesSynchronized outputTokenAllocated outputTokenSynchronized
+      tokenCount marking threads =>
+      rw [marking]
+      by_cases conclusionCase : vertex = conclusion <;>
+        simp [UnificationMarking.setMark, conclusionCase, oldMarked]
+  case unify left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesDistinct outputTokenAllocated outputTokenFromPremiseThread
+      tokenCount marking threads =>
+      rw [marking]
+      by_cases conclusionCase : vertex = conclusion <;>
+        simp [UnificationMarking.setMark, conclusionCase, oldMarked]
+
+/-- One abstract unification step preserves connectivity of every semantic
+thread inside the active all-left switching subgraph. -/
+theorem threadConnected
+    {certificate : Certificate}
+    {state next : UnificationMarking certificate}
+    (connected : state.ThreadConnected)
+    (step : UnificationStep certificate state next) :
+    next.ThreadConnected := by
+  have extension : state.MarkDomainExtends next :=
+    step.markDomainExtends
+  have liftWalk {first second : Vertex}
+      (walk : state.activeReferenceGraph.Walk first second) :
+      next.activeReferenceGraph.Walk first second :=
+    UnificationMarking.walk_mono walk
+      (state.activeReferenceEdges_mono extension)
+  rcases state.sameThreadEquivalence with
+    ⟨reflexive, symmetric, transitive⟩
+  intro firstVertex secondVertex firstToken secondToken
+    firstMarked secondMarked synchronized
+  cases step
+  case start left right linkMembership leftUnmarked rightUnmarked
+      freshIsolated tokenCount marking threads =>
+      have classify :
+          ∀ {vertex token},
+            next.mark vertex = some token →
+              (((vertex = left ∨ vertex = right) ∧
+                  token = state.tokenCount) ∨
+                state.mark vertex = some token) := by
+        intro vertex token marked
+        rw [marking] at marked
+        by_cases rightCase : vertex = right
+        · left
+          exact ⟨Or.inr rightCase, by
+            simp [UnificationMarking.setMark, rightCase] at marked
+            exact marked.symm⟩
+        · by_cases leftCase : vertex = left
+          · left
+            exact ⟨Or.inl leftCase, by
+              simp [UnificationMarking.setMark, leftCase] at marked
+              exact marked.symm⟩
+          · right
+            simpa [UnificationMarking.setMark, rightCase,
+              leftCase] using marked
+      have leftNext :
+          next.mark left = some state.tokenCount := by
+        rw [marking]
+        by_cases same : left = right
+        · simp [UnificationMarking.setMark, same]
+        · simp [UnificationMarking.setMark, same]
+      have rightNext :
+          next.mark right = some state.tokenCount := by
+        rw [marking]
+        simp [UnificationMarking.setMark]
+      have axiomAdjacent :
+          next.activeReferenceGraph.Adjacent left right :=
+        next.activeReferenceGraph_axiomAdjacent
+          linkMembership leftNext rightNext
+      have oldSynchronized :
+          state.sameThread firstToken secondToken := by
+        exact (threads firstToken secondToken).mp synchronized
+      rcases classify firstMarked with
+        ⟨firstEndpoint, firstFresh⟩ | firstOld
+      · rcases classify secondMarked with
+          ⟨secondEndpoint, secondFresh⟩ | secondOld
+        · subst firstToken
+          subst secondToken
+          rcases firstEndpoint with firstLeft | firstRight <;>
+            rcases secondEndpoint with secondLeft | secondRight
+          · subst firstVertex
+            subst secondVertex
+            exact .refl _
+          · subst firstVertex
+            subst secondVertex
+            exact .step (.refl _) axiomAdjacent
+          · subst firstVertex
+            subst secondVertex
+            exact .step (.refl _)
+              (by
+                rcases axiomAdjacent with
+                  ⟨edge, membership, direction⟩
+                exact ⟨edge, membership,
+                  direction.elim Or.inr Or.inl⟩)
+          · subst firstVertex
+            subst secondVertex
+            exact .refl _
+        · have secondBound : secondToken < state.tokenCount :=
+            state.markedTokenBound secondOld
+          subst firstToken
+          exact False.elim
+            (freshIsolated
+              (old := secondToken) secondBound
+              (symmetric oldSynchronized))
+      · rcases classify secondMarked with
+          ⟨secondEndpoint, secondFresh⟩ | secondOld
+        · have firstBound : firstToken < state.tokenCount :=
+            state.markedTokenBound firstOld
+          subst secondToken
+          exact False.elim
+            (freshIsolated
+              (old := firstToken) firstBound
+              oldSynchronized)
+        · exact liftWalk
+            (connected firstOld secondOld oldSynchronized)
+  case forward left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesSynchronized outputTokenAllocated outputTokenSynchronized
+      tokenCount marking threads =>
+      have classify :
+          ∀ {vertex token},
+            next.mark vertex = some token →
+              ((vertex = conclusion ∧ token = outputToken) ∨
+                state.mark vertex = some token) := by
+        intro vertex token marked
+        rw [marking] at marked
+        by_cases conclusionCase : vertex = conclusion
+        · left
+          exact ⟨conclusionCase, by
+            simp [UnificationMarking.setMark,
+              conclusionCase] at marked
+            exact marked.symm⟩
+        · right
+          simpa [UnificationMarking.setMark,
+            conclusionCase] using marked
+      have conclusionNext :
+          next.mark conclusion = some outputToken := by
+        rw [marking]
+        simp [UnificationMarking.setMark]
+      have leftNextSome :
+          (next.mark left).isSome = true :=
+        extension left (by simp [leftMarked])
+      have leftNext :
+          ∃ token, next.mark left = some token := by
+        cases lookup : next.mark left with
+        | none =>
+            simp [lookup] at leftNextSome
+        | some token =>
+            exact ⟨token, rfl⟩
+      rcases leftNext with ⟨nextLeftToken, leftNext⟩
+      have parAdjacent :
+          next.activeReferenceGraph.Adjacent left conclusion :=
+        next.activeReferenceGraph_parLeftAdjacent
+          linkMembership leftNext conclusionNext
+      have relation :
+          state.sameThread firstToken secondToken := by
+        rw [threads] at synchronized
+        exact synchronized
+      rcases classify firstMarked with
+        ⟨firstConclusion, firstOutput⟩ | firstOld
+      · rcases classify secondMarked with
+          ⟨secondConclusion, secondOutput⟩ | secondOld
+        · subst firstVertex
+          subst secondVertex
+          exact .refl _
+        · subst firstVertex
+          subst firstToken
+          have leftRelated :
+              state.sameThread leftToken secondToken :=
+            transitive (symmetric outputTokenSynchronized) relation
+          have oldWalk :=
+            connected leftMarked secondOld leftRelated
+          exact
+            UnificationMarking.walk_trans
+              (.step (.refl _)
+                (by
+                  rcases parAdjacent with
+                    ⟨edge, membership, direction⟩
+                  exact ⟨edge, membership,
+                    direction.elim Or.inr Or.inl⟩))
+              (liftWalk oldWalk)
+      · rcases classify secondMarked with
+          ⟨secondConclusion, secondOutput⟩ | secondOld
+        · subst secondVertex
+          subst secondToken
+          have firstRelated :
+              state.sameThread firstToken leftToken :=
+            transitive relation outputTokenSynchronized
+          have oldWalk :=
+            connected firstOld leftMarked firstRelated
+          exact
+            UnificationMarking.walk_trans
+              (liftWalk oldWalk)
+              (.step (.refl _) parAdjacent)
+        · exact liftWalk
+            (connected firstOld secondOld relation)
+  case unify left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesDistinct outputTokenAllocated outputTokenFromPremiseThread
+      tokenCount marking threads =>
+      have classify :
+          ∀ {vertex token},
+            next.mark vertex = some token →
+              ((vertex = conclusion ∧ token = outputToken) ∨
+                state.mark vertex = some token) := by
+        intro vertex token marked
+        rw [marking] at marked
+        by_cases conclusionCase : vertex = conclusion
+        · left
+          exact ⟨conclusionCase, by
+            simp [UnificationMarking.setMark,
+              conclusionCase] at marked
+            exact marked.symm⟩
+        · right
+          simpa [UnificationMarking.setMark,
+            conclusionCase] using marked
+      have conclusionNext :
+          next.mark conclusion = some outputToken := by
+        rw [marking]
+        simp [UnificationMarking.setMark]
+      have leftNextSome :
+          (next.mark left).isSome = true :=
+        extension left (by simp [leftMarked])
+      have rightNextSome :
+          (next.mark right).isSome = true :=
+        extension right (by simp [rightMarked])
+      have leftNext :
+          ∃ token, next.mark left = some token := by
+        cases lookup : next.mark left with
+        | none =>
+            simp [lookup] at leftNextSome
+        | some token =>
+            exact ⟨token, rfl⟩
+      have rightNext :
+          ∃ token, next.mark right = some token := by
+        cases lookup : next.mark right with
+        | none =>
+            simp [lookup] at rightNextSome
+        | some token =>
+            exact ⟨token, rfl⟩
+      rcases leftNext with ⟨nextLeftToken, leftNext⟩
+      rcases rightNext with ⟨nextRightToken, rightNext⟩
+      have tensorAdjacent :=
+        next.activeReferenceGraph_tensorAdjacent
+          linkMembership leftNext rightNext conclusionNext
+      have leftToRight :
+          next.activeReferenceGraph.Walk left right :=
+        UnificationMarking.walk_trans
+          (.step (.refl _) tensorAdjacent.1)
+          (.step (.refl _)
+            (by
+              rcases tensorAdjacent.2 with
+                ⟨edge, membership, direction⟩
+              exact ⟨edge, membership,
+                direction.elim Or.inr Or.inl⟩))
+      have rightToLeft :
+          next.activeReferenceGraph.Walk right left :=
+        UnificationMarking.walk_reverse leftToRight
+      have merged :
+          state.MergeExtension leftToken rightToken
+            firstToken secondToken :=
+        (threads firstToken secondToken).mp synchronized
+      rcases classify firstMarked with
+        ⟨firstConclusion, firstOutput⟩ | firstOld
+      · rcases classify secondMarked with
+          ⟨secondConclusion, secondOutput⟩ | secondOld
+        · subst firstVertex
+          subst secondVertex
+          exact .refl _
+        · subst firstVertex
+          subst firstToken
+          have secondMember :
+              state.sameThread leftToken secondToken ∨
+                state.sameThread rightToken secondToken := by
+            rcases merged with old | ⟨_outputMember, member⟩
+            · rcases outputTokenFromPremiseThread with
+                outputLeft | outputRight
+              · exact Or.inl
+                  (transitive (symmetric outputLeft) old)
+              · exact Or.inr
+                  (transitive (symmetric outputRight) old)
+            · exact member.elim
+                (fun related => Or.inl (symmetric related))
+                (fun related => Or.inr (symmetric related))
+          rcases secondMember with secondLeft | secondRight
+          · have oldWalk :=
+              connected leftMarked secondOld secondLeft
+            exact
+              UnificationMarking.walk_trans
+                (.step (.refl _)
+                  (by
+                    rcases tensorAdjacent.1 with
+                      ⟨edge, membership, direction⟩
+                    exact ⟨edge, membership,
+                      direction.elim Or.inr Or.inl⟩))
+                (liftWalk oldWalk)
+          · have oldWalk :=
+              connected rightMarked secondOld secondRight
+            exact
+              UnificationMarking.walk_trans
+                (.step (.refl _)
+                  (by
+                    rcases tensorAdjacent.2 with
+                      ⟨edge, membership, direction⟩
+                    exact ⟨edge, membership,
+                      direction.elim Or.inr Or.inl⟩))
+                (liftWalk oldWalk)
+      · rcases classify secondMarked with
+          ⟨secondConclusion, secondOutput⟩ | secondOld
+        · subst secondVertex
+          subst secondToken
+          have firstMember :
+              state.sameThread firstToken leftToken ∨
+                state.sameThread firstToken rightToken := by
+            rcases merged with old | ⟨member, _outputMember⟩
+            · rcases outputTokenFromPremiseThread with
+                outputLeft | outputRight
+              · exact Or.inl (transitive old outputLeft)
+              · exact Or.inr (transitive old outputRight)
+            · exact member
+          rcases firstMember with firstLeft | firstRight
+          · have oldWalk :=
+              connected firstOld leftMarked firstLeft
+            exact
+              UnificationMarking.walk_trans
+                (liftWalk oldWalk)
+                (.step (.refl _) tensorAdjacent.1)
+          · have oldWalk :=
+              connected firstOld rightMarked firstRight
+            exact
+              UnificationMarking.walk_trans
+                (liftWalk oldWalk)
+                (.step (.refl _) tensorAdjacent.2)
+        · rcases merged with old | ⟨firstMember, secondMember⟩
+          · exact liftWalk (connected firstOld secondOld old)
+          · rcases firstMember with firstLeft | firstRight <;>
+              rcases secondMember with secondLeft | secondRight
+            · have firstWalk :=
+                liftWalk (connected firstOld leftMarked firstLeft)
+              have secondWalk :=
+                liftWalk
+                  (connected leftMarked secondOld
+                    (symmetric secondLeft))
+              exact UnificationMarking.walk_trans
+                firstWalk secondWalk
+            · have firstWalk :=
+                liftWalk (connected firstOld leftMarked firstLeft)
+              have secondWalk :=
+                liftWalk
+                  (connected rightMarked secondOld
+                    (symmetric secondRight))
+              exact UnificationMarking.walk_trans firstWalk
+                (UnificationMarking.walk_trans
+                  leftToRight secondWalk)
+            · have firstWalk :=
+                liftWalk (connected firstOld rightMarked firstRight)
+              have secondWalk :=
+                liftWalk
+                  (connected leftMarked secondOld
+                    (symmetric secondLeft))
+              exact UnificationMarking.walk_trans firstWalk
+                (UnificationMarking.walk_trans
+                  rightToLeft secondWalk)
+            · have firstWalk :=
+                liftWalk (connected firstOld rightMarked firstRight)
+              have secondWalk :=
+                liftWalk
+                  (connected rightMarked secondOld
+                    (symmetric secondRight))
+              exact UnificationMarking.walk_trans
+                firstWalk secondWalk
+
 /-- Every abstract transition uses a submitted link of the corresponding
 Figure-5 class. -/
 theorem link_exists {certificate : Certificate}
@@ -371,5 +1072,23 @@ theorem tokenCount_mono {certificate : Certificate}
       exact Nat.le_of_eq tokenCount.symm
 
 end UnificationStep
+
+namespace UnificationExecution
+
+/-- Every finite abstract execution preserves connectivity of semantic
+threads inside the active all-left switching subgraph. -/
+theorem threadConnected
+    {certificate : Certificate}
+    {initial final : UnificationMarking certificate}
+    (execution : UnificationExecution certificate initial final)
+    (connected : initial.ThreadConnected) :
+    final.ThreadConnected := by
+  induction execution with
+  | refl =>
+      exact connected
+  | step transition rest induction =>
+      exact induction (transition.threadConnected connected)
+
+end UnificationExecution
 
 end ProofNetIR

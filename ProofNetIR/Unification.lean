@@ -2203,6 +2203,18 @@ private theorem initialUnificationState_abstractable
   · intro token bound
     simp [initialUnificationState] at bound
 
+/-- The empty executable marking has no marked occurrence, so its semantic
+thread-connectivity contract holds vacuously. -/
+private theorem initialUnificationState_threadConnected
+    (certificate : Certificate) :
+    (certificate.initialUnificationState.toMarking certificate
+      (initialUnificationState_abstractable certificate)).ThreadConnected := by
+  intro firstVertex secondVertex firstToken secondToken
+    firstMarked _secondMarked _synchronized
+  simp [initialUnificationState, UnificationState.toMarking,
+    UnificationState.assignedToken?, Array.getElem?_replicate] at firstMarked
+  split at firstMarked <;> simp at firstMarked
+
 /-- The executable initial state starts with an empty ordered parent forest. -/
 private theorem initialUnificationState_orderedParents
     (certificate : Certificate) :
@@ -10763,6 +10775,171 @@ private theorem processWorklistLink_core_abstractable
                         simpa [processWorklistLink, linkLookup, leftLookup,
                           rightLookup, same, firing] using nextAbstractable
 
+/-- Semantic thread connectivity depends on the executable observations, not
+on the proof term witnessing the abstraction contract. -/
+private theorem UnificationState.threadConnected_of_eq
+    {certificate : Certificate} {first second : UnificationState}
+    (firstAbstractable : first.Abstractable certificate)
+    (secondAbstractable : second.Abstractable certificate)
+    (equation : first = second)
+    (connected :
+      UnificationMarking.ThreadConnected
+        (first.toMarking certificate firstAbstractable)) :
+    UnificationMarking.ThreadConnected
+      (second.toMarking certificate secondAbstractable) := by
+  subst second
+  have markingEquation :
+      first.toMarking certificate secondAbstractable =
+        first.toMarking certificate firstAbstractable := by
+    rfl
+  rw [markingEquation]
+  intro firstVertex secondVertex firstToken secondToken
+    firstMarked secondMarked synchronized
+  exact connected firstMarked secondMarked synchronized
+
+/-- One scheduler attempt preserves semantic thread connectivity.  No-op
+branches leave the executable core unchanged; successful par and tensor
+branches are discharged by their independent Figure-5 refinement steps. -/
+private theorem processWorklistLink_threadConnected
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (abstractable : state.core.Abstractable certificate)
+    (ordered : state.core.OrderedParents)
+    (connected :
+      UnificationMarking.ThreadConnected
+        (state.core.toMarking certificate abstractable)) :
+    UnificationMarking.ThreadConnected
+      ((processWorklistLink certificate consumers index state).core.toMarking
+        certificate
+        (processWorklistLink_core_abstractable abstractable ordered)) := by
+  have fromCore {core : UnificationState}
+      (coreAbstractable : core.Abstractable certificate)
+      (coreConnected :
+        UnificationMarking.ThreadConnected
+          (core.toMarking certificate coreAbstractable))
+      (equation :
+        core =
+          (processWorklistLink certificate consumers index state).core) :
+      UnificationMarking.ThreadConnected
+        ((processWorklistLink certificate consumers index state).core.toMarking
+          certificate
+          (processWorklistLink_core_abstractable abstractable ordered)) :=
+    UnificationState.threadConnected_of_eq
+      coreAbstractable _ equation coreConnected
+  unfold UnificationMarking.ThreadConnected
+  intro firstVertex secondVertex firstToken secondToken
+    firstMarked secondMarked synchronized
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      have transported : UnificationMarking.ThreadConnected _ :=
+        fromCore abstractable connected
+        (by simp [processWorklistLink, linkLookup])
+      exact transported firstMarked secondMarked synchronized
+  | some link =>
+      have linkMembership : link ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      cases link with
+      | «axiom» left right =>
+          have transported : UnificationMarking.ThreadConnected _ :=
+            fromCore abstractable connected
+            (by simp [processWorklistLink, linkLookup])
+          exact transported firstMarked secondMarked synchronized
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              have transported : UnificationMarking.ThreadConnected _ :=
+                fromCore abstractable connected
+                (by simp [processWorklistLink, linkLookup, leftLookup])
+              exact transported firstMarked secondMarked synchronized
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  have transported : UnificationMarking.ThreadConnected _ :=
+                    fromCore abstractable connected
+                    (by simp [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup])
+                  exact transported firstMarked secondMarked synchronized
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        have transported :
+                            UnificationMarking.ThreadConnected _ :=
+                          fromCore abstractable connected
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, firing])
+                        exact transported firstMarked secondMarked synchronized
+                    | some nextCore =>
+                        rcases firePar?_refines_forward certificate
+                            abstractable linkMembership firing with
+                          ⟨_nextAbstractable, semanticStep⟩
+                        have preserved :
+                            UnificationMarking.ThreadConnected
+                              (nextCore.toMarking certificate
+                                _nextAbstractable) :=
+                          semanticStep.threadConnected connected
+                        have transported :
+                            UnificationMarking.ThreadConnected _ :=
+                          fromCore _nextAbstractable preserved
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, firing])
+                        exact transported firstMarked secondMarked synchronized
+                  · have transported :
+                        UnificationMarking.ThreadConnected _ :=
+                      fromCore abstractable connected
+                      (by simp [processWorklistLink, linkLookup,
+                        leftLookup, rightLookup, same])
+                    exact transported firstMarked secondMarked synchronized
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              have transported : UnificationMarking.ThreadConnected _ :=
+                fromCore abstractable connected
+                (by simp [processWorklistLink, linkLookup, leftLookup])
+              exact transported firstMarked secondMarked synchronized
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  have transported : UnificationMarking.ThreadConnected _ :=
+                    fromCore abstractable connected
+                    (by simp [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup])
+                  exact transported firstMarked secondMarked synchronized
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    have transported : UnificationMarking.ThreadConnected _ :=
+                      fromCore abstractable connected
+                      (by simp [processWorklistLink, linkLookup,
+                        leftLookup, rightLookup])
+                    exact transported firstMarked secondMarked synchronized
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        have transported :
+                            UnificationMarking.ThreadConnected _ :=
+                          fromCore abstractable connected
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, same, firing])
+                        exact transported firstMarked secondMarked synchronized
+                    | some nextCore =>
+                        rcases fireTensor?_refines_unify certificate
+                            abstractable ordered linkMembership firing with
+                          ⟨_nextAbstractable, semanticStep⟩
+                        have preserved :
+                            UnificationMarking.ThreadConnected
+                              (nextCore.toMarking certificate
+                                _nextAbstractable) :=
+                          semanticStep.threadConnected connected
+                        have transported :
+                            UnificationMarking.ThreadConnected _ :=
+                          fromCore _nextAbstractable preserved
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, same, firing])
+                        exact transported firstMarked secondMarked synchronized
+
 /-- Processing one worklist entry never removes an existing raw formula
 assignment.  Scheduler-only branches leave the executable core unchanged;
 successful connective firings use the conclusion-local monotonicity lemmas. -/
@@ -11214,6 +11391,26 @@ private theorem WorklistRunInvariant.registryLengthBounds
         waitingNodup.length_le_waitingFlagsSize waitingComplete
       _ = state.queued.size := waitingSize
       _ = certificate.links.length := queueSize
+
+/-- Successful canonical axiom initialization inherits semantic thread
+connectivity from the empty marking through its finite start execution. -/
+private theorem startAxioms?_success_threadConnected
+    {certificate : Certificate} {started : UnificationState}
+    (equation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    ∃ startedAbstractable : started.Abstractable certificate,
+      UnificationMarking.ThreadConnected
+        (started.toMarking certificate startedAbstractable) := by
+  rcases certificate.startAxioms?_success_refines
+      (initialUnificationState_abstractable certificate)
+      (initialUnificationState_identityParents certificate)
+      (fun _ membership => membership) equation with
+    ⟨startedAbstractable, _startedIdentity, execution⟩
+  exact
+    ⟨startedAbstractable,
+      execution.threadConnected
+        (initialUnificationState_threadConnected certificate)⟩
 
 /-- Successful eager axiom initialization from the canonical empty state
 establishes the complete core invariant bundle required by the event-driven
@@ -12124,6 +12321,112 @@ private theorem runUnificationWorklist_coreInvariant
                 processWorklistLink certificate consumers index popped)
               processedInvariant
 
+/-- Every finite scheduler run preserves semantic thread connectivity in the
+active all-left reference subgraph. -/
+private theorem runUnificationWorklist_threadConnected
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat) (state : UnificationWorklistState)
+    (invariant : WorklistCoreInvariant certificate state)
+    (connected :
+      UnificationMarking.ThreadConnected
+        (state.core.toMarking certificate invariant.1)) :
+    UnificationMarking.ThreadConnected
+      ((runUnificationWorklist certificate consumers fuel state).state.core
+        |>.toMarking certificate
+          (runUnificationWorklist_coreInvariant certificate consumers
+            structural fuel state invariant).1) := by
+  induction fuel generalizing state with
+  | zero =>
+      exact UnificationState.threadConnected_of_eq
+        invariant.1 _ (by simp [runUnificationWorklist]) connected
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          exact UnificationState.threadConnected_of_eq
+            invariant.1 _ (by simp [runUnificationWorklist, popEquation])
+            connected
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have poppedCore : popped.core = state.core :=
+            popWorklist?_success_core popEquation
+          have poppedInvariant :
+              WorklistCoreInvariant certificate popped := by
+            unfold WorklistCoreInvariant at invariant ⊢
+            simpa [poppedCore] using invariant
+          have poppedConnected :
+              UnificationMarking.ThreadConnected
+                (popped.core.toMarking certificate poppedInvariant.1) :=
+            UnificationState.threadConnected_of_eq
+              invariant.1 poppedInvariant.1 poppedCore.symm connected
+          have processedInvariant :
+              WorklistCoreInvariant certificate
+                (processWorklistLink certificate consumers
+                  index popped) :=
+            processWorklistLink_coreInvariant
+              structural poppedInvariant
+          have processedConnected :
+              UnificationMarking.ThreadConnected
+                ((processWorklistLink certificate consumers
+                    index popped).core.toMarking
+                  certificate processedInvariant.1) := by
+            have preserved :
+                UnificationMarking.ThreadConnected
+                  ((processWorklistLink certificate consumers
+                      index popped).core.toMarking certificate
+                    (processWorklistLink_core_abstractable
+                      poppedInvariant.1 poppedInvariant.2.1)) :=
+              processWorklistLink_threadConnected
+                (consumers := consumers) (index := index)
+                poppedInvariant.1 poppedInvariant.2.1 poppedConnected
+            unfold UnificationMarking.ThreadConnected
+            intro firstVertex secondVertex firstToken secondToken
+              firstMarked secondMarked synchronized
+            exact
+              (UnificationState.threadConnected_of_eq
+                _ processedInvariant.1 rfl preserved)
+                firstMarked secondMarked synchronized
+          have tailConnected :
+              UnificationMarking.ThreadConnected
+                ((runUnificationWorklist certificate consumers fuel
+                    (processWorklistLink certificate consumers
+                      index popped)).state.core.toMarking certificate
+                    (runUnificationWorklist_coreInvariant
+                      certificate consumers structural fuel
+                      (processWorklistLink certificate consumers
+                        index popped) processedInvariant).1) :=
+            induction
+              (state :=
+                processWorklistLink certificate consumers index popped)
+              processedInvariant processedConnected
+          have runStateEquation :
+              (runUnificationWorklist certificate consumers
+                (fuel + 1) state).state =
+                (runUnificationWorklist certificate consumers fuel
+                  (processWorklistLink certificate consumers
+                    index popped)).state := by
+            simp [runUnificationWorklist, popEquation]
+          have transported :
+              UnificationMarking.ThreadConnected
+                ((runUnificationWorklist certificate consumers
+                    (fuel + 1) state).state.core.toMarking certificate
+                  (runUnificationWorklist_coreInvariant
+                    certificate consumers structural (fuel + 1)
+                    state invariant).1) :=
+            UnificationState.threadConnected_of_eq
+              (runUnificationWorklist_coreInvariant
+                certificate consumers structural fuel
+                (processWorklistLink certificate consumers
+                  index popped) processedInvariant).1
+              _
+              (congrArg UnificationWorklistState.core
+                runStateEquation.symm)
+              tailConnected
+          unfold UnificationMarking.ThreadConnected
+          intro firstVertex secondVertex firstToken secondToken
+            firstMarked secondMarked synchronized
+          exact transported firstMarked secondMarked synchronized
+
 /-- Every finite worklist run is monotone on raw formula assignments. -/
 private theorem runUnificationWorklist_preserves_assigned
     (certificate : Certificate) (consumers : Array (List Nat))
@@ -12223,6 +12526,299 @@ private theorem canonicalWorklistRun_coreInvariant
   · exact
       startAxioms?_success_initializeWorklist_coreInvariant
         structural startEquation
+
+/-- The complete canonical worklist run preserves semantic connectivity of
+every union-find thread inside the active all-left reference subgraph. -/
+private theorem canonicalWorklistRun_threadConnected
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    UnificationMarking.ThreadConnected
+      (final.core.toMarking certificate
+        (canonicalWorklistRun_coreInvariant
+          structural startEquation).1) := by
+  let initial := initializeWorklist certificate started
+  let fuel := worklistFuel certificate.links.length
+  have initialInvariant :
+      WorklistCoreInvariant certificate initial := by
+    simpa [initial] using
+      startAxioms?_success_initializeWorklist_coreInvariant
+        structural startEquation
+  rcases startAxioms?_success_threadConnected startEquation with
+    ⟨startedAbstractable, startedConnected⟩
+  have initialConnected :
+      UnificationMarking.ThreadConnected
+        (initial.core.toMarking certificate initialInvariant.1) := by
+    exact UnificationState.threadConnected_of_eq
+      startedAbstractable initialInvariant.1
+      (by simp [initial, initializeWorklist])
+      startedConnected
+  have finalConnected :
+      UnificationMarking.ThreadConnected
+        ((runUnificationWorklist certificate
+            certificate.worklistConsumers fuel initial).state.core.toMarking
+          certificate
+          (runUnificationWorklist_coreInvariant
+            certificate certificate.worklistConsumers structural
+            fuel initial initialInvariant).1) :=
+    runUnificationWorklist_threadConnected
+      certificate certificate.worklistConsumers structural
+      fuel initial initialInvariant initialConnected
+  dsimp [initial, fuel]
+  unfold UnificationMarking.ThreadConnected
+  intro firstVertex secondVertex firstToken secondToken
+    firstMarked secondMarked synchronized
+  exact
+    (UnificationState.threadConnected_of_eq
+      _ _ rfl finalConnected)
+      firstMarked secondMarked synchronized
+
+/-- In a declaratively correct proof net, two marked tensor premises cannot
+already belong to one semantic thread while the tensor conclusion remains
+unmarked.  The active thread path plus the two fixed tensor edges would form
+a cycle in the deterministic all-left switching. -/
+private theorem sameThread_tensorDeadlock_false
+    {certificate : Certificate} {state : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (abstractable : state.Abstractable certificate)
+    (connected :
+      UnificationMarking.ThreadConnected
+        (state.toMarking certificate abstractable))
+    {left right conclusion token : Nat}
+    (membership :
+      Link.tensor left right conclusion ∈ certificate.links)
+    (conclusionUnmarked :
+      state.assignedToken? conclusion = none)
+    (leftLookup : state.tokenAt? left = some token)
+    (rightLookup : state.tokenAt? right = some token) :
+    False := by
+  have wellFormed :
+      certificate.LinkWellFormed
+        (.tensor left right conclusion) :=
+    correct.1.2.2.2.2.1 _ membership
+  rcases state.tokenAt?_some_witness leftLookup with
+    ⟨leftRaw, leftMarked, leftRepresentative⟩
+  rcases state.tokenAt?_some_witness rightLookup with
+    ⟨rightRaw, rightMarked, rightRepresentative⟩
+  have sameThread :
+      (state.toMarking certificate abstractable).sameThread
+        leftRaw rightRaw := by
+    simp only [UnificationState.toMarking_sameThread]
+    exact leftRepresentative.trans rightRepresentative.symm
+  have abstractLeftMarked :
+      (state.toMarking certificate abstractable).mark left =
+        some leftRaw := by
+    simpa only [UnificationState.toMarking_mark] using leftMarked
+  have abstractRightMarked :
+      (state.toMarking certificate abstractable).mark right =
+        some rightRaw := by
+    simpa only [UnificationState.toMarking_mark] using rightMarked
+  have activeWalk :
+      (state.toMarking certificate abstractable).activeReferenceGraph.Walk
+        left right :=
+    connected abstractLeftMarked abstractRightMarked sameThread
+  rcases activeWalk.toSimple with ⟨steps, visited, simple⟩
+  rcases simple.liftToEdgeSimplePathWithEdges
+      ((state.toMarking certificate abstractable)
+        |>.activeReferenceEdges_subset_referenceSwitchingGraph) with
+    ⟨threadPath, threadStarts, threadFinishes, _threadVertices,
+      threadEdgesActive⟩
+  have threadStartFinishDifferent :
+      threadPath.start ≠ threadPath.finish := by
+    rw [threadStarts, threadFinishes]
+    exact wellFormed.1
+  have threadNonempty : threadPath.traversed ≠ [] := by
+    intro empty
+    have finishMembership :=
+      threadPath.walk.finish_mem_visitedVertices
+    have sameEndpoints : threadPath.finish = threadPath.start := by
+      simpa [Graph.EdgeWalk.visitedVertices, empty] using finishMembership
+    exact threadStartFinishDifferent sameEndpoints.symm
+  have abstractConclusionUnmarked :
+      (state.toMarking certificate abstractable).mark conclusion = none := by
+    simpa only [UnificationState.toMarking_mark] using conclusionUnmarked
+  have noActiveIncident :
+      ∀ edge,
+        edge ∈
+            (state.toMarking certificate abstractable).activeReferenceEdges →
+          (edge.first = conclusion ∨ edge.second = conclusion) →
+            False := by
+    intro edge edgeActive incident
+    have endpoints := (List.mem_filter.mp edgeActive).2
+    simp only [Bool.and_eq_true] at endpoints
+    rcases incident with firstConclusion | secondConclusion
+    · have markedConclusion :
+          Option.isSome
+            ((state.toMarking certificate abstractable).mark conclusion) =
+              true := by
+        simpa [firstConclusion] using endpoints.1
+      rw [abstractConclusionUnmarked] at markedConclusion
+      simp at markedConclusion
+    · have markedConclusion :
+          Option.isSome
+            ((state.toMarking certificate abstractable).mark conclusion) =
+              true := by
+        simpa [secondConclusion] using endpoints.2
+      rw [abstractConclusionUnmarked] at markedConclusion
+      simp at markedConclusion
+  have conclusionNotInThreadPath :
+      conclusion ∉ threadPath.vertices := by
+    intro conclusionMembership
+    change conclusion ∈
+      Graph.EdgeWalk.visitedVertices threadPath.start
+        threadPath.traversed at conclusionMembership
+    simp only [Graph.EdgeWalk.visitedVertices, List.mem_cons] at conclusionMembership
+    rcases conclusionMembership with startConclusion | targetMembership
+    · apply wellFormed.2.1
+      rw [← threadStarts]
+      exact startConclusion.symm
+    · rcases List.mem_map.mp targetMembership with
+        ⟨directed, directedMembership, targetConclusion⟩
+      have edgeActive := threadEdgesActive directed directedMembership
+      apply noActiveIncident directed.edge edgeActive
+      cases forward : directed.forward with
+      | false =>
+          exact Or.inl (by
+            simpa [Graph.DirectedEdge.target, forward] using
+              targetConclusion)
+      | true =>
+          exact Or.inr (by
+            simpa [Graph.DirectedEdge.target, forward] using
+              targetConclusion)
+  have referenceTensorEdges :=
+    UnificationMarking.referenceSwitchingGraph_tensorEdges
+      certificate membership
+  let leftEdge : Edge := { first := left, second := conclusion }
+  let rightEdge : Edge := { first := right, second := conclusion }
+  have leftEdgeMembership :
+      leftEdge ∈ certificate.referenceSwitchingGraph.edges := by
+    simpa [leftEdge] using referenceTensorEdges.1
+  have rightEdgeMembership :
+      rightEdge ∈ certificate.referenceSwitchingGraph.edges := by
+    simpa [rightEdge] using referenceTensorEdges.2
+  rcases List.getElem?_of_mem leftEdgeMembership with
+    ⟨leftIndex, leftEdgeLookup⟩
+  rcases List.getElem?_of_mem rightEdgeMembership with
+    ⟨rightIndex, rightEdgeLookup⟩
+  let rightDirected :
+      certificate.referenceSwitchingGraph.DirectedEdge := {
+    index := rightIndex
+    edge := rightEdge
+    lookup := rightEdgeLookup
+    forward := true }
+  let leftDirected :
+      certificate.referenceSwitchingGraph.DirectedEdge := {
+    index := leftIndex
+    edge := leftEdge
+    lookup := leftEdgeLookup
+    forward := false }
+  have tensorIndicesDifferent : rightIndex ≠ leftIndex := by
+    intro sameIndex
+    have sameEdges : rightEdge = leftEdge := by
+      apply Option.some.inj
+      rw [← rightEdgeLookup, ← leftEdgeLookup, sameIndex]
+    apply wellFormed.1
+    have sameFirst := congrArg Edge.first sameEdges
+    simpa [rightEdge, leftEdge] using sameFirst.symm
+  let returnPath : certificate.referenceSwitchingGraph.EdgeSimplePath := {
+    start := right
+    finish := left
+    traversed := [rightDirected, leftDirected]
+    walk := by
+      simpa [rightDirected, leftDirected, rightEdge, leftEdge,
+        Graph.DirectedEdge.source, Graph.DirectedEdge.target] using
+        Graph.EdgeWalk.step
+          (Graph.EdgeWalk.step
+            (Graph.EdgeWalk.refl
+              (graph := certificate.referenceSwitchingGraph) right)
+            rightDirected rfl rfl)
+          leftDirected rfl rfl
+    verticesNodup := by
+      simp [Graph.EdgeWalk.visitedVertices, rightDirected, leftDirected,
+        rightEdge, leftEdge, Graph.DirectedEdge.target,
+        wellFormed.2.2.1]
+      exact
+        ⟨fun same => wellFormed.1 same.symm,
+          fun same => wellFormed.2.1 same.symm⟩ }
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    simp [returnPath]
+  have meeting : threadPath.finish = returnPath.start := by
+    simpa [returnPath] using threadFinishes
+  have closing : returnPath.finish = threadPath.start := by
+    simpa [returnPath] using threadStarts.symm
+  have vertexDisjoint :
+      ∀ vertex,
+        vertex ∈ threadPath.vertices →
+          vertex ∈ returnPath.vertices.tail.dropLast →
+            False := by
+    intro vertex threadMembership returnMembership
+    have vertexConclusion : vertex = conclusion := by
+      simpa [returnPath, Graph.EdgeSimplePath.vertices,
+        Graph.EdgeWalk.visitedVertices, rightDirected, leftDirected,
+        rightEdge, leftEdge, Graph.DirectedEdge.target] using
+          returnMembership
+    subst vertex
+    exact conclusionNotInThreadPath threadMembership
+  have leftEdgeNotActive :
+      leftEdge ∉
+        (state.toMarking certificate abstractable).activeReferenceEdges := by
+    intro active
+    exact noActiveIncident leftEdge active (by
+      exact Or.inr rfl)
+  have rightEdgeNotActive :
+      rightEdge ∉
+        (state.toMarking certificate abstractable).activeReferenceEdges := by
+    intro active
+    exact noActiveIncident rightEdge active (by
+      exact Or.inr rfl)
+  have edgeDisjoint :
+      ∀ index,
+        index ∈ threadPath.traversed.map Graph.DirectedEdge.index →
+          index ∈ returnPath.traversed.map Graph.DirectedEdge.index →
+            False := by
+    intro index threadIndex returnIndex
+    rcases List.mem_map.mp threadIndex with
+      ⟨directed, directedMembership, directedIndex⟩
+    have edgeActive := threadEdgesActive directed directedMembership
+    change directed.edge ∈
+      (state.toMarking certificate abstractable).activeReferenceEdges
+        at edgeActive
+    have returnCases : index = rightIndex ∨ index = leftIndex := by
+      simpa [returnPath, rightDirected, leftDirected] using returnIndex
+    rcases returnCases with rightCase | leftCase
+    · have sameIndex : directed.index = rightIndex :=
+        directedIndex.trans rightCase
+      have sameEdge : directed.edge = rightEdge := by
+        apply Option.some.inj
+        rw [← directed.lookup, ← rightEdgeLookup, sameIndex]
+      rw [sameEdge] at edgeActive
+      exact rightEdgeNotActive edgeActive
+    · have sameIndex : directed.index = leftIndex :=
+        directedIndex.trans leftCase
+      have sameEdge : directed.edge = leftEdge := by
+        apply Option.some.inj
+        rw [← directed.lookup, ← leftEdgeLookup, sameIndex]
+      rw [sameEdge] at edgeActive
+      exact leftEdgeNotActive edgeActive
+  let cycle : certificate.referenceSwitchingGraph.EdgeSimpleCycle :=
+    Graph.EdgeSimpleCycle.ofTwoPaths
+      threadPath returnPath threadNonempty returnNonempty
+      meeting closing vertexDisjoint edgeDisjoint
+  have compact :=
+    certificate.declarativelyCorrect_iff_structural_cuspAcyclic_referenceConnected
+      |>.mp correct
+  have referenceAcyclic :
+      certificate.referenceSwitchingGraph.Acyclic := by
+    simpa [Certificate.referenceSwitchingGraph] using
+      compact.2.1.occurrenceSwitching_acyclic
+        compact.1 certificate.referenceFullSwitchingSelection
+  exact referenceAcyclic cycle
 
 /-- Every submitted axiom endpoint remains assigned throughout the canonical
 fuel-bounded worklist run. -/
@@ -12975,6 +13571,84 @@ private theorem canonicalWorklistRun_incomplete_thread_obstruction
       exact compoundCase source
   | par formulaLeft formulaRight =>
       exact compoundCase source
+
+/-- Declarative proof-net correctness eliminates the same-thread tensor
+deadlock branch.  Therefore any incomplete canonical run is witnessed by one
+submitted par whose two assigned premises remain in distinct threads. -/
+private theorem canonicalWorklistRun_incomplete_waitingPar
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ index left right conclusion leftToken rightToken,
+        certificate.links[index]? =
+            some (.par left right conclusion) ∧
+          final.core.assignedToken? conclusion = none ∧
+            final.core.tokenAt? left = some leftToken ∧
+              final.core.tokenAt? right = some rightToken ∧
+                leftToken ≠ rightToken ∧
+                  index ∈ final.waiting := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ index left right conclusion leftToken rightToken,
+        certificate.links[index]? =
+            some (.par left right conclusion) ∧
+          final.core.assignedToken? conclusion = none ∧
+            final.core.tokenAt? left = some leftToken ∧
+              final.core.tokenAt? right = some rightToken ∧
+                leftToken ≠ rightToken ∧
+                  index ∈ final.waiting
+  intro incomplete
+  rcases canonicalWorklistRun_incomplete_thread_obstruction
+      correct.1 startEquation incomplete with
+    ⟨index, link, linkLookup, _connective, obstruction⟩
+  have coreInvariant :
+      WorklistCoreInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_coreInvariant correct.1 startEquation
+  have connected :
+      UnificationMarking.ThreadConnected
+        (final.core.toMarking certificate coreInvariant.1) := by
+    unfold UnificationMarking.ThreadConnected
+    intro firstVertex secondVertex firstToken secondToken
+      firstMarked secondMarked synchronized
+    dsimp [final] at firstMarked secondMarked synchronized ⊢
+    exact
+      (canonicalWorklistRun_threadConnected correct.1 startEquation)
+        firstMarked secondMarked synchronized
+  cases link with
+  | «axiom» left right =>
+      simp [QuiescentThreadObstruction] at obstruction
+  | «par» left right conclusion =>
+      rcases obstruction with
+        ⟨conclusionUnmarked, leftToken, rightToken,
+          leftMarked, rightMarked, different, registered⟩
+      exact
+        ⟨index, left, right, conclusion, leftToken, rightToken,
+          linkLookup, conclusionUnmarked, leftMarked, rightMarked,
+          different, registered⟩
+  | tensor left right conclusion =>
+      rcases obstruction with
+        ⟨conclusionUnmarked, token, leftMarked, rightMarked⟩
+      have linkMembership :
+          Link.tensor left right conclusion ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      exact False.elim
+        (sameThread_tensorDeadlock_false
+          correct coreInvariant.1 connected linkMembership
+          conclusionUnmarked leftMarked rightMarked)
 
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/

@@ -163,8 +163,11 @@ The repository currently contains:
   and faithful `NEXTAXIOM` sequentialization remain open. The current
   production fuel is proved sufficient to empty its queue. If that quiescent
   run is incomplete, least-complexity descent eliminates idle premises and
-  leaves an exact submitted distinct-thread waiting par or same-thread tensor
-  deadlock;
+  initially leaves a distinct-thread waiting par or same-thread tensor
+  deadlock. A kernel-checked active-reference connectivity invariant and
+  switching-cycle argument now exclude the tensor branch on every
+  declaratively correct input, leaving one exact submitted waiting par as the
+  sole open progress obstruction;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

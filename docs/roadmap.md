@@ -455,6 +455,11 @@
       unassigned conclusion: structural source-link totality and strict
       premise complexity prove both premises assigned, eliminating the idle
       witness and leaving an exact waiting-par or tensor thread obstruction.
+    - [x] Prove semantic threads remain connected in the active all-left
+      reference subgraph through every abstract step and the canonical
+      worklist run; use reference-switching acyclicity to exclude the
+      same-thread tensor-deadlock branch on correct inputs.
+    - [ ] Exclude the sole remaining distinct-thread waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

@@ -139,9 +139,11 @@ Current `main` additionally proves an exact distinct-firing history, bounded
 enqueue sources, insertion/pop conservation, and canonical queue exhaustion
 within that cap. The quiescent run now also gives an exact proof witness for
 each submitted but unfired connective: an idle premise, a distinct-thread
-registered par, or a same-thread tensor deadlock. Declarative correctness has
-not yet been proved to exclude all such witnesses, so this is not yet the
-correct-state progress theorem needed for pure-worklist completeness. The
+registered par, or a same-thread tensor deadlock. Kernel-checked semantic
+thread connectivity and reference-switching acyclicity now exclude the tensor
+deadlock on declaratively correct inputs. The remaining distinct-thread
+waiting par has not yet been excluded, so this is not yet the correct-state
+progress theorem needed for pure-worklist completeness. The
 attempt accounting also excludes consumer-table construction, waiting-list
 traversal, frontier work, and verification.
 

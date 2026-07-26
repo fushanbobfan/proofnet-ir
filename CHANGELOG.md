@@ -64,8 +64,16 @@
   least-formula-complexity choice now prove that an incomplete canonical run
   has a concrete submitted source whose premises are both assigned. This
   eliminates the idle-premise case and leaves exactly a distinct-thread
-  registered par or a same-thread tensor deadlock. Correctness still must rule
-  out those two genuine thread obstructions, so
+  registered par or a same-thread tensor deadlock. The abstract semantics now
+  carries an active all-left reference subgraph and proves that every semantic
+  thread is connected inside it after each start/forward/unify step, every
+  finite execution, each concrete worklist processing branch, and the complete
+  canonical run. For a declaratively correct certificate, a same-thread
+  unfired tensor would close that active path with its two fixed tensor edges,
+  producing an edge-simple cycle in the reference switching. Lean therefore
+  excludes the tensor-deadlock branch and reduces every incomplete correct
+  canonical run to one exact submitted distinct-thread waiting par.
+  Correctness still must exclude that final waiting-par obstruction, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
