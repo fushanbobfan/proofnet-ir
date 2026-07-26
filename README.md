@@ -108,10 +108,6 @@ out arbitrary ordering between independent inferences, expose dependency
 structure, and support local repair. The Lean kernel remains the final source
 of trust.
 
-> 中文简介：本项目研究能否让 AI 先生成可检查的证明图，再由确定性程序重建
-> Lean 证明，从而减少 tactic 顺序造成的搜索冗余。当前版本从无单位、无 cut 的
-> multiplicative linear logic (MLL) 开始，不声称已经覆盖普通 Lean/mathlib 证明。
-
 ## Current vertical slice
 
 The repository currently contains:
