@@ -5462,6 +5462,56 @@ private structure UnificationWorklistState where
   waitingFlags : Array Bool
   stats : UnificationWorklistStats
 
+/-- A connective link is fired in a core state exactly when its conclusion
+has a raw token. Axioms are started before the worklist and are deliberately
+excluded from this scheduler history. -/
+private def linkFiredIn (state : UnificationState) : Link → Prop
+  | .axiom _ _ => False
+  | .par _ _ conclusion
+  | .tensor _ _ conclusion =>
+      state.assignedToken? conclusion ≠ none
+
+/-- Proof-only event history tying the operational successful-firing counter
+to distinct submitted connective links whose conclusions are marked. -/
+private def WorklistFiringsAccounted
+    (certificate : Certificate)
+    (state : UnificationWorklistState) : Prop :=
+  ∃ history : List Link,
+    history.Nodup ∧
+      (∀ link ∈ history, link ∈ certificate.links) ∧
+        (∀ link ∈ history, linkFiredIn state.core link) ∧
+          history.length = state.stats.successfulFirings
+
+/-- Cumulative dependency insertion and waiting-requeue sources are charged to
+successful connective firings. A dependency event costs at most one insertion;
+a tensor event can requeue at most the submitted-link carrier. -/
+private def WorklistEnqueueSourcesBounded
+    (certificate : Certificate)
+    (state : UnificationWorklistState) : Prop :=
+  state.stats.dependencyEnqueues ≤ state.stats.successfulFirings ∧
+    state.stats.waitingRequeues ≤
+      certificate.links.length * state.stats.successfulFirings
+
+/-- Scheduler-only changes preserve a firing history when they leave the core
+and successful-firing counter unchanged. -/
+private theorem WorklistFiringsAccounted.transport
+    {certificate : Certificate}
+    {before after : UnificationWorklistState}
+    (accounted : WorklistFiringsAccounted certificate before)
+    (core : after.core = before.core)
+    (counter :
+      after.stats.successfulFirings =
+        before.stats.successfulFirings) :
+    WorklistFiringsAccounted certificate after := by
+  rcases accounted with
+    ⟨history, historyNodup, historySubmitted,
+      historyFired, countExact⟩
+  exact
+    ⟨history, historyNodup, historySubmitted, by
+      intro link membership
+      simpa [core] using historyFired link membership, by
+        simpa [counter] using countExact⟩
+
 /-- Exact cumulative-enqueue/queue conservation between two scheduler
 states. -/
 private def QueueInsertionBalanced
@@ -5612,6 +5662,19 @@ private theorem worklist_length_le_of_nodup_subset
         List.length_pos_of_mem headMembership
       simp only [List.length_cons]
       omega
+
+/-- An accounted firing history cannot be longer than the submitted-link
+carrier. -/
+private theorem WorklistFiringsAccounted.successfulFirings_le
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (accounted : WorklistFiringsAccounted certificate state) :
+    state.stats.successfulFirings ≤ certificate.links.length := by
+  rcases accounted with
+    ⟨history, historyNodup, historySubmitted,
+      _historyFired, countExact⟩
+  rw [← countExact]
+  exact worklist_length_le_of_nodup_subset
+    historyNodup historySubmitted
 
 /-- Exact queue flags imply ordinary queue bounds. -/
 private theorem QueueFlagComplete.queueBounded
@@ -5766,7 +5829,7 @@ private theorem mem_pushConsumer_origin
     (membership :
       candidate ∈
         ((pushConsumer consumers vertex linkIndex)[premise]?).getD []) :
-    candidate = linkIndex ∨
+    (candidate = linkIndex ∧ premise = vertex) ∨
       candidate ∈ (consumers[premise]?).getD [] := by
   by_cases vertexBound : vertex < consumers.size
   · by_cases same : vertex = premise
@@ -5776,7 +5839,7 @@ private theorem mem_pushConsumer_origin
             candidate ∈ consumers[vertex] := by
         simpa [pushConsumer, vertexBound] using membership
       rcases inserted with inserted | old
-      · exact Or.inl inserted
+      · exact Or.inl ⟨inserted, rfl⟩
       · apply Or.inr
         rw [Array.getElem?_eq_getElem vertexBound]
         simpa using old
@@ -5814,7 +5877,8 @@ private theorem mem_addLinkConsumers_origin
     (membership :
       candidate ∈
         ((addLinkConsumers consumers (link, linkIndex))[premise]?).getD []) :
-    (candidate = linkIndex ∧ link.isConnective = true) ∨
+    (candidate = linkIndex ∧ link.isConnective = true ∧
+      premise ∈ link.premises) ∨
       candidate ∈ (consumers[premise]?).getD [] := by
   cases link with
   | «axiom» left right =>
@@ -5822,18 +5886,26 @@ private theorem mem_addLinkConsumers_origin
   | «par» left right conclusion =>
       have rightOrigin := mem_pushConsumer_origin membership
       rcases rightOrigin with rightInserted | beforeRight
-      · exact Or.inl ⟨rightInserted, rfl⟩
+      · exact Or.inl
+          ⟨rightInserted.1, rfl, by
+            simp [Link.premises, rightInserted.2]⟩
       · have leftOrigin := mem_pushConsumer_origin beforeRight
         rcases leftOrigin with leftInserted | old
-        · exact Or.inl ⟨leftInserted, rfl⟩
+        · exact Or.inl
+            ⟨leftInserted.1, rfl, by
+              simp [Link.premises, leftInserted.2]⟩
         · exact Or.inr old
   | «tensor» left right conclusion =>
       have rightOrigin := mem_pushConsumer_origin membership
       rcases rightOrigin with rightInserted | beforeRight
-      · exact Or.inl ⟨rightInserted, rfl⟩
+      · exact Or.inl
+          ⟨rightInserted.1, rfl, by
+            simp [Link.premises, rightInserted.2]⟩
       · have leftOrigin := mem_pushConsumer_origin beforeRight
         rcases leftOrigin with leftInserted | old
-        · exact Or.inl ⟨leftInserted, rfl⟩
+        · exact Or.inl
+            ⟨leftInserted.1, rfl, by
+              simp [Link.premises, leftInserted.2]⟩
         · exact Or.inr old
 
 /-- Folding further indexed links never removes a previously stored
@@ -5863,7 +5935,8 @@ private theorem mem_foldl_addLinkConsumers_origin
     (∃ link linkIndex,
       (link, linkIndex) ∈ entries ∧
       candidate = linkIndex ∧
-      link.isConnective = true) ∨
+      link.isConnective = true ∧
+      premise ∈ link.premises) ∨
       candidate ∈ (consumers[premise]?).getD [] := by
   induction entries generalizing consumers with
   | nil =>
@@ -5873,16 +5946,16 @@ private theorem mem_foldl_addLinkConsumers_origin
       rcases induction membership with introduced | beforeTail
       · rcases introduced with
           ⟨link, linkIndex, entryMembership, candidateIndex,
-            connective⟩
+            connective, premiseMembership⟩
         exact Or.inl
           ⟨link, linkIndex, by simp [entryMembership],
-            candidateIndex, connective⟩
+            candidateIndex, connective, premiseMembership⟩
       · rcases head with ⟨link, linkIndex⟩
         rcases mem_addLinkConsumers_origin beforeTail with
           introduced | old
         · exact Or.inl
             ⟨link, linkIndex, by simp, introduced.1,
-              introduced.2⟩
+              introduced.2.1, introduced.2.2⟩
         · exact Or.inr old
 
 /-- Processing one in-bounds indexed connective records its index in the
@@ -5956,18 +6029,16 @@ private theorem mem_worklistConsumers_of_premise
   · simpa using bound
   · exact premiseMembership
 
-/-- Every dependency in the precomputed consumer table is the index of a
-submitted connective.  This is the reverse provenance direction needed to
-show that dependency fan-out can never inject an axiom or an out-of-range
-number into the real work queue. -/
-private theorem mem_worklistConsumers_submitted_connective
+/-- Every stored dependency has exact submitted-link and premise provenance. -/
+private theorem mem_worklistConsumers_origin
     {certificate : Certificate} {premise candidate : Nat}
     (membership :
       candidate ∈
         ((worklistConsumers certificate)[premise]?).getD []) :
     ∃ link,
       certificate.links[candidate]? = some link ∧
-      link.isConnective = true := by
+      link.isConnective = true ∧
+      premise ∈ link.premises := by
   have foldedMembership :
       candidate ∈
         (((certificate.links.zipIdx.foldl addLinkConsumers
@@ -5980,12 +6051,12 @@ private theorem mem_worklistConsumers_submitted_connective
     introduced | initial
   · rcases introduced with
       ⟨link, linkIndex, entryMembership, candidateIndex,
-        connective⟩
+        connective, premiseMembership⟩
     subst candidate
     exact
       ⟨link,
         List.mk_mem_zipIdx_iff_getElem?.1 entryMembership,
-        connective⟩
+        connective, premiseMembership⟩
   · by_cases premiseBound :
         premise < certificate.formulas.size
     · have initialLookup :
@@ -6001,6 +6072,64 @@ private theorem mem_worklistConsumers_submitted_connective
           simpa using Nat.le_of_not_gt premiseBound)
       rw [initialLookup] at initial
       simp at initial
+
+/-- Every dependency in the precomputed consumer table is the index of a
+submitted connective.  This is the reverse provenance direction needed to
+show that dependency fan-out can never inject an axiom or an out-of-range
+number into the real work queue. -/
+private theorem mem_worklistConsumers_submitted_connective
+    {certificate : Certificate} {premise candidate : Nat}
+    (membership :
+      candidate ∈
+        ((worklistConsumers certificate)[premise]?).getD []) :
+    ∃ link,
+      certificate.links[candidate]? = some link ∧
+      link.isConnective = true := by
+  rcases mem_worklistConsumers_origin membership with
+    ⟨link, lookup, connective, _premiseMembership⟩
+  exact ⟨link, lookup, connective⟩
+
+/-- Structural linear ownership makes all indices in one consumer bucket
+equal. Queue deduplication can therefore record at most one successful
+dependency insertion for each newly marked occurrence. -/
+private theorem worklistConsumers_members_eq
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {premise first second : Nat}
+    (firstMembership :
+      first ∈
+        ((worklistConsumers certificate)[premise]?).getD [])
+    (secondMembership :
+      second ∈
+        ((worklistConsumers certificate)[premise]?).getD []) :
+    first = second := by
+  rcases mem_worklistConsumers_origin firstMembership with
+    ⟨firstLink, firstLookup, _firstConnective, firstPremise⟩
+  rcases mem_worklistConsumers_origin secondMembership with
+    ⟨secondLink, secondLookup, _secondConnective, secondPremise⟩
+  have firstBound :
+      first < certificate.links.length :=
+    (List.getElem?_eq_some_iff.mp firstLookup).1
+  have secondBound :
+      second < certificate.links.length :=
+    (List.getElem?_eq_some_iff.mp secondLookup).1
+  have firstLinkMembership :
+      firstLink ∈ certificate.links := by
+    have membership := List.getElem_mem firstBound
+    simpa [(List.getElem?_eq_some_iff.mp firstLookup).2] using membership
+  have secondLinkMembership :
+      secondLink ∈ certificate.links := by
+    have membership := List.getElem_mem secondBound
+    simpa [(List.getElem?_eq_some_iff.mp secondLookup).2] using membership
+  have sameLink : firstLink = secondLink :=
+    UnificationState.StructurallyWellFormed.parentLink_unique structural
+      firstLinkMembership
+      firstPremise
+      secondLinkMembership
+      secondPremise
+  apply
+    (List.getElem?_inj firstBound structural.links_nodup).mp
+  rw [firstLookup, secondLookup, sameLink]
 
 private def enqueueWorklist (kind : WorklistEnqueueKind)
     (index : Nat) (state : UnificationWorklistState) :
@@ -6041,6 +6170,104 @@ private theorem enqueueWorklist_balance
       simp [totalWorklistEnqueues] <;>
         omega
 
+/-- Once one index has been armed, immediately arming that same index again is
+an exact no-op for every enqueue cause. -/
+private theorem enqueueWorklist_idempotent
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (state : UnificationWorklistState) :
+    Certificate.enqueueWorklist kind index
+        (Certificate.enqueueWorklist kind index state) =
+      Certificate.enqueueWorklist kind index state := by
+  unfold Certificate.enqueueWorklist
+  split
+  · rfl
+  · rename_i ready
+    have lookupFalse :
+        state.queued[index]? = some false := by
+      cases lookup : state.queued[index]? with
+      | none =>
+          simp [lookup] at ready
+      | some queued =>
+          cases queued with
+          | false =>
+              rfl
+          | true =>
+              simp [lookup] at ready
+    have indexBound :
+        index < state.queued.size :=
+      (Array.getElem?_eq_some_iff.mp lookupFalse).1
+    simp [indexBound]
+
+/-- A nonempty enqueue batch whose entries are all the same collapses to one
+deduplicated enqueue. -/
+private theorem foldl_enqueueWorklist_eq_single_of_all_eq
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    (anchor : Nat) (state : UnificationWorklistState)
+    (nonempty : indices ≠ [])
+    (allEqual : ∀ index ∈ indices, index = anchor) :
+    indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state =
+      Certificate.enqueueWorklist kind anchor state := by
+  induction indices generalizing state with
+  | nil =>
+      contradiction
+  | cons head tail induction =>
+      have headEqual : head = anchor :=
+        allEqual head (by simp)
+      subst head
+      simp only [List.foldl_cons]
+      by_cases tailEmpty : tail = []
+      · subst tail
+        simp
+      · rw [induction
+          (state :=
+            Certificate.enqueueWorklist kind anchor state)
+          tailEmpty
+          (by
+            intro index membership
+            exact allEqual index (by simp [membership]))]
+        exact enqueueWorklist_idempotent kind anchor state
+
+/-- One dependency enqueue can increase its dedicated counter by at most one. -/
+private theorem enqueueWorklist_dependencyEnqueues_le
+    (index : Nat) (state : UnificationWorklistState) :
+    (Certificate.enqueueWorklist .dependency index state).stats.dependencyEnqueues ≤
+      state.stats.dependencyEnqueues + 1 := by
+  unfold Certificate.enqueueWorklist
+  split <;> simp <;> omega
+
+/-- One waiting enqueue can increase its dedicated counter by at most one. -/
+private theorem enqueueWorklist_waitingRequeues_le
+    (index : Nat) (state : UnificationWorklistState) :
+    (Certificate.enqueueWorklist .waiting index state).stats.waitingRequeues ≤
+      state.stats.waitingRequeues + 1 := by
+  unfold Certificate.enqueueWorklist
+  split <;> simp <;> omega
+
+/-- A waiting-enqueue batch adds no more successful insertions than requested
+indices, even before using queue deduplication. -/
+private theorem foldl_enqueueWorklist_waitingRequeues_le
+    (indices : List Nat) (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      state).stats.waitingRequeues ≤
+        state.stats.waitingRequeues + indices.length := by
+  induction indices generalizing state with
+  | nil =>
+      simp
+  | cons head tail induction =>
+      simp only [List.foldl_cons, List.length_cons]
+      have first :=
+        enqueueWorklist_waitingRequeues_le head state
+      have rest :=
+        induction
+          (state :=
+            Certificate.enqueueWorklist .waiting head state)
+      omega
+
 /-- Repeated enqueues telescope the same insertion/queue conservation law. -/
 private theorem foldl_enqueueWorklist_balance
     (kind : WorklistEnqueueKind) (indices : List Nat)
@@ -6079,6 +6306,48 @@ private theorem foldl_enqueueWorklist_balance
     (kind : WorklistEnqueueKind) (index : Nat)
     (state : UnificationWorklistState) :
     (enqueueWorklist kind index state).core = state.core := by
+  unfold enqueueWorklist
+  split <;> rfl
+
+/-- Queue insertion does not itself record a connective firing. -/
+@[simp] private theorem enqueueWorklist_successfulFirings
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (state : UnificationWorklistState) :
+    (enqueueWorklist kind index state).stats.successfulFirings =
+      state.stats.successfulFirings := by
+  unfold enqueueWorklist
+  split
+  · rfl
+  · cases kind <;> rfl
+
+/-- A dependency enqueue cannot change the waiting-requeue counter. -/
+@[simp] private theorem enqueueWorklist_dependency_waitingRequeues
+    (index : Nat) (state : UnificationWorklistState) :
+    (enqueueWorklist .dependency index state).stats.waitingRequeues =
+      state.stats.waitingRequeues := by
+  unfold enqueueWorklist
+  split <;> rfl
+
+/-- A waiting enqueue cannot change the dependency counter. -/
+@[simp] private theorem enqueueWorklist_waiting_dependencyEnqueues
+    (index : Nat) (state : UnificationWorklistState) :
+    (enqueueWorklist .waiting index state).stats.dependencyEnqueues =
+      state.stats.dependencyEnqueues := by
+  unfold enqueueWorklist
+  split <;> rfl
+
+/-- Non-initial scheduler enqueues preserve the initialization counter. -/
+@[simp] private theorem enqueueWorklist_dependency_initialEnqueues
+    (index : Nat) (state : UnificationWorklistState) :
+    (enqueueWorklist .dependency index state).stats.initialEnqueues =
+      state.stats.initialEnqueues := by
+  unfold enqueueWorklist
+  split <;> rfl
+
+@[simp] private theorem enqueueWorklist_waiting_initialEnqueues
+    (index : Nat) (state : UnificationWorklistState) :
+    (enqueueWorklist .waiting index state).stats.initialEnqueues =
+      state.stats.initialEnqueues := by
   unfold enqueueWorklist
   split <;> rfl
 
@@ -6540,6 +6809,87 @@ private theorem mem_foldl_enqueueWorklist_of_mem
       rw [induction]
       simp
 
+/-- A queue-enqueue batch does not itself record connective firings. -/
+@[simp] private theorem foldl_enqueueWorklist_successfulFirings
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist kind index next)
+      state).stats.successfulFirings =
+        state.stats.successfulFirings := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+/-- A batch of dependency enqueues leaves the waiting-requeue counter
+unchanged. -/
+@[simp] private theorem foldl_enqueueWorklist_dependency_waitingRequeues
+    (indices : List Nat) (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .dependency index next)
+      state).stats.waitingRequeues =
+        state.stats.waitingRequeues := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+/-- A batch of waiting enqueues leaves the dependency counter unchanged. -/
+@[simp] private theorem foldl_enqueueWorklist_waiting_dependencyEnqueues
+    (indices : List Nat) (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      state).stats.dependencyEnqueues =
+        state.stats.dependencyEnqueues := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+/-- Non-initial enqueue batches preserve the initialization counter. -/
+@[simp] private theorem foldl_enqueueWorklist_dependency_initialEnqueues
+    (indices : List Nat) (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .dependency index next)
+      state).stats.initialEnqueues =
+        state.stats.initialEnqueues := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+@[simp] private theorem foldl_enqueueWorklist_waiting_initialEnqueues
+    (indices : List Nat) (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      state).stats.initialEnqueues =
+        state.stats.initialEnqueues := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
 /-- A queue-enqueue batch leaves the waiting registry unchanged. -/
 @[simp] private theorem foldl_enqueueWorklist_waiting
     (kind : WorklistEnqueueKind) (indices : List Nat)
@@ -6627,6 +6977,41 @@ private theorem enqueueConsumers_balance
   · rfl
   · exact foldl_enqueueWorklist_balance .dependency _ state
 
+/-- Structural resource linearity and queue deduplication bound dependency
+fan-out from one newly marked occurrence by one successful insertion. -/
+private theorem enqueueConsumers_dependencyEnqueues_le
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (conclusion : Vertex) (state : UnificationWorklistState) :
+    (Certificate.enqueueConsumers certificate.worklistConsumers
+          conclusion state).stats.dependencyEnqueues ≤
+      state.stats.dependencyEnqueues + 1 := by
+  cases bucketLookup :
+      certificate.worklistConsumers[conclusion]? with
+  | none =>
+      simp [Certificate.enqueueConsumers, bucketLookup]
+  | some indices =>
+      by_cases indicesEmpty : indices = []
+      · subst indices
+        simp [Certificate.enqueueConsumers, bucketLookup]
+      · have allEqual :
+          ∀ index ∈ indices,
+            index = indices.head indicesEmpty := by
+          intro index membership
+          apply worklistConsumers_members_eq
+            (premise := conclusion) structural
+          · rw [bucketLookup]
+            exact membership
+          · rw [bucketLookup]
+            exact List.head_mem indicesEmpty
+        have collapsed :=
+          foldl_enqueueWorklist_eq_single_of_all_eq
+            .dependency indices (indices.head indicesEmpty) state
+            indicesEmpty allEqual
+        simp only [Certificate.enqueueConsumers, bucketLookup]
+        rw [collapsed]
+        exact enqueueWorklist_dependencyEnqueues_le _ state
+
 /-- A dependency-enqueue batch preserves the queue-flag carrier. -/
 @[simp] private theorem foldl_enqueueWorklist_queued_size
     (kind : WorklistEnqueueKind) (indices : List Nat)
@@ -6648,6 +7033,39 @@ private theorem enqueueConsumers_balance
     (consumers : Array (List Nat)) (conclusion : Vertex)
     (state : UnificationWorklistState) :
     (enqueueConsumers consumers conclusion state).core = state.core := by
+  unfold enqueueConsumers
+  split
+  · rfl
+  · simp
+
+/-- Dependency fan-out does not itself record connective firings. -/
+@[simp] private theorem enqueueConsumers_successfulFirings
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    (enqueueConsumers consumers conclusion state).stats.successfulFirings =
+      state.stats.successfulFirings := by
+  unfold enqueueConsumers
+  split
+  · rfl
+  · simp
+
+/-- Dependency fan-out cannot change the waiting-requeue counter. -/
+@[simp] private theorem enqueueConsumers_waitingRequeues
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    (enqueueConsumers consumers conclusion state).stats.waitingRequeues =
+      state.stats.waitingRequeues := by
+  unfold enqueueConsumers
+  split
+  · rfl
+  · simp
+
+/-- Dependency fan-out preserves the initialization counter. -/
+@[simp] private theorem enqueueConsumers_initialEnqueues
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    (enqueueConsumers consumers conclusion state).stats.initialEnqueues =
+      state.stats.initialEnqueues := by
   unfold enqueueConsumers
   split
   · rfl
@@ -6909,6 +7327,21 @@ private theorem addWaiting_balance
 @[simp] private theorem addWaiting_core
     (index : Nat) (state : UnificationWorklistState) :
     (addWaiting index state).core = state.core := by
+  unfold addWaiting
+  split <;> rfl
+
+/-- Waiting registration does not record a connective firing. -/
+@[simp] private theorem addWaiting_successfulFirings
+    (index : Nat) (state : UnificationWorklistState) :
+    (addWaiting index state).stats.successfulFirings =
+      state.stats.successfulFirings := by
+  unfold addWaiting
+  split <;> rfl
+
+/-- Waiting registration changes no cumulative enqueue counter. -/
+@[simp] private theorem addWaiting_stats
+    (index : Nat) (state : UnificationWorklistState) :
+    (addWaiting index state).stats = state.stats := by
   unfold addWaiting
   split <;> rfl
 
@@ -7254,10 +7687,48 @@ private theorem requeueWaiting_balance
       .waiting state.waiting cleared
   simpa [Certificate.requeueWaiting, cleared] using folded
 
+/-- One full waiting requeue adds at most the old registry length to its
+cumulative successful-requeue counter. -/
+private theorem requeueWaiting_waitingRequeues_le
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    (Certificate.requeueWaiting linkCount state).stats.waitingRequeues ≤
+      state.stats.waitingRequeues + state.waiting.length := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have bound :=
+    foldl_enqueueWorklist_waitingRequeues_le state.waiting cleared
+  simpa [Certificate.requeueWaiting, cleared] using bound
+
+/-- Waiting requeue cannot change the dependency-insertion counter. -/
+@[simp] private theorem requeueWaiting_dependencyEnqueues
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    (Certificate.requeueWaiting linkCount state).stats.dependencyEnqueues =
+      state.stats.dependencyEnqueues := by
+  unfold Certificate.requeueWaiting
+  simp
+
+/-- Waiting requeue preserves the initialization counter. -/
+@[simp] private theorem requeueWaiting_initialEnqueues
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    (Certificate.requeueWaiting linkCount state).stats.initialEnqueues =
+      state.stats.initialEnqueues := by
+  unfold Certificate.requeueWaiting
+  simp
+
 /-- Requeueing waiting pars changes only scheduler fields. -/
 @[simp] private theorem requeueWaiting_core
     (linkCount : Nat) (state : UnificationWorklistState) :
     (requeueWaiting linkCount state).core = state.core := by
+  unfold requeueWaiting
+  simp
+
+/-- Waiting requeue does not itself record a connective firing. -/
+@[simp] private theorem requeueWaiting_successfulFirings
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    (requeueWaiting linkCount state).stats.successfulFirings =
+      state.stats.successfulFirings := by
   unfold requeueWaiting
   simp
 
@@ -7825,6 +8296,26 @@ private theorem initializeWorklist_totalEnqueues_eq_queueLength
       (initializeWorklist certificate core).queue.length := by
   simp [initializeWorklist, totalWorklistEnqueues]
 
+/-- Canonical initialization starts with an empty connective-firing history
+and an exact zero successful-firing counter. -/
+private theorem initializeWorklist_firingsAccounted
+    (certificate : Certificate) (core : UnificationState) :
+    WorklistFiringsAccounted certificate
+      (initializeWorklist certificate core) := by
+  refine ⟨[], ?_, ?_, ?_, ?_⟩
+  · simp
+  · simp
+  · simp
+  · simp [initializeWorklist]
+
+/-- Canonical initialization has no dependency or waiting-requeue source
+charges and no successful connective firings. -/
+private theorem initializeWorklist_enqueueSourcesBounded
+    (certificate : Certificate) (core : UnificationState) :
+    WorklistEnqueueSourcesBounded certificate
+      (initializeWorklist certificate core) := by
+  simp [WorklistEnqueueSourcesBounded, initializeWorklist]
+
 /-- The initial deduplication flags are backed by the concrete initial queue. -/
 private theorem initializeWorklist_queueFlagSound
     (certificate : Certificate) (core : UnificationState) :
@@ -8204,6 +8695,165 @@ private theorem coreUpdate_recordWorklistFiring_balance
     (recordWorklistFiring state).core = state.core :=
   rfl
 
+/-- Recording a firing preserves both cumulative enqueue-source counters and
+increments the successful-firing counter exactly once. -/
+private theorem recordWorklistFiring_sourceCounters
+    (state : UnificationWorklistState) :
+    (recordWorklistFiring state).stats.dependencyEnqueues =
+        state.stats.dependencyEnqueues ∧
+      (recordWorklistFiring state).stats.waitingRequeues =
+        state.stats.waitingRequeues ∧
+      (recordWorklistFiring state).stats.successfulFirings =
+        state.stats.successfulFirings + 1 := by
+  simp [recordWorklistFiring]
+
+@[simp] private theorem recordWorklistFiring_dependencyEnqueues
+    (state : UnificationWorklistState) :
+    (recordWorklistFiring state).stats.dependencyEnqueues =
+      state.stats.dependencyEnqueues := by
+  simp [recordWorklistFiring]
+
+@[simp] private theorem recordWorklistFiring_waitingRequeues
+    (state : UnificationWorklistState) :
+    (recordWorklistFiring state).stats.waitingRequeues =
+      state.stats.waitingRequeues := by
+  simp [recordWorklistFiring]
+
+@[simp] private theorem recordWorklistFiring_successfulFirings
+    (state : UnificationWorklistState) :
+    (recordWorklistFiring state).stats.successfulFirings =
+      state.stats.successfulFirings + 1 := by
+  simp [recordWorklistFiring]
+
+@[simp] private theorem recordWorklistFiring_initialEnqueues
+    (state : UnificationWorklistState) :
+    (recordWorklistFiring state).stats.initialEnqueues =
+      state.stats.initialEnqueues := by
+  simp [recordWorklistFiring]
+
+/-- A successful par event extends the proof-only firing history by one fresh
+submitted link. Freshness follows from the executable conclusion-ready guard,
+not from the counter itself. -/
+private theorem WorklistFiringsAccounted.afterFirePar
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {next : UnificationState}
+    {left right conclusion : Vertex}
+    (accounted : WorklistFiringsAccounted certificate state)
+    (abstractable : state.core.Abstractable certificate)
+    (submitted :
+      Link.par left right conclusion ∈ certificate.links)
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (equation :
+      firePar? state.core left right conclusion = some next) :
+    WorklistFiringsAccounted certificate
+      (recordWorklistFiring { state with core := next }) := by
+  rcases accounted with
+    ⟨history, historyNodup, historySubmitted,
+      historyFired, countExact⟩
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, forwardEquation, _observation⟩
+  have conclusionReady :
+      state.core.marks[conclusion]? = some none :=
+    (state.core.forwardToken?_success forwardEquation).1
+  have fresh :
+      Link.par left right conclusion ∉ history := by
+    intro membership
+    have previouslyFired :=
+      historyFired
+        (.par left right conclusion) membership
+    change state.core.marks[conclusion]?.join ≠ none at previouslyFired
+    rw [conclusionReady] at previouslyFired
+    exact previouslyFired rfl
+  exact
+    ⟨Link.par left right conclusion :: history,
+      List.nodup_cons.mpr ⟨fresh, historyNodup⟩, by
+      intro link membership
+      rcases List.mem_cons.mp membership with same | old
+      · simpa [same] using submitted
+      · exact historySubmitted link old, by
+      intro link membership
+      rcases List.mem_cons.mp membership with same | old
+      · subst link
+        simpa [linkFiredIn, recordWorklistFiring] using
+          firePar?_success_conclusion_marked
+            abstractable conclusionBound equation
+      · have oldFired := historyFired link old
+        cases link with
+        | «axiom» axiomLeft axiomRight =>
+            exact oldFired
+        | «par» oldLeft oldRight oldConclusion =>
+            simpa [linkFiredIn, recordWorklistFiring] using
+              firePar?_success_preserves_assigned
+                abstractable conclusionBound oldFired equation
+        | «tensor» oldLeft oldRight oldConclusion =>
+            simpa [linkFiredIn, recordWorklistFiring] using
+              firePar?_success_preserves_assigned
+                abstractable conclusionBound oldFired equation
+      , by
+        simp [recordWorklistFiring, countExact]⟩
+
+/-- A successful tensor event extends the same distinct submitted-link
+history; representative merging never removes an older conclusion mark. -/
+private theorem WorklistFiringsAccounted.afterFireTensor
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {next : UnificationState}
+    {left right conclusion : Vertex}
+    (accounted : WorklistFiringsAccounted certificate state)
+    (abstractable : state.core.Abstractable certificate)
+    (submitted :
+      Link.tensor left right conclusion ∈ certificate.links)
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (equation :
+      fireTensor? state.core left right conclusion = some next) :
+    WorklistFiringsAccounted certificate
+      (recordWorklistFiring { state with core := next }) := by
+  rcases accounted with
+    ⟨history, historyNodup, historySubmitted,
+      historyFired, countExact⟩
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, unifyEquation, _observation⟩
+  have conclusionReady :
+      state.core.marks[conclusion]? = some none :=
+    (state.core.unifyTokens?_success unifyEquation).1
+  have fresh :
+      Link.tensor left right conclusion ∉ history := by
+    intro membership
+    have previouslyFired :=
+      historyFired
+        (.tensor left right conclusion) membership
+    change state.core.marks[conclusion]?.join ≠ none at previouslyFired
+    rw [conclusionReady] at previouslyFired
+    exact previouslyFired rfl
+  exact
+    ⟨Link.tensor left right conclusion :: history,
+      List.nodup_cons.mpr ⟨fresh, historyNodup⟩, by
+      intro link membership
+      rcases List.mem_cons.mp membership with same | old
+      · simpa [same] using submitted
+      · exact historySubmitted link old, by
+      intro link membership
+      rcases List.mem_cons.mp membership with same | old
+      · subst link
+        simpa [linkFiredIn, recordWorklistFiring] using
+          fireTensor?_success_conclusion_marked
+            abstractable conclusionBound equation
+      · have oldFired := historyFired link old
+        cases link with
+        | «axiom» axiomLeft axiomRight =>
+            exact oldFired
+        | «par» oldLeft oldRight oldConclusion =>
+            simpa [linkFiredIn, recordWorklistFiring] using
+              fireTensor?_success_preserves_assigned
+                abstractable conclusionBound oldFired equation
+        | «tensor» oldLeft oldRight oldConclusion =>
+            simpa [linkFiredIn, recordWorklistFiring] using
+              fireTensor?_success_preserves_assigned
+                abstractable conclusionBound oldFired equation
+      , by
+        simp [recordWorklistFiring, countExact]⟩
+
 /-- Broadcasting a successfully fired par conclusion transports scheduler
 coverage for every submitted connective.  Existing queue members remain
 queued; old fired conclusions remain marked; unaffected idle/waiting/deadlock
@@ -8571,6 +9221,399 @@ private def processWorklistLink (certificate : Certificate)
                   requeueWaiting certificate.links.length fired
                 enqueueConsumers consumers conclusion requeued
       | _, _ => state
+
+/-- Processing never changes the number of canonical initial queue
+insertions. -/
+@[simp] private theorem processWorklistLink_initialEnqueues
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (index : Nat) (state : UnificationWorklistState) :
+    (processWorklistLink certificate consumers index
+      state).stats.initialEnqueues =
+        state.stats.initialEnqueues := by
+  cases lookup : certificate.links[index]? with
+  | none =>
+      simp [processWorklistLink, lookup]
+  | some link =>
+      cases link with
+      | «axiom» left right =>
+          simp [processWorklistLink, lookup]
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simp [processWorklistLink, lookup, leftLookup]
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simp [processWorklistLink, lookup, leftLookup,
+                    rightLookup]
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion <;>
+                      simp [processWorklistLink, lookup, leftLookup,
+                        rightLookup, firing]
+                  · simp [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same]
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simp [processWorklistLink, lookup, leftLookup]
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simp [processWorklistLink, lookup, leftLookup,
+                    rightLookup]
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    simp [processWorklistLink, lookup, leftLookup,
+                      rightLookup]
+                  · cases firing :
+                        fireTensor? state.core left right conclusion <;>
+                      simp [processWorklistLink, lookup, leftLookup,
+                        rightLookup, same, firing]
+
+/-- Processing one scheduler entry preserves an exact distinct-link firing
+history. Successful par/tensor branches extend it once; every other branch is
+scheduler-only. -/
+private theorem processWorklistLink_firingsAccounted
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (consumers : Array (List Nat)) (index : Nat)
+    {state : UnificationWorklistState}
+    (abstractable : state.core.Abstractable certificate)
+    (accounted : WorklistFiringsAccounted certificate state) :
+    WorklistFiringsAccounted certificate
+      (processWorklistLink certificate consumers index state) := by
+  cases lookup : certificate.links[index]? with
+  | none =>
+      simpa [processWorklistLink, lookup] using accounted
+  | some link =>
+      have indexBound :
+          index < certificate.links.length :=
+        (List.getElem?_eq_some_iff.mp lookup).1
+      have linkMembership :
+          link ∈ certificate.links := by
+        have membership := List.getElem_mem indexBound
+        simpa [(List.getElem?_eq_some_iff.mp lookup).2] using membership
+      cases link with
+      | «axiom» left right =>
+          simpa [processWorklistLink, lookup] using accounted
+      | «par» left right conclusion =>
+          have linkWellFormed :=
+            structural.2.2.2.2.1
+              (.par left right conclusion) linkMembership
+          rcases linkWellFormed with
+            ⟨_premisesDifferent, _leftConclusionDifferent,
+              _rightConclusionDifferent, _leftBound, _rightBound,
+              conclusionBound, _typing⟩
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup] using
+                accounted
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, lookup, leftLookup,
+                    rightLookup] using accounted
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, lookup, leftLookup,
+                          rightLookup, firing] using accounted
+                    | some nextCore =>
+                        have firedAccounted :=
+                          accounted.afterFirePar abstractable
+                            linkMembership conclusionBound firing
+                        let firedState : UnificationWorklistState :=
+                          recordWorklistFiring
+                            { state with core := nextCore }
+                        have enqueuedAccounted :
+                            WorklistFiringsAccounted certificate
+                              (enqueueConsumers consumers conclusion
+                                firedState) :=
+                          firedAccounted.transport
+                            (by simp [firedState, recordWorklistFiring])
+                            (by simp [firedState, recordWorklistFiring])
+                        simpa [processWorklistLink, lookup, leftLookup,
+                          rightLookup, firing] using enqueuedAccounted
+                  · have waitingAccounted :
+                        WorklistFiringsAccounted certificate
+                          (addWaiting index state) :=
+                      accounted.transport
+                        (by simp)
+                        (by simp)
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same] using waitingAccounted
+      | «tensor» left right conclusion =>
+          have linkWellFormed :=
+            structural.2.2.2.2.1
+              (.tensor left right conclusion) linkMembership
+          rcases linkWellFormed with
+            ⟨_premisesDifferent, _leftConclusionDifferent,
+              _rightConclusionDifferent, _leftBound, _rightBound,
+              conclusionBound, _typing⟩
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup] using
+                accounted
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, lookup, leftLookup,
+                    rightLookup] using accounted
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup] using accounted
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, lookup, leftLookup,
+                          rightLookup, same, firing] using accounted
+                    | some nextCore =>
+                        have firedAccounted :=
+                          accounted.afterFireTensor abstractable
+                            linkMembership conclusionBound firing
+                        let firedState : UnificationWorklistState :=
+                          recordWorklistFiring
+                            { state with core := nextCore }
+                        let requeuedState : UnificationWorklistState :=
+                          requeueWaiting certificate.links.length
+                            firedState
+                        have requeuedAccounted :
+                            WorklistFiringsAccounted certificate
+                              requeuedState :=
+                          firedAccounted.transport
+                            (by
+                              simp [requeuedState, firedState,
+                                recordWorklistFiring])
+                            (by
+                              simp [requeuedState, firedState,
+                                recordWorklistFiring])
+                        have enqueuedAccounted :
+                            WorklistFiringsAccounted certificate
+                              (enqueueConsumers consumers conclusion
+                                requeuedState) :=
+                          requeuedAccounted.transport
+                            (by simp)
+                            (by simp)
+                        simpa [processWorklistLink, lookup, leftLookup,
+                          rightLookup, same, firing] using enqueuedAccounted
+
+/-- One canonical worklist processing event preserves cumulative source
+charges: at most one dependency insertion per successful firing and at most
+one submitted-link carrier of waiting requeues per successful firing. -/
+private theorem processWorklistLink_enqueueSourcesBounded
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (index : Nat) {state : UnificationWorklistState}
+    (waitingBound :
+      state.waiting.length ≤ certificate.links.length)
+    (bounded : WorklistEnqueueSourcesBounded certificate state) :
+    WorklistEnqueueSourcesBounded certificate
+      (processWorklistLink certificate certificate.worklistConsumers
+        index state) := by
+  rcases bounded with ⟨dependencyBound, waitingSourceBound⟩
+  cases lookup : certificate.links[index]? with
+  | none =>
+      simpa [processWorklistLink, lookup,
+        WorklistEnqueueSourcesBounded] using
+        And.intro dependencyBound waitingSourceBound
+  | some link =>
+      cases link with
+      | «axiom» left right =>
+          simpa [processWorklistLink, lookup,
+            WorklistEnqueueSourcesBounded] using
+            And.intro dependencyBound waitingSourceBound
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                WorklistEnqueueSourcesBounded] using
+                And.intro dependencyBound waitingSourceBound
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, lookup, leftLookup,
+                    rightLookup, WorklistEnqueueSourcesBounded] using
+                    And.intro dependencyBound waitingSourceBound
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, lookup, leftLookup,
+                          rightLookup, firing,
+                          WorklistEnqueueSourcesBounded] using
+                          And.intro dependencyBound waitingSourceBound
+                    | some nextCore =>
+                        let firedState : UnificationWorklistState :=
+                          recordWorklistFiring
+                            { state with core := nextCore }
+                        have dependencyStep :=
+                          enqueueConsumers_dependencyEnqueues_le
+                            structural conclusion firedState
+                        have waitingExact :
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              firedState).stats.waitingRequeues =
+                                state.stats.waitingRequeues := by
+                          simp [firedState, recordWorklistFiring]
+                        have firingExact :
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              firedState).stats.successfulFirings =
+                                state.stats.successfulFirings + 1 := by
+                          simp [firedState, recordWorklistFiring]
+                        have firedDependencyExact :
+                            firedState.stats.dependencyEnqueues =
+                              state.stats.dependencyEnqueues := by
+                          simp [firedState]
+                        have dependencyResult :
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              firedState).stats.dependencyEnqueues ≤
+                                state.stats.successfulFirings + 1 := by
+                          calc
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              firedState).stats.dependencyEnqueues ≤
+                                firedState.stats.dependencyEnqueues + 1 :=
+                              dependencyStep
+                            _ = state.stats.dependencyEnqueues + 1 := by
+                              rw [firedDependencyExact]
+                            _ ≤ state.stats.successfulFirings + 1 :=
+                              Nat.add_le_add_right dependencyBound 1
+                        constructor
+                        · simpa [processWorklistLink, lookup, leftLookup,
+                            rightLookup, firing, firedState,
+                            WorklistEnqueueSourcesBounded] using
+                            dependencyResult
+                        · have resultBound :
+                              state.stats.waitingRequeues ≤
+                                certificate.links.length *
+                                  (state.stats.successfulFirings + 1) :=
+                            Nat.le_trans waitingSourceBound
+                              (Nat.mul_le_mul_left _
+                                (Nat.le_add_right
+                                  state.stats.successfulFirings 1))
+                          simpa [processWorklistLink, lookup, leftLookup,
+                            rightLookup, firing, firedState,
+                            recordWorklistFiring] using resultBound
+                  · simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, WorklistEnqueueSourcesBounded]
+                      using And.intro dependencyBound waitingSourceBound
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                WorklistEnqueueSourcesBounded] using
+                And.intro dependencyBound waitingSourceBound
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, lookup, leftLookup,
+                    rightLookup, WorklistEnqueueSourcesBounded] using
+                    And.intro dependencyBound waitingSourceBound
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, WorklistEnqueueSourcesBounded] using
+                      And.intro dependencyBound waitingSourceBound
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, lookup, leftLookup,
+                          rightLookup, same, firing,
+                          WorklistEnqueueSourcesBounded] using
+                          And.intro dependencyBound waitingSourceBound
+                    | some nextCore =>
+                        let firedState : UnificationWorklistState :=
+                          recordWorklistFiring
+                            { state with core := nextCore }
+                        let requeuedState : UnificationWorklistState :=
+                          requeueWaiting certificate.links.length firedState
+                        have dependencyStep :=
+                          enqueueConsumers_dependencyEnqueues_le
+                            structural conclusion requeuedState
+                        have waitingStep :=
+                          requeueWaiting_waitingRequeues_le
+                            certificate.links.length firedState
+                        have dependencyExact :
+                            requeuedState.stats.dependencyEnqueues =
+                              state.stats.dependencyEnqueues := by
+                          simp [requeuedState, firedState,
+                            recordWorklistFiring]
+                        have waitingFinalExact :
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeuedState).stats.waitingRequeues =
+                                requeuedState.stats.waitingRequeues := by
+                          simp
+                        have firingExact :
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeuedState).stats.successfulFirings =
+                                state.stats.successfulFirings + 1 := by
+                          simp [requeuedState, firedState]
+                        have dependencyResult :
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeuedState).stats.dependencyEnqueues ≤
+                                state.stats.successfulFirings + 1 := by
+                          calc
+                            (enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeuedState).stats.dependencyEnqueues ≤
+                                requeuedState.stats.dependencyEnqueues + 1 :=
+                              dependencyStep
+                            _ = state.stats.dependencyEnqueues + 1 := by
+                              rw [dependencyExact]
+                            _ ≤ state.stats.successfulFirings + 1 :=
+                              Nat.add_le_add_right dependencyBound 1
+                        have firedWaitingLength :
+                            firedState.waiting.length =
+                              state.waiting.length := by
+                          rfl
+                        have waitingResult :
+                            requeuedState.stats.waitingRequeues ≤
+                              certificate.links.length *
+                                (state.stats.successfulFirings + 1) := by
+                          rw [firedWaitingLength] at waitingStep
+                          calc
+                            requeuedState.stats.waitingRequeues ≤
+                                state.stats.waitingRequeues +
+                                  state.waiting.length := waitingStep
+                            _ ≤ certificate.links.length *
+                                  state.stats.successfulFirings +
+                                    certificate.links.length :=
+                              Nat.add_le_add waitingSourceBound waitingBound
+                            _ = certificate.links.length *
+                                  (state.stats.successfulFirings + 1) := by
+                              simp [Nat.mul_add]
+                        constructor
+                        · simpa [processWorklistLink, lookup, leftLookup,
+                            rightLookup, same, firing, firedState,
+                            requeuedState] using dependencyResult
+                        · simpa [processWorklistLink, lookup, leftLookup,
+                            rightLookup, same, firing, firedState,
+                            requeuedState] using
+                            (show
+                              (enqueueConsumers
+                                certificate.worklistConsumers conclusion
+                                requeuedState).stats.waitingRequeues ≤
+                                  certificate.links.length *
+                                    (state.stats.successfulFirings + 1) by
+                              rw [waitingFinalExact]
+                              exact waitingResult)
 
 /-- Processing one proven submitted queue head preserves exact provenance for
 both the remaining queue and the waiting-par registry.  Dependency fan-out
@@ -10365,6 +11408,44 @@ private theorem runUnificationWorklist_balance
           simpa [runUnificationWorklist, popEquation,
             processed, tail] using combined
 
+/-- If a finite run still has queued work, every available unit of fuel was
+consumed. Early termination is possible only through an empty queue. -/
+private theorem runUnificationWorklist_attempts_eq_fuel_of_queue_ne_nil
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (fuel : Nat) (state : UnificationWorklistState)
+    (nonempty :
+      (runUnificationWorklist certificate consumers fuel
+        state).state.queue ≠ []) :
+    (runUnificationWorklist certificate consumers fuel
+      state).linkAttempts = fuel := by
+  induction fuel generalizing state with
+  | zero =>
+      simp [runUnificationWorklist]
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          have queueEmpty : state.queue = [] := by
+            cases queueEquation : state.queue with
+            | nil =>
+                rfl
+            | cons head rest =>
+                simp [popWorklist?, queueEquation] at popEquation
+          simp [runUnificationWorklist, popEquation,
+            queueEmpty] at nonempty
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          let processed :=
+            processWorklistLink certificate consumers index popped
+          have tailNonempty :
+              (runUnificationWorklist certificate consumers fuel
+                processed).state.queue ≠ [] := by
+            simpa [runUnificationWorklist, popEquation,
+              processed] using nonempty
+          have tailExact :=
+            induction (state := processed) tailNonempty
+          simp [runUnificationWorklist, popEquation,
+            processed, tailExact]
+
 /-- From canonical initialization, attempted pops plus the residual queue are
 exactly all successful queue insertions observed by the final state. -/
 private theorem runUnificationWorklist_initialized_attemptAccounting
@@ -10407,6 +11488,181 @@ private theorem popWorklist?_success_core
       simp [popWorklist?, queueEquation] at equation
       rcases equation with ⟨rfl, rfl⟩
       rfl
+
+/-- Popping one queue entry changes no operational statistics. -/
+private theorem popWorklist?_success_stats
+    {state popped : UnificationWorklistState} {index : Nat}
+    (equation : popWorklist? state = some (index, popped)) :
+    popped.stats = state.stats := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      rfl
+
+/-- Popping one queue entry leaves the waiting registry unchanged. -/
+private theorem popWorklist?_success_waiting
+    {state popped : UnificationWorklistState} {index : Nat}
+    (equation : popWorklist? state = some (index, popped)) :
+    popped.waiting = state.waiting := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      rfl
+
+/-- Every finite scheduler run preserves the canonical-initialization enqueue
+counter. -/
+private theorem runUnificationWorklist_initialEnqueues
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (fuel : Nat) (state : UnificationWorklistState) :
+    (runUnificationWorklist certificate consumers fuel
+      state).state.stats.initialEnqueues =
+        state.stats.initialEnqueues := by
+  induction fuel generalizing state with
+  | zero =>
+      simp [runUnificationWorklist]
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          simp [runUnificationWorklist, popEquation]
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have poppedInitial :
+              popped.stats.initialEnqueues =
+                state.stats.initialEnqueues := by
+            rw [popWorklist?_success_stats popEquation]
+          have tail :=
+            induction
+              (state :=
+                processWorklistLink certificate consumers index popped)
+          simpa [runUnificationWorklist, popEquation,
+            poppedInitial] using tail
+
+/-- Popping one queue entry does not record a connective firing. -/
+private theorem popWorklist?_success_successfulFirings
+    {state popped : UnificationWorklistState} {index : Nat}
+    (equation : popWorklist? state = some (index, popped)) :
+    popped.stats.successfulFirings =
+      state.stats.successfulFirings := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      rfl
+
+/-- Every finite scheduler run preserves an exact history of distinct
+submitted connective firings. -/
+private theorem runUnificationWorklist_firingsAccounted
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat) (state : UnificationWorklistState)
+    (coreInvariant : WorklistCoreInvariant certificate state)
+    (accounted : WorklistFiringsAccounted certificate state) :
+    WorklistFiringsAccounted certificate
+      (runUnificationWorklist certificate consumers fuel state).state := by
+  induction fuel generalizing state with
+  | zero =>
+      simpa [runUnificationWorklist] using accounted
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          simpa [runUnificationWorklist, popEquation] using accounted
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have poppedCore :
+              popped.core = state.core :=
+            popWorklist?_success_core popEquation
+          have poppedCounter :
+              popped.stats.successfulFirings =
+                state.stats.successfulFirings :=
+            popWorklist?_success_successfulFirings popEquation
+          have poppedAccounted :
+              WorklistFiringsAccounted certificate popped :=
+            accounted.transport poppedCore poppedCounter
+          have poppedInvariant :
+              WorklistCoreInvariant certificate popped := by
+            unfold WorklistCoreInvariant at coreInvariant ⊢
+            simpa [poppedCore] using coreInvariant
+          have processedAccounted :
+              WorklistFiringsAccounted certificate
+                (processWorklistLink certificate consumers
+                  index popped) :=
+            processWorklistLink_firingsAccounted
+              structural consumers index
+                poppedInvariant.1 poppedAccounted
+          have processedInvariant :
+              WorklistCoreInvariant certificate
+                (processWorklistLink certificate consumers
+                  index popped) :=
+            processWorklistLink_coreInvariant
+              structural poppedInvariant
+          simpa [runUnificationWorklist, popEquation] using
+            induction
+              (state :=
+                processWorklistLink certificate consumers index popped)
+              processedInvariant processedAccounted
+
+/-- Every finite canonical-consumer scheduler run preserves cumulative
+enqueue-source charges. The production invariant supplies the exact bounded
+waiting registry needed by each tensor requeue. -/
+private theorem runUnificationWorklist_enqueueSourcesBounded
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat) (state : UnificationWorklistState)
+    (invariant : WorklistRunInvariant certificate state)
+    (bounded : WorklistEnqueueSourcesBounded certificate state) :
+    WorklistEnqueueSourcesBounded certificate
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers fuel state).state := by
+  induction fuel generalizing state with
+  | zero =>
+      simpa [runUnificationWorklist] using bounded
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          simpa [runUnificationWorklist, popEquation] using bounded
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have poppedStats :
+              popped.stats = state.stats :=
+            popWorklist?_success_stats popEquation
+          have poppedBounded :
+              WorklistEnqueueSourcesBounded certificate popped := by
+            unfold WorklistEnqueueSourcesBounded at bounded ⊢
+            simpa [poppedStats] using bounded
+          have poppedWaiting :
+              popped.waiting.length = state.waiting.length := by
+            rw [popWorklist?_success_waiting popEquation]
+          have stateWaitingBound :
+              state.waiting.length ≤ certificate.links.length :=
+            invariant.registryLengthBounds.2
+          have processedBounded :
+              WorklistEnqueueSourcesBounded certificate
+                (processWorklistLink certificate
+                  certificate.worklistConsumers index popped) :=
+            processWorklistLink_enqueueSourcesBounded
+              structural index
+                (by simpa [poppedWaiting] using stateWaitingBound)
+                poppedBounded
+          have processedInvariant :
+              WorklistRunInvariant certificate
+                (processWorklistLink certificate
+                  certificate.worklistConsumers index popped) :=
+            popProcessWorklist_runInvariant
+              structural invariant popEquation
+          simpa [runUnificationWorklist, popEquation] using
+            induction
+              (state :=
+                processWorklistLink certificate
+                  certificate.worklistConsumers index popped)
+              processedInvariant processedBounded
 
 /-- The complete executable-core invariant bundle survives every finite
 worklist run, including early queue exhaustion and conservative fuel
@@ -10518,6 +11774,207 @@ private theorem canonicalWorklistRun_runInvariant
   · exact
       startAxioms?_success_initializeWorklist_runInvariant
         structural startEquation
+
+/-- The canonical finite production run carries an exact history of distinct
+submitted connective firings. -/
+private theorem canonicalWorklistRun_firingsAccounted
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    WorklistFiringsAccounted certificate
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state := by
+  apply runUnificationWorklist_firingsAccounted
+  · exact structural
+  · exact
+      startAxioms?_success_initializeWorklist_coreInvariant
+        structural startEquation
+  · exact initializeWorklist_firingsAccounted certificate started
+
+/-- No canonical finite production run can successfully fire more
+connectives than the submitted link carrier contains. -/
+private theorem canonicalWorklistRun_successfulFirings_le
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.stats.successfulFirings ≤ certificate.links.length := by
+  exact
+    (canonicalWorklistRun_firingsAccounted
+      structural startEquation).successfulFirings_le
+
+/-- The canonical finite production run preserves the per-firing cumulative
+source charges from its zero-charged initialization. -/
+private theorem canonicalWorklistRun_enqueueSourcesBounded
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    WorklistEnqueueSourcesBounded certificate
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state := by
+  apply runUnificationWorklist_enqueueSourcesBounded
+  · exact structural
+  · exact
+      startAxioms?_success_initializeWorklist_runInvariant
+        structural startEquation
+  · exact initializeWorklist_enqueueSourcesBounded certificate started
+
+/-- The initialization-source counter of the canonical production run is
+bounded by the submitted link carrier. -/
+private theorem canonicalWorklistRun_initialEnqueues_le
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.stats.initialEnqueues ≤ certificate.links.length := by
+  let initial := initializeWorklist certificate started
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length) initial).state
+  have preserved :
+      final.stats.initialEnqueues =
+        initial.stats.initialEnqueues := by
+    simpa [final] using
+      runUnificationWorklist_initialEnqueues
+        certificate certificate.worklistConsumers
+          (worklistFuel certificate.links.length) initial
+  have initialQueueBound :
+      initial.queue.length ≤ certificate.links.length := by
+    exact
+      (startAxioms?_success_initializeWorklist_runInvariant
+        structural startEquation).registryLengthBounds.1
+  have initialExact :
+      initial.stats.initialEnqueues =
+        initial.queue.length := by
+    rfl
+  dsimp [final]
+  calc
+    (runUnificationWorklist certificate certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        initial).state.stats.initialEnqueues =
+        initial.stats.initialEnqueues := preserved
+    _ = initial.queue.length := initialExact
+    _ ≤ certificate.links.length := initialQueueBound
+
+/-- All successful queue insertions of the canonical production run fit within
+the executable attempt budget. -/
+private theorem canonicalWorklistRun_totalEnqueues_le_fuel
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    totalWorklistEnqueues final.stats ≤
+      worklistFuel certificate.links.length := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  have firingBound :
+      final.stats.successfulFirings ≤ certificate.links.length := by
+    simpa [final] using
+      canonicalWorklistRun_successfulFirings_le
+        structural startEquation
+  have sources :
+      WorklistEnqueueSourcesBounded certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_enqueueSourcesBounded
+        structural startEquation
+  have initialBound :
+      final.stats.initialEnqueues ≤ certificate.links.length := by
+    simpa [final] using
+      canonicalWorklistRun_initialEnqueues_le
+        structural startEquation
+  have dependencyBound :
+      final.stats.dependencyEnqueues ≤ certificate.links.length :=
+    Nat.le_trans sources.1 firingBound
+  have waitingBound :
+      final.stats.waitingRequeues ≤
+        certificate.links.length * certificate.links.length :=
+    Nat.le_trans sources.2
+      (Nat.mul_le_mul_left certificate.links.length firingBound)
+  have totalBound :
+      totalWorklistEnqueues final.stats ≤
+        worklistFuel certificate.links.length := by
+    unfold totalWorklistEnqueues worklistFuel
+      UnificationWorklistStats.attemptBudget
+    rw [Nat.mul_add]
+    omega
+  simpa [final] using totalBound
+
+/-- The conservative production fuel is sufficient: every structurally
+well-formed, successfully initialized canonical run exhausts its concrete
+work queue before or exactly at the executable budget. -/
+private theorem canonicalWorklistRun_queue_eq_nil
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state.queue = [] := by
+  let fuel := worklistFuel certificate.links.length
+  let initial := initializeWorklist certificate started
+  let result :=
+    runUnificationWorklist certificate
+      certificate.worklistConsumers fuel initial
+  change result.state.queue = []
+  apply Classical.byContradiction
+  intro nonempty
+  have attemptsExact :
+      result.linkAttempts = fuel := by
+    exact
+      runUnificationWorklist_attempts_eq_fuel_of_queue_ne_nil
+        certificate certificate.worklistConsumers fuel initial
+        (by simpa [result] using nonempty)
+  have queuePositive :
+      0 < result.state.queue.length := by
+    cases queueEquation : result.state.queue with
+    | nil =>
+        exact False.elim (nonempty queueEquation)
+    | cons head tail =>
+        simp
+  have accounting :
+      result.linkAttempts + result.state.queue.length =
+        totalWorklistEnqueues result.state.stats := by
+    simpa [result, initial] using
+      runUnificationWorklist_initialized_attemptAccounting
+        certificate certificate.worklistConsumers fuel started
+  have totalBound :
+      totalWorklistEnqueues result.state.stats ≤ fuel := by
+    simpa [result, fuel, initial] using
+      canonicalWorklistRun_totalEnqueues_le_fuel
+        structural startEquation
+  omega
 
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/

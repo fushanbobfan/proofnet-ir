@@ -45,9 +45,18 @@
   registration/requeue, firing records, every processing branch, successful
   pops, and finite production runs. From canonical initialization, link
   attempts plus the residual queue length is exactly the cumulative number of
-  initial, dependency, and waiting-requeue insertions. A global upper bound on
-  those insertions, fuel sufficiency, and correct-state progress remain open,
-  so pure-worklist completeness is still not claimed;
+  initial, dependency, and waiting-requeue insertions. Structural linear
+  ownership now collapses every consumer bucket to at most one distinct link
+  index, so each successful firing adds at most one dependency insertion.
+  A proof-only distinct submitted-link firing history bounds successful
+  firings by the link carrier; each tensor firing requeues at most the current
+  duplicate-free waiting registry, itself bounded by that carrier. These
+  source bounds prove all cumulative insertions fit the existing
+  `n(n+4)+1` budget. A separate exhaustion theorem proves that any run with a
+  residual queue consumed all fuel, and exact accounting therefore proves the
+  canonical production queue is empty at the budget. Correct-state progress
+  remains open, so scheduler fuel sufficiency must not be conflated with
+  pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential

@@ -28,11 +28,16 @@ registries remain duplicate-free through every finite run, and each registry
 is proved to contain at most one entry per submitted link slot. Exact
 cumulative accounting now proves that, from canonical initialization, link
 attempts plus the residual queue length equals the total number of initial,
-dependency, and waiting-requeue insertions. A global upper bound on those
-insertions, fuel sufficiency, and the correct-quiescent-state progress theorem
-still must be established before removing the recursive fallback. The later
-`NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
-separate from that logical completeness result. See
+dependency, and waiting-requeue insertions. Structural linear ownership and
+queue deduplication charge at most one dependency insertion to each successful
+firing; exact firing history bounds successful firings by the submitted link
+count; and the duplicate-free waiting registry charges at most one link
+carrier of requeues to each tensor firing. Lean now proves the resulting
+cumulative insertion bound fits `n(n+4)+1`, and that the canonical production
+run reaches an empty queue within that fuel. The correct-quiescent-state
+progress theorem still must be established before removing the recursive
+fallback. The later `NEXTAXIOM`/token-age implementation and whole-program cost
+theorem remain separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).
 
 v0.9 exposes
@@ -80,7 +85,10 @@ that eager saturation performs at most `|links|` full passes and exactly
 That scoped bound does not cover frontier search, union-find traversal,
 independent verification, or the hybrid fallback. The worklist result
 separately carries a proof that link attempts stay within the conservative
-fuel `n(n+4)+1`; fuel sufficiency for every correct net is not yet proved.
+fuel `n(n+4)+1`; current `main` additionally proves that this fuel exhausts the
+canonical production queue on every structurally well-formed input whose axiom
+initialization succeeds. This is scheduler fuel sufficiency, not yet
+correct-net completeness.
 
 The v0.8 release adds a proved non-factorial intrinsic canonical
 form and the separate `proofnet-canonical-key-0.2` wire. On
@@ -149,8 +157,9 @@ The repository currently contains:
   enqueues newly armed links, and requeues only waiting par links after tensor
   unions. Every worklist success is independently verified and proved sound;
   the worklist-first hybrid is proved equal to `check`, while completeness,
-  fuel sufficiency, flat-waiting-set complexity, and faithful
-  `NEXTAXIOM` sequentialization remain open;
+  correct-quiescent-state progress, flat-waiting-set complexity, and faithful
+  `NEXTAXIOM` sequentialization remain open. The current production fuel is
+  proved sufficient to empty its queue;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

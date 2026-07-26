@@ -445,12 +445,14 @@
     - [x] Prove exact cumulative enqueue-event accounting: from canonical
       initialization, attempts plus the residual queue length equals initial
       plus dependency plus waiting-requeue insertions.
-    - [ ] Bound cumulative enqueue sources, prove fuel sufficiency, and prove
-      correct-quiescent-state progress.
+    - [x] Bound cumulative enqueue sources using structural single-consumer
+      ownership, distinct successful-firing history, and bounded waiting
+      registries; prove that `n(n+4)+1` exhausts the canonical queue.
+    - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize
-    `NEXTAXIOM`/union-find invariants, prove fuel sufficiency and pure
-    completeness, and extend the cost theorem to all implemented operations
+    `NEXTAXIOM`/union-find invariants, prove pure completeness, and extend the
+    cost theorem to all implemented operations
     before claiming Guerrini linearity.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and
   explicit `release_ref=v0.9.0` CI, and pin a clean consumer to the exact
