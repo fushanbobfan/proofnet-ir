@@ -201,7 +201,20 @@
   `referenceSwitchingGraph.EdgeWalk`, and the public
   `DeclarativelyCorrect.referenceSwitchingTree` theorem packages the exact
   reference graph's tree proof. Closed tree walks can still consist entirely of
-  nested backtracking, so these facts do not exclude the branch. Exact
+  nested backtracking, so these facts do not exclude the branch. The
+  proof-relevant cyclic normalization now also proves that a cyclically
+  nonbacktracking input is a fixed point and that any nonempty input normalized
+  to empty exposes an exact internal or cyclic-closing cancellation site in
+  its original representation. A separate append theorem proves that if two
+  individually nonbacktracking pieces contain an internal cancellation after
+  concatenation, the cancelled pair crosses their unique junction. The
+  scheduler theorem now retains the full selected segment decomposition as an
+  index-aligned finite family, including every segment's nonemptiness,
+  internal nonbacktracking, and endpoint classifications. It localizes the
+  exact site to an adjacent or cyclic family junction and proves that the
+  incoming occurrence is simultaneously the preceding dependency's retained
+  reflexive end and the following waiting par's stored left incidence.
+  Excluding that fully retained nesting remains open. Exact
   index/orientation transport now also preserves cyclic nonbacktracking through
   arbitrary occurrence masks, and every valid occurrence switching of a
   correct certificate is exposed directly as a tree. A par-pair-sparse

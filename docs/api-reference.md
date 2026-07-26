@@ -490,6 +490,60 @@ ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.reduced_or_cancel : ∀ {graph : Pr
     ∃ before incoming after, traversed = before ++ incoming :: incoming.reverse :: after
 ```
 
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.not_cancel`
+
+Kind: theorem.
+
+A traversal already known to have no immediate exact reversal cannot be
+presented with an adjacent occurrence/reverse pair.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.not_cancel : ∀ {graph : ProofNetIR.Graph} {traversed : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.NoImmediateReverse traversed →
+    ∀ {before after : List graph.DirectedEdge} {incoming : graph.DirectedEdge},
+      traversed = before ++ incoming :: incoming.reverse :: after → False
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.junction_reverse_of_append_cancel`
+
+Kind: theorem.
+
+If two individually nonbacktracking traversals concatenate to a list with
+an exact adjacent cancellation, that cancellation must cross their unique
+junction.  This is the list-level bridge used to localize an empty cyclic
+normalization to a boundary between scheduler dependency segments.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.junction_reverse_of_append_cancel : ∀ {graph : ProofNetIR.Graph} {first second : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.NoImmediateReverse first →
+    ProofNetIR.Graph.EdgeWalk.NoImmediateReverse second →
+      ∀ {before after : List graph.DirectedEdge} {incoming : graph.DirectedEdge},
+        first ++ second = before ++ incoming :: incoming.reverse :: after →
+          ∃ firstLast secondHead,
+            first.getLast? = some firstLast ∧ second.head? = some secondHead ∧ secondHead = firstLast.reverse
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.junction_reverse_of_flatten_cancel`
+
+Kind: theorem.
+
+If the flattening of a finite family of nonempty, individually
+nonbacktracking traversals contains an adjacent exact cancellation, then some
+two adjacent family members meet in that exact reverse orientation.  The
+returned family decomposition retains the precise junction rather than only
+the flattened list position.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.junction_reverse_of_flatten_cancel : ∀ {graph : ProofNetIR.Graph} {segments : List (List graph.DirectedEdge)},
+  (∀ (segment : List graph.DirectedEdge), segment ∈ segments → segment ≠ []) →
+    (∀ (segment : List graph.DirectedEdge), segment ∈ segments → ProofNetIR.Graph.EdgeWalk.NoImmediateReverse segment) →
+      ∀ {before after : List graph.DirectedEdge} {incoming : graph.DirectedEdge},
+        segments.flatten = before ++ incoming :: incoming.reverse :: after →
+          ∃ familyBefore first second familyAfter firstLast secondHead,
+            segments = familyBefore ++ first :: second :: familyAfter ∧
+              first.getLast? = some firstLast ∧ second.head? = some secondHead ∧ secondHead = firstLast.reverse
+```
+
 ### `ProofNetIR.Graph.EdgeWalk.cancelImmediateReverse`
 
 Kind: theorem.
@@ -641,6 +695,19 @@ ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.reverse_mem_of_normalize
     after = [] → ∀ (directed : graph.DirectedEdge), directed ∈ before → directed.reverse ∈ before
 ```
 
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.eq_of_noImmediateReverse`
+
+Kind: theorem.
+
+Exact internal normalization is the identity on a traversal which already
+has no adjacent occurrence/reverse pair.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.eq_of_noImmediateReverse : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization before after →
+    ProofNetIR.Graph.EdgeWalk.NoImmediateReverse before → after = before
+```
+
 ### `ProofNetIR.Graph.EdgeWalk.normalizeImmediateReversals`
 
 Kind: theorem.
@@ -680,6 +747,61 @@ inside its list representation or across its closing last/first junction.
 
 ```lean
 ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseSite`
+
+Kind: definition.
+
+An exact cyclic cancellation site is either an adjacent occurrence/reverse
+pair inside the chosen list representation or an exact reverse pair across the
+last/first closing junction.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseSite : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicSegmentJunctionReverse`
+
+Kind: definition.
+
+A cyclic reverse junction in a segmented traversal is either between two
+adjacent family members or between the final and initial family members.  The
+singleton case is intentionally allowed in the closing alternative.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicSegmentJunctionReverse : {graph : ProofNetIR.Graph} → List (List graph.DirectedEdge) → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.cyclicNoImmediateReverse_or_site`
+
+Kind: theorem.
+
+Every finite exact traversal is either cyclically nonbacktracking or
+exposes an exact internal or closing cancellation site.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.cyclicNoImmediateReverse_or_site : ∀ {graph : ProofNetIR.Graph} (traversed : List graph.DirectedEdge),
+  ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed ∨
+    ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseSite traversed
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseSite.segmentJunction_of_flatten`
+
+Kind: theorem.
+
+A cancellation site in the flattening of a nonempty family of nonempty,
+individually nonbacktracking traversals localizes to an exact adjacent or
+cyclic family junction.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseSite.segmentJunction_of_flatten : ∀ {graph : ProofNetIR.Graph} {segments : List (List graph.DirectedEdge)},
+  segments ≠ [] →
+    (∀ (segment : List graph.DirectedEdge), segment ∈ segments → segment ≠ []) →
+      (∀ (segment : List graph.DirectedEdge),
+          segment ∈ segments → ProofNetIR.Graph.EdgeWalk.NoImmediateReverse segment) →
+        ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseSite segments.flatten →
+          ProofNetIR.Graph.EdgeWalk.CyclicSegmentJunctionReverse segments
 ```
 
 ### `ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse.of_masked_alignment`
@@ -780,6 +902,34 @@ positions.
 ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
   ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization before after →
     after = [] → ∀ (directed : graph.DirectedEdge), directed ∈ before → directed.reverse ∈ before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.eq_of_cyclicNoImmediateReverse`
+
+Kind: theorem.
+
+Proof-relevant cyclic normalization is the identity on a traversal which
+already has neither an internal nor a closing exact reversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.eq_of_cyclicNoImmediateReverse : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization before after →
+    ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse before → after = before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.site_of_nonempty_normalizes_to_nil`
+
+Kind: theorem.
+
+If a nonempty exact cyclic traversal normalizes completely to the empty
+trace, the original representation already exposes a concrete internal or
+closing cancellation site.  This is stronger than reverse-value membership:
+it records where the first scheduler-level nesting analysis must begin.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.site_of_nonempty_normalizes_to_nil : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization before after →
+    before ≠ [] → after = [] → ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseSite before
 ```
 
 ### `ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversalsTraced`

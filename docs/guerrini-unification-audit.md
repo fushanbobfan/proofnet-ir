@@ -181,6 +181,15 @@ switching is proved a tree, and par-pair sparsity would place the entire
 obstruction in one such switching. Lean therefore extracts a concrete par whose
 two exact premise occurrences survive and uses all-left forward retention to
 prove that its omitted right occurrence is traversed backward. The remaining
+empty branch now exposes an exact internal-or-closing cancellation site in the
+original traversal. Lean proves cyclically nonbacktracking inputs are fixed by
+normalization and proves that an internal cancellation in an append of two
+individually nonbacktracking pieces must cross their unique junction. The
+selected dependency-segment decomposition is now retained as an indexed finite
+family with every segment's scheduler endpoint classifications. Lean localizes
+the site to an adjacent or cyclic junction and proves that its incoming
+occurrence is simultaneously the preceding dependency's retained reflexive
+end and the following waiting par's stored left incidence. The remaining
 argument must exclude the exact empty nesting and transport turn
 classifications around that concrete nonempty obstruction into an excluded
 edge-simple switching cycle or forbidden nesting in a correct quiescent state.

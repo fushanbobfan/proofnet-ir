@@ -549,7 +549,18 @@
       occurrence masks, expose arbitrary switching trees, rule out a
       par-pair-sparse nonempty normal form, and retain a concrete surviving par
       pair whose omitted right occurrence is forced backward.
-    - [ ] Exclude the empty exact nesting; in the nonempty branch transport
+    - [x] Prove cyclically nonbacktracking inputs are fixed points of the
+      proof-relevant normalization, extract an exact internal-or-closing
+      cancellation site whenever a nonempty traversal normalizes to empty, and
+      force any internal cancellation in two appended nonbacktracking pieces
+      to their unique junction.
+    - [x] Preserve the selected dependency-segment decomposition as an indexed
+      finite family, localize the empty branch's exact site to an adjacent or
+      cyclic junction, and prove that its exact occurrence is both the
+      preceding dependency's retained reflexive end and the following waiting
+      par's stored left incidence.
+    - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
+      transport
       the local turn classification through normalization, extract an exact
       edge-simple switching cycle or forbidden nesting, and exclude the
       remaining path-exposed waiting-par obstruction.

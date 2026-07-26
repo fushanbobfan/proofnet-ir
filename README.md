@@ -133,7 +133,21 @@ prohibited immediate reversal, so the turn is free. Every edge of the finite
  switching, and the public
  `DeclarativelyCorrect.referenceSwitchingTree` theorem packages that graph's
  tree property. A nonempty closed tree walk may still be nested backtracking, so
- this does not yet exclude the obstruction. For the nonempty normal form, exact
+ this does not yet exclude the obstruction. The empty branch now additionally
+ exposes a `CyclicImmediateReverseSite` in the original traversal: either an
+ exact adjacent occurrence/reverse pair or an exact reverse pair across the
+ cyclic closing junction. Cyclically nonbacktracking inputs are proved fixed by
+ the proof-relevant normalization, and if two individually nonbacktracking
+pieces contain an internal cancellation after concatenation, that
+cancellation is proved to cross their unique junction. The scheduler proof
+ now retains the complete finite dependency-segment family, its chain indices,
+ and each segment's exact head/last scheduler classifications. It localizes the
+ site to an adjacent or cyclic segment junction and proves that this junction
+ is the same exact occurrence used both as the preceding dependency's retained
+ reflexive end and as the following waiting par's stored left incidence. The
+ remaining empty-branch obligation is to exclude the resulting fully retained
+ nesting. For the
+ nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
  Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one
  occurrence switching and contradict its tree property. Lean consequently

@@ -215,7 +215,18 @@ occurrences. Every dependency carries that same-boundary classification
  par-pair sparsity would place the obstruction in one switching tree, then
  extracts a concrete par whose two occurrences both survive and proves the
  omitted right occurrence is backward from the scheduler's forward-retention
- invariant. The remaining gap is to exclude the exact empty nesting and
+ invariant. In the empty branch, the proof-relevant normalization now exposes
+ an exact cancellation site in the original traversal rather than only
+ reverse-value membership: the site is internal or crosses the cyclic
+ last/first boundary. Cyclically nonbacktracking inputs are fixed points of
+ normalization, and any internal cancellation in the append of two
+ individually nonbacktracking pieces is forced to their unique junction. The
+ scheduler theorem now retains the finite segment family with exact chain
+ indices and endpoint classifications, localizes the site to an adjacent or
+ cyclic family junction, and proves that the same stored occurrence is both
+ the preceding dependency's retained reflexive end and the following waiting
+ par's left incidence. The remaining gap is to exclude that exact empty
+ nesting and
  transport the turn evidence around that concrete nonempty obstruction into an
  excluded edge-simple switching cycle or forbidden nesting. This is
  not yet the correct-state progress theorem needed for pure-worklist

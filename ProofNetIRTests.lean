@@ -392,6 +392,14 @@ example
   apply normalization.reverse_mem_of_normalizes_to_nil rfl
   simp
 
+example
+    (normalization :
+      Graph.EdgeWalk.CyclicImmediateReverseNormalization
+        [parallelDirectedZero, parallelDirectedZero.reverse] []) :
+    Graph.EdgeWalk.CyclicImmediateReverseSite
+      [parallelDirectedZero, parallelDirectedZero.reverse] := by
+  exact normalization.site_of_nonempty_normalizes_to_nil (by simp) rfl
+
 example :
     ∃ reduced,
       Graph.EdgeWalk.ImmediateReverseNormalization
@@ -2267,7 +2275,11 @@ example : ¬cyclicGraph.Acyclic := by
 #check Graph.EdgeWalk.NoImmediateReverse.of_map_nodup
 #check Graph.EdgeWalk.NoImmediateReverse.of_constant_forward
 #check Graph.EdgeWalk.NoImmediateReverse.append
+#check Graph.EdgeWalk.NoImmediateReverse.suffix
 #check Graph.EdgeWalk.NoImmediateReverse.reduced_or_cancel
+#check Graph.EdgeWalk.NoImmediateReverse.not_cancel
+#check Graph.EdgeWalk.NoImmediateReverse.junction_reverse_of_append_cancel
+#check Graph.EdgeWalk.NoImmediateReverse.junction_reverse_of_flatten_cancel
 #check Graph.EdgeWalk.cancelImmediateReverse
 #check Graph.EdgeWalk.ImmediateReverseReduction
 #check Graph.EdgeWalk.ImmediateReverseReduction.length_lt
@@ -2280,13 +2292,20 @@ example : ¬cyclicGraph.Acyclic := by
 #check Graph.EdgeWalk.ImmediateReverseNormalization.length_le
 #check Graph.EdgeWalk.ImmediateReverseNormalization.survives_or_reverse_mem
 #check Graph.EdgeWalk.ImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil
+#check Graph.EdgeWalk.ImmediateReverseNormalization.eq_of_noImmediateReverse
 #check Graph.EdgeWalk.normalizeImmediateReversals
 #check Graph.EdgeWalk.rotateFirstClosed
 #check Graph.EdgeWalk.CyclicNoImmediateReverse
+#check Graph.EdgeWalk.CyclicImmediateReverseSite
+#check Graph.EdgeWalk.CyclicSegmentJunctionReverse
+#check Graph.EdgeWalk.cyclicNoImmediateReverse_or_site
+#check Graph.EdgeWalk.CyclicImmediateReverseSite.segmentJunction_of_flatten
 #check Graph.EdgeWalk.CyclicImmediateReverseNormalization
 #check Graph.EdgeWalk.CyclicImmediateReverseNormalization.membership_subset
 #check Graph.EdgeWalk.CyclicImmediateReverseNormalization.survives_or_reverse_mem
 #check Graph.EdgeWalk.CyclicImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil
+#check Graph.EdgeWalk.CyclicImmediateReverseNormalization.eq_of_cyclicNoImmediateReverse
+#check Graph.EdgeWalk.CyclicImmediateReverseNormalization.site_of_nonempty_normalizes_to_nil
 #check Graph.EdgeWalk.normalizeCyclicImmediateReversalsTraced
 #check Graph.EdgeWalk.normalizeCyclicImmediateReversals
 #check Graph.EdgeSimpleCycle.inflateRetained

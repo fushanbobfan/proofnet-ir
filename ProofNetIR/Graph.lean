@@ -969,6 +969,134 @@ theorem reduced_or_cancel {graph : Graph} :
         · exact .inr
             ⟨first :: before, incoming, after, by simp [tailEquation]⟩
 
+/-- A traversal already known to have no immediate exact reversal cannot be
+presented with an adjacent occurrence/reverse pair. -/
+theorem not_cancel {graph : Graph}
+    {traversed : List graph.DirectedEdge}
+    (reduced : NoImmediateReverse traversed)
+    {before after : List graph.DirectedEdge}
+    {incoming : graph.DirectedEdge}
+    (equation :
+      traversed =
+        before ++ incoming :: incoming.reverse :: after) :
+    False := by
+  have suffixReduced :
+      NoImmediateReverse
+        (incoming :: incoming.reverse :: after) := by
+    rw [equation] at reduced
+    exact reduced.suffix (initial := before)
+  exact suffixReduced.1 rfl
+
+/-- If two individually nonbacktracking traversals concatenate to a list with
+an exact adjacent cancellation, that cancellation must cross their unique
+junction.  This is the list-level bridge used to localize an empty cyclic
+normalization to a boundary between scheduler dependency segments. -/
+theorem junction_reverse_of_append_cancel {graph : Graph}
+    {first second : List graph.DirectedEdge}
+    (firstReduced : NoImmediateReverse first)
+    (secondReduced : NoImmediateReverse second)
+    {before after : List graph.DirectedEdge}
+    {incoming : graph.DirectedEdge}
+    (equation :
+      first ++ second =
+        before ++ incoming :: incoming.reverse :: after) :
+    ∃ firstLast secondHead,
+      first.getLast? = some firstLast ∧
+        second.head? = some secondHead ∧
+          secondHead = firstLast.reverse := by
+  apply Classical.byContradiction
+  intro absent
+  have junction :
+      ∀ firstLast secondHead,
+        first.getLast? = some firstLast →
+          second.head? = some secondHead →
+            secondHead ≠ firstLast.reverse := by
+    intro firstLast secondHead firstLastEq secondHeadEq reversed
+    exact absent
+      ⟨firstLast, secondHead, firstLastEq, secondHeadEq, reversed⟩
+  have combined : NoImmediateReverse (first ++ second) :=
+    NoImmediateReverse.append firstReduced secondReduced junction
+  exact combined.not_cancel equation
+
+/-- If the flattening of a finite family of nonempty, individually
+nonbacktracking traversals contains an adjacent exact cancellation, then some
+two adjacent family members meet in that exact reverse orientation.  The
+returned family decomposition retains the precise junction rather than only
+the flattened list position. -/
+theorem junction_reverse_of_flatten_cancel {graph : Graph} :
+    ∀ {segments : List (List graph.DirectedEdge)},
+      (∀ segment ∈ segments, segment ≠ []) →
+      (∀ segment ∈ segments, NoImmediateReverse segment) →
+      ∀ {before after : List graph.DirectedEdge}
+        {incoming : graph.DirectedEdge},
+        segments.flatten =
+            before ++ incoming :: incoming.reverse :: after →
+          ∃ familyBefore first second familyAfter firstLast secondHead,
+            segments =
+                familyBefore ++ first :: second :: familyAfter ∧
+              first.getLast? = some firstLast ∧
+                second.head? = some secondHead ∧
+                  secondHead = firstLast.reverse
+  | [], _nonempty, _reduced, before, after, incoming, equation => by
+      simp at equation
+  | [first], nonempty, reduced, before, after, incoming, equation => by
+      have firstReduced : NoImmediateReverse first :=
+        reduced first (by simp)
+      exact False.elim
+        (firstReduced.not_cancel (by simpa using equation))
+  | first :: second :: rest, nonempty, reduced,
+      before, after, incoming, equation => by
+      let remaining := (second :: rest).flatten
+      have firstReduced : NoImmediateReverse first :=
+        reduced first (by simp)
+      have firstNonempty : first ≠ [] :=
+        nonempty first (by simp)
+      have secondNonempty : second ≠ [] :=
+        nonempty second (by simp)
+      have remainingEquation :
+          first ++ remaining =
+            before ++ incoming :: incoming.reverse :: after := by
+        simpa [remaining] using equation
+      rcases NoImmediateReverse.reduced_or_cancel remaining with
+        remainingReduced |
+          ⟨remainingBefore, remainingIncoming, remainingAfter,
+            remainingCancellation⟩
+      · rcases firstReduced.junction_reverse_of_append_cancel
+          remainingReduced remainingEquation with
+        ⟨firstLast, remainingHead, firstLastEq,
+          remainingHeadEq, reversed⟩
+        let secondHead := second.head secondNonempty
+        have secondHeadEq :
+            second.head? = some secondHead :=
+          List.head?_eq_some_head secondNonempty
+        have flattenedHead :
+            remaining.head? = some secondHead := by
+          simp [remaining, List.head?_append, secondHeadEq]
+        have headValue : remainingHead = secondHead :=
+          Option.some.inj (remainingHeadEq.symm.trans flattenedHead)
+        exact
+          ⟨[], first, second, rest, firstLast, secondHead,
+            by simp, firstLastEq, secondHeadEq,
+            by simpa [headValue] using reversed⟩
+      · have tailNonempty :
+            ∀ segment ∈ second :: rest, segment ≠ [] := by
+          intro segment membership
+          exact nonempty segment (by simp [membership])
+        have tailReduced :
+            ∀ segment ∈ second :: rest,
+              NoImmediateReverse segment := by
+          intro segment membership
+          exact reduced segment (by simp [membership])
+        rcases junction_reverse_of_flatten_cancel
+            tailNonempty tailReduced remainingCancellation with
+          ⟨familyBefore, left, right, familyAfter,
+            leftLast, rightHead, familyEquation,
+            leftLastEq, rightHeadEq, reversed⟩
+        exact
+          ⟨first :: familyBefore, left, right, familyAfter,
+            leftLast, rightHead,
+            by simp [familyEquation], leftLastEq, rightHeadEq, reversed⟩
+
 end NoImmediateReverse
 
 theorem head_reverseTraversal {graph : Graph}
@@ -1340,6 +1468,23 @@ theorem reverse_mem_of_normalizes_to_nil {graph : Graph}
     contradiction
   · exact paired
 
+/-- Exact internal normalization is the identity on a traversal which already
+has no adjacent occurrence/reverse pair. -/
+theorem eq_of_noImmediateReverse {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization : ImmediateReverseNormalization before after)
+    (reduced : NoImmediateReverse before) :
+    after = before := by
+  cases normalization with
+  | refl => rfl
+  | @step first middle last reduction _tail =>
+      cases reduction with
+      | cancel initial remaining incoming =>
+          exact False.elim
+            (reduced.not_cancel
+              (before := initial) (after := remaining)
+              (incoming := incoming) rfl)
+
 end ImmediateReverseNormalization
 
 /-- Every finite exact-occurrence walk normalizes to a walk with the same
@@ -1393,6 +1538,120 @@ def CyclicNoImmediateReverse {graph : Graph}
       traversed.head? = some first →
         traversed.getLast? = some last →
           first ≠ last.reverse
+
+/-- An exact cyclic cancellation site is either an adjacent occurrence/reverse
+pair inside the chosen list representation or an exact reverse pair across the
+last/first closing junction. -/
+def CyclicImmediateReverseSite {graph : Graph}
+    (traversed : List graph.DirectedEdge) : Prop :=
+  (∃ before incoming after,
+    traversed =
+      before ++ incoming :: incoming.reverse :: after) ∨
+    ∃ first last,
+      traversed.head? = some first ∧
+        traversed.getLast? = some last ∧
+          first = last.reverse
+
+/-- A cyclic reverse junction in a segmented traversal is either between two
+adjacent family members or between the final and initial family members.  The
+singleton case is intentionally allowed in the closing alternative. -/
+def CyclicSegmentJunctionReverse {graph : Graph}
+    (segments : List (List graph.DirectedEdge)) : Prop :=
+  (∃ familyBefore first second familyAfter firstLast secondHead,
+    segments =
+        familyBefore ++ first :: second :: familyAfter ∧
+      first.getLast? = some firstLast ∧
+        second.head? = some secondHead ∧
+          secondHead = firstLast.reverse) ∨
+    ∃ firstSegment lastSegment first last,
+      segments.head? = some firstSegment ∧
+        segments.getLast? = some lastSegment ∧
+          firstSegment.head? = some first ∧
+            lastSegment.getLast? = some last ∧
+              first = last.reverse
+
+/-- Every finite exact traversal is either cyclically nonbacktracking or
+exposes an exact internal or closing cancellation site. -/
+theorem cyclicNoImmediateReverse_or_site {graph : Graph}
+    (traversed : List graph.DirectedEdge) :
+    CyclicNoImmediateReverse traversed ∨
+      CyclicImmediateReverseSite traversed := by
+  rcases NoImmediateReverse.reduced_or_cancel traversed with
+    reduced | internal
+  · by_cases closing :
+      ∃ first last,
+        traversed.head? = some first ∧
+          traversed.getLast? = some last ∧
+            first = last.reverse
+    · exact .inr (.inr closing)
+    · exact .inl
+        ⟨reduced, by
+          intro first last firstHead lastLast reversed
+          exact closing ⟨first, last, firstHead, lastLast, reversed⟩⟩
+  · exact .inr (.inl internal)
+
+namespace CyclicImmediateReverseSite
+
+/-- A cancellation site in the flattening of a nonempty family of nonempty,
+individually nonbacktracking traversals localizes to an exact adjacent or
+cyclic family junction. -/
+theorem segmentJunction_of_flatten {graph : Graph}
+    {segments : List (List graph.DirectedEdge)}
+    (familyNonempty : segments ≠ [])
+    (segmentsNonempty :
+      ∀ segment ∈ segments, segment ≠ [])
+    (segmentsReduced :
+      ∀ segment ∈ segments, NoImmediateReverse segment)
+    (site : CyclicImmediateReverseSite segments.flatten) :
+    CyclicSegmentJunctionReverse segments := by
+  rcases site with
+    ⟨before, incoming, after, internal⟩ |
+      ⟨first, last, flattenedHead, flattenedLast, closing⟩
+  · exact .inl
+      (NoImmediateReverse.junction_reverse_of_flatten_cancel
+        segmentsNonempty segmentsReduced internal)
+  · let firstSegment := segments.head familyNonempty
+    let lastSegment := segments.getLast familyNonempty
+    have firstSegmentFamilyHead :
+        segments.head? = some firstSegment :=
+      List.head?_eq_some_head familyNonempty
+    have lastSegmentFamilyLast :
+        segments.getLast? = some lastSegment :=
+      List.getLast?_eq_some_getLast familyNonempty
+    have firstSegmentNonempty : firstSegment ≠ [] :=
+      segmentsNonempty firstSegment
+        (List.head_mem familyNonempty)
+    have lastSegmentNonempty : lastSegment ≠ [] :=
+      segmentsNonempty lastSegment
+        (List.getLast_mem familyNonempty)
+    rcases List.head?_eq_some_iff.mp firstSegmentFamilyHead with
+      ⟨familyTail, familyHeadEquation⟩
+    rcases List.getLast?_eq_some_iff.mp lastSegmentFamilyLast with
+      ⟨familyInitial, familyLastEquation⟩
+    have firstSegmentHead :
+        firstSegment.head? = some first := by
+      calc
+        firstSegment.head? =
+            segments.flatten.head? := by
+              rw [familyHeadEquation]
+              simp [List.head?_append,
+                List.head?_eq_some_head firstSegmentNonempty]
+        _ = some first := flattenedHead
+    have lastSegmentLast :
+        lastSegment.getLast? = some last := by
+      calc
+        lastSegment.getLast? =
+            segments.flatten.getLast? := by
+              rw [familyLastEquation]
+              simp [List.getLast?_append,
+                List.getLast?_eq_some_getLast lastSegmentNonempty]
+        _ = some last := flattenedLast
+    exact .inr
+      ⟨firstSegment, lastSegment, first, last,
+        firstSegmentFamilyHead, lastSegmentFamilyLast,
+        firstSegmentHead, lastSegmentLast, closing⟩
+
+end CyclicImmediateReverseSite
 
 namespace CyclicNoImmediateReverse
 
@@ -1637,6 +1896,54 @@ theorem reverse_mem_of_normalizes_to_nil {graph : Graph}
   · rw [afterEmpty] at survived
     contradiction
   · exact paired
+
+/-- Proof-relevant cyclic normalization is the identity on a traversal which
+already has neither an internal nor a closing exact reversal. -/
+theorem eq_of_cyclicNoImmediateReverse {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicImmediateReverseNormalization before after)
+    (reduced : CyclicNoImmediateReverse before) :
+    after = before := by
+  cases normalization with
+  | finish internal =>
+      exact internal.eq_of_noImmediateReverse reduced.1
+  | @closing _initial middle _final first last internal
+      closingReverse _tail =>
+      have internalEquation :
+          first :: (middle ++ [last]) = before :=
+        internal.eq_of_noImmediateReverse reduced.1
+      have firstHead :
+          before.head? = some first := by
+        rw [← internalEquation]
+        simp
+      have lastLast :
+          before.getLast? = some last := by
+        rw [← internalEquation]
+        rw [List.getLast?_cons_of_ne_nil (by simp)]
+        simp
+      exact False.elim
+        (reduced.2 first last firstHead lastLast closingReverse)
+
+/-- If a nonempty exact cyclic traversal normalizes completely to the empty
+trace, the original representation already exposes a concrete internal or
+closing cancellation site.  This is stronger than reverse-value membership:
+it records where the first scheduler-level nesting analysis must begin. -/
+theorem site_of_nonempty_normalizes_to_nil {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicImmediateReverseNormalization before after)
+    (beforeNonempty : before ≠ [])
+    (afterEmpty : after = []) :
+    CyclicImmediateReverseSite before := by
+  rcases cyclicNoImmediateReverse_or_site before with
+    reduced | site
+  · have unchanged := normalization.eq_of_cyclicNoImmediateReverse reduced
+    have beforeEmpty : before = [] := by
+      rw [← unchanged]
+      exact afterEmpty
+    exact False.elim (beforeNonempty beforeEmpty)
+  · exact site
 
 end CyclicImmediateReverseNormalization
 
