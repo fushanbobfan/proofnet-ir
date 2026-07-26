@@ -100,8 +100,11 @@
   unassigned or is registered with distinct live tokens, while a tensor has
   its opposite premise unassigned because correctness excludes the
   both-premises-marked deadlock. The same classification is now proved at
-  both sides of the bracketed middle region. Correctness still must exclude
-  these two-sided path-exposed forward-connective cases, so
+  both sides of the bracketed middle region. Cutting the suffix at its first
+  unmarked-to-marked reentry now isolates a contiguous block whose
+  intervening occurrences have two unmarked endpoints, and preserves exact
+  scheduler classifications at both boundary orientations. Correctness still
+  must exclude this path-exposed inactive block, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

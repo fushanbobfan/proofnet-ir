@@ -100,8 +100,10 @@ expansion.
 #print axioms UnificationMarking.mergeExtension_comm
 #print axioms Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true
 #print axioms Graph.EdgeSimplePath.prefixBefore
+#print axioms Graph.EdgeSimplePath.suffixAfter
 #print axioms UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary
 #print axioms UnificationMarking.referencePath_has_last_unmarked_to_marked_boundary
+#print axioms UnificationMarking.referencePath_has_first_unmarked_to_marked_boundary
 #print axioms Certificate.linkLeftRetainedEdges_lookup_origin
 #print axioms UnificationMarking.referenceDirectedEdge_origin
 #print axioms UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin

@@ -159,7 +159,9 @@ completed axiom initialization, and causal closure classify the occurrence as
 a forward premise-to-conclusion edge of a submitted par or tensor. Quiescent
 scheduler coverage further isolates an unassigned omitted par premise, a
 registered distinct-token par, or an unassigned opposite tensor premise at
-both sides. The resulting two-sided path-exposed middle region has not yet
+both sides. A first-reentry suffix cut further proves that every traversed
+occurrence strictly between the selected boundaries has two unmarked
+endpoints. The resulting contiguous path-exposed inactive block has not yet
 been excluded; this is not yet the correct-state progress theorem needed for
 pure-worklist completeness. The
 attempt accounting also excludes consumer-table construction, waiting-list

@@ -1349,6 +1349,58 @@ theorem suffixPath {graph : Graph} (path : graph.EdgeSimplePath)
     rw [targetEquation] at targetMembership
     simpa [EdgeWalk.visitedVertices] using targetMembership
 
+/-- The traversal strictly after a selected exact edge occurrence remains a
+simple path beginning at that occurrence's target. -/
+theorem suffixAfter {graph : Graph} (path : graph.EdgeSimplePath)
+    {before after : List graph.DirectedEdge} {first : graph.DirectedEdge}
+    (traversalEquation : path.traversed = before ++ first :: after) :
+    ∃ suffix : graph.EdgeSimplePath,
+      suffix.start = first.target ∧
+      suffix.finish = path.finish ∧
+      suffix.traversed = after ∧
+      ∀ vertex, vertex ∈ suffix.vertices → vertex ∈ path.vertices := by
+  have fullChain := path.walk.toChain
+  rw [traversalEquation] at fullChain
+  rcases fullChain.split_append with
+    ⟨middle, _prefixChain, suffixChain⟩
+  cases suffixChain with
+  | cons directed starts tail =>
+      have suffixWalk := tail.toWalk
+      refine ⟨
+        { start := first.target
+          finish := path.finish
+          traversed := after
+          walk := suffixWalk
+          verticesNodup := ?_ }, rfl, rfl, rfl, ?_⟩
+      · have fullNodup := path.verticesNodup
+        rw [traversalEquation] at fullNodup
+        have decomposedNodup :
+            ((path.start :: before.map DirectedEdge.target) ++
+              (first.target :: after.map DirectedEdge.target)).Nodup := by
+          simpa [EdgeWalk.visitedVertices, List.map_append] using fullNodup
+        exact (List.nodup_append.mp decomposedNodup).2.1
+      · intro vertex membership
+        simp only [vertices, EdgeWalk.visitedVertices, List.mem_cons,
+          List.mem_map] at membership ⊢
+        rcases membership with atFirstTarget | laterTarget
+        · have firstMembership : first ∈ path.traversed := by
+            rw [traversalEquation]
+            simp
+          have targetMembership :=
+            (path.walk.endpoints_mem_visitedVertices firstMembership).2
+          rw [atFirstTarget]
+          simpa [EdgeWalk.visitedVertices] using targetMembership
+        · rcases laterTarget with
+            ⟨later, laterMembership, targetEquation⟩
+          have fullMembership : later ∈ path.traversed := by
+            rw [traversalEquation]
+            simp only [List.mem_append, List.mem_cons]
+            exact .inr (.inr laterMembership)
+          have targetMembership :=
+            (path.walk.endpoints_mem_visitedVertices fullMembership).2
+          rw [targetEquation] at targetMembership
+          simpa [EdgeWalk.visitedVertices] using targetMembership
+
 /-- Every edge occurrence traversed by a simple path has distinct endpoints. -/
 theorem directed_source_ne_target {graph : Graph}
     (path : graph.EdgeSimplePath) {directed : graph.DirectedEdge}

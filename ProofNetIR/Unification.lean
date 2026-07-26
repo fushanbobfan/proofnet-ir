@@ -15025,6 +15025,199 @@ private theorem canonicalWorklistRun_incomplete_twoSidedSchedulerRegion
       leftBoundaryTargetUnmarked, rightBoundarySourceUnmarked,
       leftStatus, rightStatus⟩
 
+/-- Cut the bracket at the first return from the unmarked region to a marked
+vertex.  Unlike the coarser two-sided bracket, every occurrence strictly
+between the returned boundaries has unmarked endpoints. -/
+private theorem canonicalWorklistRun_incomplete_firstInactiveBlock
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (leftBoundary reentry :
+            certificate.referenceSwitchingGraph.DirectedEdge)
+          (before inactive after :
+            List certificate.referenceSwitchingGraph.DirectedEdge),
+        path.traversed =
+            before ++
+              leftBoundary :: (inactive ++ reentry :: after) ∧
+          leftBoundary ≠ reentry ∧
+            final.core.assignedToken? leftBoundary.target = none ∧
+              (∀ candidate ∈ inactive,
+                final.core.assignedToken? candidate.source = none ∧
+                  final.core.assignedToken? candidate.target = none) ∧
+                final.core.assignedToken? reentry.source = none ∧
+                  final.core.assignedToken? reentry.target ≠ none ∧
+                    PathFrontierSchedulerObstruction
+                        certificate final leftBoundary ∧
+                      PathFrontierSchedulerObstruction
+                        certificate final reentry.reverse := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (leftBoundary reentry :
+            certificate.referenceSwitchingGraph.DirectedEdge)
+          (before inactive after :
+            List certificate.referenceSwitchingGraph.DirectedEdge),
+        path.traversed =
+            before ++
+              leftBoundary :: (inactive ++ reentry :: after) ∧
+          leftBoundary ≠ reentry ∧
+            final.core.assignedToken? leftBoundary.target = none ∧
+              (∀ candidate ∈ inactive,
+                final.core.assignedToken? candidate.source = none ∧
+                  final.core.assignedToken? candidate.target = none) ∧
+                final.core.assignedToken? reentry.source = none ∧
+                  final.core.assignedToken? reentry.target ≠ none ∧
+                    PathFrontierSchedulerObstruction
+                        certificate final leftBoundary ∧
+                      PathFrontierSchedulerObstruction
+                        certificate final reentry.reverse
+  intro incomplete
+  rcases canonicalWorklistRun_incomplete_waitingParPath
+      correct startEquation incomplete with
+    ⟨_index, left, right, _conclusion, _leftToken, _rightToken,
+      path, leftBoundary, leftBefore, leftAfter, _waitingLookup,
+      _waitingConclusionUnmarked, _leftMarked, rightMarked, _different,
+      _registered, _noActiveWalk, pathStarts, pathFinishes,
+      _conclusionAvoided, leftTraversalEquation, _leftPrefixMarked,
+      _leftBoundaryMembership, _activeFromLeft, _leftBoundaryToken,
+      leftBoundarySourceAssigned, leftBoundaryTargetUnmarked,
+      _leftBoundaryTargetNeLeft, _leftBoundaryTargetNeRight,
+      _leftBoundaryTargetNeConclusion, leftBoundaryOrigin⟩
+  have coreInvariant :
+      WorklistCoreInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_coreInvariant correct.1 startEquation
+  let marking :=
+    final.core.toMarking certificate coreInvariant.1
+  rcases path.suffixAfter leftTraversalEquation with
+    ⟨suffix, suffixStarts, suffixFinishes, suffixSteps, _suffixSubset⟩
+  have suffixStartUnmarked :
+      (marking.mark suffix.start).isSome = false := by
+    change (final.core.assignedToken? suffix.start).isSome = false
+    rw [suffixStarts, leftBoundaryTargetUnmarked]
+    rfl
+  rcases final.core.tokenAt?_some_witness rightMarked with
+    ⟨rightRaw, rightRawMarked, _rightRepresentative⟩
+  have suffixFinishMarked :
+      (marking.mark suffix.finish).isSome = true := by
+    simp [marking, suffixFinishes, pathFinishes, rightRawMarked]
+  rcases marking.referencePath_has_first_unmarked_to_marked_boundary
+      suffix suffixStartUnmarked suffixFinishMarked with
+    ⟨inactive, reentry, after, suffixTraversalEquation,
+      inactiveUnmarked, reentrySourceUnmarked,
+      reentryTargetMarked⟩
+  have leftAfterEquation :
+      leftAfter = inactive ++ reentry :: after :=
+    suffixSteps.symm.trans suffixTraversalEquation
+  have traversalEquation :
+      path.traversed =
+        leftBefore ++
+          leftBoundary :: (inactive ++ reentry :: after) := by
+    rw [leftTraversalEquation, leftAfterEquation]
+  have assignedNoneOfUnmarked :
+      ∀ {vertex : Vertex},
+        (marking.mark vertex).isSome = false →
+          final.core.assignedToken? vertex = none := by
+    intro vertex unmarked
+    change
+      (final.core.assignedToken? vertex).isSome = false at unmarked
+    cases equation : final.core.assignedToken? vertex with
+    | none => rfl
+    | some token =>
+        simp [equation] at unmarked
+  have inactiveAssignedNone :
+      ∀ candidate ∈ inactive,
+        final.core.assignedToken? candidate.source = none ∧
+          final.core.assignedToken? candidate.target = none := by
+    intro candidate membership
+    rcases inactiveUnmarked candidate membership with
+      ⟨sourceUnmarked, targetUnmarked⟩
+    exact
+      ⟨assignedNoneOfUnmarked sourceUnmarked,
+        assignedNoneOfUnmarked targetUnmarked⟩
+  have reentrySourceAssignedNone :
+      final.core.assignedToken? reentry.source = none :=
+    assignedNoneOfUnmarked reentrySourceUnmarked
+  have reentryTargetAssigned :
+      final.core.assignedToken? reentry.target ≠ none := by
+    intro targetUnassigned
+    change
+      (final.core.assignedToken? reentry.target).isSome = true
+        at reentryTargetMarked
+    rw [targetUnassigned] at reentryTargetMarked
+    contradiction
+  have boundariesDifferent : leftBoundary ≠ reentry := by
+    intro same
+    apply reentryTargetAssigned
+    rw [← same]
+    exact leftBoundaryTargetUnmarked
+  have causal :
+      marking.MarkingCausallyClosed :=
+    (canonicalWorklistRun_causallyThreaded
+      correct.1 startEquation).1
+  have axiomsMarked :
+      ∀ {axiomIndex axiomLeft axiomRight : Nat},
+        certificate.links[axiomIndex]? =
+            some (Link.axiom axiomLeft axiomRight) →
+          (marking.mark axiomLeft).isSome = true ∧
+            (marking.mark axiomRight).isSome = true := by
+    intro axiomIndex axiomLeft axiomRight axiomLookup
+    have axiomMembership :
+        Link.axiom axiomLeft axiomRight ∈ certificate.links :=
+      List.mem_of_getElem? axiomLookup
+    have assigned :=
+      canonicalWorklistRun_axiom_endpoints_assigned
+        correct.1 startEquation axiomMembership
+    constructor
+    · change (final.core.assignedToken? axiomLeft).isSome = true
+      cases equation : final.core.assignedToken? axiomLeft with
+      | none => exact False.elim (assigned.1 equation)
+      | some token => rfl
+    · change (final.core.assignedToken? axiomRight).isSome = true
+      cases equation : final.core.assignedToken? axiomRight with
+      | none => exact False.elim (assigned.2 equation)
+      | some token => rfl
+  have reentryOrigin :
+      ForwardReferenceConnectiveOccurrence certificate reentry.reverse := by
+    have origin :=
+      marking.marked_to_unmarked_referenceEdge_connective_origin
+        causal axiomsMarked reentry.reverse
+        (by simpa using reentryTargetMarked)
+        (by simpa using reentrySourceUnmarked)
+    simpa [ForwardReferenceConnectiveOccurrence] using origin
+  have leftStatus :=
+    canonicalWorklistRun_forwardFrontier_status
+      correct startEquation leftBoundarySourceAssigned
+      leftBoundaryTargetUnmarked
+      (by simpa [ForwardReferenceConnectiveOccurrence] using
+        leftBoundaryOrigin)
+  have reentryStatus :=
+    canonicalWorklistRun_forwardFrontier_status
+      (boundary := reentry.reverse)
+      correct startEquation (by simpa using reentryTargetAssigned)
+      (by simpa using reentrySourceAssignedNone)
+      reentryOrigin
+  exact
+    ⟨path, leftBoundary, reentry, leftBefore, inactive, after,
+      traversalEquation, boundariesDifferent,
+      leftBoundaryTargetUnmarked, inactiveAssignedNone,
+      reentrySourceAssignedNone, reentryTargetAssigned,
+      leftStatus, reentryStatus⟩
+
 /-- Every incomplete correct canonical run now exposes a path occurrence
 with a complete local scheduler classification.  This checkpoint separates
 the remaining global geometric exclusion from queue bookkeeping: the path

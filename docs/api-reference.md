@@ -208,6 +208,23 @@ ProofNetIR.Graph.EdgeSimplePath.prefixBefore : ∀ {graph : ProofNetIR.Graph} (p
     ∃ initialPath, initialPath.start = path.start ∧ initialPath.finish = first.source ∧ initialPath.traversed = before
 ```
 
+### `ProofNetIR.Graph.EdgeSimplePath.suffixAfter`
+
+Kind: theorem.
+
+The traversal strictly after a selected exact edge occurrence remains a
+simple path beginning at that occurrence's target.
+
+```lean
+ProofNetIR.Graph.EdgeSimplePath.suffixAfter : ∀ {graph : ProofNetIR.Graph} (path : graph.EdgeSimplePath) {before after : List graph.DirectedEdge}
+  {first : graph.DirectedEdge},
+  path.traversed = before ++ first :: after →
+    ∃ suffix,
+      suffix.start = first.target ∧
+        suffix.finish = path.finish ∧
+          suffix.traversed = after ∧ ∀ (vertex : ProofNetIR.Vertex), vertex ∈ suffix.vertices → vertex ∈ path.vertices
+```
+
 ### `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq`
 
 Kind: theorem.
@@ -2736,6 +2753,27 @@ ProofNetIR.UnificationMarking.referencePath_has_last_unmarked_to_marked_boundary
         path.traversed = before ++ directed :: after ∧
           (state.mark directed.source).isSome = false ∧
             (state.mark directed.target).isSome = true ∧ state.activeReferenceGraph.Walk directed.target path.finish
+```
+
+### `ProofNetIR.UnificationMarking.referencePath_has_first_unmarked_to_marked_boundary`
+
+Kind: theorem.
+
+Starting from an unmarked endpoint, the first return to the marked region
+retains an exact traversal split and proves that every earlier traversed
+occurrence has unmarked endpoints.
+
+```lean
+ProofNetIR.UnificationMarking.referencePath_has_first_unmarked_to_marked_boundary : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
+  (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+  (state.mark path.start).isSome = false →
+    (state.mark path.finish).isSome = true →
+      ∃ before directed after,
+        path.traversed = before ++ directed :: after ∧
+          (∀ (candidate : certificate.referenceSwitchingGraph.DirectedEdge),
+              candidate ∈ before →
+                (state.mark candidate.source).isSome = false ∧ (state.mark candidate.target).isSome = false) ∧
+            (state.mark directed.source).isSome = false ∧ (state.mark directed.target).isSome = true
 ```
 
 ### `ProofNetIR.UnificationMarking.referenceDirectedEdge_origin`

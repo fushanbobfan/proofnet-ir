@@ -194,8 +194,11 @@ The repository currently contains:
   tensor. Quiescent scheduler coverage then proves these exact local
   alternatives at both sides of the bracketed region: a par has an unassigned
   omitted premise or remains registered on distinct tokens, while a tensor
-  has an unassigned opposite premise. Excluding the two-sided path-exposed
-  middle region is the sole open progress obligation;
+  has an unassigned opposite premise. A stricter suffix cut now selects the
+  first reentry into the marked region and proves that every intervening
+  traversed occurrence has two unmarked endpoints, while retaining exact
+  scheduler classifications at both boundary orientations. Excluding this
+  contiguous inactive block is the sole open progress obligation;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

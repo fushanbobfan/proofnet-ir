@@ -181,9 +181,13 @@ part of the engineering and proof-identity gap.
    occurrence-exactly as a forward premise-to-conclusion edge of a concrete
    submitted par or tensor. Quiescent scheduler coverage now gives the exact
    residual cases: an omitted/unassigned par premise, a registered
-   distinct-token par, or an opposite/unassigned tensor premise. Excluding
-   the resulting two-sided middle region, pure worklist completeness,
-   and a full cost theorem remain open.
+   distinct-token par, or an opposite/unassigned tensor premise.
+   A first-reentry suffix cut narrows the remaining geometry to a contiguous
+   inactive block:
+   every intervening traversed occurrence has two unmarked endpoints and both
+   boundary orientations retain their exact scheduler classifications.
+   Excluding that block, pure worklist completeness, and a full cost theorem
+   remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

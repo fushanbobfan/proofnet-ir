@@ -485,7 +485,10 @@
       opposite-premise/unassigned for tensor after deadlock exclusion.
     - [x] Derive the same scheduler classification at the reverse-oriented
       right frontier.
-    - [ ] Exclude the resulting two-sided path-exposed middle-region
+    - [x] Cut at the first unmarked-to-marked reentry and prove that every
+      intervening traversed occurrence has two unmarked endpoints, retaining
+      exact scheduler classifications at both boundary orientations.
+    - [ ] Exclude the resulting contiguous path-exposed inactive-block
       obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues

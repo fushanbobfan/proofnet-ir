@@ -122,8 +122,11 @@ scheduler coverage now refines the par case to either an unassigned omitted
 premise or two distinct registered tokens, and refines the tensor case to an
 unassigned opposite premise after excluding the same-thread deadlock. This
 classification now holds at both sides of the bracketed region. What remains
-is the global progress argument excluding that two-sided middle region in a
-correct quiescent state.
+is narrower still: cutting at the first unmarked-to-marked reentry proves
+that every intervening path occurrence has two unmarked endpoints, while both
+boundary orientations retain exact scheduler classifications. The global
+progress argument must exclude this contiguous inactive block in a correct
+quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age

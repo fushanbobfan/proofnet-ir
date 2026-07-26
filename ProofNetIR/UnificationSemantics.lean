@@ -698,6 +698,43 @@ theorem referencePath_has_last_unmarked_to_marked_boundary
   · simpa using reverseSourceMarked
   · simpa [Graph.EdgeSimplePath.reverse] using reverseActivePrefix.symm
 
+/-- Starting from an unmarked endpoint, the first return to the marked region
+retains an exact traversal split and proves that every earlier traversed
+occurrence has unmarked endpoints. -/
+theorem referencePath_has_first_unmarked_to_marked_boundary
+    (state : UnificationMarking certificate)
+    (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+    (startUnmarked : (state.mark path.start).isSome = false)
+    (finishMarked : (state.mark path.finish).isSome = true) :
+    ∃ before directed after,
+      path.traversed = before ++ directed :: after ∧
+        (∀ candidate ∈ before,
+          (state.mark candidate.source).isSome = false ∧
+            (state.mark candidate.target).isSome = false) ∧
+          (state.mark directed.source).isSome = false ∧
+            (state.mark directed.target).isSome = true := by
+  have startAccepted :
+      (!(state.mark path.start).isSome) = true := by
+    simp [startUnmarked]
+  have finishMembership : path.finish ∈ path.vertices := by
+    exact path.walk.finish_mem_visitedVertices
+  have visitedRejected :
+      ∃ vertex ∈ path.vertices,
+        (!(state.mark vertex).isSome) = false := by
+    exact ⟨path.finish, finishMembership, by simp [finishMarked]⟩
+  rcases path.exists_traversed_first_boundary_of_start_true
+      (fun vertex => !(state.mark vertex).isSome)
+      startAccepted visitedRejected with
+    ⟨before, directed, after, traversalEquation,
+      prefixUnmarked, sourceUnmarked, targetMarked⟩
+  refine
+    ⟨before, directed, after, traversalEquation, ?_,
+      by simpa using sourceUnmarked, by simpa using targetMarked⟩
+  intro candidate membership
+  rcases prefixUnmarked candidate membership with
+    ⟨source, target⟩
+  exact ⟨by simpa using source, by simpa using target⟩
+
 /-- Link-local threading controls every retained edge value, before the
 endpoint-mark filter defining the active graph is applied. -/
 private theorem retainedEdge_threaded
