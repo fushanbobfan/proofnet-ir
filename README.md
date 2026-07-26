@@ -23,8 +23,11 @@ dependency fan-out enqueues only submitted connectives; waiting requeues
 contain only submitted pars; and every real queue head is therefore a genuine
 connective. The complete finite production run preserves a bundled
 core/scheduler/flag/carrier/provenance invariant and full scheduler coverage.
-Fuel sufficiency and the correct-quiescent-state progress theorem still must
-be established before removing the recursive fallback. The later
+Queue and waiting flags are now exact in both directions, both concrete
+registries remain duplicate-free through every finite run, and each registry
+is proved to contain at most one entry per submitted link slot. Enqueue-event
+accounting, fuel sufficiency, and the correct-quiescent-state progress theorem
+still must be established before removing the recursive fallback. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

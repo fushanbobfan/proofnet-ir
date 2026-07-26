@@ -5522,6 +5522,17 @@ private def QueueFlagSound (state : UnificationWorklistState) : Prop :=
   ∀ {index : Nat}, state.queued[index]? = some true →
     index ∈ state.queue
 
+/-- Every real queue member owns a `true` deduplication flag. Together with
+`QueueFlagSound`, this makes the array an exact characteristic function of
+the concrete queue. -/
+private def QueueFlagComplete (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, index ∈ state.queue →
+    state.queued[index]? = some true
+
+/-- The concrete queue has no duplicate link indices. -/
+private def QueueNodup (state : UnificationWorklistState) : Prop :=
+  state.queue.Nodup
+
 /-- Every real queue member addresses a valid deduplication-flag slot. -/
 private def QueueBounded (state : UnificationWorklistState) : Prop :=
   ∀ {index : Nat}, index ∈ state.queue →
@@ -5533,10 +5544,100 @@ private def WaitingFlagSound (state : UnificationWorklistState) : Prop :=
   ∀ {index : Nat}, state.waitingFlags[index]? = some true →
     index ∈ state.waiting
 
+/-- Every registered waiting par owns a `true` waiting flag. -/
+private def WaitingFlagComplete (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, index ∈ state.waiting →
+    state.waitingFlags[index]? = some true
+
+/-- The waiting-par registry has no duplicate link indices. -/
+private def WaitingNodup (state : UnificationWorklistState) : Prop :=
+  state.waiting.Nodup
+
 /-- Every waiting-par registry member addresses a valid flag slot. -/
 private def WaitingBounded (state : UnificationWorklistState) : Prop :=
   ∀ {index : Nat}, index ∈ state.waiting →
     index < state.waitingFlags.size
+
+/-- A duplicate-free finite registry contained in a finite ambient list
+cannot be longer than that ambient carrier. -/
+private theorem worklist_length_le_of_nodup_subset
+    {α : Type} [BEq α] [LawfulBEq α]
+    {values ambient : List α} (nodup : values.Nodup)
+    (subset : ∀ value ∈ values, value ∈ ambient) :
+    values.length ≤ ambient.length := by
+  induction values generalizing ambient with
+  | nil =>
+      simp
+  | cons head tail induction =>
+      have headMembership : head ∈ ambient :=
+        subset head (by simp)
+      have tailSubset :
+          ∀ value ∈ tail, value ∈ ambient.erase head := by
+        intro value membership
+        have valueMembership : value ∈ ambient :=
+          subset value (by simp [membership])
+        have different : value ≠ head := by
+          intro same
+          subst value
+          exact (List.nodup_cons.mp nodup).1 membership
+        exact (List.mem_erase_of_ne different).2 valueMembership
+      have tailBound :=
+        induction (List.nodup_cons.mp nodup).2 tailSubset
+      rw [List.length_erase_of_mem headMembership] at tailBound
+      have positive : 0 < ambient.length :=
+        List.length_pos_of_mem headMembership
+      simp only [List.length_cons]
+      omega
+
+/-- Exact queue flags imply ordinary queue bounds. -/
+private theorem QueueFlagComplete.queueBounded
+    {state : UnificationWorklistState}
+    (complete : QueueFlagComplete state) :
+    QueueBounded state := by
+  intro index membership
+  exact (Array.getElem?_eq_some_iff.mp
+    (complete membership)).1
+
+/-- Exact waiting flags imply ordinary waiting-registry bounds. -/
+private theorem WaitingFlagComplete.waitingBounded
+    {state : UnificationWorklistState}
+    (complete : WaitingFlagComplete state) :
+    WaitingBounded state := by
+  intro index membership
+  exact (Array.getElem?_eq_some_iff.mp
+    (complete membership)).1
+
+/-- Exact queue flags and uniqueness bound the concrete queue by its flag
+carrier. -/
+private theorem QueueNodup.length_le_queuedSize
+    {state : UnificationWorklistState}
+    (nodup : QueueNodup state)
+    (complete : QueueFlagComplete state) :
+    state.queue.length ≤ state.queued.size := by
+  have subset :
+      ∀ index ∈ state.queue,
+        index ∈ List.range state.queued.size := by
+    intro index membership
+    exact List.mem_range.mpr (complete.queueBounded membership)
+  have bound :=
+    worklist_length_le_of_nodup_subset nodup subset
+  simpa using bound
+
+/-- Exact waiting flags and uniqueness bound the concrete waiting registry by
+its flag carrier. -/
+private theorem WaitingNodup.length_le_waitingFlagsSize
+    {state : UnificationWorklistState}
+    (nodup : WaitingNodup state)
+    (complete : WaitingFlagComplete state) :
+    state.waiting.length ≤ state.waitingFlags.size := by
+  have subset :
+      ∀ index ∈ state.waiting,
+        index ∈ List.range state.waitingFlags.size := by
+    intro index membership
+    exact List.mem_range.mpr (complete.waitingBounded membership)
+  have bound :=
+    worklist_length_le_of_nodup_subset nodup subset
+  simpa using bound
 
 /-- A link index denotes one of the submitted binary connectives rather than
 an axiom or an out-of-range number. -/
@@ -5963,6 +6064,97 @@ private theorem QueueFlagSound.enqueueWorklist
         simpa [Array.getElem?_setIfInBounds, same] using flagged
       exact Or.inr (sound oldFlag)
 
+/-- Enqueueing preserves the reverse queue-membership-to-flag direction. -/
+private theorem QueueFlagComplete.enqueueWorklist
+    {state : UnificationWorklistState}
+    (complete : QueueFlagComplete state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    QueueFlagComplete
+      (Certificate.enqueueWorklist kind index state) := by
+  intro candidate membership
+  by_cases already : state.queued[index]?.getD true = true
+  · have oldMembership :
+        candidate ∈ state.queue := by
+      simpa [Certificate.enqueueWorklist, already] using membership
+    have oldFlag := complete oldMembership
+    simpa [Certificate.enqueueWorklist, already] using oldFlag
+  · have lookupFalse :
+        state.queued[index]? = some false := by
+      cases lookup : state.queued[index]? with
+      | none =>
+          simp [lookup] at already
+      | some flag =>
+          cases flag with
+          | false =>
+              rfl
+          | true =>
+              simp [lookup] at already
+    have indexBound :
+        index < state.queued.size :=
+      (Array.getElem?_eq_some_iff.mp lookupFalse).1
+    simp [Certificate.enqueueWorklist, already] at membership
+    rcases membership with same | old
+    · subst candidate
+      have setLookup :
+          (state.queued.setIfInBounds index true)[index]? =
+            some true := by
+        simp [indexBound]
+      simpa [Certificate.enqueueWorklist, already] using setLookup
+    · by_cases same : index = candidate
+      · subst candidate
+        have setLookup :
+            (state.queued.setIfInBounds index true)[index]? =
+              some true := by
+          simp [indexBound]
+        simpa [Certificate.enqueueWorklist, already] using setLookup
+      · have oldFlag := complete old
+        have setLookup :
+            (state.queued.setIfInBounds index true)[candidate]? =
+              some true := by
+          simpa [Array.getElem?_setIfInBounds, same] using oldFlag
+        simpa [Certificate.enqueueWorklist, already] using setLookup
+
+/-- Exact flags prevent a successful enqueue from introducing a duplicate
+queue entry. -/
+private theorem QueueNodup.enqueueWorklist
+    {state : UnificationWorklistState}
+    (nodup : QueueNodup state)
+    (complete : QueueFlagComplete state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    QueueNodup
+      (Certificate.enqueueWorklist kind index state) := by
+  by_cases already : state.queued[index]?.getD true = true
+  · simpa [Certificate.enqueueWorklist, already] using nodup
+  · simp [Certificate.enqueueWorklist, already, QueueNodup]
+    constructor
+    · intro membership
+      have flagged := complete membership
+      simp [flagged] at already
+    · exact nodup
+
+/-- Queue enqueues leave waiting-flag completeness unchanged. -/
+private theorem WaitingFlagComplete.enqueueWorklist
+    {state : UnificationWorklistState}
+    (complete : WaitingFlagComplete state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    WaitingFlagComplete
+      (Certificate.enqueueWorklist kind index state) := by
+  intro candidate membership
+  have oldMembership :
+      candidate ∈ state.waiting := by
+    simpa using membership
+  have oldFlag := complete oldMembership
+  simpa using oldFlag
+
+/-- Queue enqueues leave waiting-registry uniqueness unchanged. -/
+private theorem WaitingNodup.enqueueWorklist
+    {state : UnificationWorklistState}
+    (nodup : WaitingNodup state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    WaitingNodup
+      (Certificate.enqueueWorklist kind index state) := by
+  simpa [WaitingNodup] using nodup
+
 /-- An in-bounds requested index is a real queue member after enqueue.  The
 only no-op case is a sound pre-existing `true` flag. -/
 private theorem QueueFlagSound.mem_enqueueWorklist
@@ -6103,6 +6295,83 @@ private theorem QueueFlagSound.enqueueMany
   | cons head tail induction =>
       simp only [List.foldl_cons]
       exact induction (sound.enqueueWorklist kind head)
+
+/-- Repeated queue enqueues preserve membership-to-flag completeness. -/
+private theorem QueueFlagComplete.enqueueMany
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (complete : QueueFlagComplete state) :
+    QueueFlagComplete
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact complete
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (complete.enqueueWorklist kind head)
+
+/-- Repeated queue enqueues preserve uniqueness when the initial flags are
+complete. -/
+private theorem QueueNodup.enqueueMany
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (nodup : QueueNodup state)
+    (complete : QueueFlagComplete state) :
+    QueueNodup
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact nodup
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      have nextComplete :
+          QueueFlagComplete
+            (Certificate.enqueueWorklist kind head state) :=
+        QueueFlagComplete.enqueueWorklist complete kind head
+      apply induction
+      · exact QueueNodup.enqueueWorklist
+          nodup complete kind head
+      · exact nextComplete
+
+/-- Repeated queue enqueues preserve waiting-flag completeness. -/
+private theorem WaitingFlagComplete.enqueueMany
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (complete : WaitingFlagComplete state) :
+    WaitingFlagComplete
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact complete
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (complete.enqueueWorklist kind head)
+
+/-- Repeated queue enqueues preserve waiting-registry uniqueness. -/
+private theorem WaitingNodup.enqueueMany
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (nodup : WaitingNodup state) :
+    WaitingNodup
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact nodup
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (nodup.enqueueWorklist kind head)
 
 /-- A batch consisting only of submitted connectives preserves exact queue
 provenance. -/
@@ -6419,6 +6688,55 @@ private theorem WaitingFlagSound.enqueueConsumers
   · exact sound
   · exact sound.enqueueMany .dependency _
 
+/-- Dependency fan-out preserves exact queue flags. -/
+private theorem QueueFlagComplete.enqueueConsumers
+    {state : UnificationWorklistState}
+    (complete : QueueFlagComplete state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    QueueFlagComplete
+      (Certificate.enqueueConsumers consumers conclusion state) := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact complete
+  · exact complete.enqueueMany .dependency _
+
+/-- Dependency fan-out preserves queue uniqueness. -/
+private theorem QueueNodup.enqueueConsumers
+    {state : UnificationWorklistState}
+    (nodup : QueueNodup state)
+    (complete : QueueFlagComplete state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    QueueNodup
+      (Certificate.enqueueConsumers consumers conclusion state) := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact nodup
+  · exact nodup.enqueueMany .dependency _ complete
+
+/-- Dependency fan-out preserves waiting-flag completeness. -/
+private theorem WaitingFlagComplete.enqueueConsumers
+    {state : UnificationWorklistState}
+    (complete : WaitingFlagComplete state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    WaitingFlagComplete
+      (Certificate.enqueueConsumers consumers conclusion state) := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact complete
+  · exact complete.enqueueMany .dependency _
+
+/-- Dependency fan-out preserves waiting-registry uniqueness. -/
+private theorem WaitingNodup.enqueueConsumers
+    {state : UnificationWorklistState}
+    (nodup : WaitingNodup state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    WaitingNodup
+      (Certificate.enqueueConsumers consumers conclusion state) := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact nodup
+  · exact nodup.enqueueMany .dependency _
+
 /-- Dependency fan-out preserves the waiting-flag carrier. -/
 @[simp] private theorem enqueueConsumers_waitingFlags_size
     (consumers : Array (List Nat)) (conclusion : Vertex)
@@ -6542,6 +6860,103 @@ private theorem QueueBounded.addWaiting
     exact bounded membership
   · simp [Certificate.addWaiting, already] at membership ⊢
     exact bounded membership
+
+/-- Waiting registration leaves exact queue flags unchanged. -/
+private theorem QueueFlagComplete.addWaiting
+    {state : UnificationWorklistState}
+    (complete : QueueFlagComplete state) (index : Nat) :
+    QueueFlagComplete
+      (Certificate.addWaiting index state) := by
+  intro candidate membership
+  by_cases already : state.waitingFlags[index]?.getD true = true
+  · have oldMembership :
+        candidate ∈ state.queue := by
+      simpa [Certificate.addWaiting, already] using membership
+    have oldFlag := complete oldMembership
+    simpa [Certificate.addWaiting, already] using oldFlag
+  · have oldMembership :
+        candidate ∈ state.queue := by
+      simpa [Certificate.addWaiting, already] using membership
+    have oldFlag := complete oldMembership
+    simpa [Certificate.addWaiting, already] using oldFlag
+
+/-- Waiting registration leaves queue uniqueness unchanged. -/
+private theorem QueueNodup.addWaiting
+    {state : UnificationWorklistState}
+    (nodup : QueueNodup state) (index : Nat) :
+    QueueNodup
+      (Certificate.addWaiting index state) := by
+  by_cases already :
+      state.waitingFlags[index]?.getD true = true
+  · simpa [Certificate.addWaiting, already, QueueNodup] using nodup
+  · simpa [Certificate.addWaiting, already, QueueNodup] using nodup
+
+/-- Waiting registration preserves membership-to-flag completeness. -/
+private theorem WaitingFlagComplete.addWaiting
+    {state : UnificationWorklistState}
+    (complete : WaitingFlagComplete state) (index : Nat) :
+    WaitingFlagComplete
+      (Certificate.addWaiting index state) := by
+  intro candidate membership
+  by_cases already :
+      state.waitingFlags[index]?.getD true = true
+  · have oldMembership :
+        candidate ∈ state.waiting := by
+      simpa [Certificate.addWaiting, already] using membership
+    have oldFlag := complete oldMembership
+    simpa [Certificate.addWaiting, already] using oldFlag
+  · have lookupFalse :
+        state.waitingFlags[index]? = some false := by
+      cases lookup : state.waitingFlags[index]? with
+      | none =>
+          simp [lookup] at already
+      | some flag =>
+          cases flag with
+          | false =>
+              rfl
+          | true =>
+              simp [lookup] at already
+    have indexBound :
+        index < state.waitingFlags.size :=
+      (Array.getElem?_eq_some_iff.mp lookupFalse).1
+    simp [Certificate.addWaiting, already] at membership
+    rcases membership with same | old
+    · subst candidate
+      have setLookup :
+          (state.waitingFlags.setIfInBounds index true)[index]? =
+            some true := by
+        simp [indexBound]
+      simpa [Certificate.addWaiting, already] using setLookup
+    · by_cases same : index = candidate
+      · subst candidate
+        have setLookup :
+            (state.waitingFlags.setIfInBounds index true)[index]? =
+              some true := by
+          simp [indexBound]
+        simpa [Certificate.addWaiting, already] using setLookup
+      · have oldFlag := complete old
+        have setLookup :
+            (state.waitingFlags.setIfInBounds index true)[candidate]? =
+              some true := by
+          simpa [Array.getElem?_setIfInBounds, same] using oldFlag
+        simpa [Certificate.addWaiting, already] using setLookup
+
+/-- Exact waiting flags prevent duplicate registry entries. -/
+private theorem WaitingNodup.addWaiting
+    {state : UnificationWorklistState}
+    (nodup : WaitingNodup state)
+    (complete : WaitingFlagComplete state) (index : Nat) :
+    WaitingNodup
+      (Certificate.addWaiting index state) := by
+  by_cases already :
+      state.waitingFlags[index]?.getD true = true
+  · simpa [Certificate.addWaiting, already] using nodup
+  · simp [Certificate.addWaiting, already, WaitingNodup]
+    constructor
+    · intro membership
+      have flagged := complete membership
+      simp [flagged] at already
+    · exact nodup
 
 /-- Waiting registration does not modify exact queue provenance. -/
 private theorem QueueConnectiveSound.addWaiting
@@ -6843,6 +7258,68 @@ private theorem WaitingParSound.requeueWaiting
   intro index membership
   simp [Certificate.requeueWaiting] at membership
 
+/-- Waiting requeue preserves exact queue flags. -/
+private theorem QueueFlagComplete.requeueWaiting
+    {state : UnificationWorklistState}
+    (complete : QueueFlagComplete state) (linkCount : Nat) :
+    QueueFlagComplete
+      (Certificate.requeueWaiting linkCount state) := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have clearedComplete : QueueFlagComplete cleared := by
+    intro index membership
+    apply complete
+    exact membership
+  unfold Certificate.requeueWaiting
+  change QueueFlagComplete
+    (state.waiting.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      cleared)
+  exact clearedComplete.enqueueMany .waiting state.waiting
+
+/-- Waiting requeue preserves queue uniqueness. -/
+private theorem QueueNodup.requeueWaiting
+    {state : UnificationWorklistState}
+    (nodup : QueueNodup state)
+    (complete : QueueFlagComplete state) (linkCount : Nat) :
+    QueueNodup
+      (Certificate.requeueWaiting linkCount state) := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have clearedNodup : QueueNodup cleared := by
+    exact nodup
+  have clearedComplete : QueueFlagComplete cleared := by
+    intro index membership
+    exact complete membership
+  unfold Certificate.requeueWaiting
+  change QueueNodup
+    (state.waiting.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      cleared)
+  exact clearedNodup.enqueueMany .waiting state.waiting
+    clearedComplete
+
+/-- Waiting requeue clears the registry, so flag completeness is vacuous. -/
+private theorem WaitingFlagComplete.requeueWaiting
+    (state : UnificationWorklistState) (linkCount : Nat) :
+    WaitingFlagComplete
+      (Certificate.requeueWaiting linkCount state) := by
+  intro index membership
+  simp [Certificate.requeueWaiting] at membership
+
+/-- Waiting requeue clears the registry, so uniqueness is immediate. -/
+private theorem WaitingNodup.requeueWaiting
+    (state : UnificationWorklistState) (linkCount : Nat) :
+    WaitingNodup
+      (Certificate.requeueWaiting linkCount state) := by
+  simp [Certificate.requeueWaiting, WaitingNodup]
+
 /-- Full waiting requeue resets the waiting flags soundly. -/
 private theorem WaitingFlagSound.requeueWaiting
     (state : UnificationWorklistState) (linkCount : Nat) :
@@ -6950,16 +7427,81 @@ private theorem SchedulerCoverage.requeueWaiting
       · simpa using leftMarked
       · simpa using rightMarked
 
+private def connectiveIndex? (entry : Link × Nat) : Option Nat :=
+  match entry with
+  | (.axiom _ _, _) => none
+  | (.par _ _ _, index)
+  | (.tensor _ _ _, index) => some index
+
 /-- Initial connective indices, in the same reverse certificate order used by
 the original enqueue fold.  Defining the queue separately makes its coverage
 property available to the proof layer without reasoning through counter and
 flag updates at the same time. -/
 private def initialWorklistQueue (certificate : Certificate) : List Nat :=
-  (certificate.links.zipIdx.filterMap
-    (fun (link, index) =>
-      match link with
-      | .axiom _ _ => none
-      | .par _ _ _ | .tensor _ _ _ => some index)).reverse
+  (certificate.links.zipIdx.filterMap connectiveIndex?).reverse
+
+/-- Every emitted connective index is the second projection of an original
+indexed-link entry. -/
+private theorem mem_filterMap_connectiveIndex?_map_snd
+    {entries : List (Link × Nat)} {index : Nat}
+    (membership :
+      index ∈ entries.filterMap connectiveIndex?) :
+    index ∈ entries.map Prod.snd := by
+  simp only [List.mem_filterMap] at membership
+  rcases membership with ⟨entry, entryMembership, mapped⟩
+  rcases entry with ⟨link, linkIndex⟩
+  cases link <;> simp [connectiveIndex?] at mapped
+  all_goals
+    subst index
+    exact List.mem_map.mpr
+      ⟨(_, linkIndex), entryMembership, rfl⟩
+
+/-- Filtering indexed links down to connective indices preserves uniqueness
+because the original zip indices are unique. -/
+private theorem filterMap_connectiveIndex?_nodup
+    (entries : List (Link × Nat))
+    (indicesNodup : (entries.map Prod.snd).Nodup) :
+    (entries.filterMap connectiveIndex?).Nodup := by
+  induction entries with
+  | nil =>
+      simp
+  | cons head tail induction =>
+      simp only [List.map_cons, List.nodup_cons] at indicesNodup
+      rcases head with ⟨link, linkIndex⟩
+      cases link with
+      | «axiom» left right =>
+          simpa [connectiveIndex?] using
+            induction indicesNodup.2
+      | «par» left right conclusion =>
+          simp only [List.filterMap_cons, connectiveIndex?, List.nodup_cons]
+          constructor
+          · intro membership
+            exact indicesNodup.1
+              (mem_filterMap_connectiveIndex?_map_snd membership)
+          · exact induction indicesNodup.2
+      | «tensor» left right conclusion =>
+          simp only [List.filterMap_cons, connectiveIndex?, List.nodup_cons]
+          constructor
+          · intro membership
+            exact indicesNodup.1
+              (mem_filterMap_connectiveIndex?_map_snd membership)
+          · exact induction indicesNodup.2
+
+/-- The initial queue contains no duplicate connective indices. -/
+private theorem initialWorklistQueue_nodup
+    (certificate : Certificate) :
+    (initialWorklistQueue certificate).Nodup := by
+  unfold initialWorklistQueue
+  have filtered :
+      (certificate.links.zipIdx.filterMap
+        connectiveIndex?).Nodup := by
+    apply filterMap_connectiveIndex?_nodup
+    rw [List.zipIdx_map_snd]
+    exact List.nodup_range'
+      (s := 0) (n := certificate.links.length)
+  rw [List.nodup_iff_pairwise_ne] at filtered ⊢
+  rw [List.pairwise_reverse]
+  exact filtered.imp fun distinct => Ne.symm distinct
 
 /-- Every member of the concrete initial queue is a submitted link index. -/
 private theorem mem_initialWorklistQueue_bound
@@ -6972,13 +7514,13 @@ private theorem mem_initialWorklistQueue_bound
   rcases entry with ⟨link, linkIndex⟩
   cases link with
   | «axiom» left right =>
-      simp at mapped
+      simp [connectiveIndex?] at mapped
   | «par» left right conclusion =>
-      simp at mapped
+      simp [connectiveIndex?] at mapped
       subst index
       simpa using List.snd_lt_of_mem_zipIdx entryMembership
   | «tensor» left right conclusion =>
-      simp at mapped
+      simp [connectiveIndex?] at mapped
       subst index
       simpa using List.snd_lt_of_mem_zipIdx entryMembership
 
@@ -6994,15 +7536,15 @@ private theorem mem_initialWorklistQueue_submitted_connective
   rcases entry with ⟨link, linkIndex⟩
   cases link with
   | «axiom» left right =>
-      simp at mapped
+      simp [connectiveIndex?] at mapped
   | «par» left right conclusion =>
-      simp at mapped
+      simp [connectiveIndex?] at mapped
       subst index
       exact
         ⟨.par left right conclusion,
           List.mk_mem_zipIdx_iff_getElem?.1 entryMembership, rfl⟩
   | «tensor» left right conclusion =>
-      simp at mapped
+      simp [connectiveIndex?] at mapped
       subst index
       exact
         ⟨.tensor left right conclusion,
@@ -7080,6 +7622,52 @@ private theorem foldl_setTrue_size
       rw [induction]
       simp
 
+/-- Once an in-bounds flag is true, later true updates cannot clear it. -/
+private theorem foldl_setTrue_preserves_true
+    (indices : List Nat) {flags : Array Bool} {candidate : Nat}
+    (lookup : flags[candidate]? = some true) :
+    (indices.foldl
+      (fun next index => next.setIfInBounds index true)
+      flags)[candidate]? = some true := by
+  induction indices generalizing flags with
+  | nil =>
+      exact lookup
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      apply induction
+      by_cases same : head = candidate
+      · subst candidate
+        have bound := (Array.getElem?_eq_some_iff.mp lookup).1
+        simp [bound]
+      · simpa [Array.getElem?_setIfInBounds, same] using lookup
+
+/-- Every in-bounds index explicitly visited by the fold ends with a true
+flag. -/
+private theorem foldl_setTrue_lookup_of_mem
+    (indices : List Nat) (flags : Array Bool)
+    {candidate : Nat}
+    (membership : candidate ∈ indices)
+    (bound : candidate < flags.size) :
+    (indices.foldl
+      (fun next index => next.setIfInBounds index true)
+      flags)[candidate]? = some true := by
+  induction indices generalizing flags with
+  | nil =>
+      simp at membership
+  | cons head tail induction =>
+      simp only [List.mem_cons] at membership
+      simp only [List.foldl_cons]
+      rcases membership with rfl | inTail
+      · apply foldl_setTrue_preserves_true
+        have setLookup :
+            (flags.setIfInBounds candidate true)[candidate]? =
+              some true := by
+          simp [bound]
+        exact setLookup
+      · apply induction
+        · exact inTail
+        · simpa using bound
+
 /-- A concrete connective lookup always occurs in the initial queue. -/
 private theorem mem_initialWorklistQueue_of_connective
     {certificate : Certificate} {index : Nat} {link : Link}
@@ -7134,6 +7722,35 @@ private theorem initializeWorklist_queueFlagSound
   · intro index membership
     exact membership
 
+/-- Every initial concrete queue member owns its exact true deduplication
+flag. -/
+private theorem initializeWorklist_queueFlagComplete
+    (certificate : Certificate) (core : UnificationState) :
+    QueueFlagComplete (initializeWorklist certificate core) := by
+  intro index membership
+  have queueMembership :
+      index ∈ initialWorklistQueue certificate := by
+    simpa [initializeWorklist] using membership
+  change
+    ((initialWorklistQueue certificate).foldl
+      (fun flags candidate =>
+        flags.setIfInBounds candidate true)
+      (Array.replicate certificate.links.length false))[index]? =
+        some true
+  apply foldl_setTrue_lookup_of_mem
+  · exact queueMembership
+  · have bound :=
+      mem_initialWorklistQueue_bound
+        (certificate := certificate) queueMembership
+    simpa using bound
+
+/-- The initial concrete queue contains each connective index at most once. -/
+private theorem initializeWorklist_queueNodup
+    (certificate : Certificate) (core : UnificationState) :
+    QueueNodup (initializeWorklist certificate core) := by
+  simpa [initializeWorklist, QueueNodup] using
+    initialWorklistQueue_nodup certificate
+
 /-- The empty initial waiting registry has sound flags. -/
 private theorem initializeWorklist_waitingFlagSound
     (certificate : Certificate) (core : UnificationState) :
@@ -7141,6 +7758,19 @@ private theorem initializeWorklist_waitingFlagSound
   change FlagsSoundFor
     (Array.replicate certificate.links.length false) []
   exact flagsSoundFor_replicate_false _ _
+
+/-- Waiting-flag completeness is vacuous for the empty initial registry. -/
+private theorem initializeWorklist_waitingFlagComplete
+    (certificate : Certificate) (core : UnificationState) :
+    WaitingFlagComplete (initializeWorklist certificate core) := by
+  intro index membership
+  simp [initializeWorklist] at membership
+
+/-- The empty initial waiting registry contains no duplicates. -/
+private theorem initializeWorklist_waitingNodup
+    (certificate : Certificate) (core : UnificationState) :
+    WaitingNodup (initializeWorklist certificate core) := by
+  simp [initializeWorklist, WaitingNodup]
 
 /-- The empty initial waiting registry is vacuously bounded. -/
 private theorem initializeWorklist_waitingBounded
@@ -7316,6 +7946,47 @@ private theorem popWorklist?_success_bookkeeping
         simpa using flagged
       have oldMembership := waitingSound oldFlag
       simpa using oldMembership
+
+/-- Popping one queue head preserves exact queue/waiting flag completeness
+and uniqueness. -/
+private theorem popWorklist?_success_exactDiscipline
+    {state popped : UnificationWorklistState} {index : Nat}
+    (queueComplete : QueueFlagComplete state)
+    (queueNodup : QueueNodup state)
+    (waitingComplete : WaitingFlagComplete state)
+    (waitingNodup : WaitingNodup state)
+    (equation : popWorklist? state = some (index, popped)) :
+    QueueFlagComplete popped ∧
+      QueueNodup popped ∧
+        WaitingFlagComplete popped ∧
+          WaitingNodup popped := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      have oldQueueNodup :
+          (head :: rest).Nodup := by
+        simpa [QueueNodup, queueEquation] using queueNodup
+      have restNodup := (List.nodup_cons.mp oldQueueNodup).2
+      refine ⟨?_, ?_, ?_, ?_⟩
+      · intro candidate membership
+        have oldMembership :
+            candidate ∈ state.queue := by
+          rw [queueEquation]
+          exact List.mem_cons_of_mem head membership
+        have oldFlag := queueComplete oldMembership
+        have distinct : head ≠ candidate := by
+          intro same
+          subst candidate
+          exact (List.nodup_cons.mp oldQueueNodup).1 membership
+        simpa [Array.getElem?_setIfInBounds, distinct] using oldFlag
+      · simpa [QueueNodup] using restNodup
+      · intro candidate membership
+        have oldFlag := waitingComplete membership
+        simpa using oldFlag
+      · simpa [WaitingNodup] using waitingNodup
 
 /-- Popping one queue head preserves every other connective's scheduler
 classification.  The removed index is the unique temporary hole repaired by
@@ -7934,6 +8605,252 @@ private theorem processWorklistLink_provenance
                       rightLookup, same, firing, fired, requeued] using
                         nextProvenance
 
+/-- Processing one submitted queue head preserves exact queue/waiting flag
+completeness and uniqueness through dependency fan-out, waiting registration,
+and full waiting requeue. -/
+private theorem processWorklistLink_exactDiscipline
+    {certificate : Certificate} {index : Nat} {link : Link}
+    {state : UnificationWorklistState}
+    (lookup : certificate.links[index]? = some link)
+    (connective : link.isConnective = true)
+    (queueComplete : QueueFlagComplete state)
+    (queueNodup : QueueNodup state)
+    (waitingComplete : WaitingFlagComplete state)
+    (waitingNodup : WaitingNodup state) :
+    let next :=
+      processWorklistLink certificate
+        certificate.worklistConsumers index state
+    QueueFlagComplete next ∧
+      QueueNodup next ∧
+        WaitingFlagComplete next ∧
+          WaitingNodup next := by
+  have unchanged :
+      QueueFlagComplete state ∧
+        QueueNodup state ∧
+          WaitingFlagComplete state ∧
+            WaitingNodup state :=
+    ⟨queueComplete, queueNodup, waitingComplete, waitingNodup⟩
+  cases link with
+  | «axiom» left right =>
+      simp [Link.isConnective] at connective
+  | «par» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using
+            unchanged
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using unchanged
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                cases firing :
+                    firePar? state.core left right conclusion with
+                | none =>
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing] using unchanged
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    have firedQueueComplete :
+                        QueueFlagComplete fired := by
+                      intro candidate membership
+                      apply queueComplete
+                      simpa [fired, recordWorklistFiring] using membership
+                    have firedQueueNodup :
+                        QueueNodup fired := by
+                      simpa [fired, recordWorklistFiring, QueueNodup] using
+                        queueNodup
+                    have firedWaitingComplete :
+                        WaitingFlagComplete fired := by
+                      intro candidate membership
+                      apply waitingComplete
+                      simpa [fired, recordWorklistFiring] using membership
+                    have firedWaitingNodup :
+                        WaitingNodup fired := by
+                      simpa [fired, recordWorklistFiring, WaitingNodup] using
+                        waitingNodup
+                    have nextQueueComplete :
+                        QueueFlagComplete
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            fired) :=
+                      firedQueueComplete.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextQueueNodup :
+                        QueueNodup
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            fired) :=
+                      firedQueueNodup.enqueueConsumers
+                        firedQueueComplete
+                          certificate.worklistConsumers conclusion
+                    have nextWaitingComplete :
+                        WaitingFlagComplete
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            fired) :=
+                      firedWaitingComplete.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextWaitingNodup :
+                        WaitingNodup
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            fired) :=
+                      firedWaitingNodup.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextExact :
+                        QueueFlagComplete
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              fired) ∧
+                          QueueNodup
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              fired) ∧
+                            WaitingFlagComplete
+                              (Certificate.enqueueConsumers
+                                certificate.worklistConsumers conclusion
+                                fired) ∧
+                              WaitingNodup
+                                (Certificate.enqueueConsumers
+                                  certificate.worklistConsumers conclusion
+                                  fired) :=
+                      ⟨nextQueueComplete, nextQueueNodup,
+                        nextWaitingComplete, nextWaitingNodup⟩
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing, fired] using nextExact
+              · have nextExact :
+                    QueueFlagComplete
+                        (Certificate.addWaiting index state) ∧
+                      QueueNodup
+                          (Certificate.addWaiting index state) ∧
+                        WaitingFlagComplete
+                            (Certificate.addWaiting index state) ∧
+                          WaitingNodup
+                            (Certificate.addWaiting index state) :=
+                  ⟨queueComplete.addWaiting index,
+                    queueNodup.addWaiting index,
+                    waitingComplete.addWaiting index,
+                    waitingNodup.addWaiting waitingComplete index⟩
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup, same] using nextExact
+  | «tensor» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using
+            unchanged
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using unchanged
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup] using unchanged
+              · cases firing :
+                    fireTensor? state.core left right conclusion with
+                | none =>
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing] using unchanged
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    have firedQueueComplete :
+                        QueueFlagComplete fired := by
+                      intro candidate membership
+                      apply queueComplete
+                      simpa [fired, recordWorklistFiring] using membership
+                    have firedQueueNodup :
+                        QueueNodup fired := by
+                      simpa [fired, recordWorklistFiring, QueueNodup] using
+                        queueNodup
+                    have firedWaitingComplete :
+                        WaitingFlagComplete fired := by
+                      intro candidate membership
+                      apply waitingComplete
+                      simpa [fired, recordWorklistFiring] using membership
+                    have firedWaitingNodup :
+                        WaitingNodup fired := by
+                      simpa [fired, recordWorklistFiring, WaitingNodup] using
+                        waitingNodup
+                    let requeued : UnificationWorklistState :=
+                      Certificate.requeueWaiting
+                        certificate.links.length fired
+                    have requeuedQueueComplete :
+                        QueueFlagComplete requeued := by
+                      exact firedQueueComplete.requeueWaiting
+                        certificate.links.length
+                    have requeuedQueueNodup :
+                        QueueNodup requeued := by
+                      exact firedQueueNodup.requeueWaiting
+                        firedQueueComplete certificate.links.length
+                    have requeuedWaitingComplete :
+                        WaitingFlagComplete requeued := by
+                      exact WaitingFlagComplete.requeueWaiting
+                        fired certificate.links.length
+                    have requeuedWaitingNodup :
+                        WaitingNodup requeued := by
+                      exact WaitingNodup.requeueWaiting
+                        fired certificate.links.length
+                    have nextQueueComplete :
+                        QueueFlagComplete
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            requeued) :=
+                      requeuedQueueComplete.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextQueueNodup :
+                        QueueNodup
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            requeued) :=
+                      requeuedQueueNodup.enqueueConsumers
+                        requeuedQueueComplete
+                          certificate.worklistConsumers conclusion
+                    have nextWaitingComplete :
+                        WaitingFlagComplete
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            requeued) :=
+                      requeuedWaitingComplete.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextWaitingNodup :
+                        WaitingNodup
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            requeued) :=
+                      requeuedWaitingNodup.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextExact :
+                        QueueFlagComplete
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeued) ∧
+                          QueueNodup
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeued) ∧
+                            WaitingFlagComplete
+                              (Certificate.enqueueConsumers
+                                certificate.worklistConsumers conclusion
+                                requeued) ∧
+                              WaitingNodup
+                                (Certificate.enqueueConsumers
+                                  certificate.worklistConsumers conclusion
+                                  requeued) :=
+                      ⟨nextQueueComplete, nextQueueNodup,
+                        nextWaitingComplete, nextWaitingNodup⟩
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing, fired, requeued] using
+                        nextExact
+
 /-- Processing one submitted queue head preserves sound scheduler flags and
 their exact submitted-link carriers. -/
 private theorem processWorklistLink_bookkeeping
@@ -8509,6 +9426,16 @@ private def WorklistCoreInvariant (certificate : Certificate)
       state.core.ComponentsFormulaConsistent certificate ∧
         state.core.PendingPremisesCovered certificate
 
+/-- Exact concrete scheduler discipline: both registries are duplicate-free
+and their membership is completely reflected by the corresponding true
+flags. -/
+private def WorklistExactDiscipline
+    (state : UnificationWorklistState) : Prop :=
+  QueueFlagComplete state ∧
+    QueueNodup state ∧
+      WaitingFlagComplete state ∧
+        WaitingNodup state
+
 /-- The complete production-run invariant: kernel-level partial-derivation
 correctness, scheduler coverage, sound deduplication flags, exact carrier
 sizes, and constructor-level provenance for all queue and waiting entries. -/
@@ -8521,7 +9448,31 @@ private def WorklistRunInvariant (certificate : Certificate)
           state.queued.size = certificate.links.length ∧
             state.waitingFlags.size = state.queued.size ∧
               QueueConnectiveSound certificate state ∧
-                WaitingParSound certificate state
+                WaitingParSound certificate state ∧
+                  WorklistExactDiscipline state
+
+/-- Every state satisfying the production invariant has at most one queued
+and one waiting entry per submitted link slot. -/
+private theorem WorklistRunInvariant.registryLengthBounds
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (invariant : WorklistRunInvariant certificate state) :
+    state.queue.length ≤ certificate.links.length ∧
+      state.waiting.length ≤ certificate.links.length := by
+  rcases invariant with
+    ⟨_core, _coverage, _queueSound, _waitingSound,
+      queueSize, waitingSize, _queueProvenance,
+      _waitingProvenance, queueComplete, queueNodup,
+      waitingComplete, waitingNodup⟩
+  constructor
+  · calc
+      state.queue.length ≤ state.queued.size :=
+        queueNodup.length_le_queuedSize queueComplete
+      _ = certificate.links.length := queueSize
+  · calc
+      state.waiting.length ≤ state.waitingFlags.size :=
+        waitingNodup.length_le_waitingFlagsSize waitingComplete
+      _ = state.queued.size := waitingSize
+      _ = certificate.links.length := queueSize
 
 /-- Successful eager axiom initialization from the canonical empty state
 establishes the complete core invariant bundle required by the event-driven
@@ -8587,7 +9538,11 @@ private theorem startAxioms?_success_initializeWorklist_runInvariant
       initializeWorklist_queued_size certificate started,
       ?_,
       initializeWorklist_queueConnectiveSound certificate started,
-      initializeWorklist_waitingParSound certificate started⟩
+      initializeWorklist_waitingParSound certificate started,
+      initializeWorklist_queueFlagComplete certificate started,
+      initializeWorklist_queueNodup certificate started,
+      initializeWorklist_waitingFlagComplete certificate started,
+      initializeWorklist_waitingNodup certificate started⟩
   rw [initializeWorklist_waitingFlags_size,
     initializeWorklist_queued_size]
 
@@ -8949,7 +9904,11 @@ private theorem popProcessWorklist_runInvariant
   rcases invariant with
     ⟨coreInvariant, coverage, queueFlagSound,
       waitingFlagSound, queueSize, waitingSize,
-      queueConnectiveSound, waitingParSound⟩
+      queueConnectiveSound, waitingParSound,
+      exactDiscipline⟩
+  rcases exactDiscipline with
+    ⟨queueFlagComplete, queueNodup,
+      waitingFlagComplete, waitingNodup⟩
   have queueBounded :
       QueueBounded state :=
     queueConnectiveSound.queueBounded queueSize
@@ -8965,6 +9924,11 @@ private theorem popProcessWorklist_runInvariant
       waitingFlagSound popEquation with
     ⟨poppedWaitingFlagSound, poppedQueueCarrier,
       poppedWaitingCarrier⟩
+  rcases popWorklist?_success_exactDiscipline
+      queueFlagComplete queueNodup
+        waitingFlagComplete waitingNodup popEquation with
+    ⟨poppedQueueFlagComplete, poppedQueueNodup,
+      poppedWaitingFlagComplete, poppedWaitingNodup⟩
   have poppedQueueSize :
       popped.queued.size = certificate.links.length := by
     calc
@@ -9030,11 +9994,18 @@ private theorem popProcessWorklist_runInvariant
       processWorklistLink_provenance
         lookup connective poppedQueueConnectiveSound
           poppedWaitingParSound
+  have nextExactDiscipline :
+      WorklistExactDiscipline next := by
+    exact processWorklistLink_exactDiscipline
+      lookup connective poppedQueueFlagComplete
+        poppedQueueNodup poppedWaitingFlagComplete
+          poppedWaitingNodup
   exact
     ⟨nextCore, nextCoverage,
       nextBookkeeping.1, nextBookkeeping.2.1,
       nextBookkeeping.2.2.1, nextBookkeeping.2.2.2,
-      nextProvenance.1, nextProvenance.2⟩
+      nextProvenance.1, nextProvenance.2,
+      nextExactDiscipline⟩
 
 /-- Event-driven saturation. Initial arming and newly marked premises enqueue
 only dependent links. A tensor union requeues the current waiting par set.
@@ -9191,6 +10162,25 @@ private theorem canonicalWorklistRun_runInvariant
   · exact
       startAxioms?_success_initializeWorklist_runInvariant
         structural startEquation
+
+/-- The canonical finite production run keeps both concrete scheduler
+registries within the submitted-link carrier. -/
+private theorem canonicalWorklistRun_registryLengthBounds
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.queue.length ≤ certificate.links.length ∧
+      final.waiting.length ≤ certificate.links.length := by
+  exact
+    (canonicalWorklistRun_runInvariant
+      structural startEquation).registryLengthBounds
 
 /-- Detailed deterministic Guerrini-style parsing candidate with exact scan
 statistics and a proof-relevant quadratic link-visit bound.

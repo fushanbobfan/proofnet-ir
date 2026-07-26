@@ -36,8 +36,13 @@
   only submitted pars, and every real queue head has exact connective
   provenance. The complete finite production run now carries bundled core
   correctness, scheduler coverage, flag soundness, carrier sizes, and
-  queue/waiting provenance. Fuel sufficiency and correct-state progress remain
-  open, so pure-worklist completeness is still not claimed;
+  queue/waiting provenance. Queue and waiting flags are now exact in both
+  directions; both concrete registries remain duplicate-free through every
+  enqueue, waiting registration, requeue, pop, processing branch, and finite
+  production run; and each registry is proved to have length at most the
+  submitted-link carrier. Enqueue-event accounting, fuel sufficiency, and
+  correct-state progress remain open, so pure-worklist completeness is still
+  not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
