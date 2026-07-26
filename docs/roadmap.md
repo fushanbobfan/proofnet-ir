@@ -435,9 +435,11 @@
       connective head, including the temporary popped-head exception,
       non-head status transport, exact dependency fan-out, tensor
       same-class preservation, and processed-head reclassification.
-    - [ ] Prove queue-entry provenance and lift scheduler coverage through
-      the complete finite run, then prove fuel sufficiency and
-      correct-quiescent-state progress.
+    - [x] Prove reverse consumer-table, queue-entry, and waiting-par
+      provenance; bundle them with core correctness, scheduler coverage,
+      sound flags, and exact carriers; and lift the bundle through the
+      complete finite production run.
+    - [ ] Prove fuel sufficiency and correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize
     `NEXTAXIOM`/union-find invariants, prove fuel sufficiency and pure

@@ -18,9 +18,13 @@ invariant are now kernel checked. Atomic pop-and-process restores complete
 scheduler coverage once the popped index is known to be a submitted
 connective: the removed head is reclassified, every other status is
 transported, newly enabled consumers are enqueued, and tensor union preserves
-old shared-token classes. Queue-entry provenance, finite-run scheduler
-preservation, fuel sufficiency, and the correct-quiescent-state progress
-theorem still must be established before removing the recursive fallback. The later
+old shared-token classes. Reverse consumer-table provenance now proves that
+dependency fan-out enqueues only submitted connectives; waiting requeues
+contain only submitted pars; and every real queue head is therefore a genuine
+connective. The complete finite production run preserves a bundled
+core/scheduler/flag/carrier/provenance invariant and full scheduler coverage.
+Fuel sufficiency and the correct-quiescent-state progress theorem still must
+be established before removing the recursive fallback. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

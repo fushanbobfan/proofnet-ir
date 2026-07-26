@@ -5538,6 +5538,32 @@ private def WaitingBounded (state : UnificationWorklistState) : Prop :=
   ∀ {index : Nat}, index ∈ state.waiting →
     index < state.waitingFlags.size
 
+/-- A link index denotes one of the submitted binary connectives rather than
+an axiom or an out-of-range number. -/
+private def SubmittedConnective (certificate : Certificate)
+    (index : Nat) : Prop :=
+  ∃ link,
+    certificate.links[index]? = some link ∧
+    link.isConnective = true
+
+/-- Every concrete work-queue entry originates from a submitted connective.
+This is deliberately stronger than mere array bounds: it rules out both axiom
+indices and fabricated in-range indices. -/
+private def QueueConnectiveSound (certificate : Certificate)
+    (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, index ∈ state.queue →
+    SubmittedConnective certificate index
+
+/-- The waiting registry contains only submitted par links.  Tensor firing
+requeues precisely this registry, so retaining the stronger constructor fact
+keeps queue provenance compositional. -/
+private def WaitingParSound (certificate : Certificate)
+    (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, index ∈ state.waiting →
+    ∃ left right conclusion,
+      certificate.links[index]? =
+        some (.par left right conclusion)
+
 private def pushConsumer (consumers : Array (List Nat))
     (vertex linkIndex : Nat) : Array (List Nat) :=
   match consumers[vertex]? with
@@ -5607,6 +5633,35 @@ private theorem mem_pushConsumer_of_mem
       Array.getElem?_eq_none (Nat.le_of_not_gt vertexBound)
     simpa [pushConsumer, lookupNone] using membership
 
+/-- Every dependency found after one bucket update was either the newly
+inserted link index or was already present before the update. -/
+private theorem mem_pushConsumer_origin
+    {consumers : Array (List Nat)} {vertex linkIndex : Nat}
+    {premise candidate : Nat}
+    (membership :
+      candidate ∈
+        ((pushConsumer consumers vertex linkIndex)[premise]?).getD []) :
+    candidate = linkIndex ∨
+      candidate ∈ (consumers[premise]?).getD [] := by
+  by_cases vertexBound : vertex < consumers.size
+  · by_cases same : vertex = premise
+    · subst premise
+      have inserted :
+          candidate = linkIndex ∨
+            candidate ∈ consumers[vertex] := by
+        simpa [pushConsumer, vertexBound] using membership
+      rcases inserted with inserted | old
+      · exact Or.inl inserted
+      · apply Or.inr
+        rw [Array.getElem?_eq_getElem vertexBound]
+        simpa using old
+    · apply Or.inr
+      simpa [pushConsumer, vertexBound, same] using membership
+  · have lookupNone : consumers[vertex]? = none :=
+      Array.getElem?_eq_none (Nat.le_of_not_gt vertexBound)
+    apply Or.inr
+    simpa [pushConsumer, lookupNone] using membership
+
 /-- One indexed connective update preserves every dependency already stored. -/
 private theorem mem_addLinkConsumers_of_mem
     {consumers : Array (List Nat)} {entry : Link × Nat}
@@ -5626,6 +5681,36 @@ private theorem mem_addLinkConsumers_of_mem
       exact mem_pushConsumer_of_mem
         (mem_pushConsumer_of_mem membership)
 
+/-- Every dependency introduced by one indexed-link update names that exact
+submitted connective; all other dependencies were already present. -/
+private theorem mem_addLinkConsumers_origin
+    {consumers : Array (List Nat)} {link : Link} {linkIndex : Nat}
+    {premise candidate : Nat}
+    (membership :
+      candidate ∈
+        ((addLinkConsumers consumers (link, linkIndex))[premise]?).getD []) :
+    (candidate = linkIndex ∧ link.isConnective = true) ∨
+      candidate ∈ (consumers[premise]?).getD [] := by
+  cases link with
+  | «axiom» left right =>
+      exact Or.inr membership
+  | «par» left right conclusion =>
+      have rightOrigin := mem_pushConsumer_origin membership
+      rcases rightOrigin with rightInserted | beforeRight
+      · exact Or.inl ⟨rightInserted, rfl⟩
+      · have leftOrigin := mem_pushConsumer_origin beforeRight
+        rcases leftOrigin with leftInserted | old
+        · exact Or.inl ⟨leftInserted, rfl⟩
+        · exact Or.inr old
+  | «tensor» left right conclusion =>
+      have rightOrigin := mem_pushConsumer_origin membership
+      rcases rightOrigin with rightInserted | beforeRight
+      · exact Or.inl ⟨rightInserted, rfl⟩
+      · have leftOrigin := mem_pushConsumer_origin beforeRight
+        rcases leftOrigin with leftInserted | old
+        · exact Or.inl ⟨leftInserted, rfl⟩
+        · exact Or.inr old
+
 /-- Folding further indexed links never removes a previously stored
 dependency. -/
 private theorem mem_foldl_addLinkConsumers_of_mem
@@ -5641,6 +5726,39 @@ private theorem mem_foldl_addLinkConsumers_of_mem
   | cons head tail induction =>
       simp only [List.foldl_cons]
       exact induction (mem_addLinkConsumers_of_mem membership)
+
+/-- Every dependency found after a complete consumer-table fold originates
+from a concrete connective entry in that fold or from the initial table. -/
+private theorem mem_foldl_addLinkConsumers_origin
+    (entries : List (Link × Nat))
+    {consumers : Array (List Nat)} {premise candidate : Nat}
+    (membership :
+      candidate ∈
+        ((entries.foldl addLinkConsumers consumers)[premise]?).getD []) :
+    (∃ link linkIndex,
+      (link, linkIndex) ∈ entries ∧
+      candidate = linkIndex ∧
+      link.isConnective = true) ∨
+      candidate ∈ (consumers[premise]?).getD [] := by
+  induction entries generalizing consumers with
+  | nil =>
+      exact Or.inr membership
+  | cons head tail induction =>
+      simp only [List.foldl_cons] at membership
+      rcases induction membership with introduced | beforeTail
+      · rcases introduced with
+          ⟨link, linkIndex, entryMembership, candidateIndex,
+            connective⟩
+        exact Or.inl
+          ⟨link, linkIndex, by simp [entryMembership],
+            candidateIndex, connective⟩
+      · rcases head with ⟨link, linkIndex⟩
+        rcases mem_addLinkConsumers_origin beforeTail with
+          introduced | old
+        · exact Or.inl
+            ⟨link, linkIndex, by simp, introduced.1,
+              introduced.2⟩
+        · exact Or.inr old
 
 /-- Processing one in-bounds indexed connective records its index in the
 bucket of each of its premises. -/
@@ -5712,6 +5830,52 @@ private theorem mem_worklistConsumers_of_premise
   · exact List.mk_mem_zipIdx_iff_getElem?.2 lookup
   · simpa using bound
   · exact premiseMembership
+
+/-- Every dependency in the precomputed consumer table is the index of a
+submitted connective.  This is the reverse provenance direction needed to
+show that dependency fan-out can never inject an axiom or an out-of-range
+number into the real work queue. -/
+private theorem mem_worklistConsumers_submitted_connective
+    {certificate : Certificate} {premise candidate : Nat}
+    (membership :
+      candidate ∈
+        ((worklistConsumers certificate)[premise]?).getD []) :
+    ∃ link,
+      certificate.links[candidate]? = some link ∧
+      link.isConnective = true := by
+  have foldedMembership :
+      candidate ∈
+        (((certificate.links.zipIdx.foldl addLinkConsumers
+          (Array.replicate certificate.formulas.size []))[
+            premise]?).getD []) := by
+    simpa [worklistConsumers] using membership
+  rcases
+      mem_foldl_addLinkConsumers_origin
+        certificate.links.zipIdx foldedMembership with
+    introduced | initial
+  · rcases introduced with
+      ⟨link, linkIndex, entryMembership, candidateIndex,
+        connective⟩
+    subst candidate
+    exact
+      ⟨link,
+        List.mk_mem_zipIdx_iff_getElem?.1 entryMembership,
+        connective⟩
+  · by_cases premiseBound :
+        premise < certificate.formulas.size
+    · have initialLookup :
+          (Array.replicate certificate.formulas.size
+            ([] : List Nat))[premise]? = some [] := by
+        simp [premiseBound]
+      rw [initialLookup] at initial
+      simp at initial
+    · have initialLookup :
+          (Array.replicate certificate.formulas.size
+            ([] : List Nat))[premise]? = none :=
+        Array.getElem?_eq_none (by
+          simpa using Nat.le_of_not_gt premiseBound)
+      rw [initialLookup] at initial
+      simp at initial
 
 private def enqueueWorklist (kind : WorklistEnqueueKind)
     (index : Nat) (state : UnificationWorklistState) :
@@ -5838,6 +6002,35 @@ private theorem QueueBounded.enqueueWorklist
       simpa using indexBound
     · simpa using bounded oldMembership
 
+/-- Enqueueing one submitted connective preserves exact queue provenance. -/
+private theorem QueueConnectiveSound.enqueueWorklist
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : QueueConnectiveSound certificate state)
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (submitted : SubmittedConnective certificate index) :
+    QueueConnectiveSound certificate
+      (Certificate.enqueueWorklist kind index state) := by
+  intro candidate membership
+  by_cases already : state.queued[index]?.getD true = true
+  · simp [Certificate.enqueueWorklist, already] at membership
+    exact sound membership
+  · simp [Certificate.enqueueWorklist, already] at membership
+    rcases membership with same | old
+    · subst candidate
+      exact submitted
+    · exact sound old
+
+/-- Queue-only enqueues leave the waiting-par provenance unchanged. -/
+private theorem WaitingParSound.enqueueWorklist
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : WaitingParSound certificate state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    WaitingParSound certificate
+      (Certificate.enqueueWorklist kind index state) := by
+  intro candidate membership
+  apply sound
+  simpa using membership
+
 /-- Enqueueing cannot invalidate scheduler coverage: it leaves token and
 waiting state unchanged and only adds a real queue member (or is a deduplicated
 no-op). -/
@@ -5900,6 +6093,50 @@ private theorem QueueFlagSound.enqueueMany
     {state : UnificationWorklistState}
     (sound : QueueFlagSound state) :
     QueueFlagSound
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact sound
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (sound.enqueueWorklist kind head)
+
+/-- A batch consisting only of submitted connectives preserves exact queue
+provenance. -/
+private theorem QueueConnectiveSound.enqueueMany
+    {certificate : Certificate}
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (sound : QueueConnectiveSound certificate state)
+    (submitted :
+      ∀ index ∈ indices,
+        SubmittedConnective certificate index) :
+    QueueConnectiveSound certificate
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact sound
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      apply induction
+      · apply sound.enqueueWorklist kind head
+        exact submitted head (by simp)
+      · intro index membership
+        exact submitted index (by simp [membership])
+
+/-- A batch of queue enqueues preserves waiting-par provenance. -/
+private theorem WaitingParSound.enqueueMany
+    {certificate : Certificate}
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (sound : WaitingParSound certificate state) :
+    WaitingParSound certificate
       (indices.foldl
         (fun next index =>
           Certificate.enqueueWorklist kind index next)
@@ -6090,6 +6327,109 @@ private def enqueueConsumers (consumers : Array (List Nat))
   · rfl
   · simp
 
+/-- Dependency fan-out through the concrete certificate consumer table can
+enqueue only submitted connectives. -/
+private theorem QueueConnectiveSound.enqueueConsumersWorklist
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : QueueConnectiveSound certificate state)
+    (conclusion : Vertex) :
+    QueueConnectiveSound certificate
+      (Certificate.enqueueConsumers
+        certificate.worklistConsumers conclusion state) := by
+  cases bucketLookup :
+      certificate.worklistConsumers[conclusion]? with
+  | none =>
+      intro index membership
+      apply sound
+      simpa [Certificate.enqueueConsumers, bucketLookup] using membership
+  | some indices =>
+      unfold Certificate.enqueueConsumers
+      rw [bucketLookup]
+      apply sound.enqueueMany .dependency indices
+      intro index membership
+      unfold SubmittedConnective
+      exact mem_worklistConsumers_submitted_connective
+        (certificate := certificate) (premise := conclusion)
+        (candidate := index)
+        (by simpa [bucketLookup] using membership)
+
+/-- Dependency fan-out never changes which submitted pars are waiting. -/
+private theorem WaitingParSound.enqueueConsumers
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : WaitingParSound certificate state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    WaitingParSound certificate
+      (Certificate.enqueueConsumers consumers conclusion state) := by
+  intro index membership
+  apply sound
+  simpa using membership
+
+/-- Dependency fan-out preserves sound queue flags. -/
+private theorem QueueFlagSound.enqueueConsumers
+    {state : UnificationWorklistState}
+    (sound : QueueFlagSound state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    QueueFlagSound
+      (Certificate.enqueueConsumers consumers conclusion state) := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact sound
+  · exact sound.enqueueMany .dependency _
+
+/-- A single queue enqueue leaves waiting-flag soundness unchanged. -/
+private theorem WaitingFlagSound.enqueueWorklist
+    {state : UnificationWorklistState}
+    (sound : WaitingFlagSound state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    WaitingFlagSound
+      (Certificate.enqueueWorklist kind index state) := by
+  intro candidate flagged
+  have oldFlag :
+      state.waitingFlags[candidate]? = some true := by
+    simpa using flagged
+  have oldMembership := sound oldFlag
+  simpa using oldMembership
+
+/-- Repeated queue enqueues leave waiting-flag soundness unchanged. -/
+private theorem WaitingFlagSound.enqueueMany
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (sound : WaitingFlagSound state) :
+    WaitingFlagSound
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact sound
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (sound.enqueueWorklist kind head)
+
+/-- Dependency fan-out leaves waiting-flag soundness unchanged. -/
+private theorem WaitingFlagSound.enqueueConsumers
+    {state : UnificationWorklistState}
+    (sound : WaitingFlagSound state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    WaitingFlagSound
+      (Certificate.enqueueConsumers consumers conclusion state) := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact sound
+  · exact sound.enqueueMany .dependency _
+
+/-- Dependency fan-out preserves the waiting-flag carrier. -/
+@[simp] private theorem enqueueConsumers_waitingFlags_size
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    ((Certificate.enqueueConsumers consumers conclusion state).waitingFlags).size =
+      state.waitingFlags.size := by
+  unfold Certificate.enqueueConsumers
+  split
+  · rfl
+  · simp
+
 /-- Marking fan-out cannot lose previously covered work, regardless of which
 consumer indices are present. Exactness of the consumer table is a separate
 obligation used to show that all newly enabled links are added. -/
@@ -6202,6 +6542,56 @@ private theorem QueueBounded.addWaiting
     exact bounded membership
   · simp [Certificate.addWaiting, already] at membership ⊢
     exact bounded membership
+
+/-- Waiting registration does not modify exact queue provenance. -/
+private theorem QueueConnectiveSound.addWaiting
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : QueueConnectiveSound certificate state)
+    (index : Nat) :
+    QueueConnectiveSound certificate
+      (Certificate.addWaiting index state) := by
+  intro candidate membership
+  by_cases already : state.waitingFlags[index]?.getD true = true
+  · apply sound
+    simpa [Certificate.addWaiting, already] using membership
+  · apply sound
+    simpa [Certificate.addWaiting, already] using membership
+
+/-- Exact connective provenance plus the submitted-link carrier size implies
+ordinary queue bounds. -/
+private theorem QueueConnectiveSound.queueBounded
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : QueueConnectiveSound certificate state)
+    (queueSize :
+      state.queued.size = certificate.links.length) :
+    QueueBounded state := by
+  intro index membership
+  rcases sound membership with ⟨link, lookup, _connective⟩
+  have bound :
+      index < certificate.links.length :=
+    (List.getElem?_eq_some_iff.mp lookup).1
+  simpa [queueSize] using bound
+
+/-- Registering a submitted par preserves the constructor provenance of the
+entire waiting registry. -/
+private theorem WaitingParSound.addWaiting
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : WaitingParSound certificate state)
+    {index left right conclusion : Nat}
+    (lookup :
+      certificate.links[index]? =
+        some (.par left right conclusion)) :
+    WaitingParSound certificate
+      (Certificate.addWaiting index state) := by
+  intro candidate membership
+  by_cases already : state.waitingFlags[index]?.getD true = true
+  · simp [Certificate.addWaiting, already] at membership
+    exact sound membership
+  · simp [Certificate.addWaiting, already] at membership
+    rcases membership with same | old
+    · subst candidate
+      exact ⟨left, right, conclusion, lookup⟩
+    · exact sound old
 
 /-- Sound waiting flags make deduplicated registration non-lossy. -/
 private theorem WaitingFlagSound.addWaiting
@@ -6355,6 +6745,15 @@ private def requeueWaiting (linkCount : Nat)
   unfold requeueWaiting
   simp
 
+/-- Waiting requeue rebuilds the waiting-flag carrier at the requested link
+count. -/
+@[simp] private theorem requeueWaiting_waitingFlags_size
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    ((Certificate.requeueWaiting linkCount state).waitingFlags).size =
+      linkCount := by
+  unfold Certificate.requeueWaiting
+  simp
+
 /-- Clearing the waiting registry and enqueueing all of its former members
 preserves sound deduplication flags. -/
 private theorem QueueFlagSound.requeueWaiting
@@ -6404,6 +6803,45 @@ private theorem QueueBounded.requeueWaiting
   intro index membership
   have waitingIndexBound := waitingBounded membership
   simpa [cleared, sameSize] using waitingIndexBound
+
+/-- Requeueing the waiting-par registry preserves exact queue provenance. -/
+private theorem QueueConnectiveSound.requeueWaiting
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (queueSound : QueueConnectiveSound certificate state)
+    (waitingSound : WaitingParSound certificate state)
+    (linkCount : Nat) :
+    QueueConnectiveSound certificate
+      (Certificate.requeueWaiting linkCount state) := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have clearedSound :
+      QueueConnectiveSound certificate cleared := by
+    intro index membership
+    exact queueSound membership
+  unfold Certificate.requeueWaiting
+  change QueueConnectiveSound certificate
+    (state.waiting.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      cleared)
+  apply clearedSound.enqueueMany .waiting state.waiting
+  intro index membership
+  rcases waitingSound membership with
+    ⟨left, right, conclusion, lookup⟩
+  exact
+    ⟨.par left right conclusion, lookup, rfl⟩
+
+/-- Requeueing clears the waiting registry, so its par provenance becomes
+vacuous. -/
+private theorem WaitingParSound.requeueWaiting
+    {certificate : Certificate} (state : UnificationWorklistState)
+    (linkCount : Nat) :
+    WaitingParSound certificate
+      (Certificate.requeueWaiting linkCount state) := by
+  intro index membership
+  simp [Certificate.requeueWaiting] at membership
 
 /-- Full waiting requeue resets the waiting flags soundly. -/
 private theorem WaitingFlagSound.requeueWaiting
@@ -6543,6 +6981,32 @@ private theorem mem_initialWorklistQueue_bound
       simp at mapped
       subst index
       simpa using List.snd_lt_of_mem_zipIdx entryMembership
+
+/-- Every concrete member of the initial work queue is exactly a submitted
+connective index. -/
+private theorem mem_initialWorklistQueue_submitted_connective
+    {certificate : Certificate} {index : Nat}
+    (membership : index ∈ initialWorklistQueue certificate) :
+    SubmittedConnective certificate index := by
+  simp only [initialWorklistQueue, List.mem_reverse,
+    List.mem_filterMap] at membership
+  rcases membership with ⟨entry, entryMembership, mapped⟩
+  rcases entry with ⟨link, linkIndex⟩
+  cases link with
+  | «axiom» left right =>
+      simp at mapped
+  | «par» left right conclusion =>
+      simp at mapped
+      subst index
+      exact
+        ⟨.par left right conclusion,
+          List.mk_mem_zipIdx_iff_getElem?.1 entryMembership, rfl⟩
+  | «tensor» left right conclusion =>
+      simp at mapped
+      subst index
+      exact
+        ⟨.tensor left right conclusion,
+          List.mk_mem_zipIdx_iff_getElem?.1 entryMembership, rfl⟩
 
 /-- Array flags are sound for an allowed queue when every `true` slot names
 an element of that queue. -/
@@ -6695,6 +7159,24 @@ private theorem initializeWorklist_queueBounded
       (certificate := certificate) membership
   simpa [initializeWorklist, foldl_setTrue_size] using linkBound
 
+/-- The initial queue contains exactly submitted connective indices. -/
+private theorem initializeWorklist_queueConnectiveSound
+    (certificate : Certificate) (core : UnificationState) :
+    QueueConnectiveSound certificate
+      (initializeWorklist certificate core) := by
+  intro index membership
+  apply mem_initialWorklistQueue_submitted_connective
+  simpa [initializeWorklist] using membership
+
+/-- The initial waiting registry is empty and therefore has exact par
+provenance. -/
+private theorem initializeWorklist_waitingParSound
+    (certificate : Certificate) (core : UnificationState) :
+    WaitingParSound certificate
+      (initializeWorklist certificate core) := by
+  intro index membership
+  simp [initializeWorklist] at membership
+
 /-- Initial queue flags have exactly one slot per submitted link. -/
 private theorem initializeWorklist_queued_size
     (certificate : Certificate) (core : UnificationState) :
@@ -6782,6 +7264,58 @@ private theorem popWorklist?_some_invariants
           exact List.mem_cons_of_mem head membership
         have oldBound := bounded oldMembership
         simpa using oldBound
+
+/-- Popping exact scheduler work exposes a submitted connective and preserves
+queue/waiting provenance in the residual state. -/
+private theorem popWorklist?_some_provenance
+    {certificate : Certificate}
+    {state popped : UnificationWorklistState} {index : Nat}
+    (queueSound : QueueConnectiveSound certificate state)
+    (waitingSound : WaitingParSound certificate state)
+    (equation : popWorklist? state = some (index, popped)) :
+    SubmittedConnective certificate index ∧
+      QueueConnectiveSound certificate popped ∧
+      WaitingParSound certificate popped := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      refine ⟨?_, ?_, ?_⟩
+      · apply queueSound
+        rw [queueEquation]
+        simp
+      · intro candidate membership
+        apply queueSound
+        rw [queueEquation]
+        exact List.mem_cons_of_mem head membership
+      · intro candidate membership
+        apply waitingSound
+        exact membership
+
+/-- Popping changes neither waiting state nor array carriers, and therefore
+preserves waiting-flag soundness exactly. -/
+private theorem popWorklist?_success_bookkeeping
+    {state popped : UnificationWorklistState} {index : Nat}
+    (waitingSound : WaitingFlagSound state)
+    (equation : popWorklist? state = some (index, popped)) :
+    WaitingFlagSound popped ∧
+      popped.queued.size = state.queued.size ∧
+      popped.waitingFlags.size = state.waitingFlags.size := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      refine ⟨?_, by simp, rfl⟩
+      intro candidate flagged
+      have oldFlag :
+          state.waitingFlags[candidate]? = some true := by
+        simpa using flagged
+      have oldMembership := waitingSound oldFlag
+      simpa using oldMembership
 
 /-- Popping one queue head preserves every other connective's scheduler
 classification.  The removed index is the unique temporary hole repaired by
@@ -7214,6 +7748,384 @@ private def processWorklistLink (certificate : Certificate)
                 enqueueConsumers consumers conclusion requeued
       | _, _ => state
 
+/-- Processing one proven submitted queue head preserves exact provenance for
+both the remaining queue and the waiting-par registry.  Dependency fan-out
+uses the reverse consumer-table theorem; tensor requeue uses waiting-par
+constructor provenance. -/
+private theorem processWorklistLink_provenance
+    {certificate : Certificate} {index : Nat} {link : Link}
+    {state : UnificationWorklistState}
+    (lookup : certificate.links[index]? = some link)
+    (connective : link.isConnective = true)
+    (queueSound : QueueConnectiveSound certificate state)
+    (waitingSound : WaitingParSound certificate state) :
+    QueueConnectiveSound certificate
+        (processWorklistLink certificate
+          certificate.worklistConsumers index state) ∧
+      WaitingParSound certificate
+        (processWorklistLink certificate
+          certificate.worklistConsumers index state) := by
+  have unchanged :
+      QueueConnectiveSound certificate state ∧
+        WaitingParSound certificate state :=
+    ⟨queueSound, waitingSound⟩
+  cases link with
+  | «axiom» left right =>
+      simp [Link.isConnective] at connective
+  | «par» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using
+            unchanged
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using unchanged
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                cases firing :
+                    firePar? state.core left right conclusion with
+                | none =>
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing] using
+                        unchanged
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    have firedQueue :
+                        QueueConnectiveSound certificate fired := by
+                      intro candidate membership
+                      apply queueSound
+                      simpa [fired, recordWorklistFiring] using membership
+                    have firedWaiting :
+                        WaitingParSound certificate fired := by
+                      intro candidate membership
+                      apply waitingSound
+                      simpa [fired, recordWorklistFiring] using membership
+                    have nextQueue :
+                        QueueConnectiveSound certificate
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            fired) :=
+                      QueueConnectiveSound.enqueueConsumersWorklist
+                        (certificate := certificate) (state := fired)
+                        firedQueue conclusion
+                    have nextWaiting :
+                        WaitingParSound certificate
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            fired) :=
+                      WaitingParSound.enqueueConsumers
+                        (certificate := certificate) (state := fired)
+                        firedWaiting certificate.worklistConsumers
+                          conclusion
+                    have nextProvenance :
+                        QueueConnectiveSound certificate
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              fired) ∧
+                          WaitingParSound certificate
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              fired) :=
+                      ⟨nextQueue, nextWaiting⟩
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing, fired] using
+                        nextProvenance
+              · have nextQueue :
+                    QueueConnectiveSound certificate
+                      (Certificate.addWaiting index state) :=
+                  QueueConnectiveSound.addWaiting
+                    (certificate := certificate) (state := state)
+                    queueSound index
+                have nextWaiting :
+                    WaitingParSound certificate
+                      (Certificate.addWaiting index state) :=
+                  WaitingParSound.addWaiting
+                    (certificate := certificate) (state := state)
+                    waitingSound lookup
+                have nextProvenance :
+                    QueueConnectiveSound certificate
+                        (Certificate.addWaiting index state) ∧
+                      WaitingParSound certificate
+                        (Certificate.addWaiting index state) :=
+                  ⟨nextQueue, nextWaiting⟩
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup, same] using
+                    nextProvenance
+  | «tensor» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using
+            unchanged
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using unchanged
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup] using unchanged
+              · cases firing :
+                    fireTensor? state.core left right conclusion with
+                | none =>
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing] using
+                        unchanged
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    have firedQueue :
+                        QueueConnectiveSound certificate fired := by
+                      intro candidate membership
+                      apply queueSound
+                      simpa [fired, recordWorklistFiring] using membership
+                    have firedWaiting :
+                        WaitingParSound certificate fired := by
+                      intro candidate membership
+                      apply waitingSound
+                      simpa [fired, recordWorklistFiring] using membership
+                    let requeued : UnificationWorklistState :=
+                      Certificate.requeueWaiting
+                        certificate.links.length fired
+                    have requeuedQueue :
+                        QueueConnectiveSound certificate requeued := by
+                      exact firedQueue.requeueWaiting firedWaiting
+                        certificate.links.length
+                    have requeuedWaiting :
+                        WaitingParSound certificate requeued := by
+                      exact WaitingParSound.requeueWaiting
+                        (certificate := certificate) fired
+                          certificate.links.length
+                    have nextQueue :
+                        QueueConnectiveSound certificate
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            requeued) :=
+                      QueueConnectiveSound.enqueueConsumersWorklist
+                        (certificate := certificate) (state := requeued)
+                        requeuedQueue conclusion
+                    have nextWaiting :
+                        WaitingParSound certificate
+                          (Certificate.enqueueConsumers
+                            certificate.worklistConsumers conclusion
+                            requeued) :=
+                      WaitingParSound.enqueueConsumers
+                        (certificate := certificate) (state := requeued)
+                        requeuedWaiting certificate.worklistConsumers
+                          conclusion
+                    have nextProvenance :
+                        QueueConnectiveSound certificate
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeued) ∧
+                          WaitingParSound certificate
+                            (Certificate.enqueueConsumers
+                              certificate.worklistConsumers conclusion
+                              requeued) :=
+                      ⟨nextQueue, nextWaiting⟩
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing, fired, requeued] using
+                        nextProvenance
+
+/-- Processing one submitted queue head preserves sound scheduler flags and
+their exact submitted-link carriers. -/
+private theorem processWorklistLink_bookkeeping
+    {certificate : Certificate} {index : Nat} {link : Link}
+    {state : UnificationWorklistState}
+    (lookup : certificate.links[index]? = some link)
+    (connective : link.isConnective = true)
+    (queueSound : QueueFlagSound state)
+    (waitingSound : WaitingFlagSound state)
+    (queueSize :
+      state.queued.size = certificate.links.length)
+    (waitingSize :
+      state.waitingFlags.size = state.queued.size) :
+    let next :=
+      processWorklistLink certificate
+        certificate.worklistConsumers index state
+    QueueFlagSound next ∧
+      WaitingFlagSound next ∧
+      next.queued.size = certificate.links.length ∧
+      next.waitingFlags.size = next.queued.size := by
+  dsimp only
+  have unchanged :
+      QueueFlagSound state ∧
+        WaitingFlagSound state ∧
+        state.queued.size = certificate.links.length ∧
+        state.waitingFlags.size = state.queued.size :=
+    ⟨queueSound, waitingSound, queueSize, waitingSize⟩
+  cases link with
+  | «axiom» left right =>
+      simp [Link.isConnective] at connective
+  | «par» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using unchanged
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using unchanged
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                cases firing :
+                    firePar? state.core left right conclusion with
+                | none =>
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing] using unchanged
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    have firedQueue : QueueFlagSound fired := by
+                      intro candidate flagged
+                      apply queueSound
+                      simpa [fired, recordWorklistFiring] using flagged
+                    have firedWaiting : WaitingFlagSound fired := by
+                      intro candidate flagged
+                      have oldFlag :
+                          state.waitingFlags[candidate]? =
+                            some true := by
+                        simpa [fired, recordWorklistFiring] using flagged
+                      have oldMembership := waitingSound oldFlag
+                      simpa [fired, recordWorklistFiring] using oldMembership
+                    let next :=
+                      Certificate.enqueueConsumers
+                        certificate.worklistConsumers conclusion fired
+                    have nextQueue : QueueFlagSound next :=
+                      firedQueue.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextWaiting : WaitingFlagSound next :=
+                      firedWaiting.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextQueueSize :
+                        next.queued.size =
+                          certificate.links.length := by
+                      simp [next, fired, recordWorklistFiring, queueSize]
+                    have nextWaitingSize :
+                        next.waitingFlags.size =
+                          next.queued.size := by
+                      simp [next, fired, recordWorklistFiring,
+                        queueSize, waitingSize]
+                    have nextInvariant :
+                        QueueFlagSound next ∧
+                          WaitingFlagSound next ∧
+                          next.queued.size =
+                            certificate.links.length ∧
+                          next.waitingFlags.size =
+                            next.queued.size :=
+                      ⟨nextQueue, nextWaiting, nextQueueSize,
+                        nextWaitingSize⟩
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing, fired, next] using nextInvariant
+              · let next :=
+                    Certificate.addWaiting index state
+                have nextQueue : QueueFlagSound next :=
+                  queueSound.addWaiting index
+                have nextWaiting : WaitingFlagSound next :=
+                  waitingSound.addWaiting index
+                have nextQueueSize :
+                    next.queued.size =
+                      certificate.links.length := by
+                  simpa [next] using queueSize
+                have nextWaitingSize :
+                    next.waitingFlags.size =
+                      next.queued.size := by
+                  simp [next, queueSize, waitingSize]
+                have nextInvariant :
+                    QueueFlagSound next ∧
+                      WaitingFlagSound next ∧
+                      next.queued.size =
+                        certificate.links.length ∧
+                      next.waitingFlags.size =
+                        next.queued.size :=
+                  ⟨nextQueue, nextWaiting, nextQueueSize,
+                    nextWaitingSize⟩
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup, same, next] using nextInvariant
+  | «tensor» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using unchanged
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using unchanged
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup] using unchanged
+              · cases firing :
+                    fireTensor? state.core left right conclusion with
+                | none =>
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing] using unchanged
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    have firedQueue : QueueFlagSound fired := by
+                      intro candidate flagged
+                      apply queueSound
+                      simpa [fired, recordWorklistFiring] using flagged
+                    have firedWaiting : WaitingFlagSound fired := by
+                      intro candidate flagged
+                      have oldFlag :
+                          state.waitingFlags[candidate]? =
+                            some true := by
+                        simpa [fired, recordWorklistFiring] using flagged
+                      have oldMembership := waitingSound oldFlag
+                      simpa [fired, recordWorklistFiring] using oldMembership
+                    let requeued :=
+                      Certificate.requeueWaiting
+                        certificate.links.length fired
+                    have requeuedQueue : QueueFlagSound requeued :=
+                      firedQueue.requeueWaiting certificate.links.length
+                    have requeuedWaiting : WaitingFlagSound requeued :=
+                      WaitingFlagSound.requeueWaiting fired
+                        certificate.links.length
+                    let next :=
+                      Certificate.enqueueConsumers
+                        certificate.worklistConsumers conclusion requeued
+                    have nextQueue : QueueFlagSound next :=
+                      requeuedQueue.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextWaiting : WaitingFlagSound next :=
+                      requeuedWaiting.enqueueConsumers
+                        certificate.worklistConsumers conclusion
+                    have nextQueueSize :
+                        next.queued.size =
+                          certificate.links.length := by
+                      simp [next, requeued, fired, recordWorklistFiring,
+                        queueSize]
+                    have nextWaitingSize :
+                        next.waitingFlags.size =
+                          next.queued.size := by
+                      simp [next, requeued, fired, recordWorklistFiring,
+                        queueSize]
+                    have nextInvariant :
+                        QueueFlagSound next ∧
+                          WaitingFlagSound next ∧
+                          next.queued.size =
+                            certificate.links.length ∧
+                          next.waitingFlags.size =
+                            next.queued.size :=
+                      ⟨nextQueue, nextWaiting, nextQueueSize,
+                        nextWaitingSize⟩
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing, fired, requeued, next] using
+                        nextInvariant
+
 /-- Every worklist processing branch preserves the executable abstraction
 contract.  Scheduler bookkeeping is invisible to the contract; the only
 nontrivial branches are successful par and tensor firings, which already
@@ -7597,6 +8509,20 @@ private def WorklistCoreInvariant (certificate : Certificate)
       state.core.ComponentsFormulaConsistent certificate ∧
         state.core.PendingPremisesCovered certificate
 
+/-- The complete production-run invariant: kernel-level partial-derivation
+correctness, scheduler coverage, sound deduplication flags, exact carrier
+sizes, and constructor-level provenance for all queue and waiting entries. -/
+private def WorklistRunInvariant (certificate : Certificate)
+    (state : UnificationWorklistState) : Prop :=
+  WorklistCoreInvariant certificate state ∧
+    SchedulerCoverage certificate state ∧
+      QueueFlagSound state ∧
+        WaitingFlagSound state ∧
+          state.queued.size = certificate.links.length ∧
+            state.waitingFlags.size = state.queued.size ∧
+              QueueConnectiveSound certificate state ∧
+                WaitingParSound certificate state
+
 /-- Successful eager axiom initialization from the canonical empty state
 establishes the complete core invariant bundle required by the event-driven
 worklist. -/
@@ -7641,6 +8567,29 @@ private theorem startAxioms?_success_initializeWorklist_coreInvariant
   exact
     ⟨startedAbstractable, startedOrdered,
       startedConsistent, startedCovered⟩
+
+/-- Successful canonical axiom initialization plus initial connective arming
+establishes the complete production-run invariant. -/
+private theorem startAxioms?_success_initializeWorklist_runInvariant
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (equation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    WorklistRunInvariant certificate
+      (initializeWorklist certificate started) := by
+  refine
+    ⟨startAxioms?_success_initializeWorklist_coreInvariant
+        structural equation,
+      initializeWorklist_schedulerCoverage certificate started,
+      initializeWorklist_queueFlagSound certificate started,
+      initializeWorklist_waitingFlagSound certificate started,
+      initializeWorklist_queued_size certificate started,
+      ?_,
+      initializeWorklist_queueConnectiveSound certificate started,
+      initializeWorklist_waitingParSound certificate started⟩
+  rw [initializeWorklist_waitingFlags_size,
+    initializeWorklist_queued_size]
 
 /-- One worklist processing attempt preserves the complete core invariant
 bundle. -/
@@ -7984,6 +8933,109 @@ private theorem processWorklistLink_schedulerCoverage
           structural abstractable ordered coverage queueSound queueSize)
         candidateLookup candidateConnective same
 
+/-- One atomic pop-and-process transition preserves the complete production
+invariant. Queue provenance discharges the formerly external assumption that
+the popped number denotes a submitted connective. -/
+private theorem popProcessWorklist_runInvariant
+    {certificate : Certificate}
+    {state popped : UnificationWorklistState} {index : Nat}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : WorklistRunInvariant certificate state)
+    (popEquation :
+      popWorklist? state = some (index, popped)) :
+    WorklistRunInvariant certificate
+      (processWorklistLink certificate
+        certificate.worklistConsumers index popped) := by
+  rcases invariant with
+    ⟨coreInvariant, coverage, queueFlagSound,
+      waitingFlagSound, queueSize, waitingSize,
+      queueConnectiveSound, waitingParSound⟩
+  have queueBounded :
+      QueueBounded state :=
+    queueConnectiveSound.queueBounded queueSize
+  rcases popWorklist?_some_invariants
+      queueFlagSound queueBounded popEquation with
+    ⟨_headBound, poppedQueueFlagSound, _poppedBounded⟩
+  rcases popWorklist?_some_provenance
+      queueConnectiveSound waitingParSound popEquation with
+    ⟨submitted, poppedQueueConnectiveSound,
+      poppedWaitingParSound⟩
+  rcases submitted with ⟨link, lookup, connective⟩
+  rcases popWorklist?_success_bookkeeping
+      waitingFlagSound popEquation with
+    ⟨poppedWaitingFlagSound, poppedQueueCarrier,
+      poppedWaitingCarrier⟩
+  have poppedQueueSize :
+      popped.queued.size = certificate.links.length := by
+    calc
+      popped.queued.size = state.queued.size := poppedQueueCarrier
+      _ = certificate.links.length := queueSize
+  have poppedWaitingSize :
+      popped.waitingFlags.size = popped.queued.size := by
+    calc
+      popped.waitingFlags.size =
+          state.waitingFlags.size := poppedWaitingCarrier
+      _ = state.queued.size := waitingSize
+      _ = popped.queued.size := poppedQueueCarrier.symm
+  have poppedCoreEquation :
+      popped.core = state.core := by
+    cases queueEquation : state.queue with
+    | nil =>
+        simp [popWorklist?, queueEquation] at popEquation
+    | cons head rest =>
+        simp [popWorklist?, queueEquation] at popEquation
+        rcases popEquation with ⟨rfl, rfl⟩
+        rfl
+  have poppedCoreInvariant :
+      WorklistCoreInvariant certificate popped := by
+    unfold WorklistCoreInvariant at coreInvariant ⊢
+    simpa [poppedCoreEquation] using coreInvariant
+  rcases poppedCoreInvariant with
+    ⟨poppedAbstractable, poppedOrdered,
+      poppedConsistent, poppedPremisesCovered⟩
+  have poppedCoverage :
+      SchedulerCoverageExcept certificate popped index :=
+    popWorklist?_success_schedulerCoverageExcept
+      coverage popEquation
+  let next :=
+    processWorklistLink certificate
+      certificate.worklistConsumers index popped
+  have nextCore :
+      WorklistCoreInvariant certificate next := by
+    exact processWorklistLink_coreInvariant
+      structural
+        ⟨poppedAbstractable, poppedOrdered,
+          poppedConsistent, poppedPremisesCovered⟩
+  have nextCoverage :
+      SchedulerCoverage certificate next := by
+    exact processWorklistLink_schedulerCoverage
+      structural poppedAbstractable poppedOrdered
+        poppedPremisesCovered poppedCoverage
+        poppedQueueFlagSound poppedWaitingFlagSound
+        poppedQueueSize poppedWaitingSize lookup connective
+  have nextBookkeeping :
+      QueueFlagSound next ∧
+        WaitingFlagSound next ∧
+        next.queued.size = certificate.links.length ∧
+        next.waitingFlags.size = next.queued.size := by
+    simpa [next] using
+      processWorklistLink_bookkeeping
+        lookup connective poppedQueueFlagSound
+          poppedWaitingFlagSound poppedQueueSize
+            poppedWaitingSize
+  have nextProvenance :
+      QueueConnectiveSound certificate next ∧
+        WaitingParSound certificate next := by
+    simpa [next] using
+      processWorklistLink_provenance
+        lookup connective poppedQueueConnectiveSound
+          poppedWaitingParSound
+  exact
+    ⟨nextCore, nextCoverage,
+      nextBookkeeping.1, nextBookkeeping.2.1,
+      nextBookkeeping.2.2.1, nextBookkeeping.2.2.2,
+      nextProvenance.1, nextProvenance.2⟩
+
 /-- Event-driven saturation. Initial arming and newly marked premises enqueue
 only dependent links. A tensor union requeues the current waiting par set.
 
@@ -8067,6 +9119,39 @@ private theorem runUnificationWorklist_coreInvariant
                 processWorklistLink certificate consumers index popped)
               processedInvariant
 
+/-- The exact production scheduler preserves its complete invariant through
+every finite fuel prefix, including early quiescence and conservative fuel
+exhaustion. -/
+private theorem runUnificationWorklist_runInvariant
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat) (state : UnificationWorklistState)
+    (invariant : WorklistRunInvariant certificate state) :
+    WorklistRunInvariant certificate
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers fuel state).state := by
+  induction fuel generalizing state with
+  | zero =>
+      simpa [runUnificationWorklist] using invariant
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          simpa [runUnificationWorklist, popEquation] using invariant
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have processedInvariant :
+              WorklistRunInvariant certificate
+                (processWorklistLink certificate
+                  certificate.worklistConsumers index popped) :=
+            popProcessWorklist_runInvariant
+              structural invariant popEquation
+          simpa [runUnificationWorklist, popEquation] using
+            induction
+              (state :=
+                processWorklistLink certificate
+                  certificate.worklistConsumers index popped)
+              processedInvariant
+
 private def worklistFuel (linkCount : Nat) : Nat :=
   UnificationWorklistStats.attemptBudget linkCount
 
@@ -8087,6 +9172,24 @@ private theorem canonicalWorklistRun_coreInvariant
   · exact structural
   · exact
       startAxioms?_success_initializeWorklist_coreInvariant
+        structural startEquation
+
+/-- The exact finite production run retains full scheduler coverage and exact
+queue/waiting provenance together with all executable-core invariants. -/
+private theorem canonicalWorklistRun_runInvariant
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    WorklistRunInvariant certificate
+      (runUnificationWorklist certificate certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state := by
+  apply runUnificationWorklist_runInvariant
+  · exact structural
+  · exact
+      startAxioms?_success_initializeWorklist_runInvariant
         structural startEquation
 
 /-- Detailed deterministic Guerrini-style parsing candidate with exact scan

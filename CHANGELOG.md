@@ -31,9 +31,13 @@
   and tensor events transport those classifications through exact dependency
   fan-out, tensor union is proved unable to split an old shared-token class,
   and the processed head closes the temporary coverage hole whenever it is a
-  submitted connective. Queue-entry provenance, lifting this atomic theorem
-  through the whole finite run, fuel sufficiency, and correct-state progress
-  remain open, so pure-worklist completeness is still not claimed;
+  submitted connective. Reverse consumer-table provenance proves every
+  dependency enqueue is a submitted connective, waiting registries contain
+  only submitted pars, and every real queue head has exact connective
+  provenance. The complete finite production run now carries bundled core
+  correctness, scheduler coverage, flag soundness, carrier sizes, and
+  queue/waiting provenance. Fuel sufficiency and correct-state progress remain
+  open, so pure-worklist completeness is still not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
