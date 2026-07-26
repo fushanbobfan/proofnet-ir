@@ -170,9 +170,11 @@ part of the engineering and proof-identity gap.
    union-find thread equality on reachable markings. The sole remaining
    obstruction is now path-exposed: an exact reference simple path joins the
    waiting par premises while avoiding its conclusion, and distinct active
-   components force an unmarked internal occurrence on that path. Excluding
-   this region, pure worklist completeness, and a full cost theorem remain
-   open.
+   components force an unmarked internal occurrence on that path. Current
+   development further exposes an exact traversed reference-edge occurrence
+   directed from a marked source into an unmarked target. Classifying and
+   excluding this frontier, pure worklist completeness, and a full cost
+   theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

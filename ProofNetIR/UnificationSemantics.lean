@@ -422,6 +422,27 @@ theorem referencePath_has_unmarked_of_noActiveWalk
         rfl
   exact noActive (referencePath_active_of_allMarked state path allMarked)
 
+/-- If a complete-reference path begins at a marked occurrence but fails to
+induce an active walk, it crosses a concrete retained edge occurrence from a
+marked source to an unmarked target.  This exposes the first geometric
+frontier of the inactive region without forgetting multigraph edge identity. -/
+theorem referencePath_has_marked_to_unmarked_boundary
+    (state : UnificationMarking certificate)
+    (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+    (startMarked : (state.mark path.start).isSome = true)
+    (noActive :
+      ¬state.activeReferenceGraph.Walk path.start path.finish) :
+    ∃ directed ∈ path.traversed,
+      (state.mark directed.source).isSome = true ∧
+        (state.mark directed.target).isSome = false := by
+  rcases state.referencePath_has_unmarked_of_noActiveWalk path noActive with
+    ⟨blocked, blockedMembership, blockedUnmarked⟩
+  exact
+    path.exists_traversed_boundary_of_start_true
+      (fun vertex => (state.mark vertex).isSome)
+      startMarked
+      ⟨blocked, blockedMembership, blockedUnmarked⟩
+
 /-- Link-local threading controls every retained edge value, before the
 endpoint-mark filter defining the active graph is applied. -/
 private theorem retainedEdge_threaded

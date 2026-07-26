@@ -469,6 +469,10 @@
     - [x] Prove that active-component separation exposes a genuinely unmarked
       internal occurrence on that path, distinct from both marked endpoints
       and the waiting par conclusion.
+    - [x] Strengthen the witness to an exact retained edge occurrence on the
+      reference path, directed from a marked source into an unmarked target.
+    - [ ] Classify that exact boundary against its submitted axiom/par/tensor
+      origin and derive the next scheduler obstruction.
     - [ ] Exclude the resulting path-exposed unmarked-region obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues

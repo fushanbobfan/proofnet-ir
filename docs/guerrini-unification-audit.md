@@ -108,8 +108,11 @@ them. Exact occurrence-aware tree-edge exchange now flips only that submitted
 par and constructs a reference simple path between its premises which avoids
 the par conclusion. The absence of an active walk therefore yields a concrete
 unmarked internal occurrence on this path, distinct from both premises and
-the conclusion. What remains is the global progress argument excluding this
-path-exposed unmarked region in a correct quiescent state.
+the conclusion. The current frontier theorem strengthens this to an exact
+retained edge occurrence directed from a marked source into an unmarked
+target. What remains is to classify that boundary and complete the global
+progress argument excluding this path-exposed unmarked region in a correct
+quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age

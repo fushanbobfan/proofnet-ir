@@ -157,6 +157,23 @@ Reversing a directed occurrence always changes its orientation.
 ProofNetIR.Graph.DirectedEdge.ne_reverse : ∀ {graph : ProofNetIR.Graph} (directed : graph.DirectedEdge), directed ≠ directed.reverse
 ```
 
+### `ProofNetIR.Graph.EdgeSimplePath.exists_traversed_boundary_of_start_true`
+
+Kind: theorem.
+
+If a Boolean region contains the start of an exact simple path but omits
+one of its visited vertices, the traversal crosses a concrete stored-edge
+occurrence from the accepted region into the rejected region.  The statement
+retains the directed occurrence, rather than collapsing the multigraph path
+to an endpoint-only adjacency fact.
+
+```lean
+ProofNetIR.Graph.EdgeSimplePath.exists_traversed_boundary_of_start_true : ∀ {graph : ProofNetIR.Graph} (path : graph.EdgeSimplePath) (predicate : ProofNetIR.Vertex → Bool),
+  predicate path.start = true →
+    (∃ vertex, vertex ∈ path.vertices ∧ predicate vertex = false) →
+      ∃ directed, directed ∈ path.traversed ∧ predicate directed.source = true ∧ predicate directed.target = false
+```
+
 ### `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq`
 
 Kind: theorem.
@@ -2600,6 +2617,25 @@ ProofNetIR.UnificationMarking.referencePath_has_unmarked_of_noActiveWalk : ∀ {
   (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
   ¬state.activeReferenceGraph.Walk path.start path.finish →
     ∃ vertex, vertex ∈ path.vertices ∧ (state.mark vertex).isSome = false
+```
+
+### `ProofNetIR.UnificationMarking.referencePath_has_marked_to_unmarked_boundary`
+
+Kind: theorem.
+
+If a complete-reference path begins at a marked occurrence but fails to
+induce an active walk, it crosses a concrete retained edge occurrence from a
+marked source to an unmarked target.  This exposes the first geometric
+frontier of the inactive region without forgetting multigraph edge identity.
+
+```lean
+ProofNetIR.UnificationMarking.referencePath_has_marked_to_unmarked_boundary : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
+  (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+  (state.mark path.start).isSome = true →
+    ¬state.activeReferenceGraph.Walk path.start path.finish →
+      ∃ directed,
+        directed ∈ path.traversed ∧
+          (state.mark directed.source).isSome = true ∧ (state.mark directed.target).isSome = false
 ```
 
 ### `ProofNetIR.UnificationRuleKind`

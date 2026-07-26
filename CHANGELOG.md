@@ -84,7 +84,10 @@
   premises which avoids the par conclusion. If the endpoints remain in
   different active components, Lean extracts a genuinely unmarked internal
   occurrence on this path, distinct from both premises and the par
-  conclusion. Correctness still must exclude this path-exposed unmarked
+  conclusion. A new occurrence-preserving path-frontier theorem now exposes
+  an exact traversed reference edge from a marked source into an unmarked
+  target, and the canonical obstruction carries that directed occurrence.
+  Correctness still must classify and exclude this path-exposed unmarked
   region, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;

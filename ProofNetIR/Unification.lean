@@ -14059,7 +14059,8 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
     final.core.allMarked = false →
       ∃ (index left right conclusion leftToken rightToken : Nat)
           (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
-          (blocked : Vertex),
+          (boundary :
+            certificate.referenceSwitchingGraph.DirectedEdge),
         certificate.links[index]? =
             some (.par left right conclusion) ∧
           final.core.assignedToken? conclusion = none ∧
@@ -14074,12 +14075,14 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
                       path.start = left ∧
                         path.finish = right ∧
                           conclusion ∉ path.vertices ∧
-                            blocked ∈ path.vertices ∧
-                              blocked ≠ left ∧
-                                blocked ≠ right ∧
-                                  blocked ≠ conclusion ∧
-                                    final.core.assignedToken? blocked =
-                                      none := by
+                            boundary ∈ path.traversed ∧
+                              final.core.assignedToken?
+                                  boundary.source ≠ none ∧
+                                final.core.assignedToken?
+                                    boundary.target = none ∧
+                                  boundary.target ≠ left ∧
+                                    boundary.target ≠ right ∧
+                                      boundary.target ≠ conclusion := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -14089,7 +14092,8 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
     final.core.allMarked = false →
       ∃ (index left right conclusion leftToken rightToken : Nat)
           (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
-          (blocked : Vertex),
+          (boundary :
+            certificate.referenceSwitchingGraph.DirectedEdge),
         certificate.links[index]? =
             some (.par left right conclusion) ∧
           final.core.assignedToken? conclusion = none ∧
@@ -14104,11 +14108,14 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
                       path.start = left ∧
                         path.finish = right ∧
                           conclusion ∉ path.vertices ∧
-                            blocked ∈ path.vertices ∧
-                              blocked ≠ left ∧
-                                blocked ≠ right ∧
-                                  blocked ≠ conclusion ∧
-                                    final.core.assignedToken? blocked = none
+                            boundary ∈ path.traversed ∧
+                              final.core.assignedToken?
+                                  boundary.source ≠ none ∧
+                                final.core.assignedToken?
+                                    boundary.target = none ∧
+                                  boundary.target ≠ left ∧
+                                    boundary.target ≠ right ∧
+                                      boundary.target ≠ conclusion
   intro incomplete
   rcases canonicalWorklistRun_incomplete_waitingPar
       correct startEquation incomplete with
@@ -14132,44 +14139,60 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
     intro walk
     apply noActiveWalk
     simpa [marking, pathStarts, pathFinishes] using walk
-  rcases UnificationMarking.referencePath_has_unmarked_of_noActiveWalk
-      marking path noActivePath with
-    ⟨blocked, blockedMembership, blockedUnmarked⟩
-  have blockedAssignedNone :
-      final.core.assignedToken? blocked = none := by
-    change
-      ((final.core.toMarking certificate coreInvariant.1).mark blocked).isSome =
-        false at blockedUnmarked
-    simp only [UnificationState.toMarking_mark] at blockedUnmarked
-    cases assigned : final.core.assignedToken? blocked with
-    | none =>
-        rfl
-    | some token =>
-        simp [assigned] at blockedUnmarked
   rcases final.core.tokenAt?_some_witness leftMarked with
     ⟨leftRaw, leftRawMarked, _leftRepresentative⟩
   rcases final.core.tokenAt?_some_witness rightMarked with
     ⟨rightRaw, rightRawMarked, _rightRepresentative⟩
-  have blockedNeLeft : blocked ≠ left := by
-    intro same
-    subst blocked
-    rw [leftRawMarked] at blockedAssignedNone
+  have abstractLeftMarked :
+      (marking.mark left).isSome = true := by
+    simp [marking, leftRawMarked]
+  rcases marking.referencePath_has_marked_to_unmarked_boundary
+      path
+      (by simpa [pathStarts] using abstractLeftMarked)
+      noActivePath with
+    ⟨boundary, boundaryMembership, boundarySourceMarked,
+      boundaryTargetUnmarked⟩
+  have boundarySourceAssigned :
+      final.core.assignedToken? boundary.source ≠ none := by
+    change
+      ((final.core.toMarking certificate coreInvariant.1).mark
+        boundary.source).isSome = true at boundarySourceMarked
+    simp only [UnificationState.toMarking_mark] at boundarySourceMarked
+    intro sourceUnassigned
+    rw [sourceUnassigned] at boundarySourceMarked
     contradiction
-  have blockedNeRight : blocked ≠ right := by
+  have boundaryTargetAssignedNone :
+      final.core.assignedToken? boundary.target = none := by
+    change
+      ((final.core.toMarking certificate coreInvariant.1).mark
+        boundary.target).isSome = false at boundaryTargetUnmarked
+    simp only [UnificationState.toMarking_mark] at boundaryTargetUnmarked
+    cases assigned : final.core.assignedToken? boundary.target with
+    | none =>
+        rfl
+    | some token =>
+        simp [assigned] at boundaryTargetUnmarked
+  have boundaryTargetMembership :
+      boundary.target ∈ path.vertices :=
+    (path.directed_endpoints_mem_vertices boundaryMembership).2
+  have boundaryTargetNeLeft : boundary.target ≠ left := by
     intro same
-    subst blocked
-    rw [rightRawMarked] at blockedAssignedNone
+    rw [same, leftRawMarked] at boundaryTargetAssignedNone
     contradiction
-  have blockedNeConclusion : blocked ≠ conclusion := by
+  have boundaryTargetNeRight : boundary.target ≠ right := by
     intro same
-    subst blocked
-    exact conclusionAvoided blockedMembership
+    rw [same, rightRawMarked] at boundaryTargetAssignedNone
+    contradiction
+  have boundaryTargetNeConclusion : boundary.target ≠ conclusion := by
+    intro same
+    exact conclusionAvoided (same ▸ boundaryTargetMembership)
   exact
-    ⟨index, left, right, conclusion, leftToken, rightToken, path, blocked,
+    ⟨index, left, right, conclusion, leftToken, rightToken, path, boundary,
       linkLookup, conclusionUnmarked, leftMarked, rightMarked, different,
       registered, noActiveWalk, pathStarts, pathFinishes,
-      conclusionAvoided, blockedMembership, blockedNeLeft, blockedNeRight,
-      blockedNeConclusion, blockedAssignedNone⟩
+      conclusionAvoided, boundaryMembership, boundarySourceAssigned,
+      boundaryTargetAssignedNone, boundaryTargetNeLeft,
+      boundaryTargetNeRight, boundaryTargetNeConclusion⟩
 
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/
