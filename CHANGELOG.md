@@ -40,9 +40,14 @@
   directions; both concrete registries remain duplicate-free through every
   enqueue, waiting registration, requeue, pop, processing branch, and finite
   production run; and each registry is proved to have length at most the
-  submitted-link carrier. Enqueue-event accounting, fuel sufficiency, and
-  correct-state progress remain open, so pure-worklist completeness is still
-  not claimed;
+  submitted-link carrier. Exact transition-level insertion balance is now
+  proved for single and batched enqueues, dependency fan-out, waiting
+  registration/requeue, firing records, every processing branch, successful
+  pops, and finite production runs. From canonical initialization, link
+  attempts plus the residual queue length is exactly the cumulative number of
+  initial, dependency, and waiting-requeue insertions. A global upper bound on
+  those insertions, fuel sufficiency, and correct-state progress remain open,
+  so pure-worklist completeness is still not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential

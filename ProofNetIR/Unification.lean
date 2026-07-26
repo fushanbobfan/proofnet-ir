@@ -5446,6 +5446,14 @@ private inductive WorklistEnqueueKind where
   | dependency
   | waiting
 
+/-- Cumulative count of all successful concrete queue insertions, separated
+by their operational causes in the public statistics record. -/
+private def totalWorklistEnqueues
+    (stats : UnificationWorklistStats) : Nat :=
+  stats.initialEnqueues +
+    stats.dependencyEnqueues +
+      stats.waitingRequeues
+
 private structure UnificationWorklistState where
   core : UnificationState
   queue : List Nat
@@ -5453,6 +5461,22 @@ private structure UnificationWorklistState where
   waiting : List Nat
   waitingFlags : Array Bool
   stats : UnificationWorklistStats
+
+/-- Exact cumulative-enqueue/queue conservation between two scheduler
+states. -/
+private def QueueInsertionBalanced
+    (before after : UnificationWorklistState) : Prop :=
+  totalWorklistEnqueues after.stats + before.queue.length =
+    totalWorklistEnqueues before.stats + after.queue.length
+
+/-- Queue insertion conservation composes transitively. -/
+private theorem QueueInsertionBalanced.trans
+    {first middle last : UnificationWorklistState}
+    (firstMiddle : QueueInsertionBalanced first middle)
+    (middleLast : QueueInsertionBalanced middle last) :
+    QueueInsertionBalanced first last := by
+  unfold QueueInsertionBalanced at firstMiddle middleLast ⊢
+  omega
 
 /-- Scheduler-side classification used to state that no connective which is
 ready in the current token partition has been silently lost.  The `queued`
@@ -5999,6 +6023,47 @@ private def enqueueWorklist (kind : WorklistEnqueueKind)
       queue := index :: state.queue
       queued := state.queued.setIfInBounds index true
       stats := nextStats }
+
+/-- A single enqueue preserves the exact conservation law between cumulative
+successful insertions and concrete queue length. -/
+private theorem enqueueWorklist_balance
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (state : UnificationWorklistState) :
+    totalWorklistEnqueues
+          (Certificate.enqueueWorklist kind index state).stats +
+        state.queue.length =
+      totalWorklistEnqueues state.stats +
+        (Certificate.enqueueWorklist kind index state).queue.length := by
+  unfold Certificate.enqueueWorklist
+  split
+  · rfl
+  · cases kind <;>
+      simp [totalWorklistEnqueues] <;>
+        omega
+
+/-- Repeated enqueues telescope the same insertion/queue conservation law. -/
+private theorem foldl_enqueueWorklist_balance
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    (state : UnificationWorklistState) :
+    let final :=
+      indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state
+    totalWorklistEnqueues final.stats + state.queue.length =
+      totalWorklistEnqueues state.stats + final.queue.length := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      have first :=
+        enqueueWorklist_balance kind head state
+      have rest :=
+        induction
+          (state :=
+            Certificate.enqueueWorklist kind head state)
+      omega
 
 /-- Enqueueing preserves the deduplication-flag carrier. -/
 @[simp] private theorem enqueueWorklist_queued_size
@@ -6548,6 +6613,20 @@ private def enqueueConsumers (consumers : Array (List Nat))
           enqueueWorklist .dependency index next)
         state
 
+/-- Dependency fan-out preserves cumulative-enqueue/queue conservation. -/
+private theorem enqueueConsumers_balance
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    totalWorklistEnqueues
+          (Certificate.enqueueConsumers consumers conclusion state).stats +
+        state.queue.length =
+      totalWorklistEnqueues state.stats +
+        (Certificate.enqueueConsumers consumers conclusion state).queue.length := by
+  unfold Certificate.enqueueConsumers
+  split
+  · rfl
+  · exact foldl_enqueueWorklist_balance .dependency _ state
+
 /-- A dependency-enqueue batch preserves the queue-flag carrier. -/
 @[simp] private theorem foldl_enqueueWorklist_queued_size
     (kind : WorklistEnqueueKind) (indices : List Nat)
@@ -6813,6 +6892,18 @@ private def addWaiting (index : Nat)
     { state with
       waiting := index :: state.waiting
       waitingFlags := state.waitingFlags.setIfInBounds index true }
+
+/-- Waiting registration changes neither cumulative queue insertions nor the
+concrete queue. -/
+private theorem addWaiting_balance
+    (index : Nat) (state : UnificationWorklistState) :
+    totalWorklistEnqueues
+          (Certificate.addWaiting index state).stats +
+        state.queue.length =
+      totalWorklistEnqueues state.stats +
+        (Certificate.addWaiting index state).queue.length := by
+  unfold Certificate.addWaiting
+  split <;> rfl
 
 /-- Waiting registration changes only scheduler fields. -/
 @[simp] private theorem addWaiting_core
@@ -7144,6 +7235,24 @@ private def requeueWaiting (linkCount : Nat)
   waiting.foldl
     (fun next index => enqueueWorklist .waiting index next)
     cleared
+
+/-- Full waiting requeue accounts for every successful reinsertion exactly in
+the cumulative enqueue counters. -/
+private theorem requeueWaiting_balance
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    totalWorklistEnqueues
+          (Certificate.requeueWaiting linkCount state).stats +
+        state.queue.length =
+      totalWorklistEnqueues state.stats +
+        (Certificate.requeueWaiting linkCount state).queue.length := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have folded :=
+    foldl_enqueueWorklist_balance
+      .waiting state.waiting cleared
+  simpa [Certificate.requeueWaiting, cleared] using folded
 
 /-- Requeueing waiting pars changes only scheduler fields. -/
 @[simp] private theorem requeueWaiting_core
@@ -7707,6 +7816,15 @@ private def initializeWorklist (certificate : Certificate)
         linkAttempts := 0
         successfulFirings := 0 } }
 
+/-- Canonical initialization accounts for exactly the concrete queue it
+creates. -/
+private theorem initializeWorklist_totalEnqueues_eq_queueLength
+    (certificate : Certificate) (core : UnificationState) :
+    totalWorklistEnqueues
+        (initializeWorklist certificate core).stats =
+      (initializeWorklist certificate core).queue.length := by
+  simp [initializeWorklist, totalWorklistEnqueues]
+
 /-- The initial deduplication flags are backed by the concrete initial queue. -/
 private theorem initializeWorklist_queueFlagSound
     (certificate : Certificate) (core : UnificationState) :
@@ -7988,6 +8106,22 @@ private theorem popWorklist?_success_exactDiscipline
         simpa using oldFlag
       · simpa [WaitingNodup] using waitingNodup
 
+/-- A successful pop consumes exactly one concrete queue entry and changes no
+cumulative enqueue counter. -/
+private theorem popWorklist?_success_balance
+    {state popped : UnificationWorklistState} {index : Nat}
+    (equation : popWorklist? state = some (index, popped)) :
+    totalWorklistEnqueues popped.stats =
+        totalWorklistEnqueues state.stats ∧
+      state.queue.length = popped.queue.length + 1 := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      simp [totalWorklistEnqueues]
+
 /-- Popping one queue head preserves every other connective's scheduler
 classification.  The removed index is the unique temporary hole repaired by
 `processWorklistLink_processed_status`. -/
@@ -8044,6 +8178,25 @@ private def recordWorklistFiring (state : UnificationWorklistState) :
     stats :=
       { state.stats with
         successfulFirings := state.stats.successfulFirings + 1 } }
+
+/-- Recording a firing changes neither cumulative queue insertions nor the
+concrete queue. -/
+private theorem recordWorklistFiring_balance
+    (state : UnificationWorklistState) :
+    totalWorklistEnqueues (recordWorklistFiring state).stats +
+        state.queue.length =
+      totalWorklistEnqueues state.stats +
+        (recordWorklistFiring state).queue.length := by
+  simp [recordWorklistFiring, totalWorklistEnqueues]
+
+/-- Replacing only the executable core and recording its successful firing is
+neutral for cumulative queue insertion accounting. -/
+private theorem coreUpdate_recordWorklistFiring_balance
+    (state : UnificationWorklistState) (nextCore : UnificationState) :
+    QueueInsertionBalanced state
+      (recordWorklistFiring { state with core := nextCore }) := by
+  simp [QueueInsertionBalanced, recordWorklistFiring,
+    totalWorklistEnqueues]
 
 /-- Recording a successful scheduler event leaves the parser core unchanged. -/
 @[simp] private theorem recordWorklistFiring_core
@@ -8850,6 +9003,129 @@ private theorem processWorklistLink_exactDiscipline
                     simpa [processWorklistLink, lookup, leftLookup,
                       rightLookup, same, firing, fired, requeued] using
                         nextExact
+
+/-- Processing one popped link accounts exactly for every successful queue
+insertion. No-op attempts and waiting registration add no insertion credit;
+par firing composes one dependency batch, while tensor firing composes a
+waiting requeue and one dependency batch. -/
+private theorem processWorklistLink_balance
+    {certificate : Certificate} {index : Nat} {link : Link}
+    {state : UnificationWorklistState}
+    (consumers : Array (List Nat))
+    (lookup : certificate.links[index]? = some link) :
+    QueueInsertionBalanced state
+      (processWorklistLink certificate
+        consumers index state) := by
+  cases link with
+  | «axiom» left right =>
+      simp [processWorklistLink, lookup, QueueInsertionBalanced]
+  | «par» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simp [processWorklistLink, lookup, leftLookup,
+            QueueInsertionBalanced]
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simp [processWorklistLink, lookup, leftLookup,
+                rightLookup, QueueInsertionBalanced]
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                cases firing :
+                    firePar? state.core left right conclusion with
+                | none =>
+                    simp [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing, QueueInsertionBalanced]
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    have toFired :
+                        QueueInsertionBalanced state fired := by
+                      simpa [fired] using
+                        coreUpdate_recordWorklistFiring_balance
+                          state nextCore
+                    have toNext :
+                        QueueInsertionBalanced fired
+                          (Certificate.enqueueConsumers
+                            consumers conclusion
+                            fired) := by
+                      exact enqueueConsumers_balance
+                        consumers conclusion fired
+                    have composed := toFired.trans toNext
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing, fired] using composed
+              · have registered :
+                    QueueInsertionBalanced state
+                      (Certificate.addWaiting index state) :=
+                  addWaiting_balance index state
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup, same] using registered
+  | «tensor» left right conclusion =>
+      cases leftLookup : state.core.tokenAt? left with
+      | none =>
+          simp [processWorklistLink, lookup, leftLookup,
+            QueueInsertionBalanced]
+      | some leftToken =>
+          cases rightLookup : state.core.tokenAt? right with
+          | none =>
+              simp [processWorklistLink, lookup, leftLookup,
+                rightLookup, QueueInsertionBalanced]
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                simp [processWorklistLink, lookup, leftLookup,
+                  rightLookup, QueueInsertionBalanced]
+              · cases firing :
+                    fireTensor? state.core left right conclusion with
+                | none =>
+                    simp [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing, QueueInsertionBalanced]
+                | some nextCore =>
+                    let fired : UnificationWorklistState :=
+                      recordWorklistFiring
+                        { state with core := nextCore }
+                    let requeued : UnificationWorklistState :=
+                      Certificate.requeueWaiting
+                        certificate.links.length fired
+                    have toFired :
+                        QueueInsertionBalanced state fired := by
+                      simpa [fired] using
+                        coreUpdate_recordWorklistFiring_balance
+                          state nextCore
+                    have toRequeued :
+                        QueueInsertionBalanced fired requeued := by
+                      simpa [requeued, QueueInsertionBalanced] using
+                        requeueWaiting_balance
+                          certificate.links.length fired
+                    have toNext :
+                        QueueInsertionBalanced requeued
+                          (Certificate.enqueueConsumers
+                            consumers conclusion
+                            requeued) := by
+                      exact enqueueConsumers_balance
+                        consumers conclusion requeued
+                    have composed :=
+                      (toFired.trans toRequeued).trans toNext
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing, fired, requeued] using
+                        composed
+
+/-- Queue-insertion accounting is total even for an out-of-range popped
+number: that branch is an exact no-op. -/
+private theorem processWorklistLink_balance_total
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (index : Nat)
+    (state : UnificationWorklistState) :
+    QueueInsertionBalanced state
+      (processWorklistLink certificate
+        consumers index state) := by
+  cases lookup : certificate.links[index]? with
+  | none =>
+      simp [processWorklistLink, lookup, QueueInsertionBalanced]
+  | some link =>
+      exact processWorklistLink_balance consumers lookup
 
 /-- Processing one submitted queue head preserves sound scheduler flags and
 their exact submitted-link carriers. -/
@@ -10038,6 +10314,86 @@ private def runUnificationWorklist (certificate : Certificate)
           { state := tail.state
             linkAttempts := tail.linkAttempts + 1
             linkAttemptsBound := Nat.succ_le_succ tail.linkAttemptsBound }
+
+/-- Every finite run exactly balances consumed queue entries against all
+successful insertions, including insertions produced during the run. -/
+private theorem runUnificationWorklist_balance
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (fuel : Nat) (state : UnificationWorklistState) :
+    let result :=
+      runUnificationWorklist certificate consumers fuel state
+    result.linkAttempts + result.state.queue.length +
+          totalWorklistEnqueues state.stats =
+      totalWorklistEnqueues result.state.stats +
+        state.queue.length := by
+  induction fuel generalizing state with
+  | zero =>
+      simp [runUnificationWorklist]
+      omega
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          simp [runUnificationWorklist, popEquation]
+          omega
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          let processed :=
+            processWorklistLink certificate consumers index popped
+          let tail :=
+            runUnificationWorklist certificate consumers fuel processed
+          have poppedBalance :=
+            popWorklist?_success_balance popEquation
+          have processedBalance :
+              QueueInsertionBalanced popped processed := by
+            simpa [processed] using
+              processWorklistLink_balance_total
+                certificate consumers index popped
+          have tailBalance :
+              tail.linkAttempts + tail.state.queue.length +
+                    totalWorklistEnqueues processed.stats =
+                totalWorklistEnqueues tail.state.stats +
+                  processed.queue.length := by
+            simpa [tail] using induction (state := processed)
+          unfold QueueInsertionBalanced at processedBalance
+          have combined :
+              (tail.linkAttempts + 1) +
+                    tail.state.queue.length +
+                  totalWorklistEnqueues state.stats =
+                totalWorklistEnqueues tail.state.stats +
+                  state.queue.length := by
+            omega
+          simpa [runUnificationWorklist, popEquation,
+            processed, tail] using combined
+
+/-- From canonical initialization, attempted pops plus the residual queue are
+exactly all successful queue insertions observed by the final state. -/
+private theorem runUnificationWorklist_initialized_attemptAccounting
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (fuel : Nat) (core : UnificationState) :
+    let initial := initializeWorklist certificate core
+    let result :=
+      runUnificationWorklist certificate consumers fuel initial
+    result.linkAttempts + result.state.queue.length =
+      totalWorklistEnqueues result.state.stats := by
+  let initial := initializeWorklist certificate core
+  let result :=
+    runUnificationWorklist certificate consumers fuel initial
+  have balance :
+      result.linkAttempts + result.state.queue.length +
+            totalWorklistEnqueues initial.stats =
+        totalWorklistEnqueues result.state.stats +
+          initial.queue.length := by
+    simpa [result, initial] using
+      runUnificationWorklist_balance
+        certificate consumers fuel initial
+  have initialExact :
+      totalWorklistEnqueues initial.stats =
+        initial.queue.length := by
+    simpa [initial] using
+      initializeWorklist_totalEnqueues_eq_queueLength
+        certificate core
+  dsimp [result, initial] at balance initialExact ⊢
+  omega
 
 /-- Popping scheduler work changes no executable-core field. -/
 private theorem popWorklist?_success_core

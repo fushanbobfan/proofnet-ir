@@ -442,7 +442,10 @@
     - [x] Prove exact queue/waiting flag completeness and duplicate-free
       concrete registries through every transition and finite run, with both
       registry lengths bounded by the submitted-link carrier.
-    - [ ] Prove enqueue-event accounting, fuel sufficiency, and
+    - [x] Prove exact cumulative enqueue-event accounting: from canonical
+      initialization, attempts plus the residual queue length equals initial
+      plus dependency plus waiting-requeue insertions.
+    - [ ] Bound cumulative enqueue sources, prove fuel sufficiency, and prove
       correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize
