@@ -315,6 +315,35 @@ ProofNetIR.Graph.EdgeWalk.inflateRetained : ∀ {graph : ProofNetIR.Graph} {mask
               ∀ (directed : graph.DirectedEdge), directed ∈ originalTraversal → mask[directed.index]? = some true
 ```
 
+### `ProofNetIR.Graph.EdgeWalk.inflateRetainedExact`
+
+Kind: theorem.
+
+Lift a retained walk while preserving the exact stored edge value and
+orientation at every list position.  The older `inflateRetained` theorem is
+the compact endpoint/index API; this occurrence-exact variant is intended for
+proofs whose local color or cusp argument must refer to the actual first or
+last edge of the lifted traversal rather than to an independently selected
+parallel occurrence.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.inflateRetainedExact : ∀ {graph : ProofNetIR.Graph} {mask : List Bool} {start finish : ProofNetIR.Vertex}
+  {traversed : List (graph.retainEdges mask).DirectedEdge},
+  (graph.retainEdges mask).EdgeWalk start traversed finish →
+    graph.edges.length = mask.length →
+      ∃ originalTraversal,
+        graph.EdgeWalk start originalTraversal finish ∧
+          List.map (fun directed => ProofNetIR.Graph.retainedIndex mask directed.index) originalTraversal =
+              List.map ProofNetIR.Graph.DirectedEdge.index traversed ∧
+            List.map ProofNetIR.Graph.DirectedEdge.edge originalTraversal =
+                List.map ProofNetIR.Graph.DirectedEdge.edge traversed ∧
+              List.map ProofNetIR.Graph.DirectedEdge.forward originalTraversal =
+                  List.map ProofNetIR.Graph.DirectedEdge.forward traversed ∧
+                List.map ProofNetIR.Graph.DirectedEdge.target originalTraversal =
+                    List.map ProofNetIR.Graph.DirectedEdge.target traversed ∧
+                  ∀ (directed : graph.DirectedEdge), directed ∈ originalTraversal → mask[directed.index]? = some true
+```
+
 ### `ProofNetIR.Graph.EdgeSimpleCycle.inflateRetained`
 
 Kind: theorem.

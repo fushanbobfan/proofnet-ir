@@ -151,14 +151,19 @@
   the first tail link. Every nontrivial dependency turn is therefore
   kernel-classified as either a genuine par cusp with equal shared par colors
   or a tensor-colored free turn whose unique-color equality would force the
-  excluded immediate reversal. Every adjacent dependency in the finite closed
-  segment now additionally carries one exact composable complete-graph walk:
-  the reversed source-par left incidence, retained reference-prefix lift, and
-  all-backward formula tail. A graph-generic concatenation theorem joins the
-  selected finite family into a genuinely nonempty closed occurrence-aware
-  `fullGraph` walk. Because this walk may retain backtracking or repeated edge
-  occurrences, correctness still must extract and exclude a suitably
-  classified edge-simple switching cycle or forbidden nesting, so
+  excluded immediate reversal. The retained-walk lift now preserves stored
+  edge values and orientations pointwise, and each segment propositionally
+  binds its classified frontier and formula edge to the actual last prefix
+  and first tail occurrences. This closes the parallel-edge gap in which
+  endpoint-equal but occurrence-distinct edges could otherwise be classified
+  on behalf of the concatenated walk. Every adjacent dependency in the finite
+  closed segment now additionally carries one exact composable complete-graph
+  walk: the reversed source-par left incidence, retained reference-prefix
+  lift, and all-backward formula tail. A graph-generic concatenation theorem
+  joins the selected finite family into a genuinely nonempty closed
+  occurrence-aware `fullGraph` walk. Because this walk may retain backtracking
+  or repeated edge occurrences, correctness still must extract and exclude a
+  suitably classified edge-simple switching cycle or forbidden nesting, so
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

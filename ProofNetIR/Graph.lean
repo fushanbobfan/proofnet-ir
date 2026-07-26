@@ -617,6 +617,53 @@ theorem inflateRetained {graph : Graph} {mask : List Bool}
         · exact priorKept candidate earlier
         · exact originalKept
 
+/-- Lift a retained walk while preserving the exact stored edge value and
+orientation at every list position.  The older `inflateRetained` theorem is
+the compact endpoint/index API; this occurrence-exact variant is intended for
+proofs whose local color or cusp argument must refer to the actual first or
+last edge of the lifted traversal rather than to an independently selected
+parallel occurrence. -/
+theorem inflateRetainedExact {graph : Graph} {mask : List Bool}
+    {start finish : Vertex}
+    {traversed : List (graph.retainEdges mask).DirectedEdge}
+    (walk : (graph.retainEdges mask).EdgeWalk start traversed finish)
+    (aligned : graph.edges.length = mask.length) :
+    ∃ originalTraversal : List graph.DirectedEdge,
+      graph.EdgeWalk start originalTraversal finish ∧
+        originalTraversal.map
+            (fun directed => retainedIndex mask directed.index) =
+          traversed.map DirectedEdge.index ∧
+        originalTraversal.map DirectedEdge.edge =
+          traversed.map DirectedEdge.edge ∧
+        originalTraversal.map DirectedEdge.forward =
+          traversed.map DirectedEdge.forward ∧
+        originalTraversal.map DirectedEdge.target =
+          traversed.map DirectedEdge.target ∧
+        ∀ directed ∈ originalTraversal,
+          mask[directed.index]? = some true := by
+  induction walk with
+  | refl =>
+      exact ⟨[], .refl _, rfl, rfl, rfl, rfl, by simp⟩
+  | @step start finish priorSteps prior directed starts finishes ih =>
+      rcases ih with
+        ⟨originalPrior, originalWalk, indexEquation, edgeEquation,
+          forwardEquation, targetEquation, priorKept⟩
+      rcases directed.inflateRetained_exists_exact aligned with
+        ⟨original, originalEdge, originalForward, sourceEquation,
+          targetEdgeEquation, indexPosition, originalKept⟩
+      refine ⟨originalPrior ++ [original], ?_, ?_, ?_, ?_, ?_, ?_⟩
+      · exact EdgeWalk.step originalWalk original
+          (sourceEquation.trans starts) (targetEdgeEquation.trans finishes)
+      · simp [List.map_append, indexEquation, indexPosition]
+      · simp [List.map_append, edgeEquation, originalEdge]
+      · simp [List.map_append, forwardEquation, originalForward]
+      · simp [List.map_append, targetEquation, targetEdgeEquation]
+      · intro candidate membership
+        simp only [List.mem_append, List.mem_singleton] at membership
+        rcases membership with earlier | rfl
+        · exact priorKept candidate earlier
+        · exact originalKept
+
 def reverseTraversal {graph : Graph}
     (traversed : List graph.DirectedEdge) : List graph.DirectedEdge :=
   traversed.reverse.map DirectedEdge.reverse

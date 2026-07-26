@@ -83,21 +83,25 @@ tail cannot immediately reverse the lifted assigned-to-unassigned frontier.
 The all-left switching mask is now classified at that exact full-edge index,
 not by edge value: axiom, tensor-left/tensor-right, and the sole retained
 par-left occurrence remain distinct even when parallel edges have equal
-endpoints. Structural typing excludes the axiom case at a formula-descent
-source, while unique connective production identifies the frontier producer
-with the first tail producer. Lean consequently proves the exhaustive local
-turn theorem: a retained par frontier and the reversed first tail incidence
-share the same par color and form a genuine cusp; a tensor frontier and tail
-carry exact unique colors, and color equality would force the prohibited
-immediate reversal, so the turn is free. Every edge of the finite closed
-waiting-dependency segment now carries this occurrence-geometric alternative
-and an exact composable `fullGraph` segment from its source waiting conclusion
-to its target. Lean concatenates the selected finite family into a genuinely
-nonempty closed occurrence-aware walk in the certificate's complete graph.
-That closed walk may still contain backtracking or repeated occurrences:
-proof-net correctness must next extract and exclude a suitably classified
-edge-simple switching cycle or forbidden nesting before the recursive fallback
-can be removed. The later
+endpoints. The lifted prefix now preserves the stored edge and orientation at
+every list position, and the segment theorem propositionally binds its
+classified frontier to the actual last prefix occurrence and its classified
+formula edge to the actual first tail occurrence. Structural typing excludes
+the axiom case at a formula-descent source, while unique connective production
+identifies the frontier producer with the first tail producer. Lean
+consequently proves the exhaustive local turn theorem for the edges that are
+actually concatenated: a retained par frontier and the reversed first tail
+incidence share the same par color and form a genuine cusp; a tensor frontier
+and tail carry exact unique colors, and color equality would force the
+prohibited immediate reversal, so the turn is free. Every edge of the finite
+closed waiting-dependency segment now carries this occurrence-geometric
+alternative and an exact composable `fullGraph` segment from its source
+waiting conclusion to its target. Lean concatenates the selected finite
+family into a genuinely nonempty closed occurrence-aware walk in the
+certificate's complete graph. That closed walk may still contain backtracking
+or repeated occurrences: proof-net correctness must next extract and exclude
+a suitably classified edge-simple switching cycle or forbidden nesting before
+the recursive fallback can be removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

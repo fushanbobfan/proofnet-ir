@@ -14159,6 +14159,81 @@ private theorem FormulaPremiseReachable.backwardWalk_exists
       · exact cuspFreeTraversal_of_all_backward certificate
           (directed :: rest) allBackward
 
+/-- Occurrence-exact strengthening of `backwardWalk_exists`.  In the
+nonreflexive case the returned traversal is propositionally headed by the
+same directed occurrence whose producer and incidence color are exposed by
+the first `FormulaPremiseStep`.  This prevents a later frontier-turn proof
+from classifying one parallel occurrence while traversing another. -/
+private theorem
+    UnassignedFormulaPremiseReachable.backwardWalk_exists_with_first
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {parent target : Vertex}
+    (reachable :
+      UnassignedFormulaPremiseReachable
+        certificate state parent target) :
+    ∃ traversed : List certificate.fullGraph.DirectedEdge,
+      certificate.fullGraph.EdgeWalk parent traversed target ∧
+        (∀ directed ∈ traversed, directed.forward = false) ∧
+          certificate.CuspFreeTraversal traversed ∧
+            ((parent = target ∧ traversed = []) ∨
+              ∃ (child : Vertex)
+                  (first : certificate.fullGraph.DirectedEdge)
+                  (rest : List certificate.fullGraph.DirectedEdge),
+                FormulaPremiseStep certificate parent child ∧
+                  UnassignedFormulaPremiseReachable
+                    certificate state child target ∧
+                    traversed = first :: rest ∧
+                      first.source = parent ∧
+                        first.target = child ∧
+                          first.forward = false ∧
+                            ((∃ (index left right : Nat),
+                                certificate.links[index]? =
+                                    some (.tensor left right parent) ∧
+                                  certificate.incidenceColor first.reverse =
+                                    .unique first.index true) ∨
+                              ∃ (index left right : Nat),
+                                certificate.links[index]? =
+                                    some (.par left right parent) ∧
+                                  certificate.incidenceColor first.reverse =
+                                    .par parent)) := by
+  cases reachable with
+  | refl _vertex _unassigned =>
+      exact
+        ⟨[], .refl _, by simp, by trivial,
+          .inl ⟨rfl, rfl⟩⟩
+  | @step parent child target _parentUnassigned premiseStep suffix =>
+      rcases premiseStep.backwardEdge_exists_colored structural with
+        ⟨first, firstSource, firstTarget, firstBackward, firstOrigin⟩
+      rcases
+          suffix.toFormulaPremiseReachable.backwardWalk_exists
+            structural with
+        ⟨rest, restWalk, restBackward, _restCuspFree⟩
+      have firstWalk :
+          certificate.fullGraph.EdgeWalk parent [first] child := by
+        exact Graph.EdgeWalk.step (.refl parent) first
+          firstSource firstTarget
+      have completeWalk :
+          certificate.fullGraph.EdgeWalk
+            parent (first :: rest) target := by
+        simpa using firstWalk.trans restWalk
+      have allBackward :
+          ∀ directed ∈ first :: rest, directed.forward = false := by
+        intro directed membership
+        simp only [List.mem_cons] at membership
+        rcases membership with rfl | inRest
+        · exact firstBackward
+        · exact restBackward directed inRest
+      exact
+        ⟨first :: rest, completeWalk, allBackward,
+          cuspFreeTraversal_of_all_backward certificate
+            (first :: rest) allBackward,
+          .inr
+            ⟨child, first, rest, premiseStep, suffix, rfl,
+              firstSource, firstTarget, firstBackward,
+              firstOrigin⟩⟩
+
 /-- Strict complexity descent also makes the exact backward walk vertex
 simple.  This upgrades formula reachability to a full-graph simple path while
 retaining the all-backward and cusp-free certificates needed by the later
@@ -15925,6 +16000,255 @@ private def ClassifiedFrontierFirstTurn
               .unique first.index true ∧
             ¬certificate.Cusp frontier first
 
+/-- Classify the actual first edge of an all-backward formula tail against
+the actual kept frontier occurrence.  Both occurrence indices are inputs to
+this theorem; equal endpoint values cannot substitute a parallel edge. -/
+private theorem classifiedFrontierFirstTurn_of_actual_edges
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {frontier first : certificate.fullGraph.DirectedEdge}
+    {parent : Vertex}
+    (frontierForward : frontier.forward = true)
+    (frontierTarget : frontier.target = parent)
+    (frontierKept :
+      certificate.referenceSwitchingMask[frontier.index]? = some true)
+    (firstBackward : first.forward = false)
+    (notReverse : first ≠ frontier.reverse)
+    (firstOrigin :
+      ((∃ (index left right : Nat),
+          certificate.links[index]? =
+              some (.tensor left right parent) ∧
+            certificate.incidenceColor first.reverse =
+              .unique first.index true) ∨
+        ∃ (index left right : Nat),
+          certificate.links[index]? =
+              some (.par left right parent) ∧
+            certificate.incidenceColor first.reverse =
+              .par parent)) :
+    ClassifiedFrontierFirstTurn certificate frontier first parent := by
+  have fullKept :
+      (linkLeftSwitchingMask certificate.links)[frontier.index]? =
+        some true := by
+    simpa [Certificate.referenceSwitchingMask] using frontierKept
+  have frontierLookup :
+      certificate.fullEdges[frontier.index]? =
+        some frontier.edge := by
+    simpa [Certificate.fullGraph] using frontier.lookup
+  rcases linkLeftSwitchingMask_kept_origin fullKept with
+    axiomOrigin | tensorOrigin | parOrigin
+  · rcases axiomOrigin with
+      ⟨linkIndex, left, right, linkLookup,
+        edgeLookup, _targetLookup⟩
+    have edgeLookup' :
+        certificate.fullEdges[frontier.index]? =
+          some { first := left, second := right } := by
+      simpa using edgeLookup
+    have edgeEquation :
+        frontier.edge = { first := left, second := right } :=
+      Option.some.inj (frontierLookup.symm.trans edgeLookup')
+    have parentIsRight : parent = right := by
+      calc
+        parent = frontier.target := frontierTarget.symm
+        _ = frontier.edge.second := by
+          simp [Graph.DirectedEdge.target, frontierForward]
+        _ = right := by simp [edgeEquation]
+    have axiomMembership :
+        Link.axiom left right ∈ certificate.links :=
+      List.mem_of_getElem? linkLookup
+    have axiomWellFormed :=
+      structural.2.2.2.2.1 _ axiomMembership
+    rcases axiomWellFormed.axiom_endpointFormula
+        (.inr parentIsRight) with
+      ⟨name, positive, atomFormula⟩
+    rcases firstOrigin with tensorFirst | parFirst
+    · rcases tensorFirst with
+        ⟨firstIndex, firstLeft, firstRight,
+          firstLookup, _firstColor⟩
+      have firstMembership :
+          Link.tensor firstLeft firstRight parent ∈
+            certificate.links :=
+        List.mem_of_getElem? firstLookup
+      rcases
+          (structural.2.2.2.2.1 _ firstMembership)
+            |>.tensor_conclusionFormula with
+        ⟨leftFormula, rightFormula, compoundFormula⟩
+      rw [atomFormula] at compoundFormula
+      cases compoundFormula
+    · rcases parFirst with
+        ⟨firstIndex, firstLeft, firstRight,
+          firstLookup, _firstColor⟩
+      have firstMembership :
+          Link.par firstLeft firstRight parent ∈
+            certificate.links :=
+        List.mem_of_getElem? firstLookup
+      rcases
+          (structural.2.2.2.2.1 _ firstMembership)
+            |>.par_conclusionFormula with
+        ⟨leftFormula, rightFormula, compoundFormula⟩
+      rw [atomFormula] at compoundFormula
+      cases compoundFormula
+  · rcases tensorOrigin with
+      ⟨linkIndex, left, right, conclusion, linkLookup,
+        edgeLookup, targetLookup⟩
+    have targetLookup' :
+        certificate.fullEdgeParTargets[frontier.index]? =
+          some none := by
+      change
+        (linkFullEdgeParTargets certificate.links)[frontier.index]? =
+          some none
+      exact targetLookup
+    have edgeAndConclusion :
+        frontier.edge =
+            { first := left, second := conclusion } ∨
+          frontier.edge =
+            { first := right, second := conclusion } := by
+      rcases edgeLookup with leftLookup | rightLookup
+      · left
+        have leftLookup' :
+            certificate.fullEdges[frontier.index]? =
+              some { first := left, second := conclusion } := by
+          simpa using leftLookup
+        exact Option.some.inj
+          (frontierLookup.symm.trans leftLookup')
+      · right
+        have rightLookup' :
+            certificate.fullEdges[frontier.index]? =
+              some { first := right, second := conclusion } := by
+          simpa using rightLookup
+        exact Option.some.inj
+          (frontierLookup.symm.trans rightLookup')
+    have parentIsConclusion : parent = conclusion := by
+      calc
+        parent = frontier.target := frontierTarget.symm
+        _ = frontier.edge.second := by
+          simp [Graph.DirectedEdge.target, frontierForward]
+        _ = conclusion := by
+          rcases edgeAndConclusion with edgeEquation | edgeEquation
+          · simp [edgeEquation]
+          · simp [edgeEquation]
+    subst conclusion
+    have frontierColor :
+        certificate.incidenceColor frontier =
+          .unique frontier.index true := by
+      simp [Certificate.incidenceColor, frontierForward,
+        targetLookup']
+    rcases firstOrigin with tensorFirst | parFirst
+    · rcases tensorFirst with
+        ⟨firstIndex, firstLeft, firstRight,
+          firstLookup, firstColor⟩
+      have linkMembership :
+          Link.tensor left right parent ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have firstMembership :
+          Link.tensor firstLeft firstRight parent ∈ certificate.links :=
+        List.mem_of_getElem? firstLookup
+      have _sameProducer :=
+        _root_.ProofNetIR.UnificationState.StructurallyWellFormed.producerLink_unique
+          (conclusion := parent) structural
+          linkMembership (by simp [Link.produces])
+          firstMembership (by simp [Link.produces])
+      have noCusp : ¬certificate.Cusp frontier first := by
+        intro cusp
+        unfold Certificate.Cusp at cusp
+        rw [frontierColor, firstColor] at cusp
+        have sameIndex : frontier.index = first.index := by
+          injection cusp
+        have sameOccurrence :
+            frontier = first.reverse :=
+          Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+            frontier first.reverse sameIndex (by
+              simp [Graph.DirectedEdge.reverse, firstBackward,
+                frontierForward])
+        apply notReverse
+        simpa using
+          (congrArg Graph.DirectedEdge.reverse
+            sameOccurrence).symm
+      exact .inr
+        ⟨linkIndex, left, right, linkLookup,
+          frontierColor, firstColor, noCusp⟩
+    · rcases parFirst with
+        ⟨firstIndex, firstLeft, firstRight,
+          firstLookup, _firstColor⟩
+      have linkMembership :
+          Link.tensor left right parent ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have firstMembership :
+          Link.par firstLeft firstRight parent ∈ certificate.links :=
+        List.mem_of_getElem? firstLookup
+      have impossible :=
+        _root_.ProofNetIR.UnificationState.StructurallyWellFormed.producerLink_unique
+          (conclusion := parent) structural
+          linkMembership (by simp [Link.produces])
+          firstMembership (by simp [Link.produces])
+      cases impossible
+  · rcases parOrigin with
+      ⟨linkIndex, left, right, conclusion, linkLookup,
+        edgeLookup, targetLookup⟩
+    have edgeLookup' :
+        certificate.fullEdges[frontier.index]? =
+          some { first := left, second := conclusion } := by
+      simpa using edgeLookup
+    have edgeEquation :
+        frontier.edge =
+          { first := left, second := conclusion } :=
+      Option.some.inj (frontierLookup.symm.trans edgeLookup')
+    have parentIsConclusion : parent = conclusion := by
+      calc
+        parent = frontier.target := frontierTarget.symm
+        _ = frontier.edge.second := by
+          simp [Graph.DirectedEdge.target, frontierForward]
+        _ = conclusion := by simp [edgeEquation]
+    subst conclusion
+    have targetLookup' :
+        certificate.fullEdgeParTargets[frontier.index]? =
+          some (some parent) := by
+      change
+        (linkFullEdgeParTargets certificate.links)[frontier.index]? =
+          some (some parent)
+      exact targetLookup
+    have frontierColor :
+        certificate.incidenceColor frontier = .par parent := by
+      exact
+        (certificate.incidenceColor_eq_par_iff
+          frontier parent).mpr
+            ⟨frontierForward, targetLookup'⟩
+    rcases firstOrigin with tensorFirst | parFirst
+    · rcases tensorFirst with
+        ⟨firstIndex, firstLeft, firstRight,
+          firstLookup, _firstColor⟩
+      have linkMembership :
+          Link.par left right parent ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have firstMembership :
+          Link.tensor firstLeft firstRight parent ∈ certificate.links :=
+        List.mem_of_getElem? firstLookup
+      have impossible :=
+        _root_.ProofNetIR.UnificationState.StructurallyWellFormed.producerLink_unique
+          (conclusion := parent) structural
+          linkMembership (by simp [Link.produces])
+          firstMembership (by simp [Link.produces])
+      cases impossible
+    · rcases parFirst with
+        ⟨firstIndex, firstLeft, firstRight,
+          firstLookup, firstColor⟩
+      have linkMembership :
+          Link.par left right parent ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have firstMembership :
+          Link.par firstLeft firstRight parent ∈ certificate.links :=
+        List.mem_of_getElem? firstLookup
+      have _sameProducer :=
+        _root_.ProofNetIR.UnificationState.StructurallyWellFormed.producerLink_unique
+          (conclusion := parent) structural
+          linkMembership (by simp [Link.produces])
+          firstMembership (by simp [Link.produces])
+      have cusp : certificate.Cusp frontier first := by
+        unfold Certificate.Cusp
+        exact frontierColor.trans firstColor.symm
+      exact .inl
+        ⟨linkIndex, left, right, linkLookup,
+          frontierColor, firstColor, cusp⟩
+
 /-- Geometric witness exposed by one waiting-par dependency.  The reflexive
 case reaches the next waiting conclusion at the frontier itself; otherwise
 the exact retained frontier and first backward formula occurrence carry the
@@ -16331,26 +16655,29 @@ private def QuiescentWaitingParDependencyFullSegment
         List certificate.fullGraph.DirectedEdge),
     QuiescentWaitingParDependencyAtBoundary
         certificate state source target boundary ∧
-      (boundary.target = target ∨
+      ((boundary.target = target ∧ formulaTail = []) ∨
         ∃ (frontier first :
-              certificate.fullGraph.DirectedEdge),
-          frontier.edge = boundary.edge ∧
-            frontier.forward = boundary.forward ∧
-              Graph.retainedIndex
-                  certificate.referenceSwitchingMask
-                  frontier.index =
-                boundary.index ∧
-                frontier.source = boundary.source ∧
-                  frontier.target = boundary.target ∧
-                    first.source = boundary.target ∧
-                      first.target ≠ boundary.source ∧
-                        first.forward = false ∧
-                          first ≠ frontier.reverse ∧
-                            certificate.referenceSwitchingMask[
-                              frontier.index]? = some true ∧
-                              ClassifiedFrontierFirstTurn
-                                certificate frontier first
-                                  boundary.target) ∧
+              certificate.fullGraph.DirectedEdge)
+            (rest : List certificate.fullGraph.DirectedEdge),
+          fullPrefix.getLast? = some frontier ∧
+            formulaTail = first :: rest ∧
+              frontier.edge = boundary.edge ∧
+                frontier.forward = boundary.forward ∧
+                  Graph.retainedIndex
+                      certificate.referenceSwitchingMask
+                      frontier.index =
+                    boundary.index ∧
+                    frontier.source = boundary.source ∧
+                      frontier.target = boundary.target ∧
+                        first.source = boundary.target ∧
+                          first.target ≠ boundary.source ∧
+                            first.forward = false ∧
+                              first ≠ frontier.reverse ∧
+                                certificate.referenceSwitchingMask[
+                                  frontier.index]? = some true ∧
+                                  ClassifiedFrontierFirstTurn
+                                    certificate frontier first
+                                      boundary.target) ∧
         sourceEdge.edge = { first := left, second := source } ∧
           sourceEdge.forward = false ∧
             sourceEdge.source = source ∧
@@ -16368,9 +16695,14 @@ private def QuiescentWaitingParDependencyFullSegment
                                 certificate.referenceSwitchingMask
                                 directed.index) =
                           retainedPrefix.map Graph.DirectedEdge.index ∧
-                          (∀ directed ∈ fullPrefix,
-                            certificate.referenceSwitchingMask[
-                              directed.index]? = some true) ∧
+                          fullPrefix.map Graph.DirectedEdge.edge =
+                            retainedPrefix.map Graph.DirectedEdge.edge ∧
+                            fullPrefix.map Graph.DirectedEdge.forward =
+                              retainedPrefix.map
+                                Graph.DirectedEdge.forward ∧
+                              (∀ directed ∈ fullPrefix,
+                                certificate.referenceSwitchingMask[
+                                  directed.index]? = some true) ∧
                             certificate.fullGraph.EdgeWalk
                                 boundary.target formulaTail target ∧
                               (∀ directed ∈ formulaTail,
@@ -16397,7 +16729,7 @@ private theorem quiescentWaitingParDependency_fullSegment
   rcases
       quiescentWaitingParDependency_refl_or_nonbacktrackingFirstEdge
         structural dependency with
-    ⟨boundary, atBoundary, classifiedTurn⟩
+    ⟨boundary, atBoundary, _classifiedTurn⟩
   rcases atBoundary with
     ⟨index, left, right, leftToken, rightToken, referencePath,
       linkLookup, sourceUnassigned, leftMarked, rightMarked,
@@ -16414,6 +16746,16 @@ private theorem quiescentWaitingParDependency_fullSegment
       boundaryMembership, boundaryToken, boundarySourceAssigned,
       boundaryTargetUnassigned, boundaryTargetNeSource, exactOrigin,
       frontierStatus, formulaPath, targetWaiting, targetRank⟩
+  have boundaryForward : boundary.forward = true := by
+    rcases exactOrigin with parOrigin | tensorOrigin
+    · rcases parOrigin with
+        ⟨_index, _left, _right, _conclusion, _lookup,
+          _edge, forward, _source, _target⟩
+      exact forward
+    · rcases tensorOrigin with
+        ⟨_index, _left, _right, _conclusion, _lookup,
+          forward, _side, _target⟩
+      exact forward
   rcases List.mem_iff_append.mp boundaryMembership with
     ⟨before, after, traversalEquation⟩
   rcases referencePath.prefixPath traversalEquation with
@@ -16440,9 +16782,96 @@ private theorem quiescentWaitingParDependency_fullSegment
         certificate.referenceSwitchingMask).EdgeWalk
           left (before ++ [boundary]) boundary.target := by
     simpa [Certificate.referenceSwitchingGraph] using retainedPrefixWalk
-  rcases retainedPrefixWalk'.inflateRetained aligned with
+  rcases retainedPrefixWalk'.inflateRetainedExact aligned with
     ⟨fullPrefix, fullPrefixWalk, retainedIndices,
+      fullPrefixEdges, fullPrefixForwards,
       _retainedTargets, fullPrefixKept⟩
+  have fullPrefixNonempty : fullPrefix ≠ [] := by
+    intro empty
+    have mappedEmpty :
+        List.map Graph.DirectedEdge.index
+            (before ++ [boundary]) = [] := by
+      calc
+        List.map Graph.DirectedEdge.index
+            (before ++ [boundary]) =
+            List.map (fun directed =>
+              Graph.retainedIndex certificate.referenceSwitchingMask
+                directed.index) fullPrefix :=
+                  retainedIndices.symm
+        _ = [] := by simp [empty]
+    have baseEmpty :=
+      List.eq_nil_of_map_eq_nil mappedEmpty
+    simp at baseEmpty
+  let frontier : certificate.fullGraph.DirectedEdge :=
+    fullPrefix.getLast fullPrefixNonempty
+  have frontierLast :
+      fullPrefix.getLast? = some frontier := by
+    rw [List.getLast?_eq_some_getLast fullPrefixNonempty]
+  have boundaryLast :
+      (before ++ [boundary]).getLast? = some boundary := by
+    simp [List.getLast?_append]
+  have frontierRetainedIndex :
+      Graph.retainedIndex certificate.referenceSwitchingMask
+          frontier.index =
+        boundary.index := by
+    apply Option.some.inj
+    calc
+      some (Graph.retainedIndex
+          certificate.referenceSwitchingMask frontier.index) =
+          (List.map (fun directed =>
+            Graph.retainedIndex certificate.referenceSwitchingMask
+              directed.index) fullPrefix).getLast? := by
+            rw [List.getLast?_map, frontierLast]
+            simp [Option.map]
+      _ =
+          (List.map Graph.DirectedEdge.index
+            (before ++ [boundary])).getLast? :=
+            congrArg List.getLast? retainedIndices
+      _ = some boundary.index := by
+            rw [List.getLast?_map, boundaryLast]
+            simp [Option.map]
+  have frontierEdge : frontier.edge = boundary.edge := by
+    apply Option.some.inj
+    calc
+      some frontier.edge =
+          (List.map Graph.DirectedEdge.edge fullPrefix).getLast? := by
+            rw [List.getLast?_map, frontierLast]
+            simp [Option.map]
+      _ =
+          (List.map Graph.DirectedEdge.edge
+            (before ++ [boundary])).getLast? :=
+            congrArg List.getLast? fullPrefixEdges
+      _ = some boundary.edge := by
+            rw [List.getLast?_map, boundaryLast]
+            simp [Option.map]
+  have frontierForward :
+      frontier.forward = boundary.forward := by
+    apply Option.some.inj
+    calc
+      some frontier.forward =
+          (List.map Graph.DirectedEdge.forward fullPrefix).getLast? := by
+            rw [List.getLast?_map, frontierLast]
+            simp [Option.map]
+      _ =
+          (List.map Graph.DirectedEdge.forward
+            (before ++ [boundary])).getLast? :=
+            congrArg List.getLast? fullPrefixForwards
+      _ = some boundary.forward := by
+            rw [List.getLast?_map, boundaryLast]
+            simp [Option.map]
+  have frontierTarget :
+      frontier.target = boundary.target := by
+    simpa [frontier] using
+      fullPrefixWalk.getLast_target fullPrefixNonempty
+  have frontierSource :
+      frontier.source = boundary.source := by
+    simp [Graph.DirectedEdge.source, frontierEdge, frontierForward]
+  have frontierMembership : frontier ∈ fullPrefix :=
+    List.getLast_mem fullPrefixNonempty
+  have frontierKept :
+      certificate.referenceSwitchingMask[frontier.index]? =
+        some true :=
+    fullPrefixKept frontier frontierMembership
   have parLinkMembership :
       Link.par left right source ∈ certificate.links :=
     List.mem_of_getElem? linkLookup
@@ -16472,11 +16901,70 @@ private theorem quiescentWaitingParDependency_fullSegment
       certificate.fullGraph.EdgeWalk source [sourceEdge] left := by
     exact Graph.EdgeWalk.step (.refl source) sourceEdge
       sourceEdgeStarts sourceEdgeFinishes
-  rcases
-      formulaPath.toFormulaPremiseReachable.backwardWalk_exists
-        structural with
+  rcases formulaPath.backwardWalk_exists_with_first structural with
     ⟨formulaTail, formulaTailWalk, formulaTailBackward,
-      formulaTailCuspFree⟩
+      formulaTailCuspFree, formulaTailShape⟩
+  have actualTurn :
+      (boundary.target = target ∧ formulaTail = []) ∨
+        ∃ (actualFrontier actualFirst :
+              certificate.fullGraph.DirectedEdge)
+            (rest : List certificate.fullGraph.DirectedEdge),
+          fullPrefix.getLast? = some actualFrontier ∧
+            formulaTail = actualFirst :: rest ∧
+              actualFrontier.edge = boundary.edge ∧
+                actualFrontier.forward = boundary.forward ∧
+                  Graph.retainedIndex
+                      certificate.referenceSwitchingMask
+                      actualFrontier.index =
+                    boundary.index ∧
+                    actualFrontier.source = boundary.source ∧
+                      actualFrontier.target = boundary.target ∧
+                        actualFirst.source = boundary.target ∧
+                          actualFirst.target ≠ boundary.source ∧
+                            actualFirst.forward = false ∧
+                              actualFirst ≠ actualFrontier.reverse ∧
+                                certificate.referenceSwitchingMask[
+                                  actualFrontier.index]? = some true ∧
+                                  ClassifiedFrontierFirstTurn certificate
+                                    actualFrontier actualFirst
+                                      boundary.target := by
+    rcases formulaTailShape with reflexive | nontrivial
+    · exact .inl reflexive
+    · rcases nontrivial with
+        ⟨child, first, rest, _premiseStep, suffix,
+          tailEquation, firstSource, firstTarget,
+          firstBackward, firstOrigin⟩
+      have childNeSource : child ≠ boundary.source := by
+        intro same
+        apply boundarySourceAssigned
+        simpa [same] using suffix.source_unassigned
+      have firstTargetNe :
+          first.target ≠ boundary.source := by
+        intro same
+        apply childNeSource
+        exact firstTarget.symm.trans same
+      have notReverse : first ≠ frontier.reverse := by
+        intro same
+        have sameTarget :=
+          congrArg Graph.DirectedEdge.target same
+        apply firstTargetNe
+        calc
+          first.target = frontier.reverse.target := sameTarget
+          _ = frontier.source := by simp
+          _ = boundary.source := frontierSource
+      have classified :
+          ClassifiedFrontierFirstTurn
+            certificate frontier first boundary.target :=
+        classifiedFrontierFirstTurn_of_actual_edges structural
+          (frontierForward.trans boundaryForward)
+          frontierTarget frontierKept firstBackward notReverse
+          firstOrigin
+      exact .inr
+        ⟨frontier, first, rest, frontierLast, tailEquation,
+          frontierEdge, frontierForward, frontierRetainedIndex,
+          frontierSource, frontierTarget, firstSource,
+          firstTargetNe, firstBackward, notReverse,
+          frontierKept, classified⟩
   have sourceToBoundary :
       certificate.fullGraph.EdgeWalk source
         ([sourceEdge] ++ fullPrefix) boundary.target :=
@@ -16487,11 +16975,12 @@ private theorem quiescentWaitingParDependency_fullSegment
     sourceToBoundary.trans formulaTailWalk
   exact
     ⟨boundary, left, sourceEdge, before ++ [boundary],
-      fullPrefix, formulaTail, atBoundary', classifiedTurn,
+      fullPrefix, formulaTail, atBoundary', actualTurn,
       sourceEdgeValue, sourceEdgeBackward, sourceEdgeStarts,
       sourceEdgeFinishes, sourceEdgeParTarget, retainedPrefixWalk,
       retainedPrefixLast, fullPrefixWalk, retainedIndices,
-      fullPrefixKept, formulaTailWalk, formulaTailBackward,
+      fullPrefixEdges, fullPrefixForwards, fullPrefixKept,
+      formulaTailWalk, formulaTailBackward,
       formulaTailCuspFree, completeWalk⟩
 
 /-- Forget the internal decomposition of one complete dependency segment while
@@ -16512,7 +17001,8 @@ private theorem QuiescentWaitingParDependencyFullSegment.walk_exists
       _sourceEdgeValue, _sourceEdgeBackward, _sourceEdgeStarts,
       _sourceEdgeFinishes, _sourceEdgeParTarget, _retainedPrefixWalk,
       _retainedPrefixLast, _fullPrefixWalk, _retainedIndices,
-      _fullPrefixKept, _formulaTailWalk, _formulaTailBackward,
+      _fullPrefixEdges, _fullPrefixForwards, _fullPrefixKept,
+      _formulaTailWalk, _formulaTailBackward,
       _formulaTailCuspFree, completeWalk⟩
   refine
     ⟨([sourceEdge] ++ fullPrefix) ++ formulaTail, ?_, completeWalk⟩

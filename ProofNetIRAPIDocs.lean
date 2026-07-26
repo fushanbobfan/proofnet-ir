@@ -46,6 +46,7 @@ def sections : List Section := [
       `ProofNetIR.Graph.DirectedEdge.inflateRetained_exists,
       `ProofNetIR.Graph.DirectedEdge.inflateRetained_exists_exact,
       `ProofNetIR.Graph.EdgeWalk.inflateRetained,
+      `ProofNetIR.Graph.EdgeWalk.inflateRetainedExact,
       `ProofNetIR.Graph.EdgeSimpleCycle.inflateRetained,
       `ProofNetIR.Graph.DirectedEdge.reindex,
       `ProofNetIR.Graph.EdgeWalk.reindex,

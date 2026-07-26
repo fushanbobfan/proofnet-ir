@@ -2188,6 +2188,7 @@ example : ¬cyclicGraph.Acyclic := by
 #check Graph.DirectedEdge.inflateRetained_exists
 #check Graph.DirectedEdge.inflateRetained_exists_exact
 #check Graph.EdgeWalk.inflateRetained
+#check Graph.EdgeWalk.inflateRetainedExact
 #check Graph.EdgeSimpleCycle.inflateRetained
 #check Graph.DirectedEdge.ne_reverse
 #check Graph.EdgeSimpleCycle.eq_of_index_eq
