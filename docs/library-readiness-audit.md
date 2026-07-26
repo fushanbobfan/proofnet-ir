@@ -168,9 +168,11 @@ part of the engineering and proof-identity gap.
    branch on correct inputs. A converse retained-edge invariant and causal
    marking closure now prove that active-reference connectivity is exactly
    union-find thread equality on reachable markings. The sole remaining
-   obstruction is therefore a submitted waiting par whose marked premises
-   provably occupy distinct active components; pure worklist completeness and
-   a full cost theorem are still open.
+   obstruction is now path-exposed: an exact reference simple path joins the
+   waiting par premises while avoiding its conclusion, and distinct active
+   components force an unmarked internal occurrence on that path. Excluding
+   this region, pure worklist completeness, and a full cost theorem remain
+   open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

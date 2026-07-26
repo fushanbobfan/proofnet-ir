@@ -516,6 +516,38 @@ multigraph cycle.
 ProofNetIR.Graph.Acyclic.edges_nodup : ∀ {graph : ProofNetIR.Graph}, graph.Acyclic → graph.Bounded → graph.edges.Nodup
 ```
 
+### `ProofNetIR.Graph.Acyclic.noWalk_of_addEdge`
+
+Kind: theorem.
+
+In a bounded occurrence-aware graph, an appended loopless edge can belong
+to an acyclic extension only when its endpoints were previously disconnected.
+This is the converse of `Acyclic.addEdge_of_noWalk`; the proof closes a
+loop-erased old path with the exact newly appended edge occurrence.
+
+```lean
+ProofNetIR.Graph.Acyclic.noWalk_of_addEdge : ∀ {graph : ProofNetIR.Graph} {edge : ProofNetIR.Edge},
+  (graph.addEdge edge).Acyclic →
+    graph.Bounded →
+      edge.first < graph.vertexCount →
+        edge.second < graph.vertexCount → edge.first ≠ edge.second → ¬graph.Walk edge.first edge.second
+```
+
+### `ProofNetIR.Graph.IsTree.edgeExchange_walk`
+
+Kind: theorem.
+
+Fundamental tree-edge exchange lemma for occurrence-aware finite
+multigraphs. If replacing the edge `left--common` by `right--common` leaves a
+tree, then `left` and `right` were already connected before either edge was
+added. This is the exact bridge used by switching arguments for par links.
+
+```lean
+ProofNetIR.Graph.IsTree.edgeExchange_walk : ∀ {base : ProofNetIR.Graph} {left right common : ProofNetIR.Vertex},
+  (base.addEdge { first := left, second := common }).IsTree →
+    (base.addEdge { first := right, second := common }).IsTree → base.Walk left right
+```
+
 ### `ProofNetIR.Graph.connected_of_bounded_acyclic_edgeCount`
 
 Kind: theorem.
@@ -782,6 +814,24 @@ ProofNetIR.Certificate.referenceFullSwitchingSelection : ∀ (certificate : Proo
   ProofNetIR.Certificate.FullSwitchingSelection certificate.links
     (ProofNetIR.Certificate.linkLeftSelectedEdges certificate.links)
     (ProofNetIR.Certificate.linkLeftRetainedEdges certificate.links) certificate.referenceSwitchingMask
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.parPremises_referencePath_avoids_conclusion`
+
+Kind: theorem.
+
+In every correct certificate, the two premises of any submitted par are
+joined in the deterministic all-left reference switching by a simple exact
+path which avoids that par's conclusion.  The proof flips only the specified
+par occurrence, applies occurrence-aware tree-edge exchange, and transports
+the common-component path back through the reference edge permutation.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.parPremises_referencePath_avoids_conclusion : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ {left right conclusion : ProofNetIR.Vertex},
+      ProofNetIR.Link.par left right conclusion ∈ certificate.links →
+        ∃ path, path.start = left ∧ path.finish = right ∧ ¬conclusion ∈ path.vertices
 ```
 
 ### `ProofNetIR.Certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected`
@@ -2520,6 +2570,36 @@ The two equivalence classes selected for a merge are unordered.
 ```lean
 ProofNetIR.UnificationMarking.mergeExtension_comm : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
   (leftToken rightToken : Nat), state.MergeExtension leftToken rightToken = state.MergeExtension rightToken leftToken
+```
+
+### `ProofNetIR.UnificationMarking.referencePath_active_of_allMarked`
+
+Kind: theorem.
+
+A path in the complete reference switching is already an active-graph
+walk when every vertex it visits has been marked.  The proof retains exact
+edge occurrences only after checking both endpoint marks; it does not replace
+the occurrence-aware reference graph by a simple graph.
+
+```lean
+ProofNetIR.UnificationMarking.referencePath_active_of_allMarked : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
+  (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+  (∀ (vertex : ProofNetIR.Vertex), vertex ∈ path.vertices → (state.mark vertex).isSome = true) →
+    state.activeReferenceGraph.Walk path.start path.finish
+```
+
+### `ProofNetIR.UnificationMarking.referencePath_has_unmarked_of_noActiveWalk`
+
+Kind: theorem.
+
+If a complete-reference simple path does not induce an active walk, at
+least one visited occurrence is genuinely unmarked.
+
+```lean
+ProofNetIR.UnificationMarking.referencePath_has_unmarked_of_noActiveWalk : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
+  (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+  ¬state.activeReferenceGraph.Walk path.start path.finish →
+    ∃ vertex, vertex ∈ path.vertices ∧ (state.mark vertex).isSome = false
 ```
 
 ### `ProofNetIR.UnificationRuleKind`

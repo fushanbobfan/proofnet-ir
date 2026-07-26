@@ -14040,6 +14040,137 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
           correct coreInvariant.1 connected linkMembership
           conclusionUnmarked leftMarked rightMarked)
 
+/-- The residual waiting-par obstruction is path-exposed, not merely a pair
+of disconnected scheduler tokens.  A correct proof net supplies an exact
+reference-switching path between the premises which avoids the par
+conclusion; failure of the active subgraph to connect the endpoints therefore
+identifies a genuinely unmarked internal occurrence on that path. -/
+private theorem canonicalWorklistRun_incomplete_waitingParPath
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (index left right conclusion leftToken rightToken : Nat)
+          (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (blocked : Vertex),
+        certificate.links[index]? =
+            some (.par left right conclusion) ∧
+          final.core.assignedToken? conclusion = none ∧
+            final.core.tokenAt? left = some leftToken ∧
+              final.core.tokenAt? right = some rightToken ∧
+                leftToken ≠ rightToken ∧
+                  index ∈ final.waiting ∧
+                    ¬((final.core.toMarking certificate
+                        (canonicalWorklistRun_coreInvariant
+                          correct.1 startEquation).1)
+                      |>.activeReferenceGraph.Walk left right) ∧
+                      path.start = left ∧
+                        path.finish = right ∧
+                          conclusion ∉ path.vertices ∧
+                            blocked ∈ path.vertices ∧
+                              blocked ≠ left ∧
+                                blocked ≠ right ∧
+                                  blocked ≠ conclusion ∧
+                                    final.core.assignedToken? blocked =
+                                      none := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (index left right conclusion leftToken rightToken : Nat)
+          (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (blocked : Vertex),
+        certificate.links[index]? =
+            some (.par left right conclusion) ∧
+          final.core.assignedToken? conclusion = none ∧
+            final.core.tokenAt? left = some leftToken ∧
+              final.core.tokenAt? right = some rightToken ∧
+                leftToken ≠ rightToken ∧
+                  index ∈ final.waiting ∧
+                    ¬((final.core.toMarking certificate
+                        (canonicalWorklistRun_coreInvariant
+                          correct.1 startEquation).1)
+                      |>.activeReferenceGraph.Walk left right) ∧
+                      path.start = left ∧
+                        path.finish = right ∧
+                          conclusion ∉ path.vertices ∧
+                            blocked ∈ path.vertices ∧
+                              blocked ≠ left ∧
+                                blocked ≠ right ∧
+                                  blocked ≠ conclusion ∧
+                                    final.core.assignedToken? blocked = none
+  intro incomplete
+  rcases canonicalWorklistRun_incomplete_waitingPar
+      correct startEquation incomplete with
+    ⟨index, left, right, conclusion, leftToken, rightToken,
+      linkLookup, conclusionUnmarked, leftMarked, rightMarked,
+      different, registered, noActiveWalk⟩
+  have linkMembership :
+      Link.par left right conclusion ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  rcases
+      correct.parPremises_referencePath_avoids_conclusion linkMembership with
+    ⟨path, pathStarts, pathFinishes, conclusionAvoided⟩
+  have coreInvariant :
+      WorklistCoreInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_coreInvariant correct.1 startEquation
+  let marking :=
+    final.core.toMarking certificate coreInvariant.1
+  have noActivePath :
+      ¬marking.activeReferenceGraph.Walk path.start path.finish := by
+    intro walk
+    apply noActiveWalk
+    simpa [marking, pathStarts, pathFinishes] using walk
+  rcases UnificationMarking.referencePath_has_unmarked_of_noActiveWalk
+      marking path noActivePath with
+    ⟨blocked, blockedMembership, blockedUnmarked⟩
+  have blockedAssignedNone :
+      final.core.assignedToken? blocked = none := by
+    change
+      ((final.core.toMarking certificate coreInvariant.1).mark blocked).isSome =
+        false at blockedUnmarked
+    simp only [UnificationState.toMarking_mark] at blockedUnmarked
+    cases assigned : final.core.assignedToken? blocked with
+    | none =>
+        rfl
+    | some token =>
+        simp [assigned] at blockedUnmarked
+  rcases final.core.tokenAt?_some_witness leftMarked with
+    ⟨leftRaw, leftRawMarked, _leftRepresentative⟩
+  rcases final.core.tokenAt?_some_witness rightMarked with
+    ⟨rightRaw, rightRawMarked, _rightRepresentative⟩
+  have blockedNeLeft : blocked ≠ left := by
+    intro same
+    subst blocked
+    rw [leftRawMarked] at blockedAssignedNone
+    contradiction
+  have blockedNeRight : blocked ≠ right := by
+    intro same
+    subst blocked
+    rw [rightRawMarked] at blockedAssignedNone
+    contradiction
+  have blockedNeConclusion : blocked ≠ conclusion := by
+    intro same
+    subst blocked
+    exact conclusionAvoided blockedMembership
+  exact
+    ⟨index, left, right, conclusion, leftToken, rightToken, path, blocked,
+      linkLookup, conclusionUnmarked, leftMarked, rightMarked, different,
+      registered, noActiveWalk, pathStarts, pathFinishes,
+      conclusionAvoided, blockedMembership, blockedNeLeft, blockedNeRight,
+      blockedNeConclusion, blockedAssignedNone⟩
+
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/
 private theorem canonicalWorklistRun_registryLengthBounds

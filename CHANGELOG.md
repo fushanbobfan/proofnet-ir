@@ -78,8 +78,14 @@
   inside one semantic token class, and an active reference walk between
   marked occurrences is equivalent to union-find thread equality. The final
   waiting-par witness is therefore strengthened with a kernel proof that its
-  marked premises have no active reference walk. Correctness still must
-  exclude that global graph-level obstruction, so
+  marked premises have no active reference walk. An occurrence-aware
+  tree-edge-exchange theorem now proves more: flipping exactly that submitted
+  par occurrence yields a reference-switching simple path between its
+  premises which avoids the par conclusion. If the endpoints remain in
+  different active components, Lean extracts a genuinely unmarked internal
+  occurrence on this path, distinct from both premises and the par
+  conclusion. Correctness still must exclude this path-exposed unmarked
+  region, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

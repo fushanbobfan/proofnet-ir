@@ -463,8 +463,13 @@
       invariant through every reachable state, obtaining exact equivalence
       between active components and union-find classes and a no-active-walk
       witness for the remaining waiting par.
-    - [ ] Exclude the sole remaining active-component-separated waiting-par
-      obstruction.
+    - [x] Flip exactly the remaining submitted par occurrence, apply an
+      occurrence-aware tree-edge-exchange theorem, and obtain a reference
+      simple path between its premises which avoids the par conclusion.
+    - [x] Prove that active-component separation exposes a genuinely unmarked
+      internal occurrence on that path, distinct from both marked endpoints
+      and the waiting par conclusion.
+    - [ ] Exclude the resulting path-exposed unmarked-region obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

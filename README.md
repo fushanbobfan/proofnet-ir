@@ -176,8 +176,11 @@ The repository currently contains:
   declaratively correct input. A second causal-closure/reference-edge
   invariant proves exact equivalence between active graph components and
   union-find classes, strengthening the remaining submitted waiting par to
-  two marked premises with no active reference walk between them. Excluding
-  that graph-level obstruction is the sole open progress obligation;
+  two marked premises with no active reference walk between them. Exact
+  occurrence-aware tree-edge exchange now also supplies a reference simple
+  path between those premises which avoids the par conclusion; an incomplete
+  run must expose an unmarked internal occurrence on that path. Excluding
+  this path-exposed unmarked region is the sole open progress obligation;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

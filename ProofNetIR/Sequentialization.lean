@@ -3197,6 +3197,264 @@ theorem Acyclic.addEdge_of_noWalk {graph : Graph}
       simpa [DirectedEdge.source, DirectedEdge.target, direction,
         newEdge] using reversed
 
+/-- In a bounded occurrence-aware graph, an appended loopless edge can belong
+to an acyclic extension only when its endpoints were previously disconnected.
+This is the converse of `Acyclic.addEdge_of_noWalk`; the proof closes a
+loop-erased old path with the exact newly appended edge occurrence. -/
+theorem Acyclic.noWalk_of_addEdge {graph : Graph} {edge : Edge}
+    (acyclic : (graph.addEdge edge).Acyclic)
+    (bounded : graph.Bounded)
+    (firstBound : edge.first < graph.vertexCount)
+    (secondBound : edge.second < graph.vertexCount)
+    (different : edge.first ≠ edge.second) :
+    ¬graph.Walk edge.first edge.second := by
+  intro oldWalk
+  rcases oldWalk.toSimple with ⟨steps, visited, simple⟩
+  have oldSubset :
+      ∀ candidate ∈ graph.edges,
+        candidate ∈ (graph.addEdge edge).edges := by
+    intro candidate membership
+    change candidate ∈ graph.edges ++ [edge]
+    exact List.mem_append.mpr (.inl membership)
+  rcases simple.liftToEdgeSimplePathWithEdges oldSubset with
+    ⟨path, pathStarts, pathFinishes, _pathVertices, pathEdges⟩
+  have pathNonempty : path.traversed ≠ [] := by
+    intro empty
+    have chain := path.walk.toChain
+    rw [empty] at chain
+    exact different
+      (pathStarts.symm.trans (chain.eq_of_nil.trans pathFinishes))
+  have addedBounded :
+      (graph.addEdge edge).Bounded :=
+    bounded.addEdge firstBound secondBound different
+  have addedNodup :
+      (graph.addEdge edge).edges.Nodup :=
+    acyclic.edges_nodup addedBounded
+  have edgeFresh : edge ∉ graph.edges := by
+    intro oldMembership
+    have duplicate :
+        ¬edge ∈ graph.edges := by
+      change (graph.edges ++ [edge]).Nodup at addedNodup
+      rw [List.nodup_append] at addedNodup
+      intro membership
+      exact addedNodup.2.2 edge membership edge (by simp) rfl
+    exact duplicate oldMembership
+  rcases List.getElem?_of_mem
+      (show edge ∈ (graph.addEdge edge).edges by
+        change edge ∈ graph.edges ++ [edge]
+        simp) with
+    ⟨newIndex, newLookup⟩
+  have newIndexEquation : newIndex = graph.edges.length := by
+    have indexBound :=
+      (List.getElem?_eq_some_iff.mp newLookup).1
+    have notOld : ¬newIndex < graph.edges.length := by
+      intro oldBound
+      have oldLookup :
+          graph.edges[newIndex]? = some edge := by
+        simpa [Graph.addEdge, List.getElem?_append, oldBound] using newLookup
+      exact edgeFresh
+        (List.mem_iff_getElem.mpr
+          ⟨newIndex, oldBound,
+            (List.getElem?_eq_some_iff.mp oldLookup).2⟩)
+    have : newIndex < graph.edges.length + 1 := by
+      simpa [Graph.addEdge] using indexBound
+    omega
+  let returnDirected : (graph.addEdge edge).DirectedEdge :=
+    { index := newIndex
+      edge := edge
+      lookup := newLookup
+      forward := false }
+  let returnPath : (graph.addEdge edge).EdgeSimplePath :=
+    { start := edge.second
+      finish := edge.first
+      traversed := [returnDirected]
+      walk := by
+        exact EdgeWalk.step (.refl edge.second) returnDirected rfl rfl
+      verticesNodup := by
+        simpa [EdgeWalk.visitedVertices, returnDirected,
+          DirectedEdge.target] using (Ne.symm different) }
+  have returnNonempty : returnPath.traversed ≠ [] := by
+    simp [returnPath]
+  have meeting : path.finish = returnPath.start := by
+    simpa [returnPath] using pathFinishes
+  have closing : returnPath.finish = path.start := by
+    simpa [returnPath] using pathStarts.symm
+  have vertexDisjoint : ∀ vertex,
+      vertex ∈ path.vertices →
+      vertex ∈ returnPath.vertices.tail.dropLast → False := by
+    intro vertex _ returnMembership
+    simp [returnPath, EdgeSimplePath.vertices,
+      EdgeWalk.visitedVertices] at returnMembership
+  have edgeDisjoint : ∀ index,
+      index ∈ path.traversed.map DirectedEdge.index →
+      index ∈ returnPath.traversed.map DirectedEdge.index → False := by
+    intro index pathMembership returnMembership
+    have indexIsNew : index = newIndex := by
+      simpa [returnPath, returnDirected] using returnMembership
+    rcases List.mem_map.mp pathMembership with
+      ⟨directed, directedMembership, directedIndex⟩
+    have sameIndex : directed.index = newIndex :=
+      directedIndex.trans indexIsNew
+    have sameEdge : directed.edge = edge := by
+      apply Option.some.inj
+      rw [← directed.lookup, ← newLookup, sameIndex]
+    exact edgeFresh (sameEdge ▸ pathEdges directed directedMembership)
+  let cycle := EdgeSimpleCycle.ofTwoPaths path returnPath pathNonempty
+    returnNonempty meeting closing vertexDisjoint edgeDisjoint
+  exact acyclic cycle
+
+theorem insertEdge_perm_addEdge
+    (before after : List Edge) (edge : Edge) :
+    (before ++ edge :: after).Perm ((before ++ after) ++ [edge]) := by
+  apply (List.perm_middle
+    (a := edge) (l₁ := before) (l₂ := after)).trans
+  simpa using
+    (List.perm_middle
+      (a := edge) (l₁ := before ++ after) (l₂ := [])).symm
+
+/-- Fundamental tree-edge exchange lemma for occurrence-aware finite
+multigraphs. If replacing the edge `left--common` by `right--common` leaves a
+tree, then `left` and `right` were already connected before either edge was
+added. This is the exact bridge used by switching arguments for par links. -/
+theorem IsTree.edgeExchange_walk {base : Graph}
+    {left right common : Vertex}
+    (referenceTree :
+      (base.addEdge { first := left, second := common }).IsTree)
+    (alternateTree :
+      (base.addEdge { first := right, second := common }).IsTree) :
+    base.Walk left right := by
+  let leftEdge : Edge := { first := left, second := common }
+  let rightEdge : Edge := { first := right, second := common }
+  have baseBounded : base.Bounded := by
+    intro edge membership
+    apply referenceTree.1 edge
+    change edge ∈ base.edges ++ [leftEdge]
+    exact List.mem_append.mpr (.inl membership)
+  have leftMembership :
+      leftEdge ∈ (base.addEdge leftEdge).edges := by
+    change leftEdge ∈ base.edges ++ [leftEdge]
+    simp
+  have leftBounds := referenceTree.1 leftEdge leftMembership
+  have noLeftCommon : ¬base.Walk left common := by
+    exact referenceTree.acyclic.noWalk_of_addEdge baseBounded
+      leftBounds.1 leftBounds.2.1 leftBounds.2.2
+  have rightMembership :
+      rightEdge ∈ (base.addEdge rightEdge).edges := by
+    change rightEdge ∈ base.edges ++ [rightEdge]
+    simp
+  have rightBounds := alternateTree.1 rightEdge rightMembership
+  have rootToLeft :=
+    alternateTree.2.1.2 left (by
+      simpa [Graph.addEdge] using leftBounds.1)
+  have rootToCommon :=
+    alternateTree.2.1.2 common (by
+      simpa [Graph.addEdge] using leftBounds.2.1)
+  have alternateWalk :
+      (base.addEdge rightEdge).Walk left common :=
+    rootToLeft.reverse.trans rootToCommon
+  rcases alternateWalk.toSimple with ⟨steps, visited, simple⟩
+  rcases simple.liftToEdgeSimplePathWithEdges
+      (fun edge membership => membership) with
+    ⟨path, pathStarts, pathFinishes, _pathVertices, _pathEdges⟩
+  let mask := base.oldEdgeMask
+  have aligned :
+      (base.addEdge rightEdge).edges.length = mask.length :=
+    base.oldEdgeMask_length rightEdge
+  have newPresent :
+      ∃ directed ∈ path.traversed,
+        directed.index = base.edges.length := by
+    apply Classical.byContradiction
+    intro absent
+    have allKept : ∀ directed ∈ path.traversed,
+        mask[directed.index]? = some true := by
+      intro directed membership
+      have different : directed.index ≠ base.edges.length := by
+        intro same
+        exact absent ⟨directed, membership, same⟩
+      have indexBound :
+          directed.index < base.edges.length + 1 := by
+        have lookupBound :=
+          (List.getElem?_eq_some_iff.mp directed.lookup).1
+        simpa [Graph.addEdge] using lookupBound
+      have oldBound : directed.index < base.edges.length := by omega
+      exact base.oldEdgeMask_getElem oldBound
+    rcases path.walk.retainEdges aligned allKept with
+      ⟨retainedTraversal, retainedWalk, _indexEquation, _targetEquation⟩
+    have retainedEquation :
+        (base.addEdge rightEdge).retainEdges mask = base :=
+      base.retainEdges_oldEdgeMask rightEdge
+    have oldWalk := retainedWalk.toWalk
+    rw [retainedEquation, pathStarts, pathFinishes] at oldWalk
+    exact noLeftCommon oldWalk
+  rcases newPresent with ⟨newDirected, newMembership, newIndex⟩
+  have newEdge : newDirected.edge = rightEdge := by
+    have lookup := newDirected.lookup
+    rw [newIndex] at lookup
+    have same : rightEdge = newDirected.edge := by
+      simpa [Graph.addEdge] using lookup
+    exact same.symm
+  have pathNonempty : path.traversed ≠ [] := by
+    intro empty
+    simp [empty] at newMembership
+  have forward : newDirected.forward = true := by
+    cases direction : newDirected.forward with
+    | false =>
+        have sourceIsCommon :
+            newDirected.source = common := by
+          simp [DirectedEdge.source, direction, newEdge, rightEdge]
+        exact False.elim
+          (path.directed_source_ne_finish pathNonempty newMembership
+            (sourceIsCommon.trans pathFinishes.symm))
+    | true => rfl
+  have sourceIsRight : newDirected.source = right := by
+    simp [DirectedEdge.source, forward, newEdge, rightEdge]
+  rcases List.mem_iff_append.mp newMembership with
+    ⟨before, after, traversalEquation⟩
+  have fullChain := path.walk.toChain
+  rw [traversalEquation] at fullChain
+  rcases fullChain.split_append with
+    ⟨middle, prefixChain, suffixChain⟩
+  have middleIsRight : middle = right := by
+    exact suffixChain.head_source.symm.trans sourceIsRight
+  have prefixWalk :
+      (base.addEdge rightEdge).EdgeWalk left before right := by
+    have starts : path.start = left := pathStarts
+    rw [starts, middleIsRight] at prefixChain
+    exact prefixChain.toWalk
+  have prefixKept : ∀ directed ∈ before,
+      mask[directed.index]? = some true := by
+    intro directed membership
+    have indicesNodup := path.edgeIndicesNodup
+    rw [traversalEquation, List.map_append] at indicesNodup
+    have different : directed.index ≠ newDirected.index := by
+      intro same
+      have parts := List.nodup_append.mp indicesNodup
+      have newNotInBefore :
+          newDirected.index ∉ before.map DirectedEdge.index := by
+        intro beforeMembership
+        exact parts.2.2 newDirected.index beforeMembership
+          newDirected.index (by simp) rfl
+      apply newNotInBefore
+      exact List.mem_map.mpr
+        ⟨directed, membership, same⟩
+    have indexBound :
+        directed.index < base.edges.length + 1 := by
+      have lookupBound :=
+        (List.getElem?_eq_some_iff.mp directed.lookup).1
+      simpa [Graph.addEdge] using lookupBound
+    have oldBound : directed.index < base.edges.length := by
+      rw [newIndex] at different
+      omega
+    exact base.oldEdgeMask_getElem oldBound
+  rcases prefixWalk.retainEdges aligned prefixKept with
+    ⟨retainedTraversal, retainedWalk, _indexEquation, _targetEquation⟩
+  have retainedEquation :
+      (base.addEdge rightEdge).retainEdges mask = base :=
+    base.retainEdges_oldEdgeMask rightEdge
+  have oldWalk := retainedWalk.toWalk
+  rw [retainedEquation] at oldWalk
+  exact oldWalk
+
 /-- Finite universe of all ordered endpoint pairs for a given vertex count.
 It deliberately includes loops; bounded graph edges still form a subset. -/
 def edgeUniverse (vertexCount : Nat) : List Edge :=
@@ -4123,6 +4381,151 @@ def linkLeftSwitchingMask : List Link → List Bool
       true :: true :: linkLeftSwitchingMask links
   | .par _ _ _ :: links =>
       true :: false :: linkLeftSwitchingMask links
+
+/-- An exact occurrence-order switching which agrees with the deterministic
+all-left switching except at one specified occurrence of the submitted par
+link, where it selects the right premise.  The relation retains the original
+link order so later exchange arguments can identify a common edge-list
+prefix and suffix without quotienting duplicate edge values. -/
+inductive ParFlipSelection
+    (targetLeft targetRight targetConclusion : Vertex) :
+    List Link → List Edge → List Edge → List Bool → Prop where
+  | here {links : List Link} :
+      ParFlipSelection targetLeft targetRight targetConclusion
+        (.par targetLeft targetRight targetConclusion :: links)
+        ({ first := targetRight, second := targetConclusion } ::
+          linkLeftSelectedEdges links)
+        ({ first := targetRight, second := targetConclusion } ::
+          linkLeftRetainedEdges links)
+        (false :: true :: linkLeftSwitchingMask links)
+  | axiom {links selected retained mask left right}
+      (prior :
+        ParFlipSelection targetLeft targetRight targetConclusion
+          links selected retained mask) :
+      ParFlipSelection targetLeft targetRight targetConclusion
+        (.axiom left right :: links) selected
+        ({ first := left, second := right } :: retained)
+        (true :: mask)
+  | tensor {links selected retained mask left right conclusion}
+      (prior :
+        ParFlipSelection targetLeft targetRight targetConclusion
+          links selected retained mask) :
+      ParFlipSelection targetLeft targetRight targetConclusion
+        (.tensor left right conclusion :: links) selected
+        ({ first := left, second := conclusion } ::
+          { first := right, second := conclusion } :: retained)
+        (true :: true :: mask)
+  | parLeft {links selected retained mask left right conclusion}
+      (prior :
+        ParFlipSelection targetLeft targetRight targetConclusion
+          links selected retained mask) :
+      ParFlipSelection targetLeft targetRight targetConclusion
+        (.par left right conclusion :: links)
+        ({ first := left, second := conclusion } :: selected)
+        ({ first := left, second := conclusion } :: retained)
+        (true :: false :: mask)
+
+namespace ParFlipSelection
+
+/-- Every submitted occurrence of the target par admits a switching which
+flips exactly that occurrence and chooses left everywhere else. -/
+theorem exists_of_mem {links : List Link}
+    {targetLeft targetRight targetConclusion : Vertex}
+    (membership :
+      Link.par targetLeft targetRight targetConclusion ∈ links) :
+    ∃ selected retained mask,
+      ParFlipSelection targetLeft targetRight targetConclusion
+        links selected retained mask := by
+  induction links with
+  | nil =>
+      simp at membership
+  | cons head tail induction =>
+      rcases List.mem_cons.mp membership with same | rest
+      · subst head
+        exact ⟨_, _, _, .here⟩
+      · rcases induction rest with ⟨selected, retained, mask, flipped⟩
+        cases head with
+        | «axiom» left right =>
+            exact ⟨selected, _, _, .axiom flipped⟩
+        | tensor left right conclusion =>
+            exact ⟨selected, _, _, .tensor flipped⟩
+        | «par» left right conclusion =>
+            exact ⟨_, _, _, .parLeft flipped⟩
+
+/-- Forgetting which par occurrence was flipped yields an ordinary lawful
+occurrence-order switching. -/
+theorem toFullSwitchingSelection
+    {targetLeft targetRight targetConclusion : Vertex}
+    {links : List Link} {selected retained : List Edge} {mask : List Bool}
+    (flipped :
+      ParFlipSelection targetLeft targetRight targetConclusion
+        links selected retained mask) :
+    FullSwitchingSelection links selected retained mask := by
+  induction flipped with
+  | @here links =>
+      have allLeft :
+          FullSwitchingSelection links
+            (linkLeftSelectedEdges links)
+            (linkLeftRetainedEdges links)
+            (linkLeftSwitchingMask links) := by
+        induction links with
+        | nil => exact .nil
+        | cons link rest induction =>
+            cases link with
+            | «axiom» left right =>
+                exact .axiom induction
+            | tensor left right conclusion =>
+                exact .tensor induction
+            | «par» left right conclusion =>
+                exact .parLeft induction
+      exact .parRight allLeft
+  | «axiom» prior induction =>
+      exact .axiom induction
+  | tensor prior induction =>
+      exact .tensor induction
+  | parLeft prior induction =>
+      exact .parLeft induction
+
+/-- The selected-edge lists of the reference and flipped switchings differ by
+one literal in-place replacement and share exact prefix/suffix lists. -/
+theorem selected_decomposition
+    {targetLeft targetRight targetConclusion : Vertex}
+    {links : List Link} {selected retained : List Edge} {mask : List Bool}
+    (flipped :
+      ParFlipSelection targetLeft targetRight targetConclusion
+        links selected retained mask) :
+    ∃ before after,
+      linkLeftSelectedEdges links =
+        before ++
+          { first := targetLeft, second := targetConclusion } :: after ∧
+      selected =
+        before ++
+          { first := targetRight, second := targetConclusion } :: after := by
+  induction flipped with
+  | here =>
+      exact ⟨[], linkLeftSelectedEdges _, rfl, rfl⟩
+  | «axiom» prior induction =>
+      simpa [linkLeftSelectedEdges] using induction
+  | tensor prior induction =>
+      simpa [linkLeftSelectedEdges] using induction
+  | @parLeft links selected retained mask left right conclusion
+      prior induction =>
+      rcases induction with ⟨before, after, reference, alternate⟩
+      refine
+        ⟨({ first := left, second := conclusion } : Edge) :: before,
+          after, ?_, ?_⟩
+      · simpa [linkLeftSelectedEdges, List.append_assoc] using
+          congrArg
+            (fun tail =>
+              ({ first := left, second := conclusion } : Edge) :: tail)
+            reference
+      · simpa [List.append_assoc] using
+          congrArg
+            (fun tail =>
+              ({ first := left, second := conclusion } : Edge) :: tail)
+            alternate
+
+end ParFlipSelection
 
 /-- Relative occurrence indices used by a switching request are sparse at
 every par pair: the two positions emitted by one par link are never both
@@ -11400,6 +11803,133 @@ theorem DeclarativelyCorrect.referenceSwitchingConnected
     certificate.ReferenceSwitchingConnected :=
   (certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected.mp
     correct).2.2.reference
+
+/-- In every correct certificate, the two premises of any submitted par are
+joined in the deterministic all-left reference switching by a simple exact
+path which avoids that par's conclusion.  The proof flips only the specified
+par occurrence, applies occurrence-aware tree-edge exchange, and transports
+the common-component path back through the reference edge permutation. -/
+theorem DeclarativelyCorrect.parPremises_referencePath_avoids_conclusion
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    {left right conclusion : Vertex}
+    (membership : Link.par left right conclusion ∈ certificate.links) :
+    ∃ path : certificate.referenceSwitchingGraph.EdgeSimplePath,
+      path.start = left ∧
+        path.finish = right ∧
+        conclusion ∉ path.vertices := by
+  rcases ParFlipSelection.exists_of_mem membership with
+    ⟨alternateSelected, alternateRetained, alternateMask, flipped⟩
+  have alternateFull :
+      FullSwitchingSelection certificate.links
+        alternateSelected alternateRetained alternateMask :=
+    flipped.toFullSwitchingSelection
+  have alternateChoice :
+      ChoiceSelection certificate.parChoices alternateSelected := by
+    simpa using alternateFull.choiceSelection
+  have referenceFull := certificate.referenceFullSwitchingSelection
+  have referenceChoice :
+      ChoiceSelection certificate.parChoices
+        (linkLeftSelectedEdges certificate.links) := by
+    simpa using referenceFull.choiceSelection
+  have referenceOriginal :
+      (certificate.graphForSelection
+        (linkLeftSelectedEdges certificate.links)).IsTree :=
+    correct.2 _ ⟨_, referenceChoice, rfl⟩
+  have alternateOriginal :
+      (certificate.graphForSelection alternateSelected).IsTree :=
+    correct.2 _ ⟨_, alternateChoice, rfl⟩
+  rcases flipped.selected_decomposition with
+    ⟨before, after, referenceSelected, alternateSelectedEquation⟩
+  let leftEdge : Edge := { first := left, second := conclusion }
+  let rightEdge : Edge := { first := right, second := conclusion }
+  let base : Graph :=
+    { vertexCount := certificate.formulas.size
+      edges := certificate.fixedEdges ++ before ++ after }
+  have referencePermutation :
+      (certificate.graphForSelection
+          (linkLeftSelectedEdges certificate.links)).edges.Perm
+        (base.addEdge leftEdge).edges := by
+    change
+      (certificate.fixedEdges ++
+        linkLeftSelectedEdges certificate.links).Perm
+      ((certificate.fixedEdges ++ before ++ after) ++ [leftEdge])
+    rw [referenceSelected]
+    simpa [leftEdge, List.append_assoc] using
+      Graph.insertEdge_perm_addEdge
+        (certificate.fixedEdges ++ before) after leftEdge
+  have alternatePermutation :
+      (certificate.graphForSelection alternateSelected).edges.Perm
+        (base.addEdge rightEdge).edges := by
+    change
+      (certificate.fixedEdges ++ alternateSelected).Perm
+      ((certificate.fixedEdges ++ before ++ after) ++ [rightEdge])
+    rw [alternateSelectedEquation]
+    simpa [rightEdge, List.append_assoc] using
+      Graph.insertEdge_perm_addEdge
+        (certificate.fixedEdges ++ before) after rightEdge
+  have referenceTree : (base.addEdge leftEdge).IsTree :=
+    referenceOriginal.permuteEdges rfl referencePermutation
+  have alternateTree : (base.addEdge rightEdge).IsTree :=
+    alternateOriginal.permuteEdges rfl alternatePermutation
+  have baseWalk : base.Walk left right := by
+    exact referenceTree.edgeExchange_walk alternateTree
+  have baseBounded : base.Bounded := by
+    intro edge edgeMembership
+    apply referenceTree.1 edge
+    change edge ∈ base.edges ++ [leftEdge]
+    exact List.mem_append.mpr (.inl edgeMembership)
+  have leftMembership :
+      leftEdge ∈ (base.addEdge leftEdge).edges := by
+    change leftEdge ∈ base.edges ++ [leftEdge]
+    simp
+  have leftBounds := referenceTree.1 leftEdge leftMembership
+  have noBaseWalkToConclusion : ¬base.Walk left conclusion := by
+    exact referenceTree.acyclic.noWalk_of_addEdge baseBounded
+      leftBounds.1 leftBounds.2.1 leftBounds.2.2
+  rcases baseWalk.toSimple with ⟨steps, visited, simple⟩
+  have conclusionNotVisited : conclusion ∉ visited := by
+    intro conclusionMembership
+    rcases simple.restrict conclusionMembership with
+      ⟨restrictedSteps, restrictedVertices, restricted⟩
+    exact noBaseWalkToConclusion restricted.toWalkN.toWalk
+  have referenceRetained :
+      certificate.referenceSwitchingGraph.edges =
+        linkLeftRetainedEdges certificate.links := by
+    change Graph.retainEdgesByMask certificate.fullEdges
+      certificate.referenceSwitchingMask =
+        linkLeftRetainedEdges certificate.links
+    simpa [retainByMask] using
+      referenceFull.retained_eq_retainByMask.symm
+  have baseSubset :
+      ∀ edge ∈ base.edges,
+        edge ∈ certificate.referenceSwitchingGraph.edges := by
+    intro edge edgeMembership
+    have ordinaryMembership :
+        edge ∈ certificate.fixedEdges ++
+          linkLeftSelectedEdges certificate.links := by
+      change edge ∈ certificate.fixedEdges ++ before ++ after
+        at edgeMembership
+      rw [referenceSelected]
+      rcases List.mem_append.mp edgeMembership with
+        inFixedOrBefore | inAfter
+      · rcases List.mem_append.mp inFixedOrBefore with
+          inFixed | inBefore
+        · exact List.mem_append.mpr (.inl inFixed)
+        · exact List.mem_append.mpr
+            (.inr (List.mem_append.mpr (.inl inBefore)))
+      · exact List.mem_append.mpr
+          (.inr (List.mem_append.mpr
+            (.inr (List.mem_cons.mpr (.inr inAfter)))))
+    rw [referenceRetained]
+    exact referenceFull.edgePermutation.mem_iff.mpr ordinaryMembership
+  rcases simple.liftToEdgeSimplePathWithEdges baseSubset with
+    ⟨path, pathStarts, pathFinishes, pathVertices, _pathEdges⟩
+  exact
+    ⟨path, pathStarts, pathFinishes,
+      fun conclusionMembership =>
+        conclusionNotVisited
+          (pathVertices ▸ conclusionMembership)⟩
 
 /-- Executable checker acceptance implies deterministic reference-switching
 connectedness. -/

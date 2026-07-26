@@ -298,6 +298,130 @@ theorem activeReferenceEdges_subset_referenceSwitchingGraph
   rw [referenceSwitchingGraph_edges_eq_leftRetained]
   exact state.activeReferenceEdges_subset edge membership
 
+/-- A path in the complete reference switching is already an active-graph
+walk when every vertex it visits has been marked.  The proof retains exact
+edge occurrences only after checking both endpoint marks; it does not replace
+the occurrence-aware reference graph by a simple graph. -/
+theorem referencePath_active_of_allMarked
+    (state : UnificationMarking certificate)
+    (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+    (allMarked :
+      ∀ vertex ∈ path.vertices,
+        (state.mark vertex).isSome = true) :
+    state.activeReferenceGraph.Walk path.start path.finish := by
+  have traversedActive :
+      ∀ directed ∈ path.traversed,
+        directed.edge ∈ state.activeReferenceEdges := by
+    intro directed membership
+    have endpoints :=
+      path.directed_endpoints_mem_vertices membership
+    have firstMembership :
+        directed.edge.first ∈ path.vertices := by
+      cases direction : directed.forward with
+      | false =>
+          simpa [Graph.DirectedEdge.target, direction] using endpoints.2
+      | true =>
+          simpa [Graph.DirectedEdge.source, direction] using endpoints.1
+    have secondMembership :
+        directed.edge.second ∈ path.vertices := by
+      cases direction : directed.forward with
+      | false =>
+          simpa [Graph.DirectedEdge.source, direction] using endpoints.1
+      | true =>
+          simpa [Graph.DirectedEdge.target, direction] using endpoints.2
+    have retained :
+        directed.edge ∈
+          Certificate.linkLeftRetainedEdges certificate.links := by
+      rw [← referenceSwitchingGraph_edges_eq_leftRetained]
+      exact List.mem_of_getElem? directed.lookup
+    apply List.mem_filter.mpr
+    exact
+      ⟨retained, by
+        simp [allMarked directed.edge.first firstMembership,
+          allMarked directed.edge.second secondMembership]⟩
+  have composeWalk :
+      ∀ {first second third : Vertex},
+        state.activeReferenceGraph.Walk first second →
+          state.activeReferenceGraph.Walk second third →
+            state.activeReferenceGraph.Walk first third := by
+    intro first second third initial suffix
+    induction suffix with
+    | refl =>
+        exact initial
+    | step prior adjacency induction =>
+        exact .step induction adjacency
+  have liftChain :
+      ∀ {start finish : Vertex}
+        {traversed :
+          List certificate.referenceSwitchingGraph.DirectedEdge},
+        certificate.referenceSwitchingGraph.EdgeChain
+            start traversed finish →
+          (∀ directed ∈ traversed,
+            directed.edge ∈ state.activeReferenceEdges) →
+          state.activeReferenceGraph.Walk start finish := by
+    intro start finish traversed chain
+    induction chain with
+    | nil =>
+        intro _allActive
+        exact .refl _
+    | @cons chainStart chainFinish rest directed starts tail induction =>
+        intro allActive
+        have directedActive :
+            directed.edge ∈ state.activeReferenceEdges :=
+          allActive directed (by simp)
+        have tailActive :
+            ∀ candidate ∈ rest,
+              candidate.edge ∈ state.activeReferenceEdges := by
+          intro candidate candidateMembership
+          exact allActive candidate (by simp [candidateMembership])
+        have tailWalk :=
+          induction tailActive
+        have adjacency :
+            state.activeReferenceGraph.Adjacent
+              chainStart directed.target := by
+          refine ⟨directed.edge, directedActive, ?_⟩
+          cases direction : directed.forward with
+          | false =>
+              right
+              constructor
+              · simp [Graph.DirectedEdge.target, direction]
+              · simpa [Graph.DirectedEdge.source, direction] using starts
+          | true =>
+              left
+              constructor
+              · simpa [Graph.DirectedEdge.source, direction] using starts
+              · simp [Graph.DirectedEdge.target, direction]
+        have firstWalk :
+            state.activeReferenceGraph.Walk
+              chainStart directed.target :=
+          .step (.refl chainStart) adjacency
+        exact composeWalk firstWalk tailWalk
+  exact liftChain path.walk.toChain traversedActive
+
+/-- If a complete-reference simple path does not induce an active walk, at
+least one visited occurrence is genuinely unmarked. -/
+theorem referencePath_has_unmarked_of_noActiveWalk
+    (state : UnificationMarking certificate)
+    (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+    (noActive :
+      ¬state.activeReferenceGraph.Walk path.start path.finish) :
+    ∃ vertex,
+      vertex ∈ path.vertices ∧
+        (state.mark vertex).isSome = false := by
+  apply Classical.byContradiction
+  intro noWitness
+  have allMarked :
+      ∀ vertex ∈ path.vertices,
+        (state.mark vertex).isSome = true := by
+    intro vertex membership
+    cases present : (state.mark vertex).isSome with
+    | false =>
+        exact False.elim
+          (noWitness ⟨vertex, membership, present⟩)
+    | true =>
+        rfl
+  exact noActive (referencePath_active_of_allMarked state path allMarked)
+
 /-- Link-local threading controls every retained edge value, before the
 endpoint-mark filter defining the active graph is applied. -/
 private theorem retainedEdge_threaded
