@@ -499,6 +499,9 @@
       registered waiting par, prove finite-carrier closure, and prove that a
       `formulas.size + 1` dependency chain repeats a waiting conclusion while
       retaining every adjacent dependency witness.
+    - [x] Extract one concrete nonempty closed dependency segment with
+      `earlier < later ≤ formulas.size`, equal endpoint conclusions, every
+      chain vertex registered as waiting, and all interval-edge witnesses.
     - [ ] Convert the repeated dependency segment into an exact
       switching-tree cycle or forbidden nesting and exclude the remaining
       path-exposed waiting-par obstruction.

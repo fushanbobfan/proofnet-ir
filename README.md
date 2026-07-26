@@ -62,9 +62,14 @@ minimum obstruction to every registered waiting par: each waiting par has an
 exact outgoing path/frontier/chase dependency to another registered waiting
 par, all dependency endpoints lie in the finite formula carrier, and
 iterating for one more step than the number of formula occurrences is
-kernel-proved to repeat a waiting conclusion. Proof-net correctness still
-must geometrically exclude the resulting repeated dependency cycle before
-the recursive fallback can be removed. The later
+kernel-proved to repeat a waiting conclusion. The repetition is also exposed
+as concrete indices `earlier < later ≤ formulas.size`, with equal endpoint
+conclusions, registered-waiting evidence for every chain vertex, and the full
+dependency witness retained on every edge inside the nonempty closed segment.
+This is a cycle in the auxiliary waiting-dependency relation only:
+proof-net correctness still must geometrically exclude it as a
+switching-tree cycle or forbidden nesting before the recursive fallback can
+be removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

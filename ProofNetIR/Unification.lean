@@ -14999,6 +14999,59 @@ private theorem unification_length_le_of_nodup_subset
       simp only [List.length_cons]
       omega
 
+/-- A duplicate in a mapped initial segment has two ordered source
+indices.  Packaging the duplicate this way preserves the dependency-chain
+positions needed by the later geometric argument. -/
+private theorem unification_exists_ordered_repeat_of_map_range
+    [BEq α] [LawfulBEq α]
+    (valueAt : Nat → α)
+    {length : Nat}
+    (repeats :
+      ¬((List.range length).map valueAt).Nodup) :
+    ∃ earlier later,
+      earlier < later ∧
+        later < length ∧
+          valueAt earlier = valueAt later := by
+  induction length with
+  | zero =>
+      simp at repeats
+  | succ previous induction =>
+      by_cases prefixNodup :
+          ((List.range previous).map valueAt).Nodup
+      · have lastMembership :
+            valueAt previous ∈
+              (List.range previous).map valueAt := by
+          by_cases present :
+              valueAt previous ∈
+                (List.range previous).map valueAt
+          · exact present
+          · exfalso
+            apply repeats
+            rw [List.range_succ, List.map_append, List.nodup_append]
+            refine
+              ⟨prefixNodup, by simp, ?_⟩
+            intro value valueMembership last lastMembership
+            have lastEquation :
+                last = valueAt previous := by
+              simpa using lastMembership
+            subst last
+            intro same
+            apply present
+            simpa [same] using valueMembership
+        rcases List.mem_map.mp lastMembership with
+          ⟨earlier, earlierMembership, valueEquation⟩
+        have earlierBound : earlier < previous := by
+          simpa using earlierMembership
+        exact
+          ⟨earlier, previous, earlierBound,
+            Nat.lt_succ_self previous, valueEquation⟩
+      · rcases induction prefixNodup with
+          ⟨earlier, later, ordered, laterBound, valueEquation⟩
+        exact
+          ⟨earlier, later, ordered,
+            Nat.lt_trans laterBound (Nat.lt_succ_self previous),
+            valueEquation⟩
+
 /-- Every registered distinct-thread waiting par has an outgoing dependency
 to another registered waiting par on the finite formula carrier.  This
 globalizes the previous one-off minimum-rank chase: the construction now
@@ -15358,6 +15411,87 @@ private theorem canonicalWorklistRun_waitingPar_dependency_repeats
     omega
   exact
     ⟨chainAt, starts, steps, carrier, repeats⟩
+
+/-- Finite dependency repetition is exposed as one concrete nonempty closed
+segment.  Every vertex on the ambient chain is a registered waiting par and
+every edge inside the selected interval retains its full path/frontier/chase
+witness.  The equal endpoints are equality in the waiting-dependency graph;
+the separate geometric theorem must still turn this segment into a forbidden
+cycle or nesting in the reference switching tree. -/
+private theorem canonicalWorklistRun_waitingPar_dependency_closed_segment
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (chainAt : Nat → Vertex) (earlier later : Nat),
+          chainAt 0 = source ∧
+            earlier < later ∧
+              later ≤ certificate.formulas.size ∧
+                chainAt earlier = chainAt later ∧
+                  (∀ step,
+                    QuiescentWaitingParAt
+                      certificate final (chainAt step)) ∧
+                    ∀ step,
+                      earlier ≤ step →
+                        step < later →
+                          QuiescentWaitingParDependency
+                            certificate final (chainAt step)
+                              (chainAt (step + 1)) := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (chainAt : Nat → Vertex) (earlier later : Nat),
+          chainAt 0 = source ∧
+            earlier < later ∧
+              later ≤ certificate.formulas.size ∧
+                chainAt earlier = chainAt later ∧
+                  (∀ step,
+                    QuiescentWaitingParAt
+                      certificate final (chainAt step)) ∧
+                    ∀ step,
+                      earlier ≤ step →
+                        step < later →
+                          QuiescentWaitingParDependency
+                            certificate final (chainAt step)
+                              (chainAt (step + 1))
+  intro source sourceWaiting
+  rcases canonicalWorklistRun_waitingPar_dependency_repeats
+      correct startEquation sourceWaiting with
+    ⟨chainAt, starts, steps, _carrier, repeats⟩
+  rcases unification_exists_ordered_repeat_of_map_range
+      chainAt repeats with
+    ⟨earlier, later, ordered, laterBound, endpointEquation⟩
+  have laterCarrierBound :
+      later ≤ certificate.formulas.size := by
+    omega
+  have chainWaiting :
+      ∀ step,
+        QuiescentWaitingParAt certificate final (chainAt step) := by
+    intro step
+    cases step with
+    | zero =>
+        simpa [starts] using sourceWaiting
+    | succ previous =>
+        exact
+          quiescentWaitingParDependency_target
+            (by simpa [Nat.succ_eq_add_one] using steps previous)
+  exact
+    ⟨chainAt, earlier, later, starts, ordered, laterCarrierBound,
+      endpointEquation, chainWaiting,
+      fun step _lower _upper => steps step⟩
 
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact

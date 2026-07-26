@@ -119,10 +119,15 @@
   and terminal registered waiting par. Both dependency endpoints are proved
   to lie in the finite formula carrier. A chosen dependency chain of
   `formulas.size + 1` occurrences is therefore proved non-duplicate-free
-  while retaining an exact dependency witness at every adjacent step.
-  Correctness still must geometrically exclude the resulting repeated
-  waiting-par dependency cycle, so scheduler fuel sufficiency and finite
-  repetition must not be conflated with pure-worklist completeness;
+  while retaining an exact dependency witness at every adjacent step. A
+  further kernel theorem extracts concrete indices
+  `earlier < later ≤ formulas.size`, equal endpoint conclusions, registered
+  waiting evidence for every chain vertex, and every exact dependency witness
+  in the resulting nonempty closed segment. This is only a cycle in the
+  auxiliary waiting-dependency relation. Correctness still must convert it
+  into and exclude an exact switching-tree cycle or forbidden nesting, so
+  scheduler fuel sufficiency and finite repetition must not be conflated
+  with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
