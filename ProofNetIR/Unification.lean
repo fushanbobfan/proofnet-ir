@@ -3357,6 +3357,22 @@ private def QueueFlagSound (state : UnificationWorklistState) : Prop :=
   ∀ {index : Nat}, state.queued[index]? = some true →
     index ∈ state.queue
 
+/-- Every real queue member addresses a valid deduplication-flag slot. -/
+private def QueueBounded (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, index ∈ state.queue →
+    index < state.queued.size
+
+/-- A `true` waiting flag must be backed by membership in the actual
+waiting-par registry. -/
+private def WaitingFlagSound (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, state.waitingFlags[index]? = some true →
+    index ∈ state.waiting
+
+/-- Every waiting-par registry member addresses a valid flag slot. -/
+private def WaitingBounded (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, index ∈ state.waiting →
+    index < state.waitingFlags.size
+
 private def pushConsumer (consumers : Array (List Nat))
     (vertex linkIndex : Nat) : Array (List Nat) :=
   match consumers[vertex]? with
@@ -3571,6 +3587,23 @@ private def enqueueWorklist (kind : WorklistEnqueueKind)
   unfold enqueueWorklist
   split <;> rfl
 
+/-- Queue enqueues do not change the waiting registry. -/
+@[simp] private theorem enqueueWorklist_waiting
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (state : UnificationWorklistState) :
+    (enqueueWorklist kind index state).waiting = state.waiting := by
+  unfold enqueueWorklist
+  split <;> rfl
+
+/-- Queue enqueues do not change waiting deduplication flags. -/
+@[simp] private theorem enqueueWorklist_waitingFlags
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (state : UnificationWorklistState) :
+    (enqueueWorklist kind index state).waitingFlags =
+      state.waitingFlags := by
+  unfold enqueueWorklist
+  split <;> rfl
+
 /-- A real queue member remains present after any later enqueue. -/
 private theorem mem_enqueueWorklist_of_mem
     {state : UnificationWorklistState} {candidate : Nat}
@@ -3620,6 +3653,25 @@ private theorem QueueFlagSound.mem_enqueueWorklist
           simp [Certificate.enqueueWorklist, lookup]
       | true =>
           simpa [Certificate.enqueueWorklist, lookup] using sound lookup
+
+/-- Enqueueing an in-bounds index preserves bounds for every real queue
+member. -/
+private theorem QueueBounded.enqueueWorklist
+    {state : UnificationWorklistState}
+    (bounded : QueueBounded state)
+    (kind : WorklistEnqueueKind) {index : Nat}
+    (indexBound : index < state.queued.size) :
+    QueueBounded
+      (Certificate.enqueueWorklist kind index state) := by
+  intro candidate membership
+  by_cases already : state.queued[index]?.getD true = true
+  · simp [Certificate.enqueueWorklist, already] at membership ⊢
+    exact bounded membership
+  · simp [Certificate.enqueueWorklist, already] at membership ⊢
+    rcases membership with same | oldMembership
+    · subst candidate
+      simpa using indexBound
+    · simpa using bounded oldMembership
 
 /-- Enqueueing cannot invalidate scheduler coverage: it leaves token and
 waiting state unchanged and only adds a real queue member (or is a deduplicated
@@ -3694,6 +3746,30 @@ private theorem QueueFlagSound.enqueueMany
       simp only [List.foldl_cons]
       exact induction (sound.enqueueWorklist kind head)
 
+/-- A batch of in-bounds enqueues preserves bounds for the real queue. -/
+private theorem QueueBounded.enqueueMany
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (bounded : QueueBounded state)
+    (indicesBounded :
+      ∀ index ∈ indices, index < state.queued.size) :
+    QueueBounded
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact bounded
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      apply induction
+      · apply bounded.enqueueWorklist kind
+        exact indicesBounded head (by simp)
+      · intro index membership
+        have oldBound := indicesBounded index (by simp [membership])
+        simpa using oldBound
+
 /-- Later enqueues preserve every real queue member. -/
 private theorem mem_foldl_enqueueWorklist_of_mem
     (kind : WorklistEnqueueKind) (indices : List Nat)
@@ -3720,6 +3796,38 @@ private theorem mem_foldl_enqueueWorklist_of_mem
       (fun next index =>
         Certificate.enqueueWorklist kind index next)
       state).core = state.core := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+/-- A queue-enqueue batch leaves the waiting registry unchanged. -/
+@[simp] private theorem foldl_enqueueWorklist_waiting
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist kind index next)
+      state).waiting = state.waiting := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+/-- A queue-enqueue batch leaves waiting flags unchanged. -/
+@[simp] private theorem foldl_enqueueWorklist_waitingFlags
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist kind index next)
+      state).waitingFlags = state.waitingFlags := by
   induction indices generalizing state with
   | nil =>
       rfl
@@ -3821,6 +3929,90 @@ private def addWaiting (index : Nat)
       waiting := index :: state.waiting
       waitingFlags := state.waitingFlags.setIfInBounds index true }
 
+/-- Waiting registration preserves the waiting-flag carrier. -/
+@[simp] private theorem addWaiting_waitingFlags_size
+    (index : Nat) (state : UnificationWorklistState) :
+    (addWaiting index state).waitingFlags.size =
+      state.waitingFlags.size := by
+  unfold addWaiting
+  split <;> simp
+
+/-- Waiting registration does not change queue flags or the real queue. -/
+private theorem QueueFlagSound.addWaiting
+    {state : UnificationWorklistState}
+    (sound : QueueFlagSound state) (index : Nat) :
+    QueueFlagSound (Certificate.addWaiting index state) := by
+  intro candidate flagged
+  by_cases already : state.waitingFlags[index]?.getD true = true
+  · simp [Certificate.addWaiting, already] at flagged ⊢
+    exact sound flagged
+  · simp [Certificate.addWaiting, already] at flagged ⊢
+    exact sound flagged
+
+/-- Waiting registration does not change real-queue bounds. -/
+private theorem QueueBounded.addWaiting
+    {state : UnificationWorklistState}
+    (bounded : QueueBounded state) (index : Nat) :
+    QueueBounded (Certificate.addWaiting index state) := by
+  intro candidate membership
+  by_cases already : state.waitingFlags[index]?.getD true = true
+  · simp [Certificate.addWaiting, already] at membership ⊢
+    exact bounded membership
+  · simp [Certificate.addWaiting, already] at membership ⊢
+    exact bounded membership
+
+/-- Sound waiting flags make deduplicated registration non-lossy. -/
+private theorem WaitingFlagSound.addWaiting
+    {state : UnificationWorklistState}
+    (sound : WaitingFlagSound state) (index : Nat) :
+    WaitingFlagSound (Certificate.addWaiting index state) := by
+  intro candidate flagged
+  by_cases already : state.waitingFlags[index]?.getD true = true
+  · simp [Certificate.addWaiting, already] at flagged ⊢
+    exact sound flagged
+  · simp [Certificate.addWaiting, already] at flagged ⊢
+    by_cases same : index = candidate
+    · subst candidate
+      simp
+    · have oldFlag :
+          state.waitingFlags[candidate]? = some true := by
+        simpa [Array.getElem?_setIfInBounds, same] using flagged
+      exact Or.inr (sound oldFlag)
+
+/-- An in-bounds requested par index is genuinely registered after
+`addWaiting`, including the deduplicated case. -/
+private theorem WaitingFlagSound.mem_addWaiting
+    {state : UnificationWorklistState}
+    (sound : WaitingFlagSound state) {index : Nat}
+    (bound : index < state.waitingFlags.size) :
+    index ∈ (Certificate.addWaiting index state).waiting := by
+  cases lookup : state.waitingFlags[index]? with
+  | none =>
+      have outOfBounds := Array.getElem?_eq_none_iff.mp lookup
+      omega
+  | some flag =>
+      cases flag with
+      | false =>
+          simp [Certificate.addWaiting, lookup]
+      | true =>
+          simpa [Certificate.addWaiting, lookup] using sound lookup
+
+/-- Registering an in-bounds par preserves bounds for the waiting registry. -/
+private theorem WaitingBounded.addWaiting
+    {state : UnificationWorklistState}
+    (bounded : WaitingBounded state) {index : Nat}
+    (indexBound : index < state.waitingFlags.size) :
+    WaitingBounded (Certificate.addWaiting index state) := by
+  intro candidate membership
+  by_cases already : state.waitingFlags[index]?.getD true = true
+  · simp [Certificate.addWaiting, already] at membership ⊢
+    exact bounded membership
+  · simp [Certificate.addWaiting, already] at membership ⊢
+    rcases membership with same | oldMembership
+    · subst candidate
+      simpa using indexBound
+    · simpa using bounded oldMembership
+
 /-- Registering a waiting par preserves all scheduler classifications and
 turns the new index into a genuine member of the operational waiting set. -/
 private theorem SchedulerCoverage.addWaiting
@@ -3890,6 +4082,64 @@ private theorem QueueFlagSound.requeueWaiting
       cleared)
   exact clearedSound.enqueueMany .waiting state.waiting
 
+/-- Requeueing a bounded waiting registry preserves real-queue bounds when
+queue and waiting flag arrays share their submitted-link carrier. -/
+private theorem QueueBounded.requeueWaiting
+    {state : UnificationWorklistState}
+    (queueBounded : QueueBounded state)
+    (waitingBounded : WaitingBounded state)
+    (sameSize : state.waitingFlags.size = state.queued.size)
+    (linkCount : Nat) :
+    QueueBounded
+      (Certificate.requeueWaiting linkCount state) := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have clearedBounded : QueueBounded cleared := by
+    intro index membership
+    exact queueBounded membership
+  unfold Certificate.requeueWaiting
+  change QueueBounded
+    (state.waiting.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      cleared)
+  apply clearedBounded.enqueueMany .waiting
+  intro index membership
+  have waitingIndexBound := waitingBounded membership
+  simpa [cleared, sameSize] using waitingIndexBound
+
+/-- Full waiting requeue resets the waiting flags soundly. -/
+private theorem WaitingFlagSound.requeueWaiting
+    (state : UnificationWorklistState) (linkCount : Nat) :
+    WaitingFlagSound
+      (Certificate.requeueWaiting linkCount state) := by
+  intro index flagged
+  unfold Certificate.requeueWaiting at flagged ⊢
+  simp only [foldl_enqueueWorklist_waitingFlags] at flagged
+  by_cases bound : index < linkCount
+  · have lookup :
+        (Array.replicate linkCount false)[index]? = some false := by
+      simp [bound]
+    rw [lookup] at flagged
+    contradiction
+  · have lookup :
+        (Array.replicate linkCount false)[index]? = none :=
+      Array.getElem?_eq_none (by simpa using bound)
+    rw [lookup] at flagged
+    contradiction
+
+/-- Full waiting requeue empties the waiting registry, hence restores its
+boundedness unconditionally. -/
+private theorem WaitingBounded.requeueWaiting
+    (state : UnificationWorklistState) (linkCount : Nat) :
+    WaitingBounded
+      (Certificate.requeueWaiting linkCount state) := by
+  intro index membership
+  unfold Certificate.requeueWaiting at membership
+  simp at membership
+
 /-- Requeueing the entire waiting-par registry preserves scheduler coverage:
 every formerly waiting par becomes a concrete queue member, while queued,
 fired, idle, and tensor-deadlock classifications remain valid. -/
@@ -3946,6 +4196,27 @@ private def initialWorklistQueue (certificate : Certificate) : List Nat :=
       match link with
       | .axiom _ _ => none
       | .par _ _ _ | .tensor _ _ _ => some index)).reverse
+
+/-- Every member of the concrete initial queue is a submitted link index. -/
+private theorem mem_initialWorklistQueue_bound
+    {certificate : Certificate} {index : Nat}
+    (membership : index ∈ initialWorklistQueue certificate) :
+    index < certificate.links.length := by
+  simp only [initialWorklistQueue, List.mem_reverse,
+    List.mem_filterMap] at membership
+  rcases membership with ⟨entry, entryMembership, mapped⟩
+  rcases entry with ⟨link, linkIndex⟩
+  cases link with
+  | «axiom» left right =>
+      simp at mapped
+  | «par» left right conclusion =>
+      simp at mapped
+      subst index
+      simpa using List.snd_lt_of_mem_zipIdx entryMembership
+  | «tensor» left right conclusion =>
+      simp at mapped
+      subst index
+      simpa using List.snd_lt_of_mem_zipIdx entryMembership
 
 /-- Array flags are sound for an allowed queue when every `true` slot names
 an element of that queue. -/
@@ -4073,6 +4344,31 @@ private theorem initializeWorklist_queueFlagSound
   · intro index membership
     exact membership
 
+/-- The empty initial waiting registry has sound flags. -/
+private theorem initializeWorklist_waitingFlagSound
+    (certificate : Certificate) (core : UnificationState) :
+    WaitingFlagSound (initializeWorklist certificate core) := by
+  change FlagsSoundFor
+    (Array.replicate certificate.links.length false) []
+  exact flagsSoundFor_replicate_false _ _
+
+/-- The empty initial waiting registry is vacuously bounded. -/
+private theorem initializeWorklist_waitingBounded
+    (certificate : Certificate) (core : UnificationState) :
+    WaitingBounded (initializeWorklist certificate core) := by
+  intro index membership
+  simp [initializeWorklist] at membership
+
+/-- Every initial real queue member addresses a valid submitted-link flag. -/
+private theorem initializeWorklist_queueBounded
+    (certificate : Certificate) (core : UnificationState) :
+    QueueBounded (initializeWorklist certificate core) := by
+  intro index membership
+  have linkBound :=
+    mem_initialWorklistQueue_bound
+      (certificate := certificate) membership
+  simpa [initializeWorklist, foldl_setTrue_size] using linkBound
+
 /-- Initial queue flags have exactly one slot per submitted link. -/
 private theorem initializeWorklist_queued_size
     (certificate : Certificate) (core : UnificationState) :
@@ -4081,6 +4377,13 @@ private theorem initializeWorklist_queued_size
   simp only [initializeWorklist]
   rw [foldl_setTrue_size]
   simp
+
+/-- Initial waiting flags have exactly one slot per submitted link. -/
+private theorem initializeWorklist_waitingFlags_size
+    (certificate : Certificate) (core : UnificationState) :
+    (initializeWorklist certificate core).waitingFlags.size =
+      certificate.links.length := by
+  simp [initializeWorklist]
 
 /-- Initial arming establishes scheduler coverage for every connective,
 independently of token readiness. -/
@@ -4102,6 +4405,57 @@ private def popWorklist? (state : UnificationWorklistState) :
         { state with
           queue := rest
           queued := state.queued.setIfInBounds index false })
+
+/-- Popping a bounded, sound real queue yields an in-bounds link index and
+preserves both invariants after clearing exactly that head flag. -/
+private theorem popWorklist?_some_invariants
+    {state popped : UnificationWorklistState} {index : Nat}
+    (sound : QueueFlagSound state)
+    (bounded : QueueBounded state)
+    (equation : popWorklist? state = some (index, popped)) :
+    index < state.queued.size ∧
+      QueueFlagSound popped ∧
+      QueueBounded popped := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      have poppedEquation :
+          popped =
+            { state with
+              queue := rest
+              queued := state.queued.setIfInBounds head false } := by
+        simp [popWorklist?, queueEquation] at equation
+        exact equation.2.symm
+      have indexEquation : index = head := by
+        simp [popWorklist?, queueEquation] at equation
+        exact equation.1.symm
+      subst index
+      subst popped
+      have headBound : head < state.queued.size := by
+        apply bounded
+        rw [queueEquation]
+        simp
+      refine ⟨headBound, ?_, ?_⟩
+      · intro candidate flagged
+        by_cases same : head = candidate
+        · subst candidate
+          simp [headBound] at flagged
+        · have oldFlag :
+              state.queued[candidate]? = some true := by
+            simpa [Array.getElem?_setIfInBounds, same] using flagged
+          have oldMembership := sound oldFlag
+          rw [queueEquation] at oldMembership
+          simp only [List.mem_cons] at oldMembership
+          rcases oldMembership with candidateHead | inRest
+          · exact False.elim (same candidateHead.symm)
+          · exact inRest
+      · intro candidate membership
+        have oldMembership : candidate ∈ state.queue := by
+          rw [queueEquation]
+          exact List.mem_cons_of_mem head membership
+        have oldBound := bounded oldMembership
+        simpa using oldBound
 
 private def recordWorklistFiring (state : UnificationWorklistState) :
     UnificationWorklistState :=

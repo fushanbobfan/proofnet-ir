@@ -9,9 +9,11 @@
   consumer-table fold now has an exact no-missed-dependency theorem, and
   sound queue flags prove that deduplicated single/batched enqueues cannot
   silently lose work. Coverage is preserved by dependency fan-out, waiting
-  registration, and whole waiting-par requeue. Pop-and-process and complete
-  run preservation remain open, so pure-worklist completeness is still not
-  claimed;
+  registration, and whole waiting-par requeue. Real queue and waiting
+  registries are proved in-bounds, waiting deduplication is separately sound,
+  and popping a real head preserves queue soundness/bounds after clearing
+  that exact flag. Process-step and complete-run coverage remain open, so
+  pure-worklist completeness is still not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
