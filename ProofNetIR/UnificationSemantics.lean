@@ -594,6 +594,58 @@ theorem referencePath_has_marked_to_unmarked_boundary
       startMarked
       ⟨blocked, blockedMembership, blockedUnmarked⟩
 
+/-- The first inactive frontier on a reference path retains its exact
+traversal split and an active-prefix walk.  Hence the marked boundary source
+lies in the same active component as the path start, rather than merely being
+marked somewhere in the switching. -/
+theorem referencePath_has_first_marked_to_unmarked_boundary
+    (state : UnificationMarking certificate)
+    (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+    (startMarked : (state.mark path.start).isSome = true)
+    (noActive :
+      ¬state.activeReferenceGraph.Walk path.start path.finish) :
+    ∃ before directed after,
+      path.traversed = before ++ directed :: after ∧
+        (∀ candidate ∈ before,
+          (state.mark candidate.source).isSome = true ∧
+            (state.mark candidate.target).isSome = true) ∧
+          (state.mark directed.source).isSome = true ∧
+            (state.mark directed.target).isSome = false ∧
+              state.activeReferenceGraph.Walk
+                path.start directed.source := by
+  rcases state.referencePath_has_unmarked_of_noActiveWalk path noActive with
+    ⟨blocked, blockedMembership, blockedUnmarked⟩
+  rcases path.exists_traversed_first_boundary_of_start_true
+      (fun vertex => (state.mark vertex).isSome)
+      startMarked
+      ⟨blocked, blockedMembership, blockedUnmarked⟩ with
+    ⟨before, directed, after, traversalEquation,
+      prefixAccepted, sourceMarked, targetUnmarked⟩
+  rcases path.prefixBefore traversalEquation with
+    ⟨initialPath, prefixStarts, prefixFinishes, prefixSteps⟩
+  have prefixAllMarked :
+      ∀ vertex ∈ initialPath.vertices,
+        (state.mark vertex).isSome = true := by
+    intro vertex membership
+    rw [Graph.EdgeSimplePath.vertices,
+      Graph.EdgeWalk.visitedVertices, prefixStarts, prefixSteps] at membership
+    simp only [List.mem_cons, List.mem_map] at membership
+    rcases membership with atStart | targetMembership
+    · subst vertex
+      exact startMarked
+    · rcases targetMembership with
+        ⟨candidate, candidateMembership, targetEquation⟩
+      rw [← targetEquation]
+      exact (prefixAccepted candidate candidateMembership).2
+  have activePrefix :
+      state.activeReferenceGraph.Walk
+        initialPath.start initialPath.finish :=
+    state.referencePath_active_of_allMarked initialPath prefixAllMarked
+  exact
+    ⟨before, directed, after, traversalEquation, prefixAccepted,
+      sourceMarked, targetUnmarked, by
+        simpa [prefixStarts, prefixFinishes] using activePrefix⟩
+
 /-- Link-local threading controls every retained edge value, before the
 endpoint-mark filter defining the active graph is applied. -/
 private theorem retainedEdge_threaded

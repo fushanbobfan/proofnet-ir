@@ -171,14 +171,16 @@ part of the engineering and proof-identity gap.
    obstruction is now path-exposed: an exact reference simple path joins the
    waiting par premises while avoiding its conclusion, and distinct active
    components force an unmarked internal occurrence on that path. Current
-   development further exposes an exact traversed reference-edge occurrence
-   directed from a marked source into an unmarked target, then classifies it
+   development further exposes the first exact traversed reference-edge
+   occurrence directed from a marked source into an unmarked target, retains
+   an entirely active prefix, and proves that its source carries the waiting
+   par's left token. It then classifies the frontier
    occurrence-exactly as a forward premise-to-conclusion edge of a concrete
    submitted par or tensor. Quiescent scheduler coverage now gives the exact
    residual cases: an omitted/unassigned par premise, a registered
    distinct-token par, or an opposite/unassigned tensor premise. Excluding
-   these cases, pure worklist completeness, and a full cost theorem remain
-   open.
+   the resulting left-anchored unmarked region, pure worklist completeness,
+   and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
@@ -238,11 +240,12 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for ninety-four public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for ninety-five public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
-- the two public graph-acyclicity transport theorems are separately locked to
-  exactly `propext` and `Quot.sound`, without `Classical.choice`;
+- the two public graph-acyclicity transport theorems and the two exact
+  first-frontier/prefix-path theorems are separately locked to exactly
+  `propext` and `Quot.sound`, without `Classical.choice`;
 - the v0.9 package builds with `warningAsError`; the current full
   build emits zero Lean warnings, so future linter regressions fail locally and
   in CI rather than leaking into downstream builds;

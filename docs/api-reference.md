@@ -174,6 +174,40 @@ ProofNetIR.Graph.EdgeSimplePath.exists_traversed_boundary_of_start_true : ∀ {g
       ∃ directed, directed ∈ path.traversed ∧ predicate directed.source = true ∧ predicate directed.target = false
 ```
 
+### `ProofNetIR.Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true`
+
+Kind: theorem.
+
+The first Boolean-region exit along an exact simple path retains the
+complete traversal split and proves that every earlier traversed occurrence
+has accepted endpoints.  This strengthens the bare boundary witness with the
+active prefix needed by later component arguments.
+
+```lean
+ProofNetIR.Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true : ∀ {graph : ProofNetIR.Graph} (path : graph.EdgeSimplePath) (predicate : ProofNetIR.Vertex → Bool),
+  predicate path.start = true →
+    (∃ vertex, vertex ∈ path.vertices ∧ predicate vertex = false) →
+      ∃ before boundary after,
+        path.traversed = before ++ boundary :: after ∧
+          (∀ (directed : graph.DirectedEdge),
+              directed ∈ before → predicate directed.source = true ∧ predicate directed.target = true) ∧
+            predicate boundary.source = true ∧ predicate boundary.target = false
+```
+
+### `ProofNetIR.Graph.EdgeSimplePath.prefixBefore`
+
+Kind: theorem.
+
+The traversal strictly before a selected exact edge occurrence remains a
+simple path ending at that occurrence's source.
+
+```lean
+ProofNetIR.Graph.EdgeSimplePath.prefixBefore : ∀ {graph : ProofNetIR.Graph} (path : graph.EdgeSimplePath) {before after : List graph.DirectedEdge}
+  {first : graph.DirectedEdge},
+  path.traversed = before ++ first :: after →
+    ∃ initialPath, initialPath.start = path.start ∧ initialPath.finish = first.source ∧ initialPath.traversed = before
+```
+
 ### `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq`
 
 Kind: theorem.
@@ -2659,6 +2693,29 @@ ProofNetIR.UnificationMarking.referencePath_has_marked_to_unmarked_boundary : �
       ∃ directed,
         directed ∈ path.traversed ∧
           (state.mark directed.source).isSome = true ∧ (state.mark directed.target).isSome = false
+```
+
+### `ProofNetIR.UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary`
+
+Kind: theorem.
+
+The first inactive frontier on a reference path retains its exact
+traversal split and an active-prefix walk.  Hence the marked boundary source
+lies in the same active component as the path start, rather than merely being
+marked somewhere in the switching.
+
+```lean
+ProofNetIR.UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
+  (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+  (state.mark path.start).isSome = true →
+    ¬state.activeReferenceGraph.Walk path.start path.finish →
+      ∃ before directed after,
+        path.traversed = before ++ directed :: after ∧
+          (∀ (candidate : certificate.referenceSwitchingGraph.DirectedEdge),
+              candidate ∈ before →
+                (state.mark candidate.source).isSome = true ∧ (state.mark candidate.target).isSome = true) ∧
+            (state.mark directed.source).isSome = true ∧
+              (state.mark directed.target).isSome = false ∧ state.activeReferenceGraph.Walk path.start directed.source
 ```
 
 ### `ProofNetIR.UnificationMarking.referenceDirectedEdge_origin`

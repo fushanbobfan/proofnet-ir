@@ -108,16 +108,18 @@ them. Exact occurrence-aware tree-edge exchange now flips only that submitted
 par and constructs a reference simple path between its premises which avoids
 the par conclusion. The absence of an active walk therefore yields a concrete
 unmarked internal occurrence on this path, distinct from both premises and
-the conclusion. The current frontier theorem strengthens this to an exact
-retained edge occurrence directed from a marked source into an unmarked
-target. Exact retained-edge/source-link lookup, completed axiom
+the conclusion. The current first-frontier theorem strengthens this to an
+exact retained edge occurrence directed from a marked source into an unmarked
+target, together with an entirely active prefix. Exact active-component/thread
+correspondence proves that this source carries the waiting par's left token.
+Exact retained-edge/source-link lookup, completed axiom
 initialization, and causal closure classify that occurrence as a forward
 premise-to-conclusion edge of a concrete submitted par or tensor. Quiescent
 scheduler coverage now refines the par case to either an unassigned omitted
 premise or two distinct registered tokens, and refines the tensor case to an
 unassigned opposite premise after excluding the same-thread deadlock. What
-remains is the global progress argument excluding these path-exposed cases in
-a correct quiescent state.
+remains is the global progress argument excluding the resulting left-anchored
+unmarked region in a correct quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age

@@ -14295,8 +14295,15 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
                         path.finish = right ∧
                           conclusion ∉ path.vertices ∧
                             boundary ∈ path.traversed ∧
-                              final.core.assignedToken?
-                                  boundary.source ≠ none ∧
+                              ((final.core.toMarking certificate
+                                  (canonicalWorklistRun_coreInvariant
+                                    correct.1 startEquation).1)
+                                |>.activeReferenceGraph.Walk
+                                  left boundary.source) ∧
+                                final.core.tokenAt? boundary.source =
+                                    some leftToken ∧
+                                final.core.assignedToken?
+                                    boundary.source ≠ none ∧
                                 final.core.assignedToken?
                                     boundary.target = none ∧
                                   boundary.target ≠ left ∧
@@ -14352,8 +14359,15 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
                         path.finish = right ∧
                           conclusion ∉ path.vertices ∧
                             boundary ∈ path.traversed ∧
-                              final.core.assignedToken?
-                                  boundary.source ≠ none ∧
+                              ((final.core.toMarking certificate
+                                  (canonicalWorklistRun_coreInvariant
+                                    correct.1 startEquation).1)
+                                |>.activeReferenceGraph.Walk
+                                  left boundary.source) ∧
+                                final.core.tokenAt? boundary.source =
+                                    some leftToken ∧
+                                final.core.assignedToken?
+                                    boundary.source ≠ none ∧
                                 final.core.assignedToken?
                                     boundary.target = none ∧
                                   boundary.target ≠ left ∧
@@ -14407,18 +14421,25 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
     apply noActiveWalk
     simpa [marking, pathStarts, pathFinishes] using walk
   rcases final.core.tokenAt?_some_witness leftMarked with
-    ⟨leftRaw, leftRawMarked, _leftRepresentative⟩
+    ⟨leftRaw, leftRawMarked, leftRepresentative⟩
   rcases final.core.tokenAt?_some_witness rightMarked with
     ⟨rightRaw, rightRawMarked, _rightRepresentative⟩
   have abstractLeftMarked :
       (marking.mark left).isSome = true := by
     simp [marking, leftRawMarked]
-  rcases marking.referencePath_has_marked_to_unmarked_boundary
+  rcases marking.referencePath_has_first_marked_to_unmarked_boundary
       path
       (by simpa [pathStarts] using abstractLeftMarked)
       noActivePath with
-    ⟨boundary, boundaryMembership, boundarySourceMarked,
-      boundaryTargetUnmarked⟩
+    ⟨before, boundary, after, traversalEquation,
+      prefixAccepted, boundarySourceMarked,
+      boundaryTargetUnmarked, activePrefix⟩
+  have boundaryMembership : boundary ∈ path.traversed := by
+    rw [traversalEquation]
+    simp
+  have activeFromLeft :
+      marking.activeReferenceGraph.Walk left boundary.source := by
+    simpa [pathStarts] using activePrefix
   have boundarySourceAssigned :
       final.core.assignedToken? boundary.source ≠ none := by
     change
@@ -14428,6 +14449,34 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
     intro sourceUnassigned
     rw [sourceUnassigned] at boundarySourceMarked
     contradiction
+  rcases final.core.tokenAt?_exists_of_assigned boundarySourceAssigned with
+    ⟨boundarySourceToken, boundarySourceLookup⟩
+  rcases final.core.tokenAt?_some_witness boundarySourceLookup with
+    ⟨boundarySourceRaw, boundarySourceRawMarked,
+      boundarySourceRepresentative⟩
+  have exactComponents :
+      marking.ThreadComponentsExact := by
+    exact
+      canonicalWorklistRun_threadComponentsExact
+        correct.1 startEquation
+  have abstractBoundarySourceMarked :
+      marking.mark boundary.source = some boundarySourceRaw := by
+    simpa [marking] using boundarySourceRawMarked
+  have sameThread :
+      marking.sameThread leftRaw boundarySourceRaw := by
+    exact
+      (exactComponents.walk_iff_sameThread
+        marking
+        (by simpa [marking] using leftRawMarked)
+        abstractBoundarySourceMarked).mp activeFromLeft
+  have boundarySourceTokenEquation :
+      boundarySourceToken = leftToken := by
+    simp only [marking, UnificationState.toMarking_sameThread] at sameThread
+    rw [leftRepresentative, boundarySourceRepresentative] at sameThread
+    exact sameThread.symm
+  have boundarySourceTokenLookup :
+      final.core.tokenAt? boundary.source = some leftToken := by
+    rw [boundarySourceLookup, boundarySourceTokenEquation]
   have boundaryTargetAssignedNone :
       final.core.assignedToken? boundary.target = none := by
     change
@@ -14490,7 +14539,8 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
     ⟨index, left, right, conclusion, leftToken, rightToken, path, boundary,
       linkLookup, conclusionUnmarked, leftMarked, rightMarked, different,
       registered, noActiveWalk, pathStarts, pathFinishes,
-      conclusionAvoided, boundaryMembership, boundarySourceAssigned,
+      conclusionAvoided, boundaryMembership, activeFromLeft,
+      boundarySourceTokenLookup, boundarySourceAssigned,
       boundaryTargetAssignedNone, boundaryTargetNeLeft,
       boundaryTargetNeRight, boundaryTargetNeConclusion, boundaryOrigin⟩
 
@@ -14541,7 +14591,8 @@ private theorem canonicalWorklistRun_incomplete_pathFrontierStatus
       path, boundary, waitingLookup, waitingConclusionUnmarked,
       leftMarked, rightMarked, different, registered, noActiveWalk,
       pathStarts, pathFinishes, conclusionAvoided, boundaryMembership,
-      boundarySourceAssigned, boundaryTargetUnmarked, boundaryTargetNeLeft,
+      _activeFromLeft, _boundarySourceToken, boundarySourceAssigned,
+      boundaryTargetUnmarked, boundaryTargetNeLeft,
       boundaryTargetNeRight, boundaryTargetNeConclusion,
       parOrigin | tensorOrigin⟩
   · rcases parOrigin with

@@ -84,9 +84,12 @@
   premises which avoids the par conclusion. If the endpoints remain in
   different active components, Lean extracts a genuinely unmarked internal
   occurrence on this path, distinct from both premises and the par
-  conclusion. A new occurrence-preserving path-frontier theorem now exposes
+  conclusion. A new occurrence-preserving first-frontier theorem now exposes
   an exact traversed reference edge from a marked source into an unmarked
-  target, and the canonical obstruction carries that directed occurrence.
+  target, retains an entirely active prefix, and proves that the frontier
+  source lies in the left premise's active component. Exact component/thread
+  correspondence consequently identifies its token with the waiting par's
+  left token, and the canonical obstruction carries that anchored occurrence.
   Exact retained-edge/source-link lookup plus axiom initialization and causal
   closure now classify it as a forward premise-to-conclusion occurrence of a
   concrete submitted par or tensor. Quiescent scheduler coverage now refines
@@ -94,7 +97,7 @@
   unassigned or is registered with distinct live tokens, while a tensor has
   its opposite premise unassigned because correctness excludes the
   both-premises-marked deadlock. Correctness still must exclude these
-  path-exposed forward-connective cases, so
+  left-anchored path-exposed forward-connective cases, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

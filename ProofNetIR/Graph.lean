@@ -934,6 +934,90 @@ theorem exists_traversed_boundary_of_start_true
               targetRejected⟩
   exact scan path.walk.toChain startAccepted visitedRejected
 
+/-- The first Boolean-region exit along an exact simple path retains the
+complete traversal split and proves that every earlier traversed occurrence
+has accepted endpoints.  This strengthens the bare boundary witness with the
+active prefix needed by later component arguments. -/
+theorem exists_traversed_first_boundary_of_start_true
+    {graph : Graph} (path : graph.EdgeSimplePath)
+    (predicate : Vertex → Bool)
+    (startAccepted : predicate path.start = true)
+    (visitedRejected :
+      ∃ vertex ∈ path.vertices, predicate vertex = false) :
+    ∃ before boundary after,
+      path.traversed = before ++ boundary :: after ∧
+        (∀ directed ∈ before,
+          predicate directed.source = true ∧
+            predicate directed.target = true) ∧
+          predicate boundary.source = true ∧
+            predicate boundary.target = false := by
+  have scan :
+      ∀ {start finish : Vertex}
+        {traversed : List graph.DirectedEdge},
+        graph.EdgeChain start traversed finish →
+          predicate start = true →
+            (∃ vertex ∈
+                EdgeWalk.visitedVertices start traversed,
+              predicate vertex = false) →
+              ∃ before boundary after,
+                traversed = before ++ boundary :: after ∧
+                  (∀ directed ∈ before,
+                    predicate directed.source = true ∧
+                      predicate directed.target = true) ∧
+                    predicate boundary.source = true ∧
+                      predicate boundary.target = false := by
+    intro start finish traversed chain
+    induction chain with
+    | nil =>
+        intro accepted rejected
+        rcases rejected with ⟨vertex, membership, vertexRejected⟩
+        simp [EdgeWalk.visitedVertices] at membership
+        subst vertex
+        rw [accepted] at vertexRejected
+        contradiction
+    | @cons start finish rest directed starts tail induction =>
+        intro accepted rejected
+        by_cases targetRejected : predicate directed.target = false
+        · exact
+            ⟨[], directed, rest, rfl, by simp,
+              by simpa [starts] using accepted, targetRejected⟩
+        · have targetAccepted :
+              predicate directed.target = true := by
+            cases equation : predicate directed.target with
+            | false => exact False.elim (targetRejected equation)
+            | true => rfl
+          have tailRejected :
+              ∃ vertex ∈
+                  EdgeWalk.visitedVertices directed.target rest,
+                predicate vertex = false := by
+            rcases rejected with
+              ⟨vertex, membership, vertexRejected⟩
+            simp only [EdgeWalk.visitedVertices, List.map_cons,
+              List.mem_cons] at membership ⊢
+            rcases membership with startCase | targetCase | restCase
+            · subst vertex
+              rw [accepted] at vertexRejected
+              contradiction
+            · subst vertex
+              rw [targetAccepted] at vertexRejected
+              contradiction
+            · exact ⟨vertex, Or.inr restCase, vertexRejected⟩
+          rcases induction targetAccepted tailRejected with
+            ⟨before, boundary, after, traversalEquation,
+              prefixAccepted, boundarySourceAccepted,
+              boundaryTargetRejected⟩
+          refine
+            ⟨directed :: before, boundary, after, ?_, ?_,
+              boundarySourceAccepted, boundaryTargetRejected⟩
+          · simp [traversalEquation]
+          · intro candidate membership
+            simp only [List.mem_cons] at membership
+            rcases membership with rfl | tailMembership
+            · exact
+                ⟨by simpa [starts] using accepted, targetAccepted⟩
+            · exact prefixAccepted candidate tailMembership
+  exact scan path.walk.toChain startAccepted visitedRejected
+
 /-- For a nonempty simple path, its visited vertices are exactly the source of
 each traversal edge followed by the final endpoint. -/
 theorem vertices_eq_sources_append_finish {graph : Graph}
@@ -1129,6 +1213,37 @@ def append {graph : Graph} (first second : graph.EdgeSimplePath)
     (first.append second meeting disjoint).vertices =
       first.vertices ++ second.vertices.tail := by
   simp [append, vertices, EdgeWalk.visitedVertices, List.map_append]
+
+/-- The traversal strictly before a selected exact edge occurrence remains a
+simple path ending at that occurrence's source. -/
+theorem prefixBefore {graph : Graph} (path : graph.EdgeSimplePath)
+    {before after : List graph.DirectedEdge} {first : graph.DirectedEdge}
+    (traversalEquation : path.traversed = before ++ first :: after) :
+    ∃ initialPath : graph.EdgeSimplePath,
+      initialPath.start = path.start ∧
+      initialPath.finish = first.source ∧
+      initialPath.traversed = before := by
+  have fullChain := path.walk.toChain
+  rw [traversalEquation] at fullChain
+  rcases fullChain.split_append with
+    ⟨middle, prefixChain, suffixChain⟩
+  have finishEquation : middle = first.source :=
+    suffixChain.head_source.symm
+  have prefixWalk := prefixChain.toWalk
+  rw [finishEquation] at prefixWalk
+  refine ⟨
+    { start := path.start
+      finish := first.source
+      traversed := before
+      walk := prefixWalk
+      verticesNodup := ?_ }, rfl, rfl, rfl⟩
+  have fullNodup := path.verticesNodup
+  rw [traversalEquation] at fullNodup
+  have decomposedNodup :
+      ((path.start :: before.map DirectedEdge.target) ++
+        (first :: after).map DirectedEdge.target).Nodup := by
+    simpa [EdgeWalk.visitedVertices, List.map_append] using fullNodup
+  exact (List.nodup_append.mp decomposedNodup).1
 
 /-- A traversal prefix ending at a selected exact edge occurrence remains a
 simple path. -/

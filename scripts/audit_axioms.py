@@ -106,6 +106,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.UnificationState.OrderedParents.setParent_sameThread_all",
     "ProofNetIR.UnificationState.unifyTokens?_refines",
     "ProofNetIR.UnificationState.ComponentsFormulaConsistent.componentAt",
+    "ProofNetIR.UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary",
 }
 EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.toProof",
@@ -154,6 +155,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true",
+    "ProofNetIR.Graph.EdgeSimplePath.prefixBefore",
     "ProofNetIR.Graph.Acyclic.reindex",
     "ProofNetIR.Graph.acyclic_reindex_iff",
     "ProofNetIR.Graph.isEdgeSimpleCycleTraversal_sound",

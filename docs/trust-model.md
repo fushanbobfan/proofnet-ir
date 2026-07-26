@@ -148,14 +148,17 @@ remaining waiting par is therefore known to have marked premises with no
 active reference walk. Exact tree-edge exchange additionally produces a
 reference simple path between those premises which avoids the par conclusion,
 and the active-path theorem extracts an unmarked internal occurrence. The
-current frontier theorem retains the exact traversed edge occurrence from a
-marked source into an unmarked target. Exact retained-edge/source-link lookup,
+current first-frontier theorem retains the exact traversed edge occurrence
+from a marked source into an unmarked target and an entirely active prefix.
+Exact component/thread correspondence additionally proves that the source
+carries the waiting par's left token. Exact retained-edge/source-link lookup,
 completed axiom initialization, and causal closure classify the occurrence as
 a forward premise-to-conclusion edge of a submitted par or tensor. Quiescent
 scheduler coverage further isolates an unassigned omitted par premise, a
 registered distinct-token par, or an unassigned opposite tensor premise. The
-resulting path-exposed cases have not yet been excluded; this is not yet the
-correct-state progress theorem needed for pure-worklist completeness. The
+resulting left-anchored path-exposed unmarked region has not yet been
+excluded; this is not yet the correct-state progress theorem needed for
+pure-worklist completeness. The
 attempt accounting also excludes consumer-table construction, waiting-list
 traversal, frontier work, and verification.
 

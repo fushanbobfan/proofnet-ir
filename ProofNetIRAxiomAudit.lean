@@ -98,6 +98,9 @@ expansion.
 #print axioms UnificationMarking.mergeExtension_equivalence
 #print axioms UnificationMarking.mergeExtension_congr
 #print axioms UnificationMarking.mergeExtension_comm
+#print axioms Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true
+#print axioms Graph.EdgeSimplePath.prefixBefore
+#print axioms UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary
 #print axioms Certificate.linkLeftRetainedEdges_lookup_origin
 #print axioms UnificationMarking.referenceDirectedEdge_origin
 #print axioms UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin
