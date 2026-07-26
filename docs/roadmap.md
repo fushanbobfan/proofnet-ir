@@ -515,8 +515,13 @@
       synchronize the first tail through structural typing and unique
       producer ownership, and prove the exhaustive local alternative: a par
       cusp or tensor-colored free turn.
-    - [ ] Convert the repeated dependency segment into an exact
-      switching-tree cycle or forbidden nesting and exclude the remaining
+    - [x] Package each dependency as an exact composable complete-graph
+      segment from its source waiting conclusion to its target, then
+      concatenate the selected finite family into a genuinely nonempty closed
+      occurrence-aware `fullGraph` walk.
+    - [ ] Normalize that possibly backtracking/repeating closed walk while
+      preserving the local turn classification, extract an exact edge-simple
+      switching cycle or forbidden nesting, and exclude the remaining
       path-exposed waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues

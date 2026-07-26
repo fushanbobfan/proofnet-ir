@@ -172,11 +172,15 @@ visited formula occurrence. The occurrence-exact frontier cannot be
 immediately reversed by the first nontrivial tail edge. The all-left mask is
 now classified at that exact full-edge index; structural typing and unique
 producer ownership synchronize the first formula tail and prove the local
-turn is a par cusp or tensor-colored free turn. Every edge of the finite
-closed dependency segment carries this alternative. The remaining gap is to
-compose those classified paths into and exclude a forbidden switching-tree
-cycle or nesting; this is not yet the correct-state progress theorem needed
-for pure-worklist completeness. The attempt accounting also excludes
+turn is a par cusp or tensor-colored free turn. Every dependency now carries
+that same-boundary classification together with an exact composable
+complete-graph segment, and the selected finite family is kernel-concatenated
+into a genuinely nonempty closed occurrence-aware `fullGraph` walk. The walk
+may still contain backtracking or repeated occurrences. The remaining gap is
+to normalize it while preserving the classifications and exclude the
+resulting edge-simple switching cycle or forbidden nesting; this is not yet
+the correct-state progress theorem needed for pure-worklist completeness. The
+attempt accounting also excludes
 consumer-table construction, waiting-list traversal, frontier work, and
 verification.
 

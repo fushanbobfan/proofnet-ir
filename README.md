@@ -90,11 +90,14 @@ turn theorem: a retained par frontier and the reversed first tail incidence
 share the same par color and form a genuine cusp; a tensor frontier and tail
 carry exact unique colors, and color equality would force the prohibited
 immediate reversal, so the turn is free. Every edge of the finite closed
-waiting-dependency segment now carries this occurrence-geometric alternative.
-This remains a cycle in the auxiliary waiting-dependency relation only:
-proof-net correctness still must combine the classified segments into and
-exclude an exact switching-tree cycle or forbidden nesting before the
-recursive fallback can be removed. The later
+waiting-dependency segment now carries this occurrence-geometric alternative
+and an exact composable `fullGraph` segment from its source waiting conclusion
+to its target. Lean concatenates the selected finite family into a genuinely
+nonempty closed occurrence-aware walk in the certificate's complete graph.
+That closed walk may still contain backtracking or repeated occurrences:
+proof-net correctness must next extract and exclude a suitably classified
+edge-simple switching cycle or forbidden nesting before the recursive fallback
+can be removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).
@@ -510,6 +513,13 @@ python scripts/run_model_experiment.py --check-preregistered
 python scripts/run_model_experiment_amended.py --check-amendment
 python scripts/run_model_experiment_amended.py --check-committed
 ```
+
+On Windows systems that explicitly block a generated audit executable with
+application-control error 4551, the opt-in
+`python scripts/audit_v010_windows.py` wrapper runs the same two Lean audit
+sources through `lake env lean --run`. The byte-frozen
+`scripts/audit_v010.py` remains unchanged for preregistration verification,
+and every non-4551 failure still fails closed.
 
 Expected smoke-test output:
 

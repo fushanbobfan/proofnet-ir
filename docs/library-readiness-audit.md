@@ -196,11 +196,14 @@ part of the engineering and proof-identity gap.
    scheduler frontier cannot be immediately reversed by the first tail edge.
    The deterministic mask is now classified at the exact lifted index;
    structural typing and unique producer ownership then prove every
-   nontrivial turn is a par cusp or tensor-colored free turn, and this
-   alternative is attached to every edge of the finite closed dependency
-   segment. Converting those classified segments into an exact
-   switching-tree cycle or forbidden nesting, pure worklist completeness, and
-   a full cost theorem remain open.
+   nontrivial turn is a par cusp or tensor-colored free turn. Every dependency
+   now carries an exact composable complete-graph segment from source waiting
+   conclusion to target; concatenating the selected finite family yields a
+   genuinely nonempty closed occurrence-aware `fullGraph` walk. The walk may
+   still backtrack or repeat occurrences, so preserving the local
+   classification through normalization and excluding the resulting
+   edge-simple switching cycle or forbidden nesting, pure worklist
+   completeness, and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

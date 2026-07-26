@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- added an opt-in Windows wrapper for the independent mathematics audit. It
+  preserves the byte-frozen preregistered `audit_v010.py` and, only after
+  application-control error 4551 for a known generated audit executable,
+  launches the same Lean source through `lake env lean --run`; all other
+  subprocess failures still fail closed;
 - began the scheduler-coverage proof layer for the event-driven worklist:
   a kernel-checked connective status relation distinguishes real queue
   membership, fired conclusions, idle premises, registered waiting pars, and
@@ -123,8 +128,9 @@
   further kernel theorem extracts concrete indices
   `earlier < later ≤ formulas.size`, equal endpoint conclusions, registered
   waiting evidence for every chain vertex, and every exact dependency witness
-  in the resulting nonempty closed segment. This is only a cycle in the
-  auxiliary waiting-dependency relation. The formula chase carried by every
+  in the resulting nonempty closed segment. At that intermediate stage this
+  was only a cycle in the auxiliary waiting-dependency relation. The formula
+  chase carried by every
   dependency now additionally retains every exact source connective and
   selected premise in a composable reflexive-transitive proof object; Lean
   proves non-increasing endpoint complexity and strict decrease for every
@@ -145,10 +151,14 @@
   the first tail link. Every nontrivial dependency turn is therefore
   kernel-classified as either a genuine par cusp with equal shared par colors
   or a tensor-colored free turn whose unique-color equality would force the
-  excluded immediate reversal. The finite closed dependency segment now
-  carries that occurrence-geometric alternative at every adjacent step.
-  Correctness still must convert these classified segments into and exclude
-  an exact switching-tree cycle or forbidden nesting, so
+  excluded immediate reversal. Every adjacent dependency in the finite closed
+  segment now additionally carries one exact composable complete-graph walk:
+  the reversed source-par left incidence, retained reference-prefix lift, and
+  all-backward formula tail. A graph-generic concatenation theorem joins the
+  selected finite family into a genuinely nonempty closed occurrence-aware
+  `fullGraph` walk. Because this walk may retain backtracking or repeated edge
+  occurrences, correctness still must extract and exclude a suitably
+  classified edge-simple switching cycle or forbidden nesting, so
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

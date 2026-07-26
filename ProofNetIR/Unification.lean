@@ -16309,6 +16309,262 @@ private theorem
             firstSource, firstTargetNe, firstBackward, notReverse,
             frontierKept, classified⟩⟩
 
+/-- One waiting dependency as an occurrence-aware segment in the complete
+graph.  The segment starts at the source waiting-par conclusion, reverses an
+exact stored left-par incidence to the left premise, follows the selected
+all-left reference-path prefix through the exact marked/unmarked boundary,
+and then follows the all-backward formula chase to the target waiting-par
+conclusion.  The same boundary witness also carries the reflexive or
+par-cusp/tensor-free first-turn classification; no independently chosen
+endpoint-only geometry is substituted. -/
+private def QuiescentWaitingParDependencyFullSegment
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (source target : Vertex) : Prop :=
+  ∃ (boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge)
+      (left : Vertex)
+      (sourceEdge : certificate.fullGraph.DirectedEdge)
+      (retainedPrefix :
+        List certificate.referenceSwitchingGraph.DirectedEdge)
+      (fullPrefix formulaTail :
+        List certificate.fullGraph.DirectedEdge),
+    QuiescentWaitingParDependencyAtBoundary
+        certificate state source target boundary ∧
+      (boundary.target = target ∨
+        ∃ (frontier first :
+              certificate.fullGraph.DirectedEdge),
+          frontier.edge = boundary.edge ∧
+            frontier.forward = boundary.forward ∧
+              Graph.retainedIndex
+                  certificate.referenceSwitchingMask
+                  frontier.index =
+                boundary.index ∧
+                frontier.source = boundary.source ∧
+                  frontier.target = boundary.target ∧
+                    first.source = boundary.target ∧
+                      first.target ≠ boundary.source ∧
+                        first.forward = false ∧
+                          first ≠ frontier.reverse ∧
+                            certificate.referenceSwitchingMask[
+                              frontier.index]? = some true ∧
+                              ClassifiedFrontierFirstTurn
+                                certificate frontier first
+                                  boundary.target) ∧
+        sourceEdge.edge = { first := left, second := source } ∧
+          sourceEdge.forward = false ∧
+            sourceEdge.source = source ∧
+              sourceEdge.target = left ∧
+                certificate.fullEdgeParTargets[sourceEdge.index]? =
+                    some (some source) ∧
+                  certificate.referenceSwitchingGraph.EdgeWalk
+                      left retainedPrefix boundary.target ∧
+                    retainedPrefix.getLast? = some boundary ∧
+                      certificate.fullGraph.EdgeWalk
+                          left fullPrefix boundary.target ∧
+                        fullPrefix.map
+                            (fun directed =>
+                              Graph.retainedIndex
+                                certificate.referenceSwitchingMask
+                                directed.index) =
+                          retainedPrefix.map Graph.DirectedEdge.index ∧
+                          (∀ directed ∈ fullPrefix,
+                            certificate.referenceSwitchingMask[
+                              directed.index]? = some true) ∧
+                            certificate.fullGraph.EdgeWalk
+                                boundary.target formulaTail target ∧
+                              (∀ directed ∈ formulaTail,
+                                directed.forward = false) ∧
+                                certificate.CuspFreeTraversal formulaTail ∧
+                                  certificate.fullGraph.EdgeWalk source
+                                    (([sourceEdge] ++ fullPrefix) ++
+                                      formulaTail) target
+
+/-- Every dependency has the exact composable full-graph segment described
+above.  In particular, the source and target of the segment are the dependency
+vertices themselves, so adjacent steps of the finite closed dependency chain
+can now be concatenated without any endpoint coercion. -/
+private theorem quiescentWaitingParDependency_fullSegment
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    (dependency :
+      QuiescentWaitingParDependency
+        certificate state source target) :
+    QuiescentWaitingParDependencyFullSegment
+      certificate state source target := by
+  rcases
+      quiescentWaitingParDependency_refl_or_nonbacktrackingFirstEdge
+        structural dependency with
+    ⟨boundary, atBoundary, classifiedTurn⟩
+  rcases atBoundary with
+    ⟨index, left, right, leftToken, rightToken, referencePath,
+      linkLookup, sourceUnassigned, leftMarked, rightMarked,
+      different, registered, pathStarts, pathFinishes, sourceAvoided,
+      boundaryMembership, boundaryToken, boundarySourceAssigned,
+      boundaryTargetUnassigned, boundaryTargetNeSource, exactOrigin,
+      frontierStatus, formulaPath, targetWaiting, targetRank⟩
+  have atBoundary' :
+      QuiescentWaitingParDependencyAtBoundary
+        certificate state source target boundary :=
+    ⟨index, left, right, leftToken, rightToken, referencePath,
+      linkLookup, sourceUnassigned, leftMarked, rightMarked,
+      different, registered, pathStarts, pathFinishes, sourceAvoided,
+      boundaryMembership, boundaryToken, boundarySourceAssigned,
+      boundaryTargetUnassigned, boundaryTargetNeSource, exactOrigin,
+      frontierStatus, formulaPath, targetWaiting, targetRank⟩
+  rcases List.mem_iff_append.mp boundaryMembership with
+    ⟨before, after, traversalEquation⟩
+  rcases referencePath.prefixPath traversalEquation with
+    ⟨prefixPath, prefixStarts, prefixFinishes, prefixTraversed⟩
+  have retainedPrefixWalk :
+      certificate.referenceSwitchingGraph.EdgeWalk
+        left (before ++ [boundary]) boundary.target := by
+    have prefixWalk := prefixPath.walk
+    rw [prefixStarts, pathStarts, prefixFinishes, prefixTraversed]
+      at prefixWalk
+    exact prefixWalk
+  have retainedPrefixLast :
+      (before ++ [boundary]).getLast? = some boundary := by
+    simp
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change
+      (linkFullEdges certificate.links).length =
+        certificate.referenceSwitchingMask.length
+    exact certificate.referenceFullSwitchingSelection.mask_length.symm
+  have retainedPrefixWalk' :
+      (certificate.fullGraph.retainEdges
+        certificate.referenceSwitchingMask).EdgeWalk
+          left (before ++ [boundary]) boundary.target := by
+    simpa [Certificate.referenceSwitchingGraph] using retainedPrefixWalk
+  rcases retainedPrefixWalk'.inflateRetained aligned with
+    ⟨fullPrefix, fullPrefixWalk, retainedIndices,
+      _retainedTargets, fullPrefixKept⟩
+  have parLinkMembership :
+      Link.par left right source ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  have sourceAnnotationMembership :
+      ({ first := left, second := source }, some source) ∈
+        certificate.fullEdgeAnnotations :=
+    (certificate.par_fullEdgeAnnotations parLinkMembership).1
+  rcases List.getElem?_of_mem sourceAnnotationMembership with
+    ⟨sourceEdgeIndex, sourceAnnotationLookup⟩
+  have sourceEdgeProjection :=
+    certificate.fullEdgeAnnotation_lookup sourceAnnotationLookup
+  let sourceEdge : certificate.fullGraph.DirectedEdge :=
+    { index := sourceEdgeIndex
+      edge := { first := left, second := source }
+      lookup := sourceEdgeProjection.1
+      forward := false }
+  have sourceEdgeValue :
+      sourceEdge.edge = { first := left, second := source } := rfl
+  have sourceEdgeBackward : sourceEdge.forward = false := rfl
+  have sourceEdgeStarts : sourceEdge.source = source := rfl
+  have sourceEdgeFinishes : sourceEdge.target = left := rfl
+  have sourceEdgeParTarget :
+      certificate.fullEdgeParTargets[sourceEdge.index]? =
+        some (some source) := by
+    exact sourceEdgeProjection.2
+  have sourceEdgeWalk :
+      certificate.fullGraph.EdgeWalk source [sourceEdge] left := by
+    exact Graph.EdgeWalk.step (.refl source) sourceEdge
+      sourceEdgeStarts sourceEdgeFinishes
+  rcases
+      formulaPath.toFormulaPremiseReachable.backwardWalk_exists
+        structural with
+    ⟨formulaTail, formulaTailWalk, formulaTailBackward,
+      formulaTailCuspFree⟩
+  have sourceToBoundary :
+      certificate.fullGraph.EdgeWalk source
+        ([sourceEdge] ++ fullPrefix) boundary.target :=
+    sourceEdgeWalk.trans fullPrefixWalk
+  have completeWalk :
+      certificate.fullGraph.EdgeWalk source
+        (([sourceEdge] ++ fullPrefix) ++ formulaTail) target :=
+    sourceToBoundary.trans formulaTailWalk
+  exact
+    ⟨boundary, left, sourceEdge, before ++ [boundary],
+      fullPrefix, formulaTail, atBoundary', classifiedTurn,
+      sourceEdgeValue, sourceEdgeBackward, sourceEdgeStarts,
+      sourceEdgeFinishes, sourceEdgeParTarget, retainedPrefixWalk,
+      retainedPrefixLast, fullPrefixWalk, retainedIndices,
+      fullPrefixKept, formulaTailWalk, formulaTailBackward,
+      formulaTailCuspFree, completeWalk⟩
+
+/-- Forget the internal decomposition of one complete dependency segment while
+retaining its nonempty occurrence-aware walk and exact dependency endpoints. -/
+private theorem QuiescentWaitingParDependencyFullSegment.walk_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    (segment :
+      QuiescentWaitingParDependencyFullSegment
+        certificate state source target) :
+    ∃ traversed : List certificate.fullGraph.DirectedEdge,
+      traversed ≠ [] ∧
+        certificate.fullGraph.EdgeWalk source traversed target := by
+  rcases segment with
+    ⟨_boundary, _left, sourceEdge, _retainedPrefix,
+      fullPrefix, formulaTail, _atBoundary, _classifiedTurn,
+      _sourceEdgeValue, _sourceEdgeBackward, _sourceEdgeStarts,
+      _sourceEdgeFinishes, _sourceEdgeParTarget, _retainedPrefixWalk,
+      _retainedPrefixLast, _fullPrefixWalk, _retainedIndices,
+      _fullPrefixKept, _formulaTailWalk, _formulaTailBackward,
+      _formulaTailCuspFree, completeWalk⟩
+  refine
+    ⟨([sourceEdge] ++ fullPrefix) ++ formulaTail, ?_, completeWalk⟩
+  simp
+
+/-- Concatenate a finite successor-indexed family of nonempty exact edge walks.
+The result retains nonemptiness whenever the family has at least one segment.
+This graph-generic lemma is the list-level bridge from local scheduler
+dependencies to a single closed occurrence-aware walk. -/
+private theorem fullGraphEdgeWalk_chain_exists
+    {graph : Graph}
+    (chainAt : Nat → Vertex) :
+    ∀ count : Nat,
+      (∀ step,
+        step < count →
+          ∃ traversed : List graph.DirectedEdge,
+            traversed ≠ [] ∧
+              graph.EdgeWalk
+                (chainAt step) traversed (chainAt (step + 1))) →
+        ∃ traversed : List graph.DirectedEdge,
+          graph.EdgeWalk (chainAt 0) traversed (chainAt count) ∧
+            (0 < count → traversed ≠ []) := by
+  intro count
+  induction count with
+  | zero =>
+      intro _segments
+      exact ⟨[], .refl _, by simp⟩
+  | succ count induction =>
+      intro segments
+      have initialSegments :
+          ∀ step,
+            step < count →
+              ∃ traversed : List graph.DirectedEdge,
+                traversed ≠ [] ∧
+                  graph.EdgeWalk
+                    (chainAt step) traversed (chainAt (step + 1)) := by
+        intro step bound
+        exact segments step (Nat.lt_trans bound (Nat.lt_succ_self count))
+      rcases induction initialSegments with
+        ⟨initialTraversal, initialWalk, _initialNonempty⟩
+      rcases segments count (Nat.lt_succ_self count) with
+        ⟨lastTraversal, lastNonempty, lastWalk⟩
+      have lastWalk' :
+          graph.EdgeWalk
+            (chainAt count) lastTraversal (chainAt (Nat.succ count)) := by
+        simpa [Nat.succ_eq_add_one] using lastWalk
+      refine
+        ⟨initialTraversal ++ lastTraversal,
+          initialWalk.trans lastWalk', ?_⟩
+      intro _positive
+      simp [List.append_eq_nil_iff, lastNonempty]
+
 /-- Every quiescent waiting-par conclusion is an in-bounds formula
 occurrence.  This is the finite carrier used by the dependency-cycle
 argument. -/
@@ -16996,6 +17252,175 @@ private theorem
     ⟨dependency,
       quiescentWaitingParDependency_refl_or_nonbacktrackingFirstEdge
         correct.1 dependency⟩
+
+/-- The selected finite closed dependency segment now carries a genuinely
+composable complete-graph walk at every adjacent step.  Each walk starts at
+`chainAt step` and ends at `chainAt (step + 1)` while retaining the exact same
+scheduler boundary and local turn classification.  Concatenating this finite
+family, then extracting and excluding a switching-tree cycle or forbidden
+nesting, is the remaining global argument. -/
+private theorem
+    canonicalWorklistRun_waitingPar_dependency_closed_segment_fullSegments
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (chainAt : Nat → Vertex) (earlier later : Nat),
+          chainAt 0 = source ∧
+            earlier < later ∧
+              later ≤ certificate.formulas.size ∧
+                chainAt earlier = chainAt later ∧
+                  (∀ step,
+                    QuiescentWaitingParAt
+                      certificate final (chainAt step)) ∧
+                    ∀ step,
+                      earlier ≤ step →
+                        step < later →
+                          QuiescentWaitingParDependency
+                              certificate final (chainAt step)
+                                (chainAt (step + 1)) ∧
+                            QuiescentWaitingParDependencyGeometry
+                                certificate final (chainAt step)
+                                  (chainAt (step + 1)) ∧
+                              QuiescentWaitingParDependencyFullSegment
+                                certificate final (chainAt step)
+                                  (chainAt (step + 1)) := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (chainAt : Nat → Vertex) (earlier later : Nat),
+          chainAt 0 = source ∧
+            earlier < later ∧
+              later ≤ certificate.formulas.size ∧
+                chainAt earlier = chainAt later ∧
+                  (∀ step,
+                    QuiescentWaitingParAt
+                      certificate final (chainAt step)) ∧
+                    ∀ step,
+                      earlier ≤ step →
+                        step < later →
+                          QuiescentWaitingParDependency
+                              certificate final (chainAt step)
+                                (chainAt (step + 1)) ∧
+                            QuiescentWaitingParDependencyGeometry
+                                certificate final (chainAt step)
+                                  (chainAt (step + 1)) ∧
+                              QuiescentWaitingParDependencyFullSegment
+                                certificate final (chainAt step)
+                                  (chainAt (step + 1))
+  intro source sourceWaiting
+  rcases
+      canonicalWorklistRun_waitingPar_dependency_closed_segment_geometric
+        correct startEquation sourceWaiting with
+    ⟨chainAt, earlier, later, starts, ordered, laterBound,
+      endpointEquation, chainWaiting, dependencies⟩
+  refine
+    ⟨chainAt, earlier, later, starts, ordered, laterBound,
+      endpointEquation, chainWaiting, ?_⟩
+  intro step lower upper
+  rcases dependencies step lower upper with
+    ⟨dependency, geometry⟩
+  exact
+    ⟨dependency, geometry,
+      quiescentWaitingParDependency_fullSegment
+        correct.1 dependency⟩
+
+/-- Concatenating the selected finite dependency segment produces a genuinely
+nonempty closed walk in the certificate's complete occurrence graph.  This is
+the first global graph object obtained directly from the quiescent scheduler
+obstruction: no endpoint-only reachability relation or independently selected
+boundary witness is used.  Extracting a suitably classified simple cycle (or
+the equivalent forbidden nesting) and contradicting switching-tree correctness
+remains a separate theorem. -/
+private theorem
+    canonicalWorklistRun_waitingPar_dependency_closed_fullGraphWalk
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (base : Vertex)
+            (traversed : List certificate.fullGraph.DirectedEdge),
+          traversed ≠ [] ∧
+            certificate.fullGraph.EdgeWalk base traversed base := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ (base : Vertex)
+            (traversed : List certificate.fullGraph.DirectedEdge),
+          traversed ≠ [] ∧
+            certificate.fullGraph.EdgeWalk base traversed base
+  intro source sourceWaiting
+  rcases
+      canonicalWorklistRun_waitingPar_dependency_closed_segment_fullSegments
+        correct startEquation sourceWaiting with
+    ⟨chainAt, earlier, later, _starts, ordered, _laterBound,
+      endpointEquation, _chainWaiting, segments⟩
+  let shifted : Nat → Vertex :=
+    fun offset => chainAt (earlier + offset)
+  have shiftedSegments :
+      ∀ offset,
+        offset < later - earlier →
+          ∃ traversed : List certificate.fullGraph.DirectedEdge,
+            traversed ≠ [] ∧
+              certificate.fullGraph.EdgeWalk
+                (shifted offset) traversed (shifted (offset + 1)) := by
+    intro offset offsetBound
+    have lower : earlier ≤ earlier + offset := by
+      omega
+    have upper : earlier + offset < later := by
+      omega
+    rcases segments (earlier + offset) lower upper with
+      ⟨_dependency, _geometry, segment⟩
+    rcases segment.walk_exists with
+      ⟨traversed, nonempty, walk⟩
+    refine ⟨traversed, nonempty, ?_⟩
+    simpa [shifted, Nat.add_assoc] using walk
+  rcases
+      fullGraphEdgeWalk_chain_exists shifted (later - earlier)
+        shiftedSegments with
+    ⟨traversed, chainedWalk, nonemptyOfPositive⟩
+  have positive : 0 < later - earlier := by
+    omega
+  have startIndex : shifted 0 = chainAt earlier := by
+    simp [shifted]
+  have finishIndex : shifted (later - earlier) = chainAt later := by
+    simp only [shifted]
+    congr 1
+    omega
+  have closedWalk :
+      certificate.fullGraph.EdgeWalk
+        (chainAt earlier) traversed (chainAt earlier) := by
+    simpa only [startIndex, finishIndex, ← endpointEquation] using
+      chainedWalk
+  exact
+    ⟨chainAt earlier, traversed,
+      nonemptyOfPositive positive, closedWalk⟩
 
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact

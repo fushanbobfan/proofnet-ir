@@ -144,10 +144,16 @@ now distinguishes the retained axiom, tensor, and left-par occurrences
 without quotienting parallel edge values. Structural typing excludes the
 axiom case at a formula tail, and unique producer ownership synchronizes the
 frontier producer with the first tail producer. Thus each nontrivial turn is
-proved to be a genuine par cusp or a tensor-colored free turn, and every edge
-of the closed waiting-dependency segment carries this local alternative. The
-remaining argument must compose and exclude the resulting switching-tree
-cycle or forbidden nesting in a correct quiescent state.
+proved to be a genuine par cusp or a tensor-colored free turn. Every dependency
+is now also packaged as a composable complete-graph segment from its source
+waiting conclusion to its target, using the exact source-par incidence,
+retained reference-prefix lift, and all-backward formula tail. The finite
+closed dependency family is kernel-concatenated into a genuinely nonempty
+closed occurrence-aware `fullGraph` walk. Since that walk can still contain
+backtracking or repeated edge occurrences, the remaining argument must
+normalize it while preserving the turn classifications and exclude the
+resulting edge-simple switching cycle or forbidden nesting in a correct
+quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
@@ -232,10 +238,12 @@ or positive misses. The larger search recorded at most 150 link attempts and
 2. Use full-switching connectivity plus causal closure to exclude the
    unmarked internal region now exposed on the exact reference path between
    the remaining waiting par premises; same-thread tensor deadlock is already
-   excluded by the active-path switching-cycle theorem. The immediate proof
-   obligation is occurrence-preserving transport of retained par colors to
-   the lifted full graph, followed by par-cusp/tensor-free boundary
-   classification.
+   excluded by the active-path switching-cycle theorem. Exact retained-edge
+   transport, par-cusp/tensor-free boundary classification, composable
+   dependency segments, and a nonempty closed `fullGraph` walk are now proved.
+   The immediate proof obligation is occurrence-preserving normalization of
+   that possibly backtracking/repeating walk into an excluded edge-simple
+   switching cycle or forbidden nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
