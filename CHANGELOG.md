@@ -19,9 +19,16 @@
   fired, idle, registered waiting, or tensor-deadlocked. Every processing
   branch is also proved to preserve the executable abstraction contract, the
   ordered union-find forest, and formula consistency of every live partial
-  derivation component. Transporting pending-frontier coverage and every
-  other connective across that core update, then complete-run coverage,
-  remain open, so pure-worklist completeness is still not claimed;
+  derivation component. Structural ownership now proves unique premise
+  parents and compound producers. Exact par/tensor frontier-transport
+  theorems preserve every non-consumed occurrence, tensor transport accounts
+  for representative merging, and each new conclusion is exposed in the
+  replacement component. Eager axiom initialization establishes this
+  pending-premise coverage from the canonical empty state, every processing
+  branch preserves it, and the complete production fuel-bounded run carries
+  the bundled abstraction/forest/component/frontier invariant. Whole
+  scheduler-status preservation, fuel sufficiency, and correct-state
+  progress remain open, so pure-worklist completeness is still not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential

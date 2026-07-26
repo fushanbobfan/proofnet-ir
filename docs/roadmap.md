@@ -428,6 +428,11 @@
     no observed miss or false positive.
   - [ ] Prove the pure deterministic unification path complete, removing the
     recursive fallback from the logical decision.
+    - [x] Prove canonical initialization plus the complete production
+      worklist run preserve abstraction, ordered parents, component/formula
+      consistency, and exact pending-premise frontier coverage.
+    - [ ] Prove whole scheduler-status preservation, fuel sufficiency, and
+      correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize
     `NEXTAXIOM`/union-find invariants, prove fuel sufficiency and pure

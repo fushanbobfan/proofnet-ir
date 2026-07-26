@@ -12,9 +12,11 @@ and [the release audit](docs/v0.9-release-audit.md) for the precise guarantees
 and non-goals.
 
 Development on `main` now continues as `v0.10.0-dev`. The next proof boundary
-is pure worklist completeness: independent transition semantics, scheduler
-coverage, fuel sufficiency, and the correct-quiescent-state progress theorem
-must be established before removing the recursive fallback. The later
+is pure worklist completeness. Independent transition refinement and the
+production run's bundled abstraction/forest/component/pending-frontier
+invariant are now kernel checked; whole scheduler-status preservation, fuel
+sufficiency, and the correct-quiescent-state progress theorem still must be
+established before removing the recursive fallback. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

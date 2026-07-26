@@ -304,6 +304,24 @@ def assignedToken? (state : UnificationState) (vertex : Vertex) :
     Option Nat :=
   state.marks[vertex]?.join
 
+/-- A successful raw-token lookup exposes the exact nested mark-array entry. -/
+theorem assignedToken?_some_raw
+    {state : UnificationState} {vertex token : Nat}
+    (marked : state.assignedToken? vertex = some token) :
+    state.marks[vertex]? = some (some token) := by
+  unfold assignedToken? at marked
+  cases lookup : state.marks[vertex]? with
+  | none =>
+      simp [lookup] at marked
+  | some assigned =>
+      cases assigned with
+      | none =>
+          simp [lookup] at marked
+      | some stored =>
+          simp [lookup] at marked
+          subst stored
+          rfl
+
 /-- Two allocated tokens lie in the same executable union-find class. -/
 def SameThread (state : UnificationState) (first second : Nat) : Prop :=
   state.representative first = state.representative second
@@ -359,6 +377,16 @@ structure ObservationEquivalent
     (first second : UnificationState) : Prop where
   marks : first.marks = second.marks
   parents : first.parents = second.parents
+
+/-- Observation-equivalent states compute exactly the same representative
+for every token. -/
+theorem ObservationEquivalent.representative_eq
+    {first second : UnificationState}
+    (equivalent : first.ObservationEquivalent second)
+    (token : Nat) :
+    second.representative token = first.representative token := by
+  unfold UnificationState.representative
+  rw [← equivalent.parents]
 
 /-- During the eager axiom-start phase every allocated token is still its own
 union-find parent. No connective union has fired yet. -/
@@ -455,7 +483,7 @@ theorem OrderedParents.representative_idempotent
     {token : Nat} (bound : token < state.parents.size) :
     state.representative (state.representative token) =
       state.representative token := by
-  unfold representative
+  unfold UnificationState.representative
   calc
     representativeWithFuel state.parents state.parents.size
         (representativeWithFuel state.parents state.parents.size token) =
@@ -546,7 +574,7 @@ theorem representative_eq_of_lookup_self
     {state : UnificationState} {token : Nat}
     (lookup : state.parents[token]? = some token) :
     state.representative token = token := by
-  unfold representative
+  unfold UnificationState.representative
   exact representativeWithFuel_of_lookup_self
     state.parents lookup state.parents.size
 
@@ -1843,6 +1871,28 @@ def componentAt? (state : UnificationState) (token : Nat) :
   let component ← state.components[state.representative token]?
   component
 
+/-- A successful live-component lookup exposes the exact nested array entry
+at the current representative. -/
+theorem componentAt?_some_raw
+    {state : UnificationState} {token : Nat}
+    {component : UnificationComponent}
+    (yielded : state.componentAt? token = some component) :
+    state.components[state.representative token]? =
+      some (some component) := by
+  unfold componentAt? at yielded
+  cases lookup :
+      state.components[state.representative token]? with
+  | none =>
+      simp [lookup] at yielded
+  | some assigned =>
+      cases assigned with
+      | none =>
+          simp [lookup] at yielded
+      | some stored =>
+          simp [lookup] at yielded
+          subst stored
+          rfl
+
 /-- Every marked premise of a still-unfired connective is exposed by the live
 parsed component of its current token representative.  Consumed premises stay
 marked permanently, so requiring *all* marked occurrences to remain on a
@@ -1860,6 +1910,138 @@ def PendingPremisesCovered (certificate : Certificate)
               ∃ component,
                 state.componentAt? token = some component ∧
                   premise ∈ component.frontier
+
+/-- A list filtered to one accepted value cannot contain two different
+accepted members. -/
+private theorem mem_filter_length_one_unique
+    {α : Type} {values : List α} {predicate : α → Bool}
+    {first second : α}
+    (count : (values.filter predicate).length = 1)
+    (firstMembership : first ∈ values)
+    (firstAccepted : predicate first = true)
+    (secondMembership : second ∈ values)
+    (secondAccepted : predicate second = true) :
+    first = second := by
+  have firstFiltered : first ∈ values.filter predicate := by
+    simp [firstMembership, firstAccepted]
+  have secondFiltered : second ∈ values.filter predicate := by
+    simp [secondMembership, secondAccepted]
+  rcases List.length_eq_one_iff.mp count with
+    ⟨only, filterEquation⟩
+  rw [filterEquation] at firstFiltered secondFiltered
+  simp at firstFiltered secondFiltered
+  exact firstFiltered.trans secondFiltered.symm
+
+/-- Structural resource ownership makes the parent connective of every
+premise occurrence unique.  This is the exact linear-use fact needed to show
+that firing one link cannot consume a frontier occurrence still needed by a
+different pending link. -/
+theorem StructurallyWellFormed.parentLink_unique
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {premise : Vertex} {first second : Link}
+    (firstMembership : first ∈ certificate.links)
+    (firstPremise : premise ∈ first.premises)
+    (secondMembership : second ∈ certificate.links)
+    (secondPremise : premise ∈ second.premises) :
+    first = second := by
+  have firstWellFormed :=
+    structural.2.2.2.2.1 first firstMembership
+  have premiseBound : premise < certificate.formulas.size := by
+    cases first with
+    | «axiom» left right =>
+        simp [Link.premises] at firstPremise
+    | tensor left right conclusion =>
+        rcases firstWellFormed with
+          ⟨_, _, _, leftBound, rightBound, _, _⟩
+        simp [Link.premises] at firstPremise
+        rcases firstPremise with rfl | rfl
+        · exact leftBound
+        · exact rightBound
+    | «par» left right conclusion =>
+        rcases firstWellFormed with
+          ⟨_, _, _, leftBound, rightBound, _, _⟩
+        simp [Link.premises] at firstPremise
+        rcases firstPremise with rfl | rfl
+        · exact leftBound
+        · exact rightBound
+  have firstUses : first.usesAsPremise premise = true := by
+    simpa [Link.usesAsPremise] using firstPremise
+  have secondUses : second.usesAsPremise premise = true := by
+    simpa [Link.usesAsPremise] using secondPremise
+  have node := structural.2.2.2.2.2 premise premiseBound
+  have notBoundary : premise ∉ certificate.conclusions := by
+    intro boundary
+    have parentZero : certificate.parentUseCount premise = 0 := by
+      simpa [boundary] using node.2
+    have filtered :
+        first ∈ certificate.links.filter
+          (·.usesAsPremise premise) := by
+      simp [firstMembership, firstUses]
+    have positive := List.length_pos_of_mem filtered
+    unfold Certificate.parentUseCount at parentZero
+    omega
+  have parentCount : certificate.parentUseCount premise = 1 := by
+    simpa [notBoundary] using node.2
+  unfold Certificate.parentUseCount at parentCount
+  exact mem_filter_length_one_unique parentCount
+    firstMembership firstUses secondMembership secondUses
+
+/-- Structural ownership also makes the connective producer of every
+compound occurrence unique, including across the tensor/par constructors. -/
+theorem StructurallyWellFormed.producerLink_unique
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {conclusion : Vertex} {first second : Link}
+    (firstMembership : first ∈ certificate.links)
+    (firstProduces : first.produces conclusion = true)
+    (secondMembership : second ∈ certificate.links)
+    (secondProduces : second.produces conclusion = true) :
+    first = second := by
+  have firstWellFormed :=
+    structural.2.2.2.2.1 first firstMembership
+  have conclusionBound : conclusion < certificate.formulas.size := by
+    cases first with
+    | «axiom» left right =>
+        simp [Link.produces] at firstProduces
+    | tensor left right produced =>
+        simp [Link.produces] at firstProduces
+        subst produced
+        exact firstWellFormed.2.2.2.2.2.1
+    | «par» left right produced =>
+        simp [Link.produces] at firstProduces
+        subst produced
+        exact firstWellFormed.2.2.2.2.2.1
+  have formulaShape :
+      ∃ formula,
+        certificate.formula? conclusion = some formula ∧
+          formula.isAtom = false := by
+    cases first with
+    | «axiom» left right =>
+        simp [Link.produces] at firstProduces
+    | tensor left right produced =>
+        simp [Link.produces] at firstProduces
+        subst produced
+        rcases firstWellFormed.tensor_conclusionFormula with
+          ⟨leftFormula, rightFormula, formula⟩
+        exact ⟨.tensor leftFormula rightFormula, formula, rfl⟩
+    | «par» left right produced =>
+        simp [Link.produces] at firstProduces
+        subst produced
+        rcases firstWellFormed.par_conclusionFormula with
+          ⟨leftFormula, rightFormula, formula⟩
+        exact ⟨.par leftFormula rightFormula, formula, rfl⟩
+  rcases formulaShape with ⟨formula, formulaLookup, compound⟩
+  have node := structural.2.2.2.2.2 conclusion conclusionBound
+  have producerCount : certificate.producerCount conclusion = 1 := by
+    cases formula <;>
+      simp [Certificate.NodeWellFormed, formulaLookup] at compound node
+    · contradiction
+    · exact node.1
+    · exact node.1
+  unfold Certificate.producerCount at producerCount
+  exact mem_filter_length_one_unique producerCount
+    firstMembership firstProduces secondMembership secondProduces
 
 /-- Every component returned through the representative-indexed lookup
 inherits the state's stored-component formula invariant. -/
@@ -1949,6 +2131,35 @@ private theorem initialUnificationState_componentsFormulaConsistent
   intro index component lookup
   simp [initialUnificationState] at lookup
 
+/-- Initial component and parent carriers are both empty. -/
+private theorem initialUnificationState_componentsParentsAligned
+    (certificate : Certificate) :
+    certificate.initialUnificationState.components.size =
+      certificate.initialUnificationState.parents.size := by
+  rfl
+
+/-- Before axiom initialization no premise is marked, so pending-premise
+coverage holds vacuously. -/
+private theorem initialUnificationState_pendingPremisesCovered
+    (certificate : Certificate) :
+    certificate.initialUnificationState.PendingPremisesCovered
+      certificate := by
+  unfold UnificationState.PendingPremisesCovered
+  intro link _membership
+  cases link with
+  | «axiom» left right =>
+      trivial
+  | «par» left right conclusion =>
+      intro _ready premise token _premiseMembership marked
+      unfold UnificationState.tokenAt? at marked
+      by_cases bound : premise < certificate.formulas.size <;>
+        simp [initialUnificationState, bound] at marked
+  | tensor left right conclusion =>
+      intro _ready premise token _premiseMembership marked
+      unfold UnificationState.tokenAt? at marked
+      by_cases bound : premise < certificate.formulas.size <;>
+        simp [initialUnificationState, bound] at marked
+
 private def unificationError (certificate : Certificate)
     (code : UnificationErrorCode) (message : String) :
     UnificationError :=
@@ -1996,6 +2207,19 @@ private theorem pickVertex?_remaining_eq_erase
             subst remaining
             rw [induction tailPicked]
             simp [same]
+
+/-- Selecting one occurrence preserves membership of every differently named
+occurrence.  Formula occurrences are globally unique vertices in a
+well-formed certificate, so value-level erasure is the required operation. -/
+private theorem pickVertex?_mem_remaining_of_ne
+    {source remaining : List Vertex} {selected candidate index : Nat}
+    (picked :
+      pickVertex? source selected = some (index, remaining))
+    (different : candidate ≠ selected)
+    (membership : candidate ∈ source) :
+    candidate ∈ remaining := by
+  rw [pickVertex?_remaining_eq_erase picked]
+  exact (List.mem_erase_of_ne different).2 membership
 
 /-- Every listed occurrence can be selected by the executable frontier
 picker. -/
@@ -2270,6 +2494,344 @@ private theorem startAxiom?_success
   · have failed : (failure : Option Unit) = none := rfl
     simp [guard, leftReady, failed] at equation
 
+/-- A successful axiom start appends exactly one component whose frontier
+contains both axiom endpoints. -/
+private theorem startAxiom?_success_component_push
+    {certificate : Certificate} {state next : UnificationState}
+    {left right : Vertex}
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    ∃ component,
+      next.components = state.components.push (some component) ∧
+        left ∈ component.frontier ∧ right ∈ component.frontier := by
+  unfold startAxiom? at equation
+  by_cases leftReady : state.marks[left]? = some none
+  · simp [guard, leftReady] at equation
+    by_cases rightReady : state.marks[right]? = some none
+    · simp [rightReady] at equation
+      cases formulaLookup : certificate.formula? left with
+      | none =>
+          simp [formulaLookup] at equation
+      | some formula =>
+          cases formula with
+          | atom name positive =>
+              simp [formulaLookup] at equation
+              subst next
+              refine
+                ⟨{ tree := .axiom name positive
+                   frontier := [left, right] }, rfl, ?_, ?_⟩
+              · simp
+              · simp
+          | tensor first second =>
+              simp [formulaLookup] at equation
+          | par first second =>
+              simp [formulaLookup] at equation
+    · have failed : (failure : Option Unit) = none := rfl
+      simp [rightReady, failed] at equation
+  · have failed : (failure : Option Unit) = none := rfl
+    simp [guard, leftReady, failed] at equation
+
+/-- Starting an axiom changes no raw mark outside its two endpoints. -/
+private theorem startAxiom?_success_mark_of_ne
+    {certificate : Certificate} {state next : UnificationState}
+    {left right vertex : Vertex}
+    (notLeft : vertex ≠ left) (notRight : vertex ≠ right)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.marks[vertex]? = state.marks[vertex]? := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨_leftReady, _rightReady, observation⟩
+  rw [← observation.marks]
+  simp [UnificationState.startMarking,
+    notLeft.symm, notRight.symm]
+
+/-- During eager initialization, identity representatives make every
+non-endpoint current token stable across one successful axiom start. -/
+private theorem startAxiom?_success_tokenAt?_of_ne
+    {certificate : Certificate} {state next : UnificationState}
+    (identity : state.IdentityParents)
+    {left right vertex : Vertex}
+    (notLeft : vertex ≠ left) (notRight : vertex ≠ right)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.tokenAt? vertex = state.tokenAt? vertex := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨_leftReady, _rightReady, observation⟩
+  have markedIdentity :
+      (state.startMarking left right).IdentityParents :=
+    identity.startMarking left right
+  have nextIdentity : next.IdentityParents :=
+    observation.identityParents markedIdentity
+  unfold UnificationState.tokenAt?
+  rw [← observation.marks]
+  simp [UnificationState.startMarking,
+    notLeft.symm, notRight.symm,
+    identity.representative_eq_all,
+    nextIdentity.representative_eq_all]
+
+/-- Every successful axiom start exposes both new endpoints in the appended
+live component at the fresh identity token. -/
+private theorem startAxiom?_success_frontier
+    {certificate : Certificate} {state next : UnificationState}
+    (identity : state.IdentityParents)
+    (aligned : state.components.size = state.parents.size)
+    {left right : Vertex}
+    (different : left ≠ right)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    ∃ token component,
+      next.tokenAt? left = some token ∧
+        next.tokenAt? right = some token ∧
+          next.componentAt? token = some component ∧
+            left ∈ component.frontier ∧
+              right ∈ component.frontier := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨leftReady, rightReady, observation⟩
+  rcases certificate.startAxiom?_success_component_push equation with
+    ⟨component, componentPush, leftMembership, rightMembership⟩
+  have markedIdentity :
+      (state.startMarking left right).IdentityParents :=
+    identity.startMarking left right
+  have nextIdentity : next.IdentityParents :=
+    observation.identityParents markedIdentity
+  have leftBound : left < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp leftReady).1
+  have rightBound : right < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp rightReady).1
+  let fresh := state.parents.size
+  have leftToken : next.tokenAt? left = some fresh := by
+    unfold UnificationState.tokenAt?
+    rw [← observation.marks]
+    simp [UnificationState.startMarking, fresh,
+      leftBound, Ne.symm different,
+      nextIdentity.representative_eq_all]
+  have rightToken : next.tokenAt? right = some fresh := by
+    unfold UnificationState.tokenAt?
+    rw [← observation.marks]
+    simp [UnificationState.startMarking, fresh,
+      rightBound,
+      nextIdentity.representative_eq_all]
+  have freshComponent :
+      next.componentAt? fresh = some component := by
+    unfold UnificationState.componentAt?
+    rw [nextIdentity.representative_eq_all, componentPush]
+    rw [show fresh = state.components.size by
+      simpa [fresh] using aligned.symm]
+    simp
+  exact
+    ⟨fresh, component, leftToken, rightToken, freshComponent,
+      leftMembership, rightMembership⟩
+
+/-- A successful axiom start preserves every old non-endpoint frontier
+occurrence and its identity token. -/
+private theorem startAxiom?_success_frontier_of_ne
+    {certificate : Certificate} {state next : UnificationState}
+    (identity : state.IdentityParents)
+    {left right vertex token : Vertex}
+    {component : UnificationComponent}
+    (vertexToken : state.tokenAt? vertex = some token)
+    (componentLookup : state.componentAt? token = some component)
+    (vertexMembership : vertex ∈ component.frontier)
+    (notLeft : vertex ≠ left) (notRight : vertex ≠ right)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.tokenAt? vertex = some token ∧
+      next.componentAt? token = some component ∧
+        vertex ∈ component.frontier := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨_leftReady, _rightReady, observation⟩
+  rcases certificate.startAxiom?_success_component_push equation with
+    ⟨newComponent, componentPush, _leftMembership, _rightMembership⟩
+  have markedIdentity :
+      (state.startMarking left right).IdentityParents :=
+    identity.startMarking left right
+  have nextIdentity : next.IdentityParents :=
+    observation.identityParents markedIdentity
+  have nextVertexToken :
+      next.tokenAt? vertex = some token := by
+    rw [certificate.startAxiom?_success_tokenAt?_of_ne
+      identity notLeft notRight equation]
+    exact vertexToken
+  have componentRaw :
+      state.components[token]? = some (some component) := by
+    have rawAtRepresentative :=
+      UnificationState.componentAt?_some_raw componentLookup
+    simpa [identity.representative_eq_all] using rawAtRepresentative
+  have componentBound : token < state.components.size :=
+    (Array.getElem?_eq_some_iff.mp componentRaw).1
+  have nextComponentLookup :
+      next.componentAt? token = some component := by
+    unfold UnificationState.componentAt?
+    rw [nextIdentity.representative_eq_all, componentPush]
+    rw [Array.getElem?_push,
+      if_neg (Nat.ne_of_lt componentBound), componentRaw]
+    rfl
+  exact
+    ⟨nextVertexToken, nextComponentLookup, vertexMembership⟩
+
+/-- One successful eager axiom start preserves pending-premise coverage and
+adds exact coverage for any connective premise equal to either newly marked
+axiom endpoint. -/
+private theorem startAxiom?_success_pendingPremisesCovered
+    {certificate : Certificate} {state next : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (identity : state.IdentityParents)
+    (aligned : state.components.size = state.parents.size)
+    (covered : state.PendingPremisesCovered certificate)
+    {left right : Vertex}
+    (axiomMembership :
+      Link.axiom left right ∈ certificate.links)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.PendingPremisesCovered certificate := by
+  have axiomWellFormed :
+      certificate.LinkWellFormed (.axiom left right) :=
+    structural.2.2.2.2.1 _ axiomMembership
+  have different : left ≠ right := axiomWellFormed.1
+  rcases certificate.startAxiom?_success_frontier
+      identity aligned different equation with
+    ⟨fresh, newComponent, leftToken, rightToken,
+      newComponentLookup, leftMembership, rightMembership⟩
+  have leftMarked : next.assignedToken? left ≠ none := by
+    rcases next.tokenAt?_some_witness leftToken with
+      ⟨rawToken, marked, _representative⟩
+    intro unmarked
+    rw [unmarked] at marked
+    contradiction
+  have rightMarked : next.assignedToken? right ≠ none := by
+    rcases next.tokenAt?_some_witness rightToken with
+      ⟨rawToken, marked, _representative⟩
+    intro unmarked
+    rw [unmarked] at marked
+    contradiction
+  unfold UnificationState.PendingPremisesCovered
+  intro link linkMembership
+  cases link with
+  | «axiom» candidateLeft candidateRight =>
+      trivial
+  | «par» candidateLeft candidateRight candidateConclusion =>
+      intro nextReady premise token premiseMembership nextPremiseToken
+      have candidateNotLeft : candidateConclusion ≠ left := by
+        intro same
+        subst candidateConclusion
+        apply leftMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have candidateNotRight : candidateConclusion ≠ right := by
+        intro same
+        subst candidateConclusion
+        apply rightMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have oldReady :
+          state.marks[candidateConclusion]? = some none := by
+        have unchanged :=
+          certificate.startAxiom?_success_mark_of_ne
+            candidateNotLeft candidateNotRight equation
+        rw [unchanged] at nextReady
+        exact nextReady
+      by_cases atLeft : premise = left
+      · subst premise
+        rw [leftToken] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨newComponent, newComponentLookup, leftMembership⟩
+      · by_cases atRight : premise = right
+        · subst premise
+          rw [rightToken] at nextPremiseToken
+          injection nextPremiseToken with tokenEquation
+          subst token
+          exact
+            ⟨newComponent, newComponentLookup, rightMembership⟩
+        · have oldPremiseToken :
+              state.tokenAt? premise = some token := by
+            have unchanged :=
+              certificate.startAxiom?_success_tokenAt?_of_ne
+                identity atLeft atRight equation
+            rw [unchanged] at nextPremiseToken
+            exact nextPremiseToken
+          rcases covered linkMembership oldReady premiseMembership
+              oldPremiseToken with
+            ⟨component, componentLookup, frontierMembership⟩
+          rcases certificate.startAxiom?_success_frontier_of_ne
+              identity oldPremiseToken componentLookup
+                frontierMembership atLeft atRight equation with
+            ⟨_nextMarked, nextComponentLookup,
+              nextFrontierMembership⟩
+          exact
+            ⟨component, nextComponentLookup,
+              nextFrontierMembership⟩
+  | tensor candidateLeft candidateRight candidateConclusion =>
+      intro nextReady premise token premiseMembership nextPremiseToken
+      have candidateNotLeft : candidateConclusion ≠ left := by
+        intro same
+        subst candidateConclusion
+        apply leftMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have candidateNotRight : candidateConclusion ≠ right := by
+        intro same
+        subst candidateConclusion
+        apply rightMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have oldReady :
+          state.marks[candidateConclusion]? = some none := by
+        have unchanged :=
+          certificate.startAxiom?_success_mark_of_ne
+            candidateNotLeft candidateNotRight equation
+        rw [unchanged] at nextReady
+        exact nextReady
+      by_cases atLeft : premise = left
+      · subst premise
+        rw [leftToken] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨newComponent, newComponentLookup, leftMembership⟩
+      · by_cases atRight : premise = right
+        · subst premise
+          rw [rightToken] at nextPremiseToken
+          injection nextPremiseToken with tokenEquation
+          subst token
+          exact
+            ⟨newComponent, newComponentLookup, rightMembership⟩
+        · have oldPremiseToken :
+              state.tokenAt? premise = some token := by
+            have unchanged :=
+              certificate.startAxiom?_success_tokenAt?_of_ne
+                identity atLeft atRight equation
+            rw [unchanged] at nextPremiseToken
+            exact nextPremiseToken
+          rcases covered linkMembership oldReady premiseMembership
+              oldPremiseToken with
+            ⟨component, componentLookup, frontierMembership⟩
+          rcases certificate.startAxiom?_success_frontier_of_ne
+              identity oldPremiseToken componentLookup
+                frontierMembership atLeft atRight equation with
+            ⟨_nextMarked, nextComponentLookup,
+              nextFrontierMembership⟩
+          exact
+            ⟨component, nextComponentLookup,
+              nextFrontierMembership⟩
+
+/-- A successful axiom start pushes one component and one parent token, so
+their carriers remain aligned. -/
+private theorem startAxiom?_success_componentsParentsAligned
+    {certificate : Certificate} {state next : UnificationState}
+    (aligned : state.components.size = state.parents.size)
+    {left right : Vertex}
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.components.size = next.parents.size := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨_leftReady, _rightReady, observation⟩
+  rcases certificate.startAxiom?_success_component_push equation with
+    ⟨component, componentPush, _leftMembership, _rightMembership⟩
+  rw [componentPush, ← observation.parents]
+  simp [UnificationState.startMarking, aligned]
+
 /-- A successful well-typed axiom start appends one formula-consistent partial
 derivation and preserves all previously stored components. -/
 private theorem startAxiom?_success_componentsFormulaConsistent
@@ -2437,6 +2999,76 @@ private theorem startAxioms?_success_ordered
             induction ordered equation
           intro token parent lookup
           exact result lookup
+
+/-- Eager initialization preserves identity parents and carrier alignment,
+while establishing pending-premise frontier coverage as each axiom endpoint
+becomes marked. -/
+private theorem startAxioms?_success_identityAlignedCovered
+    (certificate : Certificate)
+    (structural : certificate.StructurallyWellFormed)
+    {links : List Link} {state next : UnificationState}
+    (identity : state.IdentityParents)
+    (aligned : state.components.size = state.parents.size)
+    (covered : state.PendingPremisesCovered certificate)
+    (submitted :
+      ∀ link, link ∈ links → link ∈ certificate.links)
+    (equation :
+      certificate.startAxioms? links state = some next) :
+    next.IdentityParents ∧
+      next.components.size = next.parents.size ∧
+        next.PendingPremisesCovered certificate := by
+  induction links generalizing state with
+  | nil =>
+      simp [startAxioms?] at equation
+      subst next
+      exact ⟨identity, aligned, covered⟩
+  | cons link links induction =>
+      have tailSubmitted :
+          ∀ candidate, candidate ∈ links →
+            candidate ∈ certificate.links := by
+        intro candidate membership
+        exact submitted candidate (by simp [membership])
+      cases link with
+      | «axiom» left right =>
+          have axiomMembership :
+              Link.axiom left right ∈ certificate.links :=
+            submitted _ (by simp)
+          simp only [startAxioms?] at equation
+          cases startEquation :
+              certificate.startAxiom? state left right with
+          | none =>
+              rw [startEquation] at equation
+              contradiction
+          | some started =>
+              rw [startEquation] at equation
+              rcases certificate.startAxiom?_success startEquation with
+                ⟨_leftReady, _rightReady, observation⟩
+              have markedIdentity :
+                  (state.startMarking left right).IdentityParents :=
+                identity.startMarking left right
+              have startedIdentity : started.IdentityParents :=
+                observation.identityParents markedIdentity
+              have startedAligned :
+                  started.components.size = started.parents.size :=
+                certificate
+                  |>.startAxiom?_success_componentsParentsAligned
+                    aligned startEquation
+              have startedCovered :
+                  started.PendingPremisesCovered certificate :=
+                certificate
+                  |>.startAxiom?_success_pendingPremisesCovered
+                    structural identity aligned covered
+                      axiomMembership startEquation
+              exact induction startedIdentity startedAligned
+                startedCovered tailSubmitted equation
+      | «par» left right conclusion =>
+          simp only [startAxioms?] at equation
+          exact induction identity aligned covered
+            tailSubmitted equation
+      | «tensor» left right conclusion =>
+          simp only [startAxioms?] at equation
+          exact induction identity aligned covered
+            tailSubmitted equation
 
 /-- Successful eager axiom initialization preserves formula consistency of
 every stored partial derivation. -/
@@ -2669,6 +3301,400 @@ private theorem firePar?_success_conclusion_marked
   rw [← observation.marks]
   simp [UnificationState.markConclusion, conclusionBound,
     abstractable.markArraySize]
+
+/-- A successful par firing does not change the current token of any
+occurrence other than its newly marked conclusion. -/
+private theorem firePar?_success_tokenAt?_of_ne
+    {state next : UnificationState}
+    {left right conclusion vertex : Vertex}
+    (different : vertex ≠ conclusion)
+    (equation : firePar? state left right conclusion = some next) :
+    next.tokenAt? vertex = state.tokenAt? vertex := by
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, _forwardEquation, observation⟩
+  have parentsEquation : next.parents = state.parents := by
+    rw [← observation.parents]
+    rfl
+  have representativeEquation (token : Nat) :
+      next.representative token = state.representative token := by
+    unfold UnificationState.representative
+    rw [parentsEquation]
+  unfold UnificationState.tokenAt?
+  rw [← observation.marks]
+  simp [UnificationState.markConclusion,
+    different.symm, representativeEquation]
+
+/-- A successful par firing changes no raw mark except its conclusion slot. -/
+private theorem firePar?_success_mark_of_ne
+    {state next : UnificationState}
+    {left right conclusion vertex : Vertex}
+    (different : vertex ≠ conclusion)
+    (equation : firePar? state left right conclusion = some next) :
+    next.marks[vertex]? = state.marks[vertex]? := by
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, _forwardEquation, observation⟩
+  rw [← observation.marks]
+  simp [UnificationState.markConclusion, different.symm]
+
+/-- A successful par firing exposes its new conclusion at the same root token
+shared by both premises. -/
+private theorem firePar?_success_conclusion_tokenAt?
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion : Vertex}
+    {outputToken : Nat}
+    (forwardEquation :
+      state.forwardToken? left right conclusion = some outputToken)
+    (equation : firePar? state left right conclusion = some next) :
+    next.tokenAt? conclusion = some outputToken := by
+  rcases firePar?_success_observation equation with
+    ⟨observedToken, observedForward, observation⟩
+  rw [forwardEquation] at observedForward
+  injection observedForward with tokenEquation
+  subst observedToken
+  have guards := state.forwardToken?_success forwardEquation
+  have tokenRoot : state.representative outputToken = outputToken :=
+    abstractable.tokenAt?_root guards.2.1
+  have conclusionBound : conclusion < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp guards.1).1
+  have parentsEquation : next.parents = state.parents := by
+    rw [← observation.parents]
+    rfl
+  have representativeEquation (token : Nat) :
+      next.representative token = state.representative token := by
+    unfold UnificationState.representative
+    rw [parentsEquation]
+  unfold UnificationState.tokenAt?
+  rw [← observation.marks]
+  simp [UnificationState.markConclusion, conclusionBound,
+    representativeEquation, tokenRoot]
+
+/-- A successful par firing preserves every differently named frontier
+occurrence.  Occurrences in the fired component survive both exact picks;
+occurrences in all other components are untouched. -/
+private theorem firePar?_success_frontier_of_ne
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion vertex token : Vertex}
+    {component : UnificationComponent}
+    (vertexToken : state.tokenAt? vertex = some token)
+    (componentLookup : state.componentAt? token = some component)
+    (vertexMembership : vertex ∈ component.frontier)
+    (notLeft : vertex ≠ left) (notRight : vertex ≠ right)
+    (equation : firePar? state left right conclusion = some next) :
+    ∃ nextComponent,
+      next.componentAt? token = some nextComponent ∧
+        vertex ∈ nextComponent.frontier := by
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, forwardEquation, _observation⟩
+  have guards := state.forwardToken?_success forwardEquation
+  have outputRoot : state.representative outputToken = outputToken :=
+    abstractable.tokenAt?_root guards.2.1
+  have tokenRoot : state.representative token = token :=
+    abstractable.tokenAt?_root vertexToken
+  unfold firePar? at equation
+  rw [forwardEquation] at equation
+  cases firedLookup :
+      state.componentAt? outputToken with
+  | none =>
+      simp [firedLookup] at equation
+  | some firedComponent =>
+      simp only [firedLookup] at equation
+      cases leftPick :
+          pickVertex? firedComponent.frontier left with
+      | none =>
+          simp [leftPick] at equation
+      | some leftResult =>
+          rcases leftResult with ⟨leftIndex, afterLeft⟩
+          simp only [leftPick] at equation
+          cases rightPick :
+              pickVertex? afterLeft right with
+          | none =>
+              simp [rightPick] at equation
+          | some rightResult =>
+              rcases rightResult with ⟨rightIndex, context⟩
+              simp only [rightPick] at equation
+              injection equation with nextEquation
+              have nextOutputRoot :
+                  next.representative outputToken = outputToken := by
+                rw [_observation.representative_eq outputToken]
+                simpa [UnificationState.representative,
+                  UnificationState.markConclusion] using outputRoot
+              have nextTokenRoot :
+                  next.representative token = token := by
+                rw [_observation.representative_eq token]
+                simpa [UnificationState.representative,
+                  UnificationState.markConclusion] using tokenRoot
+              subst next
+              let replacement : UnificationComponent :=
+                { tree :=
+                    .par leftIndex rightIndex firedComponent.tree
+                  frontier := context ++ [conclusion] }
+              have firedRaw :
+                  state.components[outputToken]? =
+                    some (some firedComponent) := by
+                have rawAtRepresentative :=
+                  UnificationState.componentAt?_some_raw firedLookup
+                simpa [outputRoot] using rawAtRepresentative
+              have outputBound :
+                  outputToken < state.components.size :=
+                (Array.getElem?_eq_some_iff.mp firedRaw).1
+              by_cases same : token = outputToken
+              · subst token
+                have componentEquation :
+                    component = firedComponent := by
+                  rw [firedLookup] at componentLookup
+                  injection componentLookup with equality
+                  exact equality.symm
+                subst component
+                have afterLeftMembership : vertex ∈ afterLeft :=
+                  pickVertex?_mem_remaining_of_ne
+                    leftPick notLeft vertexMembership
+                have contextMembership : vertex ∈ context :=
+                  pickVertex?_mem_remaining_of_ne
+                    rightPick notRight afterLeftMembership
+                refine ⟨replacement, ?_, ?_⟩
+                · unfold UnificationState.componentAt?
+                  rw [nextOutputRoot]
+                  simp [replacement, outputBound]
+                · simp [replacement, contextMembership]
+              · have different : outputToken ≠ token := Ne.symm same
+                have componentRaw :
+                    state.components[token]? =
+                      some (some component) := by
+                  have rawAtRepresentative :=
+                    UnificationState.componentAt?_some_raw componentLookup
+                  simpa [tokenRoot] using rawAtRepresentative
+                refine ⟨component, ?_, vertexMembership⟩
+                unfold UnificationState.componentAt?
+                rw [nextTokenRoot]
+                simp [different, componentRaw]
+
+/-- The conclusion created by a successful par firing is exposed on the
+frontier of the replacement live component. -/
+private theorem firePar?_success_conclusion_frontier
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion : Vertex}
+    (equation : firePar? state left right conclusion = some next) :
+    ∃ outputToken nextComponent,
+      next.tokenAt? conclusion = some outputToken ∧
+        next.componentAt? outputToken = some nextComponent ∧
+          conclusion ∈ nextComponent.frontier := by
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, forwardEquation, observation⟩
+  have guards := state.forwardToken?_success forwardEquation
+  have outputRoot : state.representative outputToken = outputToken :=
+    abstractable.tokenAt?_root guards.2.1
+  have conclusionToken :
+      next.tokenAt? conclusion = some outputToken :=
+    firePar?_success_conclusion_tokenAt?
+      abstractable forwardEquation equation
+  unfold firePar? at equation
+  rw [forwardEquation] at equation
+  cases componentLookup :
+      state.componentAt? outputToken with
+  | none =>
+      simp [componentLookup] at equation
+  | some component =>
+      simp only [componentLookup] at equation
+      cases leftPick : pickVertex? component.frontier left with
+      | none =>
+          simp [leftPick] at equation
+      | some leftResult =>
+          rcases leftResult with ⟨leftIndex, afterLeft⟩
+          simp only [leftPick] at equation
+          cases rightPick : pickVertex? afterLeft right with
+          | none =>
+              simp [rightPick] at equation
+          | some rightResult =>
+              rcases rightResult with ⟨rightIndex, context⟩
+              simp only [rightPick] at equation
+              injection equation with nextEquation
+              have nextOutputRoot :
+                  next.representative outputToken = outputToken := by
+                rw [observation.representative_eq outputToken]
+                simpa [UnificationState.representative,
+                  UnificationState.markConclusion] using outputRoot
+              have componentRaw :
+                  state.components[outputToken]? =
+                    some (some component) := by
+                have rawAtRepresentative :=
+                  UnificationState.componentAt?_some_raw
+                    componentLookup
+                simpa [outputRoot] using rawAtRepresentative
+              have outputBound :
+                  outputToken < state.components.size :=
+                (Array.getElem?_eq_some_iff.mp componentRaw).1
+              subst next
+              let replacement : UnificationComponent :=
+                { tree := .par leftIndex rightIndex component.tree
+                  frontier := context ++ [conclusion] }
+              refine
+                ⟨outputToken, replacement, conclusionToken, ?_, ?_⟩
+              · unfold UnificationState.componentAt?
+                rw [nextOutputRoot]
+                simp [replacement, outputBound]
+              · simp [replacement]
+
+/-- Firing one par link preserves exact frontier coverage for every still
+pending connective.  The fired conclusion becomes a fresh frontier
+occurrence, while structural resource ownership prevents either consumed
+premise from belonging to any different pending link. -/
+private theorem firePar?_success_pendingPremisesCovered
+    {certificate : Certificate} {state next : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.Abstractable certificate)
+    (covered : state.PendingPremisesCovered certificate)
+    {left right conclusion : Vertex}
+    (firedMembership :
+      Link.par left right conclusion ∈ certificate.links)
+    (equation : firePar? state left right conclusion = some next) :
+    next.PendingPremisesCovered certificate := by
+  have firedWellFormed :
+      certificate.LinkWellFormed (.par left right conclusion) :=
+    structural.2.2.2.2.1 _ firedMembership
+  have conclusionBound : conclusion < certificate.formulas.size :=
+    firedWellFormed.2.2.2.2.2.1
+  have firedMarked : next.assignedToken? conclusion ≠ none :=
+    firePar?_success_conclusion_marked
+      abstractable conclusionBound equation
+  unfold UnificationState.PendingPremisesCovered
+  intro link linkMembership
+  cases link with
+  | «axiom» candidateLeft candidateRight =>
+      trivial
+  | «par» candidateLeft candidateRight candidateConclusion =>
+      intro nextReady premise token premiseMembership nextPremiseToken
+      have candidateConclusionDifferent :
+          candidateConclusion ≠ conclusion := by
+        intro same
+        subst candidateConclusion
+        apply firedMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have oldReady :
+          state.marks[candidateConclusion]? = some none := by
+        have unchanged :=
+          firePar?_success_mark_of_ne
+            candidateConclusionDifferent equation
+        rw [unchanged] at nextReady
+        exact nextReady
+      have candidateNeFired :
+          Link.par candidateLeft candidateRight candidateConclusion ≠
+            Link.par left right conclusion := by
+        intro same
+        cases same
+        exact candidateConclusionDifferent rfl
+      by_cases created : premise = conclusion
+      · subst premise
+        rcases firePar?_success_conclusion_frontier
+            abstractable equation with
+          ⟨outputToken, nextComponent, conclusionToken,
+            componentLookup, conclusionMembership⟩
+        rw [conclusionToken] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨nextComponent, componentLookup, conclusionMembership⟩
+      · have oldPremiseToken :
+            state.tokenAt? premise = some token := by
+          have unchanged :=
+            firePar?_success_tokenAt?_of_ne created equation
+          rw [unchanged] at nextPremiseToken
+          exact nextPremiseToken
+        rcases covered linkMembership oldReady premiseMembership
+            oldPremiseToken with
+          ⟨component, componentLookup, frontierMembership⟩
+        have candidatePremise :
+            premise ∈
+              (Link.par candidateLeft candidateRight
+                candidateConclusion).premises := by
+          simpa [Link.premises] using premiseMembership
+        have notLeft : premise ≠ left := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        have notRight : premise ≠ right := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        exact firePar?_success_frontier_of_ne
+          abstractable oldPremiseToken componentLookup
+            frontierMembership notLeft notRight equation
+  | tensor candidateLeft candidateRight candidateConclusion =>
+      intro nextReady premise token premiseMembership nextPremiseToken
+      have candidateConclusionDifferent :
+          candidateConclusion ≠ conclusion := by
+        intro same
+        subst candidateConclusion
+        apply firedMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have oldReady :
+          state.marks[candidateConclusion]? = some none := by
+        have unchanged :=
+          firePar?_success_mark_of_ne
+            candidateConclusionDifferent equation
+        rw [unchanged] at nextReady
+        exact nextReady
+      have candidateNeFired :
+          Link.tensor candidateLeft candidateRight candidateConclusion ≠
+            Link.par left right conclusion := by
+        intro same
+        contradiction
+      by_cases created : premise = conclusion
+      · subst premise
+        rcases firePar?_success_conclusion_frontier
+            abstractable equation with
+          ⟨outputToken, nextComponent, conclusionToken,
+            componentLookup, conclusionMembership⟩
+        rw [conclusionToken] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨nextComponent, componentLookup, conclusionMembership⟩
+      · have oldPremiseToken :
+            state.tokenAt? premise = some token := by
+          have unchanged :=
+            firePar?_success_tokenAt?_of_ne created equation
+          rw [unchanged] at nextPremiseToken
+          exact nextPremiseToken
+        rcases covered linkMembership oldReady premiseMembership
+            oldPremiseToken with
+          ⟨component, componentLookup, frontierMembership⟩
+        have candidatePremise :
+            premise ∈
+              (Link.tensor candidateLeft candidateRight
+                candidateConclusion).premises := by
+          simpa [Link.premises] using premiseMembership
+        have notLeft : premise ≠ left := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        have notRight : premise ≠ right := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        exact firePar?_success_frontier_of_ne
+          abstractable oldPremiseToken componentLookup
+            frontierMembership notLeft notRight equation
 
 /-- A successful well-typed par firing replaces one live component with the
 formula-consistent par derivation built from its selected frontier
@@ -2909,6 +3935,726 @@ private theorem fireTensor?_success_conclusion_marked
   simp [UnificationState.mergeConclusion,
     UnificationState.setParent, UnificationState.markConclusion,
     conclusionBound, abstractable.markArraySize]
+
+/-- A successful tensor firing changes no raw mark except its conclusion
+slot; the union operation changes only parent representatives. -/
+private theorem fireTensor?_success_mark_of_ne
+    {state next : UnificationState}
+    {left right conclusion vertex : Vertex}
+    (different : vertex ≠ conclusion)
+    (equation : fireTensor? state left right conclusion = some next) :
+    next.marks[vertex]? = state.marks[vertex]? := by
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, _unifyEquation, observation⟩
+  rw [← observation.marks]
+  simp [UnificationState.mergeConclusion,
+    UnificationState.setParent, UnificationState.markConclusion,
+    different.symm]
+
+/-- Any non-conclusion occurrence marked after a tensor firing was already
+marked before the firing, although its current representative may have
+changed through the root union. -/
+private theorem fireTensor?_success_old_tokenAt?_of_ne
+    {state next : UnificationState}
+    {left right conclusion vertex nextToken : Vertex}
+    (different : vertex ≠ conclusion)
+    (nextMarked : next.tokenAt? vertex = some nextToken)
+    (equation : fireTensor? state left right conclusion = some next) :
+    ∃ oldToken, state.tokenAt? vertex = some oldToken := by
+  rcases next.tokenAt?_some_witness nextMarked with
+    ⟨rawToken, nextRawMarked, _nextRepresentative⟩
+  have nextRawLookup :
+      next.marks[vertex]? = some (some rawToken) :=
+    UnificationState.assignedToken?_some_raw nextRawMarked
+  have unchanged :=
+    fireTensor?_success_mark_of_ne different equation
+  rw [unchanged] at nextRawLookup
+  refine ⟨state.representative rawToken, ?_⟩
+  unfold UnificationState.tokenAt?
+  rw [nextRawLookup]
+  rfl
+
+/-- The conclusion created by a successful tensor firing is exposed on the
+frontier of the merged live component at the surviving representative. -/
+private theorem fireTensor?_success_conclusion_frontier
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right conclusion : Vertex}
+    (equation : fireTensor? state left right conclusion = some next) :
+    ∃ outputToken nextComponent,
+      next.tokenAt? conclusion = some outputToken ∧
+        next.componentAt? outputToken = some nextComponent ∧
+          conclusion ∈ nextComponent.frontier := by
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, unifyEquation, observation⟩
+  have guards := state.unifyTokens?_success unifyEquation
+  have leftBound : leftToken < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.1
+  have rightBound : rightToken < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.2.1
+  have leftRoot : state.representative leftToken = leftToken :=
+    abstractable.tokenAt?_root guards.2.1
+  have rightRoot : state.representative rightToken = rightToken :=
+    abstractable.tokenAt?_root guards.2.2.1
+  have tokensDifferent : leftToken ≠ rightToken :=
+    guards.2.2.2
+  let survivor := min leftToken rightToken
+  let retired := max leftToken rightToken
+  have survivorBound : survivor < state.parents.size := by
+    exact Nat.lt_of_le_of_lt
+      (Nat.min_le_left leftToken rightToken) leftBound
+  have retiredBound : retired < state.parents.size := by
+    exact Nat.max_lt.mpr ⟨leftBound, rightBound⟩
+  have survivorLt : survivor < retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [survivor, retired,
+        Nat.min_eq_left (Nat.le_of_lt leftLess),
+        Nat.max_eq_right (Nat.le_of_lt leftLess)] using leftLess
+    · simpa [survivor, retired,
+        Nat.min_eq_right (Nat.le_of_lt rightLess),
+        Nat.max_eq_left (Nat.le_of_lt rightLess)] using rightLess
+  have survivorRoot :
+      state.representative survivor = survivor := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [survivor,
+        Nat.min_eq_left (Nat.le_of_lt leftLess)] using leftRoot
+    · simpa [survivor,
+        Nat.min_eq_right (Nat.le_of_lt rightLess)] using rightRoot
+  have retiredRoot :
+      state.representative retired = retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [retired,
+        Nat.max_eq_right (Nat.le_of_lt leftLess)] using rightRoot
+    · simpa [retired,
+        Nat.max_eq_left (Nat.le_of_lt rightLess)] using leftRoot
+  have mergedSurvivorRoot :
+      UnificationState.representative
+        (state.mergeConclusion conclusion survivor retired)
+        survivor = survivor := by
+    have updated :=
+      ordered.setParent_representative survivorBound retiredBound
+        survivorLt survivorRoot retiredRoot survivorBound
+    change
+      (state.setParent retired survivor).representative survivor =
+        survivor
+    rw [updated, survivorRoot]
+    simp [Nat.ne_of_lt survivorLt]
+  have nextSurvivorRoot :
+      next.representative survivor = survivor := by
+    rw [observation.representative_eq survivor]
+    exact mergedSurvivorRoot
+  have conclusionIndexBound : conclusion < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp guards.1).1
+  have conclusionToken :
+      next.tokenAt? conclusion = some survivor := by
+    unfold UnificationState.tokenAt?
+    rw [← observation.marks]
+    simp [UnificationState.mergeConclusion,
+      UnificationState.setParent, UnificationState.markConclusion,
+      conclusionIndexBound]
+    simpa [survivor] using nextSurvivorRoot
+  unfold fireTensor? at equation
+  rw [unifyEquation] at equation
+  cases leftComponentLookup :
+      state.componentAt? leftToken with
+  | none =>
+      simp [leftComponentLookup] at equation
+  | some leftComponent =>
+      simp only [leftComponentLookup] at equation
+      cases rightComponentLookup :
+          state.componentAt? rightToken with
+      | none =>
+          simp [rightComponentLookup] at equation
+      | some rightComponent =>
+          simp only [rightComponentLookup] at equation
+          cases leftPick :
+              pickVertex? leftComponent.frontier left with
+          | none =>
+              simp [leftPick] at equation
+          | some leftResult =>
+              rcases leftResult with ⟨leftIndex, leftContext⟩
+              simp only [leftPick] at equation
+              cases rightPick :
+                  pickVertex? rightComponent.frontier right with
+              | none =>
+                  simp [rightPick] at equation
+              | some rightResult =>
+                  rcases rightResult with
+                    ⟨rightIndex, rightContext⟩
+                  simp only [rightPick] at equation
+                  injection equation with nextEquation
+                  subst next
+                  let replacement : UnificationComponent :=
+                    { tree :=
+                        .tensor leftIndex rightIndex
+                          leftComponent.tree rightComponent.tree
+                      frontier :=
+                        conclusion ::
+                          (leftContext ++ rightContext) }
+                  have leftComponentRaw :
+                      state.components[leftToken]? =
+                        some (some leftComponent) := by
+                    have rawAtRepresentative :=
+                      UnificationState.componentAt?_some_raw
+                        leftComponentLookup
+                    simpa [leftRoot] using rawAtRepresentative
+                  have leftComponentBound :
+                      leftToken < state.components.size :=
+                    (Array.getElem?_eq_some_iff.mp
+                      leftComponentRaw).1
+                  have minBound :
+                      min leftToken rightToken <
+                        state.components.size :=
+                    Nat.lt_of_le_of_lt
+                      (Nat.min_le_left leftToken rightToken)
+                      leftComponentBound
+                  refine
+                    ⟨survivor, replacement, conclusionToken, ?_, ?_⟩
+                  · unfold UnificationState.componentAt?
+                    rw [nextSurvivorRoot]
+                    have survivorNeRetired : survivor ≠ retired :=
+                      Nat.ne_of_lt survivorLt
+                    simp [replacement, survivor, retired,
+                      minBound,
+                      Ne.symm survivorNeRetired]
+                  · simp [replacement]
+
+/-- A successful tensor firing transports every non-consumed old frontier
+occurrence into the merged component or leaves its unrelated component
+untouched.  The returned token is the occurrence's representative after the
+single root union. -/
+private theorem fireTensor?_success_frontier_of_ne
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right conclusion vertex token : Vertex}
+    {component : UnificationComponent}
+    (vertexToken : state.tokenAt? vertex = some token)
+    (componentLookup : state.componentAt? token = some component)
+    (vertexMembership : vertex ∈ component.frontier)
+    (notLeft : vertex ≠ left) (notRight : vertex ≠ right)
+    (equation : fireTensor? state left right conclusion = some next) :
+    ∃ nextToken nextComponent,
+      next.tokenAt? vertex = some nextToken ∧
+        next.componentAt? nextToken = some nextComponent ∧
+          vertex ∈ nextComponent.frontier := by
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, unifyEquation, observation⟩
+  have guards := state.unifyTokens?_success unifyEquation
+  have leftBound : leftToken < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.1
+  have rightBound : rightToken < state.parents.size :=
+    abstractable.tokenAt?_bound guards.2.2.1
+  have leftRoot : state.representative leftToken = leftToken :=
+    abstractable.tokenAt?_root guards.2.1
+  have rightRoot : state.representative rightToken = rightToken :=
+    abstractable.tokenAt?_root guards.2.2.1
+  have tokensDifferent : leftToken ≠ rightToken :=
+    guards.2.2.2
+  have tokenBound : token < state.parents.size :=
+    abstractable.tokenAt?_bound vertexToken
+  have tokenRoot : state.representative token = token :=
+    abstractable.tokenAt?_root vertexToken
+  have vertexDifferentConclusion : vertex ≠ conclusion := by
+    intro same
+    subst vertex
+    unfold UnificationState.tokenAt? at vertexToken
+    rw [guards.1] at vertexToken
+    contradiction
+  let survivor := min leftToken rightToken
+  let retired := max leftToken rightToken
+  have survivorBound : survivor < state.parents.size := by
+    exact Nat.lt_of_le_of_lt
+      (Nat.min_le_left leftToken rightToken) leftBound
+  have retiredBound : retired < state.parents.size := by
+    exact Nat.max_lt.mpr ⟨leftBound, rightBound⟩
+  have survivorLt : survivor < retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [survivor, retired,
+        Nat.min_eq_left (Nat.le_of_lt leftLess),
+        Nat.max_eq_right (Nat.le_of_lt leftLess)] using leftLess
+    · simpa [survivor, retired,
+        Nat.min_eq_right (Nat.le_of_lt rightLess),
+        Nat.max_eq_left (Nat.le_of_lt rightLess)] using rightLess
+  have survivorRoot :
+      state.representative survivor = survivor := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [survivor,
+        Nat.min_eq_left (Nat.le_of_lt leftLess)] using leftRoot
+    · simpa [survivor,
+        Nat.min_eq_right (Nat.le_of_lt rightLess)] using rightRoot
+  have retiredRoot :
+      state.representative retired = retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with
+      leftLess | rightLess
+    · simpa [retired,
+        Nat.max_eq_right (Nat.le_of_lt leftLess)] using rightRoot
+    · simpa [retired,
+        Nat.max_eq_left (Nat.le_of_lt rightLess)] using leftRoot
+  have mergedSurvivorRoot :
+      UnificationState.representative
+        (state.mergeConclusion conclusion survivor retired)
+        survivor = survivor := by
+    have updated :=
+      ordered.setParent_representative survivorBound retiredBound
+        survivorLt survivorRoot retiredRoot survivorBound
+    change
+      (state.setParent retired survivor).representative survivor =
+        survivor
+    rw [updated, survivorRoot]
+    simp [Nat.ne_of_lt survivorLt]
+  have nextSurvivorRoot :
+      next.representative survivor = survivor := by
+    rw [observation.representative_eq survivor]
+    simpa [survivor, retired] using mergedSurvivorRoot
+  rcases state.tokenAt?_some_witness vertexToken with
+    ⟨rawToken, rawMarked, rawRepresentative⟩
+  have rawBound : rawToken < state.parents.size :=
+    abstractable.markedTokenBound rawMarked
+  have rawLookup :
+      state.marks[vertex]? = some (some rawToken) :=
+    UnificationState.assignedToken?_some_raw rawMarked
+  have mergedRawRepresentative :
+      UnificationState.representative
+        (state.mergeConclusion conclusion survivor retired)
+        rawToken =
+          if token = retired then survivor else token := by
+    have updated :=
+      ordered.setParent_representative survivorBound retiredBound
+        survivorLt survivorRoot retiredRoot rawBound
+    change
+      (state.setParent retired survivor).representative rawToken =
+        if token = retired then survivor else token
+    rw [updated, rawRepresentative]
+  have nextRawRepresentative :
+      next.representative rawToken =
+        if token = retired then survivor else token := by
+    rw [observation.representative_eq rawToken]
+    simpa [survivor, retired] using mergedRawRepresentative
+  have nextRawLookup :
+      next.marks[vertex]? = some (some rawToken) := by
+    rw [← observation.marks]
+    simpa [UnificationState.mergeConclusion,
+      UnificationState.setParent, UnificationState.markConclusion,
+      vertexDifferentConclusion.symm] using rawLookup
+  have nextVertexToken :
+      next.tokenAt? vertex =
+        some (if token = retired then survivor else token) := by
+    unfold UnificationState.tokenAt?
+    rw [nextRawLookup]
+    simp [nextRawRepresentative]
+  unfold fireTensor? at equation
+  rw [unifyEquation] at equation
+  cases leftComponentLookup :
+      state.componentAt? leftToken with
+  | none =>
+      simp [leftComponentLookup] at equation
+  | some leftComponent =>
+      simp only [leftComponentLookup] at equation
+      cases rightComponentLookup :
+          state.componentAt? rightToken with
+      | none =>
+          simp [rightComponentLookup] at equation
+      | some rightComponent =>
+          simp only [rightComponentLookup] at equation
+          cases leftPick :
+              pickVertex? leftComponent.frontier left with
+          | none =>
+              simp [leftPick] at equation
+          | some leftResult =>
+              rcases leftResult with ⟨leftIndex, leftContext⟩
+              simp only [leftPick] at equation
+              cases rightPick :
+                  pickVertex? rightComponent.frontier right with
+              | none =>
+                  simp [rightPick] at equation
+              | some rightResult =>
+                  rcases rightResult with
+                    ⟨rightIndex, rightContext⟩
+                  simp only [rightPick] at equation
+                  injection equation with nextEquation
+                  subst next
+                  let replacement : UnificationComponent :=
+                    { tree :=
+                        .tensor leftIndex rightIndex
+                          leftComponent.tree rightComponent.tree
+                      frontier :=
+                        conclusion ::
+                          (leftContext ++ rightContext) }
+                  have leftComponentRaw :
+                      state.components[leftToken]? =
+                        some (some leftComponent) := by
+                    have rawAtRepresentative :=
+                      UnificationState.componentAt?_some_raw
+                        leftComponentLookup
+                    simpa [leftRoot] using rawAtRepresentative
+                  have leftComponentBound :
+                      leftToken < state.components.size :=
+                    (Array.getElem?_eq_some_iff.mp
+                      leftComponentRaw).1
+                  have minComponentBound :
+                      min leftToken rightToken <
+                        state.components.size :=
+                    Nat.lt_of_le_of_lt
+                      (Nat.min_le_left leftToken rightToken)
+                      leftComponentBound
+                  have replacementLookup :
+                      ({ marks :=
+                           (state.mergeConclusion conclusion
+                             (min leftToken rightToken)
+                             (max leftToken rightToken)).marks
+                         parents :=
+                           (state.mergeConclusion conclusion
+                             (min leftToken rightToken)
+                             (max leftToken rightToken)).parents
+                         components :=
+                           (state.components.setIfInBounds
+                              (min leftToken rightToken)
+                              (some replacement))
+                             |>.setIfInBounds
+                               (max leftToken rightToken) none
+                         startedAxioms :=
+                           (state.mergeConclusion conclusion
+                             (min leftToken rightToken)
+                             (max leftToken rightToken)).startedAxioms
+                         firedConnectives :=
+                           (state.mergeConclusion conclusion
+                             (min leftToken rightToken)
+                             (max leftToken rightToken))
+                               |>.firedConnectives } :
+                        UnificationState).componentAt? survivor =
+                          some replacement := by
+                    unfold UnificationState.componentAt?
+                    rw [nextSurvivorRoot]
+                    have retiredNeSurvivor : retired ≠ survivor :=
+                      Ne.symm (Nat.ne_of_lt survivorLt)
+                    simp [replacement, survivor, retired,
+                      minComponentBound, retiredNeSurvivor]
+                  by_cases sameLeft : token = leftToken
+                  · have componentEquation :
+                        component = leftComponent := by
+                      rw [sameLeft, leftComponentLookup] at componentLookup
+                      injection componentLookup with equality
+                      exact equality.symm
+                    subst component
+                    have leftContextMembership :
+                        vertex ∈ leftContext :=
+                      pickVertex?_mem_remaining_of_ne
+                        leftPick notLeft vertexMembership
+                    have leftMerged :
+                        (if leftToken = retired then
+                            survivor else leftToken) = survivor := by
+                      rcases Nat.lt_or_gt_of_ne tokensDifferent with
+                        leftLess | rightLess
+                      · simp [survivor, retired,
+                          Nat.min_eq_left (Nat.le_of_lt leftLess),
+                          Nat.max_eq_right (Nat.le_of_lt leftLess),
+                          Nat.ne_of_lt leftLess]
+                      · simp [survivor, retired,
+                          Nat.min_eq_right (Nat.le_of_lt rightLess),
+                          Nat.max_eq_left (Nat.le_of_lt rightLess)]
+                    rw [sameLeft] at nextVertexToken
+                    rw [leftMerged] at nextVertexToken
+                    refine
+                      ⟨survivor, replacement, nextVertexToken,
+                        replacementLookup, ?_⟩
+                    simp [replacement, leftContextMembership]
+                  · by_cases sameRight : token = rightToken
+                    · have componentEquation :
+                          component = rightComponent := by
+                        rw [sameRight, rightComponentLookup] at componentLookup
+                        injection componentLookup with equality
+                        exact equality.symm
+                      subst component
+                      have rightContextMembership :
+                          vertex ∈ rightContext :=
+                        pickVertex?_mem_remaining_of_ne
+                          rightPick notRight vertexMembership
+                      have rightMerged :
+                          (if rightToken = retired then
+                              survivor else rightToken) = survivor := by
+                        rcases Nat.lt_or_gt_of_ne tokensDifferent with
+                          leftLess | rightLess
+                        · simp [survivor, retired,
+                            Nat.min_eq_left (Nat.le_of_lt leftLess),
+                            Nat.max_eq_right (Nat.le_of_lt leftLess)]
+                        · have rightNeLeft : rightToken ≠ leftToken :=
+                            Ne.symm tokensDifferent
+                          simp [survivor, retired,
+                            Nat.min_eq_right (Nat.le_of_lt rightLess),
+                            Nat.max_eq_left (Nat.le_of_lt rightLess),
+                            rightNeLeft]
+                      rw [sameRight] at nextVertexToken
+                      rw [rightMerged] at nextVertexToken
+                      refine
+                        ⟨survivor, replacement, nextVertexToken,
+                          replacementLookup, ?_⟩
+                      simp [replacement, rightContextMembership]
+                    · have tokenNeSurvivor : token ≠ survivor := by
+                        rcases Nat.lt_or_gt_of_ne tokensDifferent with
+                          leftLess | rightLess
+                        · simpa [survivor,
+                            Nat.min_eq_left
+                              (Nat.le_of_lt leftLess)] using sameLeft
+                        · simpa [survivor,
+                            Nat.min_eq_right
+                              (Nat.le_of_lt rightLess)] using sameRight
+                      have tokenNeRetired : token ≠ retired := by
+                        rcases Nat.lt_or_gt_of_ne tokensDifferent with
+                          leftLess | rightLess
+                        · simpa [retired,
+                            Nat.max_eq_right
+                              (Nat.le_of_lt leftLess)] using sameRight
+                        · simpa [retired,
+                            Nat.max_eq_left
+                              (Nat.le_of_lt rightLess)] using sameLeft
+                      have nextTokenSame :
+                          (if token = retired then
+                              survivor else token) = token := by
+                        simp [tokenNeRetired]
+                      rw [nextTokenSame] at nextVertexToken
+                      have componentRaw :
+                          state.components[token]? =
+                            some (some component) := by
+                        have rawAtRepresentative :=
+                          UnificationState.componentAt?_some_raw
+                            componentLookup
+                        simpa [tokenRoot] using rawAtRepresentative
+                      have mergedTokenRoot :
+                          UnificationState.representative
+                            (state.mergeConclusion conclusion
+                              survivor retired) token = token := by
+                        have updated :=
+                          ordered.setParent_representative
+                            survivorBound retiredBound survivorLt
+                              survivorRoot retiredRoot tokenBound
+                        change
+                          UnificationState.representative
+                            (state.setParent retired survivor)
+                            token = token
+                        rw [updated, tokenRoot]
+                        simp [tokenNeRetired]
+                      have nextTokenRoot :
+                          ({ marks :=
+                               (state.mergeConclusion conclusion
+                                 (min leftToken rightToken)
+                                 (max leftToken rightToken)).marks
+                             parents :=
+                               (state.mergeConclusion conclusion
+                                 (min leftToken rightToken)
+                                 (max leftToken rightToken)).parents
+                             components :=
+                               (state.components.setIfInBounds
+                                  (min leftToken rightToken)
+                                  (some replacement))
+                                 |>.setIfInBounds
+                                   (max leftToken rightToken) none
+                             startedAxioms :=
+                               (state.mergeConclusion conclusion
+                                 (min leftToken rightToken)
+                                 (max leftToken rightToken)).startedAxioms
+                             firedConnectives :=
+                               (state.mergeConclusion conclusion
+                                 (min leftToken rightToken)
+                                 (max leftToken rightToken))
+                                   |>.firedConnectives } :
+                            UnificationState).representative token =
+                              token := by
+                        rw [observation.representative_eq token]
+                        simpa [survivor, retired] using
+                          mergedTokenRoot
+                      refine
+                        ⟨token, component, nextVertexToken, ?_,
+                          vertexMembership⟩
+                      unfold UnificationState.componentAt?
+                      rw [nextTokenRoot]
+                      have minNeToken :
+                          min leftToken rightToken ≠ token := by
+                        intro same
+                        apply tokenNeSurvivor
+                        simpa [survivor] using same.symm
+                      have maxNeToken :
+                          max leftToken rightToken ≠ token := by
+                        intro same
+                        apply tokenNeRetired
+                        simpa [retired] using same.symm
+                      simp [minNeToken, maxNeToken, componentRaw]
+
+/-- Firing one tensor link preserves exact frontier coverage for every still
+pending connective.  Structural resource ownership rules out accidental
+consumption by a different link, and the local frontier transport theorem
+accounts for the representative change caused by the union. -/
+private theorem fireTensor?_success_pendingPremisesCovered
+    {certificate : Certificate} {state next : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    (covered : state.PendingPremisesCovered certificate)
+    {left right conclusion : Vertex}
+    (firedMembership :
+      Link.tensor left right conclusion ∈ certificate.links)
+    (equation : fireTensor? state left right conclusion = some next) :
+    next.PendingPremisesCovered certificate := by
+  have firedWellFormed :
+      certificate.LinkWellFormed (.tensor left right conclusion) :=
+    structural.2.2.2.2.1 _ firedMembership
+  have conclusionBound : conclusion < certificate.formulas.size :=
+    firedWellFormed.2.2.2.2.2.1
+  have firedMarked : next.assignedToken? conclusion ≠ none :=
+    fireTensor?_success_conclusion_marked
+      abstractable conclusionBound equation
+  unfold UnificationState.PendingPremisesCovered
+  intro link linkMembership
+  cases link with
+  | «axiom» candidateLeft candidateRight =>
+      trivial
+  | «par» candidateLeft candidateRight candidateConclusion =>
+      intro nextReady premise token premiseMembership nextPremiseToken
+      have candidateConclusionDifferent :
+          candidateConclusion ≠ conclusion := by
+        intro same
+        subst candidateConclusion
+        apply firedMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have oldReady :
+          state.marks[candidateConclusion]? = some none := by
+        have unchanged :=
+          fireTensor?_success_mark_of_ne
+            candidateConclusionDifferent equation
+        rw [unchanged] at nextReady
+        exact nextReady
+      have candidateNeFired :
+          Link.par candidateLeft candidateRight candidateConclusion ≠
+            Link.tensor left right conclusion := by
+        intro same
+        contradiction
+      by_cases created : premise = conclusion
+      · subst premise
+        rcases fireTensor?_success_conclusion_frontier
+            abstractable ordered equation with
+          ⟨outputToken, nextComponent, conclusionToken,
+            componentLookup, conclusionMembership⟩
+        rw [conclusionToken] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨nextComponent, componentLookup, conclusionMembership⟩
+      · rcases fireTensor?_success_old_tokenAt?_of_ne
+            created nextPremiseToken equation with
+          ⟨oldToken, oldPremiseToken⟩
+        rcases covered linkMembership oldReady premiseMembership
+            oldPremiseToken with
+          ⟨component, componentLookup, frontierMembership⟩
+        have candidatePremise :
+            premise ∈
+              (Link.par candidateLeft candidateRight
+                candidateConclusion).premises := by
+          simpa [Link.premises] using premiseMembership
+        have notLeft : premise ≠ left := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        have notRight : premise ≠ right := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        rcases fireTensor?_success_frontier_of_ne
+            abstractable ordered oldPremiseToken componentLookup
+              frontierMembership notLeft notRight equation with
+          ⟨transportedToken, nextComponent, transportedMarked,
+            nextComponentLookup, transportedMembership⟩
+        rw [transportedMarked] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨nextComponent, nextComponentLookup,
+            transportedMembership⟩
+  | tensor candidateLeft candidateRight candidateConclusion =>
+      intro nextReady premise token premiseMembership nextPremiseToken
+      have candidateConclusionDifferent :
+          candidateConclusion ≠ conclusion := by
+        intro same
+        subst candidateConclusion
+        apply firedMarked
+        unfold UnificationState.assignedToken?
+        simp [nextReady]
+      have oldReady :
+          state.marks[candidateConclusion]? = some none := by
+        have unchanged :=
+          fireTensor?_success_mark_of_ne
+            candidateConclusionDifferent equation
+        rw [unchanged] at nextReady
+        exact nextReady
+      have candidateNeFired :
+          Link.tensor candidateLeft candidateRight candidateConclusion ≠
+            Link.tensor left right conclusion := by
+        intro same
+        cases same
+        exact candidateConclusionDifferent rfl
+      by_cases created : premise = conclusion
+      · subst premise
+        rcases fireTensor?_success_conclusion_frontier
+            abstractable ordered equation with
+          ⟨outputToken, nextComponent, conclusionToken,
+            componentLookup, conclusionMembership⟩
+        rw [conclusionToken] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨nextComponent, componentLookup, conclusionMembership⟩
+      · rcases fireTensor?_success_old_tokenAt?_of_ne
+            created nextPremiseToken equation with
+          ⟨oldToken, oldPremiseToken⟩
+        rcases covered linkMembership oldReady premiseMembership
+            oldPremiseToken with
+          ⟨component, componentLookup, frontierMembership⟩
+        have candidatePremise :
+            premise ∈
+              (Link.tensor candidateLeft candidateRight
+                candidateConclusion).premises := by
+          simpa [Link.premises] using premiseMembership
+        have notLeft : premise ≠ left := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        have notRight : premise ≠ right := by
+          intro same
+          subst premise
+          have sameLink :=
+            UnificationState.StructurallyWellFormed.parentLink_unique
+              structural linkMembership candidatePremise
+                firedMembership (by simp [Link.premises])
+          exact candidateNeFired sameLink
+        rcases fireTensor?_success_frontier_of_ne
+            abstractable ordered oldPremiseToken componentLookup
+              frontierMembership notLeft notRight equation with
+          ⟨transportedToken, nextComponent, transportedMarked,
+            nextComponentLookup, transportedMembership⟩
+        rw [transportedMarked] at nextPremiseToken
+        injection nextPremiseToken with tokenEquation
+        subst token
+        exact
+          ⟨nextComponent, nextComponentLookup,
+            transportedMembership⟩
 
 /-- A successful well-typed tensor firing replaces the surviving component
 with the exact combined tensor derivation and clears the retired slot, while
@@ -5006,6 +6752,211 @@ private theorem processWorklistLink_core_componentsFormulaConsistent
                         simpa [processWorklistLink, linkLookup, leftLookup,
                           rightLookup, same, firing] using componentLookup
 
+/-- Every worklist processing branch preserves exact frontier coverage for
+all still-pending connectives.  The successful firing branches are precisely
+the global par/tensor transport theorems above; scheduler-only branches leave
+the executable core unchanged. -/
+private theorem processWorklistLink_core_pendingPremisesCovered
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    (ordered : state.core.OrderedParents)
+    (covered :
+      state.core.PendingPremisesCovered certificate) :
+    (processWorklistLink certificate consumers index state).core
+      |>.PendingPremisesCovered certificate := by
+  unfold UnificationState.PendingPremisesCovered
+  intro candidate candidateMembership
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      rw [show
+        (processWorklistLink certificate consumers index state).core =
+          state.core by
+        simp [processWorklistLink, linkLookup]]
+      exact covered (link := candidate) candidateMembership
+  | some link =>
+      have linkMembership : link ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      cases link with
+      | «axiom» left right =>
+          rw [show
+            (processWorklistLink certificate consumers index state).core =
+              state.core by
+            simp [processWorklistLink, linkLookup]]
+          exact covered (link := candidate) candidateMembership
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              rw [show
+                (processWorklistLink certificate consumers index state).core =
+                  state.core by
+                simp [processWorklistLink, linkLookup, leftLookup]]
+              exact covered (link := candidate) candidateMembership
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  rw [show
+                    (processWorklistLink certificate consumers index
+                      state).core = state.core by
+                    simp [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup]]
+                  exact covered (link := candidate) candidateMembership
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        rw [show
+                          (processWorklistLink certificate consumers index
+                            state).core = state.core by
+                          simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, firing]]
+                        exact covered (link := candidate)
+                          candidateMembership
+                    | some nextCore =>
+                        have nextCovered :
+                            nextCore.PendingPremisesCovered certificate :=
+                          firePar?_success_pendingPremisesCovered
+                            structural abstractable covered
+                              linkMembership firing
+                        rw [show
+                          (processWorklistLink certificate consumers index
+                            state).core = nextCore by
+                          simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, firing]]
+                        exact nextCovered (link := candidate)
+                          candidateMembership
+                  · rw [show
+                      (processWorklistLink certificate consumers index
+                        state).core = state.core by
+                      simp [processWorklistLink, linkLookup, leftLookup,
+                        rightLookup, same]]
+                    exact covered (link := candidate) candidateMembership
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              rw [show
+                (processWorklistLink certificate consumers index state).core =
+                  state.core by
+                simp [processWorklistLink, linkLookup, leftLookup]]
+              exact covered (link := candidate) candidateMembership
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  rw [show
+                    (processWorklistLink certificate consumers index
+                      state).core = state.core by
+                    simp [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup]]
+                  exact covered (link := candidate) candidateMembership
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    rw [show
+                      (processWorklistLink certificate consumers index
+                        state).core = state.core by
+                      simp [processWorklistLink, linkLookup, leftLookup,
+                        rightLookup]]
+                    exact covered (link := candidate) candidateMembership
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        rw [show
+                          (processWorklistLink certificate consumers index
+                            state).core = state.core by
+                          simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, same, firing]]
+                        exact covered (link := candidate)
+                          candidateMembership
+                    | some nextCore =>
+                        have nextCovered :
+                            nextCore.PendingPremisesCovered certificate :=
+                          fireTensor?_success_pendingPremisesCovered
+                            structural abstractable ordered covered
+                              linkMembership firing
+                        rw [show
+                          (processWorklistLink certificate consumers index
+                            state).core = nextCore by
+                          simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, same, firing]]
+                        exact nextCovered (link := candidate)
+                          candidateMembership
+
+/-- The four executable-core invariants needed by pure worklist
+completeness. -/
+private def WorklistCoreInvariant (certificate : Certificate)
+    (state : UnificationWorklistState) : Prop :=
+  state.core.Abstractable certificate ∧
+    state.core.OrderedParents ∧
+      state.core.ComponentsFormulaConsistent certificate ∧
+        state.core.PendingPremisesCovered certificate
+
+/-- Successful eager axiom initialization from the canonical empty state
+establishes the complete core invariant bundle required by the event-driven
+worklist. -/
+private theorem startAxioms?_success_initializeWorklist_coreInvariant
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (equation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    WorklistCoreInvariant certificate
+      (initializeWorklist certificate started) := by
+  have submitted :
+      ∀ link, link ∈ certificate.links →
+        link ∈ certificate.links := by
+    intro link membership
+    exact membership
+  rcases certificate.startAxioms?_success_refines
+      (initialUnificationState_abstractable certificate)
+      (initialUnificationState_identityParents certificate)
+      submitted equation with
+    ⟨startedAbstractable, startedIdentity, _execution⟩
+  have startedConsistent :
+      started.ComponentsFormulaConsistent certificate :=
+    certificate.startAxioms?_success_componentsFormulaConsistent
+      structural
+      (initialUnificationState_componentsFormulaConsistent certificate)
+      submitted equation
+  rcases certificate.startAxioms?_success_identityAlignedCovered
+      structural
+      (initialUnificationState_identityParents certificate)
+      (initialUnificationState_componentsParentsAligned certificate)
+      (initialUnificationState_pendingPremisesCovered certificate)
+      submitted equation with
+    ⟨_identityAgain, _aligned, startedCovered⟩
+  have startedOrdered : started.OrderedParents :=
+    startedIdentity.orderedParents
+  change
+    started.Abstractable certificate ∧
+      started.OrderedParents ∧
+        started.ComponentsFormulaConsistent certificate ∧
+          started.PendingPremisesCovered certificate
+  exact
+    ⟨startedAbstractable, startedOrdered,
+      startedConsistent, startedCovered⟩
+
+/-- One worklist processing attempt preserves the complete core invariant
+bundle. -/
+private theorem processWorklistLink_coreInvariant
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : WorklistCoreInvariant certificate state) :
+    WorklistCoreInvariant certificate
+      (processWorklistLink certificate consumers index state) := by
+  rcases invariant with
+    ⟨abstractable, ordered, consistent, covered⟩
+  exact
+    ⟨processWorklistLink_core_abstractable abstractable ordered,
+      processWorklistLink_core_ordered ordered,
+      processWorklistLink_core_componentsFormulaConsistent
+        structural consistent,
+      processWorklistLink_core_pendingPremisesCovered
+        structural abstractable ordered covered⟩
+
 /-- Processing a concrete submitted connective always reclassifies that
 specific popped link: it fires, stays idle, becomes a registered waiting par,
 or exposes a tensor deadlock.  The only operational-totality premise beyond
@@ -5208,8 +7159,78 @@ private def runUnificationWorklist (certificate : Certificate)
             linkAttempts := tail.linkAttempts + 1
             linkAttemptsBound := Nat.succ_le_succ tail.linkAttemptsBound }
 
+/-- Popping scheduler work changes no executable-core field. -/
+private theorem popWorklist?_success_core
+    {state popped : UnificationWorklistState} {index : Nat}
+    (equation : popWorklist? state = some (index, popped)) :
+    popped.core = state.core := by
+  cases queueEquation : state.queue with
+  | nil =>
+      simp [popWorklist?, queueEquation] at equation
+  | cons head rest =>
+      simp [popWorklist?, queueEquation] at equation
+      rcases equation with ⟨rfl, rfl⟩
+      rfl
+
+/-- The complete executable-core invariant bundle survives every finite
+worklist run, including early queue exhaustion and conservative fuel
+exhaustion. -/
+private theorem runUnificationWorklist_coreInvariant
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat) (state : UnificationWorklistState)
+    (invariant : WorklistCoreInvariant certificate state) :
+    WorklistCoreInvariant certificate
+      (runUnificationWorklist certificate consumers fuel state).state := by
+  induction fuel generalizing state with
+  | zero =>
+      simpa [runUnificationWorklist] using invariant
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          simpa [runUnificationWorklist, popEquation] using invariant
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have poppedCore :
+              popped.core = state.core :=
+            popWorklist?_success_core popEquation
+          have poppedInvariant :
+              WorklistCoreInvariant certificate popped := by
+            unfold WorklistCoreInvariant at invariant ⊢
+            simpa [poppedCore] using invariant
+          have processedInvariant :
+              WorklistCoreInvariant certificate
+                (processWorklistLink certificate consumers
+                  index popped) :=
+            processWorklistLink_coreInvariant
+              structural poppedInvariant
+          simpa [runUnificationWorklist, popEquation] using
+            induction
+              (state :=
+                processWorklistLink certificate consumers index popped)
+              processedInvariant
+
 private def worklistFuel (linkCount : Nat) : Nat :=
   UnificationWorklistStats.attemptBudget linkCount
+
+/-- The exact production worklist run, from successful canonical axiom
+initialization through its conservative attempt budget, carries the complete
+core invariant bundle. -/
+private theorem canonicalWorklistRun_coreInvariant
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    WorklistCoreInvariant certificate
+      (runUnificationWorklist certificate certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state := by
+  apply runUnificationWorklist_coreInvariant
+  · exact structural
+  · exact
+      startAxioms?_success_initializeWorklist_coreInvariant
+        structural startEquation
 
 /-- Detailed deterministic Guerrini-style parsing candidate with exact scan
 statistics and a proof-relevant quadratic link-visit bound.
