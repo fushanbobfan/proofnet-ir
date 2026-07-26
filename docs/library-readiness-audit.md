@@ -174,12 +174,15 @@ part of the engineering and proof-identity gap.
    development further exposes the first exact traversed reference-edge
    occurrence directed from a marked source into an unmarked target, retains
    an entirely active prefix, and proves that its source carries the waiting
-   par's left token. It then classifies the frontier
+   par's left token. A reverse-path theorem selects the last inactive
+   frontier, proves that its marked target carries the waiting par's right
+   token, and gives an exact ordered decomposition with two distinct boundary
+   occurrences. It then classifies both frontiers
    occurrence-exactly as a forward premise-to-conclusion edge of a concrete
    submitted par or tensor. Quiescent scheduler coverage now gives the exact
    residual cases: an omitted/unassigned par premise, a registered
    distinct-token par, or an opposite/unassigned tensor premise. Excluding
-   the resulting left-anchored unmarked region, pure worklist completeness,
+   the resulting two-sided middle region, pure worklist completeness,
    and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
@@ -240,7 +243,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for ninety-five public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for ninety-six public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the two public graph-acyclicity transport theorems and the two exact

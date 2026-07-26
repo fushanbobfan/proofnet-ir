@@ -473,6 +473,9 @@
       reference path, directed from a marked source into an unmarked target.
     - [x] Choose the first such frontier, retain its entirely active prefix,
       and identify its source token exactly with the waiting par's left token.
+    - [x] Select the last inactive frontier from the reversed path, identify
+      its target token with the waiting par's right token, and prove an exact
+      ordered decomposition with distinct left and right boundary occurrences.
     - [x] Classify that exact boundary by submitted-link lookup: completed
       axiom initialization and causal closure eliminate axiom and reverse
       connective orientations, leaving a forward par/tensor
@@ -480,8 +483,10 @@
     - [x] Derive the classified frontier connective's exact scheduler status:
       omitted-premise/unassigned or registered/distinct-token for par, and
       opposite-premise/unassigned for tensor after deadlock exclusion.
-    - [ ] Bracket and exclude the resulting left-anchored path-exposed
-      unmarked-region obstruction.
+    - [x] Derive the same scheduler classification at the reverse-oriented
+      right frontier.
+    - [ ] Exclude the resulting two-sided path-exposed middle-region
+      obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

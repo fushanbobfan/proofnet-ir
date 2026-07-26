@@ -112,14 +112,18 @@ the conclusion. The current first-frontier theorem strengthens this to an
 exact retained edge occurrence directed from a marked source into an unmarked
 target, together with an entirely active prefix. Exact active-component/thread
 correspondence proves that this source carries the waiting par's left token.
+Reading the path backward selects the last inactive frontier and proves that
+its marked target carries the right-premise token. The two distinct boundary
+occurrences form one exact ordered decomposition of the reference path.
 Exact retained-edge/source-link lookup, completed axiom
 initialization, and causal closure classify that occurrence as a forward
 premise-to-conclusion edge of a concrete submitted par or tensor. Quiescent
 scheduler coverage now refines the par case to either an unassigned omitted
 premise or two distinct registered tokens, and refines the tensor case to an
-unassigned opposite premise after excluding the same-thread deadlock. What
-remains is the global progress argument excluding the resulting left-anchored
-unmarked region in a correct quiescent state.
+unassigned opposite premise after excluding the same-thread deadlock. This
+classification now holds at both sides of the bracketed region. What remains
+is the global progress argument excluding that two-sided middle region in a
+correct quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age

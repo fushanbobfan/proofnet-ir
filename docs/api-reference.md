@@ -2718,6 +2718,26 @@ ProofNetIR.UnificationMarking.referencePath_has_first_marked_to_unmarked_boundar
               (state.mark directed.target).isSome = false ∧ state.activeReferenceGraph.Walk path.start directed.source
 ```
 
+### `ProofNetIR.UnificationMarking.referencePath_has_last_unmarked_to_marked_boundary`
+
+Kind: theorem.
+
+Reading a reference path backward selects its last inactive frontier in
+the original orientation.  The returned edge goes from the unmarked middle
+region into a marked target, and the suffix from that target to the original
+finish is active.
+
+```lean
+ProofNetIR.UnificationMarking.referencePath_has_last_unmarked_to_marked_boundary : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate)
+  (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+  (state.mark path.finish).isSome = true →
+    ¬state.activeReferenceGraph.Walk path.start path.finish →
+      ∃ before directed after,
+        path.traversed = before ++ directed :: after ∧
+          (state.mark directed.source).isSome = false ∧
+            (state.mark directed.target).isSome = true ∧ state.activeReferenceGraph.Walk directed.target path.finish
+```
+
 ### `ProofNetIR.UnificationMarking.referenceDirectedEdge_origin`
 
 Kind: theorem.

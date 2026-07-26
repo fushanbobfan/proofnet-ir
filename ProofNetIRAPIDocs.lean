@@ -247,6 +247,7 @@ def sections : List Section := [
       `ProofNetIR.UnificationMarking.referencePath_has_unmarked_of_noActiveWalk,
       `ProofNetIR.UnificationMarking.referencePath_has_marked_to_unmarked_boundary,
       `ProofNetIR.UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary,
+      `ProofNetIR.UnificationMarking.referencePath_has_last_unmarked_to_marked_boundary,
       `ProofNetIR.UnificationMarking.referenceDirectedEdge_origin,
       `ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin,
       `ProofNetIR.UnificationRuleKind,

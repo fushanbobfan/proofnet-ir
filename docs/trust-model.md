@@ -151,13 +151,16 @@ and the active-path theorem extracts an unmarked internal occurrence. The
 current first-frontier theorem retains the exact traversed edge occurrence
 from a marked source into an unmarked target and an entirely active prefix.
 Exact component/thread correspondence additionally proves that the source
-carries the waiting par's left token. Exact retained-edge/source-link lookup,
+carries the waiting par's left token. Reverse-path extraction selects the
+last inactive frontier, identifies its target with the right token, and
+proves the two boundary occurrences are distinct and exactly ordered. Exact
+retained-edge/source-link lookup,
 completed axiom initialization, and causal closure classify the occurrence as
 a forward premise-to-conclusion edge of a submitted par or tensor. Quiescent
 scheduler coverage further isolates an unassigned omitted par premise, a
-registered distinct-token par, or an unassigned opposite tensor premise. The
-resulting left-anchored path-exposed unmarked region has not yet been
-excluded; this is not yet the correct-state progress theorem needed for
+registered distinct-token par, or an unassigned opposite tensor premise at
+both sides. The resulting two-sided path-exposed middle region has not yet
+been excluded; this is not yet the correct-state progress theorem needed for
 pure-worklist completeness. The
 attempt accounting also excludes consumer-table construction, waiting-list
 traversal, frontier work, and verification.

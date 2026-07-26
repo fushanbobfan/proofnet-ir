@@ -89,15 +89,19 @@
   target, retains an entirely active prefix, and proves that the frontier
   source lies in the left premise's active component. Exact component/thread
   correspondence consequently identifies its token with the waiting par's
-  left token, and the canonical obstruction carries that anchored occurrence.
+  left token. Reversing the path selects the last inactive frontier, proves
+  that its marked target carries the waiting par's right token, and yields an
+  exact ordered path decomposition with distinct left and right boundaries.
+  The canonical obstruction now carries this two-sided bracket.
   Exact retained-edge/source-link lookup plus axiom initialization and causal
   closure now classify it as a forward premise-to-conclusion occurrence of a
   concrete submitted par or tensor. Quiescent scheduler coverage now refines
   the classified frontier further: a par either has its omitted premise
   unassigned or is registered with distinct live tokens, while a tensor has
   its opposite premise unassigned because correctness excludes the
-  both-premises-marked deadlock. Correctness still must exclude these
-  left-anchored path-exposed forward-connective cases, so
+  both-premises-marked deadlock. The same classification is now proved at
+  both sides of the bracketed middle region. Correctness still must exclude
+  these two-sided path-exposed forward-connective cases, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

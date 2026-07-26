@@ -107,6 +107,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.UnificationState.unifyTokens?_refines",
     "ProofNetIR.UnificationState.ComponentsFormulaConsistent.componentAt",
     "ProofNetIR.UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary",
+    "ProofNetIR.UnificationMarking.referencePath_has_last_unmarked_to_marked_boundary",
 }
 EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.LeanProp.Derivation.toProof",

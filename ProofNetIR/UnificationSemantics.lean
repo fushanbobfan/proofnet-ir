@@ -646,6 +646,58 @@ theorem referencePath_has_first_marked_to_unmarked_boundary
       sourceMarked, targetUnmarked, by
         simpa [prefixStarts, prefixFinishes] using activePrefix⟩
 
+/-- Reading a reference path backward selects its last inactive frontier in
+the original orientation.  The returned edge goes from the unmarked middle
+region into a marked target, and the suffix from that target to the original
+finish is active. -/
+theorem referencePath_has_last_unmarked_to_marked_boundary
+    (state : UnificationMarking certificate)
+    (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+    (finishMarked : (state.mark path.finish).isSome = true)
+    (noActive :
+      ¬state.activeReferenceGraph.Walk path.start path.finish) :
+    ∃ before directed after,
+      path.traversed = before ++ directed :: after ∧
+        (state.mark directed.source).isSome = false ∧
+          (state.mark directed.target).isSome = true ∧
+            state.activeReferenceGraph.Walk
+              directed.target path.finish := by
+  have reverseStartMarked :
+      (state.mark path.reverse.start).isSome = true := by
+    simpa [Graph.EdgeSimplePath.reverse] using finishMarked
+  have noReverseActive :
+      ¬state.activeReferenceGraph.Walk
+        path.reverse.start path.reverse.finish := by
+    intro reverseActive
+    apply noActive
+    simpa [Graph.EdgeSimplePath.reverse] using reverseActive.symm
+  rcases state.referencePath_has_first_marked_to_unmarked_boundary
+      path.reverse reverseStartMarked noReverseActive with
+    ⟨reverseBefore, reverseDirected, reverseAfter,
+      reverseTraversalEquation, _reversePrefix,
+      reverseSourceMarked, reverseTargetUnmarked,
+      reverseActivePrefix⟩
+  have traversalEquation :
+      path.traversed =
+        Graph.EdgeWalk.reverseTraversal reverseAfter ++
+          reverseDirected.reverse ::
+            Graph.EdgeWalk.reverseTraversal reverseBefore := by
+    have reversedEquation :=
+      congrArg Graph.EdgeWalk.reverseTraversal
+        reverseTraversalEquation
+    simpa [Graph.EdgeSimplePath.reverse,
+      Graph.EdgeWalk.reverseTraversal, List.reverse_append,
+      List.map_append, Function.comp_def, List.append_assoc] using
+        reversedEquation
+  refine
+    ⟨Graph.EdgeWalk.reverseTraversal reverseAfter,
+      reverseDirected.reverse,
+      Graph.EdgeWalk.reverseTraversal reverseBefore,
+      traversalEquation, ?_, ?_, ?_⟩
+  · simpa using reverseTargetUnmarked
+  · simpa using reverseSourceMarked
+  · simpa [Graph.EdgeSimplePath.reverse] using reverseActivePrefix.symm
+
 /-- Link-local threading controls every retained edge value, before the
 endpoint-mark filter defining the active graph is applied. -/
 private theorem retainedEdge_threaded

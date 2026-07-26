@@ -185,14 +185,17 @@ The repository currently contains:
   unmarked occurrence while retaining an entirely active path prefix. Exact
   active-component/thread correspondence therefore proves that the frontier
   source carries the waiting par's left-premise token; it is not merely an
-  unrelated marked vertex. Exact retained-edge/source-link lookup, completed
+  unrelated marked vertex. Reading the same path backward selects the last
+  inactive frontier, proves its target carries the waiting par's right token,
+  and yields one exact ordered decomposition with distinct left and right
+  boundary occurrences. Exact retained-edge/source-link lookup, completed
   axiom initialization, and causal closure now classify the boundary as a
   forward premise-to-conclusion occurrence of a concrete submitted par or
-  tensor. Quiescent scheduler coverage then proves the exact local alternatives:
-  a par has an unassigned omitted premise or remains registered on distinct
-  tokens, while a tensor has an unassigned opposite premise. Excluding the
-  now left-anchored path-exposed unmarked region is the sole open progress
-  obligation;
+  tensor. Quiescent scheduler coverage then proves these exact local
+  alternatives at both sides of the bracketed region: a par has an unassigned
+  omitted premise or remains registered on distinct tokens, while a tensor
+  has an unassigned opposite premise. Excluding the two-sided path-exposed
+  middle region is the sole open progress obligation;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -367,7 +370,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits ninety-five public MLL logical-boundary theorems against the exact axiom set
+  separately audits ninety-six public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
