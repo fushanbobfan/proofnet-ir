@@ -80,12 +80,21 @@ At the scheduler boundary, an occurrence-exact retained-edge API preserves
 the concrete full-graph edge and its orientation; the previous endpoint API
 remains available as a compatibility projection. A nontrivial dependency
 tail cannot immediately reverse the lifted assigned-to-unassigned frontier.
-This is a cycle in the auxiliary waiting-dependency relation only:
-proof-net correctness still must geometrically exclude it as a
-switching-tree cycle or forbidden nesting before the recursive fallback can
-be removed. The next exact bridge must transport the retained par-color
-annotation to the lifted full-graph occurrence and classify the boundary
-turn as a genuine par cusp or tensor-colored free turn. The later
+The all-left switching mask is now classified at that exact full-edge index,
+not by edge value: axiom, tensor-left/tensor-right, and the sole retained
+par-left occurrence remain distinct even when parallel edges have equal
+endpoints. Structural typing excludes the axiom case at a formula-descent
+source, while unique connective production identifies the frontier producer
+with the first tail producer. Lean consequently proves the exhaustive local
+turn theorem: a retained par frontier and the reversed first tail incidence
+share the same par color and form a genuine cusp; a tensor frontier and tail
+carry exact unique colors, and color equality would force the prohibited
+immediate reversal, so the turn is free. Every edge of the finite closed
+waiting-dependency segment now carries this occurrence-geometric alternative.
+This remains a cycle in the auxiliary waiting-dependency relation only:
+proof-net correctness still must combine the classified segments into and
+exclude an exact switching-tree cycle or forbidden nesting before the
+recursive fallback can be removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

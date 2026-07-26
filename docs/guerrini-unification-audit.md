@@ -139,11 +139,15 @@ edges are all traversed backward and whose internal turns are consequently
 cusp-free. A state-indexed reachability witness retains that every visited
 formula occurrence remains unassigned. The scheduler frontier is also lifted
 occurrence-exactly, and the first nontrivial chase edge is proved not to
-reverse it immediately. It must still transport the retained par-color
-annotation to that full-graph occurrence, classify the boundary turn as a
-par cusp or tensor-colored free turn, and convert the closed structural chase
-into and exclude a switching-tree cycle or forbidden nesting in a correct
-quiescent state.
+reverse it immediately. An exact-index classifier for the deterministic mask
+now distinguishes the retained axiom, tensor, and left-par occurrences
+without quotienting parallel edge values. Structural typing excludes the
+axiom case at a formula tail, and unique producer ownership synchronizes the
+frontier producer with the first tail producer. Thus each nontrivial turn is
+proved to be a genuine par cusp or a tensor-colored free turn, and every edge
+of the closed waiting-dependency segment carries this local alternative. The
+remaining argument must compose and exclude the resulting switching-tree
+cycle or forbidden nesting in a correct quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age

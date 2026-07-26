@@ -194,8 +194,11 @@ part of the engineering and proof-identity gap.
    vertex-simple, internally cusp-free path, and state-indexed evidence keeps
    every visited formula occurrence unassigned. The occurrence-exact
    scheduler frontier cannot be immediately reversed by the first tail edge.
-   Transporting retained par colors to that full-graph occurrence,
-   classifying the boundary turn, converting the closed segment into an exact
+   The deterministic mask is now classified at the exact lifted index;
+   structural typing and unique producer ownership then prove every
+   nontrivial turn is a par cusp or tensor-colored free turn, and this
+   alternative is attached to every edge of the finite closed dependency
+   segment. Converting those classified segments into an exact
    switching-tree cycle or forbidden nesting, pure worklist completeness, and
    a full cost theorem remain open.
    For callers that require fail-closed resource handling,

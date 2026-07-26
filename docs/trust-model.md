@@ -169,13 +169,16 @@ segment. Each such step is now tied to its exact full occurrence-graph
 backward edge; nontrivial chases yield vertex-simple, internally cusp-free
 paths, and a state-indexed witness retains unassigned evidence at every
 visited formula occurrence. The occurrence-exact frontier cannot be
-immediately reversed by the first nontrivial tail edge. The remaining gap is
-to synchronize retained par-color annotations with the lifted full-graph
-occurrence, classify the boundary turn, and turn those structural paths into
-a forbidden switching-tree cycle or nesting; this is not yet the
-correct-state progress theorem needed for pure-worklist completeness. The
-attempt accounting also excludes consumer-table construction, waiting-list
-traversal, frontier work, and verification.
+immediately reversed by the first nontrivial tail edge. The all-left mask is
+now classified at that exact full-edge index; structural typing and unique
+producer ownership synchronize the first formula tail and prove the local
+turn is a par cusp or tensor-colored free turn. Every edge of the finite
+closed dependency segment carries this alternative. The remaining gap is to
+compose those classified paths into and exclude a forbidden switching-tree
+cycle or nesting; this is not yet the correct-state progress theorem needed
+for pure-worklist completeness. The attempt accounting also excludes
+consumer-table construction, waiting-list traversal, frontier work, and
+verification.
 
 For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
 formula-only raw checker and typed elaborator agree on acceptance, rejection,

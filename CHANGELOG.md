@@ -137,11 +137,18 @@
   an occurrence-exact API retaining the concrete full-graph edge and
   orientation, while the former endpoint result is preserved as a
   compatibility projection. Each nontrivial dependency tail is proved not to
-  immediately reverse that lifted frontier. Correctness still must transport
-  retained par-color annotations to the corresponding full-graph occurrence,
-  classify each boundary turn as a par cusp or tensor-colored free turn, and
-  convert the closed dependency segment into and exclude an exact
-  switching-tree cycle or forbidden nesting, so
+  immediately reverse that lifted frontier. A new exact-index all-left-mask
+  classifier recovers the submitted axiom/tensor/par occurrence at the same
+  full-edge position, including the fact that only the left par incidence is
+  retained. Structural formula typing excludes an axiom at the formula-tail
+  source, and unique producer ownership synchronizes the frontier link with
+  the first tail link. Every nontrivial dependency turn is therefore
+  kernel-classified as either a genuine par cusp with equal shared par colors
+  or a tensor-colored free turn whose unique-color equality would force the
+  excluded immediate reversal. The finite closed dependency segment now
+  carries that occurrence-geometric alternative at every adjacent step.
+  Correctness still must convert these classified segments into and exclude
+  an exact switching-tree cycle or forbidden nesting, so
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

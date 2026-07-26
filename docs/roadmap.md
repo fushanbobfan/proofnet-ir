@@ -511,8 +511,9 @@
       internally cusp-free paths; retain state-indexed unassigned evidence
       for every visited occurrence; preserve the exact frontier edge; and
       exclude immediate reverse traversal at the dependency boundary.
-    - [ ] Synchronize retained par-color annotations with the corresponding
-      lifted full-graph occurrence and classify the boundary turn as a par
+    - [x] Classify the all-left mask at the exact lifted full-edge index,
+      synchronize the first tail through structural typing and unique
+      producer ownership, and prove the exhaustive local alternative: a par
       cusp or tensor-colored free turn.
     - [ ] Convert the repeated dependency segment into an exact
       switching-tree cycle or forbidden nesting and exclude the remaining
