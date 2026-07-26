@@ -124,8 +124,14 @@ prohibited immediate reversal, so the turn is free. Every edge of the finite
  reverse orientation of that same stored edge also occurs in the original
  walk. This is an exact-index membership result, not yet a bijection between
  list positions. The scheduler theorem exposes both the trace and that reverse-
- membership result. Proof-net correctness must next use it to exclude that exact nesting;
- in the nonempty branch it must transport the local turn evidence while
+ membership result. It now also proves that every forward-oriented occurrence
+ in the original dependency walk is retained by the all-left reference
+ switching. Therefore, in the empty-normal-form branch, reverse membership
+ upgrades this to retention of every original edge index. This identifies the
+ empty obstruction as a fully reference-retained nested tree walk; it does not
+ yet exclude that nesting. Proof-net correctness must next use the retained
+ scheduler geometry to do so; in the nonempty branch it must transport the
+ local turn evidence while
  extracting a suitably classified edge-simple switching cycle or forbidden
  nesting before the recursive fallback can be removed. The
  later

@@ -200,7 +200,13 @@ occurrences. Every dependency carries that same-boundary classification
  trace ends at the empty traversal, Lean proves that the reverse of every
  represented directed-edge value occurs in the original obstruction at the
  same stored edge index. This is membership, not a proved bijection between
- list positions. The remaining gap is to exclude that
+ list positions. The scheduler construction further proves that every
+ forward-oriented occurrence in the original dependency walk is retained by
+ the all-left reference switching. Thus an empty normal form implies retention
+ of every original edge index, including backward occurrences via their
+ forward reverses. This characterizes the empty branch as a fully retained
+ nested reference-tree walk; it does not exclude it. The remaining gap is to
+ exclude that
  exact empty nesting and, in the nonempty branch, transport the turn evidence
  into an excluded edge-simple switching cycle or forbidden nesting. This is
  not yet the correct-state progress theorem needed for pure-worklist

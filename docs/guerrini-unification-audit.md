@@ -165,7 +165,13 @@ and rotated closing cancellation. Lean proves that, for every directed-edge
 value represented in an empty-normalizing dependency obstruction, the reverse
 orientation of the same stored edge also occurs there. This is exact-index
 membership, not yet a bijection between list positions. The scheduler-level
-theorem exposes that trace and membership result directly. The
+theorem exposes that trace and membership result directly. Segment
+classification also proves every forward-oriented occurrence in the
+concatenated obstruction is retained by the all-left reference switching.
+Consequently, an empty normal form forces every original edge index to be
+reference-retained: a backward occurrence inherits retention from its
+forward reverse. This reduces the empty branch to a fully retained nested
+reference-tree walk but does not by itself rule that walk out. The
 remaining argument must exclude that exact nesting and, in the nonempty branch,
 transport the turn classifications into an excluded edge-simple switching
 cycle or forbidden nesting in a correct quiescent state.

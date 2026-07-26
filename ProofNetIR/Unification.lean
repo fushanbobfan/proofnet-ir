@@ -17141,16 +17141,20 @@ private theorem QuiescentWaitingParDependencyFullSegment.walk_exists
       traversed ≠ [] ∧
         certificate.fullGraph.EdgeWalk source traversed target ∧
           Graph.EdgeWalk.NoImmediateReverse traversed ∧
-            (∀ first,
-              traversed.head? = some first →
-                first.forward = false ∧
-                  certificate.fullEdgeParTargets[first.index]? =
-                    some (some source)) ∧
-              ∀ last,
-                traversed.getLast? = some last →
-                  last.forward = false ∨
-                    QuiescentWaitingParDependencyReflexiveEndAt
-                      certificate state source target last := by
+            (∀ directed, directed ∈ traversed →
+              directed.forward = true →
+                certificate.referenceSwitchingMask[directed.index]? =
+                  some true) ∧
+              (∀ first,
+                traversed.head? = some first →
+                  first.forward = false ∧
+                    certificate.fullEdgeParTargets[first.index]? =
+                      some (some source)) ∧
+                ∀ last,
+                  traversed.getLast? = some last →
+                    last.forward = false ∨
+                      QuiescentWaitingParDependencyReflexiveEndAt
+                        certificate state source target last := by
   rcases segment with
     ⟨boundary, _left, sourceEdge, _retainedPrefix,
       fullPrefix, formulaTail, atBoundary, classifiedTurn,
@@ -17163,8 +17167,21 @@ private theorem QuiescentWaitingParDependencyFullSegment.walk_exists
       noImmediateReverse⟩
   refine
     ⟨([sourceEdge] ++ fullPrefix) ++ formulaTail, ?_, completeWalk,
-      noImmediateReverse, ?_, ?_⟩
+      noImmediateReverse, ?_, ?_, ?_⟩
   · simp
+  · intro directed membership forward
+    rcases List.mem_append.mp membership with
+      inSourceAndPrefix | inFormulaTail
+    · rcases List.mem_append.mp inSourceAndPrefix with
+        inSource | inFullPrefix
+      · have directedValue : directed = sourceEdge := by
+          simpa using inSource
+        subst directed
+        simp [_sourceEdgeBackward] at forward
+      · exact _fullPrefixKept directed inFullPrefix
+    · have backward := _formulaTailBackward directed inFormulaTail
+      rw [backward] at forward
+      contradiction
   · intro first headEquation
     have firstEquation : first = sourceEdge := by
       simpa using Option.some.inj headEquation.symm
@@ -17325,11 +17342,13 @@ private theorem
       classified.1, classified.2⟩
 
 /-- Concatenate a finite successor-indexed family of nonempty exact edge walks.
-The result retains nonemptiness whenever the family has at least one segment.
+The result retains nonemptiness whenever the family has at least one segment
+and preserves any pointwise occurrence predicate supplied for every segment.
 This graph-generic lemma is the list-level bridge from local scheduler
 dependencies to a single closed occurrence-aware walk. -/
 private theorem fullGraphEdgeWalk_chain_exists
     {graph : Graph}
+    (P : graph.DirectedEdge → Prop)
     (chainAt : Nat → Vertex) :
     ∀ count : Nat,
       (∀ step,
@@ -17337,15 +17356,17 @@ private theorem fullGraphEdgeWalk_chain_exists
           ∃ traversed : List graph.DirectedEdge,
             traversed ≠ [] ∧
               graph.EdgeWalk
-                (chainAt step) traversed (chainAt (step + 1))) →
+                (chainAt step) traversed (chainAt (step + 1)) ∧
+                ∀ directed, directed ∈ traversed → P directed) →
         ∃ traversed : List graph.DirectedEdge,
           graph.EdgeWalk (chainAt 0) traversed (chainAt count) ∧
-            (0 < count → traversed ≠ []) := by
+            (0 < count → traversed ≠ []) ∧
+              ∀ directed, directed ∈ traversed → P directed := by
   intro count
   induction count with
   | zero =>
       intro _segments
-      exact ⟨[], .refl _, by simp⟩
+      exact ⟨[], .refl _, by simp, by simp⟩
   | succ count induction =>
       intro segments
       have initialSegments :
@@ -17354,22 +17375,29 @@ private theorem fullGraphEdgeWalk_chain_exists
               ∃ traversed : List graph.DirectedEdge,
                 traversed ≠ [] ∧
                   graph.EdgeWalk
-                    (chainAt step) traversed (chainAt (step + 1)) := by
+                    (chainAt step) traversed (chainAt (step + 1)) ∧
+                    ∀ directed, directed ∈ traversed → P directed := by
         intro step bound
         exact segments step (Nat.lt_trans bound (Nat.lt_succ_self count))
       rcases induction initialSegments with
-        ⟨initialTraversal, initialWalk, _initialNonempty⟩
+        ⟨initialTraversal, initialWalk, _initialNonempty,
+          initialProperty⟩
       rcases segments count (Nat.lt_succ_self count) with
-        ⟨lastTraversal, lastNonempty, lastWalk⟩
+        ⟨lastTraversal, lastNonempty, lastWalk, lastProperty⟩
       have lastWalk' :
           graph.EdgeWalk
             (chainAt count) lastTraversal (chainAt (Nat.succ count)) := by
         simpa [Nat.succ_eq_add_one] using lastWalk
       refine
         ⟨initialTraversal ++ lastTraversal,
-          initialWalk.trans lastWalk', ?_⟩
-      intro _positive
-      simp [List.append_eq_nil_iff, lastNonempty]
+          initialWalk.trans lastWalk', ?_, ?_⟩
+      · intro _positive
+        simp [List.append_eq_nil_iff, lastNonempty]
+      · intro directed membership
+        rcases List.mem_append.mp membership with
+          inInitial | inLast
+        · exact initialProperty directed inInitial
+        · exact lastProperty directed inLast
 
 /-- Every quiescent waiting-par conclusion is an in-bounds formula
 occurrence.  This is the finite carrier used by the dependency-cycle
@@ -18145,12 +18173,13 @@ private theorem
         correct.1 dependency⟩
 
 /-- Concatenating the selected finite dependency segment produces a genuinely
-nonempty closed walk in the certificate's complete occurrence graph.  This is
-the first global graph object obtained directly from the quiescent scheduler
-obstruction: no endpoint-only reachability relation or independently selected
-boundary witness is used.  Extracting a suitably classified simple cycle (or
-the equivalent forbidden nesting) and contradicting switching-tree correctness
-remains a separate theorem. -/
+nonempty closed walk in the certificate's complete occurrence graph. Every
+forward-oriented occurrence in that walk is retained by the all-left reference
+switching. This is the first global graph object obtained directly from the
+quiescent scheduler obstruction: no endpoint-only reachability relation or
+independently selected boundary witness is used. Extracting a suitably
+classified simple cycle (or the equivalent forbidden nesting) and
+contradicting switching-tree correctness remains a separate theorem. -/
 private theorem
     canonicalWorklistRun_waitingPar_dependency_closed_fullGraphWalk
     {certificate : Certificate} {started : UnificationState}
@@ -18168,7 +18197,11 @@ private theorem
         ∃ (base : Vertex)
             (traversed : List certificate.fullGraph.DirectedEdge),
           traversed ≠ [] ∧
-            certificate.fullGraph.EdgeWalk base traversed base := by
+            certificate.fullGraph.EdgeWalk base traversed base ∧
+              ∀ directed, directed ∈ traversed →
+                directed.forward = true →
+                  certificate.referenceSwitchingMask[directed.index]? =
+                    some true := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -18180,7 +18213,11 @@ private theorem
         ∃ (base : Vertex)
             (traversed : List certificate.fullGraph.DirectedEdge),
           traversed ≠ [] ∧
-            certificate.fullGraph.EdgeWalk base traversed base
+            certificate.fullGraph.EdgeWalk base traversed base ∧
+              ∀ directed, directed ∈ traversed →
+                directed.forward = true →
+                  certificate.referenceSwitchingMask[directed.index]? =
+                    some true
   intro source sourceWaiting
   rcases
       canonicalWorklistRun_waitingPar_dependency_closed_segment_fullSegments
@@ -18195,7 +18232,11 @@ private theorem
           ∃ traversed : List certificate.fullGraph.DirectedEdge,
             traversed ≠ [] ∧
               certificate.fullGraph.EdgeWalk
-                (shifted offset) traversed (shifted (offset + 1)) := by
+                (shifted offset) traversed (shifted (offset + 1)) ∧
+                ∀ directed, directed ∈ traversed →
+                  directed.forward = true →
+                    certificate.referenceSwitchingMask[directed.index]? =
+                      some true := by
     intro offset offsetBound
     have lower : earlier ≤ earlier + offset := by
       omega
@@ -18204,13 +18245,19 @@ private theorem
     rcases segments (earlier + offset) lower upper with
       ⟨_dependency, _geometry, segment⟩
     rcases segment.walk_exists with
-      ⟨traversed, nonempty, walk, _noImmediateReverse⟩
-    refine ⟨traversed, nonempty, ?_⟩
+      ⟨traversed, nonempty, walk, _noImmediateReverse,
+        forwardKept, _firstClassified, _lastClassified⟩
+    refine ⟨traversed, nonempty, ?_, forwardKept⟩
     simpa [shifted, Nat.add_assoc] using walk
   rcases
-      fullGraphEdgeWalk_chain_exists shifted (later - earlier)
+      fullGraphEdgeWalk_chain_exists
+        (fun directed =>
+          directed.forward = true →
+            certificate.referenceSwitchingMask[directed.index]? =
+              some true)
+        shifted (later - earlier)
         shiftedSegments with
-    ⟨traversed, chainedWalk, nonemptyOfPositive⟩
+    ⟨traversed, chainedWalk, nonemptyOfPositive, forwardKept⟩
   have positive : 0 < later - earlier := by
     omega
   have startIndex : shifted 0 = chainAt earlier := by
@@ -18226,14 +18273,16 @@ private theorem
       chainedWalk
   exact
     ⟨chainAt earlier, traversed,
-      nonemptyOfPositive positive, closedWalk⟩
+      nonemptyOfPositive positive, closedWalk, forwardKept⟩
 
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
-normalization.  Every surviving occurrence comes from the original obstruction
+normalization. Every surviving occurrence comes from the original obstruction
 walk, and the normal form is either empty (the genuinely nested out-and-back
-case) or cyclically nonbacktracking.  Excluding the empty nesting or extracting
-the classified simple cycle from the nonempty case remains the final geometric
-obligation. -/
+case) or cyclically nonbacktracking. Forward original occurrences are
+reference-kept; if normalization ends empty, exact reverse membership upgrades
+this to retention of every original edge index. Excluding that fully retained
+nesting or extracting the classified simple cycle from the nonempty case
+remains the final geometric obligation. -/
 private theorem
     canonicalWorklistRun_waitingPar_dependency_closed_normalizedFullGraphWalk
     {certificate : Certificate} {started : UnificationState}
@@ -18254,6 +18303,10 @@ private theorem
           original ≠ [] ∧
             certificate.fullGraph.EdgeWalk
               originalBase original originalBase ∧
+              (∀ directed, directed ∈ original →
+                directed.forward = true →
+                  certificate.referenceSwitchingMask[directed.index]? =
+                    some true) ∧
               certificate.fullGraph.EdgeWalk
                 normalizedBase normalized normalizedBase ∧
                 Graph.EdgeWalk.CyclicImmediateReverseNormalization
@@ -18263,8 +18316,11 @@ private theorem
                     (∀ directed, directed ∈ normalized →
                       directed ∈ original) ∧
                       (normalized = [] →
-                        ∀ directed, directed ∈ original →
-                          directed.reverse ∈ original) := by
+                        (∀ directed, directed ∈ original →
+                          directed.reverse ∈ original) ∧
+                          ∀ directed, directed ∈ original →
+                            certificate.referenceSwitchingMask[
+                              directed.index]? = some true) := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -18279,6 +18335,10 @@ private theorem
           original ≠ [] ∧
             certificate.fullGraph.EdgeWalk
               originalBase original originalBase ∧
+              (∀ directed, directed ∈ original →
+                directed.forward = true →
+                  certificate.referenceSwitchingMask[directed.index]? =
+                    some true) ∧
               certificate.fullGraph.EdgeWalk
                 normalizedBase normalized normalizedBase ∧
                 Graph.EdgeWalk.CyclicImmediateReverseNormalization
@@ -18288,23 +18348,45 @@ private theorem
                     (∀ directed, directed ∈ normalized →
                       directed ∈ original) ∧
                       (normalized = [] →
-                        ∀ directed, directed ∈ original →
-                          directed.reverse ∈ original)
+                        (∀ directed, directed ∈ original →
+                          directed.reverse ∈ original) ∧
+                          ∀ directed, directed ∈ original →
+                            certificate.referenceSwitchingMask[
+                              directed.index]? = some true)
   intro source sourceWaiting
   rcases
       canonicalWorklistRun_waitingPar_dependency_closed_fullGraphWalk
         correct startEquation sourceWaiting with
-    ⟨originalBase, original, originalNonempty, originalWalk⟩
+    ⟨originalBase, original, originalNonempty, originalWalk,
+      originalForwardKept⟩
   rcases originalWalk.normalizeCyclicImmediateReversalsTraced with
     ⟨normalizedBase, normalized, normalizedWalk, normalization,
       normalizedShape⟩
   exact
     ⟨originalBase, normalizedBase, original, normalized,
-      originalNonempty, originalWalk, normalizedWalk, normalization,
+      originalNonempty, originalWalk, originalForwardKept,
+      normalizedWalk, normalization,
       normalizedShape, normalization.membership_subset,
-      fun normalizedEmpty directed membership =>
-        normalization.reverse_mem_of_normalizes_to_nil
-          normalizedEmpty directed membership⟩
+      fun normalizedEmpty =>
+        ⟨fun directed membership =>
+            normalization.reverse_mem_of_normalizes_to_nil
+              normalizedEmpty directed membership,
+          fun directed membership => by
+            by_cases forward : directed.forward = true
+            · exact originalForwardKept directed membership forward
+            · have reverseMembership :=
+                normalization.reverse_mem_of_normalizes_to_nil
+                  normalizedEmpty directed membership
+              have directedBackward : directed.forward = false := by
+                cases direction : directed.forward with
+                | false => rfl
+                | true => exact False.elim (forward direction)
+              have reverseForward :
+                  directed.reverse.forward = true := by
+                simp [Graph.DirectedEdge.reverse, directedBackward]
+              simpa using
+                originalForwardKept directed.reverse reverseMembership
+                  reverseForward⟩⟩
 
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact

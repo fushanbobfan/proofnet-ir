@@ -192,8 +192,12 @@
   source; consequently, if the cyclic normal form is empty, the reverse of
   every represented directed-edge value also occurs. This is exact-index
   membership, not a proved bijection between list positions. The scheduler-
-  level normalized-walk theorem retains this trace and membership result.
-  Correctness still must exclude
+  level normalized-walk theorem retains this trace and membership result. It
+  additionally proves that every forward occurrence of the original
+  dependency walk is reference-kept, and hence that every original edge index
+  is reference-kept when the cyclic normal form is empty. This narrows the
+  empty branch to a fully retained nested reference-tree walk but does not
+  exclude it. Correctness still must exclude
   that exact nesting, and in the nonempty branch transport the local turn
   evidence while extracting or excluding a suitably classified edge-simple
   switching cycle or forbidden nesting. Thus

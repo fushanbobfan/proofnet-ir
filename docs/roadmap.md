@@ -537,6 +537,10 @@
       and prove that an empty trace gives every represented directed-edge
       value an exact-index reverse value in the original obstruction (a
       membership result, not yet a positional bijection).
+    - [x] Prove every forward occurrence in the concatenated dependency walk
+      is retained by the all-left reference switching; combine this with the
+      empty trace to show that every original edge index in the empty branch
+      is reference-retained.
     - [ ] Exclude the empty exact nesting; in the nonempty branch transport
       the local turn classification through normalization, extract an exact
       edge-simple switching cycle or forbidden nesting, and exclude the
