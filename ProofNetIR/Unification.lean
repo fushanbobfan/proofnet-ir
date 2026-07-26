@@ -3301,6 +3301,62 @@ private structure UnificationWorklistState where
   waitingFlags : Array Bool
   stats : UnificationWorklistStats
 
+/-- Scheduler-side classification used to state that no connective which is
+ready in the current token partition has been silently lost.  The `queued`
+case is intentionally operational: membership in the actual queue, rather
+than a Boolean summary flag, is what guarantees a future attempt. -/
+private inductive ConnectiveSchedulerStatus
+    (state : UnificationWorklistState) (index : Nat) : Link → Prop
+  | queued {link : Link} (membership : index ∈ state.queue) :
+      ConnectiveSchedulerStatus state index link
+  | firedPar {left right conclusion : Vertex}
+      (marked : state.core.assignedToken? conclusion ≠ none) :
+      ConnectiveSchedulerStatus state index (.par left right conclusion)
+  | firedTensor {left right conclusion : Vertex}
+      (marked : state.core.assignedToken? conclusion ≠ none) :
+      ConnectiveSchedulerStatus state index (.tensor left right conclusion)
+  | idlePar {left right conclusion : Vertex}
+      (idle :
+        state.core.tokenAt? left = none ∨
+          state.core.tokenAt? right = none) :
+      ConnectiveSchedulerStatus state index (.par left right conclusion)
+  | idleTensor {left right conclusion : Vertex}
+      (idle :
+        state.core.tokenAt? left = none ∨
+          state.core.tokenAt? right = none) :
+      ConnectiveSchedulerStatus state index (.tensor left right conclusion)
+  | waitingPar {left right conclusion : Vertex}
+      {leftToken rightToken : Nat}
+      (leftMarked : state.core.tokenAt? left = some leftToken)
+      (rightMarked : state.core.tokenAt? right = some rightToken)
+      (different : leftToken ≠ rightToken)
+      (registered : index ∈ state.waiting)
+      (bound : index < state.queued.size) :
+      ConnectiveSchedulerStatus state index (.par left right conclusion)
+  | tensorDeadlock {left right conclusion : Vertex} {token : Nat}
+      (leftMarked : state.core.tokenAt? left = some token)
+      (rightMarked : state.core.tokenAt? right = some token) :
+      ConnectiveSchedulerStatus state index (.tensor left right conclusion)
+
+/-- Every submitted connective has an operational or token-semantic reason
+for not being missed by the scheduler.  In particular, a ready par or tensor
+which is neither fired, idle, waiting, nor a tensor deadlock must occur in the
+real work queue. -/
+private def SchedulerCoverage (certificate : Certificate)
+    (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat} {link : Link},
+    certificate.links[index]? = some link →
+      link.isConnective = true →
+        ConnectiveSchedulerStatus state index link
+
+/-- A `true` deduplication flag must be backed by membership in the actual
+queue.  The reverse direction and queue uniqueness belong to the later fuel
+accounting layer; this direction is enough to justify every deduplicated
+enqueue as non-lossy. -/
+private def QueueFlagSound (state : UnificationWorklistState) : Prop :=
+  ∀ {index : Nat}, state.queued[index]? = some true →
+    index ∈ state.queue
+
 private def pushConsumer (consumers : Array (List Nat))
     (vertex linkIndex : Nat) : Array (List Nat) :=
   match consumers[vertex]? with
@@ -3308,19 +3364,173 @@ private def pushConsumer (consumers : Array (List Nat))
   | some indices =>
       consumers.setIfInBounds vertex (linkIndex :: indices)
 
+/-- Consumer insertion never changes the table carrier. -/
+@[simp] private theorem pushConsumer_size
+    (consumers : Array (List Nat)) (vertex linkIndex : Nat) :
+    (pushConsumer consumers vertex linkIndex).size = consumers.size := by
+  unfold pushConsumer
+  split <;> simp
+
+/-- Add both premise dependencies of one indexed connective. -/
+private def addLinkConsumers (consumers : Array (List Nat))
+    (entry : Link × Nat) : Array (List Nat) :=
+  match entry with
+  | (.axiom _ _, _) => consumers
+  | (.par left right _, linkIndex)
+  | (.tensor left right _, linkIndex) =>
+      let withLeft := pushConsumer consumers left linkIndex
+      pushConsumer withLeft right linkIndex
+
+/-- Adding one indexed link preserves the consumer-table carrier. -/
+@[simp] private theorem addLinkConsumers_size
+    (consumers : Array (List Nat)) (entry : Link × Nat) :
+    (addLinkConsumers consumers entry).size = consumers.size := by
+  rcases entry with ⟨link, linkIndex⟩
+  cases link <;> simp [addLinkConsumers]
+
 /-- Precompute the links that can become newly armed when a formula occurrence
 is marked. Structural well-formedness ensures resource-linear use, but this
 builder also fails closed on out-of-range vertices. -/
 private def worklistConsumers (certificate : Certificate) :
     Array (List Nat) :=
-  certificate.links.zipIdx.foldl
-    (fun consumers (link, linkIndex) =>
-      match link with
-      | .axiom _ _ => consumers
-      | .par left right _ | .tensor left right _ =>
-          let withLeft := pushConsumer consumers left linkIndex
-          pushConsumer withLeft right linkIndex)
+  certificate.links.zipIdx.foldl addLinkConsumers
     (Array.replicate certificate.formulas.size [])
+
+/-- Adding one in-bounds consumer places its index in the addressed bucket. -/
+private theorem mem_pushConsumer_self
+    {consumers : Array (List Nat)} {vertex linkIndex : Nat}
+    (bound : vertex < consumers.size) :
+    linkIndex ∈
+      ((pushConsumer consumers vertex linkIndex)[vertex]?).getD [] := by
+  simp [pushConsumer, bound]
+
+/-- Adding a consumer never removes an existing dependency from any bucket. -/
+private theorem mem_pushConsumer_of_mem
+    {consumers : Array (List Nat)} {vertex linkIndex : Nat}
+    {premise existingIndex : Nat}
+    (membership :
+      existingIndex ∈ (consumers[premise]?).getD []) :
+    existingIndex ∈
+      ((pushConsumer consumers vertex linkIndex)[premise]?).getD [] := by
+  by_cases vertexBound : vertex < consumers.size
+  · by_cases same : vertex = premise
+    · subst premise
+      have oldMembership :
+          existingIndex ∈ consumers[vertex] := by
+        rw [Array.getElem?_eq_getElem vertexBound] at membership
+        simpa using membership
+      simpa [pushConsumer, vertexBound] using
+        List.mem_cons_of_mem linkIndex oldMembership
+    · simpa [pushConsumer, vertexBound, same] using membership
+  · have lookupNone : consumers[vertex]? = none :=
+      Array.getElem?_eq_none (Nat.le_of_not_gt vertexBound)
+    simpa [pushConsumer, lookupNone] using membership
+
+/-- One indexed connective update preserves every dependency already stored. -/
+private theorem mem_addLinkConsumers_of_mem
+    {consumers : Array (List Nat)} {entry : Link × Nat}
+    {premise existingIndex : Nat}
+    (membership :
+      existingIndex ∈ (consumers[premise]?).getD []) :
+    existingIndex ∈
+      ((addLinkConsumers consumers entry)[premise]?).getD [] := by
+  rcases entry with ⟨link, linkIndex⟩
+  cases link with
+  | «axiom» left right =>
+      exact membership
+  | «par» left right conclusion =>
+      exact mem_pushConsumer_of_mem
+        (mem_pushConsumer_of_mem membership)
+  | «tensor» left right conclusion =>
+      exact mem_pushConsumer_of_mem
+        (mem_pushConsumer_of_mem membership)
+
+/-- Folding further indexed links never removes a previously stored
+dependency. -/
+private theorem mem_foldl_addLinkConsumers_of_mem
+    (entries : List (Link × Nat))
+    {consumers : Array (List Nat)} {premise existingIndex : Nat}
+    (membership :
+      existingIndex ∈ (consumers[premise]?).getD []) :
+    existingIndex ∈
+      ((entries.foldl addLinkConsumers consumers)[premise]?).getD [] := by
+  induction entries generalizing consumers with
+  | nil =>
+      exact membership
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (mem_addLinkConsumers_of_mem membership)
+
+/-- Processing one in-bounds indexed connective records its index in the
+bucket of each of its premises. -/
+private theorem mem_addLinkConsumers_of_premise
+    {consumers : Array (List Nat)} {link : Link} {linkIndex premise : Nat}
+    (bound : premise < consumers.size)
+    (premiseMembership : premise ∈ link.premises) :
+    linkIndex ∈
+      ((addLinkConsumers consumers (link, linkIndex))[premise]?).getD [] := by
+  cases link with
+  | «axiom» left right =>
+      simp [Link.premises] at premiseMembership
+  | «par» left right conclusion =>
+      simp [Link.premises] at premiseMembership
+      rcases premiseMembership with same | same
+      · subst premise
+        exact mem_pushConsumer_of_mem
+          (mem_pushConsumer_self bound)
+      · subst premise
+        apply mem_pushConsumer_self
+        simpa using bound
+  | «tensor» left right conclusion =>
+      simp [Link.premises] at premiseMembership
+      rcases premiseMembership with same | same
+      · subst premise
+        exact mem_pushConsumer_of_mem
+          (mem_pushConsumer_self bound)
+      · subst premise
+        apply mem_pushConsumer_self
+        simpa using bound
+
+/-- Every in-bounds premise dependency present in an indexed entry list is
+recorded by the completed consumer fold. -/
+private theorem mem_foldl_addLinkConsumers_of_entry
+    (entries : List (Link × Nat)) (consumers : Array (List Nat))
+    {link : Link} {linkIndex premise : Nat}
+    (entryMembership : (link, linkIndex) ∈ entries)
+    (bound : premise < consumers.size)
+    (premiseMembership : premise ∈ link.premises) :
+    linkIndex ∈
+      ((entries.foldl addLinkConsumers consumers)[premise]?).getD [] := by
+  induction entries generalizing consumers with
+  | nil =>
+      simp at entryMembership
+  | cons head tail induction =>
+      simp only [List.mem_cons] at entryMembership
+      rcases entryMembership with same | inTail
+      · subst head
+        simp only [List.foldl_cons]
+        apply mem_foldl_addLinkConsumers_of_mem
+        exact mem_addLinkConsumers_of_premise bound premiseMembership
+      · simp only [List.foldl_cons]
+        apply induction
+        · exact inTail
+        · simpa using bound
+
+/-- The precomputed consumer table covers every concrete in-bounds premise of
+every certificate link.  This is the exact no-missed-dependency direction used
+when a newly marked conclusion fans out into the work queue. -/
+private theorem mem_worklistConsumers_of_premise
+    {certificate : Certificate} {link : Link}
+    {linkIndex premise : Nat}
+    (lookup : certificate.links[linkIndex]? = some link)
+    (bound : premise < certificate.formulas.size)
+    (premiseMembership : premise ∈ link.premises) :
+    linkIndex ∈
+      ((worklistConsumers certificate)[premise]?).getD [] := by
+  apply mem_foldl_addLinkConsumers_of_entry
+  · exact List.mk_mem_zipIdx_iff_getElem?.2 lookup
+  · simpa using bound
+  · exact premiseMembership
 
 private def enqueueWorklist (kind : WorklistEnqueueKind)
     (index : Nat) (state : UnificationWorklistState) :
@@ -3344,6 +3554,210 @@ private def enqueueWorklist (kind : WorklistEnqueueKind)
       queued := state.queued.setIfInBounds index true
       stats := nextStats }
 
+/-- Enqueueing preserves the deduplication-flag carrier. -/
+@[simp] private theorem enqueueWorklist_queued_size
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (state : UnificationWorklistState) :
+    (enqueueWorklist kind index state).queued.size =
+      state.queued.size := by
+  unfold enqueueWorklist
+  split <;> simp
+
+/-- Enqueueing never changes the token-unification core. -/
+@[simp] private theorem enqueueWorklist_core
+    (kind : WorklistEnqueueKind) (index : Nat)
+    (state : UnificationWorklistState) :
+    (enqueueWorklist kind index state).core = state.core := by
+  unfold enqueueWorklist
+  split <;> rfl
+
+/-- A real queue member remains present after any later enqueue. -/
+private theorem mem_enqueueWorklist_of_mem
+    {state : UnificationWorklistState} {candidate : Nat}
+    (membership : candidate ∈ state.queue)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    candidate ∈ (enqueueWorklist kind index state).queue := by
+  unfold enqueueWorklist
+  split
+  · exact membership
+  · exact List.mem_cons_of_mem index membership
+
+/-- Deduplication is non-lossy whenever every pre-existing `true` flag denotes
+an actual queue member. -/
+private theorem QueueFlagSound.enqueueWorklist
+    {state : UnificationWorklistState}
+    (sound : QueueFlagSound state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    QueueFlagSound (enqueueWorklist kind index state) := by
+  intro candidate flagged
+  by_cases already : state.queued[index]?.getD true = true
+  · simp [Certificate.enqueueWorklist, already] at flagged ⊢
+    exact sound flagged
+  · simp [Certificate.enqueueWorklist, already] at flagged ⊢
+    by_cases same : index = candidate
+    · subst candidate
+      simp
+    · have oldFlag : state.queued[candidate]? = some true := by
+        simpa [Array.getElem?_setIfInBounds, same] using flagged
+      exact Or.inr (sound oldFlag)
+
+/-- An in-bounds requested index is a real queue member after enqueue.  The
+only no-op case is a sound pre-existing `true` flag. -/
+private theorem QueueFlagSound.mem_enqueueWorklist
+    {state : UnificationWorklistState}
+    (sound : QueueFlagSound state)
+    (kind : WorklistEnqueueKind) {index : Nat}
+    (bound : index < state.queued.size) :
+    index ∈
+      (Certificate.enqueueWorklist kind index state).queue := by
+  cases lookup : state.queued[index]? with
+  | none =>
+      have outOfBounds := Array.getElem?_eq_none_iff.mp lookup
+      omega
+  | some flag =>
+      cases flag with
+      | false =>
+          simp [Certificate.enqueueWorklist, lookup]
+      | true =>
+          simpa [Certificate.enqueueWorklist, lookup] using sound lookup
+
+/-- Enqueueing cannot invalidate scheduler coverage: it leaves token and
+waiting state unchanged and only adds a real queue member (or is a deduplicated
+no-op). -/
+private theorem SchedulerCoverage.enqueueWorklist
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (coverage : SchedulerCoverage certificate state)
+    (kind : WorklistEnqueueKind) (index : Nat) :
+    SchedulerCoverage certificate
+      (enqueueWorklist kind index state) := by
+  intro candidateIndex link lookup connective
+  have covered := coverage lookup connective
+  unfold Certificate.enqueueWorklist
+  split
+  · exact covered
+  · cases covered with
+    | queued membership =>
+        apply ConnectiveSchedulerStatus.queued
+        simp [membership]
+    | firedPar marked =>
+        exact ConnectiveSchedulerStatus.firedPar marked
+    | firedTensor marked =>
+        exact ConnectiveSchedulerStatus.firedTensor marked
+    | idlePar idle =>
+        exact ConnectiveSchedulerStatus.idlePar idle
+    | idleTensor idle =>
+        exact ConnectiveSchedulerStatus.idleTensor idle
+    | waitingPar leftMarked rightMarked different registered bound =>
+        apply ConnectiveSchedulerStatus.waitingPar
+        · exact leftMarked
+        · exact rightMarked
+        · exact different
+        · exact registered
+        · simpa using bound
+    | tensorDeadlock leftMarked rightMarked =>
+        exact ConnectiveSchedulerStatus.tensorDeadlock
+          leftMarked rightMarked
+
+/-- Repeated enqueues preserve scheduler coverage, which is the induction
+principle used by dependency fan-out and waiting-par requeues. -/
+private theorem SchedulerCoverage.enqueueMany
+    {certificate : Certificate}
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (coverage : SchedulerCoverage certificate state) :
+    SchedulerCoverage certificate
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact coverage
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (coverage.enqueueWorklist kind head)
+
+/-- Repeated enqueues preserve sound queue flags. -/
+private theorem QueueFlagSound.enqueueMany
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState}
+    (sound : QueueFlagSound state) :
+    QueueFlagSound
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state) := by
+  induction indices generalizing state with
+  | nil =>
+      exact sound
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (sound.enqueueWorklist kind head)
+
+/-- Later enqueues preserve every real queue member. -/
+private theorem mem_foldl_enqueueWorklist_of_mem
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {state : UnificationWorklistState} {candidate : Nat}
+    (membership : candidate ∈ state.queue) :
+    candidate ∈
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state).queue := by
+  induction indices generalizing state with
+  | nil =>
+      exact membership
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction
+        (mem_enqueueWorklist_of_mem membership kind head)
+
+/-- A batch of scheduler enqueues never changes the token-unification core. -/
+@[simp] private theorem foldl_enqueueWorklist_core
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    (state : UnificationWorklistState) :
+    (indices.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist kind index next)
+      state).core = state.core := by
+  induction indices generalizing state with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+/-- If an in-bounds index occurs in an enqueue batch, sound deduplication
+guarantees that it is present in the final real queue. -/
+private theorem QueueFlagSound.mem_enqueueMany
+    {state : UnificationWorklistState}
+    (sound : QueueFlagSound state)
+    (kind : WorklistEnqueueKind) (indices : List Nat)
+    {candidate : Nat} (membership : candidate ∈ indices)
+    (bound : candidate < state.queued.size) :
+    candidate ∈
+      (indices.foldl
+        (fun next index =>
+          Certificate.enqueueWorklist kind index next)
+        state).queue := by
+  induction indices generalizing state with
+  | nil =>
+      simp at membership
+  | cons head tail induction =>
+      simp only [List.mem_cons] at membership
+      rcases membership with same | inTail
+      · subst candidate
+        simp only [List.foldl_cons]
+        apply mem_foldl_enqueueWorklist_of_mem
+        exact sound.mem_enqueueWorklist kind bound
+      · simp only [List.foldl_cons]
+        apply induction (state :=
+          Certificate.enqueueWorklist kind head state)
+        · exact sound.enqueueWorklist kind head
+        · exact inTail
+        · simpa using bound
+
 private def enqueueConsumers (consumers : Array (List Nat))
     (conclusion : Vertex) (state : UnificationWorklistState) :
     UnificationWorklistState :=
@@ -3355,6 +3769,49 @@ private def enqueueConsumers (consumers : Array (List Nat))
           enqueueWorklist .dependency index next)
         state
 
+/-- Marking fan-out cannot lose previously covered work, regardless of which
+consumer indices are present. Exactness of the consumer table is a separate
+obligation used to show that all newly enabled links are added. -/
+private theorem SchedulerCoverage.enqueueConsumers
+    {certificate : Certificate} (coverage : SchedulerCoverage certificate state)
+    (consumers : Array (List Nat)) (conclusion : Vertex) :
+    SchedulerCoverage certificate
+      (enqueueConsumers consumers conclusion state) := by
+  unfold Certificate.enqueueConsumers
+  split
+  · exact coverage
+  · exact coverage.enqueueMany .dependency _
+
+/-- The concrete consumer table plus sound deduplication guarantees that
+marking a premise places every affected certificate link in the real queue. -/
+private theorem QueueFlagSound.mem_enqueueConsumers_worklist
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (sound : QueueFlagSound state)
+    (queueSize : state.queued.size = certificate.links.length)
+    {link : Link} {linkIndex premise : Nat}
+    (lookup : certificate.links[linkIndex]? = some link)
+    (premiseBound : premise < certificate.formulas.size)
+    (premiseMembership : premise ∈ link.premises) :
+    linkIndex ∈
+      (Certificate.enqueueConsumers
+        (worklistConsumers certificate) premise state).queue := by
+  have consumerMembership :=
+    mem_worklistConsumers_of_premise lookup premiseBound
+      premiseMembership
+  have linkBound :
+      linkIndex < certificate.links.length :=
+    (List.getElem?_eq_some_iff.mp lookup).1
+  cases bucketLookup :
+      (worklistConsumers certificate)[premise]? with
+  | none =>
+      simp [bucketLookup] at consumerMembership
+  | some indices =>
+      unfold Certificate.enqueueConsumers
+      rw [bucketLookup]
+      apply sound.mem_enqueueMany .dependency indices
+      · simpa [bucketLookup] using consumerMembership
+      · simpa [queueSize] using linkBound
+
 private def addWaiting (index : Nat)
     (state : UnificationWorklistState) : UnificationWorklistState :=
   if (state.waitingFlags[index]?).getD true then
@@ -3363,6 +3820,42 @@ private def addWaiting (index : Nat)
     { state with
       waiting := index :: state.waiting
       waitingFlags := state.waitingFlags.setIfInBounds index true }
+
+/-- Registering a waiting par preserves all scheduler classifications and
+turns the new index into a genuine member of the operational waiting set. -/
+private theorem SchedulerCoverage.addWaiting
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (coverage : SchedulerCoverage certificate state)
+    (index : Nat) :
+    SchedulerCoverage certificate (addWaiting index state) := by
+  intro candidateIndex link lookup connective
+  have covered := coverage lookup connective
+  unfold Certificate.addWaiting
+  split
+  · exact covered
+  · cases covered with
+    | queued membership =>
+        exact ConnectiveSchedulerStatus.queued membership
+    | firedPar marked =>
+        exact ConnectiveSchedulerStatus.firedPar marked
+    | firedTensor marked =>
+        exact ConnectiveSchedulerStatus.firedTensor marked
+    | idlePar idle =>
+        exact ConnectiveSchedulerStatus.idlePar idle
+    | idleTensor idle =>
+        exact ConnectiveSchedulerStatus.idleTensor idle
+    | waitingPar leftMarked rightMarked different registered bound =>
+        apply ConnectiveSchedulerStatus.waitingPar
+        · exact leftMarked
+        · exact rightMarked
+        · exact different
+        · simpa only [List.mem_cons] using
+            (show candidateIndex = index ∨
+              candidateIndex ∈ state.waiting from Or.inr registered)
+        · simpa using bound
+    | tensorDeadlock leftMarked rightMarked =>
+        exact ConnectiveSchedulerStatus.tensorDeadlock
+          leftMarked rightMarked
 
 private def requeueWaiting (linkCount : Nat)
     (state : UnificationWorklistState) : UnificationWorklistState :=
@@ -3375,26 +3868,230 @@ private def requeueWaiting (linkCount : Nat)
     (fun next index => enqueueWorklist .waiting index next)
     cleared
 
+/-- Clearing the waiting registry and enqueueing all of its former members
+preserves sound deduplication flags. -/
+private theorem QueueFlagSound.requeueWaiting
+    {state : UnificationWorklistState}
+    (sound : QueueFlagSound state) (linkCount : Nat) :
+    QueueFlagSound
+      (Certificate.requeueWaiting linkCount state) := by
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have clearedSound : QueueFlagSound cleared := by
+    intro index flagged
+    exact sound flagged
+  unfold Certificate.requeueWaiting
+  change QueueFlagSound
+    (state.waiting.foldl
+      (fun next index =>
+        Certificate.enqueueWorklist .waiting index next)
+      cleared)
+  exact clearedSound.enqueueMany .waiting state.waiting
+
+/-- Requeueing the entire waiting-par registry preserves scheduler coverage:
+every formerly waiting par becomes a concrete queue member, while queued,
+fired, idle, and tensor-deadlock classifications remain valid. -/
+private theorem SchedulerCoverage.requeueWaiting
+    {certificate : Certificate} {state : UnificationWorklistState}
+    (coverage : SchedulerCoverage certificate state)
+    (sound : QueueFlagSound state) (linkCount : Nat) :
+    SchedulerCoverage certificate
+      (Certificate.requeueWaiting linkCount state) := by
+  intro candidateIndex link lookup connective
+  have covered := coverage lookup connective
+  let cleared : UnificationWorklistState :=
+    { state with
+      waiting := []
+      waitingFlags := Array.replicate linkCount false }
+  have clearedSound : QueueFlagSound cleared := by
+    intro index flagged
+    exact sound flagged
+  unfold Certificate.requeueWaiting
+  cases covered with
+  | queued membership =>
+      apply ConnectiveSchedulerStatus.queued
+      exact mem_foldl_enqueueWorklist_of_mem
+        .waiting state.waiting membership
+  | firedPar marked =>
+      apply ConnectiveSchedulerStatus.firedPar
+      simpa using marked
+  | firedTensor marked =>
+      apply ConnectiveSchedulerStatus.firedTensor
+      simpa using marked
+  | idlePar idle =>
+      apply ConnectiveSchedulerStatus.idlePar
+      simpa using idle
+  | idleTensor idle =>
+      apply ConnectiveSchedulerStatus.idleTensor
+      simpa using idle
+  | waitingPar leftMarked rightMarked different registered bound =>
+      apply ConnectiveSchedulerStatus.queued
+      apply clearedSound.mem_enqueueMany .waiting state.waiting
+      · exact registered
+      · simpa [cleared] using bound
+  | tensorDeadlock leftMarked rightMarked =>
+      apply ConnectiveSchedulerStatus.tensorDeadlock
+      · simpa using leftMarked
+      · simpa using rightMarked
+
+/-- Initial connective indices, in the same reverse certificate order used by
+the original enqueue fold.  Defining the queue separately makes its coverage
+property available to the proof layer without reasoning through counter and
+flag updates at the same time. -/
+private def initialWorklistQueue (certificate : Certificate) : List Nat :=
+  (certificate.links.zipIdx.filterMap
+    (fun (link, index) =>
+      match link with
+      | .axiom _ _ => none
+      | .par _ _ _ | .tensor _ _ _ => some index)).reverse
+
+/-- Array flags are sound for an allowed queue when every `true` slot names
+an element of that queue. -/
+private def FlagsSoundFor (flags : Array Bool)
+    (allowed : List Nat) : Prop :=
+  ∀ {index : Nat}, flags[index]? = some true → index ∈ allowed
+
+/-- A false flag array is sound for every allowed queue. -/
+private theorem flagsSoundFor_replicate_false
+    (size : Nat) (allowed : List Nat) :
+    FlagsSoundFor (Array.replicate size false) allowed := by
+  intro index flagged
+  by_cases bound : index < size
+  · have lookup :
+        (Array.replicate size false)[index]? = some false := by
+      simp [bound]
+    rw [lookup] at flagged
+    contradiction
+  · have lookup :
+        (Array.replicate size false)[index]? = none :=
+      Array.getElem?_eq_none (by simpa using bound)
+    rw [lookup] at flagged
+    contradiction
+
+/-- Setting one allowed flag to true preserves flag soundness. -/
+private theorem FlagsSoundFor.setTrue
+    {flags : Array Bool} {allowed : List Nat}
+    (sound : FlagsSoundFor flags allowed)
+    {index : Nat} (allowedMembership : index ∈ allowed) :
+    FlagsSoundFor (flags.setIfInBounds index true) allowed := by
+  intro candidate flagged
+  by_cases same : index = candidate
+  · subst candidate
+    exact allowedMembership
+  · apply sound
+    simpa [Array.getElem?_setIfInBounds, same] using flagged
+
+/-- Folding true updates over indices drawn from the allowed queue preserves
+flag soundness for that queue. -/
+private theorem FlagsSoundFor.foldl_setTrue
+    {flags : Array Bool} {allowed indices : List Nat}
+    (sound : FlagsSoundFor flags allowed)
+    (contained : ∀ index ∈ indices, index ∈ allowed) :
+    FlagsSoundFor
+      (indices.foldl
+        (fun next index => next.setIfInBounds index true)
+        flags)
+      allowed := by
+  induction indices generalizing flags with
+  | nil =>
+      exact sound
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      apply induction
+      · apply sound.setTrue
+        exact contained head (by simp)
+      · intro index membership
+        exact contained index (by simp [membership])
+
+/-- Folding bounded flag updates preserves the array carrier. -/
+private theorem foldl_setTrue_size
+    (indices : List Nat) (flags : Array Bool) :
+    (indices.foldl
+      (fun next index => next.setIfInBounds index true)
+      flags).size = flags.size := by
+  induction indices generalizing flags with
+  | nil =>
+      rfl
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction]
+      simp
+
+/-- A concrete connective lookup always occurs in the initial queue. -/
+private theorem mem_initialWorklistQueue_of_connective
+    {certificate : Certificate} {index : Nat} {link : Link}
+    (lookup : certificate.links[index]? = some link)
+    (connective : link.isConnective = true) :
+    index ∈ initialWorklistQueue certificate := by
+  cases link with
+  | «axiom» left right =>
+      simp [Link.isConnective] at connective
+  | «par» left right conclusion =>
+      simp only [initialWorklistQueue, List.mem_reverse,
+        List.mem_filterMap]
+      refine ⟨(Link.par left right conclusion, index), ?_, rfl⟩
+      exact List.mk_mem_zipIdx_iff_getElem?.2 lookup
+  | «tensor» left right conclusion =>
+      simp only [initialWorklistQueue, List.mem_reverse,
+        List.mem_filterMap]
+      refine ⟨(Link.tensor left right conclusion, index), ?_, rfl⟩
+      exact List.mk_mem_zipIdx_iff_getElem?.2 lookup
+
 private def initializeWorklist (certificate : Certificate)
     (core : UnificationState) : UnificationWorklistState :=
-  let initial : UnificationWorklistState :=
-    { core
-      queue := []
-      queued := Array.replicate certificate.links.length false
-      waiting := []
-      waitingFlags := Array.replicate certificate.links.length false
-      stats :=
-        { initialEnqueues := 0
-          dependencyEnqueues := 0
-          waitingRequeues := 0
-          linkAttempts := 0
-          successfulFirings := 0 } }
-  certificate.links.zipIdx.foldl
-    (fun state (link, index) =>
-      match link with
-      | .axiom _ _ => state
-      | _ => enqueueWorklist .initial index state)
-    initial
+  let queue := initialWorklistQueue certificate
+  let queued :=
+    queue.foldl
+      (fun flags index => flags.setIfInBounds index true)
+      (Array.replicate certificate.links.length false)
+  { core
+    queue
+    queued
+    waiting := []
+    waitingFlags := Array.replicate certificate.links.length false
+    stats :=
+      { initialEnqueues := queue.length
+        dependencyEnqueues := 0
+        waitingRequeues := 0
+        linkAttempts := 0
+        successfulFirings := 0 } }
+
+/-- The initial deduplication flags are backed by the concrete initial queue. -/
+private theorem initializeWorklist_queueFlagSound
+    (certificate : Certificate) (core : UnificationState) :
+    QueueFlagSound (initializeWorklist certificate core) := by
+  let queue := initialWorklistQueue certificate
+  change FlagsSoundFor
+    (queue.foldl
+      (fun flags index => flags.setIfInBounds index true)
+      (Array.replicate certificate.links.length false))
+    queue
+  apply FlagsSoundFor.foldl_setTrue
+  · exact flagsSoundFor_replicate_false _ _
+  · intro index membership
+    exact membership
+
+/-- Initial queue flags have exactly one slot per submitted link. -/
+private theorem initializeWorklist_queued_size
+    (certificate : Certificate) (core : UnificationState) :
+    (initializeWorklist certificate core).queued.size =
+      certificate.links.length := by
+  simp only [initializeWorklist]
+  rw [foldl_setTrue_size]
+  simp
+
+/-- Initial arming establishes scheduler coverage for every connective,
+independently of token readiness. -/
+private theorem initializeWorklist_schedulerCoverage
+    (certificate : Certificate) (core : UnificationState) :
+    SchedulerCoverage certificate
+      (initializeWorklist certificate core) := by
+  intro index link lookup connective
+  apply ConnectiveSchedulerStatus.queued
+  simpa [initializeWorklist] using
+    mem_initialWorklistQueue_of_connective lookup connective
 
 private def popWorklist? (state : UnificationWorklistState) :
     Option (Nat × UnificationWorklistState) :=

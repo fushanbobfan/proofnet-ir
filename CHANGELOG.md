@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- began the scheduler-coverage proof layer for the event-driven worklist:
+  a kernel-checked connective status relation distinguishes real queue
+  membership, fired conclusions, idle premises, registered waiting pars, and
+  tensor deadlocks; initial arming covers every concrete connective. The
+  consumer-table fold now has an exact no-missed-dependency theorem, and
+  sound queue flags prove that deduplicated single/batched enqueues cannot
+  silently lose work. Coverage is preserved by dependency fan-out, waiting
+  registration, and whole waiting-par requeue. Pop-and-process and complete
+  run preservation remain open, so pure-worklist completeness is still not
+  claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
