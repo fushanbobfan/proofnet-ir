@@ -329,6 +329,29 @@ structure Abstractable (certificate : Certificate)
       state.representative (state.representative token) =
         state.representative token
 
+/-- For an in-domain formula occurrence, semantic absence of a raw token is
+exactly the concrete `some none` array state required by firing guards. -/
+theorem Abstractable.markSlotReady_of_unassigned
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {vertex : Vertex}
+    (vertexBound : vertex < certificate.formulas.size)
+    (unassigned : state.assignedToken? vertex = none) :
+    state.marks[vertex]? = some none := by
+  cases lookup : state.marks[vertex]? with
+  | none =>
+      have outOfBounds := Array.getElem?_eq_none_iff.mp lookup
+      have inBounds : vertex < state.marks.size := by
+        simpa [abstractable.markArraySize] using vertexBound
+      exact False.elim ((Nat.not_lt_of_ge outOfBounds) inBounds)
+  | some assigned =>
+      cases assigned with
+      | none =>
+          simp
+      | some token =>
+          unfold assignedToken? at unassigned
+          simp [lookup] at unassigned
+
 /-- Equality of exactly the executable fields observed by the independent
 unification semantics. Parsed derivation components and work counters are
 intentionally ignored. -/
@@ -1820,6 +1843,24 @@ def componentAt? (state : UnificationState) (token : Nat) :
   let component ← state.components[state.representative token]?
   component
 
+/-- Every marked premise of a still-unfired connective is exposed by the live
+parsed component of its current token representative.  Consumed premises stay
+marked permanently, so requiring *all* marked occurrences to remain on a
+frontier would be false; the pending-link qualification is essential. -/
+def PendingPremisesCovered (certificate : Certificate)
+    (state : UnificationState) : Prop :=
+  ∀ {link : Link}, link ∈ certificate.links →
+    match link with
+    | .axiom _ _ => True
+    | .par left right conclusion
+    | .tensor left right conclusion =>
+        state.marks[conclusion]? = some none →
+          ∀ {premise token : Nat}, premise ∈ [left, right] →
+            state.tokenAt? premise = some token →
+              ∃ component,
+                state.componentAt? token = some component ∧
+                  premise ∈ component.frontier
+
 /-- Every component returned through the representative-indexed lookup
 inherits the state's stored-component formula invariant. -/
 theorem ComponentsFormulaConsistent.componentAt
@@ -1927,6 +1968,79 @@ private def pickVertex? : List Vertex → Vertex →
       else do
         let (index, remaining) ← pickVertex? tail vertex
         pure (index + 1, head :: remaining)
+
+/-- The occurrence picker succeeds exactly by deleting the selected first
+occurrence from the frontier.  Recording the remainder explicitly lets the
+scheduler layer prove that a distinct second premise is still available. -/
+private theorem pickVertex?_remaining_eq_erase
+    {source remaining : List Vertex} {vertex index : Nat}
+    (picked :
+      pickVertex? source vertex = some (index, remaining)) :
+    remaining = source.erase vertex := by
+  induction source generalizing index remaining with
+  | nil =>
+      simp [pickVertex?] at picked
+  | cons head tail induction =>
+      by_cases same : head = vertex
+      · subst head
+        simp [pickVertex?] at picked
+        simpa using picked.2.symm
+      · cases tailPicked : pickVertex? tail vertex with
+        | none =>
+            simp [pickVertex?, same, tailPicked] at picked
+        | some result =>
+            rcases result with ⟨tailIndex, tailRemaining⟩
+            simp [pickVertex?, same, tailPicked] at picked
+            rcases picked with ⟨indexEquation, remainingEquation⟩
+            subst index
+            subst remaining
+            rw [induction tailPicked]
+            simp [same]
+
+/-- Every listed occurrence can be selected by the executable frontier
+picker. -/
+private theorem pickVertex?_exists_of_mem
+    {source : List Vertex} {vertex : Nat}
+    (membership : vertex ∈ source) :
+    ∃ index remaining,
+      pickVertex? source vertex = some (index, remaining) := by
+  induction source with
+  | nil =>
+      simp at membership
+  | cons head tail induction =>
+      by_cases same : head = vertex
+      · subst head
+        exact ⟨0, tail, by simp [pickVertex?]⟩
+      · have inTail : vertex ∈ tail := by
+          have reverseDifferent : vertex ≠ head := Ne.symm same
+          simpa [reverseDifferent] using membership
+        rcases induction inTail with
+          ⟨index, remaining, picked⟩
+        exact ⟨index + 1, head :: remaining, by
+          simp [pickVertex?, same, picked]⟩
+
+/-- Two distinct listed occurrences can be selected in sequence. -/
+private theorem pickVertex?_two_of_mem
+    {source : List Vertex} {left right : Nat}
+    (different : left ≠ right)
+    (leftMembership : left ∈ source)
+    (rightMembership : right ∈ source) :
+    ∃ leftIndex afterLeft rightIndex context,
+      pickVertex? source left = some (leftIndex, afterLeft) ∧
+        pickVertex? afterLeft right =
+          some (rightIndex, context) := by
+  rcases pickVertex?_exists_of_mem leftMembership with
+    ⟨leftIndex, afterLeft, leftPicked⟩
+  have afterEquation :
+      afterLeft = source.erase left :=
+    pickVertex?_remaining_eq_erase leftPicked
+  have rightAfter : right ∈ afterLeft := by
+    rw [afterEquation]
+    exact (List.mem_erase_of_ne different.symm).2 rightMembership
+  rcases pickVertex?_exists_of_mem rightAfter with
+    ⟨rightIndex, context, rightPicked⟩
+  exact ⟨leftIndex, afterLeft, rightIndex, context,
+    leftPicked, rightPicked⟩
 
 /-- Mapping formula labels commutes with the occurrence-oriented frontier
 picker, and the returned focus index selects the mapped formula at exactly the
@@ -2471,6 +2585,51 @@ private def firePar? (state : UnificationState)
                         (some nextComponent)
                   }
 
+/-- Frontier coverage makes a guard-ready par firing operationally total.
+This isolates the only extra invariant needed to turn the scheduler's token
+classification into an actual parser step: both distinct premise occurrences
+must still be present in their shared live component. -/
+private theorem firePar?_exists_of_ready
+    {certificate : Certificate} {state : UnificationState}
+    (covered : state.PendingPremisesCovered certificate)
+    {left right conclusion token : Nat}
+    (linkMembership :
+      Link.par left right conclusion ∈ certificate.links)
+    (different : left ≠ right)
+    (conclusionReady : state.marks[conclusion]? = some none)
+    (leftReady : state.tokenAt? left = some token)
+    (rightReady : state.tokenAt? right = some token) :
+    ∃ next,
+      firePar? state left right conclusion = some next := by
+  have forwardReady :
+      state.forwardToken? left right conclusion = some token := by
+    simp [UnificationState.forwardToken?, conclusionReady,
+      leftReady, rightReady]
+  have pendingCoverage :
+      ∀ {premise token : Nat}, premise ∈ [left, right] →
+        state.tokenAt? premise = some token →
+          ∃ component,
+            state.componentAt? token = some component ∧
+              premise ∈ component.frontier :=
+    covered linkMembership conclusionReady
+  rcases pendingCoverage (premise := left) (token := token)
+      (by simp) leftReady with
+    ⟨leftComponent, leftComponentLookup, leftMembership⟩
+  rcases pendingCoverage (premise := right) (token := token)
+      (by simp) rightReady with
+    ⟨rightComponent, rightComponentLookup, rightMembership⟩
+  have componentEquation : rightComponent = leftComponent := by
+    rw [leftComponentLookup] at rightComponentLookup
+    injection rightComponentLookup with equality
+    exact equality.symm
+  subst rightComponent
+  rcases pickVertex?_two_of_mem different
+      leftMembership rightMembership with
+    ⟨leftIndex, afterLeft, rightIndex, context,
+      leftPicked, rightPicked⟩
+  simp [firePar?, forwardReady, leftComponentLookup,
+    leftPicked, rightPicked]
+
 /-- Successful par component construction changes the abstract executable
 state exactly by the already verified conclusion-marking update. -/
 private theorem firePar?_success_observation
@@ -2495,6 +2654,21 @@ private theorem firePar?_success_observation
         · injection equation with stateEquation
           subst next
           exact ⟨rfl, rfl⟩
+
+/-- Every successful in-domain par firing visibly marks its conclusion. -/
+private theorem firePar?_success_conclusion_marked
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion : Vertex}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (equation : firePar? state left right conclusion = some next) :
+    next.assignedToken? conclusion ≠ none := by
+  rcases firePar?_success_observation equation with
+    ⟨outputToken, _forwardEquation, observation⟩
+  unfold UnificationState.assignedToken?
+  rw [← observation.marks]
+  simp [UnificationState.markConclusion, conclusionBound,
+    abstractable.markArraySize]
 
 /-- A successful well-typed par firing replaces one live component with the
 formula-consistent par derivation built from its selected frontier
@@ -2650,6 +2824,46 @@ private def fireTensor? (state : UnificationState)
                             |>.setIfInBounds retired none
                       }
 
+/-- Frontier coverage makes a guard-ready tensor firing operationally total.
+The two distinct current representatives expose the two concrete premise
+occurrences in their respective live components. -/
+private theorem fireTensor?_exists_of_ready
+    {certificate : Certificate} {state : UnificationState}
+    (covered : state.PendingPremisesCovered certificate)
+    {left right conclusion leftToken rightToken : Nat}
+    (linkMembership :
+      Link.tensor left right conclusion ∈ certificate.links)
+    (conclusionReady : state.marks[conclusion]? = some none)
+    (leftReady : state.tokenAt? left = some leftToken)
+    (rightReady : state.tokenAt? right = some rightToken)
+    (different : leftToken ≠ rightToken) :
+    ∃ next,
+      fireTensor? state left right conclusion = some next := by
+  have unifyReady :
+      state.unifyTokens? left right conclusion =
+        some (leftToken, rightToken) := by
+    simp [UnificationState.unifyTokens?, conclusionReady,
+      leftReady, rightReady, different]
+  have pendingCoverage :
+      ∀ {premise token : Nat}, premise ∈ [left, right] →
+        state.tokenAt? premise = some token →
+          ∃ component,
+            state.componentAt? token = some component ∧
+              premise ∈ component.frontier :=
+    covered linkMembership conclusionReady
+  rcases pendingCoverage (premise := left) (token := leftToken)
+      (by simp) leftReady with
+    ⟨leftComponent, leftComponentLookup, leftMembership⟩
+  rcases pendingCoverage (premise := right) (token := rightToken)
+      (by simp) rightReady with
+    ⟨rightComponent, rightComponentLookup, rightMembership⟩
+  rcases pickVertex?_exists_of_mem leftMembership with
+    ⟨leftIndex, leftContext, leftPicked⟩
+  rcases pickVertex?_exists_of_mem rightMembership with
+    ⟨rightIndex, rightContext, rightPicked⟩
+  simp [fireTensor?, unifyReady, leftComponentLookup,
+    rightComponentLookup, leftPicked, rightPicked]
+
 /-- Successful tensor component construction changes the observable state
 exactly by the token-semantic mark-and-parent update selected by the two
 distinct representatives. -/
@@ -2677,9 +2891,24 @@ private theorem fireTensor?_success_observation
         · contradiction
         · split at equation
           · contradiction
-          · injection equation with stateEquation
-            subst next
+          · cases equation
             exact ⟨rfl, rfl⟩
+
+/-- Every successful in-domain tensor firing visibly marks its conclusion. -/
+private theorem fireTensor?_success_conclusion_marked
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    {left right conclusion : Vertex}
+    (conclusionBound : conclusion < certificate.formulas.size)
+    (equation : fireTensor? state left right conclusion = some next) :
+    next.assignedToken? conclusion ≠ none := by
+  rcases fireTensor?_success_observation equation with
+    ⟨leftToken, rightToken, _unifyEquation, observation⟩
+  unfold UnificationState.assignedToken?
+  rw [← observation.marks]
+  simp [UnificationState.mergeConclusion,
+    UnificationState.setParent, UnificationState.markConclusion,
+    conclusionBound, abstractable.markArraySize]
 
 /-- A successful well-typed tensor firing replaces the surviving component
 with the exact combined tensor derivation and clears the retired slot, while
@@ -3877,6 +4106,16 @@ private def enqueueConsumers (consumers : Array (List Nat))
           enqueueWorklist .dependency index next)
         state
 
+/-- Dependency fan-out changes only scheduler fields. -/
+@[simp] private theorem enqueueConsumers_core
+    (consumers : Array (List Nat)) (conclusion : Vertex)
+    (state : UnificationWorklistState) :
+    (enqueueConsumers consumers conclusion state).core = state.core := by
+  unfold enqueueConsumers
+  split
+  · rfl
+  · simp
+
 /-- Marking fan-out cannot lose previously covered work, regardless of which
 consumer indices are present. Exactness of the consumer table is a separate
 obligation used to show that all newly enabled links are added. -/
@@ -3929,6 +4168,13 @@ private def addWaiting (index : Nat)
       waiting := index :: state.waiting
       waitingFlags := state.waitingFlags.setIfInBounds index true }
 
+/-- Waiting registration changes only scheduler fields. -/
+@[simp] private theorem addWaiting_core
+    (index : Nat) (state : UnificationWorklistState) :
+    (addWaiting index state).core = state.core := by
+  unfold addWaiting
+  split <;> rfl
+
 /-- Waiting registration preserves the waiting-flag carrier. -/
 @[simp] private theorem addWaiting_waitingFlags_size
     (index : Nat) (state : UnificationWorklistState) :
@@ -3936,6 +4182,14 @@ private def addWaiting (index : Nat)
       state.waitingFlags.size := by
   unfold addWaiting
   split <;> simp
+
+/-- Waiting registration leaves the queue-flag carrier unchanged. -/
+@[simp] private theorem addWaiting_queued_size
+    (index : Nat) (state : UnificationWorklistState) :
+    (addWaiting index state).queued.size =
+      state.queued.size := by
+  unfold addWaiting
+  split <;> rfl
 
 /-- Waiting registration does not change queue flags or the real queue. -/
 private theorem QueueFlagSound.addWaiting
@@ -4059,6 +4313,13 @@ private def requeueWaiting (linkCount : Nat)
   waiting.foldl
     (fun next index => enqueueWorklist .waiting index next)
     cleared
+
+/-- Requeueing waiting pars changes only scheduler fields. -/
+@[simp] private theorem requeueWaiting_core
+    (linkCount : Nat) (state : UnificationWorklistState) :
+    (requeueWaiting linkCount state).core = state.core := by
+  unfold requeueWaiting
+  simp
 
 /-- Clearing the waiting registry and enqueueing all of its former members
 preserves sound deduplication flags. -/
@@ -4464,6 +4725,12 @@ private def recordWorklistFiring (state : UnificationWorklistState) :
       { state.stats with
         successfulFirings := state.stats.successfulFirings + 1 } }
 
+/-- Recording a successful scheduler event leaves the parser core unchanged. -/
+@[simp] private theorem recordWorklistFiring_core
+    (state : UnificationWorklistState) :
+    (recordWorklistFiring state).core = state.core :=
+  rfl
+
 private def processWorklistLink (certificate : Certificate)
     (consumers : Array (List Nat)) (index : Nat)
     (state : UnificationWorklistState) : UnificationWorklistState :=
@@ -4496,6 +4763,176 @@ private def processWorklistLink (certificate : Certificate)
                   requeueWaiting certificate.links.length fired
                 enqueueConsumers consumers conclusion requeued
       | _, _ => state
+
+/-- Processing a concrete submitted connective always reclassifies that
+specific popped link: it fires, stays idle, becomes a registered waiting par,
+or exposes a tensor deadlock.  The only operational-totality premise beyond
+the token/array invariants is exact coverage of marked premises for pending
+links.  Whole-scheduler preservation additionally has to transport every
+*other* connective across this core update. -/
+private theorem processWorklistLink_processed_status
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {link : Link} {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    (premisesCovered :
+      state.core.PendingPremisesCovered certificate)
+    (waitingSound : WaitingFlagSound state)
+    (queueSize :
+      state.queued.size = certificate.links.length)
+    (waitingFlagSize :
+      state.waitingFlags.size = state.queued.size)
+    (lookup : certificate.links[index]? = some link)
+    (connective : link.isConnective = true) :
+    ConnectiveSchedulerStatus
+      (processWorklistLink certificate consumers index state)
+      index link := by
+  have linkMembership : link ∈ certificate.links :=
+    List.mem_of_getElem? lookup
+  have linkBound : index < certificate.links.length :=
+    (List.getElem?_eq_some_iff.mp lookup).1
+  have queueBound : index < state.queued.size := by
+    simpa [queueSize] using linkBound
+  have waitingBound : index < state.waitingFlags.size := by
+    simpa [waitingFlagSize] using queueBound
+  cases link with
+  | «axiom» left right =>
+      simp [Link.isConnective] at connective
+  | «par» left right conclusion =>
+      have wellFormed :
+          certificate.LinkWellFormed
+            (.par left right conclusion) :=
+        structural.2.2.2.2.1 _ linkMembership
+      rcases wellFormed with
+        ⟨premisesDifferent, _leftConclusionDifferent,
+          _rightConclusionDifferent, _leftBound, _rightBound,
+          conclusionBound, _typing⟩
+      cases leftLookup :
+          state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using
+            (ConnectiveSchedulerStatus.idlePar
+              (state := state) (index := index)
+              (conclusion := conclusion) (Or.inl leftLookup))
+      | some leftToken =>
+          cases rightLookup :
+              state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using
+                (ConnectiveSchedulerStatus.idlePar
+                  (state := state) (index := index)
+                  (conclusion := conclusion) (Or.inr rightLookup))
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                cases firing :
+                    firePar? state.core left right conclusion with
+                | none =>
+                    have conclusionMarked :
+                        state.core.assignedToken? conclusion ≠ none := by
+                      intro unassigned
+                      have conclusionReady :=
+                        abstractable.markSlotReady_of_unassigned
+                          conclusionBound unassigned
+                      rcases firePar?_exists_of_ready
+                          premisesCovered linkMembership
+                          premisesDifferent conclusionReady
+                          leftLookup rightLookup with
+                        ⟨next, success⟩
+                      rw [firing] at success
+                      contradiction
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing] using
+                      (ConnectiveSchedulerStatus.firedPar
+                        (state := state) (index := index)
+                        conclusionMarked)
+                | some nextCore =>
+                    have conclusionMarked :
+                        nextCore.assignedToken? conclusion ≠ none :=
+                      firePar?_success_conclusion_marked
+                        abstractable conclusionBound firing
+                    apply ConnectiveSchedulerStatus.firedPar
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, firing] using conclusionMarked
+              · have different : leftToken ≠ rightToken := same
+                have registered :
+                    index ∈
+                      (addWaiting index state).waiting :=
+                  waitingSound.mem_addWaiting waitingBound
+                have status :
+                    ConnectiveSchedulerStatus
+                      (addWaiting index state) index
+                      (.par left right conclusion) := by
+                  apply ConnectiveSchedulerStatus.waitingPar
+                  · simpa using leftLookup
+                  · simpa using rightLookup
+                  · exact different
+                  · exact registered
+                  · simpa using queueBound
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup, same] using status
+  | «tensor» left right conclusion =>
+      have wellFormed :
+          certificate.LinkWellFormed
+            (.tensor left right conclusion) :=
+        structural.2.2.2.2.1 _ linkMembership
+      rcases wellFormed with
+        ⟨_premisesDifferent, _leftConclusionDifferent,
+          _rightConclusionDifferent, _leftBound, _rightBound,
+          conclusionBound, _typing⟩
+      cases leftLookup :
+          state.core.tokenAt? left with
+      | none =>
+          simpa [processWorklistLink, lookup, leftLookup] using
+            (ConnectiveSchedulerStatus.idleTensor
+              (state := state) (index := index)
+              (conclusion := conclusion) (Or.inl leftLookup))
+      | some leftToken =>
+          cases rightLookup :
+              state.core.tokenAt? right with
+          | none =>
+              simpa [processWorklistLink, lookup, leftLookup,
+                rightLookup] using
+                (ConnectiveSchedulerStatus.idleTensor
+                  (state := state) (index := index)
+                  (conclusion := conclusion) (Or.inr rightLookup))
+          | some rightToken =>
+              by_cases same : leftToken = rightToken
+              · subst rightToken
+                simpa [processWorklistLink, lookup, leftLookup,
+                  rightLookup] using
+                  (ConnectiveSchedulerStatus.tensorDeadlock
+                    (state := state) (index := index)
+                    leftLookup rightLookup)
+              · cases firing :
+                    fireTensor? state.core left right conclusion with
+                | none =>
+                    have conclusionMarked :
+                        state.core.assignedToken? conclusion ≠ none := by
+                      intro unassigned
+                      have conclusionReady :=
+                        abstractable.markSlotReady_of_unassigned
+                          conclusionBound unassigned
+                      rcases fireTensor?_exists_of_ready
+                          premisesCovered linkMembership conclusionReady
+                          leftLookup rightLookup same with
+                        ⟨next, success⟩
+                      rw [firing] at success
+                      contradiction
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing] using
+                      (ConnectiveSchedulerStatus.firedTensor
+                        (state := state) (index := index)
+                        conclusionMarked)
+                | some nextCore =>
+                    have conclusionMarked :
+                        nextCore.assignedToken? conclusion ≠ none :=
+                      fireTensor?_success_conclusion_marked
+                        abstractable conclusionBound firing
+                    apply ConnectiveSchedulerStatus.firedTensor
+                    simpa [processWorklistLink, lookup, leftLookup,
+                      rightLookup, same, firing] using conclusionMarked
 
 /-- Event-driven saturation. Initial arming and newly marked premises enqueue
 only dependent links. A tensor union requeues the current waiting par set.

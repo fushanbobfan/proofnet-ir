@@ -12,8 +12,13 @@
   registration, and whole waiting-par requeue. Real queue and waiting
   registries are proved in-bounds, waiting deduplication is separately sound,
   and popping a real head preserves queue soundness/bounds after clearing
-  that exact flag. Process-step and complete-run coverage remain open, so
-  pure-worklist completeness is still not claimed;
+  that exact flag. A pending-premise frontier invariant now avoids the false
+  claim that consumed but permanently marked premises remain exposed; under
+  this exact invariant, guard-ready par/tensor component construction is
+  total, and processing the popped connective always reclassifies it as
+  fired, idle, registered waiting, or tensor-deadlocked. Transporting every
+  other connective across that core update and complete-run coverage remain
+  open, so pure-worklist completeness is still not claimed;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
