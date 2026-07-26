@@ -128,8 +128,13 @@ boundary orientations retain exact scheduler classifications. The global
 progress argument now also retains the globally minimum-complexity unassigned
 waiting conclusion. Strict premise descent normalizes each boundary to a
 target rank above that minimum or another exact registered distinct-thread
-par. It must exclude this rank-normalized path chase in a correct quiescent
-state.
+par. The general chase now retains a composable proof object containing the
+exact submitted source connective and selected premise at every downward
+step, rather than discarding the structural route after deriving its endpoint
+rank. Iterating the resulting dependency on the finite formula carrier
+produces a concrete nonempty closed segment. It must still convert that
+closed structural chase into and exclude a switching-tree cycle or forbidden
+nesting in a correct quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
@@ -138,8 +143,9 @@ cap is no longer merely imposed by fuel: its scheduler sufficiency is proved.
 That result now rules out tensor deadlock on a correct nonfinal net and
 identifies the remaining waiting par as an exact active-component separation;
 the separation is now localized to a conclusion-avoiding reference path with
-a genuine unmarked internal occurrence. The global correct-state progress
-theorem remains open.
+a genuine unmarked internal occurrence, and every subsequent formula chase
+retains all exact connective/premise steps through its terminal waiting par.
+The global correct-state progress theorem remains open.
 
 Lean currently proves:
 

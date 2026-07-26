@@ -502,6 +502,10 @@
     - [x] Extract one concrete nonempty closed dependency segment with
       `earlier < later ≤ formulas.size`, equal endpoint conclusions, every
       chain vertex registered as waiting, and all interval-edge witnesses.
+    - [x] Retain the exact source connective and selected premise at every
+      formula-descent step inside each dependency; prove that these paths
+      compose, are complexity-nonincreasing, and are strictly decreasing when
+      nontrivial.
     - [ ] Convert the repeated dependency segment into an exact
       switching-tree cycle or forbidden nesting and exclude the remaining
       path-exposed waiting-par obstruction.

@@ -186,8 +186,12 @@ part of the engineering and proof-identity gap.
    inactive block:
    every intervening traversed occurrence has two unmarked endpoints and both
    boundary orientations retain their exact scheduler classifications.
-   Excluding that block, pure worklist completeness, and a full cost theorem
-   remain open.
+   Every terminating formula chase now also retains a composable sequence of
+   exact source-connective/premise steps. Iteration on the finite formula
+   carrier yields a concrete nonempty closed waiting-dependency segment with
+   every structural chase preserved. Converting that segment into an exact
+   switching-tree cycle or forbidden nesting, pure worklist completeness, and
+   a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

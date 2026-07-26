@@ -162,8 +162,12 @@ registered distinct-token par, or an unassigned opposite tensor premise at
 both sides. A first-reentry suffix cut further proves that every traversed
 occurrence strictly between the selected boundaries has two unmarked
 endpoints. The resulting contiguous path-exposed inactive block has not yet
-been excluded; this is not yet the correct-state progress theorem needed for
-pure-worklist completeness. The
+been excluded. Current development does retain every exact submitted
+source-connective/premise step in the terminating formula chase and stores
+that composable path inside each edge of a finite closed waiting-dependency
+segment. The remaining gap is to turn those structural paths into a forbidden
+switching-tree cycle or nesting; this is not yet the correct-state progress
+theorem needed for pure-worklist completeness. The
 attempt accounting also excludes consumer-table construction, waiting-list
 traversal, frontier work, and verification.
 

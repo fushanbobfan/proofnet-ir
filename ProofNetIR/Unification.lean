@@ -13643,6 +13643,81 @@ private def QuiescentWaitingParAt
             leftToken ≠ rightToken ∧
               index ∈ state.waiting
 
+/-- One exact downward step in the formula forest.  Besides the strict
+complexity decrease used for termination, the witness retains the source
+connective and the selected premise needed by the later geometric
+argument. -/
+private def FormulaPremiseStep
+    (certificate : Certificate)
+    (parent child : Vertex) : Prop :=
+  ∃ (index : Nat) (link : Link),
+    certificate.links[index]? = some link ∧
+      link.produces parent = true ∧
+        child ∈ link.premises ∧
+          certificate.formulaComplexityAt child <
+            certificate.formulaComplexityAt parent
+
+/-- Reflexive-transitive formula-premise descent with every structural step
+retained as proof data. -/
+private inductive FormulaPremiseReachable
+    (certificate : Certificate) : Vertex → Vertex → Prop
+  | refl (vertex : Vertex) :
+      FormulaPremiseReachable certificate vertex vertex
+  | step {parent child target : Vertex} :
+      FormulaPremiseStep certificate parent child →
+        FormulaPremiseReachable certificate child target →
+          FormulaPremiseReachable certificate parent target
+
+/-- Explicit formula-premise descent never increases formula complexity. -/
+private theorem FormulaPremiseReachable.complexity_le
+    {certificate : Certificate}
+    {parent target : Vertex}
+    (reachable :
+      FormulaPremiseReachable certificate parent target) :
+    certificate.formulaComplexityAt target ≤
+      certificate.formulaComplexityAt parent := by
+  induction reachable with
+  | refl vertex =>
+      exact Nat.le_refl _
+  | step premiseStep _ induction =>
+      rcases premiseStep with
+        ⟨_index, _link, _lookup, _produces, _premise, strict⟩
+      exact Nat.le_trans induction (Nat.le_of_lt strict)
+
+/-- Exact formula-premise paths compose without erasing their intermediate
+connective witnesses. -/
+private theorem FormulaPremiseReachable.trans
+    {certificate : Certificate}
+    {first middle last : Vertex}
+    (initialPath :
+      FormulaPremiseReachable certificate first middle)
+    (suffix :
+      FormulaPremiseReachable certificate middle last) :
+    FormulaPremiseReachable certificate first last := by
+  induction initialPath with
+  | refl _ =>
+      exact suffix
+  | step premiseStep _ induction =>
+      exact FormulaPremiseReachable.step premiseStep (induction suffix)
+
+/-- A nontrivial formula-premise path decreases formula complexity
+strictly. -/
+private theorem FormulaPremiseReachable.complexity_lt_of_ne
+    {certificate : Certificate}
+    {parent target : Vertex}
+    (reachable :
+      FormulaPremiseReachable certificate parent target)
+    (different : parent ≠ target) :
+    certificate.formulaComplexityAt target <
+      certificate.formulaComplexityAt parent := by
+  cases reachable with
+  | refl vertex =>
+      exact False.elim (different rfl)
+  | step premiseStep suffix =>
+      rcases premiseStep with
+        ⟨_index, _link, _lookup, _produces, _premise, strict⟩
+      exact Nat.lt_of_le_of_lt suffix.complexity_le strict
+
 /-- The well-founded local alternative for an arbitrary unassigned formula:
 strict descent to an unassigned premise or arrival at a registered waiting
 par. -/
@@ -13654,7 +13729,9 @@ private def UnassignedFormulaDescentOrWaitingPar
       blockedPremise < certificate.formulas.size ∧
         state.core.assignedToken? blockedPremise = none ∧
           certificate.formulaComplexityAt blockedPremise <
-            certificate.formulaComplexityAt vertex) ∨
+            certificate.formulaComplexityAt vertex ∧
+              FormulaPremiseStep
+                certificate vertex blockedPremise) ∨
     QuiescentWaitingParAt certificate state vertex
 
 /-- In a correct quiescent canonical run, every unassigned occurrence admits
@@ -13781,10 +13858,16 @@ private theorem canonicalWorklistRun_unassigned_descends_or_waitingPar
         · rcases idle with leftIdle | rightIdle
           · exact .inl
               ⟨left, wellFormed.2.2.2.1,
-                assignedNoneOfTokenNone leftIdle, leftRank⟩
+                assignedNoneOfTokenNone leftIdle, leftRank,
+                index, .par left right vertex, linkLookup,
+                by simp [Link.produces],
+                by simp [Link.premises], leftRank⟩
           · exact .inl
               ⟨right, wellFormed.2.2.2.2.1,
-                assignedNoneOfTokenNone rightIdle, rightRank⟩
+                assignedNoneOfTokenNone rightIdle, rightRank,
+                index, .par left right vertex, linkLookup,
+                by simp [Link.produces],
+                by simp [Link.premises], rightRank⟩
         · rcases waiting with
             ⟨leftToken, rightToken, leftMarked, rightMarked,
               different, registered⟩
@@ -13816,10 +13899,16 @@ private theorem canonicalWorklistRun_unassigned_descends_or_waitingPar
         · rcases idle with leftIdle | rightIdle
           · exact .inl
               ⟨left, wellFormed.2.2.2.1,
-                assignedNoneOfTokenNone leftIdle, leftRank⟩
+                assignedNoneOfTokenNone leftIdle, leftRank,
+                index, .tensor left right vertex, linkLookup,
+                by simp [Link.produces],
+                by simp [Link.premises], leftRank⟩
           · exact .inl
               ⟨right, wellFormed.2.2.2.2.1,
-                assignedNoneOfTokenNone rightIdle, rightRank⟩
+                assignedNoneOfTokenNone rightIdle, rightRank,
+                index, .tensor left right vertex, linkLookup,
+                by simp [Link.produces],
+                by simp [Link.premises], rightRank⟩
         · rcases deadlock with
             ⟨token, leftMarked, rightMarked⟩
           exact False.elim
@@ -13903,7 +13992,7 @@ private theorem canonicalWorklistRun_unassigned_reaches_waitingPar
         rcases alternative with descent | waiting
         · rcases descent with
             ⟨blockedPremise, blockedBound, blockedUnassigned,
-              strictDescent⟩
+              strictDescent, _premiseStep⟩
           have blockedRank :
               certificate.formulaComplexityAt blockedPremise < rank := by
             simpa [rankEquation] using strictDescent
@@ -13918,6 +14007,78 @@ private theorem canonicalWorklistRun_unassigned_reaches_waitingPar
                 (Nat.le_of_lt blockedRank)⟩
         · exact
             ⟨vertex, waiting, by simp [rankEquation]⟩
+  intro vertex vertexBound vertexUnassigned
+  exact
+    general (certificate.formulaComplexityAt vertex) vertex rfl
+      vertexBound vertexUnassigned
+
+/-- The well-founded unassigned-formula chase retains the complete sequence
+of exact formula-premise steps, rather than only its endpoint rank. -/
+private theorem
+    canonicalWorklistRun_unassigned_reaches_waitingPar_with_path
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {vertex : Vertex},
+      vertex < certificate.formulas.size →
+        final.core.assignedToken? vertex = none →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              FormulaPremiseReachable
+                certificate vertex conclusion := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {vertex : Vertex},
+      vertex < certificate.formulas.size →
+        final.core.assignedToken? vertex = none →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              FormulaPremiseReachable certificate vertex conclusion
+  have general :
+      ∀ rank vertex,
+        certificate.formulaComplexityAt vertex = rank →
+          vertex < certificate.formulas.size →
+            final.core.assignedToken? vertex = none →
+              ∃ conclusion,
+                QuiescentWaitingParAt certificate final conclusion ∧
+                  FormulaPremiseReachable
+                    certificate vertex conclusion := by
+    intro rank
+    induction rank using Nat.strongRecOn with
+    | ind rank induction =>
+        intro vertex rankEquation vertexBound vertexUnassigned
+        have alternative :=
+          canonicalWorklistRun_unassigned_descends_or_waitingPar
+            correct startEquation vertexBound vertexUnassigned
+        rcases alternative with descent | waiting
+        · rcases descent with
+            ⟨blockedPremise, blockedBound, blockedUnassigned,
+              strictDescent, premiseStep⟩
+          have blockedRank :
+              certificate.formulaComplexityAt blockedPremise < rank := by
+            simpa [rankEquation] using strictDescent
+          rcases induction
+              (certificate.formulaComplexityAt blockedPremise)
+              blockedRank blockedPremise rfl blockedBound
+              blockedUnassigned with
+            ⟨conclusion, reached, reachable⟩
+          exact
+            ⟨conclusion, reached,
+              FormulaPremiseReachable.step premiseStep reachable⟩
+        · exact
+            ⟨vertex, waiting,
+              FormulaPremiseReachable.refl vertex⟩
   intro vertex vertexBound vertexUnassigned
   exact
     general (certificate.formulaComplexityAt vertex) vertex rfl
@@ -14616,7 +14777,9 @@ private def PathFrontierDescentOrWaitingPar
       blockedPremise < certificate.formulas.size ∧
         state.core.assignedToken? blockedPremise = none ∧
           certificate.formulaComplexityAt blockedPremise <
-            certificate.formulaComplexityAt boundary.target) ∨
+            certificate.formulaComplexityAt boundary.target ∧
+              FormulaPremiseStep
+                certificate boundary.target blockedPremise) ∨
     ∃ (index left right conclusion leftToken rightToken : Nat),
       certificate.links[index]? =
           some (.par left right conclusion) ∧
@@ -14657,6 +14820,10 @@ private theorem pathFrontierSchedulerObstruction_descent_or_waitingPar
             (premise := right) (by simp [Link.premises])
       exact .inl
         ⟨right, wellFormed.2.2.2.2.1, rightUnassigned,
+          by simpa [targetEquation] using rightRank,
+          index, .par left right conclusion, linkLookup,
+          by simp [targetEquation, Link.produces],
+          by simp [Link.premises],
           by simpa [targetEquation] using rightRank⟩
     · rcases waiting with
         ⟨leftToken, rightToken, leftMarked, rightMarked,
@@ -14686,6 +14853,10 @@ private theorem pathFrontierSchedulerObstruction_descent_or_waitingPar
             (premise := right) (by simp [Link.premises])
       exact .inl
         ⟨right, wellFormed.2.2.2.2.1, rightUnassigned,
+          by simpa [targetEquation] using rightRank,
+          index, .tensor left right conclusion, linkLookup,
+          by simp [targetEquation, Link.produces],
+          by simp [Link.premises],
           by simpa [targetEquation] using rightRank⟩
     · have leftRank :
           certificate.formulaComplexityAt left <
@@ -14695,6 +14866,10 @@ private theorem pathFrontierSchedulerObstruction_descent_or_waitingPar
             (premise := left) (by simp [Link.premises])
       exact .inl
         ⟨left, wellFormed.2.2.2.1, leftUnassigned,
+          by simpa [targetEquation] using leftRank,
+          index, .tensor left right conclusion, linkLookup,
+          by simp [targetEquation, Link.produces],
+          by simp [Link.premises],
           by simpa [targetEquation] using leftRank⟩
 
 /-- The local frontier alternative cannot descend forever.  Starting from any
@@ -14743,7 +14918,7 @@ private theorem canonicalWorklistRun_pathFrontier_reaches_waitingPar
   rcases alternative with descent | waiting
   · rcases descent with
       ⟨blockedPremise, blockedBound, blockedUnassigned,
-        strictDescent⟩
+        strictDescent, _premiseStep⟩
     rcases canonicalWorklistRun_unassigned_reaches_waitingPar
         correct startEquation blockedBound blockedUnassigned with
       ⟨conclusion, reached, conclusionBound⟩
@@ -14762,6 +14937,71 @@ private theorem canonicalWorklistRun_pathFrontier_reaches_waitingPar
           leftToken, rightToken, linkLookup, leftMarked,
           rightMarked, different, registered⟩,
         Nat.le_refl _⟩
+
+/-- The frontier chase retains the exact downward formula path from the
+unmarked boundary target to the registered waiting-par conclusion. -/
+private theorem
+    canonicalWorklistRun_pathFrontier_reaches_waitingPar_with_path
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge},
+      final.core.assignedToken? boundary.target = none →
+        PathFrontierSchedulerObstruction
+          certificate final boundary →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              FormulaPremiseReachable
+                certificate boundary.target conclusion := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge},
+      final.core.assignedToken? boundary.target = none →
+        PathFrontierSchedulerObstruction
+          certificate final boundary →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              FormulaPremiseReachable
+                certificate boundary.target conclusion
+  intro boundary targetUnassigned obstruction
+  have alternative :=
+    pathFrontierSchedulerObstruction_descent_or_waitingPar
+      correct.1 obstruction
+  rcases alternative with descent | waiting
+  · rcases descent with
+      ⟨blockedPremise, blockedBound, blockedUnassigned,
+        _strictDescent, premiseStep⟩
+    rcases
+        canonicalWorklistRun_unassigned_reaches_waitingPar_with_path
+          correct startEquation blockedBound blockedUnassigned with
+      ⟨conclusion, reached, reachable⟩
+    exact
+      ⟨conclusion, reached,
+        FormulaPremiseReachable.step premiseStep reachable⟩
+  · rcases waiting with
+      ⟨index, left, right, conclusion, leftToken, rightToken,
+        linkLookup, _sourceEquation, targetEquation,
+        leftMarked, rightMarked, different, registered⟩
+    subst conclusion
+    exact
+      ⟨boundary.target,
+        ⟨targetUnassigned, index, left, right,
+          leftToken, rightToken, linkLookup, leftMarked,
+          rightMarked, different, registered⟩,
+        FormulaPremiseReachable.refl boundary.target⟩
 
 /-- Any quiescent forward connective frontier with an assigned source and an
 unassigned conclusion has the exact residual scheduler status recorded by
@@ -14886,11 +15126,13 @@ private def QuiescentWaitingParDependency
                               boundary.target ≠ source ∧
                                 PathFrontierSchedulerObstruction
                                     certificate state boundary ∧
-                                  QuiescentWaitingParAt
-                                      certificate state target ∧
-                                    certificate.formulaComplexityAt target ≤
-                                      certificate.formulaComplexityAt
-                                        boundary.target
+                                  FormulaPremiseReachable
+                                      certificate boundary.target target ∧
+                                    QuiescentWaitingParAt
+                                        certificate state target ∧
+                                      certificate.formulaComplexityAt target ≤
+                                        certificate.formulaComplexityAt
+                                          boundary.target
 
 /-- Every quiescent waiting-par conclusion is an in-bounds formula
 occurrence.  This is the finite carrier used by the dependency-cycle
@@ -14933,8 +15175,8 @@ private theorem quiescentWaitingParDependency_endpoints_bound
       _different, _registered, _pathStarts, _pathFinishes,
       _sourceAvoided, _boundaryMembership, _boundaryToken,
       _boundarySourceAssigned, _boundaryTargetUnassigned,
-      _boundaryTargetNeSource, _frontierStatus, targetWaiting,
-      _targetRank⟩
+      _boundaryTargetNeSource, _frontierStatus, _formulaPath,
+      targetWaiting, _targetRank⟩
   have linkMembership :
       Link.par left right source ∈ certificate.links :=
     List.mem_of_getElem? linkLookup
@@ -14962,8 +15204,8 @@ private theorem quiescentWaitingParDependency_target
       _different, _registered, _pathStarts, _pathFinishes,
       _sourceAvoided, _boundaryMembership, _boundaryToken,
       _boundarySourceAssigned, _boundaryTargetUnassigned,
-      _boundaryTargetNeSource, _frontierStatus, targetWaiting,
-      _targetRank⟩
+      _boundaryTargetNeSource, _frontierStatus, _formulaPath,
+      targetWaiting, _targetRank⟩
   exact targetWaiting
 
 /-- Local finite-list pigeonhole bound used for the waiting dependency
@@ -15241,17 +15483,21 @@ private theorem canonicalWorklistRun_waitingPar_has_dependency
     canonicalWorklistRun_forwardFrontier_status
       correct startEquation boundarySourceAssigned
       boundaryTargetUnassigned boundaryOrigin
-  rcases canonicalWorklistRun_pathFrontier_reaches_waitingPar
+  rcases canonicalWorklistRun_pathFrontier_reaches_waitingPar_with_path
       correct startEquation boundaryTargetUnassigned boundaryStatus with
-    ⟨target, targetWaiting, targetRank⟩
+    ⟨target, targetWaiting, formulaPath⟩
+  have targetRank :
+      certificate.formulaComplexityAt target ≤
+        certificate.formulaComplexityAt boundary.target :=
+    formulaPath.complexity_le
   exact
     ⟨target, index, left, right, leftToken, rightToken, path, boundary,
       linkLookup, sourceUnassigned, leftMarked, rightMarked, different,
       registered, pathStarts, pathFinishes, sourceAvoided,
       boundaryMembership, boundarySourceTokenLookup,
       boundarySourceAssigned, boundaryTargetUnassigned,
-      boundaryTargetNeSource, boundaryStatus, targetWaiting,
-      targetRank⟩
+      boundaryTargetNeSource, boundaryStatus, formulaPath,
+      targetWaiting, targetRank⟩
 
 /-- Serial waiting-par dependency is supported by the explicit finite list
 of formula occurrences. -/
@@ -16413,7 +16659,8 @@ private theorem
       certificate state minimum boundary := by
   rcases alternative with descent | waiting
   · rcases descent with
-      ⟨blockedPremise, blockedBound, blockedUnassigned, strictDescent⟩
+      ⟨blockedPremise, blockedBound, blockedUnassigned,
+        strictDescent, _premiseStep⟩
     exact .inl
       (Nat.lt_of_le_of_lt
         (minimality blockedBound blockedUnassigned)

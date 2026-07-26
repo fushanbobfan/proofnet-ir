@@ -124,8 +124,13 @@
   `earlier < later ≤ formulas.size`, equal endpoint conclusions, registered
   waiting evidence for every chain vertex, and every exact dependency witness
   in the resulting nonempty closed segment. This is only a cycle in the
-  auxiliary waiting-dependency relation. Correctness still must convert it
-  into and exclude an exact switching-tree cycle or forbidden nesting, so
+  auxiliary waiting-dependency relation. The formula chase carried by every
+  dependency now additionally retains every exact source connective and
+  selected premise in a composable reflexive-transitive proof object; Lean
+  proves non-increasing endpoint complexity and strict decrease for every
+  nontrivial such path. Correctness still must convert the closed dependency
+  segment, including these structural descent paths, into and exclude an
+  exact switching-tree cycle or forbidden nesting, so
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

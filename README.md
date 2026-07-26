@@ -66,6 +66,10 @@ kernel-proved to repeat a waiting conclusion. The repetition is also exposed
 as concrete indices `earlier < later ≤ formulas.size`, with equal endpoint
 conclusions, registered-waiting evidence for every chain vertex, and the full
 dependency witness retained on every edge inside the nonempty closed segment.
+The well-founded chase inside each dependency is no longer recorded only by
+an endpoint inequality: Lean now retains a reflexive-transitive sequence of
+exact source-connective/premise steps, and proves that these paths compose,
+never increase formula complexity, and decrease it strictly when nontrivial.
 This is a cycle in the auxiliary waiting-dependency relation only:
 proof-net correctness still must geometrically exclude it as a
 switching-tree cycle or forbidden nesting before the recursive fallback can
