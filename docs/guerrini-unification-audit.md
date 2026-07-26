@@ -88,13 +88,19 @@ forces the canonical final queue to be empty. Scheduler coverage then gives an
 exact witness for every submitted but unfired connective in that quiescent
 state: an idle premise, a distinct-thread registered par, or a same-thread
 tensor deadlock.
+Selecting an unassigned conclusion of least formula complexity now refines
+that result. Structural well-formedness recovers its concrete source link,
+strict premise complexity makes both premises assigned, and the remaining
+witness is therefore an exact submitted distinct-thread waiting par or
+same-thread tensor deadlock.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
 stack, interval partition, or specialized union-find invariant. The attempt
 cap is no longer merely imposed by fuel: its scheduler sufficiency is proved.
-That result does not yet rule out the explicit idle/waiting/deadlock witnesses
-on a correct nonfinal net; the correct-state progress theorem remains open.
+That result does not yet rule out the remaining waiting-par/tensor thread
+obstructions on a correct nonfinal net; the correct-state progress theorem
+remains open.
 
 Lean currently proves:
 

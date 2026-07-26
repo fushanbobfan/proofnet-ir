@@ -160,9 +160,12 @@ part of the engineering and proof-identity gap.
    is sound, its fallback wrapper is exactly equal to `check`, and every run
    is capped at `n(n+4)+1` link attempts. Current `main` proves that this fuel
    exhausts the canonical production queue and classifies every remaining
-   unfired connective by an exact idle/waiting/deadlock witness. Correctness
-   has not yet been connected strongly enough to exclude all those witnesses;
-   pure worklist completeness and a full cost theorem are still open.
+   unfired connective by an exact idle/waiting/deadlock witness. A
+   least-formula-complexity theorem now eliminates idle premises from the
+   incomplete case, leaving an exact submitted distinct-thread waiting par or
+   same-thread tensor deadlock. Correctness has not yet been connected
+   strongly enough to exclude those two witnesses; pure worklist completeness
+   and a full cost theorem are still open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

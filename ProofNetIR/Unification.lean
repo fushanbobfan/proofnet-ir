@@ -1593,6 +1593,23 @@ theorem tokenAt?_some_witness
             rw [lookup]
             rfl, representativeEquation⟩
 
+/-- Every raw-assigned occurrence exposes some current representative token. -/
+theorem tokenAt?_exists_of_assigned
+    {state : UnificationState} {vertex : Vertex}
+    (assigned : state.assignedToken? vertex ≠ none) :
+    ∃ token, state.tokenAt? vertex = some token := by
+  cases lookup : state.assignedToken? vertex with
+  | none =>
+      exact False.elim (assigned lookup)
+  | some rawToken =>
+      have rawLookup :
+          state.marks[vertex]? = some (some rawToken) :=
+        assignedToken?_some_raw lookup
+      exact ⟨state.representative rawToken, by
+        unfold tokenAt?
+        rw [rawLookup]
+        rfl⟩
+
 /-- In an abstractable state, the representative returned by `tokenAt?` lies
 in the same semantic thread as its witnessed raw mark. -/
 theorem Abstractable.tokenAt?_sameThread_witness
@@ -2079,6 +2096,81 @@ end UnificationState
 
 namespace Certificate
 
+/-- Every in-domain formula occurrence has an exact submitted source slot:
+atoms are owned by one axiom endpoint and compounds by one connective
+conclusion.  Returning the list index makes the ownership theorem directly
+usable by the concrete scheduler. -/
+private theorem structurallyWellFormed_sourceLink_exists
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {vertex : Vertex}
+    (vertexBound : vertex < certificate.formulas.size) :
+    ∃ (formula : Formula) (link : Link) (index : Nat),
+      certificate.formula? vertex = some formula ∧
+        certificate.links[index]? = some link ∧
+          match formula with
+          | .atom _ _ =>
+              link.containsAxiomEndpoint vertex = true
+          | .tensor _ _ | .par _ _ =>
+              link.produces vertex = true := by
+  have formulaExists :
+      ∃ formula, certificate.formula? vertex = some formula := by
+    exact
+      ⟨certificate.formulas[vertex],
+        Array.getElem?_eq_getElem vertexBound⟩
+  rcases formulaExists with ⟨formula, formulaLookup⟩
+  have node := structural.2.2.2.2.2 vertex vertexBound
+  cases formula with
+  | atom name positive =>
+      have count : certificate.axiomCount vertex = 1 := by
+        simpa [Certificate.NodeWellFormed, formulaLookup] using node.1
+      unfold Certificate.axiomCount at count
+      rcases List.length_eq_one_iff.mp count with
+        ⟨link, filterEquation⟩
+      have filtered :
+          link ∈ certificate.links.filter
+            (·.containsAxiomEndpoint vertex) := by
+        rw [filterEquation]
+        simp
+      have parts := List.mem_filter.mp filtered
+      rcases List.mem_iff_getElem?.mp parts.1 with
+        ⟨index, linkLookup⟩
+      exact
+        ⟨.atom name positive, link, index,
+          formulaLookup, linkLookup, parts.2⟩
+  | tensor left right =>
+      have count : certificate.producerCount vertex = 1 := by
+        simpa [Certificate.NodeWellFormed, formulaLookup] using node.1
+      unfold Certificate.producerCount at count
+      rcases List.length_eq_one_iff.mp count with
+        ⟨link, filterEquation⟩
+      have filtered :
+          link ∈ certificate.links.filter (·.produces vertex) := by
+        rw [filterEquation]
+        simp
+      have parts := List.mem_filter.mp filtered
+      rcases List.mem_iff_getElem?.mp parts.1 with
+        ⟨index, linkLookup⟩
+      exact
+        ⟨.tensor left right, link, index,
+          formulaLookup, linkLookup, parts.2⟩
+  | par left right =>
+      have count : certificate.producerCount vertex = 1 := by
+        simpa [Certificate.NodeWellFormed, formulaLookup] using node.1
+      unfold Certificate.producerCount at count
+      rcases List.length_eq_one_iff.mp count with
+        ⟨link, filterEquation⟩
+      have filtered :
+          link ∈ certificate.links.filter (·.produces vertex) := by
+        rw [filterEquation]
+        simp
+      have parts := List.mem_filter.mp filtered
+      rcases List.mem_iff_getElem?.mp parts.1 with
+        ⟨index, linkLookup⟩
+      exact
+        ⟨.par left right, link, index,
+          formulaLookup, linkLookup, parts.2⟩
+
 private def initialUnificationState (certificate : Certificate) :
     UnificationState where
   marks := Array.replicate certificate.formulas.size none
@@ -2547,6 +2639,63 @@ private theorem startAxiom?_success_mark_of_ne
   simp [UnificationState.startMarking,
     notLeft.symm, notRight.symm]
 
+/-- A successful concrete axiom start assigns both endpoint occurrences. -/
+private theorem startAxiom?_success_endpoints_assigned
+    {certificate : Certificate} {state next : UnificationState}
+    {left right : Vertex}
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.assignedToken? left ≠ none ∧
+      next.assignedToken? right ≠ none := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨leftReady, rightReady, observation⟩
+  have leftBound : left < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp leftReady).1
+  have rightBound : right < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp rightReady).1
+  constructor
+  · unfold UnificationState.assignedToken?
+    rw [← observation.marks]
+    by_cases same : left = right
+    · subst right
+      simp [UnificationState.startMarking, leftBound]
+    · simp [UnificationState.startMarking, leftBound,
+        Ne.symm same]
+  · unfold UnificationState.assignedToken?
+    rw [← observation.marks]
+    simp [UnificationState.startMarking, rightBound]
+
+/-- A successful axiom start never removes an existing raw assignment. -/
+private theorem startAxiom?_success_preserves_assigned
+    {certificate : Certificate} {state next : UnificationState}
+    {left right vertex : Vertex}
+    (marked : state.assignedToken? vertex ≠ none)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    next.assignedToken? vertex ≠ none := by
+  by_cases isLeft : vertex = left
+  · subst vertex
+    exact (certificate.startAxiom?_success_endpoints_assigned equation).1
+  · by_cases isRight : vertex = right
+    · subst vertex
+      exact
+        (certificate.startAxiom?_success_endpoints_assigned equation).2
+    · cases oldLookup : state.assignedToken? vertex with
+      | none =>
+          exact False.elim (marked oldLookup)
+      | some token =>
+          have oldRaw :
+              state.marks[vertex]? = some (some token) :=
+            UnificationState.assignedToken?_some_raw oldLookup
+          have nextRaw :
+              next.marks[vertex]? = some (some token) := by
+            rw [certificate.startAxiom?_success_mark_of_ne
+              isLeft isRight equation]
+            exact oldRaw
+          unfold UnificationState.assignedToken?
+          rw [nextRaw]
+          simp
+
 /-- During eager initialization, identity representatives make every
 non-endpoint current token stable across one successful axiom start. -/
 private theorem startAxiom?_success_tokenAt?_of_ne
@@ -2956,6 +3105,92 @@ private def startAxioms? (certificate : Certificate) :
       certificate.startAxioms? links next
   | _ :: links, state =>
       certificate.startAxioms? links state
+
+/-- Eager initialization is monotone on raw formula assignments. -/
+private theorem startAxioms?_success_preserves_assigned
+    (certificate : Certificate)
+    {links : List Link} {state next : UnificationState}
+    {vertex : Vertex}
+    (marked : state.assignedToken? vertex ≠ none)
+    (equation :
+      certificate.startAxioms? links state = some next) :
+    next.assignedToken? vertex ≠ none := by
+  induction links generalizing state with
+  | nil =>
+      simp [startAxioms?] at equation
+      subst next
+      exact marked
+  | cons link links induction =>
+      cases link with
+      | «axiom» left right =>
+          simp only [startAxioms?] at equation
+          cases startEquation :
+              certificate.startAxiom? state left right with
+          | none =>
+              rw [startEquation] at equation
+              contradiction
+          | some started =>
+              rw [startEquation] at equation
+              exact induction
+                (certificate.startAxiom?_success_preserves_assigned
+                  marked startEquation)
+                equation
+      | «par» left right conclusion =>
+          simp only [startAxioms?] at equation
+          exact induction marked equation
+      | «tensor» left right conclusion =>
+          simp only [startAxioms?] at equation
+          exact induction marked equation
+
+/-- Every axiom endpoint occurring in a successfully initialized submitted
+list remains assigned after the entire eager initialization. -/
+private theorem startAxioms?_success_axiom_endpoints_assigned
+    (certificate : Certificate)
+    {links : List Link} {state next : UnificationState}
+    {left right : Vertex}
+    (membership : Link.axiom left right ∈ links)
+    (equation :
+      certificate.startAxioms? links state = some next) :
+    next.assignedToken? left ≠ none ∧
+      next.assignedToken? right ≠ none := by
+  induction links generalizing state with
+  | nil =>
+      simp at membership
+  | cons link links induction =>
+      cases link with
+      | «axiom» headLeft headRight =>
+          simp only [startAxioms?] at equation
+          cases startEquation :
+              certificate.startAxiom? state headLeft headRight with
+          | none =>
+              rw [startEquation] at equation
+              contradiction
+          | some started =>
+              rw [startEquation] at equation
+              rcases List.mem_cons.mp membership with
+                head | tail
+              · injection head with leftEquation rightEquation
+                subst left
+                subst right
+                have endpoints :=
+                  certificate.startAxiom?_success_endpoints_assigned
+                    startEquation
+                exact
+                  ⟨certificate.startAxioms?_success_preserves_assigned
+                      endpoints.1 equation,
+                    certificate.startAxioms?_success_preserves_assigned
+                      endpoints.2 equation⟩
+              · exact induction tail equation
+      | «par» headLeft headRight headConclusion =>
+          simp only [startAxioms?] at equation
+          apply induction
+          · simpa using membership
+          · exact equation
+      | «tensor» headLeft headRight headConclusion =>
+          simp only [startAxioms?] at equation
+          apply induction
+          · simpa using membership
+          · exact equation
 
 /-- Successful eager axiom initialization preserves the ordered parent forest
 across the whole submitted link list. -/
@@ -5611,6 +5846,26 @@ private def QuiescentConnectiveObstruction
           ∃ token,
             state.core.tokenAt? left = some token ∧
               state.core.tokenAt? right = some token)
+
+/-- The two genuinely thread-level quiescent obstructions left after choosing
+a minimum-complexity unmarked conclusion.  Idle premises have disappeared:
+a par is blocked by distinct live threads, while a tensor is blocked by one
+shared live thread. -/
+private def QuiescentThreadObstruction
+    (state : UnificationWorklistState) (index : Nat) : Link → Prop
+  | .axiom _ _ => False
+  | .par left right conclusion =>
+      state.core.assignedToken? conclusion = none ∧
+        ∃ leftToken rightToken,
+          state.core.tokenAt? left = some leftToken ∧
+            state.core.tokenAt? right = some rightToken ∧
+              leftToken ≠ rightToken ∧
+                index ∈ state.waiting
+  | .tensor left right conclusion =>
+      state.core.assignedToken? conclusion = none ∧
+        ∃ token,
+          state.core.tokenAt? left = some token ∧
+            state.core.tokenAt? right = some token
 
 /-- Once the concrete queue is empty, scheduler coverage turns every
 submitted but unfired connective into an explicit semantic obstruction.
@@ -10508,6 +10763,100 @@ private theorem processWorklistLink_core_abstractable
                         simpa [processWorklistLink, linkLookup, leftLookup,
                           rightLookup, same, firing] using nextAbstractable
 
+/-- Processing one worklist entry never removes an existing raw formula
+assignment.  Scheduler-only branches leave the executable core unchanged;
+successful connective firings use the conclusion-local monotonicity lemmas. -/
+private theorem processWorklistLink_preserves_assigned
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    {vertex : Vertex}
+    (marked : state.core.assignedToken? vertex ≠ none) :
+    ((processWorklistLink certificate consumers index state).core
+      |>.assignedToken? vertex) ≠ none := by
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      simpa [processWorklistLink, linkLookup] using marked
+  | some link =>
+      have linkMembership : link ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      cases link with
+      | «axiom» left right =>
+          simpa [processWorklistLink, linkLookup] using marked
+      | «par» left right conclusion =>
+          have wellFormed :
+              certificate.LinkWellFormed
+                (.par left right conclusion) :=
+            structural.2.2.2.2.1 _ linkMembership
+          rcases wellFormed with
+            ⟨_premisesDifferent, _leftConclusionDifferent,
+              _rightConclusionDifferent, _leftBound, _rightBound,
+              conclusionBound, _typing⟩
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                marked
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using marked
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, firing] using marked
+                    | some nextCore =>
+                        have nextMarked :
+                            nextCore.assignedToken? vertex ≠ none :=
+                          firePar?_success_preserves_assigned
+                            abstractable conclusionBound marked firing
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, firing] using nextMarked
+                  · simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup, same] using marked
+      | «tensor» left right conclusion =>
+          have wellFormed :
+              certificate.LinkWellFormed
+                (.tensor left right conclusion) :=
+            structural.2.2.2.2.1 _ linkMembership
+          rcases wellFormed with
+            ⟨_premisesDifferent, _leftConclusionDifferent,
+              _rightConclusionDifferent, _leftBound, _rightBound,
+              conclusionBound, _typing⟩
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              simpa [processWorklistLink, linkLookup, leftLookup] using
+                marked
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  simpa [processWorklistLink, linkLookup, leftLookup,
+                    rightLookup] using marked
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    simpa [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup] using marked
+                  · cases firing :
+                      fireTensor? state.core left right conclusion with
+                    | none =>
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, same, firing] using
+                            marked
+                    | some nextCore =>
+                        have nextMarked :
+                            nextCore.assignedToken? vertex ≠ none :=
+                          fireTensor?_success_preserves_assigned
+                            abstractable conclusionBound marked firing
+                        simpa [processWorklistLink, linkLookup,
+                          leftLookup, rightLookup, same, firing] using
+                            nextMarked
+
 /-- Every worklist processing branch preserves the ordered union-find forest.
 This is the concrete no-cycle guarantee needed by all later representative
 and scheduler arguments. -/
@@ -11775,6 +12124,51 @@ private theorem runUnificationWorklist_coreInvariant
                 processWorklistLink certificate consumers index popped)
               processedInvariant
 
+/-- Every finite worklist run is monotone on raw formula assignments. -/
+private theorem runUnificationWorklist_preserves_assigned
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat) (state : UnificationWorklistState)
+    (invariant : WorklistCoreInvariant certificate state)
+    {vertex : Vertex}
+    (marked : state.core.assignedToken? vertex ≠ none) :
+    ((runUnificationWorklist certificate consumers fuel state).state.core
+      |>.assignedToken? vertex) ≠ none := by
+  induction fuel generalizing state with
+  | zero =>
+      simpa [runUnificationWorklist] using marked
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          simpa [runUnificationWorklist, popEquation] using marked
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have poppedCore : popped.core = state.core :=
+            popWorklist?_success_core popEquation
+          have poppedMarked :
+              popped.core.assignedToken? vertex ≠ none := by
+            simpa [poppedCore] using marked
+          have poppedInvariant :
+              WorklistCoreInvariant certificate popped := by
+            unfold WorklistCoreInvariant at invariant ⊢
+            simpa [poppedCore] using invariant
+          have processedMarked :
+              ((processWorklistLink certificate consumers index popped).core
+                  |>.assignedToken? vertex) ≠ none :=
+            processWorklistLink_preserves_assigned
+              structural poppedInvariant.1 poppedMarked
+          have processedInvariant :
+              WorklistCoreInvariant certificate
+                (processWorklistLink certificate consumers
+                  index popped) :=
+            processWorklistLink_coreInvariant
+              structural poppedInvariant
+          simpa [runUnificationWorklist, popEquation] using
+            induction
+              (state :=
+                processWorklistLink certificate consumers index popped)
+              processedInvariant processedMarked
+
 /-- The exact production scheduler preserves its complete invariant through
 every finite fuel prefix, including early quiescence and conservative fuel
 exhaustion. -/
@@ -11829,6 +12223,52 @@ private theorem canonicalWorklistRun_coreInvariant
   · exact
       startAxioms?_success_initializeWorklist_coreInvariant
         structural startEquation
+
+/-- Every submitted axiom endpoint remains assigned throughout the canonical
+fuel-bounded worklist run. -/
+private theorem canonicalWorklistRun_axiom_endpoints_assigned
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started)
+    {left right : Vertex}
+    (membership : Link.axiom left right ∈ certificate.links) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.assignedToken? left ≠ none ∧
+      final.core.assignedToken? right ≠ none := by
+  let initial := initializeWorklist certificate started
+  let fuel := worklistFuel certificate.links.length
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers fuel initial).state
+  have startedEndpoints :
+      started.assignedToken? left ≠ none ∧
+        started.assignedToken? right ≠ none :=
+    certificate.startAxioms?_success_axiom_endpoints_assigned
+      membership startEquation
+  have initialInvariant :
+      WorklistCoreInvariant certificate initial := by
+    simpa [initial] using
+      startAxioms?_success_initializeWorklist_coreInvariant
+        structural startEquation
+  have leftPreserved :
+      final.core.assignedToken? left ≠ none := by
+    simpa [final, fuel, initial] using
+      runUnificationWorklist_preserves_assigned
+        certificate certificate.worklistConsumers structural
+        fuel initial initialInvariant startedEndpoints.1
+  have rightPreserved :
+      final.core.assignedToken? right ≠ none := by
+    simpa [final, fuel, initial] using
+      runUnificationWorklist_preserves_assigned
+        certificate certificate.worklistConsumers structural
+        fuel initial initialInvariant startedEndpoints.2
+  exact ⟨leftPreserved, rightPreserved⟩
 
 /-- The exact finite production run retains full scheduler coverage and exact
 queue/waiting provenance together with all executable-core invariants. -/
@@ -12049,6 +12489,120 @@ private theorem canonicalWorklistRun_queue_eq_nil
         structural startEquation
   omega
 
+/-- If the canonical run leaves any formula occurrence unassigned, then the
+certificate contains a concrete submitted connective whose conclusion is
+still unfired.  Atomic occurrences cannot witness incompleteness because all
+submitted axiom endpoints are initialized and assignment is monotone. -/
+private theorem canonicalWorklistRun_incomplete_has_unfired_connective
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (index : Nat) (link : Link),
+        certificate.links[index]? = some link ∧
+          link.isConnective = true ∧
+            ¬linkFiredIn final.core link := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (index : Nat) (link : Link),
+        certificate.links[index]? = some link ∧
+          link.isConnective = true ∧
+            ¬linkFiredIn final.core link
+  intro incomplete
+  have marksIncomplete :
+      final.core.marks.all Option.isSome = false := by
+    simpa [UnificationState.allMarked] using incomplete
+  rcases Array.all_eq_false.mp marksIncomplete with
+    ⟨vertex, markBound, unassignedElement⟩
+  have rawNone : final.core.marks[vertex] = none := by
+    cases rawLookup : final.core.marks[vertex] with
+    | none =>
+        rfl
+    | some token =>
+        simp [rawLookup] at unassignedElement
+  have assignedNone :
+      final.core.assignedToken? vertex = none := by
+    unfold UnificationState.assignedToken?
+    rw [Array.getElem?_eq_getElem markBound, rawNone]
+    rfl
+  have coreInvariant :
+      WorklistCoreInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_coreInvariant structural startEquation
+  have formulaBound : vertex < certificate.formulas.size := by
+    simpa [coreInvariant.1.markArraySize] using markBound
+  rcases structurallyWellFormed_sourceLink_exists
+      structural formulaBound with
+    ⟨formula, link, index, _formulaLookup, linkLookup, source⟩
+  have linkMembership : link ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  cases formula with
+  | atom name positive =>
+      cases link with
+      | «axiom» left right =>
+          have endpoints :
+              final.core.assignedToken? left ≠ none ∧
+                final.core.assignedToken? right ≠ none := by
+            simpa [final] using
+              canonicalWorklistRun_axiom_endpoints_assigned
+                structural startEquation linkMembership
+          simp [Link.containsAxiomEndpoint] at source
+          rcases source with leftSource | rightSource
+          · apply False.elim
+            apply endpoints.1
+            simpa [leftSource] using assignedNone
+          · apply False.elim
+            apply endpoints.2
+            simpa [rightSource] using assignedNone
+      | tensor left right conclusion =>
+          simp [Link.containsAxiomEndpoint] at source
+      | «par» left right conclusion =>
+          simp [Link.containsAxiomEndpoint] at source
+  | tensor formulaLeft formulaRight =>
+      cases link with
+      | «axiom» left right =>
+          simp [Link.produces] at source
+      | tensor left right conclusion =>
+          simp [Link.produces] at source
+          subst conclusion
+          exact
+            ⟨index, .tensor left right vertex, linkLookup, rfl,
+              fun fired => fired assignedNone⟩
+      | «par» left right conclusion =>
+          simp [Link.produces] at source
+          subst conclusion
+          exact
+            ⟨index, .par left right vertex, linkLookup, rfl,
+              fun fired => fired assignedNone⟩
+  | par formulaLeft formulaRight =>
+      cases link with
+      | «axiom» left right =>
+          simp [Link.produces] at source
+      | tensor left right conclusion =>
+          simp [Link.produces] at source
+          subst conclusion
+          exact
+            ⟨index, .tensor left right vertex, linkLookup, rfl,
+              fun fired => fired assignedNone⟩
+      | «par» left right conclusion =>
+          simp [Link.produces] at source
+          subst conclusion
+          exact
+            ⟨index, .par left right vertex, linkLookup, rfl,
+              fun fired => fired assignedNone⟩
+
 /-- The canonical fuel-sufficient run reaches a genuinely quiescent state.
 Consequently every submitted connective that is still unfired exposes one of
 the exact semantic obstruction witnesses, rather than hidden queued work or a
@@ -12090,6 +12644,337 @@ private theorem canonicalWorklistRun_unfired_obstruction
   exact
     SchedulerCoverage.quiescent_unfired_obstruction invariant.2.1
       quiescent lookup connective unfired
+
+/-- Canonical incomplete marking is never an opaque scheduler failure: it
+identifies an exact submitted connective together with one of the final
+idle/waiting/deadlock obstruction witnesses. -/
+private theorem canonicalWorklistRun_incomplete_obstruction
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (index : Nat) (link : Link),
+        certificate.links[index]? = some link ∧
+          link.isConnective = true ∧
+            QuiescentConnectiveObstruction final index link := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (index : Nat) (link : Link),
+        certificate.links[index]? = some link ∧
+          link.isConnective = true ∧
+            QuiescentConnectiveObstruction final index link
+  intro incomplete
+  rcases
+      canonicalWorklistRun_incomplete_has_unfired_connective
+        structural startEquation incomplete with
+    ⟨index, link, lookup, connective, unfired⟩
+  exact
+    ⟨index, link, lookup, connective,
+      canonicalWorklistRun_unfired_obstruction
+        structural startEquation lookup connective unfired⟩
+
+/-- Least-number principle specialized locally so the unification module does
+not depend on private sequentialization helpers. -/
+private theorem unification_exists_least_nat_up_to
+    (property : Nat → Prop) :
+    ∀ bound, (∃ value, value ≤ bound ∧ property value) →
+      ∃ least, property least ∧
+        ∀ value, property value → least ≤ value := by
+  intro bound
+  induction bound with
+  | zero =>
+      rintro ⟨value, valueBound, propertyValue⟩
+      have valueZero : value = 0 := by omega
+      subst value
+      exact ⟨0, propertyValue, by intro; omega⟩
+  | succ bound induction =>
+      intro existsBounded
+      by_cases existsEarlier :
+          ∃ value, value ≤ bound ∧ property value
+      · exact induction existsEarlier
+      · rcases existsBounded with
+          ⟨value, valueBound, propertyValue⟩
+        have notEarlier : ¬value ≤ bound := by
+          intro earlier
+          exact existsEarlier ⟨value, earlier, propertyValue⟩
+        have valueLast : value = bound + 1 := by omega
+        subst value
+        refine ⟨bound + 1, propertyValue, ?_⟩
+        intro other propertyOther
+        have otherNotEarlier : ¬other ≤ bound := by
+          intro earlier
+          exact existsEarlier ⟨other, earlier, propertyOther⟩
+        omega
+
+private theorem unification_exists_least_nat
+    (property : Nat → Prop)
+    (existsProperty : ∃ value, property value) :
+    ∃ least, property least ∧
+      ∀ value, property value → least ≤ value := by
+  rcases existsProperty with ⟨bound, propertyBound⟩
+  exact unification_exists_least_nat_up_to property bound
+    ⟨bound, by omega, propertyBound⟩
+
+/-- A quiescent obstruction at a minimum-complexity unassigned conclusion
+cannot be idle: both strictly smaller premises are already assigned. -/
+private theorem minimumUnassigned_threadObstruction
+    {certificate : Certificate} {state : UnificationWorklistState}
+    {index vertex : Vertex} {link : Link}
+    (structural : certificate.StructurallyWellFormed)
+    (linkLookup : certificate.links[index]? = some link)
+    (produces : link.produces vertex = true)
+    (minimality :
+      ∀ {candidate : Vertex},
+        candidate < certificate.formulas.size →
+          state.core.assignedToken? candidate = none →
+            certificate.formulaComplexityAt vertex ≤
+              certificate.formulaComplexityAt candidate)
+    (obstruction :
+      QuiescentConnectiveObstruction state index link) :
+    link.isConnective = true ∧
+      QuiescentThreadObstruction state index link := by
+  have linkMembership : link ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  cases link with
+  | «axiom» left right =>
+      simp [Link.produces] at produces
+  | tensor left right conclusion =>
+      simp [Link.produces] at produces
+      subst conclusion
+      have wellFormed :
+          certificate.LinkWellFormed
+            (.tensor left right vertex) :=
+        structural.2.2.2.2.1 _ linkMembership
+      have leftRank :
+          certificate.formulaComplexityAt left <
+            certificate.formulaComplexityAt vertex := by
+        simpa [Certificate.linkConclusionComplexity] using
+          wellFormed.premise_complexity_lt_conclusion
+            (premise := left) (by simp [Link.premises])
+      have rightRank :
+          certificate.formulaComplexityAt right <
+            certificate.formulaComplexityAt vertex := by
+        simpa [Certificate.linkConclusionComplexity] using
+          wellFormed.premise_complexity_lt_conclusion
+            (premise := right) (by simp [Link.premises])
+      have leftAssigned :
+          state.core.assignedToken? left ≠ none := by
+        intro leftUnassigned
+        have lower :=
+          minimality wellFormed.2.2.2.1 leftUnassigned
+        omega
+      have rightAssigned :
+          state.core.assignedToken? right ≠ none := by
+        intro rightUnassigned
+        have lower :=
+          minimality wellFormed.2.2.2.2.1 rightUnassigned
+        omega
+      rcases state.core.tokenAt?_exists_of_assigned leftAssigned with
+        ⟨leftToken, leftLookup⟩
+      rcases state.core.tokenAt?_exists_of_assigned rightAssigned with
+        ⟨rightToken, rightLookup⟩
+      rcases obstruction with
+        ⟨conclusionUnassigned, idle | deadlock⟩
+      · rcases idle with leftIdle | rightIdle
+        · rw [leftIdle] at leftLookup
+          contradiction
+        · rw [rightIdle] at rightLookup
+          contradiction
+      · exact ⟨rfl, conclusionUnassigned, deadlock⟩
+  | «par» left right conclusion =>
+      simp [Link.produces] at produces
+      subst conclusion
+      have wellFormed :
+          certificate.LinkWellFormed
+            (.par left right vertex) :=
+        structural.2.2.2.2.1 _ linkMembership
+      have leftRank :
+          certificate.formulaComplexityAt left <
+            certificate.formulaComplexityAt vertex := by
+        simpa [Certificate.linkConclusionComplexity] using
+          wellFormed.premise_complexity_lt_conclusion
+            (premise := left) (by simp [Link.premises])
+      have rightRank :
+          certificate.formulaComplexityAt right <
+            certificate.formulaComplexityAt vertex := by
+        simpa [Certificate.linkConclusionComplexity] using
+          wellFormed.premise_complexity_lt_conclusion
+            (premise := right) (by simp [Link.premises])
+      have leftAssigned :
+          state.core.assignedToken? left ≠ none := by
+        intro leftUnassigned
+        have lower :=
+          minimality wellFormed.2.2.2.1 leftUnassigned
+        omega
+      have rightAssigned :
+          state.core.assignedToken? right ≠ none := by
+        intro rightUnassigned
+        have lower :=
+          minimality wellFormed.2.2.2.2.1 rightUnassigned
+        omega
+      rcases state.core.tokenAt?_exists_of_assigned leftAssigned with
+        ⟨leftToken, leftLookup⟩
+      rcases state.core.tokenAt?_exists_of_assigned rightAssigned with
+        ⟨rightToken, rightLookup⟩
+      rcases obstruction with
+        ⟨conclusionUnassigned, idle | waiting⟩
+      · rcases idle with leftIdle | rightIdle
+        · rw [leftIdle] at leftLookup
+          contradiction
+        · rw [rightIdle] at rightLookup
+          contradiction
+      · exact ⟨rfl, conclusionUnassigned, waiting⟩
+
+/-- Choosing an unmarked conclusion of least formula complexity eliminates
+the idle-premise branch.  Thus every incomplete canonical run exposes one of
+the two genuine thread obstructions that correctness must rule out. -/
+private theorem canonicalWorklistRun_incomplete_thread_obstruction
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (index : Nat) (link : Link),
+        certificate.links[index]? = some link ∧
+          link.isConnective = true ∧
+            QuiescentThreadObstruction final index link := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (index : Nat) (link : Link),
+        certificate.links[index]? = some link ∧
+          link.isConnective = true ∧
+            QuiescentThreadObstruction final index link
+  intro incomplete
+  have coreInvariant :
+      WorklistCoreInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_coreInvariant structural startEquation
+  have marksIncomplete :
+      final.core.marks.all Option.isSome = false := by
+    simpa [UnificationState.allMarked] using incomplete
+  rcases Array.all_eq_false.mp marksIncomplete with
+    ⟨witness, witnessMarkBound, witnessUnassignedElement⟩
+  have witnessRawNone : final.core.marks[witness] = none := by
+    cases lookup : final.core.marks[witness] with
+    | none =>
+        rfl
+    | some token =>
+        simp [lookup] at witnessUnassignedElement
+  have witnessAssignedNone :
+      final.core.assignedToken? witness = none := by
+    unfold UnificationState.assignedToken?
+    rw [Array.getElem?_eq_getElem witnessMarkBound, witnessRawNone]
+    rfl
+  have witnessFormulaBound :
+      witness < certificate.formulas.size := by
+    simpa [coreInvariant.1.markArraySize] using witnessMarkBound
+  let property : Nat → Prop := fun rank =>
+    ∃ vertex,
+      vertex < certificate.formulas.size ∧
+        final.core.assignedToken? vertex = none ∧
+          certificate.formulaComplexityAt vertex = rank
+  have propertyExists : ∃ rank, property rank :=
+    ⟨certificate.formulaComplexityAt witness,
+      witness, witnessFormulaBound, witnessAssignedNone, rfl⟩
+  rcases unification_exists_least_nat property propertyExists with
+    ⟨least, ⟨vertex, vertexBound, vertexUnassigned, vertexRank⟩,
+      leastBound⟩
+  have minimality :
+      ∀ {candidate : Vertex},
+        candidate < certificate.formulas.size →
+          final.core.assignedToken? candidate = none →
+            certificate.formulaComplexityAt vertex ≤
+              certificate.formulaComplexityAt candidate := by
+    intro candidate candidateBound candidateUnassigned
+    have bound :=
+      leastBound (certificate.formulaComplexityAt candidate)
+        ⟨candidate, candidateBound, candidateUnassigned, rfl⟩
+    simpa [vertexRank] using bound
+  rcases
+      structurallyWellFormed_sourceLink_exists
+        structural vertexBound with
+    ⟨formula, link, index, _formulaLookup, linkLookup, source⟩
+  have linkMembership : link ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  have compoundCase :
+      link.produces vertex = true →
+        ∃ (resultIndex : Nat) (resultLink : Link),
+          certificate.links[resultIndex]? = some resultLink ∧
+            resultLink.isConnective = true ∧
+              QuiescentThreadObstruction final resultIndex resultLink := by
+    intro produces
+    have connective : link.isConnective = true := by
+      cases link <;>
+        simp [Link.produces, Link.isConnective] at produces ⊢
+    have unfired : ¬linkFiredIn final.core link := by
+      cases link with
+      | «axiom» left right =>
+          simp [Link.isConnective] at connective
+      | tensor left right conclusion =>
+          simp [Link.produces] at produces
+          subst conclusion
+          exact fun fired => fired vertexUnassigned
+      | «par» left right conclusion =>
+          simp [Link.produces] at produces
+          subst conclusion
+          exact fun fired => fired vertexUnassigned
+    have obstruction :
+        QuiescentConnectiveObstruction final index link :=
+      canonicalWorklistRun_unfired_obstruction
+        structural startEquation linkLookup connective unfired
+    have strengthened :=
+      minimumUnassigned_threadObstruction
+        structural linkLookup produces minimality obstruction
+    exact ⟨index, link, linkLookup, strengthened.1, strengthened.2⟩
+  cases formula with
+  | atom name positive =>
+      cases link with
+      | «axiom» left right =>
+          have endpoints :
+              final.core.assignedToken? left ≠ none ∧
+                final.core.assignedToken? right ≠ none := by
+            simpa [final] using
+              canonicalWorklistRun_axiom_endpoints_assigned
+                structural startEquation linkMembership
+          simp [Link.containsAxiomEndpoint] at source
+          rcases source with leftSource | rightSource
+          · exact False.elim
+              (endpoints.1 (by
+                simpa [leftSource] using vertexUnassigned))
+          · exact False.elim
+              (endpoints.2 (by
+                simpa [rightSource] using vertexUnassigned))
+      | tensor left right conclusion =>
+          simp [Link.containsAxiomEndpoint] at source
+      | «par» left right conclusion =>
+          simp [Link.containsAxiomEndpoint] at source
+  | tensor formulaLeft formulaRight =>
+      exact compoundCase source
+  | par formulaLeft formulaRight =>
+      exact compoundCase source
 
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/

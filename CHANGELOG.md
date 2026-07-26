@@ -59,7 +59,13 @@
   unfired connective into an explicit proof witness: an idle premise, a
   distinct-thread registered par, or a same-thread tensor deadlock. This
   removes hidden queued work and fuel exhaustion from the remaining progress
-  argument. Correctness still must rule out those semantic obstructions, so
+  argument. Structural source-link totality, assignment monotonicity from
+  axiom initialization through the complete worklist run, and a
+  least-formula-complexity choice now prove that an incomplete canonical run
+  has a concrete submitted source whose premises are both assigned. This
+  eliminates the idle-premise case and leaves exactly a distinct-thread
+  registered par or a same-thread tensor deadlock. Correctness still must rule
+  out those two genuine thread obstructions, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

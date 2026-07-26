@@ -451,6 +451,10 @@
     - [x] Reduce the remaining quiescent case to explicit semantic witnesses:
       every submitted but unfired connective has an idle premise, is a
       distinct-thread registered par, or is a same-thread tensor deadlock.
+    - [x] Refine the incomplete case by selecting a least-complexity
+      unassigned conclusion: structural source-link totality and strict
+      premise complexity prove both premises assigned, eliminating the idle
+      witness and leaving an exact waiting-par or tensor thread obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

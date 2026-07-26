@@ -36,9 +36,12 @@ carrier of requeues to each tensor firing. Lean now proves the resulting
 cumulative insertion bound fits `n(n+4)+1`, and that the canonical production
 run reaches an empty queue within that fuel. At this quiescent state every
 submitted but unfired connective is now kernel-classified by an explicit
-semantic obstruction witness: an idle premise, a distinct-thread registered
-par, or a same-thread tensor deadlock. Proof-net correctness still must exclude
-those obstructions before the recursive fallback can be removed. The later
+semantic obstruction witness. Choosing an unassigned conclusion of least
+formula complexity rules out the idle-premise case: its source is a concrete
+submitted connective whose premises are already assigned. Thus an incomplete
+run yields either a distinct-thread registered par or a same-thread tensor
+deadlock. Proof-net correctness still must exclude those two genuine thread
+obstructions before the recursive fallback can be removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).
@@ -160,9 +163,12 @@ The repository currently contains:
   enqueues newly armed links, and requeues only waiting par links after tensor
   unions. Every worklist success is independently verified and proved sound;
   the worklist-first hybrid is proved equal to `check`, while completeness,
-  correct-quiescent-state progress, flat-waiting-set complexity, and faithful
-  `NEXTAXIOM` sequentialization remain open. The current production fuel is
-  proved sufficient to empty its queue;
+  the final correctness-to-progress argument, flat-waiting-set complexity,
+  and faithful `NEXTAXIOM` sequentialization remain open. The current
+  production fuel is proved sufficient to empty its queue. If that quiescent
+  run is incomplete, least-complexity descent eliminates idle premises and
+  leaves an exact submitted distinct-thread waiting par or same-thread tensor
+  deadlock;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

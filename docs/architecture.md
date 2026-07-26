@@ -185,8 +185,11 @@ to distinct submitted-link firings, proves the cumulative total fits
 `n(n+4)+1`, and proves that the canonical run exhausts its concrete queue
 within that budget. At quiescence, every submitted but unfired connective is
 kernel-classified as idle, a distinct-thread waiting par, or a same-thread
-tensor deadlock. Excluding those witnesses from correct nonfinal nets remains
-the missing progress argument.
+tensor deadlock. A least-formula-complexity argument then recovers a concrete
+submitted source whose premises are already assigned, so an incomplete
+canonical run cannot be witnessed only by an idle premise. Excluding the
+remaining distinct-thread waiting-par and same-thread tensor obstructions
+from correct nonfinal nets is the missing progress argument.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain
