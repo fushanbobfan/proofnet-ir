@@ -13628,6 +13628,301 @@ private theorem canonicalWorklistRun_incomplete_obstruction
       canonicalWorklistRun_unfired_obstruction
         structural startEquation lookup connective unfired⟩
 
+/-- A concrete distinct-thread par that remains registered at quiescence,
+indexed by its unassigned conclusion occurrence. -/
+private def QuiescentWaitingParAt
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (conclusion : Vertex) : Prop :=
+  state.core.assignedToken? conclusion = none ∧
+    ∃ (index left right leftToken rightToken : Nat),
+      certificate.links[index]? =
+          some (.par left right conclusion) ∧
+        state.core.tokenAt? left = some leftToken ∧
+          state.core.tokenAt? right = some rightToken ∧
+            leftToken ≠ rightToken ∧
+              index ∈ state.waiting
+
+/-- The well-founded local alternative for an arbitrary unassigned formula:
+strict descent to an unassigned premise or arrival at a registered waiting
+par. -/
+private def UnassignedFormulaDescentOrWaitingPar
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (vertex : Vertex) : Prop :=
+  (∃ blockedPremise : Vertex,
+      blockedPremise < certificate.formulas.size ∧
+        state.core.assignedToken? blockedPremise = none ∧
+          certificate.formulaComplexityAt blockedPremise <
+            certificate.formulaComplexityAt vertex) ∨
+    QuiescentWaitingParAt certificate state vertex
+
+/-- In a correct quiescent canonical run, every unassigned occurrence admits
+the global chase step required by the progress proof. Atomic sources are
+already initialized, tensor deadlocks are excluded by reference acyclicity,
+and every remaining idle connective descends strictly through formula
+complexity. -/
+private theorem canonicalWorklistRun_unassigned_descends_or_waitingPar
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {vertex : Vertex},
+      vertex < certificate.formulas.size →
+        final.core.assignedToken? vertex = none →
+          UnassignedFormulaDescentOrWaitingPar
+            certificate final vertex := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {vertex : Vertex},
+      vertex < certificate.formulas.size →
+        final.core.assignedToken? vertex = none →
+          UnassignedFormulaDescentOrWaitingPar
+            certificate final vertex
+  have coreInvariant :
+      WorklistCoreInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_coreInvariant correct.1 startEquation
+  have connected :
+      UnificationMarking.ThreadConnected
+        (final.core.toMarking certificate coreInvariant.1) := by
+    unfold UnificationMarking.ThreadConnected
+    intro firstVertex secondVertex firstToken secondToken
+      firstMarked secondMarked synchronized
+    dsimp [final] at firstMarked secondMarked synchronized ⊢
+    exact
+      (canonicalWorklistRun_threadConnected correct.1 startEquation)
+        firstMarked secondMarked synchronized
+  have assignedNoneOfTokenNone :
+      ∀ {candidate : Vertex},
+        final.core.tokenAt? candidate = none →
+          final.core.assignedToken? candidate = none := by
+    intro candidate tokenNone
+    cases assigned :
+        final.core.assignedToken? candidate with
+    | none =>
+        rfl
+    | some rawToken =>
+        have assignedNotNone :
+            final.core.assignedToken? candidate ≠ none := by
+          simp [assigned]
+        rcases final.core.tokenAt?_exists_of_assigned assignedNotNone with
+          ⟨token, yielded⟩
+        rw [tokenNone] at yielded
+        contradiction
+  intro vertex vertexBound vertexUnassigned
+  rcases structurallyWellFormed_sourceLink_exists
+      correct.1 vertexBound with
+    ⟨formula, link, index, _formulaLookup, linkLookup, source⟩
+  have linkMembership : link ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  have compoundCase :
+      link.produces vertex = true →
+        UnassignedFormulaDescentOrWaitingPar
+          certificate final vertex := by
+    intro produces
+    have connective : link.isConnective = true := by
+      cases link with
+      | «axiom» left right =>
+          simp [Link.produces] at produces
+      | «par» left right conclusion =>
+          rfl
+      | tensor left right conclusion =>
+          rfl
+    have unfired : ¬linkFiredIn final.core link := by
+      cases link with
+      | «axiom» left right =>
+          simp [linkFiredIn]
+      | «par» left right conclusion =>
+          simp [Link.produces] at produces
+          subst conclusion
+          simpa [linkFiredIn] using vertexUnassigned
+      | tensor left right conclusion =>
+          simp [Link.produces] at produces
+          subst conclusion
+          simpa [linkFiredIn] using vertexUnassigned
+    have obstruction :=
+      canonicalWorklistRun_unfired_obstruction
+        correct.1 startEquation linkLookup connective unfired
+    cases link with
+    | «axiom» left right =>
+        simp [Link.produces] at produces
+    | «par» left right conclusion =>
+        simp [Link.produces] at produces
+        subst conclusion
+        have wellFormed :
+            certificate.LinkWellFormed
+              (.par left right vertex) :=
+          correct.1.2.2.2.2.1 _ linkMembership
+        have leftRank :
+            certificate.formulaComplexityAt left <
+              certificate.formulaComplexityAt vertex := by
+          simpa [Certificate.linkConclusionComplexity] using
+            wellFormed.premise_complexity_lt_conclusion
+              (premise := left) (by simp [Link.premises])
+        have rightRank :
+            certificate.formulaComplexityAt right <
+              certificate.formulaComplexityAt vertex := by
+          simpa [Certificate.linkConclusionComplexity] using
+            wellFormed.premise_complexity_lt_conclusion
+              (premise := right) (by simp [Link.premises])
+        rcases obstruction with
+          ⟨conclusionUnassigned, idle | waiting⟩
+        · rcases idle with leftIdle | rightIdle
+          · exact .inl
+              ⟨left, wellFormed.2.2.2.1,
+                assignedNoneOfTokenNone leftIdle, leftRank⟩
+          · exact .inl
+              ⟨right, wellFormed.2.2.2.2.1,
+                assignedNoneOfTokenNone rightIdle, rightRank⟩
+        · rcases waiting with
+            ⟨leftToken, rightToken, leftMarked, rightMarked,
+              different, registered⟩
+          exact .inr
+            ⟨conclusionUnassigned, index, left, right,
+              leftToken, rightToken, linkLookup, leftMarked,
+              rightMarked, different, registered⟩
+    | tensor left right conclusion =>
+        simp [Link.produces] at produces
+        subst conclusion
+        have wellFormed :
+            certificate.LinkWellFormed
+              (.tensor left right vertex) :=
+          correct.1.2.2.2.2.1 _ linkMembership
+        have leftRank :
+            certificate.formulaComplexityAt left <
+              certificate.formulaComplexityAt vertex := by
+          simpa [Certificate.linkConclusionComplexity] using
+            wellFormed.premise_complexity_lt_conclusion
+              (premise := left) (by simp [Link.premises])
+        have rightRank :
+            certificate.formulaComplexityAt right <
+              certificate.formulaComplexityAt vertex := by
+          simpa [Certificate.linkConclusionComplexity] using
+            wellFormed.premise_complexity_lt_conclusion
+              (premise := right) (by simp [Link.premises])
+        rcases obstruction with
+          ⟨conclusionUnassigned, idle | deadlock⟩
+        · rcases idle with leftIdle | rightIdle
+          · exact .inl
+              ⟨left, wellFormed.2.2.2.1,
+                assignedNoneOfTokenNone leftIdle, leftRank⟩
+          · exact .inl
+              ⟨right, wellFormed.2.2.2.2.1,
+                assignedNoneOfTokenNone rightIdle, rightRank⟩
+        · rcases deadlock with
+            ⟨token, leftMarked, rightMarked⟩
+          exact False.elim
+            (sameThread_tensorDeadlock_false
+              correct coreInvariant.1 connected linkMembership
+              conclusionUnassigned leftMarked rightMarked)
+  cases formula with
+  | atom name positive =>
+      cases link with
+      | «axiom» left right =>
+          have endpoints :
+              final.core.assignedToken? left ≠ none ∧
+                final.core.assignedToken? right ≠ none := by
+            simpa [final] using
+              canonicalWorklistRun_axiom_endpoints_assigned
+                correct.1 startEquation linkMembership
+          simp [Link.containsAxiomEndpoint] at source
+          rcases source with leftSource | rightSource
+          · exact False.elim
+              (endpoints.1 (by simpa [leftSource] using vertexUnassigned))
+          · exact False.elim
+              (endpoints.2 (by simpa [rightSource] using vertexUnassigned))
+      | tensor left right conclusion =>
+          simp [Link.containsAxiomEndpoint] at source
+      | «par» left right conclusion =>
+          simp [Link.containsAxiomEndpoint] at source
+  | tensor formulaLeft formulaRight =>
+      exact compoundCase source
+  | par formulaLeft formulaRight =>
+      exact compoundCase source
+
+/-- Strict formula-complexity descent is well founded: every unassigned
+occurrence in a correct quiescent run reaches a concrete registered waiting
+par whose conclusion is no more complex than the starting occurrence. -/
+private theorem canonicalWorklistRun_unassigned_reaches_waitingPar
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {vertex : Vertex},
+      vertex < certificate.formulas.size →
+        final.core.assignedToken? vertex = none →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              certificate.formulaComplexityAt conclusion ≤
+                certificate.formulaComplexityAt vertex := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {vertex : Vertex},
+      vertex < certificate.formulas.size →
+        final.core.assignedToken? vertex = none →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              certificate.formulaComplexityAt conclusion ≤
+                certificate.formulaComplexityAt vertex
+  have general :
+      ∀ rank vertex,
+        certificate.formulaComplexityAt vertex = rank →
+          vertex < certificate.formulas.size →
+            final.core.assignedToken? vertex = none →
+              ∃ conclusion,
+                QuiescentWaitingParAt certificate final conclusion ∧
+                  certificate.formulaComplexityAt conclusion ≤ rank := by
+    intro rank
+    induction rank using Nat.strongRecOn with
+    | ind rank induction =>
+        intro vertex rankEquation vertexBound vertexUnassigned
+        have alternative :=
+          canonicalWorklistRun_unassigned_descends_or_waitingPar
+            correct startEquation vertexBound vertexUnassigned
+        rcases alternative with descent | waiting
+        · rcases descent with
+            ⟨blockedPremise, blockedBound, blockedUnassigned,
+              strictDescent⟩
+          have blockedRank :
+              certificate.formulaComplexityAt blockedPremise < rank := by
+            simpa [rankEquation] using strictDescent
+          rcases induction
+              (certificate.formulaComplexityAt blockedPremise)
+              blockedRank blockedPremise rfl blockedBound
+              blockedUnassigned with
+            ⟨conclusion, reached, conclusionBound⟩
+          exact
+            ⟨conclusion, reached,
+              Nat.le_trans conclusionBound
+                (Nat.le_of_lt blockedRank)⟩
+        · exact
+            ⟨vertex, waiting, by simp [rankEquation]⟩
+  intro vertex vertexBound vertexUnassigned
+  exact
+    general (certificate.formulaComplexityAt vertex) vertex rfl
+      vertexBound vertexUnassigned
+
 /-- Least-number principle specialized locally so the unification module does
 not depend on private sequentialization helpers. -/
 private theorem unification_exists_least_nat_up_to
@@ -14401,6 +14696,72 @@ private theorem pathFrontierSchedulerObstruction_descent_or_waitingPar
       exact .inl
         ⟨left, wellFormed.2.2.2.1, leftUnassigned,
           by simpa [targetEquation] using leftRank⟩
+
+/-- The local frontier alternative cannot descend forever.  Starting from any
+unassigned forward-frontier conclusion, strict premise descent reaches a
+concrete registered waiting par, while the direct waiting branch is already
+such an endpoint. -/
+private theorem canonicalWorklistRun_pathFrontier_reaches_waitingPar
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge},
+      final.core.assignedToken? boundary.target = none →
+        PathFrontierSchedulerObstruction
+          certificate final boundary →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              certificate.formulaComplexityAt conclusion ≤
+                certificate.formulaComplexityAt boundary.target := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge},
+      final.core.assignedToken? boundary.target = none →
+        PathFrontierSchedulerObstruction
+          certificate final boundary →
+          ∃ conclusion,
+            QuiescentWaitingParAt certificate final conclusion ∧
+              certificate.formulaComplexityAt conclusion ≤
+                certificate.formulaComplexityAt boundary.target
+  intro boundary targetUnassigned obstruction
+  have alternative :=
+    pathFrontierSchedulerObstruction_descent_or_waitingPar
+      correct.1 obstruction
+  rcases alternative with descent | waiting
+  · rcases descent with
+      ⟨blockedPremise, blockedBound, blockedUnassigned,
+        strictDescent⟩
+    rcases canonicalWorklistRun_unassigned_reaches_waitingPar
+        correct startEquation blockedBound blockedUnassigned with
+      ⟨conclusion, reached, conclusionBound⟩
+    exact
+      ⟨conclusion, reached,
+        Nat.le_trans conclusionBound
+          (Nat.le_of_lt strictDescent)⟩
+  · rcases waiting with
+      ⟨index, left, right, conclusion, leftToken, rightToken,
+        linkLookup, _sourceEquation, targetEquation,
+        leftMarked, rightMarked, different, registered⟩
+    subst conclusion
+    exact
+      ⟨boundary.target,
+        ⟨targetUnassigned, index, left, right,
+          leftToken, rightToken, linkLookup, leftMarked,
+          rightMarked, different, registered⟩,
+        Nat.le_refl _⟩
 
 /-- Any quiescent forward connective frontier with an assigned source and an
 unassigned conclusion has the exact residual scheduler status recorded by
@@ -15524,6 +15885,112 @@ private theorem
       leftBoundaryTargetUnmarked, inactiveAssignedNone,
       reentrySourceUnmarked, reentryTargetMarked,
       leftAlternative, reentryAlternative⟩
+
+/-- Both orientations bracketing the first contiguous inactive block have
+well-founded chase endpoints.  Each reaches a concrete registered waiting par
+without increasing formula complexity, while the exact inactive path
+decomposition is retained for the final global exclusion argument. -/
+private theorem
+    canonicalWorklistRun_incomplete_firstInactiveBlock_reachesWaitingPars
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    final.core.allMarked = false →
+      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (leftBoundary reentry :
+            certificate.referenceSwitchingGraph.DirectedEdge)
+          (before inactive after :
+            List certificate.referenceSwitchingGraph.DirectedEdge)
+          (leftWaiting rightWaiting : Vertex),
+        path.traversed =
+            before ++
+              leftBoundary :: (inactive ++ reentry :: after) ∧
+          leftBoundary ≠ reentry ∧
+            final.core.assignedToken? leftBoundary.target = none ∧
+              (∀ candidate ∈ inactive,
+                final.core.assignedToken? candidate.source = none ∧
+                  final.core.assignedToken? candidate.target = none) ∧
+                final.core.assignedToken? reentry.source = none ∧
+                  final.core.assignedToken? reentry.target ≠ none ∧
+                    QuiescentWaitingParAt
+                        certificate final leftWaiting ∧
+                      certificate.formulaComplexityAt leftWaiting ≤
+                        certificate.formulaComplexityAt
+                          leftBoundary.target ∧
+                        QuiescentWaitingParAt
+                            certificate final rightWaiting ∧
+                          certificate.formulaComplexityAt rightWaiting ≤
+                            certificate.formulaComplexityAt
+                              reentry.source := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    final.core.allMarked = false →
+      ∃ (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+          (leftBoundary reentry :
+            certificate.referenceSwitchingGraph.DirectedEdge)
+          (before inactive after :
+            List certificate.referenceSwitchingGraph.DirectedEdge)
+          (leftWaiting rightWaiting : Vertex),
+        path.traversed =
+            before ++
+              leftBoundary :: (inactive ++ reentry :: after) ∧
+          leftBoundary ≠ reentry ∧
+            final.core.assignedToken? leftBoundary.target = none ∧
+              (∀ candidate ∈ inactive,
+                final.core.assignedToken? candidate.source = none ∧
+                  final.core.assignedToken? candidate.target = none) ∧
+                final.core.assignedToken? reentry.source = none ∧
+                  final.core.assignedToken? reentry.target ≠ none ∧
+                    QuiescentWaitingParAt
+                        certificate final leftWaiting ∧
+                      certificate.formulaComplexityAt leftWaiting ≤
+                        certificate.formulaComplexityAt
+                          leftBoundary.target ∧
+                        QuiescentWaitingParAt
+                            certificate final rightWaiting ∧
+                          certificate.formulaComplexityAt rightWaiting ≤
+                            certificate.formulaComplexityAt
+                              reentry.source
+  intro incomplete
+  rcases canonicalWorklistRun_incomplete_firstInactiveBlock
+      correct startEquation incomplete with
+    ⟨_minimum, path, leftBoundary, reentry,
+      before, inactive, after, _minimumUnassigned,
+      _minimality, traversalEquation, boundariesDifferent,
+      leftBoundaryTargetUnassigned, inactiveUnassigned,
+      reentrySourceUnassigned, reentryTargetAssigned,
+      leftStatus, reentryStatus⟩
+  rcases canonicalWorklistRun_pathFrontier_reaches_waitingPar
+      correct startEquation leftBoundaryTargetUnassigned leftStatus with
+    ⟨leftWaiting, leftReached, leftRank⟩
+  have reverseTargetUnassigned :
+      final.core.assignedToken? reentry.reverse.target = none := by
+    simpa using reentrySourceUnassigned
+  rcases canonicalWorklistRun_pathFrontier_reaches_waitingPar
+      correct startEquation reverseTargetUnassigned reentryStatus with
+    ⟨rightWaiting, rightReached, rightRank⟩
+  have rightRankAtSource :
+      certificate.formulaComplexityAt rightWaiting ≤
+        certificate.formulaComplexityAt reentry.source := by
+    simpa using rightRank
+  exact
+    ⟨path, leftBoundary, reentry, before, inactive, after,
+      leftWaiting, rightWaiting, traversalEquation,
+      boundariesDifferent, leftBoundaryTargetUnassigned,
+      inactiveUnassigned, reentrySourceUnassigned,
+      reentryTargetAssigned, leftReached, leftRank,
+      rightReached, rightRankAtSource⟩
 
 /-- Every incomplete correct canonical run now exposes a path occurrence
 with a complete local scheduler classification.  This checkpoint separates

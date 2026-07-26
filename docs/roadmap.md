@@ -491,8 +491,12 @@
     - [x] Retain the globally minimum-complexity unassigned waiting
       conclusion and normalize each boundary to a strict rank gap above that
       minimum or an exact registered distinct-thread waiting par.
+    - [x] Prove by strong induction that every unassigned occurrence reaches
+      a concrete registered waiting par through strict formula-complexity
+      descent, then retain non-increasing chase endpoints for both
+      orientations of the exact first inactive block.
     - [ ] Exclude the resulting contiguous path-exposed inactive-block
-      and rank-normalized chase obstruction.
+      and finite waiting-par dependency obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

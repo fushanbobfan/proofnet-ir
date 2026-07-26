@@ -52,9 +52,14 @@ oppositely oriented scheduler boundaries. Cutting at the first reentry
 isolates a contiguous block whose intervening edge endpoints are unassigned.
 The selected waiting conclusion is globally minimum among unassigned formula
 complexities; each boundary is consequently proved either strictly above
-that minimum or to be another exact distinct-thread waiting par. Proof-net
-correctness still must exclude this rank-normalized chase obstruction before the
-recursive fallback can be removed. The later
+that minimum or to be another exact distinct-thread waiting par. A separate
+strong-induction theorem now proves that every unassigned occurrence reaches
+a concrete registered waiting par through strict formula-complexity descent.
+Applied to the two inactive-block orientations, both frontier chases terminate
+at waiting pars without increasing rank while preserving the exact path
+decomposition. Proof-net correctness still must exclude the resulting finite
+waiting-par dependency obstruction before the recursive fallback can be
+removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

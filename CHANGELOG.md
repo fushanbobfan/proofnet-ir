@@ -108,8 +108,12 @@
   Structural premise descent normalizes each oriented boundary to one of two
   exact alternatives: its target has formula complexity strictly above that
   global minimum, or the boundary itself is a concrete registered
-  distinct-thread par. Correctness still must exclude this rank-normalized
-  path chase, so
+  distinct-thread par. A separate strong-induction theorem now proves that
+  every unassigned occurrence reaches a concrete registered waiting par by
+  strict formula-complexity descent. Both orientations bracketing the first
+  inactive block consequently have non-increasing waiting-par chase
+  endpoints while retaining the exact path decomposition. Correctness still
+  must exclude the resulting finite waiting-par dependency obstruction, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
