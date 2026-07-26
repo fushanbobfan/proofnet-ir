@@ -135,9 +135,12 @@ The event-driven worklist tier is subject to the identical trust boundary.
 `verifyDerivation?`, and Lean proves both worklist fast-path soundness and
 exact equality of its fallback wrapper with `check`. The worklist candidate
 carries an axiom-free proof of the conservative `n(n+4)+1` link-attempt cap.
-That cap is termination/resource evidence, not a proof that the fuel suffices
-for every correct net, and it excludes consumer-table construction, waiting
-list traversal, frontier work, and verification.
+Current `main` additionally proves an exact distinct-firing history, bounded
+enqueue sources, insertion/pop conservation, and canonical queue exhaustion
+within that cap. This scheduler fuel theorem is not yet the correct-state
+progress theorem needed for pure-worklist completeness, and it excludes
+consumer-table construction, waiting-list traversal, frontier work, and
+verification.
 
 For LeanProp wire inputs, `inferAt_eq_elaborateAt` kernel-proves that the
 formula-only raw checker and typed elaborator agree on acceptance, rejection,
