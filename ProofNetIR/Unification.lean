@@ -18256,10 +18256,15 @@ private theorem
               originalBase original originalBase ∧
               certificate.fullGraph.EdgeWalk
                 normalizedBase normalized normalizedBase ∧
-                (normalized = [] ∨
-                  Graph.EdgeWalk.CyclicNoImmediateReverse normalized) ∧
-                  ∀ directed, directed ∈ normalized →
-                    directed ∈ original := by
+                Graph.EdgeWalk.CyclicImmediateReverseNormalization
+                    original normalized ∧
+                  (normalized = [] ∨
+                    Graph.EdgeWalk.CyclicNoImmediateReverse normalized) ∧
+                    (∀ directed, directed ∈ normalized →
+                      directed ∈ original) ∧
+                      (normalized = [] →
+                        ∀ directed, directed ∈ original →
+                          directed.reverse ∈ original) := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -18276,22 +18281,30 @@ private theorem
               originalBase original originalBase ∧
               certificate.fullGraph.EdgeWalk
                 normalizedBase normalized normalizedBase ∧
-                (normalized = [] ∨
-                  Graph.EdgeWalk.CyclicNoImmediateReverse normalized) ∧
-                  ∀ directed, directed ∈ normalized →
-                    directed ∈ original
+                Graph.EdgeWalk.CyclicImmediateReverseNormalization
+                    original normalized ∧
+                  (normalized = [] ∨
+                    Graph.EdgeWalk.CyclicNoImmediateReverse normalized) ∧
+                    (∀ directed, directed ∈ normalized →
+                      directed ∈ original) ∧
+                      (normalized = [] →
+                        ∀ directed, directed ∈ original →
+                          directed.reverse ∈ original)
   intro source sourceWaiting
   rcases
       canonicalWorklistRun_waitingPar_dependency_closed_fullGraphWalk
         correct startEquation sourceWaiting with
     ⟨originalBase, original, originalNonempty, originalWalk⟩
-  rcases originalWalk.normalizeCyclicImmediateReversals with
-    ⟨normalizedBase, normalized, normalizedWalk, normalizedShape,
-      normalizedMembership⟩
+  rcases originalWalk.normalizeCyclicImmediateReversalsTraced with
+    ⟨normalizedBase, normalized, normalizedWalk, normalization,
+      normalizedShape⟩
   exact
     ⟨originalBase, normalizedBase, original, normalized,
-      originalNonempty, originalWalk, normalizedWalk, normalizedShape,
-      normalizedMembership⟩
+      originalNonempty, originalWalk, normalizedWalk, normalization,
+      normalizedShape, normalization.membership_subset,
+      fun normalizedEmpty directed membership =>
+        normalization.reverse_mem_of_normalizes_to_nil
+          normalizedEmpty directed membership⟩
 
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact

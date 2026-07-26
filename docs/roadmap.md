@@ -533,6 +533,10 @@
       closing junctions, preserving endpoints and surviving occurrences, and
       derive the exhaustive empty-or-cyclically-nonbacktracking closed normal
       form. Keep the genuinely nested empty case explicit.
+    - [x] Retain a proof-relevant internal/rotated-closing cancellation tree
+      and prove that an empty trace gives every represented directed-edge
+      value an exact-index reverse value in the original obstruction (a
+      membership result, not yet a positional bijection).
     - [ ] Exclude the empty exact nesting; in the nonempty branch transport
       the local turn classification through normalization, extract an exact
       edge-simple switching cycle or forbidden nesting, and exclude the

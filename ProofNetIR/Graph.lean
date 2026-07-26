@@ -1059,6 +1059,26 @@ theorem membership_subset {graph : Graph}
       · exact .inl inInitial
       · exact .inr (by simp [inRemaining])
 
+/-- For each directed-edge value in the source, either that value survives one
+exact reverse-pair reduction or its exact reverse value occurs in the source.
+This is a membership statement, not a multiplicity-preserving pairing. -/
+theorem survives_or_reverse_mem {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (reduction : ImmediateReverseReduction before after)
+    (directed : graph.DirectedEdge)
+    (membership : directed ∈ before) :
+    directed ∈ after ∨ directed.reverse ∈ before := by
+  cases reduction with
+  | cancel initial remaining incoming =>
+      simp only [List.mem_append, List.mem_cons] at membership ⊢
+      rcases membership with inInitial | atIncoming | atReverse | inRemaining
+      · exact .inl (.inl inInitial)
+      · subst directed
+        exact .inr (by simp)
+      · subst directed
+        exact .inr (by simp)
+      · exact .inl (.inr inRemaining)
+
 end ImmediateReverseReduction
 
 /-- Reflexive-transitive normalization by exact adjacent reverse-pair
@@ -1110,6 +1130,43 @@ theorem length_le {graph : Graph}
   | refl => exact Nat.le_refl _
   | step reduction tail induction =>
       exact Nat.le_trans induction (Nat.le_of_lt reduction.length_lt)
+
+/-- During iterated reduction, each original directed-edge value either
+survives or has its exact reverse value in the original traversal. This is a
+membership statement, not a multiplicity-preserving pairing. -/
+theorem survives_or_reverse_mem {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization : ImmediateReverseNormalization before after)
+    (directed : graph.DirectedEdge)
+    (membership : directed ∈ before) :
+    directed ∈ after ∨ directed.reverse ∈ before := by
+  induction normalization with
+  | refl =>
+      exact .inl membership
+  | @step first middle last reduction tail induction =>
+      rcases reduction.survives_or_reverse_mem directed membership with
+        survived | paired
+      · rcases induction survived with survived | pairedInMiddle
+        · exact .inl survived
+        · exact .inr
+            (reduction.membership_subset directed.reverse pairedInMiddle)
+      · exact .inr paired
+
+/-- If exact internal cancellation reduces a traversal to empty, the reverse
+of every directed-edge value represented in the source also occurs in the
+source. This theorem does not assert a bijection between list positions. -/
+theorem reverse_mem_of_normalizes_to_nil {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization : ImmediateReverseNormalization before after)
+    (afterEmpty : after = [])
+    (directed : graph.DirectedEdge)
+    (membership : directed ∈ before) :
+    directed.reverse ∈ before := by
+  rcases normalization.survives_or_reverse_mem directed membership with
+    survived | paired
+  · rw [afterEmpty] at survived
+    contradiction
+  · exact paired
 
 end ImmediateReverseNormalization
 
@@ -1165,26 +1222,118 @@ def CyclicNoImmediateReverse {graph : Graph}
         traversed.getLast? = some last →
           first ≠ last.reverse
 
+/-- Proof-relevant cyclic normalization. `finish` records the final internal
+normalization pass. `closing` records an internally normalized outer
+occurrence/reverse pair, removes that cyclic pair by rotation, and retains the
+nested trace for the enclosed middle traversal. -/
+inductive CyclicImmediateReverseNormalization {graph : Graph} :
+    List graph.DirectedEdge → List graph.DirectedEdge → Prop where
+  | finish {before after : List graph.DirectedEdge} :
+      ImmediateReverseNormalization before after →
+        CyclicImmediateReverseNormalization before after
+  | closing {before middle after : List graph.DirectedEdge}
+      (first last : graph.DirectedEdge) :
+      ImmediateReverseNormalization
+          before (first :: (middle ++ [last])) →
+        first = last.reverse →
+          CyclicImmediateReverseNormalization middle after →
+            CyclicImmediateReverseNormalization before after
+
+namespace CyclicImmediateReverseNormalization
+
+/-- Cyclic normalization cannot introduce an occurrence absent from its
+original traversal. -/
+theorem membership_subset {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicImmediateReverseNormalization before after) :
+    ∀ directed, directed ∈ after → directed ∈ before := by
+  induction normalization with
+  | finish internal =>
+      exact internal.membership_subset
+  | @closing before middle after first last internal
+      _closingReverse tail induction =>
+      intro directed membership
+      have inMiddle : directed ∈ middle :=
+        induction directed membership
+      apply internal.membership_subset directed
+      simp [inMiddle]
+
+/-- During proof-relevant cyclic normalization, each original directed-edge
+value either survives or has its exact reverse value in the original
+traversal. This is a membership statement, not a multiplicity-preserving
+pairing. -/
+theorem survives_or_reverse_mem {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicImmediateReverseNormalization before after)
+    (directed : graph.DirectedEdge)
+    (membership : directed ∈ before) :
+    directed ∈ after ∨ directed.reverse ∈ before := by
+  induction normalization with
+  | finish internal =>
+      exact internal.survives_or_reverse_mem directed membership
+  | @closing before middle after first last internal
+      closingReverse tail induction =>
+      rcases internal.survives_or_reverse_mem directed membership with
+        survived | paired
+      · simp at survived
+        rcases survived with atFirst | inMiddle | atLast
+        · subst directed
+          exact .inr
+            (internal.membership_subset first.reverse (by
+              simp [closingReverse]))
+        · rcases induction inMiddle with survived | pairedInMiddle
+          · exact .inl survived
+          · exact .inr
+              (internal.membership_subset directed.reverse (by
+                simp [pairedInMiddle]))
+        · subst directed
+          exact .inr
+            (internal.membership_subset last.reverse (by
+              simp [closingReverse]))
+      · exact .inr paired
+
+/-- If cyclic normalization ends empty, the reverse of every directed-edge
+value represented in the original traversal also occurs there, at the same
+stored edge index. This theorem does not assert a bijection between list
+positions. -/
+theorem reverse_mem_of_normalizes_to_nil {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicImmediateReverseNormalization before after)
+    (afterEmpty : after = [])
+    (directed : graph.DirectedEdge)
+    (membership : directed ∈ before) :
+    directed.reverse ∈ before := by
+  rcases normalization.survives_or_reverse_mem directed membership with
+    survived | paired
+  · rw [afterEmpty] at survived
+    contradiction
+  · exact paired
+
+end CyclicImmediateReverseNormalization
+
 /-- Normalize a finite closed exact-occurrence walk both internally and across
 its cyclic closing junction.  The base vertex may rotate, every surviving
 occurrence comes from the input, and the result is either empty or cyclically
 nonbacktracking.  The empty alternative is essential: a closed tree walk can
 consist entirely of nested out-and-back pairs. -/
-theorem normalizeCyclicImmediateReversals {graph : Graph}
+theorem normalizeCyclicImmediateReversalsTraced {graph : Graph}
     {base : Vertex}
     (traversed : List graph.DirectedEdge)
     (walk : graph.EdgeWalk base traversed base) :
     ∃ (normalizedBase : Vertex)
         (reduced : List graph.DirectedEdge),
       graph.EdgeWalk normalizedBase reduced normalizedBase ∧
-        (reduced = [] ∨ CyclicNoImmediateReverse reduced) ∧
-          ∀ directed, directed ∈ reduced → directed ∈ traversed := by
+        CyclicImmediateReverseNormalization traversed reduced ∧
+          (reduced = [] ∨ CyclicNoImmediateReverse reduced) := by
   rcases normalizeImmediateReversals traversed walk with
     ⟨normal, normalization, normalWalk, internalReduced⟩
   by_cases normalEmpty : normal = []
   · exact
-      ⟨base, normal, normalWalk, .inl normalEmpty,
-        normalization.membership_subset⟩
+      ⟨base, normal, normalWalk, .finish normalization,
+        .inl normalEmpty⟩
   · let first := normal.head normalEmpty
     let last := normal.getLast normalEmpty
     have firstHead : normal.head? = some first := by
@@ -1235,31 +1384,47 @@ theorem normalizeCyclicImmediateReversals {graph : Graph}
       have middleShorter : middle.length < traversed.length := by
         have normalBound := normalization.length_le
         omega
-      rcases normalizeCyclicImmediateReversals middle shortened with
-        ⟨normalizedBase, reduced, reducedWalk, reducedShape,
-          reducedMembership⟩
-      refine
-        ⟨normalizedBase, reduced, reducedWalk, reducedShape, ?_⟩
-      intro directed directedMembership
-      have inMiddle :=
-        reducedMembership directed directedMembership
-      have inNormal : directed ∈ normal := by
-        rw [normalEquation, restEquation]
-        simp [inMiddle]
-      exact normalization.membership_subset directed inNormal
+      rcases normalizeCyclicImmediateReversalsTraced middle shortened with
+        ⟨normalizedBase, reduced, reducedWalk, reducedNormalization,
+          reducedShape⟩
+      have internalShape :
+          ImmediateReverseNormalization traversed
+            (first :: (middle ++ [last])) := by
+        simpa [normalEquation, restEquation] using normalization
+      exact
+        ⟨normalizedBase, reduced, reducedWalk,
+          .closing first last internalShape closingReverse
+            reducedNormalization,
+          reducedShape⟩
     · exact
         ⟨base, normal, normalWalk,
+          .finish normalization,
           .inr ⟨internalReduced, by
             intro actualFirst actualLast actualHead actualLastEq
             have firstEquation : actualFirst = first :=
               Option.some.inj (actualHead.symm.trans firstHead)
             have lastEquation : actualLast = last :=
               Option.some.inj (actualLastEq.symm.trans lastLast)
-            simpa [firstEquation, lastEquation] using closingReverse⟩,
-          normalization.membership_subset⟩
+            simpa [firstEquation, lastEquation] using closingReverse⟩⟩
 termination_by traversed.length
 decreasing_by
   exact middleShorter
+
+/-- Compatibility projection of the proof-relevant cyclic normalizer. -/
+theorem normalizeCyclicImmediateReversals {graph : Graph}
+    {base : Vertex}
+    (traversed : List graph.DirectedEdge)
+    (walk : graph.EdgeWalk base traversed base) :
+    ∃ (normalizedBase : Vertex)
+        (reduced : List graph.DirectedEdge),
+      graph.EdgeWalk normalizedBase reduced normalizedBase ∧
+        (reduced = [] ∨ CyclicNoImmediateReverse reduced) ∧
+          ∀ directed, directed ∈ reduced → directed ∈ traversed := by
+  rcases normalizeCyclicImmediateReversalsTraced traversed walk with
+    ⟨normalizedBase, reduced, reducedWalk, normalization, reducedShape⟩
+  exact
+    ⟨normalizedBase, reduced, reducedWalk, reducedShape,
+      normalization.membership_subset⟩
 
 end EdgeWalk
 

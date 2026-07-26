@@ -117,10 +117,17 @@ prohibited immediate reversal, so the turn is free. Every edge of the finite
  the nonempty closed dependency walk to a closed walk which is either empty or
  cyclically nonbacktracking, with every surviving occurrence drawn from the
  original obstruction. The empty alternative is real for nested out-and-back
- tree walks and is not silently discarded. Proof-net correctness must next
- exclude that exact nesting; in the nonempty branch it must transport the local
- turn evidence while extracting a suitably classified edge-simple switching
- cycle or forbidden nesting before the recursive fallback can be removed. The
+ tree walks and is not silently discarded. The cyclic normalizer now also
+ returns a proof-relevant cancellation tree: every internal deletion and every
+ rotated closing deletion is retained. Lean proves from an empty trace that,
+ for every directed-edge value represented in the original obstruction, the
+ reverse orientation of that same stored edge also occurs in the original
+ walk. This is an exact-index membership result, not yet a bijection between
+ list positions. The scheduler theorem exposes both the trace and that reverse-
+ membership result. Proof-net correctness must next use it to exclude that exact nesting;
+ in the nonempty branch it must transport the local turn evidence while
+ extracting a suitably classified edge-simple switching cycle or forbidden
+ nesting before the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See

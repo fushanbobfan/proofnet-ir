@@ -195,10 +195,16 @@ occurrences. Every dependency carries that same-boundary classification
  reversals and returns a closed normal form which is either empty or cyclically
  nonbacktracking; surviving occurrences are proved to come from the original
  walk. It does not claim that nonempty input stays nonempty, because nested
- out-and-back walks refute that claim. The remaining gap is to exclude that
+ out-and-back walks refute that claim. A proof-relevant cyclic normalization
+ trace now records every internal and rotated closing cancellation. If the
+ trace ends at the empty traversal, Lean proves that the reverse of every
+ represented directed-edge value occurs in the original obstruction at the
+ same stored edge index. This is membership, not a proved bijection between
+ list positions. The remaining gap is to exclude that
  exact empty nesting and, in the nonempty branch, transport the turn evidence
- into an excluded edge-simple switching cycle or forbidden nesting. This is not
- yet the correct-state progress theorem needed for pure-worklist completeness.
+ into an excluded edge-simple switching cycle or forbidden nesting. This is
+ not yet the correct-state progress theorem needed for pure-worklist
+ completeness.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

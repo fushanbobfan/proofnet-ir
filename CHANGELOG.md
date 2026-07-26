@@ -184,10 +184,19 @@
   normal form whose surviving occurrences all came from the original walk.
   The result is either empty or cyclically nonbacktracking. The empty branch is
   intentionally retained because a nested out-and-back tree walk is a real
-  counterexample to nonempty normalization. Correctness still must exclude that
-  exact nesting, and in the nonempty branch transport the local turn evidence
-  while extracting or excluding a suitably classified edge-simple switching
-  cycle or forbidden nesting. Thus
+  counterexample to nonempty normalization. The cyclic normalizer now returns
+  a proof-relevant tree recording every internal and rotated closing
+  cancellation. Reduction-level, internal-normalization, and cyclic-
+  normalization theorems prove that each source directed-edge value either
+  survives or has the reverse orientation of the same stored edge in the
+  source; consequently, if the cyclic normal form is empty, the reverse of
+  every represented directed-edge value also occurs. This is exact-index
+  membership, not a proved bijection between list positions. The scheduler-
+  level normalized-walk theorem retains this trace and membership result.
+  Correctness still must exclude
+  that exact nesting, and in the nonempty branch transport the local turn
+  evidence while extracting or excluding a suitably classified edge-simple
+  switching cycle or forbidden nesting. Thus
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

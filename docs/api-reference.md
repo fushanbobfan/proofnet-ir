@@ -477,6 +477,20 @@ ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.membership_subset : ∀ {gra
     ∀ (directed : graph.DirectedEdge), directed ∈ after → directed ∈ before
 ```
 
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.survives_or_reverse_mem`
+
+Kind: theorem.
+
+For each directed-edge value in the source, either that value survives one
+exact reverse-pair reduction or its exact reverse value occurs in the source.
+This is a membership statement, not a multiplicity-preserving pairing.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction.survives_or_reverse_mem : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseReduction before after →
+    ∀ (directed : graph.DirectedEdge), directed ∈ before → directed ∈ after ∨ directed.reverse ∈ before
+```
+
 ### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization`
 
 Kind: inductive type.
@@ -524,6 +538,34 @@ ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.length_le : ∀ {graph :
   ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization before after → after.length ≤ before.length
 ```
 
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.survives_or_reverse_mem`
+
+Kind: theorem.
+
+During iterated reduction, each original directed-edge value either
+survives or has its exact reverse value in the original traversal. This is a
+membership statement, not a multiplicity-preserving pairing.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.survives_or_reverse_mem : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization before after →
+    ∀ (directed : graph.DirectedEdge), directed ∈ before → directed ∈ after ∨ directed.reverse ∈ before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil`
+
+Kind: theorem.
+
+If exact internal cancellation reduces a traversal to empty, the reverse
+of every directed-edge value represented in the source also occurs in the
+source. This theorem does not assert a bijection between list positions.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.ImmediateReverseNormalization before after →
+    after = [] → ∀ (directed : graph.DirectedEdge), directed ∈ before → directed.reverse ∈ before
+```
+
 ### `ProofNetIR.Graph.EdgeWalk.normalizeImmediateReversals`
 
 Kind: theorem.
@@ -565,7 +607,63 @@ inside its list representation or across its closing last/first junction.
 ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → Prop
 ```
 
-### `ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversals`
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization`
+
+Kind: inductive type.
+
+Proof-relevant cyclic normalization. `finish` records the final internal
+normalization pass. `closing` records an internally normalized outer
+occurrence/reverse pair, removes that cyclic pair by rotation, and retains the
+nested trace for the enclosed middle traversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.membership_subset`
+
+Kind: theorem.
+
+Cyclic normalization cannot introduce an occurrence absent from its
+original traversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.membership_subset : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization before after →
+    ∀ (directed : graph.DirectedEdge), directed ∈ after → directed ∈ before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.survives_or_reverse_mem`
+
+Kind: theorem.
+
+During proof-relevant cyclic normalization, each original directed-edge
+value either survives or has its exact reverse value in the original
+traversal. This is a membership statement, not a multiplicity-preserving
+pairing.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.survives_or_reverse_mem : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization before after →
+    ∀ (directed : graph.DirectedEdge), directed ∈ before → directed ∈ after ∨ directed.reverse ∈ before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil`
+
+Kind: theorem.
+
+If cyclic normalization ends empty, the reverse of every directed-edge
+value represented in the original traversal also occurs there, at the same
+stored edge index. This theorem does not assert a bijection between list
+positions.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil : ∀ {graph : ProofNetIR.Graph} {before after : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization before after →
+    after = [] → ∀ (directed : graph.DirectedEdge), directed ∈ before → directed.reverse ∈ before
+```
+
+### `ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversalsTraced`
 
 Kind: theorem.
 
@@ -574,6 +672,21 @@ its cyclic closing junction.  The base vertex may rotate, every surviving
 occurrence comes from the input, and the result is either empty or cyclically
 nonbacktracking.  The empty alternative is essential: a closed tree walk can
 consist entirely of nested out-and-back pairs.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversalsTraced : ∀ {graph : ProofNetIR.Graph} {base : ProofNetIR.Vertex} (traversed : List graph.DirectedEdge),
+  graph.EdgeWalk base traversed base →
+    ∃ normalizedBase reduced,
+      graph.EdgeWalk normalizedBase reduced normalizedBase ∧
+        ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization traversed reduced ∧
+          (reduced = [] ∨ ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse reduced)
+```
+
+### `ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversals`
+
+Kind: theorem.
+
+Compatibility projection of the proof-relevant cyclic normalizer.
 
 ```lean
 ProofNetIR.Graph.EdgeWalk.normalizeCyclicImmediateReversals : ∀ {graph : ProofNetIR.Graph} {base : ProofNetIR.Vertex} (traversed : List graph.DirectedEdge),

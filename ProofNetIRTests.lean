@@ -379,6 +379,20 @@ example :
   .step (.cancel [] [] parallelDirectedZero) (.refl [])
 
 example :
+    Graph.EdgeWalk.CyclicImmediateReverseNormalization
+      [parallelDirectedZero, parallelDirectedZero.reverse] [] :=
+  .finish (.step (.cancel [] [] parallelDirectedZero) (.refl []))
+
+example
+    (normalization :
+      Graph.EdgeWalk.CyclicImmediateReverseNormalization
+        [parallelDirectedZero, parallelDirectedZero.reverse] []) :
+    parallelDirectedZero.reverse ∈
+      [parallelDirectedZero, parallelDirectedZero.reverse] := by
+  apply normalization.reverse_mem_of_normalizes_to_nil rfl
+  simp
+
+example :
     ∃ reduced,
       Graph.EdgeWalk.ImmediateReverseNormalization
           [parallelDirectedZero, parallelDirectedZero.reverse] reduced ∧
@@ -392,6 +406,23 @@ example :
         (Graph.EdgeWalk.step (.refl 0) parallelDirectedZero rfl rfl)
         parallelDirectedZero.reverse rfl rfl
   exact Graph.EdgeWalk.normalizeImmediateReversals _ outAndBack
+
+example :
+    ∃ normalizedBase reduced,
+      indexedParallelGraph.EdgeWalk normalizedBase reduced normalizedBase ∧
+        Graph.EdgeWalk.CyclicImmediateReverseNormalization
+          [parallelDirectedZero, parallelDirectedZero.reverse] reduced ∧
+          (reduced = [] ∨
+            Graph.EdgeWalk.CyclicNoImmediateReverse reduced) := by
+  have outAndBack :
+      indexedParallelGraph.EdgeWalk 0
+        [parallelDirectedZero, parallelDirectedZero.reverse] 0 := by
+    simpa [parallelDirectedZero, Graph.DirectedEdge.source] using
+      Graph.EdgeWalk.step
+        (Graph.EdgeWalk.step (.refl 0) parallelDirectedZero rfl rfl)
+        parallelDirectedZero.reverse rfl rfl
+  exact
+    Graph.EdgeWalk.normalizeCyclicImmediateReversalsTraced _ outAndBack
 
 def indexedParallelCycle : indexedParallelGraph.EdgeSimpleCycle where
   start := 0
@@ -2242,13 +2273,21 @@ example : ¬cyclicGraph.Acyclic := by
 #check Graph.EdgeWalk.ImmediateReverseReduction.length_lt
 #check Graph.EdgeWalk.ImmediateReverseReduction.preservesWalk
 #check Graph.EdgeWalk.ImmediateReverseReduction.membership_subset
+#check Graph.EdgeWalk.ImmediateReverseReduction.survives_or_reverse_mem
 #check Graph.EdgeWalk.ImmediateReverseNormalization
 #check Graph.EdgeWalk.ImmediateReverseNormalization.preservesWalk
 #check Graph.EdgeWalk.ImmediateReverseNormalization.membership_subset
 #check Graph.EdgeWalk.ImmediateReverseNormalization.length_le
+#check Graph.EdgeWalk.ImmediateReverseNormalization.survives_or_reverse_mem
+#check Graph.EdgeWalk.ImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil
 #check Graph.EdgeWalk.normalizeImmediateReversals
 #check Graph.EdgeWalk.rotateFirstClosed
 #check Graph.EdgeWalk.CyclicNoImmediateReverse
+#check Graph.EdgeWalk.CyclicImmediateReverseNormalization
+#check Graph.EdgeWalk.CyclicImmediateReverseNormalization.membership_subset
+#check Graph.EdgeWalk.CyclicImmediateReverseNormalization.survives_or_reverse_mem
+#check Graph.EdgeWalk.CyclicImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil
+#check Graph.EdgeWalk.normalizeCyclicImmediateReversalsTraced
 #check Graph.EdgeWalk.normalizeCyclicImmediateReversals
 #check Graph.EdgeSimpleCycle.inflateRetained
 #check Graph.DirectedEdge.ne_reverse

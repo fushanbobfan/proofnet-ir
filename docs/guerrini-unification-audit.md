@@ -160,6 +160,12 @@ last/first pair. It reduces the nonempty dependency obstruction to a closed
 walk that is either empty or cyclically nonbacktracking, with every surviving
 occurrence inherited from the original walk. The empty branch is not an
 artifact: nested out-and-back tree walks genuinely normalize away. The
+normalizer now retains a proof-relevant tree of every internal cancellation
+and rotated closing cancellation. Lean proves that, for every directed-edge
+value represented in an empty-normalizing dependency obstruction, the reverse
+orientation of the same stored edge also occurs there. This is exact-index
+membership, not yet a bijection between list positions. The scheduler-level
+theorem exposes that trace and membership result directly. The
 remaining argument must exclude that exact nesting and, in the nonempty branch,
 transport the turn classifications into an excluded edge-simple switching
 cycle or forbidden nesting in a correct quiescent state.
