@@ -81,12 +81,17 @@ marked conclusions, stores armed unequal-token pars in a deduplicated waiting
 set, and requeues that set after a tensor union. Candidates still cross
 `verifyDerivation?`. Lean proves worklist fast-path soundness, its fallback
 wrapper equal to `check`, and a conservative `n(n+4)+1` link-attempt cap.
+Current `main` additionally proves that structural single-consumer ownership,
+distinct successful firings, and the bounded waiting registry keep all
+successful insertions within that cap, and exact insertion/pop accounting
+forces the canonical final queue to be empty.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
 stack, interval partition, or specialized union-find invariant. The attempt
-cap is imposed by fuel; its sufficiency for every correct net has not been
-proved.
+cap is no longer merely imposed by fuel: its scheduler sufficiency is proved.
+That result does not rule out a quiescent incomplete state on a correct net;
+the correct-state progress theorem remains open.
 
 Lean currently proves:
 
@@ -161,7 +166,7 @@ or positive misses. The larger search recorded at most 150 link attempts and
    links from tensor deadlocks.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
-4. Prove the event-driven worklist's fuel sufficient, then replace eager axiom
-   starts and flat waiting requeues with the Figure-7 stack discipline.
+4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
+   discipline; the current flat scheduler's fuel is already proved sufficient.
 5. Only after `NEXTAXIOM`, token-age, waiting-stack, and union-find invariants are
    formalized should the library expose a Guerrini-linear complexity theorem.

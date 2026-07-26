@@ -180,6 +180,10 @@ consumer table. Newly marked conclusions enqueue only their consumers; tensor
 unions requeue a deduplicated flat set of waiting par links. Its generated
 derivation crosses the same independent verifier, so Lean proves worklist
 success sound and the worklist-first fallback wrapper equal to `check`.
+The proof layer also charges all successful dependency and waiting insertions
+to distinct submitted-link firings, proves the cumulative total fits
+`n(n+4)+1`, and proves that the canonical run exhausts its concrete queue
+within that budget. Queue exhaustion is not yet correct-net progress.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

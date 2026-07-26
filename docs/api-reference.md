@@ -3660,8 +3660,10 @@ ProofNetIR.UnificationWorklistStats : Type
 
 Kind: definition.
 
-Conservative executable link-attempt budget for the current worklist
-prototype. This is not a completeness theorem for the chosen fuel.
+Conservative executable link-attempt budget for the current worklist.
+The proof layer establishes that canonical production runs exhaust their queue
+within this fuel; that scheduler theorem is not yet correct-net completeness or
+a whole-program complexity theorem.
 
 ```lean
 ProofNetIR.UnificationWorklistStats.attemptBudget : Nat → Nat
@@ -3683,8 +3685,8 @@ ProofNetIR.UnificationWorklistCandidateResult : ProofNetIR.Certificate → Type
 Kind: theorem.
 
 Every successful worklist candidate stays within the conservative
-executable link-attempt budget. Fuel sufficiency for every correct net remains
-a separate completeness obligation.
+executable link-attempt budget. A separate internal scheduler theorem proves
+canonical queue exhaustion; correct-net progress remains open.
 
 ```lean
 ProofNetIR.UnificationWorklistCandidateResult.linkAttemptsWithinBudget : ∀ {certificate : ProofNetIR.Certificate} (result : ProofNetIR.UnificationWorklistCandidateResult certificate),
@@ -3772,7 +3774,8 @@ Event-driven ready/waiting worklist candidate.
 
 This prototype keeps the Figure-5 token semantics and derivation components,
 but replaces full repeated scans with dependency enqueues plus a waiting-par
-set requeued after tensor unions. It has no universal completeness or linear
+set requeued after tensor unions. Its production fuel is proved sufficient to
+empty the queue, but it has no universal correct-net completeness or linear
 complexity theorem yet.
 
 ```lean

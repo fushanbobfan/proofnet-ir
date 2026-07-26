@@ -158,8 +158,9 @@ part of the engineering and proof-identity gap.
    An additional event-driven worklist precomputes premise consumers and
    retries only waiting par links after a tensor union. Its verified success
    is sound, its fallback wrapper is exactly equal to `check`, and every run
-   is capped at `n(n+4)+1` link attempts. Pure worklist completeness, fuel
-   sufficiency, and a full cost theorem are still open.
+   is capped at `n(n+4)+1` link attempts. Current `main` proves that this fuel
+   exhausts the canonical production queue. Pure worklist completeness and a
+   full cost theorem are still open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

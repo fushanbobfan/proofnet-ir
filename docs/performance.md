@@ -68,10 +68,12 @@ precomputed premise-consumer table and a deduplicated flat waiting-par set.
 Newly marked conclusions enqueue their consumers; tensor unions requeue the
 waiting set. Its result records initial, dependency, and waiting enqueues,
 link attempts, and successful firings. An axiom-free proof caps link attempts
-at the executable fuel `n(n+4)+1`. Fuel sufficiency for every correct net and
-the cost of building/traversing the tables are not yet proved. In particular,
-flat waiting requeues can still be quadratic, so this is not the sequential
-linear algorithm of Guerrini Figures 7--8.
+at the executable fuel `n(n+4)+1`; current `main` additionally proves bounded
+enqueue sources plus exact insertion/pop accounting exhaust the canonical
+queue within that fuel. Correct-net progress and the cost of
+building/traversing the tables are not yet proved. In particular, flat waiting
+requeues can still be quadratic, so this is not the sequential linear
+algorithm of Guerrini Figures 7--8.
 
 A separate `proofnet_ir_reconstruction_audit` executable runs the exact
 v0.2-shaped 1,000-case family: 250 derivation positives plus missing-link,
