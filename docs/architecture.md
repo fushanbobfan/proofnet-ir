@@ -183,7 +183,10 @@ success sound and the worklist-first fallback wrapper equal to `check`.
 The proof layer also charges all successful dependency and waiting insertions
 to distinct submitted-link firings, proves the cumulative total fits
 `n(n+4)+1`, and proves that the canonical run exhausts its concrete queue
-within that budget. Queue exhaustion is not yet correct-net progress.
+within that budget. At quiescence, every submitted but unfired connective is
+kernel-classified as idle, a distinct-thread waiting par, or a same-thread
+tensor deadlock. Excluding those witnesses from correct nonfinal nets remains
+the missing progress argument.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

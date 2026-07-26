@@ -448,6 +448,9 @@
     - [x] Bound cumulative enqueue sources using structural single-consumer
       ownership, distinct successful-firing history, and bounded waiting
       registries; prove that `n(n+4)+1` exhausts the canonical queue.
+    - [x] Reduce the remaining quiescent case to explicit semantic witnesses:
+      every submitted but unfired connective has an idle premise, is a
+      distinct-thread registered par, or is a same-thread tensor deadlock.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

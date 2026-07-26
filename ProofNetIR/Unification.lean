@@ -5590,6 +5590,77 @@ private def SchedulerCoverageExcept (certificate : Certificate)
         index ≠ skipped →
           ConnectiveSchedulerStatus state index link
 
+/-- The exact semantic reasons why an unfired connective can remain after a
+covered scheduler becomes quiescent. -/
+private def QuiescentConnectiveObstruction
+    (state : UnificationWorklistState) (index : Nat) : Link → Prop
+  | .axiom _ _ => False
+  | .par left right conclusion =>
+      state.core.assignedToken? conclusion = none ∧
+        ((state.core.tokenAt? left = none ∨
+            state.core.tokenAt? right = none) ∨
+          ∃ leftToken rightToken,
+            state.core.tokenAt? left = some leftToken ∧
+              state.core.tokenAt? right = some rightToken ∧
+                leftToken ≠ rightToken ∧
+                  index ∈ state.waiting)
+  | .tensor left right conclusion =>
+      state.core.assignedToken? conclusion = none ∧
+        ((state.core.tokenAt? left = none ∨
+            state.core.tokenAt? right = none) ∨
+          ∃ token,
+            state.core.tokenAt? left = some token ∧
+              state.core.tokenAt? right = some token)
+
+/-- Once the concrete queue is empty, scheduler coverage turns every
+submitted but unfired connective into an explicit semantic obstruction.
+For a par this is either a missing premise or two distinct registered
+threads; for a tensor it is either a missing premise or a same-thread
+deadlock.  This theorem is deliberately correctness-free: the next layer must
+use proof-net correctness to rule these witnesses out. -/
+private theorem SchedulerCoverage.quiescent_unfired_obstruction
+    {certificate : Certificate} {state : UnificationWorklistState}
+    {index : Nat} {link : Link}
+    (coverage : SchedulerCoverage certificate state)
+    (quiescent : state.queue = [])
+    (lookup : certificate.links[index]? = some link)
+    (connective : link.isConnective = true)
+    (unfired : ¬linkFiredIn state.core link) :
+    QuiescentConnectiveObstruction state index link := by
+  have status := coverage lookup connective
+  cases link with
+  | «axiom» left right =>
+      simp [Link.isConnective] at connective
+  | «par» left right conclusion =>
+      have conclusionUnmarked :
+          state.core.assignedToken? conclusion = none := by
+        simpa [linkFiredIn] using unfired
+      refine ⟨conclusionUnmarked, ?_⟩
+      cases status with
+      | queued membership =>
+          simp [quiescent] at membership
+      | firedPar marked =>
+          exact False.elim (marked conclusionUnmarked)
+      | idlePar idle =>
+          exact Or.inl idle
+      | waitingPar leftMarked rightMarked different registered bound =>
+          exact Or.inr
+            ⟨_, _, leftMarked, rightMarked, different, registered⟩
+  | tensor left right conclusion =>
+      have conclusionUnmarked :
+          state.core.assignedToken? conclusion = none := by
+        simpa [linkFiredIn] using unfired
+      refine ⟨conclusionUnmarked, ?_⟩
+      cases status with
+      | queued membership =>
+          simp [quiescent] at membership
+      | firedTensor marked =>
+          exact False.elim (marked conclusionUnmarked)
+      | idleTensor idle =>
+          exact Or.inl idle
+      | tensorDeadlock leftMarked rightMarked =>
+          exact Or.inr ⟨_, leftMarked, rightMarked⟩
+
 /-- A `true` deduplication flag must be backed by membership in the actual
 queue.  The reverse direction and queue uniqueness belong to the later fuel
 accounting layer; this direction is enough to justify every deduplicated
@@ -11977,6 +12048,48 @@ private theorem canonicalWorklistRun_queue_eq_nil
       canonicalWorklistRun_totalEnqueues_le_fuel
         structural startEquation
   omega
+
+/-- The canonical fuel-sufficient run reaches a genuinely quiescent state.
+Consequently every submitted connective that is still unfired exposes one of
+the exact semantic obstruction witnesses, rather than hidden queued work or a
+fuel artifact. -/
+private theorem canonicalWorklistRun_unfired_obstruction
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {index : Nat} {link : Link},
+      certificate.links[index]? = some link →
+        link.isConnective = true →
+          ¬linkFiredIn final.core link →
+            QuiescentConnectiveObstruction final index link := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  have invariant : WorklistRunInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_runInvariant structural startEquation
+  have quiescent : final.queue = [] := by
+    simpa [final] using
+      canonicalWorklistRun_queue_eq_nil structural startEquation
+  change
+    ∀ {index : Nat} {link : Link},
+      certificate.links[index]? = some link →
+        link.isConnective = true →
+          ¬linkFiredIn final.core link →
+            QuiescentConnectiveObstruction final index link
+  intro index link lookup connective unfired
+  exact
+    SchedulerCoverage.quiescent_unfired_obstruction invariant.2.1
+      quiescent lookup connective unfired
 
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/

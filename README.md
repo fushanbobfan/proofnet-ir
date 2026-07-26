@@ -34,10 +34,13 @@ firing; exact firing history bounds successful firings by the submitted link
 count; and the duplicate-free waiting registry charges at most one link
 carrier of requeues to each tensor firing. Lean now proves the resulting
 cumulative insertion bound fits `n(n+4)+1`, and that the canonical production
-run reaches an empty queue within that fuel. The correct-quiescent-state
-progress theorem still must be established before removing the recursive
-fallback. The later `NEXTAXIOM`/token-age implementation and whole-program cost
-theorem remain separate from that logical completeness result. See
+run reaches an empty queue within that fuel. At this quiescent state every
+submitted but unfired connective is now kernel-classified by an explicit
+semantic obstruction witness: an idle premise, a distinct-thread registered
+par, or a same-thread tensor deadlock. Proof-net correctness still must exclude
+those obstructions before the recursive fallback can be removed. The later
+`NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
+separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).
 
 v0.9 exposes

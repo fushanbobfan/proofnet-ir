@@ -84,14 +84,17 @@ wrapper equal to `check`, and a conservative `n(n+4)+1` link-attempt cap.
 Current `main` additionally proves that structural single-consumer ownership,
 distinct successful firings, and the bounded waiting registry keep all
 successful insertions within that cap, and exact insertion/pop accounting
-forces the canonical final queue to be empty.
+forces the canonical final queue to be empty. Scheduler coverage then gives an
+exact witness for every submitted but unfired connective in that quiescent
+state: an idle premise, a distinct-thread registered par, or a same-thread
+tensor deadlock.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
 stack, interval partition, or specialized union-find invariant. The attempt
 cap is no longer merely imposed by fuel: its scheduler sufficiency is proved.
-That result does not rule out a quiescent incomplete state on a correct net;
-the correct-state progress theorem remains open.
+That result does not yet rule out the explicit idle/waiting/deadlock witnesses
+on a correct nonfinal net; the correct-state progress theorem remains open.
 
 Lean currently proves:
 

@@ -54,9 +54,14 @@
   source bounds prove all cumulative insertions fit the existing
   `n(n+4)+1` budget. A separate exhaustion theorem proves that any run with a
   residual queue consumed all fuel, and exact accounting therefore proves the
-  canonical production queue is empty at the budget. Correct-state progress
-  remains open, so scheduler fuel sufficiency must not be conflated with
-  pure-worklist completeness;
+  canonical production queue is empty at the budget. At that genuinely
+  quiescent state, scheduler coverage now converts every submitted but
+  unfired connective into an explicit proof witness: an idle premise, a
+  distinct-thread registered par, or a same-thread tensor deadlock. This
+  removes hidden queued work and fuel exhaustion from the remaining progress
+  argument. Correctness still must rule out those semantic obstructions, so
+  scheduler fuel sufficiency must not be conflated with pure-worklist
+  completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential
