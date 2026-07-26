@@ -112,10 +112,17 @@
   every unassigned occurrence reaches a concrete registered waiting par by
   strict formula-complexity descent. Both orientations bracketing the first
   inactive block consequently have non-increasing waiting-par chase
-  endpoints while retaining the exact path decomposition. Correctness still
-  must exclude the resulting finite waiting-par dependency obstruction, so
-  scheduler fuel sufficiency must not be conflated with pure-worklist
-  completeness;
+  endpoints while retaining the exact path decomposition. This construction
+  is now generalized to every registered waiting par: each source has an
+  exact outgoing dependency witness containing its conclusion-avoiding
+  reference path, marked-to-unmarked frontier, local scheduler obstruction,
+  and terminal registered waiting par. Both dependency endpoints are proved
+  to lie in the finite formula carrier. A chosen dependency chain of
+  `formulas.size + 1` occurrences is therefore proved non-duplicate-free
+  while retaining an exact dependency witness at every adjacent step.
+  Correctness still must geometrically exclude the resulting repeated
+  waiting-par dependency cycle, so scheduler fuel sufficiency and finite
+  repetition must not be conflated with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
   unification-step semantics, scheduler coverage, worklist fuel sufficiency,
   correct-state progress/pure completeness, and the later sequential

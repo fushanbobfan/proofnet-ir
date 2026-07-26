@@ -57,9 +57,14 @@ strong-induction theorem now proves that every unassigned occurrence reaches
 a concrete registered waiting par through strict formula-complexity descent.
 Applied to the two inactive-block orientations, both frontier chases terminate
 at waiting pars without increasing rank while preserving the exact path
-decomposition. Proof-net correctness still must exclude the resulting finite
-waiting-par dependency obstruction before the recursive fallback can be
-removed. The later
+decomposition. The construction has now been generalized from that selected
+minimum obstruction to every registered waiting par: each waiting par has an
+exact outgoing path/frontier/chase dependency to another registered waiting
+par, all dependency endpoints lie in the finite formula carrier, and
+iterating for one more step than the number of formula occurrences is
+kernel-proved to repeat a waiting conclusion. Proof-net correctness still
+must geometrically exclude the resulting repeated dependency cycle before
+the recursive fallback can be removed. The later
 `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
 separate from that logical completeness result. See
 [the v0.10 design](docs/v0.10-design.md).

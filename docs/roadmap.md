@@ -495,8 +495,13 @@
       a concrete registered waiting par through strict formula-complexity
       descent, then retain non-increasing chase endpoints for both
       orientations of the exact first inactive block.
-    - [ ] Exclude the resulting contiguous path-exposed inactive-block
-      and finite waiting-par dependency obstruction.
+    - [x] Generalize the exact path/frontier/chase dependency to every
+      registered waiting par, prove finite-carrier closure, and prove that a
+      `formulas.size + 1` dependency chain repeats a waiting conclusion while
+      retaining every adjacent dependency witness.
+    - [ ] Convert the repeated dependency segment into an exact
+      switching-tree cycle or forbidden nesting and exclude the remaining
+      path-exposed waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

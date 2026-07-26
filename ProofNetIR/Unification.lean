@@ -14853,6 +14853,512 @@ private theorem canonicalWorklistRun_forwardFrontier_status
           ⟨index, left, right, conclusion, linkLookup,
             targetEquation, Or.inr ⟨sourceRight, leftUnassigned⟩⟩
 
+/-- One finite dependency step between quiescent waiting pars.  The source
+par supplies a reference-switching path between its distinct live premise
+threads.  The path avoids the source conclusion, crosses an exact
+marked-to-unmarked connective frontier, and the well-founded formula chase
+from that frontier terminates at the target waiting par. -/
+private def QuiescentWaitingParDependency
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (source target : Vertex) : Prop :=
+  ∃ (index left right leftToken rightToken : Nat)
+      (path : certificate.referenceSwitchingGraph.EdgeSimplePath)
+      (boundary :
+        certificate.referenceSwitchingGraph.DirectedEdge),
+    certificate.links[index]? =
+        some (.par left right source) ∧
+      state.core.assignedToken? source = none ∧
+        state.core.tokenAt? left = some leftToken ∧
+          state.core.tokenAt? right = some rightToken ∧
+            leftToken ≠ rightToken ∧
+              index ∈ state.waiting ∧
+                path.start = left ∧
+                  path.finish = right ∧
+                    source ∉ path.vertices ∧
+                      boundary ∈ path.traversed ∧
+                        state.core.tokenAt? boundary.source =
+                            some leftToken ∧
+                          state.core.assignedToken?
+                              boundary.source ≠ none ∧
+                            state.core.assignedToken?
+                                boundary.target = none ∧
+                              boundary.target ≠ source ∧
+                                PathFrontierSchedulerObstruction
+                                    certificate state boundary ∧
+                                  QuiescentWaitingParAt
+                                      certificate state target ∧
+                                    certificate.formulaComplexityAt target ≤
+                                      certificate.formulaComplexityAt
+                                        boundary.target
+
+/-- Every quiescent waiting-par conclusion is an in-bounds formula
+occurrence.  This is the finite carrier used by the dependency-cycle
+argument. -/
+private theorem quiescentWaitingParAt_conclusion_bound
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {conclusion : Vertex}
+    (waiting :
+      QuiescentWaitingParAt certificate state conclusion) :
+    conclusion < certificate.formulas.size := by
+  rcases waiting with
+    ⟨_conclusionUnassigned, index, left, right,
+      leftToken, rightToken, linkLookup, _leftMarked,
+      _rightMarked, _different, _registered⟩
+  have linkMembership :
+      Link.par left right conclusion ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  have wellFormed :
+      certificate.LinkWellFormed
+        (.par left right conclusion) :=
+    structural.2.2.2.2.1 _ linkMembership
+  exact wellFormed.2.2.2.2.2.1
+
+/-- Every dependency endpoint stays inside the finite formula carrier. -/
+private theorem quiescentWaitingParDependency_endpoints_bound
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    (dependency :
+      QuiescentWaitingParDependency
+        certificate state source target) :
+    source < certificate.formulas.size ∧
+      target < certificate.formulas.size := by
+  rcases dependency with
+    ⟨index, left, right, leftToken, rightToken, path, boundary,
+      linkLookup, _sourceUnassigned, _leftMarked, _rightMarked,
+      _different, _registered, _pathStarts, _pathFinishes,
+      _sourceAvoided, _boundaryMembership, _boundaryToken,
+      _boundarySourceAssigned, _boundaryTargetUnassigned,
+      _boundaryTargetNeSource, _frontierStatus, targetWaiting,
+      _targetRank⟩
+  have linkMembership :
+      Link.par left right source ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  have wellFormed :
+      certificate.LinkWellFormed (.par left right source) :=
+    structural.2.2.2.2.1 _ linkMembership
+  exact
+    ⟨wellFormed.2.2.2.2.2.1,
+      quiescentWaitingParAt_conclusion_bound
+        structural targetWaiting⟩
+
+/-- The target field of a waiting-par dependency is itself a registered
+quiescent waiting par. -/
+private theorem quiescentWaitingParDependency_target
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    (dependency :
+      QuiescentWaitingParDependency
+        certificate state source target) :
+    QuiescentWaitingParAt certificate state target := by
+  rcases dependency with
+    ⟨_index, _left, _right, _leftToken, _rightToken, _path, _boundary,
+      _linkLookup, _sourceUnassigned, _leftMarked, _rightMarked,
+      _different, _registered, _pathStarts, _pathFinishes,
+      _sourceAvoided, _boundaryMembership, _boundaryToken,
+      _boundarySourceAssigned, _boundaryTargetUnassigned,
+      _boundaryTargetNeSource, _frontierStatus, targetWaiting,
+      _targetRank⟩
+  exact targetWaiting
+
+/-- Local finite-list pigeonhole bound used for the waiting dependency
+carrier. -/
+private theorem unification_length_le_of_nodup_subset
+    [BEq α] [LawfulBEq α]
+    {values ambient : List α}
+    (nodup : values.Nodup)
+    (subset : ∀ value ∈ values, value ∈ ambient) :
+    values.length ≤ ambient.length := by
+  induction values generalizing ambient with
+  | nil =>
+      simp
+  | cons head tail induction =>
+      have headMembership : head ∈ ambient :=
+        subset head (by simp)
+      have tailSubset :
+          ∀ value ∈ tail, value ∈ ambient.erase head := by
+        intro value membership
+        have valueMembership : value ∈ ambient :=
+          subset value (by simp [membership])
+        have different : value ≠ head := by
+          intro same
+          subst value
+          exact (List.nodup_cons.mp nodup).1 membership
+        exact
+          (List.mem_erase_of_ne different).2 valueMembership
+      have tailBound :=
+        induction (List.nodup_cons.mp nodup).2 tailSubset
+      rw [List.length_erase_of_mem headMembership] at tailBound
+      have positive : 0 < ambient.length :=
+        List.length_pos_of_mem headMembership
+      simp only [List.length_cons]
+      omega
+
+/-- Every registered distinct-thread waiting par has an outgoing dependency
+to another registered waiting par on the finite formula carrier.  This
+globalizes the previous one-off minimum-rank chase: the construction now
+applies to every quiescent waiting obstruction, which is the seriality
+premise needed for the remaining finite dependency-cycle exclusion. -/
+private theorem canonicalWorklistRun_waitingPar_has_dependency
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ target,
+          QuiescentWaitingParDependency
+            certificate final source target := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ target,
+          QuiescentWaitingParDependency
+            certificate final source target
+  intro source waiting
+  rcases waiting with
+    ⟨sourceUnassigned, index, left, right, leftToken, rightToken,
+      linkLookup, leftMarked, rightMarked, different, registered⟩
+  have linkMembership :
+      Link.par left right source ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  rcases
+      correct.parPremises_referencePath_avoids_conclusion linkMembership with
+    ⟨path, pathStarts, pathFinishes, sourceAvoided⟩
+  have coreInvariant :
+      WorklistCoreInvariant certificate final := by
+    simpa [final] using
+      canonicalWorklistRun_coreInvariant correct.1 startEquation
+  let marking :=
+    final.core.toMarking certificate coreInvariant.1
+  rcases final.core.tokenAt?_some_witness leftMarked with
+    ⟨leftRaw, leftRawMarked, leftRepresentative⟩
+  rcases final.core.tokenAt?_some_witness rightMarked with
+    ⟨rightRaw, rightRawMarked, rightRepresentative⟩
+  have abstractLeftMarked :
+      marking.mark left = some leftRaw := by
+    simpa [marking] using leftRawMarked
+  have abstractRightMarked :
+      marking.mark right = some rightRaw := by
+    simpa [marking] using rightRawMarked
+  have exactComponents :
+      marking.ThreadComponentsExact :=
+    canonicalWorklistRun_threadComponentsExact
+      correct.1 startEquation
+  have notSynchronized :
+      ¬marking.sameThread leftRaw rightRaw := by
+    simp only [marking, UnificationState.toMarking_sameThread]
+    intro representativesEqual
+    apply different
+    rw [← leftRepresentative, ← rightRepresentative]
+    exact representativesEqual
+  have noActiveWalk :
+      ¬marking.activeReferenceGraph.Walk left right := by
+    intro walk
+    exact notSynchronized
+      ((exactComponents.walk_iff_sameThread
+        marking abstractLeftMarked abstractRightMarked).mp walk)
+  have noActivePath :
+      ¬marking.activeReferenceGraph.Walk path.start path.finish := by
+    intro walk
+    apply noActiveWalk
+    simpa [pathStarts, pathFinishes] using walk
+  have pathStartMarked :
+      (marking.mark path.start).isSome = true := by
+    simp [pathStarts, abstractLeftMarked]
+  rcases marking.referencePath_has_first_marked_to_unmarked_boundary
+      path pathStartMarked noActivePath with
+    ⟨before, boundary, after, traversalEquation,
+      _prefixAccepted, boundarySourceMarked,
+      boundaryTargetUnmarked, activePrefix⟩
+  have boundaryMembership : boundary ∈ path.traversed := by
+    rw [traversalEquation]
+    simp
+  have activeFromLeft :
+      marking.activeReferenceGraph.Walk left boundary.source := by
+    simpa [pathStarts] using activePrefix
+  have boundarySourceAssigned :
+      final.core.assignedToken? boundary.source ≠ none := by
+    change
+      (final.core.assignedToken? boundary.source).isSome = true
+        at boundarySourceMarked
+    intro sourceNone
+    rw [sourceNone] at boundarySourceMarked
+    contradiction
+  have boundaryTargetUnassigned :
+      final.core.assignedToken? boundary.target = none := by
+    change
+      (final.core.assignedToken? boundary.target).isSome = false
+        at boundaryTargetUnmarked
+    cases assigned :
+        final.core.assignedToken? boundary.target with
+    | none =>
+        rfl
+    | some token =>
+        simp [assigned] at boundaryTargetUnmarked
+  rcases final.core.tokenAt?_exists_of_assigned
+      boundarySourceAssigned with
+    ⟨boundarySourceToken, boundarySourceLookup⟩
+  rcases final.core.tokenAt?_some_witness boundarySourceLookup with
+    ⟨boundarySourceRaw, boundarySourceRawMarked,
+      boundarySourceRepresentative⟩
+  have abstractBoundarySourceMarked :
+      marking.mark boundary.source = some boundarySourceRaw := by
+    simpa [marking] using boundarySourceRawMarked
+  have sameThread :
+      marking.sameThread leftRaw boundarySourceRaw :=
+    (exactComponents.walk_iff_sameThread
+      marking abstractLeftMarked abstractBoundarySourceMarked).mp
+        activeFromLeft
+  have boundarySourceTokenEquation :
+      boundarySourceToken = leftToken := by
+    simp only [marking, UnificationState.toMarking_sameThread]
+      at sameThread
+    rw [leftRepresentative, boundarySourceRepresentative] at sameThread
+    exact sameThread.symm
+  have boundarySourceTokenLookup :
+      final.core.tokenAt? boundary.source = some leftToken := by
+    rw [boundarySourceLookup, boundarySourceTokenEquation]
+  have boundaryTargetMembership :
+      boundary.target ∈ path.vertices :=
+    (path.directed_endpoints_mem_vertices boundaryMembership).2
+  have boundaryTargetNeSource :
+      boundary.target ≠ source := by
+    intro same
+    exact sourceAvoided (same ▸ boundaryTargetMembership)
+  have causal :
+      marking.MarkingCausallyClosed :=
+    (canonicalWorklistRun_causallyThreaded
+      correct.1 startEquation).1
+  have axiomsMarked :
+      ∀ {axiomIndex axiomLeft axiomRight : Nat},
+        certificate.links[axiomIndex]? =
+            some (Link.axiom axiomLeft axiomRight) →
+          (marking.mark axiomLeft).isSome = true ∧
+            (marking.mark axiomRight).isSome = true := by
+    intro axiomIndex axiomLeft axiomRight axiomLookup
+    have axiomMembership :
+        Link.axiom axiomLeft axiomRight ∈ certificate.links :=
+      List.mem_of_getElem? axiomLookup
+    have assigned :=
+      canonicalWorklistRun_axiom_endpoints_assigned
+        correct.1 startEquation axiomMembership
+    constructor
+    · change
+        (final.core.assignedToken? axiomLeft).isSome = true
+      cases equation :
+          final.core.assignedToken? axiomLeft with
+      | none =>
+          exact False.elim (assigned.1 equation)
+      | some token =>
+          rfl
+    · change
+        (final.core.assignedToken? axiomRight).isSome = true
+      cases equation :
+          final.core.assignedToken? axiomRight with
+      | none =>
+          exact False.elim (assigned.2 equation)
+      | some token =>
+          rfl
+  have boundaryOrigin :
+      ForwardReferenceConnectiveOccurrence certificate boundary := by
+    have origin :=
+      marking.marked_to_unmarked_referenceEdge_connective_origin
+        causal axiomsMarked boundary boundarySourceMarked
+        boundaryTargetUnmarked
+    simpa [ForwardReferenceConnectiveOccurrence] using origin
+  have boundaryStatus :
+      PathFrontierSchedulerObstruction certificate final boundary :=
+    canonicalWorklistRun_forwardFrontier_status
+      correct startEquation boundarySourceAssigned
+      boundaryTargetUnassigned boundaryOrigin
+  rcases canonicalWorklistRun_pathFrontier_reaches_waitingPar
+      correct startEquation boundaryTargetUnassigned boundaryStatus with
+    ⟨target, targetWaiting, targetRank⟩
+  exact
+    ⟨target, index, left, right, leftToken, rightToken, path, boundary,
+      linkLookup, sourceUnassigned, leftMarked, rightMarked, different,
+      registered, pathStarts, pathFinishes, sourceAvoided,
+      boundaryMembership, boundarySourceTokenLookup,
+      boundarySourceAssigned, boundaryTargetUnassigned,
+      boundaryTargetNeSource, boundaryStatus, targetWaiting,
+      targetRank⟩
+
+/-- Serial waiting-par dependency is supported by the explicit finite list
+of formula occurrences. -/
+private theorem canonicalWorklistRun_waitingPar_finite_serial
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        source ∈ List.range certificate.formulas.size ∧
+          ∃ target ∈ List.range certificate.formulas.size,
+            QuiescentWaitingParDependency
+              certificate final source target := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        source ∈ List.range certificate.formulas.size ∧
+          ∃ target ∈ List.range certificate.formulas.size,
+            QuiescentWaitingParDependency
+              certificate final source target
+  intro source waiting
+  have sourceBound :=
+    quiescentWaitingParAt_conclusion_bound correct.1 waiting
+  rcases canonicalWorklistRun_waitingPar_has_dependency
+      correct startEquation waiting with
+    ⟨target, dependency⟩
+  have targetBound :=
+    (quiescentWaitingParDependency_endpoints_bound
+      correct.1 dependency).2
+  exact
+    ⟨by simpa using sourceBound,
+      target, by simpa using targetBound, dependency⟩
+
+/-- Iterating the serial waiting-par dependency for one more step than the
+number of formula occurrences forces a repeated waiting conclusion.  The
+result retains an exact dependency witness at every adjacent step; only the
+final geometric exclusion of the resulting finite dependency cycle remains
+open. -/
+private theorem canonicalWorklistRun_waitingPar_dependency_repeats
+    {certificate : Certificate} {started : UnificationState}
+    (correct : certificate.DeclarativelyCorrect)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate
+        certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ chainAt : Nat → Vertex,
+          chainAt 0 = source ∧
+            (∀ step,
+              QuiescentWaitingParDependency
+                certificate final (chainAt step)
+                  (chainAt (step + 1))) ∧
+              (∀ step,
+                chainAt step ∈ List.range certificate.formulas.size) ∧
+                ¬((List.range
+                    (certificate.formulas.size + 1)).map chainAt).Nodup := by
+  let final :=
+    (runUnificationWorklist certificate
+      certificate.worklistConsumers
+      (worklistFuel certificate.links.length)
+      (initializeWorklist certificate started)).state
+  change
+    ∀ {source : Vertex},
+      QuiescentWaitingParAt certificate final source →
+        ∃ chainAt : Nat → Vertex,
+          chainAt 0 = source ∧
+            (∀ step,
+              QuiescentWaitingParDependency
+                certificate final (chainAt step)
+                  (chainAt (step + 1))) ∧
+              (∀ step,
+                chainAt step ∈ List.range certificate.formulas.size) ∧
+                ¬((List.range
+                    (certificate.formulas.size + 1)).map chainAt).Nodup
+  intro source sourceWaiting
+  let WaitingNode :=
+    { vertex : Vertex //
+      QuiescentWaitingParAt certificate final vertex }
+  let sourceNode : WaitingNode :=
+    ⟨source, sourceWaiting⟩
+  have successorExists :
+      ∀ node : WaitingNode,
+        ∃ target : WaitingNode,
+          QuiescentWaitingParDependency
+            certificate final node.1 target.1 := by
+    intro node
+    rcases canonicalWorklistRun_waitingPar_has_dependency
+        correct startEquation node.2 with
+      ⟨target, dependency⟩
+    exact
+      ⟨⟨target,
+          quiescentWaitingParDependency_target dependency⟩,
+        dependency⟩
+  let successor : WaitingNode → WaitingNode :=
+    fun node => Classical.choose (successorExists node)
+  have successorSpec :
+      ∀ node : WaitingNode,
+        QuiescentWaitingParDependency
+          certificate final node.1 (successor node).1 := by
+    intro node
+    exact Classical.choose_spec (successorExists node)
+  let nodeAt : Nat → WaitingNode :=
+    fun step =>
+      Nat.rec sourceNode
+        (fun _ previous => successor previous) step
+  let chainAt : Nat → Vertex :=
+    fun step => (nodeAt step).1
+  have starts : chainAt 0 = source := by
+    rfl
+  have steps :
+      ∀ step,
+        QuiescentWaitingParDependency
+          certificate final (chainAt step) (chainAt (step + 1)) := by
+    intro step
+    simpa [chainAt, nodeAt] using successorSpec (nodeAt step)
+  have carrier :
+      ∀ step,
+        chainAt step ∈ List.range certificate.formulas.size := by
+    intro step
+    have bound :=
+      quiescentWaitingParAt_conclusion_bound
+        correct.1 (nodeAt step).2
+    simpa [chainAt] using bound
+  have repeats :
+      ¬((List.range
+          (certificate.formulas.size + 1)).map chainAt).Nodup := by
+    intro nodup
+    have subset :
+        ∀ value ∈
+            (List.range
+              (certificate.formulas.size + 1)).map chainAt,
+          value ∈ List.range certificate.formulas.size := by
+      intro value membership
+      rcases List.mem_map.mp membership with
+        ⟨step, _stepMembership, rfl⟩
+      exact carrier step
+    have lengthBound :=
+      unification_length_le_of_nodup_subset nodup subset
+    simp only [List.length_map, List.length_range] at lengthBound
+    omega
+  exact
+    ⟨chainAt, starts, steps, carrier, repeats⟩
+
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact
 reference-switching path between the premises which avoids the par
