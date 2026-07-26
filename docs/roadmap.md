@@ -471,8 +471,11 @@
       and the waiting par conclusion.
     - [x] Strengthen the witness to an exact retained edge occurrence on the
       reference path, directed from a marked source into an unmarked target.
-    - [ ] Classify that exact boundary against its submitted axiom/par/tensor
-      origin and derive the next scheduler obstruction.
+    - [x] Classify that exact boundary by submitted-link lookup: completed
+      axiom initialization and causal closure eliminate axiom and reverse
+      connective orientations, leaving a forward par/tensor
+      premise-to-conclusion occurrence.
+    - [ ] Derive the classified frontier connective's exact scheduler status.
     - [ ] Exclude the resulting path-exposed unmarked-region obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues

@@ -615,6 +615,29 @@ ProofNetIR.Certificate.linkFullEdgeParTargets_some_origin : ∀ {links : List Pr
     ∃ left right, ProofNetIR.Link.par left right conclusion ∈ links
 ```
 
+### `ProofNetIR.Certificate.linkLeftRetainedEdges_lookup_origin`
+
+Kind: theorem.
+
+Every exact edge occurrence in the deterministic all-left reference
+switching records a concrete submitted-link occurrence.  The result preserves
+both the retained-edge lookup position used to select the occurrence and an
+exact lookup position for its source link.  In particular, a reference par
+edge can only be the stored left-premise occurrence.
+
+```lean
+ProofNetIR.Certificate.linkLeftRetainedEdges_lookup_origin : ∀ {links : List ProofNetIR.Link} {edgeIndex : Nat} {edge : ProofNetIR.Edge},
+  (ProofNetIR.Certificate.linkLeftRetainedEdges links)[edgeIndex]? = some edge →
+    (∃ linkIndex left right,
+        links[linkIndex]? = some (ProofNetIR.Link.axiom left right) ∧ edge = { first := left, second := right }) ∨
+      (∃ linkIndex left right conclusion,
+          links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∧
+            (edge = { first := left, second := conclusion } ∨ edge = { first := right, second := conclusion })) ∨
+        ∃ linkIndex left right conclusion,
+          links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) ∧
+            edge = { first := left, second := conclusion }
+```
+
 ### `ProofNetIR.Certificate.FullSwitchingSelection.mask_parPairSparse`
 
 Kind: theorem.
@@ -2636,6 +2659,56 @@ ProofNetIR.UnificationMarking.referencePath_has_marked_to_unmarked_boundary : �
       ∃ directed,
         directed ∈ path.traversed ∧
           (state.mark directed.source).isSome = true ∧ (state.mark directed.target).isSome = false
+```
+
+### `ProofNetIR.UnificationMarking.referenceDirectedEdge_origin`
+
+Kind: theorem.
+
+An exact directed occurrence of the all-left reference graph comes from a
+concrete submitted-link occurrence.  Axiom and tensor occurrences retain all
+of their edges, while a reference par occurrence can only be the stored left
+premise edge.
+
+```lean
+ProofNetIR.UnificationMarking.referenceDirectedEdge_origin : ∀ (certificate : ProofNetIR.Certificate) (directed : certificate.referenceSwitchingGraph.DirectedEdge),
+  (∃ linkIndex left right,
+      certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) ∧
+        directed.edge = { first := left, second := right }) ∨
+    (∃ linkIndex left right conclusion,
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∧
+          (directed.edge = { first := left, second := conclusion } ∨
+            directed.edge = { first := right, second := conclusion })) ∨
+      ∃ linkIndex left right conclusion,
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) ∧
+          directed.edge = { first := left, second := conclusion }
+```
+
+### `ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin`
+
+Kind: theorem.
+
+Under causal closure and completed axiom initialization, an exact
+all-left reference occurrence directed from a marked source into an unmarked
+target must be a forward premise-to-conclusion edge of a submitted
+connective.  The result retains the submitted link index and distinguishes
+the sole retained par premise from either tensor premise.
+
+```lean
+ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin : ∀ {certificate : ProofNetIR.Certificate} (state : ProofNetIR.UnificationMarking certificate),
+  state.MarkingCausallyClosed →
+    (∀ {linkIndex left right : Nat},
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) →
+          (state.mark left).isSome = true ∧ (state.mark right).isSome = true) →
+      ∀ (directed : certificate.referenceSwitchingGraph.DirectedEdge),
+        (state.mark directed.source).isSome = true →
+          (state.mark directed.target).isSome = false →
+            (∃ linkIndex left right conclusion,
+                certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) ∧
+                  directed.source = left ∧ directed.target = conclusion) ∨
+              ∃ linkIndex left right conclusion,
+                certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∧
+                  (directed.source = left ∨ directed.source = right) ∧ directed.target = conclusion
 ```
 
 ### `ProofNetIR.UnificationRuleKind`

@@ -98,6 +98,9 @@ expansion.
 #print axioms UnificationMarking.mergeExtension_equivalence
 #print axioms UnificationMarking.mergeExtension_congr
 #print axioms UnificationMarking.mergeExtension_comm
+#print axioms Certificate.linkLeftRetainedEdges_lookup_origin
+#print axioms UnificationMarking.referenceDirectedEdge_origin
+#print axioms UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin
 #print axioms UnificationState.toMarking_tokenCount
 #print axioms UnificationState.toMarking_mark
 #print axioms UnificationState.toMarking_sameThread

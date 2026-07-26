@@ -172,9 +172,11 @@ part of the engineering and proof-identity gap.
    waiting par premises while avoiding its conclusion, and distinct active
    components force an unmarked internal occurrence on that path. Current
    development further exposes an exact traversed reference-edge occurrence
-   directed from a marked source into an unmarked target. Classifying and
-   excluding this frontier, pure worklist completeness, and a full cost
-   theorem remain open.
+   directed from a marked source into an unmarked target, then classifies it
+   occurrence-exactly as a forward premise-to-conclusion edge of a concrete
+   submitted par or tensor. Deriving its local scheduler status, excluding
+   this frontier, pure worklist completeness, and a full cost theorem remain
+   open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
@@ -234,7 +236,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for eighty-eight public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for ninety-four public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`;
 - the two public graph-acyclicity transport theorems are separately locked to

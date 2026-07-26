@@ -182,9 +182,11 @@ The repository currently contains:
   run must expose an unmarked internal occurrence on that path. A generic
   occurrence-preserving path-frontier theorem now strengthens this to an
   exact traversed reference edge directed from a marked occurrence into an
-  unmarked occurrence. Classifying that boundary against its submitted
-  connective and excluding the resulting region is the sole open progress
-  obligation;
+  unmarked occurrence. Exact retained-edge/source-link lookup, completed
+  axiom initialization, and causal closure now classify the boundary as a
+  forward premise-to-conclusion occurrence of a concrete submitted par or
+  tensor. Deriving the scheduler status of that connective and excluding the
+  resulting forward-connective region is the sole open progress obligation;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -359,7 +361,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits eighty-eight public MLL logical-boundary theorems against the exact axiom set
+  separately audits ninety-four public MLL logical-boundary theorems against the exact axiom set
 `[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.

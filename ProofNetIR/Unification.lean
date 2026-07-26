@@ -14044,7 +14044,9 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
 of disconnected scheduler tokens.  A correct proof net supplies an exact
 reference-switching path between the premises which avoids the par
 conclusion; failure of the active subgraph to connect the endpoints therefore
-identifies a genuinely unmarked internal occurrence on that path. -/
+identifies an exact marked-to-unmarked edge occurrence on that path. Completed
+axiom initialization and causal closure classify the occurrence as a forward
+premise-to-conclusion edge of a concrete submitted par or tensor. -/
 private theorem canonicalWorklistRun_incomplete_waitingParPath
     {certificate : Certificate} {started : UnificationState}
     (correct : certificate.DeclarativelyCorrect)
@@ -14082,7 +14084,31 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
                                     boundary.target = none ∧
                                   boundary.target ≠ left ∧
                                     boundary.target ≠ right ∧
-                                      boundary.target ≠ conclusion := by
+                                      boundary.target ≠ conclusion ∧
+                                        ((∃ (frontierIndex frontierLeft
+                                                frontierRight
+                                                frontierConclusion : Nat),
+                                            certificate.links[frontierIndex]? =
+                                                some (.par frontierLeft
+                                                  frontierRight
+                                                  frontierConclusion) ∧
+                                              boundary.source =
+                                                  frontierLeft ∧
+                                                boundary.target =
+                                                  frontierConclusion) ∨
+                                          ∃ (frontierIndex frontierLeft
+                                                frontierRight
+                                                frontierConclusion : Nat),
+                                            certificate.links[frontierIndex]? =
+                                                some (.tensor frontierLeft
+                                                  frontierRight
+                                                  frontierConclusion) ∧
+                                              (boundary.source =
+                                                  frontierLeft ∨
+                                                boundary.source =
+                                                  frontierRight) ∧
+                                                boundary.target =
+                                                  frontierConclusion) := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -14115,7 +14141,31 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
                                     boundary.target = none ∧
                                   boundary.target ≠ left ∧
                                     boundary.target ≠ right ∧
-                                      boundary.target ≠ conclusion
+                                      boundary.target ≠ conclusion ∧
+                                        ((∃ (frontierIndex frontierLeft
+                                                frontierRight
+                                                frontierConclusion : Nat),
+                                            certificate.links[frontierIndex]? =
+                                                some (.par frontierLeft
+                                                  frontierRight
+                                                  frontierConclusion) ∧
+                                              boundary.source =
+                                                  frontierLeft ∧
+                                                boundary.target =
+                                                  frontierConclusion) ∨
+                                          ∃ (frontierIndex frontierLeft
+                                                frontierRight
+                                                frontierConclusion : Nat),
+                                            certificate.links[frontierIndex]? =
+                                                some (.tensor frontierLeft
+                                                  frontierRight
+                                                  frontierConclusion) ∧
+                                              (boundary.source =
+                                                  frontierLeft ∨
+                                                boundary.source =
+                                                  frontierRight) ∧
+                                                boundary.target =
+                                                  frontierConclusion)
   intro incomplete
   rcases canonicalWorklistRun_incomplete_waitingPar
       correct startEquation incomplete with
@@ -14186,13 +14236,46 @@ private theorem canonicalWorklistRun_incomplete_waitingParPath
   have boundaryTargetNeConclusion : boundary.target ≠ conclusion := by
     intro same
     exact conclusionAvoided (same ▸ boundaryTargetMembership)
+  have causal :
+      marking.MarkingCausallyClosed := by
+    exact
+      (canonicalWorklistRun_causallyThreaded
+        correct.1 startEquation).1
+  have axiomsMarked :
+      ∀ {axiomIndex axiomLeft axiomRight : Nat},
+        certificate.links[axiomIndex]? =
+            some (Link.axiom axiomLeft axiomRight) →
+          (marking.mark axiomLeft).isSome = true ∧
+            (marking.mark axiomRight).isSome = true := by
+    intro axiomIndex axiomLeft axiomRight axiomLookup
+    have axiomMembership :
+        Link.axiom axiomLeft axiomRight ∈ certificate.links :=
+      List.mem_of_getElem? axiomLookup
+    have assigned :=
+      canonicalWorklistRun_axiom_endpoints_assigned
+        correct.1 startEquation axiomMembership
+    constructor
+    · change
+        (final.core.assignedToken? axiomLeft).isSome = true
+      cases equation : final.core.assignedToken? axiomLeft with
+      | none => exact False.elim (assigned.1 equation)
+      | some token => rfl
+    · change
+        (final.core.assignedToken? axiomRight).isSome = true
+      cases equation : final.core.assignedToken? axiomRight with
+      | none => exact False.elim (assigned.2 equation)
+      | some token => rfl
+  have boundaryOrigin :=
+    marking.marked_to_unmarked_referenceEdge_connective_origin
+      causal axiomsMarked boundary boundarySourceMarked
+      boundaryTargetUnmarked
   exact
     ⟨index, left, right, conclusion, leftToken, rightToken, path, boundary,
       linkLookup, conclusionUnmarked, leftMarked, rightMarked, different,
       registered, noActiveWalk, pathStarts, pathFinishes,
       conclusionAvoided, boundaryMembership, boundarySourceAssigned,
       boundaryTargetAssignedNone, boundaryTargetNeLeft,
-      boundaryTargetNeRight, boundaryTargetNeConclusion⟩
+      boundaryTargetNeRight, boundaryTargetNeConclusion, boundaryOrigin⟩
 
 /-- The canonical finite production run keeps both concrete scheduler
 registries within the submitted-link carrier. -/

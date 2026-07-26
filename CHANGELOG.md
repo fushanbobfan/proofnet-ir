@@ -87,8 +87,10 @@
   conclusion. A new occurrence-preserving path-frontier theorem now exposes
   an exact traversed reference edge from a marked source into an unmarked
   target, and the canonical obstruction carries that directed occurrence.
-  Correctness still must classify and exclude this path-exposed unmarked
-  region, so
+  Exact retained-edge/source-link lookup plus axiom initialization and causal
+  closure now classify it as a forward premise-to-conclusion occurrence of a
+  concrete submitted par or tensor. Correctness still must derive the local
+  scheduler status and exclude this path-exposed forward-connective region, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

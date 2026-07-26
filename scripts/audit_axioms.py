@@ -128,6 +128,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.UnificationState.ObservationEquivalent.identityParents",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.Certificate.linkLeftRetainedEdges_lookup_origin",
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
     "ProofNetIR.LeanProp.Assumptions.split_append",
     "ProofNetIR.LeanProp.Assumptions.permute_symm",
@@ -136,6 +137,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.Certificate.isCuspFreeTraversal_eq_true_iff",
     "ProofNetIR.Certificate.isCuspFreeCycleTraversal_eq_true_iff",
     "ProofNetIR.UnificationStep.marks_fired_conclusion",
+    "ProofNetIR.UnificationMarking.referenceDirectedEdge_origin",
+    "ProofNetIR.UnificationMarking.marked_to_unmarked_referenceEdge_connective_origin",
     "ProofNetIR.UnificationState.Abstractable.markConclusion",
     "ProofNetIR.UnificationMarking.ext",
     "ProofNetIR.UnificationState.ObservationEquivalent.abstractable",

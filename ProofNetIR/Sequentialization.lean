@@ -4373,6 +4373,160 @@ def linkLeftRetainedEdges : List Link → List Edge
       { first := left, second := conclusion } ::
         linkLeftRetainedEdges links
 
+/-- Every exact edge occurrence in the deterministic all-left reference
+switching records a concrete submitted-link occurrence.  The result preserves
+both the retained-edge lookup position used to select the occurrence and an
+exact lookup position for its source link.  In particular, a reference par
+edge can only be the stored left-premise occurrence. -/
+theorem linkLeftRetainedEdges_lookup_origin
+    {links : List Link} {edgeIndex : Nat} {edge : Edge}
+    (lookup :
+      (linkLeftRetainedEdges links)[edgeIndex]? = some edge) :
+    (∃ (linkIndex left right : Nat),
+        links[linkIndex]? = some (Link.axiom left right) ∧
+          edge = { first := left, second := right }) ∨
+      (∃ (linkIndex left right conclusion : Nat),
+        links[linkIndex]? = some (Link.tensor left right conclusion) ∧
+          (edge = { first := left, second := conclusion } ∨
+            edge = { first := right, second := conclusion })) ∨
+      ∃ (linkIndex left right conclusion : Nat),
+        links[linkIndex]? = some (Link.par left right conclusion) ∧
+          edge = { first := left, second := conclusion } := by
+  induction links generalizing edgeIndex with
+  | nil =>
+      simp [linkLeftRetainedEdges] at lookup
+  | cons link rest induction =>
+      cases link with
+      | «axiom» headLeft headRight =>
+          cases edgeIndex with
+          | zero =>
+              have edgeEquation :
+                  edge =
+                    { first := headLeft, second := headRight } := by
+                simpa [linkLeftRetainedEdges] using
+                  Option.some.inj lookup.symm
+              exact
+                .inl
+                  ⟨0, headLeft, headRight, by simp, edgeEquation⟩
+          | succ tailIndex =>
+              have tailLookup :
+                  (linkLeftRetainedEdges rest)[tailIndex]? =
+                    some edge := by
+                simpa [linkLeftRetainedEdges] using lookup
+              rcases induction tailLookup with
+                axiomOrigin | tensorOrigin | parOrigin
+              · rcases axiomOrigin with
+                  ⟨linkIndex, left, right, linkLookup, edgeEquation⟩
+                exact
+                  .inl
+                    ⟨linkIndex + 1, left, right, by simpa using linkLookup,
+                      edgeEquation⟩
+              · rcases tensorOrigin with
+                  ⟨linkIndex, left, right, conclusion, linkLookup,
+                    edgeEquation⟩
+                exact
+                  .inr (.inl
+                    ⟨linkIndex + 1, left, right, conclusion,
+                      by simpa using linkLookup, edgeEquation⟩)
+              · rcases parOrigin with
+                  ⟨linkIndex, left, right, conclusion, linkLookup,
+                    edgeEquation⟩
+                exact
+                  .inr (.inr
+                    ⟨linkIndex + 1, left, right, conclusion,
+                      by simpa using linkLookup, edgeEquation⟩)
+      | tensor headLeft headRight headConclusion =>
+          cases edgeIndex with
+          | zero =>
+              have edgeEquation :
+                  edge =
+                    { first := headLeft, second := headConclusion } := by
+                simpa [linkLeftRetainedEdges] using
+                  Option.some.inj lookup.symm
+              exact
+                .inr (.inl
+                  ⟨0, headLeft, headRight, headConclusion, by simp,
+                    .inl edgeEquation⟩)
+          | succ nextIndex =>
+              cases nextIndex with
+              | zero =>
+                  have edgeEquation :
+                      edge =
+                        { first := headRight,
+                          second := headConclusion } := by
+                    simpa [linkLeftRetainedEdges] using
+                      Option.some.inj lookup.symm
+                  exact
+                    .inr (.inl
+                      ⟨0, headLeft, headRight, headConclusion, by simp,
+                        .inr edgeEquation⟩)
+              | succ tailIndex =>
+                  have tailLookup :
+                      (linkLeftRetainedEdges rest)[tailIndex]? =
+                        some edge := by
+                    simpa [linkLeftRetainedEdges] using lookup
+                  rcases induction tailLookup with
+                    axiomOrigin | tensorOrigin | parOrigin
+                  · rcases axiomOrigin with
+                      ⟨linkIndex, left, right, linkLookup, edgeEquation⟩
+                    exact
+                      .inl
+                        ⟨linkIndex + 1, left, right,
+                          by simpa using linkLookup, edgeEquation⟩
+                  · rcases tensorOrigin with
+                      ⟨linkIndex, left, right, conclusion, linkLookup,
+                        edgeEquation⟩
+                    exact
+                      .inr (.inl
+                        ⟨linkIndex + 1, left, right, conclusion,
+                          by simpa using linkLookup, edgeEquation⟩)
+                  · rcases parOrigin with
+                      ⟨linkIndex, left, right, conclusion, linkLookup,
+                        edgeEquation⟩
+                    exact
+                      .inr (.inr
+                        ⟨linkIndex + 1, left, right, conclusion,
+                          by simpa using linkLookup, edgeEquation⟩)
+      | par headLeft headRight headConclusion =>
+          cases edgeIndex with
+          | zero =>
+              have edgeEquation :
+                  edge =
+                    { first := headLeft, second := headConclusion } := by
+                simpa [linkLeftRetainedEdges] using
+                  Option.some.inj lookup.symm
+              exact
+                .inr (.inr
+                  ⟨0, headLeft, headRight, headConclusion, by simp,
+                    edgeEquation⟩)
+          | succ tailIndex =>
+              have tailLookup :
+                  (linkLeftRetainedEdges rest)[tailIndex]? =
+                    some edge := by
+                simpa [linkLeftRetainedEdges] using lookup
+              rcases induction tailLookup with
+                axiomOrigin | tensorOrigin | parOrigin
+              · rcases axiomOrigin with
+                  ⟨linkIndex, left, right, linkLookup, edgeEquation⟩
+                exact
+                  .inl
+                    ⟨linkIndex + 1, left, right, by simpa using linkLookup,
+                      edgeEquation⟩
+              · rcases tensorOrigin with
+                  ⟨linkIndex, left, right, conclusion, linkLookup,
+                    edgeEquation⟩
+                exact
+                  .inr (.inl
+                    ⟨linkIndex + 1, left, right, conclusion,
+                      by simpa using linkLookup, edgeEquation⟩)
+              · rcases parOrigin with
+                  ⟨linkIndex, left, right, conclusion, linkLookup,
+                    edgeEquation⟩
+                exact
+                  .inr (.inr
+                    ⟨linkIndex + 1, left, right, conclusion,
+                      by simpa using linkLookup, edgeEquation⟩)
+
 /-- Exact full-edge mask for the deterministic all-left reference switching. -/
 def linkLeftSwitchingMask : List Link → List Bool
   | [] => []

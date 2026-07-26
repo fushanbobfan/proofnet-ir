@@ -288,6 +288,157 @@ theorem referenceSwitchingGraph_edges_eq_leftRetained
     certificate.referenceFullSwitchingSelection
       |>.retained_eq_retainByMask.symm
 
+/-- An exact directed occurrence of the all-left reference graph comes from a
+concrete submitted-link occurrence.  Axiom and tensor occurrences retain all
+of their edges, while a reference par occurrence can only be the stored left
+premise edge. -/
+theorem referenceDirectedEdge_origin
+    (certificate : Certificate)
+    (directed : certificate.referenceSwitchingGraph.DirectedEdge) :
+    (∃ (linkIndex left right : Nat),
+        certificate.links[linkIndex]? =
+            some (Link.axiom left right) ∧
+          directed.edge = { first := left, second := right }) ∨
+      (∃ (linkIndex left right conclusion : Nat),
+        certificate.links[linkIndex]? =
+            some (Link.tensor left right conclusion) ∧
+          (directed.edge =
+              { first := left, second := conclusion } ∨
+            directed.edge =
+              { first := right, second := conclusion })) ∨
+      ∃ (linkIndex left right conclusion : Nat),
+        certificate.links[linkIndex]? =
+            some (Link.par left right conclusion) ∧
+          directed.edge =
+            { first := left, second := conclusion } := by
+  apply Certificate.linkLeftRetainedEdges_lookup_origin
+    (edgeIndex := directed.index)
+  rw [← UnificationMarking.referenceSwitchingGraph_edges_eq_leftRetained
+    certificate]
+  exact directed.lookup
+
+/-- Under causal closure and completed axiom initialization, an exact
+all-left reference occurrence directed from a marked source into an unmarked
+target must be a forward premise-to-conclusion edge of a submitted
+connective.  The result retains the submitted link index and distinguishes
+the sole retained par premise from either tensor premise. -/
+theorem marked_to_unmarked_referenceEdge_connective_origin
+    (state : UnificationMarking certificate)
+    (causal : state.MarkingCausallyClosed)
+    (axiomsMarked :
+      ∀ {linkIndex left right : Nat},
+        certificate.links[linkIndex]? =
+            some (Link.axiom left right) →
+          (state.mark left).isSome = true ∧
+            (state.mark right).isSome = true)
+    (directed : certificate.referenceSwitchingGraph.DirectedEdge)
+    (sourceMarked : (state.mark directed.source).isSome = true)
+    (targetUnmarked : (state.mark directed.target).isSome = false) :
+    (∃ (linkIndex left right conclusion : Nat),
+        certificate.links[linkIndex]? =
+            some (Link.par left right conclusion) ∧
+          directed.source = left ∧
+            directed.target = conclusion) ∨
+      ∃ (linkIndex left right conclusion : Nat),
+        certificate.links[linkIndex]? =
+            some (Link.tensor left right conclusion) ∧
+          (directed.source = left ∨ directed.source = right) ∧
+            directed.target = conclusion := by
+  rcases UnificationMarking.referenceDirectedEdge_origin
+      certificate directed with
+    axiomOrigin | tensorOrigin | parOrigin
+  · rcases axiomOrigin with
+      ⟨linkIndex, left, right, linkLookup, edgeEquation⟩
+    rcases axiomsMarked linkLookup with
+      ⟨leftMarked, rightMarked⟩
+    cases direction : directed.forward with
+    | false =>
+        have targetEquation : directed.target = left := by
+          simp [Graph.DirectedEdge.target, direction, edgeEquation]
+        rw [targetEquation, leftMarked] at targetUnmarked
+        contradiction
+    | true =>
+        have targetEquation : directed.target = right := by
+          simp [Graph.DirectedEdge.target, direction, edgeEquation]
+        rw [targetEquation, rightMarked] at targetUnmarked
+        contradiction
+  · rcases tensorOrigin with
+      ⟨linkIndex, left, right, conclusion, linkLookup,
+        leftEdge | rightEdge⟩
+    · have membership :
+          Link.tensor left right conclusion ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have closedLink := causal
+        (Link.tensor left right conclusion) membership
+      cases direction : directed.forward with
+      | false =>
+          have conclusionMarked :
+              (state.mark conclusion).isSome = true := by
+            simpa [Graph.DirectedEdge.source, direction, leftEdge] using
+              sourceMarked
+          have leftMarked := (closedLink conclusionMarked).1
+          have targetEquation : directed.target = left := by
+            simp [Graph.DirectedEdge.target, direction, leftEdge]
+          rw [targetEquation, leftMarked] at targetUnmarked
+          contradiction
+      | true =>
+          exact
+            .inr
+              ⟨linkIndex, left, right, conclusion, linkLookup,
+                .inl (by
+                  simp [Graph.DirectedEdge.source, direction, leftEdge]),
+                by
+                  simp [Graph.DirectedEdge.target, direction, leftEdge]⟩
+    · have membership :
+          Link.tensor left right conclusion ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      have closedLink := causal
+        (Link.tensor left right conclusion) membership
+      cases direction : directed.forward with
+      | false =>
+          have conclusionMarked :
+              (state.mark conclusion).isSome = true := by
+            simpa [Graph.DirectedEdge.source, direction, rightEdge] using
+              sourceMarked
+          have rightMarked := (closedLink conclusionMarked).2
+          have targetEquation : directed.target = right := by
+            simp [Graph.DirectedEdge.target, direction, rightEdge]
+          rw [targetEquation, rightMarked] at targetUnmarked
+          contradiction
+      | true =>
+          exact
+            .inr
+              ⟨linkIndex, left, right, conclusion, linkLookup,
+                .inr (by
+                  simp [Graph.DirectedEdge.source, direction, rightEdge]),
+                by
+                  simp [Graph.DirectedEdge.target, direction, rightEdge]⟩
+  · rcases parOrigin with
+      ⟨linkIndex, left, right, conclusion, linkLookup, edgeEquation⟩
+    have membership :
+        Link.par left right conclusion ∈ certificate.links :=
+      List.mem_of_getElem? linkLookup
+    have closedLink := causal (Link.par left right conclusion) membership
+    cases direction : directed.forward with
+    | false =>
+        have conclusionMarked :
+            (state.mark conclusion).isSome = true := by
+          simpa [Graph.DirectedEdge.source, direction, edgeEquation] using
+            sourceMarked
+        have leftMarked := (closedLink conclusionMarked).1
+        have targetEquation : directed.target = left := by
+          simp [Graph.DirectedEdge.target, direction, edgeEquation]
+        rw [targetEquation, leftMarked] at targetUnmarked
+        contradiction
+    | true =>
+        exact
+          .inl
+            ⟨linkIndex, left, right, conclusion, linkLookup,
+              by
+                simp [Graph.DirectedEdge.source, direction, edgeEquation],
+              by
+                simp [Graph.DirectedEdge.target, direction, edgeEquation]⟩
+
 /-- Every active semantic edge is an edge value of the deterministic all-left
 occurrence switching. -/
 theorem activeReferenceEdges_subset_referenceSwitchingGraph
