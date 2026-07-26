@@ -535,6 +535,32 @@ theorem getLast_target {graph : Graph} {start finish : Vertex}
   | @step start finish priorSteps prior directed starts finishes =>
       simpa using finishes
 
+/-- In a nonempty closed exact-occurrence walk, the source of every traversed
+edge also occurs as a target somewhere in the cyclic traversal.  For an edge
+leaving the chosen list base, the final edge supplies that target occurrence. -/
+theorem source_mem_targets_of_closed {graph : Graph} {base : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk base traversed base)
+    (nonempty : traversed ≠ [])
+    {directed : graph.DirectedEdge}
+    (membership : directed ∈ traversed) :
+    directed.source ∈ traversed.map DirectedEdge.target := by
+  have sourceVisited :=
+    (walk.endpoints_mem_visitedVertices membership).1
+  simp only [visitedVertices, List.mem_cons] at sourceVisited
+  rcases sourceVisited with sourceAtBase | sourceTarget
+  · have lastMembership :
+        traversed.getLast nonempty ∈ traversed :=
+      List.getLast_mem nonempty
+    have lastTargetMembership :
+        (traversed.getLast nonempty).target ∈
+          traversed.map DirectedEdge.target :=
+      List.mem_map.mpr
+        ⟨traversed.getLast nonempty, lastMembership, rfl⟩
+    rw [walk.getLast_target nonempty] at lastTargetMembership
+    simpa [sourceAtBase] using lastTargetMembership
+  · exact sourceTarget
+
 theorem toChain {graph : Graph} {start finish : Vertex}
     {traversed : List graph.DirectedEdge}
     (walk : graph.EdgeWalk start traversed finish) :
@@ -576,6 +602,53 @@ theorem retainEdges {graph : Graph} {mask : List Bool}
           (by simpa [retainedDirected] using starts)
           (by simpa [retainedDirected] using finishes)
       · simp [List.map_append, indexEquation, retainedDirected,
+          DirectedEdge.retain]
+      · simp [List.map_append, targetEquation, retainedDirected]
+
+/-- Exact transport of a kept edge-aware walk through an occurrence mask.
+Besides compacted indices and targets, this variant preserves the stored-edge
+value and orientation sequence pointwise, which is enough to reflect exact
+reverse pairs across the mask. -/
+theorem retainEdgesExact {graph : Graph} {mask : List Bool}
+    {start finish : Vertex} {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish)
+    (aligned : graph.edges.length = mask.length)
+    (allKept : ∀ directed ∈ traversed,
+      mask[directed.index]? = some true) :
+    ∃ retainedTraversal : List (graph.retainEdges mask).DirectedEdge,
+      (graph.retainEdges mask).EdgeWalk start retainedTraversal finish ∧
+      retainedTraversal.map DirectedEdge.index =
+        traversed.map (fun directed => retainedIndex mask directed.index) ∧
+      retainedTraversal.map DirectedEdge.edge =
+        traversed.map DirectedEdge.edge ∧
+      retainedTraversal.map DirectedEdge.forward =
+        traversed.map DirectedEdge.forward ∧
+      retainedTraversal.map DirectedEdge.target =
+        traversed.map DirectedEdge.target := by
+  induction walk with
+  | refl => exact ⟨[], .refl _, rfl, rfl, rfl, rfl⟩
+  | @step start finish priorSteps prior directed starts finishes induction =>
+      have priorKept : ∀ earlier ∈ priorSteps,
+          mask[earlier.index]? = some true := by
+        intro earlier earlierMembership
+        exact allKept earlier (by simp [earlierMembership])
+      rcases induction priorKept with
+        ⟨retainedPrior, retainedWalk, indexEquation, edgeEquation,
+          forwardEquation, targetEquation⟩
+      have directedKept : mask[directed.index]? = some true :=
+        allKept directed (by simp)
+      let retainedDirected := directed.retain aligned directedKept
+      refine
+        ⟨retainedPrior ++ [retainedDirected],
+          EdgeWalk.step retainedWalk retainedDirected
+            (by simpa [retainedDirected] using starts)
+            (by simpa [retainedDirected] using finishes),
+          ?_, ?_, ?_, ?_⟩
+      · simp [List.map_append, indexEquation, retainedDirected,
+          DirectedEdge.retain]
+      · simp [List.map_append, edgeEquation, retainedDirected,
+          DirectedEdge.retain]
+      · simp [List.map_append, forwardEquation, retainedDirected,
           DirectedEdge.retain]
       · simp [List.map_append, targetEquation, retainedDirected]
 
@@ -776,6 +849,105 @@ theorem append {graph : Graph}
             apply junction final outgoing
             · simpa using lastEquation
             · exact headEquation
+
+/-- Removing any list prefix preserves exact-occurrence nonbacktracking. -/
+theorem suffix {graph : Graph}
+    {initial traversed : List graph.DirectedEdge}
+    (reduced : NoImmediateReverse (initial ++ traversed)) :
+    NoImmediateReverse traversed := by
+  induction initial with
+  | nil => simpa using reduced
+  | cons first rest induction =>
+      have tailReduced :
+          NoImmediateReverse (rest ++ traversed) := by
+        change
+          NoImmediateReverse (first :: (rest ++ traversed)) at reduced
+        cases combined : rest ++ traversed with
+        | nil => trivial
+        | cons second after =>
+            rw [combined] at reduced
+            exact reduced.2
+      exact induction tailReduced
+
+/-- Pointwise compacted-index and orientation preservation reflects
+nonbacktracking from an original kept traversal to its masked traversal.  The
+kept-position injectivity theorem prevents two distinct parallel occurrences
+from being conflated. -/
+theorem of_masked_alignment {graph : Graph} {mask : List Bool} :
+    ∀ {original : List graph.DirectedEdge}
+      {retained : List (graph.retainEdges mask).DirectedEdge},
+      (∀ directed ∈ original, mask[directed.index]? = some true) →
+      retained.map DirectedEdge.index =
+        original.map (fun directed => retainedIndex mask directed.index) →
+      retained.map DirectedEdge.forward =
+        original.map DirectedEdge.forward →
+      NoImmediateReverse original →
+      NoImmediateReverse retained
+  | [], retained, _allKept, indexEquation, _forwardEquation, _reduced => by
+      cases retained with
+      | nil => trivial
+      | cons first rest => simp at indexEquation
+  | [first], retained, allKept, indexEquation, _forwardEquation, _reduced => by
+      cases retained with
+      | nil => simp at indexEquation
+      | cons retainedFirst retainedRest =>
+          cases retainedRest with
+          | nil => trivial
+          | cons retainedSecond rest => simp at indexEquation
+  | first :: second :: rest, retained, allKept, indexEquation,
+      forwardEquation, reduced => by
+      cases retained with
+      | nil => simp at indexEquation
+      | cons retainedFirst retainedRest =>
+          cases retainedRest with
+          | nil => simp at indexEquation
+          | cons retainedSecond retainedTail =>
+              simp only [List.map_cons, List.cons.injEq] at indexEquation
+              simp only [List.map_cons, List.cons.injEq] at forwardEquation
+              change
+                retainedSecond ≠ retainedFirst.reverse ∧
+                  NoImmediateReverse (retainedSecond :: retainedTail)
+              constructor
+              · intro retainedReverse
+                have firstKept :
+                    mask[first.index]? = some true :=
+                  allKept first (by simp)
+                have secondKept :
+                    mask[second.index]? = some true :=
+                  allKept second (by simp)
+                have sameCompactIndex :
+                    retainedIndex mask second.index =
+                      retainedIndex mask first.index := by
+                  rw [← indexEquation.2.1, ← indexEquation.1]
+                  simpa using
+                    congrArg DirectedEdge.index retainedReverse
+                have sameOriginalIndex : second.index = first.index :=
+                  retainedIndex_injective_of_kept
+                    secondKept firstKept sameCompactIndex
+                have reverseForward :
+                    second.forward = first.reverse.forward := by
+                  calc
+                    second.forward = retainedSecond.forward :=
+                      forwardEquation.2.1.symm
+                    _ = retainedFirst.reverse.forward := by
+                      rw [retainedReverse]
+                    _ = !retainedFirst.forward := rfl
+                    _ = !first.forward := by rw [forwardEquation.1]
+                    _ = first.reverse.forward := rfl
+                have exactReverse : second = first.reverse :=
+                  DirectedEdge.eq_of_index_eq_of_forward_eq
+                    second first.reverse
+                    (by simpa using sameOriginalIndex)
+                    reverseForward
+                exact reduced.1 exactReverse
+              · apply of_masked_alignment
+                  (original := second :: rest)
+                  (retained := retainedSecond :: retainedTail)
+                · intro directed membership
+                  exact allKept directed (by simp [membership])
+                · simp [indexEquation.2]
+                · simp [forwardEquation.2]
+                · exact reduced.2
 
 /-- Every exact traversal is either already nonbacktracking or contains an
 adjacent occurrence followed by its exact reverse.  The decomposition is by
@@ -1221,6 +1393,160 @@ def CyclicNoImmediateReverse {graph : Graph}
       traversed.head? = some first →
         traversed.getLast? = some last →
           first ≠ last.reverse
+
+namespace CyclicNoImmediateReverse
+
+/-- Pointwise compacted-index and orientation preservation reflects cyclic
+nonbacktracking from a nonempty original kept traversal to its masked
+traversal, including the last/first junction. -/
+theorem of_masked_alignment {graph : Graph} {mask : List Bool}
+    {original : List graph.DirectedEdge}
+    {retained : List (graph.retainEdges mask).DirectedEdge}
+    (originalNonempty : original ≠ [])
+    (allKept : ∀ directed ∈ original,
+      mask[directed.index]? = some true)
+    (indexEquation :
+      retained.map DirectedEdge.index =
+        original.map (fun directed => retainedIndex mask directed.index))
+    (forwardEquation :
+      retained.map DirectedEdge.forward =
+        original.map DirectedEdge.forward)
+    (reduced : CyclicNoImmediateReverse original) :
+    CyclicNoImmediateReverse retained := by
+  constructor
+  · exact NoImmediateReverse.of_masked_alignment
+      allKept indexEquation forwardEquation reduced.1
+  · intro retainedFirst retainedLast retainedHead retainedLastEq
+    intro retainedReverse
+    let originalFirst := original.head originalNonempty
+    let originalLast := original.getLast originalNonempty
+    have originalHead :
+        original.head? = some originalFirst :=
+      List.head?_eq_some_head originalNonempty
+    have originalLastEq :
+        original.getLast? = some originalLast :=
+      List.getLast?_eq_some_getLast originalNonempty
+    have firstIndex :
+        retainedFirst.index =
+          retainedIndex mask originalFirst.index := by
+      apply Option.some.inj
+      calc
+        some retainedFirst.index =
+            (retained.map DirectedEdge.index).head? := by
+              rw [List.head?_map, retainedHead]
+              rfl
+        _ = (original.map
+              (fun directed => retainedIndex mask directed.index)).head? := by
+              rw [indexEquation]
+        _ = some (retainedIndex mask originalFirst.index) := by
+              rw [List.head?_map, originalHead]
+              rfl
+    have lastIndex :
+        retainedLast.index =
+          retainedIndex mask originalLast.index := by
+      apply Option.some.inj
+      calc
+        some retainedLast.index =
+            (retained.map DirectedEdge.index).getLast? := by
+              rw [List.getLast?_map, retainedLastEq]
+              rfl
+        _ = (original.map
+              (fun directed => retainedIndex mask directed.index)).getLast? := by
+              rw [indexEquation]
+        _ = some (retainedIndex mask originalLast.index) := by
+              rw [List.getLast?_map, originalLastEq]
+              rfl
+    have firstForward :
+        retainedFirst.forward = originalFirst.forward := by
+      apply Option.some.inj
+      calc
+        some retainedFirst.forward =
+            (retained.map DirectedEdge.forward).head? := by
+              rw [List.head?_map, retainedHead]
+              rfl
+        _ = (original.map DirectedEdge.forward).head? := by
+              rw [forwardEquation]
+        _ = some originalFirst.forward := by
+              rw [List.head?_map, originalHead]
+              rfl
+    have lastForward :
+        retainedLast.forward = originalLast.forward := by
+      apply Option.some.inj
+      calc
+        some retainedLast.forward =
+            (retained.map DirectedEdge.forward).getLast? := by
+              rw [List.getLast?_map, retainedLastEq]
+              rfl
+        _ = (original.map DirectedEdge.forward).getLast? := by
+              rw [forwardEquation]
+        _ = some originalLast.forward := by
+              rw [List.getLast?_map, originalLastEq]
+              rfl
+    have originalFirstKept :
+        mask[originalFirst.index]? = some true :=
+      allKept originalFirst (List.head_mem originalNonempty)
+    have originalLastKept :
+        mask[originalLast.index]? = some true :=
+      allKept originalLast (List.getLast_mem originalNonempty)
+    have sameCompactIndex :
+        retainedIndex mask originalFirst.index =
+          retainedIndex mask originalLast.index := by
+      rw [← firstIndex, ← lastIndex]
+      simpa using congrArg DirectedEdge.index retainedReverse
+    have sameOriginalIndex :
+        originalFirst.index = originalLast.index :=
+      retainedIndex_injective_of_kept
+        originalFirstKept originalLastKept sameCompactIndex
+    have reverseForward :
+        originalFirst.forward = originalLast.reverse.forward := by
+      calc
+        originalFirst.forward = retainedFirst.forward := firstForward.symm
+        _ = retainedLast.reverse.forward := by rw [retainedReverse]
+        _ = !retainedLast.forward := rfl
+        _ = !originalLast.forward := by rw [lastForward]
+        _ = originalLast.reverse.forward := rfl
+    have exactReverse : originalFirst = originalLast.reverse :=
+      DirectedEdge.eq_of_index_eq_of_forward_eq
+        originalFirst originalLast.reverse
+        (by simpa using sameOriginalIndex)
+        reverseForward
+    exact reduced.2 originalFirst originalLast
+      originalHead originalLastEq exactReverse
+
+end CyclicNoImmediateReverse
+
+/-- Transport a nonempty closed cyclically nonbacktracking walk through an
+occurrence mask when every traversed occurrence is retained.  Exact compacted
+indices and orientations ensure that neither internal nor closing reverse
+pairs can be hidden by masking, including in graphs with parallel equal-valued
+edges. -/
+theorem retainEdgesCyclicNoImmediateReverse {graph : Graph} {mask : List Bool}
+    {base : Vertex} {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk base traversed base)
+    (aligned : graph.edges.length = mask.length)
+    (nonempty : traversed ≠ [])
+    (allKept : ∀ directed ∈ traversed,
+      mask[directed.index]? = some true)
+    (reduced : CyclicNoImmediateReverse traversed) :
+    ∃ retainedTraversal : List (graph.retainEdges mask).DirectedEdge,
+      retainedTraversal ≠ [] ∧
+        (graph.retainEdges mask).EdgeWalk
+          base retainedTraversal base ∧
+          CyclicNoImmediateReverse retainedTraversal := by
+  rcases walk.retainEdgesExact aligned allKept with
+    ⟨retainedTraversal, retainedWalk, indexEquation, _edgeEquation,
+      forwardEquation, _targetEquation⟩
+  have retainedNonempty : retainedTraversal ≠ [] := by
+    intro retainedEmpty
+    subst retainedTraversal
+    simp only [List.map_nil] at indexEquation
+    have traversedEmpty : traversed = [] := by
+      simpa using indexEquation.symm
+    exact nonempty traversedEmpty
+  exact
+    ⟨retainedTraversal, retainedNonempty, retainedWalk,
+      CyclicNoImmediateReverse.of_masked_alignment
+        nonempty allKept indexEquation forwardEquation reduced⟩
 
 /-- Proof-relevant cyclic normalization. `finish` records the final internal
 normalization pass. `closing` records an internally normalized outer

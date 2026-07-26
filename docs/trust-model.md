@@ -205,10 +205,19 @@ occurrences. Every dependency carries that same-boundary classification
  the all-left reference switching. Thus an empty normal form implies retention
  of every original edge index, including backward occurrences via their
  forward reverses. This characterizes the empty branch as a fully retained
- nested reference-tree walk; it does not exclude it. The remaining gap is to
- exclude that
- exact empty nesting and, in the nonempty branch, transport the turn evidence
- into an excluded edge-simple switching cycle or forbidden nesting. This is
+ nested reference-tree walk. The scheduler theorem now transports the original
+ nonempty closed walk into `referenceSwitchingGraph`, while the public
+ `DeclarativelyCorrect.referenceSwitchingTree` theorem independently packages
+ that retained graph's tree property. This remains consistent because a closed
+ tree walk can be nested backtracking; it does not exclude the branch. In the
+ nonempty branch, Lean now preserves exact indices, edge values, orientations,
+ and cyclic nonbacktracking through an arbitrary switching mask. It proves that
+ par-pair sparsity would place the obstruction in one switching tree, then
+ extracts a concrete par whose two occurrences both survive and proves the
+ omitted right occurrence is backward from the scheduler's forward-retention
+ invariant. The remaining gap is to exclude the exact empty nesting and
+ transport the turn evidence around that concrete nonempty obstruction into an
+ excluded edge-simple switching cycle or forbidden nesting. This is
  not yet the correct-state progress theorem needed for pure-worklist
  completeness.
  The

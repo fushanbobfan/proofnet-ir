@@ -344,6 +344,49 @@ ProofNetIR.Graph.EdgeWalk.inflateRetainedExact : ∀ {graph : ProofNetIR.Graph} 
                   ∀ (directed : graph.DirectedEdge), directed ∈ originalTraversal → mask[directed.index]? = some true
 ```
 
+### `ProofNetIR.Graph.EdgeWalk.retainEdgesExact`
+
+Kind: theorem.
+
+Exact transport of a kept edge-aware walk through an occurrence mask.
+Besides compacted indices and targets, this variant preserves the stored-edge
+value and orientation sequence pointwise, which is enough to reflect exact
+reverse pairs across the mask.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.retainEdgesExact : ∀ {graph : ProofNetIR.Graph} {mask : List Bool} {start finish : ProofNetIR.Vertex}
+  {traversed : List graph.DirectedEdge},
+  graph.EdgeWalk start traversed finish →
+    graph.edges.length = mask.length →
+      (∀ (directed : graph.DirectedEdge), directed ∈ traversed → mask[directed.index]? = some true) →
+        ∃ retainedTraversal,
+          (graph.retainEdges mask).EdgeWalk start retainedTraversal finish ∧
+            List.map ProofNetIR.Graph.DirectedEdge.index retainedTraversal =
+                List.map (fun directed => ProofNetIR.Graph.retainedIndex mask directed.index) traversed ∧
+              List.map ProofNetIR.Graph.DirectedEdge.edge retainedTraversal =
+                  List.map ProofNetIR.Graph.DirectedEdge.edge traversed ∧
+                List.map ProofNetIR.Graph.DirectedEdge.forward retainedTraversal =
+                    List.map ProofNetIR.Graph.DirectedEdge.forward traversed ∧
+                  List.map ProofNetIR.Graph.DirectedEdge.target retainedTraversal =
+                    List.map ProofNetIR.Graph.DirectedEdge.target traversed
+```
+
+### `ProofNetIR.Graph.EdgeWalk.source_mem_targets_of_closed`
+
+Kind: theorem.
+
+In a nonempty closed exact-occurrence walk, the source of every traversed
+edge also occurs as a target somewhere in the cyclic traversal.  For an edge
+leaving the chosen list base, the final edge supplies that target occurrence.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.source_mem_targets_of_closed : ∀ {graph : ProofNetIR.Graph} {base : ProofNetIR.Vertex} {traversed : List graph.DirectedEdge},
+  graph.EdgeWalk base traversed base →
+    traversed ≠ [] →
+      ∀ {directed : graph.DirectedEdge},
+        directed ∈ traversed → directed.source ∈ List.map ProofNetIR.Graph.DirectedEdge.target traversed
+```
+
 ### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse`
 
 Kind: definition.
@@ -399,6 +442,38 @@ ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.append : ∀ {graph : ProofNetIR.Gr
       (∀ (incoming outgoing : graph.DirectedEdge),
           first.getLast? = some incoming → second.head? = some outgoing → outgoing ≠ incoming.reverse) →
         ProofNetIR.Graph.EdgeWalk.NoImmediateReverse (first ++ second)
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.suffix`
+
+Kind: theorem.
+
+Removing any list prefix preserves exact-occurrence nonbacktracking.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.suffix : ∀ {graph : ProofNetIR.Graph} {initial traversed : List graph.DirectedEdge},
+  ProofNetIR.Graph.EdgeWalk.NoImmediateReverse (initial ++ traversed) →
+    ProofNetIR.Graph.EdgeWalk.NoImmediateReverse traversed
+```
+
+### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.of_masked_alignment`
+
+Kind: theorem.
+
+Pointwise compacted-index and orientation preservation reflects
+nonbacktracking from an original kept traversal to its masked traversal.  The
+kept-position injectivity theorem prevents two distinct parallel occurrences
+from being conflated.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.of_masked_alignment : ∀ {graph : ProofNetIR.Graph} {mask : List Bool} {original : List graph.DirectedEdge}
+  {retained : List (graph.retainEdges mask).DirectedEdge},
+  (∀ (directed : graph.DirectedEdge), directed ∈ original → mask[directed.index]? = some true) →
+    List.map ProofNetIR.Graph.DirectedEdge.index retained =
+        List.map (fun directed => ProofNetIR.Graph.retainedIndex mask directed.index) original →
+      List.map ProofNetIR.Graph.DirectedEdge.forward retained =
+          List.map ProofNetIR.Graph.DirectedEdge.forward original →
+        ProofNetIR.Graph.EdgeWalk.NoImmediateReverse original → ProofNetIR.Graph.EdgeWalk.NoImmediateReverse retained
 ```
 
 ### `ProofNetIR.Graph.EdgeWalk.NoImmediateReverse.reduced_or_cancel`
@@ -605,6 +680,50 @@ inside its list representation or across its closing last/first junction.
 
 ```lean
 ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse : {graph : ProofNetIR.Graph} → List graph.DirectedEdge → Prop
+```
+
+### `ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse.of_masked_alignment`
+
+Kind: theorem.
+
+Pointwise compacted-index and orientation preservation reflects cyclic
+nonbacktracking from a nonempty original kept traversal to its masked
+traversal, including the last/first junction.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse.of_masked_alignment : ∀ {graph : ProofNetIR.Graph} {mask : List Bool} {original : List graph.DirectedEdge}
+  {retained : List (graph.retainEdges mask).DirectedEdge},
+  original ≠ [] →
+    (∀ (directed : graph.DirectedEdge), directed ∈ original → mask[directed.index]? = some true) →
+      List.map ProofNetIR.Graph.DirectedEdge.index retained =
+          List.map (fun directed => ProofNetIR.Graph.retainedIndex mask directed.index) original →
+        List.map ProofNetIR.Graph.DirectedEdge.forward retained =
+            List.map ProofNetIR.Graph.DirectedEdge.forward original →
+          ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse original →
+            ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse retained
+```
+
+### `ProofNetIR.Graph.EdgeWalk.retainEdgesCyclicNoImmediateReverse`
+
+Kind: theorem.
+
+Transport a nonempty closed cyclically nonbacktracking walk through an
+occurrence mask when every traversed occurrence is retained.  Exact compacted
+indices and orientations ensure that neither internal nor closing reverse
+pairs can be hidden by masking, including in graphs with parallel equal-valued
+edges.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.retainEdgesCyclicNoImmediateReverse : ∀ {graph : ProofNetIR.Graph} {mask : List Bool} {base : ProofNetIR.Vertex} {traversed : List graph.DirectedEdge},
+  graph.EdgeWalk base traversed base →
+    graph.edges.length = mask.length →
+      traversed ≠ [] →
+        (∀ (directed : graph.DirectedEdge), directed ∈ traversed → mask[directed.index]? = some true) →
+          ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed →
+            ∃ retainedTraversal,
+              retainedTraversal ≠ [] ∧
+                (graph.retainEdges mask).EdgeWalk base retainedTraversal base ∧
+                  ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse retainedTraversal
 ```
 
 ### `ProofNetIR.Graph.EdgeWalk.CyclicImmediateReverseNormalization`
@@ -974,6 +1093,24 @@ the exact stored-edge-occurrence sense.
 ProofNetIR.Graph.IsTree.acyclic : ∀ {graph : ProofNetIR.Graph}, graph.IsTree → graph.Acyclic
 ```
 
+### `ProofNetIR.Graph.IsTree.no_cyclicNoImmediateReverse`
+
+Kind: theorem.
+
+A finite tree admits no nonempty closed exact-occurrence traversal that is
+nonbacktracking both internally and across its closing junction.  Choose a
+traversed target of maximal rooted distance.  The incoming and cyclic-successor
+occurrences must both be the unique parent-edge occurrence owned by that
+maximal vertex, so the successor is the incoming occurrence's exact reverse.
+
+```lean
+ProofNetIR.Graph.IsTree.no_cyclicNoImmediateReverse : ∀ {graph : ProofNetIR.Graph},
+  graph.IsTree →
+    ∀ {base : ProofNetIR.Vertex} {traversed : List graph.DirectedEdge},
+      traversed ≠ [] →
+        graph.EdgeWalk base traversed base → ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed → False
+```
+
 ### `ProofNetIR.Graph.Acyclic.edges_nodup`
 
 Kind: theorem.
@@ -1102,6 +1239,22 @@ par pair: exactly one of the two emitted premise occurrences is retained.
 ProofNetIR.Certificate.FullSwitchingSelection.mask_parPairSparse : ∀ {links : List ProofNetIR.Link} {selected retained : List ProofNetIR.Edge} {mask : List Bool},
   ProofNetIR.Certificate.FullSwitchingSelection links selected retained mask →
     ProofNetIR.Certificate.ParPairSparse links 0 fun index => mask[index]? = some true
+```
+
+### `ProofNetIR.Certificate.not_parPairSparse_exists`
+
+Kind: theorem.
+
+Failure of par-pair sparsity exposes one concrete stored par whose two
+consecutive full-edge occurrence indices are both requested.
+
+```lean
+ProofNetIR.Certificate.not_parPairSparse_exists : ∀ (links : List ProofNetIR.Link) (offset : Nat) (uses : Nat → Prop),
+  ¬ProofNetIR.Certificate.ParPairSparse links offset uses →
+    ∃ before left right conclusion after,
+      links = before ++ ProofNetIR.Link.par left right conclusion :: after ∧
+        uses (offset + (ProofNetIR.Certificate.linkFullEdges before).length) ∧
+          uses (offset + (ProofNetIR.Certificate.linkFullEdges before).length + 1)
 ```
 
 ### `ProofNetIR.Certificate.FullSwitchingSelection.kept_parTarget_index_unique`
@@ -1275,6 +1428,22 @@ premise of every par link.
 ProofNetIR.Certificate.referenceSwitchingMask : ProofNetIR.Certificate → List Bool
 ```
 
+### `ProofNetIR.Certificate.referenceSwitchingMask_parAt`
+
+Kind: theorem.
+
+Exact mask positions contributed by a concrete par occurrence after an
+arbitrary stored-link prefix: the deterministic reference switching retains
+the left premise and omits the right premise.
+
+```lean
+ProofNetIR.Certificate.referenceSwitchingMask_parAt : ∀ (certificate : ProofNetIR.Certificate) (before after : List ProofNetIR.Link)
+  (left right conclusion : ProofNetIR.Vertex),
+  certificate.links = before ++ ProofNetIR.Link.par left right conclusion :: after →
+    certificate.referenceSwitchingMask[(ProofNetIR.Certificate.linkFullEdges before).length]? = some true ∧
+      certificate.referenceSwitchingMask[(ProofNetIR.Certificate.linkFullEdges before).length + 1]? = some false
+```
+
 ### `ProofNetIR.Certificate.referenceSwitchingGraph`
 
 Kind: definition.
@@ -1307,6 +1476,152 @@ ProofNetIR.Certificate.referenceFullSwitchingSelection : ∀ (certificate : Proo
   ProofNetIR.Certificate.FullSwitchingSelection certificate.links
     (ProofNetIR.Certificate.linkLeftSelectedEdges certificate.links)
     (ProofNetIR.Certificate.linkLeftRetainedEdges certificate.links) certificate.referenceSwitchingMask
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.occurrenceSwitchingTree`
+
+Kind: theorem.
+
+Every exact occurrence-order switching of a declaratively correct
+certificate is a tree.  This exposes the arbitrary-switching form directly,
+without first converting the retained edge list to the value-level switching
+graph.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.occurrenceSwitchingTree : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ {selected retained : List ProofNetIR.Edge} {mask : List Bool},
+      ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retained mask →
+        (certificate.fullGraph.retainEdges mask).IsTree
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.referenceSwitchingTree`
+
+Kind: theorem.
+
+Every declaratively correct certificate has a tree as its deterministic
+all-left reference switching.  This packages the boundedness, occurrence-aware
+acyclicity, and connectedness consequences used by downstream geometric
+arguments.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.referenceSwitchingTree : ∀ {certificate : ProofNetIR.Certificate}, certificate.DeclarativelyCorrect → certificate.referenceSwitchingGraph.IsTree
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.no_occurrenceSwitchingKept_cyclicNoImmediateReverse`
+
+Kind: theorem.
+
+A correct certificate admits no nonempty closed cyclically nonbacktracking
+full-graph walk whose exact occurrences are all retained by one valid
+occurrence switching.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.no_occurrenceSwitchingKept_cyclicNoImmediateReverse : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ {selected retainedEdges : List ProofNetIR.Edge} {mask : List Bool},
+      ProofNetIR.Certificate.FullSwitchingSelection certificate.links selected retainedEdges mask →
+        ∀ {base : ProofNetIR.Vertex} {traversed : List certificate.fullGraph.DirectedEdge},
+          traversed ≠ [] →
+            certificate.fullGraph.EdgeWalk base traversed base →
+              (∀ (directed : certificate.fullGraph.DirectedEdge),
+                  directed ∈ traversed → mask[directed.index]? = some true) →
+                ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed → False
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.no_parPairSparse_cyclicNoImmediateReverse`
+
+Kind: theorem.
+
+Par-pair sparsity is the exact combinatorial condition needed to place a
+nonempty cyclically nonbacktracking full-graph walk inside one occurrence
+switching.  Correctness then excludes the walk by switching-tree acyclicity.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.no_parPairSparse_cyclicNoImmediateReverse : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ {base : ProofNetIR.Vertex} {traversed : List certificate.fullGraph.DirectedEdge},
+      traversed ≠ [] →
+        certificate.fullGraph.EdgeWalk base traversed base →
+          (ProofNetIR.Certificate.ParPairSparse certificate.links 0 fun index =>
+              ∃ directed, directed ∈ traversed ∧ directed.index = index) →
+            ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed → False
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.cyclicNoImmediateReverse_uses_bothParOccurrences`
+
+Kind: theorem.
+
+Consequently, every nonempty cyclically nonbacktracking closed walk in the
+full graph of a correct certificate uses both exact premise-edge occurrences
+of at least one concrete par link.  This is the precise obstruction that the
+remaining scheduler-specific turn analysis must eliminate.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.cyclicNoImmediateReverse_uses_bothParOccurrences : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ {base : ProofNetIR.Vertex} {traversed : List certificate.fullGraph.DirectedEdge},
+      traversed ≠ [] →
+        certificate.fullGraph.EdgeWalk base traversed base →
+          ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed →
+            ∃ before left right conclusion after leftOccurrence rightOccurrence,
+              certificate.links = before ++ ProofNetIR.Link.par left right conclusion :: after ∧
+                leftOccurrence ∈ traversed ∧
+                  leftOccurrence.index = (ProofNetIR.Certificate.linkFullEdges before).length ∧
+                    leftOccurrence.edge = { first := left, second := conclusion } ∧
+                      certificate.referenceSwitchingMask[leftOccurrence.index]? = some true ∧
+                        rightOccurrence ∈ traversed ∧
+                          rightOccurrence.index = (ProofNetIR.Certificate.linkFullEdges before).length + 1 ∧
+                            rightOccurrence.edge = { first := right, second := conclusion } ∧
+                              certificate.referenceSwitchingMask[rightOccurrence.index]? = some false
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.cyclicNoImmediateReverse_uses_backwardRightPar`
+
+Kind: theorem.
+
+If every forward occurrence of such a closed obstruction is retained by
+the all-left reference mask, the unavoidable omitted right-par occurrence can
+only be traversed backward.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.cyclicNoImmediateReverse_uses_backwardRightPar : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ {base : ProofNetIR.Vertex} {traversed : List certificate.fullGraph.DirectedEdge},
+      traversed ≠ [] →
+        certificate.fullGraph.EdgeWalk base traversed base →
+          ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed →
+            (∀ (directed : certificate.fullGraph.DirectedEdge),
+                directed ∈ traversed →
+                  directed.forward = true → certificate.referenceSwitchingMask[directed.index]? = some true) →
+              ∃ before left right conclusion after leftOccurrence rightOccurrence,
+                certificate.links = before ++ ProofNetIR.Link.par left right conclusion :: after ∧
+                  leftOccurrence ∈ traversed ∧
+                    leftOccurrence.index = (ProofNetIR.Certificate.linkFullEdges before).length ∧
+                      rightOccurrence ∈ traversed ∧
+                        rightOccurrence.index = (ProofNetIR.Certificate.linkFullEdges before).length + 1 ∧
+                          rightOccurrence.forward = false
+```
+
+### `ProofNetIR.Certificate.DeclarativelyCorrect.no_referenceKept_cyclicNoImmediateReverse`
+
+Kind: theorem.
+
+A correct certificate admits no nonempty closed cyclically nonbacktracking
+full-graph walk whose exact edge occurrences are all retained by the
+deterministic all-left reference switching.  The proof preserves occurrence
+indices and orientations through the switching mask, then contradicts the
+reference switching's tree property.
+
+```lean
+ProofNetIR.Certificate.DeclarativelyCorrect.no_referenceKept_cyclicNoImmediateReverse : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.DeclarativelyCorrect →
+    ∀ {base : ProofNetIR.Vertex} {traversed : List certificate.fullGraph.DirectedEdge},
+      traversed ≠ [] →
+        certificate.fullGraph.EdgeWalk base traversed base →
+          (∀ (directed : certificate.fullGraph.DirectedEdge),
+              directed ∈ traversed → certificate.referenceSwitchingMask[directed.index]? = some true) →
+            ProofNetIR.Graph.EdgeWalk.CyclicNoImmediateReverse traversed → False
 ```
 
 ### `ProofNetIR.Certificate.DeclarativelyCorrect.parPremises_referencePath_avoids_conclusion`

@@ -128,10 +128,20 @@ prohibited immediate reversal, so the turn is free. Every edge of the finite
  in the original dependency walk is retained by the all-left reference
  switching. Therefore, in the empty-normal-form branch, reverse membership
  upgrades this to retention of every original edge index. This identifies the
- empty obstruction as a fully reference-retained nested tree walk; it does not
- yet exclude that nesting. Proof-net correctness must next use the retained
- scheduler geometry to do so; in the nonempty branch it must transport the
- local turn evidence while
+ empty obstruction as a fully reference-retained nested tree walk. Lean now
+ transports that original nonempty closed walk into the deterministic reference
+ switching, and the public
+ `DeclarativelyCorrect.referenceSwitchingTree` theorem packages that graph's
+ tree property. A nonempty closed tree walk may still be nested backtracking, so
+ this does not yet exclude the obstruction. For the nonempty normal form, exact
+ index/orientation transport through arbitrary switching masks is now proved.
+ Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one
+ occurrence switching and contradict its tree property. Lean consequently
+ exposes a concrete par whose two exact premise occurrences both survive; the
+ all-left forward-retention invariant forces its omitted right occurrence to be
+ traversed backward. Proof-net correctness must next use the retained scheduler
+ geometry to exclude the empty nesting and transport local turn evidence around
+ that concrete backward-right-par obstruction while
  extracting a suitably classified edge-simple switching cycle or forbidden
  nesting before the recursive fallback can be removed. The
  later

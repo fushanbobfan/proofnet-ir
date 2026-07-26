@@ -18275,14 +18275,34 @@ private theorem
     ⟨chainAt earlier, traversed,
       nonemptyOfPositive positive, closedWalk, forwardKept⟩
 
+/-- Exact omitted-right-par occurrence forced in any nonempty normalized
+scheduler obstruction.  The stored prefix fixes the two par edge indices, and
+the omitted right occurrence is traversed backward. -/
+private def NormalizedNonemptyParObstruction
+    (certificate : Certificate)
+    (normalized : List certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ (before : List Link) (left right conclusion : Vertex)
+      (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge),
+    certificate.links =
+        before ++ .par left right conclusion :: after ∧
+      leftOccurrence ∈ normalized ∧
+        leftOccurrence.index = (linkFullEdges before).length ∧
+          rightOccurrence ∈ normalized ∧
+            rightOccurrence.index =
+                (linkFullEdges before).length + 1 ∧
+              rightOccurrence.forward = false
+
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
 normalization. Every surviving occurrence comes from the original obstruction
 walk, and the normal form is either empty (the genuinely nested out-and-back
 case) or cyclically nonbacktracking. Forward original occurrences are
 reference-kept; if normalization ends empty, exact reverse membership upgrades
-this to retention of every original edge index. Excluding that fully retained
-nesting or extracting the classified simple cycle from the nonempty case
-remains the final geometric obligation. -/
+this to retention of every original edge index and transports the original
+nonempty closed walk into the deterministic reference-switching tree. Excluding
+that fully retained nesting or extracting the classified simple cycle from the
+nonempty case remains the final geometric obligation. -/
 private theorem
     canonicalWorklistRun_waitingPar_dependency_closed_normalizedFullGraphWalk
     {certificate : Certificate} {started : UnificationState}
@@ -18318,9 +18338,18 @@ private theorem
                       (normalized = [] →
                         (∀ directed, directed ∈ original →
                           directed.reverse ∈ original) ∧
-                          ∀ directed, directed ∈ original →
+                          (∀ directed, directed ∈ original →
                             certificate.referenceSwitchingMask[
-                              directed.index]? = some true) := by
+                              directed.index]? = some true) ∧
+                            ∃ retained :
+                                List
+                                  certificate.referenceSwitchingGraph.DirectedEdge,
+                              retained ≠ [] ∧
+                                certificate.referenceSwitchingGraph.EdgeWalk
+                                  originalBase retained originalBase) ∧
+                        (normalized ≠ [] →
+                          NormalizedNonemptyParObstruction
+                            certificate normalized) := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -18350,9 +18379,18 @@ private theorem
                       (normalized = [] →
                         (∀ directed, directed ∈ original →
                           directed.reverse ∈ original) ∧
-                          ∀ directed, directed ∈ original →
+                          (∀ directed, directed ∈ original →
                             certificate.referenceSwitchingMask[
-                              directed.index]? = some true)
+                              directed.index]? = some true) ∧
+                            ∃ retained :
+                                List
+                                  certificate.referenceSwitchingGraph.DirectedEdge,
+                              retained ≠ [] ∧
+                                certificate.referenceSwitchingGraph.EdgeWalk
+                                  originalBase retained originalBase) ∧
+                        (normalized ≠ [] →
+                          NormalizedNonemptyParObstruction
+                            certificate normalized)
   intro source sourceWaiting
   rcases
       canonicalWorklistRun_waitingPar_dependency_closed_fullGraphWalk
@@ -18367,26 +18405,71 @@ private theorem
       originalNonempty, originalWalk, originalForwardKept,
       normalizedWalk, normalization,
       normalizedShape, normalization.membership_subset,
-      fun normalizedEmpty =>
-        ⟨fun directed membership =>
+      fun normalizedEmpty => by
+        have reverseMembership :
+            ∀ directed, directed ∈ original →
+              directed.reverse ∈ original :=
+          fun directed membership =>
             normalization.reverse_mem_of_normalizes_to_nil
-              normalizedEmpty directed membership,
-          fun directed membership => by
-            by_cases forward : directed.forward = true
-            · exact originalForwardKept directed membership forward
-            · have reverseMembership :=
-                normalization.reverse_mem_of_normalizes_to_nil
-                  normalizedEmpty directed membership
-              have directedBackward : directed.forward = false := by
-                cases direction : directed.forward with
-                | false => rfl
-                | true => exact False.elim (forward direction)
-              have reverseForward :
-                  directed.reverse.forward = true := by
-                simp [Graph.DirectedEdge.reverse, directedBackward]
-              simpa using
-                originalForwardKept directed.reverse reverseMembership
-                  reverseForward⟩⟩
+              normalizedEmpty directed membership
+        have allKept :
+            ∀ directed, directed ∈ original →
+              certificate.referenceSwitchingMask[directed.index]? =
+                some true := by
+          intro directed membership
+          by_cases forward : directed.forward = true
+          · exact originalForwardKept directed membership forward
+          · have reverseMembership' :=
+              reverseMembership directed membership
+            have directedBackward : directed.forward = false := by
+              cases direction : directed.forward with
+              | false => rfl
+              | true => exact False.elim (forward direction)
+            have reverseForward :
+                directed.reverse.forward = true := by
+              simp [Graph.DirectedEdge.reverse, directedBackward]
+            simpa using
+              originalForwardKept directed.reverse reverseMembership'
+                reverseForward
+        have aligned :
+            certificate.fullGraph.edges.length =
+              certificate.referenceSwitchingMask.length := by
+          change (linkFullEdges certificate.links).length =
+            certificate.referenceSwitchingMask.length
+          exact certificate.referenceFullSwitchingSelection.mask_length.symm
+        rcases originalWalk.retainEdges aligned allKept with
+          ⟨retained, retainedWalk, retainedIndices, _retainedTargets⟩
+        have retainedNonempty : retained ≠ [] := by
+          intro retainedEmpty
+          subst retained
+          simp at retainedIndices
+          exact originalNonempty retainedIndices
+        have referenceWalk :
+            certificate.referenceSwitchingGraph.EdgeWalk
+              originalBase retained originalBase := by
+          simpa [Certificate.referenceSwitchingGraph] using retainedWalk
+        exact
+          ⟨reverseMembership, allKept,
+            retained, retainedNonempty, referenceWalk⟩,
+       fun normalizedNonempty => by
+        have normalizedReduced :
+            Graph.EdgeWalk.CyclicNoImmediateReverse normalized := by
+          rcases normalizedShape with normalizedEmpty | reduced
+          · exact False.elim (normalizedNonempty normalizedEmpty)
+          · exact reduced
+        have normalizedForwardKept :
+            ∀ directed, directed ∈ normalized →
+              directed.forward = true →
+                certificate.referenceSwitchingMask[directed.index]? =
+                  some true := by
+          intro directed membership forward
+          exact originalForwardKept directed
+            (normalization.membership_subset directed membership) forward
+        have obstruction :=
+          correct.cyclicNoImmediateReverse_uses_backwardRightPar
+            normalizedNonempty normalizedWalk normalizedReduced
+              normalizedForwardKept
+        simpa [NormalizedNonemptyParObstruction] using obstruction⟩
 
 /-- The residual waiting-par obstruction is path-exposed, not merely a pair
 of disconnected scheduler tokens.  A correct proof net supplies an exact

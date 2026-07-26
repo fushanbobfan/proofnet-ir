@@ -170,11 +170,20 @@ classification also proves every forward-oriented occurrence in the
 concatenated obstruction is retained by the all-left reference switching.
 Consequently, an empty normal form forces every original edge index to be
 reference-retained: a backward occurrence inherits retention from its
-forward reverse. This reduces the empty branch to a fully retained nested
-reference-tree walk but does not by itself rule that walk out. The
-remaining argument must exclude that exact nesting and, in the nonempty branch,
-transport the turn classifications into an excluded edge-simple switching
-cycle or forbidden nesting in a correct quiescent state.
+forward reverse. The scheduler theorem now transports the original nonempty
+closed exact-occurrence walk into the deterministic reference switching, and
+the public `DeclarativelyCorrect.referenceSwitchingTree` theorem packages that
+graph's `IsTree` proof. This reduces the empty branch to a fully retained nested
+reference-tree walk but does not by itself rule that walk out: nested
+backtracking remains possible in a tree. The nonempty branch is sharper too:
+exact masking preserves cyclic nonbacktracking, every valid occurrence
+switching is proved a tree, and par-pair sparsity would place the entire
+obstruction in one such switching. Lean therefore extracts a concrete par whose
+two exact premise occurrences survive and uses all-left forward retention to
+prove that its omitted right occurrence is traversed backward. The remaining
+argument must exclude the exact empty nesting and transport turn
+classifications around that concrete nonempty obstruction into an excluded
+edge-simple switching cycle or forbidden nesting in a correct quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age

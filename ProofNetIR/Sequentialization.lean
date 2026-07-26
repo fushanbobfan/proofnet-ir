@@ -2682,6 +2682,184 @@ theorem IsTree.every_edge_index_is_parent {graph : Graph}
   rcases vertexData vertex vertexMembership with ⟨inBounds, nonRoot⟩
   exact ⟨vertex, inBounds, nonRoot, same⟩
 
+/-- Every exact directed occurrence in a finite tree traverses one canonical
+shortest-path parent edge.  Its rooted distance therefore changes strictly,
+and the endpoint farther from the root owns that exact stored edge index. -/
+private theorem IsTree.directedEdge_parentStep {graph : Graph}
+    (tree : graph.IsTree) (directed : graph.DirectedEdge) :
+    (graph.shortestWalkSteps directed.source <
+        graph.shortestWalkSteps directed.target ∧
+      graph.parentEdgeIndex directed.target = directed.index) ∨
+    (graph.shortestWalkSteps directed.target <
+        graph.shortestWalkSteps directed.source ∧
+      graph.parentEdgeIndex directed.source = directed.index) := by
+  have indexInBounds :
+      directed.index < graph.edges.length :=
+    (List.getElem?_eq_some_iff.mp directed.lookup).1
+  rcases tree.every_edge_index_is_parent indexInBounds with
+    ⟨child, childInBounds, childNonRoot, parentIndex⟩
+  have parentLookup :=
+    graph.parentEdgeIndex_lookup tree.2.1 childInBounds childNonRoot
+  rw [parentIndex] at parentLookup
+  have sameEdge : directed.edge = graph.parentEdge child :=
+    Option.some.inj (directed.lookup.symm.trans parentLookup)
+  rcases graph.parentEdge_spec tree.2.1 childInBounds childNonRoot with
+    ⟨predecessor, _parentMembership, direction, decrease⟩
+  rw [← sameEdge] at direction
+  rcases direction with
+    ⟨firstIsPredecessor, secondIsChild⟩ |
+      ⟨firstIsChild, secondIsPredecessor⟩
+  · cases forward : directed.forward
+    · right
+      simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target, forward,
+        firstIsPredecessor, secondIsChild] using
+        And.intro decrease parentIndex
+    · left
+      simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target, forward,
+        firstIsPredecessor, secondIsChild] using
+        And.intro decrease parentIndex
+  · cases forward : directed.forward
+    · left
+      simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target, forward,
+        firstIsChild, secondIsPredecessor] using
+        And.intro decrease parentIndex
+    · right
+      simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target, forward,
+        firstIsChild, secondIsPredecessor] using
+        And.intro decrease parentIndex
+
+/-- A finite tree admits no nonempty closed exact-occurrence traversal that is
+nonbacktracking both internally and across its closing junction.  Choose a
+traversed target of maximal rooted distance.  The incoming and cyclic-successor
+occurrences must both be the unique parent-edge occurrence owned by that
+maximal vertex, so the successor is the incoming occurrence's exact reverse. -/
+theorem IsTree.no_cyclicNoImmediateReverse {graph : Graph}
+    (tree : graph.IsTree) {base : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (nonempty : traversed ≠ [])
+    (walk : graph.EdgeWalk base traversed base)
+    (reduced : Graph.EdgeWalk.CyclicNoImmediateReverse traversed) :
+    False := by
+  classical
+  rcases List.exists_cons_of_ne_nil nonempty with
+    ⟨head, tail, traversalCons⟩
+  rcases exists_maximal_measure head tail
+      (fun directed : graph.DirectedEdge =>
+        graph.shortestWalkSteps directed.target) with
+    ⟨incoming, incomingMembershipCons, maximal⟩
+  have incomingMembership : incoming ∈ traversed := by
+    rw [traversalCons]
+    exact incomingMembershipCons
+  have maximalOnTraversal :
+      ∀ directed, directed ∈ traversed →
+        graph.shortestWalkSteps directed.target ≤
+          graph.shortestWalkSteps incoming.target := by
+    intro directed membership
+    apply maximal directed
+    simpa [traversalCons] using membership
+  have incomingSourceMembership :
+      incoming.source ∈
+        traversed.map Graph.DirectedEdge.target :=
+    walk.source_mem_targets_of_closed nonempty incomingMembership
+  rcases List.mem_map.mp incomingSourceMembership with
+    ⟨sourceWitness, sourceWitnessMembership, sourceTarget⟩
+  have incomingSourceBound :
+      graph.shortestWalkSteps incoming.source ≤
+        graph.shortestWalkSteps incoming.target := by
+    have bound := maximalOnTraversal sourceWitness sourceWitnessMembership
+    simpa [sourceTarget] using bound
+  have incomingParent :
+      graph.parentEdgeIndex incoming.target = incoming.index := by
+    rcases tree.directedEdge_parentStep incoming with
+      ascends | descends
+    · exact ascends.2
+    · have := descends.1
+      omega
+  have incomingLoopless : incoming.source ≠ incoming.target := by
+    have edgeLoopless :=
+      (tree.1 incoming.edge incoming.edge_mem).2.2
+    cases forward : incoming.forward
+    · simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target, forward]
+        using edgeLoopless.symm
+    · simpa [Graph.DirectedEdge.source, Graph.DirectedEdge.target, forward]
+        using edgeLoopless
+  have impossibleAtSuccessor :
+      ∀ outgoing : graph.DirectedEdge,
+        outgoing ∈ traversed →
+        outgoing.source = incoming.target →
+        outgoing ≠ incoming.reverse →
+        False := by
+    intro outgoing outgoingMembership starts notReverse
+    have outgoingTargetBound :=
+      maximalOnTraversal outgoing outgoingMembership
+    have outgoingParent :
+        graph.parentEdgeIndex outgoing.source = outgoing.index := by
+      rcases tree.directedEdge_parentStep outgoing with
+        ascends | descends
+      · rw [starts] at ascends
+        have := ascends.1
+        omega
+      · exact descends.2
+    have sameIndex : outgoing.index = incoming.index := by
+      rw [← outgoingParent, starts, incomingParent]
+    rcases
+        Graph.DirectedEdge.eq_or_eq_reverse_of_index_eq
+          outgoing incoming sameIndex with
+      same | reversed
+    · subst outgoing
+      exact incomingLoopless starts
+    · exact notReverse reversed
+  rcases List.mem_iff_append.mp incomingMembership with
+    ⟨before, after, traversalEquation⟩
+  cases after with
+  | nil =>
+      have headMembership : head ∈ traversed := by
+        rw [traversalCons]
+        simp
+      have chain := walk.toChain
+      have headStarts : head.source = base := by
+        rw [traversalCons] at chain
+        exact chain.head_source
+      have incomingFinishes : incoming.target = base := by
+        simpa [traversalEquation] using walk.getLast_target nonempty
+      have successorStarts : head.source = incoming.target :=
+        headStarts.trans incomingFinishes.symm
+      have headOption : traversed.head? = some head := by
+        simp [traversalCons]
+      have incomingLast : traversed.getLast? = some incoming := by
+        simp [traversalEquation]
+      have notReverse : head ≠ incoming.reverse :=
+        reduced.2 head incoming headOption incomingLast
+      exact impossibleAtSuccessor head headMembership successorStarts notReverse
+  | cons outgoing rest =>
+      have outgoingMembership : outgoing ∈ traversed := by
+        rw [traversalEquation]
+        simp
+      have chain := walk.toChain
+      rw [traversalEquation] at chain
+      rcases chain.split_append with
+        ⟨middle, _initial, suffix⟩
+      cases suffix with
+      | cons actualIncoming incomingStarts remaining =>
+          cases remaining with
+          | cons actualOutgoing outgoingStarts final =>
+              have successorStarts :
+                  outgoing.source = incoming.target := outgoingStarts
+              have fullReduced :
+                  Graph.EdgeWalk.NoImmediateReverse
+                    (before ++ (incoming :: outgoing :: rest)) := by
+                rw [← traversalEquation]
+                exact reduced.1
+              have suffixReduced :
+                  Graph.EdgeWalk.NoImmediateReverse
+                    (incoming :: outgoing :: rest) :=
+                fullReduced.suffix
+              have notReverse : outgoing ≠ incoming.reverse :=
+                suffixReduced.1
+              exact
+                impossibleAtSuccessor outgoing outgoingMembership
+                  successorStarts notReverse
+
 /-- A graph satisfying the declarative tree contract has no edge-aware simple
 multigraph cycle. The proof counts exact stored edge occurrences, maps each
 cycle edge to its unique shortest-path child vertex, and contradicts a
@@ -4270,6 +4448,20 @@ def linkFullEdgeParTargets (links : List Link) : List (Option Vertex) :=
   unfold linkFullEdges
   exact List.flatMap_append
 
+/-- Exact full-edge positions contributed by a par after an arbitrary
+stored-link prefix. -/
+theorem linkFullEdges_parAt
+    (before after : List Link) (left right conclusion : Vertex) :
+    (linkFullEdges
+        (before ++ .par left right conclusion :: after))[
+          (linkFullEdges before).length]? =
+        some { first := left, second := conclusion } ∧
+      (linkFullEdges
+          (before ++ .par left right conclusion :: after))[
+            (linkFullEdges before).length + 1]? =
+          some { first := right, second := conclusion } := by
+  simp [linkFullEdges]
+
 @[simp] theorem linkFullEdgeParTargets_append (first second : List Link) :
     linkFullEdgeParTargets (first ++ second) =
       linkFullEdgeParTargets first ++ linkFullEdgeParTargets second := by
@@ -4536,6 +4728,23 @@ def linkLeftSwitchingMask : List Link → List Bool
   | .par _ _ _ :: links =>
       true :: false :: linkLeftSwitchingMask links
 
+@[simp] theorem linkLeftSwitchingMask_append
+    (first second : List Link) :
+    linkLeftSwitchingMask (first ++ second) =
+      linkLeftSwitchingMask first ++ linkLeftSwitchingMask second := by
+  induction first with
+  | nil => rfl
+  | cons link rest ih =>
+      cases link <;> simp [linkLeftSwitchingMask, ih]
+
+@[simp] theorem linkLeftSwitchingMask_length (links : List Link) :
+    (linkLeftSwitchingMask links).length =
+      (linkFullEdges links).length := by
+  induction links with
+  | nil => rfl
+  | cons link rest ih =>
+      cases link <;> simp [linkLeftSwitchingMask, linkFullEdges, ih]
+
 /-- An exact occurrence-order switching which agrees with the deterministic
 all-left switching except at one specified occurrence of the submitted par
 link, where it selects the right premise.  The relation retains the original
@@ -4731,6 +4940,134 @@ private theorem relativeParPairSparse_iff
             exact ⟨by simpa using head, by
               simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
                 using transformed⟩
+
+/-- Failure of par-pair sparsity exposes one concrete stored par whose two
+consecutive full-edge occurrence indices are both requested. -/
+theorem not_parPairSparse_exists (links : List Link) (offset : Nat)
+    (uses : Nat → Prop)
+    (notSparse : ¬ParPairSparse links offset uses) :
+    ∃ (before : List Link) (left right conclusion : Vertex)
+        (after : List Link),
+      links = before ++ .par left right conclusion :: after ∧
+        uses (offset + (linkFullEdges before).length) ∧
+          uses (offset + (linkFullEdges before).length + 1) := by
+  induction links generalizing offset with
+  | nil =>
+      simp [ParPairSparse] at notSparse
+  | cons link rest ih =>
+      cases link with
+      | «axiom» axiomLeft axiomRight =>
+          have tailNotSparse :
+              ¬ParPairSparse rest (offset + 1) uses := by
+            simpa [ParPairSparse] using notSparse
+          rcases ih (offset + 1) tailNotSparse with
+            ⟨before, left, right, conclusion, after,
+              linksEquation, leftUsed, rightUsed⟩
+          refine
+            ⟨.axiom axiomLeft axiomRight :: before,
+              left, right, conclusion, after, ?_, ?_, ?_⟩
+          · simp [linksEquation]
+          · simpa [linkFullEdges, Nat.add_assoc, Nat.add_comm,
+              Nat.add_left_comm] using leftUsed
+          · simpa [linkFullEdges, Nat.add_assoc, Nat.add_comm,
+              Nat.add_left_comm] using rightUsed
+      | tensor tensorLeft tensorRight tensorConclusion =>
+          have tailNotSparse :
+              ¬ParPairSparse rest (offset + 2) uses := by
+            simpa [ParPairSparse] using notSparse
+          rcases ih (offset + 2) tailNotSparse with
+            ⟨before, left, right, conclusion, after,
+              linksEquation, leftUsed, rightUsed⟩
+          refine
+            ⟨.tensor tensorLeft tensorRight tensorConclusion :: before,
+              left, right, conclusion, after, ?_, ?_, ?_⟩
+          · simp [linksEquation]
+          · have lengthEquation :
+                (linkFullEdges
+                  (.tensor tensorLeft tensorRight tensorConclusion ::
+                    before)).length =
+                  2 + (linkFullEdges before).length := by
+              simp [linkFullEdges]
+              omega
+            have indexEquation :
+                offset +
+                    (linkFullEdges
+                      (.tensor tensorLeft tensorRight tensorConclusion ::
+                        before)).length =
+                  offset + 2 + (linkFullEdges before).length := by
+              rw [lengthEquation]
+              omega
+            rw [indexEquation]
+            exact leftUsed
+          · have lengthEquation :
+                (linkFullEdges
+                  (.tensor tensorLeft tensorRight tensorConclusion ::
+                    before)).length =
+                  2 + (linkFullEdges before).length := by
+              simp [linkFullEdges]
+              omega
+            have indexEquation :
+                offset +
+                    (linkFullEdges
+                      (.tensor tensorLeft tensorRight tensorConclusion ::
+                        before)).length =
+                  offset + 2 + (linkFullEdges before).length := by
+              rw [lengthEquation]
+              omega
+            rw [indexEquation]
+            exact rightUsed
+      | par parLeft parRight parConclusion =>
+          change
+            ¬(¬(uses offset ∧ uses (offset + 1)) ∧
+              ParPairSparse rest (offset + 2) uses) at notSparse
+          by_cases headUses : uses offset ∧ uses (offset + 1)
+          · exact
+              ⟨[], parLeft, parRight, parConclusion, rest,
+                by simp, by simpa [linkFullEdges] using headUses.1,
+                by simpa [linkFullEdges] using headUses.2⟩
+          · have tailNotSparse :
+                ¬ParPairSparse rest (offset + 2) uses := by
+              intro tailSparse
+              exact notSparse ⟨headUses, tailSparse⟩
+            rcases ih (offset + 2) tailNotSparse with
+              ⟨before, left, right, conclusion, after,
+                linksEquation, leftUsed, rightUsed⟩
+            refine
+              ⟨.par parLeft parRight parConclusion :: before,
+                left, right, conclusion, after, ?_, ?_, ?_⟩
+            · simp [linksEquation]
+            · have lengthEquation :
+                  (linkFullEdges
+                    (.par parLeft parRight parConclusion :: before)).length =
+                    2 + (linkFullEdges before).length := by
+                simp [linkFullEdges]
+                omega
+              have indexEquation :
+                  offset +
+                      (linkFullEdges
+                        (.par parLeft parRight parConclusion ::
+                          before)).length =
+                    offset + 2 + (linkFullEdges before).length := by
+                rw [lengthEquation]
+                omega
+              rw [indexEquation]
+              exact leftUsed
+            · have lengthEquation :
+                  (linkFullEdges
+                    (.par parLeft parRight parConclusion :: before)).length =
+                    2 + (linkFullEdges before).length := by
+                simp [linkFullEdges]
+                omega
+              have indexEquation :
+                  offset +
+                      (linkFullEdges
+                        (.par parLeft parRight parConclusion ::
+                          before)).length =
+                    offset + 2 + (linkFullEdges before).length := by
+                rw [lengthEquation]
+                omega
+              rw [indexEquation]
+              exact rightUsed
 
 namespace FullSwitchingSelection
 
@@ -11837,6 +12174,24 @@ premise of every par link. -/
 def referenceSwitchingMask (certificate : Certificate) : List Bool :=
   linkLeftSwitchingMask certificate.links
 
+/-- Exact mask positions contributed by a concrete par occurrence after an
+arbitrary stored-link prefix: the deterministic reference switching retains
+the left premise and omits the right premise. -/
+theorem referenceSwitchingMask_parAt
+    (certificate : Certificate)
+    (before after : List Link)
+    (left right conclusion : Vertex)
+    (linksEquation :
+      certificate.links =
+        before ++ .par left right conclusion :: after) :
+    certificate.referenceSwitchingMask[
+        (linkFullEdges before).length]? = some true ∧
+      certificate.referenceSwitchingMask[
+        (linkFullEdges before).length + 1]? = some false := by
+  rw [referenceSwitchingMask, linksEquation,
+    linkLeftSwitchingMask_append]
+  simp [linkLeftSwitchingMask, linkLeftSwitchingMask_length]
+
 /-- Deterministic occurrence-order reference switching graph. -/
 def referenceSwitchingGraph (certificate : Certificate) : Graph :=
   certificate.fullGraph.retainEdges certificate.referenceSwitchingMask
@@ -11925,6 +12280,39 @@ theorem declarativelyCorrect_iff_structural_cuspAcyclic_allConnected
       (right := certificate.graphForSelection selected)
       rfl edgePermutation
 
+/-- Every exact occurrence-order switching of a declaratively correct
+certificate is a tree.  This exposes the arbitrary-switching form directly,
+without first converting the retained edge list to the value-level switching
+graph. -/
+theorem DeclarativelyCorrect.occurrenceSwitchingTree
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    {selected retained : List Edge} {mask : List Bool}
+    (selection :
+      FullSwitchingSelection certificate.links selected retained mask) :
+    (certificate.fullGraph.retainEdges mask).IsTree := by
+  rcases
+      certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected.mp
+        correct with
+    ⟨structural, cuspAcyclic, allConnected⟩
+  have aligned :
+      certificate.fullGraph.edges.length = mask.length := by
+    change (linkFullEdges certificate.links).length = mask.length
+    exact selection.mask_length.symm
+  have bounded :
+      (certificate.fullGraph.retainEdges mask).Bounded :=
+    structural.fullGraph_bounded.retainEdges aligned
+  have connected :
+      (certificate.fullGraph.retainEdges mask).Connected :=
+    allConnected selected retained mask selection
+  have acyclic :
+      (certificate.fullGraph.retainEdges mask).Acyclic :=
+    cuspAcyclic.occurrenceSwitching_acyclic structural selection
+  exact
+    (certificate.fullGraph.retainEdges mask
+      |>.isTree_iff_bounded_connected_acyclic).mpr
+        ⟨bounded, connected, acyclic⟩
+
 /-- Executable checker acceptance has the same exact three-part
 decomposition. The only remaining all-switchings quantifier is connectedness;
 acyclicity has been replaced by the single colored full-graph criterion. -/
@@ -11957,6 +12345,271 @@ theorem DeclarativelyCorrect.referenceSwitchingConnected
     certificate.ReferenceSwitchingConnected :=
   (certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected.mp
     correct).2.2.reference
+
+/-- Every declaratively correct certificate has a tree as its deterministic
+all-left reference switching.  This packages the boundedness, occurrence-aware
+acyclicity, and connectedness consequences used by downstream geometric
+arguments. -/
+theorem DeclarativelyCorrect.referenceSwitchingTree
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect) :
+    certificate.referenceSwitchingGraph.IsTree := by
+  rcases
+      certificate.declarativelyCorrect_iff_structural_cuspAcyclic_allConnected.mp
+        correct with
+    ⟨structural, cuspAcyclic, allConnected⟩
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change (linkFullEdges certificate.links).length =
+      certificate.referenceSwitchingMask.length
+    exact certificate.referenceFullSwitchingSelection.mask_length.symm
+  have bounded : certificate.referenceSwitchingGraph.Bounded := by
+    simpa [referenceSwitchingGraph] using
+      structural.fullGraph_bounded.retainEdges aligned
+  have connected : certificate.referenceSwitchingGraph.Connected :=
+    allConnected.reference
+  have acyclic : certificate.referenceSwitchingGraph.Acyclic := by
+    simpa [referenceSwitchingGraph] using
+      cuspAcyclic.occurrenceSwitching_acyclic structural
+        certificate.referenceFullSwitchingSelection
+  exact
+    certificate.referenceSwitchingGraph.isTree_iff_bounded_connected_acyclic.mpr
+      ⟨bounded, connected, acyclic⟩
+
+/-- A correct certificate admits no nonempty closed cyclically nonbacktracking
+full-graph walk whose exact occurrences are all retained by one valid
+occurrence switching. -/
+theorem DeclarativelyCorrect.no_occurrenceSwitchingKept_cyclicNoImmediateReverse
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    {selected retainedEdges : List Edge} {mask : List Bool}
+    (selection :
+      FullSwitchingSelection
+        certificate.links selected retainedEdges mask)
+    {base : Vertex}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (nonempty : traversed ≠ [])
+    (walk : certificate.fullGraph.EdgeWalk base traversed base)
+    (allKept : ∀ directed ∈ traversed,
+      mask[directed.index]? = some true)
+    (reduced : Graph.EdgeWalk.CyclicNoImmediateReverse traversed) :
+    False := by
+  have aligned :
+      certificate.fullGraph.edges.length = mask.length := by
+    change (linkFullEdges certificate.links).length = mask.length
+    exact selection.mask_length.symm
+  rcases walk.retainEdgesCyclicNoImmediateReverse
+      aligned nonempty allKept reduced with
+    ⟨retained, retainedNonempty, retainedWalk, retainedReduced⟩
+  exact
+    (correct.occurrenceSwitchingTree selection).no_cyclicNoImmediateReverse
+      retainedNonempty retainedWalk retainedReduced
+
+/-- Par-pair sparsity is the exact combinatorial condition needed to place a
+nonempty cyclically nonbacktracking full-graph walk inside one occurrence
+switching.  Correctness then excludes the walk by switching-tree acyclicity. -/
+theorem DeclarativelyCorrect.no_parPairSparse_cyclicNoImmediateReverse
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    {base : Vertex}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (nonempty : traversed ≠ [])
+    (walk : certificate.fullGraph.EdgeWalk base traversed base)
+    (sparse :
+      ParPairSparse certificate.links 0
+        (fun index =>
+          ∃ directed ∈ traversed, directed.index = index))
+    (reduced : Graph.EdgeWalk.CyclicNoImmediateReverse traversed) :
+    False := by
+  rcases fullSwitchingSelection_covering_exists sparse with
+    ⟨selected, retainedEdges, mask, selection, keeps⟩
+  have allKept :
+      ∀ directed ∈ traversed,
+        mask[directed.index]? = some true := by
+    intro directed membership
+    apply keeps directed.index
+    · simpa [Certificate.fullGraph] using
+        (List.getElem?_eq_some_iff.mp directed.lookup).1
+    · simpa using
+        (show ∃ candidate ∈ traversed,
+            candidate.index = directed.index from
+          ⟨directed, membership, rfl⟩)
+  exact
+    correct.no_occurrenceSwitchingKept_cyclicNoImmediateReverse
+      selection nonempty walk allKept reduced
+
+/-- Consequently, every nonempty cyclically nonbacktracking closed walk in the
+full graph of a correct certificate uses both exact premise-edge occurrences
+of at least one concrete par link.  This is the precise obstruction that the
+remaining scheduler-specific turn analysis must eliminate. -/
+theorem DeclarativelyCorrect.cyclicNoImmediateReverse_uses_bothParOccurrences
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    {base : Vertex}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (nonempty : traversed ≠ [])
+    (walk : certificate.fullGraph.EdgeWalk base traversed base)
+    (reduced : Graph.EdgeWalk.CyclicNoImmediateReverse traversed) :
+    ∃ (before : List Link) (left right conclusion : Vertex)
+        (after : List Link)
+        (leftOccurrence rightOccurrence :
+          certificate.fullGraph.DirectedEdge),
+      certificate.links =
+          before ++ .par left right conclusion :: after ∧
+        leftOccurrence ∈ traversed ∧
+          leftOccurrence.index = (linkFullEdges before).length ∧
+            leftOccurrence.edge =
+                { first := left, second := conclusion } ∧
+              certificate.referenceSwitchingMask[
+                  leftOccurrence.index]? = some true ∧
+                rightOccurrence ∈ traversed ∧
+                  rightOccurrence.index =
+                    (linkFullEdges before).length + 1 ∧
+                    rightOccurrence.edge =
+                        { first := right, second := conclusion } ∧
+                      certificate.referenceSwitchingMask[
+                          rightOccurrence.index]? = some false := by
+  let uses : Nat → Prop :=
+    fun index =>
+      ∃ directed ∈ traversed, directed.index = index
+  have notSparse :
+      ¬ParPairSparse certificate.links 0 uses := by
+    intro sparse
+    exact correct.no_parPairSparse_cyclicNoImmediateReverse
+      nonempty walk sparse reduced
+  rcases not_parPairSparse_exists certificate.links 0 uses notSparse with
+    ⟨before, left, right, conclusion, after,
+      linksEquation, leftUsed, rightUsed⟩
+  rcases leftUsed with
+    ⟨leftOccurrence, leftMembership, leftIndex⟩
+  rcases rightUsed with
+    ⟨rightOccurrence, rightMembership, rightIndex⟩
+  have fullLookups :=
+    linkFullEdges_parAt before after left right conclusion
+  have leftExpected :
+      certificate.fullGraph.edges[(linkFullEdges before).length]? =
+        some { first := left, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[(linkFullEdges before).length]? =
+        some { first := left, second := conclusion }
+    rw [linksEquation]
+    exact fullLookups.1
+  have rightExpected :
+      certificate.fullGraph.edges[(linkFullEdges before).length + 1]? =
+        some { first := right, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[
+        (linkFullEdges before).length + 1]? =
+          some { first := right, second := conclusion }
+    rw [linksEquation]
+    exact fullLookups.2
+  have leftLookup :
+      certificate.fullGraph.edges[(linkFullEdges before).length]? =
+        some leftOccurrence.edge := by
+    simpa [leftIndex] using leftOccurrence.lookup
+  have rightLookup :
+      certificate.fullGraph.edges[(linkFullEdges before).length + 1]? =
+        some rightOccurrence.edge := by
+    simpa [rightIndex] using rightOccurrence.lookup
+  have leftEdge :
+      leftOccurrence.edge =
+        { first := left, second := conclusion } := by
+    exact Option.some.inj (leftLookup.symm.trans leftExpected)
+  have rightEdge :
+      rightOccurrence.edge =
+        { first := right, second := conclusion } := by
+    exact Option.some.inj (rightLookup.symm.trans rightExpected)
+  have maskPositions :=
+    certificate.referenceSwitchingMask_parAt
+      before after left right conclusion linksEquation
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, by simpa [uses] using leftIndex,
+      leftEdge, by simpa [leftIndex] using maskPositions.1,
+      rightMembership, by simpa [uses] using rightIndex,
+      rightEdge, by simpa [rightIndex] using maskPositions.2⟩
+
+/-- If every forward occurrence of such a closed obstruction is retained by
+the all-left reference mask, the unavoidable omitted right-par occurrence can
+only be traversed backward. -/
+theorem DeclarativelyCorrect.cyclicNoImmediateReverse_uses_backwardRightPar
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    {base : Vertex}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (nonempty : traversed ≠ [])
+    (walk : certificate.fullGraph.EdgeWalk base traversed base)
+    (reduced : Graph.EdgeWalk.CyclicNoImmediateReverse traversed)
+    (forwardKept :
+      ∀ directed ∈ traversed,
+        directed.forward = true →
+          certificate.referenceSwitchingMask[directed.index]? =
+            some true) :
+    ∃ (before : List Link) (left right conclusion : Vertex)
+        (after : List Link)
+        (leftOccurrence rightOccurrence :
+          certificate.fullGraph.DirectedEdge),
+      certificate.links =
+          before ++ .par left right conclusion :: after ∧
+        leftOccurrence ∈ traversed ∧
+          leftOccurrence.index = (linkFullEdges before).length ∧
+            rightOccurrence ∈ traversed ∧
+              rightOccurrence.index =
+                  (linkFullEdges before).length + 1 ∧
+                rightOccurrence.forward = false := by
+  rcases correct.cyclicNoImmediateReverse_uses_bothParOccurrences
+      nonempty walk reduced with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, leftIndex, _leftEdge, _leftKept,
+      rightMembership, rightIndex, _rightEdge, rightOmitted⟩
+  have rightBackward : rightOccurrence.forward = false := by
+    cases orientation : rightOccurrence.forward with
+    | false => rfl
+    | true =>
+        have rightKept :=
+          forwardKept rightOccurrence rightMembership orientation
+        rw [rightOmitted] at rightKept
+        contradiction
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, leftIndex, rightMembership, rightIndex,
+      rightBackward⟩
+
+/-- A correct certificate admits no nonempty closed cyclically nonbacktracking
+full-graph walk whose exact edge occurrences are all retained by the
+deterministic all-left reference switching.  The proof preserves occurrence
+indices and orientations through the switching mask, then contradicts the
+reference switching's tree property. -/
+theorem DeclarativelyCorrect.no_referenceKept_cyclicNoImmediateReverse
+    {certificate : Certificate}
+    (correct : certificate.DeclarativelyCorrect)
+    {base : Vertex}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (nonempty : traversed ≠ [])
+    (walk : certificate.fullGraph.EdgeWalk base traversed base)
+    (allKept : ∀ directed ∈ traversed,
+      certificate.referenceSwitchingMask[directed.index]? = some true)
+    (reduced : Graph.EdgeWalk.CyclicNoImmediateReverse traversed) :
+    False := by
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change (linkFullEdges certificate.links).length =
+      certificate.referenceSwitchingMask.length
+    exact certificate.referenceFullSwitchingSelection.mask_length.symm
+  rcases walk.retainEdgesCyclicNoImmediateReverse
+      aligned nonempty allKept reduced with
+    ⟨retained, retainedNonempty, retainedWalk, retainedReduced⟩
+  have referenceWalk :
+      certificate.referenceSwitchingGraph.EdgeWalk base retained base := by
+    simpa [referenceSwitchingGraph] using retainedWalk
+  exact
+    correct.referenceSwitchingTree.no_cyclicNoImmediateReverse
+      retainedNonempty referenceWalk retainedReduced
 
 /-- In every correct certificate, the two premises of any submitted par are
 joined in the deterministic all-left reference switching by a simple exact

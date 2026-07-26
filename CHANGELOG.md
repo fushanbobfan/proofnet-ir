@@ -196,11 +196,22 @@
   additionally proves that every forward occurrence of the original
   dependency walk is reference-kept, and hence that every original edge index
   is reference-kept when the cyclic normal form is empty. This narrows the
-  empty branch to a fully retained nested reference-tree walk but does not
-  exclude it. Correctness still must exclude
-  that exact nesting, and in the nonempty branch transport the local turn
-  evidence while extracting or excluding a suitably classified edge-simple
-  switching cycle or forbidden nesting. Thus
+  empty branch to a fully retained nested reference-tree walk. The normalized
+  scheduler theorem now constructs the corresponding nonempty closed
+  `referenceSwitchingGraph.EdgeWalk`, and the public
+  `DeclarativelyCorrect.referenceSwitchingTree` theorem packages the exact
+  reference graph's tree proof. Closed tree walks can still consist entirely of
+  nested backtracking, so these facts do not exclude the branch. Exact
+  index/orientation transport now also preserves cyclic nonbacktracking through
+  arbitrary occurrence masks, and every valid occurrence switching of a
+  correct certificate is exposed directly as a tree. A par-pair-sparse
+  nonempty normal form is therefore impossible. The remaining nonempty branch
+  now produces one concrete par whose left and right exact occurrences both
+  survive; because every forward occurrence is all-left retained, the omitted
+  right occurrence is proved backward. Correctness still must exclude the
+  exact empty nesting and transport local turn evidence around that concrete
+  nonempty obstruction into a suitably classified edge-simple switching cycle
+  or forbidden nesting. Thus
   scheduler fuel sufficiency and finite repetition must not be conflated
   with pure-worklist completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent

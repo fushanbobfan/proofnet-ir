@@ -541,6 +541,14 @@
       is retained by the all-left reference switching; combine this with the
       empty trace to show that every original edge index in the empty branch
       is reference-retained.
+    - [x] Package the all-left reference graph's `IsTree` consequence and
+      transport the empty branch's original nonempty closed exact-occurrence
+      walk into that graph. Keep explicit that nested backtracking makes such a
+      closed tree walk possible.
+    - [x] Prove exact cyclic-nonbacktracking transport through arbitrary
+      occurrence masks, expose arbitrary switching trees, rule out a
+      par-pair-sparse nonempty normal form, and retain a concrete surviving par
+      pair whose omitted right occurrence is forced backward.
     - [ ] Exclude the empty exact nesting; in the nonempty branch transport
       the local turn classification through normalization, extract an exact
       edge-simple switching cycle or forbidden nesting, and exclude the
