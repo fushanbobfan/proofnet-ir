@@ -165,9 +165,12 @@ part of the engineering and proof-identity gap.
    incomplete case, leaving an exact submitted distinct-thread waiting par or
    same-thread tensor deadlock. A kernel-checked active-reference connectivity
    invariant plus declarative switching acyclicity now excludes the tensor
-   branch on correct inputs. The sole remaining obstruction is a submitted
-   distinct-thread waiting par; pure worklist completeness and a full cost
-   theorem are still open.
+   branch on correct inputs. A converse retained-edge invariant and causal
+   marking closure now prove that active-reference connectivity is exactly
+   union-find thread equality on reachable markings. The sole remaining
+   obstruction is therefore a submitted waiting par whose marked premises
+   provably occupy distinct active components; pure worklist completeness and
+   a full cost theorem are still open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

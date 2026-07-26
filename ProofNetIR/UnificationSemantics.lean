@@ -205,6 +205,67 @@ def ThreadConnected
         state.sameThread firstToken secondToken →
           state.activeReferenceGraph.Walk first second
 
+/-- The retained reference edges contributed by one link do not cross
+semantic token classes.  For a par, the deterministic reference switching
+retains its left edge; axioms and tensors retain all of their fixed edges. -/
+def ReferenceLinkThreaded
+    (state : UnificationMarking certificate) : Link → Prop
+  | .axiom left right =>
+      ∀ {leftToken rightToken},
+        state.mark left = some leftToken →
+          state.mark right = some rightToken →
+            state.sameThread leftToken rightToken
+  | .par left _right conclusion =>
+      ∀ {leftToken conclusionToken},
+        state.mark left = some leftToken →
+          state.mark conclusion = some conclusionToken →
+            state.sameThread leftToken conclusionToken
+  | .tensor left right conclusion =>
+      (∀ {leftToken conclusionToken},
+          state.mark left = some leftToken →
+            state.mark conclusion = some conclusionToken →
+              state.sameThread leftToken conclusionToken) ∧
+        ∀ {rightToken conclusionToken},
+          state.mark right = some rightToken →
+            state.mark conclusion = some conclusionToken →
+              state.sameThread rightToken conclusionToken
+
+/-- Every submitted link respects the semantic token partition along the
+edges retained by the deterministic all-left reference switching. -/
+def ReferenceLinksThreaded
+    (state : UnificationMarking certificate) : Prop :=
+  ∀ link, link ∈ certificate.links →
+    state.ReferenceLinkThreaded link
+
+/-- A marked connective conclusion can only arise after both of that
+connective's premises have been marked.  This causal closure prevents a later
+step from activating an already-fired consumer edge behind the operational
+frontier. -/
+def MarkingCausallyClosed
+    (state : UnificationMarking certificate) : Prop :=
+  ∀ link, link ∈ certificate.links →
+    match link with
+    | .axiom _ _ => True
+    | .par left right conclusion
+    | .tensor left right conclusion =>
+        (state.mark conclusion).isSome = true →
+          (state.mark left).isSome = true ∧
+            (state.mark right).isSome = true
+
+/-- The operational coherence bundle needed to preserve exact active
+thread/component correspondence through independent unification steps. -/
+def CausallyThreaded
+    (state : UnificationMarking certificate) : Prop :=
+  state.MarkingCausallyClosed ∧ state.ReferenceLinksThreaded
+
+/-- Exact correspondence between semantic token classes and connected
+components of the active all-left reference graph.  The two directions are
+kept separately reusable because operational proofs establish them by
+different invariants. -/
+def ThreadComponentsExact
+    (state : UnificationMarking certificate) : Prop :=
+  state.ThreadConnected ∧ state.ReferenceLinksThreaded
+
 /-- Active switching edges are literal retained edges of the complete
 all-left reference switching. -/
 theorem activeReferenceEdges_subset
@@ -236,6 +297,173 @@ theorem activeReferenceEdges_subset_referenceSwitchingGraph
   intro edge membership
   rw [referenceSwitchingGraph_edges_eq_leftRetained]
   exact state.activeReferenceEdges_subset edge membership
+
+/-- Link-local threading controls every retained edge value, before the
+endpoint-mark filter defining the active graph is applied. -/
+private theorem retainedEdge_threaded
+    {links : List Link}
+    (state : UnificationMarking certificate)
+    (threaded :
+      ∀ link, link ∈ links → state.ReferenceLinkThreaded link)
+    {edge : Edge} {firstToken secondToken : Nat}
+    (retained :
+      edge ∈ Certificate.linkLeftRetainedEdges links)
+    (firstMarked : state.mark edge.first = some firstToken)
+    (secondMarked : state.mark edge.second = some secondToken) :
+    state.sameThread firstToken secondToken := by
+  induction links with
+  | nil =>
+      simp [Certificate.linkLeftRetainedEdges] at retained
+  | cons head tail induction =>
+      have tailThreaded :
+          ∀ link, link ∈ tail →
+            state.ReferenceLinkThreaded link := by
+        intro link membership
+        exact threaded link (by simp [membership])
+      cases head with
+      | «axiom» left right =>
+          simp only [Certificate.linkLeftRetainedEdges,
+            List.mem_cons] at retained
+          rcases retained with edgeEquation | tailMembership
+          · subst edge
+            exact
+              threaded (.axiom left right) (by simp)
+                firstMarked secondMarked
+          · exact induction tailThreaded tailMembership
+      | «par» left right conclusion =>
+          simp only [Certificate.linkLeftRetainedEdges,
+            List.mem_cons] at retained
+          rcases retained with edgeEquation | tailMembership
+          · subst edge
+            exact
+              threaded (.par left right conclusion) (by simp)
+                firstMarked secondMarked
+          · exact induction tailThreaded tailMembership
+      | tensor left right conclusion =>
+          simp only [Certificate.linkLeftRetainedEdges,
+            List.mem_cons] at retained
+          rcases retained with leftEquation | retained
+          · subst edge
+            exact
+              (threaded (.tensor left right conclusion)
+                (by simp)).1 firstMarked secondMarked
+          · rcases retained with rightEquation | tailMembership
+            · subst edge
+              exact
+                (threaded (.tensor left right conclusion)
+                  (by simp)).2 firstMarked secondMarked
+            · exact induction tailThreaded tailMembership
+
+/-- Every active reference edge has marked endpoints in one semantic token
+class. -/
+theorem ReferenceLinksThreaded.activeEdge_threaded
+    (state : UnificationMarking certificate)
+    (threaded : state.ReferenceLinksThreaded)
+    {edge : Edge} {firstToken secondToken : Nat}
+    (active : edge ∈ state.activeReferenceEdges)
+    (firstMarked : state.mark edge.first = some firstToken)
+    (secondMarked : state.mark edge.second = some secondToken) :
+    state.sameThread firstToken secondToken := by
+  exact retainedEdge_threaded state threaded
+    (List.mem_filter.mp active).1 firstMarked secondMarked
+
+/-- A true `isSome` observation exposes the marked token. -/
+private theorem token_exists_of_isSome
+    {value : Option Nat} (present : value.isSome = true) :
+    ∃ token, value = some token := by
+  cases value with
+  | none =>
+      simp at present
+  | some token =>
+      exact ⟨token, rfl⟩
+
+/-- If every active retained edge stays inside one semantic class, then every
+active graph walk also stays inside one semantic class. -/
+theorem ReferenceLinksThreaded.walk_sameThread
+    (state : UnificationMarking certificate)
+    (threaded : state.ReferenceLinksThreaded)
+    {first second firstToken secondToken : Nat}
+    (walk : state.activeReferenceGraph.Walk first second)
+    (firstMarked : state.mark first = some firstToken)
+    (secondMarked : state.mark second = some secondToken) :
+    state.sameThread firstToken secondToken := by
+  rcases state.sameThreadEquivalence with
+    ⟨reflexive, symmetric, transitive⟩
+  induction walk generalizing firstToken secondToken with
+  | refl =>
+      have tokenEquation : firstToken = secondToken := by
+        exact Option.some.inj (firstMarked.symm.trans secondMarked)
+      subst secondToken
+      exact reflexive firstToken
+  | @step middle finish prior adjacency induction =>
+      rcases adjacency with
+        ⟨edge, edgeActive, forward | backward⟩
+      · rcases forward with ⟨edgeFirst, edgeSecond⟩
+        have endpoints := (List.mem_filter.mp edgeActive).2
+        simp only [Bool.and_eq_true] at endpoints
+        rcases token_exists_of_isSome endpoints.1 with
+          ⟨edgeFirstToken, edgeFirstMarked⟩
+        rcases token_exists_of_isSome endpoints.2 with
+          ⟨edgeSecondToken, edgeSecondMarked⟩
+        have middleMarked :
+            state.mark middle = some edgeFirstToken := by
+          simpa [edgeFirst] using edgeFirstMarked
+        have finishMarked :
+            state.mark finish = some edgeSecondToken := by
+          simpa [edgeSecond] using edgeSecondMarked
+        have prefixThread :
+            state.sameThread firstToken edgeFirstToken :=
+          induction firstMarked middleMarked
+        have finalTokenEquation :
+            edgeSecondToken = secondToken := by
+          exact Option.some.inj (finishMarked.symm.trans secondMarked)
+        subst edgeSecondToken
+        exact transitive
+          prefixThread
+          (threaded.activeEdge_threaded state edgeActive
+            edgeFirstMarked edgeSecondMarked)
+      · rcases backward with ⟨edgeFirst, edgeSecond⟩
+        have endpoints := (List.mem_filter.mp edgeActive).2
+        simp only [Bool.and_eq_true] at endpoints
+        rcases token_exists_of_isSome endpoints.1 with
+          ⟨edgeFirstToken, edgeFirstMarked⟩
+        rcases token_exists_of_isSome endpoints.2 with
+          ⟨edgeSecondToken, edgeSecondMarked⟩
+        have middleMarked :
+            state.mark middle = some edgeSecondToken := by
+          simpa [edgeSecond] using edgeSecondMarked
+        have finishMarked :
+            state.mark finish = some edgeFirstToken := by
+          simpa [edgeFirst] using edgeFirstMarked
+        have prefixThread :
+            state.sameThread firstToken edgeSecondToken :=
+          induction firstMarked middleMarked
+        have finalTokenEquation :
+            edgeFirstToken = secondToken := by
+          exact Option.some.inj (finishMarked.symm.trans secondMarked)
+        subst edgeFirstToken
+        exact transitive
+          prefixThread
+          (symmetric
+            (threaded.activeEdge_threaded state edgeActive
+              edgeFirstMarked edgeSecondMarked))
+
+/-- Under exact thread/component correspondence, active graph connectivity is
+equivalent to union-find thread equality for marked occurrences. -/
+theorem ThreadComponentsExact.walk_iff_sameThread
+    (state : UnificationMarking certificate)
+    (exact : state.ThreadComponentsExact)
+    {first second firstToken secondToken : Nat}
+    (firstMarked : state.mark first = some firstToken)
+    (secondMarked : state.mark second = some secondToken) :
+    state.activeReferenceGraph.Walk first second ↔
+      state.sameThread firstToken secondToken := by
+  constructor
+  · intro walk
+    exact exact.2.walk_sameThread state walk
+      firstMarked secondMarked
+  · intro synchronized
+    exact exact.1 firstMarked secondMarked synchronized
 
 /-- Extending the marked occurrence domain can only add active reference
 edges. -/
@@ -318,6 +546,156 @@ theorem ThreadConnected.mono
     (activeReferenceEdges_mono extension)
 
 end UnificationMarking
+
+/-- A one-element Boolean filter cannot contain two different accepted
+values. -/
+private theorem mem_filter_length_one_unique
+    {α : Type} {values : List α} {predicate : α → Bool}
+    {first second : α}
+    (count : (values.filter predicate).length = 1)
+    (firstMembership : first ∈ values)
+    (firstAccepted : predicate first = true)
+    (secondMembership : second ∈ values)
+    (secondAccepted : predicate second = true) :
+    first = second := by
+  have firstFiltered : first ∈ values.filter predicate := by
+    simp [firstMembership, firstAccepted]
+  have secondFiltered : second ∈ values.filter predicate := by
+    simp [secondMembership, secondAccepted]
+  rcases List.length_eq_one_iff.mp count with
+    ⟨only, filterEquation⟩
+  rw [filterEquation] at firstFiltered secondFiltered
+  simp at firstFiltered secondFiltered
+  exact firstFiltered.trans secondFiltered.symm
+
+/-- In a structurally well-formed certificate, two axiom links sharing one
+stored endpoint are the same submitted link. -/
+private theorem axiom_eq_of_shared_endpoint
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {firstLeft firstRight secondLeft secondRight vertex : Vertex}
+    (firstMembership :
+      Link.axiom firstLeft firstRight ∈ certificate.links)
+    (firstEndpoint : vertex = firstLeft ∨ vertex = firstRight)
+    (secondMembership :
+      Link.axiom secondLeft secondRight ∈ certificate.links)
+    (secondEndpoint : vertex = secondLeft ∨ vertex = secondRight) :
+    Link.axiom firstLeft firstRight =
+      Link.axiom secondLeft secondRight := by
+  have firstWellFormed :=
+    structural.2.2.2.2.1 _ firstMembership
+  rcases firstWellFormed.axiom_endpointFormula firstEndpoint with
+    ⟨name, positive, formulaLookup⟩
+  have vertexBound : vertex < certificate.formulas.size := by
+    rcases firstEndpoint with rfl | rfl
+    · exact firstWellFormed.2.1
+    · exact firstWellFormed.2.2.1
+  have node := structural.2.2.2.2.2 vertex vertexBound
+  have sourceCount : certificate.axiomCount vertex = 1 := by
+    simpa [Certificate.NodeWellFormed, formulaLookup] using node.1
+  unfold Certificate.axiomCount at sourceCount
+  apply mem_filter_length_one_unique sourceCount
+  · exact firstMembership
+  · rcases firstEndpoint with rfl | rfl <;>
+      simp [Link.containsAxiomEndpoint]
+  · exact secondMembership
+  · rcases secondEndpoint with rfl | rfl <;>
+      simp [Link.containsAxiomEndpoint]
+
+/-- In a structurally well-formed certificate, two connective links producing
+the same occurrence are the same submitted link. -/
+private theorem connective_eq_of_shared_conclusion
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {first second : Link} {conclusion : Vertex}
+    (firstMembership : first ∈ certificate.links)
+    (firstProduces : first.produces conclusion = true)
+    (secondMembership : second ∈ certificate.links)
+    (secondProduces : second.produces conclusion = true) :
+    first = second := by
+  have firstWellFormed :=
+    structural.2.2.2.2.1 _ firstMembership
+  have formulaShape :
+      ∃ formula,
+        certificate.formula? conclusion = some formula ∧
+          conclusion < certificate.formulas.size ∧
+          formula.isAtom = false := by
+    cases first with
+    | «axiom» left right =>
+        simp [Link.produces] at firstProduces
+    | tensor left right produced =>
+        simp [Link.produces] at firstProduces
+        subst produced
+        rcases firstWellFormed.tensor_conclusionFormula with
+          ⟨leftFormula, rightFormula, formulaLookup⟩
+        exact
+          ⟨.tensor leftFormula rightFormula, formulaLookup,
+            firstWellFormed.2.2.2.2.2.1, rfl⟩
+    | «par» left right produced =>
+        simp [Link.produces] at firstProduces
+        subst produced
+        rcases firstWellFormed.par_conclusionFormula with
+          ⟨leftFormula, rightFormula, formulaLookup⟩
+        exact
+          ⟨.par leftFormula rightFormula, formulaLookup,
+            firstWellFormed.2.2.2.2.2.1, rfl⟩
+  rcases formulaShape with
+    ⟨formula, formulaLookup, conclusionBound, compound⟩
+  have node :=
+    structural.2.2.2.2.2 conclusion conclusionBound
+  have producerCount : certificate.producerCount conclusion = 1 := by
+    cases formula <;>
+      simp [Certificate.NodeWellFormed, formulaLookup] at compound node
+    · contradiction
+    · exact node.1
+    · exact node.1
+  unfold Certificate.producerCount at producerCount
+  exact mem_filter_length_one_unique producerCount
+    firstMembership firstProduces secondMembership secondProduces
+
+/-- An atomic axiom endpoint cannot simultaneously be the compound
+conclusion produced by a connective link. -/
+private theorem axiomEndpoint_ne_connectiveConclusion
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {axiomLeft axiomRight : Vertex} {connective : Link}
+    (axiomMembership :
+      Link.axiom axiomLeft axiomRight ∈ certificate.links)
+    {endpoint : Vertex}
+    (endpointAtAxiom :
+      endpoint = axiomLeft ∨ endpoint = axiomRight)
+    (connectiveMembership : connective ∈ certificate.links)
+    (connectiveProduces : connective.produces endpoint = true) :
+    False := by
+  have axiomWellFormed :=
+    structural.2.2.2.2.1 _ axiomMembership
+  rcases axiomWellFormed.axiom_endpointFormula endpointAtAxiom with
+    ⟨name, positive, atomLookup⟩
+  have connectiveWellFormed :=
+    structural.2.2.2.2.1 _ connectiveMembership
+  cases connective with
+  | «axiom» left right =>
+      simp [Link.produces] at connectiveProduces
+  | tensor left right conclusion =>
+      simp [Link.produces] at connectiveProduces
+      subst conclusion
+      rcases connectiveWellFormed.tensor_conclusionFormula with
+        ⟨leftFormula, rightFormula, compoundLookup⟩
+      have impossible :
+          Formula.atom name positive =
+            Formula.tensor leftFormula rightFormula :=
+        Option.some.inj (atomLookup.symm.trans compoundLookup)
+      cases impossible
+  | «par» left right conclusion =>
+      simp [Link.produces] at connectiveProduces
+      subst conclusion
+      rcases connectiveWellFormed.par_conclusionFormula with
+        ⟨leftFormula, rightFormula, compoundLookup⟩
+      have impossible :
+          Formula.atom name positive =
+            Formula.par leftFormula rightFormula :=
+        Option.some.inj (atomLookup.symm.trans compoundLookup)
+      cases impossible
 
 private theorem axiomEdge_mem_leftRetained
     {links : List Link} {left right : Vertex}
@@ -638,6 +1016,774 @@ theorem markDomainExtends {certificate : Certificate}
       rw [marking]
       by_cases conclusionCase : vertex = conclusion <;>
         simp [UnificationMarking.setMark, conclusionCase, oldMarked]
+
+/-- A unification step never changes the raw token stored at an occurrence
+which was already marked.  New marks are written only into explicitly
+unmarked axiom endpoints or connective conclusions. -/
+theorem preservesMarkedToken {certificate : Certificate}
+    {state next : UnificationMarking certificate}
+    (step : UnificationStep certificate state next)
+    {vertex token : Nat}
+    (marked : state.mark vertex = some token) :
+    next.mark vertex = some token := by
+  cases step
+  case start left right linkMembership leftUnmarked rightUnmarked
+      freshIsolated tokenCount marking threads =>
+      rw [marking]
+      by_cases rightCase : vertex = right
+      · subst vertex
+        rw [rightUnmarked] at marked
+        contradiction
+      · by_cases leftCase : vertex = left
+        · subst vertex
+          rw [leftUnmarked] at marked
+          contradiction
+        · simp [UnificationMarking.setMark, rightCase, leftCase, marked]
+  case forward left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesSynchronized outputTokenAllocated outputTokenSynchronized
+      tokenCount marking threads =>
+      rw [marking]
+      by_cases conclusionCase : vertex = conclusion
+      · subst vertex
+        rw [conclusionUnmarked] at marked
+        contradiction
+      · simp [UnificationMarking.setMark, conclusionCase, marked]
+  case unify left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesDistinct outputTokenAllocated outputTokenFromPremiseThread
+      tokenCount marking threads =>
+      rw [marking]
+      by_cases conclusionCase : vertex = conclusion
+      · subst vertex
+        rw [conclusionUnmarked] at marked
+        contradiction
+      · simp [UnificationMarking.setMark, conclusionCase, marked]
+
+/-- The semantic token equivalence relation can only grow: start and forward
+leave it unchanged, while tensor/unify adds one equivalence-class merge. -/
+theorem sameThread_mono {certificate : Certificate}
+    {state next : UnificationMarking certificate}
+    (step : UnificationStep certificate state next)
+    {first second : Nat}
+    (related : state.sameThread first second) :
+    next.sameThread first second := by
+  cases step
+  case start threads =>
+      exact (threads first second).mpr related
+  case forward threads =>
+      rw [threads]
+      exact related
+  case unify threads =>
+      exact (threads first second).mpr (Or.inl related)
+
+/-- Causal marking closure is invariant under every structurally valid
+Figure-5 transition.  Source uniqueness identifies a newly marked connective
+conclusion with the link actually fired; every other marked conclusion was
+already present before the step. -/
+theorem markingCausallyClosed
+    {certificate : Certificate}
+    {state next : UnificationMarking certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (closed : state.MarkingCausallyClosed)
+    (step : UnificationStep certificate state next) :
+    next.MarkingCausallyClosed := by
+  have liftPresent {vertex : Vertex}
+      (present : (state.mark vertex).isSome = true) :
+      (next.mark vertex).isSome = true := by
+    rcases UnificationMarking.token_exists_of_isSome present with
+      ⟨token, marked⟩
+    simp [step.preservesMarkedToken marked]
+  intro candidate candidateMembership
+  cases step
+  case start left right linkMembership leftUnmarked rightUnmarked
+      freshIsolated tokenCount marking threads =>
+      cases candidate with
+      | «axiom» candidateLeft candidateRight =>
+          trivial
+      | «par» candidateLeft candidateRight candidateConclusion =>
+          intro conclusionMarked
+          have conclusionNotLeft : candidateConclusion ≠ left := by
+            intro same
+            subst candidateConclusion
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              linkMembership (Or.inl rfl) candidateMembership
+                (by simp [Link.produces])
+          have conclusionNotRight : candidateConclusion ≠ right := by
+            intro same
+            subst candidateConclusion
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              linkMembership (Or.inr rfl) candidateMembership
+                (by simp [Link.produces])
+          have oldConclusion :
+              (state.mark candidateConclusion).isSome = true := by
+            rw [marking] at conclusionMarked
+            simpa [UnificationMarking.setMark,
+              conclusionNotLeft, conclusionNotRight] using
+                conclusionMarked
+          have premises :=
+            closed (.par candidateLeft candidateRight candidateConclusion)
+              candidateMembership oldConclusion
+          exact ⟨liftPresent premises.1, liftPresent premises.2⟩
+      | tensor candidateLeft candidateRight candidateConclusion =>
+          intro conclusionMarked
+          have conclusionNotLeft : candidateConclusion ≠ left := by
+            intro same
+            subst candidateConclusion
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              linkMembership (Or.inl rfl) candidateMembership
+                (by simp [Link.produces])
+          have conclusionNotRight : candidateConclusion ≠ right := by
+            intro same
+            subst candidateConclusion
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              linkMembership (Or.inr rfl) candidateMembership
+                (by simp [Link.produces])
+          have oldConclusion :
+              (state.mark candidateConclusion).isSome = true := by
+            rw [marking] at conclusionMarked
+            simpa [UnificationMarking.setMark,
+              conclusionNotLeft, conclusionNotRight] using
+                conclusionMarked
+          have premises :=
+            closed
+              (.tensor candidateLeft candidateRight candidateConclusion)
+              candidateMembership oldConclusion
+          exact ⟨liftPresent premises.1, liftPresent premises.2⟩
+  case forward left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesSynchronized outputTokenAllocated outputTokenSynchronized
+      tokenCount marking threads =>
+      cases candidate with
+      | «axiom» candidateLeft candidateRight =>
+          trivial
+      | «par» candidateLeft candidateRight candidateConclusion =>
+          intro conclusionMarked
+          by_cases sameConclusion : candidateConclusion = conclusion
+          · subst candidateConclusion
+            have sameLink :
+                Link.par left right conclusion =
+                  Link.par candidateLeft candidateRight conclusion :=
+              connective_eq_of_shared_conclusion structural
+                (conclusion := conclusion)
+                linkMembership (by simp [Link.produces])
+                candidateMembership (by simp [Link.produces])
+            injection sameLink with leftEquation rightEquation
+            subst candidateLeft
+            subst candidateRight
+            exact
+              ⟨liftPresent (by simp [leftMarked]),
+                liftPresent (by simp [rightMarked])⟩
+          · have oldConclusion :
+                (state.mark candidateConclusion).isSome = true := by
+              rw [marking] at conclusionMarked
+              simpa [UnificationMarking.setMark,
+                sameConclusion] using conclusionMarked
+            have premises :=
+              closed
+                (.par candidateLeft candidateRight candidateConclusion)
+                candidateMembership oldConclusion
+            exact ⟨liftPresent premises.1, liftPresent premises.2⟩
+      | tensor candidateLeft candidateRight candidateConclusion =>
+          intro conclusionMarked
+          by_cases sameConclusion : candidateConclusion = conclusion
+          · subst candidateConclusion
+            have impossible :
+                Link.par left right conclusion =
+                  Link.tensor candidateLeft candidateRight conclusion :=
+              connective_eq_of_shared_conclusion structural
+                (conclusion := conclusion)
+                linkMembership (by simp [Link.produces])
+                candidateMembership (by simp [Link.produces])
+            cases impossible
+          · have oldConclusion :
+                (state.mark candidateConclusion).isSome = true := by
+              rw [marking] at conclusionMarked
+              simpa [UnificationMarking.setMark,
+                sameConclusion] using conclusionMarked
+            have premises :=
+              closed
+                (.tensor candidateLeft candidateRight candidateConclusion)
+                candidateMembership oldConclusion
+            exact ⟨liftPresent premises.1, liftPresent premises.2⟩
+  case unify left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesDistinct outputTokenAllocated outputTokenFromPremiseThread
+      tokenCount marking threads =>
+      cases candidate with
+      | «axiom» candidateLeft candidateRight =>
+          trivial
+      | «par» candidateLeft candidateRight candidateConclusion =>
+          intro conclusionMarked
+          by_cases sameConclusion : candidateConclusion = conclusion
+          · subst candidateConclusion
+            have impossible :
+                Link.tensor left right conclusion =
+                  Link.par candidateLeft candidateRight conclusion :=
+              connective_eq_of_shared_conclusion structural
+                (conclusion := conclusion)
+                linkMembership (by simp [Link.produces])
+                candidateMembership (by simp [Link.produces])
+            cases impossible
+          · have oldConclusion :
+                (state.mark candidateConclusion).isSome = true := by
+              rw [marking] at conclusionMarked
+              simpa [UnificationMarking.setMark,
+                sameConclusion] using conclusionMarked
+            have premises :=
+              closed
+                (.par candidateLeft candidateRight candidateConclusion)
+                candidateMembership oldConclusion
+            exact ⟨liftPresent premises.1, liftPresent premises.2⟩
+      | tensor candidateLeft candidateRight candidateConclusion =>
+          intro conclusionMarked
+          by_cases sameConclusion : candidateConclusion = conclusion
+          · subst candidateConclusion
+            have sameLink :
+                Link.tensor left right conclusion =
+                  Link.tensor candidateLeft candidateRight conclusion :=
+              connective_eq_of_shared_conclusion structural
+                (conclusion := conclusion)
+                linkMembership (by simp [Link.produces])
+                candidateMembership (by simp [Link.produces])
+            injection sameLink with leftEquation rightEquation
+            subst candidateLeft
+            subst candidateRight
+            exact
+              ⟨liftPresent (by simp [leftMarked]),
+                liftPresent (by simp [rightMarked])⟩
+          · have oldConclusion :
+                (state.mark candidateConclusion).isSome = true := by
+              rw [marking] at conclusionMarked
+              simpa [UnificationMarking.setMark,
+                sameConclusion] using conclusionMarked
+            have premises :=
+              closed
+                (.tensor candidateLeft candidateRight candidateConclusion)
+                candidateMembership oldConclusion
+            exact ⟨liftPresent premises.1, liftPresent premises.2⟩
+
+/-- Link-local threading is invariant under every structurally valid
+Figure-5 transition, provided the prior marking is causally closed.  The
+causal premise is what rules out an already-fired consumer whose previously
+unmarked premise is activated by the current step. -/
+theorem referenceLinksThreaded
+    {certificate : Certificate}
+    {state next : UnificationMarking certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (closed : state.MarkingCausallyClosed)
+    (threaded : state.ReferenceLinksThreaded)
+    (step : UnificationStep certificate state next) :
+    next.ReferenceLinksThreaded := by
+  have liftRelation {first second : Nat}
+      (related : state.sameThread first second) :
+      next.sameThread first second :=
+    step.sameThread_mono related
+  have recoverOldToken {vertex token : Nat}
+      (nextMarked : next.mark vertex = some token)
+      (oldPresent : (state.mark vertex).isSome = true) :
+      state.mark vertex = some token := by
+    rcases UnificationMarking.token_exists_of_isSome oldPresent with
+      ⟨oldToken, oldMarked⟩
+    have preserved := step.preservesMarkedToken oldMarked
+    have tokenEquation : oldToken = token :=
+      Option.some.inj (preserved.symm.trans nextMarked)
+    subst token
+    exact oldMarked
+  intro candidate candidateMembership
+  cases step
+  case start left right linkMembership leftUnmarked rightUnmarked
+      freshIsolated tokenCount marking threads =>
+      cases candidate with
+      | «axiom» candidateLeft candidateRight =>
+          intro candidateLeftToken candidateRightToken
+            candidateLeftMarked candidateRightMarked
+          by_cases sameLink :
+              Link.axiom candidateLeft candidateRight =
+                Link.axiom left right
+          · injection sameLink with leftEquation rightEquation
+            subst candidateLeft
+            subst candidateRight
+            have different : left ≠ right :=
+              (structural.2.2.2.2.1 _ linkMembership).1
+            have nextLeft :
+                next.mark left = some state.tokenCount := by
+              rw [marking]
+              simp [UnificationMarking.setMark, different]
+            have nextRight :
+                next.mark right = some state.tokenCount := by
+              rw [marking]
+              simp [UnificationMarking.setMark]
+            have leftTokenEquation :
+                candidateLeftToken = state.tokenCount :=
+              Option.some.inj
+                (candidateLeftMarked.symm.trans nextLeft)
+            have rightTokenEquation :
+                candidateRightToken = state.tokenCount :=
+              Option.some.inj
+                (candidateRightMarked.symm.trans nextRight)
+            subst candidateLeftToken
+            subst candidateRightToken
+            exact (threads _ _).mpr
+              (state.sameThreadEquivalence.1 state.tokenCount)
+          · have candidateLeftNotLeft : candidateLeft ≠ left := by
+              intro same
+              have equal :=
+                axiom_eq_of_shared_endpoint structural
+                  candidateMembership (Or.inl rfl) linkMembership
+                    (Or.inl same)
+              exact sameLink equal
+            have candidateLeftNotRight : candidateLeft ≠ right := by
+              intro same
+              have equal :=
+                axiom_eq_of_shared_endpoint structural
+                  candidateMembership (Or.inl rfl) linkMembership
+                    (Or.inr same)
+              exact sameLink equal
+            have candidateRightNotLeft : candidateRight ≠ left := by
+              intro same
+              have equal :=
+                axiom_eq_of_shared_endpoint structural
+                  candidateMembership (Or.inr rfl) linkMembership
+                    (Or.inl same)
+              exact sameLink equal
+            have candidateRightNotRight : candidateRight ≠ right := by
+              intro same
+              have equal :=
+                axiom_eq_of_shared_endpoint structural
+                  candidateMembership (Or.inr rfl) linkMembership
+                    (Or.inr same)
+              exact sameLink equal
+            have oldLeft :
+                state.mark candidateLeft = some candidateLeftToken := by
+              rw [marking] at candidateLeftMarked
+              simpa [UnificationMarking.setMark,
+                candidateLeftNotLeft, candidateLeftNotRight] using
+                  candidateLeftMarked
+            have oldRight :
+                state.mark candidateRight = some candidateRightToken := by
+              rw [marking] at candidateRightMarked
+              simpa [UnificationMarking.setMark,
+                candidateRightNotLeft, candidateRightNotRight] using
+                  candidateRightMarked
+            exact liftRelation
+              (threaded (.axiom candidateLeft candidateRight)
+                candidateMembership oldLeft oldRight)
+      | «par» candidateLeft candidateRight candidateConclusion =>
+          intro candidateLeftToken candidateConclusionToken
+            candidateLeftMarked candidateConclusionMarked
+          have conclusionNotLeft : candidateConclusion ≠ left := by
+            intro same
+            subst candidateConclusion
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              linkMembership (Or.inl rfl) candidateMembership
+                (by simp [Link.produces])
+          have conclusionNotRight : candidateConclusion ≠ right := by
+            intro same
+            subst candidateConclusion
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              linkMembership (Or.inr rfl) candidateMembership
+                (by simp [Link.produces])
+          have oldConclusion :
+              state.mark candidateConclusion =
+                some candidateConclusionToken := by
+            rw [marking] at candidateConclusionMarked
+            simpa [UnificationMarking.setMark,
+              conclusionNotLeft, conclusionNotRight] using
+                candidateConclusionMarked
+          have premisesPresent :=
+            closed
+              (.par candidateLeft candidateRight candidateConclusion)
+              candidateMembership (by simp [oldConclusion])
+          have oldLeft :=
+            recoverOldToken candidateLeftMarked premisesPresent.1
+          exact liftRelation
+            (threaded
+              (.par candidateLeft candidateRight candidateConclusion)
+              candidateMembership oldLeft oldConclusion)
+      | tensor candidateLeft candidateRight candidateConclusion =>
+          constructor
+          · intro candidateLeftToken candidateConclusionToken
+              candidateLeftMarked candidateConclusionMarked
+            have conclusionNotLeft : candidateConclusion ≠ left := by
+              intro same
+              subst candidateConclusion
+              exact axiomEndpoint_ne_connectiveConclusion structural
+                linkMembership (Or.inl rfl) candidateMembership
+                  (by simp [Link.produces])
+            have conclusionNotRight : candidateConclusion ≠ right := by
+              intro same
+              subst candidateConclusion
+              exact axiomEndpoint_ne_connectiveConclusion structural
+                linkMembership (Or.inr rfl) candidateMembership
+                  (by simp [Link.produces])
+            have oldConclusion :
+                state.mark candidateConclusion =
+                  some candidateConclusionToken := by
+              rw [marking] at candidateConclusionMarked
+              simpa [UnificationMarking.setMark,
+                conclusionNotLeft, conclusionNotRight] using
+                  candidateConclusionMarked
+            have premisesPresent :=
+              closed
+                (.tensor candidateLeft candidateRight candidateConclusion)
+                candidateMembership (by simp [oldConclusion])
+            have oldLeft :=
+              recoverOldToken candidateLeftMarked premisesPresent.1
+            exact liftRelation
+              ((threaded
+                (.tensor candidateLeft candidateRight candidateConclusion)
+                candidateMembership).1 oldLeft oldConclusion)
+          · intro candidateRightToken candidateConclusionToken
+              candidateRightMarked candidateConclusionMarked
+            have conclusionNotLeft : candidateConclusion ≠ left := by
+              intro same
+              subst candidateConclusion
+              exact axiomEndpoint_ne_connectiveConclusion structural
+                linkMembership (Or.inl rfl) candidateMembership
+                  (by simp [Link.produces])
+            have conclusionNotRight : candidateConclusion ≠ right := by
+              intro same
+              subst candidateConclusion
+              exact axiomEndpoint_ne_connectiveConclusion structural
+                linkMembership (Or.inr rfl) candidateMembership
+                  (by simp [Link.produces])
+            have oldConclusion :
+                state.mark candidateConclusion =
+                  some candidateConclusionToken := by
+              rw [marking] at candidateConclusionMarked
+              simpa [UnificationMarking.setMark,
+                conclusionNotLeft, conclusionNotRight] using
+                  candidateConclusionMarked
+            have premisesPresent :=
+              closed
+                (.tensor candidateLeft candidateRight candidateConclusion)
+                candidateMembership (by simp [oldConclusion])
+            have oldRight :=
+              recoverOldToken candidateRightMarked premisesPresent.2
+            exact liftRelation
+              ((threaded
+                (.tensor candidateLeft candidateRight candidateConclusion)
+                candidateMembership).2 oldRight oldConclusion)
+  case forward left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesSynchronized outputTokenAllocated outputTokenSynchronized
+      tokenCount marking threads =>
+      cases candidate with
+      | «axiom» candidateLeft candidateRight =>
+          intro candidateLeftToken candidateRightToken
+            candidateLeftMarked candidateRightMarked
+          have leftNotConclusion : candidateLeft ≠ conclusion := by
+            intro same
+            subst candidateLeft
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              candidateMembership (Or.inl rfl) linkMembership
+                (by simp [Link.produces])
+          have rightNotConclusion : candidateRight ≠ conclusion := by
+            intro same
+            subst candidateRight
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              candidateMembership (Or.inr rfl) linkMembership
+                (by simp [Link.produces])
+          have oldLeft :
+              state.mark candidateLeft = some candidateLeftToken := by
+            rw [marking] at candidateLeftMarked
+            simpa [UnificationMarking.setMark,
+              leftNotConclusion] using candidateLeftMarked
+          have oldRight :
+              state.mark candidateRight = some candidateRightToken := by
+            rw [marking] at candidateRightMarked
+            simpa [UnificationMarking.setMark,
+              rightNotConclusion] using candidateRightMarked
+          exact liftRelation
+            (threaded (.axiom candidateLeft candidateRight)
+              candidateMembership oldLeft oldRight)
+      | «par» candidateLeft candidateRight candidateConclusion =>
+          intro candidateLeftToken candidateConclusionToken
+            candidateLeftMarked candidateConclusionMarked
+          by_cases sameConclusion : candidateConclusion = conclusion
+          · subst candidateConclusion
+            have sameLink :
+                Link.par left right conclusion =
+                  Link.par candidateLeft candidateRight conclusion :=
+              connective_eq_of_shared_conclusion structural
+                (conclusion := conclusion)
+                linkMembership (by simp [Link.produces])
+                candidateMembership (by simp [Link.produces])
+            injection sameLink with leftEquation rightEquation
+            subst candidateLeft
+            subst candidateRight
+            have oldLeft :=
+              recoverOldToken candidateLeftMarked (by simp [leftMarked])
+            have leftTokenEquation :
+                candidateLeftToken = leftToken :=
+              Option.some.inj
+                (oldLeft.symm.trans leftMarked)
+            have conclusionNext :
+                next.mark conclusion = some outputToken := by
+              rw [marking]
+              simp [UnificationMarking.setMark]
+            have conclusionTokenEquation :
+                candidateConclusionToken = outputToken :=
+              Option.some.inj
+                (candidateConclusionMarked.symm.trans conclusionNext)
+            subst candidateLeftToken
+            subst candidateConclusionToken
+            rw [threads]
+            exact state.sameThreadEquivalence.symm
+              outputTokenSynchronized
+          · have oldConclusion :
+                state.mark candidateConclusion =
+                  some candidateConclusionToken := by
+              rw [marking] at candidateConclusionMarked
+              simpa [UnificationMarking.setMark,
+                sameConclusion] using candidateConclusionMarked
+            have premisesPresent :=
+              closed
+                (.par candidateLeft candidateRight candidateConclusion)
+                candidateMembership (by simp [oldConclusion])
+            have oldLeft :=
+              recoverOldToken candidateLeftMarked premisesPresent.1
+            exact liftRelation
+              (threaded
+                (.par candidateLeft candidateRight candidateConclusion)
+                candidateMembership oldLeft oldConclusion)
+      | tensor candidateLeft candidateRight candidateConclusion =>
+          constructor
+          · intro candidateLeftToken candidateConclusionToken
+              candidateLeftMarked candidateConclusionMarked
+            by_cases sameConclusion : candidateConclusion = conclusion
+            · subst candidateConclusion
+              have impossible :
+                  Link.par left right conclusion =
+                    Link.tensor candidateLeft candidateRight conclusion :=
+                connective_eq_of_shared_conclusion structural
+                  (conclusion := conclusion)
+                  linkMembership (by simp [Link.produces])
+                  candidateMembership (by simp [Link.produces])
+              cases impossible
+            · have oldConclusion :
+                  state.mark candidateConclusion =
+                    some candidateConclusionToken := by
+                rw [marking] at candidateConclusionMarked
+                simpa [UnificationMarking.setMark,
+                  sameConclusion] using candidateConclusionMarked
+              have premisesPresent :=
+                closed
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership (by simp [oldConclusion])
+              have oldLeft :=
+                recoverOldToken candidateLeftMarked premisesPresent.1
+              exact liftRelation
+                ((threaded
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership).1 oldLeft oldConclusion)
+          · intro candidateRightToken candidateConclusionToken
+              candidateRightMarked candidateConclusionMarked
+            by_cases sameConclusion : candidateConclusion = conclusion
+            · subst candidateConclusion
+              have impossible :
+                  Link.par left right conclusion =
+                    Link.tensor candidateLeft candidateRight conclusion :=
+                connective_eq_of_shared_conclusion structural
+                  (conclusion := conclusion)
+                  linkMembership (by simp [Link.produces])
+                  candidateMembership (by simp [Link.produces])
+              cases impossible
+            · have oldConclusion :
+                  state.mark candidateConclusion =
+                    some candidateConclusionToken := by
+                rw [marking] at candidateConclusionMarked
+                simpa [UnificationMarking.setMark,
+                  sameConclusion] using candidateConclusionMarked
+              have premisesPresent :=
+                closed
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership (by simp [oldConclusion])
+              have oldRight :=
+                recoverOldToken candidateRightMarked premisesPresent.2
+              exact liftRelation
+                ((threaded
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership).2 oldRight oldConclusion)
+  case unify left right conclusion leftToken rightToken outputToken
+      linkMembership conclusionUnmarked leftMarked rightMarked
+      premisesDistinct outputTokenAllocated outputTokenFromPremiseThread
+      tokenCount marking threads =>
+      cases candidate with
+      | «axiom» candidateLeft candidateRight =>
+          intro candidateLeftToken candidateRightToken
+            candidateLeftMarked candidateRightMarked
+          have leftNotConclusion : candidateLeft ≠ conclusion := by
+            intro same
+            subst candidateLeft
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              candidateMembership (Or.inl rfl) linkMembership
+                (by simp [Link.produces])
+          have rightNotConclusion : candidateRight ≠ conclusion := by
+            intro same
+            subst candidateRight
+            exact axiomEndpoint_ne_connectiveConclusion structural
+              candidateMembership (Or.inr rfl) linkMembership
+                (by simp [Link.produces])
+          have oldLeft :
+              state.mark candidateLeft = some candidateLeftToken := by
+            rw [marking] at candidateLeftMarked
+            simpa [UnificationMarking.setMark,
+              leftNotConclusion] using candidateLeftMarked
+          have oldRight :
+              state.mark candidateRight = some candidateRightToken := by
+            rw [marking] at candidateRightMarked
+            simpa [UnificationMarking.setMark,
+              rightNotConclusion] using candidateRightMarked
+          exact liftRelation
+            (threaded (.axiom candidateLeft candidateRight)
+              candidateMembership oldLeft oldRight)
+      | «par» candidateLeft candidateRight candidateConclusion =>
+          intro candidateLeftToken candidateConclusionToken
+            candidateLeftMarked candidateConclusionMarked
+          by_cases sameConclusion : candidateConclusion = conclusion
+          · subst candidateConclusion
+            have impossible :
+                Link.tensor left right conclusion =
+                  Link.par candidateLeft candidateRight conclusion :=
+              connective_eq_of_shared_conclusion structural
+                (conclusion := conclusion)
+                linkMembership (by simp [Link.produces])
+                candidateMembership (by simp [Link.produces])
+            cases impossible
+          · have oldConclusion :
+                state.mark candidateConclusion =
+                  some candidateConclusionToken := by
+              rw [marking] at candidateConclusionMarked
+              simpa [UnificationMarking.setMark,
+                sameConclusion] using candidateConclusionMarked
+            have premisesPresent :=
+              closed
+                (.par candidateLeft candidateRight candidateConclusion)
+                candidateMembership (by simp [oldConclusion])
+            have oldLeft :=
+              recoverOldToken candidateLeftMarked premisesPresent.1
+            exact liftRelation
+              (threaded
+                (.par candidateLeft candidateRight candidateConclusion)
+                candidateMembership oldLeft oldConclusion)
+      | tensor candidateLeft candidateRight candidateConclusion =>
+          constructor
+          · intro candidateLeftToken candidateConclusionToken
+              candidateLeftMarked candidateConclusionMarked
+            by_cases sameConclusion : candidateConclusion = conclusion
+            · subst candidateConclusion
+              have sameLink :
+                  Link.tensor left right conclusion =
+                    Link.tensor candidateLeft candidateRight conclusion :=
+                connective_eq_of_shared_conclusion structural
+                  (conclusion := conclusion)
+                  linkMembership (by simp [Link.produces])
+                  candidateMembership (by simp [Link.produces])
+              injection sameLink with leftEquation rightEquation
+              subst candidateLeft
+              subst candidateRight
+              have oldLeft :=
+                recoverOldToken candidateLeftMarked (by simp [leftMarked])
+              have leftTokenEquation :
+                  candidateLeftToken = leftToken :=
+                Option.some.inj
+                  (oldLeft.symm.trans leftMarked)
+              have conclusionNext :
+                  next.mark conclusion = some outputToken := by
+                rw [marking]
+                simp [UnificationMarking.setMark]
+              have conclusionTokenEquation :
+                  candidateConclusionToken = outputToken :=
+                Option.some.inj
+                  (candidateConclusionMarked.symm.trans conclusionNext)
+              subst candidateLeftToken
+              subst candidateConclusionToken
+              exact (threads _ _).mpr
+                (Or.inr
+                  ⟨Or.inl
+                      (state.sameThreadEquivalence.1 leftToken),
+                    outputTokenFromPremiseThread⟩)
+            · have oldConclusion :
+                  state.mark candidateConclusion =
+                    some candidateConclusionToken := by
+                rw [marking] at candidateConclusionMarked
+                simpa [UnificationMarking.setMark,
+                  sameConclusion] using candidateConclusionMarked
+              have premisesPresent :=
+                closed
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership (by simp [oldConclusion])
+              have oldLeft :=
+                recoverOldToken candidateLeftMarked premisesPresent.1
+              exact liftRelation
+                ((threaded
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership).1 oldLeft oldConclusion)
+          · intro candidateRightToken candidateConclusionToken
+              candidateRightMarked candidateConclusionMarked
+            by_cases sameConclusion : candidateConclusion = conclusion
+            · subst candidateConclusion
+              have sameLink :
+                  Link.tensor left right conclusion =
+                    Link.tensor candidateLeft candidateRight conclusion :=
+                connective_eq_of_shared_conclusion structural
+                  (conclusion := conclusion)
+                  linkMembership (by simp [Link.produces])
+                  candidateMembership (by simp [Link.produces])
+              injection sameLink with leftEquation rightEquation
+              subst candidateLeft
+              subst candidateRight
+              have oldRight :=
+                recoverOldToken candidateRightMarked (by simp [rightMarked])
+              have rightTokenEquation :
+                  candidateRightToken = rightToken :=
+                Option.some.inj
+                  (oldRight.symm.trans rightMarked)
+              have conclusionNext :
+                  next.mark conclusion = some outputToken := by
+                rw [marking]
+                simp [UnificationMarking.setMark]
+              have conclusionTokenEquation :
+                  candidateConclusionToken = outputToken :=
+                Option.some.inj
+                  (candidateConclusionMarked.symm.trans conclusionNext)
+              subst candidateRightToken
+              subst candidateConclusionToken
+              exact (threads _ _).mpr
+                (Or.inr
+                  ⟨Or.inr
+                      (state.sameThreadEquivalence.1 rightToken),
+                    outputTokenFromPremiseThread⟩)
+            · have oldConclusion :
+                  state.mark candidateConclusion =
+                    some candidateConclusionToken := by
+                rw [marking] at candidateConclusionMarked
+                simpa [UnificationMarking.setMark,
+                  sameConclusion] using candidateConclusionMarked
+              have premisesPresent :=
+                closed
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership (by simp [oldConclusion])
+              have oldRight :=
+                recoverOldToken candidateRightMarked premisesPresent.2
+              exact liftRelation
+                ((threaded
+                  (.tensor candidateLeft candidateRight candidateConclusion)
+                  candidateMembership).2 oldRight oldConclusion)
+
+/-- Causal closure and reference-edge threading are preserved together by one
+independent unification step. -/
+theorem causallyThreaded
+    {certificate : Certificate}
+    {state next : UnificationMarking certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (coherent : state.CausallyThreaded)
+    (step : UnificationStep certificate state next) :
+    next.CausallyThreaded :=
+  ⟨step.markingCausallyClosed structural coherent.1,
+    step.referenceLinksThreaded structural coherent.1 coherent.2⟩
 
 /-- One abstract unification step preserves connectivity of every semantic
 thread inside the active all-left switching subgraph. -/
@@ -1088,6 +2234,22 @@ theorem threadConnected
       exact connected
   | step transition rest induction =>
       exact induction (transition.threadConnected connected)
+
+/-- Every finite independent execution from a causally threaded marking
+preserves causal closure and exact threading of retained reference links. -/
+theorem causallyThreaded
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {initial final : UnificationMarking certificate}
+    (execution : UnificationExecution certificate initial final)
+    (coherent : initial.CausallyThreaded) :
+    final.CausallyThreaded := by
+  induction execution with
+  | refl =>
+      exact coherent
+  | step transition rest induction =>
+      exact induction
+        (transition.causallyThreaded structural coherent)
 
 end UnificationExecution
 

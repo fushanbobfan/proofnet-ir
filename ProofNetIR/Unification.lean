@@ -2215,6 +2215,54 @@ private theorem initialUnificationState_threadConnected
     UnificationState.assignedToken?, Array.getElem?_replicate] at firstMarked
   split at firstMarked <;> simp at firstMarked
 
+/-- The empty executable marking is causally closed and has no active
+reference edge, so its exact threading contract holds vacuously. -/
+private theorem initialUnificationState_causallyThreaded
+    (certificate : Certificate) :
+    (certificate.initialUnificationState.toMarking certificate
+      (initialUnificationState_abstractable certificate)).CausallyThreaded := by
+  constructor
+  · intro link _membership
+    cases link with
+    | «axiom» left right =>
+        trivial
+    | «par» left right conclusion =>
+        intro marked
+        simp [initialUnificationState, UnificationState.toMarking,
+          UnificationState.assignedToken?, Array.getElem?_replicate] at marked
+        split at marked <;> simp at marked
+    | tensor left right conclusion =>
+        intro marked
+        simp [initialUnificationState, UnificationState.toMarking,
+          UnificationState.assignedToken?, Array.getElem?_replicate] at marked
+        split at marked <;> simp at marked
+  · intro link _membership
+    cases link with
+    | «axiom» left right =>
+        intro leftToken rightToken leftMarked
+        simp [initialUnificationState, UnificationState.toMarking,
+          UnificationState.assignedToken?, Array.getElem?_replicate]
+            at leftMarked
+        split at leftMarked <;> simp at leftMarked
+    | «par» left right conclusion =>
+        intro leftToken conclusionToken leftMarked
+        simp [initialUnificationState, UnificationState.toMarking,
+          UnificationState.assignedToken?, Array.getElem?_replicate]
+            at leftMarked
+        split at leftMarked <;> simp at leftMarked
+    | tensor left right conclusion =>
+        constructor
+        · intro leftToken conclusionToken leftMarked
+          simp [initialUnificationState, UnificationState.toMarking,
+            UnificationState.assignedToken?, Array.getElem?_replicate]
+              at leftMarked
+          split at leftMarked <;> simp at leftMarked
+        · intro rightToken conclusionToken rightMarked
+          simp [initialUnificationState, UnificationState.toMarking,
+            UnificationState.assignedToken?, Array.getElem?_replicate]
+              at rightMarked
+          split at rightMarked <;> simp at rightMarked
+
 /-- The executable initial state starts with an empty ordered parent forest. -/
 private theorem initialUnificationState_orderedParents
     (certificate : Certificate) :
@@ -10797,6 +10845,130 @@ private theorem UnificationState.threadConnected_of_eq
     firstMarked secondMarked synchronized
   exact connected firstMarked secondMarked synchronized
 
+/-- Causal threading depends only on executable marks and representatives,
+not on the proof term witnessing the abstraction contract. -/
+private theorem UnificationState.causallyThreaded_of_eq
+    {certificate : Certificate} {first second : UnificationState}
+    (firstAbstractable : first.Abstractable certificate)
+    (secondAbstractable : second.Abstractable certificate)
+    (equation : first = second)
+    (coherent :
+      UnificationMarking.CausallyThreaded
+        (first.toMarking certificate firstAbstractable)) :
+    UnificationMarking.CausallyThreaded
+      (second.toMarking certificate secondAbstractable) := by
+  subst second
+  have markingEquation :
+      first.toMarking certificate secondAbstractable =
+        first.toMarking certificate firstAbstractable := by
+    rfl
+  rw [markingEquation]
+  exact coherent
+
+/-- One scheduler attempt preserves causal closure and exact threading of all
+active retained reference links.  No-op branches transport the old marking;
+successful branches use their independent Figure-5 refinement step. -/
+private theorem processWorklistLink_causallyThreaded
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.core.Abstractable certificate)
+    (ordered : state.core.OrderedParents)
+    (coherent :
+      UnificationMarking.CausallyThreaded
+        (state.core.toMarking certificate abstractable)) :
+    UnificationMarking.CausallyThreaded
+      ((processWorklistLink certificate consumers index state).core.toMarking
+        certificate
+        (processWorklistLink_core_abstractable abstractable ordered)) := by
+  have fromCore {core : UnificationState}
+      (coreAbstractable : core.Abstractable certificate)
+      (coreCoherent :
+        UnificationMarking.CausallyThreaded
+          (core.toMarking certificate coreAbstractable))
+      (equation :
+        core =
+          (processWorklistLink certificate consumers index state).core) :
+      UnificationMarking.CausallyThreaded
+        ((processWorklistLink certificate consumers index state).core.toMarking
+          certificate
+          (processWorklistLink_core_abstractable abstractable ordered)) :=
+    UnificationState.causallyThreaded_of_eq
+      coreAbstractable _ equation coreCoherent
+  cases linkLookup : certificate.links[index]? with
+  | none =>
+      exact fromCore abstractable coherent
+        (by simp [processWorklistLink, linkLookup])
+  | some link =>
+      have linkMembership : link ∈ certificate.links :=
+        List.mem_of_getElem? linkLookup
+      cases link with
+      | «axiom» left right =>
+          exact fromCore abstractable coherent
+            (by simp [processWorklistLink, linkLookup])
+      | «par» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              exact fromCore abstractable coherent
+                (by simp [processWorklistLink, linkLookup, leftLookup])
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  exact fromCore abstractable coherent
+                    (by simp [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup])
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    cases firing :
+                        firePar? state.core left right conclusion with
+                    | none =>
+                        exact fromCore abstractable coherent
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, firing])
+                    | some nextCore =>
+                        rcases firePar?_refines_forward certificate
+                            abstractable linkMembership firing with
+                          ⟨nextAbstractable, semanticStep⟩
+                        exact fromCore nextAbstractable
+                          (semanticStep.causallyThreaded structural coherent)
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, firing])
+                  · exact fromCore abstractable coherent
+                      (by simp [processWorklistLink, linkLookup,
+                        leftLookup, rightLookup, same])
+      | «tensor» left right conclusion =>
+          cases leftLookup : state.core.tokenAt? left with
+          | none =>
+              exact fromCore abstractable coherent
+                (by simp [processWorklistLink, linkLookup, leftLookup])
+          | some leftToken =>
+              cases rightLookup : state.core.tokenAt? right with
+              | none =>
+                  exact fromCore abstractable coherent
+                    (by simp [processWorklistLink, linkLookup, leftLookup,
+                      rightLookup])
+              | some rightToken =>
+                  by_cases same : leftToken = rightToken
+                  · subst rightToken
+                    exact fromCore abstractable coherent
+                      (by simp [processWorklistLink, linkLookup,
+                        leftLookup, rightLookup])
+                  · cases firing :
+                        fireTensor? state.core left right conclusion with
+                    | none =>
+                        exact fromCore abstractable coherent
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, same, firing])
+                    | some nextCore =>
+                        rcases fireTensor?_refines_unify certificate
+                            abstractable ordered linkMembership firing with
+                          ⟨nextAbstractable, semanticStep⟩
+                        exact fromCore nextAbstractable
+                          (semanticStep.causallyThreaded structural coherent)
+                          (by simp [processWorklistLink, linkLookup,
+                            leftLookup, rightLookup, same, firing])
+
 /-- One scheduler attempt preserves semantic thread connectivity.  No-op
 branches leave the executable core unchanged; successful par and tensor
 branches are discharged by their independent Figure-5 refinement steps. -/
@@ -11411,6 +11583,27 @@ private theorem startAxioms?_success_threadConnected
     ⟨startedAbstractable,
       execution.threadConnected
         (initialUnificationState_threadConnected certificate)⟩
+
+/-- Successful canonical axiom initialization is causally closed and threads
+every active retained reference edge. -/
+private theorem startAxioms?_success_causallyThreaded
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (equation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    ∃ startedAbstractable : started.Abstractable certificate,
+      UnificationMarking.CausallyThreaded
+        (started.toMarking certificate startedAbstractable) := by
+  rcases certificate.startAxioms?_success_refines
+      (initialUnificationState_abstractable certificate)
+      (initialUnificationState_identityParents certificate)
+      (fun _ membership => membership) equation with
+    ⟨startedAbstractable, _startedIdentity, execution⟩
+  exact
+    ⟨startedAbstractable,
+      execution.causallyThreaded structural
+        (initialUnificationState_causallyThreaded certificate)⟩
 
 /-- Successful eager axiom initialization from the canonical empty state
 establishes the complete core invariant bundle required by the event-driven
@@ -12427,6 +12620,92 @@ private theorem runUnificationWorklist_threadConnected
             firstMarked secondMarked synchronized
           exact transported firstMarked secondMarked synchronized
 
+/-- Every finite scheduler run preserves causal closure and exact threading
+of the active all-left reference graph. -/
+private theorem runUnificationWorklist_causallyThreaded
+    (certificate : Certificate) (consumers : Array (List Nat))
+    (structural : certificate.StructurallyWellFormed)
+    (fuel : Nat) (state : UnificationWorklistState)
+    (invariant : WorklistCoreInvariant certificate state)
+    (coherent :
+      UnificationMarking.CausallyThreaded
+        (state.core.toMarking certificate invariant.1)) :
+    UnificationMarking.CausallyThreaded
+      ((runUnificationWorklist certificate consumers fuel state).state.core
+        |>.toMarking certificate
+          (runUnificationWorklist_coreInvariant certificate consumers
+            structural fuel state invariant).1) := by
+  induction fuel generalizing state with
+  | zero =>
+      exact UnificationState.causallyThreaded_of_eq
+        invariant.1 _ (by simp [runUnificationWorklist]) coherent
+  | succ fuel induction =>
+      cases popEquation : popWorklist? state with
+      | none =>
+          exact UnificationState.causallyThreaded_of_eq
+            invariant.1 _ (by simp [runUnificationWorklist, popEquation])
+            coherent
+      | some result =>
+          rcases result with ⟨index, popped⟩
+          have poppedCore : popped.core = state.core :=
+            popWorklist?_success_core popEquation
+          have poppedInvariant :
+              WorklistCoreInvariant certificate popped := by
+            unfold WorklistCoreInvariant at invariant ⊢
+            simpa [poppedCore] using invariant
+          have poppedCoherent :
+              UnificationMarking.CausallyThreaded
+                (popped.core.toMarking certificate poppedInvariant.1) :=
+            UnificationState.causallyThreaded_of_eq
+              invariant.1 poppedInvariant.1 poppedCore.symm coherent
+          have processedInvariant :
+              WorklistCoreInvariant certificate
+                (processWorklistLink certificate consumers
+                  index popped) :=
+            processWorklistLink_coreInvariant
+              structural poppedInvariant
+          have processedCoherent :
+              UnificationMarking.CausallyThreaded
+                ((processWorklistLink certificate consumers
+                    index popped).core.toMarking
+                  certificate processedInvariant.1) := by
+            have preserved :=
+              processWorklistLink_causallyThreaded
+                (consumers := consumers) (index := index)
+                structural poppedInvariant.1 poppedInvariant.2.1
+                poppedCoherent
+            exact UnificationState.causallyThreaded_of_eq
+              _ processedInvariant.1 rfl preserved
+          have tailCoherent :
+              UnificationMarking.CausallyThreaded
+                ((runUnificationWorklist certificate consumers fuel
+                    (processWorklistLink certificate consumers
+                      index popped)).state.core.toMarking certificate
+                    (runUnificationWorklist_coreInvariant
+                      certificate consumers structural fuel
+                      (processWorklistLink certificate consumers
+                        index popped) processedInvariant).1) :=
+            induction
+              (state :=
+                processWorklistLink certificate consumers index popped)
+              processedInvariant processedCoherent
+          have runStateEquation :
+              (runUnificationWorklist certificate consumers
+                (fuel + 1) state).state =
+                (runUnificationWorklist certificate consumers fuel
+                  (processWorklistLink certificate consumers
+                    index popped)).state := by
+            simp [runUnificationWorklist, popEquation]
+          exact UnificationState.causallyThreaded_of_eq
+            (runUnificationWorklist_coreInvariant
+              certificate consumers structural fuel
+              (processWorklistLink certificate consumers
+                index popped) processedInvariant).1
+            _
+            (congrArg UnificationWorklistState.core
+              runStateEquation.symm)
+            tailCoherent
+
 /-- Every finite worklist run is monotone on raw formula assignments. -/
 private theorem runUnificationWorklist_preserves_assigned
     (certificate : Certificate) (consumers : Array (List Nat))
@@ -12578,6 +12857,74 @@ private theorem canonicalWorklistRun_threadConnected
     (UnificationState.threadConnected_of_eq
       _ _ rfl finalConnected)
       firstMarked secondMarked synchronized
+
+/-- The complete canonical worklist run is causally closed and every active
+retained reference edge lies inside one semantic union-find thread. -/
+private theorem canonicalWorklistRun_causallyThreaded
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    UnificationMarking.CausallyThreaded
+      (final.core.toMarking certificate
+        (canonicalWorklistRun_coreInvariant
+          structural startEquation).1) := by
+  let initial := initializeWorklist certificate started
+  let fuel := worklistFuel certificate.links.length
+  have initialInvariant :
+      WorklistCoreInvariant certificate initial := by
+    simpa [initial] using
+      startAxioms?_success_initializeWorklist_coreInvariant
+        structural startEquation
+  rcases startAxioms?_success_causallyThreaded
+      structural startEquation with
+    ⟨startedAbstractable, startedCoherent⟩
+  have initialCoherent :
+      UnificationMarking.CausallyThreaded
+        (initial.core.toMarking certificate initialInvariant.1) :=
+    UnificationState.causallyThreaded_of_eq
+      startedAbstractable initialInvariant.1
+      (by simp [initial, initializeWorklist])
+      startedCoherent
+  have finalCoherent :
+      UnificationMarking.CausallyThreaded
+        ((runUnificationWorklist certificate
+            certificate.worklistConsumers fuel initial).state.core.toMarking
+          certificate
+          (runUnificationWorklist_coreInvariant
+            certificate certificate.worklistConsumers structural
+            fuel initial initialInvariant).1) :=
+    runUnificationWorklist_causallyThreaded
+      certificate certificate.worklistConsumers structural
+      fuel initial initialInvariant initialCoherent
+  dsimp [initial, fuel]
+  exact UnificationState.causallyThreaded_of_eq
+    _ _ rfl finalCoherent
+
+/-- Canonical worklist states have exact agreement between union-find token
+classes and connected components of the active reference graph. -/
+private theorem canonicalWorklistRun_threadComponentsExact
+    {certificate : Certificate} {started : UnificationState}
+    (structural : certificate.StructurallyWellFormed)
+    (startEquation :
+      certificate.startAxioms? certificate.links
+        certificate.initialUnificationState = some started) :
+    let final :=
+      (runUnificationWorklist certificate certificate.worklistConsumers
+        (worklistFuel certificate.links.length)
+        (initializeWorklist certificate started)).state
+    UnificationMarking.ThreadComponentsExact
+      (final.core.toMarking certificate
+        (canonicalWorklistRun_coreInvariant
+          structural startEquation).1) :=
+  ⟨canonicalWorklistRun_threadConnected structural startEquation,
+    (canonicalWorklistRun_causallyThreaded
+      structural startEquation).2⟩
 
 /-- In a declaratively correct proof net, two marked tensor premises cannot
 already belong to one semantic thread while the tensor conclusion remains
@@ -13594,7 +13941,11 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
             final.core.tokenAt? left = some leftToken ∧
               final.core.tokenAt? right = some rightToken ∧
                 leftToken ≠ rightToken ∧
-                  index ∈ final.waiting := by
+                  index ∈ final.waiting ∧
+                    ¬((final.core.toMarking certificate
+                        (canonicalWorklistRun_coreInvariant
+                          correct.1 startEquation).1)
+                      |>.activeReferenceGraph.Walk left right) := by
   let final :=
     (runUnificationWorklist certificate
       certificate.worklistConsumers
@@ -13609,7 +13960,11 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
             final.core.tokenAt? left = some leftToken ∧
               final.core.tokenAt? right = some rightToken ∧
                 leftToken ≠ rightToken ∧
-                  index ∈ final.waiting
+                  index ∈ final.waiting ∧
+                    ¬((final.core.toMarking certificate
+                        (canonicalWorklistRun_coreInvariant
+                          correct.1 startEquation).1)
+                      |>.activeReferenceGraph.Walk left right)
   intro incomplete
   rcases canonicalWorklistRun_incomplete_thread_obstruction
       correct.1 startEquation incomplete with
@@ -13628,6 +13983,12 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
     exact
       (canonicalWorklistRun_threadConnected correct.1 startEquation)
         firstMarked secondMarked synchronized
+  have exactComponents :
+      UnificationMarking.ThreadComponentsExact
+        (final.core.toMarking certificate coreInvariant.1) := by
+    dsimp [final]
+    exact canonicalWorklistRun_threadComponentsExact
+      correct.1 startEquation
   cases link with
   | «axiom» left right =>
       simp [QuiescentThreadObstruction] at obstruction
@@ -13635,10 +13996,39 @@ private theorem canonicalWorklistRun_incomplete_waitingPar
       rcases obstruction with
         ⟨conclusionUnmarked, leftToken, rightToken,
           leftMarked, rightMarked, different, registered⟩
+      rcases final.core.tokenAt?_some_witness leftMarked with
+        ⟨leftRaw, leftRawMarked, leftRepresentative⟩
+      rcases final.core.tokenAt?_some_witness rightMarked with
+        ⟨rightRaw, rightRawMarked, rightRepresentative⟩
+      have abstractLeftMarked :
+          (final.core.toMarking certificate coreInvariant.1).mark left =
+            some leftRaw := by
+        simpa only [UnificationState.toMarking_mark] using leftRawMarked
+      have abstractRightMarked :
+          (final.core.toMarking certificate coreInvariant.1).mark right =
+            some rightRaw := by
+        simpa only [UnificationState.toMarking_mark] using rightRawMarked
+      have notSynchronized :
+          ¬(final.core.toMarking certificate coreInvariant.1).sameThread
+            leftRaw rightRaw := by
+        simp only [UnificationState.toMarking_sameThread]
+        intro representativesEqual
+        apply different
+        rw [← leftRepresentative, ← rightRepresentative]
+        exact representativesEqual
+      have noActiveWalk :
+          ¬((final.core.toMarking certificate coreInvariant.1)
+            |>.activeReferenceGraph.Walk left right) := by
+        intro walk
+        exact notSynchronized
+          ((exactComponents.walk_iff_sameThread
+              (final.core.toMarking certificate coreInvariant.1)
+              abstractLeftMarked abstractRightMarked).mp walk)
       exact
         ⟨index, left, right, conclusion, leftToken, rightToken,
           linkLookup, conclusionUnmarked, leftMarked, rightMarked,
-          different, registered⟩
+          different, registered, by
+            simpa only using noActiveWalk⟩
   | tensor left right conclusion =>
       rcases obstruction with
         ⟨conclusionUnmarked, token, leftMarked, rightMarked⟩

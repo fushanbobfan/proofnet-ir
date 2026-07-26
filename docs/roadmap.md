@@ -459,7 +459,12 @@
       reference subgraph through every abstract step and the canonical
       worklist run; use reference-switching acyclicity to exclude the
       same-thread tensor-deadlock branch on correct inputs.
-    - [ ] Exclude the sole remaining distinct-thread waiting-par obstruction.
+    - [x] Prove causal marking closure and the converse retained-edge
+      invariant through every reachable state, obtaining exact equivalence
+      between active components and union-find classes and a no-active-walk
+      witness for the remaining waiting par.
+    - [ ] Exclude the sole remaining active-component-separated waiting-par
+      obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

@@ -98,15 +98,23 @@ subgraph, and that invariant is transported through the concrete canonical
 worklist run. Declarative reference-switching acyclicity then excludes the
 same-thread tensor branch: its two fixed edges would close the active thread
 path into an edge-simple cycle. The only remaining correct-state obstruction
-is an exact distinct-thread waiting par.
+is an exact distinct-thread waiting par. The converse direction is now also
+kernel checked. Every reachable marking is causally closed, each active
+retained reference edge stays inside one semantic thread, and therefore an
+active reference walk between marked occurrences exists exactly when their
+raw tokens share one union-find class. The two premises of the remaining
+waiting par are consequently proved to have no active reference walk between
+them. What remains is the global progress argument showing that a correct,
+connected full proof net cannot maintain that separation solely through
+unmarked occurrences.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
 stack, interval partition, or specialized union-find invariant. The attempt
 cap is no longer merely imposed by fuel: its scheduler sufficiency is proved.
-That result now rules out tensor deadlock on a correct nonfinal net, but not
-the remaining distinct-thread waiting par; the full correct-state progress
-theorem remains open.
+That result now rules out tensor deadlock on a correct nonfinal net and
+identifies the remaining waiting par as an exact active-component separation;
+the global correct-state progress theorem remains open.
 
 Lean currently proves:
 
@@ -177,9 +185,10 @@ or positive misses. The larger search recorded at most 150 link attempts and
 1. State the operational one-step relation independently of the executable
    scan and prove that every fired component denotes the corresponding parsing
    substructure.
-2. Exclude the remaining distinct-thread waiting par in every nonfinal correct
-   state; same-thread tensor deadlock is already excluded by the active-path
-   switching-cycle theorem.
+2. Use full-switching connectivity plus causal closure to exclude the
+   remaining waiting par whose marked premises are already proved to occupy
+   different active reference components; same-thread tensor deadlock is
+   already excluded by the active-path switching-cycle theorem.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

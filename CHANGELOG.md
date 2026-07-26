@@ -72,8 +72,14 @@
   unfired tensor would close that active path with its two fixed tensor edges,
   producing an edge-simple cycle in the reference switching. Lean therefore
   excludes the tensor-deadlock branch and reduces every incomplete correct
-  canonical run to one exact submitted distinct-thread waiting par.
-  Correctness still must exclude that final waiting-par obstruction, so
+  canonical run to one exact submitted distinct-thread waiting par. The
+  converse active-component invariant is now proved as well: reachable
+  markings are causally closed, every active retained reference edge remains
+  inside one semantic token class, and an active reference walk between
+  marked occurrences is equivalent to union-find thread equality. The final
+  waiting-par witness is therefore strengthened with a kernel proof that its
+  marked premises have no active reference walk. Correctness still must
+  exclude that global graph-level obstruction, so
   scheduler fuel sufficiency must not be conflated with pure-worklist
   completeness;
 - started `v0.10.0-dev` with an explicit proof plan separating independent
