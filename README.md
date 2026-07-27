@@ -198,9 +198,13 @@ re-pairing incidences incorrectly at a repeated vertex. Lean now additionally
 localizes the unavoidable concrete par-pair conflict to two distinct indexed
 flipped segments: the omitted right occurrence is uniquely the head of its
 source segment, while the matching retained left occurrence cannot lie in
-that same vertex-simple segment. Thus the remaining witness is an exact
-cross-segment chord/nesting problem rather than an unlocated pair in the
-flattened walk.
+that same vertex-simple segment. Under the first-repeat prefix injectivity
+already carried by the dependency-cycle witness, the conflict conclusion is
+also proved distinct from the holder segment's start and reached in that
+segment's target list. The holder occurrence is the exact retained left
+incidence and the source head is the exact omitted right incidence. Thus the
+remaining witness is an exact internal cross-segment chord/nesting problem
+rather than an unlocated pair in the flattened walk.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.

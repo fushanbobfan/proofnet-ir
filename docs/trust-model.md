@@ -250,11 +250,14 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
  the flattened family is a nonempty closed cyclically nonbacktracking walk.
  Every internal transition, adjacent segment junction, and last/first closing
  junction is cusp-free. The unavoidable stored par pair is now localized
- across two distinct indexed segments: its omitted right occurrence is the
- unique head of the source segment, while its retained left occurrence cannot
- lie in that same vertex-simple traversal. The remaining gap is global:
- repeated vertices and this exact chord must be resolved using the
- nesting/switching structure while preserving those incidence pairings.
+  across two distinct indexed segments: its omitted right occurrence is the
+  unique head of the source segment, while its retained left occurrence cannot
+  lie in that same vertex-simple traversal. Prefix injectivity also proves that
+  the common conclusion is not the holder segment's start but is reached in
+  that segment's target list; the two incidences are identified exactly as
+  retained-left and omitted-right in the reference mask. The remaining gap is
+  global: repeated vertices and this exact internal chord must be resolved
+  using the nesting/switching structure while preserving those incidence pairings.
  Ordinary loop erasure is not sufficient because it can create a new closing
  cusp at the erased vertex. This is not yet the correct-state progress theorem
  needed for pure-worklist completeness.

@@ -205,6 +205,9 @@ active-reference walks between marked occurrences are equivalent to
   unavoidable concrete par pair is now localized across two distinct indexed
   segments: its omitted right occurrence is the source-segment head, and its
   retained left occurrence cannot inhabit that same vertex-simple traversal.
+  Prefix injectivity further makes the common conclusion a non-start vertex
+  reached in the holder segment's target list, with the holder edge proved
+  exactly retained-left and the source head proved exactly omitted-right.
   Pure completeness still requires the global chord/repeated-vertex/nesting
   argument which extracts a forbidden switching cycle without using ordinary
   loop erasure: erasing at a repeated vertex can re-pair incidences and create
