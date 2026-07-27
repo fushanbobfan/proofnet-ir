@@ -194,12 +194,18 @@ of an unfired same-thread tensor would form an edge-simple reference-switching
 cycle, so declarative correctness excludes that obstruction. Reachable-state
 semantics also proves causal marking closure and the converse edge invariant:
 active-reference walks between marked occurrences are equivalent to
-union-find thread equality. The remaining missing progress argument is
-now path-localized: occurrence-aware tree-edge exchange supplies a reference
-simple path between the waiting par premises which avoids its conclusion, and
-different active components force a genuinely unmarked internal occurrence
-on that path. Pure completeness still requires excluding that unmarked
-region in a correct quiescent state.
+  union-find thread equality. The remaining missing progress argument is now
+  path-localized and cycle-indexed. Occurrence-aware tree-edge exchange first
+  supplies an exact reference simple path between each waiting par's premises.
+  For a fully reflexive dependency cycle, Lean flips every such path to the
+  complementary backward-right-par/reversed-suffix traversal, proves each
+  segment vertex-simple and target-left-avoiding, and composes the family into
+  a nonempty closed cyclically nonbacktracking walk. Every internal transition,
+  adjacent segment junction, and cyclic closing junction is cusp-free. Pure
+  completeness still requires the global repeated-vertex/nesting argument
+  which extracts a forbidden switching cycle without using ordinary loop
+  erasure: erasing at a repeated vertex can re-pair incidences and create a new
+  closing cusp.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

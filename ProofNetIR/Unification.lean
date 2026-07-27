@@ -16006,6 +16006,277 @@ private theorem QuiescentWaitingParDependencyAtBoundary.target_ne_source
       _formulaPath, _targetWaiting, _targetRank⟩
   exact boundaryTargetNeSource
 
+/-- Flip the source waiting par to its exact right occurrence and then follow
+the strict suffix of the all-left reference path backwards from the right
+premise to the selected dependency boundary.  The result is a vertex-simple
+full-graph path from the source conclusion to the boundary target.  Its first
+occurrence is exactly the right premise omitted by the reference switching;
+every remaining occurrence is lifted from the reference tree and is retained.
+
+This is the local switching witness needed to replace the nested all-left
+out-and-back dependency segments by a simultaneous right-par switching around
+a dependency cycle. -/
+private theorem
+    QuiescentWaitingParDependencyAtBoundary.flippedSuffixFullPath_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {boundary :
+      certificate.referenceSwitchingGraph.DirectedEdge}
+    (atBoundary :
+      QuiescentWaitingParDependencyAtBoundary
+        certificate state source target boundary) :
+    ∃ (before afterLinks : List Link)
+        (left right : Vertex)
+        (rightOccurrence :
+          certificate.fullGraph.DirectedEdge)
+        (referenceSuffix :
+          certificate.referenceSwitchingGraph.EdgeSimplePath)
+        (fullSuffix :
+          List certificate.fullGraph.DirectedEdge)
+        (flippedPath :
+          certificate.fullGraph.EdgeSimplePath),
+      certificate.links =
+          before ++ .par left right source :: afterLinks ∧
+        referenceSuffix.start = right ∧
+          referenceSuffix.finish = boundary.target ∧
+            source ∉ referenceSuffix.vertices ∧
+              flippedPath.start = source ∧
+                flippedPath.finish = boundary.target ∧
+                  flippedPath.traversed =
+                    rightOccurrence :: fullSuffix ∧
+                    rightOccurrence.index =
+                      (linkFullEdges before).length + 1 ∧
+                      rightOccurrence.edge =
+                        { first := right, second := source } ∧
+                        rightOccurrence.forward = false ∧
+                          certificate.referenceSwitchingMask[
+                            rightOccurrence.index]? = some false ∧
+                            fullSuffix.map
+                                (fun directed =>
+                                  Graph.retainedIndex
+                                    certificate.referenceSwitchingMask
+                                    directed.index) =
+                              referenceSuffix.traversed.map
+                                Graph.DirectedEdge.index ∧
+                              fullSuffix.map Graph.DirectedEdge.edge =
+                                referenceSuffix.traversed.map
+                                  Graph.DirectedEdge.edge ∧
+                                fullSuffix.map
+                                    Graph.DirectedEdge.forward =
+                                  referenceSuffix.traversed.map
+                                    Graph.DirectedEdge.forward ∧
+                                  fullSuffix.map
+                                      Graph.DirectedEdge.target =
+                                    referenceSuffix.traversed.map
+                                      Graph.DirectedEdge.target ∧
+                                    (∀ directed ∈ fullSuffix,
+                                      Graph.retainedIndex
+                                          certificate.referenceSwitchingMask
+                                          directed.index ≠
+                                        boundary.index) ∧
+                                      ∀ directed ∈ fullSuffix,
+                                        certificate.referenceSwitchingMask[
+                                          directed.index]? = some true := by
+  rcases atBoundary with
+    ⟨index, left, right, leftToken, rightToken, referencePath,
+      linkLookup, sourceUnassigned, leftMarked, rightMarked,
+      different, registered, pathStarts, pathFinishes, sourceAvoided,
+      boundaryMembership, firstBoundary, boundaryToken,
+      boundarySourceAssigned, boundaryTargetUnassigned,
+      boundaryTargetNeSource, exactOrigin, frontierStatus,
+      formulaPath, targetWaiting, targetRank⟩
+  rcases firstBoundary with
+    ⟨beforePath, afterPath, traversalEquation, _prefixAssigned⟩
+  rcases referencePath.suffixAfter traversalEquation with
+    ⟨suffix, suffixStarts, suffixFinishes, suffixTraversed,
+      suffixVerticesSubset⟩
+  let referenceSuffix :
+      certificate.referenceSwitchingGraph.EdgeSimplePath :=
+    suffix.reverse
+  have referenceSuffixStarts :
+      referenceSuffix.start = right := by
+    simp [referenceSuffix, Graph.EdgeSimplePath.reverse,
+      suffixFinishes, pathFinishes]
+  have referenceSuffixFinishes :
+      referenceSuffix.finish = boundary.target := by
+    simp [referenceSuffix, Graph.EdgeSimplePath.reverse, suffixStarts]
+  have sourceAvoidsReferenceSuffix :
+      source ∉ referenceSuffix.vertices := by
+    intro membership
+    apply sourceAvoided
+    apply suffixVerticesSubset source
+    have reversedMembership :
+        source ∈ suffix.vertices.reverse := by
+      simpa [referenceSuffix] using membership
+    simpa using reversedMembership
+  have boundaryNotAfterIndices :
+      boundary.index ∉
+        afterPath.map Graph.DirectedEdge.index := by
+    have completeIndexNodup :
+        ((beforePath ++ boundary :: afterPath).map
+          Graph.DirectedEdge.index).Nodup := by
+      rw [← traversalEquation]
+      exact referencePath.edgeIndicesNodup
+    rw [List.map_append, List.nodup_append]
+      at completeIndexNodup
+    exact (List.nodup_cons.mp completeIndexNodup.2.1).1
+  have referenceSuffixIndexEquation :
+      referenceSuffix.traversed.map Graph.DirectedEdge.index =
+        (afterPath.map Graph.DirectedEdge.index).reverse := by
+    simp [referenceSuffix, Graph.EdgeSimplePath.reverse,
+      Graph.EdgeWalk.reverseTraversal, suffixTraversed,
+      List.map_map, Function.comp_def]
+  have boundaryNotReferenceSuffixIndices :
+      boundary.index ∉
+        referenceSuffix.traversed.map Graph.DirectedEdge.index := by
+    rw [referenceSuffixIndexEquation]
+    simpa using boundaryNotAfterIndices
+  have referenceSuffixWalk :
+      certificate.referenceSwitchingGraph.EdgeWalk
+        right referenceSuffix.traversed boundary.target := by
+    simpa [referenceSuffixStarts, referenceSuffixFinishes] using
+      referenceSuffix.walk
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change
+      (linkFullEdges certificate.links).length =
+        certificate.referenceSwitchingMask.length
+    exact
+      certificate.referenceFullSwitchingSelection.mask_length.symm
+  have referenceSuffixWalk' :
+      (certificate.fullGraph.retainEdges
+        certificate.referenceSwitchingMask).EdgeWalk
+          right referenceSuffix.traversed boundary.target := by
+    simpa [Certificate.referenceSwitchingGraph] using
+      referenceSuffixWalk
+  rcases referenceSuffixWalk'.inflateRetainedExact aligned with
+    ⟨fullSuffix, fullSuffixWalk, retainedIndices,
+      retainedEdges, retainedForwards, retainedTargets,
+      fullSuffixKept⟩
+  have fullSuffixAvoidsBoundary :
+      ∀ directed ∈ fullSuffix,
+        Graph.retainedIndex certificate.referenceSwitchingMask
+            directed.index ≠ boundary.index := by
+    intro directed membership sameIndex
+    apply boundaryNotReferenceSuffixIndices
+    have inFullMap :
+        Graph.retainedIndex certificate.referenceSwitchingMask
+            directed.index ∈
+          fullSuffix.map
+            (fun candidate =>
+              Graph.retainedIndex
+                certificate.referenceSwitchingMask
+                candidate.index) :=
+      List.mem_map.mpr
+        ⟨directed, membership, rfl⟩
+    rw [retainedIndices] at inFullMap
+    simpa [Certificate.referenceSwitchingGraph, sameIndex] using
+      inFullMap
+  rcases List.getElem?_eq_some_iff.mp linkLookup with
+    ⟨linkBound, linkValue⟩
+  let beforeLinks := certificate.links.take index
+  let afterLinks := certificate.links.drop (index + 1)
+  have linksEquation :
+      certificate.links =
+        beforeLinks ++ .par left right source :: afterLinks := by
+    calc
+      certificate.links =
+          certificate.links.take index ++
+            certificate.links.drop index :=
+        (List.take_append_drop index certificate.links).symm
+      _ =
+          certificate.links.take index ++
+            certificate.links[index] ::
+              certificate.links.drop (index + 1) := by
+        rw [List.drop_eq_getElem_cons linkBound]
+      _ =
+          beforeLinks ++ .par left right source :: afterLinks := by
+        rw [linkValue]
+  have rightLookup :
+      certificate.fullGraph.edges[
+        (linkFullEdges beforeLinks).length + 1]? =
+          some { first := right, second := source } := by
+    change
+      (linkFullEdges certificate.links)[
+        (linkFullEdges beforeLinks).length + 1]? =
+          some { first := right, second := source }
+    rw [linksEquation]
+    exact
+      (linkFullEdges_parAt beforeLinks afterLinks
+        left right source).2
+  let rightOccurrence :
+      certificate.fullGraph.DirectedEdge :=
+    { index := (linkFullEdges beforeLinks).length + 1
+      edge := { first := right, second := source }
+      lookup := rightLookup
+      forward := false }
+  have rightOccurrenceStarts :
+      rightOccurrence.source = source := rfl
+  have rightOccurrenceFinishes :
+      rightOccurrence.target = right := rfl
+  have rightOccurrenceWalk :
+      certificate.fullGraph.EdgeWalk
+        source [rightOccurrence] right := by
+    exact
+      Graph.EdgeWalk.step (.refl source) rightOccurrence
+        rightOccurrenceStarts rightOccurrenceFinishes
+  have completeWalk :
+      certificate.fullGraph.EdgeWalk source
+        (rightOccurrence :: fullSuffix) boundary.target := by
+    simpa using rightOccurrenceWalk.trans fullSuffixWalk
+  have fullSuffixVertexShape :
+      right :: fullSuffix.map Graph.DirectedEdge.target =
+        referenceSuffix.vertices := by
+    rw [retainedTargets]
+    change
+      right ::
+          referenceSuffix.traversed.map Graph.DirectedEdge.target =
+        referenceSuffix.start ::
+          referenceSuffix.traversed.map Graph.DirectedEdge.target
+    rw [referenceSuffixStarts]
+  have fullSuffixVerticesNodup :
+      (right :: fullSuffix.map
+        Graph.DirectedEdge.target).Nodup := by
+    rw [fullSuffixVertexShape]
+    exact referenceSuffix.verticesNodup
+  have sourceAvoidsFullSuffixVertices :
+      source ∉
+        right :: fullSuffix.map Graph.DirectedEdge.target := by
+    rw [fullSuffixVertexShape]
+    exact sourceAvoidsReferenceSuffix
+  let flippedPath :
+      certificate.fullGraph.EdgeSimplePath :=
+    { start := source
+      finish := boundary.target
+      traversed := rightOccurrence :: fullSuffix
+      walk := completeWalk
+      verticesNodup := by
+        change
+          (source ::
+            rightOccurrence.target ::
+              fullSuffix.map Graph.DirectedEdge.target).Nodup
+        rw [List.nodup_cons]
+        exact
+          ⟨by simpa [rightOccurrenceFinishes] using
+              sourceAvoidsFullSuffixVertices,
+            by simpa [rightOccurrenceFinishes] using
+              fullSuffixVerticesNodup⟩ }
+  have rightOmitted :=
+    (certificate.referenceSwitchingMask_parAt
+      beforeLinks afterLinks left right source linksEquation).2
+  refine
+    ⟨beforeLinks, afterLinks, left, right, rightOccurrence,
+      referenceSuffix, fullSuffix, flippedPath,
+      linksEquation, referenceSuffixStarts,
+      referenceSuffixFinishes, sourceAvoidsReferenceSuffix,
+      rfl, rfl, rfl, rfl, rfl, rfl, ?_,
+      retainedIndices, retainedEdges, retainedForwards,
+      retainedTargets, fullSuffixAvoidsBoundary,
+      fullSuffixKept⟩
+  simpa [rightOccurrence] using rightOmitted
+
 /-- Every waiting dependency now exposes its geometric formula tail: an exact
 vertex-simple, cusp-free full-graph path from the marked/unmarked reference
 frontier target down to the target waiting-par conclusion.  The path is
@@ -17442,6 +17713,987 @@ private theorem QuiescentWaitingParDependencyReflexiveEndAt.forward
       lastForward, _lastRetainedIndex, _lastSource,
       _lastTarget, _lastKept⟩
   exact lastForward.trans atBoundary.boundary_forward
+
+/-- At a reflexive dependency end, the selected reference boundary is the
+stored left occurrence of the target waiting par itself.  Structural
+one-producer ownership rules out a tensor or a different par producer. -/
+private theorem
+    QuiescentWaitingParDependencyAtBoundary.target_left_of_reflexive
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {boundary :
+      certificate.referenceSwitchingGraph.DirectedEdge}
+    (atBoundary :
+      QuiescentWaitingParDependencyAtBoundary
+        certificate state source target boundary)
+    (boundaryTarget : boundary.target = target) :
+    ∃ (index left right : Nat),
+      certificate.links[index]? =
+          some (.par left right target) ∧
+        boundary.edge =
+          { first := left, second := target } ∧
+          boundary.forward = true ∧
+            boundary.source = left := by
+  rcases atBoundary with
+    ⟨_sourceIndex, _sourceLeft, _sourceRight,
+      _sourceLeftToken, _sourceRightToken, _sourcePath,
+      _sourceLookup, _sourceUnassigned, _sourceLeftMarked,
+      _sourceRightMarked, _sourceDifferent, _sourceRegistered,
+      _pathStarts, _pathFinishes, _sourceAvoided,
+      _boundaryMembership, _firstBoundary, _boundaryToken,
+      _boundarySourceAssigned, _boundaryTargetUnassigned,
+      _boundaryTargetNeSource, exactOrigin, _frontierStatus,
+      _formulaPath, targetWaiting, _targetRank⟩
+  rcases targetWaiting with
+    ⟨_targetUnassigned, targetIndex, targetLeft, targetRight,
+      _targetLeftToken, _targetRightToken, targetLookup,
+      _targetLeftMarked, _targetRightMarked, _targetDifferent,
+      _targetRegistered⟩
+  rcases exactOrigin with parOrigin | tensorOrigin
+  · rcases parOrigin with
+      ⟨originIndex, originLeft, originRight, originConclusion,
+        originLookup, boundaryEdge, boundaryForward,
+        boundarySource, boundaryFinish⟩
+    have originConclusionValue :
+        originConclusion = target :=
+      boundaryFinish.symm.trans boundaryTarget
+    have sameProducer :
+        Link.par originLeft originRight originConclusion =
+          Link.par targetLeft targetRight target :=
+      _root_.ProofNetIR.UnificationState.StructurallyWellFormed.producerLink_unique
+        (conclusion := target) structural
+        (List.mem_of_getElem? originLookup)
+        (by simp [Link.produces, originConclusionValue])
+        (List.mem_of_getElem? targetLookup)
+        (by simp [Link.produces])
+    cases sameProducer
+    exact
+      ⟨targetIndex, targetLeft, targetRight,
+        targetLookup, boundaryEdge,
+        boundaryForward, boundarySource⟩
+  · rcases tensorOrigin with
+      ⟨originIndex, originLeft, originRight, originConclusion,
+        originLookup, _boundaryForward, _side,
+        boundaryFinish⟩
+    have originConclusionValue :
+        originConclusion = target :=
+      boundaryFinish.symm.trans boundaryTarget
+    have sameProducer :
+        Link.tensor originLeft originRight originConclusion =
+          Link.par targetLeft targetRight target :=
+      _root_.ProofNetIR.UnificationState.StructurallyWellFormed.producerLink_unique
+        (conclusion := target) structural
+        (List.mem_of_getElem? originLookup)
+        (by simp [Link.produces, originConclusionValue])
+        (List.mem_of_getElem? targetLookup)
+        (by simp [Link.produces])
+    cases sameProducer
+
+/-- In the reflexive-end case the flipped suffix path lands at the dependency
+target itself.  This projection keeps only the occurrence facts needed by the
+finite-cycle construction: one exact omitted right-par incidence followed by
+reference-retained occurrences. -/
+private theorem
+    QuiescentWaitingParDependencyReflexiveEndAt.flippedFullPath_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {last : certificate.fullGraph.DirectedEdge}
+    (reflexive :
+      QuiescentWaitingParDependencyReflexiveEndAt
+        certificate state source target last) :
+    ∃ (before afterLinks : List Link)
+        (left right : Vertex)
+        (rightOccurrence :
+          certificate.fullGraph.DirectedEdge)
+        (fullSuffix :
+          List certificate.fullGraph.DirectedEdge)
+        (flippedPath :
+          certificate.fullGraph.EdgeSimplePath),
+      certificate.links =
+          before ++ .par left right source :: afterLinks ∧
+        flippedPath.start = source ∧
+          flippedPath.finish = target ∧
+            flippedPath.traversed =
+              rightOccurrence :: fullSuffix ∧
+              rightOccurrence.index =
+                (linkFullEdges before).length + 1 ∧
+                rightOccurrence.edge =
+                  { first := right, second := source } ∧
+                  rightOccurrence.forward = false ∧
+                    certificate.referenceSwitchingMask[
+                      rightOccurrence.index]? = some false ∧
+                      ∀ directed ∈ fullSuffix,
+                        certificate.referenceSwitchingMask[
+                          directed.index]? = some true := by
+  rcases reflexive with
+    ⟨boundary, atBoundary, boundaryTarget, _lastEdge,
+      _lastForward, _lastRetainedIndex, _lastSource,
+      _lastTarget, _lastKept⟩
+  rcases atBoundary.flippedSuffixFullPath_exists with
+    ⟨before, afterLinks, left, right, rightOccurrence,
+      _referenceSuffix, fullSuffix, flippedPath,
+      linksEquation, _referenceSuffixStarts,
+      _referenceSuffixFinishes, _sourceAvoidsReferenceSuffix,
+      flippedStarts, flippedFinishes, flippedTraversal,
+      rightIndex, rightEdge, rightBackward, rightOmitted,
+      _retainedIndices, _retainedEdges, _retainedForwards,
+      _retainedTargets, _fullSuffixAvoidsBoundary,
+      fullSuffixKept⟩
+  exact
+    ⟨before, afterLinks, left, right, rightOccurrence,
+      fullSuffix, flippedPath, linksEquation, flippedStarts,
+      flippedFinishes.trans boundaryTarget, flippedTraversal,
+      rightIndex, rightEdge, rightBackward, rightOmitted,
+      fullSuffixKept⟩
+
+/-- Compact scheduler-facing package for the flipped path.  It remembers the
+exact source par and its omitted right occurrence, while hiding the retained
+subgraph index transport already proved by
+`flippedSuffixFullPath_exists`. -/
+private def QuiescentWaitingParDependencyFlippedTraversal
+    (certificate : Certificate)
+    (source target : Vertex)
+    (traversed :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ (before afterLinks : List Link)
+      (left right : Vertex)
+      (rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (fullSuffix :
+        List certificate.fullGraph.DirectedEdge)
+      (flippedPath :
+        certificate.fullGraph.EdgeSimplePath),
+    certificate.links =
+        before ++ .par left right source :: afterLinks ∧
+      flippedPath.start = source ∧
+        flippedPath.finish = target ∧
+          flippedPath.traversed = traversed ∧
+            traversed = rightOccurrence :: fullSuffix ∧
+              rightOccurrence.index =
+                (linkFullEdges before).length + 1 ∧
+                rightOccurrence.edge =
+                  { first := right, second := source } ∧
+                  rightOccurrence.forward = false ∧
+                    certificate.referenceSwitchingMask[
+                      rightOccurrence.index]? = some false ∧
+                      ∀ directed ∈ fullSuffix,
+                        certificate.referenceSwitchingMask[
+                          directed.index]? = some true
+
+/-- Strong flipped-traversal package used at cycle junctions.  Besides the
+source-right/retained-suffix decomposition, it records that the traversal
+never uses the exact left occurrence of its target waiting par. -/
+private def
+    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+    (certificate : Certificate)
+    (source target : Vertex)
+    (traversed :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  QuiescentWaitingParDependencyFlippedTraversal
+      certificate source target traversed ∧
+    ∃ (before afterLinks : List Link)
+        (left right : Vertex),
+      certificate.links =
+          before ++ .par left right target :: afterLinks ∧
+        ∀ directed ∈ traversed,
+          directed.index ≠ (linkFullEdges before).length
+
+/-- A reflexive dependency supplies one compact flipped traversal. -/
+private theorem
+    QuiescentWaitingParDependencyReflexiveEndAt.flippedTraversal_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {last : certificate.fullGraph.DirectedEdge}
+    (reflexive :
+      QuiescentWaitingParDependencyReflexiveEndAt
+        certificate state source target last) :
+    ∃ traversed,
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed := by
+  rcases reflexive.flippedFullPath_exists with
+    ⟨before, afterLinks, left, right, rightOccurrence,
+      fullSuffix, flippedPath, linksEquation, flippedStarts,
+      flippedFinishes, flippedTraversal, rightIndex,
+      rightEdge, rightBackward, rightOmitted, fullSuffixKept⟩
+  exact
+    ⟨flippedPath.traversed, before, afterLinks, left, right,
+      rightOccurrence, fullSuffix, flippedPath, linksEquation,
+      flippedStarts, flippedFinishes, rfl, flippedTraversal,
+      rightIndex, rightEdge, rightBackward, rightOmitted,
+      fullSuffixKept⟩
+
+/-- In a correct certificate, a reflexive dependency supplies a flipped
+traversal which avoids the exact target-left occurrence.  The strict suffix
+excludes the compacted boundary index; occurrence-acyclicity of the reference
+tree identifies that boundary index with the target par's retained left edge. -/
+private theorem
+    QuiescentWaitingParDependencyReflexiveEndAt.flippedTraversalAvoidingTargetLeft_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {last : certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (reflexive :
+      QuiescentWaitingParDependencyReflexiveEndAt
+        certificate state source target last) :
+    ∃ traversed,
+      QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+        certificate source target traversed := by
+  rcases reflexive with
+    ⟨boundary, atBoundary, boundaryTarget, _lastEdge,
+      _lastForward, _lastRetainedIndex, _lastSource,
+      _lastTarget, _lastKept⟩
+  rcases atBoundary.flippedSuffixFullPath_exists with
+    ⟨sourceBefore, sourceAfter, sourceLeft, sourceRight,
+      rightOccurrence, _referenceSuffix, fullSuffix, flippedPath,
+      sourceLinksEquation, _referenceSuffixStarts,
+      _referenceSuffixFinishes, _sourceAvoidsReferenceSuffix,
+      flippedStarts, flippedFinishes, flippedTraversal,
+      rightIndex, rightEdge, rightBackward, rightOmitted,
+      _retainedIndices, _retainedEdges, _retainedForwards,
+      _retainedTargets, fullSuffixAvoidsBoundary,
+      fullSuffixKept⟩
+  rcases
+      atBoundary.target_left_of_reflexive
+        correct.1 boundaryTarget with
+    ⟨targetIndex, targetLeft, targetRight, targetLookup,
+      boundaryEdge, _boundaryForward, _boundarySource⟩
+  rcases List.getElem?_eq_some_iff.mp targetLookup with
+    ⟨targetBound, targetValue⟩
+  let targetBefore := certificate.links.take targetIndex
+  let targetAfter := certificate.links.drop (targetIndex + 1)
+  have targetLinksEquation :
+      certificate.links =
+        targetBefore ++
+          .par targetLeft targetRight target :: targetAfter := by
+    calc
+      certificate.links =
+          certificate.links.take targetIndex ++
+            certificate.links.drop targetIndex :=
+        (List.take_append_drop targetIndex certificate.links).symm
+      _ =
+          certificate.links.take targetIndex ++
+            certificate.links[targetIndex] ::
+              certificate.links.drop (targetIndex + 1) := by
+        rw [List.drop_eq_getElem_cons targetBound]
+      _ =
+          targetBefore ++
+            .par targetLeft targetRight target :: targetAfter := by
+        rw [targetValue]
+  let targetLeftIndex := (linkFullEdges targetBefore).length
+  have targetLeftLookup :
+      certificate.fullGraph.edges[targetLeftIndex]? =
+        some { first := targetLeft, second := target } := by
+    change
+      (linkFullEdges certificate.links)[targetLeftIndex]? =
+        some { first := targetLeft, second := target }
+    rw [targetLinksEquation]
+    exact
+      (linkFullEdges_parAt targetBefore targetAfter
+        targetLeft targetRight target).1
+  have targetLeftKept :
+      certificate.referenceSwitchingMask[targetLeftIndex]? =
+        some true := by
+    exact
+      (certificate.referenceSwitchingMask_parAt
+        targetBefore targetAfter targetLeft targetRight target
+          targetLinksEquation).1
+  let targetLeftOccurrence :
+      certificate.fullGraph.DirectedEdge :=
+    { index := targetLeftIndex
+      edge := { first := targetLeft, second := target }
+      lookup := targetLeftLookup
+      forward := true }
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change
+      (linkFullEdges certificate.links).length =
+        certificate.referenceSwitchingMask.length
+    exact
+      certificate.referenceFullSwitchingSelection.mask_length.symm
+  let retainedTargetLeft :=
+    targetLeftOccurrence.retain aligned targetLeftKept
+  have retainedTargetLeftEdge :
+      retainedTargetLeft.edge = boundary.edge := by
+    change
+      ({ first := targetLeft, second := target } : Edge) =
+        boundary.edge
+    exact boundaryEdge.symm
+  have retainedTargetLeftIndex :
+      retainedTargetLeft.index = boundary.index := by
+    have referenceTree := correct.referenceSwitchingTree
+    have referenceEdgesNodup :=
+      referenceTree.acyclic.edges_nodup referenceTree.1
+    have referenceEdgesNodup' :
+        (certificate.fullGraph.retainEdges
+          certificate.referenceSwitchingMask).edges.Nodup := by
+      simpa [Certificate.referenceSwitchingGraph] using
+        referenceEdgesNodup
+    rcases List.getElem?_eq_some_iff.mp retainedTargetLeft.lookup with
+      ⟨retainedBound, retainedValue⟩
+    have boundaryLookup' :
+        (certificate.fullGraph.retainEdges
+          certificate.referenceSwitchingMask).edges[
+            boundary.index]? = some boundary.edge := by
+      simpa [Certificate.referenceSwitchingGraph] using
+        boundary.lookup
+    rcases List.getElem?_eq_some_iff.mp boundaryLookup' with
+      ⟨boundaryBound, boundaryValue⟩
+    apply
+      (List.getElem_inj
+        (i := retainedTargetLeft.index)
+        (j := boundary.index)
+        (h₀ := retainedBound) (h₁ := boundaryBound)
+        referenceEdgesNodup').mp
+    rw [retainedValue, boundaryValue]
+    exact retainedTargetLeftEdge
+  have targetLeftCompacted :
+      Graph.retainedIndex certificate.referenceSwitchingMask
+          targetLeftIndex =
+        boundary.index := by
+    change
+      Graph.retainedIndex certificate.referenceSwitchingMask
+          targetLeftIndex =
+        boundary.index at retainedTargetLeftIndex
+    exact retainedTargetLeftIndex
+  have flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target flippedPath.traversed :=
+    ⟨sourceBefore, sourceAfter, sourceLeft, sourceRight,
+      rightOccurrence, fullSuffix, flippedPath,
+      sourceLinksEquation, flippedStarts,
+      flippedFinishes.trans boundaryTarget, rfl,
+      flippedTraversal, rightIndex, rightEdge,
+      rightBackward, rightOmitted, fullSuffixKept⟩
+  have avoidsTargetLeft :
+      ∀ directed ∈ flippedPath.traversed,
+        directed.index ≠ targetLeftIndex := by
+    intro directed membership sameIndex
+    rw [flippedTraversal] at membership
+    simp only [List.mem_cons] at membership
+    rcases membership with rfl | inSuffix
+    · have omittedAtTargetLeft :
+          certificate.referenceSwitchingMask[targetLeftIndex]? =
+            some false := by
+        simpa [sameIndex] using rightOmitted
+      rw [targetLeftKept] at omittedAtTargetLeft
+      contradiction
+    · apply fullSuffixAvoidsBoundary directed inSuffix
+      calc
+        Graph.retainedIndex certificate.referenceSwitchingMask
+            directed.index =
+            Graph.retainedIndex certificate.referenceSwitchingMask
+              targetLeftIndex := by rw [sameIndex]
+        _ = boundary.index := targetLeftCompacted
+  exact
+    ⟨flippedPath.traversed, flipped, targetBefore,
+      targetAfter, targetLeft, targetRight,
+      targetLinksEquation, avoidsTargetLeft⟩
+
+/-- The compact flipped traversal is a genuine full-graph walk between the
+dependency endpoints. -/
+private theorem QuiescentWaitingParDependencyFlippedTraversal.walk
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    certificate.fullGraph.EdgeWalk source traversed target := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      _rightOccurrence, _fullSuffix, flippedPath,
+      _linksEquation, flippedStarts, flippedFinishes,
+      flippedTraversal, _traversalShape, _rightIndex,
+      _rightEdge, _rightBackward, _rightOmitted,
+      _fullSuffixKept⟩
+  simpa [flippedStarts, flippedFinishes, flippedTraversal] using
+    flippedPath.walk
+
+/-- Every compact flipped traversal is nonempty. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.nonempty
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    traversed ≠ [] := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      rightOccurrence, fullSuffix, _flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      _flippedTraversal, traversalShape, _rightIndex,
+      _rightEdge, _rightBackward, _rightOmitted,
+      _fullSuffixKept⟩
+  simp [traversalShape]
+
+/-- Vertex simplicity of the flipped path implies exact-occurrence
+nonbacktracking. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.noImmediateReverse
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    Graph.EdgeWalk.NoImmediateReverse traversed := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      _rightOccurrence, _fullSuffix, flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      flippedTraversal, _traversalShape, _rightIndex,
+      _rightEdge, _rightBackward, _rightOmitted,
+      _fullSuffixKept⟩
+  apply Graph.EdgeWalk.NoImmediateReverse.of_map_nodup
+    Graph.DirectedEdge.index
+  · intro directed
+    simp
+  · rw [← flippedTraversal]
+    exact flippedPath.edgeIndicesNodup
+
+/-- The first occurrence of a flipped traversal is backward and omitted by
+the all-left reference switching. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.head_omitted_backward
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    ∃ first,
+      traversed.head? = some first ∧
+        first.forward = false ∧
+          certificate.referenceSwitchingMask[first.index]? =
+            some false := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      rightOccurrence, fullSuffix, _flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      _flippedTraversal, traversalShape, _rightIndex,
+      _rightEdge, rightBackward, rightOmitted,
+      _fullSuffixKept⟩
+  exact
+    ⟨rightOccurrence, by simp [traversalShape],
+      rightBackward, rightOmitted⟩
+
+/-- The last occurrence is either the backward omitted source incidence
+(when the retained suffix is empty) or belongs to the retained suffix. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.last_backward_or_kept
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed)
+    {last : certificate.fullGraph.DirectedEdge}
+    (lastLookup : traversed.getLast? = some last) :
+    last.forward = false ∨
+      certificate.referenceSwitchingMask[last.index]? =
+        some true := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      rightOccurrence, fullSuffix, _flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      _flippedTraversal, traversalShape, _rightIndex,
+      _rightEdge, rightBackward, _rightOmitted,
+      fullSuffixKept⟩
+  by_cases suffixEmpty : fullSuffix = []
+  · have lastValue : last = rightOccurrence := by
+      rw [traversalShape, suffixEmpty] at lastLookup
+      simpa using Option.some.inj lastLookup.symm
+    exact .inl (by simpa [lastValue] using rightBackward)
+  · have suffixLast :
+        fullSuffix.getLast? = some last := by
+      rw [traversalShape, List.getLast?_cons_of_ne_nil suffixEmpty]
+        at lastLookup
+      exact lastLookup
+    have lastMembership : last ∈ fullSuffix := by
+      have lastValue :
+          fullSuffix.getLast suffixEmpty = last :=
+        Option.some.inj
+          ((List.getLast?_eq_some_getLast suffixEmpty).symm.trans
+            suffixLast)
+      rw [← lastValue]
+      exact List.getLast_mem suffixEmpty
+    exact .inr (fullSuffixKept last lastMembership)
+
+/-- Every forward occurrence of a flipped traversal lies in its retained
+reference suffix. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.forward_kept
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    ∀ directed ∈ traversed,
+      directed.forward = true →
+        certificate.referenceSwitchingMask[directed.index]? =
+          some true := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      rightOccurrence, fullSuffix, _flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      _flippedTraversal, traversalShape, _rightIndex,
+      _rightEdge, rightBackward, _rightOmitted,
+      fullSuffixKept⟩
+  intro directed membership forward
+  rw [traversalShape] at membership
+  simp only [List.mem_cons] at membership
+  rcases membership with rfl | inSuffix
+  · rw [rightBackward] at forward
+    contradiction
+  · exact fullSuffixKept directed inSuffix
+
+/-- Two flipped dependency traversals cannot cancel at their junction.  The
+outgoing head is a backward reference-omitted right occurrence.  An incoming
+backward occurrence has the wrong orientation to reverse it; an incoming kept
+occurrence has the same exact index but the opposite reference-mask value. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.no_reverse_junction
+    {certificate : Certificate}
+    {firstSource firstTarget secondSource secondTarget : Vertex}
+    {firstTraversal secondTraversal :
+      List certificate.fullGraph.DirectedEdge}
+    (firstFlipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate firstSource firstTarget firstTraversal)
+    (secondFlipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate secondSource secondTarget secondTraversal)
+    {incoming outgoing :
+      certificate.fullGraph.DirectedEdge}
+    (firstLast : firstTraversal.getLast? = some incoming)
+    (secondHead : secondTraversal.head? = some outgoing) :
+    outgoing ≠ incoming.reverse := by
+  rcases secondFlipped.head_omitted_backward with
+    ⟨actualHead, actualHeadLookup, actualHeadBackward,
+      actualHeadOmitted⟩
+  have outgoingValue : outgoing = actualHead :=
+    Option.some.inj (secondHead.symm.trans actualHeadLookup)
+  subst outgoing
+  rcases firstFlipped.last_backward_or_kept firstLast with
+    incomingBackward | incomingKept
+  · intro reversed
+    have orientations :=
+      congrArg Graph.DirectedEdge.forward reversed
+    simp [Graph.DirectedEdge.reverse, incomingBackward,
+      actualHeadBackward] at orientations
+  · intro reversed
+    have sameIndex :
+        actualHead.index = incoming.index := by
+      simpa [Graph.DirectedEdge.reverse] using
+        congrArg Graph.DirectedEdge.index reversed
+    have omittedAtIncoming :
+        certificate.referenceSwitchingMask[incoming.index]? =
+          some false := by
+      simpa [sameIndex] using actualHeadOmitted
+    rw [incomingKept] at omittedAtIncoming
+    contradiction
+
+/-- A backward incoming occurrence can cusp with an outgoing occurrence only
+when the latter is its exact reverse.  This local fact does not need a
+switching hypothesis: the backward incidence has a unique false-orientation
+color, so equality with the reversed outgoing color identifies both the
+stored occurrence and its orientation. -/
+private theorem noCusp_of_backwardIncoming_of_not_reverse
+    (certificate : Certificate)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge)
+    (incomingBackward : incoming.forward = false)
+    (differentReverse : incoming ≠ outgoing.reverse) :
+    ¬certificate.Cusp incoming outgoing := by
+  intro cusp
+  have incomingColor :
+      certificate.incidenceColor incoming =
+        .unique incoming.index false := by
+    simp [Certificate.incidenceColor, incomingBackward]
+  by_cases outgoingPar :
+      ∃ conclusion,
+        certificate.incidenceColor outgoing.reverse =
+          .par conclusion
+  · rcases outgoingPar with ⟨conclusion, outgoingColor⟩
+    unfold Certificate.Cusp at cusp
+    rw [incomingColor, outgoingColor] at cusp
+    cases cusp
+  · have outgoingNotPar :
+        ∀ conclusion,
+          certificate.incidenceColor outgoing.reverse ≠
+            .par conclusion := by
+      intro conclusion equality
+      exact outgoingPar ⟨conclusion, equality⟩
+    have outgoingColor :=
+      certificate.incidenceColor_eq_unique_of_not_par
+        outgoing.reverse outgoingNotPar
+    unfold Certificate.Cusp at cusp
+    rw [incomingColor, outgoingColor] at cusp
+    injection cusp with sameIndex sameForward
+    have exactReverse :
+        incoming = outgoing.reverse := by
+      apply Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+      · exact sameIndex
+      · simpa [incomingBackward] using sameForward
+    exact differentReverse exactReverse
+
+/-- Two exact occurrences retained by the deterministic reference switching
+cannot cusp unless the outgoing occurrence is the incoming occurrence's exact
+reverse.  This is the path-local form of the switching-cycle lemma: it avoids
+assuming that the two occurrences already lie in a simple cycle. -/
+private theorem noCusp_of_referenceKept_of_not_reverse
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    (incoming outgoing : certificate.fullGraph.DirectedEdge)
+    (incomingKept :
+      certificate.referenceSwitchingMask[incoming.index]? =
+        some true)
+    (outgoingKept :
+      certificate.referenceSwitchingMask[outgoing.index]? =
+        some true)
+    (differentReverse : incoming ≠ outgoing.reverse) :
+    ¬certificate.Cusp incoming outgoing := by
+  intro cusp
+  have cusping : certificate.CuspingEdge incoming :=
+    ⟨outgoing, cusp, differentReverse⟩
+  rcases cusping.incidenceColor_eq_par with
+    ⟨conclusion, incomingColor⟩
+  have outgoingColor :
+      certificate.incidenceColor outgoing.reverse =
+        .par conclusion := by
+    unfold Certificate.Cusp at cusp
+    exact cusp.symm.trans incomingColor
+  have incomingData :=
+    (certificate.incidenceColor_eq_par_iff
+      incoming conclusion).mp incomingColor
+  have outgoingData :=
+    (certificate.incidenceColor_eq_par_iff
+      outgoing.reverse conclusion).mp outgoingColor
+  have outgoingReverseKept :
+      certificate.referenceSwitchingMask[
+        outgoing.reverse.index]? = some true := by
+    simpa using outgoingKept
+  have sameIndex :=
+    certificate.referenceFullSwitchingSelection
+      |>.kept_parTarget_index_unique_of_structural structural
+        incomingData.2 outgoingData.2
+        incomingKept outgoingReverseKept
+  have sameForward :
+      incoming.forward = outgoing.reverse.forward :=
+    incomingData.1.trans outgoingData.1.symm
+  exact differentReverse
+    (Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+      incoming outgoing.reverse sameIndex sameForward)
+
+/-- A nonbacktracking traversal entirely retained by the all-left reference
+switching is locally cusp-free, without requiring the traversal to be closed
+or vertex-simple. -/
+private theorem cuspFreeTraversal_of_referenceKept
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) :
+    ∀ traversed : List certificate.fullGraph.DirectedEdge,
+      (∀ directed ∈ traversed,
+        certificate.referenceSwitchingMask[directed.index]? =
+          some true) →
+      Graph.EdgeWalk.NoImmediateReverse traversed →
+        certificate.CuspFreeTraversal traversed
+  | [], _allKept, _reduced => by
+      trivial
+  | [_single], _allKept, _reduced => by
+      trivial
+  | incoming :: outgoing :: rest, allKept, reduced => by
+      have differentReverse :
+          incoming ≠ outgoing.reverse := by
+        intro reversed
+        apply reduced.1
+        have reversedAgain :=
+          congrArg Graph.DirectedEdge.reverse reversed
+        simpa using reversedAgain.symm
+      refine
+        ⟨noCusp_of_referenceKept_of_not_reverse
+            structural incoming outgoing
+              (allKept incoming (by simp))
+              (allKept outgoing (by simp))
+              differentReverse,
+          cuspFreeTraversal_of_referenceKept structural
+            (outgoing :: rest) ?_ reduced.2⟩
+      intro directed membership
+      exact allKept directed (by simp [membership])
+
+/-- Every flipped dependency traversal is internally cusp-free.  Its initial
+backward omitted right-par occurrence is protected by exact nonbacktracking;
+the remaining suffix is a nonbacktracking path entirely retained by the
+reference switching. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.cuspFree
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    certificate.CuspFreeTraversal traversed := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      rightOccurrence, fullSuffix, flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      flippedTraversal, traversalShape, _rightIndex,
+      _rightEdge, rightBackward, _rightOmitted,
+      fullSuffixKept⟩
+  have completeReduced :
+      Graph.EdgeWalk.NoImmediateReverse
+        (rightOccurrence :: fullSuffix) := by
+    rw [← traversalShape, ← flippedTraversal]
+    apply Graph.EdgeWalk.NoImmediateReverse.of_map_nodup
+      Graph.DirectedEdge.index
+    · intro directed
+      simp
+    · exact flippedPath.edgeIndicesNodup
+  have suffixReduced :
+      Graph.EdgeWalk.NoImmediateReverse fullSuffix := by
+    cases fullSuffix with
+    | nil => trivial
+    | cons first rest =>
+        cases rest with
+        | nil => trivial
+        | cons second tail =>
+            exact completeReduced.2
+  have suffixFree :
+      certificate.CuspFreeTraversal fullSuffix :=
+    cuspFreeTraversal_of_referenceKept structural
+      fullSuffix fullSuffixKept suffixReduced
+  cases suffixEquation : fullSuffix with
+  | nil =>
+      rw [traversalShape, suffixEquation]
+      trivial
+  | cons first rest =>
+      have reducedAtHead :
+          first ≠ rightOccurrence.reverse ∧
+            Graph.EdgeWalk.NoImmediateReverse (first :: rest) := by
+        simpa [suffixEquation,
+          Graph.EdgeWalk.NoImmediateReverse] using completeReduced
+      have differentReverse :
+          rightOccurrence ≠ first.reverse := by
+        intro reversed
+        apply reducedAtHead.1
+        have reversedAgain :=
+          congrArg Graph.DirectedEdge.reverse reversed
+        simpa using reversedAgain.symm
+      rw [traversalShape, suffixEquation]
+      exact
+        ⟨noCusp_of_backwardIncoming_of_not_reverse
+            certificate rightOccurrence first
+              rightBackward differentReverse,
+          by simpa [suffixEquation] using suffixFree⟩
+
+/-- Consecutive flipped dependency segments cannot cusp at their common
+waiting-par conclusion.  A hypothetical cusp makes the incoming occurrence a
+forward reference-kept par incidence.  The reference switching's exact
+one-per-par uniqueness then identifies it with the target par's left
+occurrence, which the preceding strict suffix explicitly avoids. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft.no_cusp_junction
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {firstSource common secondTarget : Vertex}
+    {firstTraversal secondTraversal :
+      List certificate.fullGraph.DirectedEdge}
+    (firstFlipped :
+      QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+        certificate firstSource common firstTraversal)
+    (secondFlipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate common secondTarget secondTraversal)
+    {incoming outgoing :
+      certificate.fullGraph.DirectedEdge}
+    (firstLast : firstTraversal.getLast? = some incoming)
+    (secondHead : secondTraversal.head? = some outgoing) :
+    ¬certificate.Cusp incoming outgoing := by
+  rcases firstFlipped with
+    ⟨firstWeak, targetBefore, targetAfter,
+      targetLeft, targetRight, targetLinksEquation,
+      avoidsTargetLeft⟩
+  rcases secondFlipped with
+    ⟨sourceBefore, sourceAfter, sourceLeft, sourceRight,
+      rightOccurrence, sourceSuffix, _sourcePath,
+      sourceLinksEquation, _sourceStarts, _sourceFinishes,
+      _sourceTraversal, sourceTraversalShape, rightIndex,
+      _rightEdge, rightBackward, _rightOmitted,
+      _sourceSuffixKept⟩
+  have outgoingValue : outgoing = rightOccurrence := by
+    rw [sourceTraversalShape] at secondHead
+    simpa using Option.some.inj secondHead.symm
+  subst outgoing
+  have rightTarget :
+      certificate.fullEdgeParTargets[rightOccurrence.index]? =
+        some (some common) := by
+    change
+      (linkFullEdgeParTargets certificate.links)[
+          rightOccurrence.index]? =
+        some (some common)
+    rw [rightIndex, sourceLinksEquation,
+      linkFullEdgeParTargets_append]
+    rw [← linkFullEdgeParTargets_length sourceBefore]
+    simp [linkFullEdgeParTargets]
+  have rightReverseColor :
+      certificate.incidenceColor rightOccurrence.reverse =
+        .par common := by
+    apply
+      (certificate.incidenceColor_eq_par_iff
+        rightOccurrence.reverse common).2
+    constructor
+    · simp [Graph.DirectedEdge.reverse, rightBackward]
+    · simpa using rightTarget
+  intro cusp
+  have incomingColor :
+      certificate.incidenceColor incoming = .par common := by
+    unfold Certificate.Cusp at cusp
+    exact cusp.trans rightReverseColor
+  have incomingData :=
+    (certificate.incidenceColor_eq_par_iff
+      incoming common).mp incomingColor
+  have incomingMembership : incoming ∈ firstTraversal := by
+    rcases List.getLast?_eq_some_iff.mp firstLast with
+      ⟨before, traversalEquation⟩
+    rw [traversalEquation]
+    simp
+  have incomingKept :
+      certificate.referenceSwitchingMask[incoming.index]? =
+        some true :=
+    firstWeak.forward_kept incoming incomingMembership incomingData.1
+  let targetLeftIndex := (linkFullEdges targetBefore).length
+  have targetLeftTarget :
+      certificate.fullEdgeParTargets[targetLeftIndex]? =
+        some (some common) := by
+    change
+      (linkFullEdgeParTargets certificate.links)[
+          targetLeftIndex]? =
+        some (some common)
+    dsimp [targetLeftIndex]
+    rw [targetLinksEquation, linkFullEdgeParTargets_append]
+    rw [← linkFullEdgeParTargets_length targetBefore]
+    simp [linkFullEdgeParTargets]
+  have targetLeftKept :
+      certificate.referenceSwitchingMask[targetLeftIndex]? =
+        some true :=
+    (certificate.referenceSwitchingMask_parAt
+      targetBefore targetAfter targetLeft targetRight common
+        targetLinksEquation).1
+  have sameIndex :
+      incoming.index = targetLeftIndex :=
+    certificate.referenceFullSwitchingSelection
+      |>.kept_parTarget_index_unique_of_structural structural
+        incomingData.2 targetLeftTarget incomingKept targetLeftKept
+  exact
+    avoidsTargetLeft incoming incomingMembership
+      (by simpa [targetLeftIndex] using sameIndex)
+
+/-- Flattening a family of nonempty cusp-free traversals preserves internal
+cusp-freedom when every adjacent family junction is cusp-free.  The theorem
+keeps the junction decomposition exact, so clients can recover indexed
+scheduler meaning rather than reasoning only from endpoint values. -/
+private theorem cuspFreeTraversal_flatten_of_family
+    {certificate : Certificate} :
+    ∀ (segments :
+        List (List certificate.fullGraph.DirectedEdge)),
+      (∀ segment, segment ∈ segments → segment ≠ []) →
+      (∀ segment, segment ∈ segments →
+        certificate.CuspFreeTraversal segment) →
+      (∀ (before :
+            List (List certificate.fullGraph.DirectedEdge))
+          (first second :
+            List certificate.fullGraph.DirectedEdge)
+          (after :
+            List (List certificate.fullGraph.DirectedEdge))
+          (incoming outgoing :
+            certificate.fullGraph.DirectedEdge),
+        segments = before ++ first :: second :: after →
+        first.getLast? = some incoming →
+        second.head? = some outgoing →
+          ¬certificate.Cusp incoming outgoing) →
+        certificate.CuspFreeTraversal segments.flatten
+  | [], _segmentsNonempty, _segmentsFree, _junctionFree => by
+      trivial
+  | [segment], segmentsNonempty, segmentsFree, _junctionFree => by
+      simpa using segmentsFree segment (by simp)
+  | first :: second :: rest,
+      segmentsNonempty, segmentsFree, junctionFree => by
+      have firstNonempty : first ≠ [] :=
+        segmentsNonempty first (by simp)
+      have secondNonempty : second ≠ [] :=
+        segmentsNonempty second (by simp)
+      have firstFree :
+          certificate.CuspFreeTraversal first :=
+        segmentsFree first (by simp)
+      have remainingNonempty :
+          (second :: rest).flatten ≠ [] := by
+        intro flattenedEmpty
+        have secondEmpty :
+            second = [] :=
+          List.flatten_eq_nil_iff.mp flattenedEmpty
+            second (by simp)
+        exact secondNonempty secondEmpty
+      have remainingFree :
+          certificate.CuspFreeTraversal
+            (second :: rest).flatten := by
+        apply cuspFreeTraversal_flatten_of_family
+        · intro segment membership
+          exact segmentsNonempty segment (by simp [membership])
+        · intro segment membership
+          exact segmentsFree segment (by simp [membership])
+        · intro before firstAt secondAt after
+            incoming outgoing familyEquation
+            firstLast secondHead
+          apply
+            junctionFree (first :: before)
+              firstAt secondAt after incoming outgoing
+          · simp [familyEquation]
+          · exact firstLast
+          · exact secondHead
+      let incoming := first.getLast firstNonempty
+      let outgoing :=
+        (second :: rest).flatten.head remainingNonempty
+      have firstLast :
+          first.getLast? = some incoming :=
+        List.getLast?_eq_some_getLast firstNonempty
+      have remainingHead :
+          (second :: rest).flatten.head? = some outgoing :=
+        List.head?_eq_some_head remainingNonempty
+      have secondHead :
+          second.head? = some outgoing := by
+        calc
+          second.head? =
+              (second :: rest).flatten.head? := by
+                simp [List.head?_append,
+                  List.head?_eq_some_head secondNonempty]
+          _ = some outgoing := remainingHead
+      have boundaryFree :
+          ¬certificate.Cusp incoming outgoing :=
+        junctionFree [] first second rest incoming outgoing
+          (by simp) firstLast secondHead
+      change
+        certificate.CuspFreeTraversal
+          (first ++ (second :: rest).flatten)
+      exact
+        CuspFreeTraversal.append certificate
+          firstFree remainingFree firstNonempty
+            remainingNonempty boundaryFree
 
 /-- If an exact dependency frontier already lands at a registered waiting
 par, the unassigned formula chase cannot descend through either of that par's
@@ -19547,6 +20799,448 @@ private theorem
       exact
         ⟨predecessorSegment, sourceEdge.reverse,
           predecessorLookup, predecessorLast, predecessorReflexive⟩
+
+/-- Replace every reflexive all-left dependency segment by its complementary
+right-par/suffix path.  The paths compose around the same finite dependency
+cycle.  Their flattening is nonempty and cyclically nonbacktracking: internal
+nonbacktracking follows from vertex simplicity, while every inter-segment
+junction is protected by the exact retained/omitted mask distinction.
+
+This theorem turns the formerly fully cancelling reference-tree obstruction
+into a genuine reduced closed walk in the complete occurrence graph. -/
+private theorem
+    FullyCancellingDependencyCycleAllReflexive.flippedClosedWalk_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {originalSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count originalSegments)
+    (correct : certificate.DeclarativelyCorrect)
+    (positive : 0 < count)
+    (closed : chainAt 0 = chainAt count) :
+    ∃ flippedSegments :
+        List (List certificate.fullGraph.DirectedEdge),
+      flippedSegments.length = count ∧
+        flippedSegments ≠ [] ∧
+          flippedSegments.flatten ≠ [] ∧
+            certificate.fullGraph.EdgeWalk
+              (chainAt 0) flippedSegments.flatten (chainAt 0) ∧
+              Graph.EdgeWalk.CyclicNoImmediateReverse
+                flippedSegments.flatten ∧
+                (∀ step,
+                  step < count →
+                    ∃ segment,
+                      flippedSegments[step]? = some segment ∧
+                        QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                          certificate
+                            (chainAt step) (chainAt (step + 1))
+                              segment) ∧
+                  ∀ directed,
+                    directed ∈ flippedSegments.flatten →
+                      directed.forward = true →
+                        certificate.referenceSwitchingMask[
+                          directed.index]? = some true := by
+  have flippedAt :
+      ∀ step,
+        step < count →
+          ∃ traversed :
+              List certificate.fullGraph.DirectedEdge,
+            traversed ≠ [] ∧
+              certificate.fullGraph.EdgeWalk
+                (chainAt step) traversed (chainAt (step + 1)) ∧
+                QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                  certificate
+                    (chainAt step) (chainAt (step + 1))
+                      traversed ∧
+                  ∀ directed,
+                    directed ∈ traversed →
+                      directed.forward = true →
+                        certificate.referenceSwitchingMask[
+                          directed.index]? = some true := by
+    intro step stepBound
+    rcases allReflexive step stepBound with
+      ⟨_originalSegment, last, _originalLookup,
+        _lastLookup, reflexive⟩
+    rcases
+        reflexive.flippedTraversalAvoidingTargetLeft_exists
+          correct with
+      ⟨traversed, flipped⟩
+    exact
+      ⟨traversed, flipped.1.nonempty, flipped.1.walk,
+        flipped, flipped.1.forward_kept⟩
+  rcases
+      fullGraphEdgeWalk_segmentFamily_exists
+        (fun directed =>
+          directed.forward = true →
+            certificate.referenceSwitchingMask[directed.index]? =
+              some true)
+        (fun step traversed =>
+          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+            certificate
+              (chainAt step) (chainAt (step + 1))
+                traversed)
+        chainAt count flippedAt with
+    ⟨flippedSegments, segmentCount, chainedWalk,
+      indexedProperties⟩
+  have familyNonempty : flippedSegments ≠ [] := by
+    intro empty
+    rw [empty] at segmentCount
+    simp at segmentCount
+    omega
+  have indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment := by
+    intro step stepBound
+    rcases indexedProperties step stepBound with
+      ⟨segment, lookup, _nonempty, flipped, _pointwise⟩
+    exact ⟨segment, lookup, flipped⟩
+  have segmentData :
+      ∀ segment,
+        segment ∈ flippedSegments →
+          ∃ step,
+            step < count ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment := by
+    intro segment membership
+    rcases List.getElem?_of_mem membership with
+      ⟨step, lookup⟩
+    have stepBound : step < count := by
+      have withinFamily :=
+        (List.getElem?_eq_some_iff.mp lookup).1
+      simpa [segmentCount] using withinFamily
+    rcases indexedFlipped step stepBound with
+      ⟨actual, actualLookup, flipped⟩
+    have actualValue : actual = segment :=
+      Option.some.inj (actualLookup.symm.trans lookup)
+    subst actual
+    exact ⟨step, stepBound, flipped⟩
+  have segmentsNonempty :
+      ∀ segment,
+        segment ∈ flippedSegments → segment ≠ [] := by
+    intro segment membership
+    rcases segmentData segment membership with
+      ⟨_step, _stepBound, flipped⟩
+    exact flipped.1.nonempty
+  have segmentsReduced :
+      ∀ segment,
+        segment ∈ flippedSegments →
+          Graph.EdgeWalk.NoImmediateReverse segment := by
+    intro segment membership
+    rcases segmentData segment membership with
+      ⟨_step, _stepBound, flipped⟩
+    exact flipped.1.noImmediateReverse
+  have flattenedNonempty : flippedSegments.flatten ≠ [] := by
+    intro flattenedEmpty
+    let first := flippedSegments.head familyNonempty
+    have firstMembership : first ∈ flippedSegments :=
+      List.head_mem familyNonempty
+    have firstEmpty : first = [] :=
+      List.flatten_eq_nil_iff.mp flattenedEmpty
+        first firstMembership
+    exact
+      segmentsNonempty first firstMembership firstEmpty
+  have closedWalk :
+      certificate.fullGraph.EdgeWalk
+        (chainAt 0) flippedSegments.flatten (chainAt 0) := by
+    simpa [closed] using chainedWalk
+  have cyclicReduced :
+      Graph.EdgeWalk.CyclicNoImmediateReverse
+        flippedSegments.flatten := by
+    rcases
+        Graph.EdgeWalk.cyclicNoImmediateReverse_or_site
+          flippedSegments.flatten with
+      reduced | site
+    · exact reduced
+    · have junction :=
+        site.segmentJunction_of_flatten
+          familyNonempty segmentsNonempty segmentsReduced
+      rcases junction with adjacent | closing
+      · rcases adjacent with
+          ⟨familyBefore, first, second, familyAfter,
+            firstLast, secondHead, familyEquation,
+            firstLastLookup, secondHeadLookup, reversed⟩
+        have firstMembership : first ∈ flippedSegments := by
+          rw [familyEquation]
+          simp
+        have secondMembership : second ∈ flippedSegments := by
+          rw [familyEquation]
+          simp
+        rcases segmentData first firstMembership with
+          ⟨_firstStep, _firstBound, firstFlipped⟩
+        rcases segmentData second secondMembership with
+          ⟨_secondStep, _secondBound, secondFlipped⟩
+        exact False.elim
+          (firstFlipped.1.no_reverse_junction
+            secondFlipped.1 firstLastLookup secondHeadLookup reversed)
+      · rcases closing with
+          ⟨firstSegment, lastSegment, first, last,
+            familyHead, familyLast, firstHead, lastLast,
+            reversed⟩
+        rcases List.head?_eq_some_iff.mp familyHead with
+          ⟨familyTail, familyHeadEquation⟩
+        rcases List.getLast?_eq_some_iff.mp familyLast with
+          ⟨familyPrefix, familyLastEquation⟩
+        have firstMembership :
+            firstSegment ∈ flippedSegments := by
+          rw [familyHeadEquation]
+          simp
+        have lastMembership :
+            lastSegment ∈ flippedSegments := by
+          rw [familyLastEquation]
+          simp
+        rcases segmentData lastSegment lastMembership with
+          ⟨_lastStep, _lastBound, lastFlipped⟩
+        rcases segmentData firstSegment firstMembership with
+          ⟨_firstStep, _firstBound, firstFlipped⟩
+        exact False.elim
+          (lastFlipped.1.no_reverse_junction
+            firstFlipped.1 lastLast firstHead reversed)
+  have allForwardKept :
+      ∀ directed,
+        directed ∈ flippedSegments.flatten →
+          directed.forward = true →
+            certificate.referenceSwitchingMask[
+              directed.index]? = some true := by
+    intro directed membership forward
+    rcases List.mem_flatten.mp membership with
+      ⟨segment, segmentMembership, directedMembership⟩
+    rcases segmentData segment segmentMembership with
+      ⟨_step, _stepBound, flipped⟩
+    exact
+      flipped.1.forward_kept directed directedMembership forward
+  exact
+    ⟨flippedSegments, segmentCount, familyNonempty,
+      flattenedNonempty, closedWalk, cyclicReduced,
+      indexedFlipped, allForwardKept⟩
+
+/-- The simultaneous flip is not only nonbacktracking: every local transition
+inside the flattened family and across its closing last/first junction is
+cusp-free.  Internal segment freedom comes from the retained reference
+suffix; adjacent and cyclic family junctions use exact target-left avoidance.
+
+This does not yet collapse a repeated-vertex walk to a cusp-free simple cycle:
+such a collapse must preserve the newly proved exact junction information. -/
+private theorem
+    FullyCancellingDependencyCycleAllReflexive.flippedCyclicCuspFreeWalk_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {originalSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count originalSegments)
+    (correct : certificate.DeclarativelyCorrect)
+    (positive : 0 < count)
+    (closed : chainAt 0 = chainAt count) :
+    ∃ flippedSegments :
+        List (List certificate.fullGraph.DirectedEdge),
+      flippedSegments.length = count ∧
+        flippedSegments.flatten ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+            (chainAt 0) flippedSegments.flatten (chainAt 0) ∧
+            Graph.EdgeWalk.CyclicNoImmediateReverse
+              flippedSegments.flatten ∧
+              certificate.CuspFreeTraversal
+                flippedSegments.flatten ∧
+                (∀ first last,
+                  flippedSegments.flatten.head? = some first →
+                  flippedSegments.flatten.getLast? = some last →
+                    ¬certificate.Cusp last first) ∧
+                  (∀ step,
+                    step < count →
+                      ∃ segment,
+                        flippedSegments[step]? = some segment ∧
+                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                            certificate
+                              (chainAt step) (chainAt (step + 1))
+                                segment) ∧
+                    ∀ directed,
+                      directed ∈ flippedSegments.flatten →
+                        directed.forward = true →
+                          certificate.referenceSwitchingMask[
+                            directed.index]? = some true := by
+  rcases
+      allReflexive.flippedClosedWalk_exists
+        correct positive closed with
+    ⟨flippedSegments, segmentCount, familyNonempty,
+      flattenedNonempty, closedWalk, cyclicReduced,
+      indexedFlipped, allForwardKept⟩
+  have segmentData :
+      ∀ segment,
+        segment ∈ flippedSegments →
+          ∃ step,
+            step < count ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment := by
+    intro segment membership
+    rcases List.getElem?_of_mem membership with
+      ⟨step, lookup⟩
+    have stepBound : step < count := by
+      have withinFamily :=
+        (List.getElem?_eq_some_iff.mp lookup).1
+      simpa [segmentCount] using withinFamily
+    rcases indexedFlipped step stepBound with
+      ⟨actual, actualLookup, flipped⟩
+    have actualValue : actual = segment :=
+      Option.some.inj (actualLookup.symm.trans lookup)
+    subst actual
+    exact ⟨step, stepBound, flipped⟩
+  have segmentsNonempty :
+      ∀ segment,
+        segment ∈ flippedSegments → segment ≠ [] := by
+    intro segment membership
+    rcases segmentData segment membership with
+      ⟨_step, _stepBound, flipped⟩
+    exact flipped.1.nonempty
+  have segmentsCuspFree :
+      ∀ segment,
+        segment ∈ flippedSegments →
+          certificate.CuspFreeTraversal segment := by
+    intro segment membership
+    rcases segmentData segment membership with
+      ⟨_step, _stepBound, flipped⟩
+    exact flipped.1.cuspFree correct.1
+  have adjacentJunctionCuspFree :
+      ∀ (before :
+            List (List certificate.fullGraph.DirectedEdge))
+          (first second :
+            List certificate.fullGraph.DirectedEdge)
+          (after :
+            List (List certificate.fullGraph.DirectedEdge))
+          (incoming outgoing :
+            certificate.fullGraph.DirectedEdge),
+        flippedSegments =
+          before ++ first :: second :: after →
+        first.getLast? = some incoming →
+        second.head? = some outgoing →
+          ¬certificate.Cusp incoming outgoing := by
+    intro before first second after incoming outgoing
+      familyEquation firstLast secondHead
+    let step := before.length
+    have firstBound : step < count := by
+      rw [← segmentCount, familyEquation]
+      simp [step]
+    have secondBound : step + 1 < count := by
+      rw [← segmentCount, familyEquation]
+      simp [step]
+    have firstLookup :
+        flippedSegments[step]? = some first := by
+      rw [familyEquation]
+      simp [step]
+    have secondLookup :
+        flippedSegments[step + 1]? = some second := by
+      rw [familyEquation]
+      simp [step]
+    rcases indexedFlipped step firstBound with
+      ⟨firstAt, firstAtLookup, firstFlipped⟩
+    have firstValue : firstAt = first :=
+      Option.some.inj (firstAtLookup.symm.trans firstLookup)
+    subst firstAt
+    rcases indexedFlipped (step + 1) secondBound with
+      ⟨secondAt, secondAtLookup, secondFlipped⟩
+    have secondValue : secondAt = second :=
+      Option.some.inj (secondAtLookup.symm.trans secondLookup)
+    subst secondAt
+    exact
+      firstFlipped.no_cusp_junction correct.1
+        secondFlipped.1 firstLast secondHead
+  have flattenedCuspFree :
+      certificate.CuspFreeTraversal
+        flippedSegments.flatten :=
+    cuspFreeTraversal_flatten_of_family
+      flippedSegments segmentsNonempty segmentsCuspFree
+        adjacentJunctionCuspFree
+  have closingCuspFree :
+      ∀ first last,
+        flippedSegments.flatten.head? = some first →
+        flippedSegments.flatten.getLast? = some last →
+          ¬certificate.Cusp last first := by
+    intro first last flattenedHead flattenedLast
+    rcases indexedFlipped 0 positive with
+      ⟨firstSegment, firstLookup, firstFlipped⟩
+    have lastStepBound : count - 1 < count := by
+      omega
+    rcases indexedFlipped (count - 1) lastStepBound with
+      ⟨lastSegment, lastLookup, lastFlipped⟩
+    have firstFamilyHead :
+        flippedSegments.head? = some firstSegment := by
+      rw [List.head?_eq_getElem?]
+      exact firstLookup
+    have lastFamilyLast :
+        flippedSegments.getLast? = some lastSegment := by
+      calc
+        flippedSegments.getLast? =
+            flippedSegments[flippedSegments.length - 1]? :=
+          List.getLast?_eq_getElem?
+        _ = flippedSegments[count - 1]? := by
+          rw [segmentCount]
+        _ = some lastSegment := lastLookup
+    rcases List.head?_eq_some_iff.mp firstFamilyHead with
+      ⟨familyTail, familyHeadEquation⟩
+    rcases List.getLast?_eq_some_iff.mp lastFamilyLast with
+      ⟨familyPrefix, familyLastEquation⟩
+    have firstNonempty : firstSegment ≠ [] :=
+      firstFlipped.1.nonempty
+    have lastNonempty : lastSegment ≠ [] :=
+      lastFlipped.1.nonempty
+    let actualFirst := firstSegment.head firstNonempty
+    let actualLast := lastSegment.getLast lastNonempty
+    have firstSegmentHead :
+        firstSegment.head? = some actualFirst :=
+      List.head?_eq_some_head firstNonempty
+    have lastSegmentLast :
+        lastSegment.getLast? = some actualLast :=
+      List.getLast?_eq_some_getLast lastNonempty
+    have flattenedHeadActual :
+        flippedSegments.flatten.head? =
+          some actualFirst := by
+      rw [familyHeadEquation]
+      simp [List.head?_append, firstSegmentHead]
+    have flattenedLastActual :
+        flippedSegments.flatten.getLast? =
+          some actualLast := by
+      rw [familyLastEquation]
+      simp [List.getLast?_append, lastSegmentLast]
+    have firstValue : first = actualFirst :=
+      Option.some.inj
+        (flattenedHead.symm.trans flattenedHeadActual)
+    have lastValue : last = actualLast :=
+      Option.some.inj
+        (flattenedLast.symm.trans flattenedLastActual)
+    subst first
+    subst last
+    have lastSuccessor :
+        count - 1 + 1 = count := by
+      omega
+    have lastFlippedClosed :
+        QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+          certificate
+            (chainAt (count - 1)) (chainAt 0)
+              lastSegment := by
+      simpa [lastSuccessor, ← closed] using lastFlipped
+    exact
+      lastFlippedClosed.no_cusp_junction correct.1
+        firstFlipped.1 lastSegmentLast firstSegmentHead
+  exact
+    ⟨flippedSegments, segmentCount, flattenedNonempty,
+      closedWalk, cyclicReduced, flattenedCuspFree,
+      closingCuspFree, indexedFlipped, allForwardKept⟩
 
 /-- A nonempty list with distinct prescribed head and last entries has an
 exact middle core.  Keeping this elementary decomposition explicit avoids
@@ -21898,6 +23592,67 @@ private def NormalizedNonemptyParObstruction
             rightOccurrence.index =
                 (linkFullEdges before).length + 1 ∧
               rightOccurrence.forward = false
+
+/-- The complementary flipped walk of a fully reflexive dependency cycle
+cannot disappear by normalization.  It is already cyclically nonbacktracking,
+and correctness therefore identifies one exact par whose left occurrence and
+backward right occurrence both lie on the walk.  This transports the old
+empty reference-tree branch into the same concrete par obstruction used by
+the nonempty normalization branch. -/
+private theorem
+    FullyCancellingDependencyCycleAllReflexive.flippedParObstruction_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {originalSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (correct : certificate.DeclarativelyCorrect)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count originalSegments)
+    (positive : 0 < count)
+    (closed : chainAt 0 = chainAt count) :
+    ∃ flippedSegments :
+        List (List certificate.fullGraph.DirectedEdge),
+      flippedSegments.length = count ∧
+        flippedSegments.flatten ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+            (chainAt 0) flippedSegments.flatten (chainAt 0) ∧
+            Graph.EdgeWalk.CyclicNoImmediateReverse
+              flippedSegments.flatten ∧
+              certificate.CuspFreeTraversal
+                flippedSegments.flatten ∧
+                (∀ first last,
+                  flippedSegments.flatten.head? = some first →
+                  flippedSegments.flatten.getLast? = some last →
+                    ¬certificate.Cusp last first) ∧
+                  (∀ step,
+                    step < count →
+                      ∃ segment,
+                        flippedSegments[step]? = some segment ∧
+                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                            certificate
+                              (chainAt step) (chainAt (step + 1))
+                                segment) ∧
+                    NormalizedNonemptyParObstruction
+                      certificate flippedSegments.flatten := by
+  rcases
+      allReflexive.flippedCyclicCuspFreeWalk_exists
+        correct positive closed with
+    ⟨flippedSegments, segmentCount, flattenedNonempty,
+      closedWalk, cyclicReduced, cuspFree, closingCuspFree,
+      indexedFlipped, forwardKept⟩
+  have obstruction :=
+    correct.cyclicNoImmediateReverse_uses_backwardRightPar
+      flattenedNonempty closedWalk cyclicReduced forwardKept
+  exact
+    ⟨flippedSegments, segmentCount, flattenedNonempty,
+      closedWalk, cyclicReduced, cuspFree, closingCuspFree,
+      indexedFlipped,
+      by
+        simpa [NormalizedNonemptyParObstruction] using
+          obstruction⟩
 
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
 normalization. Every surviving occurrence comes from the original obstruction

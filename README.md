@@ -182,10 +182,19 @@ rules out a degenerate inner/outer pair. Both original detailed segment
 witnesses remain attached at that same step, and each `core ++ frontier` is
 pointwise aligned with its exact retained reference-switching prefix. Lean
 also proves that the successor prefix begins with the inner occurrence's exact
-reverse. The remaining empty-branch obligation is therefore no longer
-normalization, indexing, reference-prefix transport, or a hidden formula tail:
-it is to exclude this precise path-exposed strict nesting by an exact
-switching-flip argument.
+reverse. Lean now performs that local switching flip for every reflexive
+dependency: it replaces the backward left-par source incidence and retained
+prefix by the exact backward right-par occurrence followed by the reversed
+strict reference suffix. Each replacement is a vertex-simple full-graph path,
+avoids the exact left occurrence of its target waiting par, and the finite
+family composes into a nonempty closed cyclically nonbacktracking walk. Every
+internal transition, adjacent segment junction, and last/first closing
+junction of that flipped walk is kernel-proved cusp-free. The remaining
+empty-branch obligation is therefore no longer normalization, indexing,
+reference-prefix transport, a hidden formula tail, immediate reversal, or a
+local cusp. It is the global repeated-vertex/nesting argument needed to turn
+this exact cyclic witness into one forbidden switching cycle without
+re-pairing incidences incorrectly at a repeated vertex.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.

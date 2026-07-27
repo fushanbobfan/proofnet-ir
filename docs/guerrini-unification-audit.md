@@ -321,9 +321,16 @@ or positive misses. The larger search recorded at most 995 link attempts and
    original full-segment witnesses are now retained at that indexed step.
    Each `core ++ frontier` is pointwise aligned with its exact reference-
    switching prefix, and the successor prefix is proved to start with the
-   inner occurrence's exact reverse. The immediate proof obligation is to
-   exclude this path-exposed strict nesting by the exact multi-par
-   switching-flip argument and, in the nonempty branch,
+   inner occurrence's exact reverse. The exact multi-par flip is now local and
+   compositional: every reflexive dependency has a vertex-simple
+   backward-right-par/reversed-strict-suffix replacement which avoids the
+   target waiting par's exact retained left occurrence. The replacements form
+   a nonempty closed cyclically nonbacktracking full-graph walk, and Lean proves
+   all internal, adjacent-segment, and closing transitions cusp-free. The
+   immediate proof obligation is now the global repeated-vertex/nesting
+   argument: ordinary loop erasure is insufficient because it can create a
+   new closing cusp by re-pairing incidences at the erased vertex. In the
+   nonempty branch, the proof must still
    transport the turn evidence into an excluded edge-simple switching cycle or
    forbidden nesting.
 3. Prove the deterministic schedule complete, yielding

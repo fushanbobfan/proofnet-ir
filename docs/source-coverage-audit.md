@@ -1,6 +1,6 @@
 # Local source coverage audit
 
-Audit date: 2026-07-22
+Audit date: 2026-07-22; live inventory and hashes refreshed 2026-07-26
 
 ## Review question
 
@@ -11,16 +11,19 @@ support those claims?
 
 ## Inventory and screening
 
-The workspace contains 15 PDFs. Seven UCLA `131BH` homework/submission PDFs are
-coursework artifacts and are not project literature. `paper1_中文讲解.pdf` is a
-derived guide to `paper1.pdf`, not an independent source. The project corpus is
-therefore seven original PDFs plus the complete short Rowling chat brief.
+The workspace currently contains 16 PDFs. Seven UCLA `131BH`
+homework/submission PDFs are coursework artifacts and are not project
+literature. `paper1_中文讲解.pdf` is a derived guide to `paper1.pdf`, not an
+independent source. The original project corpus is therefore seven PDFs plus
+the complete short Rowling chat brief; the later Guerrini primary-source audit
+is the sixteenth PDF and is tracked separately below.
 
 ```text
-PDFs inventoried                                      15
+PDFs inventoried                                      16
 Coursework PDFs excluded                              7
 Derived duplicate-format guide merged                 1
 Original project sources included                     7
+Supplemental primary source included                   1
 Physical pages in included PDFs                     948
 Exact repeated pages in linearlogic.pdf             168
 Approximate unique physical pages                   780
@@ -61,9 +64,11 @@ For each source:
 5. record a completion line only when every unique page has been accounted for;
 6. recheck every code-level mathematical claim against the resulting matrix.
 
-The linked page matrices are the evidence behind the completion claim. This
-ledger does not turn adjacent sources into proof-net authorities and does not
-replace kernel checking of the implementation.
+The linked page matrices are the evidence behind the completion claim. A live
+2026-07-26 SHA-256 refresh matched every original-source prefix recorded in
+`reading-ledger.md` and the full Guerrini digest below. This ledger does not
+turn adjacent sources into proof-net authorities and does not replace kernel
+checking of the implementation.
 
 ## Supplemental primary-source audit
 

@@ -243,13 +243,17 @@ contiguous exact-occurrence word
 that the two cancellation layers are nondegenerate. Both original detailed
 segments remain attached to that index; their `core ++ frontier` traversals
 are pointwise reconciled with exact retained reference-prefix walks, and the
-successor reference prefix is proved to begin with the inner occurrence's
-exact reverse. The remaining gap is to exclude that path-exposed strict
-cross-core nesting and
-transport the turn evidence around that concrete nonempty obstruction into an
- excluded edge-simple switching cycle or forbidden nesting. This is
- not yet the correct-state progress theorem needed for pure-worklist
- completeness.
+ successor reference prefix is proved to begin with the inner occurrence's
+ exact reverse. Lean now also constructs the exact simultaneous complementary
+ flip around every fully reflexive dependency cycle. Each flipped segment is
+ vertex-simple, avoids the target waiting par's retained left occurrence, and
+ the flattened family is a nonempty closed cyclically nonbacktracking walk.
+ Every internal transition, adjacent segment junction, and last/first closing
+ junction is cusp-free. The remaining gap is global: repeated vertices must be
+ resolved using the exact nesting/switching structure while preserving those
+ incidence pairings. Ordinary loop erasure is not sufficient because it can
+ create a new closing cusp at the erased vertex. This is not yet the
+ correct-state progress theorem needed for pure-worklist completeness.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and
