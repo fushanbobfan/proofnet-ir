@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added a generic cyclic scheduler-subarc state carrying a closed full-graph
+  walk, internal and closing cusp-freedom, forward reference retention,
+  pointwise indexed flipped-segment provenance, and the exact
+  scheduler-located par obstruction. Lean now rotates any such state to the
+  omitted-right occurrence and cuts at retained-left. A backward retained-left
+  starts a nonempty closed cusp-free suffix which is strictly shorter and
+  retains every state invariant; correctness re-extracts and scheduler-locates
+  the next exact par obstruction. Each step stores the exact larger-list
+  rotation and smaller contiguous interval in a proof-relevant cyclic-interval
+  descent trace. Well-founded recursion on traversal length therefore closes
+  the entire backward branch and proves that every fully reflexive flipped
+  dependency family reaches a terminal forward retained-left par-cusp interval
+  together with its full order trace back to the original family. This does not
+  yet turn that interval into the forbidden reference-switching cycle or strict
+  nesting, so correct-state progress and pure-worklist completeness remain
+  open;
 - proved that every residual core in the fully cancelling simple dependency
   cycle is nonempty. If a core were empty, its backward source incidence and
   the cyclic successor's backward source incidence would consume the same

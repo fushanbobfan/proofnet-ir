@@ -25706,6 +25706,601 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       leftBefore, leftAfter, leftTraversal, leftPosition,
       chordSplit, orderedSegments, closedIntervals⟩
 
+/-- One strict cyclic-interval cut.  Rotating `larger` at the displayed
+prefix/suffix boundary makes `smaller` a contiguous sublist, and the cut
+strictly decreases traversal length. -/
+private def CyclicIntervalCut {α : Type}
+    (smaller larger : List α) : Prop :=
+  ∃ rotationPrefix rotationSuffix before after,
+    larger = rotationPrefix ++ rotationSuffix ∧
+      rotationSuffix ++ rotationPrefix =
+        before ++ smaller ++ after ∧
+        smaller.length < larger.length
+
+private theorem CyclicIntervalCut.length_lt
+    {α : Type} {smaller larger : List α}
+    (cut : CyclicIntervalCut smaller larger) :
+    smaller.length < larger.length := by
+  rcases cut with
+    ⟨_rotationPrefix, _rotationSuffix, _before, _after,
+      _largerRotation, _smallerInterval, shorter⟩
+  exact shorter
+
+/-- Proof-relevant reflexive/transitive closure of strict cyclic-interval
+cuts.  Keeping the complete chain avoids collapsing recursive scheduler
+geometry to a bare length inequality. -/
+private inductive CyclicIntervalDescent {α : Type} :
+    List α → List α → Prop where
+  | refl (traversed : List α) :
+      CyclicIntervalDescent traversed traversed
+  | step {terminal smaller larger : List α}
+      (cut : CyclicIntervalCut smaller larger)
+      (tail : CyclicIntervalDescent terminal smaller) :
+      CyclicIntervalDescent terminal larger
+
+private theorem CyclicIntervalDescent.length_le
+    {α : Type} {terminal initial : List α}
+    (descent : CyclicIntervalDescent terminal initial) :
+    terminal.length ≤ initial.length := by
+  induction descent with
+  | refl =>
+      exact Nat.le_refl _
+  | step cut _tail induction =>
+      exact
+        Nat.le_trans induction
+          (Nat.le_of_lt cut.length_lt)
+
+/-- A cyclic scheduler subarc retains exactly the data needed by recursive
+chord descent.  In particular, pointwise scheduler provenance and the located
+par obstruction survive even though the subarc need not be a concatenation of
+whole dependency segments. -/
+private def SchedulerCyclicParState
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ base,
+    traversed ≠ [] ∧
+      certificate.fullGraph.EdgeWalk base traversed base ∧
+        certificate.CuspFreeTraversal traversed ∧
+          (∀ first last,
+            traversed.head? = some first →
+              traversed.getLast? = some last →
+                ¬certificate.Cusp last first) ∧
+            (∀ directed,
+              directed ∈ traversed →
+                directed.forward = true →
+                  certificate.referenceSwitchingMask[directed.index]? =
+                    some true) ∧
+              (∀ directed,
+                directed ∈ traversed →
+                  ∃ step segment,
+                    step < count ∧
+                      flippedSegments[step]? = some segment ∧
+                        directed ∈ segment ∧
+                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                            certificate
+                              (chainAt step) (chainAt (step + 1))
+                                segment) ∧
+                NormalizedNonemptyParObstruction certificate traversed ∧
+                  SchedulerLocatedParObstruction
+                    certificate chainAt count flippedSegments traversed
+
+/-- Terminal result of the cyclic chord descent.  The retained left
+occurrence is forward, so the interval beginning at the omitted right
+occurrence is a nonempty closed internally cusp-free arc whose closing turn is
+the exact par cusp.  The scheduler location remains attached to the source
+subarc for the remaining global nesting contradiction. -/
+private def SchedulerForwardParCuspArc
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
+  SchedulerCyclicParState
+      certificate chainAt count flippedSegments traversed ∧
+    ∃ (leftOccurrence rightOccurrence :
+          certificate.fullGraph.DirectedEdge)
+        (conclusion : Vertex)
+        (arc : List certificate.fullGraph.DirectedEdge),
+      leftOccurrence ∈ traversed ∧
+        rightOccurrence ∈ traversed ∧
+          leftOccurrence.forward = true ∧
+            SchedulerLocatedParObstruction
+              certificate chainAt count flippedSegments traversed ∧
+              arc ≠ [] ∧
+                certificate.fullGraph.EdgeWalk
+                  conclusion arc conclusion ∧
+                  certificate.CuspFreeTraversal arc ∧
+                    arc.head? = some rightOccurrence ∧
+                      arc.getLast? = some leftOccurrence ∧
+                        certificate.Cusp leftOccurrence rightOccurrence
+
+/-- One generic cyclic-interval step.  Rotating the omitted right occurrence
+to the head exposes the retained left occurrence at a unique later list
+position.  A forward retained left closes a par-cusp arc.  A backward retained
+left instead starts a nonempty closed cusp-free suffix which is strictly
+shorter, still has pointwise scheduler provenance, and receives another exact
+scheduler-located par obstruction from correctness.
+
+This lemma is independent of whole-segment ordering; that is the key transport
+from the initial flattened dependency family to recursively cut subarcs. -/
+private theorem schedulerCyclicParState_forward_or_descends
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed) :
+    SchedulerForwardParCuspArc
+        certificate chainAt count flippedSegments traversed ∨
+      ∃ shorter,
+        SchedulerCyclicParState
+            certificate chainAt count flippedSegments shorter ∧
+          CyclicIntervalCut shorter traversed := by
+  rcases state with
+    ⟨base, traversedNonempty, closedWalk, cuspFree, closingCuspFree,
+      forwardKept, schedulerProvenance, obstruction, schedulerLocated⟩
+  have originalState :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed :=
+    ⟨base, traversedNonempty, closedWalk, cuspFree, closingCuspFree,
+      forwardKept, schedulerProvenance, obstruction, schedulerLocated⟩
+  rcases obstruction with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, leftIndex, rightMembership, rightIndex,
+      rightBackward⟩
+  have distinctOccurrences : leftOccurrence ≠ rightOccurrence := by
+    intro sameOccurrence
+    rw [sameOccurrence] at leftIndex
+    omega
+  have leftExpected :
+      certificate.fullGraph.edges[leftOccurrence.index]? =
+        some { first := left, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[leftOccurrence.index]? =
+        some { first := left, second := conclusion }
+    rw [linksEquation, leftIndex]
+    exact
+      (linkFullEdges_parAt before after left right conclusion).1
+  have rightExpected :
+      certificate.fullGraph.edges[rightOccurrence.index]? =
+        some { first := right, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[rightOccurrence.index]? =
+        some { first := right, second := conclusion }
+    rw [linksEquation, rightIndex]
+    exact
+      (linkFullEdges_parAt before after left right conclusion).2
+  have leftEdge :
+      leftOccurrence.edge = { first := left, second := conclusion } :=
+    Option.some.inj (leftOccurrence.lookup.symm.trans leftExpected)
+  have rightEdge :
+      rightOccurrence.edge = { first := right, second := conclusion } :=
+    Option.some.inj (rightOccurrence.lookup.symm.trans rightExpected)
+  have leftParTarget :
+      certificate.fullEdgeParTargets[leftOccurrence.index]? =
+        some (some conclusion) := by
+    rw [← certificate.linkFullEdgeParTargets_certificate]
+    rw [linksEquation, linkFullEdgeParTargets_append]
+    rw [leftIndex, ← linkFullEdgeParTargets_length before]
+    simp
+  have rightParTarget :
+      certificate.fullEdgeParTargets[rightOccurrence.index]? =
+        some (some conclusion) := by
+    rw [← certificate.linkFullEdgeParTargets_certificate]
+    rw [linksEquation, linkFullEdgeParTargets_append]
+    rw [rightIndex, ← linkFullEdgeParTargets_length before]
+    simp
+  have rightReverseColor :
+      certificate.incidenceColor rightOccurrence.reverse =
+        .par conclusion := by
+    apply
+      (certificate.incidenceColor_eq_par_iff
+        rightOccurrence.reverse conclusion).2
+    constructor
+    · change (!rightOccurrence.forward) = true
+      rw [rightBackward]
+      rfl
+    · simpa using rightParTarget
+  have leftReverseColor_of_backward :
+      leftOccurrence.forward = false →
+        certificate.incidenceColor leftOccurrence.reverse =
+          .par conclusion := by
+    intro leftBackward
+    apply
+      (certificate.incidenceColor_eq_par_iff
+        leftOccurrence.reverse conclusion).2
+    constructor
+    · change (!leftOccurrence.forward) = true
+      rw [leftBackward]
+      rfl
+    · simpa using leftParTarget
+  have chordCusp_of_forward :
+      leftOccurrence.forward = true →
+        certificate.Cusp leftOccurrence rightOccurrence := by
+    intro leftForward
+    unfold Certificate.Cusp
+    have leftColor :
+        certificate.incidenceColor leftOccurrence =
+          .par conclusion :=
+      (certificate.incidenceColor_eq_par_iff
+        leftOccurrence conclusion).2
+          ⟨leftForward, leftParTarget⟩
+    rw [leftColor, rightReverseColor]
+  rcases List.mem_iff_append.mp rightMembership with
+    ⟨rightBefore, rightAfter, rightTraversal⟩
+  have rightSource :
+      rightOccurrence.source = conclusion := by
+    simp [Graph.DirectedEdge.source, rightEdge, rightBackward]
+  have closedChain := closedWalk.toChain
+  rw [rightTraversal] at closedChain
+  rcases closedChain.split_append with
+    ⟨rightBase, rightBeforeChain, rightSuffixChain⟩
+  have rightBaseEquation : rightBase = conclusion :=
+    rightSuffixChain.head_source.symm.trans rightSource
+  have rotatedWalk :
+      certificate.fullGraph.EdgeWalk
+        conclusion
+          ((rightOccurrence :: rightAfter) ++ rightBefore)
+            conclusion := by
+    simpa [rightBaseEquation] using
+      rightSuffixChain.toWalk.trans rightBeforeChain.toWalk
+  have rotatedPermutation :
+      ((rightOccurrence :: rightAfter) ++ rightBefore).Perm traversed := by
+    rw [rightTraversal]
+    exact List.perm_append_comm
+  have originalFree := cuspFree
+  have originalClosing := closingCuspFree
+  rw [rightTraversal] at originalFree originalClosing
+  have rotatedFree :
+      certificate.CuspFreeTraversal
+        ((rightOccurrence :: rightAfter) ++ rightBefore) :=
+    cuspFreeTraversal_rotate_of_closing originalFree originalClosing
+  have rotatedClosing :
+      ∀ first last,
+        ((rightOccurrence :: rightAfter) ++ rightBefore).head? =
+            some first →
+          ((rightOccurrence :: rightAfter) ++ rightBefore).getLast? =
+              some last →
+            ¬certificate.Cusp last first :=
+    cuspFreeClosing_rotate_of_closing originalFree originalClosing
+  have rotatedHead :
+      ((rightOccurrence :: rightAfter) ++ rightBefore).head? =
+        some rightOccurrence := by
+    simp
+  have leftRotated :
+      leftOccurrence ∈
+        (rightOccurrence :: rightAfter) ++ rightBefore :=
+    rotatedPermutation.mem_iff.mpr leftMembership
+  rcases List.mem_iff_append.mp leftRotated with
+    ⟨leftBefore, leftAfter, leftTraversal⟩
+  have leftBeforeNonempty : leftBefore ≠ [] := by
+    intro leftBeforeEmpty
+    have leftHead :
+        ((rightOccurrence :: rightAfter) ++ rightBefore).head? =
+          some leftOccurrence := by
+      rw [leftTraversal, leftBeforeEmpty]
+      simp
+    have rightEqualsLeft :
+        rightOccurrence = leftOccurrence :=
+      Option.some.inj (rotatedHead.symm.trans leftHead)
+    exact distinctOccurrences rightEqualsLeft.symm
+  have leftBeforeHead :
+      leftBefore.head? = some rightOccurrence := by
+    have headEquation := rotatedHead
+    rw [leftTraversal] at headEquation
+    cases leftBefore with
+    | nil =>
+        exact False.elim (leftBeforeNonempty rfl)
+    | cons first rest =>
+        simpa using headEquation
+  have leftSplitChain := rotatedWalk.toChain
+  rw [leftTraversal] at leftSplitChain
+  rcases leftSplitChain.split_append with
+    ⟨leftBase, leftBeforeChain, leftSuffixChain⟩
+  cases leftOrientation : leftOccurrence.forward with
+  | true =>
+      have leftTarget :
+          leftOccurrence.target = conclusion := by
+        simp [Graph.DirectedEdge.target, leftEdge, leftOrientation]
+      have firstChain :
+          certificate.fullGraph.EdgeChain
+            conclusion
+              (leftBefore ++ [leftOccurrence])
+                conclusion :=
+        leftBeforeChain.appendLast leftOccurrence
+          leftSuffixChain.head_source leftTarget
+      have firstWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion
+              (leftBefore ++ [leftOccurrence])
+                conclusion :=
+        firstChain.toWalk
+      have firstFree :
+          certificate.CuspFreeTraversal
+            (leftBefore ++ [leftOccurrence]) := by
+        have splitFree := rotatedFree
+        rw [leftTraversal] at splitFree
+        apply CuspFreeTraversal.prefix certificate
+          (initial := leftBefore ++ [leftOccurrence])
+          (suffix := leftAfter)
+        simpa [List.append_assoc] using splitFree
+      have firstHead :
+          (leftBefore ++ [leftOccurrence]).head? =
+            some rightOccurrence := by
+        rw [List.head?_append, leftBeforeHead]
+        simp
+      have firstLast :
+          (leftBefore ++ [leftOccurrence]).getLast? =
+            some leftOccurrence := by
+        simp [List.getLast?_append]
+      exact .inl
+        ⟨originalState,
+          leftOccurrence, rightOccurrence, conclusion,
+            leftBefore ++ [leftOccurrence],
+            leftMembership, rightMembership, leftOrientation,
+            schedulerLocated, by simp, firstWalk, firstFree,
+            firstHead, firstLast,
+            chordCusp_of_forward leftOrientation⟩
+  | false =>
+      have leftSource :
+          leftOccurrence.source = conclusion := by
+        simp [Graph.DirectedEdge.source, leftEdge, leftOrientation]
+      have leftBaseEquation : leftBase = conclusion :=
+        leftSuffixChain.head_source.symm.trans leftSource
+      have shorterWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion
+              (leftOccurrence :: leftAfter)
+                conclusion := by
+        simpa [leftBaseEquation] using leftSuffixChain.toWalk
+      have shorterNonempty : leftOccurrence :: leftAfter ≠ [] := by
+        simp
+      have shorterFree :
+          certificate.CuspFreeTraversal
+            (leftOccurrence :: leftAfter) := by
+        have splitFree := rotatedFree
+        rw [leftTraversal] at splitFree
+        exact CuspFreeTraversal.suffix certificate splitFree
+      have shorterHead :
+          (leftOccurrence :: leftAfter).head? =
+            some leftOccurrence := by
+        simp
+      have noClosingCusp :
+          ∀ last,
+            (leftOccurrence :: leftAfter).getLast? = some last →
+              ¬certificate.Cusp last leftOccurrence := by
+        intro last shorterLast
+        have rotatedLast :
+            ((rightOccurrence :: rightAfter) ++ rightBefore).getLast? =
+              some last := by
+          rw [leftTraversal, List.getLast?_append]
+          exact shorterLast
+        have noCuspToRight :
+            ¬certificate.Cusp last rightOccurrence :=
+          rotatedClosing rightOccurrence last rotatedHead rotatedLast
+        intro cuspToLeft
+        apply noCuspToRight
+        unfold Certificate.Cusp at cuspToLeft ⊢
+        rw [leftReverseColor_of_backward leftOrientation] at cuspToLeft
+        rw [rightReverseColor]
+        exact cuspToLeft
+      have shorterClosing :
+          ∀ first last,
+            (leftOccurrence :: leftAfter).head? = some first →
+              (leftOccurrence :: leftAfter).getLast? = some last →
+                ¬certificate.Cusp last first := by
+        intro first last firstHead shorterLast
+        have firstValue : first = leftOccurrence :=
+          Option.some.inj (firstHead.symm.trans shorterHead)
+        subst first
+        exact noClosingCusp last shorterLast
+      have shorterCyclicReduced :
+          Graph.EdgeWalk.CyclicNoImmediateReverse
+            (leftOccurrence :: leftAfter) :=
+        cyclicNoImmediateReverse_of_cuspFree
+          shorterFree shorterClosing
+      have shorterInOriginal :
+          ∀ directed,
+            directed ∈ leftOccurrence :: leftAfter →
+              directed ∈ traversed := by
+        intro directed membership
+        apply rotatedPermutation.mem_iff.mp
+        rw [leftTraversal]
+        simp [membership]
+      have shorterForwardKept :
+          ∀ directed,
+            directed ∈ leftOccurrence :: leftAfter →
+              directed.forward = true →
+                certificate.referenceSwitchingMask[directed.index]? =
+                  some true := by
+        intro directed membership forward
+        exact forwardKept directed
+          (shorterInOriginal directed membership) forward
+      have shorterProvenance :
+          ∀ directed,
+            directed ∈ leftOccurrence :: leftAfter →
+              ∃ step segment,
+                step < count ∧
+                  flippedSegments[step]? = some segment ∧
+                    directed ∈ segment ∧
+                      QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                        certificate
+                          (chainAt step) (chainAt (step + 1))
+                            segment := by
+        intro directed membership
+        exact schedulerProvenance directed
+          (shorterInOriginal directed membership)
+      have shorterObstruction :
+          NormalizedNonemptyParObstruction
+            certificate (leftOccurrence :: leftAfter) := by
+        have nextObstruction :=
+          correct.cyclicNoImmediateReverse_uses_backwardRightPar
+            shorterNonempty shorterWalk shorterCyclicReduced
+              shorterForwardKept
+        simpa [NormalizedNonemptyParObstruction] using nextObstruction
+      have shorterLocated :
+          SchedulerLocatedParObstruction
+            certificate chainAt count flippedSegments
+              (leftOccurrence :: leftAfter) :=
+        shorterObstruction.schedulerLocated
+          shorterProvenance prefixInjective
+      have shorterLength :
+          (leftOccurrence :: leftAfter).length < traversed.length := by
+        have lengthEquation := rotatedPermutation.length_eq
+        rw [leftTraversal] at lengthEquation
+        simp only [List.length_append] at lengthEquation
+        have leftBeforePositive :
+            0 < leftBefore.length :=
+          List.length_pos_iff.mpr leftBeforeNonempty
+        omega
+      have intervalCut :
+          CyclicIntervalCut
+            (leftOccurrence :: leftAfter) traversed :=
+        ⟨rightBefore, rightOccurrence :: rightAfter,
+          leftBefore, [],
+          rightTraversal, by
+            simpa [List.append_assoc] using leftTraversal,
+          shorterLength⟩
+      exact .inr
+        ⟨leftOccurrence :: leftAfter,
+          ⟨conclusion, shorterNonempty, shorterWalk, shorterFree,
+            shorterClosing, shorterForwardKept, shorterProvenance,
+            shorterObstruction, shorterLocated⟩,
+          intervalCut⟩
+
+/-- Finite traversal length closes the recursive backward-chord branch.  Every
+scheduler-located cyclic par state therefore reaches a forward retained-left
+par-cusp arc after finitely many strict suffix descents. -/
+private theorem schedulerCyclicParState_forward_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed) :
+    ∃ terminal,
+      SchedulerForwardParCuspArc
+          certificate chainAt count flippedSegments terminal ∧
+        CyclicIntervalDescent terminal traversed := by
+  rcases
+      schedulerCyclicParState_forward_or_descends
+        correct prefixInjective state with
+    terminal | ⟨shorter, shorterState, intervalCut⟩
+  · exact ⟨traversed, terminal, .refl traversed⟩
+  · rcases
+        schedulerCyclicParState_forward_exists
+          (traversed := shorter) correct prefixInjective shorterState with
+      ⟨terminal, terminalForward, terminalDescent⟩
+    exact
+      ⟨terminal, terminalForward,
+        .step intervalCut terminalDescent⟩
+termination_by traversed.length
+decreasing_by
+  exact intervalCut.length_lt
+
+/-- The complementary flipped family of every fully reflexive dependency
+cycle reaches a forward retained-left par-cusp interval.  The theorem closes
+the entire backward recursive branch: at each intermediate subarc the exact
+scheduler-segment provenance and distinct-segment par localization are
+retained, while traversal length strictly decreases.  The remaining global
+obligation is now solely to turn the terminal closing cusp into the forbidden
+reference-switching nesting/cycle. -/
+private theorem
+    FullyCancellingDependencyCycleAllReflexive.flippedForwardParCuspArc_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {originalSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (correct : certificate.DeclarativelyCorrect)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count originalSegments)
+    (positive : 0 < count)
+    (closed : chainAt 0 = chainAt count)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second) :
+    ∃ flippedSegments :
+        List (List certificate.fullGraph.DirectedEdge),
+      flippedSegments.length = count ∧
+        ∃ terminal,
+          SchedulerForwardParCuspArc
+              certificate chainAt count flippedSegments terminal ∧
+            CyclicIntervalDescent
+              terminal flippedSegments.flatten := by
+  rcases
+      allReflexive.flippedParObstruction_exists
+        correct positive closed with
+    ⟨flippedSegments, segmentCount, flattenedNonempty,
+      closedWalk, _cyclicReduced, cuspFree, closingCuspFree,
+      indexedFlipped, allForwardKept, obstruction⟩
+  have schedulerProvenance :
+      ∀ directed,
+        directed ∈ flippedSegments.flatten →
+          ∃ step segment,
+            step < count ∧
+              flippedSegments[step]? = some segment ∧
+                directed ∈ segment ∧
+                  QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                    certificate
+                      (chainAt step) (chainAt (step + 1))
+                        segment := by
+    intro directed membership
+    exact
+      flippedSchedulerSegment_of_mem_flatten
+        segmentCount indexedFlipped membership
+  have schedulerLocated :
+      SchedulerLocatedParObstruction
+        certificate chainAt count flippedSegments
+          flippedSegments.flatten :=
+    obstruction.schedulerLocated
+      schedulerProvenance prefixInjective
+  have initialState :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments
+          flippedSegments.flatten :=
+    ⟨chainAt 0, flattenedNonempty, closedWalk, cuspFree,
+      closingCuspFree, allForwardKept, schedulerProvenance,
+      obstruction, schedulerLocated⟩
+  exact
+    ⟨flippedSegments, segmentCount,
+      schedulerCyclicParState_forward_exists
+        correct prefixInjective initialState⟩
+
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
 normalization. Every surviving occurrence comes from the original obstruction
 walk, and the normal form is either empty (the genuinely nested out-and-back

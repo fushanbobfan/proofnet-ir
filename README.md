@@ -233,10 +233,19 @@ retains its exact indexed flipped-scheduler segment, every forward occurrence
 remains reference-kept, and the recursive omitted-right par is located at the
 exact head of one classified segment while its retained-left mate lies in a
 distinct classified segment. The shared par conclusion is the first segment's
-start and a genuine internal target of the second segment. The remaining proof
-obligation is therefore a well-founded cyclic-interval/nesting descent (or an
-exclusion of the complementary forward case), not recovery of scheduler
-provenance or classification of an unknown closing turn.
+start and a genuine internal target of the second segment. That information is
+now packaged as a generic cyclic scheduler-subarc state. Lean rotates any such
+subarc to its omitted-right occurrence and cuts at retained-left. A backward
+retained-left produces a strictly shorter state with the same closed-walk,
+cusp-freedom, reference-retention, scheduler-provenance, and located-par
+invariants. Each cut additionally retains a proof-relevant cyclic-interval
+trace: the larger traversal's exact rotation decomposition and the smaller
+contiguous interval are recorded rather than replaced by a membership subset.
+Recursion on traversal length therefore terminates at a forward retained-left
+par-cusp arc, with its full interval-descent trace back to the original flipped
+family. The infinite-backward-descent concern is closed without loop erasure.
+The remaining geometric obligation is solely to turn that terminal closing par
+cusp into an excluded reference-switching cycle or strict nesting.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
@@ -244,12 +253,12 @@ For the
  occurrence switching and contradict its tree property. Lean consequently
  exposes a concrete par whose two exact premise occurrences both survive; the
  all-left forward-retention invariant forces its omitted right occurrence to be
- traversed backward. Proof-net correctness must next use the retained scheduler
- geometry to exclude the empty nesting and transport the cyclic interval
- invariant through the now scheduler-located shorter backward witness, while
- resolving the complementary forward par-cusp branch into an edge-simple
- switching cycle or forbidden nesting before the recursive fallback can be
- removed. The
+ traversed backward. Proof-net correctness and finite length now transport the
+ exact cyclic scheduler state through every shorter backward witness and force
+ a terminal forward par-cusp interval. It must next use the retained scheduler
+ geometry to turn that interval, together with the already exposed empty
+ nesting, into an edge-simple reference-switching cycle or forbidden strict
+ nesting before the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See

@@ -234,11 +234,19 @@ active-reference walks between marked occurrences are equivalent to
   the shorter arc; its omitted right is the head of one classified flipped
   segment, its retained left lies in a distinct classified segment, and their
   conclusion is the first segment's start but an internal target of the
-  second. Pure completeness still requires a well-founded transport of the
-  cyclic interval/nesting invariant through that recursively located chord,
-  or a contradiction from the complementary forward par-cusp branch.
-  Ordinary loop erasure is not used: erasing at a repeated vertex can re-pair
-  incidences and create a new closing cusp.
+  second. A generic cyclic scheduler-subarc state now retains the closed walk,
+  internal and closing cusp-freedom, forward reference retention, pointwise
+  scheduler provenance, and the located par chord across arbitrary cuts. After
+  rotating omitted-right to the head, a backward retained-left starts a
+  strictly shorter state. Every step records the exact larger-list rotation
+  and the smaller contiguous cyclic interval in a proof-relevant descent trace;
+  well-founded recursion on list length therefore reaches a terminal forward
+  retained-left par-cusp interval while preserving its order provenance back
+  to the original flipped family. Ordinary loop
+  erasure is not used: erasing at a repeated vertex can re-pair incidences and
+  create a new closing cusp. Pure completeness still requires converting the
+  terminal interval into the forbidden reference-switching cycle or strict
+  nesting.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

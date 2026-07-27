@@ -279,12 +279,19 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   retention. Correctness exposes another backward-right par in the shorter
   arc, and Lean locates it at two distinct classified scheduler segments: the
   omitted right is one segment's head, while the retained left reaches the
-  same conclusion internally from the other segment. The remaining obligation
-  is to preserve the cyclic interval/nesting invariant through that recursively
-  located chord, or discharge the complementary forward par-cusp branch.
- Ordinary loop erasure is not sufficient because it can create a new closing
- cusp at the erased vertex. This is not yet the correct-state progress theorem
- needed for pure-worklist completeness.
+  same conclusion internally from the other segment. Lean now packages these
+  facts into a generic cyclic scheduler-subarc state. Rotating at omitted-right
+  and cutting at retained-left either yields the forward closing par cusp or a
+  strictly shorter backward state with all invariants and scheduler location
+  preserved. Each step also retains the exact rotation/contiguous-subinterval
+  witness in a proof-relevant cyclic-interval trace. Recursion on traversal
+  length proves that a terminal forward par-cusp interval exists together with
+  its full trace back to the original flipped family. Ordinary loop erasure is
+  not used because it can
+  create a new closing cusp at the erased vertex. The remaining obligation is
+  to convert that terminal interval into the forbidden reference-switching
+  cycle or strict nesting; this is not yet the correct-state progress theorem
+  needed for pure-worklist completeness.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

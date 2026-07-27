@@ -356,14 +356,20 @@ or positive misses. The larger search recorded at most 995 link attempts and
     inside the arc; Lean locates its omitted right at the exact head of one
     classified segment, its retained left in a distinct classified segment,
     and the shared conclusion at the former segment's start but internally in
-    the latter segment. The immediate proof obligation is now to transport the
-    cyclic interval/nesting invariant through this recursively located chord,
-    or turn the complementary forward par-cusp branch into the global
-    repeated-vertex/nesting contradiction. Ordinary loop erasure remains
-    insufficient because it can create a new closing cusp by re-pairing
-    incidences at the erased vertex. In the nonempty branch, the proof must
-    still transport the classified witness into an excluded edge-simple
-    switching cycle or forbidden nesting.
+    the latter segment. A generic cyclic scheduler-subarc state now retains
+    closedness, internal and closing cusp-freedom, forward reference retention,
+    pointwise scheduler provenance, and the located par chord through each
+    cut. Rotating omitted-right to the head and cutting at retained-left yields
+    either a forward closing par cusp or a strictly shorter backward state.
+    Every step records the exact rotation and smaller contiguous cyclic
+    interval in a proof-relevant descent trace. Well-founded recursion on
+    traversal length closes the infinite-backward branch and produces a
+    terminal forward par-cusp interval with its order trace back to the
+    original flipped family. Ordinary loop
+    erasure remains unnecessary and unsafe because it can create a new closing
+    cusp by re-pairing incidences at the erased vertex. The immediate remaining
+    obligation is to transport that terminal classified witness into an
+    excluded edge-simple reference-switching cycle or forbidden strict nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
