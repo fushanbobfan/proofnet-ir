@@ -277,8 +277,13 @@ For the
  coordinate-exact reverse chord now carries both source endpoints, complete
  retained reference-suffix walks, and the exact target-left occurrences avoided
  by the two classified segments; the global fully reflexive-cycle theorem
- exposes this outcome directly. Those two base cases must next be contradicted
- before the recursive fallback can be removed. The
+ exposes this outcome directly. The selected compacted suffix occurrences are
+ proved to remain exact reverses. The empty shell itself is now split into two
+ nonempty reference-switching walks through one midpoint, with the complete
+ closing traversal kernel-proved equal to the reverse of the opening traversal.
+ This is an occurrence-exact nested out-and-back witness, not yet its scheduler
+ contradiction. Those two base cases must next be contradicted before the
+ recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See

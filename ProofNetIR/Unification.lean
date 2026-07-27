@@ -29888,6 +29888,584 @@ private def SchedulerEndpointClassifiedHeadSkippingReverseChord
           SchedulerStrictInteriorEndpointWitness
             certificate chainAt count segments tagged later
 
+/-- Pair compacted occurrence indices with orientations after exact mask
+transport.  `retainEdgesExact` exposes the two pointwise equations separately;
+the combined equation below lets later arguments recover one retained directed
+occurrence carrying both coordinates at once. -/
+private theorem retained_indexForward_pair_equation
+    {graph : Graph}
+    {mask : List Bool}
+    {original : List graph.DirectedEdge}
+    {retained :
+      List (graph.retainEdges mask).DirectedEdge}
+    (indexEquation :
+      retained.map Graph.DirectedEdge.index =
+        original.map
+          (fun directed =>
+            Graph.retainedIndex mask directed.index))
+    (forwardEquation :
+      retained.map Graph.DirectedEdge.forward =
+        original.map Graph.DirectedEdge.forward) :
+    retained.map
+        (fun directed => (directed.index, directed.forward)) =
+      original.map
+        (fun directed =>
+          (Graph.retainedIndex mask directed.index,
+            directed.forward)) := by
+  induction original generalizing retained with
+  | nil =>
+      cases retained <;> simp_all
+  | cons originalHead originalTail induction =>
+      cases retained with
+      | nil =>
+          simp at indexEquation
+      | cons retainedHead retainedTail =>
+          simp only [List.map_cons, List.cons.injEq]
+            at indexEquation forwardEquation ⊢
+          exact
+            ⟨Prod.ext indexEquation.1 forwardEquation.1,
+              induction indexEquation.2 forwardEquation.2⟩
+
+/-- Exact occurrence indices and orientations determine an entire directed
+traversal pointwise. -/
+private theorem directedEdge_list_eq_of_indexForward_pair_equation
+    {graph : Graph}
+    {first second : List graph.DirectedEdge}
+    (pairEquation :
+      first.map
+          (fun directed => (directed.index, directed.forward)) =
+        second.map
+          (fun directed => (directed.index, directed.forward))) :
+    first = second := by
+  induction first generalizing second with
+  | nil =>
+      cases second <;> simp_all
+  | cons firstHead firstTail induction =>
+      cases second with
+      | nil =>
+          simp at pairEquation
+      | cons secondHead secondTail =>
+          simp only [List.map_cons, List.cons.injEq] at pairEquation
+          have sameIndex :
+              firstHead.index = secondHead.index :=
+            congrArg Prod.fst pairEquation.1
+          have sameForward :
+              firstHead.forward = secondHead.forward :=
+            congrArg Prod.snd pairEquation.1
+          have sameHead : firstHead = secondHead :=
+            Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+              firstHead secondHead sameIndex sameForward
+          rw [sameHead]
+          exact congrArg (secondHead :: ·) (induction pairEquation.2)
+
+/-- Any occurrence key whose reversal is described by `flip` transports
+pointwise through a reversed traversal. -/
+private theorem reverseTraversal_map_of_reverse
+    {graph : Graph}
+    {α : Type}
+    (traversed : List graph.DirectedEdge)
+    (key : graph.DirectedEdge → α)
+    (flip : α → α)
+    (reverseKey :
+      ∀ directed, key directed.reverse = flip (key directed)) :
+    (Graph.EdgeWalk.reverseTraversal traversed).map key =
+      (traversed.map key).reverse.map flip := by
+  simp only [Graph.EdgeWalk.reverseTraversal, List.map_map,
+    List.map_reverse]
+  apply congrArg List.reverse
+  apply List.map_congr_left
+  intro directed _membership
+  exact reverseKey directed
+
+/-- The endpoint-classified chord after exact transport into the deterministic
+reference switching.  Each full-graph retained suffix becomes a reference-tree
+walk to the next scheduler conclusion, and the two selected compacted
+occurrences remain an exact reverse pair.  This is the occurrence-level
+reference chord needed by the remaining nesting exclusion. -/
+private def SchedulerReferenceSuffixReverseChord
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ earlier later earlierHead earlierSuffix laterHead laterSuffix,
+    ∃ earlierRetained laterRetained
+        earlierRetainedOccurrence laterRetainedOccurrence,
+      earlier.step < later.step ∧
+        later.value = earlier.value.reverse ∧
+          SchedulerStrictInteriorEndpointWitness
+            certificate chainAt count segments tagged earlier ∧
+          SchedulerStrictInteriorEndpointWitness
+            certificate chainAt count segments tagged later ∧
+          segments[earlier.step]? =
+            some (earlierHead :: earlierSuffix) ∧
+          segments[later.step]? =
+            some (laterHead :: laterSuffix) ∧
+          certificate.referenceSwitchingGraph.EdgeWalk
+            earlierHead.target earlierRetained
+              (chainAt (earlier.step + 1)) ∧
+          certificate.referenceSwitchingGraph.EdgeWalk
+            laterHead.target laterRetained
+              (chainAt (later.step + 1)) ∧
+          earlierRetainedOccurrence ∈ earlierRetained ∧
+          laterRetainedOccurrence ∈ laterRetained ∧
+          earlierRetained ≠ [] ∧
+          laterRetained ≠ [] ∧
+          earlierRetainedOccurrence.index =
+            Graph.retainedIndex
+              certificate.referenceSwitchingMask
+                earlier.value.index ∧
+          earlierRetainedOccurrence.forward =
+            earlier.value.forward ∧
+          laterRetainedOccurrence.index =
+            Graph.retainedIndex
+              certificate.referenceSwitchingMask
+                later.value.index ∧
+          laterRetainedOccurrence.forward =
+            later.value.forward ∧
+          laterRetainedOccurrence =
+            earlierRetainedOccurrence.reverse
+
+/-- Exact reference-tree form of an empty reverse-shell core.  The tagged
+complement splits into nonempty opening and closing coordinate halves.  After
+mask transport, each half is a nonempty reference walk and the closing
+traversal is exactly the reverse of the opening traversal, including compacted
+edge-occurrence indices and orientations. -/
+private def SchedulerReferenceShellNesting
+    (certificate : Certificate)
+    (taggedComplement :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (complementBase : Vertex) : Prop :=
+  ∃ opening closing midpoint,
+    ∃ openingRetained closingRetained,
+      taggedComplement = opening ++ closing ∧
+        opening ≠ [] ∧
+          closing ≠ [] ∧
+            closing.map SchedulerOccurrence.erase =
+              Graph.EdgeWalk.reverseTraversal
+                (opening.map SchedulerOccurrence.erase) ∧
+              certificate.referenceSwitchingGraph.EdgeWalk
+                complementBase openingRetained midpoint ∧
+                certificate.referenceSwitchingGraph.EdgeWalk
+                  midpoint closingRetained complementBase ∧
+                  openingRetained ≠ [] ∧
+                    closingRetained ≠ [] ∧
+                      closingRetained =
+                        Graph.EdgeWalk.reverseTraversal openingRetained
+
+/-- Exact retained-suffix transport preserves the endpoint chord's selected
+reverse occurrence across the reference mask. -/
+private theorem
+    SchedulerEndpointClassifiedHeadSkippingReverseChord.referenceSuffixReverseChord
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (chord :
+      SchedulerEndpointClassifiedHeadSkippingReverseChord
+        certificate chainAt count segments tagged) :
+    SchedulerReferenceSuffixReverseChord
+      certificate chainAt count segments tagged := by
+  rcases chord with
+    ⟨earlier, later, stepOrder, reversePair,
+      earlierEndpoint, laterEndpoint⟩
+  rcases earlierEndpoint with
+    ⟨earlierMembership, earlierInterior, earlierStepBound,
+      earlierHead, earlierSuffix, earlierSegmentLookup,
+      earlierValueInSuffix, earlierHeadSource,
+      earlierHeadBackward, earlierHeadOmitted,
+      earlierSuffixKept, earlierSuffixWalk,
+      earlierTargetAvoidance, earlierHeadInFamily,
+      earlierHeadMissing⟩
+  rcases laterEndpoint with
+    ⟨laterMembership, laterInterior, laterStepBound,
+      laterHead, laterSuffix, laterSegmentLookup,
+      laterValueInSuffix, laterHeadSource,
+      laterHeadBackward, laterHeadOmitted,
+      laterSuffixKept, laterSuffixWalk,
+      laterTargetAvoidance, laterHeadInFamily,
+      laterHeadMissing⟩
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change
+      (linkFullEdges certificate.links).length =
+        certificate.referenceSwitchingMask.length
+    exact
+      certificate.referenceFullSwitchingSelection.mask_length.symm
+  rcases
+      earlierSuffixWalk.retainEdgesExact
+        aligned earlierSuffixKept with
+    ⟨earlierRetained, earlierRetainedWalk,
+      earlierIndexEquation, _earlierEdgeEquation,
+      earlierForwardEquation, _earlierTargetEquation⟩
+  rcases
+      laterSuffixWalk.retainEdgesExact
+        aligned laterSuffixKept with
+    ⟨laterRetained, laterRetainedWalk,
+      laterIndexEquation, _laterEdgeEquation,
+      laterForwardEquation, _laterTargetEquation⟩
+  have earlierPairEquation :=
+    retained_indexForward_pair_equation
+      earlierIndexEquation earlierForwardEquation
+  have laterPairEquation :=
+    retained_indexForward_pair_equation
+      laterIndexEquation laterForwardEquation
+  have earlierPairMembership :
+      (Graph.retainedIndex
+          certificate.referenceSwitchingMask earlier.value.index,
+        earlier.value.forward) ∈
+        earlierRetained.map
+          (fun directed => (directed.index, directed.forward)) := by
+    rw [earlierPairEquation]
+    exact
+      List.mem_map.mpr
+        ⟨earlier.value, earlierValueInSuffix, rfl⟩
+  have laterPairMembership :
+      (Graph.retainedIndex
+          certificate.referenceSwitchingMask later.value.index,
+        later.value.forward) ∈
+        laterRetained.map
+          (fun directed => (directed.index, directed.forward)) := by
+    rw [laterPairEquation]
+    exact
+      List.mem_map.mpr
+        ⟨later.value, laterValueInSuffix, rfl⟩
+  rcases List.mem_map.mp earlierPairMembership with
+    ⟨earlierRetainedOccurrence, earlierRetainedMembership,
+      earlierPair⟩
+  rcases List.mem_map.mp laterPairMembership with
+    ⟨laterRetainedOccurrence, laterRetainedMembership,
+      laterPair⟩
+  have earlierRetainedIndex :
+      earlierRetainedOccurrence.index =
+        Graph.retainedIndex
+          certificate.referenceSwitchingMask
+            earlier.value.index :=
+    congrArg Prod.fst earlierPair
+  have earlierRetainedForward :
+      earlierRetainedOccurrence.forward =
+        earlier.value.forward :=
+    congrArg Prod.snd earlierPair
+  have laterRetainedIndex :
+      laterRetainedOccurrence.index =
+        Graph.retainedIndex
+          certificate.referenceSwitchingMask
+            later.value.index :=
+    congrArg Prod.fst laterPair
+  have laterRetainedForward :
+      laterRetainedOccurrence.forward =
+        later.value.forward :=
+    congrArg Prod.snd laterPair
+  have sameRetainedIndex :
+      laterRetainedOccurrence.index =
+        earlierRetainedOccurrence.index := by
+    calc
+      laterRetainedOccurrence.index =
+          Graph.retainedIndex
+            certificate.referenceSwitchingMask
+              later.value.index :=
+        laterRetainedIndex
+      _ =
+          Graph.retainedIndex
+            certificate.referenceSwitchingMask
+              earlier.value.index := by
+        rw [reversePair]
+        rfl
+      _ = earlierRetainedOccurrence.index :=
+        earlierRetainedIndex.symm
+  have reverseRetainedForward :
+      laterRetainedOccurrence.forward =
+        earlierRetainedOccurrence.reverse.forward := by
+    calc
+      laterRetainedOccurrence.forward =
+          later.value.forward := laterRetainedForward
+      _ = earlier.value.reverse.forward := by rw [reversePair]
+      _ = !earlier.value.forward := rfl
+      _ = !earlierRetainedOccurrence.forward := by
+        rw [earlierRetainedForward]
+      _ = earlierRetainedOccurrence.reverse.forward := rfl
+  have retainedReverse :
+      laterRetainedOccurrence =
+        earlierRetainedOccurrence.reverse :=
+    Graph.DirectedEdge.eq_of_index_eq_of_forward_eq
+      laterRetainedOccurrence earlierRetainedOccurrence.reverse
+      (by simpa using sameRetainedIndex)
+      reverseRetainedForward
+  refine
+    ⟨earlier, later, earlierHead, earlierSuffix,
+      laterHead, laterSuffix, earlierRetained, laterRetained,
+      earlierRetainedOccurrence, laterRetainedOccurrence,
+      stepOrder, reversePair, ?_, ?_, earlierSegmentLookup,
+      laterSegmentLookup, earlierRetainedWalk, laterRetainedWalk,
+      earlierRetainedMembership, laterRetainedMembership,
+      List.ne_nil_of_mem earlierRetainedMembership,
+      List.ne_nil_of_mem laterRetainedMembership,
+      earlierRetainedIndex, earlierRetainedForward,
+      laterRetainedIndex, laterRetainedForward, retainedReverse⟩
+  · exact
+      ⟨earlierMembership, earlierInterior, earlierStepBound,
+        earlierHead, earlierSuffix, earlierSegmentLookup,
+        earlierValueInSuffix, earlierHeadSource,
+        earlierHeadBackward, earlierHeadOmitted,
+        earlierSuffixKept, earlierSuffixWalk,
+        earlierTargetAvoidance, earlierHeadInFamily,
+        earlierHeadMissing⟩
+  · exact
+      ⟨laterMembership, laterInterior, laterStepBound,
+        laterHead, laterSuffix, laterSegmentLookup,
+        laterValueInSuffix, laterHeadSource,
+        laterHeadBackward, laterHeadOmitted,
+        laterSuffixKept, laterSuffixWalk,
+        laterTargetAvoidance, laterHeadInFamily,
+        laterHeadMissing⟩
+
+/-- An empty tagged reverse-shell core transports its two coordinate halves
+separately into the deterministic reference switching.  Exact retained
+indices and orientations show that mask compaction commutes with the shell's
+reverse traversal, so no endpoint-only or edge-value quotient is involved. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_referenceShellNesting
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (complementNonempty : taggedComplement ≠ [])
+    (complementWalk :
+      certificate.fullGraph.EdgeWalk
+        complementBase
+          (taggedComplement.map SchedulerOccurrence.erase)
+            complementBase)
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    SchedulerReferenceShellNesting
+      certificate taggedComplement complementBase := by
+  rcases reverseShells.context with
+    ⟨opening, closing, shellEquationWithCore, pairedValues⟩
+  have shellEquation :
+      taggedComplement = opening ++ closing := by
+    rw [shellEquationWithCore, normalizedEmpty]
+    simp
+  have closingLength :
+      closing.length = opening.length := by
+    have lengths := congrArg List.length pairedValues
+    simpa [Graph.EdgeWalk.reverseTraversal] using lengths
+  have openingNonempty : opening ≠ [] := by
+    intro openingEmpty
+    have closingEmpty : closing = [] := by
+      apply List.eq_nil_of_length_eq_zero
+      rw [closingLength, openingEmpty]
+      rfl
+    apply complementNonempty
+    rw [shellEquation, openingEmpty, closingEmpty]
+    rfl
+  have closingNonempty : closing ≠ [] := by
+    intro closingEmpty
+    have openingEmpty : opening = [] := by
+      apply List.eq_nil_of_length_eq_zero
+      rw [← closingLength, closingEmpty]
+      rfl
+    exact openingNonempty openingEmpty
+  have splitWalk :
+      certificate.fullGraph.EdgeWalk complementBase
+        ((opening.map SchedulerOccurrence.erase) ++
+          (closing.map SchedulerOccurrence.erase))
+          complementBase := by
+    simpa [← List.map_append, ← shellEquation] using complementWalk
+  rcases splitWalk.toChain.split_append with
+    ⟨midpoint, openingChain, closingChain⟩
+  have openingWalk :
+      certificate.fullGraph.EdgeWalk complementBase
+        (opening.map SchedulerOccurrence.erase) midpoint :=
+    openingChain.toWalk
+  have closingWalk :
+      certificate.fullGraph.EdgeWalk midpoint
+        (closing.map SchedulerOccurrence.erase) complementBase :=
+    closingChain.toWalk
+  have openingKept :
+      ∀ directed ∈ opening.map SchedulerOccurrence.erase,
+        certificate.referenceSwitchingMask[directed.index]? =
+          some true := by
+    intro directed directedMembership
+    rcases List.mem_map.mp directedMembership with
+      ⟨occurrence, occurrenceMembership, occurrenceValue⟩
+    subst directed
+    apply
+      terminal.emptyComplementCore_referenceKept
+        segmentCount indexedFlipped complementCut
+          reverseShells normalizedEmpty
+    rw [shellEquation]
+    exact List.mem_append_left closing occurrenceMembership
+  have closingKept :
+      ∀ directed ∈ closing.map SchedulerOccurrence.erase,
+        certificate.referenceSwitchingMask[directed.index]? =
+          some true := by
+    intro directed directedMembership
+    rcases List.mem_map.mp directedMembership with
+      ⟨occurrence, occurrenceMembership, occurrenceValue⟩
+    subst directed
+    apply
+      terminal.emptyComplementCore_referenceKept
+        segmentCount indexedFlipped complementCut
+          reverseShells normalizedEmpty
+    rw [shellEquation]
+    exact List.mem_append_right opening occurrenceMembership
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change
+      (linkFullEdges certificate.links).length =
+        certificate.referenceSwitchingMask.length
+    exact
+      certificate.referenceFullSwitchingSelection.mask_length.symm
+  rcases openingWalk.retainEdgesExact aligned openingKept with
+    ⟨openingRetained, openingRetainedWalk,
+      openingIndexEquation, _openingEdgeEquation,
+      openingForwardEquation, _openingTargetEquation⟩
+  rcases closingWalk.retainEdgesExact aligned closingKept with
+    ⟨closingRetained, closingRetainedWalk,
+      closingIndexEquation, _closingEdgeEquation,
+      closingForwardEquation, _closingTargetEquation⟩
+  have openingRetainedNonempty : openingRetained ≠ [] := by
+    intro retainedEmpty
+    have lengths := congrArg List.length openingIndexEquation
+    rw [retainedEmpty] at lengths
+    simp only [List.length_map, List.length_nil] at lengths
+    exact
+      openingNonempty
+        (List.eq_nil_of_length_eq_zero lengths.symm)
+  have closingRetainedNonempty : closingRetained ≠ [] := by
+    intro retainedEmpty
+    have lengths := congrArg List.length closingIndexEquation
+    rw [retainedEmpty] at lengths
+    simp only [List.length_map, List.length_nil] at lengths
+    exact
+      closingNonempty
+        (List.eq_nil_of_length_eq_zero lengths.symm)
+  have openingPairEquation :=
+    retained_indexForward_pair_equation
+      openingIndexEquation openingForwardEquation
+  have closingPairEquation :=
+    retained_indexForward_pair_equation
+      closingIndexEquation closingForwardEquation
+  have reversedPairEquation :
+      (Graph.EdgeWalk.reverseTraversal
+          openingRetained).map
+          (fun directed => (directed.index, directed.forward)) =
+        (Graph.EdgeWalk.reverseTraversal
+          (opening.map SchedulerOccurrence.erase)).map
+          (fun directed =>
+            (Graph.retainedIndex
+                certificate.referenceSwitchingMask directed.index,
+              directed.forward)) := by
+    calc
+      (Graph.EdgeWalk.reverseTraversal
+          openingRetained).map
+          (fun directed => (directed.index, directed.forward)) =
+          (openingRetained.map
+            (fun directed =>
+              (directed.index, directed.forward))).reverse.map
+                (fun pair : Nat × Bool => (pair.1, !pair.2)) :=
+        reverseTraversal_map_of_reverse
+          openingRetained
+          (fun directed => (directed.index, directed.forward))
+          (fun pair : Nat × Bool => (pair.1, !pair.2))
+          (by intro directed; rfl)
+      _ =
+          ((opening.map SchedulerOccurrence.erase).map
+            (fun directed =>
+              (Graph.retainedIndex
+                  certificate.referenceSwitchingMask directed.index,
+                directed.forward))).reverse.map
+                  (fun pair : Nat × Bool => (pair.1, !pair.2)) :=
+        congrArg
+          (fun pairs =>
+            pairs.reverse.map
+              (fun pair : Nat × Bool => (pair.1, !pair.2)))
+          openingPairEquation
+      _ =
+          (Graph.EdgeWalk.reverseTraversal
+            (opening.map SchedulerOccurrence.erase)).map
+              (fun directed =>
+                (Graph.retainedIndex
+                    certificate.referenceSwitchingMask directed.index,
+                  directed.forward)) := by
+        symm
+        exact
+          reverseTraversal_map_of_reverse
+            (opening.map SchedulerOccurrence.erase)
+            (fun directed =>
+              (Graph.retainedIndex
+                  certificate.referenceSwitchingMask directed.index,
+                directed.forward))
+            (fun pair : Nat × Bool => (pair.1, !pair.2))
+            (by intro directed; rfl)
+  have closingRetainedReverse :
+      closingRetained =
+        Graph.EdgeWalk.reverseTraversal openingRetained := by
+    apply directedEdge_list_eq_of_indexForward_pair_equation
+    calc
+      closingRetained.map
+          (fun directed => (directed.index, directed.forward)) =
+          (closing.map SchedulerOccurrence.erase).map
+            (fun directed =>
+              (Graph.retainedIndex
+                  certificate.referenceSwitchingMask directed.index,
+                directed.forward)) :=
+        closingPairEquation
+      _ =
+          (Graph.EdgeWalk.reverseTraversal
+            (opening.map SchedulerOccurrence.erase)).map
+              (fun directed =>
+                (Graph.retainedIndex
+                    certificate.referenceSwitchingMask directed.index,
+                  directed.forward)) := by rw [pairedValues]
+      _ =
+          (Graph.EdgeWalk.reverseTraversal openingRetained).map
+            (fun directed => (directed.index, directed.forward)) :=
+        reversedPairEquation.symm
+  exact
+    ⟨opening, closing, midpoint,
+      openingRetained, closingRetained,
+      shellEquation, openingNonempty, closingNonempty,
+      pairedValues, openingRetainedWalk, closingRetainedWalk,
+      openingRetainedNonempty, closingRetainedNonempty,
+      closingRetainedReverse⟩
+
 /-- Exact scheduler provenance upgrades any retained strict-interior visit to
 an endpoint-classified witness once zero-offset visits are known absent from
 the retained state. -/
@@ -30334,9 +30912,14 @@ private def SchedulerTaggedTerminalNestingOutcome
                       SchedulerEndpointClassifiedHeadSkippingReverseChord
                         certificate chainAt count flippedSegments
                           taggedComplement ∧
-                        certificate.referenceSwitchingGraph.EdgeWalk
-                          complementBase retainedTraversal complementBase ∧
-                          retainedTraversal ≠ []) ∨
+                        SchedulerReferenceSuffixReverseChord
+                          certificate chainAt count flippedSegments
+                            taggedComplement ∧
+                          SchedulerReferenceShellNesting
+                            certificate taggedComplement complementBase ∧
+                            certificate.referenceSwitchingGraph.EdgeWalk
+                              complementBase retainedTraversal complementBase ∧
+                              retainedTraversal ≠ []) ∨
     ∃ complementBase taggedComplement taggedNormalized,
       CyclicIntervalCut taggedComplement tagged ∧
         taggedComplement ≠ [] ∧
@@ -30417,6 +31000,14 @@ private theorem
         terminal.emptyComplementCore_endpointChord
           segmentCount indexedFlipped complementCut
             complementNonempty reverseShells normalizedEmpty,
+        (terminal.emptyComplementCore_endpointChord
+          segmentCount indexedFlipped complementCut
+            complementNonempty reverseShells normalizedEmpty
+          ).referenceSuffixReverseChord,
+        terminal.emptyComplementCore_referenceShellNesting
+          segmentCount indexedFlipped complementCut
+            complementNonempty complementWalk reverseShells
+              normalizedEmpty,
         retainedWalk, retainedNonempty⟩
   · right
     exact

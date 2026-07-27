@@ -48,11 +48,20 @@
   scheduler conclusion, and the exact retained-left occurrence of that target
   waiting par which the whole segment avoids. The terminal outcome is connected
   back to the global fully reflexive dependency-cycle extraction rather than
-  left as an isolated local lemma. This is a genuine nesting witness, not yet
-  the contradiction. In particular, a bare transitive `CyclicIntervalDescent`
-  is intentionally not treated as one cyclic interval of the initial family:
-  an inner cyclic cut may wrap around the artificial boundary introduced by an
-  outer cut. The final exclusion must therefore use the stored
+  left as an isolated local lemma. Exact mask transport now preserves both
+  selected suffix occurrences as one compacted reverse pair inside their two
+  reference-suffix walks. Independently, the empty reverse-shell trace is
+  split into nonempty opening and closing coordinate halves. Lean transports
+  them separately through the reference mask, retains their common midpoint,
+  and proves that the complete compacted closing traversal is exactly the
+  reverse of the compacted opening traversal. The global terminal outcome
+  carries this occurrence-exact reference-shell nesting together with the
+  endpoint chord and the original closed walk. This is a genuine nesting
+  witness, not yet the contradiction. In particular, a bare transitive
+  `CyclicIntervalDescent` is intentionally not treated as one cyclic interval
+  of the initial family: an inner cyclic cut may wrap around the artificial
+  boundary introduced by an outer cut. The final exclusion must therefore use
+  the stored
   cusp/chord/shell endpoint data rather than an invalid generic-convexity
   shortcut. Turning the remaining ordered closed nesting of retained segment
   suffixes into the final scheduler contradiction, and excluding the

@@ -227,11 +227,15 @@ part of the engineering and proof-identity gap.
    reference-kept suffix walk to the next scheduler conclusion, and the exact
    retained-left target occurrence avoided by the whole segment. The terminal
    outcome is now consumed by the global fully reflexive dependency-cycle
-   extraction. This head-skipping reverse chord isolates the nesting gap
-   without assuming the false transitivity of generic cyclic-interval
-   convexity. Excluding the remaining ordered closed nesting of retained
-   segment suffixes and the tagged closing-par base, pure worklist
-   completeness, and a full cost theorem remain open.
+   extraction. Exact mask transport proves that the selected compacted suffix
+   occurrences remain a reverse pair. The empty shell additionally splits
+   into two nonempty compacted reference walks through one midpoint, and its
+   full closing traversal is kernel-proved equal to the reverse of its full
+   opening traversal. This head-skipping chord plus occurrence-exact shell
+   isolates the nesting gap without assuming the false transitivity of generic
+   cyclic-interval convexity. Excluding the remaining ordered closed nesting
+   of retained segment suffixes and the tagged closing-par base, pure
+   worklist completeness, and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

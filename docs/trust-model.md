@@ -271,10 +271,15 @@ head of a flipped segment. One exact reverse pair is now oriented by strict
 scheduler-step order with the complete segment-family decomposition retained.
 Each positive offset is proved to lie in the concrete reference-retained
 suffix after the unique omitted head, and that suffix retains its exact walk
-to the classified target. A closed tree walk is not itself contradictory
-because nested out-and-back traversal remains possible. The global base-case
-contradiction therefore remains outside the trusted claims until that ordered
-retained-suffix nesting and the nontrivial closing-par base are excluded.
+to the classified target. Exact mask transport now preserves the two selected
+suffix occurrences as one compacted reverse pair. The empty reverse-shell
+trace is separately transported as two nonempty reference walks through one
+midpoint, with the complete compacted closing traversal proved equal to the
+reverse of the compacted opening traversal. A closed tree walk, including
+this exact nested out-and-back form, is not itself contradictory. The global
+base-case contradiction therefore remains outside the trusted claims until
+that ordered retained-suffix nesting and the nontrivial closing-par base are
+excluded.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
