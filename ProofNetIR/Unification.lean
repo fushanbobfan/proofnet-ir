@@ -18288,6 +18288,65 @@ private theorem
     contradiction
   · exact fullSuffixKept directed inSuffix
 
+/-- A positive exact offset in a flipped traversal lies in the retained
+suffix after the unique omitted source-right head.  The theorem preserves the
+concrete head/suffix decomposition instead of reducing the fact to a mask
+lookup alone. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.strictOffset_mem_retainedSuffix
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed)
+    {offset : Nat}
+    {directed : certificate.fullGraph.DirectedEdge}
+    (lookup : traversed[offset]? = some directed)
+    (offsetPositive : offset ≠ 0) :
+    ∃ head suffix,
+      traversed = head :: suffix ∧
+        directed ∈ suffix ∧
+          head.forward = false ∧
+            certificate.referenceSwitchingMask[head.index]? =
+              some false ∧
+              (∀ retained ∈ suffix,
+                certificate.referenceSwitchingMask[retained.index]? =
+                  some true) ∧
+                certificate.fullGraph.EdgeWalk
+                  head.target suffix target := by
+  have completeWalk := flipped.walk
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      head, suffix, _flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      _flippedTraversal, traversalShape, _rightIndex,
+      _rightEdge, headBackward, headOmitted,
+      suffixKept⟩
+  cases offset with
+  | zero =>
+      exact False.elim (offsetPositive rfl)
+  | succ suffixOffset =>
+      have suffixLookup :
+          suffix[suffixOffset]? = some directed := by
+        rw [traversalShape] at lookup
+        simpa using lookup
+      have suffixMembership : directed ∈ suffix :=
+        List.mem_of_getElem? suffixLookup
+      have suffixWalk :
+          certificate.fullGraph.EdgeWalk
+            head.target suffix target := by
+        have completeChain := completeWalk.toChain
+        rw [traversalShape] at completeChain
+        cases completeChain with
+        | cons _directed _starts tail =>
+            exact tail.toWalk
+      exact
+        ⟨head, suffix, traversalShape,
+          suffixMembership, headBackward, headOmitted,
+          suffixKept, suffixWalk⟩
+
 /-- The omitted occurrence in a flipped segment is uniquely its head.  Every
 other occurrence lies in the retained reference suffix, so an exact `false`
 mask lookup identifies the source-right occurrence rather than merely an
@@ -29651,7 +29710,15 @@ private def SchedulerOrderedStrictInteriorReversePair
                         segments =
                           beforeSegments ++ earlierSegment ::
                             middleSegments ++ laterSegment ::
-                              afterSegments
+                              afterSegments ∧
+                          ∃ earlierHead earlierSuffix
+                              laterHead laterSuffix,
+                            earlierSegment =
+                                earlierHead :: earlierSuffix ∧
+                              earlier.value ∈ earlierSuffix ∧
+                                laterSegment =
+                                    laterHead :: laterSuffix ∧
+                                  later.value ∈ laterSuffix
 
 /-- A nonempty empty-core complement contains an exact reverse pair whose two
 strict-interior scheduler visits are linearly ordered in the original segment
@@ -29708,7 +29775,7 @@ private theorem
   rcases provenance occurrence occurrenceMembership with
     ⟨occurrenceSegment, _occurrenceStepBound,
       occurrenceSegmentLookup, occurrenceOffsetLookup,
-      _occurrenceClassified⟩
+      occurrenceClassified⟩
   rcases
       terminal.emptyComplementCore_reversePartners
         segmentCount indexedFlipped complementCut
@@ -29719,7 +29786,7 @@ private theorem
   rcases provenance partner partnerMembership with
     ⟨partnerSegment, _partnerStepBound,
       partnerSegmentLookup, partnerOffsetLookup,
-      _partnerClassified⟩
+      partnerClassified⟩
   have occurrenceInterior : occurrence.offset ≠ 0 :=
     terminal.emptyComplementCore_no_segment_head
       segmentCount indexedFlipped complementCut reverseShells
@@ -29728,6 +29795,20 @@ private theorem
     terminal.emptyComplementCore_no_segment_head
       segmentCount indexedFlipped complementCut reverseShells
         normalizedEmpty partner partnerMembership
+  rcases
+      occurrenceClassified.1.strictOffset_mem_retainedSuffix
+        occurrenceOffsetLookup occurrenceInterior with
+    ⟨occurrenceHead, occurrenceSuffix,
+      occurrenceSegmentShape, occurrenceInSuffix,
+      _occurrenceHeadBackward, _occurrenceHeadOmitted,
+      _occurrenceSuffixKept, _occurrenceSuffixWalk⟩
+  rcases
+      partnerClassified.1.strictOffset_mem_retainedSuffix
+        partnerOffsetLookup partnerInterior with
+    ⟨partnerHead, partnerSuffix,
+      partnerSegmentShape, partnerInSuffix,
+      _partnerHeadBackward, _partnerHeadOmitted,
+      _partnerSuffixKept, _partnerSuffixWalk⟩
   rcases Nat.lt_or_gt_of_ne partnerStepDistinct with
     partnerEarlier | occurrenceEarlier
   · rcases
@@ -29743,7 +29824,10 @@ private theorem
         partnerInterior, occurrenceInterior, partnerEarlier,
         partnerSegmentLookup, occurrenceSegmentLookup,
         partnerOffsetLookup, occurrenceOffsetLookup, ?_,
-        familyEquation⟩
+        familyEquation, partnerHead, partnerSuffix,
+        occurrenceHead, occurrenceSuffix, partnerSegmentShape,
+        partnerInSuffix, occurrenceSegmentShape,
+        occurrenceInSuffix⟩
     rw [partnerReverse]
     simp [Graph.DirectedEdge.reverse]
   · rcases
@@ -29759,7 +29843,10 @@ private theorem
         occurrenceInterior, partnerInterior, occurrenceEarlier,
         occurrenceSegmentLookup, partnerSegmentLookup,
         occurrenceOffsetLookup, partnerOffsetLookup,
-        partnerReverse, familyEquation⟩
+        partnerReverse, familyEquation, occurrenceHead,
+        occurrenceSuffix, partnerHead, partnerSuffix,
+        occurrenceSegmentShape, occurrenceInSuffix,
+        partnerSegmentShape, partnerInSuffix⟩
 
 /-- Eliminate a tagged terminal base without losing its exact geometry.
 The empty alternative is strengthened to a nonempty closed walk in the

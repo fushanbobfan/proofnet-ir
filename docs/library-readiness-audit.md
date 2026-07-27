@@ -218,10 +218,11 @@ part of the engineering and proof-identity gap.
    from another scheduler step, every edge is reference-kept, the nonempty
    complement transports to the reference-switching tree, and no visit is a
    flipped-segment head. One concrete reverse pair is additionally ordered by
-   scheduler step with an exact before/middle/after family decomposition.
-   Excluding the remaining ordered closed nesting of strict segment interiors
-   and the tagged closing-par base, pure worklist completeness, and a full
-   cost theorem remain open.
+   scheduler step with an exact before/middle/after family decomposition, and
+   each positive offset is inverted to its omitted-head/retained-suffix
+   decomposition plus the exact suffix walk. Excluding the remaining ordered
+   closed nesting of retained segment suffixes and the tagged closing-par
+   base, pure worklist completeness, and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

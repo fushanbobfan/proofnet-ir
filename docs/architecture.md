@@ -282,9 +282,11 @@ active-reference walks between marked occurrences are equivalent to
   the omitted/kept mask conflict excludes every scheduler-segment head.
   Lean also selects one concrete reverse pair, orients it by strict scheduler
   step order, and records the exact segment family before, between, and after
-  the pair. Pure completeness still requires converting the resulting
-  ordered closed nesting of strict segment interiors into the contradiction
-  and excluding the tagged closing-par base.
+  the pair. A positive offset is now inverted to the concrete omitted head,
+  retained suffix, and suffix walk to the classified target. Pure completeness
+  still requires converting the resulting ordered closed nesting of retained
+  segment suffixes into the contradiction and excluding the tagged
+  closing-par base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain
