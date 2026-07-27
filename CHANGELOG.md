@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added proof-relevant cyclic reverse-shell normalization for an internally
+  nonbacktracking closed traversal. The normalization retains the exact
+  decomposition `opening ++ normalized ++ reverseTraversal opening`, proves
+  the exact length equation, and never replaces positional nesting by mere
+  edge membership. Applying it to a terminal scheduler par-cusp complement
+  now exposes a finite normal-form core with inherited occurrence-indexed
+  scheduler provenance. A nonempty core carries both the exact
+  `NormalizedNonemptyParObstruction` and its scheduler-located counterpart;
+  its closing boundary is either cusp-free or a classified nontrivial par
+  cusp. In the cusp-free case Lean recursively extracts a strictly nested
+  terminal forward cusp with a transitive cyclic-interval descent trace.
+  Well-founded recursion therefore reduces every fully reflexive flipped
+  dependency family to one of two finite scheduler-located base cases: an
+  empty shell core or a nontrivial closing-par core. Pure-worklist completeness
+  still requires excluding those two bases by the reference-switching or
+  scheduler-order contradiction;
 - added a generic cyclic scheduler-subarc state carrying a closed full-graph
   walk, internal and closing cusp-freedom, forward reference retention,
   pointwise indexed flipped-segment provenance, and the exact
@@ -24,9 +40,9 @@
   The complement is kernel-proved nonempty, closed, internally cusp-free, and
   strictly shorter. Any cusp at its closing junction is now proved to be only
   the exact last/first immediate reversal; a second nontrivial par cusp there
-  would contradict the inherited boundary cusp-freedom. The remaining nesting
-  step is to strip those exact reverse shells proof-relevantly and contradict
-  the simple scheduler-cycle order;
+  would contradict the inherited boundary cusp-freedom. This complement now
+  feeds the proof-relevant reverse-shell normalizer and finite nesting-base
+  extraction described above;
 - proved that every residual core in the fully cancelling simple dependency
   cycle is nonempty. If a core were empty, its backward source incidence and
   the cyclic successor's backward source incidence would consume the same

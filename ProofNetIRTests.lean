@@ -2307,6 +2307,10 @@ example : ¬cyclicGraph.Acyclic := by
 #check Graph.EdgeWalk.CyclicImmediateReverseNormalization.reverse_mem_of_normalizes_to_nil
 #check Graph.EdgeWalk.CyclicImmediateReverseNormalization.eq_of_cyclicNoImmediateReverse
 #check Graph.EdgeWalk.CyclicImmediateReverseNormalization.site_of_nonempty_normalizes_to_nil
+#check Graph.EdgeWalk.CyclicReverseShellNormalization
+#check Graph.EdgeWalk.CyclicReverseShellNormalization.context
+#check Graph.EdgeWalk.CyclicReverseShellNormalization.length_eq
+#check Graph.EdgeWalk.CyclicImmediateReverseNormalization.reverseShells_of_noImmediateReverse
 #check Graph.EdgeWalk.normalizeCyclicImmediateReversalsTraced
 #check Graph.EdgeWalk.normalizeCyclicImmediateReversals
 #check Graph.EdgeSimpleCycle.inflateRetained

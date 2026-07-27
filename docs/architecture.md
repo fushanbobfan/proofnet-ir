@@ -247,11 +247,15 @@ active-reference walks between marked occurrences are equivalent to
   internally cusp-free, and strictly shorter. A kernel theorem shows that any
   closing cusp of the complement is necessarily the exact last/first reverse,
   because a nontrivial par cusp would violate the inherited boundary freedom.
-  Ordinary loop
-  erasure is not used: erasing at a repeated vertex can re-pair incidences and
-  create a new closing cusp. Pure completeness still requires converting the
-  resulting proof-relevant reverse-shell nesting into the forbidden
-  reference-switching cycle or scheduler-order contradiction.
+  Ordinary loop erasure is not used: erasing at a repeated vertex can re-pair
+  incidences and create a new closing cusp. Instead, proof-relevant cyclic
+  normalization now strips exact first/last reverse shells and retains the
+  positional context, length equation, pointwise scheduler provenance, and
+  cyclic-interval descent. A cusp-free nonempty core recursively yields a
+  strictly nested terminal forward cusp, so well-founded descent terminates at
+  either an empty shell core or a scheduler-located nontrivial closing-par
+  core. Pure completeness still requires excluding those two finite base
+  cases by the reference-switching or scheduler-order contradiction.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

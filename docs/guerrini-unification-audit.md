@@ -369,12 +369,15 @@ or positive misses. The larger search recorded at most 995 link attempts and
     complementary cyclic interval, proves it nonempty, closed, internally
     cusp-free, and strictly shorter, and proves that any closing cusp there is
     only the exact last/first reversal rather than another nontrivial par cusp.
-    Ordinary loop
-    erasure remains unnecessary and unsafe because it can create a new closing
-    cusp by re-pairing incidences at the erased vertex. The immediate remaining
-    obligation is to strip the exact reverse shells with a proof-relevant
-    nesting trace and transport the classified witness into an excluded
-    edge-simple reference-switching cycle or scheduler-order contradiction.
+    Ordinary loop erasure remains unnecessary and unsafe because it can create
+    a new closing cusp by re-pairing incidences at the erased vertex. Lean now
+    strips the exact reverse shells with a proof-relevant positional and length
+    trace, retains the normalized core's exact scheduler provenance, and
+    recursively extracts strictly nested terminal forward cusps from every
+    cusp-free nonempty core. Well-founded descent leaves exactly two finite
+    scheduler-located bases: an empty shell core and a nontrivial closing-par
+    core. The immediate remaining obligation is to exclude both by the
+    reference-switching or scheduler-order contradiction.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

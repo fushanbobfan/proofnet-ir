@@ -25726,6 +25726,27 @@ private theorem CyclicIntervalCut.length_lt
       _largerRotation, _smallerInterval, shorter⟩
   exact shorter
 
+/-- Every value represented in a cyclic interval is represented in the source
+traversal. This remains a value-membership statement; the proof-relevant cut
+itself retains the exact positions and rotation. -/
+private theorem CyclicIntervalCut.mem_larger
+    {α : Type} {smaller larger : List α}
+    (cut : CyclicIntervalCut smaller larger)
+    {value : α} (membership : value ∈ smaller) :
+    value ∈ larger := by
+  rcases cut with
+    ⟨rotationPrefix, rotationSuffix, before, after,
+      largerRotation, smallerInterval, _shorter⟩
+  have inRotated :
+      value ∈ rotationSuffix ++ rotationPrefix := by
+    rw [smallerInterval]
+    simp [membership]
+  have rotationPermutation :
+      List.Perm (rotationSuffix ++ rotationPrefix) larger := by
+    rw [largerRotation]
+    exact List.perm_append_comm
+  exact rotationPermutation.mem_iff.mp inRotated
+
 /-- Proof-relevant reflexive/transitive closure of strict cyclic-interval
 cuts.  Keeping the complete chain avoids collapsing recursive scheduler
 geometry to a bare length inequality. -/
@@ -25749,6 +25770,49 @@ private theorem CyclicIntervalDescent.length_le
       exact
         Nat.le_trans induction
           (Nat.le_of_lt cut.length_lt)
+
+/-- Compose two proof-relevant cyclic-interval descent traces. -/
+private theorem CyclicIntervalDescent.trans
+    {α : Type} {terminal middle initial : List α}
+    (first : CyclicIntervalDescent terminal middle)
+    (second : CyclicIntervalDescent middle initial) :
+    CyclicIntervalDescent terminal initial := by
+  induction second with
+  | refl =>
+      exact first
+  | step cut _tail induction =>
+      exact .step cut induction
+
+/-- An exact reverse-shell context is itself a proof-relevant cyclic-interval
+descent. If the opening context is empty the descent is reflexive; otherwise
+the surviving middle is a strict contiguous interval. -/
+private theorem cyclicIntervalDescent_of_reverseShellContext
+    {graph : Graph}
+    {complement normalized opening : List graph.DirectedEdge}
+    (equation :
+      complement =
+        opening ++ normalized ++
+          Graph.EdgeWalk.reverseTraversal opening)
+    (lengthEquation :
+      complement.length =
+        normalized.length + 2 * opening.length) :
+    CyclicIntervalDescent normalized complement := by
+  by_cases openingEmpty : opening = []
+  · subst opening
+    simp [Graph.EdgeWalk.reverseTraversal] at equation
+    subst complement
+    exact .refl normalized
+  · have openingPositive : 0 < opening.length :=
+      List.length_pos_iff.mpr openingEmpty
+    have shorter : normalized.length < complement.length := by
+      omega
+    have cut : CyclicIntervalCut normalized complement :=
+      ⟨[], complement, opening,
+        Graph.EdgeWalk.reverseTraversal opening,
+        by simp,
+        by simpa [List.append_assoc] using equation,
+        shorter⟩
+    exact .step cut (.refl normalized)
 
 /-- A cyclic scheduler subarc retains exactly the data needed by recursive
 chord descent.  In particular, pointwise scheduler provenance and the located
@@ -26007,6 +26071,220 @@ private theorem
     Option.some.inj (actualComplementHead.symm.trans firstLookup)
   rw [arcLastValue, complementHeadValue] at boundaryFree
   exact boundaryFree forbiddenBoundary
+
+/-- A cyclically nonbacktracking traversal either closes without a cusp or its
+closing junction is a nontrivial par cusp with the exact forced orientations:
+the incoming last occurrence is forward and the outgoing first occurrence is
+backward. -/
+private def NontrivialClosingParCusp
+    (certificate : Certificate)
+    (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ (conclusion : Vertex)
+      (first last : certificate.fullGraph.DirectedEdge),
+    traversed.head? = some first ∧
+      traversed.getLast? = some last ∧
+        certificate.Cusp last first ∧
+          last ≠ first.reverse ∧
+            certificate.incidenceColor last = .par conclusion ∧
+              certificate.incidenceColor first.reverse = .par conclusion ∧
+                last.forward = true ∧
+                  first.forward = false
+
+private theorem
+    closingCuspFree_or_nontrivialPar_of_cyclicNoImmediateReverse
+    {certificate : Certificate}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (reduced :
+      Graph.EdgeWalk.CyclicNoImmediateReverse traversed) :
+    (∀ first last,
+      traversed.head? = some first →
+        traversed.getLast? = some last →
+          ¬certificate.Cusp last first) ∨
+      NontrivialClosingParCusp certificate traversed := by
+  classical
+  by_cases closing :
+      ∃ first last,
+        traversed.head? = some first ∧
+          traversed.getLast? = some last ∧
+            certificate.Cusp last first
+  · right
+    rcases closing with
+      ⟨first, last, firstLookup, lastLookup, cusp⟩
+    have nontrivial : last ≠ first.reverse := by
+      intro reversed
+      have firstIsLastReverse : first = last.reverse := by
+        rw [reversed, Graph.DirectedEdge.reverse_reverse]
+      exact reduced.2 first last firstLookup lastLookup firstIsLastReverse
+    have cusping : certificate.CuspingEdge last :=
+      ⟨first, cusp, nontrivial⟩
+    rcases cusping.incidenceColor_eq_par with
+      ⟨conclusion, lastColor⟩
+    have firstReverseColor :
+        certificate.incidenceColor first.reverse =
+          .par conclusion := by
+      unfold Certificate.Cusp at cusp
+      exact cusp.symm.trans lastColor
+    have lastForward :
+        last.forward = true :=
+      ((certificate.incidenceColor_eq_par_iff
+        last conclusion).mp lastColor).1
+    have firstReverseForward :
+        first.reverse.forward = true :=
+      ((certificate.incidenceColor_eq_par_iff
+        first.reverse conclusion).mp firstReverseColor).1
+    have firstBackward : first.forward = false := by
+      cases orientation : first.forward with
+      | false => rfl
+      | true =>
+          simp [Graph.DirectedEdge.reverse, orientation] at firstReverseForward
+    unfold NontrivialClosingParCusp
+    exact
+      ⟨conclusion, first, last, firstLookup, lastLookup,
+        cusp, nontrivial, lastColor, firstReverseColor,
+        lastForward, firstBackward⟩
+  · left
+    intro first last firstLookup lastLookup cusp
+    exact closing ⟨first, last, firstLookup, lastLookup, cusp⟩
+
+/-- Normalize the complementary interval of a terminal forward cusp without
+losing its scheduler geometry. Internal cusp-freedom means that the complete
+cyclic normalization trace consists only of exact first/last reverse-shell
+removals. If a nonempty cyclically reduced core survives, correctness forces
+another exact omitted-right-par obstruction and the inherited occurrence
+provenance locates both of its premises at distinct scheduler segments. -/
+private theorem
+    SchedulerForwardParCuspArc.complement_reverseShell_normalForm
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (terminal :
+      SchedulerForwardParCuspArc
+        certificate chainAt count flippedSegments traversed) :
+    ∃ (conclusion normalizedBase : Vertex)
+        (complement normalized :
+          List certificate.fullGraph.DirectedEdge),
+      CyclicIntervalCut complement traversed ∧
+        complement ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+            conclusion complement conclusion ∧
+            certificate.CuspFreeTraversal complement ∧
+              certificate.fullGraph.EdgeWalk
+                normalizedBase normalized normalizedBase ∧
+                  Graph.EdgeWalk.CyclicImmediateReverseNormalization
+                  complement normalized ∧
+                  Graph.EdgeWalk.CyclicReverseShellNormalization
+                    complement normalized ∧
+                    ∃ opening,
+                      complement =
+                        opening ++ normalized ++
+                          Graph.EdgeWalk.reverseTraversal opening ∧
+                        complement.length =
+                          normalized.length + 2 * opening.length ∧
+                          (normalized = [] ∨
+                            normalized ≠ [] ∧
+                              Graph.EdgeWalk.CyclicNoImmediateReverse
+                                normalized ∧
+                                NormalizedNonemptyParObstruction
+                                  certificate normalized ∧
+                                  SchedulerLocatedParObstruction
+                                    certificate chainAt count flippedSegments
+                                      normalized ∧
+                                    ((∀ first last,
+                                      normalized.head? = some first →
+                                        normalized.getLast? = some last →
+                                          ¬certificate.Cusp last first) ∨
+                                      NontrivialClosingParCusp
+                                        certificate normalized)) := by
+  rcases terminal.complement_closing_cusp_eq_reverse with
+    ⟨conclusion, complement, complementCut, complementNonempty,
+      complementWalk, complementFree, _closingClassification⟩
+  rcases
+      complementWalk.normalizeCyclicImmediateReversalsTraced with
+    ⟨normalizedBase, normalized, normalizedWalk, normalization,
+      normalizedShape⟩
+  have complementNoImmediateReverse :
+      Graph.EdgeWalk.NoImmediateReverse complement :=
+    noImmediateReverse_of_cuspFreeTraversal complementFree
+  have reverseShells :
+      Graph.EdgeWalk.CyclicReverseShellNormalization
+        complement normalized :=
+    normalization.reverseShells_of_noImmediateReverse
+      complementNoImmediateReverse
+  rcases reverseShells.length_eq with
+    ⟨opening, shellEquation, shellLength⟩
+  refine
+    ⟨conclusion, normalizedBase, complement, normalized,
+      complementCut, complementNonempty, complementWalk,
+      complementFree, normalizedWalk, normalization,
+      reverseShells, opening, shellEquation, shellLength, ?_⟩
+  rcases normalizedShape with normalizedEmpty | normalizedReduced
+  · exact .inl normalizedEmpty
+  · by_cases normalizedEmpty : normalized = []
+    · exact .inl normalizedEmpty
+    · have normalizedInTraversed :
+          ∀ directed,
+            directed ∈ normalized →
+              directed ∈ traversed := by
+        intro directed membership
+        exact complementCut.mem_larger
+          (normalization.membership_subset directed membership)
+      rcases terminal.1 with
+        ⟨_base, _traversedNonempty, _closedWalk, _cuspFree,
+          _closingCuspFree, forwardKept, schedulerProvenance,
+          _obstruction, _schedulerLocated⟩
+      have normalizedForwardKept :
+          ∀ directed,
+            directed ∈ normalized →
+              directed.forward = true →
+                certificate.referenceSwitchingMask[directed.index]? =
+                  some true := by
+        intro directed membership forward
+        exact forwardKept directed
+          (normalizedInTraversed directed membership) forward
+      have normalizedProvenance :
+          ∀ directed,
+            directed ∈ normalized →
+              ∃ step segment,
+                step < count ∧
+                  flippedSegments[step]? = some segment ∧
+                    directed ∈ segment ∧
+                      QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                        certificate
+                          (chainAt step) (chainAt (step + 1))
+                            segment := by
+        intro directed membership
+        exact schedulerProvenance directed
+          (normalizedInTraversed directed membership)
+      have rawObstruction :=
+        correct.cyclicNoImmediateReverse_uses_backwardRightPar
+          normalizedEmpty normalizedWalk normalizedReduced
+            normalizedForwardKept
+      have obstruction :
+          NormalizedNonemptyParObstruction certificate normalized := by
+        simpa [NormalizedNonemptyParObstruction] using rawObstruction
+      have located :
+          SchedulerLocatedParObstruction
+            certificate chainAt count flippedSegments normalized :=
+        obstruction.schedulerLocated
+          normalizedProvenance prefixInjective
+      have closingShape :=
+        closingCuspFree_or_nontrivialPar_of_cyclicNoImmediateReverse
+          (certificate := certificate) normalizedReduced
+      exact
+        .inr
+          ⟨normalizedEmpty, normalizedReduced, obstruction, located,
+            closingShape⟩
 
 /-- One generic cyclic-interval step.  Rotating the omitted right occurrence
 to the head exposes the retained left occurrence at a unique later list
@@ -26466,13 +26744,239 @@ termination_by traversed.length
 decreasing_by
   exact intervalCut.length_lt
 
+/-- Strip the exact reverse shells around a terminal cusp complement. The
+surviving core is either empty, already closes in a nontrivial par cusp with
+forced orientations, or is again a lawful scheduler cyclic-par state and hence
+contains a further terminal forward cusp interval. This is the finite
+proof-relevant nesting trichotomy needed by the global scheduler-order
+argument. -/
+private theorem
+    SchedulerForwardParCuspArc.complement_empty_or_nestedForward_or_closingPar
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (terminal :
+      SchedulerForwardParCuspArc
+        certificate chainAt count flippedSegments traversed) :
+    ∃ (complement normalized opening :
+          List certificate.fullGraph.DirectedEdge),
+      CyclicIntervalCut complement traversed ∧
+        complement ≠ [] ∧
+          complement =
+            opening ++ normalized ++
+              Graph.EdgeWalk.reverseTraversal opening ∧
+            complement.length =
+              normalized.length + 2 * opening.length ∧
+              (normalized = [] ∨
+                (NormalizedNonemptyParObstruction
+                    certificate normalized ∧
+                  SchedulerLocatedParObstruction
+                    certificate chainAt count flippedSegments normalized ∧
+                  NontrivialClosingParCusp certificate normalized) ∨
+                  ∃ nested,
+                    SchedulerForwardParCuspArc
+                      certificate chainAt count flippedSegments nested ∧
+                      CyclicIntervalDescent nested normalized) := by
+  rcases
+      terminal.complement_reverseShell_normalForm
+        correct prefixInjective with
+    ⟨_conclusion, normalizedBase, complement, normalized,
+      complementCut, complementNonempty, _complementWalk,
+      complementFree, normalizedWalk, normalization, _reverseShells,
+      opening, shellEquation, shellLength, normalizedShape⟩
+  refine
+    ⟨complement, normalized, opening, complementCut,
+      complementNonempty, shellEquation, shellLength, ?_⟩
+  rcases normalizedShape with
+    normalizedEmpty |
+      ⟨normalizedNonempty, _normalizedReduced, obstruction,
+        located, closingShape⟩
+  · exact .inl normalizedEmpty
+  · rcases closingShape with closingFree | closingPar
+    · right
+      right
+      have representedFree :
+          certificate.CuspFreeTraversal
+            (opening ++ normalized ++
+              Graph.EdgeWalk.reverseTraversal opening) := by
+        rw [← shellEquation]
+        exact complementFree
+      have suffixFree :
+          certificate.CuspFreeTraversal
+            (normalized ++
+              Graph.EdgeWalk.reverseTraversal opening) :=
+        CuspFreeTraversal.suffix certificate
+          (initial := opening)
+            (by simpa [List.append_assoc] using representedFree)
+      have normalizedFree :
+          certificate.CuspFreeTraversal normalized :=
+        CuspFreeTraversal.prefix certificate suffixFree
+      rcases terminal.1 with
+        ⟨_base, _traversedNonempty, _traversedWalk,
+          _traversedFree, _traversedClosing, forwardKept,
+          schedulerProvenance, _traversedObstruction,
+          _traversedLocated⟩
+      have normalizedInTraversed :
+          ∀ directed,
+            directed ∈ normalized →
+              directed ∈ traversed := by
+        intro directed membership
+        exact complementCut.mem_larger
+          (normalization.membership_subset directed membership)
+      have normalizedForwardKept :
+          ∀ directed,
+            directed ∈ normalized →
+              directed.forward = true →
+                certificate.referenceSwitchingMask[directed.index]? =
+                  some true := by
+        intro directed membership forward
+        exact forwardKept directed
+          (normalizedInTraversed directed membership) forward
+      have normalizedProvenance :
+          ∀ directed,
+            directed ∈ normalized →
+              ∃ step segment,
+                step < count ∧
+                  flippedSegments[step]? = some segment ∧
+                    directed ∈ segment ∧
+                      QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                        certificate
+                          (chainAt step) (chainAt (step + 1))
+                            segment := by
+        intro directed membership
+        exact schedulerProvenance directed
+          (normalizedInTraversed directed membership)
+      have normalizedState :
+          SchedulerCyclicParState
+            certificate chainAt count flippedSegments normalized :=
+        ⟨normalizedBase, normalizedNonempty, normalizedWalk,
+          normalizedFree, closingFree, normalizedForwardKept,
+          normalizedProvenance, obstruction, located⟩
+      exact
+        schedulerCyclicParState_forward_exists
+          correct prefixInjective normalizedState
+    · exact .inr (.inl ⟨obstruction, located, closingPar⟩)
+
+/-- A terminal nesting base is a forward par-cusp state whose complementary
+interval has been stripped to either the empty core or a cyclically reduced
+nontrivial closing par cusp. Every exact shell and the strict complement cut
+remain explicit. -/
+private def SchedulerTerminalNestingBase
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
+  SchedulerForwardParCuspArc
+      certificate chainAt count flippedSegments traversed ∧
+    ∃ (complement normalized opening :
+          List certificate.fullGraph.DirectedEdge),
+      CyclicIntervalCut complement traversed ∧
+        complement ≠ [] ∧
+          complement =
+            opening ++ normalized ++
+              Graph.EdgeWalk.reverseTraversal opening ∧
+            complement.length =
+              normalized.length + 2 * opening.length ∧
+              (normalized = [] ∨
+                (NormalizedNonemptyParObstruction
+                    certificate normalized ∧
+                  SchedulerLocatedParObstruction
+                    certificate chainAt count flippedSegments normalized ∧
+                  NontrivialClosingParCusp certificate normalized))
+
+/-- Finite traversal length also closes the nested-complement branch. Starting
+from any terminal forward cusp, repeated exact shell stripping and recursive
+scheduler descent reaches a proof-relevant base whose stripped core is empty
+or already closes with a nontrivial par cusp. The complete cyclic-interval
+descent from that base back to the original terminal state is retained. -/
+private theorem
+    SchedulerForwardParCuspArc.nestingBase_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (terminal :
+      SchedulerForwardParCuspArc
+        certificate chainAt count flippedSegments traversed) :
+    ∃ base,
+      SchedulerTerminalNestingBase
+          certificate chainAt count flippedSegments base ∧
+        CyclicIntervalDescent base traversed := by
+  rcases
+      terminal.complement_empty_or_nestedForward_or_closingPar
+        correct prefixInjective with
+    ⟨complement, normalized, opening, complementCut,
+      complementNonempty, shellEquation, shellLength, outcome⟩
+  rcases outcome with normalizedEmpty | closingOrNested
+  · exact
+      ⟨traversed,
+        ⟨terminal, complement, normalized, opening,
+          complementCut, complementNonempty, shellEquation,
+          shellLength, .inl normalizedEmpty⟩,
+        .refl traversed⟩
+  · rcases closingOrNested with closingPar | nestedOutcome
+    · exact
+        ⟨traversed,
+          ⟨terminal, complement, normalized, opening,
+            complementCut, complementNonempty, shellEquation,
+            shellLength, .inr closingPar⟩,
+          .refl traversed⟩
+    · rcases nestedOutcome with
+        ⟨nested, nestedTerminal, nestedDescent⟩
+      have normalizedToComplement :
+          CyclicIntervalDescent normalized complement :=
+        cyclicIntervalDescent_of_reverseShellContext
+          shellEquation shellLength
+      have nestedToComplement :
+          CyclicIntervalDescent nested complement :=
+        nestedDescent.trans normalizedToComplement
+      have nestedToTraversed :
+          CyclicIntervalDescent nested traversed :=
+        .step complementCut nestedToComplement
+      have nestedShorter : nested.length < traversed.length :=
+        Nat.lt_of_le_of_lt nestedToComplement.length_le
+          complementCut.length_lt
+      rcases
+          nestedTerminal.nestingBase_exists
+            correct prefixInjective with
+        ⟨base, baseState, baseToNested⟩
+      exact
+        ⟨base, baseState,
+          baseToNested.trans nestedToTraversed⟩
+termination_by traversed.length
+decreasing_by
+  exact nestedShorter
+
 /-- The complementary flipped family of every fully reflexive dependency
 cycle reaches a forward retained-left par-cusp interval.  The theorem closes
 the entire backward recursive branch: at each intermediate subarc the exact
 scheduler-segment provenance and distinct-segment par localization are
-retained, while traversal length strictly decreases.  The remaining global
-obligation is now solely to turn the terminal closing cusp into the forbidden
-reference-switching nesting/cycle. -/
+retained, while traversal length strictly decreases.  Exact reverse-shell
+normalization and finite terminal-base extraction are layered on this result
+below. -/
 private theorem
     FullyCancellingDependencyCycleAllReflexive.flippedForwardParCuspArc_exists
     {certificate : Certificate}
@@ -26540,6 +27044,53 @@ private theorem
     ⟨flippedSegments, segmentCount,
       schedulerCyclicParState_forward_exists
         correct prefixInjective initialState⟩
+
+/-- Every fully reflexive waiting-dependency cycle reaches a finite terminal
+nesting base. This composes the initial backward-chord descent with exact
+reverse-shell stripping and any recursively exposed scheduler core, retaining
+one proof-relevant cyclic-interval trace from the final base all the way back
+to the original flattened flipped family. -/
+private theorem
+    FullyCancellingDependencyCycleAllReflexive.flippedNestingBase_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {originalSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (correct : certificate.DeclarativelyCorrect)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count originalSegments)
+    (positive : 0 < count)
+    (closed : chainAt 0 = chainAt count)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second) :
+    ∃ flippedSegments :
+        List (List certificate.fullGraph.DirectedEdge),
+      flippedSegments.length = count ∧
+        ∃ base,
+          SchedulerTerminalNestingBase
+              certificate chainAt count flippedSegments base ∧
+            CyclicIntervalDescent
+              base flippedSegments.flatten := by
+  rcases
+      allReflexive.flippedForwardParCuspArc_exists
+        correct positive closed prefixInjective with
+    ⟨flippedSegments, segmentCount, terminal,
+      terminalState, terminalDescent⟩
+  rcases
+      terminalState.nestingBase_exists
+        correct prefixInjective with
+    ⟨base, baseState, baseDescent⟩
+  exact
+    ⟨flippedSegments, segmentCount, base, baseState,
+      baseDescent.trans terminalDescent⟩
 
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
 normalization. Every surviving occurrence comes from the original obstruction

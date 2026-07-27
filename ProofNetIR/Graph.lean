@@ -1845,6 +1845,60 @@ inductive CyclicImmediateReverseNormalization {graph : Graph} :
           CyclicImmediateReverseNormalization middle after →
             CyclicImmediateReverseNormalization before after
 
+/-- A cyclic normalization trace specialized to an internally
+nonbacktracking input. Since no internal cancellation is available, every
+strict step removes the exact first/last reverse shell and recurses on the
+contiguous enclosed middle. Unlike a bare length argument, this relation
+retains every shell decomposition and stored edge occurrence. -/
+inductive CyclicReverseShellNormalization {graph : Graph} :
+    List graph.DirectedEdge → List graph.DirectedEdge → Prop where
+  | finish (traversed : List graph.DirectedEdge) :
+      CyclicReverseShellNormalization traversed traversed
+  | shell {before middle after : List graph.DirectedEdge}
+      (first last : graph.DirectedEdge)
+      (decomposition : before = first :: (middle ++ [last]))
+      (closingReverse : first = last.reverse)
+      (tail : CyclicReverseShellNormalization middle after) :
+      CyclicReverseShellNormalization before after
+
+namespace CyclicReverseShellNormalization
+
+/-- Flatten a nested reverse-shell trace into one exact context. The source is
+the surviving middle surrounded by an opening traversal and its exact reversed
+closing traversal. -/
+theorem context {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicReverseShellNormalization before after) :
+    ∃ opening,
+      before = opening ++ after ++ reverseTraversal opening := by
+  induction normalization with
+  | finish traversed =>
+      exact ⟨[], by simp [reverseTraversal]⟩
+  | @shell before middle after first last decomposition
+      closingReverse tail ih =>
+      rcases ih with ⟨opening, middleEquation⟩
+      refine ⟨first :: opening, ?_⟩
+      rw [decomposition, middleEquation]
+      simp [reverseTraversal, closingReverse, List.append_assoc]
+
+/-- Reverse-shell normalization removes exactly twice the opening-context
+length. -/
+theorem length_eq {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicReverseShellNormalization before after) :
+    ∃ opening,
+      before = opening ++ after ++ reverseTraversal opening ∧
+        before.length = after.length + 2 * opening.length := by
+  rcases normalization.context with ⟨opening, equation⟩
+  refine ⟨opening, equation, ?_⟩
+  rw [equation]
+  simp [reverseTraversal]
+  omega
+
+end CyclicReverseShellNormalization
+
 namespace CyclicImmediateReverseNormalization
 
 /-- Cyclic normalization cannot introduce an occurrence absent from its
@@ -1945,6 +1999,44 @@ theorem eq_of_cyclicNoImmediateReverse {graph : Graph}
         simp
       exact False.elim
         (reduced.2 first last firstHead lastLast closingReverse)
+
+/-- On an internally nonbacktracking traversal, proof-relevant cyclic
+normalization is exactly nested first/last reverse-shell removal. The result
+retains the complete chain of contiguous enclosed middles, so later arguments
+can reason about strict cyclic nesting without reconstructing it from
+membership facts. -/
+theorem reverseShells_of_noImmediateReverse {graph : Graph}
+    {before after : List graph.DirectedEdge}
+    (normalization :
+      CyclicImmediateReverseNormalization before after)
+    (reduced : NoImmediateReverse before) :
+    CyclicReverseShellNormalization before after := by
+  induction normalization with
+  | finish internal =>
+      have unchanged := internal.eq_of_noImmediateReverse reduced
+      rw [unchanged]
+      exact .finish _
+  | @closing before middle after first last internal closingReverse tail ih =>
+      have targetEqualsBefore :
+          first :: (middle ++ [last]) = before :=
+        internal.eq_of_noImmediateReverse reduced
+      have decomposition :
+          before = first :: (middle ++ [last]) :=
+        targetEqualsBefore.symm
+      have representedReduced :
+          NoImmediateReverse (first :: (middle ++ [last])) := by
+        rw [← decomposition]
+        exact reduced
+      have middleWithLastReduced :
+          NoImmediateReverse (middle ++ [last]) := by
+        apply NoImmediateReverse.suffix
+          (initial := [first])
+        simpa using representedReduced
+      have middleReduced : NoImmediateReverse middle :=
+        NoImmediateReverse.prefix_of_append middleWithLastReduced
+      exact
+        .shell first last decomposition closingReverse
+          (ih middleReduced)
 
 /-- If a nonempty exact cyclic traversal normalizes completely to the empty
 trace, the original representation already exposes a concrete internal or

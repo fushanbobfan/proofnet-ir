@@ -250,9 +250,16 @@ nonempty, closed, internally cusp-free, and strictly shorter. Lean proves that
 any cusp at its closing junction must be the exact last/first immediate
 reversal: a nontrivial par cusp would also cusp against the terminal arc's
 retained-left boundary, contradicting the rotated traversal's internal
-cusp-freedom. The remaining geometric obligation is to strip these exact
-reverse shells proof-relevantly and turn the resulting strict nesting into an
-excluded reference-switching cycle or scheduler-order contradiction.
+cusp-freedom. Lean now strips those exact reverse shells proof-relevantly,
+retaining an exact
+`opening ++ normalized ++ reverseTraversal opening` decomposition and length
+equation. A nonempty normalized core inherits both the concrete par
+obstruction and its exact scheduler location. If that core closes cusp-free,
+the same construction produces a strictly nested terminal forward cusp;
+well-founded recursion records the transitive cyclic-interval descent and
+terminates. The remaining geometric obligation is consequently finite: rule
+out an empty normalized shell core and a scheduler-located nontrivial closing
+par core by the reference-switching or scheduler-order contradiction.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
@@ -262,12 +269,12 @@ For the
  all-left forward-retention invariant forces its omitted right occurrence to be
  traversed backward. Proof-net correctness and finite length now transport the
  exact cyclic scheduler state through every shorter backward witness and force
- a terminal forward par-cusp interval. Its complementary interval is now exact,
- nonempty, closed, strictly shorter, internally cusp-free, and can close with a
- cusp only by exact reversal. It must next use the retained scheduler geometry
- to strip that reversal nesting and turn the result, together with the already
- exposed empty nesting, into an edge-simple reference-switching cycle or
- forbidden strict nesting before the recursive fallback can be removed. The
+ a terminal forward par-cusp interval. Its complementary interval is exact,
+ nonempty, closed, strictly shorter, internally cusp-free, and its reverse
+ shells are now normalized with exact positional and length evidence. Finite
+ nested descent reduces the obstruction to either an empty shell core or a
+ scheduler-located nontrivial closing par cusp. Those two base cases must next
+ be contradicted before the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See
@@ -417,8 +424,11 @@ The repository currently contains:
   has an unassigned opposite premise. A stricter suffix cut now selects the
   first reentry into the marked region and proves that every intervening
   traversed occurrence has two unmarked endpoints, while retaining exact
-  scheduler classifications at both boundary orientations. Excluding this
-  contiguous inactive block is the sole open progress obligation;
+  scheduler classifications at both boundary orientations. The subsequent
+  occurrence-aware dependency, flipped-cycle, terminal-cusp, reverse-shell,
+  and well-founded nesting arguments reduce the remaining progress proof to
+  two finite scheduler-located base cases: an empty shell core and a
+  nontrivial closing-par core;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
