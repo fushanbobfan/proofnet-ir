@@ -267,11 +267,12 @@ uniqueness. The strengthened terminal witness retains the complement's exact
 closed walk and internal cusp-freedom. Every edge of an empty-core complement
 is then proved reference-kept, the complement is transported to a nonempty
 closed reference-switching-tree walk, and no complement tag can be the omitted
-head of a flipped segment. A closed tree walk is not itself contradictory
-because nested out-and-back traversal remains possible. The global base-case
-contradiction therefore remains outside the trusted claims until that
-strict-segment-interior nesting and the nontrivial closing-par base are
-excluded.
+head of a flipped segment. One exact reverse pair is now oriented by strict
+scheduler-step order with the complete segment-family decomposition retained.
+A closed tree walk is not itself contradictory because nested out-and-back
+traversal remains possible. The global base-case contradiction therefore
+remains outside the trusted claims until that ordered strict-segment-interior
+nesting and the nontrivial closing-par base are excluded.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is

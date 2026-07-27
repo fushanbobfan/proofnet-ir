@@ -35,9 +35,11 @@
   also retains the complement's exact closed-walk and cusp-free evidence.
   Empty-core pairing proves every complement edge reference-kept, transports
   the complement to a nonempty closed walk in the reference-switching tree,
-  and excludes every flipped-segment head from the complement. Turning the
-  remaining closed walk of strict segment interiors into the final scheduler
-  contradiction, and excluding the closing-par base, remain open;
+  and excludes every flipped-segment head from the complement. A concrete
+  reverse pair is now oriented by strict scheduler-step order and carries the
+  exact before/middle/after segment-family decomposition. Turning the
+  remaining ordered closed nesting of strict segment interiors into the final
+  scheduler contradiction, and excluding the closing-par base, remain open;
 - hardened the unfinished scheduler-nesting proof objects against existential
   witness drift. `SchedulerPositionedParObstruction` now retains exact linear
   decompositions for the two par occurrences inside the current cyclic

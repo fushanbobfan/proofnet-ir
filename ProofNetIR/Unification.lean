@@ -29626,6 +29626,141 @@ private theorem
     exact List.eq_nil_of_length_eq_zero lengths.symm
   exact ⟨retainedTraversal, retainedWalk, retainedNonempty⟩
 
+/-- One exact reverse pair from an empty terminal core, ordered in the
+original scheduler family.  Both tags lie strictly inside their respective
+segments; the family decomposition records every segment before, between, and
+after them. -/
+private def SchedulerOrderedStrictInteriorReversePair
+    (graph : Graph)
+    (segments : List (List graph.DirectedEdge))
+    (tagged : List (SchedulerOccurrence graph.DirectedEdge)) : Prop :=
+  ∃ earlier later earlierSegment laterSegment
+      beforeSegments middleSegments afterSegments,
+    earlier ∈ tagged ∧
+      later ∈ tagged ∧
+        earlier.offset ≠ 0 ∧
+          later.offset ≠ 0 ∧
+            earlier.step < later.step ∧
+              segments[earlier.step]? = some earlierSegment ∧
+                segments[later.step]? = some laterSegment ∧
+                  earlierSegment[earlier.offset]? =
+                    some earlier.value ∧
+                    laterSegment[later.offset]? =
+                      some later.value ∧
+                      later.value = earlier.value.reverse ∧
+                        segments =
+                          beforeSegments ++ earlierSegment ::
+                            middleSegments ++ laterSegment ::
+                              afterSegments
+
+/-- A nonempty empty-core complement contains an exact reverse pair whose two
+strict-interior scheduler visits are linearly ordered in the original segment
+family.  This is the first concrete scheduler-order chord extracted from the
+reference-tree nesting. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_orderedStrictInteriorReversePair_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (complementNonempty : taggedComplement ≠ [])
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    SchedulerOrderedStrictInteriorReversePair
+      certificate.fullGraph flippedSegments taggedComplement := by
+  have complementDescent :
+      CyclicIntervalDescent taggedComplement tagged :=
+    .step complementCut (.refl taggedComplement)
+  have fullDescent :
+      CyclicIntervalDescent taggedComplement
+        (tagSchedulerFamily flippedSegments) :=
+    complementDescent.trans terminal.1.2.1
+  have provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments taggedComplement :=
+    fullDescent.schedulerTaggedProvenance
+      segmentCount indexedFlipped
+  let occurrence := taggedComplement.head complementNonempty
+  have occurrenceMembership : occurrence ∈ taggedComplement :=
+    List.head_mem complementNonempty
+  rcases provenance occurrence occurrenceMembership with
+    ⟨occurrenceSegment, _occurrenceStepBound,
+      occurrenceSegmentLookup, occurrenceOffsetLookup,
+      _occurrenceClassified⟩
+  rcases
+      terminal.emptyComplementCore_reversePartners
+        segmentCount indexedFlipped complementCut
+          reverseShells normalizedEmpty
+            occurrence occurrenceMembership with
+    ⟨partner, partnerMembership, _partnerDistinct,
+      partnerStepDistinct, partnerReverse⟩
+  rcases provenance partner partnerMembership with
+    ⟨partnerSegment, _partnerStepBound,
+      partnerSegmentLookup, partnerOffsetLookup,
+      _partnerClassified⟩
+  have occurrenceInterior : occurrence.offset ≠ 0 :=
+    terminal.emptyComplementCore_no_segment_head
+      segmentCount indexedFlipped complementCut reverseShells
+        normalizedEmpty occurrence occurrenceMembership
+  have partnerInterior : partner.offset ≠ 0 :=
+    terminal.emptyComplementCore_no_segment_head
+      segmentCount indexedFlipped complementCut reverseShells
+        normalizedEmpty partner partnerMembership
+  rcases Nat.lt_or_gt_of_ne partnerStepDistinct with
+    partnerEarlier | occurrenceEarlier
+  · rcases
+        ordered_getElem?_decomposition
+          partnerEarlier partnerSegmentLookup
+            occurrenceSegmentLookup with
+      ⟨beforeSegments, middleSegments, afterSegments,
+        familyEquation⟩
+    refine
+      ⟨partner, occurrence, partnerSegment, occurrenceSegment,
+        beforeSegments, middleSegments, afterSegments,
+        partnerMembership, occurrenceMembership,
+        partnerInterior, occurrenceInterior, partnerEarlier,
+        partnerSegmentLookup, occurrenceSegmentLookup,
+        partnerOffsetLookup, occurrenceOffsetLookup, ?_,
+        familyEquation⟩
+    rw [partnerReverse]
+    simp [Graph.DirectedEdge.reverse]
+  · rcases
+        ordered_getElem?_decomposition
+          occurrenceEarlier occurrenceSegmentLookup
+            partnerSegmentLookup with
+      ⟨beforeSegments, middleSegments, afterSegments,
+        familyEquation⟩
+    exact
+      ⟨occurrence, partner, occurrenceSegment, partnerSegment,
+        beforeSegments, middleSegments, afterSegments,
+        occurrenceMembership, partnerMembership,
+        occurrenceInterior, partnerInterior, occurrenceEarlier,
+        occurrenceSegmentLookup, partnerSegmentLookup,
+        occurrenceOffsetLookup, partnerOffsetLookup,
+        partnerReverse, familyEquation⟩
+
 /-- Eliminate a tagged terminal base without losing its exact geometry.
 The empty alternative is strengthened to a nonempty closed walk in the
 reference switching whose tags are all strict segment-interior visits.  The
@@ -29672,9 +29807,12 @@ private theorem
                   (∀ occurrence,
                     occurrence ∈ taggedComplement →
                       occurrence.offset ≠ 0) ∧
-                    certificate.referenceSwitchingGraph.EdgeWalk
-                      complementBase retainedTraversal complementBase ∧
-                      retainedTraversal ≠ []) ∨
+                    SchedulerOrderedStrictInteriorReversePair
+                      certificate.fullGraph flippedSegments
+                        taggedComplement ∧
+                      certificate.referenceSwitchingGraph.EdgeWalk
+                        complementBase retainedTraversal complementBase ∧
+                        retainedTraversal ≠ []) ∨
       ∃ complementBase taggedComplement taggedNormalized,
         CyclicIntervalCut taggedComplement tagged ∧
           taggedComplement ≠ [] ∧
@@ -29712,6 +29850,9 @@ private theorem
         terminal.emptyComplementCore_no_segment_head
           segmentCount indexedFlipped complementCut
             reverseShells normalizedEmpty,
+        terminal.emptyComplementCore_orderedStrictInteriorReversePair_exists
+          segmentCount indexedFlipped complementCut
+            complementNonempty reverseShells normalizedEmpty,
         retainedWalk, retainedNonempty⟩
   · right
     exact
