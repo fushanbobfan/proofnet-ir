@@ -20,9 +20,16 @@
   through exact tags, well-founded recursion reaches a terminal forward cusp
   without coordinate drift, and the full tagged descent begins at the original
   scheduler family. A coordinate-exact reverse-shell relation is also proved
-  to erase to the graph relation and to induce a tagged descent. Connecting the
-  terminal complement, reverse shells, and subsequent nested-base recursion
-  entirely at tag level remains open;
+  to erase to the graph relation and to induce a tagged descent. Graph-level
+  reverse-shell normalizations now lift positionally from their exact
+  singleton/middle/singleton decompositions; repeated edge values never select
+  a scheduler visit by equality alone. The terminal complement cut and every
+  shell are consequently lifted to tags, normalized cores compose their exact
+  descent with the original family, and every recursively exposed terminal
+  cusp is recomputed on the surviving coordinates. Well-founded tagged
+  nesting reaches an empty-core or tagged closing-par terminal base with one
+  complete descent back to the original scheduler family. Excluding those two
+  bases remains open;
 - hardened the unfinished scheduler-nesting proof objects against existential
   witness drift. `SchedulerPositionedParObstruction` now retains exact linear
   decompositions for the two par occurrences inside the current cyclic

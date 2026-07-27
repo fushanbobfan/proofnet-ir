@@ -257,10 +257,12 @@ value. Every surviving tag is inverted to its original segment/offset lookup,
 and each recursive state recomputes its positioned par obstruction on those
 coordinates. Lean now reaches the terminal forward cusp with a complete tagged
 descent from the original family. Coordinate-exact reverse-shell normalization
-also exists and erases to the graph-level relation. The terminal complement
-and the later nested-base recursion still use the edge-level shell pipeline,
-so the global base-case contradiction remains outside the trusted claims until
-that connection and the final base exclusions are proved.
+also exists, erases to the graph-level relation, and positionally lifts every
+graph shell from its stored list decompositions. The terminal complement and
+all later nested cores now compose exact tagged cuts and shell descents back to
+the original scheduler family. The global base-case contradiction remains
+outside the trusted claims until the empty-core and nontrivial closing-par
+bases are excluded.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is

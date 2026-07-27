@@ -268,10 +268,14 @@ active-reference walks between marked occurrences are equivalent to
   family, inverts every surviving tag to its original segment/offset lookup,
   recomputes its positioned obstruction after each cut, and reaches the
   terminal forward cusp by tagged well-founded recursion. Tagged reverse-shell
-  normalization is defined and erases soundly, but the terminal complement and
-  later nested-base recursion are not yet connected to it. Pure completeness
-  still requires that connection and exclusion of the two finite base cases by
-  the reference-switching or scheduler-order contradiction.
+  normalization is defined, erases soundly, and now has a converse positional
+  lift from every graph shell's stored singleton/middle/singleton
+  decomposition. The terminal complement cut and all later normalized cores
+  therefore retain exact tags through the complete nested-base recursion; the
+  final tagged base carries one composed descent back to the original family.
+  Pure completeness still requires exclusion of the empty-core and
+  closing-par bases by the reference-switching or scheduler-order
+  contradiction.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

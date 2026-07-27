@@ -210,8 +210,11 @@ part of the engineering and proof-identity gap.
    provenance to the residual core. If that core is nonempty and closes
    cusp-free, the same construction yields a strictly nested terminal cusp;
    well-founded descent therefore terminates at either an empty shell core or
-   a scheduler-located nontrivial closing-par core. Excluding those two finite
-   bases, pure worklist completeness, and a full cost theorem remain open.
+   a scheduler-located nontrivial closing-par core. The terminal complement,
+   reverse shells, normalized cores, and recursively exposed cusps now also
+   carry exact scheduler tags through one composed descent from the original
+   family. Excluding those two finite bases, pure worklist completeness, and a
+   full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
