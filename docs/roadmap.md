@@ -412,8 +412,8 @@
   - [x] Expose an exact switching-free `unificationCheck` by using the
     deterministic pass first and the proved checker-free sequentializer only
     as a completeness fallback; prove `unificationCheck = check`.
-  - [x] Add a 6,000-case positive counterexample search across 1,000 generated
-    derivations, depths zero through five, and six link/boundary storage
+  - [x] Add a 7,200-case positive counterexample search across 1,200 generated
+    derivations, depths zero through seven, and six link/boundary storage
     orders; retain its zero-miss result as empirical evidence only.
   - [x] Expose proof-relevant saturation statistics and prove the current
     eager schedule performs at most `|links|²` link-list visits; keep
@@ -424,7 +424,7 @@
     fallback wrapper, operational counters, and a conservative proved
     `n(n+4)+1` link-attempt cap.
   - [x] Differentially qualify the worklist on the 1,500-case
-    reference/mutation audit and the 6,000-case reordered positive search with
+    reference/mutation audit and the 7,200-case reordered positive search with
     no observed miss or false positive.
   - [ ] Prove the pure deterministic unification path complete, removing the
     recursive fallback from the logical decision.
@@ -559,6 +559,10 @@
       cyclic junction, and prove that its exact occurrence is both the
       preceding dependency's retained reflexive end and the following waiting
       par's stored left incidence.
+    - [x] Select the first repeated waiting conclusion, retain injectivity of
+      every earlier dependency-chain position, and prove that the empty-branch
+      family is a simple cycle of at least two segments whose cancellation
+      junction crosses two distinct waiting pars.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact

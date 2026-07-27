@@ -43,16 +43,18 @@ def positiveVariants (certificate : Certificate) (seed : Nat) :
           conclusions :=
             rotateList certificate.conclusions (seed * 31 + 11) } } ]
 
-def seeds : Nat := 1_000
+def seeds : Nat := 1_200
+def depthCount : Nat := 8
 def variantsPerSeed : Nat := 6
 def expectedCases : Nat := seeds * variantsPerSeed
-def budgetMs : Nat := 30_000
+def budgetMs : Nat := 120_000
 
 /-- Adversarial positive-corpus search for a deterministic-unification miss.
 
 Every base certificate is emitted by `CutFreeDerivation.desequentialize?`, whose
 acceptance is proved by `CutFreeDerivation.desequentialize?_check`. The search
-varies depth from zero through five and changes link and boundary order without
+varies depth from zero through seven, including deeper nested tensor/par
+families than the original gate, and changes link and boundary order without
 changing proof-net identity. It is deliberately described as empirical search:
 success does not replace the missing universal completeness theorem. -/
 def run : IO Unit := do
@@ -66,7 +68,7 @@ def run : IO Unit := do
   let mut maxWorklistAttempts := 0
   let mut maxWorklistWaitingRequeues := 0
   for seed in List.range seeds do
-    let depth := seed % 6
+    let depth := seed % depthCount
     let tree := CutFreeDerivation.generate seed depth
     let certificate ← match tree.desequentialize? with
       | none =>
@@ -124,7 +126,7 @@ def run : IO Unit := do
     throw <| IO.userError
       s!"unification completeness-search budget exceeded: {elapsed}ms > {budgetMs}ms"
   IO.println
-    s!"unification-completeness-search-ok cases={total} seeds={seeds} depths=0..5 variants_per_seed={variantsPerSeed} max_formulas={maxFormulas} max_links={maxLinks} max_passes={maxPasses} max_link_visits={maxLinkVisits} max_worklist_attempts={maxWorklistAttempts} max_worklist_waiting_requeues={maxWorklistWaitingRequeues} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
+    s!"unification-completeness-search-ok cases={total} seeds={seeds} depths=0..7 variants_per_seed={variantsPerSeed} max_formulas={maxFormulas} max_links={maxLinks} max_passes={maxPasses} max_link_visits={maxLinkVisits} max_worklist_attempts={maxWorklistAttempts} max_worklist_waiting_requeues={maxWorklistWaitingRequeues} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
 
 end ProofNetIRUnificationCompletenessSearch
 

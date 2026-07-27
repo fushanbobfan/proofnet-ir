@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- strengthened the empty-normal-form scheduler obstruction from an arbitrary
+  repeated dependency segment to the first repeated conclusion: every chain
+  position before the closing endpoint is injective, the retained indexed
+  segment family is a simple dependency cycle, the localized cancellation
+  crosses two distinct waiting pars, and a singleton empty cycle is
+  kernel-excluded. The positive counterexample gate now covers 7,200 reordered
+  derivation-generated certificates from 1,200 seeds at depths zero through
+  seven, reaching 447 formulas and 319 links with no eager or worklist miss;
+  this remains finite evidence rather than the universal completeness proof;
 - added an opt-in Windows wrapper for the independent mathematics audit. It
   preserves the byte-frozen preregistered `audit_v010.py` and, only after
   application-control error 4551 for a known generated audit executable,

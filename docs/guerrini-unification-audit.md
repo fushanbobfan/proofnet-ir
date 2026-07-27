@@ -255,19 +255,19 @@ The main 291-case performance workload and the 18-case repeated-label stress
 suite also require the deterministic fast path to return a proof-bearing
 result.
 
-A second positive-only counterexample search covers 6,000 reordered
-derivation-generated certificates from 1,000 seeds, depths zero through five,
-up to 111 formula occurrences and 79 links. It observed no fast-path miss in
-its first recorded run. The source theorem
+A second positive-only counterexample search now covers 7,200 reordered
+derivation-generated certificates from 1,200 seeds, depths zero through seven,
+up to 447 formula occurrences and 319 links. It observed no fast-path miss in
+the current recorded run. The source theorem
 `CutFreeDerivation.desequentialize?_check` establishes acceptance of each base
 certificate; the order variants preserve the same occurrences and links.
 This finite search is intentionally kept separate from the universal
 completeness theorem.
 
 The same two gates now also require the event-driven worklist. They observed
-750/750 and 6,000/6,000 worklist hits, respectively, with zero false positives
-or positive misses. The larger search recorded at most 150 link attempts and
-75 waiting requeues. These remain finite regression results.
+750/750 and 7,200/7,200 worklist hits, respectively, with zero false positives
+or positive misses. The larger search recorded at most 995 link attempts and
+691 waiting requeues. These remain finite regression results.
 
 ## Remaining formalization route
 

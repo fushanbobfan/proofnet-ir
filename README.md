@@ -145,8 +145,13 @@ cancellation is proved to cross their unique junction. The scheduler proof
  site to an adjacent or cyclic segment junction and proves that this junction
  is the same exact occurrence used both as the preceding dependency's retained
  reflexive end and as the following waiting par's stored left incidence. The
- remaining empty-branch obligation is to exclude the resulting fully retained
- nesting. For the
+ dependency repetition is now chosen at its first repeated conclusion, so all
+ earlier chain positions are injective. The retained empty-branch family is
+ therefore a simple dependency cycle, not an arbitrary closed segment hiding a
+ smaller repetition. Its cancellation junction crosses two distinct waiting
+ pars, which rules out a singleton cycle and proves that the family contains at
+ least two segments. The remaining empty-branch obligation is to exclude the
+ resulting multi-node fully retained nesting. For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
  Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one

@@ -107,19 +107,19 @@ Zero observed misses are evidence for the pending completeness proof, not a
 replacement for it.
 
 `proofnet_ir_unification_completeness_search` is a separate positive-only
-counterexample search. It generates 1,000 kernel-sound derivation trees at
-depths zero through five, desequentializes them, and applies six storage-order
+counterexample search. It generates 1,200 kernel-sound derivation trees at
+depths zero through seven, desequentializes them, and applies six storage-order
 variants to each certificate: original, reversed links, reversed boundary,
 rotated links, parity-partitioned links, and combined link/boundary
 permutations. A miss reports the exact seed, depth, variant, and structured
 unification error. The first recorded Windows run reported:
 
 ```text
-unification-completeness-search-ok cases=6000 seeds=1000 depths=0..5
-variants_per_seed=6 max_formulas=111 max_links=79 max_passes=9
-max_link_visits=711 max_worklist_attempts=150
-max_worklist_waiting_requeues=75 checksum=798900 elapsed_ms=9754
-budget_ms=30000
+unification-completeness-search-ok cases=7200 seeds=1200 depths=0..7
+variants_per_seed=6 max_formulas=447 max_links=319 max_passes=11
+max_link_visits=3509 max_worklist_attempts=995
+max_worklist_waiting_requeues=691 checksum=2962800 elapsed_ms=75906
+budget_ms=120000
 ```
 
 This widens the counterexample search substantially, but remains finite

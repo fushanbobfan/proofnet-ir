@@ -15901,6 +15901,30 @@ private def QuiescentWaitingParDependencyAtBoundary
                                           certificate.formulaComplexityAt
                                             boundary.target
 
+/-- The selected marked-to-unmarked frontier never lands back at the source
+waiting-par conclusion.  This exact endpoint inequality later rules out a
+singleton dependency cycle when an empty normalization cancellation is tied
+to a scheduler junction. -/
+private theorem QuiescentWaitingParDependencyAtBoundary.target_ne_source
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {boundary :
+      certificate.referenceSwitchingGraph.DirectedEdge}
+    (atBoundary :
+      QuiescentWaitingParDependencyAtBoundary
+        certificate state source target boundary) :
+    boundary.target ≠ source := by
+  rcases atBoundary with
+    ⟨_index, _left, _right, _leftToken, _rightToken, _path,
+      _linkLookup, _sourceUnassigned, _leftMarked, _rightMarked,
+      _different, _registered, _pathStarts, _pathFinishes,
+      _sourceAvoided, _boundaryMembership, _boundaryToken,
+      _boundarySourceAssigned, _boundaryTargetUnassigned,
+      boundaryTargetNeSource, _exactOrigin, _frontierStatus,
+      _formulaPath, _targetWaiting, _targetRank⟩
+  exact boundaryTargetNeSource
+
 /-- Every waiting dependency now exposes its geometric formula tail: an exact
 vertex-simple, cusp-free full-graph path from the marked/unmarked reference
 frontier target down to the target waiting-par conclusion.  The path is
@@ -17127,6 +17151,26 @@ private def QuiescentWaitingParDependencyReflexiveEndAt
                   certificate.referenceSwitchingMask[last.index]? =
                     some true
 
+/-- A reflexive dependency end still crosses two distinct waiting-par
+conclusions: the frontier target is definitionally the dependency target but
+is forbidden from being the dependency source. -/
+private theorem QuiescentWaitingParDependencyReflexiveEndAt.source_ne_target
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {last : certificate.fullGraph.DirectedEdge}
+    (reflexive :
+      QuiescentWaitingParDependencyReflexiveEndAt
+        certificate state source target last) :
+    source ≠ target := by
+  rcases reflexive with
+    ⟨boundary, atBoundary, boundaryTarget, _lastEdge,
+      _lastForward, _lastRetainedIndex, _lastSource,
+      _lastTarget, _lastKept⟩
+  intro same
+  exact atBoundary.target_ne_source
+    (boundaryTarget.trans same.symm)
+
 /-- Forget the internal decomposition while retaining the exact walk, its
 internal nonbacktracking proof, and the orientation facts needed to analyze
 junctions between adjacent dependency segments. -/
@@ -17553,9 +17597,10 @@ private theorem unification_length_le_of_nodup_subset
       simp only [List.length_cons]
       omega
 
-/-- A duplicate in a mapped initial segment has two ordered source
-indices.  Packaging the duplicate this way preserves the dependency-chain
-positions needed by the later geometric argument. -/
+/-- A duplicate in a mapped initial segment has a first repeated value.
+Everything strictly before the later occurrence remains injectively indexed.
+Packaging the earliest duplicate this way preserves a simple dependency cycle
+rather than an arbitrary closed segment which may hide a smaller repetition. -/
 private theorem unification_exists_ordered_repeat_of_map_range
     [BEq α] [LawfulBEq α]
     (valueAt : Nat → α)
@@ -17565,7 +17610,13 @@ private theorem unification_exists_ordered_repeat_of_map_range
     ∃ earlier later,
       earlier < later ∧
         later < length ∧
-          valueAt earlier = valueAt later := by
+          valueAt earlier = valueAt later ∧
+            ∀ first,
+              first < later →
+                ∀ second,
+                  second < later →
+                    valueAt first = valueAt second →
+                      first = second := by
   induction length with
   | zero =>
       simp at repeats
@@ -17596,15 +17647,42 @@ private theorem unification_exists_ordered_repeat_of_map_range
           ⟨earlier, earlierMembership, valueEquation⟩
         have earlierBound : earlier < previous := by
           simpa using earlierMembership
+        have prefixInjective :
+            ∀ first,
+              first < previous →
+                ∀ second,
+                  second < previous →
+                    valueAt first = valueAt second →
+                      first = second := by
+          intro first firstBound second secondBound sameValue
+          have firstBound' :
+              first <
+                ((List.range previous).map valueAt).length := by
+            simpa using firstBound
+          have secondBound' :
+              second <
+                ((List.range previous).map valueAt).length := by
+            simpa using secondBound
+          have sameAt :
+              ((List.range previous).map valueAt)[first] =
+                ((List.range previous).map valueAt)[second] := by
+            simpa using sameValue
+          exact
+            (List.getElem_inj
+              (i := first) (j := second)
+              (h₀ := firstBound') (h₁ := secondBound')
+              prefixNodup).mp sameAt
         exact
           ⟨earlier, previous, earlierBound,
-            Nat.lt_succ_self previous, valueEquation⟩
+            Nat.lt_succ_self previous, valueEquation,
+            prefixInjective⟩
       · rcases induction prefixNodup with
-          ⟨earlier, later, ordered, laterBound, valueEquation⟩
+          ⟨earlier, later, ordered, laterBound, valueEquation,
+            prefixInjective⟩
         exact
           ⟨earlier, later, ordered,
             Nat.lt_trans laterBound (Nat.lt_succ_self previous),
-            valueEquation⟩
+            valueEquation, prefixInjective⟩
 
 /-- Every registered distinct-thread waiting par has an outgoing dependency
 to another registered waiting par on the finite formula carrier.  This
@@ -17998,6 +18076,12 @@ private theorem canonicalWorklistRun_waitingPar_dependency_closed_segment
             earlier < later ∧
               later ≤ certificate.formulas.size ∧
                 chainAt earlier = chainAt later ∧
+                  (∀ first,
+                    first < later →
+                      ∀ second,
+                        second < later →
+                          chainAt first = chainAt second →
+                            first = second) ∧
                   (∀ step,
                     QuiescentWaitingParAt
                       certificate final (chainAt step)) ∧
@@ -18020,6 +18104,12 @@ private theorem canonicalWorklistRun_waitingPar_dependency_closed_segment
             earlier < later ∧
               later ≤ certificate.formulas.size ∧
                 chainAt earlier = chainAt later ∧
+                  (∀ first,
+                    first < later →
+                      ∀ second,
+                        second < later →
+                          chainAt first = chainAt second →
+                            first = second) ∧
                   (∀ step,
                     QuiescentWaitingParAt
                       certificate final (chainAt step)) ∧
@@ -18035,7 +18125,8 @@ private theorem canonicalWorklistRun_waitingPar_dependency_closed_segment
     ⟨chainAt, starts, steps, _carrier, repeats⟩
   rcases unification_exists_ordered_repeat_of_map_range
       chainAt repeats with
-    ⟨earlier, later, ordered, laterBound, endpointEquation⟩
+    ⟨earlier, later, ordered, laterBound, endpointEquation,
+      prefixInjective⟩
   have laterCarrierBound :
       later ≤ certificate.formulas.size := by
     omega
@@ -18052,7 +18143,7 @@ private theorem canonicalWorklistRun_waitingPar_dependency_closed_segment
             (by simpa [Nat.succ_eq_add_one] using steps previous)
   exact
     ⟨chainAt, earlier, later, starts, ordered, laterCarrierBound,
-      endpointEquation, chainWaiting,
+      endpointEquation, prefixInjective, chainWaiting,
       fun step _lower _upper => steps step⟩
 
 /-- The finite closed dependency segment is now occurrence-geometric at every
@@ -18080,6 +18171,12 @@ private theorem
             earlier < later ∧
               later ≤ certificate.formulas.size ∧
                 chainAt earlier = chainAt later ∧
+                  (∀ first,
+                    first < later →
+                      ∀ second,
+                        second < later →
+                          chainAt first = chainAt second →
+                            first = second) ∧
                   (∀ step,
                     QuiescentWaitingParAt
                       certificate final (chainAt step)) ∧
@@ -18105,6 +18202,12 @@ private theorem
             earlier < later ∧
               later ≤ certificate.formulas.size ∧
                 chainAt earlier = chainAt later ∧
+                  (∀ first,
+                    first < later →
+                      ∀ second,
+                        second < later →
+                          chainAt first = chainAt second →
+                            first = second) ∧
                   (∀ step,
                     QuiescentWaitingParAt
                       certificate final (chainAt step)) ∧
@@ -18121,10 +18224,10 @@ private theorem
   rcases canonicalWorklistRun_waitingPar_dependency_closed_segment
       correct startEquation sourceWaiting with
     ⟨chainAt, earlier, later, starts, ordered, laterBound,
-      endpointEquation, chainWaiting, dependencies⟩
+      endpointEquation, prefixInjective, chainWaiting, dependencies⟩
   refine
     ⟨chainAt, earlier, later, starts, ordered, laterBound,
-      endpointEquation, chainWaiting, ?_⟩
+      endpointEquation, prefixInjective, chainWaiting, ?_⟩
   intro step lower upper
   have dependency := dependencies step lower upper
   exact
@@ -18157,6 +18260,12 @@ private theorem
             earlier < later ∧
               later ≤ certificate.formulas.size ∧
                 chainAt earlier = chainAt later ∧
+                  (∀ first,
+                    first < later →
+                      ∀ second,
+                        second < later →
+                          chainAt first = chainAt second →
+                            first = second) ∧
                   (∀ step,
                     QuiescentWaitingParAt
                       certificate final (chainAt step)) ∧
@@ -18185,6 +18294,12 @@ private theorem
             earlier < later ∧
               later ≤ certificate.formulas.size ∧
                 chainAt earlier = chainAt later ∧
+                  (∀ first,
+                    first < later →
+                      ∀ second,
+                        second < later →
+                          chainAt first = chainAt second →
+                            first = second) ∧
                   (∀ step,
                     QuiescentWaitingParAt
                       certificate final (chainAt step)) ∧
@@ -18205,10 +18320,10 @@ private theorem
       canonicalWorklistRun_waitingPar_dependency_closed_segment_geometric
         correct startEquation sourceWaiting with
     ⟨chainAt, earlier, later, starts, ordered, laterBound,
-      endpointEquation, chainWaiting, dependencies⟩
+      endpointEquation, prefixInjective, chainWaiting, dependencies⟩
   refine
     ⟨chainAt, earlier, later, starts, ordered, laterBound,
-      endpointEquation, chainWaiting, ?_⟩
+      endpointEquation, prefixInjective, chainWaiting, ?_⟩
   intro step lower upper
   rcases dependencies step lower upper with
     ⟨dependency, geometry⟩
@@ -18246,8 +18361,14 @@ private theorem
           0 < count ∧
             segments.length = count ∧
               chainAt 0 = chainAt count ∧
-              segments ≠ [] ∧
-              segments.flatten ≠ [] ∧
+                (∀ first,
+                  first < count →
+                    ∀ second,
+                      second < count →
+                        chainAt first = chainAt second →
+                          first = second) ∧
+                  segments ≠ [] ∧
+                  segments.flatten ≠ [] ∧
               (∀ segment, segment ∈ segments →
                 segment ≠ [] ∧
                   Graph.EdgeWalk.NoImmediateReverse segment) ∧
@@ -18280,8 +18401,14 @@ private theorem
           0 < count ∧
             segments.length = count ∧
               chainAt 0 = chainAt count ∧
-              segments ≠ [] ∧
-              segments.flatten ≠ [] ∧
+                (∀ first,
+                  first < count →
+                    ∀ second,
+                      second < count →
+                        chainAt first = chainAt second →
+                          first = second) ∧
+                  segments ≠ [] ∧
+                  segments.flatten ≠ [] ∧
               (∀ segment, segment ∈ segments →
                 segment ≠ [] ∧
                   Graph.EdgeWalk.NoImmediateReverse segment) ∧
@@ -18304,9 +18431,23 @@ private theorem
       canonicalWorklistRun_waitingPar_dependency_closed_segment_fullSegments
         correct startEquation sourceWaiting with
     ⟨chainAt, earlier, later, _starts, ordered, _laterBound,
-      endpointEquation, _chainWaiting, segments⟩
+      endpointEquation, prefixInjective, _chainWaiting, segments⟩
   let shifted : Nat → Vertex :=
     fun offset => chainAt (earlier + offset)
+  have shiftedInjective :
+      ∀ first,
+        first < later - earlier →
+          ∀ second,
+            second < later - earlier →
+              shifted first = shifted second →
+                first = second := by
+    intro first firstBound second secondBound sameVertex
+    have sameIndex :
+        earlier + first = earlier + second :=
+      prefixInjective (earlier + first) (by omega)
+        (earlier + second) (by omega)
+        (by simpa [shifted] using sameVertex)
+    omega
   have shiftedSegments :
       ∀ offset,
         offset < later - earlier →
@@ -18463,7 +18604,8 @@ private theorem
     exact ⟨segment, lookup, classified⟩
   exact
     ⟨shifted, later - earlier, segmentFamily, positive,
-      segmentCount, shiftedClosed, familyNonempty, flattenedNonempty,
+      segmentCount, shiftedClosed, shiftedInjective,
+      familyNonempty, flattenedNonempty,
       segmentProperties,
       closedWalk, forwardKept, indexedClassification⟩
 
@@ -18494,12 +18636,14 @@ private theorem
                     segment)
     (junction :
       Graph.EdgeWalk.CyclicSegmentJunctionReverse segments) :
-    ∃ (source middle : Vertex)
+    ∃ (step : Nat)
         (incoming : certificate.fullGraph.DirectedEdge),
+      step < count ∧
       QuiescentWaitingParDependencyReflexiveEndAt
-          certificate state source middle incoming ∧
+          certificate state
+            (chainAt step) (chainAt (step + 1)) incoming ∧
         certificate.fullEdgeParTargets[incoming.index]? =
-          some (some middle) := by
+          some (some (chainAt (step + 1))) := by
   rcases junction with adjacent | closing
   · rcases adjacent with
       ⟨familyBefore, firstTraversal, secondTraversal, familyAfter,
@@ -18535,7 +18679,7 @@ private theorem
         firstClassified.2.2 secondClassified.2.1
           firstLast secondHead reversed
     exact
-      ⟨chainAt step, chainAt (step + 1), incoming,
+      ⟨step, incoming, firstBound,
         schedulerJunction.1, schedulerJunction.2⟩
   · rcases closing with
       ⟨firstTraversal, lastTraversal, outgoing, incoming,
@@ -18584,7 +18728,7 @@ private theorem
         lastClassified.2.2 closingHeadClassified
           lastLast firstHead reversed
     exact
-      ⟨chainAt (count - 1), chainAt ((count - 1) + 1), incoming,
+      ⟨count - 1, incoming, lastBound,
         schedulerJunction.1, schedulerJunction.2⟩
 
 /-- Exact omitted-right-par occurrence forced in any nonempty normalized
@@ -18659,10 +18803,22 @@ private theorem
                               directed.index]? = some true) ∧
                             Graph.EdgeWalk.CyclicImmediateReverseSite
                               original ∧
-                            (∃ segments :
+                            (∃ (chainAt : Nat → Vertex)
+                                (count : Nat)
+                                (segments :
                                 List
                                   (List
-                                    certificate.fullGraph.DirectedEdge),
+                                    certificate.fullGraph.DirectedEdge)),
+                              1 < count ∧
+                                segments.length = count ∧
+                                  chainAt 0 = chainAt count ∧
+                                    (∀ first,
+                                      first < count →
+                                        ∀ second,
+                                          second < count →
+                                            chainAt first =
+                                                chainAt second →
+                                              first = second) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -18674,7 +18830,8 @@ private theorem
                               (∃ (source middle : Vertex)
                                   (incoming :
                                     certificate.fullGraph.DirectedEdge),
-                                QuiescentWaitingParDependencyReflexiveEndAt
+                                source ≠ middle ∧
+                                  QuiescentWaitingParDependencyReflexiveEndAt
                                     certificate final source middle incoming ∧
                                   certificate.fullEdgeParTargets[
                                       incoming.index]? =
@@ -18722,10 +18879,22 @@ private theorem
                               directed.index]? = some true) ∧
                             Graph.EdgeWalk.CyclicImmediateReverseSite
                               original ∧
-                            (∃ segments :
+                            (∃ (chainAt : Nat → Vertex)
+                                (count : Nat)
+                                (segments :
                                 List
                                   (List
-                                    certificate.fullGraph.DirectedEdge),
+                                    certificate.fullGraph.DirectedEdge)),
+                              1 < count ∧
+                                segments.length = count ∧
+                                  chainAt 0 = chainAt count ∧
+                                    (∀ first,
+                                      first < count →
+                                        ∀ second,
+                                          second < count →
+                                            chainAt first =
+                                                chainAt second →
+                                              first = second) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -18737,7 +18906,8 @@ private theorem
                               (∃ (source middle : Vertex)
                                   (incoming :
                                     certificate.fullGraph.DirectedEdge),
-                                QuiescentWaitingParDependencyReflexiveEndAt
+                                source ≠ middle ∧
+                                  QuiescentWaitingParDependencyReflexiveEndAt
                                     certificate final source middle incoming ∧
                                   certificate.fullEdgeParTargets[
                                       incoming.index]? =
@@ -18757,7 +18927,8 @@ private theorem
         correct startEquation sourceWaiting with
     ⟨originalChain, originalCount, originalSegments,
       originalCountPositive, originalSegmentCount,
-      originalChainClosed, originalSegmentsNonempty,
+      originalChainClosed, originalChainInjective,
+      originalSegmentsNonempty,
       originalNonempty, originalSegmentProperties, originalWalk,
       originalForwardKept, originalIndexedClassification⟩
   rcases originalWalk.normalizeCyclicImmediateReversalsTraced with
@@ -18809,11 +18980,40 @@ private theorem
               (originalSegmentProperties segment membership).1)
             (fun segment membership =>
               (originalSegmentProperties segment membership).2)
-        have schedulerJunction :=
+        rcases
           cyclicDependencySegmentJunctionReverse_implies_reflexiveEnd
             originalCountPositive originalSegmentCount
               originalChainClosed originalIndexedClassification
-                segmentJunction
+                segmentJunction with
+          ⟨junctionStep, junctionIncoming, junctionBound,
+            junctionReflexive, junctionParTarget⟩
+        have originalCountNontrivial : 1 < originalCount := by
+          by_cases nontrivial : 1 < originalCount
+          · exact nontrivial
+          · have countOne : originalCount = 1 := by
+              omega
+            have stepZero : junctionStep = 0 := by
+              omega
+            have impossible :
+                originalChain junctionStep =
+                  originalChain (junctionStep + 1) := by
+              simpa [countOne, stepZero] using originalChainClosed
+            exact False.elim
+              (junctionReflexive.source_ne_target impossible)
+        have schedulerJunction :
+            ∃ (source middle : Vertex)
+                (incoming :
+                  certificate.fullGraph.DirectedEdge),
+              source ≠ middle ∧
+                QuiescentWaitingParDependencyReflexiveEndAt
+                  certificate final source middle incoming ∧
+                certificate.fullEdgeParTargets[incoming.index]? =
+                  some (some middle) :=
+          ⟨originalChain junctionStep,
+            originalChain (junctionStep + 1),
+            junctionIncoming, junctionReflexive.source_ne_target,
+            junctionReflexive,
+            junctionParTarget⟩
         have aligned :
             certificate.fullGraph.edges.length =
               certificate.referenceSwitchingMask.length := by
@@ -18834,7 +19034,10 @@ private theorem
           simpa [Certificate.referenceSwitchingGraph] using retainedWalk
         exact
           ⟨reverseMembership, allKept, cancellationSite,
-            ⟨originalSegments, rfl, originalSegmentsNonempty,
+            ⟨originalChain, originalCount, originalSegments,
+              originalCountNontrivial, originalSegmentCount,
+              originalChainClosed, originalChainInjective,
+              rfl, originalSegmentsNonempty,
               originalSegmentProperties, segmentJunction⟩,
             schedulerJunction,
             ⟨retained, retainedNonempty, referenceWalk⟩⟩,
