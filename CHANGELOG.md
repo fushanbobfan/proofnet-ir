@@ -14,11 +14,15 @@
   the source and frontier boundaries. The deterministic active residual-core
   family now packages both nonemptiness and internal nonbacktracking. Lean
   composes that exact indexed family into a nonempty closed full-graph walk,
-  with the final core returning to the first core's exact source-premise base.
-  The remaining empty-normal-form obligation is now to normalize this
-  core-only closed walk, localize any cancellation to a cross-core cyclic
-  junction, and exclude the resulting switching-tree nesting; pure-worklist
-  completeness is still open;
+  with the final core returning to the first core's exact source-premise base;
+  every occurrence in that walk is retained by the reference switching.
+  Cyclic normalization cannot leave a nonempty reduced residue, because that
+  would be a nonempty cyclically nonbacktracking walk in the reference
+  switching tree. The core-only normal form is therefore empty, and
+  proof-relevant normalization localizes an exact reversal to a cyclic
+  junction between two nonempty internally reduced cores. The remaining
+  empty-branch obligation is to exclude that cross-core reversal by the exact
+  switching-flip/nesting argument; pure-worklist completeness is still open;
 - retained the occurrence-indexed full-segment decomposition through the
   finite dependency family instead of projecting immediately to endpoint
   classifications. In the fully cancelling empty-normal-form branch, Lean now

@@ -582,6 +582,10 @@
       reduced cores in the deterministic active family.
     - [x] Compose the deterministic active core family into a nonempty closed
       full-graph walk with exact cyclic source-premise endpoints.
+    - [x] Prove every core-only occurrence is retained by the reference
+      switching, force cyclic normalization of the closed core walk to the
+      empty normal form, and localize an exact reversal to a cyclic junction
+      between two nonempty internally reduced cores.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact

@@ -20920,6 +20920,177 @@ private theorem
   rw [baseClosed, baseZero] at chosenWalk
   exact ⟨flattenedNonempty, chosenWalk⟩
 
+/-- Every occurrence represented by the deterministic active residual family
+is retained by the reference switching. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreFamily.allKept
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (family :
+      FullyCancellingDependencyCycleActiveResidualCoreFamily
+        certificate state chainAt count segments cores) :
+    ∀ directed,
+      directed ∈ cores.flatten →
+        certificate.referenceSwitchingMask[directed.index]? =
+          some true := by
+  intro directed flattenedMembership
+  rcases List.mem_flatten.mp flattenedMembership with
+    ⟨core, coreMembership, directedMembership⟩
+  rcases List.getElem?_of_mem coreMembership with
+    ⟨step, coreLookup⟩
+  have stepBound : step < count := by
+    have withinCores :=
+      (List.getElem?_eq_some_iff.mp coreLookup).1
+    simpa [family.2.1] using withinCores
+  rcases family.2.2 step stepBound with
+    ⟨activeCore, activeLookup, active,
+      _nonempty, _reduced⟩
+  have activeCoreValue : activeCore = core :=
+    Option.some.inj (activeLookup.symm.trans coreLookup)
+  subst activeCore
+  rcases active.1 with
+    ⟨_segment, _sourceEdge, _last, _segmentLookup,
+      _decomposition, _sourceStart, _sourceBackward,
+      _sourceParTarget, _lastTarget, _lastForward,
+      _reflexive, _sourceKept, _threadToken,
+      _coreWalk, coreKept⟩
+  exact coreKept directed directedMembership
+
+/-- Membership in the deterministic active family recovers nonemptiness and
+internal exact-occurrence nonbacktracking for that precise core value. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreFamily.coreProperties
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (family :
+      FullyCancellingDependencyCycleActiveResidualCoreFamily
+        certificate state chainAt count segments cores) :
+    ∀ core,
+      core ∈ cores →
+        core ≠ [] ∧
+          Graph.EdgeWalk.NoImmediateReverse core := by
+  intro core coreMembership
+  rcases List.getElem?_of_mem coreMembership with
+    ⟨step, coreLookup⟩
+  have stepBound : step < count := by
+    have withinCores :=
+      (List.getElem?_eq_some_iff.mp coreLookup).1
+    simpa [family.2.1] using withinCores
+  rcases family.2.2 step stepBound with
+    ⟨activeCore, activeLookup, _active,
+      activeNonempty, activeReduced⟩
+  have activeCoreValue : activeCore = core :=
+    Option.some.inj (activeLookup.symm.trans coreLookup)
+  subst activeCore
+  exact ⟨activeNonempty, activeReduced⟩
+
+/-- Normalizing the core-only closed walk cannot leave a nonempty cyclically
+nonbacktracking residue: every surviving occurrence is reference-kept and
+would form such a walk in the reference switching tree.  Hence the core walk
+normalizes to empty, and its exact cancellation site lies at a cyclic junction
+between two deterministic residual cores. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreFamily.normalization_empty_and_junction
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (correct : certificate.DeclarativelyCorrect)
+    (family :
+      FullyCancellingDependencyCycleActiveResidualCoreFamily
+        certificate state chainAt count segments cores)
+    (flattenedNonempty : cores.flatten ≠ [])
+    (closedWalk :
+      certificate.fullGraph.EdgeWalk
+        (dependencyResidualBaseAt segments 0)
+          cores.flatten
+        (dependencyResidualBaseAt segments 0)) :
+    ∃ (normalizedBase : Vertex)
+        (normalized :
+          List certificate.fullGraph.DirectedEdge),
+      certificate.fullGraph.EdgeWalk
+          normalizedBase normalized normalizedBase ∧
+        Graph.EdgeWalk.CyclicImmediateReverseNormalization
+          cores.flatten normalized ∧
+          normalized = [] ∧
+            Graph.EdgeWalk.CyclicSegmentJunctionReverse cores := by
+  rcases closedWalk.normalizeCyclicImmediateReversalsTraced with
+    ⟨normalizedBase, normalized, normalizedWalk,
+      normalization, normalForm⟩
+  have normalizedEmpty : normalized = [] := by
+    rcases normalForm with empty | reduced
+    · exact empty
+    · by_cases empty : normalized = []
+      · exact empty
+      · have normalizedKept :
+          ∀ directed,
+            directed ∈ normalized →
+              certificate.referenceSwitchingMask[directed.index]? =
+                some true := by
+          intro directed membership
+          exact family.allKept directed
+            (normalization.membership_subset directed membership)
+        exact False.elim
+          (correct.no_referenceKept_cyclicNoImmediateReverse
+            empty normalizedWalk normalizedKept reduced)
+  have cancellationSite :
+      Graph.EdgeWalk.CyclicImmediateReverseSite cores.flatten :=
+    normalization.site_of_nonempty_normalizes_to_nil
+      flattenedNonempty normalizedEmpty
+  have coresNonempty : cores ≠ [] := by
+    intro empty
+    apply flattenedNonempty
+    simp [empty]
+  have junction :
+      Graph.EdgeWalk.CyclicSegmentJunctionReverse cores :=
+    cancellationSite.segmentJunction_of_flatten
+      coresNonempty
+      (fun core membership =>
+        (family.coreProperties core membership).1)
+      (fun core membership =>
+        (family.coreProperties core membership).2)
+  exact
+    ⟨normalizedBase, normalized, normalizedWalk,
+      normalization, normalizedEmpty, junction⟩
+
+/-- Fully exposed core-only nesting obstruction in the empty normal-form
+branch.  The remaining proof must exclude the recorded cross-core cyclic
+reversal; it must not reintroduce source/frontier incidences already removed
+from the deterministic cores. -/
+private def FullyCancellingDependencyCycleActiveResidualCoreNestingObstruction
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments cores :
+      List (List certificate.fullGraph.DirectedEdge)) : Prop :=
+  FullyCancellingDependencyCycleActiveResidualCoreFamily
+      certificate state chainAt count segments cores ∧
+    cores.flatten ≠ [] ∧
+      certificate.fullGraph.EdgeWalk
+        (dependencyResidualBaseAt segments 0)
+          cores.flatten
+        (dependencyResidualBaseAt segments 0) ∧
+        ∃ (normalizedBase : Vertex)
+            (normalized :
+              List certificate.fullGraph.DirectedEdge),
+          certificate.fullGraph.EdgeWalk
+              normalizedBase normalized normalizedBase ∧
+            Graph.EdgeWalk.CyclicImmediateReverseNormalization
+              cores.flatten normalized ∧
+              normalized = [] ∧
+                Graph.EdgeWalk.CyclicSegmentJunctionReverse cores
+
 /-- Exact omitted-right-par occurrence forced in any nonempty normalized
 scheduler obstruction.  The stored prefix fixes the two par edge indices, and
 the omitted right occurrence is traversed backward. -/
@@ -21029,14 +21200,9 @@ private theorem
                                       certificate final chainAt count segments
                                         cores) ∧
                                   (∃ cores,
-                                    FullyCancellingDependencyCycleActiveResidualCoreFamily
+                                    FullyCancellingDependencyCycleActiveResidualCoreNestingObstruction
                                       certificate final chainAt count segments
-                                        cores ∧
-                                      cores.flatten ≠ [] ∧
-                                        certificate.fullGraph.EdgeWalk
-                                          (dependencyResidualBaseAt segments 0)
-                                            cores.flatten
-                                          (dependencyResidualBaseAt segments 0)) ∧
+                                        cores) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -21134,14 +21300,9 @@ private theorem
                                       certificate final chainAt count segments
                                         cores) ∧
                                   (∃ cores,
-                                    FullyCancellingDependencyCycleActiveResidualCoreFamily
+                                    FullyCancellingDependencyCycleActiveResidualCoreNestingObstruction
                                       certificate final chainAt count segments
-                                        cores ∧
-                                      cores.flatten ≠ [] ∧
-                                        certificate.fullGraph.EdgeWalk
-                                          (dependencyResidualBaseAt segments 0)
-                                            cores.flatten
-                                          (dependencyResidualBaseAt segments 0)) ∧
+                                        cores) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -21304,25 +21465,31 @@ private theorem
           fullyPaired.reflexiveCoresChained correct.1 allReflexive
             originalCountNontrivial originalChainInjective
               originalIndexedClassification originalIndexedWalks allKept
-        have activeResidualCoreFamily :
+        have activeResidualCoreNestingObstruction :
             ∃ cores,
-              FullyCancellingDependencyCycleActiveResidualCoreFamily
+              FullyCancellingDependencyCycleActiveResidualCoreNestingObstruction
                 certificate final originalChain originalCount
-                  originalSegments cores ∧
-                cores.flatten ≠ [] ∧
-                  certificate.fullGraph.EdgeWalk
-                    (dependencyResidualBaseAt originalSegments 0)
-                      cores.flatten
-                    (dependencyResidualBaseAt originalSegments 0) := by
+                  originalSegments cores := by
           rcases
               fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
                 originalSegmentCount activeReflexiveCores
                   reflexiveCoresChained with
             ⟨cores, activeFamily⟩
-          exact
-            ⟨cores, activeFamily,
+          rcases
               activeFamily.closedWalk reflexiveCoresChained
-                (by omega)⟩
+                (by omega) with
+            ⟨flattenedNonempty, coreClosedWalk⟩
+          rcases
+              activeFamily.normalization_empty_and_junction
+                correct flattenedNonempty coreClosedWalk with
+            ⟨normalizedCoreBase, normalizedCore,
+              normalizedCoreWalk, coreNormalization,
+              normalizedCoreEmpty, coreJunction⟩
+          exact
+            ⟨cores, activeFamily, flattenedNonempty, coreClosedWalk,
+              normalizedCoreBase, normalizedCore,
+              normalizedCoreWalk, coreNormalization,
+              normalizedCoreEmpty, coreJunction⟩
         have schedulerJunction :
             ∃ (source middle : Vertex)
                 (incoming :
@@ -21362,7 +21529,7 @@ private theorem
               originalChainClosed, originalChainInjective,
               originalChainWaiting, fullyPaired, allReflexive,
               reflexiveCores, reflexiveCoresChained,
-              residualCoreFamily, activeResidualCoreFamily,
+              residualCoreFamily, activeResidualCoreNestingObstruction,
               rfl, originalSegmentsNonempty,
               originalSegmentProperties, segmentJunction⟩,
             schedulerJunction,

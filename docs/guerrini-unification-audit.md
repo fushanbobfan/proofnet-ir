@@ -308,12 +308,15 @@ or positive misses. The larger search recorded at most 995 link attempts and
    boundaries preserves no-immediate-reverse, so the deterministic active
    family now consists of nonempty internally nonbacktracking cores. Those
    indexed cores are now composed into a nonempty closed full-graph walk whose
-   last endpoint returns to the first core's exact source-premise base. The
-   immediate proof obligation is to exclude the resulting cycle of active
-   retained spines and waiting-par incidences by an exact multi-par
-   switching-flip/nesting argument and, in the nonempty branch, transport the
-   turn evidence into an excluded edge-simple switching cycle or forbidden
-   nesting.
+   last endpoint returns to the first core's exact source-premise base. Every
+   core occurrence is reference-kept, so a nonempty cyclically nonbacktracking
+   normal form would contradict the reference switching tree. The core-only
+   walk is now proved to normalize to empty, with an exact reversal localized
+   to a cyclic junction between two nonempty internally reduced cores. The
+   immediate proof obligation is to exclude that cross-core reversal by the
+   exact multi-par switching-flip/nesting argument and, in the nonempty branch,
+   transport the turn evidence into an excluded edge-simple switching cycle or
+   forbidden nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

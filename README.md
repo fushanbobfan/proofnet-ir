@@ -170,11 +170,14 @@ cancellation is proved to cross their unique junction. The scheduler proof
  exact no-immediate-reverse property, and the deterministic active family
  packages these nonempty internally nonbacktracking cores. Lean composes their
  deterministic flattening into a nonempty closed full-graph walk whose last
- endpoint returns to the first core's exact source-premise base. The remaining
- empty-branch obligation is therefore no longer a hidden formula tail or an
- endpoint-only token claim: it is to exclude the resulting multi-node cycle of
- nonempty active retained spines and waiting-par incidences by an exact
- switching flip/nesting argument. For the
+ endpoint returns to the first core's exact source-premise base. Every core
+ occurrence is retained by the reference switching, so cyclic normalization
+ cannot leave a nonempty cyclically nonbacktracking residue in its tree. Lean
+ proves that the core-only normal form is empty and localizes an exact reversal
+ to a cyclic junction between two nonempty internally reduced cores. The
+ remaining empty-branch obligation is therefore no longer normalization or a
+ hidden formula tail: it is to exclude that precise cross-core reversal by an
+ exact switching flip/nesting argument. For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
  Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one
