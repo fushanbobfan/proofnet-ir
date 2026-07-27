@@ -150,8 +150,16 @@ cancellation is proved to cross their unique junction. The scheduler proof
  therefore a simple dependency cycle, not an arbitrary closed segment hiding a
  smaller repetition. Its cancellation junction crosses two distinct waiting
  pars, which rules out a singleton cycle and proves that the family contains at
- least two segments. The remaining empty-branch obligation is to exclude the
- resulting multi-node fully retained nesting. For the
+ least two segments. Each dependency now retains its exact first
+ marked-to-unmarked frontier together with assignment of every preceding path
+ endpoint. Lean proves that every forward occurrence entering an unassigned
+ vertex is exactly this frontier and that, when the target is another registered
+ waiting par, the formula chase must be reflexive. The fully cancelling simple
+ cycle therefore pairs every source reverse with the unique cyclic
+ predecessor's exact last occurrence, and every segment ends at its reflexive
+ frontier. The remaining empty-branch obligation is no longer a hidden formula
+ tail: it is to exclude the resulting multi-node cycle of retained reference
+ paths and waiting-par incidences. For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
  Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one

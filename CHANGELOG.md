@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- retained the exact first marked-to-unmarked scheduler frontier in every
+  waiting-par dependency, including assignment of every preceding path
+  endpoint. Lean now proves that any forward occurrence entering an unassigned
+  vertex is this unique frontier, and that a frontier targeting another
+  registered waiting par is reflexive: its formula-premise chase has no hidden
+  nontrivial tail. In the fully cancelling simple dependency cycle, every
+  source reverse is consequently paired with the unique cyclic predecessor's
+  exact last occurrence, and every segment ends at its reflexive frontier.
+  This narrows the empty normal form to a multi-node cycle of retained
+  reference paths and waiting-par incidences; excluding that remaining nesting
+  is still open;
 - strengthened the empty-normal-form scheduler obstruction from an arbitrary
   repeated dependency segment to the first repeated conclusion: every chain
   position before the closing endpoint is injective, the retained indexed

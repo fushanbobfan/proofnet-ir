@@ -189,10 +189,19 @@ selected dependency-segment decomposition is now retained as an indexed finite
 family with every segment's scheduler endpoint classifications. Lean localizes
 the site to an adjacent or cyclic junction and proves that its incoming
 occurrence is simultaneously the preceding dependency's retained reflexive
-end and the following waiting par's stored left incidence. The remaining
-argument must exclude the exact empty nesting and transport turn
-classifications around that concrete nonempty obstruction into an excluded
-edge-simple switching cycle or forbidden nesting in a correct quiescent state.
+end and the following waiting par's stored left incidence. Each dependency now
+also retains its exact first marked-to-unmarked frontier and proves every
+preceding path endpoint assigned. Thus any forward occurrence entering an
+unassigned vertex is exactly that frontier. Structural producer uniqueness and
+the registered waiting-par premises force a frontier entering another waiting
+par to be reflexive, with no nontrivial formula-premise tail. In the fully
+cancelling simple cycle, Lean pairs every source reverse with the unique cyclic
+predecessor's exact last occurrence and proves every segment ends at its
+reflexive frontier. The remaining argument must exclude the resulting
+multi-node cycle of retained reference paths and waiting-par incidences and
+transport turn classifications around the concrete nonempty obstruction into
+an excluded edge-simple switching cycle or forbidden nesting in a correct
+quiescent state.
 
 This prototype is not the sequential strategy of Figures 7--8. It starts all
 axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
@@ -285,8 +294,12 @@ or positive misses. The larger search recorded at most 995 link attempts and
    retained-frontier/next-waiting-par occurrence binding, one-step
    occurrence-preserving cancellation, and terminating internal-plus-cyclic
    normalization to an empty or cyclically nonbacktracking closed walk are now
-   proved. The immediate proof obligation is to exclude the exact nested empty
-   branch and, in the nonempty branch, transport the turn evidence into an
+   proved. The exact first frontier and its assigned prefix are now retained;
+   a frontier entering a registered waiting par is proved reflexive; and every
+   segment of the fully cancelling simple cycle is paired with its unique
+   cyclic predecessor and ends reflexively. The immediate proof obligation is
+   to exclude the resulting cycle of retained reference paths and waiting-par
+   incidences and, in the nonempty branch, transport the turn evidence into an
    excluded edge-simple switching cycle or forbidden nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.

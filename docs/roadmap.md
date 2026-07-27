@@ -563,6 +563,11 @@
       every earlier dependency-chain position, and prove that the empty-branch
       family is a simple cycle of at least two segments whose cancellation
       junction crosses two distinct waiting pars.
+    - [x] Retain each dependency's exact first marked-to-unmarked frontier and
+      assigned prefix, prove that a frontier entering another registered
+      waiting par has no nontrivial formula tail, pair every source reverse
+      with its unique cyclic predecessor's exact last occurrence, and prove
+      every segment of the fully cancelling simple cycle ends reflexively.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact
