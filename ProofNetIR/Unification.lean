@@ -26000,6 +26000,283 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       leftBefore, leftAfter, leftTraversal, leftPosition,
       chordSplit, orderedSegments, closedIntervals⟩
 
+/-- One visit to a directed edge in the scheduler family.  The edge value
+alone is not an occurrence identifier: the same `DirectedEdge` may be visited
+more than once.  `step` and `offset` retain the exact segment coordinate that
+must be transported by the remaining nesting argument. -/
+private structure SchedulerOccurrence (α : Type) where
+  step : Nat
+  offset : Nat
+  value : α
+deriving DecidableEq
+
+private def SchedulerOccurrence.erase
+    {α : Type} (occurrence : SchedulerOccurrence α) : α :=
+  occurrence.value
+
+/-- Tag one scheduler segment from an explicit offset.  Using a recursive
+definition rather than value lookup makes repeated edge values distinct by
+construction. -/
+private def tagSchedulerSegmentFrom
+    {α : Type} (step offset : Nat) :
+    List α → List (SchedulerOccurrence α)
+  | [] => []
+  | value :: rest =>
+      { step := step, offset := offset, value := value } ::
+        tagSchedulerSegmentFrom step (offset + 1) rest
+
+private def tagSchedulerSegment
+    {α : Type} (step : Nat) (segment : List α) :
+    List (SchedulerOccurrence α) :=
+  tagSchedulerSegmentFrom step 0 segment
+
+/-- Tag the complete scheduler family, preserving both segment and in-segment
+coordinates before any cyclic rotation or interval cut is performed. -/
+private def tagSchedulerFamilyFrom
+    {α : Type} (step : Nat) :
+    List (List α) → List (SchedulerOccurrence α)
+  | [] => []
+  | segment :: rest =>
+      tagSchedulerSegment step segment ++
+        tagSchedulerFamilyFrom (step + 1) rest
+
+private def tagSchedulerFamily
+    {α : Type} (segments : List (List α)) :
+    List (SchedulerOccurrence α) :=
+  tagSchedulerFamilyFrom 0 segments
+
+private theorem tagSchedulerSegmentFrom_erase
+    {α : Type} (step offset : Nat) (segment : List α) :
+    (tagSchedulerSegmentFrom step offset segment).map
+        SchedulerOccurrence.erase =
+      segment := by
+  induction segment generalizing offset with
+  | nil =>
+      rfl
+  | cons value rest induction =>
+      simp [tagSchedulerSegmentFrom, SchedulerOccurrence.erase,
+        induction]
+
+/-- Exact lookup correspondence for one tagged segment.  The edge value is
+looked up at the same list index, while the stored occurrence offset is the
+explicit starting offset plus that index. -/
+private theorem tagSchedulerSegmentFrom_getElem?
+    {α : Type} (step offset : Nat) (segment : List α)
+    (index : Nat) :
+    (tagSchedulerSegmentFrom step offset segment)[index]? =
+      segment[index]?.map fun value =>
+        { step := step
+          offset := offset + index
+          value := value } := by
+  induction segment generalizing offset index with
+  | nil =>
+      simp [tagSchedulerSegmentFrom]
+  | cons value rest induction =>
+      cases index with
+      | zero =>
+          simp [tagSchedulerSegmentFrom]
+      | succ index =>
+          have offsetEquation :
+              offset + 1 + index = offset + (index + 1) := by
+            omega
+          simpa [tagSchedulerSegmentFrom, offsetEquation] using
+            induction (offset + 1) index
+
+private theorem tagSchedulerSegmentFrom_mem_step
+    {α : Type} {step offset : Nat} {segment : List α}
+    {occurrence : SchedulerOccurrence α}
+    (membership :
+      occurrence ∈ tagSchedulerSegmentFrom step offset segment) :
+    occurrence.step = step := by
+  induction segment generalizing offset with
+  | nil =>
+      simp [tagSchedulerSegmentFrom] at membership
+  | cons value rest induction =>
+      simp only [tagSchedulerSegmentFrom, List.mem_cons] at membership
+      rcases membership with occurrenceValue | membership
+      · subst occurrence
+        rfl
+      · exact induction membership
+
+private theorem tagSchedulerSegmentFrom_mem_offset_ge
+    {α : Type} {step offset : Nat} {segment : List α}
+    {occurrence : SchedulerOccurrence α}
+    (membership :
+      occurrence ∈ tagSchedulerSegmentFrom step offset segment) :
+    offset ≤ occurrence.offset := by
+  induction segment generalizing offset with
+  | nil =>
+      simp [tagSchedulerSegmentFrom] at membership
+  | cons value rest induction =>
+      simp only [tagSchedulerSegmentFrom, List.mem_cons] at membership
+      rcases membership with occurrenceValue | membership
+      · subst occurrence
+        exact Nat.le_refl offset
+      · exact Nat.le_trans (Nat.le_add_right offset 1)
+          (induction membership)
+
+private theorem tagSchedulerSegmentFrom_nodup
+    {α : Type} (step offset : Nat) (segment : List α) :
+    (tagSchedulerSegmentFrom step offset segment).Nodup := by
+  induction segment generalizing offset with
+  | nil =>
+      exact .nil
+  | cons value rest induction =>
+      rw [tagSchedulerSegmentFrom, List.nodup_cons]
+      refine ⟨?_, induction (offset + 1)⟩
+      intro membership
+      have lower :=
+        tagSchedulerSegmentFrom_mem_offset_ge membership
+      simp at lower
+      omega
+
+private theorem tagSchedulerSegment_erase
+    {α : Type} (step : Nat) (segment : List α) :
+    (tagSchedulerSegment step segment).map
+        SchedulerOccurrence.erase =
+      segment := by
+  exact tagSchedulerSegmentFrom_erase step 0 segment
+
+private theorem tagSchedulerSegment_getElem?
+    {α : Type} (step : Nat) (segment : List α) (offset : Nat) :
+    (tagSchedulerSegment step segment)[offset]? =
+      segment[offset]?.map fun value =>
+        { step := step
+          offset := offset
+          value := value } := by
+  simpa [tagSchedulerSegment] using
+    tagSchedulerSegmentFrom_getElem? step 0 segment offset
+
+private theorem tagSchedulerSegment_nodup
+    {α : Type} (step : Nat) (segment : List α) :
+    (tagSchedulerSegment step segment).Nodup :=
+  tagSchedulerSegmentFrom_nodup step 0 segment
+
+private theorem tagSchedulerFamilyFrom_erase
+    {α : Type} (step : Nat) (segments : List (List α)) :
+    (tagSchedulerFamilyFrom step segments).map
+        SchedulerOccurrence.erase =
+      segments.flatten := by
+  induction segments generalizing step with
+  | nil =>
+      rfl
+  | cons segment rest induction =>
+      simp [tagSchedulerFamilyFrom, tagSchedulerSegment_erase,
+        induction]
+
+private theorem tagSchedulerFamilyFrom_mem_step_ge
+    {α : Type} {base : Nat} {segments : List (List α)}
+    {occurrence : SchedulerOccurrence α}
+    (membership :
+      occurrence ∈ tagSchedulerFamilyFrom base segments) :
+    base ≤ occurrence.step := by
+  induction segments generalizing base with
+  | nil =>
+      simp [tagSchedulerFamilyFrom] at membership
+  | cons segment rest induction =>
+      rcases List.mem_append.mp membership with
+        inSegment | inRest
+      · have exactStep :
+            occurrence.step = base :=
+          tagSchedulerSegmentFrom_mem_step inSegment
+        omega
+      · exact Nat.le_trans (Nat.le_add_right base 1)
+          (induction inRest)
+
+private theorem tagSchedulerFamilyFrom_nodup
+    {α : Type} (base : Nat) (segments : List (List α)) :
+    (tagSchedulerFamilyFrom base segments).Nodup := by
+  induction segments generalizing base with
+  | nil =>
+      exact .nil
+  | cons segment rest induction =>
+      rw [tagSchedulerFamilyFrom, List.nodup_append]
+      refine
+        ⟨tagSchedulerSegment_nodup base segment,
+          induction (base + 1), ?_⟩
+      intro first firstMembership second secondMembership same
+      have firstStep :
+          first.step = base :=
+        tagSchedulerSegmentFrom_mem_step firstMembership
+      have secondStep :
+          base + 1 ≤ second.step :=
+        tagSchedulerFamilyFrom_mem_step_ge secondMembership
+      subst second
+      omega
+
+/-- Erasing exact scheduler coordinates recovers the original flattened edge
+traversal definitionally up to the proved list equality. -/
+private theorem tagSchedulerFamily_erase
+    {α : Type} (segments : List (List α)) :
+    (tagSchedulerFamily segments).map SchedulerOccurrence.erase =
+      segments.flatten := by
+  exact tagSchedulerFamilyFrom_erase 0 segments
+
+/-- The complete tagged scheduler traversal has no duplicate occurrences,
+even when its erased `DirectedEdge` values repeat. -/
+private theorem tagSchedulerFamily_nodup
+    {α : Type} (segments : List (List α)) :
+    (tagSchedulerFamily segments).Nodup :=
+  tagSchedulerFamilyFrom_nodup 0 segments
+
+/-- Every pair of successful relative segment/offset lookups yields the
+corresponding coordinate-exact occurrence in a family tagged from an explicit
+base step. -/
+private theorem tagSchedulerFamilyFrom_mem_of_getElem?
+    {α : Type} {segments : List (List α)}
+    (base : Nat)
+    {relativeStep offset : Nat} {segment : List α} {value : α}
+    (segmentLookup : segments[relativeStep]? = some segment)
+    (valueLookup : segment[offset]? = some value) :
+    ({ step := base + relativeStep
+       offset := offset
+       value := value } :
+        SchedulerOccurrence α) ∈
+      tagSchedulerFamilyFrom base segments := by
+  induction segments generalizing base relativeStep with
+  | nil =>
+      simp at segmentLookup
+  | cons first rest induction =>
+      cases relativeStep with
+      | zero =>
+          have segmentValue : first = segment :=
+            Option.some.inj (by simpa using segmentLookup)
+          subst first
+          apply List.mem_append_left
+          have taggedLookup :=
+            tagSchedulerSegment_getElem? base segment offset
+          rw [valueLookup] at taggedLookup
+          exact List.mem_of_getElem? (by
+            simpa using taggedLookup)
+      | succ relativeStep =>
+          have tailMembership :
+              ({ step := base + (relativeStep + 1)
+                 offset := offset
+                 value := value } :
+                  SchedulerOccurrence α) ∈
+                tagSchedulerFamilyFrom (base + 1) rest := by
+            have tailLookup : rest[relativeStep]? = some segment := by
+              simpa using segmentLookup
+            simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+              induction (base := base + 1) tailLookup
+          simpa [tagSchedulerFamilyFrom] using
+            List.mem_append_right
+              (tagSchedulerSegment base first) tailMembership
+
+/-- Every pair of successful segment/offset lookups yields the corresponding
+coordinate-exact occurrence in the tagged family.  This is the entry point
+for replacing the current value-membership provenance witnesses. -/
+private theorem tagSchedulerFamily_mem_of_getElem?
+    {α : Type} {segments : List (List α)}
+    {step offset : Nat} {segment : List α} {value : α}
+    (segmentLookup : segments[step]? = some segment)
+    (valueLookup : segment[offset]? = some value) :
+    ({ step := step, offset := offset, value := value } :
+        SchedulerOccurrence α) ∈ tagSchedulerFamily segments := by
+  simpa [tagSchedulerFamily] using
+    tagSchedulerFamilyFrom_mem_of_getElem?
+      (base := 0) segmentLookup valueLookup
+
 /-- One strict cyclic-interval cut.  Rotating `larger` at the displayed
 prefix/suffix boundary makes `smaller` a contiguous sublist, and the cut
 strictly decreases traversal length. -/
@@ -26019,6 +26296,26 @@ private theorem CyclicIntervalCut.length_lt
     ⟨_rotationPrefix, _rotationSuffix, _before, _after,
       _largerRotation, _smallerInterval, shorter⟩
   exact shorter
+
+/-- Exact cyclic-interval cuts are functorial.  In particular, a cut carried
+out on `SchedulerOccurrence`s can be erased to the existing edge-level cut;
+the converse is intentionally absent because value-level cuts cannot recover
+which repeated visit was selected. -/
+private theorem CyclicIntervalCut.map
+    {α β : Type} {smaller larger : List α}
+    (function : α → β)
+    (cut : CyclicIntervalCut smaller larger) :
+    CyclicIntervalCut
+      (smaller.map function) (larger.map function) := by
+  rcases cut with
+    ⟨rotationPrefix, rotationSuffix, before, after,
+      largerRotation, smallerInterval, shorter⟩
+  refine
+    ⟨rotationPrefix.map function, rotationSuffix.map function,
+      before.map function, after.map function, ?_, ?_, ?_⟩
+  · simpa using congrArg (List.map function) largerRotation
+  · simpa using congrArg (List.map function) smallerInterval
+  · simpa using shorter
 
 /-- Every value represented in a cyclic interval is represented in the source
 traversal. This remains a value-membership statement; the proof-relevant cut
@@ -26076,6 +26373,21 @@ private theorem CyclicIntervalDescent.trans
       exact first
   | step cut _tail induction =>
       exact .step cut induction
+
+/-- Map a complete proof-relevant descent trace.  Applying this theorem to
+`SchedulerOccurrence.erase` preserves all old edge-level consequences while
+keeping the coordinate-exact trace available to the new proof. -/
+private theorem CyclicIntervalDescent.map
+    {α β : Type} {terminal initial : List α}
+    (function : α → β)
+    (descent : CyclicIntervalDescent terminal initial) :
+    CyclicIntervalDescent
+      (terminal.map function) (initial.map function) := by
+  induction descent with
+  | refl =>
+      exact .refl _
+  | step cut _tail induction =>
+      exact .step (cut.map function) induction
 
 /-- An exact reverse-shell context is itself a proof-relevant cyclic-interval
 descent. If the opening context is empty the descent is reflexive; otherwise

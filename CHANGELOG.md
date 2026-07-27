@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- introduced the coordinate-exact scheduler-occurrence foundation required by
+  the remaining v0.10 contradiction. `SchedulerOccurrence` distinguishes a
+  visit by `(segment step, in-segment offset, DirectedEdge value)`;
+  `tagSchedulerFamily` is proved duplicate-free even when erasing its tags
+  produces repeated edge values, and exact segment/offset lookups construct
+  the corresponding tagged occurrence. Erasure is proved to recover the
+  original flattened traversal. `CyclicIntervalCut.map` and
+  `CyclicIntervalDescent.map` transport a coordinate-level proof down to the
+  old edge-level interface. There is deliberately no converse lift from an
+  edge-value cut, because repeated values do not determine which visit was
+  selected. Threading these tags through every scheduler cut remains open;
 - hardened the unfinished scheduler-nesting proof objects against existential
   witness drift. `SchedulerPositionedParObstruction` now retains exact linear
   decompositions for the two par occurrences inside the current cyclic

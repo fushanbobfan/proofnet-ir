@@ -244,7 +244,21 @@ that the two cancellation layers are nondegenerate. Both original detailed
 segments remain attached to that index; their `core ++ frontier` traversals
 are pointwise reconciled with exact retained reference-prefix walks, and the
  successor reference prefix is proved to begin with the inner occurrence's
- exact reverse. Lean now also constructs the exact simultaneous complementary
+ exact reverse.
+
+The next refactor now has a coordinate-exact foundation.
+`SchedulerOccurrence` tags each scheduler visit by segment step and
+in-segment offset, and the complete tagged family is proved duplicate-free
+before its tags are erased. Erasure recovers the existing flattened edge
+traversal, and exact cyclic cuts and descent traces may be mapped from tags to
+edge values. There is intentionally no theorem lifting an arbitrary
+edge-value cut back to tagged occurrences: that implication is false when one
+`DirectedEdge` value is visited more than once. The current terminal/nesting
+theorems still cut edge-level traversals, so the global base-case
+contradiction remains outside the trusted claims until those cuts are rebuilt
+on tags.
+
+Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
  vertex-simple, avoids the target waiting par's retained left occurrence, and
  the flattened family is a nonempty closed cyclically nonbacktracking walk.
