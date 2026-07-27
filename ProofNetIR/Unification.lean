@@ -16746,10 +16746,11 @@ and then follows the all-backward formula chase to the target waiting-par
 conclusion.  The same boundary witness also carries the reflexive or
 par-cusp/tensor-free first-turn classification; no independently chosen
 endpoint-only geometry is substituted. -/
-private def QuiescentWaitingParDependencyFullSegment
+private def QuiescentWaitingParDependencyTraversalFullSegment
     (certificate : Certificate)
     (state : UnificationWorklistState)
-    (source target : Vertex) : Prop :=
+    (source target : Vertex)
+    (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
   ∃ (boundary :
         certificate.referenceSwitchingGraph.DirectedEdge)
       (left : Vertex)
@@ -16798,6 +16799,11 @@ private def QuiescentWaitingParDependencyFullSegment
                   certificate.referenceSwitchingGraph.EdgeWalk
                       left retainedPrefix boundary.target ∧
                     retainedPrefix.getLast? = some boundary ∧
+                      (∀ directed ∈ retainedPrefix.dropLast,
+                        state.core.assignedToken?
+                            directed.source ≠ none ∧
+                          state.core.assignedToken?
+                            directed.target ≠ none) ∧
                       certificate.fullGraph.EdgeWalk
                           left fullPrefix boundary.target ∧
                         fullPrefix.map
@@ -16811,6 +16817,9 @@ private def QuiescentWaitingParDependencyFullSegment
                             fullPrefix.map Graph.DirectedEdge.forward =
                               retainedPrefix.map
                                 Graph.DirectedEdge.forward ∧
+                              fullPrefix.map Graph.DirectedEdge.target =
+                                retainedPrefix.map
+                                  Graph.DirectedEdge.target ∧
                               (∀ directed ∈ fullPrefix,
                                 certificate.referenceSwitchingMask[
                                   directed.index]? = some true) ∧
@@ -16824,7 +16833,21 @@ private def QuiescentWaitingParDependencyFullSegment
                                       formulaTail) target ∧
                                     Graph.EdgeWalk.NoImmediateReverse
                                       (([sourceEdge] ++ fullPrefix) ++
-                                        formulaTail)
+                                        formulaTail) ∧
+                                      traversed =
+                                        (([sourceEdge] ++ fullPrefix) ++
+                                          formulaTail)
+
+/-- Existential packaging used by the local dependency API.  The indexed
+variant above is retained separately so that later finite-family arguments
+cannot forget which exact traversal realizes the boundary decomposition. -/
+private def QuiescentWaitingParDependencyFullSegment
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (source target : Vertex) : Prop :=
+  ∃ traversed,
+    QuiescentWaitingParDependencyTraversalFullSegment
+      certificate state source target traversed
 
 /-- Every dependency has the exact composable full-graph segment described
 above.  In particular, the source and target of the segment are the dependency
@@ -17280,16 +17303,19 @@ private theorem quiescentWaitingParDependency_fullSegment
       simpa [incomingEquation, outgoingEquation] using
         actualNotReverse
   exact
-    ⟨boundary, left, sourceEdge, before ++ [boundary],
+    ⟨(([sourceEdge] ++ fullPrefix) ++ formulaTail),
+      boundary, left, sourceEdge, before ++ [boundary],
       fullPrefix, formulaTail, atBoundary', actualTurn,
       formulaTailEmptyOfEndpointEq,
       sourceEdgeValue, sourceEdgeBackward, sourceEdgeStarts,
       sourceEdgeFinishes, sourceEdgeParTarget, retainedPrefixWalk,
-      retainedPrefixLast, fullPrefixWalk, retainedIndices,
-      fullPrefixEdges, fullPrefixForwards, fullPrefixKept,
+      retainedPrefixLast, (by simpa using prefixAssigned),
+      fullPrefixWalk, retainedIndices,
+      fullPrefixEdges, fullPrefixForwards, retainedTargets,
+      fullPrefixKept,
       formulaTailWalk, formulaTailBackward,
       formulaTailCuspFree, completeWalk,
-      completeNoImmediateReverse⟩
+      completeNoImmediateReverse, rfl⟩
 
 /-- The exact retained marked-to-unmarked frontier of one dependency
 traversal, without yet requiring the formula chase beyond that frontier to be
@@ -17335,6 +17361,36 @@ private def QuiescentWaitingParDependencyReflexiveEndAt
                   certificate.referenceSwitchingMask[last.index]? =
                     some true
 
+/-- The exact boundary retained by a waiting dependency is always traversed
+forward from a connective premise to its conclusion. -/
+private theorem QuiescentWaitingParDependencyAtBoundary.boundary_forward
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {boundary : certificate.referenceSwitchingGraph.DirectedEdge}
+    (atBoundary :
+      QuiescentWaitingParDependencyAtBoundary
+        certificate state source target boundary) :
+    boundary.forward = true := by
+  rcases atBoundary with
+    ⟨_index, _left, _right, _leftToken, _rightToken, _path,
+      _linkLookup, _sourceUnassigned, _leftMarked, _rightMarked,
+      _different, _registered, _pathStarts, _pathFinishes,
+      _sourceAvoided, _boundaryMembership, _firstBoundary,
+      _boundaryToken, _boundarySourceAssigned,
+      _boundaryTargetUnassigned, _boundaryTargetNeSource,
+      exactOrigin, _frontierStatus, _formulaPath,
+      _targetWaiting, _targetRank⟩
+  rcases exactOrigin with parOrigin | tensorOrigin
+  · rcases parOrigin with
+      ⟨_index, _left, _right, _conclusion, _lookup,
+        _edge, forward, _source, _target⟩
+    exact forward
+  · rcases tensorOrigin with
+      ⟨_index, _left, _right, _conclusion, _lookup,
+        forward, _side, _target⟩
+    exact forward
+
 /-- A reflexive dependency end still crosses two distinct waiting-par
 conclusions: the frontier target is definitionally the dependency target but
 is forbidden from being the dependency source. -/
@@ -17370,6 +17426,22 @@ private theorem QuiescentWaitingParDependencyReflexiveEndAt.target_eq
       _lastForward, _lastRetainedIndex, _lastSource,
       lastTarget, _lastKept⟩
   exact lastTarget.trans boundaryTarget
+
+/-- A reflexive dependency ends on a forward retained occurrence. -/
+private theorem QuiescentWaitingParDependencyReflexiveEndAt.forward
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {source target : Vertex}
+    {last : certificate.fullGraph.DirectedEdge}
+    (reflexive :
+      QuiescentWaitingParDependencyReflexiveEndAt
+        certificate state source target last) :
+    last.forward = true := by
+  rcases reflexive with
+    ⟨_boundary, atBoundary, _boundaryTarget, _lastEdge,
+      lastForward, _lastRetainedIndex, _lastSource,
+      _lastTarget, _lastKept⟩
+  exact lastForward.trans atBoundary.boundary_forward
 
 /-- If an exact dependency frontier already lands at a registered waiting
 par, the unassigned formula chase cannot descend through either of that par's
@@ -17448,25 +17520,32 @@ private theorem QuiescentWaitingParDependencyFullSegment.walk_exists
                     first.forward = false ∧
                       certificate.fullEdgeParTargets[first.index]? =
                         some (some source)) ∧
-                ∀ last,
+                (∀ last,
                   traversed.getLast? = some last →
                     last.forward = false ∨
                       QuiescentWaitingParDependencyReflexiveEndAt
-                        certificate state source target last := by
-  rcases segment with
+                        certificate state source target last) ∧
+              QuiescentWaitingParDependencyTraversalFullSegment
+                certificate state source target traversed := by
+  rcases segment with ⟨traversed, detailed⟩
+  have detailedCopy := detailed
+  rcases detailed with
     ⟨boundary, _left, sourceEdge, _retainedPrefix,
       fullPrefix, formulaTail, atBoundary, classifiedTurn,
       formulaTailEmptyOfEndpointEq,
       _sourceEdgeValue, _sourceEdgeBackward, _sourceEdgeStarts,
       _sourceEdgeFinishes, _sourceEdgeParTarget, _retainedPrefixWalk,
-      _retainedPrefixLast, _fullPrefixWalk, _retainedIndices,
-      _fullPrefixEdges, _fullPrefixForwards, _fullPrefixKept,
+      _retainedPrefixLast, _retainedPrefixAssigned,
+      _fullPrefixWalk, _retainedIndices,
+      _fullPrefixEdges, _fullPrefixForwards, _retainedTargets,
+      _fullPrefixKept,
       _formulaTailWalk, _formulaTailBackward,
       _formulaTailCuspFree, completeWalk,
-      noImmediateReverse⟩
+      noImmediateReverse, traversalEquation⟩
+  subst traversed
   refine
     ⟨([sourceEdge] ++ fullPrefix) ++ formulaTail, ?_, completeWalk,
-      noImmediateReverse, ?_, ?_, ?_, ?_⟩
+      noImmediateReverse, ?_, ?_, ?_, ?_, detailedCopy⟩
   · simp
   · intro directed membership forward
     rcases List.mem_append.mp membership with
@@ -18742,11 +18821,26 @@ private theorem
                 directed.forward = true →
                   certificate.referenceSwitchingMask[directed.index]? =
                     some true) ∧
-                ∀ step,
+                (∀ step,
+                  step < count →
+                    ∃ segment,
+                      segments[step]? = some segment ∧
+                        certificate.fullGraph.EdgeWalk
+                          (chainAt step) segment
+                            (chainAt (step + 1))) ∧
+                (∀ step,
                   step < count →
                     ∃ segment,
                       segments[step]? = some segment ∧
                         QuiescentWaitingParDependencyTraversalClassified
+                          certificate final
+                            (chainAt step) (chainAt (step + 1))
+                              segment) ∧
+                ∀ step,
+                  step < count →
+                    ∃ segment,
+                      segments[step]? = some segment ∧
+                        QuiescentWaitingParDependencyTraversalFullSegment
                           certificate final
                             (chainAt step) (chainAt (step + 1))
                               segment := by
@@ -18786,11 +18880,26 @@ private theorem
                 directed.forward = true →
                   certificate.referenceSwitchingMask[directed.index]? =
                     some true) ∧
-                ∀ step,
+                (∀ step,
+                  step < count →
+                    ∃ segment,
+                      segments[step]? = some segment ∧
+                        certificate.fullGraph.EdgeWalk
+                          (chainAt step) segment
+                            (chainAt (step + 1))) ∧
+                (∀ step,
                   step < count →
                     ∃ segment,
                       segments[step]? = some segment ∧
                         QuiescentWaitingParDependencyTraversalClassified
+                          certificate final
+                            (chainAt step) (chainAt (step + 1))
+                              segment) ∧
+                ∀ step,
+                  step < count →
+                    ∃ segment,
+                      segments[step]? = some segment ∧
+                        QuiescentWaitingParDependencyTraversalFullSegment
                           certificate final
                             (chainAt step) (chainAt (step + 1))
                               segment
@@ -18829,10 +18938,16 @@ private theorem
             traversed ≠ [] ∧
               certificate.fullGraph.EdgeWalk
                 (shifted offset) traversed (shifted (offset + 1)) ∧
-                QuiescentWaitingParDependencyTraversalClassified
-                  certificate final
-                    (shifted offset) (shifted (offset + 1))
-                      traversed ∧
+                (certificate.fullGraph.EdgeWalk
+                    (shifted offset) traversed (shifted (offset + 1)) ∧
+                  QuiescentWaitingParDependencyTraversalClassified
+                    certificate final
+                      (shifted offset) (shifted (offset + 1))
+                        traversed ∧
+                  QuiescentWaitingParDependencyTraversalFullSegment
+                    certificate final
+                      (shifted offset) (shifted (offset + 1))
+                        traversed) ∧
                 ∀ directed, directed ∈ traversed →
                   directed.forward = true →
                     certificate.referenceSwitchingMask[directed.index]? =
@@ -18847,23 +18962,28 @@ private theorem
     rcases segment.walk_exists correct.1 with
       ⟨traversed, nonempty, walk, noImmediateReverse,
         forwardKept, frontierClassified,
-        firstClassified, lastClassified⟩
+        firstClassified, lastClassified, detailed⟩
+    have shiftedWalk :
+        certificate.fullGraph.EdgeWalk
+          (shifted offset) traversed (shifted (offset + 1)) := by
+      simpa [shifted, Nat.add_assoc] using walk
     refine
-      ⟨traversed, nonempty, ?_, ?_, forwardKept⟩
-    · simpa [shifted, Nat.add_assoc] using walk
+      ⟨traversed, nonempty, shiftedWalk, ?_, forwardKept⟩
     · exact
-        ⟨noImmediateReverse,
-          by
-            intro directed membership forward unassigned
-            simpa [shifted, Nat.add_assoc] using
-              frontierClassified directed membership forward unassigned,
-          by
-            intro first head
-            simpa [shifted] using firstClassified first head,
-          by
-            intro last lastEq
-            simpa [shifted, Nat.add_assoc] using
-              lastClassified last lastEq⟩
+        ⟨shiftedWalk,
+          ⟨noImmediateReverse,
+            by
+              intro directed membership forward unassigned
+              simpa [shifted, Nat.add_assoc] using
+                frontierClassified directed membership forward unassigned,
+            by
+              intro first head
+              simpa [shifted] using firstClassified first head,
+            by
+              intro last lastEq
+              simpa [shifted, Nat.add_assoc] using
+                lastClassified last lastEq⟩,
+          by simpa [shifted, Nat.add_assoc] using detailed⟩
   rcases
       fullGraphEdgeWalk_segmentFamily_exists
         (fun directed =>
@@ -18871,10 +18991,16 @@ private theorem
             certificate.referenceSwitchingMask[directed.index]? =
               some true)
         (fun offset traversed =>
-          QuiescentWaitingParDependencyTraversalClassified
-            certificate final
-              (shifted offset) (shifted (offset + 1))
-                traversed)
+          certificate.fullGraph.EdgeWalk
+              (shifted offset) traversed (shifted (offset + 1)) ∧
+            QuiescentWaitingParDependencyTraversalClassified
+              certificate final
+                (shifted offset) (shifted (offset + 1))
+                  traversed ∧
+            QuiescentWaitingParDependencyTraversalFullSegment
+              certificate final
+                (shifted offset) (shifted (offset + 1))
+                  traversed)
         shifted (later - earlier)
         shiftedSegments with
     ⟨segmentFamily, segmentCount, chainedWalk,
@@ -18963,11 +19089,22 @@ private theorem
       simpa [segmentCount] using withinFamily
     rcases indexedSegmentProperties segmentIndex segmentIndexBound with
       ⟨segmentAt, segmentAtLookup, segmentNonempty,
-        segmentClassified, _segmentPointwise⟩
+        segmentData, _segmentPointwise⟩
     have segmentValue : segmentAt = segment :=
       Option.some.inj (segmentAtLookup.symm.trans segmentLookup)
     subst segmentAt
-    exact ⟨segmentNonempty, segmentClassified.1⟩
+    exact ⟨segmentNonempty, segmentData.2.1.1⟩
+  have indexedWalks :
+      ∀ step,
+        step < later - earlier →
+          ∃ segment,
+            segmentFamily[step]? = some segment ∧
+              certificate.fullGraph.EdgeWalk
+                (shifted step) segment (shifted (step + 1)) := by
+    intro step bound
+    rcases indexedSegmentProperties step bound with
+      ⟨segment, lookup, _nonempty, segmentData, _pointwise⟩
+    exact ⟨segment, lookup, segmentData.1⟩
   have indexedClassification :
       ∀ step,
         step < later - earlier →
@@ -18979,15 +19116,29 @@ private theorem
                     segment := by
     intro step bound
     rcases indexedSegmentProperties step bound with
-      ⟨segment, lookup, _nonempty, classified, _pointwise⟩
-    exact ⟨segment, lookup, classified⟩
+      ⟨segment, lookup, _nonempty, segmentData, _pointwise⟩
+    exact ⟨segment, lookup, segmentData.2.1⟩
+  have indexedDetailed :
+      ∀ step,
+        step < later - earlier →
+          ∃ segment,
+            segmentFamily[step]? = some segment ∧
+              QuiescentWaitingParDependencyTraversalFullSegment
+                certificate final
+                  (shifted step) (shifted (step + 1))
+                    segment := by
+    intro step bound
+    rcases indexedSegmentProperties step bound with
+      ⟨segment, lookup, _nonempty, segmentData, _pointwise⟩
+    exact ⟨segment, lookup, segmentData.2.2⟩
   exact
     ⟨shifted, later - earlier, segmentFamily, positive,
       segmentCount, shiftedClosed, shiftedInjective,
       shiftedWaiting,
       familyNonempty, flattenedNonempty,
       segmentProperties,
-      closedWalk, forwardKept, indexedClassification⟩
+      closedWalk, forwardKept, indexedWalks, indexedClassification,
+      indexedDetailed⟩
 
 /-- An exact reverse junction in an index-aligned closed family of dependency
 traversals has scheduler meaning: the incoming occurrence is the retained
@@ -19397,6 +19548,904 @@ private theorem
         ⟨predecessorSegment, sourceEdge.reverse,
           predecessorLookup, predecessorLast, predecessorReflexive⟩
 
+/-- A nonempty list with distinct prescribed head and last entries has an
+exact middle core.  Keeping this elementary decomposition explicit avoids
+later proofs silently treating a singleton traversal as a genuine spine. -/
+private theorem list_eq_head_core_last_of_ne
+    {α : Type} {values : List α} {first last : α}
+    (head : values.head? = some first)
+    (lastEq : values.getLast? = some last)
+    (different : first ≠ last) :
+    ∃ core, values = first :: (core ++ [last]) := by
+  cases values with
+  | nil =>
+      simp at head
+  | cons value rest =>
+      have valueEquation : value = first := by
+        simpa using Option.some.inj head
+      subst value
+      cases rest with
+      | nil =>
+          have same : first = last := by
+            simpa using Option.some.inj lastEq
+          exact False.elim (different same)
+      | cons next after =>
+          let remaining := next :: after
+          have remainingNonempty : remaining ≠ [] := by
+            simp [remaining]
+          have remainingLast :
+              remaining.getLast? = some last := by
+            simpa [remaining] using lastEq
+          have lastValue :
+              remaining.getLast remainingNonempty = last :=
+            Option.some.inj
+              ((List.getLast?_eq_some_getLast remainingNonempty).symm.trans
+                remainingLast)
+          refine ⟨remaining.dropLast, ?_⟩
+          apply congrArg (List.cons first)
+          calc
+            remaining =
+                remaining.dropLast ++
+                  [remaining.getLast remainingNonempty] :=
+              (List.dropLast_concat_getLast remainingNonempty).symm
+            _ = remaining.dropLast ++ [last] := by rw [lastValue]
+
+/-- Splitting an exact edge walk at a prescribed head and last occurrence
+exposes a walk carried by the residual middle core. -/
+private theorem edgeWalk_core_of_head_core_last
+    {graph : Graph} {start finish : Vertex}
+    {segment core : List graph.DirectedEdge}
+    {sourceEdge last : graph.DirectedEdge}
+    (walk : graph.EdgeWalk start segment finish)
+    (decomposition :
+      segment = sourceEdge :: (core ++ [last])) :
+    graph.EdgeWalk sourceEdge.target core last.source := by
+  have chain := walk.toChain
+  rw [decomposition] at chain
+  cases chain with
+  | cons _sourceEdge _starts tail =>
+      rcases tail.split_append with
+        ⟨middle, coreChain, lastChain⟩
+      have lastStarts : last.source = middle :=
+        lastChain.head_source
+      rw [lastStarts]
+      exact coreChain.toWalk
+
+/-- Along an exact edge walk, an assigned start together with assigned
+targets forces every traversed source to be assigned as well. -/
+private theorem edgeWalk_sources_assigned_of_start_and_targets
+    {graph : Graph}
+    {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    {assigned : Vertex → Option Nat}
+    (walk : graph.EdgeWalk start traversed finish)
+    (startAssigned : assigned start ≠ none)
+    (targetsAssigned :
+      ∀ directed ∈ traversed,
+        assigned directed.target ≠ none) :
+    ∀ directed ∈ traversed,
+      assigned directed.source ≠ none := by
+  have chain := walk.toChain
+  induction chain with
+  | nil =>
+      intro directed membership
+      simp at membership
+  | @cons chainStart chainFinish rest first firstStarts tail ih =>
+      intro directed membership
+      simp only [List.mem_cons] at membership
+      rcases membership with rfl | inRest
+      · simpa [firstStarts] using startAssigned
+      · have firstTargetAssigned :
+            assigned first.target ≠ none :=
+          targetsAssigned first (by simp)
+        exact
+          ih tail.toWalk firstTargetAssigned
+            (fun candidate candidateMembership =>
+              targetsAssigned candidate (by simp [candidateMembership]))
+            directed inRest
+
+/-- Exact residual spine of one fully cancelling reflexive dependency
+segment.  The segment is not merely known to have a backward head and forward
+last occurrence: it is propositionally `head :: core ++ [last]`, and every
+core occurrence is retained by the deterministic reference switching.
+
+This is the list-level form needed to cancel the cyclic waiting-par
+incidences and expose the still-open nested reference-prefix core. -/
+private def FullyCancellingDependencyCycleReflexiveCoreAt
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (segments : List (List certificate.fullGraph.DirectedEdge))
+    (step : Nat)
+    (core : List certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ (segment : List certificate.fullGraph.DirectedEdge)
+      (sourceEdge last : certificate.fullGraph.DirectedEdge),
+    segments[step]? = some segment ∧
+      segment = sourceEdge :: (core ++ [last]) ∧
+        sourceEdge.source = chainAt step ∧
+          sourceEdge.forward = false ∧
+            certificate.fullEdgeParTargets[sourceEdge.index]? =
+              some (some (chainAt step)) ∧
+              last.target = chainAt (step + 1) ∧
+                last.forward = true ∧
+                  QuiescentWaitingParDependencyReflexiveEndAt
+                    certificate state
+                      (chainAt step) (chainAt (step + 1)) last ∧
+                    certificate.referenceSwitchingMask[sourceEdge.index]? =
+                      some true ∧
+                      (∃ threadToken,
+                        state.core.tokenAt? sourceEdge.target =
+                            some threadToken ∧
+                          state.core.tokenAt? last.source =
+                            some threadToken) ∧
+                        certificate.fullGraph.EdgeWalk
+                          sourceEdge.target core last.source ∧
+                        ∀ directed ∈ core,
+                          certificate.referenceSwitchingMask[directed.index]? =
+                            some true
+
+/-- Each residual spine is an exact walk in the deterministic reference
+switching after occurrence-index compaction.  Edge values and orientations
+are preserved pointwise, so future nesting arguments can move between the
+full graph and reference tree without endpoint-only substitution. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.referenceWalk_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core : List certificate.fullGraph.DirectedEdge}
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core) :
+    ∃ (sourceEdge last : certificate.fullGraph.DirectedEdge)
+        (retainedCore :
+          List certificate.referenceSwitchingGraph.DirectedEdge),
+      certificate.referenceSwitchingGraph.EdgeWalk
+          sourceEdge.target retainedCore last.source ∧
+        retainedCore.map Graph.DirectedEdge.index =
+          core.map (fun directed =>
+            Graph.retainedIndex certificate.referenceSwitchingMask
+              directed.index) ∧
+          retainedCore.map Graph.DirectedEdge.edge =
+            core.map Graph.DirectedEdge.edge ∧
+            retainedCore.map Graph.DirectedEdge.forward =
+              core.map Graph.DirectedEdge.forward := by
+  rcases coreAt with
+    ⟨_segment, sourceEdge, last, _segmentLookup, _decomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      _lastTarget, _lastForward, _reflexive, _sourceKept,
+      _threadToken, coreWalk, coreKept⟩
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change (linkFullEdges certificate.links).length =
+      certificate.referenceSwitchingMask.length
+    exact certificate.referenceFullSwitchingSelection.mask_length.symm
+  rcases coreWalk.retainEdgesExact aligned coreKept with
+    ⟨retainedCore, retainedWalk, retainedIndices,
+      retainedEdges, retainedForwards, _retainedTargets⟩
+  have referenceWalk :
+      certificate.referenceSwitchingGraph.EdgeWalk
+        sourceEdge.target retainedCore last.source := by
+    simpa [Certificate.referenceSwitchingGraph] using retainedWalk
+  exact
+    ⟨sourceEdge, last, retainedCore, referenceWalk,
+      retainedIndices, retainedEdges, retainedForwards⟩
+
+/-- The occurrence-indexed full-segment witness recovers the semantic fact
+hidden by the residual-spine decomposition: every target strictly before the
+first marked-to-unmarked frontier is still assigned.  This is positional,
+not endpoint-only—the proof removes the exact final occurrence from the two
+aligned target lists. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.targets_assigned_of_detailed
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core segment : List certificate.fullGraph.DirectedEdge}
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core)
+    (segmentLookup : segments[step]? = some segment)
+    (detailed :
+      QuiescentWaitingParDependencyTraversalFullSegment
+        certificate state
+          (chainAt step) (chainAt (step + 1)) segment) :
+    ∀ directed ∈ core,
+      state.core.assignedToken? directed.target ≠ none := by
+  rcases coreAt with
+    ⟨coreSegment, sourceEdge, last, coreSegmentLookup, decomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      _lastTarget, lastForward, _reflexive, _sourceKept,
+      _threadToken, _coreWalk, _coreKept⟩
+  have segmentValue : segment = coreSegment :=
+    Option.some.inj (segmentLookup.symm.trans coreSegmentLookup)
+  subst segment
+  rcases detailed with
+    ⟨boundary, _left, detailedSourceEdge, retainedPrefix,
+      fullPrefix, formulaTail, _atBoundary, _classifiedTurn,
+      _formulaTailEmptyOfEndpointEq,
+      _sourceEdgeValue, _sourceEdgeBackward, _sourceEdgeStarts,
+      _sourceEdgeFinishes, _sourceEdgeParTarget, _retainedPrefixWalk,
+      retainedPrefixLast, retainedPrefixAssigned,
+      _fullPrefixWalk, _retainedIndices,
+      _fullPrefixEdges, _fullPrefixForwards, fullPrefixTargets,
+      _fullPrefixKept, _formulaTailWalk, formulaTailBackward,
+      _formulaTailCuspFree, _completeWalk,
+      _noImmediateReverse, traversalEquation⟩
+  have segmentLast : coreSegment.getLast? = some last := by
+    rw [decomposition, List.getLast?_cons_of_ne_nil (by simp)]
+    simp
+  have formulaTailEmpty : formulaTail = [] := by
+    by_cases formulaTailEmpty : formulaTail = []
+    · exact formulaTailEmpty
+    · exfalso
+      have formulaTailNonempty : formulaTail ≠ [] :=
+        formulaTailEmpty
+      have traversalLast :
+          coreSegment.getLast? =
+            some (formulaTail.getLast formulaTailNonempty) := by
+        rw [traversalEquation, List.getLast?_append,
+          List.getLast?_eq_some_getLast formulaTailNonempty]
+        simp
+      have lastValue :
+          last = formulaTail.getLast formulaTailNonempty :=
+        Option.some.inj (segmentLast.symm.trans traversalLast)
+      have backward :=
+        formulaTailBackward
+          (formulaTail.getLast formulaTailNonempty)
+          (List.getLast_mem formulaTailNonempty)
+      rw [← lastValue, lastForward] at backward
+      contradiction
+  have traversalDecomposition :
+      coreSegment = detailedSourceEdge :: fullPrefix := by
+    simpa [formulaTailEmpty] using traversalEquation
+  have fullPrefixDecomposition :
+      fullPrefix = core ++ [last] := by
+    have sameCons :
+        sourceEdge :: (core ++ [last]) =
+          detailedSourceEdge :: fullPrefix :=
+      decomposition.symm.trans traversalDecomposition
+    exact (List.cons.inj sameCons).2.symm
+  have retainedPrefixNonempty : retainedPrefix ≠ [] := by
+    intro empty
+    rw [empty] at retainedPrefixLast
+    simp at retainedPrefixLast
+  have retainedPrefixLastValue :
+      retainedPrefix.getLast retainedPrefixNonempty = boundary :=
+    Option.some.inj
+      ((List.getLast?_eq_some_getLast retainedPrefixNonempty).symm.trans
+        retainedPrefixLast)
+  have retainedPrefixDecomposition :
+      retainedPrefix = retainedPrefix.dropLast ++ [boundary] := by
+    calc
+      retainedPrefix =
+          retainedPrefix.dropLast ++
+            [retainedPrefix.getLast retainedPrefixNonempty] :=
+        (List.dropLast_concat_getLast retainedPrefixNonempty).symm
+      _ = retainedPrefix.dropLast ++ [boundary] := by
+        rw [retainedPrefixLastValue]
+  have coreTargets :
+      core.map Graph.DirectedEdge.target =
+        retainedPrefix.dropLast.map Graph.DirectedEdge.target := by
+    have mapped := fullPrefixTargets
+    rw [fullPrefixDecomposition, retainedPrefixDecomposition,
+      List.map_append, List.map_append] at mapped
+    simpa using congrArg List.dropLast mapped
+  intro directed directedMembership
+  have targetMembership :
+      directed.target ∈
+        core.map Graph.DirectedEdge.target :=
+    List.mem_map.mpr ⟨directed, directedMembership, rfl⟩
+  rw [coreTargets] at targetMembership
+  rcases List.mem_map.mp targetMembership with
+    ⟨retained, retainedMembership, targetEquation⟩
+  have assigned := retainedPrefixAssigned retained retainedMembership
+  simpa [targetEquation] using assigned.2
+
+/-- A residual spine together with its occurrence-indexed construction is
+entirely inside the currently marked reference prefix. -/
+private def FullyCancellingDependencyCycleActiveReflexiveCoreAt
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (segments : List (List certificate.fullGraph.DirectedEdge))
+    (step : Nat)
+    (core : List certificate.fullGraph.DirectedEdge) : Prop :=
+  FullyCancellingDependencyCycleReflexiveCoreAt
+      certificate state chainAt segments step core ∧
+    ∀ directed ∈ core,
+      state.core.assignedToken? directed.source ≠ none ∧
+        state.core.assignedToken? directed.target ≠ none
+
+/-- The detailed first-boundary witness upgrades the retained residual spine
+to an active spine.  Its first source is assigned by the source waiting-par
+token, every target is assigned positionally before the frontier, and exact
+walk chaining propagates assignment to all later sources. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.active_of_detailed
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core segment : List certificate.fullGraph.DirectedEdge}
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core)
+    (segmentLookup : segments[step]? = some segment)
+    (detailed :
+      QuiescentWaitingParDependencyTraversalFullSegment
+        certificate state
+          (chainAt step) (chainAt (step + 1)) segment) :
+    FullyCancellingDependencyCycleActiveReflexiveCoreAt
+      certificate state chainAt segments step core := by
+  have targetsAssigned :=
+    coreAt.targets_assigned_of_detailed segmentLookup detailed
+  have coreAtCopy := coreAt
+  rcases coreAt with
+    ⟨_coreSegment, sourceEdge, last, _coreSegmentLookup, _decomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      _lastTarget, _lastForward, _reflexive, _sourceKept,
+      threadToken, coreWalk, _coreKept⟩
+  rcases threadToken with
+    ⟨token, sourceToken, _lastToken⟩
+  have startAssigned :
+      state.core.assignedToken? sourceEdge.target ≠ none := by
+    rcases state.core.tokenAt?_some_witness sourceToken with
+      ⟨rawToken, rawAssigned, _representative⟩
+    intro unassigned
+    rw [rawAssigned] at unassigned
+    contradiction
+  have sourcesAssigned :=
+    edgeWalk_sources_assigned_of_start_and_targets
+      coreWalk startAssigned targetsAssigned
+  exact
+    ⟨coreAtCopy, fun directed membership =>
+      ⟨sourcesAssigned directed membership,
+        targetsAssigned directed membership⟩⟩
+
+/-- Deterministic residual-core family obtained by deleting the first and last
+entries of every represented dependency segment. -/
+private def dependencyResidualCores {graph : Graph}
+    (segments : List (List graph.DirectedEdge)) :
+    List (List graph.DirectedEdge) :=
+  segments.map (fun segment => segment.tail.dropLast)
+
+/-- The existential core exposed by the reflexive decomposition is uniquely
+the deterministic `tail.dropLast` core of its indexed segment. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.residual_lookup
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core : List certificate.fullGraph.DirectedEdge}
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core) :
+    (dependencyResidualCores segments)[step]? = some core := by
+  rcases coreAt with
+    ⟨segment, sourceEdge, last, segmentLookup, decomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      _lastTarget, _lastForward, _reflexive,
+      _sourceKept, _threadToken, _coreWalk, _coreKept⟩
+  have mappedLookup :
+      (dependencyResidualCores segments)[step]? =
+        some segment.tail.dropLast := by
+    simp [dependencyResidualCores, segmentLookup]
+  have deterministicCore :
+      segment.tail.dropLast = core := by
+    rw [decomposition]
+    simp
+  simpa [deterministicCore] using mappedLookup
+
+/-- Every indexed segment in the fully cancelling simple dependency cycle has
+an exact retained residual spine after its backward source incidence and
+forward reflexive frontier are exposed. -/
+private theorem
+    FullyCancellingDependencyCyclePaired.reflexiveCoreAt
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (paired :
+      FullyCancellingDependencyCyclePaired
+        certificate state chainAt count segments)
+    (structural : certificate.StructurallyWellFormed)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count segments)
+    (classified :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            segments[step]? = some segment ∧
+              QuiescentWaitingParDependencyTraversalClassified
+                certificate state
+                  (chainAt step) (chainAt (step + 1)) segment)
+    (walks :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            segments[step]? = some segment ∧
+              certificate.fullGraph.EdgeWalk
+                (chainAt step) segment (chainAt (step + 1)))
+    (allKept :
+      ∀ directed, directed ∈ segments.flatten →
+        certificate.referenceSwitchingMask[directed.index]? = some true)
+    {step : Nat}
+    (stepBound : step < count) :
+    ∃ core,
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core := by
+  rcases paired step stepBound with
+    ⟨sourceSegment, _predecessorSegment, sourceEdge, _predecessor,
+      sourceLookup, sourceHead, _predecessorBound,
+      _predecessorLookup, _reverseMembership, _predecessorLast,
+      _predecessorReflexive, _predecessorTarget, _predecessorIndex⟩
+  rcases allReflexive step stepBound with
+    ⟨reflexiveSegment, last, reflexiveLookup, lastEq, reflexive⟩
+  have reflexiveSegmentValue :
+      reflexiveSegment = sourceSegment :=
+    Option.some.inj (reflexiveLookup.symm.trans sourceLookup)
+  subst reflexiveSegment
+  rcases classified step stepBound with
+    ⟨classifiedSegment, classifiedLookup, segmentClassified⟩
+  have classifiedSegmentValue :
+      classifiedSegment = sourceSegment :=
+    Option.some.inj (classifiedLookup.symm.trans sourceLookup)
+  subst classifiedSegment
+  rcases walks step stepBound with
+    ⟨walkSegment, walkLookup, segmentWalk⟩
+  have walkSegmentValue :
+      walkSegment = sourceSegment :=
+    Option.some.inj (walkLookup.symm.trans sourceLookup)
+  subst walkSegment
+  have sourceClassified :=
+    segmentClassified.2.2.1 sourceEdge sourceHead
+  have lastForward : last.forward = true :=
+    reflexive.forward
+  have sourceNeLast : sourceEdge ≠ last := by
+    intro same
+    have orientation := congrArg Graph.DirectedEdge.forward same
+    simp [sourceClassified.2.1, lastForward] at orientation
+  rcases list_eq_head_core_last_of_ne
+      sourceHead lastEq sourceNeLast with
+    ⟨core, decomposition⟩
+  have coreWalk :
+      certificate.fullGraph.EdgeWalk
+        sourceEdge.target core last.source :=
+    edgeWalk_core_of_head_core_last segmentWalk decomposition
+  have sourceKept :
+      certificate.referenceSwitchingMask[sourceEdge.index]? =
+        some true := by
+    have sourceEdgeMembership : sourceEdge ∈ sourceSegment := by
+      rcases List.head?_eq_some_iff.mp sourceHead with ⟨tail, equation⟩
+      simp [equation]
+    apply allKept sourceEdge
+    apply List.mem_flatten.mpr
+    exact
+      ⟨sourceSegment, List.mem_of_getElem? sourceLookup,
+        sourceEdgeMembership⟩
+  have fullSourceKept :
+      (linkLeftSwitchingMask certificate.links)[sourceEdge.index]? =
+        some true := by
+    simpa [Certificate.referenceSwitchingMask] using sourceKept
+  rcases reflexive with
+    ⟨boundary, atBoundary, boundaryTarget, lastEdge, lastForwardAtBoundary,
+      lastRetainedIndex, lastSource, lastTargetAtBoundary, lastKept⟩
+  have reflexiveCopy :
+      QuiescentWaitingParDependencyReflexiveEndAt
+        certificate state (chainAt step) (chainAt (step + 1)) last :=
+    ⟨boundary, atBoundary, boundaryTarget, lastEdge,
+      lastForwardAtBoundary, lastRetainedIndex, lastSource,
+      lastTargetAtBoundary, lastKept⟩
+  rcases atBoundary with
+    ⟨sourceLinkIndex, sourceLeft, sourceRight, sourceLeftToken,
+      sourceRightToken, sourcePath, sourceLinkLookup, sourceUnassigned,
+      sourceLeftMarked, sourceRightMarked, sourceTokensDifferent,
+      sourceRegistered, sourcePathStarts, sourcePathFinishes,
+      sourceAvoided, boundaryMembership, firstBoundary,
+      boundaryToken, boundarySourceAssigned, boundaryTargetUnassigned,
+      boundaryTargetNeSource, boundaryExactOrigin, boundaryStatus,
+      formulaPath, targetWaiting, targetRank⟩
+  have atBoundaryCopy :
+      QuiescentWaitingParDependencyAtBoundary
+        certificate state (chainAt step) (chainAt (step + 1)) boundary :=
+    ⟨sourceLinkIndex, sourceLeft, sourceRight, sourceLeftToken,
+      sourceRightToken, sourcePath, sourceLinkLookup, sourceUnassigned,
+      sourceLeftMarked, sourceRightMarked, sourceTokensDifferent,
+      sourceRegistered, sourcePathStarts, sourcePathFinishes,
+      sourceAvoided, boundaryMembership, firstBoundary,
+      boundaryToken, boundarySourceAssigned, boundaryTargetUnassigned,
+      boundaryTargetNeSource, boundaryExactOrigin, boundaryStatus,
+      formulaPath, targetWaiting, targetRank⟩
+  have sourceEdgeValue :
+      sourceEdge.edge =
+        { first := sourceLeft, second := chainAt step } := by
+    rcases linkLeftSwitchingMask_kept_origin fullSourceKept with
+      axiomOrigin | tensorOrigin | parOrigin
+    · rcases axiomOrigin with
+        ⟨_index, _left, _right, _lookup, _edgeLookup, targetLookup⟩
+      have impossible :
+          (linkFullEdgeParTargets certificate.links)[sourceEdge.index]? =
+            some none := targetLookup
+      have sourceTarget :
+          (linkFullEdgeParTargets certificate.links)[sourceEdge.index]? =
+            some (some (chainAt step)) := by
+        simpa [Certificate.fullEdgeParTargets] using sourceClassified.2.2
+      rw [impossible] at sourceTarget
+      simp at sourceTarget
+    · rcases tensorOrigin with
+        ⟨_index, _left, _right, _conclusion, _lookup,
+          _edgeLookup, targetLookup⟩
+      have impossible :
+          (linkFullEdgeParTargets certificate.links)[sourceEdge.index]? =
+            some none := targetLookup
+      have sourceTarget :
+          (linkFullEdgeParTargets certificate.links)[sourceEdge.index]? =
+            some (some (chainAt step)) := by
+        simpa [Certificate.fullEdgeParTargets] using sourceClassified.2.2
+      rw [impossible] at sourceTarget
+      simp at sourceTarget
+    · rcases parOrigin with
+        ⟨_originIndex, originLeft, originRight, originConclusion,
+          originLookup, originEdgeLookup, originTargetLookup⟩
+      have sourceTarget :
+          (linkFullEdgeParTargets certificate.links)[sourceEdge.index]? =
+            some (some (chainAt step)) := by
+        simpa [Certificate.fullEdgeParTargets] using sourceClassified.2.2
+      have originConclusionEquation :
+          originConclusion = chainAt step := by
+        exact Option.some.inj
+          (Option.some.inj
+            (originTargetLookup.symm.trans sourceTarget))
+      subst originConclusion
+      have sameProducer :
+          Link.par originLeft originRight (chainAt step) =
+            Link.par sourceLeft sourceRight (chainAt step) :=
+        _root_.ProofNetIR.UnificationState.StructurallyWellFormed.producerLink_unique
+          (conclusion := chainAt step) structural
+          (List.mem_of_getElem? originLookup)
+          (by simp [Link.produces])
+          (List.mem_of_getElem? sourceLinkLookup)
+          (by simp [Link.produces])
+      have originLeftEquation : originLeft = sourceLeft := by
+        cases sameProducer
+        rfl
+      subst originLeft
+      have sourceEdgeLookup :
+          (linkFullEdges certificate.links)[sourceEdge.index]? =
+            some sourceEdge.edge := by
+        simpa [Certificate.fullGraph] using sourceEdge.lookup
+      exact Option.some.inj
+        (sourceEdgeLookup.symm.trans originEdgeLookup)
+  have sourceEdgeTarget : sourceEdge.target = sourceLeft := by
+    simp [Graph.DirectedEdge.target, sourceClassified.2.1,
+      sourceEdgeValue]
+  have sourceToken :
+      state.core.tokenAt? sourceEdge.target = some sourceLeftToken := by
+    simpa [sourceEdgeTarget] using sourceLeftMarked
+  have lastToken :
+      state.core.tokenAt? last.source = some sourceLeftToken := by
+    simpa [lastSource] using boundaryToken
+  refine
+    ⟨core, sourceSegment, sourceEdge, last, sourceLookup,
+      decomposition, sourceClassified.1, sourceClassified.2.1,
+      sourceClassified.2.2, reflexiveCopy.target_eq, lastForward,
+      reflexiveCopy, sourceKept,
+      ⟨sourceLeftToken, sourceToken, lastToken⟩, coreWalk, ?_⟩
+  intro directed coreMembership
+  apply allKept directed
+  apply List.mem_flatten.mpr
+  refine ⟨sourceSegment, List.mem_of_getElem? sourceLookup, ?_⟩
+  rw [decomposition]
+  simp [coreMembership]
+
+/-- Successor index in the finite simple dependency cycle. -/
+private def dependencyCycleSuccessor (count step : Nat) : Nat :=
+  if step + 1 < count then step + 1 else 0
+
+/-- The exposed reflexive spines are occurrence-exactly chained: the source
+incidence at the cyclic successor is the reverse of the current segment's
+final frontier.  This holds at both ordinary adjacent indices and the closing
+last/first junction. -/
+private theorem
+    FullyCancellingDependencyCyclePaired.reflexiveCore_successor
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (paired :
+      FullyCancellingDependencyCyclePaired
+        certificate state chainAt count segments)
+    (structural : certificate.StructurallyWellFormed)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count segments)
+    (classified :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            segments[step]? = some segment ∧
+              QuiescentWaitingParDependencyTraversalClassified
+                certificate state
+                  (chainAt step) (chainAt (step + 1)) segment)
+    (walks :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            segments[step]? = some segment ∧
+              certificate.fullGraph.EdgeWalk
+                (chainAt step) segment (chainAt (step + 1)))
+    (allKept :
+      ∀ directed, directed ∈ segments.flatten →
+        certificate.referenceSwitchingMask[directed.index]? = some true)
+    {step : Nat}
+    (stepBound : step < count) :
+    ∃ (core : List certificate.fullGraph.DirectedEdge)
+        (segment successorSegment :
+          List certificate.fullGraph.DirectedEdge)
+        (sourceEdge last successorEdge :
+          certificate.fullGraph.DirectedEdge),
+      FullyCancellingDependencyCycleReflexiveCoreAt
+          certificate state chainAt segments step core ∧
+        segments[step]? = some segment ∧
+          segment =
+            sourceEdge :: (core ++ [last]) ∧
+          segments[dependencyCycleSuccessor count step]? =
+            some successorSegment ∧
+            successorSegment.head? = some successorEdge ∧
+              successorEdge = last.reverse ∧
+                successorEdge.target = last.source := by
+  rcases paired.reflexiveCoreAt structural allReflexive classified walks allKept
+      stepBound with
+    ⟨core, coreAt⟩
+  have coreAtCopy := coreAt
+  rcases coreAt with
+    ⟨segment, sourceEdge, last, segmentLookup, decomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      _lastTarget, _lastForward, _reflexive, _sourceKept,
+      _threadToken, _coreWalk, _coreKept⟩
+  have segmentLast : segment.getLast? = some last := by
+    rw [decomposition, List.getLast?_cons_of_ne_nil (by simp)]
+    simp
+  by_cases interior : step + 1 < count
+  · rcases paired (step + 1) interior with
+      ⟨successorSegment, predecessorSegment, successorEdge, predecessor,
+        successorLookup, successorHead, _predecessorBound,
+        predecessorLookup, _reverseMembership, predecessorLast,
+        _predecessorReflexive, _predecessorTarget,
+        predecessorInterior | predecessorClosing⟩
+    · have predecessorEquation : predecessor = step := by
+        omega
+      subst predecessor
+      have predecessorSegmentValue :
+          predecessorSegment = segment :=
+        Option.some.inj (predecessorLookup.symm.trans segmentLookup)
+      subst predecessorSegment
+      have lastEquation : last = successorEdge.reverse :=
+        Option.some.inj (segmentLast.symm.trans predecessorLast)
+      have successorEquation : successorEdge = last.reverse := by
+        have reversed :=
+          congrArg Graph.DirectedEdge.reverse lastEquation
+        simpa using reversed.symm
+      refine
+        ⟨core, segment, successorSegment, sourceEdge, last, successorEdge,
+          coreAtCopy, segmentLookup, decomposition, ?_,
+          successorHead, successorEquation, ?_⟩
+      · simpa [dependencyCycleSuccessor, interior] using successorLookup
+      · simp [successorEquation]
+    · omega
+  · have closing : step + 1 = count := by
+      omega
+    have zeroBound : 0 < count := by
+      omega
+    rcases paired 0 zeroBound with
+      ⟨successorSegment, predecessorSegment, successorEdge, predecessor,
+        successorLookup, successorHead, _predecessorBound,
+        predecessorLookup, _reverseMembership, predecessorLast,
+        _predecessorReflexive, _predecessorTarget,
+        predecessorInterior | predecessorClosing⟩
+    · omega
+    · have predecessorEquation : predecessor = step := by
+        omega
+      subst predecessor
+      have predecessorSegmentValue :
+          predecessorSegment = segment :=
+        Option.some.inj (predecessorLookup.symm.trans segmentLookup)
+      subst predecessorSegment
+      have lastEquation : last = successorEdge.reverse :=
+        Option.some.inj (segmentLast.symm.trans predecessorLast)
+      have successorEquation : successorEdge = last.reverse := by
+        have reversed :=
+          congrArg Graph.DirectedEdge.reverse lastEquation
+        simpa using reversed.symm
+      refine
+        ⟨core, segment, successorSegment, sourceEdge, last, successorEdge,
+          coreAtCopy, segmentLookup, decomposition, ?_,
+          successorHead, successorEquation, ?_⟩
+      · simpa [dependencyCycleSuccessor, interior] using successorLookup
+      · simp [successorEquation]
+
+/-- Cycle-level packaging of the exact residual-spine successor law. -/
+private def FullyCancellingDependencyCycleReflexiveCoresChained
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments :
+      List (List certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∀ step,
+    step < count →
+      ∃ (core : List certificate.fullGraph.DirectedEdge)
+          (segment successorSegment :
+            List certificate.fullGraph.DirectedEdge)
+          (sourceEdge last successorEdge :
+            certificate.fullGraph.DirectedEdge),
+        FullyCancellingDependencyCycleReflexiveCoreAt
+            certificate state chainAt segments step core ∧
+          segments[step]? = some segment ∧
+            segment =
+              sourceEdge :: (core ++ [last]) ∧
+            segments[dependencyCycleSuccessor count step]? =
+              some successorSegment ∧
+              successorSegment.head? = some successorEdge ∧
+                successorEdge = last.reverse ∧
+                  successorEdge.target = last.source
+
+/-- Every residual spine in the fully cancelling dependency cycle is chained
+to the next one, including across the closing last/first index. -/
+private theorem
+    FullyCancellingDependencyCyclePaired.reflexiveCoresChained
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (paired :
+      FullyCancellingDependencyCyclePaired
+        certificate state chainAt count segments)
+    (structural : certificate.StructurallyWellFormed)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count segments)
+    (classified :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            segments[step]? = some segment ∧
+              QuiescentWaitingParDependencyTraversalClassified
+                certificate state
+                  (chainAt step) (chainAt (step + 1)) segment)
+    (walks :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            segments[step]? = some segment ∧
+              certificate.fullGraph.EdgeWalk
+                (chainAt step) segment (chainAt (step + 1)))
+    (allKept :
+      ∀ directed, directed ∈ segments.flatten →
+        certificate.referenceSwitchingMask[directed.index]? = some true) :
+    FullyCancellingDependencyCycleReflexiveCoresChained
+      certificate state chainAt count segments := by
+  intro step stepBound
+  exact paired.reflexiveCore_successor
+    structural allReflexive classified walks allKept stepBound
+
+/-- Canonical finite family of residual reference spines, index-aligned with
+the original dependency segments. -/
+private def FullyCancellingDependencyCycleResidualCoreFamily
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (cores :
+      List (List certificate.fullGraph.DirectedEdge)) : Prop :=
+  cores = dependencyResidualCores segments ∧
+    cores.length = count ∧
+      ∀ step,
+        step < count →
+          ∃ core,
+            cores[step]? = some core ∧
+              FullyCancellingDependencyCycleReflexiveCoreAt
+                certificate state chainAt segments step core
+
+/-- The pointwise reflexive decomposition selects a deterministic,
+index-aligned residual-core family; no later nesting proof must make another
+choice of the middle traversal. -/
+private theorem
+    fullyCancellingDependencyCycle_residualCoreFamily_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (segmentCount : segments.length = count)
+    (reflexiveCores :
+      ∀ step,
+        step < count →
+          ∃ core,
+            FullyCancellingDependencyCycleReflexiveCoreAt
+              certificate state chainAt segments step core) :
+    ∃ cores,
+      FullyCancellingDependencyCycleResidualCoreFamily
+        certificate state chainAt count segments cores := by
+  let cores := dependencyResidualCores segments
+  refine ⟨cores, rfl, ?_, ?_⟩
+  · simp [cores, dependencyResidualCores, segmentCount]
+  · intro step stepBound
+    rcases reflexiveCores step stepBound with ⟨core, coreAt⟩
+    exact ⟨core, by simpa [cores] using coreAt.residual_lookup, coreAt⟩
+
+/-- Active refinement of the deterministic residual-core family. -/
+private def FullyCancellingDependencyCycleActiveResidualCoreFamily
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (cores :
+      List (List certificate.fullGraph.DirectedEdge)) : Prop :=
+  cores = dependencyResidualCores segments ∧
+    cores.length = count ∧
+      ∀ step,
+        step < count →
+          ∃ core,
+            cores[step]? = some core ∧
+              FullyCancellingDependencyCycleActiveReflexiveCoreAt
+                certificate state chainAt segments step core
+
+/-- The occurrence-indexed segment family selects a deterministic family of
+residual spines whose every exact edge stays inside the marked reference
+prefix. -/
+private theorem
+    fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (segmentCount : segments.length = count)
+    (activeCores :
+      ∀ step,
+        step < count →
+          ∃ core,
+            FullyCancellingDependencyCycleActiveReflexiveCoreAt
+              certificate state chainAt segments step core) :
+    ∃ cores,
+      FullyCancellingDependencyCycleActiveResidualCoreFamily
+        certificate state chainAt count segments cores := by
+  let cores := dependencyResidualCores segments
+  refine ⟨cores, rfl, ?_, ?_⟩
+  · simp [cores, dependencyResidualCores, segmentCount]
+  · intro step stepBound
+    rcases activeCores step stepBound with ⟨core, activeCore⟩
+    exact
+      ⟨core, by simpa [cores] using activeCore.1.residual_lookup,
+        activeCore⟩
+
 /-- Exact omitted-right-par occurrence forced in any nonempty normalized
 scheduler obstruction.  The stored prefix fixes the two par edge indices, and
 the omitted right occurrence is traversed backward. -/
@@ -19493,6 +20542,22 @@ private theorem
                                     certificate final chainAt count segments ∧
                                   FullyCancellingDependencyCycleAllReflexive
                                     certificate final chainAt count segments ∧
+                                  (∀ step,
+                                    step < count →
+                                      ∃ core,
+                                        FullyCancellingDependencyCycleReflexiveCoreAt
+                                          certificate final chainAt segments
+                                            step core) ∧
+                                  FullyCancellingDependencyCycleReflexiveCoresChained
+                                    certificate final chainAt count segments ∧
+                                  (∃ cores,
+                                    FullyCancellingDependencyCycleResidualCoreFamily
+                                      certificate final chainAt count segments
+                                        cores) ∧
+                                  (∃ cores,
+                                    FullyCancellingDependencyCycleActiveResidualCoreFamily
+                                      certificate final chainAt count segments
+                                        cores) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -19577,6 +20642,22 @@ private theorem
                                     certificate final chainAt count segments ∧
                                   FullyCancellingDependencyCycleAllReflexive
                                     certificate final chainAt count segments ∧
+                                  (∀ step,
+                                    step < count →
+                                      ∃ core,
+                                        FullyCancellingDependencyCycleReflexiveCoreAt
+                                          certificate final chainAt segments
+                                            step core) ∧
+                                  FullyCancellingDependencyCycleReflexiveCoresChained
+                                    certificate final chainAt count segments ∧
+                                  (∃ cores,
+                                    FullyCancellingDependencyCycleResidualCoreFamily
+                                      certificate final chainAt count segments
+                                        cores) ∧
+                                  (∃ cores,
+                                    FullyCancellingDependencyCycleActiveResidualCoreFamily
+                                      certificate final chainAt count segments
+                                        cores) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -19613,7 +20694,8 @@ private theorem
       originalChainWaiting,
       originalSegmentsNonempty,
       originalNonempty, originalSegmentProperties, originalWalk,
-      originalForwardKept, originalIndexedClassification⟩
+      originalForwardKept, originalIndexedWalks,
+      originalIndexedClassification, originalIndexedDetailed⟩
   rcases originalWalk.normalizeCyclicImmediateReversalsTraced with
     ⟨normalizedBase, normalized, normalizedWalk, normalization,
       normalizedShape⟩
@@ -19664,6 +20746,52 @@ private theorem
               certificate final originalChain originalCount
                 originalSegments :=
           fullyPaired.allSegmentsReflexive
+        have reflexiveCores :
+            ∀ step,
+              step < originalCount →
+                ∃ core,
+                  FullyCancellingDependencyCycleReflexiveCoreAt
+                    certificate final originalChain originalSegments
+                      step core := by
+          intro step stepBound
+          exact fullyPaired.reflexiveCoreAt correct.1 allReflexive
+            originalIndexedClassification originalIndexedWalks
+              allKept stepBound
+        have activeReflexiveCores :
+            ∀ step,
+              step < originalCount →
+                ∃ core,
+                  FullyCancellingDependencyCycleActiveReflexiveCoreAt
+                    certificate final originalChain originalSegments
+                      step core := by
+          intro step stepBound
+          rcases reflexiveCores step stepBound with
+            ⟨core, coreAt⟩
+          rcases originalIndexedDetailed step stepBound with
+            ⟨segment, segmentLookup, detailed⟩
+          exact
+            ⟨core,
+              coreAt.active_of_detailed segmentLookup detailed⟩
+        have reflexiveCoresChained :
+            FullyCancellingDependencyCycleReflexiveCoresChained
+              certificate final originalChain originalCount
+                originalSegments :=
+          fullyPaired.reflexiveCoresChained correct.1 allReflexive
+            originalIndexedClassification originalIndexedWalks allKept
+        have residualCoreFamily :
+            ∃ cores,
+              FullyCancellingDependencyCycleResidualCoreFamily
+                certificate final originalChain originalCount
+                  originalSegments cores :=
+          fullyCancellingDependencyCycle_residualCoreFamily_exists
+            originalSegmentCount reflexiveCores
+        have activeResidualCoreFamily :
+            ∃ cores,
+              FullyCancellingDependencyCycleActiveResidualCoreFamily
+                certificate final originalChain originalCount
+                  originalSegments cores :=
+          fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
+            originalSegmentCount activeReflexiveCores
         have cancellationSite :
             Graph.EdgeWalk.CyclicImmediateReverseSite
               originalSegments.flatten :=
@@ -19736,6 +20864,8 @@ private theorem
               originalCountNontrivial, originalSegmentCount,
               originalChainClosed, originalChainInjective,
               originalChainWaiting, fullyPaired, allReflexive,
+              reflexiveCores, reflexiveCoresChained,
+              residualCoreFamily, activeResidualCoreFamily,
               rfl, originalSegmentsNonempty,
               originalSegmentProperties, segmentJunction⟩,
             schedulerJunction,

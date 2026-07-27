@@ -157,9 +157,16 @@ cancellation is proved to cross their unique junction. The scheduler proof
  waiting par, the formula chase must be reflexive. The fully cancelling simple
  cycle therefore pairs every source reverse with the unique cyclic
  predecessor's exact last occurrence, and every segment ends at its reflexive
- frontier. The remaining empty-branch obligation is no longer a hidden formula
- tail: it is to exclude the resulting multi-node cycle of retained reference
- paths and waiting-par incidences. For the
+ frontier. The occurrence-indexed full-segment decomposition is now preserved
+ through the finite family. Removing each exact backward source incidence and
+ forward reflexive frontier yields a deterministic residual core; Lean proves
+ its endpoints share one live token, chains it occurrence-exactly to the cyclic
+ successor, and proves every edge of every residual core has both endpoints
+ assigned before the first marked-to-unmarked boundary. The remaining
+ empty-branch obligation is therefore no longer a hidden formula tail or an
+ endpoint-only token claim: it is to exclude the resulting multi-node cycle of
+ active retained spines and waiting-par incidences by an exact switching
+ flip/nesting argument. For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
  Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one

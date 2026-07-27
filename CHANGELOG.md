@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- retained the occurrence-indexed full-segment decomposition through the
+  finite dependency family instead of projecting immediately to endpoint
+  classifications. In the fully cancelling empty-normal-form branch, Lean now
+  removes each segment's exact backward source incidence and forward reflexive
+  frontier, selects the deterministic `tail.dropLast` residual core, proves
+  that its endpoints carry one live union-find token, chains every frontier to
+  the cyclic successor's exact source incidence, and proves positionally that
+  every residual-core edge has both endpoints assigned before the first
+  marked-to-unmarked boundary. The resulting active residual-core family is a
+  stronger input to the remaining multi-par switching-flip/nesting
+  contradiction; that global contradiction and pure-worklist completeness are
+  still open;
 - retained the exact first marked-to-unmarked scheduler frontier in every
   waiting-par dependency, including assignment of every preceding path
   endpoint. Lean now proves that any forward occurrence entering an unassigned

@@ -297,10 +297,16 @@ or positive misses. The larger search recorded at most 995 link attempts and
    proved. The exact first frontier and its assigned prefix are now retained;
    a frontier entering a registered waiting par is proved reflexive; and every
    segment of the fully cancelling simple cycle is paired with its unique
-   cyclic predecessor and ends reflexively. The immediate proof obligation is
-   to exclude the resulting cycle of retained reference paths and waiting-par
-   incidences and, in the nonempty branch, transport the turn evidence into an
-   excluded edge-simple switching cycle or forbidden nesting.
+   cyclic predecessor and ends reflexively. The occurrence-indexed segment
+   witness is now preserved through that family: deleting each exact
+   source/frontier pair gives a deterministic residual core whose endpoints
+   share a live token, whose successor incidence is exact, and whose every
+   edge has assigned endpoints before the first inactive frontier. The
+   immediate proof obligation is to exclude the resulting cycle of active
+   retained spines and waiting-par incidences by an exact multi-par
+   switching-flip/nesting argument and, in the nonempty branch, transport the
+   turn evidence into an excluded edge-simple switching cycle or forbidden
+   nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

@@ -568,6 +568,11 @@
       waiting par has no nontrivial formula tail, pair every source reverse
       with its unique cyclic predecessor's exact last occurrence, and prove
       every segment of the fully cancelling simple cycle ends reflexively.
+    - [x] Preserve the occurrence-indexed full-segment witness through the
+      finite family, expose the deterministic residual core after deleting
+      each exact source/frontier pair, prove its endpoints share one live
+      token, chain it to the cyclic successor, and prove every residual-core
+      edge has assigned source and target occurrences.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact
