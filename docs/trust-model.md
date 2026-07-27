@@ -264,10 +264,13 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   nonempty and contains the omitted-right occurrence; retained-left lies in
   one of the arcs, and their concatenation covers the flipped occurrences up
   to the cyclic-rotation permutation. The exact rotation witness now transports
-  internal cusp-freedom to the concatenation and to both arcs. This does not
-  yet prove the contradiction or closing-cusp-freedom for either closed walk:
-  the two new chord-closing turns must still be classified and resolved by the
-  nesting/switching structure.
+  internal cusp-freedom to the concatenation and to both arcs. A forward
+  retained-left occurrence is the incoming chord path's exact last edge and,
+  together with the omitted-right first-arc head, forms a kernel-proved par
+  cusp at the new first-arc closing turn. A backward retained-left occurrence
+  is the outgoing chord path's exact first edge and the nonempty second arc's
+  head. The remaining backward chord-closing turn must still be classified and
+  resolved by the nesting/switching structure.
  Ordinary loop erasure is not sufficient because it can create a new closing
  cusp at the erased vertex. This is not yet the correct-state progress theorem
  needed for pure-worklist completeness.

@@ -23980,9 +23980,13 @@ two parts meet only at the conclusion.  The obstruction is therefore no
 longer an unlocated pair somewhere in a flattened walk.  The cyclic family is
 also cut at that conclusion into two closed walks.  An exact rotation witness
 transports the original cyclic cusp-free order to their concatenation, so each
-arc is internally cusp-free.  This deliberately does not assert that either
-arc is closing-cusp-free; classifying the two new chord-closing turns is the
-remaining nesting obligation. -/
+arc is internally cusp-free.  The chord incidence is now exact as well: a
+forward retained-left occurrence is the incoming chord path's last edge and
+closes the first arc directly against the omitted-right head as a par cusp;
+a backward retained-left occurrence is the outgoing chord path's head and
+therefore the second arc's nonempty head.  This deliberately does not assert
+that either arc is closing-cusp-free; the remaining backward-orientation
+closing turn is the next nesting obligation. -/
 private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_between_distinct_segments_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
@@ -24074,6 +24078,14 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                             outgoing.traversed ∧
                                                         incoming.traversed ≠
                                                             [] ∧
+                                                          ((leftOccurrence.forward =
+                                                                true ∧
+                                                              incoming.traversed.getLast? =
+                                                                some leftOccurrence) ∨
+                                                            (leftOccurrence.forward =
+                                                                false ∧
+                                                              outgoing.traversed.head? =
+                                                                some leftOccurrence)) ∧
                                                           (leftOccurrence ∈
                                                               incoming.traversed ∨
                                                             leftOccurrence ∈
@@ -24133,6 +24145,20 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                                   flippedSegments.flatten ∧
                                                                 rightOccurrence ∈
                                                                     firstArc ∧
+                                                                  (leftOccurrence.forward =
+                                                                      true →
+                                                                    firstArc.getLast? =
+                                                                        some leftOccurrence ∧
+                                                                      firstArc.head? =
+                                                                          some rightOccurrence ∧
+                                                                        certificate.Cusp
+                                                                          leftOccurrence
+                                                                          rightOccurrence) ∧
+                                                                  (leftOccurrence.forward =
+                                                                      false →
+                                                                    secondArc ≠ [] ∧
+                                                                      secondArc.head? =
+                                                                        some leftOccurrence) ∧
                                                                   (leftOccurrence ∈
                                                                       firstArc ∨
                                                                     leftOccurrence ∈
@@ -24147,7 +24173,7 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
     ⟨before, left, right, conclusion, after,
       leftOccurrence, rightOccurrence, linksEquation,
       leftMembership, leftIndex, rightMembership, rightIndex,
-      _rightBackward⟩
+      rightBackward⟩
   have rightOmitted :
       certificate.referenceSwitchingMask[rightOccurrence.index]? =
         some false := by
@@ -24278,6 +24304,43 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       certificate.referenceSwitchingMask[rightOccurrence.index]? =
         some false := by
     simpa [rightIndex] using maskPositions.2
+  have leftParTarget :
+      certificate.fullEdgeParTargets[leftOccurrence.index]? =
+        some (some conclusion) := by
+    rw [← certificate.linkFullEdgeParTargets_certificate]
+    rw [linksEquation, linkFullEdgeParTargets_append]
+    rw [leftIndex, ← linkFullEdgeParTargets_length before]
+    simp
+  have rightParTarget :
+      certificate.fullEdgeParTargets[rightOccurrence.index]? =
+        some (some conclusion) := by
+    rw [← certificate.linkFullEdgeParTargets_certificate]
+    rw [linksEquation, linkFullEdgeParTargets_append]
+    rw [rightIndex, ← linkFullEdgeParTargets_length before]
+    simp
+  have chordCusp_of_leftForward :
+      leftOccurrence.forward = true →
+        certificate.Cusp leftOccurrence rightOccurrence := by
+    intro leftForward
+    unfold Certificate.Cusp
+    have leftColor :
+        certificate.incidenceColor leftOccurrence =
+          .par conclusion :=
+      (certificate.incidenceColor_eq_par_iff
+        leftOccurrence conclusion).2
+          ⟨leftForward, leftParTarget⟩
+    have rightReverseForward :
+        rightOccurrence.reverse.forward = true := by
+      change (!rightOccurrence.forward) = true
+      rw [rightBackward]
+      rfl
+    have rightReverseColor :
+        certificate.incidenceColor rightOccurrence.reverse =
+          .par conclusion :=
+      (certificate.incidenceColor_eq_par_iff
+        rightOccurrence.reverse conclusion).2
+          ⟨rightReverseForward, by simpa using rightParTarget⟩
+    rw [leftColor, rightReverseColor]
   have conclusionInLeftVertices :
       conclusion ∈
         Graph.EdgeWalk.visitedVertices
@@ -24363,6 +24426,12 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                 leftSegment =
                     incoming.traversed ++ outgoing.traversed ∧
                   incoming.traversed ≠ [] ∧
+                    ((leftOccurrence.forward = true ∧
+                        incoming.traversed.getLast? =
+                          some leftOccurrence) ∨
+                      (leftOccurrence.forward = false ∧
+                        outgoing.traversed.head? =
+                          some leftOccurrence)) ∧
                     (leftOccurrence ∈ incoming.traversed ∨
                       leftOccurrence ∈ outgoing.traversed) ∧
                       ∀ vertex,
@@ -24394,11 +24463,15 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
             incomingFinishes.trans leftTarget,
             outgoingStarts.trans leftTarget,
             outgoingFinishes.trans leftPathFinishes,
-            ?_, ?_, ?_, ?_⟩
+            ?_, ?_, ?_, ?_, ?_⟩
         · rw [incomingTraversal, outgoingTraversal, leftTraversal]
           simp [List.append_assoc]
         · rw [incomingTraversal]
           simp
+        · exact .inl
+            ⟨rfl, by
+              rw [incomingTraversal]
+              simp⟩
         · exact .inl (by
             rw [incomingTraversal]
             simp)
@@ -24433,9 +24506,13 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
               incomingFinishes.trans leftSource,
               outgoingStarts.trans leftSource,
               outgoingFinishes.trans leftPathFinishes,
-              ?_, ?_, ?_, ?_⟩
+              ?_, ?_, ?_, ?_, ?_⟩
           · rw [incomingTraversal, outgoingTraversal, leftTraversal]
           · simpa [incomingTraversal] using beforeNonempty
+          · exact .inr
+              ⟨rfl, by
+                rw [outgoingTraversal]
+                simp⟩
           · exact .inr (by
               rw [outgoingTraversal]
               simp)
@@ -24470,7 +24547,8 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
   rcases chordSplitForArcs with
     ⟨incoming, outgoing, incomingStarts, incomingFinishes,
       outgoingStarts, outgoingFinishes, leftSegmentSplit,
-      incomingNonempty, leftOccurrenceSide, _uniqueIntersection⟩
+      incomingNonempty, leftChordPlacement, leftOccurrenceSide,
+      _uniqueIntersection⟩
   rcases rightFlipped.1.simplePath_exists with
     ⟨rightPath, rightPathStarts, rightPathFinishes,
       rightPathTraversal⟩
@@ -24496,6 +24574,17 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                         (firstArc ++ secondArc).Perm
                             flippedSegments.flatten ∧
                           rightOccurrence ∈ firstArc ∧
+                            (leftOccurrence.forward = true →
+                              firstArc.getLast? =
+                                  some leftOccurrence ∧
+                                firstArc.head? =
+                                    some rightOccurrence ∧
+                                  certificate.Cusp
+                                    leftOccurrence rightOccurrence) ∧
+                            (leftOccurrence.forward = false →
+                              secondArc ≠ [] ∧
+                                secondArc.head? =
+                                  some leftOccurrence) ∧
                             (leftOccurrence ∈ firstArc ∨
                               leftOccurrence ∈ secondArc) := by
     rcases orderedSegments with
@@ -24608,6 +24697,35 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
             (l₂ := firstArc ++ remaining)).symm
       have rightInFirst : rightOccurrence ∈ firstArc := by
         simp [firstArc, rightInSegment]
+      have forwardClosing :
+          leftOccurrence.forward = true →
+            firstArc.getLast? = some leftOccurrence ∧
+              firstArc.head? = some rightOccurrence ∧
+                certificate.Cusp leftOccurrence rightOccurrence := by
+        intro leftForward
+        rcases leftChordPlacement with
+          ⟨_leftForward, incomingLast⟩ |
+          ⟨leftBackward, _outgoingHead⟩
+        · refine ⟨?_, ?_, chordCusp_of_leftForward leftForward⟩
+          · simp [firstArc, List.getLast?_append, incomingLast]
+          · simp [firstArc, List.head?_append, rightHead]
+        · simp [leftForward] at leftBackward
+      have backwardStartsSecond :
+          leftOccurrence.forward = false →
+            secondArc ≠ [] ∧
+              secondArc.head? = some leftOccurrence := by
+        intro leftBackward
+        rcases leftChordPlacement with
+          ⟨leftForward, _incomingLast⟩ |
+          ⟨_leftBackward, outgoingHead⟩
+        · simp [leftBackward] at leftForward
+        · have secondHead :
+              secondArc.head? = some leftOccurrence := by
+            simp [secondArc, remaining, List.head?_append, outgoingHead]
+          refine ⟨?_, secondHead⟩
+          intro secondEmpty
+          rw [secondEmpty] at secondHead
+          simp at secondHead
       have leftInArcs :
           leftOccurrence ∈ firstArc ∨
             leftOccurrence ∈ secondArc := by
@@ -24621,7 +24739,8 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
           firstArc ++ remaining, firstNonempty, firstWalk,
           secondWalk, flattenEquation, rotationEquation,
           arcsFree, firstFree, secondFree, rotationPermutation,
-          rightInFirst, leftInArcs⟩
+          rightInFirst, forwardClosing, backwardStartsSecond,
+          leftInArcs⟩
     · let prefixInitial :=
         beforeSegments.flatten ++ incoming.traversed
       let secondArc :=
@@ -24730,6 +24849,36 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
             (l₂ := suffix)).symm
       have rightInFirst : rightOccurrence ∈ firstArc := by
         simp [firstArc, suffix, rightInSegment]
+      have forwardClosing :
+          leftOccurrence.forward = true →
+            firstArc.getLast? = some leftOccurrence ∧
+              firstArc.head? = some rightOccurrence ∧
+                certificate.Cusp leftOccurrence rightOccurrence := by
+        intro leftForward
+        rcases leftChordPlacement with
+          ⟨_leftForward, incomingLast⟩ |
+          ⟨leftBackward, _outgoingHead⟩
+        · refine ⟨?_, ?_, chordCusp_of_leftForward leftForward⟩
+          · simp [firstArc, prefixInitial, suffix,
+              List.getLast?_append, incomingLast]
+          · simp [firstArc, suffix, List.head?_append, rightHead]
+        · simp [leftForward] at leftBackward
+      have backwardStartsSecond :
+          leftOccurrence.forward = false →
+            secondArc ≠ [] ∧
+              secondArc.head? = some leftOccurrence := by
+        intro leftBackward
+        rcases leftChordPlacement with
+          ⟨leftForward, _incomingLast⟩ |
+          ⟨_leftBackward, outgoingHead⟩
+        · simp [leftBackward] at leftForward
+        · have secondHead :
+              secondArc.head? = some leftOccurrence := by
+            simp [secondArc, List.head?_append, outgoingHead]
+          refine ⟨?_, secondHead⟩
+          intro secondEmpty
+          rw [secondEmpty] at secondHead
+          simp at secondHead
       have leftInArcs :
           leftOccurrence ∈ firstArc ∨
             leftOccurrence ∈ secondArc := by
@@ -24743,7 +24892,8 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
           suffix, firstNonempty, firstWalk, secondWalk,
           flattenRotationEquation, rotationEquation, arcsFree,
           firstFree, secondFree, rotationPermutation,
-          rightInFirst, leftInArcs⟩
+          rightInFirst, forwardClosing, backwardStartsSecond,
+          leftInArcs⟩
   exact
     ⟨flippedSegments, rightStep, leftStep,
       rightSegment, leftSegment, before, left, right, conclusion,

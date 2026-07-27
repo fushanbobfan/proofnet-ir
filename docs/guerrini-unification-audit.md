@@ -342,8 +342,12 @@ or positive misses. The larger search recorded at most 995 link attempts and
     of the arcs, and the concatenation covers all flipped occurrences up to
     the cyclic-rotation permutation. The exact rotation equation now
     transports internal cusp-freedom to the concatenation and to both arcs.
-    The immediate proof obligation is to classify the new last/first turn
-    created by closing each arc at the chord and then prove the global
+    In the forward retained-left orientation, the exact first-arc head and
+    last edge are now the omitted-right and retained-left occurrences, and
+    their closing turn is proved to be a par cusp. In the backward orientation,
+    retained-left is the exact head of the nonempty second arc. The immediate
+    proof obligation is to classify that remaining backward chord-closing turn
+    and then prove the global
     repeated-vertex/nesting contradiction. Ordinary loop
     erasure remains insufficient because it can create a new closing cusp by
     re-pairing incidences at the erased vertex. In the nonempty branch, the proof must still

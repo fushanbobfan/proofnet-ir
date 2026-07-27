@@ -218,8 +218,12 @@ active-reference walks between marked occurrences are equivalent to
   two, and together they cover the flipped occurrences up to the induced
   cyclic-rotation permutation. The exact rotation equation transports internal
   cusp-freedom to the rotated concatenation and hence to each arc separately.
-  It does not prove either arc's new last/first closing turn cusp-free. Pure
-  completeness still requires classifying those chord-closing turns and
+  A forward retained-left occurrence is now the incoming chord path's exact
+  last edge, while omitted-right is the first arc's exact head; their new
+  closing turn is proved to be a par cusp. A backward retained-left occurrence
+  is the outgoing chord path's exact first edge and the nonempty second arc's
+  head. Pure completeness still requires classifying the remaining backward
+  chord-closing turn and
   deriving the global repeated-vertex/nesting contradiction. Ordinary loop
   erasure is not used: erasing at a repeated vertex can re-pair incidences and create
   a new closing cusp.

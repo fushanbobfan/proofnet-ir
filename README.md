@@ -214,10 +214,14 @@ arc, the retained-left occurrence assigned to one of the two arcs, and their
 concatenation covering the original flipped occurrences up to the cyclic
 rotation permutation. Lean now additionally retains an exact rotation witness,
 proves the rotated concatenation cusp-free internally, and derives internal
-cusp-freedom for each arc. This does not make either closed walk a
-`CuspFreeCycle`: the new last/first turn created by closing an arc at the chord
-is precisely what remains to classify before extracting the forbidden
-nesting/switching cycle.
+cusp-freedom for each arc. The retained-left orientation is now tied to the
+exact chord boundary: if it is forward, it is the incoming path's last edge,
+the omitted-right occurrence is the first edge of the first arc, and that
+new closing turn is kernel-proved to be a par cusp. If retained-left is
+backward, it is the outgoing path's first edge and therefore the nonempty
+second arc's exact head. This does not make either closed walk a
+`CuspFreeCycle`: the remaining backward-orientation closing turn must still be
+classified before extracting the forbidden nesting/switching cycle.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
