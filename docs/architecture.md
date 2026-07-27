@@ -261,11 +261,17 @@ active-reference walks between marked occurrences are equivalent to
   `SchedulerOccurrence` tags every visit by its segment step and in-segment
   offset, the complete tagged family is proved duplicate-free, and erasure is
   proved to recover the original flattened traversal. Cyclic cuts and complete
-  descent traces map from tagged occurrences to edge values, but intentionally
-  cannot be lifted in the opposite direction. Pure completeness still requires
-  performing the scheduler cuts on these tags and then excluding the two
-  finite base cases by the reference-switching or scheduler-order
-  contradiction.
+  descent traces map from tagged occurrences to edge values. Conversely, an
+  edge cut carrying its exact append decompositions has an existential
+  positional lift to tags; this is not a canonical choice from repeated edge
+  values. The cyclic state now retains a tagged descent from the initial
+  family, inverts every surviving tag to its original segment/offset lookup,
+  recomputes its positioned obstruction after each cut, and reaches the
+  terminal forward cusp by tagged well-founded recursion. Tagged reverse-shell
+  normalization is defined and erases soundly, but the terminal complement and
+  later nested-base recursion are not yet connected to it. Pure completeness
+  still requires that connection and exclusion of the two finite base cases by
+  the reference-switching or scheduler-order contradiction.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

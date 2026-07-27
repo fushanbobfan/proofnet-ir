@@ -246,17 +246,21 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
  successor reference prefix is proved to begin with the inner occurrence's
  exact reverse.
 
-The next refactor now has a coordinate-exact foundation.
+The chord recursion now has a coordinate-exact implementation.
 `SchedulerOccurrence` tags each scheduler visit by segment step and
 in-segment offset, and the complete tagged family is proved duplicate-free
 before its tags are erased. Erasure recovers the existing flattened edge
-traversal, and exact cyclic cuts and descent traces may be mapped from tags to
-edge values. There is intentionally no theorem lifting an arbitrary
-edge-value cut back to tagged occurrences: that implication is false when one
-`DirectedEdge` value is visited more than once. The current terminal/nesting
-theorems still cut edge-level traversals, so the global base-case
-contradiction remains outside the trusted claims until those cuts are rebuilt
-on tags.
+traversal. Exact cyclic cuts and descent traces map from tags to edge values;
+a proof-relevant edge cut can also be lifted existentially from its retained
+append decompositions. This does not recover a canonical visit from an edge
+value. Every surviving tag is inverted to its original segment/offset lookup,
+and each recursive state recomputes its positioned par obstruction on those
+coordinates. Lean now reaches the terminal forward cusp with a complete tagged
+descent from the original family. Coordinate-exact reverse-shell normalization
+also exists and erases to the graph-level relation. The terminal complement
+and the later nested-base recursion still use the edge-level shell pipeline,
+so the global base-case contradiction remains outside the trusted claims until
+that connection and the final base exclusions are proved.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is

@@ -26115,6 +26115,31 @@ private theorem tagSchedulerSegmentFrom_mem_offset_ge
       · exact Nat.le_trans (Nat.le_add_right offset 1)
           (induction membership)
 
+/-- Inverting membership in a tagged segment recovers the exact source-list
+index represented by the occurrence. -/
+private theorem tagSchedulerSegmentFrom_mem_lookup
+    {α : Type} {step offset : Nat} {segment : List α}
+    {occurrence : SchedulerOccurrence α}
+    (membership :
+      occurrence ∈ tagSchedulerSegmentFrom step offset segment) :
+    ∃ index,
+      occurrence.step = step ∧
+        occurrence.offset = offset + index ∧
+          segment[index]? = some occurrence.value := by
+  induction segment generalizing offset with
+  | nil =>
+      simp [tagSchedulerSegmentFrom] at membership
+  | cons value rest induction =>
+      simp only [tagSchedulerSegmentFrom, List.mem_cons] at membership
+      rcases membership with occurrenceValue | membership
+      · subst occurrence
+        exact ⟨0, rfl, by simp, by simp⟩
+      · rcases induction membership with
+          ⟨index, stepEquation, offsetEquation, lookup⟩
+        refine ⟨index + 1, stepEquation, ?_, ?_⟩
+        · omega
+        · simpa [Nat.add_comm] using lookup
+
 private theorem tagSchedulerSegmentFrom_nodup
     {α : Type} (step offset : Nat) (segment : List α) :
     (tagSchedulerSegmentFrom step offset segment).Nodup := by
@@ -26152,6 +26177,22 @@ private theorem tagSchedulerSegment_nodup
     (tagSchedulerSegment step segment).Nodup :=
   tagSchedulerSegmentFrom_nodup step 0 segment
 
+/-- Membership in a zero-based tagged segment determines both its scheduler
+step and the exact in-segment lookup. -/
+private theorem tagSchedulerSegment_mem_lookup
+    {α : Type} {step : Nat} {segment : List α}
+    {occurrence : SchedulerOccurrence α}
+    (membership :
+      occurrence ∈ tagSchedulerSegment step segment) :
+    occurrence.step = step ∧
+      segment[occurrence.offset]? = some occurrence.value := by
+  rcases tagSchedulerSegmentFrom_mem_lookup membership with
+    ⟨index, stepEquation, offsetEquation, lookup⟩
+  have exactOffset : occurrence.offset = index := by
+    simpa using offsetEquation
+  subst index
+  exact ⟨stepEquation, lookup⟩
+
 private theorem tagSchedulerFamilyFrom_erase
     {α : Type} (step : Nat) (segments : List (List α)) :
     (tagSchedulerFamilyFrom step segments).map
@@ -26182,6 +26223,36 @@ private theorem tagSchedulerFamilyFrom_mem_step_ge
         omega
       · exact Nat.le_trans (Nat.le_add_right base 1)
           (induction inRest)
+
+/-- Inverting membership in a family tagged from `base` recovers the exact
+relative scheduler step, source segment, and in-segment lookup. -/
+private theorem tagSchedulerFamilyFrom_mem_lookup
+    {α : Type} {base : Nat} {segments : List (List α)}
+    {occurrence : SchedulerOccurrence α}
+    (membership :
+      occurrence ∈ tagSchedulerFamilyFrom base segments) :
+    ∃ relativeStep segment,
+      occurrence.step = base + relativeStep ∧
+        segments[relativeStep]? = some segment ∧
+          segment[occurrence.offset]? = some occurrence.value := by
+  induction segments generalizing base with
+  | nil =>
+      simp [tagSchedulerFamilyFrom] at membership
+  | cons first rest induction =>
+      rcases List.mem_append.mp membership with
+        inFirst | inRest
+      · rcases tagSchedulerSegment_mem_lookup inFirst with
+          ⟨stepEquation, valueLookup⟩
+        exact
+          ⟨0, first, by simpa using stepEquation,
+            by simp, valueLookup⟩
+      · rcases induction inRest with
+          ⟨relativeStep, segment, stepEquation,
+            segmentLookup, valueLookup⟩
+        refine
+          ⟨relativeStep + 1, segment, ?_, ?_, valueLookup⟩
+        · omega
+        · simpa [Nat.add_comm] using segmentLookup
 
 private theorem tagSchedulerFamilyFrom_nodup
     {α : Type} (base : Nat) (segments : List (List α)) :
@@ -26218,6 +26289,25 @@ private theorem tagSchedulerFamily_nodup
     {α : Type} (segments : List (List α)) :
     (tagSchedulerFamily segments).Nodup :=
   tagSchedulerFamilyFrom_nodup 0 segments
+
+/-- Every surviving scheduler tag has one exact source segment and offset in
+the original family. -/
+private theorem tagSchedulerFamily_mem_lookup
+    {α : Type} {segments : List (List α)}
+    {occurrence : SchedulerOccurrence α}
+    (membership : occurrence ∈ tagSchedulerFamily segments) :
+    ∃ segment,
+      segments[occurrence.step]? = some segment ∧
+        segment[occurrence.offset]? = some occurrence.value := by
+  rcases
+      tagSchedulerFamilyFrom_mem_lookup
+        (base := 0) membership with
+    ⟨relativeStep, segment, stepEquation,
+      segmentLookup, valueLookup⟩
+  have exactStep : occurrence.step = relativeStep := by
+    simpa using stepEquation
+  subst relativeStep
+  exact ⟨segment, segmentLookup, valueLookup⟩
 
 /-- Every pair of successful relative segment/offset lookups yields the
 corresponding coordinate-exact occurrence in a family tagged from an explicit
@@ -26340,6 +26430,121 @@ private theorem
       tagSchedulerFamily_mem_of_getElem?
         leftLookup leftOffsetLookup⟩
 
+/-- Coordinate-exact reverse-shell normalization for scheduler visits.
+The first and last shell visits keep their independent scheduler coordinates;
+only their erased directed-edge values are required to be exact reverses.
+This is the tagged proof object that the recursive scheduler normalization
+must eventually construct. -/
+private inductive SchedulerCyclicReverseShellNormalization
+    {graph : Graph} :
+    List (SchedulerOccurrence graph.DirectedEdge) →
+      List (SchedulerOccurrence graph.DirectedEdge) → Prop where
+  | finish (traversed :
+      List (SchedulerOccurrence graph.DirectedEdge)) :
+      SchedulerCyclicReverseShellNormalization traversed traversed
+  | shell
+      {before middle after :
+        List (SchedulerOccurrence graph.DirectedEdge)}
+      (first last : SchedulerOccurrence graph.DirectedEdge)
+      (decomposition :
+        before = first :: (middle ++ [last]))
+      (closingReverse :
+        first.value = last.value.reverse)
+      (tail :
+        SchedulerCyclicReverseShellNormalization middle after) :
+      SchedulerCyclicReverseShellNormalization before after
+
+namespace SchedulerCyclicReverseShellNormalization
+
+/-- Forgetting scheduler coordinates from a tagged shell trace yields exactly
+the existing graph-level reverse-shell normalization. -/
+private theorem erase
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after) :
+    Graph.EdgeWalk.CyclicReverseShellNormalization
+      (before.map SchedulerOccurrence.erase)
+      (after.map SchedulerOccurrence.erase) := by
+  induction normalization with
+  | finish traversed =>
+      exact .finish _
+  | @shell before middle after first last decomposition
+      closingReverse tail induction =>
+      exact
+        .shell first.value last.value
+          (by
+            simpa [SchedulerOccurrence.erase] using
+              congrArg
+                (List.map SchedulerOccurrence.erase)
+                decomposition)
+          (by
+            simpa [SchedulerOccurrence.erase] using
+              closingReverse)
+          induction
+
+/-- A tagged reverse-shell trace retains two distinct coordinate lists:
+`opening` and `closing`. Their edge values are reverse traversals, but their
+coordinates are never identified. -/
+private theorem context
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after) :
+    ∃ opening closing,
+      before = opening ++ after ++ closing ∧
+        closing.map SchedulerOccurrence.erase =
+          Graph.EdgeWalk.reverseTraversal
+            (opening.map SchedulerOccurrence.erase) := by
+  induction normalization with
+  | finish traversed =>
+      exact ⟨[], [], by simp, by
+        simp [Graph.EdgeWalk.reverseTraversal]⟩
+  | @shell before middle after first last decomposition
+      closingReverse tail induction =>
+      rcases induction with
+        ⟨opening, closing, middleEquation, pairedValues⟩
+      have lastValue :
+          last.value = first.value.reverse := by
+        rw [closingReverse]
+        simp [Graph.DirectedEdge.reverse]
+      refine
+        ⟨first :: opening, closing ++ [last], ?_, ?_⟩
+      · rw [decomposition, middleEquation]
+        simp [List.append_assoc]
+      · simp [SchedulerOccurrence.erase, pairedValues,
+          Graph.EdgeWalk.reverseTraversal, lastValue]
+
+/-- Tagged normalization removes two coordinate visits per shell, exactly as
+its edge-level erasure does. -/
+private theorem length_eq
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after) :
+    ∃ opening closing,
+      before = opening ++ after ++ closing ∧
+        closing.map SchedulerOccurrence.erase =
+          Graph.EdgeWalk.reverseTraversal
+            (opening.map SchedulerOccurrence.erase) ∧
+          before.length =
+            after.length + 2 * opening.length := by
+  rcases normalization.context with
+    ⟨opening, closing, equation, pairedValues⟩
+  have closingLength :
+      closing.length = opening.length := by
+    have lengths := congrArg List.length pairedValues
+    simpa [Graph.EdgeWalk.reverseTraversal] using lengths
+  refine ⟨opening, closing, equation, pairedValues, ?_⟩
+  rw [equation]
+  simp [closingLength]
+  omega
+
+end SchedulerCyclicReverseShellNormalization
+
 /-- One strict cyclic-interval cut.  Rotating `larger` at the displayed
 prefix/suffix boundary makes `smaller` a contiguous sublist, and the cut
 strictly decreases traversal length. -/
@@ -26361,9 +26566,7 @@ private theorem CyclicIntervalCut.length_lt
   exact shorter
 
 /-- Exact cyclic-interval cuts are functorial.  In particular, a cut carried
-out on `SchedulerOccurrence`s can be erased to the existing edge-level cut;
-the converse is intentionally absent because value-level cuts cannot recover
-which repeated visit was selected. -/
+out on `SchedulerOccurrence`s can be erased to the existing edge-level cut. -/
 private theorem CyclicIntervalCut.map
     {α β : Type} {smaller larger : List α}
     (function : α → β)
@@ -26379,6 +26582,74 @@ private theorem CyclicIntervalCut.map
   · simpa using congrArg (List.map function) largerRotation
   · simpa using congrArg (List.map function) smallerInterval
   · simpa using shorter
+
+/-- A proof-relevant cut on a mapped list has an exact positional lift.
+The lift is existential rather than canonical: repeated mapped values do not
+identify a tag by value alone, but the cut's retained append decompositions do
+identify a corresponding source interval. -/
+private theorem CyclicIntervalCut.exists_lift_map
+    {α β : Type} {function : α → β}
+    {smaller larger : List β} {tagged : List α}
+    (mapEquation : tagged.map function = larger)
+    (cut : CyclicIntervalCut smaller larger) :
+    ∃ taggedSmaller,
+      taggedSmaller.map function = smaller ∧
+        CyclicIntervalCut taggedSmaller tagged := by
+  rcases cut with
+    ⟨rotationPrefix, rotationSuffix, before, after,
+      largerRotation, smallerInterval, shorter⟩
+  have mappedRotation :
+      tagged.map function = rotationPrefix ++ rotationSuffix :=
+    mapEquation.trans largerRotation
+  rcases List.map_eq_append_iff.mp mappedRotation with
+    ⟨taggedPrefix, taggedSuffix, taggedRotation,
+      prefixMap, suffixMap⟩
+  have mappedRotated :
+      ((taggedSuffix ++ taggedPrefix).map function) =
+        before ++ (smaller ++ after) := by
+    rw [List.map_append, suffixMap, prefixMap, smallerInterval]
+    simp [List.append_assoc]
+  rcases List.map_eq_append_iff.mp mappedRotated with
+    ⟨taggedBefore, taggedRest, taggedBeforeRest,
+      beforeMap, restMap⟩
+  rcases List.map_eq_append_iff.mp restMap with
+    ⟨taggedSmaller, taggedAfter, taggedSmallerAfter,
+      smallerMap, afterMap⟩
+  have taggedInterval :
+      taggedSuffix ++ taggedPrefix =
+        taggedBefore ++ taggedSmaller ++ taggedAfter := by
+    rw [taggedBeforeRest, taggedSmallerAfter]
+    simp [List.append_assoc]
+  have taggedShorter :
+      taggedSmaller.length < tagged.length := by
+    have smallerLength := congrArg List.length smallerMap
+    have taggedLength := congrArg List.length mapEquation
+    simp only [List.length_map] at smallerLength taggedLength
+    omega
+  exact
+    ⟨taggedSmaller, smallerMap,
+      ⟨taggedPrefix, taggedSuffix, taggedBefore, taggedAfter,
+        taggedRotation, taggedInterval, taggedShorter⟩⟩
+
+/-- A proof-relevant cyclic interval of a duplicate-free list is itself
+duplicate-free. -/
+private theorem CyclicIntervalCut.nodup
+    {α : Type} {smaller larger : List α}
+    (cut : CyclicIntervalCut smaller larger)
+    (largerNodup : larger.Nodup) :
+    smaller.Nodup := by
+  rcases cut with
+    ⟨rotationPrefix, rotationSuffix, before, after,
+      largerRotation, smallerInterval, _shorter⟩
+  have rotationPermutation :
+      List.Perm (rotationSuffix ++ rotationPrefix) larger := by
+    rw [largerRotation]
+    exact List.perm_append_comm
+  have rotatedNodup :
+      (rotationSuffix ++ rotationPrefix).Nodup :=
+    rotationPermutation.nodup_iff.mpr largerNodup
+  rw [smallerInterval, List.nodup_append] at rotatedNodup
+  exact (List.nodup_append.mp rotatedNodup.1).2.1
 
 /-- Every value represented in a cyclic interval is represented in the source
 traversal. This remains a value-membership statement; the proof-relevant cut
@@ -26425,6 +26696,19 @@ private theorem CyclicIntervalDescent.length_le
         Nat.le_trans induction
           (Nat.le_of_lt cut.length_lt)
 
+/-- Every exact occurrence surviving a chain of cyclic interval cuts came
+from the initial traversal. -/
+private theorem CyclicIntervalDescent.mem_initial
+    {α : Type} {terminal initial : List α}
+    (descent : CyclicIntervalDescent terminal initial)
+    {value : α} (membership : value ∈ terminal) :
+    value ∈ initial := by
+  induction descent with
+  | refl =>
+      exact membership
+  | step cut _tail smallerMembership =>
+      exact cut.mem_larger smallerMembership
+
 /-- Compose two proof-relevant cyclic-interval descent traces. -/
 private theorem CyclicIntervalDescent.trans
     {α : Type} {terminal middle initial : List α}
@@ -26451,6 +26735,168 @@ private theorem CyclicIntervalDescent.map
       exact .refl _
   | step cut _tail induction =>
       exact .step (cut.map function) induction
+
+/-- Every state in a proof-relevant cyclic descent from a duplicate-free
+initial traversal remains duplicate-free. -/
+private theorem CyclicIntervalDescent.nodup
+    {α : Type} {terminal initial : List α}
+    (descent : CyclicIntervalDescent terminal initial)
+    (initialNodup : initial.Nodup) :
+    terminal.Nodup := by
+  induction descent with
+  | refl =>
+      exact initialNodup
+  | step cut _tail induction =>
+      exact induction (cut.nodup initialNodup)
+
+/-- Coordinate-aligned provenance for every scheduler visit retained by an
+exact tagged interval.  Unlike value-level provenance, the witness fixes both
+the source segment and its in-segment offset. -/
+private def SchedulerTaggedProvenance
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∀ occurrence,
+    occurrence ∈ tagged →
+      ∃ segment,
+        occurrence.step < count ∧
+          flippedSegments[occurrence.step]? = some segment ∧
+            segment[occurrence.offset]? = some occurrence.value ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt occurrence.step)
+                  (chainAt (occurrence.step + 1))
+                    segment
+
+/-- Exact cyclic descent preserves the original scheduler coordinate lookup
+and therefore the source/target classification at every surviving tag. -/
+private theorem CyclicIntervalDescent.schedulerTaggedProvenance
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (descent :
+      CyclicIntervalDescent tagged
+        (tagSchedulerFamily flippedSegments)) :
+    SchedulerTaggedProvenance
+      certificate chainAt count flippedSegments tagged := by
+  intro occurrence membership
+  have originalMembership :
+      occurrence ∈ tagSchedulerFamily flippedSegments :=
+    descent.mem_initial membership
+  rcases tagSchedulerFamily_mem_lookup originalMembership with
+    ⟨segment, segmentLookup, valueLookup⟩
+  have stepBound : occurrence.step < count := by
+    have familyBound :=
+      (List.getElem?_eq_some_iff.mp segmentLookup).1
+    simpa [segmentCount] using familyBound
+  rcases indexedFlipped occurrence.step stepBound with
+    ⟨indexedSegment, indexedLookup, classified⟩
+  have segmentValue : indexedSegment = segment :=
+    Option.some.inj (indexedLookup.symm.trans segmentLookup)
+  subst indexedSegment
+  exact
+    ⟨segment, stepBound, segmentLookup, valueLookup, classified⟩
+
+/-- Forgetting coordinates from aligned tagged provenance recovers the
+pointwise value-level scheduler provenance used by the existing graph state. -/
+private theorem SchedulerTaggedProvenance.erase
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments tagged) :
+    ∀ directed,
+      directed ∈ tagged.map SchedulerOccurrence.erase →
+        ∃ step segment,
+          step < count ∧
+            flippedSegments[step]? = some segment ∧
+              directed ∈ segment ∧
+                QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                  certificate
+                    (chainAt step) (chainAt (step + 1))
+                      segment := by
+  intro directed membership
+  rcases List.mem_map.mp membership with
+    ⟨occurrence, occurrenceMembership, valueEquation⟩
+  rcases provenance occurrence occurrenceMembership with
+    ⟨segment, stepBound, segmentLookup, valueLookup, classified⟩
+  have valueMembership : occurrence.value ∈ segment :=
+    List.mem_of_getElem? valueLookup
+  subst directed
+  exact
+    ⟨occurrence.step, segment, stepBound, segmentLookup,
+      valueMembership, classified⟩
+
+/-- A coordinate-exact reverse-shell normalization is itself a complete
+proof-relevant cyclic-interval descent on tagged visits. -/
+private theorem
+    SchedulerCyclicReverseShellNormalization.descent
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after) :
+    CyclicIntervalDescent after before := by
+  rcases normalization.length_eq with
+    ⟨opening, closing, equation, pairedValues, lengthEquation⟩
+  by_cases openingEmpty : opening = []
+  · subst opening
+    simp [Graph.EdgeWalk.reverseTraversal] at pairedValues
+    subst closing
+    simp at equation
+    subst before
+    exact .refl after
+  · have openingPositive : 0 < opening.length :=
+      List.length_pos_iff.mpr openingEmpty
+    have shorter : after.length < before.length := by
+      omega
+    have cut : CyclicIntervalCut after before :=
+      ⟨[], before, opening, closing, by simp, by simpa using equation,
+        shorter⟩
+    exact .step cut (.refl after)
+
+/-- Erasing the coordinate-exact descent recovers an edge-level descent while
+the stronger tagged trace remains available to distinguish repeated visits. -/
+private theorem
+    SchedulerCyclicReverseShellNormalization.erase_descent
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after) :
+    CyclicIntervalDescent
+      (after.map SchedulerOccurrence.erase)
+      (before.map SchedulerOccurrence.erase) :=
+  normalization.descent.map SchedulerOccurrence.erase
 
 /-- An exact reverse-shell context is itself a proof-relevant cyclic-interval
 descent. If the opening context is empty the descent is reflexive; otherwise
@@ -26520,6 +26966,805 @@ private def SchedulerCyclicParState
                 NormalizedNonemptyParObstruction certificate traversed ∧
                   SchedulerLocatedParObstruction
                     certificate chainAt count flippedSegments traversed
+
+/-- Every edge-level scheduler state exposes a single positioned obstruction.
+This theorem only packages the existing value-level witness; the tagged state
+below additionally binds its exact scheduler visits. -/
+private theorem SchedulerCyclicParState.positioned
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed) :
+    SchedulerPositionedParObstruction
+      certificate chainAt count flippedSegments traversed := by
+  rcases state with
+    ⟨_base, _nonempty, _walk, _cuspFree, _closingCuspFree,
+      _forwardKept, _provenance, _obstruction, located⟩
+  exact located.positioned
+
+private theorem SchedulerCyclicParState.obstruction
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed) :
+    NormalizedNonemptyParObstruction certificate traversed := by
+  rcases state with
+    ⟨_base, _nonempty, _walk, _cuspFree, _closingCuspFree,
+      _forwardKept, _provenance, obstruction, _located⟩
+  exact obstruction
+
+/-- Explicit-parameter form of one positioned par obstruction whose scheduler
+copies are exact members of the current tagged interval. -/
+private def SchedulerTaggedPositionedParObstructionAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (before : List Link)
+    (left right conclusion : Vertex)
+    (after : List Link)
+    (leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge)
+    (rightStep leftStep leftOffset : Nat)
+    (rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  SchedulerPositionedParObstructionAt
+    certificate chainAt count flippedSegments
+      (tagged.map SchedulerOccurrence.erase)
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep
+            rightSegment leftSegment ∧
+    ({ step := rightStep
+       offset := 0
+       value := rightOccurrence } :
+        SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+      tagged ∧
+    ({ step := leftStep
+       offset := leftOffset
+       value := leftOccurrence } :
+        SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+      tagged
+
+/-- Existential wrapper for the coordinate-exact positioned obstruction. -/
+private def SchedulerTaggedPositionedParObstruction
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ (before : List Link) (left right conclusion : Vertex)
+      (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (rightStep leftStep leftOffset : Nat)
+      (rightSegment leftSegment :
+        List certificate.fullGraph.DirectedEdge),
+    SchedulerTaggedPositionedParObstructionAt
+      certificate chainAt count flippedSegments tagged
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep leftOffset
+            rightSegment leftSegment
+
+/-- Restrict an exact tagged obstruction to a new tagged interval once the
+same two coordinate visits are proved to survive. The traversal order is
+recomputed from those visits; all scheduler coordinates remain unchanged. -/
+private theorem
+    SchedulerTaggedPositionedParObstructionAt.of_mem
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged smaller :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {before : List Link}
+    {left right conclusion : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep leftOffset : Nat}
+    {rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge}
+    (positioned :
+      SchedulerTaggedPositionedParObstructionAt
+        certificate chainAt count flippedSegments tagged
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep leftOffset
+              rightSegment leftSegment)
+    (rightMembership :
+      ({ step := rightStep
+         offset := 0
+         value := rightOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+        smaller)
+    (leftMembership :
+      ({ step := leftStep
+         offset := leftOffset
+         value := leftOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+        smaller) :
+    SchedulerTaggedPositionedParObstructionAt
+      certificate chainAt count flippedSegments smaller
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep leftOffset
+            rightSegment leftSegment := by
+  rcases positioned with
+    ⟨edgePositioned, _oldRightMembership, _oldLeftMembership⟩
+  rcases edgePositioned with
+    ⟨linksEquation, _oldLeftValueMembership, leftIndex,
+      _oldRightValueMembership, rightIndex, occurrenceDistinct,
+      rightBackward, rightStepBound, leftStepBound,
+      distinctSteps, rightLookup, rightHead, rightFlipped,
+      sourceConclusion, conclusionNeLeftStart, leftLookup,
+      leftPosition, leftFlipped, conclusionInLeftTail,
+      _oldTraversalOrder, schedulerOrder⟩
+  have rightValueMembership :
+      rightOccurrence ∈
+        smaller.map SchedulerOccurrence.erase := by
+    apply List.mem_map.mpr
+    exact
+      ⟨({ step := rightStep
+          offset := 0
+          value := rightOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge),
+        rightMembership, rfl⟩
+  have leftValueMembership :
+      leftOccurrence ∈
+        smaller.map SchedulerOccurrence.erase := by
+    apply List.mem_map.mpr
+    exact
+      ⟨({ step := leftStep
+          offset := leftOffset
+          value := leftOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge),
+        leftMembership, rfl⟩
+  have traversalOrder :=
+    distinct_mem_ordered_decomposition
+      rightValueMembership leftValueMembership
+        occurrenceDistinct.symm
+  exact
+    ⟨⟨linksEquation, leftValueMembership, leftIndex,
+        rightValueMembership, rightIndex, occurrenceDistinct,
+        rightBackward, rightStepBound, leftStepBound,
+        distinctSteps, rightLookup, rightHead, rightFlipped,
+        sourceConclusion, conclusionNeLeftStart, leftLookup,
+        leftPosition, leftFlipped, conclusionInLeftTail,
+        traversalOrder, schedulerOrder⟩,
+      rightMembership, leftMembership⟩
+
+/-- The exact right and left scheduler tags determine the same cyclic chord
+cut used by the graph argument.  The omitted right tag is rotated to the head;
+the retained left tag occurs strictly later, so its suffix is a strict tagged
+interval.  No edge-value lookup is used to choose either occurrence. -/
+private theorem
+    SchedulerTaggedPositionedParObstructionAt.chordCut
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {before : List Link}
+    {left right conclusion : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep leftOffset : Nat}
+    {rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge}
+    (positioned :
+      SchedulerTaggedPositionedParObstructionAt
+        certificate chainAt count flippedSegments tagged
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep leftOffset
+              rightSegment leftSegment) :
+    ∃ rightBefore rightAfter leftBefore leftAfter,
+      tagged =
+          rightBefore ++
+            ({ step := rightStep,
+               offset := 0,
+               value := rightOccurrence } :
+              SchedulerOccurrence certificate.fullGraph.DirectedEdge) ::
+                rightAfter ∧
+        (({ step := rightStep,
+             offset := 0,
+             value := rightOccurrence } :
+            SchedulerOccurrence certificate.fullGraph.DirectedEdge) ::
+              rightAfter) ++ rightBefore =
+          leftBefore ++
+            ({ step := leftStep,
+               offset := leftOffset,
+               value := leftOccurrence } :
+              SchedulerOccurrence certificate.fullGraph.DirectedEdge) ::
+                leftAfter ∧
+          leftBefore ≠ [] ∧
+            CyclicIntervalCut
+              (({ step := leftStep,
+                   offset := leftOffset,
+                   value := leftOccurrence } :
+                  SchedulerOccurrence
+                    certificate.fullGraph.DirectedEdge) :: leftAfter)
+              tagged := by
+  rcases positioned with
+    ⟨edgePositioned, rightMembership, leftMembership⟩
+  rcases edgePositioned with
+    ⟨_linksEquation, _leftValueMembership, _leftIndex,
+      _rightValueMembership, _rightIndex, _occurrenceDistinct,
+      _rightBackward, _rightStepBound, _leftStepBound,
+      distinctSteps, _rightLookup, _rightHead, _rightFlipped,
+      _sourceConclusion, _conclusionNeLeftStart, _leftLookup,
+      _leftPosition, _leftFlipped, _conclusionInLeftTail,
+      _traversalOrder, _schedulerOrder⟩
+  let rightTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := rightStep, offset := 0, value := rightOccurrence }
+  let leftTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := leftStep, offset := leftOffset, value := leftOccurrence }
+  change rightTag ∈ tagged at rightMembership
+  change leftTag ∈ tagged at leftMembership
+  have tagDistinct : rightTag ≠ leftTag := by
+    intro sameTag
+    apply distinctSteps
+    exact congrArg SchedulerOccurrence.step sameTag
+  rcases List.mem_iff_append.mp rightMembership with
+    ⟨rightBefore, rightAfter, rightTraversal⟩
+  have rotationPermutation :
+      ((rightTag :: rightAfter) ++ rightBefore).Perm tagged := by
+    rw [rightTraversal]
+    exact List.perm_append_comm
+  have leftRotated :
+      leftTag ∈ (rightTag :: rightAfter) ++ rightBefore :=
+    rotationPermutation.mem_iff.mpr leftMembership
+  rcases List.mem_iff_append.mp leftRotated with
+    ⟨leftBefore, leftAfter, leftTraversal⟩
+  have rotatedHead :
+      ((rightTag :: rightAfter) ++ rightBefore).head? =
+        some rightTag := by
+    simp
+  have leftBeforeNonempty : leftBefore ≠ [] := by
+    intro leftBeforeEmpty
+    have leftHead :
+        ((rightTag :: rightAfter) ++ rightBefore).head? =
+          some leftTag := by
+      rw [leftTraversal, leftBeforeEmpty]
+      simp
+    exact tagDistinct
+      (Option.some.inj (rotatedHead.symm.trans leftHead))
+  have shorter :
+      (leftTag :: leftAfter).length < tagged.length := by
+    have leftBeforePositive : 0 < leftBefore.length :=
+      List.length_pos_iff.mpr leftBeforeNonempty
+    have strictPrefix :
+        (leftTag :: leftAfter).length <
+          leftBefore.length + (leftTag :: leftAfter).length := by
+      omega
+    have decompositionLength :
+        leftBefore.length + (leftTag :: leftAfter).length =
+          ((rightTag :: rightAfter) ++ rightBefore).length := by
+      simpa using congrArg List.length leftTraversal.symm
+    calc
+      (leftTag :: leftAfter).length <
+          leftBefore.length + (leftTag :: leftAfter).length :=
+        strictPrefix
+      _ = ((rightTag :: rightAfter) ++ rightBefore).length :=
+        decompositionLength
+      _ = tagged.length := rotationPermutation.length_eq
+  have cut : CyclicIntervalCut (leftTag :: leftAfter) tagged :=
+    ⟨rightBefore, rightTag :: rightAfter, leftBefore, [],
+      rightTraversal, by
+        simpa [List.append_assoc] using leftTraversal,
+      shorter⟩
+  exact
+    ⟨rightBefore, rightAfter, leftBefore, leftAfter,
+      rightTraversal, leftTraversal, leftBeforeNonempty, cut⟩
+
+/-- Recompute a positioned par obstruction directly on a tagged interval.
+The two obstruction memberships are first lifted to concrete tags; aligned
+provenance then fixes the same scheduler steps and offsets used by the
+positioned witness.  In particular, the omitted right occurrence is proved to
+be the zero-offset tag of its simple source segment, rather than an arbitrary
+equal edge value from another scheduler visit. -/
+private theorem
+    NormalizedNonemptyParObstruction.schedulerTaggedPositioned
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (obstruction :
+      NormalizedNonemptyParObstruction certificate
+        (tagged.map SchedulerOccurrence.erase))
+    (provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments tagged)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second) :
+    SchedulerTaggedPositionedParObstruction
+      certificate chainAt count flippedSegments tagged := by
+  rcases obstruction with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, leftIndex, rightMembership, rightIndex,
+      rightBackward⟩
+  rcases List.mem_map.mp rightMembership with
+    ⟨rightTag, rightTagMembership, rightValueEquation⟩
+  change rightTag.value = rightOccurrence at rightValueEquation
+  subst rightOccurrence
+  rcases List.mem_map.mp leftMembership with
+    ⟨leftTag, leftTagMembership, leftValueEquation⟩
+  change leftTag.value = leftOccurrence at leftValueEquation
+  subst leftOccurrence
+  rcases provenance rightTag rightTagMembership with
+    ⟨rightSegment, rightStepBound, rightLookup,
+      rightOffsetLookup, rightFlipped⟩
+  rcases provenance leftTag leftTagMembership with
+    ⟨leftSegment, leftStepBound, leftLookup,
+      leftOffsetLookup, leftFlipped⟩
+  have rightInSegment : rightTag.value ∈ rightSegment :=
+    List.mem_of_getElem? rightOffsetLookup
+  have leftInSegment : leftTag.value ∈ leftSegment :=
+    List.mem_of_getElem? leftOffsetLookup
+  have rightOmitted :
+      certificate.referenceSwitchingMask[rightTag.value.index]? =
+        some false := by
+    have positions :=
+      certificate.referenceSwitchingMask_parAt
+        before after left right conclusion linksEquation
+    simpa [rightIndex] using positions.2
+  have rightHead :
+      rightSegment.head? = some rightTag.value :=
+    rightFlipped.1.omitted_mem_eq_head rightInSegment rightOmitted
+  have rightZeroLookup :
+      rightSegment[0]? = some rightTag.value := by
+    simpa [List.head?_eq_getElem?] using rightHead
+  rcases rightFlipped.1.simplePath_exists with
+    ⟨rightPath, _rightPathStarts, _rightPathFinishes,
+      rightPathTraversal⟩
+  have rightIndicesNodup :
+      (rightSegment.map Graph.DirectedEdge.index).Nodup := by
+    simpa [rightPathTraversal] using rightPath.edgeIndicesNodup
+  have rightZeroIndexLookup :
+      (rightSegment.map Graph.DirectedEdge.index)[0]? =
+        some rightTag.value.index := by
+    rw [List.getElem?_map, rightZeroLookup]
+    rfl
+  have rightOffsetIndexLookup :
+      (rightSegment.map Graph.DirectedEdge.index)[rightTag.offset]? =
+        some rightTag.value.index := by
+    rw [List.getElem?_map, rightOffsetLookup]
+    rfl
+  have rightZeroBound :
+      0 < (rightSegment.map Graph.DirectedEdge.index).length :=
+    (List.getElem?_eq_some_iff.mp rightZeroIndexLookup).1
+  have rightOffsetZero : rightTag.offset = 0 := by
+    symm
+    apply
+      (List.getElem?_inj rightZeroBound rightIndicesNodup).mp
+    exact rightZeroIndexLookup.trans rightOffsetIndexLookup.symm
+  have rightTagged :
+      ({ step := rightTag.step
+         offset := 0
+         value := rightTag.value } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+        tagged := by
+    cases rightTag with
+    | mk step offset value =>
+        simp only at rightOffsetZero
+        subst offset
+        exact rightTagMembership
+  have leftTagged :
+      ({ step := leftTag.step
+         offset := leftTag.offset
+         value := leftTag.value } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+        tagged := by
+    simpa using leftTagMembership
+  rcases rightFlipped.1.avoids_source_left with
+    ⟨sourceBefore, sourceAfter, sourceLeft, sourceRight,
+      sourceRightOccurrence, sourceLinksEquation, sourceHead,
+      sourceRightIndex, sourceLeftAvoided⟩
+  have sourceRightValue :
+      sourceRightOccurrence = rightTag.value :=
+    Option.some.inj (sourceHead.symm.trans rightHead)
+  subst sourceRightOccurrence
+  have sourceRightExpected :
+      certificate.fullGraph.edges[rightTag.value.index]? =
+        some
+          { first := sourceRight
+            second := chainAt rightTag.step } := by
+    change
+      (linkFullEdges certificate.links)[rightTag.value.index]? =
+        some
+          { first := sourceRight
+            second := chainAt rightTag.step }
+    rw [sourceLinksEquation]
+    rw [sourceRightIndex]
+    exact
+      (linkFullEdges_parAt
+        sourceBefore sourceAfter sourceLeft sourceRight
+          (chainAt rightTag.step)).2
+  have obstructionRightExpected :
+      certificate.fullGraph.edges[rightTag.value.index]? =
+        some { first := right, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[rightTag.value.index]? =
+        some { first := right, second := conclusion }
+    rw [linksEquation]
+    rw [rightIndex]
+    exact
+      (linkFullEdges_parAt before after left right conclusion).2
+  have sourceConclusion :
+      chainAt rightTag.step = conclusion := by
+    have edgeEquation :
+        ({ first := sourceRight
+           second := chainAt rightTag.step } : Edge) =
+          { first := right, second := conclusion } :=
+      Option.some.inj
+        (sourceRightExpected.symm.trans obstructionRightExpected)
+    exact congrArg Edge.second edgeEquation
+  have distinctSteps : rightTag.step ≠ leftTag.step := by
+    intro sameStep
+    have sameSegment : leftSegment = rightSegment := by
+      have alignedRightLookup := rightLookup
+      rw [sameStep] at alignedRightLookup
+      exact Option.some.inj (leftLookup.symm.trans alignedRightLookup)
+    subst leftSegment
+    apply sourceLeftAvoided leftTag.value leftInSegment
+    calc
+      leftTag.value.index =
+          (linkFullEdges before).length := leftIndex
+      _ = (linkFullEdges sourceBefore).length := by
+        omega
+  have conclusionNeLeftStart :
+      conclusion ≠ chainAt leftTag.step := by
+    intro conclusionAtLeft
+    apply distinctSteps
+    exact
+      prefixInjective rightTag.step rightStepBound
+        leftTag.step leftStepBound
+          (sourceConclusion.trans conclusionAtLeft)
+  have leftExpected :
+      certificate.fullGraph.edges[leftTag.value.index]? =
+        some { first := left, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[leftTag.value.index]? =
+        some { first := left, second := conclusion }
+    rw [linksEquation]
+    rw [leftIndex]
+    exact
+      (linkFullEdges_parAt before after left right conclusion).1
+  have leftEdge :
+      leftTag.value.edge =
+        { first := left, second := conclusion } :=
+    Option.some.inj (leftTag.value.lookup.symm.trans leftExpected)
+  have conclusionInLeftVertices :
+      conclusion ∈
+        Graph.EdgeWalk.visitedVertices
+          (chainAt leftTag.step) leftSegment := by
+    cases orientation : leftTag.value.forward with
+    | false =>
+        have sourceAtConclusion :
+            leftTag.value.source = conclusion := by
+          simp [Graph.DirectedEdge.source, leftEdge, orientation]
+        rw [← sourceAtConclusion]
+        exact
+          (leftFlipped.1.walk.endpoints_mem_visitedVertices
+            leftInSegment).1
+    | true =>
+        have targetAtConclusion :
+            leftTag.value.target = conclusion := by
+          simp [Graph.DirectedEdge.target, leftEdge, orientation]
+        rw [← targetAtConclusion]
+        exact
+          (leftFlipped.1.walk.endpoints_mem_visitedVertices
+            leftInSegment).2
+  have conclusionInLeftTail :
+      conclusion ∈
+        leftSegment.map Graph.DirectedEdge.target := by
+    simpa [Graph.EdgeWalk.visitedVertices,
+      conclusionNeLeftStart] using conclusionInLeftVertices
+  have occurrenceDistinct :
+      leftTag.value ≠ rightTag.value := by
+    intro sameOccurrence
+    have sameIndex :
+        leftTag.value.index = rightTag.value.index :=
+      congrArg Graph.DirectedEdge.index sameOccurrence
+    rw [leftIndex, rightIndex] at sameIndex
+    omega
+  rcases List.mem_iff_append.mp leftInSegment with
+    ⟨leftBefore, leftAfter, leftSegmentEquation⟩
+  have traversalOrder :=
+    distinct_mem_ordered_decomposition
+      rightMembership leftMembership occurrenceDistinct.symm
+  have schedulerOrder :
+      (rightTag.step < leftTag.step ∧
+        ∃ beforeSegments middleSegments afterSegments,
+          flippedSegments =
+            beforeSegments ++ rightSegment ::
+              middleSegments ++ leftSegment :: afterSegments) ∨
+        (leftTag.step < rightTag.step ∧
+          ∃ beforeSegments middleSegments afterSegments,
+            flippedSegments =
+              beforeSegments ++ leftSegment ::
+                middleSegments ++ rightSegment :: afterSegments) := by
+    rcases Nat.lt_or_gt_of_ne distinctSteps with
+      rightBeforeLeft | leftBeforeRight
+    · exact .inl
+        ⟨rightBeforeLeft,
+          ordered_getElem?_decomposition
+            rightBeforeLeft rightLookup leftLookup⟩
+    · exact .inr
+        ⟨leftBeforeRight,
+          ordered_getElem?_decomposition
+            leftBeforeRight leftLookup rightLookup⟩
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftTag.value, rightTag.value, rightTag.step, leftTag.step,
+      leftTag.offset, rightSegment, leftSegment,
+      ⟨linksEquation, leftMembership, leftIndex,
+        rightMembership, rightIndex, occurrenceDistinct,
+        rightBackward, rightStepBound, leftStepBound,
+        distinctSteps, rightLookup, rightHead, rightFlipped,
+        sourceConclusion.symm, conclusionNeLeftStart, leftLookup,
+        ⟨leftBefore, leftAfter, leftSegmentEquation⟩,
+        leftFlipped, conclusionInLeftTail,
+        traversalOrder, schedulerOrder⟩,
+      rightTagged, leftTagged⟩
+
+/-- Coordinate-exact scheduler state.  Its graph obligations are stated on
+the erased edge traversal, while the second component proves that the exact
+tagged visits descend from the original tagged scheduler family by cyclic
+interval cuts only. -/
+private def SchedulerTaggedCyclicParState
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  SchedulerCyclicParState
+      certificate chainAt count flippedSegments
+        (tagged.map SchedulerOccurrence.erase) ∧
+    CyclicIntervalDescent tagged
+        (tagSchedulerFamily flippedSegments) ∧
+      SchedulerTaggedPositionedParObstruction
+        certificate chainAt count flippedSegments tagged
+
+/-- The existing initial edge-level state lifts without ambiguity because the
+initial tagged traversal is constructed before any cut and its erasure is
+definitionally characterized. -/
+private theorem SchedulerCyclicParState.taggedInitial
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments
+          flippedSegments.flatten) :
+    SchedulerTaggedCyclicParState
+      certificate chainAt count flippedSegments
+        (tagSchedulerFamily flippedSegments) := by
+  have positioned := state.positioned
+  rcases positioned with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence,
+      rightStep, leftStep, rightSegment, leftSegment,
+      positionedAt⟩
+  rcases positionedAt.tagged_scheduler_occurrences with
+    ⟨leftOffset, rightTagged, leftTagged⟩
+  have positionedAtErased :
+      SchedulerPositionedParObstructionAt
+        certificate chainAt count flippedSegments
+          ((tagSchedulerFamily flippedSegments).map
+            SchedulerOccurrence.erase)
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep
+              rightSegment leftSegment := by
+    simpa [tagSchedulerFamily_erase] using positionedAt
+  refine ⟨?_, .refl _, ?_⟩
+  · simpa [tagSchedulerFamily_erase] using state
+  · exact
+      ⟨before, left, right, conclusion, after,
+        leftOccurrence, rightOccurrence, rightStep, leftStep,
+        leftOffset, rightSegment, leftSegment,
+        positionedAtErased, rightTagged, leftTagged⟩
+
+private theorem SchedulerTaggedCyclicParState.erased
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged) :
+    SchedulerCyclicParState
+      certificate chainAt count flippedSegments
+        (tagged.map SchedulerOccurrence.erase) :=
+  state.1
+
+/-- Every coordinate-exact scheduler state has unique visits, inherited from
+the duplicate-free initial tagged family through exact cyclic cuts. -/
+private theorem SchedulerTaggedCyclicParState.nodup
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged) :
+    tagged.Nodup :=
+  state.2.1.nodup (tagSchedulerFamily_nodup flippedSegments)
+
+/-- Every tagged state inherits coordinate-aligned scheduler provenance from
+its exact descent out of the original family. -/
+private theorem SchedulerTaggedCyclicParState.provenance
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment) :
+    SchedulerTaggedProvenance
+      certificate chainAt count flippedSegments tagged :=
+  state.2.1.schedulerTaggedProvenance segmentCount indexedFlipped
+
+/-- Recompute the coordinate-exact obstruction from the current graph state
+and its exact surviving scheduler tags.  This is the recursive re-alignment
+operation: it does not reuse an obstruction selected before a cut. -/
+private theorem SchedulerTaggedCyclicParState.recomputePositioned
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second) :
+    SchedulerTaggedPositionedParObstruction
+      certificate chainAt count flippedSegments tagged :=
+  state.erased.obstruction.schedulerTaggedPositioned
+    (state.provenance segmentCount indexedFlipped)
+      prefixInjective
+
+/-- Close one recursive coordinate-exact cut.  The graph obligations are
+proved on the erased interval, while the cut itself extends the tagged descent
+and the positioned obstruction is recomputed on the surviving tags. -/
+private theorem SchedulerTaggedCyclicParState.ofCut
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged smaller :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged)
+    (cut : CyclicIntervalCut smaller tagged)
+    (smallerErased :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments
+          (smaller.map SchedulerOccurrence.erase))
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second) :
+    SchedulerTaggedCyclicParState
+      certificate chainAt count flippedSegments smaller := by
+  have descent :
+      CyclicIntervalDescent smaller
+        (tagSchedulerFamily flippedSegments) :=
+    (CyclicIntervalDescent.step cut
+      (CyclicIntervalDescent.refl smaller)).trans state.2.1
+  have provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments smaller :=
+    descent.schedulerTaggedProvenance segmentCount indexedFlipped
+  exact
+    ⟨smallerErased, descent,
+      smallerErased.obstruction.schedulerTaggedPositioned
+        provenance prefixInjective⟩
 
 /-- Terminal result of the cyclic chord descent.  The retained left
 occurrence is forward, so the interval beginning at the omitted right
@@ -27420,6 +28665,141 @@ private theorem schedulerCyclicParState_forward_or_descends
             shorterObstruction, shorterLocated⟩,
           intervalCut⟩
 
+/-- A coordinate-exact state whose erased traversal has reached the existing
+terminal forward par-cusp geometry.  The tagged state remains available for
+all subsequent nesting and scheduler-order arguments. -/
+private def SchedulerTaggedForwardParCuspState
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  SchedulerTaggedCyclicParState
+      certificate chainAt count flippedSegments tagged ∧
+    SchedulerForwardParCuspArc
+      certificate chainAt count flippedSegments
+        (tagged.map SchedulerOccurrence.erase)
+
+/-- Lift the existing graph-level forward-or-descends theorem through exact
+scheduler tags.  An edge-level cut is lifted from its proof-relevant append
+decomposition, and the next tagged obstruction is recomputed on the retained
+coordinates. -/
+private theorem schedulerTaggedCyclicParState_forward_or_descends
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged) :
+    SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged ∨
+      ∃ smaller,
+        SchedulerTaggedCyclicParState
+            certificate chainAt count flippedSegments smaller ∧
+          CyclicIntervalCut smaller tagged := by
+  rcases
+      schedulerCyclicParState_forward_or_descends
+        correct prefixInjective state.erased with
+    terminal | ⟨shorter, shorterState, edgeCut⟩
+  · exact .inl ⟨state, terminal⟩
+  · rcases
+        edgeCut.exists_lift_map
+          (function := SchedulerOccurrence.erase)
+          (tagged := tagged) rfl with
+      ⟨smaller, smallerMap, taggedCut⟩
+    have smallerErased :
+        SchedulerCyclicParState
+          certificate chainAt count flippedSegments
+            (smaller.map SchedulerOccurrence.erase) := by
+      rw [smallerMap]
+      exact shorterState
+    have smallerTagged :=
+      state.ofCut taggedCut smallerErased
+        segmentCount indexedFlipped prefixInjective
+    exact .inr ⟨smaller, smallerTagged, taggedCut⟩
+
+/-- Finite tagged traversal length closes the recursive backward-chord branch
+without ever collapsing scheduler coordinates to edge-value membership. -/
+private theorem schedulerTaggedCyclicParState_forward_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged) :
+    ∃ terminal,
+      SchedulerTaggedForwardParCuspState
+          certificate chainAt count flippedSegments terminal ∧
+        CyclicIntervalDescent terminal tagged := by
+  rcases
+      schedulerTaggedCyclicParState_forward_or_descends
+        segmentCount indexedFlipped correct prefixInjective state with
+    terminal | ⟨smaller, smallerState, intervalCut⟩
+  · exact ⟨tagged, terminal, .refl tagged⟩
+  · rcases
+        schedulerTaggedCyclicParState_forward_exists
+          segmentCount indexedFlipped correct prefixInjective
+            smallerState with
+      ⟨terminal, terminalForward, terminalDescent⟩
+    exact
+      ⟨terminal, terminalForward,
+        .step intervalCut terminalDescent⟩
+termination_by tagged.length
+decreasing_by
+  exact intervalCut.length_lt
+
 /-- Finite traversal length closes the recursive backward-chord branch.  Every
 scheduler-located cyclic par state therefore reaches a forward retained-left
 par-cusp arc after finitely many strict suffix descents. -/
@@ -27766,6 +29146,79 @@ private theorem
     ⟨flippedSegments, segmentCount,
       schedulerCyclicParState_forward_exists
         correct prefixInjective initialState⟩
+
+/-- Coordinate-exact companion to `flippedForwardParCuspArc_exists`.
+The full scheduler family is tagged before the first cut, every recursive cut
+is lifted positionally, and the terminal erased cusp state is accompanied by
+one exact descent of scheduler visits. -/
+private theorem
+    FullyCancellingDependencyCycleAllReflexive.flippedTaggedForwardParCuspState_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {originalSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (correct : certificate.DeclarativelyCorrect)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count originalSegments)
+    (positive : 0 < count)
+    (closed : chainAt 0 = chainAt count)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second) :
+    ∃ flippedSegments :
+        List (List certificate.fullGraph.DirectedEdge),
+      flippedSegments.length = count ∧
+        ∃ terminal,
+          SchedulerTaggedForwardParCuspState
+              certificate chainAt count flippedSegments terminal ∧
+            CyclicIntervalDescent
+              terminal (tagSchedulerFamily flippedSegments) := by
+  rcases
+      allReflexive.flippedParObstruction_exists
+        correct positive closed with
+    ⟨flippedSegments, segmentCount, flattenedNonempty,
+      closedWalk, _cyclicReduced, cuspFree, closingCuspFree,
+      indexedFlipped, allForwardKept, obstruction⟩
+  have schedulerProvenance :
+      ∀ directed,
+        directed ∈ flippedSegments.flatten →
+          ∃ step segment,
+            step < count ∧
+              flippedSegments[step]? = some segment ∧
+                directed ∈ segment ∧
+                  QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                    certificate
+                      (chainAt step) (chainAt (step + 1))
+                        segment := by
+    intro directed membership
+    exact
+      flippedSchedulerSegment_of_mem_flatten
+        segmentCount indexedFlipped membership
+  have schedulerLocated :
+      SchedulerLocatedParObstruction
+        certificate chainAt count flippedSegments
+          flippedSegments.flatten :=
+    obstruction.schedulerLocated
+      schedulerProvenance prefixInjective
+  have initialState :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments
+          flippedSegments.flatten :=
+    ⟨chainAt 0, flattenedNonempty, closedWalk, cuspFree,
+      closingCuspFree, allForwardKept, schedulerProvenance,
+      obstruction, schedulerLocated⟩
+  have initialTagged := initialState.taggedInitial
+  exact
+    ⟨flippedSegments, segmentCount,
+      schedulerTaggedCyclicParState_forward_exists
+        segmentCount indexedFlipped correct prefixInjective initialTagged⟩
 
 /-- Every fully reflexive waiting-dependency cycle reaches a finite terminal
 nesting base. This composes the initial backward-chord descent with exact

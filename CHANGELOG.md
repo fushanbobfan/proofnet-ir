@@ -2,21 +2,27 @@
 
 ## Unreleased
 
-- introduced the coordinate-exact scheduler-occurrence foundation required by
-  the remaining v0.10 contradiction. `SchedulerOccurrence` distinguishes a
+- threaded coordinate-exact scheduler occurrences through the complete
+  backward-chord recursion required by the remaining v0.10 contradiction.
+  `SchedulerOccurrence` distinguishes a
   visit by `(segment step, in-segment offset, DirectedEdge value)`;
   `tagSchedulerFamily` is proved duplicate-free even when erasing its tags
-  produces repeated edge values, and exact segment/offset lookups construct
-  the corresponding tagged occurrence. Every
-  `SchedulerPositionedParObstructionAt` now projects the exact right-head tag
-  and the exact left tag at the offset retained by its segment decomposition.
-  This fixes the scheduler copies without yet identifying them with visits in
-  an edge-level recursive subarc. Erasure is proved to recover the original
-  flattened traversal. `CyclicIntervalCut.map` and
-  `CyclicIntervalDescent.map` transport a coordinate-level proof down to the
-  old edge-level interface. There is deliberately no converse lift from an
-  edge-value cut, because repeated values do not determine which visit was
-  selected. Threading these tags through every scheduler cut remains open;
+  produces repeated edge values. Membership now inverts to the exact original
+  segment and offset, and every surviving tag retains its classified scheduler
+  provenance through a proof-relevant cyclic descent. A positioned obstruction
+  is recomputed after every cut from the surviving tags; Lean proves that its
+  omitted right occurrence is the zero-offset visit of its simple source
+  segment and retains the exact offset of its left occurrence.
+  `CyclicIntervalCut.map` erases tagged cuts, while
+  `CyclicIntervalCut.exists_lift_map` positionally lifts an edge-level cut from
+  its stored append decompositions. This lift is existential, not a value-based
+  canonical choice. The existing graph chord theorem is consequently lifted
+  through exact tags, well-founded recursion reaches a terminal forward cusp
+  without coordinate drift, and the full tagged descent begins at the original
+  scheduler family. A coordinate-exact reverse-shell relation is also proved
+  to erase to the graph relation and to induce a tagged descent. Connecting the
+  terminal complement, reverse shells, and subsequent nested-base recursion
+  entirely at tag level remains open;
 - hardened the unfinished scheduler-nesting proof objects against existential
   witness drift. `SchedulerPositionedParObstruction` now retains exact linear
   decompositions for the two par occurrences inside the current cyclic
