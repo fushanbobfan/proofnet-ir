@@ -317,9 +317,13 @@ or positive misses. The larger search recorded at most 995 link attempts and
    with both complete segment decompositions. The two consecutive segments
    contain the exact contiguous word
    `inner, outer, outer.reverse, inner.reverse`, and segment
-   nonbacktracking proves the two layers do not degenerate into one pair. The
-   immediate proof obligation is to exclude this strict nesting by the exact
-   multi-par switching-flip argument and, in the nonempty branch,
+   nonbacktracking proves the two layers do not degenerate into one pair. Both
+   original full-segment witnesses are now retained at that indexed step.
+   Each `core ++ frontier` is pointwise aligned with its exact reference-
+   switching prefix, and the successor prefix is proved to start with the
+   inner occurrence's exact reverse. The immediate proof obligation is to
+   exclude this path-exposed strict nesting by the exact multi-par
+   switching-flip argument and, in the nonempty branch,
    transport the turn evidence into an excluded edge-simple switching cycle or
    forbidden nesting.
 3. Prove the deterministic schedule complete, yielding

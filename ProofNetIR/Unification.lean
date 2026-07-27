@@ -19934,6 +19934,117 @@ private theorem
   have assigned := retainedPrefixAssigned retained retainedMembership
   simpa [targetEquation] using assigned.2
 
+/-- Reconcile the residual-core decomposition with the exact retained
+reference prefix from which the complete dependency segment was built.  This
+keeps occurrence indices, stored edges, orientations, and targets aligned for
+the entire `core ++ [frontier]` traversal. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.referencePrefix_of_detailed
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core segment : List certificate.fullGraph.DirectedEdge}
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core)
+    (segmentLookup : segments[step]? = some segment)
+    (detailed :
+      QuiescentWaitingParDependencyTraversalFullSegment
+        certificate state
+          (chainAt step) (chainAt (step + 1)) segment) :
+    ∃ (sourceEdge last : certificate.fullGraph.DirectedEdge)
+        (retainedPrefix :
+          List certificate.referenceSwitchingGraph.DirectedEdge),
+      segment = sourceEdge :: (core ++ [last]) ∧
+        certificate.referenceSwitchingGraph.EdgeWalk
+          sourceEdge.target retainedPrefix last.target ∧
+          retainedPrefix.map Graph.DirectedEdge.index =
+            (core ++ [last]).map (fun directed =>
+              Graph.retainedIndex certificate.referenceSwitchingMask
+                directed.index) ∧
+            retainedPrefix.map Graph.DirectedEdge.edge =
+              (core ++ [last]).map Graph.DirectedEdge.edge ∧
+              retainedPrefix.map Graph.DirectedEdge.forward =
+                (core ++ [last]).map Graph.DirectedEdge.forward ∧
+                retainedPrefix.map Graph.DirectedEdge.target =
+                  (core ++ [last]).map Graph.DirectedEdge.target := by
+  rcases coreAt with
+    ⟨coreSegment, sourceEdge, last, coreSegmentLookup, decomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      lastTarget, lastForward, _reflexive, _sourceKept,
+      _threadToken, _coreWalk, _coreKept⟩
+  have segmentValue : segment = coreSegment :=
+    Option.some.inj (segmentLookup.symm.trans coreSegmentLookup)
+  subst segment
+  rcases detailed with
+    ⟨boundary, left, detailedSourceEdge, retainedPrefix,
+      fullPrefix, formulaTail, _atBoundary, _classifiedTurn,
+      _formulaTailEmptyOfEndpointEq,
+      _sourceEdgeValue, _sourceEdgeBackward, _sourceEdgeStarts,
+      detailedSourceTarget, _sourceEdgeParTarget, retainedPrefixWalk,
+      _retainedPrefixLast, _retainedPrefixAssigned,
+      _fullPrefixWalk, retainedIndices,
+      fullPrefixEdges, fullPrefixForwards, fullPrefixTargets,
+      _fullPrefixKept, formulaTailWalk, formulaTailBackward,
+      _formulaTailCuspFree, _completeWalk,
+      _noImmediateReverse, traversalEquation⟩
+  have segmentLast : coreSegment.getLast? = some last := by
+    rw [decomposition, List.getLast?_cons_of_ne_nil (by simp)]
+    simp
+  have formulaTailEmpty : formulaTail = [] := by
+    by_cases empty : formulaTail = []
+    · exact empty
+    · have traversalLast :
+          coreSegment.getLast? =
+            some (formulaTail.getLast empty) := by
+        rw [traversalEquation, List.getLast?_append,
+          List.getLast?_eq_some_getLast empty]
+        simp
+      have lastValue :
+          last = formulaTail.getLast empty :=
+        Option.some.inj (segmentLast.symm.trans traversalLast)
+      have backward :=
+        formulaTailBackward
+          (formulaTail.getLast empty)
+          (List.getLast_mem empty)
+      rw [← lastValue, lastForward] at backward
+      contradiction
+  have traversalDecomposition :
+      coreSegment = detailedSourceEdge :: fullPrefix := by
+    simpa [formulaTailEmpty] using traversalEquation
+  have sameTraversal :
+      sourceEdge :: (core ++ [last]) =
+        detailedSourceEdge :: fullPrefix :=
+    decomposition.symm.trans traversalDecomposition
+  have sourceEdgeValue :
+      detailedSourceEdge = sourceEdge :=
+    (List.cons.inj sameTraversal).1.symm
+  have fullPrefixDecomposition :
+      fullPrefix = core ++ [last] :=
+    (List.cons.inj sameTraversal).2.symm
+  have prefixStart : left = sourceEdge.target := by
+    rw [← detailedSourceTarget, sourceEdgeValue]
+  have boundaryTarget :
+      boundary.target = chainAt (step + 1) := by
+    rw [formulaTailEmpty] at formulaTailWalk
+    exact formulaTailWalk.toChain.eq_of_nil
+  have prefixFinish : boundary.target = last.target :=
+    boundaryTarget.trans lastTarget.symm
+  have exactReferenceWalk :
+      certificate.referenceSwitchingGraph.EdgeWalk
+        sourceEdge.target retainedPrefix last.target := by
+    simpa [prefixStart, prefixFinish] using retainedPrefixWalk
+  exact
+    ⟨sourceEdge, last, retainedPrefix, decomposition,
+      exactReferenceWalk,
+      by simpa [fullPrefixDecomposition] using retainedIndices.symm,
+      by simpa [fullPrefixDecomposition] using fullPrefixEdges.symm,
+      by simpa [fullPrefixDecomposition] using fullPrefixForwards.symm,
+      by simpa [fullPrefixDecomposition] using fullPrefixTargets.symm⟩
+
 /-- A residual spine together with its occurrence-indexed construction is
 entirely inside the currently marked reference prefix. -/
 private def FullyCancellingDependencyCycleActiveReflexiveCoreAt
@@ -21134,6 +21245,27 @@ private theorem
         lastLastLookup, firstHeadLookup, reversed⟩
     simpa [successorEquation] using activeFirstWitness
 
+/-- Exact retained reference-prefix realization of one residual core together
+with its final dependency frontier. -/
+private def FullyCancellingDependencyCycleResidualCoreReferencePrefixAt
+    (certificate : Certificate)
+    (core : List certificate.fullGraph.DirectedEdge)
+    (sourceEdge frontier : certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ retainedPrefix :
+      List certificate.referenceSwitchingGraph.DirectedEdge,
+    certificate.referenceSwitchingGraph.EdgeWalk
+        sourceEdge.target retainedPrefix frontier.target ∧
+      retainedPrefix.map Graph.DirectedEdge.index =
+        (core ++ [frontier]).map (fun directed =>
+          Graph.retainedIndex certificate.referenceSwitchingMask
+            directed.index) ∧
+        retainedPrefix.map Graph.DirectedEdge.edge =
+          (core ++ [frontier]).map Graph.DirectedEdge.edge ∧
+          retainedPrefix.map Graph.DirectedEdge.forward =
+            (core ++ [frontier]).map Graph.DirectedEdge.forward ∧
+            retainedPrefix.map Graph.DirectedEdge.target =
+              (core ++ [frontier]).map Graph.DirectedEdge.target
+
 /-- Exact two-layer out-and-back geometry forced at an indexed residual-core
 junction.  The outer pair is the first segment's retained reflexive frontier
 and the cyclic successor's stored source incidence; the inner pair is the
@@ -21163,8 +21295,22 @@ private def FullyCancellingDependencyCycleActiveResidualCoreNestingAt
               some secondSegment ∧
               secondSegment =
                 secondSource :: (secondCore ++ [secondFrontier]) ∧
-                FullyCancellingDependencyCycleActiveReflexiveCoreAt
-                  certificate state chainAt segments step firstCore ∧
+                QuiescentWaitingParDependencyTraversalFullSegment
+                  certificate state
+                    (chainAt step) (chainAt (step + 1))
+                      firstSegment ∧
+                  QuiescentWaitingParDependencyTraversalFullSegment
+                    certificate state
+                      (chainAt (dependencyCycleSuccessor count step))
+                      (chainAt
+                        (dependencyCycleSuccessor count step + 1))
+                      secondSegment ∧
+                  FullyCancellingDependencyCycleResidualCoreReferencePrefixAt
+                    certificate firstCore firstSource firstFrontier ∧
+                    FullyCancellingDependencyCycleResidualCoreReferencePrefixAt
+                      certificate secondCore secondSource secondFrontier ∧
+                  FullyCancellingDependencyCycleActiveReflexiveCoreAt
+                    certificate state chainAt segments step firstCore ∧
                   FullyCancellingDependencyCycleActiveReflexiveCoreAt
                     certificate state chainAt segments
                       (dependencyCycleSuccessor count step) secondCore ∧
@@ -21196,6 +21342,16 @@ private theorem
       ∀ segment,
         segment ∈ segments →
           Graph.EdgeWalk.NoImmediateReverse segment)
+    (nontrivial : 1 < count)
+    (indexedDetailed :
+      ∀ indexedStep,
+        indexedStep < count →
+          ∃ segment,
+            segments[indexedStep]? = some segment ∧
+              QuiescentWaitingParDependencyTraversalFullSegment
+                certificate state
+                  (chainAt indexedStep) (chainAt (indexedStep + 1))
+                    segment)
     {step : Nat}
     (stepBound : step < count)
     (junction :
@@ -21279,12 +21435,95 @@ private theorem
       (incoming := firstLast)
     rw [firstDecomposition, firstCoreDecomposition, degenerate]
     simp [List.append_assoc]
+  rcases indexedDetailed step stepBound with
+    ⟨detailedFirstSegment, detailedFirstLookup, detailedFirst⟩
+  have detailedFirstSegmentValue :
+      detailedFirstSegment = firstSegment :=
+    Option.some.inj
+      (detailedFirstLookup.symm.trans firstSegmentLookup)
+  subst detailedFirstSegment
+  have successorBound :
+      dependencyCycleSuccessor count step < count :=
+    dependencyCycleSuccessor_lt nontrivial stepBound
+  rcases
+      indexedDetailed
+        (dependencyCycleSuccessor count step) successorBound with
+    ⟨detailedSecondSegment, detailedSecondLookup, detailedSecond⟩
+  have detailedSecondSegmentValue :
+      detailedSecondSegment = secondSegment :=
+    Option.some.inj
+      (detailedSecondLookup.symm.trans secondSegmentLookup)
+  subst detailedSecondSegment
+  rcases
+      chainedCoreAt.referencePrefix_of_detailed
+        firstSegmentLookup detailedFirst with
+    ⟨referenceFirstSource, referenceFirstFrontier,
+      firstRetainedPrefix, referenceFirstDecomposition,
+      firstReferenceWalk, firstRetainedIndices,
+      firstRetainedEdges, firstRetainedForwards,
+      firstRetainedTargets⟩
+  have sameFirstDecomposition :
+      firstSource :: (firstCore ++ [firstFrontier]) =
+        referenceFirstSource ::
+          (firstCore ++ [referenceFirstFrontier]) :=
+    firstDecomposition.symm.trans referenceFirstDecomposition
+  have referenceFirstSourceValue :
+      referenceFirstSource = firstSource :=
+    (List.cons.inj sameFirstDecomposition).1.symm
+  have referenceFirstFrontierValue :
+      referenceFirstFrontier = firstFrontier := by
+    have singletonEquation :
+        [firstFrontier] = [referenceFirstFrontier] :=
+      List.append_cancel_left
+        (List.cons.inj sameFirstDecomposition).2
+    simpa using singletonEquation.symm
+  subst referenceFirstSource
+  subst referenceFirstFrontier
+  have firstReferencePrefix :
+      FullyCancellingDependencyCycleResidualCoreReferencePrefixAt
+        certificate firstCore firstSource firstFrontier :=
+    ⟨firstRetainedPrefix, firstReferenceWalk,
+      firstRetainedIndices, firstRetainedEdges,
+      firstRetainedForwards, firstRetainedTargets⟩
+  rcases
+      activeSecond.1.referencePrefix_of_detailed
+        secondSegmentLookup detailedSecond with
+    ⟨referenceSecondSource, referenceSecondFrontier,
+      secondRetainedPrefix, referenceSecondDecomposition,
+      secondReferenceWalk, secondRetainedIndices,
+      secondRetainedEdges, secondRetainedForwards,
+      secondRetainedTargets⟩
+  have sameSecondDecomposition :
+      secondSource :: (secondCore ++ [activeSecondFrontier]) =
+        referenceSecondSource ::
+          (secondCore ++ [referenceSecondFrontier]) :=
+    secondDecomposition.symm.trans referenceSecondDecomposition
+  have referenceSecondSourceValue :
+      referenceSecondSource = secondSource :=
+    (List.cons.inj sameSecondDecomposition).1.symm
+  have referenceSecondFrontierValue :
+      referenceSecondFrontier = activeSecondFrontier := by
+    have singletonEquation :
+        [activeSecondFrontier] = [referenceSecondFrontier] :=
+      List.append_cancel_left
+        (List.cons.inj sameSecondDecomposition).2
+    simpa using singletonEquation.symm
+  subst referenceSecondSource
+  subst referenceSecondFrontier
+  have secondReferencePrefix :
+      FullyCancellingDependencyCycleResidualCoreReferencePrefixAt
+        certificate secondCore secondSource activeSecondFrontier :=
+    ⟨secondRetainedPrefix, secondReferenceWalk,
+      secondRetainedIndices, secondRetainedEdges,
+      secondRetainedForwards, secondRetainedTargets⟩
   exact
     ⟨firstCore, secondCore, firstSegment, secondSegment,
       firstSource, firstFrontier, secondSource, activeSecondFrontier,
       firstLast, secondHead, firstLookup, secondLookup,
       firstSegmentLookup, firstDecomposition, secondSegmentLookup,
-      secondDecomposition, activeFirst, activeSecond,
+      secondDecomposition, detailedFirst, detailedSecond,
+      firstReferencePrefix, secondReferencePrefix,
+      activeFirst, activeSecond,
       firstLastLookup, secondHeadLookup, outerReverse, innerReverse,
       strictNesting⟩
 
@@ -21332,7 +21571,9 @@ private theorem
       firstSource, firstFrontier, secondSource, secondFrontier,
       firstLast, secondHead, _firstCoreLookup, _secondCoreLookup,
       firstSegmentLookup, firstDecomposition, secondSegmentLookup,
-      secondDecomposition, _activeFirst, _activeSecond,
+      secondDecomposition, _detailedFirst, _detailedSecond,
+      _firstReferencePrefix, _secondReferencePrefix,
+      _activeFirst, _activeSecond,
       firstLastLookup, secondHeadLookup, outerReverse, innerReverse,
       _strictNesting⟩
   have firstCoreNonempty : firstCore ≠ [] := by
@@ -21368,6 +21609,169 @@ private theorem
     rw [firstDecomposition, secondDecomposition,
       firstCoreDecomposition, outerReverse, innerReverse]
     simp [List.append_assoc]
+
+/-- The successor's retained reference prefix begins by traversing the inner
+nesting occurrence in reverse.  The compacted index, stored edge, orientation,
+and exact prefix walk are all retained, so a later switching argument need not
+reconstruct this fact from endpoint equality. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreNestingAt.successorReferencePrefix_startsWith_innerReverse
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    (nesting :
+      FullyCancellingDependencyCycleActiveResidualCoreNestingAt
+        certificate state chainAt count segments cores step) :
+    ∃ (inner successorHead :
+          certificate.fullGraph.DirectedEdge)
+        (successorFrontier :
+          certificate.fullGraph.DirectedEdge)
+        (retainedHead :
+          certificate.referenceSwitchingGraph.DirectedEdge)
+        (retainedPrefix :
+          List certificate.referenceSwitchingGraph.DirectedEdge),
+      retainedPrefix.head? = some retainedHead ∧
+        retainedHead.index =
+          Graph.retainedIndex certificate.referenceSwitchingMask
+            inner.index ∧
+          retainedHead.edge = inner.edge ∧
+            retainedHead.forward = inner.reverse.forward ∧
+              successorHead = inner.reverse ∧
+                certificate.referenceSwitchingGraph.EdgeWalk
+                  successorHead.source retainedPrefix
+                    successorFrontier.target := by
+  rcases nesting with
+    ⟨firstCore, secondCore, _firstSegment, _secondSegment,
+      _firstSource, _firstFrontier, secondSource, secondFrontier,
+      firstLast, secondHead, _firstCoreLookup, _secondCoreLookup,
+      _firstSegmentLookup, _firstDecomposition, _secondSegmentLookup,
+      _secondDecomposition, _detailedFirst, _detailedSecond,
+      _firstReferencePrefix, secondReferencePrefix,
+      _activeFirst, _activeSecond,
+      _firstLastLookup, secondHeadLookup, _outerReverse, innerReverse,
+      _strictNesting⟩
+  rcases secondReferencePrefix with
+    ⟨retainedPrefix, retainedWalk, retainedIndices,
+      retainedEdges, retainedForwards, _retainedTargets⟩
+  have secondCoreNonempty : secondCore ≠ [] := by
+    intro empty
+    simp [empty] at secondHeadLookup
+  have fullPrefixNonempty :
+      secondCore ++ [secondFrontier] ≠ [] := by
+    simp
+  have retainedPrefixNonempty : retainedPrefix ≠ [] := by
+    intro empty
+    rw [empty] at retainedIndices
+    have mappedEmpty :
+        (secondCore ++ [secondFrontier]).map
+            (fun directed =>
+              Graph.retainedIndex certificate.referenceSwitchingMask
+                directed.index) =
+          [] := by
+      simpa using retainedIndices.symm
+    exact fullPrefixNonempty (List.eq_nil_of_map_eq_nil mappedEmpty)
+  let retainedHead := retainedPrefix.head retainedPrefixNonempty
+  have retainedHeadLookup :
+      retainedPrefix.head? = some retainedHead := by
+    simpa [retainedHead] using
+      List.head?_eq_some_head retainedPrefixNonempty
+  have fullPrefixHead :
+      (secondCore ++ [secondFrontier]).head? =
+        some secondHead := by
+    simp [List.head?_append, secondHeadLookup]
+  have retainedHeadIndex :
+      retainedHead.index =
+        Graph.retainedIndex certificate.referenceSwitchingMask
+          secondHead.index := by
+    apply Option.some.inj
+    calc
+      some retainedHead.index =
+          (retainedPrefix.map Graph.DirectedEdge.index).head? := by
+            rw [List.head?_map, retainedHeadLookup]
+            rfl
+      _ =
+          ((secondCore ++ [secondFrontier]).map
+            (fun directed =>
+              Graph.retainedIndex certificate.referenceSwitchingMask
+                directed.index)).head? :=
+            congrArg List.head? retainedIndices
+      _ =
+          some
+            (Graph.retainedIndex certificate.referenceSwitchingMask
+              secondHead.index) := by
+            rw [List.head?_map, fullPrefixHead]
+            rfl
+  have retainedHeadEdge :
+      retainedHead.edge = secondHead.edge := by
+    apply Option.some.inj
+    calc
+      some retainedHead.edge =
+          (retainedPrefix.map Graph.DirectedEdge.edge).head? := by
+            rw [List.head?_map, retainedHeadLookup]
+            rfl
+      _ =
+          ((secondCore ++ [secondFrontier]).map
+            Graph.DirectedEdge.edge).head? :=
+            congrArg List.head? retainedEdges
+      _ = some secondHead.edge := by
+            rw [List.head?_map, fullPrefixHead]
+            rfl
+  have retainedHeadForward :
+      retainedHead.forward = secondHead.forward := by
+    apply Option.some.inj
+    calc
+      some retainedHead.forward =
+          (retainedPrefix.map Graph.DirectedEdge.forward).head? := by
+            rw [List.head?_map, retainedHeadLookup]
+            rfl
+      _ =
+          ((secondCore ++ [secondFrontier]).map
+            Graph.DirectedEdge.forward).head? :=
+            congrArg List.head? retainedForwards
+      _ = some secondHead.forward := by
+            rw [List.head?_map, fullPrefixHead]
+            rfl
+  have retainedWalkStarts :
+      retainedHead.source = secondSource.target := by
+    have retainedHeadValue :
+        retainedPrefix.head retainedPrefixNonempty =
+          retainedHead :=
+      Option.some.inj
+        ((List.head?_eq_some_head retainedPrefixNonempty).symm.trans
+          retainedHeadLookup)
+    have retainedTraversal :
+        retainedHead :: retainedPrefix.tail = retainedPrefix := by
+      simpa [retainedHeadValue] using
+        List.cons_head_tail retainedPrefixNonempty
+    have retainedChain := retainedWalk.toChain
+    rw [← retainedTraversal] at retainedChain
+    exact retainedChain.head_source
+  have retainedHeadSource :
+      retainedHead.source = secondHead.source := by
+    simp [Graph.DirectedEdge.source, retainedHeadEdge,
+      retainedHeadForward]
+  have successorSource :
+      secondHead.source = secondSource.target := by
+    exact retainedHeadSource.symm.trans retainedWalkStarts
+  have exactRetainedWalk :
+      certificate.referenceSwitchingGraph.EdgeWalk
+        secondHead.source retainedPrefix secondFrontier.target := by
+    simpa [successorSource] using retainedWalk
+  refine
+    ⟨firstLast, secondHead, secondFrontier,
+      retainedHead, retainedPrefix,
+      retainedHeadLookup, ?_, ?_, ?_, innerReverse,
+      exactRetainedWalk⟩
+  · simpa [innerReverse, Graph.DirectedEdge.reverse] using
+      retainedHeadIndex
+  · simpa [innerReverse, Graph.DirectedEdge.reverse] using
+      retainedHeadEdge
+  · simpa [innerReverse, Graph.DirectedEdge.reverse] using
+      retainedHeadForward
 
 /-- Normalizing the core-only closed walk cannot leave a nonempty cyclically
 nonbacktracking residue: every surviving occurrence is reference-kept and
@@ -21881,6 +22285,7 @@ private theorem
               reflexiveCoresChained
                 (fun segment membership =>
                   (originalSegmentProperties segment membership).2)
+                originalCountNontrivial originalIndexedDetailed
                 coreJunctionStepBound indexedCoreJunction
           have exactNestedReverseWord :=
             indexedCoreNesting.exactNestedWord

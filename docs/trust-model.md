@@ -240,8 +240,12 @@ reduced cores. The junction is now reindexed to one exact dependency step,
 reconciled with both complete segment decompositions, and exposed as the
 contiguous exact-occurrence word
 `inner, outer, outer.reverse, inner.reverse`. Segment nonbacktracking proves
-that the two cancellation layers are nondegenerate. The remaining gap is to
-exclude that strict cross-core nesting and
+that the two cancellation layers are nondegenerate. Both original detailed
+segments remain attached to that index; their `core ++ frontier` traversals
+are pointwise reconciled with exact retained reference-prefix walks, and the
+successor reference prefix is proved to begin with the inner occurrence's
+exact reverse. The remaining gap is to exclude that path-exposed strict
+cross-core nesting and
 transport the turn evidence around that concrete nonempty obstruction into an
  excluded edge-simple switching cycle or forbidden nesting. This is
  not yet the correct-state progress theorem needed for pure-worklist

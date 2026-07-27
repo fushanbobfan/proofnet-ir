@@ -178,9 +178,14 @@ to a cyclic junction between two nonempty internally reduced cores. That
 junction is now tied to one exact dependency step and both concrete segment
 decompositions. The adjacent segments contain the strict occurrence word
 `inner, outer, outer.reverse, inner.reverse`; their own nonbacktracking proof
-rules out a degenerate inner/outer pair. The remaining empty-branch obligation
-is therefore no longer normalization, indexing, or a hidden formula tail: it
-is to exclude this precise strict nesting by an exact switching-flip argument.
+rules out a degenerate inner/outer pair. Both original detailed segment
+witnesses remain attached at that same step, and each `core ++ frontier` is
+pointwise aligned with its exact retained reference-switching prefix. Lean
+also proves that the successor prefix begins with the inner occurrence's exact
+reverse. The remaining empty-branch obligation is therefore no longer
+normalization, indexing, reference-prefix transport, or a hidden formula tail:
+it is to exclude this precise path-exposed strict nesting by an exact
+switching-flip argument.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.

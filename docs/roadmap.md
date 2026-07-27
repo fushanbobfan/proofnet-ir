@@ -592,6 +592,10 @@
       `inner, outer, outer.reverse, inner.reverse`; prove the inner and outer
       layers cannot degenerate using the containing segment's exact
       no-immediate-reverse invariant.
+    - [x] Reattach both original occurrence-indexed full-segment witnesses at
+      that exact step, reconcile each `core ++ frontier` with its retained
+      reference-switching prefix pointwise, and prove that the successor
+      retained prefix begins with the inner occurrence's exact reverse.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact

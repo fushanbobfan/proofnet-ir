@@ -26,9 +26,14 @@
   two consecutive dependency segments therefore contain the contiguous
   exact-occurrence word `inner, outer, outer.reverse, inner.reverse`; the
   containing segment's no-immediate-reverse proof also shows the inner and
-  outer cancellation layers are nondegenerate. The remaining empty-branch
-  obligation is to exclude this now fully exposed strict nesting by the exact
-  switching-flip argument; pure-worklist completeness is still open;
+  outer cancellation layers are nondegenerate. Both original occurrence-
+  indexed full-segment witnesses are retained at that same step. Lean
+  reconciles each `core ++ frontier` with its exact retained reference-prefix
+  walk, preserving compacted index, stored edge, orientation, and target
+  pointwise, and proves that the successor reference prefix starts with the
+  inner occurrence's exact reverse. The remaining empty-branch obligation is
+  to exclude this now path-exposed strict nesting by the exact switching-flip
+  argument; pure-worklist completeness is still open;
 - retained the occurrence-indexed full-segment decomposition through the
   finite dependency family instead of projecting immediately to endpoint
   classifications. In the fully cancelling empty-normal-form branch, Lean now
