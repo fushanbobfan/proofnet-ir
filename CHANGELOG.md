@@ -20,9 +20,15 @@
   would be a nonempty cyclically nonbacktracking walk in the reference
   switching tree. The core-only normal form is therefore empty, and
   proof-relevant normalization localizes an exact reversal to a cyclic
-  junction between two nonempty internally reduced cores. The remaining
-  empty-branch obligation is to exclude that cross-core reversal by the exact
-  switching-flip/nesting argument; pure-worklist completeness is still open;
+  junction between two nonempty internally reduced cores. Lean now reindexes
+  that cyclic list witness to one exact dependency step, preserves both active
+  core witnesses, and combines it with cyclic frontier/source chaining. The
+  two consecutive dependency segments therefore contain the contiguous
+  exact-occurrence word `inner, outer, outer.reverse, inner.reverse`; the
+  containing segment's no-immediate-reverse proof also shows the inner and
+  outer cancellation layers are nondegenerate. The remaining empty-branch
+  obligation is to exclude this now fully exposed strict nesting by the exact
+  switching-flip argument; pure-worklist completeness is still open;
 - retained the occurrence-indexed full-segment decomposition through the
   finite dependency family instead of projecting immediately to endpoint
   classifications. In the fully cancelling empty-normal-form branch, Lean now

@@ -173,11 +173,15 @@ cancellation is proved to cross their unique junction. The scheduler proof
  endpoint returns to the first core's exact source-premise base. Every core
  occurrence is retained by the reference switching, so cyclic normalization
  cannot leave a nonempty cyclically nonbacktracking residue in its tree. Lean
- proves that the core-only normal form is empty and localizes an exact reversal
- to a cyclic junction between two nonempty internally reduced cores. The
- remaining empty-branch obligation is therefore no longer normalization or a
- hidden formula tail: it is to exclude that precise cross-core reversal by an
- exact switching flip/nesting argument. For the
+proves that the core-only normal form is empty and localizes an exact reversal
+to a cyclic junction between two nonempty internally reduced cores. That
+junction is now tied to one exact dependency step and both concrete segment
+decompositions. The adjacent segments contain the strict occurrence word
+`inner, outer, outer.reverse, inner.reverse`; their own nonbacktracking proof
+rules out a degenerate inner/outer pair. The remaining empty-branch obligation
+is therefore no longer normalization, indexing, or a hidden formula tail: it
+is to exclude this precise strict nesting by an exact switching-flip argument.
+For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
  Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one

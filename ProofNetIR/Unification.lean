@@ -20992,6 +20992,383 @@ private theorem
   subst activeCore
   exact ⟨activeNonempty, activeReduced⟩
 
+/-- Exact indexed form of a reversal between two cyclically consecutive
+deterministic residual cores.  Both concrete list values remain tied to their
+active reflexive-core witnesses; the successor index covers both an ordinary
+adjacent pair and the final/initial closing pair. -/
+private def FullyCancellingDependencyCycleActiveResidualCoreJunctionAt
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments cores :
+      List (List certificate.fullGraph.DirectedEdge))
+    (step : Nat) : Prop :=
+  ∃ (firstCore secondCore :
+        List certificate.fullGraph.DirectedEdge)
+      (firstLast secondHead :
+        certificate.fullGraph.DirectedEdge),
+    cores[step]? = some firstCore ∧
+      cores[dependencyCycleSuccessor count step]? =
+        some secondCore ∧
+        FullyCancellingDependencyCycleActiveReflexiveCoreAt
+          certificate state chainAt segments step firstCore ∧
+          FullyCancellingDependencyCycleActiveReflexiveCoreAt
+            certificate state chainAt segments
+              (dependencyCycleSuccessor count step) secondCore ∧
+            firstCore.getLast? = some firstLast ∧
+              secondCore.head? = some secondHead ∧
+                secondHead = firstLast.reverse
+
+/-- A cyclic family-junction reversal can be reindexed to one exact cycle
+step.  This removes the list-prefix/closing disjunction before the final
+switching-flip or nesting argument and preserves both active core witnesses. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreFamily.indexedJunction_of_cyclic
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (family :
+      FullyCancellingDependencyCycleActiveResidualCoreFamily
+        certificate state chainAt count segments cores)
+    (positive : 0 < count)
+    (junction :
+      Graph.EdgeWalk.CyclicSegmentJunctionReverse cores) :
+    ∃ step,
+      step < count ∧
+        FullyCancellingDependencyCycleActiveResidualCoreJunctionAt
+          certificate state chainAt count segments cores step := by
+  rcases junction with adjacent | closing
+  · rcases adjacent with
+      ⟨familyBefore, firstCore, secondCore, familyAfter,
+        firstLast, secondHead, familyEquation,
+        firstLastLookup, secondHeadLookup, reversed⟩
+    let step := familyBefore.length
+    have stepBound : step < count := by
+      rw [← family.2.1, familyEquation]
+      simp [step]
+    have successorBound : step + 1 < count := by
+      rw [← family.2.1, familyEquation]
+      simp [step]
+    have successorEquation :
+        dependencyCycleSuccessor count step = step + 1 := by
+      simp [dependencyCycleSuccessor, successorBound]
+    have firstLookup :
+        cores[step]? = some firstCore := by
+      rw [familyEquation]
+      simp [step]
+    have secondLookup :
+        cores[dependencyCycleSuccessor count step]? =
+          some secondCore := by
+      rw [successorEquation, familyEquation]
+      simp [step]
+    rcases family.2.2 step stepBound with
+      ⟨activeFirst, activeFirstLookup, activeFirstWitness,
+        _activeFirstNonempty, _activeFirstReduced⟩
+    have activeFirstValue : activeFirst = firstCore :=
+      Option.some.inj (activeFirstLookup.symm.trans firstLookup)
+    subst activeFirst
+    rcases family.2.2 (step + 1) successorBound with
+      ⟨activeSecond, activeSecondLookup, activeSecondWitness,
+        _activeSecondNonempty, _activeSecondReduced⟩
+    have secondLookupStep :
+        cores[step + 1]? = some secondCore := by
+      simpa [successorEquation] using secondLookup
+    have activeSecondValue : activeSecond = secondCore := by
+      apply Option.some.inj
+      exact activeSecondLookup.symm.trans secondLookupStep
+    subst activeSecond
+    refine
+      ⟨step, stepBound, firstCore, secondCore, firstLast, secondHead,
+        firstLookup, secondLookup, activeFirstWitness, ?_,
+        firstLastLookup, secondHeadLookup, reversed⟩
+    simpa [successorEquation] using activeSecondWitness
+  · rcases closing with
+      ⟨firstCore, lastCore, firstHead, lastLast,
+        familyHead, familyLast, firstHeadLookup,
+        lastLastLookup, reversed⟩
+    let step := count - 1
+    have stepBound : step < count := by
+      omega
+    have successorEquation :
+        dependencyCycleSuccessor count step = 0 := by
+      simp only [dependencyCycleSuccessor]
+      split
+      · omega
+      · rfl
+    have lastLookup :
+        cores[step]? = some lastCore := by
+      calc
+        cores[step]? =
+            cores[cores.length - 1]? := by
+              simp [step, family.2.1]
+        _ = cores.getLast? := List.getLast?_eq_getElem?.symm
+        _ = some lastCore := familyLast
+    have firstLookup :
+        cores[dependencyCycleSuccessor count step]? =
+          some firstCore := by
+      rw [successorEquation, ← List.head?_eq_getElem?]
+      exact familyHead
+    rcases family.2.2 step stepBound with
+      ⟨activeLast, activeLastLookup, activeLastWitness,
+        _activeLastNonempty, _activeLastReduced⟩
+    have activeLastValue : activeLast = lastCore :=
+      Option.some.inj (activeLastLookup.symm.trans lastLookup)
+    subst activeLast
+    rcases family.2.2 0 positive with
+      ⟨activeFirst, activeFirstLookup, activeFirstWitness,
+        _activeFirstNonempty, _activeFirstReduced⟩
+    have firstLookupZero :
+        cores[0]? = some firstCore := by
+      simpa [successorEquation] using firstLookup
+    have activeFirstValue : activeFirst = firstCore := by
+      apply Option.some.inj
+      exact activeFirstLookup.symm.trans firstLookupZero
+    subst activeFirst
+    refine
+      ⟨step, stepBound, lastCore, firstCore, lastLast, firstHead,
+        lastLookup, firstLookup, activeLastWitness, ?_,
+        lastLastLookup, firstHeadLookup, reversed⟩
+    simpa [successorEquation] using activeFirstWitness
+
+/-- Exact two-layer out-and-back geometry forced at an indexed residual-core
+junction.  The outer pair is the first segment's retained reflexive frontier
+and the cyclic successor's stored source incidence; the inner pair is the
+last occurrence of the first residual core and the first occurrence of the
+second.  Keeping both segment decompositions prevents an endpoint-only
+replacement of either cancellation. -/
+private def FullyCancellingDependencyCycleActiveResidualCoreNestingAt
+    (certificate : Certificate)
+    (state : UnificationWorklistState)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments cores :
+      List (List certificate.fullGraph.DirectedEdge))
+    (step : Nat) : Prop :=
+  ∃ (firstCore secondCore firstSegment secondSegment :
+        List certificate.fullGraph.DirectedEdge)
+      (firstSource firstFrontier secondSource secondFrontier
+        firstLast secondHead :
+          certificate.fullGraph.DirectedEdge),
+    cores[step]? = some firstCore ∧
+      cores[dependencyCycleSuccessor count step]? =
+        some secondCore ∧
+        segments[step]? = some firstSegment ∧
+          firstSegment =
+            firstSource :: (firstCore ++ [firstFrontier]) ∧
+            segments[dependencyCycleSuccessor count step]? =
+              some secondSegment ∧
+              secondSegment =
+                secondSource :: (secondCore ++ [secondFrontier]) ∧
+                FullyCancellingDependencyCycleActiveReflexiveCoreAt
+                  certificate state chainAt segments step firstCore ∧
+                  FullyCancellingDependencyCycleActiveReflexiveCoreAt
+                    certificate state chainAt segments
+                      (dependencyCycleSuccessor count step) secondCore ∧
+                    firstCore.getLast? = some firstLast ∧
+                      secondCore.head? = some secondHead ∧
+                        secondSource = firstFrontier.reverse ∧
+                          secondHead = firstLast.reverse ∧
+                            firstFrontier ≠ firstLast.reverse
+
+/-- Expand an indexed core-junction reversal together with the independently
+proved cyclic segment chaining law.  The result records the concrete nested
+word `... firstLast, firstFrontier, firstFrontier.reverse,
+firstLast.reverse ...` across two consecutive dependency segments. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreFamily.nestingAt_of_junction
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (family :
+      FullyCancellingDependencyCycleActiveResidualCoreFamily
+        certificate state chainAt count segments cores)
+    (chained :
+      FullyCancellingDependencyCycleReflexiveCoresChained
+        certificate state chainAt count segments)
+    (segmentsReduced :
+      ∀ segment,
+        segment ∈ segments →
+          Graph.EdgeWalk.NoImmediateReverse segment)
+    {step : Nat}
+    (stepBound : step < count)
+    (junction :
+      FullyCancellingDependencyCycleActiveResidualCoreJunctionAt
+        certificate state chainAt count segments cores step) :
+    FullyCancellingDependencyCycleActiveResidualCoreNestingAt
+      certificate state chainAt count segments cores step := by
+  rcases junction with
+    ⟨firstCore, secondCore, firstLast, secondHead,
+      firstLookup, secondLookup, activeFirst, activeSecond,
+      firstLastLookup, secondHeadLookup, innerReverse⟩
+  rcases chained step stepBound with
+    ⟨chainedCore, firstSegment, secondSegment,
+      firstSource, firstFrontier, secondSource,
+      chainedCoreAt, _chainedCoreNonempty, _chainedCoreReduced,
+      firstSegmentLookup, firstDecomposition, secondSegmentLookup,
+      secondSegmentHead, outerReverse, _outerTarget⟩
+  have firstResidualLookup :
+      (dependencyResidualCores segments)[step]? =
+        some firstCore := by
+    rw [← family.1]
+    exact firstLookup
+  have chainedResidualLookup :=
+    chainedCoreAt.residual_lookup
+  have chainedCoreValue : chainedCore = firstCore :=
+    Option.some.inj
+      (chainedResidualLookup.symm.trans firstResidualLookup)
+  subst chainedCore
+  rcases activeSecond.1 with
+    ⟨activeSecondSegment, activeSecondSource, activeSecondFrontier,
+      activeSecondSegmentLookup, activeSecondDecomposition,
+      _activeSecondStart, _activeSecondBackward,
+      _activeSecondParTarget, _activeSecondTarget,
+      _activeSecondForward, _activeSecondReflexive,
+      _activeSecondSourceKept, _activeSecondThreadToken,
+      _activeSecondCoreWalk, _activeSecondCoreKept⟩
+  have activeSecondSegmentValue :
+      activeSecondSegment = secondSegment :=
+    Option.some.inj
+      (activeSecondSegmentLookup.symm.trans secondSegmentLookup)
+  have activeSecondHead :
+      secondSegment.head? = some activeSecondSource := by
+    rw [← activeSecondSegmentValue, activeSecondDecomposition]
+    simp
+  have activeSecondSourceValue :
+      activeSecondSource = secondSource :=
+    Option.some.inj
+      (activeSecondHead.symm.trans secondSegmentHead)
+  have secondDecomposition :
+      secondSegment =
+        secondSource :: (secondCore ++ [activeSecondFrontier]) := by
+    rw [← activeSecondSegmentValue, activeSecondDecomposition,
+      activeSecondSourceValue]
+  have firstCoreNonempty : firstCore ≠ [] := by
+    intro empty
+    simp [empty] at firstLastLookup
+  have firstLastValue :
+      firstCore.getLast firstCoreNonempty = firstLast :=
+    Option.some.inj
+      ((List.getLast?_eq_some_getLast firstCoreNonempty).symm.trans
+        firstLastLookup)
+  have firstCoreDecomposition :
+      firstCore = firstCore.dropLast ++ [firstLast] := by
+    calc
+      firstCore =
+          firstCore.dropLast ++
+            [firstCore.getLast firstCoreNonempty] :=
+        (List.dropLast_concat_getLast firstCoreNonempty).symm
+      _ = firstCore.dropLast ++ [firstLast] := by
+        rw [firstLastValue]
+  have firstSegmentReduced :
+      Graph.EdgeWalk.NoImmediateReverse firstSegment :=
+    segmentsReduced firstSegment
+      (List.mem_of_getElem? firstSegmentLookup)
+  have strictNesting :
+      firstFrontier ≠ firstLast.reverse := by
+    intro degenerate
+    apply firstSegmentReduced.not_cancel
+      (before := firstSource :: firstCore.dropLast)
+      (after := [])
+      (incoming := firstLast)
+    rw [firstDecomposition, firstCoreDecomposition, degenerate]
+    simp [List.append_assoc]
+  exact
+    ⟨firstCore, secondCore, firstSegment, secondSegment,
+      firstSource, firstFrontier, secondSource, activeSecondFrontier,
+      firstLast, secondHead, firstLookup, secondLookup,
+      firstSegmentLookup, firstDecomposition, secondSegmentLookup,
+      secondDecomposition, activeFirst, activeSecond,
+      firstLastLookup, secondHeadLookup, outerReverse, innerReverse,
+      strictNesting⟩
+
+/-- List-level projection of the exact two-layer nesting witness.  Two
+cyclically consecutive dependency segments contain the contiguous occurrence
+word `inner, outer, outer.reverse, inner.reverse`; the prefix and suffix are
+retained explicitly so later cancellation and switching arguments can rewrite
+the original segment pair without choosing replacement occurrences. -/
+private def FullyCancellingDependencyCycleExactNestedReverseWordAt
+    (certificate : Certificate)
+    (count : Nat)
+    (segments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (step : Nat) : Prop :=
+  ∃ (firstSegment secondSegment :
+        List certificate.fullGraph.DirectedEdge)
+      (inner outer : certificate.fullGraph.DirectedEdge)
+      (before after :
+        List certificate.fullGraph.DirectedEdge),
+    segments[step]? = some firstSegment ∧
+      segments[dependencyCycleSuccessor count step]? =
+        some secondSegment ∧
+        firstSegment ++ secondSegment =
+          before ++
+            [inner, outer, outer.reverse, inner.reverse] ++ after
+
+/-- The structured residual-core nesting packages an exact contiguous nested
+reverse word in the two represented dependency segments. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreNestingAt.exactNestedWord
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    (nesting :
+      FullyCancellingDependencyCycleActiveResidualCoreNestingAt
+        certificate state chainAt count segments cores step) :
+    FullyCancellingDependencyCycleExactNestedReverseWordAt
+      certificate count segments step := by
+  rcases nesting with
+    ⟨firstCore, secondCore, firstSegment, secondSegment,
+      firstSource, firstFrontier, secondSource, secondFrontier,
+      firstLast, secondHead, _firstCoreLookup, _secondCoreLookup,
+      firstSegmentLookup, firstDecomposition, secondSegmentLookup,
+      secondDecomposition, _activeFirst, _activeSecond,
+      firstLastLookup, secondHeadLookup, outerReverse, innerReverse,
+      _strictNesting⟩
+  have firstCoreNonempty : firstCore ≠ [] := by
+    intro empty
+    simp [empty] at firstLastLookup
+  have firstLastValue :
+      firstCore.getLast firstCoreNonempty = firstLast :=
+    Option.some.inj
+      ((List.getLast?_eq_some_getLast firstCoreNonempty).symm.trans
+        firstLastLookup)
+  have firstCoreDecomposition :
+      firstCore = firstCore.dropLast ++ [firstLast] := by
+    calc
+      firstCore =
+          firstCore.dropLast ++
+            [firstCore.getLast firstCoreNonempty] :=
+        (List.dropLast_concat_getLast firstCoreNonempty).symm
+      _ = firstCore.dropLast ++ [firstLast] := by
+        rw [firstLastValue]
+  cases secondCore with
+  | nil =>
+    simp at secondHeadLookup
+  | cons secondActualHead secondTail =>
+    have secondActualHeadValue :
+        secondActualHead = secondHead := by
+      simpa using Option.some.inj secondHeadLookup
+    subst secondActualHead
+    refine
+      ⟨firstSegment, secondSegment, firstLast, firstFrontier,
+        firstSource :: firstCore.dropLast,
+        secondTail ++ [secondFrontier],
+        firstSegmentLookup, secondSegmentLookup, ?_⟩
+    rw [firstDecomposition, secondDecomposition,
+      firstCoreDecomposition, outerReverse, innerReverse]
+    simp [List.append_assoc]
+
 /-- Normalizing the core-only closed walk cannot leave a nonempty cyclically
 nonbacktracking residue: every surviving occurrence is reference-kept and
 would form such a walk in the reference switching tree.  Hence the core walk
@@ -21089,7 +21466,15 @@ private def FullyCancellingDependencyCycleActiveResidualCoreNestingObstruction
             Graph.EdgeWalk.CyclicImmediateReverseNormalization
               cores.flatten normalized ∧
               normalized = [] ∧
-                Graph.EdgeWalk.CyclicSegmentJunctionReverse cores
+                Graph.EdgeWalk.CyclicSegmentJunctionReverse cores ∧
+                  ∃ step,
+                    step < count ∧
+                      FullyCancellingDependencyCycleActiveResidualCoreJunctionAt
+                        certificate state chainAt count segments cores step ∧
+                        FullyCancellingDependencyCycleActiveResidualCoreNestingAt
+                          certificate state chainAt count segments cores step ∧
+                          FullyCancellingDependencyCycleExactNestedReverseWordAt
+                            certificate count segments step
 
 /-- Exact omitted-right-par occurrence forced in any nonempty normalized
 scheduler obstruction.  The stored prefix fixes the two par edge indices, and
@@ -21485,11 +21870,28 @@ private theorem
             ⟨normalizedCoreBase, normalizedCore,
               normalizedCoreWalk, coreNormalization,
               normalizedCoreEmpty, coreJunction⟩
+          have indexedCoreJunction :=
+            activeFamily.indexedJunction_of_cyclic
+              (by omega) coreJunction
+          rcases indexedCoreJunction with
+            ⟨coreJunctionStep, coreJunctionStepBound,
+              indexedCoreJunction⟩
+          have indexedCoreNesting :=
+            activeFamily.nestingAt_of_junction
+              reflexiveCoresChained
+                (fun segment membership =>
+                  (originalSegmentProperties segment membership).2)
+                coreJunctionStepBound indexedCoreJunction
+          have exactNestedReverseWord :=
+            indexedCoreNesting.exactNestedWord
           exact
             ⟨cores, activeFamily, flattenedNonempty, coreClosedWalk,
               normalizedCoreBase, normalizedCore,
               normalizedCoreWalk, coreNormalization,
-              normalizedCoreEmpty, coreJunction⟩
+              normalizedCoreEmpty, coreJunction,
+              coreJunctionStep, coreJunctionStepBound,
+              indexedCoreJunction, indexedCoreNesting,
+              exactNestedReverseWord⟩
         have schedulerJunction :
             ∃ (source middle : Vertex)
                 (incoming :

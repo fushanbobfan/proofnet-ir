@@ -234,11 +234,15 @@ occurrences. Every dependency carries that same-boundary classification
  deterministic active family records both properties. Lean composes the
  family into a nonempty closed full-graph walk with exact cyclic
  source-premise endpoints. All core occurrences are reference-kept, forcing
- the core-only cyclic normal form to be empty; the proof-relevant normalizer
- localizes its exact reversal to a cyclic junction between nonempty internally
- reduced cores. The remaining gap is to exclude that exact cross-core nesting
- and
- transport the turn evidence around that concrete nonempty obstruction into an
+the core-only cyclic normal form to be empty; the proof-relevant normalizer
+localizes its exact reversal to a cyclic junction between nonempty internally
+reduced cores. The junction is now reindexed to one exact dependency step,
+reconciled with both complete segment decompositions, and exposed as the
+contiguous exact-occurrence word
+`inner, outer, outer.reverse, inner.reverse`. Segment nonbacktracking proves
+that the two cancellation layers are nondegenerate. The remaining gap is to
+exclude that strict cross-core nesting and
+transport the turn evidence around that concrete nonempty obstruction into an
  excluded edge-simple switching cycle or forbidden nesting. This is
  not yet the correct-state progress theorem needed for pure-worklist
  completeness.

@@ -586,6 +586,12 @@
       switching, force cyclic normalization of the closed core walk to the
       empty normal form, and localize an exact reversal to a cyclic junction
       between two nonempty internally reduced cores.
+    - [x] Reindex the cyclic core junction to one exact dependency step,
+      preserve both active core witnesses and both complete segment
+      decompositions, and expose the strict contiguous nesting word
+      `inner, outer, outer.reverse, inner.reverse`; prove the inner and outer
+      layers cannot degenerate using the containing segment's exact
+      no-immediate-reverse invariant.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact

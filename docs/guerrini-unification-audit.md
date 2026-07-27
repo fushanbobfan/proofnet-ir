@@ -312,9 +312,14 @@ or positive misses. The larger search recorded at most 995 link attempts and
    core occurrence is reference-kept, so a nonempty cyclically nonbacktracking
    normal form would contradict the reference switching tree. The core-only
    walk is now proved to normalize to empty, with an exact reversal localized
-   to a cyclic junction between two nonempty internally reduced cores. The
-   immediate proof obligation is to exclude that cross-core reversal by the
-   exact multi-par switching-flip/nesting argument and, in the nonempty branch,
+   to a cyclic junction between two nonempty internally reduced cores. That
+   cyclic witness is now reindexed to one exact dependency step and reconciled
+   with both complete segment decompositions. The two consecutive segments
+   contain the exact contiguous word
+   `inner, outer, outer.reverse, inner.reverse`, and segment
+   nonbacktracking proves the two layers do not degenerate into one pair. The
+   immediate proof obligation is to exclude this strict nesting by the exact
+   multi-par switching-flip argument and, in the nonempty branch,
    transport the turn evidence into an excluded edge-simple switching cycle or
    forbidden nesting.
 3. Prove the deterministic schedule complete, yielding
