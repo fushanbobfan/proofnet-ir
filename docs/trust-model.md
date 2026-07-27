@@ -225,7 +225,12 @@ occurrences. Every dependency carries that same-boundary classification
  indices and endpoint classifications, localizes the site to an adjacent or
  cyclic family junction, and proves that the same stored occurrence is both
  the preceding dependency's retained reflexive end and the following waiting
- par's left incidence. The remaining gap is to exclude that exact empty
+ par's left incidence. Removing every exact source/frontier pair now exposes a
+ deterministic residual core with token-equal endpoints and assigned
+ occurrences throughout. Each core is kernel-proved nonempty: emptiness would
+ make adjacent waiting pars consume the same exact premise, contradicting
+ structural one-parent ownership and simple-cycle injectivity. The remaining
+ gap is to exclude that exact empty
  nesting and
  transport the turn evidence around that concrete nonempty obstruction into an
  excluded edge-simple switching cycle or forbidden nesting. This is

@@ -573,6 +573,10 @@
       each exact source/frontier pair, prove its endpoints share one live
       token, chain it to the cyclic successor, and prove every residual-core
       edge has assigned source and target occurrences.
+    - [x] Prove every residual core is nonempty: an empty core would make two
+      cyclically adjacent waiting-par source incidences consume the same exact
+      premise, contradicting structural one-parent ownership and simple-cycle
+      injectivity.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact

@@ -20154,9 +20154,66 @@ private theorem
   rw [decomposition]
   simp [coreMembership]
 
+/-- A backward occurrence carrying a par-target annotation consumes its exact
+target occurrence as a premise of a stored par link.  The occurrence index is
+kept throughout, so equal-valued parallel edges cannot exchange parents. -/
+private theorem backward_par_parent_exists
+    {certificate : Certificate}
+    {directed : certificate.fullGraph.DirectedEdge}
+    {conclusion : Vertex}
+    (backward : directed.forward = false)
+    (parTarget :
+      certificate.fullEdgeParTargets[directed.index]? =
+        some (some conclusion)) :
+    ∃ left right,
+      Link.par left right conclusion ∈ certificate.links ∧
+        directed.target ∈
+          (Link.par left right conclusion).premises := by
+  have edgeLookup :
+      certificate.fullEdges[directed.index]? =
+        some directed.edge := by
+    simpa [Certificate.fullGraph] using directed.lookup
+  have annotation :
+      certificate.fullEdgeAnnotations[directed.index]? =
+        some (directed.edge, some conclusion) :=
+    certificate.fullEdgeAnnotation_lookup_iff.mpr
+      ⟨edgeLookup, parTarget⟩
+  rcases certificate.fullEdgeAnnotation_some_par_origin annotation with
+    ⟨left, right, linkMembership, leftEdge | rightEdge⟩
+  · have targetEquation : directed.target = left := by
+      simp [Graph.DirectedEdge.target, backward, leftEdge]
+    exact
+      ⟨left, right, linkMembership,
+        by simp [Link.premises, targetEquation]⟩
+  · have targetEquation : directed.target = right := by
+      simp [Graph.DirectedEdge.target, backward, rightEdge]
+    exact
+      ⟨left, right, linkMembership,
+        by simp [Link.premises, targetEquation]⟩
+
 /-- Successor index in the finite simple dependency cycle. -/
 private def dependencyCycleSuccessor (count step : Nat) : Nat :=
   if step + 1 < count then step + 1 else 0
+
+/-- The cyclic successor stays inside every dependency cycle with at least two
+nodes. -/
+private theorem dependencyCycleSuccessor_lt
+    {count step : Nat}
+    (nontrivial : 1 < count)
+    (stepBound : step < count) :
+    dependencyCycleSuccessor count step < count := by
+  simp only [dependencyCycleSuccessor]
+  split <;> omega
+
+/-- No node of a dependency cycle with at least two nodes is its own cyclic
+successor. -/
+private theorem dependencyCycleSuccessor_ne
+    {count step : Nat}
+    (nontrivial : 1 < count)
+    (stepBound : step < count) :
+    dependencyCycleSuccessor count step ≠ step := by
+  simp only [dependencyCycleSuccessor]
+  split <;> omega
 
 /-- The exposed reflexive spines are occurrence-exactly chained: the source
 incidence at the cyclic successor is the reverse of the current segment's
@@ -20282,6 +20339,140 @@ private theorem
       · simpa [dependencyCycleSuccessor, interior] using successorLookup
       · simp [successorEquation]
 
+/-- A residual spine cannot be empty.  Otherwise its backward source
+incidence and the cyclic successor's backward source incidence consume the
+same premise occurrence.  Structural linear use then identifies the two par
+links, contradicting the distinct adjacent conclusions of the simple
+dependency cycle. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.nonempty_of_successor
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core segment successorSegment :
+      List certificate.fullGraph.DirectedEdge}
+    {sourceEdge last successorEdge :
+      certificate.fullGraph.DirectedEdge}
+    (structural : certificate.StructurallyWellFormed)
+    (nontrivial : 1 < count)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (classified :
+      ∀ index,
+        index < count →
+          ∃ classifiedSegment,
+            segments[index]? = some classifiedSegment ∧
+              QuiescentWaitingParDependencyTraversalClassified
+                certificate state
+                  (chainAt index) (chainAt (index + 1))
+                    classifiedSegment)
+    (stepBound : step < count)
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core)
+    (segmentLookup :
+      segments[step]? = some segment)
+    (decomposition :
+      segment = sourceEdge :: (core ++ [last]))
+    (successorLookup :
+      segments[dependencyCycleSuccessor count step]? =
+        some successorSegment)
+    (successorHead :
+      successorSegment.head? = some successorEdge)
+    (successorTarget : successorEdge.target = last.source) :
+    core ≠ [] := by
+  intro coreEmpty
+  have successorBound :
+      dependencyCycleSuccessor count step < count :=
+    dependencyCycleSuccessor_lt nontrivial stepBound
+  rcases classified
+      (dependencyCycleSuccessor count step) successorBound with
+    ⟨classifiedSegment, classifiedLookup, successorClassified⟩
+  have classifiedSegmentValue :
+      classifiedSegment = successorSegment :=
+    Option.some.inj (classifiedLookup.symm.trans successorLookup)
+  subst classifiedSegment
+  have successorSourceClassified :=
+    successorClassified.2.2.1 successorEdge successorHead
+  rcases coreAt with
+    ⟨coreSegment, actualSourceEdge, actualLast,
+      coreSegmentLookup, coreDecomposition,
+      _sourceStart, sourceBackward, sourceParTarget,
+      _lastTarget, _lastForward, _reflexive, _sourceKept,
+      _threadToken, coreWalk, _coreKept⟩
+  have coreSegmentValue : coreSegment = segment :=
+    Option.some.inj (coreSegmentLookup.symm.trans segmentLookup)
+  have coreDecompositionAtSegment :
+      segment = actualSourceEdge :: (core ++ [actualLast]) :=
+    Eq.trans (Eq.symm coreSegmentValue) coreDecomposition
+  have sourceEdgeValue : actualSourceEdge = sourceEdge := by
+    have sameTraversal :
+        actualSourceEdge :: (core ++ [actualLast]) =
+          sourceEdge :: (core ++ [last]) :=
+      Eq.trans (Eq.symm coreDecompositionAtSegment) decomposition
+    exact (List.cons.inj sameTraversal).1
+  subst actualSourceEdge
+  have lastValue : actualLast = last := by
+    have sameTraversal :
+        sourceEdge :: (core ++ [actualLast]) =
+          sourceEdge :: (core ++ [last]) :=
+      Eq.trans (Eq.symm coreDecompositionAtSegment) decomposition
+    have sameTail :
+        core ++ [actualLast] = core ++ [last] :=
+      (List.cons.inj sameTraversal).2
+    have sameSingleton : [actualLast] = [last] :=
+      List.append_cancel_left sameTail
+    simpa using sameSingleton
+  subst actualLast
+  have sharedPremise :
+      sourceEdge.target = successorEdge.target := by
+    have emptyChain := coreWalk.toChain
+    rw [coreEmpty] at emptyChain
+    exact emptyChain.eq_of_nil |>.trans successorTarget.symm
+  rcases backward_par_parent_exists
+      sourceBackward sourceParTarget with
+    ⟨sourceLeft, sourceRight, sourceMembership, sourcePremise⟩
+  rcases backward_par_parent_exists
+      successorSourceClassified.2.1
+      successorSourceClassified.2.2 with
+    ⟨successorLeft, successorRight,
+      successorMembership, successorPremise⟩
+  have sameParent :
+      Link.par sourceLeft sourceRight (chainAt step) =
+        Link.par successorLeft successorRight
+          (chainAt (dependencyCycleSuccessor count step)) :=
+    UnificationState.StructurallyWellFormed.parentLink_unique
+      structural sourceMembership sourcePremise
+        successorMembership
+        (by simpa [sharedPremise] using successorPremise)
+  have sameConclusion :
+      chainAt step =
+        chainAt (dependencyCycleSuccessor count step) := by
+    simpa using congrArg
+      (fun link =>
+        match link with
+        | .axiom left _ => left
+        | .tensor _ _ conclusion => conclusion
+        | .par _ _ conclusion => conclusion)
+      sameParent
+  have sameIndex :
+      step = dependencyCycleSuccessor count step :=
+    prefixInjective step stepBound
+      (dependencyCycleSuccessor count step) successorBound
+        sameConclusion
+  exact
+    dependencyCycleSuccessor_ne nontrivial stepBound
+      sameIndex.symm
+
 /-- Cycle-level packaging of the exact residual-spine successor law. -/
 private def FullyCancellingDependencyCycleReflexiveCoresChained
     (certificate : Certificate)
@@ -20299,17 +20490,18 @@ private def FullyCancellingDependencyCycleReflexiveCoresChained
             certificate.fullGraph.DirectedEdge),
         FullyCancellingDependencyCycleReflexiveCoreAt
             certificate state chainAt segments step core ∧
-          segments[step]? = some segment ∧
-            segment =
-              sourceEdge :: (core ++ [last]) ∧
-            segments[dependencyCycleSuccessor count step]? =
-              some successorSegment ∧
+          core ≠ [] ∧
+            segments[step]? = some segment ∧
+              segment =
+                sourceEdge :: (core ++ [last]) ∧
+              segments[dependencyCycleSuccessor count step]? =
+                some successorSegment ∧
               successorSegment.head? = some successorEdge ∧
                 successorEdge = last.reverse ∧
                   successorEdge.target = last.source
 
-/-- Every residual spine in the fully cancelling dependency cycle is chained
-to the next one, including across the closing last/first index. -/
+/-- Every residual spine in the fully cancelling dependency cycle is nonempty
+and chained to the next one, including across the closing last/first index. -/
 private theorem
     FullyCancellingDependencyCyclePaired.reflexiveCoresChained
     {certificate : Certificate}
@@ -20325,6 +20517,14 @@ private theorem
     (allReflexive :
       FullyCancellingDependencyCycleAllReflexive
         certificate state chainAt count segments)
+    (nontrivial : 1 < count)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
     (classified :
       ∀ step,
         step < count →
@@ -20346,8 +20546,19 @@ private theorem
     FullyCancellingDependencyCycleReflexiveCoresChained
       certificate state chainAt count segments := by
   intro step stepBound
-  exact paired.reflexiveCore_successor
-    structural allReflexive classified walks allKept stepBound
+  rcases paired.reflexiveCore_successor
+      structural allReflexive classified walks allKept stepBound with
+    ⟨core, segment, successorSegment, sourceEdge, last, successorEdge,
+      coreAt, segmentLookup, decomposition, successorLookup,
+      successorHead, successorEquation, successorTarget⟩
+  refine
+    ⟨core, segment, successorSegment, sourceEdge, last, successorEdge,
+      coreAt, ?_, segmentLookup, decomposition, successorLookup,
+      successorHead, successorEquation, successorTarget⟩
+  exact coreAt.nonempty_of_successor
+    structural nontrivial prefixInjective classified stepBound
+      segmentLookup decomposition successorLookup successorHead
+        successorTarget
 
 /-- Canonical finite family of residual reference spines, index-aligned with
 the original dependency segments. -/
@@ -20772,12 +20983,6 @@ private theorem
           exact
             ⟨core,
               coreAt.active_of_detailed segmentLookup detailed⟩
-        have reflexiveCoresChained :
-            FullyCancellingDependencyCycleReflexiveCoresChained
-              certificate final originalChain originalCount
-                originalSegments :=
-          fullyPaired.reflexiveCoresChained correct.1 allReflexive
-            originalIndexedClassification originalIndexedWalks allKept
         have residualCoreFamily :
             ∃ cores,
               FullyCancellingDependencyCycleResidualCoreFamily
@@ -20826,6 +21031,13 @@ private theorem
               simpa [countOne, stepZero] using originalChainClosed
             exact False.elim
               (junctionReflexive.source_ne_target impossible)
+        have reflexiveCoresChained :
+            FullyCancellingDependencyCycleReflexiveCoresChained
+              certificate final originalChain originalCount
+                originalSegments :=
+          fullyPaired.reflexiveCoresChained correct.1 allReflexive
+            originalCountNontrivial originalChainInjective
+              originalIndexedClassification originalIndexedWalks allKept
         have schedulerJunction :
             ∃ (source middle : Vertex)
                 (incoming :

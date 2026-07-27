@@ -301,7 +301,10 @@ or positive misses. The larger search recorded at most 995 link attempts and
    witness is now preserved through that family: deleting each exact
    source/frontier pair gives a deterministic residual core whose endpoints
    share a live token, whose successor incidence is exact, and whose every
-   edge has assigned endpoints before the first inactive frontier. The
+   edge has assigned endpoints before the first inactive frontier. Each core
+   is now also kernel-proved nonempty: otherwise adjacent waiting pars would
+   consume one exact premise and structural one-parent ownership would collapse
+   two distinct simple-cycle nodes. The
    immediate proof obligation is to exclude the resulting cycle of active
    retained spines and waiting-par incidences by an exact multi-par
    switching-flip/nesting argument and, in the nonempty branch, transport the

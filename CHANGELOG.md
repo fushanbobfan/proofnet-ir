@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- proved that every residual core in the fully cancelling simple dependency
+  cycle is nonempty. If a core were empty, its backward source incidence and
+  the cyclic successor's backward source incidence would consume the same
+  exact premise occurrence. The structural one-parent theorem would then
+  identify the two stored par links and hence two adjacent waiting
+  conclusions, contradicting prefix injectivity in the at-least-two-node
+  dependency cycle. This argument is occurrence-indexed and therefore cannot
+  exchange equal-valued parallel edges. The remaining empty-normal-form
+  obligation is to compose these nonempty active retained spines and exclude
+  their switching-tree backtracking/nesting; pure-worklist completeness is
+  still open;
 - retained the occurrence-indexed full-segment decomposition through the
   finite dependency family instead of projecting immediately to endpoint
   classifications. In the fully cancelling empty-normal-form branch, Lean now

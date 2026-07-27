@@ -162,11 +162,15 @@ cancellation is proved to cross their unique junction. The scheduler proof
  forward reflexive frontier yields a deterministic residual core; Lean proves
  its endpoints share one live token, chains it occurrence-exactly to the cyclic
  successor, and proves every edge of every residual core has both endpoints
- assigned before the first marked-to-unmarked boundary. The remaining
+ assigned before the first marked-to-unmarked boundary. Lean also proves that
+ no residual core is empty: emptiness would make adjacent waiting pars consume
+ the same exact premise occurrence, so structural one-parent ownership would
+ identify their stored links and contradict simplicity of the dependency
+ cycle. The remaining
  empty-branch obligation is therefore no longer a hidden formula tail or an
  endpoint-only token claim: it is to exclude the resulting multi-node cycle of
- active retained spines and waiting-par incidences by an exact switching
- flip/nesting argument. For the
+ nonempty active retained spines and waiting-par incidences by an exact
+ switching flip/nesting argument. For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
  Any par-pair-sparse cyclically nonbacktracking walk would therefore lie in one
