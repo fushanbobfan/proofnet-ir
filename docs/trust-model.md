@@ -286,12 +286,17 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   preserved. Each step also retains the exact rotation/contiguous-subinterval
   witness in a proof-relevant cyclic-interval trace. Recursion on traversal
   length proves that a terminal forward par-cusp interval exists together with
-  its full trace back to the original flipped family. Ordinary loop erasure is
+  its full trace back to the original flipped family. The terminal object now
+  retains an exact nonempty, closed, internally cusp-free, strictly shorter
+  complementary cyclic interval. A closing cusp on that complement is
+  kernel-proved to be only the exact last/first reverse, not another nontrivial
+  par cusp. Ordinary loop erasure is
   not used because it can
   create a new closing cusp at the erased vertex. The remaining obligation is
-  to convert that terminal interval into the forbidden reference-switching
-  cycle or strict nesting; this is not yet the correct-state progress theorem
-  needed for pure-worklist completeness.
+  to strip those exact reverse shells proof-relevantly and convert the
+  resulting strict nesting into the forbidden reference-switching cycle or
+  scheduler-order contradiction; this is not yet the correct-state progress
+  theorem needed for pure-worklist completeness.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

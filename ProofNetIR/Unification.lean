@@ -25791,8 +25791,10 @@ private def SchedulerCyclicParState
 /-- Terminal result of the cyclic chord descent.  The retained left
 occurrence is forward, so the interval beginning at the omitted right
 occurrence is a nonempty closed internally cusp-free arc whose closing turn is
-the exact par cusp.  The scheduler location remains attached to the source
-subarc for the remaining global nesting contradiction. -/
+the exact nontrivial par cusp.  The complementary cyclic interval is retained
+explicitly, is nonempty and closed, and the rotated whole traversal keeps both
+internal and closing cusp-freedom.  The scheduler location remains attached to
+the source subarc for the remaining global nesting contradiction. -/
 private def SchedulerForwardParCuspArc
     (certificate : Certificate)
     (chainAt : Nat → Vertex)
@@ -25805,7 +25807,10 @@ private def SchedulerForwardParCuspArc
     ∃ (leftOccurrence rightOccurrence :
           certificate.fullGraph.DirectedEdge)
         (conclusion : Vertex)
-        (arc : List certificate.fullGraph.DirectedEdge),
+        (arc complement :
+          List certificate.fullGraph.DirectedEdge)
+        (rotationPrefix rotationSuffix :
+          List certificate.fullGraph.DirectedEdge),
       leftOccurrence ∈ traversed ∧
         rightOccurrence ∈ traversed ∧
           leftOccurrence.forward = true ∧
@@ -25817,7 +25822,191 @@ private def SchedulerForwardParCuspArc
                   certificate.CuspFreeTraversal arc ∧
                     arc.head? = some rightOccurrence ∧
                       arc.getLast? = some leftOccurrence ∧
-                        certificate.Cusp leftOccurrence rightOccurrence
+                        certificate.Cusp leftOccurrence rightOccurrence ∧
+                          leftOccurrence ≠ rightOccurrence.reverse ∧
+                            traversed =
+                              rotationPrefix ++ rotationSuffix ∧
+                              arc ++ complement =
+                                rotationSuffix ++ rotationPrefix ∧
+                                complement ≠ [] ∧
+                                  certificate.fullGraph.EdgeWalk
+                                    conclusion complement conclusion ∧
+                                    certificate.CuspFreeTraversal
+                                      (arc ++ complement) ∧
+                                      ∀ first last,
+                                        (arc ++ complement).head? =
+                                            some first →
+                                          (arc ++ complement).getLast? =
+                                              some last →
+                                            ¬certificate.Cusp last first
+
+/-- The final exact occurrence of an edge walk reaches its stated endpoint. -/
+private theorem edgeWalk_target_eq_of_getLast?
+    {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish)
+    {last : graph.DirectedEdge}
+    (lastLookup : traversed.getLast? = some last) :
+    last.target = finish := by
+  rcases List.getLast?_eq_some_iff.mp lastLookup with
+    ⟨before, traversalEquation⟩
+  have chain := walk.toChain
+  rw [traversalEquation] at chain
+  rcases chain.split_append with
+    ⟨_middle, _prefixChain, suffixChain⟩
+  cases suffixChain with
+  | cons _directed _starts tail =>
+      exact tail.eq_of_nil
+
+/-- The complementary interval of a terminal forward par cusp is itself a
+strictly shorter nonempty closed internally cusp-free walk.  If its closing
+turn is a cusp, that cusp can only be the exact last/first immediate reversal:
+any nontrivial closing cusp would carry a par color at the common base, hence
+would also cusp against the terminal arc's retained-left last edge, contradicting
+the inherited internal boundary freedom. -/
+private theorem
+    SchedulerForwardParCuspArc.complement_closing_cusp_eq_reverse
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (terminal :
+      SchedulerForwardParCuspArc
+        certificate chainAt count flippedSegments traversed) :
+    ∃ conclusion complement,
+      CyclicIntervalCut complement traversed ∧
+        complement ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+            conclusion complement conclusion ∧
+            certificate.CuspFreeTraversal complement ∧
+              ∀ first last,
+                complement.head? = some first →
+                  complement.getLast? = some last →
+                    certificate.Cusp last first →
+                      last = first.reverse := by
+  rcases terminal with
+    ⟨_state, leftOccurrence, rightOccurrence, conclusion,
+      arc, complement, rotationPrefix, rotationSuffix,
+      _leftMembership, _rightMembership, _leftForward,
+      _schedulerLocated, arcNonempty, arcWalk, _arcFree,
+      _arcHead, arcLast, terminalCusp, terminalNontrivial,
+      traversalRotation, intervalRotation, complementNonempty,
+      complementWalk, arcsFree, _arcsClosing⟩
+  have arcLengthPositive : 0 < arc.length :=
+    List.length_pos_iff.mpr arcNonempty
+  have complementShorter :
+      complement.length < traversed.length := by
+    have lengthEquation :
+        arc.length + complement.length = traversed.length := by
+      calc
+        arc.length + complement.length =
+            (arc ++ complement).length := by simp
+        _ = (rotationSuffix ++ rotationPrefix).length := by
+          rw [intervalRotation]
+        _ = (rotationPrefix ++ rotationSuffix).length := by
+          simp [List.length_append, Nat.add_comm]
+        _ = traversed.length := by rw [traversalRotation]
+    omega
+  have complementCut :
+      CyclicIntervalCut complement traversed :=
+    ⟨rotationPrefix, rotationSuffix, arc, [],
+      traversalRotation, by
+        simpa [List.append_assoc] using intervalRotation.symm,
+      complementShorter⟩
+  have complementFree :
+      certificate.CuspFreeTraversal complement :=
+    CuspFreeTraversal.suffix certificate arcsFree
+  refine
+    ⟨conclusion, complement, complementCut, complementNonempty,
+      complementWalk, complementFree, ?_⟩
+  intro first last firstLookup lastLookup closingCusp
+  apply Classical.byContradiction
+  intro nontrivial
+  have innerCusping : certificate.CuspingEdge last :=
+    ⟨first, closingCusp, nontrivial⟩
+  rcases innerCusping.incidenceColor_eq_par with
+    ⟨innerConclusion, lastColor⟩
+  have lastColorData :=
+    (certificate.incidenceColor_eq_par_iff
+      last innerConclusion).mp lastColor
+  have lastAnnotation :
+      certificate.fullEdgeAnnotations[last.index]? =
+        some (last.edge, some innerConclusion) :=
+    certificate.fullEdgeAnnotation_lookup_iff.mpr
+      ⟨last.lookup, lastColorData.2⟩
+  have lastEdgeSecond :
+      last.edge.second = innerConclusion :=
+    certificate.fullEdgeAnnotation_some_second lastAnnotation
+  have lastTarget :
+      last.target = innerConclusion := by
+    simp [Graph.DirectedEdge.target, lastColorData.1, lastEdgeSecond]
+  have lastFinishes :
+      last.target = conclusion :=
+    edgeWalk_target_eq_of_getLast? complementWalk lastLookup
+  have innerConclusionValue :
+      innerConclusion = conclusion :=
+    lastTarget.symm.trans lastFinishes
+  have lastColorAtConclusion :
+      certificate.incidenceColor last =
+        .par conclusion :=
+    lastColor.trans (congrArg LocalSwitchingColor.par innerConclusionValue)
+  have firstReverseColor :
+      certificate.incidenceColor first.reverse =
+        .par conclusion := by
+    unfold Certificate.Cusp at closingCusp
+    exact closingCusp.symm.trans lastColorAtConclusion
+  have outerCusping : certificate.CuspingEdge leftOccurrence :=
+    ⟨rightOccurrence, terminalCusp, terminalNontrivial⟩
+  rcases outerCusping.incidenceColor_eq_par with
+    ⟨outerConclusion, leftColor⟩
+  have leftColorData :=
+    (certificate.incidenceColor_eq_par_iff
+      leftOccurrence outerConclusion).mp leftColor
+  have leftAnnotation :
+      certificate.fullEdgeAnnotations[leftOccurrence.index]? =
+        some (leftOccurrence.edge, some outerConclusion) :=
+    certificate.fullEdgeAnnotation_lookup_iff.mpr
+      ⟨leftOccurrence.lookup, leftColorData.2⟩
+  have leftEdgeSecond :
+      leftOccurrence.edge.second = outerConclusion :=
+    certificate.fullEdgeAnnotation_some_second leftAnnotation
+  have leftTarget :
+      leftOccurrence.target = outerConclusion := by
+    simp [Graph.DirectedEdge.target, leftColorData.1, leftEdgeSecond]
+  have leftFinishes :
+      leftOccurrence.target = conclusion :=
+    edgeWalk_target_eq_of_getLast? arcWalk arcLast
+  have outerConclusionValue :
+      outerConclusion = conclusion :=
+    leftTarget.symm.trans leftFinishes
+  have leftColorAtConclusion :
+      certificate.incidenceColor leftOccurrence =
+        .par conclusion :=
+    leftColor.trans (congrArg LocalSwitchingColor.par outerConclusionValue)
+  have forbiddenBoundary :
+      certificate.Cusp leftOccurrence first := by
+    unfold Certificate.Cusp
+    exact leftColorAtConclusion.trans firstReverseColor.symm
+  have boundaryFree :=
+    cuspFreeTraversal_append_boundary
+      (certificate := certificate)
+      arcNonempty complementNonempty arcsFree
+  have actualArcLast :
+      arc.getLast? = some (arc.getLast arcNonempty) :=
+    List.getLast?_eq_some_getLast arcNonempty
+  have arcLastValue :
+      arc.getLast arcNonempty = leftOccurrence :=
+    Option.some.inj (actualArcLast.symm.trans arcLast)
+  have actualComplementHead :
+      complement.head? = some (complement.head complementNonempty) :=
+    List.head?_eq_some_head complementNonempty
+  have complementHeadValue :
+      complement.head complementNonempty = first :=
+    Option.some.inj (actualComplementHead.symm.trans firstLookup)
+  rw [arcLastValue, complementHeadValue] at boundaryFree
+  exact boundaryFree forbiddenBoundary
 
 /-- One generic cyclic-interval step.  Rotating the omitted right occurrence
 to the head exposes the retained left occurrence at a unique later list
@@ -26050,14 +26239,65 @@ private theorem schedulerCyclicParState_forward_or_descends
           (leftBefore ++ [leftOccurrence]).getLast? =
             some leftOccurrence := by
         simp [List.getLast?_append]
+      have differentReverse :
+          leftOccurrence ≠ rightOccurrence.reverse := by
+        intro sameOccurrence
+        have sameIndex :
+            leftOccurrence.index = rightOccurrence.index := by
+          simpa using
+            congrArg Graph.DirectedEdge.index sameOccurrence
+        omega
+      have intervalEquation :
+          (leftBefore ++ [leftOccurrence]) ++ leftAfter =
+            (rightOccurrence :: rightAfter) ++ rightBefore := by
+        simpa [List.append_assoc] using leftTraversal.symm
+      have complementNonempty : leftAfter ≠ [] := by
+        intro complementEmpty
+        have rotatedLast :
+            ((rightOccurrence :: rightAfter) ++ rightBefore).getLast? =
+              some leftOccurrence := by
+          rw [← intervalEquation, complementEmpty]
+          simp [List.getLast?_append]
+        exact
+          (rotatedClosing rightOccurrence leftOccurrence
+            rotatedHead rotatedLast)
+              (chordCusp_of_forward leftOrientation)
+      have complementWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion leftAfter conclusion := by
+        have suffixChain := leftSuffixChain
+        cases suffixChain with
+        | cons _ starts tail =>
+            have tailAtConclusion :
+                certificate.fullGraph.EdgeChain
+                  conclusion leftAfter conclusion := by
+              simpa [leftTarget] using tail
+            exact tailAtConclusion.toWalk
+      have arcsFree :
+          certificate.CuspFreeTraversal
+            ((leftBefore ++ [leftOccurrence]) ++ leftAfter) := by
+        rw [intervalEquation]
+        exact rotatedFree
+      have arcsClosing :
+          ∀ first last,
+            ((leftBefore ++ [leftOccurrence]) ++ leftAfter).head? =
+                some first →
+              ((leftBefore ++ [leftOccurrence]) ++ leftAfter).getLast? =
+                  some last →
+                ¬certificate.Cusp last first := by
+        rw [intervalEquation]
+        exact rotatedClosing
       exact .inl
         ⟨originalState,
           leftOccurrence, rightOccurrence, conclusion,
-            leftBefore ++ [leftOccurrence],
+            leftBefore ++ [leftOccurrence], leftAfter,
+            rightBefore, rightOccurrence :: rightAfter,
             leftMembership, rightMembership, leftOrientation,
             schedulerLocated, by simp, firstWalk, firstFree,
             firstHead, firstLast,
-            chordCusp_of_forward leftOrientation⟩
+            chordCusp_of_forward leftOrientation, differentReverse,
+            rightTraversal, intervalEquation, complementNonempty,
+            complementWalk, arcsFree, arcsClosing⟩
   | false =>
       have leftSource :
           leftOccurrence.source = conclusion := by

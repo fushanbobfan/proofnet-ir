@@ -365,11 +365,16 @@ or positive misses. The larger search recorded at most 995 link attempts and
     interval in a proof-relevant descent trace. Well-founded recursion on
     traversal length closes the infinite-backward branch and produces a
     terminal forward par-cusp interval with its order trace back to the
-    original flipped family. Ordinary loop
+    original flipped family. The terminal object now retains the exact
+    complementary cyclic interval, proves it nonempty, closed, internally
+    cusp-free, and strictly shorter, and proves that any closing cusp there is
+    only the exact last/first reversal rather than another nontrivial par cusp.
+    Ordinary loop
     erasure remains unnecessary and unsafe because it can create a new closing
     cusp by re-pairing incidences at the erased vertex. The immediate remaining
-    obligation is to transport that terminal classified witness into an
-    excluded edge-simple reference-switching cycle or forbidden strict nesting.
+    obligation is to strip the exact reverse shells with a proof-relevant
+    nesting trace and transport the classified witness into an excluded
+    edge-simple reference-switching cycle or scheduler-order contradiction.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

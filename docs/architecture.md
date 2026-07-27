@@ -242,11 +242,16 @@ active-reference walks between marked occurrences are equivalent to
   and the smaller contiguous cyclic interval in a proof-relevant descent trace;
   well-founded recursion on list length therefore reaches a terminal forward
   retained-left par-cusp interval while preserving its order provenance back
-  to the original flipped family. Ordinary loop
+  to the original flipped family. The terminal object retains its exact
+  complementary cyclic interval; this complement is nonempty, closed,
+  internally cusp-free, and strictly shorter. A kernel theorem shows that any
+  closing cusp of the complement is necessarily the exact last/first reverse,
+  because a nontrivial par cusp would violate the inherited boundary freedom.
+  Ordinary loop
   erasure is not used: erasing at a repeated vertex can re-pair incidences and
   create a new closing cusp. Pure completeness still requires converting the
-  terminal interval into the forbidden reference-switching cycle or strict
-  nesting.
+  resulting proof-relevant reverse-shell nesting into the forbidden
+  reference-switching cycle or scheduler-order contradiction.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

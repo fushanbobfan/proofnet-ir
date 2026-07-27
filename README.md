@@ -244,8 +244,15 @@ contiguous interval are recorded rather than replaced by a membership subset.
 Recursion on traversal length therefore terminates at a forward retained-left
 par-cusp arc, with its full interval-descent trace back to the original flipped
 family. The infinite-backward-descent concern is closed without loop erasure.
-The remaining geometric obligation is solely to turn that terminal closing par
-cusp into an excluded reference-switching cycle or strict nesting.
+The terminal proof object now also retains the exact complementary cyclic
+interval rather than merely naming an unrelated closed arc. That complement is
+nonempty, closed, internally cusp-free, and strictly shorter. Lean proves that
+any cusp at its closing junction must be the exact last/first immediate
+reversal: a nontrivial par cusp would also cusp against the terminal arc's
+retained-left boundary, contradicting the rotated traversal's internal
+cusp-freedom. The remaining geometric obligation is to strip these exact
+reverse shells proof-relevantly and turn the resulting strict nesting into an
+excluded reference-switching cycle or scheduler-order contradiction.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
@@ -255,10 +262,12 @@ For the
  all-left forward-retention invariant forces its omitted right occurrence to be
  traversed backward. Proof-net correctness and finite length now transport the
  exact cyclic scheduler state through every shorter backward witness and force
- a terminal forward par-cusp interval. It must next use the retained scheduler
- geometry to turn that interval, together with the already exposed empty
- nesting, into an edge-simple reference-switching cycle or forbidden strict
- nesting before the recursive fallback can be removed. The
+ a terminal forward par-cusp interval. Its complementary interval is now exact,
+ nonempty, closed, strictly shorter, internally cusp-free, and can close with a
+ cusp only by exact reversal. It must next use the retained scheduler geometry
+ to strip that reversal nesting and turn the result, together with the already
+ exposed empty nesting, into an edge-simple reference-switching cycle or
+ forbidden strict nesting before the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See

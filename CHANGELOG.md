@@ -18,6 +18,15 @@
   yet turn that interval into the forbidden reference-switching cycle or strict
   nesting, so correct-state progress and pure-worklist completeness remain
   open;
+- strengthened the terminal forward-cusp proof object so “interval” is no
+  longer only commentary: it retains the exact cyclic rotation, the
+  complementary contiguous interval, and the nontrivial left/right par cusp.
+  The complement is kernel-proved nonempty, closed, internally cusp-free, and
+  strictly shorter. Any cusp at its closing junction is now proved to be only
+  the exact last/first immediate reversal; a second nontrivial par cusp there
+  would contradict the inherited boundary cusp-freedom. The remaining nesting
+  step is to strip those exact reverse shells proof-relevantly and contradict
+  the simple scheduler-cycle order;
 - proved that every residual core in the fully cancelling simple dependency
   cycle is nonempty. If a core were empty, its backward source incidence and
   the cyclic successor's backward source incidence would consume the same
