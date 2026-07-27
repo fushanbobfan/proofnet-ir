@@ -23786,6 +23786,11 @@ private theorem
                             certificate
                               (chainAt step) (chainAt (step + 1))
                                 segment) ∧
+                    (∀ directed,
+                      directed ∈ flippedSegments.flatten →
+                        directed.forward = true →
+                          certificate.referenceSwitchingMask[
+                            directed.index]? = some true) ∧
                     NormalizedNonemptyParObstruction
                       certificate flippedSegments.flatten := by
   rcases
@@ -23800,10 +23805,270 @@ private theorem
   exact
     ⟨flippedSegments, segmentCount, flattenedNonempty,
       closedWalk, cyclicReduced, cuspFree, closingCuspFree,
-      indexedFlipped,
+      indexedFlipped, forwardKept,
       by
         simpa [NormalizedNonemptyParObstruction] using
           obstruction⟩
+
+/-- Membership in the flattened complementary scheduler family retains an
+exact indexed segment and its source/target classification.  This is the
+pointwise transport used after a cyclic chord cuts through the middle of a
+segment: the smaller arc need not itself be a whole segment family, but none of
+its occurrences loses scheduler provenance. -/
+private theorem flippedSchedulerSegment_of_mem_flatten
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    {directed : certificate.fullGraph.DirectedEdge}
+    (membership : directed ∈ flippedSegments.flatten) :
+    ∃ step segment,
+      step < count ∧
+        flippedSegments[step]? = some segment ∧
+          directed ∈ segment ∧
+            QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+              certificate
+                (chainAt step) (chainAt (step + 1))
+                  segment := by
+  rcases List.mem_flatten.mp membership with
+    ⟨segment, segmentMembership, directedMembership⟩
+  rcases List.getElem?_of_mem segmentMembership with
+    ⟨step, segmentLookup⟩
+  have stepBound : step < count := by
+    have familyBound := (List.getElem?_eq_some_iff.mp segmentLookup).1
+    simpa [segmentCount] using familyBound
+  rcases indexedFlipped step stepBound with
+    ⟨indexedSegment, indexedLookup, classified⟩
+  have indexedValue : indexedSegment = segment :=
+    Option.some.inj (indexedLookup.symm.trans segmentLookup)
+  subst indexedSegment
+  exact
+    ⟨step, segment, stepBound, segmentLookup,
+      directedMembership, classified⟩
+
+/-- A par obstruction carried by an arbitrary subarc of the complementary
+scheduler family can still be located at two exact, distinct scheduler
+segments.  The omitted right occurrence is the head of its segment; the
+matching retained left occurrence cannot inhabit that same segment because the
+source flipped traversal explicitly avoids its own left incidence. -/
+private def SchedulerLocatedParObstruction
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ (before : List Link) (left right conclusion : Vertex)
+      (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (rightStep leftStep : Nat)
+      (rightSegment leftSegment :
+        List certificate.fullGraph.DirectedEdge),
+    certificate.links =
+        before ++ .par left right conclusion :: after ∧
+      leftOccurrence ∈ traversed ∧
+        leftOccurrence.index = (linkFullEdges before).length ∧
+          rightOccurrence ∈ traversed ∧
+            rightOccurrence.index =
+                (linkFullEdges before).length + 1 ∧
+              rightOccurrence.forward = false ∧
+                rightStep < count ∧
+                  leftStep < count ∧
+                    rightStep ≠ leftStep ∧
+                      flippedSegments[rightStep]? = some rightSegment ∧
+                        rightSegment.head? = some rightOccurrence ∧
+                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                              certificate
+                                (chainAt rightStep) (chainAt (rightStep + 1))
+                                  rightSegment ∧
+                            conclusion = chainAt rightStep ∧
+                              conclusion ≠ chainAt leftStep ∧
+                                flippedSegments[leftStep]? = some leftSegment ∧
+                                  leftOccurrence ∈ leftSegment ∧
+                                    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                                      certificate
+                                        (chainAt leftStep) (chainAt (leftStep + 1))
+                                          leftSegment ∧
+                                      conclusion ∈
+                                        leftSegment.map
+                                          Graph.DirectedEdge.target
+
+private theorem
+    NormalizedNonemptyParObstruction.schedulerLocated
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (obstruction :
+      NormalizedNonemptyParObstruction certificate traversed)
+    (provenance :
+      ∀ directed,
+        directed ∈ traversed →
+          ∃ step segment,
+            step < count ∧
+              flippedSegments[step]? = some segment ∧
+                directed ∈ segment ∧
+                  QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                    certificate
+                      (chainAt step) (chainAt (step + 1))
+                        segment)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second) :
+    SchedulerLocatedParObstruction
+      certificate chainAt count flippedSegments traversed := by
+  rcases obstruction with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, leftIndex, rightMembership, rightIndex,
+      rightBackward⟩
+  rcases provenance rightOccurrence rightMembership with
+    ⟨rightStep, rightSegment, rightStepBound, rightLookup,
+      rightInSegment, rightFlipped⟩
+  rcases provenance leftOccurrence leftMembership with
+    ⟨leftStep, leftSegment, leftStepBound, leftLookup,
+      leftInSegment, leftFlipped⟩
+  have rightOmitted :
+      certificate.referenceSwitchingMask[rightOccurrence.index]? =
+        some false := by
+    have positions :=
+      certificate.referenceSwitchingMask_parAt
+        before after left right conclusion linksEquation
+    simpa [rightIndex] using positions.2
+  have rightHead :
+      rightSegment.head? = some rightOccurrence :=
+    rightFlipped.1.omitted_mem_eq_head rightInSegment rightOmitted
+  rcases rightFlipped.1.avoids_source_left with
+    ⟨sourceBefore, sourceAfter, sourceLeft, sourceRight,
+      sourceRightOccurrence, sourceLinksEquation, sourceHead,
+      sourceRightIndex, sourceLeftAvoided⟩
+  have sourceRightValue :
+      sourceRightOccurrence = rightOccurrence :=
+    Option.some.inj (sourceHead.symm.trans rightHead)
+  subst sourceRightOccurrence
+  have sourceRightExpected :
+      certificate.fullGraph.edges[rightOccurrence.index]? =
+        some
+          { first := sourceRight
+            second := chainAt rightStep } := by
+    change
+      (linkFullEdges certificate.links)[rightOccurrence.index]? =
+        some
+          { first := sourceRight
+            second := chainAt rightStep }
+    rw [sourceLinksEquation]
+    rw [sourceRightIndex]
+    exact
+      (linkFullEdges_parAt
+        sourceBefore sourceAfter sourceLeft sourceRight
+          (chainAt rightStep)).2
+  have obstructionRightExpected :
+      certificate.fullGraph.edges[rightOccurrence.index]? =
+        some { first := right, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[rightOccurrence.index]? =
+        some { first := right, second := conclusion }
+    rw [linksEquation]
+    rw [rightIndex]
+    exact
+      (linkFullEdges_parAt before after left right conclusion).2
+  have sourceConclusion :
+      chainAt rightStep = conclusion := by
+    have edgeEquation :
+        ({ first := sourceRight
+           second := chainAt rightStep } : Edge) =
+          { first := right, second := conclusion } :=
+      Option.some.inj
+        (sourceRightExpected.symm.trans obstructionRightExpected)
+    exact congrArg Edge.second edgeEquation
+  have distinctSteps : rightStep ≠ leftStep := by
+    intro sameStep
+    subst leftStep
+    have sameSegment : leftSegment = rightSegment :=
+      Option.some.inj (leftLookup.symm.trans rightLookup)
+    subst leftSegment
+    apply sourceLeftAvoided leftOccurrence leftInSegment
+    calc
+      leftOccurrence.index =
+          (linkFullEdges before).length := leftIndex
+      _ = (linkFullEdges sourceBefore).length := by
+        omega
+  have conclusionNeLeftStart :
+      conclusion ≠ chainAt leftStep := by
+    intro conclusionAtLeft
+    apply distinctSteps
+    exact
+      prefixInjective rightStep rightStepBound leftStep leftStepBound
+        (sourceConclusion.trans conclusionAtLeft)
+  have leftExpected :
+      certificate.fullGraph.edges[leftOccurrence.index]? =
+        some { first := left, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[leftOccurrence.index]? =
+        some { first := left, second := conclusion }
+    rw [linksEquation]
+    rw [leftIndex]
+    exact
+      (linkFullEdges_parAt before after left right conclusion).1
+  have leftEdge :
+      leftOccurrence.edge =
+        { first := left, second := conclusion } :=
+    Option.some.inj (leftOccurrence.lookup.symm.trans leftExpected)
+  have conclusionInLeftVertices :
+      conclusion ∈
+        Graph.EdgeWalk.visitedVertices
+          (chainAt leftStep) leftSegment := by
+    cases orientation : leftOccurrence.forward with
+    | false =>
+        have sourceConclusion :
+            leftOccurrence.source = conclusion := by
+          simp [Graph.DirectedEdge.source, leftEdge, orientation]
+        rw [← sourceConclusion]
+        exact
+          (leftFlipped.1.walk.endpoints_mem_visitedVertices
+            leftInSegment).1
+    | true =>
+        have targetConclusion :
+            leftOccurrence.target = conclusion := by
+          simp [Graph.DirectedEdge.target, leftEdge, orientation]
+        rw [← targetConclusion]
+        exact
+          (leftFlipped.1.walk.endpoints_mem_visitedVertices
+            leftInSegment).2
+  have conclusionInLeftTail :
+      conclusion ∈
+        leftSegment.map Graph.DirectedEdge.target := by
+    simpa [Graph.EdgeWalk.visitedVertices,
+      conclusionNeLeftStart] using conclusionInLeftVertices
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence,
+      rightStep, leftStep, rightSegment, leftSegment,
+      linksEquation, leftMembership, leftIndex,
+      rightMembership, rightIndex, rightBackward,
+      rightStepBound, leftStepBound, distinctSteps,
+      rightLookup, rightHead, rightFlipped,
+      sourceConclusion.symm, conclusionNeLeftStart,
+      leftLookup, leftInSegment, leftFlipped,
+      conclusionInLeftTail⟩
 
 /-- Two distinct indexed list entries in increasing order expose the exact
 three intervals before, between, and after them. -/
@@ -24132,9 +24397,16 @@ same par color prove every possible second-arc closing turn cusp-free.
 Together with internal cusp-freedom this makes the second arc cyclically
 nonbacktracking, and the nonempty first arc makes it strictly shorter than the
 original flipped walk.  The second arc need not be vertex-simple, so this is
-a well-founded descent witness rather than an immediate `CuspFreeCycle`; the
-remaining obligation is to transport the scheduler structure through that
-descent or exclude the complementary forward/nesting case. -/
+a well-founded descent witness rather than an immediate `CuspFreeCycle`.
+Every occurrence of the shorter arc now retains its exact indexed scheduler
+segment, every forward occurrence remains reference-kept, and correctness
+supplies another backward-right par obstruction.  That recursive obstruction
+is scheduler-located: its omitted right is the exact head of one flipped
+segment, its retained left lies in a distinct classified segment, and the
+shared conclusion is the right segment's start but a genuine internal target
+of the left segment.  The remaining obligation is to transport the cyclic
+interval/nesting invariant through this located recursive chord or exclude the
+complementary forward/nesting case. -/
 private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_between_distinct_segments_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
@@ -24315,6 +24587,42 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                                             leftOccurrence) ∧
                                                                         Graph.EdgeWalk.CyclicNoImmediateReverse
                                                                           secondArc ∧
+                                                                          (∀ directed,
+                                                                            directed ∈
+                                                                                secondArc →
+                                                                              directed.forward =
+                                                                                  true →
+                                                                                certificate.referenceSwitchingMask[
+                                                                                  directed.index]? =
+                                                                                  some true) ∧
+                                                                            NormalizedNonemptyParObstruction
+                                                                              certificate
+                                                                                secondArc ∧
+                                                                              (∀ directed,
+                                                                                directed ∈
+                                                                                    secondArc →
+                                                                                  ∃ step segment,
+                                                                                    step <
+                                                                                        count ∧
+                                                                                      flippedSegments[
+                                                                                        step]? =
+                                                                                        some segment ∧
+                                                                                        directed ∈
+                                                                                            segment ∧
+                                                                                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                                                                                            certificate
+                                                                                              (chainAt
+                                                                                                step)
+                                                                                              (chainAt
+                                                                                                (step +
+                                                                                                  1))
+                                                                                              segment) ∧
+                                                                            SchedulerLocatedParObstruction
+                                                                              certificate
+                                                                                chainAt
+                                                                                count
+                                                                                flippedSegments
+                                                                                secondArc ∧
                                                                           secondArc.length <
                                                                             flippedSegments.flatten.length) ∧
                                                                   (leftOccurrence ∈
@@ -24326,7 +24634,7 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
         correct positive closed with
     ⟨flippedSegments, segmentCount, _flattenedNonempty,
       _closedWalk, _cyclicReduced, cuspFree, closingCuspFree,
-      indexedFlipped, obstruction⟩
+      indexedFlipped, allForwardKept, obstruction⟩
   rcases obstruction with
     ⟨before, left, right, conclusion, after,
       leftOccurrence, rightOccurrence, linksEquation,
@@ -24762,8 +25070,31 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                       last leftOccurrence) ∧
                                   Graph.EdgeWalk.CyclicNoImmediateReverse
                                     secondArc ∧
-                                    secondArc.length <
-                                      flippedSegments.flatten.length) ∧
+                                    (∀ directed,
+                                      directed ∈ secondArc →
+                                        directed.forward = true →
+                                          certificate.referenceSwitchingMask[
+                                            directed.index]? = some true) ∧
+                                      NormalizedNonemptyParObstruction
+                                        certificate secondArc ∧
+                                        (∀ directed,
+                                          directed ∈ secondArc →
+                                            ∃ step segment,
+                                              step < count ∧
+                                                flippedSegments[step]? =
+                                                    some segment ∧
+                                                  directed ∈ segment ∧
+                                                    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                                                      certificate
+                                                        (chainAt step)
+                                                        (chainAt (step + 1))
+                                                        segment) ∧
+                                          SchedulerLocatedParObstruction
+                                            certificate chainAt count
+                                              flippedSegments
+                                              secondArc ∧
+                                          secondArc.length <
+                                            flippedSegments.flatten.length) ∧
                             (leftOccurrence ∈ firstArc ∨
                               leftOccurrence ∈ secondArc) := by
     rcases orderedSegments with
@@ -24931,8 +25262,28 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                   secondArc.getLast? = some last →
                     ¬certificate.Cusp last leftOccurrence) ∧
                   Graph.EdgeWalk.CyclicNoImmediateReverse secondArc ∧
-                    secondArc.length <
-                      flippedSegments.flatten.length := by
+                    (∀ directed,
+                      directed ∈ secondArc →
+                        directed.forward = true →
+                          certificate.referenceSwitchingMask[
+                            directed.index]? = some true) ∧
+                      NormalizedNonemptyParObstruction
+                        certificate secondArc ∧
+                        (∀ directed,
+                          directed ∈ secondArc →
+                            ∃ step segment,
+                              step < count ∧
+                                flippedSegments[step]? = some segment ∧
+                                  directed ∈ segment ∧
+                                    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                                      certificate
+                                        (chainAt step) (chainAt (step + 1))
+                                          segment) ∧
+                          SchedulerLocatedParObstruction
+                            certificate chainAt count flippedSegments
+                              secondArc ∧
+                          secondArc.length <
+                            flippedSegments.flatten.length := by
         intro leftBackward
         rcases leftChordPlacement with
           ⟨leftForward, _incomingLast⟩ |
@@ -24981,9 +25332,55 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
               Graph.EdgeWalk.CyclicNoImmediateReverse secondArc :=
             cyclicNoImmediateReverse_of_cuspFree
               secondFree secondClosing
+          have secondInFlatten :
+              ∀ directed,
+                directed ∈ secondArc →
+                  directed ∈ flippedSegments.flatten := by
+            intro directed membership
+            apply rotationPermutation.mem_iff.mp
+            simp [membership]
+          have secondForwardKept :
+              ∀ directed,
+                directed ∈ secondArc →
+                  directed.forward = true →
+                    certificate.referenceSwitchingMask[
+                      directed.index]? = some true := by
+            intro directed membership forward
+            exact allForwardKept directed
+              (secondInFlatten directed membership) forward
+          have secondObstruction :
+              NormalizedNonemptyParObstruction certificate secondArc := by
+            have obstruction :=
+              correct.cyclicNoImmediateReverse_uses_backwardRightPar
+                secondNonempty secondWalk secondCyclicReduced
+                  secondForwardKept
+            simpa [NormalizedNonemptyParObstruction] using obstruction
+          have secondSchedulerProvenance :
+              ∀ directed,
+                directed ∈ secondArc →
+                  ∃ step segment,
+                    step < count ∧
+                      flippedSegments[step]? = some segment ∧
+                        directed ∈ segment ∧
+                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                            certificate
+                              (chainAt step) (chainAt (step + 1))
+                                segment := by
+            intro directed membership
+            exact
+              flippedSchedulerSegment_of_mem_flatten
+                segmentCount indexedFlipped
+                  (secondInFlatten directed membership)
+          have secondSchedulerChord :
+              SchedulerLocatedParObstruction
+                certificate chainAt count flippedSegments secondArc :=
+            secondObstruction.schedulerLocated
+              secondSchedulerProvenance prefixInjective
           exact
             ⟨secondNonempty, secondHead, noCuspToLeft,
-              secondCyclicReduced, secondShorter⟩
+              secondCyclicReduced, secondForwardKept,
+              secondObstruction, secondSchedulerProvenance,
+              secondSchedulerChord, secondShorter⟩
       have leftInArcs :
           leftOccurrence ∈ firstArc ∨
             leftOccurrence ∈ secondArc := by
@@ -25163,8 +25560,28 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                   secondArc.getLast? = some last →
                     ¬certificate.Cusp last leftOccurrence) ∧
                   Graph.EdgeWalk.CyclicNoImmediateReverse secondArc ∧
-                    secondArc.length <
-                      flippedSegments.flatten.length := by
+                    (∀ directed,
+                      directed ∈ secondArc →
+                        directed.forward = true →
+                          certificate.referenceSwitchingMask[
+                            directed.index]? = some true) ∧
+                      NormalizedNonemptyParObstruction
+                        certificate secondArc ∧
+                        (∀ directed,
+                          directed ∈ secondArc →
+                            ∃ step segment,
+                              step < count ∧
+                                flippedSegments[step]? = some segment ∧
+                                  directed ∈ segment ∧
+                                    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                                      certificate
+                                        (chainAt step) (chainAt (step + 1))
+                                          segment) ∧
+                          SchedulerLocatedParObstruction
+                            certificate chainAt count flippedSegments
+                              secondArc ∧
+                          secondArc.length <
+                            flippedSegments.flatten.length := by
         intro leftBackward
         rcases leftChordPlacement with
           ⟨leftForward, _incomingLast⟩ |
@@ -25213,9 +25630,55 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
               Graph.EdgeWalk.CyclicNoImmediateReverse secondArc :=
             cyclicNoImmediateReverse_of_cuspFree
               secondFree secondClosing
+          have secondInFlatten :
+              ∀ directed,
+                directed ∈ secondArc →
+                  directed ∈ flippedSegments.flatten := by
+            intro directed membership
+            apply rotationPermutation.mem_iff.mp
+            simp [membership]
+          have secondForwardKept :
+              ∀ directed,
+                directed ∈ secondArc →
+                  directed.forward = true →
+                    certificate.referenceSwitchingMask[
+                      directed.index]? = some true := by
+            intro directed membership forward
+            exact allForwardKept directed
+              (secondInFlatten directed membership) forward
+          have secondObstruction :
+              NormalizedNonemptyParObstruction certificate secondArc := by
+            have obstruction :=
+              correct.cyclicNoImmediateReverse_uses_backwardRightPar
+                secondNonempty secondWalk secondCyclicReduced
+                  secondForwardKept
+            simpa [NormalizedNonemptyParObstruction] using obstruction
+          have secondSchedulerProvenance :
+              ∀ directed,
+                directed ∈ secondArc →
+                  ∃ step segment,
+                    step < count ∧
+                      flippedSegments[step]? = some segment ∧
+                        directed ∈ segment ∧
+                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                            certificate
+                              (chainAt step) (chainAt (step + 1))
+                                segment := by
+            intro directed membership
+            exact
+              flippedSchedulerSegment_of_mem_flatten
+                segmentCount indexedFlipped
+                  (secondInFlatten directed membership)
+          have secondSchedulerChord :
+              SchedulerLocatedParObstruction
+                certificate chainAt count flippedSegments secondArc :=
+            secondObstruction.schedulerLocated
+              secondSchedulerProvenance prefixInjective
           exact
             ⟨secondNonempty, secondHead, noCuspToLeft,
-              secondCyclicReduced, secondShorter⟩
+              secondCyclicReduced, secondForwardKept,
+              secondObstruction, secondSchedulerProvenance,
+              secondSchedulerChord, secondShorter⟩
       have leftInArcs :
           leftOccurrence ∈ firstArc ∨
             leftOccurrence ∈ secondArc := by

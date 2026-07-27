@@ -275,8 +275,13 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   cyclically nonbacktracking, and is strictly shorter than the original
   flipped walk because the first arc is nonempty. This is a descent witness,
   not yet a `CuspFreeCycle`, because the second arc may repeat vertices. The
-  remaining obligation is to preserve enough scheduler/nesting structure
-  across the descent, or discharge the complementary forward par-cusp branch.
+  descent now preserves pointwise indexed scheduler provenance and reference
+  retention. Correctness exposes another backward-right par in the shorter
+  arc, and Lean locates it at two distinct classified scheduler segments: the
+  omitted right is one segment's head, while the retained left reaches the
+  same conclusion internally from the other segment. The remaining obligation
+  is to preserve the cyclic interval/nesting invariant through that recursively
+  located chord, or discharge the complementary forward par-cusp branch.
  Ordinary loop erasure is not sufficient because it can create a new closing
  cusp at the erased vertex. This is not yet the correct-state progress theorem
  needed for pure-worklist completeness.

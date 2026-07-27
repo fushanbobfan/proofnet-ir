@@ -229,10 +229,16 @@ active-reference walks between marked occurrences are equivalent to
   nonbacktracking walk, and it is strictly shorter than the original flipped
   walk because the first arc is nonempty. It is not yet an
   `EdgeSimpleCycle`, since vertices can repeat. Pure completeness therefore
-  still requires a well-founded transport of the scheduler/nesting structure
-  along this strict descent, or a contradiction from the complementary
-  forward par-cusp branch. Ordinary loop erasure is not used: erasing at a
-  repeated vertex can re-pair incidences and create a new closing cusp.
+  now transports pointwise scheduler provenance and reference retention along
+  the strict descent. Correctness supplies another exact backward-right par in
+  the shorter arc; its omitted right is the head of one classified flipped
+  segment, its retained left lies in a distinct classified segment, and their
+  conclusion is the first segment's start but an internal target of the
+  second. Pure completeness still requires a well-founded transport of the
+  cyclic interval/nesting invariant through that recursively located chord,
+  or a contradiction from the complementary forward par-cusp branch.
+  Ordinary loop erasure is not used: erasing at a repeated vertex can re-pair
+  incidences and create a new closing cusp.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

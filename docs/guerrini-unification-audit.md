@@ -350,14 +350,20 @@ or positive misses. The larger search recorded at most 995 link attempts and
     now prove every second-arc closing turn cusp-free. Thus this branch yields
     a closed, internally cusp-free, cyclically nonbacktracking second arc that
     is strictly shorter than the original flipped walk. It is not necessarily
-    vertex-simple. The immediate proof obligation is now to transport the
-    scheduler/nesting structure through this well-founded descent, or turn the
-    complementary forward par-cusp branch into the global repeated-vertex/
-    nesting contradiction. Ordinary loop erasure remains insufficient because
-    it can create a new closing cusp by re-pairing incidences at the erased
-    vertex. In the nonempty branch, the proof must still transport the
-    classified witness into an excluded edge-simple switching cycle or
-    forbidden nesting.
+    vertex-simple. Every occurrence in this shorter arc now retains an exact
+    indexed flipped-scheduler segment and every forward occurrence remains
+    reference-kept. Correctness forces another backward-right par obstruction
+    inside the arc; Lean locates its omitted right at the exact head of one
+    classified segment, its retained left in a distinct classified segment,
+    and the shared conclusion at the former segment's start but internally in
+    the latter segment. The immediate proof obligation is now to transport the
+    cyclic interval/nesting invariant through this recursively located chord,
+    or turn the complementary forward par-cusp branch into the global
+    repeated-vertex/nesting contradiction. Ordinary loop erasure remains
+    insufficient because it can create a new closing cusp by re-pairing
+    incidences at the erased vertex. In the nonempty branch, the proof must
+    still transport the classified witness into an excluded edge-simple
+    switching cycle or forbidden nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
