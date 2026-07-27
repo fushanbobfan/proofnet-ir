@@ -254,8 +254,11 @@ active-reference walks between marked occurrences are equivalent to
   cyclic-interval descent. A cusp-free nonempty core recursively yields a
   strictly nested terminal forward cusp, so well-founded descent terminates at
   either an empty shell core or a scheduler-located nontrivial closing-par
-  core. Pure completeness still requires excluding those two finite base
-  cases by the reference-switching or scheduler-order contradiction.
+  core. The terminal proof object now binds its concrete cusp and scheduler
+  coordinates to one position-aware obstruction, and terminal bases no longer
+  admit unrelated duplicate existential witnesses. Pure completeness still
+  requires excluding those two finite base cases by the reference-switching or
+  scheduler-order contradiction.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

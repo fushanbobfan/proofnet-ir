@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- hardened the unfinished scheduler-nesting proof objects against existential
+  witness drift. `SchedulerPositionedParObstruction` now retains exact linear
+  decompositions for the two par occurrences inside the current cyclic
+  interval and for their two distinct classified segments inside the original
+  scheduler family. The terminal forward-cusp object is indexed by that same
+  positioned witness, so its head, last occurrence, common conclusion, cusp,
+  and scheduler positions cannot come from different par links. The terminal
+  nesting base no longer stores independent duplicate located/positioned
+  witnesses: both the outer cusp and a nonempty closing core project from
+  their single proof-relevant witnesses. This repairs the representation used
+  by the still-open base-case contradiction; it does not claim that the
+  empty-core or closing-par bases have yet been excluded;
 - added proof-relevant cyclic reverse-shell normalization for an internally
   nonbacktracking closed traversal. The normalization retains the exact
   decomposition `opening ++ normalized ++ reverseTraversal opening`, proves

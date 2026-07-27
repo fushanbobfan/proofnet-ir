@@ -24123,6 +24123,300 @@ private theorem ordered_getElem?_decomposition
                 ⟨head :: before, middle, after, by
                   simp [tailEquation]⟩
 
+/-- Two distinct values occurring in one list admit one of the two exact
+linear orders.  The witness records concrete prefixes, the interval between
+the occurrences, and the remaining suffix; no decidable equality or
+value-level search is used. -/
+private theorem distinct_mem_ordered_decomposition
+    {α : Type} {values : List α} {first second : α}
+    (firstMembership : first ∈ values)
+    (secondMembership : second ∈ values)
+    (distinct : first ≠ second) :
+    (∃ before middle after,
+      values =
+        before ++ first :: middle ++ second :: after) ∨
+      ∃ before middle after,
+        values =
+          before ++ second :: middle ++ first :: after := by
+  rcases List.getElem?_of_mem firstMembership with
+    ⟨firstIndex, firstLookup⟩
+  rcases List.getElem?_of_mem secondMembership with
+    ⟨secondIndex, secondLookup⟩
+  have distinctIndices : firstIndex ≠ secondIndex := by
+    intro sameIndex
+    subst secondIndex
+    exact distinct
+      (Option.some.inj (firstLookup.symm.trans secondLookup))
+  rcases Nat.lt_or_gt_of_ne distinctIndices with
+    firstBeforeSecond | secondBeforeFirst
+  · exact .inl
+      (ordered_getElem?_decomposition
+        firstBeforeSecond firstLookup secondLookup)
+  · exact .inr
+      (ordered_getElem?_decomposition
+        secondBeforeFirst secondLookup firstLookup)
+
+/-- Position-aware refinement of a scheduler-located par obstruction.
+Besides the exact par indices and classified scheduler segments, it retains
+both linear orders needed by the remaining nesting argument:
+
+* the two par occurrences inside the current cyclic interval; and
+* their two distinct segments inside the original scheduler family.
+
+This prevents later recursive cuts from silently degrading an exact
+occurrence argument to bare value membership. -/
+private def SchedulerPositionedParObstructionAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (traversed : List certificate.fullGraph.DirectedEdge)
+    (before : List Link)
+    (left right conclusion : Vertex)
+    (after : List Link)
+    (leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge)
+    (rightStep leftStep : Nat)
+    (rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  certificate.links =
+      before ++ .par left right conclusion :: after ∧
+    leftOccurrence ∈ traversed ∧
+      leftOccurrence.index = (linkFullEdges before).length ∧
+        rightOccurrence ∈ traversed ∧
+          rightOccurrence.index =
+            (linkFullEdges before).length + 1 ∧
+            leftOccurrence ≠ rightOccurrence ∧
+              rightOccurrence.forward = false ∧
+                rightStep < count ∧
+                  leftStep < count ∧
+                    rightStep ≠ leftStep ∧
+                      flippedSegments[rightStep]? = some rightSegment ∧
+                        rightSegment.head? = some rightOccurrence ∧
+                          QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                            certificate
+                              (chainAt rightStep) (chainAt (rightStep + 1))
+                                rightSegment ∧
+                            conclusion = chainAt rightStep ∧
+                              conclusion ≠ chainAt leftStep ∧
+                                flippedSegments[leftStep]? =
+                                  some leftSegment ∧
+                                  (∃ leftBefore leftAfter,
+                                    leftSegment =
+                                      leftBefore ++
+                                        leftOccurrence :: leftAfter) ∧
+                                    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                                      certificate
+                                        (chainAt leftStep)
+                                        (chainAt (leftStep + 1))
+                                          leftSegment ∧
+                                      conclusion ∈
+                                        leftSegment.map
+                                          Graph.DirectedEdge.target ∧
+                                        ((∃ traversalBefore traversalMiddle
+                                              traversalAfter,
+                                            traversed =
+                                              traversalBefore ++
+                                                rightOccurrence ::
+                                                  traversalMiddle ++
+                                                    leftOccurrence ::
+                                                      traversalAfter) ∨
+                                          ∃ traversalBefore traversalMiddle
+                                              traversalAfter,
+                                            traversed =
+                                              traversalBefore ++
+                                                leftOccurrence ::
+                                                  traversalMiddle ++
+                                                    rightOccurrence ::
+                                                      traversalAfter) ∧
+                                          ((rightStep < leftStep ∧
+                                              ∃ beforeSegments middleSegments
+                                                  afterSegments,
+                                                flippedSegments =
+                                                  beforeSegments ++
+                                                    rightSegment ::
+                                                      middleSegments ++
+                                                        leftSegment ::
+                                                          afterSegments) ∨
+                                            (leftStep < rightStep ∧
+                                              ∃ beforeSegments middleSegments
+                                                  afterSegments,
+                                                flippedSegments =
+                                                  beforeSegments ++
+                                                    leftSegment ::
+                                                      middleSegments ++
+                                                        rightSegment ::
+                                                          afterSegments))
+
+private def SchedulerPositionedParObstruction
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ (before : List Link) (left right conclusion : Vertex)
+      (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (rightStep leftStep : Nat)
+      (rightSegment leftSegment :
+        List certificate.fullGraph.DirectedEdge),
+    SchedulerPositionedParObstructionAt
+      certificate chainAt count flippedSegments traversed
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep
+            rightSegment leftSegment
+
+/-- Every scheduler-located obstruction has an exact position-aware
+refinement.  Distinct full-graph indices make the par occurrences distinct;
+the existing segment lookups make the scheduler steps distinct. -/
+private theorem
+    SchedulerLocatedParObstruction.positioned
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (located :
+      SchedulerLocatedParObstruction
+        certificate chainAt count flippedSegments traversed) :
+    SchedulerPositionedParObstruction
+      certificate chainAt count flippedSegments traversed := by
+  rcases located with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence,
+      rightStep, leftStep, rightSegment, leftSegment,
+      linksEquation, leftMembership, leftIndex,
+      rightMembership, rightIndex, rightBackward,
+      rightStepBound, leftStepBound, distinctSteps,
+      rightLookup, rightHead, rightFlipped,
+      sourceConclusion, conclusionNeLeftStart,
+      leftLookup, leftInSegment, leftFlipped,
+      conclusionInLeftTail⟩
+  have occurrenceDistinct :
+      leftOccurrence ≠ rightOccurrence := by
+    intro sameOccurrence
+    have sameIndex :
+        leftOccurrence.index = rightOccurrence.index :=
+      congrArg Graph.DirectedEdge.index sameOccurrence
+    rw [leftIndex, rightIndex] at sameIndex
+    omega
+  have leftSegmentPosition :
+      ∃ leftBefore leftAfter,
+        leftSegment =
+          leftBefore ++ leftOccurrence :: leftAfter :=
+    List.mem_iff_append.mp leftInSegment
+  have traversalOrder :=
+    distinct_mem_ordered_decomposition
+      rightMembership leftMembership occurrenceDistinct.symm
+  have schedulerOrder :
+      (rightStep < leftStep ∧
+        ∃ beforeSegments middleSegments afterSegments,
+          flippedSegments =
+            beforeSegments ++ rightSegment ::
+              middleSegments ++ leftSegment :: afterSegments) ∨
+        (leftStep < rightStep ∧
+          ∃ beforeSegments middleSegments afterSegments,
+            flippedSegments =
+              beforeSegments ++ leftSegment ::
+                middleSegments ++ rightSegment :: afterSegments) := by
+    rcases Nat.lt_or_gt_of_ne distinctSteps with
+      rightBeforeLeft | leftBeforeRight
+    · exact .inl
+        ⟨rightBeforeLeft,
+          ordered_getElem?_decomposition
+            rightBeforeLeft rightLookup leftLookup⟩
+    · exact .inr
+        ⟨leftBeforeRight,
+          ordered_getElem?_decomposition
+            leftBeforeRight leftLookup rightLookup⟩
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep,
+      rightSegment, leftSegment,
+      linksEquation, leftMembership, leftIndex,
+      rightMembership, rightIndex, occurrenceDistinct,
+      rightBackward, rightStepBound, leftStepBound,
+      distinctSteps, rightLookup, rightHead, rightFlipped,
+      sourceConclusion, conclusionNeLeftStart, leftLookup,
+      leftSegmentPosition, leftFlipped, conclusionInLeftTail,
+      traversalOrder, schedulerOrder⟩
+
+/-- Forget only the scheduler location and order, retaining the exact
+normalized par obstruction represented by a positioned witness. -/
+private theorem
+    SchedulerPositionedParObstruction.normalized
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (positioned :
+    SchedulerPositionedParObstruction
+        certificate chainAt count flippedSegments traversed) :
+    NormalizedNonemptyParObstruction certificate traversed := by
+  rcases positioned with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence,
+      _rightStep, _leftStep, _rightSegment, _leftSegment,
+      linksEquation, leftMembership, leftIndex,
+      rightMembership, rightIndex, _occurrenceDistinct,
+      rightBackward, _rightStepBound, _leftStepBound,
+      _distinctSteps, _rightLookup, _rightHead, _rightFlipped,
+      _sourceConclusion, _conclusionNeLeftStart, _leftLookup,
+      _leftSegmentPosition, _leftFlipped, _conclusionInLeftTail,
+      _traversalOrder, _schedulerOrder⟩
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, leftIndex, rightMembership, rightIndex,
+      rightBackward⟩
+
+/-- Forget only the proof-relevant linear orders, retaining the exact
+scheduler-located obstruction represented by a positioned witness. -/
+private theorem
+    SchedulerPositionedParObstruction.located
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (positioned :
+      SchedulerPositionedParObstruction
+        certificate chainAt count flippedSegments traversed) :
+    SchedulerLocatedParObstruction
+      certificate chainAt count flippedSegments traversed := by
+  rcases positioned with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence,
+      rightStep, leftStep, rightSegment, leftSegment,
+      linksEquation, leftMembership, leftIndex,
+      rightMembership, rightIndex, _occurrenceDistinct,
+      rightBackward, rightStepBound, leftStepBound,
+      distinctSteps, rightLookup, rightHead, rightFlipped,
+      sourceConclusion, conclusionNeLeftStart, leftLookup,
+      leftSegmentPosition, leftFlipped, conclusionInLeftTail,
+      _traversalOrder, _schedulerOrder⟩
+  rcases leftSegmentPosition with
+    ⟨leftBefore, leftAfter, leftEquation⟩
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep,
+      rightSegment, leftSegment, linksEquation, leftMembership,
+      leftIndex, rightMembership, rightIndex, rightBackward,
+      rightStepBound, leftStepBound, distinctSteps, rightLookup,
+      rightHead, rightFlipped, sourceConclusion,
+      conclusionNeLeftStart, leftLookup,
+      by
+        rw [leftEquation]
+        simp,
+      leftFlipped, conclusionInLeftTail⟩
+
 /-- A chain beginning with a nonempty simple path has that path's exact
 initial vertex. -/
 private theorem edgeChain_start_eq_of_nonempty_prefixPath
@@ -25857,8 +26151,13 @@ occurrence is forward, so the interval beginning at the omitted right
 occurrence is a nonempty closed internally cusp-free arc whose closing turn is
 the exact nontrivial par cusp.  The complementary cyclic interval is retained
 explicitly, is nonempty and closed, and the rotated whole traversal keeps both
-internal and closing cusp-freedom.  The scheduler location remains attached to
-the source subarc for the remaining global nesting contradiction. -/
+internal and closing cusp-freedom.
+
+The terminal arc is indexed by one `SchedulerPositionedParObstruction`.
+Consequently its head, last occurrence, common conclusion, and scheduler
+positions are definitionally the same obstruction; a later nesting argument
+cannot accidentally combine a terminal cusp from one par with scheduler data
+from another par. -/
 private def SchedulerForwardParCuspArc
     (certificate : Certificate)
     (chainAt : Nat → Vertex)
@@ -25868,41 +26167,72 @@ private def SchedulerForwardParCuspArc
     (traversed : List certificate.fullGraph.DirectedEdge) : Prop :=
   SchedulerCyclicParState
       certificate chainAt count flippedSegments traversed ∧
-    ∃ (leftOccurrence rightOccurrence :
+    ∃ (before : List Link) (left right conclusion : Vertex)
+        (after : List Link)
+        (leftOccurrence rightOccurrence :
           certificate.fullGraph.DirectedEdge)
-        (conclusion : Vertex)
+        (rightStep leftStep : Nat)
+        (rightSegment leftSegment :
+          List certificate.fullGraph.DirectedEdge)
         (arc complement :
           List certificate.fullGraph.DirectedEdge)
         (rotationPrefix rotationSuffix :
           List certificate.fullGraph.DirectedEdge),
-      leftOccurrence ∈ traversed ∧
-        rightOccurrence ∈ traversed ∧
-          leftOccurrence.forward = true ∧
-            SchedulerLocatedParObstruction
-              certificate chainAt count flippedSegments traversed ∧
-              arc ≠ [] ∧
-                certificate.fullGraph.EdgeWalk
-                  conclusion arc conclusion ∧
-                  certificate.CuspFreeTraversal arc ∧
-                    arc.head? = some rightOccurrence ∧
-                      arc.getLast? = some leftOccurrence ∧
-                        certificate.Cusp leftOccurrence rightOccurrence ∧
-                          leftOccurrence ≠ rightOccurrence.reverse ∧
-                            traversed =
-                              rotationPrefix ++ rotationSuffix ∧
-                              arc ++ complement =
-                                rotationSuffix ++ rotationPrefix ∧
-                                complement ≠ [] ∧
-                                  certificate.fullGraph.EdgeWalk
-                                    conclusion complement conclusion ∧
-                                    certificate.CuspFreeTraversal
-                                      (arc ++ complement) ∧
-                                      ∀ first last,
-                                        (arc ++ complement).head? =
-                                            some first →
-                                          (arc ++ complement).getLast? =
-                                              some last →
-                                            ¬certificate.Cusp last first
+      SchedulerPositionedParObstructionAt
+          certificate chainAt count flippedSegments traversed
+            before left right conclusion after
+              leftOccurrence rightOccurrence rightStep leftStep
+                rightSegment leftSegment ∧
+        leftOccurrence.forward = true ∧
+          arc ≠ [] ∧
+            certificate.fullGraph.EdgeWalk
+              conclusion arc conclusion ∧
+            certificate.CuspFreeTraversal arc ∧
+              arc.head? = some rightOccurrence ∧
+                arc.getLast? = some leftOccurrence ∧
+                  certificate.Cusp
+                    leftOccurrence rightOccurrence ∧
+                    leftOccurrence ≠ rightOccurrence.reverse ∧
+                      traversed =
+                        rotationPrefix ++ rotationSuffix ∧
+                        arc ++ complement =
+                          rotationSuffix ++ rotationPrefix ∧
+                          complement ≠ [] ∧
+                            certificate.fullGraph.EdgeWalk
+                              conclusion complement conclusion ∧
+                              certificate.CuspFreeTraversal
+                                (arc ++ complement) ∧
+                                ∀ first last,
+                                  (arc ++ complement).head? =
+                                      some first →
+                                    (arc ++ complement).getLast? =
+                                        some last →
+                                      ¬certificate.Cusp last first
+
+/-- Every terminal forward cusp exposes the exact position-aware scheduler
+obstruction that also supplies its concrete cusp occurrences. -/
+private theorem
+    SchedulerForwardParCuspArc.positioned
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (terminal :
+      SchedulerForwardParCuspArc
+      certificate chainAt count flippedSegments traversed) :
+    SchedulerPositionedParObstruction
+      certificate chainAt count flippedSegments traversed := by
+  rcases terminal with
+    ⟨_state, before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep,
+      rightSegment, leftSegment, _arc, _complement,
+      _rotationPrefix, _rotationSuffix, positioned, _terminalCusp⟩
+  exact
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep,
+      rightSegment, leftSegment, positioned⟩
 
 /-- The final exact occurrence of an edge walk reaches its stated endpoint. -/
 private theorem edgeWalk_target_eq_of_getLast?
@@ -25951,10 +26281,11 @@ private theorem
                     certificate.Cusp last first →
                       last = first.reverse := by
   rcases terminal with
-    ⟨_state, leftOccurrence, rightOccurrence, conclusion,
+    ⟨_state, _before, _left, _right, conclusion, _after,
+      leftOccurrence, rightOccurrence,
+      _rightStep, _leftStep, _rightSegment, _leftSegment,
       arc, complement, rotationPrefix, rotationSuffix,
-      _leftMembership, _rightMembership, _leftForward,
-      _schedulerLocated, arcNonempty, arcWalk, _arcFree,
+      _positioned, _leftForward, arcNonempty, arcWalk, _arcFree,
       _arcHead, arcLast, terminalCusp, terminalNontrivial,
       traversalRotation, intervalRotation, complementNonempty,
       complementWalk, arcsFree, _arcsClosing⟩
@@ -26327,15 +26658,24 @@ private theorem schedulerCyclicParState_forward_or_descends
         certificate chainAt count flippedSegments traversed :=
     ⟨base, traversedNonempty, closedWalk, cuspFree, closingCuspFree,
       forwardKept, schedulerProvenance, obstruction, schedulerLocated⟩
-  rcases obstruction with
+  have alignedPositioned :=
+    (obstruction.schedulerLocated
+      schedulerProvenance prefixInjective).positioned
+  rcases alignedPositioned with
     ⟨before, left, right, conclusion, after,
-      leftOccurrence, rightOccurrence, linksEquation,
-      leftMembership, leftIndex, rightMembership, rightIndex,
-      rightBackward⟩
-  have distinctOccurrences : leftOccurrence ≠ rightOccurrence := by
-    intro sameOccurrence
-    rw [sameOccurrence] at leftIndex
-    omega
+      leftOccurrence, rightOccurrence,
+      rightStep, leftStep, rightSegment, leftSegment,
+      positionedFacts⟩
+  have positionedForTerminal := positionedFacts
+  rcases positionedFacts with
+    ⟨
+      linksEquation, leftMembership, leftIndex,
+      rightMembership, rightIndex, distinctOccurrences,
+      rightBackward, _rightStepBound, _leftStepBound,
+      _distinctSteps, _rightLookup, _rightHead, _rightFlipped,
+      _sourceConclusion, _conclusionNeLeftStart,
+      _leftLookup, _leftSegmentPosition, _leftFlipped,
+      _conclusionInLeftTail, _traversalOrder, _schedulerOrder⟩
   have leftExpected :
       certificate.fullGraph.edges[leftOccurrence.index]? =
         some { first := left, second := conclusion } := by
@@ -26567,11 +26907,13 @@ private theorem schedulerCyclicParState_forward_or_descends
         exact rotatedClosing
       exact .inl
         ⟨originalState,
-          leftOccurrence, rightOccurrence, conclusion,
-            leftBefore ++ [leftOccurrence], leftAfter,
+          before, left, right, conclusion, after,
+          leftOccurrence, rightOccurrence, rightStep, leftStep,
+          rightSegment, leftSegment,
+          leftBefore ++ [leftOccurrence], leftAfter,
             rightBefore, rightOccurrence :: rightAfter,
-            leftMembership, rightMembership, leftOrientation,
-            schedulerLocated, by simp, firstWalk, firstFree,
+            positionedForTerminal,
+            leftOrientation, by simp, firstWalk, firstFree,
             firstHead, firstLast,
             chordCusp_of_forward leftOrientation, differentReverse,
             rightTraversal, intervalEquation, complementNonempty,
@@ -26891,9 +27233,7 @@ private def SchedulerTerminalNestingBase
             complement.length =
               normalized.length + 2 * opening.length ∧
               (normalized = [] ∨
-                (NormalizedNonemptyParObstruction
-                    certificate normalized ∧
-                  SchedulerLocatedParObstruction
+                (SchedulerPositionedParObstruction
                     certificate chainAt count flippedSegments normalized ∧
                   NontrivialClosingParCusp certificate normalized))
 
@@ -26931,18 +27271,25 @@ private theorem
     ⟨complement, normalized, opening, complementCut,
       complementNonempty, shellEquation, shellLength, outcome⟩
   rcases outcome with normalizedEmpty | closingOrNested
-  · exact
+  · have positioned := terminal.positioned
+    exact
       ⟨traversed,
         ⟨terminal, complement, normalized, opening,
           complementCut, complementNonempty, shellEquation,
           shellLength, .inl normalizedEmpty⟩,
         .refl traversed⟩
   · rcases closingOrNested with closingPar | nestedOutcome
-    · exact
+    · rcases closingPar with
+        ⟨obstruction, located, closingCusp⟩
+      have positioned := terminal.positioned
+      have normalizedPositioned := located.positioned
+      exact
         ⟨traversed,
           ⟨terminal, complement, normalized, opening,
             complementCut, complementNonempty, shellEquation,
-            shellLength, .inr closingPar⟩,
+            shellLength,
+            .inr
+              ⟨normalizedPositioned, closingCusp⟩⟩,
           .refl traversed⟩
     · rcases nestedOutcome with
         ⟨nested, nestedTerminal, nestedDescent⟩

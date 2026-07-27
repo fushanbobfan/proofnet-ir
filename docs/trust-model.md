@@ -296,9 +296,12 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   equation, and transports scheduler provenance to the residual core.
   Cusp-free nonempty cores recursively produce strictly nested terminal
   forward cusps, so finite descent leaves an empty shell core or a
-  scheduler-located nontrivial closing-par core. Excluding those two finite
-  bases is still required for the correct-state progress theorem and
-  pure-worklist completeness.
+  scheduler-located nontrivial closing-par core. The terminal cusp and its
+  scheduler location are now carried by one position-aware witness, preventing
+  later proofs from combining unrelated existential par occurrences; terminal
+  bases likewise contain no independent duplicate location witness. Excluding
+  the two finite bases is still required for the correct-state progress
+  theorem and pure-worklist completeness.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and
