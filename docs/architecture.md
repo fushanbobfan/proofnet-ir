@@ -286,11 +286,16 @@ active-reference walks between marked occurrences are equivalent to
   retained suffix, and suffix walk to the classified target. Both endpoint
   segment heads are furthermore proved present in the initial tagged family
   and absent from the retained complement, yielding an exact head-skipping
-  reverse chord. Generic cyclic-interval descent is not itself a convexity
-  invariant because a nested cut may wrap around a boundary introduced by an
-  earlier cut. Pure completeness must instead use the specialized chord,
-  complement, and shell endpoints to convert the ordered closed nesting into
-  the contradiction and exclude the tagged closing-par base.
+  reverse chord. Each endpoint is now classified by its exact scheduler source,
+  complete reference-kept suffix walk to the next scheduler conclusion, and
+  the exact retained-left occurrence of that target waiting par avoided by the
+  whole segment. This endpoint-classified terminal outcome is connected to the
+  global fully reflexive dependency-cycle extraction. Generic cyclic-interval
+  descent is not itself a convexity invariant because a nested cut may wrap
+  around a boundary introduced by an earlier cut. Pure completeness must
+  instead use the specialized chord, complement, and shell endpoints to convert
+  the ordered closed nesting into the contradiction and exclude the tagged
+  closing-par base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

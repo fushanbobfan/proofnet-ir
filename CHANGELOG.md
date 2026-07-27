@@ -43,11 +43,16 @@
   core now additionally exposes a coordinate-exact head-skipping reverse
   chord: Lean proves that the zero-offset heads of both ordered endpoint
   segments occur in the original tagged scheduler family but are absent from
-  the retained complement. This is a genuine nesting witness, not yet the
-  contradiction. In particular, a bare transitive `CyclicIntervalDescent` is
-  intentionally not treated as one cyclic interval of the initial family:
-  an inner cyclic cut may wrap around the artificial boundary introduced by
-  an outer cut. The final exclusion must therefore use the stored
+  the retained complement. Both endpoint witnesses now also retain the exact
+  scheduler source, the complete reference-kept suffix walk to the next
+  scheduler conclusion, and the exact retained-left occurrence of that target
+  waiting par which the whole segment avoids. The terminal outcome is connected
+  back to the global fully reflexive dependency-cycle extraction rather than
+  left as an isolated local lemma. This is a genuine nesting witness, not yet
+  the contradiction. In particular, a bare transitive `CyclicIntervalDescent`
+  is intentionally not treated as one cyclic interval of the initial family:
+  an inner cyclic cut may wrap around the artificial boundary introduced by an
+  outer cut. The final exclusion must therefore use the stored
   cusp/chord/shell endpoint data rather than an invalid generic-convexity
   shortcut. Turning the remaining ordered closed nesting of retained segment
   suffixes into the final scheduler contradiction, and excluding the

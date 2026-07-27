@@ -222,12 +222,16 @@ part of the engineering and proof-identity gap.
    each positive offset is inverted to its omitted-head/retained-suffix
    decomposition plus the exact suffix walk. Lean now also exhibits the
    zero-offset heads of both ordered endpoint segments as exact members of the
-   initial tagged family and exact nonmembers of the retained complement.
-   This head-skipping reverse chord isolates the nesting gap without assuming
-   the false transitivity of generic cyclic-interval convexity. Excluding the
-   remaining ordered closed nesting of retained segment suffixes and the
-   tagged closing-par base, pure worklist completeness, and a full cost theorem
-   remain open.
+   initial tagged family and exact nonmembers of the retained complement. Each
+   endpoint additionally carries its exact scheduler source, complete
+   reference-kept suffix walk to the next scheduler conclusion, and the exact
+   retained-left target occurrence avoided by the whole segment. The terminal
+   outcome is now consumed by the global fully reflexive dependency-cycle
+   extraction. This head-skipping reverse chord isolates the nesting gap
+   without assuming the false transitivity of generic cyclic-interval
+   convexity. Excluding the remaining ordered closed nesting of retained
+   segment suffixes and the tagged closing-par base, pure worklist
+   completeness, and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

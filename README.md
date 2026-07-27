@@ -273,8 +273,12 @@ For the
  nonempty, closed, strictly shorter, internally cusp-free, and its reverse
  shells are now normalized with exact positional and length evidence. Finite
  nested descent reduces the obstruction to either an empty shell core or a
- scheduler-located nontrivial closing par cusp. Those two base cases must next
- be contradicted before the recursive fallback can be removed. The
+ scheduler-located nontrivial closing par cusp. In the empty branch, the
+ coordinate-exact reverse chord now carries both source endpoints, complete
+ retained reference-suffix walks, and the exact target-left occurrences avoided
+ by the two classified segments; the global fully reflexive-cycle theorem
+ exposes this outcome directly. Those two base cases must next be contradicted
+ before the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See

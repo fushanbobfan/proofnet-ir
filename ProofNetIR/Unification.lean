@@ -18347,6 +18347,51 @@ private theorem
           suffixMembership, headBackward, headOmitted,
           suffixKept, suffixWalk⟩
 
+/-- Endpoint-classified form of
+`strictOffset_mem_retainedSuffix`.  Besides the omitted-head/retained-suffix
+decomposition, it records that the omitted backward head leaves the exact
+scheduler source.  The retained suffix therefore has a complete reference
+walk from that head's target to the next scheduler conclusion. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.strictOffset_endpoint
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed)
+    {offset : Nat}
+    {directed : certificate.fullGraph.DirectedEdge}
+    (lookup : traversed[offset]? = some directed)
+    (offsetPositive : offset ≠ 0) :
+    ∃ head suffix,
+      traversed = head :: suffix ∧
+        directed ∈ suffix ∧
+          head.source = source ∧
+            head.forward = false ∧
+              certificate.referenceSwitchingMask[head.index]? =
+                some false ∧
+                (∀ retained ∈ suffix,
+                  certificate.referenceSwitchingMask[retained.index]? =
+                    some true) ∧
+                  certificate.fullGraph.EdgeWalk
+                    head.target suffix target := by
+  rcases
+      flipped.strictOffset_mem_retainedSuffix
+        lookup offsetPositive with
+    ⟨head, suffix, traversalShape, directedInSuffix,
+      headBackward, headOmitted, suffixKept, suffixWalk⟩
+  have completeChain := flipped.walk.toChain
+  rw [traversalShape] at completeChain
+  have headSource : head.source = source := by
+    cases completeChain with
+    | cons _ starts _tail =>
+        exact starts
+  exact
+    ⟨head, suffix, traversalShape, directedInSuffix,
+      headSource, headBackward, headOmitted, suffixKept, suffixWalk⟩
+
 /-- The omitted occurrence in a flipped segment is uniquely its head.  Every
 other occurrence lies in the retained reference suffix, so an exact `false`
 mask lookup identifies the source-right occurrence rather than merely an
@@ -29764,6 +29809,164 @@ private def SchedulerHeadSkippingStrictInteriorReverseChord
                                   SchedulerOccurrence graph.DirectedEdge) ∉
                                 tagged
 
+/-- One strict-interior scheduler visit together with the exact omitted source
+head and retained reference suffix of its classified segment.  The source
+equation, suffix walk, and exact target-left occurrence avoided by the whole
+segment are the endpoint data lost by a bare cyclic-interval descent. -/
+private def SchedulerStrictInteriorEndpointWitness
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (occurrence :
+      SchedulerOccurrence
+        certificate.fullGraph.DirectedEdge) : Prop :=
+  occurrence ∈ tagged ∧
+    occurrence.offset ≠ 0 ∧
+      occurrence.step < count ∧
+        ∃ head suffix,
+          segments[occurrence.step]? = some (head :: suffix) ∧
+            occurrence.value ∈ suffix ∧
+              head.source = chainAt occurrence.step ∧
+                head.forward = false ∧
+                  certificate.referenceSwitchingMask[head.index]? =
+                    some false ∧
+                    (∀ retained ∈ suffix,
+                      certificate.referenceSwitchingMask[retained.index]? =
+                        some true) ∧
+                      certificate.fullGraph.EdgeWalk
+                        head.target suffix
+                          (chainAt (occurrence.step + 1)) ∧
+                        (∃ targetBefore targetAfter targetLeft targetRight,
+                          certificate.links =
+                              targetBefore ++
+                                .par targetLeft targetRight
+                                  (chainAt (occurrence.step + 1)) ::
+                                    targetAfter ∧
+                            ∀ directed ∈ head :: suffix,
+                              directed.index ≠
+                                (linkFullEdges targetBefore).length) ∧
+                          ({ step := occurrence.step
+                             offset := 0
+                             value := head } :
+                              SchedulerOccurrence
+                                certificate.fullGraph.DirectedEdge) ∈
+                            tagSchedulerFamily segments ∧
+                            ({ step := occurrence.step
+                               offset := 0
+                               value := head } :
+                                SchedulerOccurrence
+                                  certificate.fullGraph.DirectedEdge) ∉
+                              tagged
+
+/-- The empty-core reverse chord with both endpoint segments fully
+classified.  Its two retained strict-interior visits are reverse-valued and
+scheduler-ordered; each omitted head leaves the exact scheduler source, each
+retained suffix is a reference walk to the next scheduler conclusion, and the
+whole segment avoids that target waiting par's exact retained-left
+occurrence. -/
+private def SchedulerEndpointClassifiedHeadSkippingReverseChord
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (segments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ earlier later,
+    earlier.step < later.step ∧
+      later.value = earlier.value.reverse ∧
+        SchedulerStrictInteriorEndpointWitness
+            certificate chainAt count segments tagged earlier ∧
+          SchedulerStrictInteriorEndpointWitness
+            certificate chainAt count segments tagged later
+
+/-- Exact scheduler provenance upgrades any retained strict-interior visit to
+an endpoint-classified witness once zero-offset visits are known absent from
+the retained state. -/
+private theorem SchedulerTaggedProvenance.strictInteriorEndpointWitness
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count segments tagged)
+    (headFree :
+      ∀ candidate,
+        candidate ∈ tagged → candidate.offset ≠ 0)
+    {occurrence :
+      SchedulerOccurrence
+        certificate.fullGraph.DirectedEdge}
+    (membership : occurrence ∈ tagged)
+    (interior : occurrence.offset ≠ 0) :
+    SchedulerStrictInteriorEndpointWitness
+      certificate chainAt count segments tagged occurrence := by
+  rcases provenance occurrence membership with
+    ⟨segment, stepBound, segmentLookup, offsetLookup, classified⟩
+  rcases
+      classified.1.strictOffset_endpoint
+        offsetLookup interior with
+    ⟨head, suffix, segmentShape, occurrenceInSuffix,
+      headSource, headBackward, headOmitted,
+      suffixKept, suffixWalk⟩
+  have headLookup : segment[0]? = some head := by
+    rw [segmentShape]
+    simp
+  have headInFamily :
+      ({ step := occurrence.step
+         offset := 0
+         value := head } :
+          SchedulerOccurrence
+            certificate.fullGraph.DirectedEdge) ∈
+        tagSchedulerFamily segments :=
+    tagSchedulerFamily_mem_of_getElem? segmentLookup headLookup
+  have headMissing :
+      ({ step := occurrence.step
+         offset := 0
+         value := head } :
+          SchedulerOccurrence
+            certificate.fullGraph.DirectedEdge) ∉ tagged := by
+    intro headMembership
+    exact headFree _ headMembership rfl
+  have targetLeftAvoidance :
+      ∃ targetBefore targetAfter targetLeft targetRight,
+        certificate.links =
+            targetBefore ++
+              .par targetLeft targetRight
+                (chainAt (occurrence.step + 1)) :: targetAfter ∧
+          ∀ directed ∈ head :: suffix,
+            directed.index ≠
+              (linkFullEdges targetBefore).length := by
+    rcases classified.2 with
+      ⟨targetBefore, targetAfter, targetLeft, targetRight,
+        targetLinksEquation, avoidsTargetLeft⟩
+    exact
+      ⟨targetBefore, targetAfter, targetLeft, targetRight,
+        targetLinksEquation, by
+          intro directed directedMembership
+          apply avoidsTargetLeft directed
+          rw [segmentShape]
+          exact directedMembership⟩
+  exact
+    ⟨membership, interior, stepBound, head, suffix,
+      by simpa [segmentShape] using segmentLookup,
+      occurrenceInSuffix, headSource, headBackward, headOmitted,
+      suffixKept, suffixWalk, targetLeftAvoidance,
+      headInFamily, headMissing⟩
+
 /-- Every ordered strict-interior reverse pair in a head-free retained state
 exposes the two coordinate-exact missing segment heads in the original tagged
 scheduler family. -/
@@ -30014,11 +30217,150 @@ private theorem
         normalizedEmpty
   exact ordered.headSkippingChord headFree
 
+/-- The empty terminal core exposes not only two missing segment heads but
+their exact scheduler endpoints and retained reference paths.  This is the
+specialized endpoint invariant required by the remaining tree-nesting
+exclusion; no generic cyclic-convexity principle is used. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_endpointChord
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (complementNonempty : taggedComplement ≠ [])
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    SchedulerEndpointClassifiedHeadSkippingReverseChord
+      certificate chainAt count flippedSegments taggedComplement := by
+  have complementDescent :
+      CyclicIntervalDescent taggedComplement tagged :=
+    .step complementCut (.refl taggedComplement)
+  have fullDescent :
+      CyclicIntervalDescent taggedComplement
+        (tagSchedulerFamily flippedSegments) :=
+    complementDescent.trans terminal.1.2.1
+  have provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments taggedComplement :=
+    fullDescent.schedulerTaggedProvenance
+      segmentCount indexedFlipped
+  have headFree :
+      ∀ occurrence,
+        occurrence ∈ taggedComplement → occurrence.offset ≠ 0 :=
+    terminal.emptyComplementCore_no_segment_head
+      segmentCount indexedFlipped complementCut reverseShells
+        normalizedEmpty
+  have ordered :
+      SchedulerOrderedStrictInteriorReversePair
+        certificate.fullGraph flippedSegments taggedComplement :=
+    terminal.emptyComplementCore_orderedStrictInteriorReversePair_exists
+      segmentCount indexedFlipped complementCut complementNonempty
+        reverseShells normalizedEmpty
+  rcases ordered with
+    ⟨earlier, later, _earlierSegment, _laterSegment,
+      _beforeSegments, _middleSegments, _afterSegments,
+      earlierMembership, laterMembership, earlierInterior,
+      laterInterior, stepOrder, _earlierSegmentLookup,
+      _laterSegmentLookup, _earlierOffsetLookup, _laterOffsetLookup,
+      reversePair, _familyEquation, _earlierHead, _earlierSuffix,
+      _laterHead, _laterSuffix, _earlierSegmentShape,
+      _earlierInSuffix, _laterSegmentShape, _laterInSuffix⟩
+  exact
+    ⟨earlier, later, stepOrder, reversePair,
+      provenance.strictInteriorEndpointWitness
+        headFree earlierMembership earlierInterior,
+      provenance.strictInteriorEndpointWitness
+        headFree laterMembership laterInterior⟩
+
+/-- Coordinate-exact outcome of stripping a terminal tagged nesting base.  The
+empty-shell branch retains its concrete complement, exact scheduler chord, and
+the induced nonempty closed reference-tree walk.  The other branch retains the
+positioned nontrivial closing par cusp. -/
+private def SchedulerTaggedTerminalNestingOutcome
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  (∃ complementBase taggedComplement taggedNormalized,
+    ∃ retainedTraversal :
+        List certificate.referenceSwitchingGraph.DirectedEdge,
+      CyclicIntervalCut taggedComplement tagged ∧
+      taggedComplement ≠ [] ∧
+        certificate.fullGraph.EdgeWalk
+          complementBase
+            (taggedComplement.map SchedulerOccurrence.erase)
+              complementBase ∧
+          certificate.CuspFreeTraversal
+            (taggedComplement.map SchedulerOccurrence.erase) ∧
+            SchedulerCyclicReverseShellNormalization
+              taggedComplement taggedNormalized ∧
+              taggedNormalized = [] ∧
+                (∀ occurrence,
+                  occurrence ∈ taggedComplement →
+                    occurrence.offset ≠ 0) ∧
+                  SchedulerOrderedStrictInteriorReversePair
+                    certificate.fullGraph flippedSegments
+                      taggedComplement ∧
+                    SchedulerHeadSkippingStrictInteriorReverseChord
+                      certificate.fullGraph flippedSegments
+                        taggedComplement ∧
+                      SchedulerEndpointClassifiedHeadSkippingReverseChord
+                        certificate chainAt count flippedSegments
+                          taggedComplement ∧
+                        certificate.referenceSwitchingGraph.EdgeWalk
+                          complementBase retainedTraversal complementBase ∧
+                          retainedTraversal ≠ []) ∨
+    ∃ complementBase taggedComplement taggedNormalized,
+      CyclicIntervalCut taggedComplement tagged ∧
+        taggedComplement ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+            complementBase
+              (taggedComplement.map SchedulerOccurrence.erase)
+                complementBase ∧
+            certificate.CuspFreeTraversal
+              (taggedComplement.map SchedulerOccurrence.erase) ∧
+              SchedulerCyclicReverseShellNormalization
+                taggedComplement taggedNormalized ∧
+                SchedulerTaggedPositionedParObstruction
+                  certificate chainAt count flippedSegments
+                    taggedNormalized ∧
+                  NontrivialClosingParCusp certificate
+                    (taggedNormalized.map SchedulerOccurrence.erase)
+
 /-- Eliminate a tagged terminal base without losing its exact geometry.
 The empty alternative is strengthened to a nonempty closed walk in the
-reference switching whose tags are all strict segment-interior visits.  The
-other alternative retains the exact complement, normalization, positioned
-obstruction, and nontrivial closing par cusp. -/
+reference switching whose tags are all strict segment-interior visits, together
+with exact source endpoints, omitted heads, and retained reference suffix paths
+for an ordered reverse chord.  The other alternative retains the exact
+complement, normalization, positioned obstruction, and nontrivial closing par
+cusp. -/
 private theorem
     SchedulerTaggedTerminalNestingBase.emptyReferenceTreeWalk_or_closingPar
     {certificate : Certificate}
@@ -30043,49 +30385,9 @@ private theorem
     (baseState :
       SchedulerTaggedTerminalNestingBase
         certificate chainAt count flippedSegments tagged) :
-    (∃ complementBase taggedComplement taggedNormalized,
-      ∃ retainedTraversal :
-          List certificate.referenceSwitchingGraph.DirectedEdge,
-        CyclicIntervalCut taggedComplement tagged ∧
-        taggedComplement ≠ [] ∧
-          certificate.fullGraph.EdgeWalk
-            complementBase
-              (taggedComplement.map SchedulerOccurrence.erase)
-                complementBase ∧
-            certificate.CuspFreeTraversal
-              (taggedComplement.map SchedulerOccurrence.erase) ∧
-              SchedulerCyclicReverseShellNormalization
-                taggedComplement taggedNormalized ∧
-                taggedNormalized = [] ∧
-                  (∀ occurrence,
-                    occurrence ∈ taggedComplement →
-                      occurrence.offset ≠ 0) ∧
-                    SchedulerOrderedStrictInteriorReversePair
-                      certificate.fullGraph flippedSegments
-                        taggedComplement ∧
-                      SchedulerHeadSkippingStrictInteriorReverseChord
-                        certificate.fullGraph flippedSegments
-                          taggedComplement ∧
-                        certificate.referenceSwitchingGraph.EdgeWalk
-                          complementBase retainedTraversal complementBase ∧
-                          retainedTraversal ≠ []) ∨
-      ∃ complementBase taggedComplement taggedNormalized,
-        CyclicIntervalCut taggedComplement tagged ∧
-          taggedComplement ≠ [] ∧
-            certificate.fullGraph.EdgeWalk
-              complementBase
-                (taggedComplement.map SchedulerOccurrence.erase)
-                  complementBase ∧
-              certificate.CuspFreeTraversal
-                (taggedComplement.map SchedulerOccurrence.erase) ∧
-                SchedulerCyclicReverseShellNormalization
-                  taggedComplement taggedNormalized ∧
-                  SchedulerTaggedPositionedParObstruction
-                    certificate chainAt count flippedSegments
-                      taggedNormalized ∧
-                    NontrivialClosingParCusp certificate
-                      (taggedNormalized.map
-                        SchedulerOccurrence.erase) := by
+    SchedulerTaggedTerminalNestingOutcome
+      certificate chainAt count flippedSegments tagged := by
+  unfold SchedulerTaggedTerminalNestingOutcome
   rcases baseState with
     ⟨terminal, complementBase, taggedComplement,
       taggedNormalized, complementCut, complementNonempty,
@@ -30110,6 +30412,9 @@ private theorem
           segmentCount indexedFlipped complementCut
             complementNonempty reverseShells normalizedEmpty,
         terminal.emptyComplementCore_headSkippingChord
+          segmentCount indexedFlipped complementCut
+            complementNonempty reverseShells normalizedEmpty,
+        terminal.emptyComplementCore_endpointChord
           segmentCount indexedFlipped complementCut
             complementNonempty reverseShells normalizedEmpty,
         retainedWalk, retainedNonempty⟩
@@ -30632,10 +30937,10 @@ private theorem
         segmentCount indexedFlipped correct prefixInjective initialTagged⟩
 
 /-- Coordinate-exact global terminal-base extraction.  Starting from a fully
-reflexive dependency cycle, this theorem retains the indexed flipped
-scheduler family, reaches a tagged forward cusp, strips every terminal
-complement through tagged reverse shells, and composes the final base back to
-the original tagged family. -/
+reflexive dependency cycle, this theorem retains the indexed flipped scheduler
+family, reaches a tagged forward cusp, strips every terminal complement through
+tagged reverse shells, composes the final base back to the original tagged
+family, and exposes that base's endpoint-classified outcome. -/
 private theorem
     FullyCancellingDependencyCycleAllReflexive.flippedTaggedNestingBase_exists
     {certificate : Certificate}
@@ -30660,11 +30965,19 @@ private theorem
     ∃ flippedSegments :
         List (List certificate.fullGraph.DirectedEdge),
       flippedSegments.length = count ∧
-        ∃ base,
-          SchedulerTaggedTerminalNestingBase
-              certificate chainAt count flippedSegments base ∧
+        (∀ step,
+          step < count →
+            ∃ segment,
+              flippedSegments[step]? = some segment ∧
+                QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                  certificate
+                    (chainAt step) (chainAt (step + 1))
+                      segment) ∧
+          ∃ base,
             CyclicIntervalDescent
-              base (tagSchedulerFamily flippedSegments) := by
+                base (tagSchedulerFamily flippedSegments) ∧
+              SchedulerTaggedTerminalNestingOutcome
+                certificate chainAt count flippedSegments base := by
   rcases
       allReflexive.flippedTaggedForwardParCuspState_exists
         correct positive closed prefixInjective with
@@ -30674,9 +30987,12 @@ private theorem
       terminalState.nestingBase_exists
         segmentCount indexedFlipped correct prefixInjective with
     ⟨base, baseState, baseDescent⟩
+  have outcome :=
+    baseState.emptyReferenceTreeWalk_or_closingPar
+      segmentCount indexedFlipped
   exact
-    ⟨flippedSegments, segmentCount, base, baseState,
-      baseDescent.trans terminalDescent⟩
+    ⟨flippedSegments, segmentCount, indexedFlipped, base,
+      baseDescent.trans terminalDescent, outcome⟩
 
 /-- Every fully reflexive waiting-dependency cycle reaches a finite terminal
 nesting base. This composes the initial backward-chord descent with exact
