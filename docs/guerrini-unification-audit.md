@@ -345,14 +345,19 @@ or positive misses. The larger search recorded at most 995 link attempts and
     In the forward retained-left orientation, the exact first-arc head and
     last edge are now the omitted-right and retained-left occurrences, and
     their closing turn is proved to be a par cusp. In the backward orientation,
-    retained-left is the exact head of the nonempty second arc. The immediate
-    proof obligation is to classify that remaining backward chord-closing turn
-    and then prove the global
-    repeated-vertex/nesting contradiction. Ordinary loop
-    erasure remains insufficient because it can create a new closing cusp by
-    re-pairing incidences at the erased vertex. In the nonempty branch, the proof must still
-   transport the turn evidence into an excluded edge-simple switching cycle or
-   forbidden nesting.
+    retained-left is the exact head of the nonempty second arc. The exact
+    rotation boundary and equality of the two reversed par-incidence colors
+    now prove every second-arc closing turn cusp-free. Thus this branch yields
+    a closed, internally cusp-free, cyclically nonbacktracking second arc that
+    is strictly shorter than the original flipped walk. It is not necessarily
+    vertex-simple. The immediate proof obligation is now to transport the
+    scheduler/nesting structure through this well-founded descent, or turn the
+    complementary forward par-cusp branch into the global repeated-vertex/
+    nesting contradiction. Ordinary loop erasure remains insufficient because
+    it can create a new closing cusp by re-pairing incidences at the erased
+    vertex. In the nonempty branch, the proof must still transport the
+    classified witness into an excluded edge-simple switching cycle or
+    forbidden nesting.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

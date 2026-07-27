@@ -219,9 +219,18 @@ exact chord boundary: if it is forward, it is the incoming path's last edge,
 the omitted-right occurrence is the first edge of the first arc, and that
 new closing turn is kernel-proved to be a par cusp. If retained-left is
 backward, it is the outgoing path's first edge and therefore the nonempty
-second arc's exact head. This does not make either closed walk a
-`CuspFreeCycle`: the remaining backward-orientation closing turn must still be
-classified before extracting the forbidden nesting/switching cycle.
+second arc's exact head. Lean now also classifies that backward closing turn:
+the exact rotation boundary is cusp-free, and the reversed retained-left and
+omitted-right incidences have the same par color, so every possible last edge
+of the second arc closes cusp-free against its head. Combined with the
+already-proved internal cusp-freedom, the second arc is cyclically
+nonbacktracking. It is nonempty and strictly shorter than the original
+flipped walk because the complementary first arc is nonempty. This still does
+not make it a `CuspFreeCycle`: the second arc may repeat vertices, and
+correctness then forces some concrete par pair to survive again. The remaining
+proof obligation is therefore a well-founded scheduler-structure/nesting
+descent (or an exclusion of the complementary forward case), not
+classification of an unknown closing turn.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
@@ -230,10 +239,10 @@ For the
  exposes a concrete par whose two exact premise occurrences both survive; the
  all-left forward-retention invariant forces its omitted right occurrence to be
  traversed backward. Proof-net correctness must next use the retained scheduler
- geometry to exclude the empty nesting and transport local turn evidence around
- that concrete backward-right-par obstruction while
- extracting a suitably classified edge-simple switching cycle or forbidden
- nesting before the recursive fallback can be removed. The
+ geometry to exclude the empty nesting and transport the strictly shorter
+ backward closed witness through the scheduler structure, while resolving the
+ complementary forward par-cusp branch into an edge-simple switching cycle or
+ forbidden nesting before the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See

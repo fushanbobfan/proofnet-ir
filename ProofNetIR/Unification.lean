@@ -23963,6 +23963,148 @@ private theorem cuspFreeTraversal_rotate_of_closing
               afterFree beforeFree afterNonempty beforeNonempty
                 boundary
 
+/-- Internal cusp-freedom of a concatenation exposes the exact boundary
+transition from the nonempty left part to the nonempty right part. -/
+private theorem cuspFreeTraversal_append_boundary
+    {certificate : Certificate}
+    {before after :
+      List certificate.fullGraph.DirectedEdge}
+    (beforeNonempty : before ≠ [])
+    (afterNonempty : after ≠ [])
+    (free :
+      certificate.CuspFreeTraversal (before ++ after)) :
+    ¬certificate.Cusp
+      (before.getLast beforeNonempty)
+        (after.head afterNonempty) := by
+  induction before generalizing after with
+  | nil =>
+      exact False.elim (beforeNonempty rfl)
+  | cons first rest induction =>
+      cases rest with
+      | nil =>
+          cases after with
+          | nil =>
+              exact False.elim (afterNonempty rfl)
+          | cons second tail =>
+              simpa using free.1
+      | cons second tail =>
+          exact
+            induction (by simp) afterNonempty free.2
+
+/-- Rotating a traversal which is cusp-free both internally and at its
+closing junction preserves closing-junction cusp-freedom as well.  For two
+nonempty pieces, the rotated closing junction is exactly their original
+internal append boundary. -/
+private theorem cuspFreeClosing_rotate_of_closing
+    {certificate : Certificate}
+    {before after :
+      List certificate.fullGraph.DirectedEdge}
+    (free :
+      certificate.CuspFreeTraversal (before ++ after))
+    (closing :
+      ∀ first last,
+        (before ++ after).head? = some first →
+          (before ++ after).getLast? = some last →
+            ¬certificate.Cusp last first) :
+    ∀ first last,
+      (after ++ before).head? = some first →
+        (after ++ before).getLast? = some last →
+          ¬certificate.Cusp last first := by
+  intro first last rotatedHead rotatedLast
+  cases before with
+  | nil =>
+      exact closing first last (by simpa using rotatedHead)
+        (by simpa using rotatedLast)
+  | cons beforeHead beforeTail =>
+      cases after with
+      | nil =>
+          exact closing first last (by simpa using rotatedHead)
+            (by simpa using rotatedLast)
+      | cons afterHead afterTail =>
+          have beforeNonempty :
+              beforeHead :: beforeTail ≠ [] := by
+            simp
+          have afterNonempty :
+              afterHead :: afterTail ≠ [] := by
+            simp
+          have boundary :
+              ¬certificate.Cusp
+                ((beforeHead :: beforeTail).getLast beforeNonempty)
+                  ((afterHead :: afterTail).head afterNonempty) :=
+            cuspFreeTraversal_append_boundary
+              beforeNonempty afterNonempty free
+          have rotatedHeadActual :
+              ((afterHead :: afterTail) ++
+                  (beforeHead :: beforeTail)).head? =
+                some ((afterHead :: afterTail).head afterNonempty) := by
+            simp
+          have rotatedLastActual :
+              ((afterHead :: afterTail) ++
+                  (beforeHead :: beforeTail)).getLast? =
+                some
+                  ((beforeHead :: beforeTail).getLast
+                    beforeNonempty) := by
+            rw [List.getLast?_append]
+            exact List.getLast?_eq_some_getLast beforeNonempty
+          have firstValue :
+              first =
+                (afterHead :: afterTail).head afterNonempty :=
+            Option.some.inj
+              (rotatedHead.symm.trans rotatedHeadActual)
+          have lastValue :
+              last =
+                (beforeHead :: beforeTail).getLast beforeNonempty :=
+            Option.some.inj
+              (rotatedLast.symm.trans rotatedLastActual)
+          subst first
+          subst last
+          exact boundary
+
+/-- Cusp-freedom excludes an exact occurrence immediately followed by its
+reverse, since that pair compares an incidence color with itself. -/
+private theorem noImmediateReverse_of_cuspFreeTraversal
+    {certificate : Certificate}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (free : certificate.CuspFreeTraversal traversed) :
+    Graph.EdgeWalk.NoImmediateReverse traversed := by
+  induction traversed with
+  | nil =>
+      trivial
+  | cons first rest induction =>
+      cases rest with
+      | nil =>
+          trivial
+      | cons second tail =>
+          constructor
+          · intro reversed
+            apply free.1
+            unfold Certificate.Cusp
+            rw [reversed]
+            simp
+          · exact induction free.2
+
+/-- Internal and closing cusp-freedom together imply cyclic exact-occurrence
+nonbacktracking. -/
+private theorem cyclicNoImmediateReverse_of_cuspFree
+    {certificate : Certificate}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (free : certificate.CuspFreeTraversal traversed)
+    (closing :
+      ∀ first last,
+        traversed.head? = some first →
+          traversed.getLast? = some last →
+            ¬certificate.Cusp last first) :
+    Graph.EdgeWalk.CyclicNoImmediateReverse traversed := by
+  refine
+    ⟨noImmediateReverse_of_cuspFreeTraversal free, ?_⟩
+  intro first last firstHead lastLast reversed
+  apply closing first last firstHead lastLast
+  unfold Certificate.Cusp
+  rw [reversed]
+  simp
+
 /-- The unavoidable par-pair conflict in the flipped closed walk is genuinely
 inter-segment.  Its omitted right occurrence is the exact head of one indexed
 source segment.  The matching retained left occurrence lies in a different
@@ -23984,9 +24126,15 @@ arc is internally cusp-free.  The chord incidence is now exact as well: a
 forward retained-left occurrence is the incoming chord path's last edge and
 closes the first arc directly against the omitted-right head as a par cusp;
 a backward retained-left occurrence is the outgoing chord path's head and
-therefore the second arc's nonempty head.  This deliberately does not assert
-that either arc is closing-cusp-free; the remaining backward-orientation
-closing turn is the next nesting obligation. -/
+therefore the second arc's nonempty head.  In the backward case, the exact
+rotation boundary and the fact that both reversed chord incidences have the
+same par color prove every possible second-arc closing turn cusp-free.
+Together with internal cusp-freedom this makes the second arc cyclically
+nonbacktracking, and the nonempty first arc makes it strictly shorter than the
+original flipped walk.  The second arc need not be vertex-simple, so this is
+a well-founded descent witness rather than an immediate `CuspFreeCycle`; the
+remaining obligation is to transport the scheduler structure through that
+descent or exclude the complementary forward/nesting case. -/
 private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_between_distinct_segments_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
@@ -24158,7 +24306,17 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                                       false →
                                                                     secondArc ≠ [] ∧
                                                                       secondArc.head? =
-                                                                        some leftOccurrence) ∧
+                                                                        some leftOccurrence ∧
+                                                                      (∀ last,
+                                                                        secondArc.getLast? =
+                                                                            some last →
+                                                                          ¬certificate.Cusp
+                                                                            last
+                                                                            leftOccurrence) ∧
+                                                                        Graph.EdgeWalk.CyclicNoImmediateReverse
+                                                                          secondArc ∧
+                                                                          secondArc.length <
+                                                                            flippedSegments.flatten.length) ∧
                                                                   (leftOccurrence ∈
                                                                       firstArc ∨
                                                                     leftOccurrence ∈
@@ -24318,6 +24476,30 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
     rw [linksEquation, linkFullEdgeParTargets_append]
     rw [rightIndex, ← linkFullEdgeParTargets_length before]
     simp
+  have rightReverseColor :
+      certificate.incidenceColor rightOccurrence.reverse =
+        .par conclusion := by
+    apply
+      (certificate.incidenceColor_eq_par_iff
+        rightOccurrence.reverse conclusion).2
+    constructor
+    · change (!rightOccurrence.forward) = true
+      rw [rightBackward]
+      rfl
+    · simpa using rightParTarget
+  have leftReverseColor_of_backward :
+      leftOccurrence.forward = false →
+        certificate.incidenceColor leftOccurrence.reverse =
+          .par conclusion := by
+    intro leftBackward
+    apply
+      (certificate.incidenceColor_eq_par_iff
+        leftOccurrence.reverse conclusion).2
+    constructor
+    · change (!leftOccurrence.forward) = true
+      rw [leftBackward]
+      rfl
+    · simpa using leftParTarget
   have chordCusp_of_leftForward :
       leftOccurrence.forward = true →
         certificate.Cusp leftOccurrence rightOccurrence := by
@@ -24329,17 +24511,6 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       (certificate.incidenceColor_eq_par_iff
         leftOccurrence conclusion).2
           ⟨leftForward, leftParTarget⟩
-    have rightReverseForward :
-        rightOccurrence.reverse.forward = true := by
-      change (!rightOccurrence.forward) = true
-      rw [rightBackward]
-      rfl
-    have rightReverseColor :
-        certificate.incidenceColor rightOccurrence.reverse =
-          .par conclusion :=
-      (certificate.incidenceColor_eq_par_iff
-        rightOccurrence.reverse conclusion).2
-          ⟨rightReverseForward, by simpa using rightParTarget⟩
     rw [leftColor, rightReverseColor]
   have conclusionInLeftVertices :
       conclusion ∈
@@ -24584,7 +24755,15 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                             (leftOccurrence.forward = false →
                               secondArc ≠ [] ∧
                                 secondArc.head? =
-                                  some leftOccurrence) ∧
+                                  some leftOccurrence ∧
+                                (∀ last,
+                                  secondArc.getLast? = some last →
+                                    ¬certificate.Cusp
+                                      last leftOccurrence) ∧
+                                  Graph.EdgeWalk.CyclicNoImmediateReverse
+                                    secondArc ∧
+                                    secondArc.length <
+                                      flippedSegments.flatten.length) ∧
                             (leftOccurrence ∈ firstArc ∨
                               leftOccurrence ∈ secondArc) := by
     rcases orderedSegments with
@@ -24679,6 +24858,26 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
             (firstArc ++ secondArc) := by
         rw [rotationEquation]
         exact rotatedFree
+      have rotatedClosing :
+          ∀ first last,
+            ((firstArc ++ remaining) ++
+                beforeSegments.flatten).head? = some first →
+              ((firstArc ++ remaining) ++
+                  beforeSegments.flatten).getLast? = some last →
+                ¬certificate.Cusp last first := by
+        have originalFree := cuspFree
+        have originalClosing := closingCuspFree
+        rw [flattenEquation] at originalFree originalClosing
+        exact
+          cuspFreeClosing_rotate_of_closing
+            originalFree originalClosing
+      have arcsClosing :
+          ∀ first last,
+            (firstArc ++ secondArc).head? = some first →
+              (firstArc ++ secondArc).getLast? = some last →
+                ¬certificate.Cusp last first := by
+        rw [rotationEquation]
+        exact rotatedClosing
       have firstFree :
           certificate.CuspFreeTraversal firstArc :=
         CuspFreeTraversal.prefix certificate
@@ -24695,8 +24894,22 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
           (List.perm_append_comm
             (l₁ := beforeSegments.flatten)
             (l₂ := firstArc ++ remaining)).symm
+      have secondShorter :
+          secondArc.length <
+            flippedSegments.flatten.length := by
+        have lengthEquation :
+            firstArc.length + secondArc.length =
+              flippedSegments.flatten.length := by
+          simpa using rotationPermutation.length_eq
+        have firstLengthPositive :
+            0 < firstArc.length :=
+          List.length_pos_iff.mpr firstNonempty
+        omega
       have rightInFirst : rightOccurrence ∈ firstArc := by
         simp [firstArc, rightInSegment]
+      have firstHead :
+          firstArc.head? = some rightOccurrence := by
+        simp [firstArc, List.head?_append, rightHead]
       have forwardClosing :
           leftOccurrence.forward = true →
             firstArc.getLast? = some leftOccurrence ∧
@@ -24713,7 +24926,13 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       have backwardStartsSecond :
           leftOccurrence.forward = false →
             secondArc ≠ [] ∧
-              secondArc.head? = some leftOccurrence := by
+              secondArc.head? = some leftOccurrence ∧
+                (∀ last,
+                  secondArc.getLast? = some last →
+                    ¬certificate.Cusp last leftOccurrence) ∧
+                  Graph.EdgeWalk.CyclicNoImmediateReverse secondArc ∧
+                    secondArc.length <
+                      flippedSegments.flatten.length := by
         intro leftBackward
         rcases leftChordPlacement with
           ⟨leftForward, _incomingLast⟩ |
@@ -24722,10 +24941,49 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
         · have secondHead :
               secondArc.head? = some leftOccurrence := by
             simp [secondArc, remaining, List.head?_append, outgoingHead]
-          refine ⟨?_, secondHead⟩
-          intro secondEmpty
-          rw [secondEmpty] at secondHead
-          simp at secondHead
+          have secondNonempty : secondArc ≠ [] := by
+            intro secondEmpty
+            rw [secondEmpty] at secondHead
+            simp at secondHead
+          have noCuspToLeft :
+              ∀ last,
+                secondArc.getLast? = some last →
+                  ¬certificate.Cusp last leftOccurrence := by
+            intro last secondLast
+            have arcsHead :
+                (firstArc ++ secondArc).head? =
+                  some rightOccurrence := by
+              simp [List.head?_append, firstHead]
+            have arcsLast :
+                (firstArc ++ secondArc).getLast? =
+                  some last := by
+              simp [List.getLast?_append, secondLast]
+            have noCuspToRight :
+                ¬certificate.Cusp last rightOccurrence :=
+              arcsClosing rightOccurrence last arcsHead arcsLast
+            intro cuspToLeft
+            apply noCuspToRight
+            unfold Certificate.Cusp at cuspToLeft ⊢
+            rw [leftReverseColor_of_backward leftBackward] at cuspToLeft
+            rw [rightReverseColor]
+            exact cuspToLeft
+          have secondClosing :
+              ∀ first last,
+                secondArc.head? = some first →
+                  secondArc.getLast? = some last →
+                    ¬certificate.Cusp last first := by
+            intro first last firstHead secondLast
+            have firstValue : first = leftOccurrence :=
+              Option.some.inj (firstHead.symm.trans secondHead)
+            subst first
+            exact noCuspToLeft last secondLast
+          have secondCyclicReduced :
+              Graph.EdgeWalk.CyclicNoImmediateReverse secondArc :=
+            cyclicNoImmediateReverse_of_cuspFree
+              secondFree secondClosing
+          exact
+            ⟨secondNonempty, secondHead, noCuspToLeft,
+              secondCyclicReduced, secondShorter⟩
       have leftInArcs :
           leftOccurrence ∈ firstArc ∨
             leftOccurrence ∈ secondArc := by
@@ -24831,6 +25089,26 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
             (firstArc ++ secondArc) := by
         rw [rotationEquation]
         exact rotatedFree
+      have rotatedClosing :
+          ∀ first last,
+            (suffix ++ (prefixInitial ++ secondArc)).head? =
+                some first →
+              (suffix ++ (prefixInitial ++ secondArc)).getLast? =
+                  some last →
+                ¬certificate.Cusp last first := by
+        have originalFree := cuspFree
+        have originalClosing := closingCuspFree
+        rw [flattenRotationEquation] at originalFree originalClosing
+        exact
+          cuspFreeClosing_rotate_of_closing
+            originalFree originalClosing
+      have arcsClosing :
+          ∀ first last,
+            (firstArc ++ secondArc).head? = some first →
+              (firstArc ++ secondArc).getLast? = some last →
+                ¬certificate.Cusp last first := by
+        rw [rotationEquation]
+        exact rotatedClosing
       have firstFree :
           certificate.CuspFreeTraversal firstArc :=
         CuspFreeTraversal.prefix certificate
@@ -24847,8 +25125,22 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
           (List.perm_append_comm
             (l₁ := prefixInitial ++ secondArc)
             (l₂ := suffix)).symm
+      have secondShorter :
+          secondArc.length <
+            flippedSegments.flatten.length := by
+        have lengthEquation :
+            firstArc.length + secondArc.length =
+              flippedSegments.flatten.length := by
+          simpa using rotationPermutation.length_eq
+        have firstLengthPositive :
+            0 < firstArc.length :=
+          List.length_pos_iff.mpr firstNonempty
+        omega
       have rightInFirst : rightOccurrence ∈ firstArc := by
         simp [firstArc, suffix, rightInSegment]
+      have firstHead :
+          firstArc.head? = some rightOccurrence := by
+        simp [firstArc, suffix, List.head?_append, rightHead]
       have forwardClosing :
           leftOccurrence.forward = true →
             firstArc.getLast? = some leftOccurrence ∧
@@ -24866,7 +25158,13 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       have backwardStartsSecond :
           leftOccurrence.forward = false →
             secondArc ≠ [] ∧
-              secondArc.head? = some leftOccurrence := by
+              secondArc.head? = some leftOccurrence ∧
+                (∀ last,
+                  secondArc.getLast? = some last →
+                    ¬certificate.Cusp last leftOccurrence) ∧
+                  Graph.EdgeWalk.CyclicNoImmediateReverse secondArc ∧
+                    secondArc.length <
+                      flippedSegments.flatten.length := by
         intro leftBackward
         rcases leftChordPlacement with
           ⟨leftForward, _incomingLast⟩ |
@@ -24875,10 +25173,49 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
         · have secondHead :
               secondArc.head? = some leftOccurrence := by
             simp [secondArc, List.head?_append, outgoingHead]
-          refine ⟨?_, secondHead⟩
-          intro secondEmpty
-          rw [secondEmpty] at secondHead
-          simp at secondHead
+          have secondNonempty : secondArc ≠ [] := by
+            intro secondEmpty
+            rw [secondEmpty] at secondHead
+            simp at secondHead
+          have noCuspToLeft :
+              ∀ last,
+                secondArc.getLast? = some last →
+                  ¬certificate.Cusp last leftOccurrence := by
+            intro last secondLast
+            have arcsHead :
+                (firstArc ++ secondArc).head? =
+                  some rightOccurrence := by
+              simp [List.head?_append, firstHead]
+            have arcsLast :
+                (firstArc ++ secondArc).getLast? =
+                  some last := by
+              simp [List.getLast?_append, secondLast]
+            have noCuspToRight :
+                ¬certificate.Cusp last rightOccurrence :=
+              arcsClosing rightOccurrence last arcsHead arcsLast
+            intro cuspToLeft
+            apply noCuspToRight
+            unfold Certificate.Cusp at cuspToLeft ⊢
+            rw [leftReverseColor_of_backward leftBackward] at cuspToLeft
+            rw [rightReverseColor]
+            exact cuspToLeft
+          have secondClosing :
+              ∀ first last,
+                secondArc.head? = some first →
+                  secondArc.getLast? = some last →
+                    ¬certificate.Cusp last first := by
+            intro first last firstHead secondLast
+            have firstValue : first = leftOccurrence :=
+              Option.some.inj (firstHead.symm.trans secondHead)
+            subst first
+            exact noCuspToLeft last secondLast
+          have secondCyclicReduced :
+              Graph.EdgeWalk.CyclicNoImmediateReverse secondArc :=
+            cyclicNoImmediateReverse_of_cuspFree
+              secondFree secondClosing
+          exact
+            ⟨secondNonempty, secondHead, noCuspToLeft,
+              secondCyclicReduced, secondShorter⟩
       have leftInArcs :
           leftOccurrence ∈ firstArc ∨
             leftOccurrence ∈ secondArc := by

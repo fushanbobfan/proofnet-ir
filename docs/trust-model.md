@@ -269,8 +269,14 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   together with the omitted-right first-arc head, forms a kernel-proved par
   cusp at the new first-arc closing turn. A backward retained-left occurrence
   is the outgoing chord path's exact first edge and the nonempty second arc's
-  head. The remaining backward chord-closing turn must still be classified and
-  resolved by the nesting/switching structure.
+  head. The backward closing turn is now classified exactly: the cyclic
+  rotation's closing boundary is cusp-free, and both reversed chord incidences
+  carry the same par color. Hence the second arc closes cusp-free, is
+  cyclically nonbacktracking, and is strictly shorter than the original
+  flipped walk because the first arc is nonempty. This is a descent witness,
+  not yet a `CuspFreeCycle`, because the second arc may repeat vertices. The
+  remaining obligation is to preserve enough scheduler/nesting structure
+  across the descent, or discharge the complementary forward par-cusp branch.
  Ordinary loop erasure is not sufficient because it can create a new closing
  cusp at the erased vertex. This is not yet the correct-state progress theorem
  needed for pure-worklist completeness.

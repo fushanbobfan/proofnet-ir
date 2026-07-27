@@ -222,11 +222,17 @@ active-reference walks between marked occurrences are equivalent to
   last edge, while omitted-right is the first arc's exact head; their new
   closing turn is proved to be a par cusp. A backward retained-left occurrence
   is the outgoing chord path's exact first edge and the nonempty second arc's
-  head. Pure completeness still requires classifying the remaining backward
-  chord-closing turn and
-  deriving the global repeated-vertex/nesting contradiction. Ordinary loop
-  erasure is not used: erasing at a repeated vertex can re-pair incidences and create
-  a new closing cusp.
+  head. The backward closing turn is now fully classified: the rotated
+  concatenation's closing boundary is cusp-free, and the two reversed chord
+  incidences have the same par color, so the second arc closes cusp-free at
+  every possible last edge. It is consequently a nonempty closed cyclically
+  nonbacktracking walk, and it is strictly shorter than the original flipped
+  walk because the first arc is nonempty. It is not yet an
+  `EdgeSimpleCycle`, since vertices can repeat. Pure completeness therefore
+  still requires a well-founded transport of the scheduler/nesting structure
+  along this strict descent, or a contradiction from the complementary
+  forward par-cusp branch. Ordinary loop erasure is not used: erasing at a
+  repeated vertex can re-pair incidences and create a new closing cusp.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain
