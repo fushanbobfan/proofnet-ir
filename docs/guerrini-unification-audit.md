@@ -327,10 +327,12 @@ or positive misses. The larger search recorded at most 995 link attempts and
    target waiting par's exact retained left occurrence. The replacements form
    a nonempty closed cyclically nonbacktracking full-graph walk, and Lean proves
    all internal, adjacent-segment, and closing transitions cusp-free. The
-   immediate proof obligation is now the global repeated-vertex/nesting
-   argument: ordinary loop erasure is insufficient because it can create a
-   new closing cusp by re-pairing incidences at the erased vertex. In the
-   nonempty branch, the proof must still
+   omitted right occurrence is uniquely the head of its indexed source
+   segment, and the matching retained left occurrence is proved to lie in a
+   distinct indexed segment. The immediate proof obligation is therefore the
+   global chord/repeated-vertex/nesting argument: ordinary loop erasure is
+   insufficient because it can create a new closing cusp by re-pairing
+   incidences at the erased vertex. In the nonempty branch, the proof must still
    transport the turn evidence into an excluded edge-simple switching cycle or
    forbidden nesting.
 3. Prove the deterministic schedule complete, yielding

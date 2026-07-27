@@ -18262,6 +18262,131 @@ private theorem
     contradiction
   · exact fullSuffixKept directed inSuffix
 
+/-- The omitted occurrence in a flipped segment is uniquely its head.  Every
+other occurrence lies in the retained reference suffix, so an exact `false`
+mask lookup identifies the source-right occurrence rather than merely an
+equal-valued edge. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.omitted_mem_eq_head
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed)
+    {directed : certificate.fullGraph.DirectedEdge}
+    (membership : directed ∈ traversed)
+    (omitted :
+      certificate.referenceSwitchingMask[directed.index]? =
+        some false) :
+    traversed.head? = some directed := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      rightOccurrence, fullSuffix, _flippedPath,
+      _linksEquation, _flippedStarts, _flippedFinishes,
+      _flippedTraversal, traversalShape, _rightIndex,
+      _rightEdge, _rightBackward, rightOmitted,
+      fullSuffixKept⟩
+  rw [traversalShape] at membership ⊢
+  simp only [List.mem_cons] at membership
+  rcases membership with rfl | inSuffix
+  · simp
+  · have kept := fullSuffixKept directed inSuffix
+    rw [kept] at omitted
+    contradiction
+
+/-- A flipped segment cannot use the retained left occurrence of its own
+source par.  A forward use would revisit the path start as a later target.  A
+backward use would leave the start a second time and hence equal the head by
+vertex simplicity, contradicting the distinct exact left/right indices. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.avoids_source_left
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    ∃ (before afterLinks : List Link)
+        (left right : Vertex)
+        (rightOccurrence :
+          certificate.fullGraph.DirectedEdge),
+      certificate.links =
+          before ++ .par left right source :: afterLinks ∧
+        traversed.head? = some rightOccurrence ∧
+          rightOccurrence.index =
+              (linkFullEdges before).length + 1 ∧
+            ∀ directed ∈ traversed,
+              directed.index ≠ (linkFullEdges before).length := by
+  rcases flipped with
+    ⟨before, afterLinks, left, right,
+      rightOccurrence, fullSuffix, flippedPath,
+      linksEquation, flippedStarts, _flippedFinishes,
+      flippedTraversal, traversalShape, rightIndex,
+      rightEdge, rightBackward, _rightOmitted,
+      _fullSuffixKept⟩
+  refine
+    ⟨before, afterLinks, left, right, rightOccurrence,
+      linksEquation, by simp [traversalShape], rightIndex, ?_⟩
+  intro directed membership sameIndex
+  have leftLookup :
+      certificate.fullGraph.edges[(linkFullEdges before).length]? =
+        some { first := left, second := source } := by
+    change
+      (linkFullEdges certificate.links)[
+          (linkFullEdges before).length]? =
+        some { first := left, second := source }
+    rw [linksEquation]
+    exact
+      (linkFullEdges_parAt before afterLinks left right source).1
+  have directedLookup :
+      certificate.fullGraph.edges[(linkFullEdges before).length]? =
+        some directed.edge := by
+    simpa [sameIndex] using directed.lookup
+  have directedEdge :
+      directed.edge = { first := left, second := source } :=
+    Option.some.inj (directedLookup.symm.trans leftLookup)
+  have directedInPath : directed ∈ flippedPath.traversed := by
+    simpa [flippedTraversal] using membership
+  have rightMembership : rightOccurrence ∈ flippedPath.traversed := by
+    rw [flippedTraversal, traversalShape]
+    simp
+  cases direction : directed.forward with
+  | false =>
+      have directedSource : directed.source = source := by
+        simp [Graph.DirectedEdge.source, directedEdge, direction]
+      have rightSource : rightOccurrence.source = source := by
+        simp [Graph.DirectedEdge.source, rightEdge, rightBackward]
+      have sameOccurrence :
+          directed = rightOccurrence :=
+        flippedPath.eq_of_source_eq
+          directedInPath rightMembership
+            (directedSource.trans rightSource.symm)
+      have sameExactIndex :
+          (linkFullEdges before).length =
+            (linkFullEdges before).length + 1 := by
+        calc
+          (linkFullEdges before).length = directed.index := sameIndex.symm
+          _ = rightOccurrence.index :=
+            congrArg Graph.DirectedEdge.index sameOccurrence
+          _ = (linkFullEdges before).length + 1 := rightIndex
+      omega
+  | true =>
+      have directedTarget : directed.target = source := by
+        simp [Graph.DirectedEdge.target, directedEdge, direction]
+      have targetInTail :
+          directed.target ∈ flippedPath.vertices.tail := by
+        change
+          directed.target ∈
+            flippedPath.traversed.map Graph.DirectedEdge.target
+        exact List.mem_map.mpr
+          ⟨directed, directedInPath, rfl⟩
+      exact
+        flippedPath.start_not_mem_vertices_tail
+          (flippedStarts ▸ directedTarget ▸ targetInTail)
+
 /-- Two flipped dependency traversals cannot cancel at their junction.  The
 outgoing head is a backward reference-omitted right occurrence.  An incoming
 backward occurrence has the wrong orientation to reverse it; an incoming kept
@@ -23653,6 +23778,157 @@ private theorem
       by
         simpa [NormalizedNonemptyParObstruction] using
           obstruction⟩
+
+/-- The unavoidable par-pair conflict in the flipped closed walk is genuinely
+inter-segment.  Its omitted right occurrence is the exact head of one indexed
+source segment.  The matching retained left occurrence lies in a different
+indexed segment, because a vertex-simple flipped path cannot reuse its own
+source-left incidence.
+
+This is the finite chord needed by the remaining nesting argument: the
+obstruction is no longer an unlocated pair somewhere in a flattened walk. -/
+private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_between_distinct_segments_exists
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {originalSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (correct : certificate.DeclarativelyCorrect)
+    (allReflexive :
+      FullyCancellingDependencyCycleAllReflexive
+        certificate state chainAt count originalSegments)
+    (positive : 0 < count)
+    (closed : chainAt 0 = chainAt count) :
+    ∃ (flippedSegments :
+          List (List certificate.fullGraph.DirectedEdge))
+        (rightStep leftStep : Nat)
+        (rightSegment leftSegment :
+          List certificate.fullGraph.DirectedEdge)
+        (before : List Link) (left right conclusion : Vertex)
+        (after : List Link)
+        (leftOccurrence rightOccurrence :
+          certificate.fullGraph.DirectedEdge),
+      rightStep < count ∧
+        leftStep < count ∧
+          rightStep ≠ leftStep ∧
+            flippedSegments.length = count ∧
+              flippedSegments[rightStep]? = some rightSegment ∧
+                rightSegment.head? = some rightOccurrence ∧
+                  flippedSegments[leftStep]? = some leftSegment ∧
+                    leftOccurrence ∈ leftSegment ∧
+                      certificate.links =
+                          before ++ .par left right conclusion :: after ∧
+                        conclusion = chainAt rightStep ∧
+                          leftOccurrence.index =
+                              (linkFullEdges before).length ∧
+                            rightOccurrence.index =
+                              (linkFullEdges before).length + 1 := by
+  rcases
+      allReflexive.flippedParObstruction_exists
+        correct positive closed with
+    ⟨flippedSegments, segmentCount, _flattenedNonempty,
+      _closedWalk, _cyclicReduced, _cuspFree, _closingCuspFree,
+      indexedFlipped, obstruction⟩
+  rcases obstruction with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, linksEquation,
+      leftMembership, leftIndex, rightMembership, rightIndex,
+      _rightBackward⟩
+  have rightOmitted :
+      certificate.referenceSwitchingMask[rightOccurrence.index]? =
+        some false := by
+    have positions :=
+      certificate.referenceSwitchingMask_parAt
+        before after left right conclusion linksEquation
+    simpa [rightIndex] using positions.2
+  rcases List.mem_flatten.mp rightMembership with
+    ⟨rightSegment, rightSegmentMembership, rightInSegment⟩
+  rcases List.getElem?_of_mem rightSegmentMembership with
+    ⟨rightStep, rightLookup⟩
+  have rightStepBound : rightStep < count := by
+    have familyBound := (List.getElem?_eq_some_iff.mp rightLookup).1
+    simpa [segmentCount] using familyBound
+  rcases indexedFlipped rightStep rightStepBound with
+    ⟨indexedRightSegment, indexedRightLookup, rightFlipped⟩
+  have indexedRightValue :
+      indexedRightSegment = rightSegment :=
+    Option.some.inj (indexedRightLookup.symm.trans rightLookup)
+  subst indexedRightSegment
+  have rightHead :
+      rightSegment.head? = some rightOccurrence :=
+    rightFlipped.1.omitted_mem_eq_head
+      rightInSegment rightOmitted
+  rcases rightFlipped.1.avoids_source_left with
+    ⟨sourceBefore, sourceAfter, sourceLeft, sourceRight,
+      sourceRightOccurrence, sourceLinksEquation, sourceHead,
+      sourceRightIndex, sourceLeftAvoided⟩
+  have sourceRightValue :
+      sourceRightOccurrence = rightOccurrence :=
+    Option.some.inj (sourceHead.symm.trans rightHead)
+  subst sourceRightOccurrence
+  have sourceRightExpected :
+      certificate.fullGraph.edges[rightOccurrence.index]? =
+        some
+          { first := sourceRight
+            second := chainAt rightStep } := by
+    change
+      (linkFullEdges certificate.links)[rightOccurrence.index]? =
+        some
+          { first := sourceRight
+            second := chainAt rightStep }
+    rw [sourceLinksEquation]
+    rw [sourceRightIndex]
+    exact
+      (linkFullEdges_parAt
+          sourceBefore sourceAfter sourceLeft sourceRight
+            (chainAt rightStep)).2
+  have obstructionRightExpected :
+      certificate.fullGraph.edges[rightOccurrence.index]? =
+        some { first := right, second := conclusion } := by
+    change
+      (linkFullEdges certificate.links)[rightOccurrence.index]? =
+        some { first := right, second := conclusion }
+    rw [linksEquation]
+    rw [rightIndex]
+    exact
+      (linkFullEdges_parAt before after left right conclusion).2
+  have sourceConclusion :
+      chainAt rightStep = conclusion := by
+    have edgeEquation :
+        ({ first := sourceRight
+           second := chainAt rightStep } : Edge) =
+          { first := right, second := conclusion } :=
+      Option.some.inj
+        (sourceRightExpected.symm.trans obstructionRightExpected)
+    exact congrArg Edge.second edgeEquation
+  rcases List.mem_flatten.mp leftMembership with
+    ⟨leftSegment, leftSegmentMembership, leftInSegment⟩
+  rcases List.getElem?_of_mem leftSegmentMembership with
+    ⟨leftStep, leftLookup⟩
+  have leftStepBound : leftStep < count := by
+    have familyBound := (List.getElem?_eq_some_iff.mp leftLookup).1
+    simpa [segmentCount] using familyBound
+  have distinctSteps : rightStep ≠ leftStep := by
+    intro sameStep
+    subst leftStep
+    have sameSegment :
+        leftSegment = rightSegment :=
+      Option.some.inj (leftLookup.symm.trans rightLookup)
+    subst leftSegment
+    apply sourceLeftAvoided leftOccurrence leftInSegment
+    calc
+      leftOccurrence.index =
+          (linkFullEdges before).length := leftIndex
+      _ = (linkFullEdges sourceBefore).length := by
+        omega
+  exact
+    ⟨flippedSegments, rightStep, leftStep,
+      rightSegment, leftSegment, before, left, right, conclusion,
+      after, leftOccurrence, rightOccurrence,
+      rightStepBound, leftStepBound, distinctSteps, segmentCount,
+      rightLookup, rightHead, leftLookup, leftInSegment,
+      linksEquation, sourceConclusion.symm, leftIndex, rightIndex⟩
 
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
 normalization. Every surviving occurrence comes from the original obstruction

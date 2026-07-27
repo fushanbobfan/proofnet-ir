@@ -201,11 +201,14 @@ active-reference walks between marked occurrences are equivalent to
   complementary backward-right-par/reversed-suffix traversal, proves each
   segment vertex-simple and target-left-avoiding, and composes the family into
   a nonempty closed cyclically nonbacktracking walk. Every internal transition,
-  adjacent segment junction, and cyclic closing junction is cusp-free. Pure
-  completeness still requires the global repeated-vertex/nesting argument
-  which extracts a forbidden switching cycle without using ordinary loop
-  erasure: erasing at a repeated vertex can re-pair incidences and create a new
-  closing cusp.
+  adjacent segment junction, and cyclic closing junction is cusp-free. The
+  unavoidable concrete par pair is now localized across two distinct indexed
+  segments: its omitted right occurrence is the source-segment head, and its
+  retained left occurrence cannot inhabit that same vertex-simple traversal.
+  Pure completeness still requires the global chord/repeated-vertex/nesting
+  argument which extracts a forbidden switching cycle without using ordinary
+  loop erasure: erasing at a repeated vertex can re-pair incidences and create
+  a new closing cusp.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

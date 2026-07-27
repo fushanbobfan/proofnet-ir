@@ -194,7 +194,13 @@ empty-branch obligation is therefore no longer normalization, indexing,
 reference-prefix transport, a hidden formula tail, immediate reversal, or a
 local cusp. It is the global repeated-vertex/nesting argument needed to turn
 this exact cyclic witness into one forbidden switching cycle without
-re-pairing incidences incorrectly at a repeated vertex.
+re-pairing incidences incorrectly at a repeated vertex. Lean now additionally
+localizes the unavoidable concrete par-pair conflict to two distinct indexed
+flipped segments: the omitted right occurrence is uniquely the head of its
+source segment, while the matching retained left occurrence cannot lie in
+that same vertex-simple segment. Thus the remaining witness is an exact
+cross-segment chord/nesting problem rather than an unlocated pair in the
+flattened walk.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.

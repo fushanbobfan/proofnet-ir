@@ -249,11 +249,15 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
  vertex-simple, avoids the target waiting par's retained left occurrence, and
  the flattened family is a nonempty closed cyclically nonbacktracking walk.
  Every internal transition, adjacent segment junction, and last/first closing
- junction is cusp-free. The remaining gap is global: repeated vertices must be
- resolved using the exact nesting/switching structure while preserving those
- incidence pairings. Ordinary loop erasure is not sufficient because it can
- create a new closing cusp at the erased vertex. This is not yet the
- correct-state progress theorem needed for pure-worklist completeness.
+ junction is cusp-free. The unavoidable stored par pair is now localized
+ across two distinct indexed segments: its omitted right occurrence is the
+ unique head of the source segment, while its retained left occurrence cannot
+ lie in that same vertex-simple traversal. The remaining gap is global:
+ repeated vertices and this exact chord must be resolved using the
+ nesting/switching structure while preserving those incidence pairings.
+ Ordinary loop erasure is not sufficient because it can create a new closing
+ cusp at the erased vertex. This is not yet the correct-state progress theorem
+ needed for pure-worklist completeness.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and
