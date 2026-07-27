@@ -263,9 +263,15 @@ all later nested cores now compose exact tagged cuts and shell descents back to
 the original scheduler family. For an empty core, Lean additionally proves
 that every exact visit has a distinct reverse-valued partner from another
 scheduler step; same-step pairing is ruled out by simple-path edge-index
-uniqueness. The global base-case contradiction remains outside the trusted
-claims until that finite cross-step nesting and the nontrivial closing-par
-base are excluded.
+uniqueness. The strengthened terminal witness retains the complement's exact
+closed walk and internal cusp-freedom. Every edge of an empty-core complement
+is then proved reference-kept, the complement is transported to a nonempty
+closed reference-switching-tree walk, and no complement tag can be the omitted
+head of a flipped segment. A closed tree walk is not itself contradictory
+because nested out-and-back traversal remains possible. The global base-case
+contradiction therefore remains outside the trusted claims until that
+strict-segment-interior nesting and the nontrivial closing-par base are
+excluded.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is

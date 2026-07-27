@@ -213,8 +213,13 @@ part of the engineering and proof-identity gap.
    a scheduler-located nontrivial closing-par core. The terminal complement,
    reverse shells, normalized cores, and recursively exposed cusps now also
    carry exact scheduler tags through one composed descent from the original
-   family. Excluding those two finite bases, pure worklist completeness, and a
-   full cost theorem remain open.
+   family. The terminal base retains its complement walk and cusp-freedom.
+   In the empty-core branch, every exact visit has a distinct reverse partner
+   from another scheduler step, every edge is reference-kept, the nonempty
+   complement transports to the reference-switching tree, and no visit is a
+   flipped-segment head. Excluding the remaining closed nesting of strict
+   segment interiors and the tagged closing-par base, pure worklist
+   completeness, and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

@@ -29108,26 +29108,32 @@ private theorem
     (terminal :
       SchedulerTaggedForwardParCuspState
         certificate chainAt count flippedSegments tagged) :
-    ∃ taggedComplement taggedNormalized,
+    ∃ complementBase taggedComplement taggedNormalized,
       CyclicIntervalCut taggedComplement tagged ∧
         taggedComplement ≠ [] ∧
-          SchedulerCyclicReverseShellNormalization
-            taggedComplement taggedNormalized ∧
-            (taggedNormalized = [] ∨
-              (SchedulerTaggedPositionedParObstruction
-                  certificate chainAt count flippedSegments
-                    taggedNormalized ∧
-                NontrivialClosingParCusp certificate
-                  (taggedNormalized.map SchedulerOccurrence.erase)) ∨
-              ∃ nested,
-                SchedulerTaggedForwardParCuspState
-                  certificate chainAt count flippedSegments nested ∧
-                CyclicIntervalDescent nested taggedNormalized) := by
+          certificate.fullGraph.EdgeWalk
+            complementBase
+              (taggedComplement.map SchedulerOccurrence.erase)
+                complementBase ∧
+            certificate.CuspFreeTraversal
+              (taggedComplement.map SchedulerOccurrence.erase) ∧
+              SchedulerCyclicReverseShellNormalization
+                taggedComplement taggedNormalized ∧
+                (taggedNormalized = [] ∨
+                  (SchedulerTaggedPositionedParObstruction
+                      certificate chainAt count flippedSegments
+                        taggedNormalized ∧
+                    NontrivialClosingParCusp certificate
+                      (taggedNormalized.map SchedulerOccurrence.erase)) ∨
+                  ∃ nested,
+                    SchedulerTaggedForwardParCuspState
+                      certificate chainAt count flippedSegments nested ∧
+                    CyclicIntervalDescent nested taggedNormalized) := by
   rcases
       terminal.2.complement_reverseShell_normalForm
         correct prefixInjective with
-    ⟨_conclusion, normalizedBase, complement, normalized,
-      complementCut, complementNonempty, _complementWalk,
+    ⟨conclusion, normalizedBase, complement, normalized,
+      complementCut, complementNonempty, complementWalk,
       complementFree, normalizedWalk, normalization, reverseShells,
       opening, shellEquation, _shellLength, normalizedShape⟩
   rcases
@@ -29160,8 +29166,14 @@ private theorem
     apply complementNonempty
     simpa using complementMap.symm
   refine
-    ⟨taggedComplement, taggedNormalized,
+    ⟨conclusion, taggedComplement, taggedNormalized,
       taggedComplementCut, taggedComplementNonempty,
+      by
+        rw [complementMap]
+        exact complementWalk,
+      by
+        rw [complementMap]
+        exact complementFree,
       taggedReverseShells, ?_⟩
   rcases normalizedShape with
     normalizedEmpty |
@@ -29285,17 +29297,23 @@ private def SchedulerTaggedTerminalNestingBase
           certificate.fullGraph.DirectedEdge)) : Prop :=
   SchedulerTaggedForwardParCuspState
       certificate chainAt count flippedSegments tagged ∧
-    ∃ taggedComplement taggedNormalized,
+    ∃ complementBase taggedComplement taggedNormalized,
       CyclicIntervalCut taggedComplement tagged ∧
         taggedComplement ≠ [] ∧
-          SchedulerCyclicReverseShellNormalization
-            taggedComplement taggedNormalized ∧
-            (taggedNormalized = [] ∨
-              SchedulerTaggedPositionedParObstruction
-                  certificate chainAt count flippedSegments
-                    taggedNormalized ∧
-                NontrivialClosingParCusp certificate
-                  (taggedNormalized.map SchedulerOccurrence.erase))
+          certificate.fullGraph.EdgeWalk
+            complementBase
+              (taggedComplement.map SchedulerOccurrence.erase)
+                complementBase ∧
+            certificate.CuspFreeTraversal
+              (taggedComplement.map SchedulerOccurrence.erase) ∧
+              SchedulerCyclicReverseShellNormalization
+                taggedComplement taggedNormalized ∧
+                (taggedNormalized = [] ∨
+                  SchedulerTaggedPositionedParObstruction
+                      certificate chainAt count flippedSegments
+                        taggedNormalized ∧
+                    NontrivialClosingParCusp certificate
+                      (taggedNormalized.map SchedulerOccurrence.erase))
 
 /-- In an empty-core terminal complement, every surviving scheduler visit is
 paired with a distinct reverse-valued visit from a different scheduler step.
@@ -29363,6 +29381,344 @@ private theorem
     ⟨partner, partnerMembership, partnerDistinct,
       stepDistinct, partnerReverse⟩
 
+/-- Every occurrence in an empty-core terminal complement is retained by the
+deterministic reference switching.  Forward visits are retained directly by
+the scheduler invariant.  A backward visit has an exact forward reverse
+partner in the same complement, and the two orientations share one edge
+index. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_referenceKept
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    ∀ occurrence,
+      occurrence ∈ taggedComplement →
+        certificate.referenceSwitchingMask[
+          occurrence.value.index]? = some true := by
+  rcases terminal.1.1 with
+    ⟨_base, _taggedNonempty, _taggedWalk,
+      _taggedFree, _taggedClosing, forwardKept,
+      _taggedProvenance, _taggedObstruction,
+      _taggedLocated⟩
+  intro occurrence occurrenceMembership
+  have occurrenceInTagged : occurrence ∈ tagged :=
+    complementCut.mem_larger occurrenceMembership
+  have occurrenceValueInTagged :
+      occurrence.value ∈
+        tagged.map SchedulerOccurrence.erase :=
+    List.mem_map.mpr
+      ⟨occurrence, occurrenceInTagged, rfl⟩
+  cases orientation : occurrence.value.forward with
+  | true =>
+      exact
+        forwardKept occurrence.value occurrenceValueInTagged
+          orientation
+  | false =>
+      rcases
+          terminal.emptyComplementCore_reversePartners
+            segmentCount indexedFlipped complementCut
+              reverseShells normalizedEmpty
+                occurrence occurrenceMembership with
+        ⟨partner, partnerMembership, _partnerDistinct,
+          _stepDistinct, partnerReverse⟩
+      have partnerForward : partner.value.forward = true := by
+        rw [partnerReverse]
+        simp [Graph.DirectedEdge.reverse, orientation]
+      have partnerInTagged : partner ∈ tagged :=
+        complementCut.mem_larger partnerMembership
+      have partnerValueInTagged :
+          partner.value ∈
+            tagged.map SchedulerOccurrence.erase :=
+        List.mem_map.mpr
+          ⟨partner, partnerInTagged, rfl⟩
+      have partnerKept :
+          certificate.referenceSwitchingMask[
+            partner.value.index]? = some true :=
+        forwardKept partner.value partnerValueInTagged partnerForward
+      rw [partnerReverse] at partnerKept
+      simpa [Graph.DirectedEdge.reverse] using partnerKept
+
+/-- An empty-core terminal complement cannot retain the head of any flipped
+scheduler segment.  Such a head is the backward reference-omitted source-right
+occurrence.  Empty-core normalization supplies its exact forward reverse in
+the same complement, while the scheduler state requires every forward visit
+to be reference-kept, contradicting the shared edge index. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_no_segment_head
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    ∀ occurrence,
+      occurrence ∈ taggedComplement →
+        occurrence.offset ≠ 0 := by
+  have complementDescent :
+      CyclicIntervalDescent taggedComplement tagged :=
+    .step complementCut (.refl taggedComplement)
+  have fullDescent :
+      CyclicIntervalDescent taggedComplement
+        (tagSchedulerFamily flippedSegments) :=
+    complementDescent.trans terminal.1.2.1
+  have provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments taggedComplement :=
+    fullDescent.schedulerTaggedProvenance
+      segmentCount indexedFlipped
+  rcases terminal.1.1 with
+    ⟨_base, _taggedNonempty, _taggedWalk,
+      _taggedFree, _taggedClosing, _forwardKept,
+      _taggedProvenance, _taggedObstruction,
+      _taggedLocated⟩
+  intro occurrence occurrenceMembership offsetZero
+  rcases provenance occurrence occurrenceMembership with
+    ⟨segment, _stepBound, _segmentLookup,
+      offsetLookup, classified⟩
+  have occurrenceAtHead :
+      segment.head? = some occurrence.value := by
+    rw [offsetZero] at offsetLookup
+    simpa [List.head?_eq_getElem?] using offsetLookup
+  rcases classified.1.head_omitted_backward with
+    ⟨head, headLookup, _headBackward, headOmitted⟩
+  have occurrenceValue : occurrence.value = head :=
+    Option.some.inj (occurrenceAtHead.symm.trans headLookup)
+  have occurrenceOmitted :
+      certificate.referenceSwitchingMask[
+        occurrence.value.index]? = some false := by
+    rw [occurrenceValue]
+    exact headOmitted
+  have occurrenceKept :
+      certificate.referenceSwitchingMask[
+        occurrence.value.index]? = some true :=
+    terminal.emptyComplementCore_referenceKept
+      segmentCount indexedFlipped complementCut
+        reverseShells normalizedEmpty
+          occurrence occurrenceMembership
+  rw [occurrenceOmitted] at occurrenceKept
+  contradiction
+
+/-- The exact empty-core complement transports to a genuinely nonempty closed
+walk in the deterministic reference switching.  This is intentionally not
+declared contradictory: a tree admits nested out-and-back closed walks.  The
+result isolates the remaining obligation to the scheduler geometry of that
+reference-tree walk rather than to edge-retention bookkeeping. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_referenceSwitchingWalk
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (complementNonempty : taggedComplement ≠ [])
+    (complementWalk :
+      certificate.fullGraph.EdgeWalk
+        complementBase
+          (taggedComplement.map SchedulerOccurrence.erase)
+            complementBase)
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    ∃ retainedTraversal :
+        List certificate.referenceSwitchingGraph.DirectedEdge,
+      certificate.referenceSwitchingGraph.EdgeWalk
+          complementBase retainedTraversal complementBase ∧
+        retainedTraversal ≠ [] := by
+  have allKept :
+      ∀ directed ∈
+          taggedComplement.map SchedulerOccurrence.erase,
+        certificate.referenceSwitchingMask[directed.index]? =
+          some true := by
+    intro directed directedMembership
+    rcases List.mem_map.mp directedMembership with
+      ⟨occurrence, occurrenceMembership, occurrenceValue⟩
+    subst directed
+    exact
+      terminal.emptyComplementCore_referenceKept
+        segmentCount indexedFlipped complementCut
+          reverseShells normalizedEmpty
+            occurrence occurrenceMembership
+  have aligned :
+      certificate.fullGraph.edges.length =
+        certificate.referenceSwitchingMask.length := by
+    change
+      (linkFullEdges certificate.links).length =
+        certificate.referenceSwitchingMask.length
+    exact
+      certificate.referenceFullSwitchingSelection.mask_length.symm
+  rcases complementWalk.retainEdgesExact aligned allKept with
+    ⟨retainedTraversal, retainedWalk, indexEquation,
+      _edgeEquation, _forwardEquation, _targetEquation⟩
+  have retainedNonempty : retainedTraversal ≠ [] := by
+    intro retainedEmpty
+    have lengths := congrArg List.length indexEquation
+    rw [retainedEmpty] at lengths
+    simp only [List.length_map, List.length_nil] at lengths
+    apply complementNonempty
+    exact List.eq_nil_of_length_eq_zero lengths.symm
+  exact ⟨retainedTraversal, retainedWalk, retainedNonempty⟩
+
+/-- Eliminate a tagged terminal base without losing its exact geometry.
+The empty alternative is strengthened to a nonempty closed walk in the
+reference switching whose tags are all strict segment-interior visits.  The
+other alternative retains the exact complement, normalization, positioned
+obstruction, and nontrivial closing par cusp. -/
+private theorem
+    SchedulerTaggedTerminalNestingBase.emptyReferenceTreeWalk_or_closingPar
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (baseState :
+      SchedulerTaggedTerminalNestingBase
+        certificate chainAt count flippedSegments tagged) :
+    (∃ complementBase taggedComplement taggedNormalized,
+      ∃ retainedTraversal :
+          List certificate.referenceSwitchingGraph.DirectedEdge,
+        CyclicIntervalCut taggedComplement tagged ∧
+        taggedComplement ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+            complementBase
+              (taggedComplement.map SchedulerOccurrence.erase)
+                complementBase ∧
+            certificate.CuspFreeTraversal
+              (taggedComplement.map SchedulerOccurrence.erase) ∧
+              SchedulerCyclicReverseShellNormalization
+                taggedComplement taggedNormalized ∧
+                taggedNormalized = [] ∧
+                  (∀ occurrence,
+                    occurrence ∈ taggedComplement →
+                      occurrence.offset ≠ 0) ∧
+                    certificate.referenceSwitchingGraph.EdgeWalk
+                      complementBase retainedTraversal complementBase ∧
+                      retainedTraversal ≠ []) ∨
+      ∃ complementBase taggedComplement taggedNormalized,
+        CyclicIntervalCut taggedComplement tagged ∧
+          taggedComplement ≠ [] ∧
+            certificate.fullGraph.EdgeWalk
+              complementBase
+                (taggedComplement.map SchedulerOccurrence.erase)
+                  complementBase ∧
+              certificate.CuspFreeTraversal
+                (taggedComplement.map SchedulerOccurrence.erase) ∧
+                SchedulerCyclicReverseShellNormalization
+                  taggedComplement taggedNormalized ∧
+                  SchedulerTaggedPositionedParObstruction
+                    certificate chainAt count flippedSegments
+                      taggedNormalized ∧
+                    NontrivialClosingParCusp certificate
+                      (taggedNormalized.map
+                        SchedulerOccurrence.erase) := by
+  rcases baseState with
+    ⟨terminal, complementBase, taggedComplement,
+      taggedNormalized, complementCut, complementNonempty,
+      complementWalk, complementFree, reverseShells,
+      normalizedEmpty | closingPar⟩
+  · rcases
+        terminal.emptyComplementCore_referenceSwitchingWalk
+          segmentCount indexedFlipped complementCut
+            complementNonempty complementWalk reverseShells
+              normalizedEmpty with
+      ⟨retainedTraversal, retainedWalk, retainedNonempty⟩
+    left
+    exact
+      ⟨complementBase, taggedComplement, taggedNormalized,
+        retainedTraversal, complementCut, complementNonempty,
+        complementWalk, complementFree, reverseShells,
+        normalizedEmpty,
+        terminal.emptyComplementCore_no_segment_head
+          segmentCount indexedFlipped complementCut
+            reverseShells normalizedEmpty,
+        retainedWalk, retainedNonempty⟩
+  · right
+    exact
+      ⟨complementBase, taggedComplement, taggedNormalized,
+        complementCut, complementNonempty, complementWalk,
+        complementFree, reverseShells, closingPar⟩
+
 /-- Repeated terminal-complement stripping reaches a coordinate-exact base.
 Every complement cut, reverse shell, and nested forward-cusp descent remains
 composed into one trace back to the original scheduler interval. -/
@@ -29405,20 +29761,23 @@ private theorem
   rcases
       terminal.complement_empty_or_nestedForward_or_closingPar
         segmentCount indexedFlipped correct prefixInjective with
-    ⟨taggedComplement, taggedNormalized,
-      complementCut, complementNonempty, reverseShells, outcome⟩
+    ⟨complementBase, taggedComplement, taggedNormalized,
+      complementCut, complementNonempty, complementWalk,
+      complementFree, reverseShells, outcome⟩
   rcases outcome with normalizedEmpty | closingOrNested
   · exact
       ⟨tagged,
-        ⟨terminal, taggedComplement, taggedNormalized,
-          complementCut, complementNonempty, reverseShells,
+        ⟨terminal, complementBase, taggedComplement,
+          taggedNormalized, complementCut, complementNonempty,
+          complementWalk, complementFree, reverseShells,
           .inl normalizedEmpty⟩,
         .refl tagged⟩
   · rcases closingOrNested with closingPar | nestedOutcome
     · exact
         ⟨tagged,
-          ⟨terminal, taggedComplement, taggedNormalized,
-            complementCut, complementNonempty, reverseShells,
+          ⟨terminal, complementBase, taggedComplement,
+            taggedNormalized, complementCut, complementNonempty,
+            complementWalk, complementFree, reverseShells,
             .inr closingPar⟩,
           .refl tagged⟩
     · rcases nestedOutcome with

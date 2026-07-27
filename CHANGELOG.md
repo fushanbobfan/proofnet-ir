@@ -31,9 +31,13 @@
   complete descent back to the original scheduler family. In the empty-core
   case every exact visit now has a concrete distinct reverse-valued partner
   from a different scheduler step; same-step pairing is excluded by the
-  simple path's duplicate-free edge indices. Turning this finite cross-step
-  nesting into the final order contradiction, and excluding the closing-par
-  base, remain open;
+  simple path's duplicate-free edge indices. The terminal-base witness now
+  also retains the complement's exact closed-walk and cusp-free evidence.
+  Empty-core pairing proves every complement edge reference-kept, transports
+  the complement to a nonempty closed walk in the reference-switching tree,
+  and excludes every flipped-segment head from the complement. Turning the
+  remaining closed walk of strict segment interiors into the final scheduler
+  contradiction, and excluding the closing-par base, remain open;
 - hardened the unfinished scheduler-nesting proof objects against existential
   witness drift. `SchedulerPositionedParObstruction` now retains exact linear
   decompositions for the two par occurrences inside the current cyclic

@@ -275,9 +275,14 @@ active-reference walks between marked occurrences are equivalent to
   final tagged base carries one composed descent back to the original family.
   If that base has an empty core, every exact visit is now paired with a
   distinct reverse-valued visit from a different scheduler step; a same-step
-  pair would repeat one edge index inside a simple path. Pure completeness
-  still requires converting this finite cross-step nesting into the order
-  contradiction and excluding the tagged closing-par base.
+  pair would repeat one edge index inside a simple path. Its terminal object
+  retains the complement's exact closed-walk and cusp-free witnesses. The
+  pairing makes every complement edge reference-kept, so the complement
+  transports to a nonempty closed walk in the reference-switching tree, while
+  the omitted/kept mask conflict excludes every scheduler-segment head.
+  Pure completeness still requires converting the resulting closed nesting
+  of strict segment interiors into the order contradiction and excluding the
+  tagged closing-par base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain
