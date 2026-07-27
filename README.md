@@ -206,9 +206,15 @@ incidence and the source head is the exact omitted right incidence. Lean now
 splits the holder segment at that conclusion into incoming and outgoing
 vertex-simple paths: the incoming path is nonempty, the retained-left
 occurrence belongs to the orientation-correct side, and the two paths meet
-only at the conclusion. Thus the remaining witness is an exact internal
-cross-segment chord/nesting problem rather than an unlocated pair in the
-flattened walk.
+only at the conclusion. The two conflict segments are additionally ordered by
+an exact before/middle/after decomposition of the indexed family. Cutting the
+cyclic family at the shared conclusion then constructs two closed full-graph
+arcs, with the first arc nonempty, the omitted-right occurrence in that first
+arc, the retained-left occurrence assigned to one of the two arcs, and their
+concatenation covering the original flipped occurrences up to the cyclic
+rotation permutation. What remains is to transport the original cyclic
+cusp-free order to those arcs and extract the forbidden nesting/switching
+cycle; mere permutation is deliberately not treated as sufficient.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.

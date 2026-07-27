@@ -211,9 +211,15 @@ active-reference walks between marked occurrences are equivalent to
   The holder segment is split there into a nonempty incoming simple path and
   an outgoing simple path whose only common vertex is the conclusion; the
   retained-left occurrence is assigned to the orientation-correct side.
-  Pure completeness still requires the global chord/repeated-vertex/nesting
-  argument which extracts a forbidden switching cycle without using ordinary
-  loop erasure: erasing at a repeated vertex can re-pair incidences and create
+  An exact before/middle/after decomposition orders the two indexed conflict
+  segments, and cutting the cyclic family at the shared conclusion constructs
+  two closed full-graph arcs. The first is nonempty and contains the omitted
+  right occurrence; the retained left occurrence is assigned to one of the
+  two, and together they cover the flipped occurrences up to the induced
+  cyclic-rotation permutation. Pure completeness still requires preservation
+  of cyclic order and cusp-freedom on the resulting intervals, followed by the
+  global chord/repeated-vertex/nesting contradiction. Ordinary loop erasure is
+  not used: erasing at a repeated vertex can re-pair incidences and create
   a new closing cusp.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures

@@ -258,9 +258,14 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   retained-left and omitted-right in the reference mask. The holder segment
   is split at the conclusion into a nonempty incoming simple path and an
   outgoing simple path, with unique intersection at that conclusion and the
-  retained-left occurrence on the orientation-correct side. The remaining gap
-  is global: repeated vertices and this exact internal chord must be resolved
-  using the nesting/switching structure while preserving those incidence pairings.
+  retained-left occurrence on the orientation-correct side. Lean also orders
+  the two conflict segments by an exact before/middle/after decomposition and
+  cuts the cyclic family at the conclusion into two closed arcs. The first is
+  nonempty and contains the omitted-right occurrence; retained-left lies in
+  one of the arcs, and their concatenation covers the flipped occurrences up
+  to the cyclic-rotation permutation. This does not yet prove the contradiction:
+  cyclic order and cusp-freedom must be transported to the intervals before
+  the exact chord can be resolved by the nesting/switching structure.
  Ordinary loop erasure is not sufficient because it can create a new closing
  cusp at the erased vertex. This is not yet the correct-state progress theorem
  needed for pure-worklist completeness.

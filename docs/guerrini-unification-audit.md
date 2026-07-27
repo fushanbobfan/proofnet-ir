@@ -335,10 +335,16 @@ or positive misses. The larger search recorded at most 995 link attempts and
     retained-left and omitted-right. The holder segment is now split at that
     conclusion into incoming and outgoing simple paths with a nonempty incoming
     side, orientation-exact retained-left membership, and no other shared
-    vertex. The immediate proof obligation is therefore the global
-    chord/repeated-vertex/nesting argument: ordinary loop erasure is
-   insufficient because it can create a new closing cusp by re-pairing
-   incidences at the erased vertex. In the nonempty branch, the proof must still
+    vertex. The two indexed conflict segments are now given an exact
+    before/middle/after order, and cutting the cyclic family at the conclusion
+    constructs two closed full-graph arcs. The first arc is nonempty and
+    contains the omitted-right occurrence; retained-left is assigned to one
+    of the arcs, and the concatenation covers all flipped occurrences up to
+    the cyclic-rotation permutation. The immediate proof obligation is to
+    transport cyclic order and cusp-freedom to these intervals and then prove
+    the global chord/repeated-vertex/nesting contradiction. Ordinary loop
+    erasure remains insufficient because it can create a new closing cusp by
+    re-pairing incidences at the erased vertex. In the nonempty branch, the proof must still
    transport the turn evidence into an excluded edge-simple switching cycle or
    forbidden nesting.
 3. Prove the deterministic schedule complete, yielding

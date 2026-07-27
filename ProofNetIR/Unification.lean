@@ -23805,6 +23805,107 @@ private theorem
         simpa [NormalizedNonemptyParObstruction] using
           obstruction⟩
 
+/-- Two distinct indexed list entries in increasing order expose the exact
+three intervals before, between, and after them. -/
+private theorem ordered_getElem?_decomposition
+    {α : Type} {values : List α}
+    {firstIndex secondIndex : Nat} {first second : α}
+    (ordered : firstIndex < secondIndex)
+    (firstLookup : values[firstIndex]? = some first)
+    (secondLookup : values[secondIndex]? = some second) :
+    ∃ before middle after,
+      values =
+        before ++ first :: middle ++ second :: after := by
+  induction values generalizing firstIndex secondIndex with
+  | nil =>
+      simp at firstLookup
+  | cons head tail ih =>
+      cases firstIndex with
+      | zero =>
+          have headValue : head = first := by
+            simpa using firstLookup
+          subst head
+          cases secondIndex with
+          | zero =>
+              omega
+          | succ secondIndex =>
+              have secondTail :
+                  tail[secondIndex]? = some second := by
+                simpa using secondLookup
+              rcases List.mem_iff_append.mp
+                  (List.mem_of_getElem? secondTail) with
+                ⟨middle, after, tailEquation⟩
+              exact
+                ⟨[], middle, after, by
+                  simp [tailEquation]⟩
+      | succ firstIndex =>
+          cases secondIndex with
+          | zero =>
+              omega
+          | succ secondIndex =>
+              have firstTail :
+                  tail[firstIndex]? = some first := by
+                simpa using firstLookup
+              have secondTail :
+                  tail[secondIndex]? = some second := by
+                simpa using secondLookup
+              have tailOrdered : firstIndex < secondIndex := by
+                omega
+              rcases
+                  ih tailOrdered firstTail secondTail with
+                ⟨before, middle, after, tailEquation⟩
+              exact
+                ⟨head :: before, middle, after, by
+                  simp [tailEquation]⟩
+
+/-- A chain beginning with a nonempty simple path has that path's exact
+initial vertex. -/
+private theorem edgeChain_start_eq_of_nonempty_prefixPath
+    {graph : Graph} {start finish : Vertex}
+    {after : List graph.DirectedEdge}
+    (path : graph.EdgeSimplePath)
+    (nonempty : path.traversed ≠ [])
+    (chain :
+      graph.EdgeChain start
+        (path.traversed ++ after) finish) :
+    start = path.start := by
+  rcases List.exists_cons_of_ne_nil nonempty with
+    ⟨first, rest, pathTraversal⟩
+  have chainHead :
+      first.source = start := by
+    rw [pathTraversal] at chain
+    simpa using chain.head_source
+  have pathChain := path.walk.toChain
+  rw [pathTraversal] at pathChain
+  exact chainHead.symm.trans pathChain.head_source
+
+/-- A chain ending with a nonempty simple path has that path's exact final
+vertex. -/
+private theorem edgeChain_finish_eq_of_nonempty_suffixPath
+    {graph : Graph} {start finish : Vertex}
+    {before : List graph.DirectedEdge}
+    (path : graph.EdgeSimplePath)
+    (nonempty : path.traversed ≠ [])
+    (chain :
+      graph.EdgeChain start
+        (before ++ path.traversed) finish) :
+    finish = path.finish := by
+  rcases chain.split_append with
+    ⟨middle, _prefixChain, suffixChain⟩
+  rcases List.exists_cons_of_ne_nil nonempty with
+    ⟨first, rest, pathTraversal⟩
+  have suffixHead :
+      first.source = middle := by
+    rw [pathTraversal] at suffixChain
+    exact suffixChain.head_source
+  have pathChain := path.walk.toChain
+  rw [pathTraversal] at pathChain
+  have suffixStart :
+      middle = path.start :=
+    suffixHead.symm.trans pathChain.head_source
+  rw [suffixStart] at suffixChain
+  exact suffixChain.finish_unique path.walk.toChain
+
 /-- The unavoidable par-pair conflict in the flipped closed walk is genuinely
 inter-segment.  Its omitted right occurrence is the exact head of one indexed
 source segment.  The matching retained left occurrence lies in a different
@@ -23896,7 +23997,7 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                     (leftBefore.getLast
                                                         beforeNonempty).target =
                                                       conclusion) ∧
-                                            ∃ incoming outgoing :
+                                            (∃ incoming outgoing :
                                                 certificate.fullGraph.EdgeSimplePath,
                                               incoming.start =
                                                   chainAt leftStep ∧
@@ -23915,13 +24016,49 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                               incoming.traversed ∨
                                                             leftOccurrence ∈
                                                               outgoing.traversed) ∧
-                                                            ∀ vertex,
+                                                            (∀ vertex,
                                                               vertex ∈
                                                                   incoming.vertices →
                                                                 vertex ∈
                                                                     outgoing.vertices →
                                                                   vertex =
-                                                                    conclusion := by
+                                                                    conclusion)) ∧
+                                            ((rightStep < leftStep ∧
+                                                ∃ beforeSegments
+                                                    middleSegments
+                                                    afterSegments,
+                                                  flippedSegments =
+                                                      beforeSegments ++
+                                                        rightSegment ::
+                                                          middleSegments ++
+                                                            leftSegment ::
+                                                              afterSegments) ∨
+                                              (leftStep < rightStep ∧
+                                                ∃ beforeSegments
+                                                    middleSegments
+                                                    afterSegments,
+                                                  flippedSegments =
+                                                      beforeSegments ++
+                                                        leftSegment ::
+                                                          middleSegments ++
+                                                            rightSegment ::
+                                                              afterSegments)) ∧
+                                            ∃ firstArc secondArc,
+                                              firstArc ≠ [] ∧
+                                                certificate.fullGraph.EdgeWalk
+                                                    conclusion firstArc
+                                                      conclusion ∧
+                                                  certificate.fullGraph.EdgeWalk
+                                                      conclusion secondArc
+                                                        conclusion ∧
+                                                    (firstArc ++ secondArc).Perm
+                                                        flippedSegments.flatten ∧
+                                                      rightOccurrence ∈
+                                                          firstArc ∧
+                                                        (leftOccurrence ∈
+                                                            firstArc ∨
+                                                          leftOccurrence ∈
+                                                            secondArc) := by
   rcases
       allReflexive.flippedParObstruction_exists
         correct positive closed with
@@ -24228,6 +24365,237 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
             exact
               (uniqueIntersection vertex inIncoming inOutgoing).trans
                 (outgoingStarts.trans leftSource)
+  have orderedSegments :
+      (rightStep < leftStep ∧
+          ∃ beforeSegments middleSegments afterSegments,
+            flippedSegments =
+              beforeSegments ++
+                rightSegment ::
+                  middleSegments ++ leftSegment :: afterSegments) ∨
+        (leftStep < rightStep ∧
+          ∃ beforeSegments middleSegments afterSegments,
+            flippedSegments =
+              beforeSegments ++
+                leftSegment ::
+                  middleSegments ++ rightSegment :: afterSegments) := by
+    rcases Nat.lt_or_gt_of_ne distinctSteps with
+      rightBeforeLeft | leftBeforeRight
+    · exact .inl
+        ⟨rightBeforeLeft,
+          ordered_getElem?_decomposition
+            rightBeforeLeft rightLookup leftLookup⟩
+    · exact .inr
+        ⟨leftBeforeRight,
+          ordered_getElem?_decomposition
+            leftBeforeRight leftLookup rightLookup⟩
+  have chordSplitForArcs := chordSplit
+  rcases chordSplitForArcs with
+    ⟨incoming, outgoing, incomingStarts, incomingFinishes,
+      outgoingStarts, outgoingFinishes, leftSegmentSplit,
+      incomingNonempty, leftOccurrenceSide, _uniqueIntersection⟩
+  rcases rightFlipped.1.simplePath_exists with
+    ⟨rightPath, rightPathStarts, rightPathFinishes,
+      rightPathTraversal⟩
+  have rightPathNonempty :
+      rightPath.traversed ≠ [] := by
+    rw [rightPathTraversal]
+    exact rightFlipped.1.nonempty
+  have closedIntervals :
+      ∃ firstArc secondArc,
+        firstArc ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+              conclusion firstArc conclusion ∧
+            certificate.fullGraph.EdgeWalk
+                conclusion secondArc conclusion ∧
+              (firstArc ++ secondArc).Perm
+                  flippedSegments.flatten ∧
+                rightOccurrence ∈ firstArc ∧
+                  (leftOccurrence ∈ firstArc ∨
+                    leftOccurrence ∈ secondArc) := by
+    rcases orderedSegments with
+      ⟨_rightBeforeLeft, beforeSegments, middleSegments,
+        afterSegments, familyEquation⟩ |
+      ⟨_leftBeforeRight, beforeSegments, middleSegments,
+        afterSegments, familyEquation⟩
+    · let firstArc :=
+        rightSegment ++
+          middleSegments.flatten ++ incoming.traversed
+      let remaining :=
+        outgoing.traversed ++ afterSegments.flatten
+      let secondArc :=
+        remaining ++ beforeSegments.flatten
+      have flattenEquation :
+          flippedSegments.flatten =
+            beforeSegments.flatten ++ (firstArc ++ remaining) := by
+        rw [familyEquation]
+        simp [firstArc, remaining, leftSegmentSplit,
+          List.append_assoc]
+      have fullChain := _closedWalk.toChain
+      rw [flattenEquation] at fullChain
+      rcases fullChain.split_append with
+        ⟨arcStart, beforeChain, afterBeforeChain⟩
+      rcases afterBeforeChain.split_append with
+        ⟨arcFinish, firstChain, remainingChain⟩
+      have arcStartEquation :
+          arcStart = conclusion := by
+        have startsAtRight :
+            arcStart = rightPath.start :=
+          edgeChain_start_eq_of_nonempty_prefixPath
+            rightPath rightPathNonempty
+              (by
+                simpa [firstArc, rightPathTraversal,
+                  List.append_assoc] using firstChain)
+        exact
+          startsAtRight.trans
+            (rightPathStarts.trans sourceConclusion)
+      have arcFinishEquation :
+          arcFinish = conclusion := by
+        have firstChainAtIncoming :
+            certificate.fullGraph.EdgeChain arcStart
+              ((rightSegment ++ middleSegments.flatten) ++
+                incoming.traversed) arcFinish := by
+          simpa [firstArc, List.append_assoc] using firstChain
+        have finishesAtIncoming :
+            arcFinish = incoming.finish :=
+          edgeChain_finish_eq_of_nonempty_suffixPath
+            incoming incomingNonempty
+              firstChainAtIncoming
+        exact finishesAtIncoming.trans incomingFinishes
+      have firstWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion firstArc conclusion := by
+        simpa [arcStartEquation, arcFinishEquation] using
+          firstChain.toWalk
+      have remainingWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion remaining (chainAt 0) := by
+        simpa [arcFinishEquation] using remainingChain.toWalk
+      have beforeWalk :
+          certificate.fullGraph.EdgeWalk
+            (chainAt 0) beforeSegments.flatten conclusion := by
+        simpa [arcStartEquation] using beforeChain.toWalk
+      have secondWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion secondArc conclusion := by
+        simpa [secondArc] using remainingWalk.trans beforeWalk
+      have firstNonempty : firstArc ≠ [] := by
+        intro firstEmpty
+        have rightEmpty : rightSegment = [] := by
+          simpa [firstArc] using
+            congrArg (List.take rightSegment.length) firstEmpty
+        exact rightFlipped.1.nonempty rightEmpty
+      have rotationPermutation :
+          (firstArc ++ secondArc).Perm
+            flippedSegments.flatten := by
+        rw [flattenEquation]
+        simpa [secondArc, List.append_assoc] using
+          (List.perm_append_comm
+            (l₁ := beforeSegments.flatten)
+            (l₂ := firstArc ++ remaining)).symm
+      have rightInFirst : rightOccurrence ∈ firstArc := by
+        simp [firstArc, rightInSegment]
+      have leftInArcs :
+          leftOccurrence ∈ firstArc ∨
+            leftOccurrence ∈ secondArc := by
+        rcases leftOccurrenceSide with inIncoming | inOutgoing
+        · exact .inl (by
+            simp [firstArc, inIncoming])
+        · exact .inr (by
+            simp [secondArc, remaining, inOutgoing])
+      exact
+        ⟨firstArc, secondArc, firstNonempty, firstWalk,
+          secondWalk, rotationPermutation, rightInFirst,
+          leftInArcs⟩
+    · let prefixInitial :=
+        beforeSegments.flatten ++ incoming.traversed
+      let secondArc :=
+        outgoing.traversed ++ middleSegments.flatten
+      let suffix :=
+        rightSegment ++ afterSegments.flatten
+      let firstArc :=
+        suffix ++ prefixInitial
+      have flattenEquation :
+          flippedSegments.flatten =
+            prefixInitial ++ (secondArc ++ suffix) := by
+        rw [familyEquation]
+        simp [prefixInitial, secondArc, suffix,
+          leftSegmentSplit, List.append_assoc]
+      have fullChain := _closedWalk.toChain
+      rw [flattenEquation] at fullChain
+      rcases fullChain.split_append with
+        ⟨prefixFinish, prefixChain, afterPrefixChain⟩
+      rcases afterPrefixChain.split_append with
+        ⟨suffixStart, secondChain, suffixChain⟩
+      have prefixFinishEquation :
+          prefixFinish = conclusion := by
+        have finishesAtIncoming :
+            prefixFinish = incoming.finish :=
+          edgeChain_finish_eq_of_nonempty_suffixPath
+            incoming incomingNonempty
+              (by
+                simpa [prefixInitial, List.append_assoc] using
+                  prefixChain)
+        exact finishesAtIncoming.trans incomingFinishes
+      have suffixStartEquation :
+          suffixStart = conclusion := by
+        have startsAtRight :
+            suffixStart = rightPath.start :=
+          edgeChain_start_eq_of_nonempty_prefixPath
+            rightPath rightPathNonempty
+              (by
+                simpa [suffix, rightPathTraversal,
+                  List.append_assoc] using suffixChain)
+        exact
+          startsAtRight.trans
+            (rightPathStarts.trans sourceConclusion)
+      have prefixWalk :
+          certificate.fullGraph.EdgeWalk
+            (chainAt 0) prefixInitial conclusion := by
+        simpa [prefixFinishEquation] using prefixChain.toWalk
+      have suffixWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion suffix (chainAt 0) := by
+        simpa [suffixStartEquation] using suffixChain.toWalk
+      have firstWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion firstArc conclusion := by
+        simpa [firstArc] using suffixWalk.trans prefixWalk
+      have secondWalk :
+          certificate.fullGraph.EdgeWalk
+            conclusion secondArc conclusion := by
+        simpa [prefixFinishEquation, suffixStartEquation] using
+          secondChain.toWalk
+      have firstNonempty : firstArc ≠ [] := by
+        intro firstEmpty
+        have suffixEmpty : suffix = [] := by
+          simpa [firstArc] using
+            congrArg (List.take suffix.length) firstEmpty
+        have rightEmpty : rightSegment = [] := by
+          simpa [suffix] using
+            congrArg (List.take rightSegment.length) suffixEmpty
+        exact rightFlipped.1.nonempty rightEmpty
+      have rotationPermutation :
+          (firstArc ++ secondArc).Perm
+            flippedSegments.flatten := by
+        rw [flattenEquation]
+        simpa [firstArc, List.append_assoc] using
+          (List.perm_append_comm
+            (l₁ := prefixInitial ++ secondArc)
+            (l₂ := suffix)).symm
+      have rightInFirst : rightOccurrence ∈ firstArc := by
+        simp [firstArc, suffix, rightInSegment]
+      have leftInArcs :
+          leftOccurrence ∈ firstArc ∨
+            leftOccurrence ∈ secondArc := by
+        rcases leftOccurrenceSide with inIncoming | inOutgoing
+        · exact .inl (by
+            simp [firstArc, prefixInitial, inIncoming])
+        · exact .inr (by
+            simp [secondArc, inOutgoing])
+      exact
+        ⟨firstArc, secondArc, firstNonempty, firstWalk,
+          secondWalk, rotationPermutation, rightInFirst,
+          leftInArcs⟩
   exact
     ⟨flippedSegments, rightStep, leftStep,
       rightSegment, leftSegment, before, left, right, conclusion,
@@ -24238,7 +24606,7 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       conclusionNeLeftStart, conclusionInLeftTail,
       leftEdge, leftKept, rightEdgeValue, rightOmitted',
       leftBefore, leftAfter, leftTraversal, leftPosition,
-      chordSplit⟩
+      chordSplit, orderedSegments, closedIntervals⟩
 
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
 normalization. Every surviving occurrence comes from the original obstruction
