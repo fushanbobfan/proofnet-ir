@@ -26555,6 +26555,88 @@ private theorem exists_lift_map
               .shell firstTag lastTag taggedDecomposition
                 taggedClosingReverse taggedTail⟩
 
+/-- Every tagged visit either survives reverse-shell normalization or has a
+concrete partner visit in the original interval whose directed-edge value is
+its exact reverse.  The partner is a scheduler occurrence, not merely an
+equal edge value reconstructed after erasure. -/
+private theorem survives_or_reverse_partner
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after)
+    (occurrence : SchedulerOccurrence graph.DirectedEdge)
+    (membership : occurrence ∈ before) :
+    occurrence ∈ after ∨
+      ∃ partner,
+        partner ∈ before ∧
+          partner.value = occurrence.value.reverse := by
+  induction normalization generalizing occurrence with
+  | finish traversed =>
+      exact .inl membership
+  | @shell before middle after first last decomposition
+      closingReverse tail induction =>
+      rw [decomposition] at membership
+      simp only [List.mem_cons, List.mem_append,
+        List.not_mem_nil, or_false] at membership
+      rcases membership with atFirst | inMiddle | atLast
+      · subst occurrence
+        right
+        refine ⟨last, ?_, ?_⟩
+        · rw [decomposition]
+          simp
+        · rw [closingReverse]
+          simp [Graph.DirectedEdge.reverse]
+      · rcases induction occurrence inMiddle with survived | paired
+        · exact .inl survived
+        · rcases paired with
+            ⟨partner, partnerMembership, partnerReverse⟩
+          right
+          exact
+            ⟨partner, by
+              rw [decomposition]
+              simp [partnerMembership],
+              partnerReverse⟩
+      · subst occurrence
+        right
+        exact
+          ⟨first, by
+            rw [decomposition]
+            simp,
+            closingReverse⟩
+
+/-- If tagged reverse-shell normalization reaches the empty core, every
+original scheduler visit has a concrete reverse-valued partner visit in that
+same interval. -/
+private theorem reverse_partner_of_normalizes_to_nil
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after)
+    (afterEmpty : after = [])
+    (occurrence : SchedulerOccurrence graph.DirectedEdge)
+    (membership : occurrence ∈ before) :
+    ∃ partner,
+      partner ∈ before ∧
+        partner ≠ occurrence ∧
+        partner.value = occurrence.value.reverse := by
+  rcases
+      normalization.survives_or_reverse_partner
+        occurrence membership with
+    survived | paired
+  · rw [afterEmpty] at survived
+    contradiction
+  · rcases paired with
+      ⟨partner, partnerMembership, partnerReverse⟩
+    have partnerDistinct : partner ≠ occurrence := by
+      intro samePartner
+      subst partner
+      exact occurrence.value.ne_reverse partnerReverse
+    exact
+      ⟨partner, partnerMembership, partnerDistinct,
+        partnerReverse⟩
+
 /-- A tagged reverse-shell trace retains two distinct coordinate lists:
 `opening` and `closing`. Their edge values are reverse traversals, but their
 coordinates are never identified. -/
@@ -26926,6 +27008,77 @@ private theorem SchedulerTaggedProvenance.erase
   exact
     ⟨occurrence.step, segment, stepBound, segmentLookup,
       valueMembership, classified⟩
+
+/-- Two reverse-valued scheduler visits with aligned provenance cannot belong
+to the same flipped segment.  A flipped segment is realized by a simple path,
+so its edge-index list is duplicate-free; reverse orientations share one edge
+index and would force the two exact offsets, hence the two stored values, to
+coincide. -/
+private theorem SchedulerTaggedProvenance.reverse_values_step_ne
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments tagged)
+    {occurrence partner :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge}
+    (occurrenceMembership : occurrence ∈ tagged)
+    (partnerMembership : partner ∈ tagged)
+    (reverseValue :
+      partner.value = occurrence.value.reverse) :
+    partner.step ≠ occurrence.step := by
+  rcases provenance occurrence occurrenceMembership with
+    ⟨occurrenceSegment, _occurrenceStepBound,
+      occurrenceSegmentLookup, occurrenceOffsetLookup,
+      occurrenceClassified⟩
+  rcases provenance partner partnerMembership with
+    ⟨partnerSegment, _partnerStepBound,
+      partnerSegmentLookup, partnerOffsetLookup,
+      _partnerClassified⟩
+  intro sameStep
+  rw [sameStep] at partnerSegmentLookup
+  have segmentValue : partnerSegment = occurrenceSegment :=
+    Option.some.inj
+      (partnerSegmentLookup.symm.trans occurrenceSegmentLookup)
+  subst partnerSegment
+  rcases occurrenceClassified.1.simplePath_exists with
+    ⟨path, _pathStarts, _pathFinishes, pathTraversal⟩
+  have indicesNodup :
+      (occurrenceSegment.map Graph.DirectedEdge.index).Nodup := by
+    simpa [pathTraversal] using path.edgeIndicesNodup
+  have occurrenceIndexLookup :
+      (occurrenceSegment.map
+        Graph.DirectedEdge.index)[occurrence.offset]? =
+          some occurrence.value.index := by
+    rw [List.getElem?_map, occurrenceOffsetLookup]
+    rfl
+  have partnerIndexLookup :
+      (occurrenceSegment.map
+        Graph.DirectedEdge.index)[partner.offset]? =
+          some occurrence.value.index := by
+    rw [List.getElem?_map, partnerOffsetLookup, reverseValue]
+    rfl
+  have occurrenceOffsetBound :
+      occurrence.offset <
+        (occurrenceSegment.map Graph.DirectedEdge.index).length :=
+    (List.getElem?_eq_some_iff.mp occurrenceIndexLookup).1
+  have offsetsEqual : occurrence.offset = partner.offset :=
+    (List.getElem?_inj occurrenceOffsetBound indicesNodup).mp
+      (occurrenceIndexLookup.trans partnerIndexLookup.symm)
+  have valuesEqual : occurrence.value = partner.value := by
+    rw [← offsetsEqual] at partnerOffsetLookup
+    exact
+      Option.some.inj
+        (occurrenceOffsetLookup.symm.trans partnerOffsetLookup)
+  exact occurrence.value.ne_reverse
+    (valuesEqual.trans reverseValue)
 
 /-- A coordinate-exact reverse-shell normalization is itself a complete
 proof-relevant cyclic-interval descent on tagged visits. -/
@@ -29143,6 +29296,72 @@ private def SchedulerTaggedTerminalNestingBase
                     taggedNormalized ∧
                 NontrivialClosingParCusp certificate
                   (taggedNormalized.map SchedulerOccurrence.erase))
+
+/-- In an empty-core terminal complement, every surviving scheduler visit is
+paired with a distinct reverse-valued visit from a different scheduler step.
+This is the exact finite pairing that the remaining scheduler-order
+contradiction must exclude. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_reversePartners
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    ∀ occurrence,
+      occurrence ∈ taggedComplement →
+        ∃ partner,
+          partner ∈ taggedComplement ∧
+            partner ≠ occurrence ∧
+              partner.step ≠ occurrence.step ∧
+                partner.value = occurrence.value.reverse := by
+  have complementDescent :
+      CyclicIntervalDescent taggedComplement tagged :=
+    .step complementCut (.refl taggedComplement)
+  have fullDescent :
+      CyclicIntervalDescent taggedComplement
+        (tagSchedulerFamily flippedSegments) :=
+    complementDescent.trans terminal.1.2.1
+  have provenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments taggedComplement :=
+    fullDescent.schedulerTaggedProvenance
+      segmentCount indexedFlipped
+  intro occurrence occurrenceMembership
+  rcases
+      reverseShells.reverse_partner_of_normalizes_to_nil
+        normalizedEmpty occurrence occurrenceMembership with
+    ⟨partner, partnerMembership, partnerDistinct, partnerReverse⟩
+  have stepDistinct :
+      partner.step ≠ occurrence.step :=
+    provenance.reverse_values_step_ne
+      occurrenceMembership partnerMembership partnerReverse
+  exact
+    ⟨partner, partnerMembership, partnerDistinct,
+      stepDistinct, partnerReverse⟩
 
 /-- Repeated terminal-complement stripping reaches a coordinate-exact base.
 Every complement cut, reverse shell, and nested forward-cusp descent remains

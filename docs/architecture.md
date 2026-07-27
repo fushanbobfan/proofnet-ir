@@ -273,9 +273,11 @@ active-reference walks between marked occurrences are equivalent to
   decomposition. The terminal complement cut and all later normalized cores
   therefore retain exact tags through the complete nested-base recursion; the
   final tagged base carries one composed descent back to the original family.
-  Pure completeness still requires exclusion of the empty-core and
-  closing-par bases by the reference-switching or scheduler-order
-  contradiction.
+  If that base has an empty core, every exact visit is now paired with a
+  distinct reverse-valued visit from a different scheduler step; a same-step
+  pair would repeat one edge index inside a simple path. Pure completeness
+  still requires converting this finite cross-step nesting into the order
+  contradiction and excluding the tagged closing-par base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

@@ -28,8 +28,12 @@
   descent with the original family, and every recursively exposed terminal
   cusp is recomputed on the surviving coordinates. Well-founded tagged
   nesting reaches an empty-core or tagged closing-par terminal base with one
-  complete descent back to the original scheduler family. Excluding those two
-  bases remains open;
+  complete descent back to the original scheduler family. In the empty-core
+  case every exact visit now has a concrete distinct reverse-valued partner
+  from a different scheduler step; same-step pairing is excluded by the
+  simple path's duplicate-free edge indices. Turning this finite cross-step
+  nesting into the final order contradiction, and excluding the closing-par
+  base, remain open;
 - hardened the unfinished scheduler-nesting proof objects against existential
   witness drift. `SchedulerPositionedParObstruction` now retains exact linear
   decompositions for the two par occurrences inside the current cyclic

@@ -260,9 +260,12 @@ descent from the original family. Coordinate-exact reverse-shell normalization
 also exists, erases to the graph-level relation, and positionally lifts every
 graph shell from its stored list decompositions. The terminal complement and
 all later nested cores now compose exact tagged cuts and shell descents back to
-the original scheduler family. The global base-case contradiction remains
-outside the trusted claims until the empty-core and nontrivial closing-par
-bases are excluded.
+the original scheduler family. For an empty core, Lean additionally proves
+that every exact visit has a distinct reverse-valued partner from another
+scheduler step; same-step pairing is ruled out by simple-path edge-index
+uniqueness. The global base-case contradiction remains outside the trusted
+claims until that finite cross-step nesting and the nontrivial closing-par
+base are excluded.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
