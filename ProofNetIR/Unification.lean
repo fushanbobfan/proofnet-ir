@@ -26277,6 +26277,69 @@ private theorem tagSchedulerFamily_mem_of_getElem?
     tagSchedulerFamilyFrom_mem_of_getElem?
       (base := 0) segmentLookup valueLookup
 
+/-- The two scheduler copies named by a positioned par obstruction have exact
+tagged occurrences.  This theorem fixes the right occurrence at offset zero
+and derives the left offset from its stored segment decomposition.  It does
+not yet claim that an edge-value occurrence chosen inside the recursively cut
+`traversed` list is one of these same tags. -/
+private theorem
+    SchedulerPositionedParObstructionAt.tagged_scheduler_occurrences
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    {before : List Link}
+    {left right conclusion : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep : Nat}
+    {rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge}
+    (positioned :
+      SchedulerPositionedParObstructionAt
+        certificate chainAt count flippedSegments traversed
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep
+              rightSegment leftSegment) :
+    ∃ leftOffset,
+      ({ step := rightStep
+         offset := 0
+         value := rightOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+        tagSchedulerFamily flippedSegments ∧
+      ({ step := leftStep
+         offset := leftOffset
+         value := leftOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+        tagSchedulerFamily flippedSegments := by
+  rcases positioned with
+    ⟨_linksEquation, _leftMembership, _leftIndex,
+      _rightMembership, _rightIndex, _occurrenceDistinct,
+      _rightBackward, _rightStepBound, _leftStepBound,
+      _distinctSteps, rightLookup, rightHead, _rightFlipped,
+      _sourceConclusion, _conclusionNeLeftStart, leftLookup,
+      leftPosition, _leftFlipped, _conclusionInLeftTail,
+      _traversalOrder, _schedulerOrder⟩
+  rcases leftPosition with
+    ⟨leftBefore, leftAfter, leftEquation⟩
+  have rightOffsetLookup :
+      rightSegment[0]? = some rightOccurrence := by
+    simpa [List.head?_eq_getElem?] using rightHead
+  have leftOffsetLookup :
+      leftSegment[leftBefore.length]? =
+        some leftOccurrence := by
+    rw [leftEquation]
+    simp
+  exact
+    ⟨leftBefore.length,
+      tagSchedulerFamily_mem_of_getElem?
+        rightLookup rightOffsetLookup,
+      tagSchedulerFamily_mem_of_getElem?
+        leftLookup leftOffsetLookup⟩
+
 /-- One strict cyclic-interval cut.  Rotating `larger` at the displayed
 prefix/suffix boundary makes `smaller` a contiguous sublist, and the cut
 strictly decreases traversal length. -/

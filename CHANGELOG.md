@@ -7,8 +7,12 @@
   visit by `(segment step, in-segment offset, DirectedEdge value)`;
   `tagSchedulerFamily` is proved duplicate-free even when erasing its tags
   produces repeated edge values, and exact segment/offset lookups construct
-  the corresponding tagged occurrence. Erasure is proved to recover the
-  original flattened traversal. `CyclicIntervalCut.map` and
+  the corresponding tagged occurrence. Every
+  `SchedulerPositionedParObstructionAt` now projects the exact right-head tag
+  and the exact left tag at the offset retained by its segment decomposition.
+  This fixes the scheduler copies without yet identifying them with visits in
+  an edge-level recursive subarc. Erasure is proved to recover the original
+  flattened traversal. `CyclicIntervalCut.map` and
   `CyclicIntervalDescent.map` transport a coordinate-level proof down to the
   old edge-level interface. There is deliberately no converse lift from an
   edge-value cut, because repeated values do not determine which visit was
