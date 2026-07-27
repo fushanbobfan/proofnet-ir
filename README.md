@@ -202,9 +202,13 @@ that same vertex-simple segment. Under the first-repeat prefix injectivity
 already carried by the dependency-cycle witness, the conflict conclusion is
 also proved distinct from the holder segment's start and reached in that
 segment's target list. The holder occurrence is the exact retained left
-incidence and the source head is the exact omitted right incidence. Thus the
-remaining witness is an exact internal cross-segment chord/nesting problem
-rather than an unlocated pair in the flattened walk.
+incidence and the source head is the exact omitted right incidence. Lean now
+splits the holder segment at that conclusion into incoming and outgoing
+vertex-simple paths: the incoming path is nonempty, the retained-left
+occurrence belongs to the orientation-correct side, and the two paths meet
+only at the conclusion. Thus the remaining witness is an exact internal
+cross-segment chord/nesting problem rather than an unlocated pair in the
+flattened walk.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.

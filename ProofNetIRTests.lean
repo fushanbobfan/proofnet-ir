@@ -2053,6 +2053,7 @@ example : ∃ path : cyclicGraph.EdgeSimplePath,
 #check Certificate.CuspAcyclic.no_minimal_bungee_firstIntersection
 #check Graph.EdgeWalk.head_reverseTraversal
 #check Graph.EdgeWalk.getLast_reverseTraversal
+#check Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split
 #check Graph.EdgeSimpleCycle.middlePath
 #check Graph.EdgeSimpleCycle.mem_reverse_vertices_iff
 #check Graph.EdgeSimpleCycle.wrapPathAfterCusp

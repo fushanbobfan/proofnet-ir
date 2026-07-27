@@ -41,6 +41,7 @@ def sections : List Section := [
       `ProofNetIR.Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true,
       `ProofNetIR.Graph.EdgeSimplePath.prefixBefore,
       `ProofNetIR.Graph.EdgeSimplePath.suffixAfter,
+      `ProofNetIR.Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split,
       `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq,
       `ProofNetIR.Graph.retainEdgesByMask_lookup_exists_original,
       `ProofNetIR.Graph.DirectedEdge.inflateRetained_exists,

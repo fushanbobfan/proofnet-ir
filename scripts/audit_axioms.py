@@ -159,6 +159,7 @@ EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true",
     "ProofNetIR.Graph.EdgeSimplePath.prefixBefore",
     "ProofNetIR.Graph.EdgeSimplePath.suffixAfter",
+    "ProofNetIR.Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split",
     "ProofNetIR.UnificationMarking.referencePath_has_first_unmarked_to_marked_boundary",
     "ProofNetIR.Graph.Acyclic.reindex",
     "ProofNetIR.Graph.acyclic_reindex_iff",

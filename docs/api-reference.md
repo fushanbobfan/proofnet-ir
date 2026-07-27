@@ -225,6 +225,22 @@ ProofNetIR.Graph.EdgeSimplePath.suffixAfter : ∀ {graph : ProofNetIR.Graph} (pa
           suffix.traversed = after ∧ ∀ (vertex : ProofNetIR.Vertex), vertex ∈ suffix.vertices → vertex ∈ path.vertices
 ```
 
+### `ProofNetIR.Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split`
+
+Kind: theorem.
+
+If a simple path traversal is partitioned into two simple subpaths with
+the same initial vertex as the first piece, the two pieces can share only the
+second piece's start.  This is the incidence-safe intersection fact needed
+when a repeated vertex splits a larger walk into chord intervals.
+
+```lean
+ProofNetIR.Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split : ∀ {graph : ProofNetIR.Graph} (path incoming outgoing : graph.EdgeSimplePath),
+  path.start = incoming.start →
+    path.traversed = incoming.traversed ++ outgoing.traversed →
+      ∀ (vertex : ProofNetIR.Vertex), vertex ∈ incoming.vertices → vertex ∈ outgoing.vertices → vertex = outgoing.start
+```
+
 ### `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq`
 
 Kind: theorem.

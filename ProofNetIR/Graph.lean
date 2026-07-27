@@ -2510,6 +2510,41 @@ def append {graph : Graph} (first second : graph.EdgeSimplePath)
       first.vertices ++ second.vertices.tail := by
   simp [append, vertices, EdgeWalk.visitedVertices, List.map_append]
 
+/-- If a simple path traversal is partitioned into two simple subpaths with
+the same initial vertex as the first piece, the two pieces can share only the
+second piece's start.  This is the incidence-safe intersection fact needed
+when a repeated vertex splits a larger walk into chord intervals. -/
+theorem uniqueIntersection_of_traversal_split {graph : Graph}
+    (path incoming outgoing : graph.EdgeSimplePath)
+    (sameStart : path.start = incoming.start)
+    (traversalEquation :
+      path.traversed = incoming.traversed ++ outgoing.traversed) :
+    ∀ vertex,
+      vertex ∈ incoming.vertices →
+        vertex ∈ outgoing.vertices →
+          vertex = outgoing.start := by
+  have vertexEquation :
+      path.vertices =
+        incoming.vertices ++ outgoing.vertices.tail := by
+    simp [vertices, EdgeWalk.visitedVertices, traversalEquation,
+      List.map_append, sameStart]
+  have decomposedNodup :
+      (incoming.vertices ++ outgoing.vertices.tail).Nodup := by
+    rw [← vertexEquation]
+    exact path.verticesNodup
+  have disjoint :=
+    (List.nodup_append.mp decomposedNodup).2.2
+  intro vertex inIncoming inOutgoing
+  simp only [vertices, EdgeWalk.visitedVertices, List.mem_cons,
+    List.mem_map] at inOutgoing
+  rcases inOutgoing with atStart | inTargets
+  · exact atStart
+  · have inOutgoingTail :
+        vertex ∈ outgoing.vertices.tail := by
+      simpa [vertices, EdgeWalk.visitedVertices] using inTargets
+    exact False.elim
+      (disjoint vertex inIncoming vertex inOutgoingTail rfl)
+
 /-- The traversal strictly before a selected exact edge occurrence remains a
 simple path ending at that occurrence's source. -/
 theorem prefixBefore {graph : Graph} (path : graph.EdgeSimplePath)

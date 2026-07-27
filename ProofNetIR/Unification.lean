@@ -18116,6 +18116,32 @@ private theorem QuiescentWaitingParDependencyFlippedTraversal.walk
   simpa [flippedStarts, flippedFinishes, flippedTraversal] using
     flippedPath.walk
 
+/-- The compact flipped traversal retains the vertex-simple path which
+generated its exact full-graph walk. -/
+private theorem
+    QuiescentWaitingParDependencyFlippedTraversal.simplePath_exists
+    {certificate : Certificate}
+    {source target : Vertex}
+    {traversed :
+      List certificate.fullGraph.DirectedEdge}
+    (flipped :
+      QuiescentWaitingParDependencyFlippedTraversal
+        certificate source target traversed) :
+    ∃ path : certificate.fullGraph.EdgeSimplePath,
+      path.start = source ∧
+        path.finish = target ∧
+          path.traversed = traversed := by
+  rcases flipped with
+    ⟨_before, _afterLinks, _left, _right,
+      _rightOccurrence, _fullSuffix, flippedPath,
+      _linksEquation, flippedStarts, flippedFinishes,
+      flippedTraversal, _traversalShape, _rightIndex,
+      _rightEdge, _rightBackward, _rightOmitted,
+      _fullSuffixKept⟩
+  exact
+    ⟨flippedPath, flippedStarts, flippedFinishes,
+      flippedTraversal⟩
+
 /-- Every compact flipped traversal is nonempty. -/
 private theorem
     QuiescentWaitingParDependencyFlippedTraversal.nonempty
@@ -23789,8 +23815,11 @@ target list.  The theorem also exposes the exact retained-left and
 omitted-right edge and mask identities.
 
 This is the internal finite chord needed by the remaining nesting argument:
-the obstruction is no longer an unlocated pair somewhere in a flattened
-walk. -/
+the holder segment is split at the chord conclusion into incoming and outgoing
+vertex-simple paths.  The incoming part is nonempty, the retained-left
+occurrence lies in one of the two parts according to its orientation, and the
+two parts meet only at the conclusion.  The obstruction is therefore no
+longer an unlocated pair somewhere in a flattened walk. -/
 private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_between_distinct_segments_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
@@ -23850,7 +23879,49 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                             second := conclusion } ∧
                                         certificate.referenceSwitchingMask[
                                             rightOccurrence.index]? =
-                                          some false := by
+                                          some false ∧
+                                          ∃ leftBefore leftAfter,
+                                            leftSegment =
+                                                leftBefore ++
+                                                  leftOccurrence ::
+                                                    leftAfter ∧
+                                              ((leftOccurrence.forward =
+                                                    true ∧
+                                                  leftOccurrence.target =
+                                                    conclusion) ∨
+                                                ∃ beforeNonempty :
+                                                    leftBefore ≠ [],
+                                                  leftOccurrence.forward =
+                                                      false ∧
+                                                    (leftBefore.getLast
+                                                        beforeNonempty).target =
+                                                      conclusion) ∧
+                                            ∃ incoming outgoing :
+                                                certificate.fullGraph.EdgeSimplePath,
+                                              incoming.start =
+                                                  chainAt leftStep ∧
+                                                incoming.finish =
+                                                    conclusion ∧
+                                                  outgoing.start =
+                                                      conclusion ∧
+                                                    outgoing.finish =
+                                                        chainAt (leftStep + 1) ∧
+                                                      leftSegment =
+                                                          incoming.traversed ++
+                                                            outgoing.traversed ∧
+                                                        incoming.traversed ≠
+                                                            [] ∧
+                                                          (leftOccurrence ∈
+                                                              incoming.traversed ∨
+                                                            leftOccurrence ∈
+                                                              outgoing.traversed) ∧
+                                                            ∀ vertex,
+                                                              vertex ∈
+                                                                  incoming.vertices →
+                                                                vertex ∈
+                                                                    outgoing.vertices →
+                                                                  vertex =
+                                                                    conclusion := by
   rcases
       allReflexive.flippedParObstruction_exists
         correct positive closed with
@@ -24018,6 +24089,145 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
         leftSegment.map Graph.DirectedEdge.target := by
     simpa [Graph.EdgeWalk.visitedVertices,
       conclusionNeLeftStart] using conclusionInLeftVertices
+  rcases List.mem_iff_append.mp leftInSegment with
+    ⟨leftBefore, leftAfter, leftTraversal⟩
+  have leftPosition :
+      (leftOccurrence.forward = true ∧
+          leftOccurrence.target = conclusion) ∨
+        ∃ beforeNonempty : leftBefore ≠ [],
+          leftOccurrence.forward = false ∧
+            (leftBefore.getLast beforeNonempty).target =
+              conclusion := by
+    cases orientation : leftOccurrence.forward with
+    | true =>
+        exact .inl
+          ⟨rfl,
+            by
+              simp [Graph.DirectedEdge.target, leftEdge, orientation]⟩
+    | false =>
+        have leftChain := leftFlipped.1.walk.toChain
+        rw [leftTraversal] at leftChain
+        rcases leftChain.split_append with
+          ⟨middle, prefixChain, suffixChain⟩
+        cases suffixChain with
+        | cons directed starts tail =>
+            have beforeNonempty : leftBefore ≠ [] := by
+              intro beforeEmpty
+              subst leftBefore
+              have startAtMiddle :
+                  chainAt leftStep = middle :=
+                prefixChain.eq_of_nil
+              apply conclusionNeLeftStart
+              calc
+                conclusion = leftOccurrence.source := by
+                  simp [Graph.DirectedEdge.source, leftEdge, orientation]
+                _ = middle := starts
+                _ = chainAt leftStep := startAtMiddle.symm
+            refine .inr ⟨beforeNonempty, rfl, ?_⟩
+            calc
+              (leftBefore.getLast beforeNonempty).target =
+                  middle :=
+                prefixChain.toWalk.getLast_target beforeNonempty
+              _ = leftOccurrence.source := starts.symm
+              _ = conclusion := by
+                simp [Graph.DirectedEdge.source, leftEdge, orientation]
+  rcases leftFlipped.1.simplePath_exists with
+    ⟨leftPath, leftPathStarts, leftPathFinishes,
+      leftPathTraversal⟩
+  have leftPathEquation :
+      leftPath.traversed =
+        leftBefore ++ leftOccurrence :: leftAfter := by
+    rw [leftPathTraversal, leftTraversal]
+  have chordSplit :
+      ∃ incoming outgoing :
+          certificate.fullGraph.EdgeSimplePath,
+        incoming.start = chainAt leftStep ∧
+          incoming.finish = conclusion ∧
+            outgoing.start = conclusion ∧
+              outgoing.finish = chainAt (leftStep + 1) ∧
+                leftSegment =
+                    incoming.traversed ++ outgoing.traversed ∧
+                  incoming.traversed ≠ [] ∧
+                    (leftOccurrence ∈ incoming.traversed ∨
+                      leftOccurrence ∈ outgoing.traversed) ∧
+                      ∀ vertex,
+                        vertex ∈ incoming.vertices →
+                          vertex ∈ outgoing.vertices →
+                            vertex = conclusion := by
+    cases orientation : leftOccurrence.forward with
+    | true =>
+        rcases leftPath.prefixPath leftPathEquation with
+          ⟨incoming, incomingStarts, incomingFinishes,
+            incomingTraversal⟩
+        rcases leftPath.suffixAfter leftPathEquation with
+          ⟨outgoing, outgoingStarts, outgoingFinishes,
+            outgoingTraversal, _outgoingSubset⟩
+        have leftTarget :
+            leftOccurrence.target = conclusion := by
+          simp [Graph.DirectedEdge.target, leftEdge, orientation]
+        have splitTraversal :
+            leftPath.traversed =
+              incoming.traversed ++ outgoing.traversed := by
+          rw [incomingTraversal, outgoingTraversal, leftPathEquation]
+          simp [List.append_assoc]
+        have uniqueIntersection :=
+          leftPath.uniqueIntersection_of_traversal_split
+            incoming outgoing incomingStarts.symm splitTraversal
+        refine
+          ⟨incoming, outgoing,
+            incomingStarts.trans leftPathStarts,
+            incomingFinishes.trans leftTarget,
+            outgoingStarts.trans leftTarget,
+            outgoingFinishes.trans leftPathFinishes,
+            ?_, ?_, ?_, ?_⟩
+        · rw [incomingTraversal, outgoingTraversal, leftTraversal]
+          simp [List.append_assoc]
+        · rw [incomingTraversal]
+          simp
+        · exact .inl (by
+            rw [incomingTraversal]
+            simp)
+        · intro vertex inIncoming inOutgoing
+          exact
+            (uniqueIntersection vertex inIncoming inOutgoing).trans
+              (outgoingStarts.trans leftTarget)
+    | false =>
+        rcases leftPosition with
+          impossibleForward |
+            ⟨beforeNonempty, _leftBackward, _beforeFinishes⟩
+        · simp [orientation] at impossibleForward
+        · rcases leftPath.prefixBefore leftPathEquation with
+            ⟨incoming, incomingStarts, incomingFinishes,
+              incomingTraversal⟩
+          rcases leftPath.suffixPath leftPathEquation with
+            ⟨outgoing, outgoingStarts, outgoingFinishes,
+              outgoingTraversal, _outgoingSubset⟩
+          have leftSource :
+              leftOccurrence.source = conclusion := by
+            simp [Graph.DirectedEdge.source, leftEdge, orientation]
+          have splitTraversal :
+              leftPath.traversed =
+                incoming.traversed ++ outgoing.traversed := by
+            rw [incomingTraversal, outgoingTraversal, leftPathEquation]
+          have uniqueIntersection :=
+            leftPath.uniqueIntersection_of_traversal_split
+              incoming outgoing incomingStarts.symm splitTraversal
+          refine
+            ⟨incoming, outgoing,
+              incomingStarts.trans leftPathStarts,
+              incomingFinishes.trans leftSource,
+              outgoingStarts.trans leftSource,
+              outgoingFinishes.trans leftPathFinishes,
+              ?_, ?_, ?_, ?_⟩
+          · rw [incomingTraversal, outgoingTraversal, leftTraversal]
+          · simpa [incomingTraversal] using beforeNonempty
+          · exact .inr (by
+              rw [outgoingTraversal]
+              simp)
+          · intro vertex inIncoming inOutgoing
+            exact
+              (uniqueIntersection vertex inIncoming inOutgoing).trans
+                (outgoingStarts.trans leftSource)
   exact
     ⟨flippedSegments, rightStep, leftStep,
       rightSegment, leftSegment, before, left, right, conclusion,
@@ -24026,7 +24236,9 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
       rightLookup, rightHead, leftLookup, leftInSegment,
       linksEquation, sourceConclusion.symm, leftIndex, rightIndex,
       conclusionNeLeftStart, conclusionInLeftTail,
-      leftEdge, leftKept, rightEdgeValue, rightOmitted'⟩
+      leftEdge, leftKept, rightEdgeValue, rightOmitted',
+      leftBefore, leftAfter, leftTraversal, leftPosition,
+      chordSplit⟩
 
 /-- The nonempty closed dependency walk admits exact-occurrence cyclic
 normalization. Every surviving occurrence comes from the original obstruction

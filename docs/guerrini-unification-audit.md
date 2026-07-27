@@ -332,8 +332,11 @@ or positive misses. The larger search recorded at most 995 link attempts and
     distinct indexed segment. First-repeat prefix injectivity additionally
     proves that their common conclusion is a non-start vertex reached inside
     the holder segment's target list, and pins the two exact mask facts to
-    retained-left and omitted-right. The immediate proof obligation is
-    therefore the global chord/repeated-vertex/nesting argument: ordinary loop erasure is
+    retained-left and omitted-right. The holder segment is now split at that
+    conclusion into incoming and outgoing simple paths with a nonempty incoming
+    side, orientation-exact retained-left membership, and no other shared
+    vertex. The immediate proof obligation is therefore the global
+    chord/repeated-vertex/nesting argument: ordinary loop erasure is
    insufficient because it can create a new closing cusp by re-pairing
    incidences at the erased vertex. In the nonempty branch, the proof must still
    transport the turn evidence into an excluded edge-simple switching cycle or

@@ -255,8 +255,11 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   lie in that same vertex-simple traversal. Prefix injectivity also proves that
   the common conclusion is not the holder segment's start but is reached in
   that segment's target list; the two incidences are identified exactly as
-  retained-left and omitted-right in the reference mask. The remaining gap is
-  global: repeated vertices and this exact internal chord must be resolved
+  retained-left and omitted-right in the reference mask. The holder segment
+  is split at the conclusion into a nonempty incoming simple path and an
+  outgoing simple path, with unique intersection at that conclusion and the
+  retained-left occurrence on the orientation-correct side. The remaining gap
+  is global: repeated vertices and this exact internal chord must be resolved
   using the nesting/switching structure while preserving those incidence pairings.
  Ordinary loop erasure is not sufficient because it can create a new closing
  cusp at the erased vertex. This is not yet the correct-state progress theorem

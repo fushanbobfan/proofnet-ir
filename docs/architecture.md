@@ -208,6 +208,9 @@ active-reference walks between marked occurrences are equivalent to
   Prefix injectivity further makes the common conclusion a non-start vertex
   reached in the holder segment's target list, with the holder edge proved
   exactly retained-left and the source head proved exactly omitted-right.
+  The holder segment is split there into a nonempty incoming simple path and
+  an outgoing simple path whose only common vertex is the conclusion; the
+  retained-left occurrence is assigned to the orientation-correct side.
   Pure completeness still requires the global chord/repeated-vertex/nesting
   argument which extracts a forbidden switching cycle without using ordinary
   loop erasure: erasing at a repeated vertex can re-pair incidences and create
