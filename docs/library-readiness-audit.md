@@ -220,9 +220,14 @@ part of the engineering and proof-identity gap.
    flipped-segment head. One concrete reverse pair is additionally ordered by
    scheduler step with an exact before/middle/after family decomposition, and
    each positive offset is inverted to its omitted-head/retained-suffix
-   decomposition plus the exact suffix walk. Excluding the remaining ordered
-   closed nesting of retained segment suffixes and the tagged closing-par
-   base, pure worklist completeness, and a full cost theorem remain open.
+   decomposition plus the exact suffix walk. Lean now also exhibits the
+   zero-offset heads of both ordered endpoint segments as exact members of the
+   initial tagged family and exact nonmembers of the retained complement.
+   This head-skipping reverse chord isolates the nesting gap without assuming
+   the false transitivity of generic cyclic-interval convexity. Excluding the
+   remaining ordered closed nesting of retained segment suffixes and the
+   tagged closing-par base, pure worklist completeness, and a full cost theorem
+   remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

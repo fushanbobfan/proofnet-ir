@@ -39,10 +39,19 @@
   reverse pair is now oriented by strict scheduler-step order and carries the
   exact before/middle/after segment-family decomposition. Each positive
   offset is also inverted to the exact omitted-head/retained-suffix
-  decomposition and a retained suffix walk to the segment target. Turning
-  the remaining ordered closed nesting of retained segment suffixes into the
-  final scheduler contradiction, and excluding the closing-par base, remain
-  open;
+  decomposition and a retained suffix walk to the segment target. The empty
+  core now additionally exposes a coordinate-exact head-skipping reverse
+  chord: Lean proves that the zero-offset heads of both ordered endpoint
+  segments occur in the original tagged scheduler family but are absent from
+  the retained complement. This is a genuine nesting witness, not yet the
+  contradiction. In particular, a bare transitive `CyclicIntervalDescent` is
+  intentionally not treated as one cyclic interval of the initial family:
+  an inner cyclic cut may wrap around the artificial boundary introduced by
+  an outer cut. The final exclusion must therefore use the stored
+  cusp/chord/shell endpoint data rather than an invalid generic-convexity
+  shortcut. Turning the remaining ordered closed nesting of retained segment
+  suffixes into the final scheduler contradiction, and excluding the
+  closing-par base, remain open;
 - hardened the unfinished scheduler-nesting proof objects against existential
   witness drift. `SchedulerPositionedParObstruction` now retains exact linear
   decompositions for the two par occurrences inside the current cyclic

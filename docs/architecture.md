@@ -283,10 +283,14 @@ active-reference walks between marked occurrences are equivalent to
   Lean also selects one concrete reverse pair, orients it by strict scheduler
   step order, and records the exact segment family before, between, and after
   the pair. A positive offset is now inverted to the concrete omitted head,
-  retained suffix, and suffix walk to the classified target. Pure completeness
-  still requires converting the resulting ordered closed nesting of retained
-  segment suffixes into the contradiction and excluding the tagged
-  closing-par base.
+  retained suffix, and suffix walk to the classified target. Both endpoint
+  segment heads are furthermore proved present in the initial tagged family
+  and absent from the retained complement, yielding an exact head-skipping
+  reverse chord. Generic cyclic-interval descent is not itself a convexity
+  invariant because a nested cut may wrap around a boundary introduced by an
+  earlier cut. Pure completeness must instead use the specialized chord,
+  complement, and shell endpoints to convert the ordered closed nesting into
+  the contradiction and exclude the tagged closing-par base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

@@ -29720,6 +29720,122 @@ private def SchedulerOrderedStrictInteriorReversePair
                                     laterHead :: laterSuffix ∧
                                   later.value ∈ laterSuffix
 
+/-- An ordered strict-interior reverse pair forces two concrete omissions from
+the original tagged scheduler family: the zero-offset heads of both source
+segments occur in the full family but not in the retained interval.  This is
+the exact "head-skipping chord" that a later nesting argument must exclude.
+
+Stating the gap with occurrence tags is important.  Equal edge values can be
+visited in several scheduler segments, while the two omitted witnesses below
+retain their exact segment coordinates. -/
+private def SchedulerHeadSkippingStrictInteriorReverseChord
+    (graph : Graph)
+    (segments : List (List graph.DirectedEdge))
+    (tagged : List (SchedulerOccurrence graph.DirectedEdge)) : Prop :=
+  ∃ earlier later earlierHead laterHead earlierSegment laterSegment,
+    earlier ∈ tagged ∧
+      later ∈ tagged ∧
+        earlier.offset ≠ 0 ∧
+          later.offset ≠ 0 ∧
+            earlier.step < later.step ∧
+              later.value = earlier.value.reverse ∧
+                segments[earlier.step]? = some earlierSegment ∧
+                  segments[later.step]? = some laterSegment ∧
+                    earlierSegment.head? = some earlierHead ∧
+                      laterSegment.head? = some laterHead ∧
+                        ({ step := earlier.step
+                           offset := 0
+                           value := earlierHead } :
+                            SchedulerOccurrence graph.DirectedEdge) ∈
+                          tagSchedulerFamily segments ∧
+                          ({ step := later.step
+                             offset := 0
+                             value := laterHead } :
+                              SchedulerOccurrence graph.DirectedEdge) ∈
+                            tagSchedulerFamily segments ∧
+                            ({ step := earlier.step
+                               offset := 0
+                               value := earlierHead } :
+                                SchedulerOccurrence graph.DirectedEdge) ∉
+                              tagged ∧
+                              ({ step := later.step
+                                 offset := 0
+                                 value := laterHead } :
+                                  SchedulerOccurrence graph.DirectedEdge) ∉
+                                tagged
+
+/-- Every ordered strict-interior reverse pair in a head-free retained state
+exposes the two coordinate-exact missing segment heads in the original tagged
+scheduler family. -/
+private theorem
+    SchedulerOrderedStrictInteriorReversePair.headSkippingChord
+    {graph : Graph}
+    {segments : List (List graph.DirectedEdge)}
+    {tagged : List (SchedulerOccurrence graph.DirectedEdge)}
+    (ordered :
+      SchedulerOrderedStrictInteriorReversePair graph segments tagged)
+    (headFree :
+      ∀ occurrence,
+        occurrence ∈ tagged → occurrence.offset ≠ 0) :
+    SchedulerHeadSkippingStrictInteriorReverseChord
+      graph segments tagged := by
+  rcases ordered with
+    ⟨earlier, later, earlierSegment, laterSegment,
+      _beforeSegments, _middleSegments, _afterSegments,
+      earlierMembership, laterMembership, earlierInterior,
+      laterInterior, stepOrder, earlierSegmentLookup,
+      laterSegmentLookup, _earlierOffsetLookup, _laterOffsetLookup,
+      reversePair, _familyEquation, earlierHead, earlierSuffix,
+      laterHead, laterSuffix, earlierSegmentShape, _earlierInSuffix,
+      laterSegmentShape, _laterInSuffix⟩
+  have earlierHeadLookup :
+      earlierSegment[0]? = some earlierHead := by
+    rw [earlierSegmentShape]
+    simp
+  have laterHeadLookup :
+      laterSegment[0]? = some laterHead := by
+    rw [laterSegmentShape]
+    simp
+  have earlierHeadInFamily :
+      ({ step := earlier.step
+         offset := 0
+         value := earlierHead } :
+          SchedulerOccurrence graph.DirectedEdge) ∈
+        tagSchedulerFamily segments :=
+    tagSchedulerFamily_mem_of_getElem?
+      earlierSegmentLookup earlierHeadLookup
+  have laterHeadInFamily :
+      ({ step := later.step
+         offset := 0
+         value := laterHead } :
+          SchedulerOccurrence graph.DirectedEdge) ∈
+        tagSchedulerFamily segments :=
+    tagSchedulerFamily_mem_of_getElem?
+      laterSegmentLookup laterHeadLookup
+  have earlierHeadMissing :
+      ({ step := earlier.step
+         offset := 0
+         value := earlierHead } :
+          SchedulerOccurrence graph.DirectedEdge) ∉ tagged := by
+    intro membership
+    exact headFree _ membership rfl
+  have laterHeadMissing :
+      ({ step := later.step
+         offset := 0
+         value := laterHead } :
+          SchedulerOccurrence graph.DirectedEdge) ∉ tagged := by
+    intro membership
+    exact headFree _ membership rfl
+  exact
+    ⟨earlier, later, earlierHead, laterHead,
+      earlierSegment, laterSegment, earlierMembership,
+      laterMembership, earlierInterior, laterInterior, stepOrder,
+      reversePair, earlierSegmentLookup, laterSegmentLookup,
+      by simpa [List.head?_eq_getElem?] using earlierHeadLookup,
+      by simpa [List.head?_eq_getElem?] using laterHeadLookup,
+      earlierHeadInFamily, laterHeadInFamily,
+      earlierHeadMissing, laterHeadMissing⟩
+
 /-- A nonempty empty-core complement contains an exact reverse pair whose two
 strict-interior scheduler visits are linearly ordered in the original segment
 family.  This is the first concrete scheduler-order chord extracted from the
@@ -29848,6 +29964,56 @@ private theorem
         occurrenceSegmentShape, occurrenceInSuffix,
         partnerSegmentShape, partnerInSuffix⟩
 
+/-- The empty terminal core therefore cannot be a featureless retained loop:
+it contains a reverse chord between two ordered scheduler segments while
+omitting the exact zero-offset head of each endpoint segment. -/
+private theorem
+    SchedulerTaggedForwardParCuspState.emptyComplementCore_headSkippingChord
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged)
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (complementCut :
+      CyclicIntervalCut taggedComplement tagged)
+    (complementNonempty : taggedComplement ≠ [])
+    (reverseShells :
+      SchedulerCyclicReverseShellNormalization
+        taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    SchedulerHeadSkippingStrictInteriorReverseChord
+      certificate.fullGraph flippedSegments taggedComplement := by
+  have ordered :
+      SchedulerOrderedStrictInteriorReversePair
+        certificate.fullGraph flippedSegments taggedComplement :=
+    terminal.emptyComplementCore_orderedStrictInteriorReversePair_exists
+      segmentCount indexedFlipped complementCut complementNonempty
+        reverseShells normalizedEmpty
+  have headFree :
+      ∀ occurrence,
+        occurrence ∈ taggedComplement → occurrence.offset ≠ 0 :=
+    terminal.emptyComplementCore_no_segment_head
+      segmentCount indexedFlipped complementCut reverseShells
+        normalizedEmpty
+  exact ordered.headSkippingChord headFree
+
 /-- Eliminate a tagged terminal base without losing its exact geometry.
 The empty alternative is strengthened to a nonempty closed walk in the
 reference switching whose tags are all strict segment-interior visits.  The
@@ -29897,9 +30063,12 @@ private theorem
                     SchedulerOrderedStrictInteriorReversePair
                       certificate.fullGraph flippedSegments
                         taggedComplement ∧
-                      certificate.referenceSwitchingGraph.EdgeWalk
-                        complementBase retainedTraversal complementBase ∧
-                        retainedTraversal ≠ []) ∨
+                      SchedulerHeadSkippingStrictInteriorReverseChord
+                        certificate.fullGraph flippedSegments
+                          taggedComplement ∧
+                        certificate.referenceSwitchingGraph.EdgeWalk
+                          complementBase retainedTraversal complementBase ∧
+                          retainedTraversal ≠ []) ∨
       ∃ complementBase taggedComplement taggedNormalized,
         CyclicIntervalCut taggedComplement tagged ∧
           taggedComplement ≠ [] ∧
@@ -29938,6 +30107,9 @@ private theorem
           segmentCount indexedFlipped complementCut
             reverseShells normalizedEmpty,
         terminal.emptyComplementCore_orderedStrictInteriorReversePair_exists
+          segmentCount indexedFlipped complementCut
+            complementNonempty reverseShells normalizedEmpty,
+        terminal.emptyComplementCore_headSkippingChord
           segmentCount indexedFlipped complementCut
             complementNonempty reverseShells normalizedEmpty,
         retainedWalk, retainedNonempty⟩
