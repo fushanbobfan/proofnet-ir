@@ -232,10 +232,13 @@ part of the engineering and proof-identity gap.
    into two nonempty compacted reference walks through one midpoint, and its
    full closing traversal is kernel-proved equal to the reverse of its full
    opening traversal. This head-skipping chord plus occurrence-exact shell
-   isolates the nesting gap without assuming the false transitivity of generic
-   cyclic-interval convexity. Excluding the remaining ordered closed nesting
-   of retained segment suffixes and the tagged closing-par base, pure
-   worklist completeness, and a full cost theorem remain open.
+   identifies an unavoidable midpoint occurrence/reverse cusp, so the
+   cusp-free empty branch is now kernel-excluded without assuming the false
+   transitivity of generic cyclic-interval convexity. The tagged closing-par
+   base now retains exact first/last scheduler tags, source segment/offset
+   lookups, and reference retention of its forward last incidence. Excluding
+   that final base, pure worklist completeness, and a full cost theorem remain
+   open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

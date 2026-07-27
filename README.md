@@ -257,9 +257,11 @@ equation. A nonempty normalized core inherits both the concrete par
 obstruction and its exact scheduler location. If that core closes cusp-free,
 the same construction produces a strictly nested terminal forward cusp;
 well-founded recursion records the transitive cyclic-interval descent and
-terminates. The remaining geometric obligation is consequently finite: rule
-out an empty normalized shell core and a scheduler-located nontrivial closing
-par core by the reference-switching or scheduler-order contradiction.
+terminates. The finite empty normalized-shell alternative is now ruled out:
+its nonempty opening is immediately followed at the shell midpoint by the
+exact reverse of its last occurrence, which is a cusp and contradicts the
+inherited `CuspFreeTraversal`. The remaining geometric obligation is the
+scheduler-located nontrivial closing-par core.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.
@@ -281,9 +283,13 @@ For the
  proved to remain exact reverses. The empty shell itself is now split into two
  nonempty reference-switching walks through one midpoint, with the complete
  closing traversal kernel-proved equal to the reverse of the opening traversal.
- This is an occurrence-exact nested out-and-back witness, not yet its scheduler
- contradiction. Those two base cases must next be contradicted before the
- recursive fallback can be removed. The
+ Lean now uses that same exact shell equation together with inherited internal
+ cusp-freedom to exclude the empty branch: the midpoint is an unavoidable
+ occurrence/reverse cusp. The surviving closing-par core carries exact first
+ and last scheduler tags, their segment/offset lookups and flipped-segment
+ classifications, and proof that its forward last incidence is retained by
+ the reference switching. Excluding this one remaining base is required before
+ the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See
@@ -435,9 +441,9 @@ The repository currently contains:
   traversed occurrence has two unmarked endpoints, while retaining exact
   scheduler classifications at both boundary orientations. The subsequent
   occurrence-aware dependency, flipped-cycle, terminal-cusp, reverse-shell,
-  and well-founded nesting arguments reduce the remaining progress proof to
-  two finite scheduler-located base cases: an empty shell core and a
-  nontrivial closing-par core;
+  and well-founded nesting arguments exclude the empty reverse-shell base by
+  its forced midpoint cusp and reduce the remaining progress proof to one
+  scheduler-located nontrivial closing-par core with exact endpoint tags;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

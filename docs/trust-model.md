@@ -276,10 +276,12 @@ suffix occurrences as one compacted reverse pair. The empty reverse-shell
 trace is separately transported as two nonempty reference walks through one
 midpoint, with the complete compacted closing traversal proved equal to the
 reverse of the compacted opening traversal. A closed tree walk, including
-this exact nested out-and-back form, is not itself contradictory. The global
-base-case contradiction therefore remains outside the trusted claims until
-that ordered retained-suffix nesting and the nontrivial closing-par base are
-excluded.
+this exact nested out-and-back form, is not itself contradictory. Instead Lean
+uses the stronger inherited `CuspFreeTraversal`: the shell midpoint contains
+an exact occurrence immediately followed by its reverse, hence a forbidden
+cusp. The empty base is therefore excluded. The nontrivial closing-par base
+remains; its exact first/last scheduler tags, segment/offset classifications,
+and reference-kept forward last incidence are now retained.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -332,13 +334,14 @@ Lean now also constructs the exact simultaneous complementary
   the exact reverse shells, retains their positional context and exact length
   equation, and transports scheduler provenance to the residual core.
   Cusp-free nonempty cores recursively produce strictly nested terminal
-  forward cusps, so finite descent leaves an empty shell core or a
-  scheduler-located nontrivial closing-par core. The terminal cusp and its
+  forward cusps, so finite descent first leaves an empty shell core or a
+  scheduler-located nontrivial closing-par core. The empty shell is now
+  excluded by its forced midpoint cusp. The terminal cusp and its
   scheduler location are now carried by one position-aware witness, preventing
   later proofs from combining unrelated existential par occurrences; terminal
   bases likewise contain no independent duplicate location witness. Excluding
-  the two finite bases is still required for the correct-state progress
-  theorem and pure-worklist completeness.
+  the single remaining closing-par base is still required for the correct-state
+  progress theorem and pure-worklist completeness.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

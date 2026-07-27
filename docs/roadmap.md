@@ -608,9 +608,13 @@
       retaining occurrence-indexed scheduler provenance and transitive
       cyclic-interval descent; reduce the complete nesting branch to an empty
       shell core or a scheduler-located nontrivial closing-par core.
-    - [ ] Exclude those two finite bases by the exact reference-switching or
-      scheduler-order contradiction and discharge the remaining path-exposed
-      waiting-par obstruction.
+    - [x] Exclude the empty shell core by the exact midpoint
+      occurrence/reverse cusp, contradicting inherited internal cusp-freedom.
+    - [x] Bind the surviving closing-par cusp's first/last tags to exact
+      scheduler segments and offsets and prove its forward last incidence
+      reference-kept.
+    - [ ] Exclude the remaining tagged closing-par base by exact scheduler
+      order and discharge the remaining path-exposed waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

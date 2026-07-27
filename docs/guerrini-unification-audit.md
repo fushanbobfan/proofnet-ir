@@ -374,10 +374,12 @@ or positive misses. The larger search recorded at most 995 link attempts and
     strips the exact reverse shells with a proof-relevant positional and length
     trace, retains the normalized core's exact scheduler provenance, and
     recursively extracts strictly nested terminal forward cusps from every
-    cusp-free nonempty core. Well-founded descent leaves exactly two finite
-    scheduler-located bases: an empty shell core and a nontrivial closing-par
-    core. The immediate remaining obligation is to exclude both by the
-    reference-switching or scheduler-order contradiction.
+    cusp-free nonempty core. Well-founded descent first leaves an empty shell
+    core or a nontrivial closing-par core. The empty shell is now excluded by
+    its forced midpoint occurrence/reverse cusp, contradicting inherited
+    internal cusp-freedom. The immediate remaining obligation is the exact
+    scheduler-order exclusion of the closing-par core, whose first and last
+    scheduler tags and segment/offset lookups are retained.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

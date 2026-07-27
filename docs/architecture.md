@@ -254,9 +254,13 @@ active-reference walks between marked occurrences are equivalent to
   cyclic-interval descent. A cusp-free nonempty core recursively yields a
   strictly nested terminal forward cusp, so well-founded descent terminates at
   either an empty shell core or a scheduler-located nontrivial closing-par
-  core. The terminal proof object now binds its concrete cusp and scheduler
-  coordinates to one position-aware obstruction, and terminal bases no longer
-  admit unrelated duplicate existential witnesses. The next layer no longer
+  core. The empty alternative is now excluded directly: its nonempty opening
+  is followed at the shell midpoint by the exact reverse of its last
+  occurrence, which is necessarily a cusp and contradicts the inherited
+  `CuspFreeTraversal`. The terminal proof object now binds its concrete cusp
+  and scheduler coordinates to one position-aware obstruction, and terminal
+  bases no longer admit unrelated duplicate existential witnesses. The next
+  layer no longer
   treats an equal `DirectedEdge` value as an occurrence identity:
   `SchedulerOccurrence` tags every visit by its segment step and in-segment
   offset, the complete tagged family is proved duplicate-free, and erasure is
@@ -296,12 +300,15 @@ active-reference walks between marked occurrences are equivalent to
   reference walks through one midpoint; exact compacted index/orientation
   equations prove that its closing half is the complete reverse traversal of
   its opening half. This occurrence-exact shell nesting is exposed by the same
-  global terminal outcome. Generic cyclic-interval descent is not itself a
-  convexity invariant because a nested cut may wrap around a boundary
-  introduced by an earlier cut. Pure completeness must instead use the
-  specialized chord, complement, and shell endpoints to convert the ordered
-  closed nesting into the contradiction and exclude the tagged closing-par
-  base.
+  global terminal outcome. The shell midpoint then gives the exact local cusp
+  that rules out this branch; no tree-acyclicity claim about an arbitrary
+  out-and-back walk is used. The sole surviving nontrivial closing-par base now
+  retains exact first and last scheduler tags, source-segment/offset
+  classifications, and reference retention of its forward last incidence.
+  Generic cyclic-interval descent is not itself a convexity invariant because
+  a nested cut may wrap around a boundary introduced by an earlier cut. Pure
+  completeness must use the specialized closing-cusp endpoints and scheduler
+  order to exclude that final base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

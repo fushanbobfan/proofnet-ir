@@ -29977,6 +29977,36 @@ private theorem reverseTraversal_map_of_reverse
   intro directed _membership
   exact reverseKey directed
 
+/-- A nonempty exact reverse shell cannot be internally cusp-free.  At the
+turning point the last opening occurrence is followed by its exact reverse,
+which is a cusp by reflexivity of the incidence color. -/
+private theorem noCuspFreeTraversal_append_reverseTraversal
+    (certificate : Certificate) :
+    ∀ (opening : List certificate.fullGraph.DirectedEdge),
+      opening ≠ [] →
+        ¬certificate.CuspFreeTraversal
+          (opening ++ Graph.EdgeWalk.reverseTraversal opening)
+  | [], nonempty => False.elim (nonempty rfl)
+  | first :: rest, _ => by
+      by_cases restEmpty : rest = []
+      · subst rest
+        simp [Graph.EdgeWalk.reverseTraversal,
+          Certificate.CuspFreeTraversal, Certificate.Cusp]
+      · intro shellFree
+        have suffixFree :
+            certificate.CuspFreeTraversal
+              (rest ++ Graph.EdgeWalk.reverseTraversal rest ++
+                [first.reverse]) := by
+          simpa [Graph.EdgeWalk.reverseTraversal, List.append_assoc] using
+            (Certificate.CuspFreeTraversal.tail certificate shellFree)
+        have innerShellFree :
+            certificate.CuspFreeTraversal
+              (rest ++ Graph.EdgeWalk.reverseTraversal rest) :=
+          Certificate.CuspFreeTraversal.prefix certificate suffixFree
+        exact
+          noCuspFreeTraversal_append_reverseTraversal
+            certificate rest restEmpty innerShellFree
+
 /-- The endpoint-classified chord after exact transport into the deterministic
 reference switching.  Each full-graph retained suffix becomes a reference-tree
 walk to the next scheduler conclusion, and the two selected compacted
@@ -30931,11 +30961,165 @@ private def SchedulerTaggedTerminalNestingOutcome
               (taggedComplement.map SchedulerOccurrence.erase) ∧
               SchedulerCyclicReverseShellNormalization
                 taggedComplement taggedNormalized ∧
-                SchedulerTaggedPositionedParObstruction
+                  SchedulerTaggedPositionedParObstruction
+                      certificate chainAt count flippedSegments
+                        taggedNormalized ∧
+                  NontrivialClosingParCusp certificate
+                    (taggedNormalized.map SchedulerOccurrence.erase) ∧
+                  CyclicIntervalDescent taggedNormalized
+                    (tagSchedulerFamily flippedSegments) ∧
+                  SchedulerTaggedProvenance
+                    certificate chainAt count flippedSegments
+                      taggedNormalized ∧
+                  ∀ occurrence,
+                    occurrence ∈ taggedNormalized →
+                      occurrence.value.forward = true →
+                        certificate.referenceSwitchingMask[
+                          occurrence.value.index]? = some true
+
+/-- The sole surviving tagged terminal base after the empty reverse-shell
+alternative has been excluded by its forced midpoint cusp. -/
+private def SchedulerTaggedClosingParNestingOutcome
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ complementBase taggedComplement taggedNormalized,
+    CyclicIntervalCut taggedComplement tagged ∧
+      taggedComplement ≠ [] ∧
+        certificate.fullGraph.EdgeWalk
+          complementBase
+            (taggedComplement.map SchedulerOccurrence.erase)
+              complementBase ∧
+          certificate.CuspFreeTraversal
+            (taggedComplement.map SchedulerOccurrence.erase) ∧
+            SchedulerCyclicReverseShellNormalization
+              taggedComplement taggedNormalized ∧
+              SchedulerTaggedPositionedParObstruction
+                certificate chainAt count flippedSegments
+                  taggedNormalized ∧
+                NontrivialClosingParCusp certificate
+                  (taggedNormalized.map SchedulerOccurrence.erase) ∧
+                CyclicIntervalDescent taggedNormalized
+                  (tagSchedulerFamily flippedSegments) ∧
+                SchedulerTaggedProvenance
                   certificate chainAt count flippedSegments
                     taggedNormalized ∧
-                  NontrivialClosingParCusp certificate
-                    (taggedNormalized.map SchedulerOccurrence.erase)
+                ∀ occurrence,
+                  occurrence ∈ taggedNormalized →
+                    occurrence.value.forward = true →
+                      certificate.referenceSwitchingMask[
+                        occurrence.value.index]? = some true
+
+/-- Lift the concrete first and last edge values of a nontrivial closing par
+cusp to the exact scheduler tags at the corresponding list positions. -/
+private theorem NontrivialClosingParCusp.taggedEndpoints
+    {certificate : Certificate}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (closing :
+      NontrivialClosingParCusp certificate
+        (tagged.map SchedulerOccurrence.erase)) :
+    ∃ conclusion firstTag lastTag,
+      tagged.head? = some firstTag ∧
+        tagged.getLast? = some lastTag ∧
+          certificate.Cusp lastTag.value firstTag.value ∧
+            lastTag.value ≠ firstTag.value.reverse ∧
+              certificate.incidenceColor lastTag.value =
+                .par conclusion ∧
+              certificate.incidenceColor firstTag.value.reverse =
+                .par conclusion ∧
+              lastTag.value.forward = true ∧
+                firstTag.value.forward = false := by
+  rcases closing with
+    ⟨conclusion, first, last, erasedHead, erasedLast,
+      cusp, nontrivial, lastColor, firstReverseColor,
+      lastForward, firstBackward⟩
+  have taggedNonempty : tagged ≠ [] := by
+    intro taggedEmpty
+    subst tagged
+    simp at erasedHead
+  let firstTag := tagged.head taggedNonempty
+  let lastTag := tagged.getLast taggedNonempty
+  have firstTagHead : tagged.head? = some firstTag :=
+    List.head?_eq_some_head taggedNonempty
+  have lastTagLast : tagged.getLast? = some lastTag :=
+    List.getLast?_eq_some_getLast taggedNonempty
+  have firstValue : firstTag.value = first := by
+    apply Option.some.inj
+    calc
+      some firstTag.value =
+          (tagged.map SchedulerOccurrence.erase).head? := by
+        rw [List.head?_map, firstTagHead]
+        rfl
+      _ = some first := erasedHead
+  have lastValue : lastTag.value = last := by
+    apply Option.some.inj
+    calc
+      some lastTag.value =
+          (tagged.map SchedulerOccurrence.erase).getLast? := by
+        rw [List.getLast?_map, lastTagLast]
+        rfl
+      _ = some last := erasedLast
+  subst first
+  subst last
+  exact
+    ⟨conclusion, firstTag, lastTag, firstTagHead, lastTagLast,
+      cusp, nontrivial, lastColor, firstReverseColor,
+      lastForward, firstBackward⟩
+
+/-- Scheduler-classified form of the surviving closing cusp.  The exact first
+and last tags are inverted to their original segment/offset lookups, and the
+forward last incidence is proved retained by the deterministic reference
+switching. -/
+private def SchedulerTaggedClosingParEndpointWitness
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ conclusion firstTag lastTag firstSegment lastSegment,
+    tagged.head? = some firstTag ∧
+      tagged.getLast? = some lastTag ∧
+        certificate.Cusp lastTag.value firstTag.value ∧
+          lastTag.value ≠ firstTag.value.reverse ∧
+            certificate.incidenceColor lastTag.value =
+              .par conclusion ∧
+            certificate.incidenceColor firstTag.value.reverse =
+              .par conclusion ∧
+            lastTag.value.forward = true ∧
+              firstTag.value.forward = false ∧
+              firstTag.step < count ∧
+                flippedSegments[firstTag.step]? = some firstSegment ∧
+                  firstSegment[firstTag.offset]? =
+                    some firstTag.value ∧
+                    QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                      certificate
+                        (chainAt firstTag.step)
+                        (chainAt (firstTag.step + 1))
+                          firstSegment ∧
+                lastTag.step < count ∧
+                  flippedSegments[lastTag.step]? = some lastSegment ∧
+                    lastSegment[lastTag.offset]? =
+                      some lastTag.value ∧
+                      QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                        certificate
+                          (chainAt lastTag.step)
+                          (chainAt (lastTag.step + 1))
+                            lastSegment ∧
+                      certificate.referenceSwitchingMask[
+                        lastTag.value.index]? = some true
 
 /-- Eliminate a tagged terminal base without losing its exact geometry.
 The empty alternative is strengthened to a nonempty closed walk in the
@@ -31010,10 +31194,182 @@ private theorem
               normalizedEmpty,
         retainedWalk, retainedNonempty⟩
   · right
+    have normalizedToComplement :
+        CyclicIntervalDescent taggedNormalized taggedComplement :=
+      reverseShells.descent
+    have complementToTagged :
+        CyclicIntervalDescent taggedComplement tagged :=
+      .step complementCut (.refl taggedComplement)
+    have normalizedToTagged :
+        CyclicIntervalDescent taggedNormalized tagged :=
+      normalizedToComplement.trans complementToTagged
+    have normalizedToFamily :
+        CyclicIntervalDescent taggedNormalized
+          (tagSchedulerFamily flippedSegments) :=
+      normalizedToTagged.trans terminal.1.2.1
+    have normalizedProvenance :
+        SchedulerTaggedProvenance
+          certificate chainAt count flippedSegments
+            taggedNormalized :=
+      normalizedToFamily.schedulerTaggedProvenance
+        segmentCount indexedFlipped
+    rcases terminal.1.1 with
+      ⟨_base, _taggedNonempty, _taggedWalk,
+        _taggedFree, _taggedClosingFree, forwardKept,
+        _schedulerProvenance, _taggedObstruction,
+        _taggedLocated⟩
+    have normalizedForwardKept :
+        ∀ occurrence,
+          occurrence ∈ taggedNormalized →
+            occurrence.value.forward = true →
+              certificate.referenceSwitchingMask[
+                occurrence.value.index]? = some true := by
+      intro occurrence membership forward
+      have occurrenceInTagged : occurrence ∈ tagged :=
+        normalizedToTagged.mem_initial membership
+      exact forwardKept occurrence.value
+        (List.mem_map.mpr
+          ⟨occurrence, occurrenceInTagged, rfl⟩)
+        forward
     exact
       ⟨complementBase, taggedComplement, taggedNormalized,
         complementCut, complementNonempty, complementWalk,
-        complementFree, reverseShells, closingPar⟩
+        complementFree, reverseShells, closingPar.1, closingPar.2,
+        normalizedToFamily, normalizedProvenance,
+        normalizedForwardKept⟩
+
+/-- Empty reverse-shell terminal bases are impossible.  Their nonempty opening
+is followed immediately by its exact reversed traversal, so the shell midpoint
+is a cusp, contradicting the cusp-free complement inherited from the terminal
+scheduler state.  Consequently every coordinate-exact terminal outcome is the
+positioned nontrivial closing-par alternative. -/
+private theorem SchedulerTaggedTerminalNestingOutcome.closingPar
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (outcome :
+      SchedulerTaggedTerminalNestingOutcome
+        certificate chainAt count flippedSegments tagged) :
+    SchedulerTaggedClosingParNestingOutcome
+      certificate chainAt count flippedSegments tagged := by
+  rcases outcome with emptyShell | closingPar
+  · rcases emptyShell with
+      ⟨_complementBase, taggedComplement, _taggedNormalized,
+        _retainedTraversal, _complementCut, _complementNonempty,
+        _complementWalk, complementFree, _reverseShells,
+        _normalizedEmpty, _headFree, _ordered,
+        _headSkippingChord, _endpointChord, _referenceChord,
+        shellNesting, _retainedWalk, _retainedNonempty⟩
+    rcases shellNesting with
+      ⟨opening, closing, _midpoint,
+        _openingRetained, _closingRetained,
+        shellEquation, openingNonempty, _closingNonempty,
+        closingReverse, _openingWalk, _closingWalk,
+        _openingRetainedNonempty, _closingRetainedNonempty,
+        _closingRetainedReverse⟩
+    have erasedOpeningNonempty :
+        opening.map SchedulerOccurrence.erase ≠ [] := by
+      simpa using openingNonempty
+    have erasedShellEquation :
+        taggedComplement.map SchedulerOccurrence.erase =
+          opening.map SchedulerOccurrence.erase ++
+            Graph.EdgeWalk.reverseTraversal
+              (opening.map SchedulerOccurrence.erase) := by
+      calc
+        taggedComplement.map SchedulerOccurrence.erase =
+            opening.map SchedulerOccurrence.erase ++
+              closing.map SchedulerOccurrence.erase := by
+          rw [shellEquation, List.map_append]
+        _ =
+            opening.map SchedulerOccurrence.erase ++
+              Graph.EdgeWalk.reverseTraversal
+                (opening.map SchedulerOccurrence.erase) := by
+          rw [closingReverse]
+    have shellFree :
+        certificate.CuspFreeTraversal
+          (opening.map SchedulerOccurrence.erase ++
+            Graph.EdgeWalk.reverseTraversal
+              (opening.map SchedulerOccurrence.erase)) := by
+      rw [← erasedShellEquation]
+      exact complementFree
+    exact False.elim
+      (noCuspFreeTraversal_append_reverseTraversal
+        certificate (opening.map SchedulerOccurrence.erase)
+          erasedOpeningNonempty shellFree)
+  · exact closingPar
+
+/-- Every surviving closing-par base exposes its exact scheduler endpoint
+visits and their classified source segments. -/
+private theorem
+    SchedulerTaggedClosingParNestingOutcome.endpointWitness
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (outcome :
+      SchedulerTaggedClosingParNestingOutcome
+        certificate chainAt count flippedSegments tagged) :
+    ∃ taggedNormalized,
+      SchedulerTaggedClosingParEndpointWitness
+        certificate chainAt count flippedSegments taggedNormalized := by
+  rcases outcome with
+    ⟨_complementBase, _taggedComplement, taggedNormalized,
+      _complementCut, _complementNonempty, _complementWalk,
+      _complementFree, _reverseShells, _positioned, closing,
+      _normalizedDescent, provenance, forwardKept⟩
+  rcases closing.taggedEndpoints with
+    ⟨conclusion, firstTag, lastTag, firstHead, lastLast,
+      cusp, nontrivial, lastColor, firstReverseColor,
+      lastForward, firstBackward⟩
+  have taggedNonempty : taggedNormalized ≠ [] := by
+    intro taggedEmpty
+    subst taggedNormalized
+    simp at firstHead
+  have firstMembership : firstTag ∈ taggedNormalized := by
+    have actualHead :
+        taggedNormalized.head taggedNonempty = firstTag :=
+      Option.some.inj
+        ((List.head?_eq_some_head taggedNonempty).symm.trans
+          firstHead)
+    rw [← actualHead]
+    exact List.head_mem taggedNonempty
+  have lastMembership : lastTag ∈ taggedNormalized := by
+    have actualLast :
+        taggedNormalized.getLast taggedNonempty = lastTag :=
+      Option.some.inj
+        ((List.getLast?_eq_some_getLast taggedNonempty).symm.trans
+          lastLast)
+    rw [← actualLast]
+    exact List.getLast_mem taggedNonempty
+  rcases provenance firstTag firstMembership with
+    ⟨firstSegment, firstStepBound, firstSegmentLookup,
+      firstOffsetLookup, firstClassified⟩
+  rcases provenance lastTag lastMembership with
+    ⟨lastSegment, lastStepBound, lastSegmentLookup,
+      lastOffsetLookup, lastClassified⟩
+  have lastKept :
+      certificate.referenceSwitchingMask[
+        lastTag.value.index]? = some true :=
+    forwardKept lastTag lastMembership lastForward
+  exact
+    ⟨taggedNormalized, conclusion, firstTag, lastTag,
+      firstSegment, lastSegment, firstHead, lastLast,
+      cusp, nontrivial, lastColor, firstReverseColor,
+      lastForward, firstBackward,
+      firstStepBound, firstSegmentLookup, firstOffsetLookup,
+      firstClassified, lastStepBound, lastSegmentLookup,
+      lastOffsetLookup, lastClassified, lastKept⟩
 
 /-- Repeated terminal-complement stripping reaches a coordinate-exact base.
 Every complement cut, reverse shell, and nested forward-cusp descent remains
@@ -31527,13 +31883,14 @@ private theorem
       schedulerTaggedCyclicParState_forward_exists
         segmentCount indexedFlipped correct prefixInjective initialTagged⟩
 
-/-- Coordinate-exact global terminal-base extraction.  Starting from a fully
+/-- Coordinate-exact global closing-par extraction.  Starting from a fully
 reflexive dependency cycle, this theorem retains the indexed flipped scheduler
 family, reaches a tagged forward cusp, strips every terminal complement through
 tagged reverse shells, composes the final base back to the original tagged
-family, and exposes that base's endpoint-classified outcome. -/
+family, excludes the forced-cusp empty shell, and exposes the positioned
+nontrivial closing-par base. -/
 private theorem
-    FullyCancellingDependencyCycleAllReflexive.flippedTaggedNestingBase_exists
+    FullyCancellingDependencyCycleAllReflexive.flippedTaggedClosingParNestingBase_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
     {chainAt : Nat → Vertex}
@@ -31567,8 +31924,12 @@ private theorem
           ∃ base,
             CyclicIntervalDescent
                 base (tagSchedulerFamily flippedSegments) ∧
-              SchedulerTaggedTerminalNestingOutcome
-                certificate chainAt count flippedSegments base := by
+              SchedulerTaggedClosingParNestingOutcome
+                  certificate chainAt count flippedSegments base ∧
+                ∃ taggedNormalized,
+                  SchedulerTaggedClosingParEndpointWitness
+                    certificate chainAt count flippedSegments
+                      taggedNormalized := by
   rcases
       allReflexive.flippedTaggedForwardParCuspState_exists
         correct positive closed prefixInjective with
@@ -31581,9 +31942,11 @@ private theorem
   have outcome :=
     baseState.emptyReferenceTreeWalk_or_closingPar
       segmentCount indexedFlipped
+  have closingOutcome := outcome.closingPar
   exact
     ⟨flippedSegments, segmentCount, indexedFlipped, base,
-      baseDescent.trans terminalDescent, outcome⟩
+      baseDescent.trans terminalDescent, closingOutcome,
+      closingOutcome.endpointWitness⟩
 
 /-- Every fully reflexive waiting-dependency cycle reaches a finite terminal
 nesting base. This composes the initial backward-chord descent with exact
