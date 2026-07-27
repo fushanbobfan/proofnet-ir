@@ -596,11 +596,21 @@
       that exact step, reconcile each `core ++ frontier` with its retained
       reference-switching prefix pointwise, and prove that the successor
       retained prefix begins with the inner occurrence's exact reverse.
-    - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
-      transport
-      the local turn classification through normalization, extract an exact
-      edge-simple switching cycle or forbidden nesting, and exclude the
-      remaining path-exposed waiting-par obstruction.
+    - [x] Transport the nonempty-branch turn classification through exact
+      switching masks, expose a scheduler-located par obstruction, and derive
+      a terminal forward retained-left par cusp through well-founded cyclic
+      interval descent.
+    - [x] Retain the terminal cusp's exact complementary interval, prove it
+      nonempty, closed, internally cusp-free, and strictly shorter, then strip
+      every exact first/last reverse shell proof-relevantly with its positional
+      context and length equation.
+    - [x] Recurse through every nonempty cusp-free normalized core while
+      retaining occurrence-indexed scheduler provenance and transitive
+      cyclic-interval descent; reduce the complete nesting branch to an empty
+      shell core or a scheduler-located nontrivial closing-par core.
+    - [ ] Exclude those two finite bases by the exact reference-switching or
+      scheduler-order contradiction and discharge the remaining path-exposed
+      waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

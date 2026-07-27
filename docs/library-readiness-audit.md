@@ -199,11 +199,19 @@ part of the engineering and proof-identity gap.
    nontrivial turn is a par cusp or tensor-colored free turn. Every dependency
    now carries an exact composable complete-graph segment from source waiting
    conclusion to target; concatenating the selected finite family yields a
-   genuinely nonempty closed occurrence-aware `fullGraph` walk. The walk may
-   still backtrack or repeat occurrences, so preserving the local
-   classification through normalization and excluding the resulting
-   edge-simple switching cycle or forbidden nesting, pure worklist
-   completeness, and a full cost theorem remain open.
+   genuinely nonempty closed occurrence-aware `fullGraph` walk. Exact
+   occurrence cancellation, residual-core analysis, and simultaneous
+   switching flips reduce every correct fully reflexive dependency cycle to a
+   terminal forward retained-left par cusp with a complete cyclic-interval
+   descent trace. Its exact complementary interval is nonempty, closed,
+   internally cusp-free, and strictly shorter. Proof-relevant cyclic
+   normalization now strips only exact first/last reverse shells, retains the
+   full positional context and length equation, and transports scheduler
+   provenance to the residual core. If that core is nonempty and closes
+   cusp-free, the same construction yields a strictly nested terminal cusp;
+   well-founded descent therefore terminates at either an empty shell core or
+   a scheduler-located nontrivial closing-par core. Excluding those two finite
+   bases, pure worklist completeness, and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
