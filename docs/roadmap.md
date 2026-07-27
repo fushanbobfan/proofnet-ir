@@ -577,6 +577,9 @@
       cyclically adjacent waiting-par source incidences consume the same exact
       premise, contradicting structural one-parent ownership and simple-cycle
       injectivity.
+    - [x] Prove every residual core inherits exact no-immediate-reverse from
+      its containing dependency segment, and package nonempty internally
+      reduced cores in the deterministic active family.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact

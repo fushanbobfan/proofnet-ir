@@ -19735,6 +19735,42 @@ private theorem
     ⟨sourceEdge, last, retainedCore, referenceWalk,
       retainedIndices, retainedEdges, retainedForwards⟩
 
+/-- A residual core inherits exact-occurrence nonbacktracking from its
+containing dependency segment.  This removes both the source incidence and the
+final frontier as list boundaries; no new adjacent pair is introduced. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.noImmediateReverse
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core segment : List certificate.fullGraph.DirectedEdge}
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core)
+    (segmentLookup : segments[step]? = some segment)
+    (segmentReduced :
+      Graph.EdgeWalk.NoImmediateReverse segment) :
+    Graph.EdgeWalk.NoImmediateReverse core := by
+  rcases coreAt with
+    ⟨coreSegment, sourceEdge, last, coreSegmentLookup, decomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      _lastTarget, _lastForward, _reflexive, _sourceKept,
+      _threadToken, _coreWalk, _coreKept⟩
+  have coreSegmentValue : coreSegment = segment :=
+    Option.some.inj (coreSegmentLookup.symm.trans segmentLookup)
+  have exactReduced :
+      Graph.EdgeWalk.NoImmediateReverse
+        (sourceEdge :: (core ++ [last])) := by
+    rw [← decomposition, coreSegmentValue]
+    exact segmentReduced
+  have coreAndLastReduced :
+      Graph.EdgeWalk.NoImmediateReverse (core ++ [last]) := by
+    exact exactReduced.suffix (initial := [sourceEdge])
+  exact coreAndLastReduced.prefix_of_append (suffix := [last])
+
 /-- The occurrence-indexed full-segment witness recovers the semantic fact
 hidden by the residual-spine decomposition: every target strictly before the
 first marked-to-unmarked frontier is still assigned.  This is positional,
@@ -20491,14 +20527,15 @@ private def FullyCancellingDependencyCycleReflexiveCoresChained
         FullyCancellingDependencyCycleReflexiveCoreAt
             certificate state chainAt segments step core ∧
           core ≠ [] ∧
-            segments[step]? = some segment ∧
-              segment =
-                sourceEdge :: (core ++ [last]) ∧
-              segments[dependencyCycleSuccessor count step]? =
-                some successorSegment ∧
-              successorSegment.head? = some successorEdge ∧
-                successorEdge = last.reverse ∧
-                  successorEdge.target = last.source
+            Graph.EdgeWalk.NoImmediateReverse core ∧
+              segments[step]? = some segment ∧
+                segment =
+                  sourceEdge :: (core ++ [last]) ∧
+                segments[dependencyCycleSuccessor count step]? =
+                  some successorSegment ∧
+                successorSegment.head? = some successorEdge ∧
+                  successorEdge = last.reverse ∧
+                    successorEdge.target = last.source
 
 /-- Every residual spine in the fully cancelling dependency cycle is nonempty
 and chained to the next one, including across the closing last/first index. -/
@@ -20553,12 +20590,18 @@ private theorem
       successorHead, successorEquation, successorTarget⟩
   refine
     ⟨core, segment, successorSegment, sourceEdge, last, successorEdge,
-      coreAt, ?_, segmentLookup, decomposition, successorLookup,
+      coreAt, ?_, ?_, segmentLookup, decomposition, successorLookup,
       successorHead, successorEquation, successorTarget⟩
-  exact coreAt.nonempty_of_successor
-    structural nontrivial prefixInjective classified stepBound
-      segmentLookup decomposition successorLookup successorHead
-        successorTarget
+  · exact coreAt.nonempty_of_successor
+      structural nontrivial prefixInjective classified stepBound
+        segmentLookup decomposition successorLookup successorHead
+          successorTarget
+  · rcases classified step stepBound with
+      ⟨classifiedSegment, classifiedLookup, segmentClassified⟩
+    have classifiedSegmentValue : classifiedSegment = segment :=
+      Option.some.inj (classifiedLookup.symm.trans segmentLookup)
+    subst classifiedSegment
+    exact coreAt.noImmediateReverse segmentLookup segmentClassified.1
 
 /-- Canonical finite family of residual reference spines, index-aligned with
 the original dependency segments. -/
@@ -20625,11 +20668,13 @@ private def FullyCancellingDependencyCycleActiveResidualCoreFamily
           ∃ core,
             cores[step]? = some core ∧
               FullyCancellingDependencyCycleActiveReflexiveCoreAt
-                certificate state chainAt segments step core
+                  certificate state chainAt segments step core ∧
+                core ≠ [] ∧
+                  Graph.EdgeWalk.NoImmediateReverse core
 
 /-- The occurrence-indexed segment family selects a deterministic family of
-residual spines whose every exact edge stays inside the marked reference
-prefix. -/
+nonempty, internally nonbacktracking residual spines whose every exact edge
+stays inside the marked reference prefix. -/
 private theorem
     fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
     {certificate : Certificate}
@@ -20644,7 +20689,10 @@ private theorem
         step < count →
           ∃ core,
             FullyCancellingDependencyCycleActiveReflexiveCoreAt
-              certificate state chainAt segments step core) :
+              certificate state chainAt segments step core)
+    (chained :
+      FullyCancellingDependencyCycleReflexiveCoresChained
+        certificate state chainAt count segments) :
     ∃ cores,
       FullyCancellingDependencyCycleActiveResidualCoreFamily
         certificate state chainAt count segments cores := by
@@ -20653,9 +20701,20 @@ private theorem
   · simp [cores, dependencyResidualCores, segmentCount]
   · intro step stepBound
     rcases activeCores step stepBound with ⟨core, activeCore⟩
+    rcases chained step stepBound with
+      ⟨chainedCore, _segment, _successorSegment,
+        _sourceEdge, _last, _successorEdge,
+        chainedCoreAt, chainedNonempty, chainedReduced,
+        _segmentLookup, _decomposition, _successorLookup,
+        _successorHead, _successorEquation, _successorTarget⟩
+    have sameCore : core = chainedCore :=
+      Option.some.inj
+        (activeCore.1.residual_lookup.symm.trans
+          chainedCoreAt.residual_lookup)
+    subst chainedCore
     exact
       ⟨core, by simpa [cores] using activeCore.1.residual_lookup,
-        activeCore⟩
+        activeCore, chainedNonempty, chainedReduced⟩
 
 /-- Exact omitted-right-par occurrence forced in any nonempty normalized
 scheduler obstruction.  The stored prefix fixes the two par edge indices, and
@@ -20990,13 +21049,6 @@ private theorem
                   originalSegments cores :=
           fullyCancellingDependencyCycle_residualCoreFamily_exists
             originalSegmentCount reflexiveCores
-        have activeResidualCoreFamily :
-            ∃ cores,
-              FullyCancellingDependencyCycleActiveResidualCoreFamily
-                certificate final originalChain originalCount
-                  originalSegments cores :=
-          fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
-            originalSegmentCount activeReflexiveCores
         have cancellationSite :
             Graph.EdgeWalk.CyclicImmediateReverseSite
               originalSegments.flatten :=
@@ -21038,6 +21090,14 @@ private theorem
           fullyPaired.reflexiveCoresChained correct.1 allReflexive
             originalCountNontrivial originalChainInjective
               originalIndexedClassification originalIndexedWalks allKept
+        have activeResidualCoreFamily :
+            ∃ cores,
+              FullyCancellingDependencyCycleActiveResidualCoreFamily
+                certificate final originalChain originalCount
+                  originalSegments cores :=
+          fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
+            originalSegmentCount activeReflexiveCores
+              reflexiveCoresChained
         have schedulerJunction :
             ∃ (source middle : Vertex)
                 (incoming :

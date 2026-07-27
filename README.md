@@ -166,7 +166,9 @@ cancellation is proved to cross their unique junction. The scheduler proof
  no residual core is empty: emptiness would make adjacent waiting pars consume
  the same exact premise occurrence, so structural one-parent ownership would
  identify their stored links and contradict simplicity of the dependency
- cycle. The remaining
+ cycle. Removing the source and frontier boundaries also preserves each core's
+ exact no-immediate-reverse property, and the deterministic active family
+ packages these nonempty internally nonbacktracking cores. The remaining
  empty-branch obligation is therefore no longer a hidden formula tail or an
  endpoint-only token claim: it is to exclude the resulting multi-node cycle of
  nonempty active retained spines and waiting-par incidences by an exact

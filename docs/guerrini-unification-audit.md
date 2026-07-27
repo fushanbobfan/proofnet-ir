@@ -304,7 +304,9 @@ or positive misses. The larger search recorded at most 995 link attempts and
    edge has assigned endpoints before the first inactive frontier. Each core
    is now also kernel-proved nonempty: otherwise adjacent waiting pars would
    consume one exact premise and structural one-parent ownership would collapse
-   two distinct simple-cycle nodes. The
+   two distinct simple-cycle nodes. Removing the exact source/frontier
+   boundaries preserves no-immediate-reverse, so the deterministic active
+   family now consists of nonempty internally nonbacktracking cores. The
    immediate proof obligation is to exclude the resulting cycle of active
    retained spines and waiting-par incidences by an exact multi-par
    switching-flip/nesting argument and, in the nonempty branch, transport the

@@ -869,6 +869,27 @@ theorem suffix {graph : Graph}
             exact reduced.2
       exact induction tailReduced
 
+/-- Removing any list suffix preserves exact-occurrence nonbacktracking. -/
+theorem prefix_of_append {graph : Graph} :
+    ∀ {traversed suffix : List graph.DirectedEdge},
+      NoImmediateReverse (traversed ++ suffix) →
+        NoImmediateReverse traversed
+  | [], _suffix, _reduced => by
+      simp [NoImmediateReverse]
+  | [_first], _suffix, _reduced => by
+      simp [NoImmediateReverse]
+  | first :: second :: rest, suffix, reduced => by
+      change
+        NoImmediateReverse
+          (first :: second :: (rest ++ suffix)) at reduced
+      change
+        second ≠ first.reverse ∧
+          NoImmediateReverse (second :: rest)
+      exact
+        ⟨reduced.1,
+          prefix_of_append (traversed := second :: rest)
+            (suffix := suffix) reduced.2⟩
+
 /-- Pointwise compacted-index and orientation preservation reflects
 nonbacktracking from an original kept traversal to its masked traversal.  The
 kept-position injectivity theorem prevents two distinct parallel occurrences

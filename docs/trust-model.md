@@ -229,8 +229,10 @@ occurrences. Every dependency carries that same-boundary classification
  deterministic residual core with token-equal endpoints and assigned
  occurrences throughout. Each core is kernel-proved nonempty: emptiness would
  make adjacent waiting pars consume the same exact premise, contradicting
- structural one-parent ownership and simple-cycle injectivity. The remaining
- gap is to exclude that exact empty
+ structural one-parent ownership and simple-cycle injectivity. Each core also
+ inherits exact no-immediate-reverse from its containing segment, and the
+ deterministic active family records both properties. The remaining gap is to
+ exclude that exact empty
  nesting and
  transport the turn evidence around that concrete nonempty obstruction into an
  excluded edge-simple switching cycle or forbidden nesting. This is
