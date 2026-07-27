@@ -340,9 +340,11 @@ or positive misses. The larger search recorded at most 995 link attempts and
     constructs two closed full-graph arcs. The first arc is nonempty and
     contains the omitted-right occurrence; retained-left is assigned to one
     of the arcs, and the concatenation covers all flipped occurrences up to
-    the cyclic-rotation permutation. The immediate proof obligation is to
-    transport cyclic order and cusp-freedom to these intervals and then prove
-    the global chord/repeated-vertex/nesting contradiction. Ordinary loop
+    the cyclic-rotation permutation. The exact rotation equation now
+    transports internal cusp-freedom to the concatenation and to both arcs.
+    The immediate proof obligation is to classify the new last/first turn
+    created by closing each arc at the chord and then prove the global
+    repeated-vertex/nesting contradiction. Ordinary loop
     erasure remains insufficient because it can create a new closing cusp by
     re-pairing incidences at the erased vertex. In the nonempty branch, the proof must still
    transport the turn evidence into an excluded edge-simple switching cycle or

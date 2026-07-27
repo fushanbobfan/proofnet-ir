@@ -212,9 +212,12 @@ cyclic family at the shared conclusion then constructs two closed full-graph
 arcs, with the first arc nonempty, the omitted-right occurrence in that first
 arc, the retained-left occurrence assigned to one of the two arcs, and their
 concatenation covering the original flipped occurrences up to the cyclic
-rotation permutation. What remains is to transport the original cyclic
-cusp-free order to those arcs and extract the forbidden nesting/switching
-cycle; mere permutation is deliberately not treated as sufficient.
+rotation permutation. Lean now additionally retains an exact rotation witness,
+proves the rotated concatenation cusp-free internally, and derives internal
+cusp-freedom for each arc. This does not make either closed walk a
+`CuspFreeCycle`: the new last/first turn created by closing an arc at the chord
+is precisely what remains to classify before extracting the forbidden
+nesting/switching cycle.
 For the
  nonempty normal form, exact
  index/orientation transport through arbitrary switching masks is now proved.

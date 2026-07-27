@@ -216,10 +216,12 @@ active-reference walks between marked occurrences are equivalent to
   two closed full-graph arcs. The first is nonempty and contains the omitted
   right occurrence; the retained left occurrence is assigned to one of the
   two, and together they cover the flipped occurrences up to the induced
-  cyclic-rotation permutation. Pure completeness still requires preservation
-  of cyclic order and cusp-freedom on the resulting intervals, followed by the
-  global chord/repeated-vertex/nesting contradiction. Ordinary loop erasure is
-  not used: erasing at a repeated vertex can re-pair incidences and create
+  cyclic-rotation permutation. The exact rotation equation transports internal
+  cusp-freedom to the rotated concatenation and hence to each arc separately.
+  It does not prove either arc's new last/first closing turn cusp-free. Pure
+  completeness still requires classifying those chord-closing turns and
+  deriving the global repeated-vertex/nesting contradiction. Ordinary loop
+  erasure is not used: erasing at a repeated vertex can re-pair incidences and create
   a new closing cusp.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures

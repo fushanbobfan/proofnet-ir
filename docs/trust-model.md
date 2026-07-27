@@ -263,9 +263,11 @@ are pointwise reconciled with exact retained reference-prefix walks, and the
   cuts the cyclic family at the conclusion into two closed arcs. The first is
   nonempty and contains the omitted-right occurrence; retained-left lies in
   one of the arcs, and their concatenation covers the flipped occurrences up
-  to the cyclic-rotation permutation. This does not yet prove the contradiction:
-  cyclic order and cusp-freedom must be transported to the intervals before
-  the exact chord can be resolved by the nesting/switching structure.
+  to the cyclic-rotation permutation. The exact rotation witness now transports
+  internal cusp-freedom to the concatenation and to both arcs. This does not
+  yet prove the contradiction or closing-cusp-freedom for either closed walk:
+  the two new chord-closing turns must still be classified and resolved by the
+  nesting/switching structure.
  Ordinary loop erasure is not sufficient because it can create a new closing
  cusp at the erased vertex. This is not yet the correct-state progress theorem
  needed for pure-worklist completeness.

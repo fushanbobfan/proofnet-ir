@@ -23906,6 +23906,63 @@ private theorem edgeChain_finish_eq_of_nonempty_suffixPath
   rw [suffixStart] at suffixChain
   exact suffixChain.finish_unique path.walk.toChain
 
+/-- Rotating a traversal that is cusp-free both internally and at its cyclic
+closing junction preserves internal cusp-freedom. -/
+private theorem cuspFreeTraversal_rotate_of_closing
+    {certificate : Certificate}
+    {before after :
+      List certificate.fullGraph.DirectedEdge}
+    (free :
+      certificate.CuspFreeTraversal (before ++ after))
+    (closing :
+      ∀ first last,
+        (before ++ after).head? = some first →
+          (before ++ after).getLast? = some last →
+            ¬certificate.Cusp last first) :
+    certificate.CuspFreeTraversal (after ++ before) := by
+  cases before with
+  | nil =>
+      simpa using free
+  | cons beforeHead beforeTail =>
+      cases after with
+      | nil =>
+          simpa using free
+      | cons afterHead afterTail =>
+          have beforeFree :
+              certificate.CuspFreeTraversal
+                (beforeHead :: beforeTail) :=
+            CuspFreeTraversal.prefix certificate free
+          have afterFree :
+              certificate.CuspFreeTraversal
+                (afterHead :: afterTail) :=
+            CuspFreeTraversal.suffix certificate free
+          have beforeNonempty :
+              beforeHead :: beforeTail ≠ [] := by
+            simp
+          have afterNonempty :
+              afterHead :: afterTail ≠ [] := by
+            simp
+          have afterLastOption :
+              (afterHead :: afterTail).getLast? =
+                some ((afterHead :: afterTail).getLast
+                  afterNonempty) :=
+            List.getLast?_eq_some_getLast afterNonempty
+          have boundary :
+              ¬certificate.Cusp
+                ((afterHead :: afterTail).getLast afterNonempty)
+                  beforeHead := by
+            exact
+              closing beforeHead
+                ((afterHead :: afterTail).getLast afterNonempty)
+                  (by simp)
+                  (by
+                    rw [List.getLast?_append]
+                    exact afterLastOption)
+          exact
+            CuspFreeTraversal.append certificate
+              afterFree beforeFree afterNonempty beforeNonempty
+                boundary
+
 /-- The unavoidable par-pair conflict in the flipped closed walk is genuinely
 inter-segment.  Its omitted right occurrence is the exact head of one indexed
 source segment.  The matching retained left occurrence lies in a different
@@ -23920,7 +23977,12 @@ the holder segment is split at the chord conclusion into incoming and outgoing
 vertex-simple paths.  The incoming part is nonempty, the retained-left
 occurrence lies in one of the two parts according to its orientation, and the
 two parts meet only at the conclusion.  The obstruction is therefore no
-longer an unlocated pair somewhere in a flattened walk. -/
+longer an unlocated pair somewhere in a flattened walk.  The cyclic family is
+also cut at that conclusion into two closed walks.  An exact rotation witness
+transports the original cyclic cusp-free order to their concatenation, so each
+arc is internally cusp-free.  This deliberately does not assert that either
+arc is closing-cusp-free; classifying the two new chord-closing turns is the
+remaining nesting obligation. -/
 private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_between_distinct_segments_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
@@ -24043,7 +24105,9 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                           middleSegments ++
                                                             rightSegment ::
                                                               afterSegments)) ∧
-                                            ∃ firstArc secondArc,
+                                            ∃ firstArc secondArc
+                                                rotationPrefix
+                                                rotationSuffix,
                                               firstArc ≠ [] ∧
                                                 certificate.fullGraph.EdgeWalk
                                                     conclusion firstArc
@@ -24051,19 +24115,33 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
                                                   certificate.fullGraph.EdgeWalk
                                                       conclusion secondArc
                                                         conclusion ∧
-                                                    (firstArc ++ secondArc).Perm
-                                                        flippedSegments.flatten ∧
-                                                      rightOccurrence ∈
-                                                          firstArc ∧
-                                                        (leftOccurrence ∈
-                                                            firstArc ∨
-                                                          leftOccurrence ∈
-                                                            secondArc) := by
+                                                    flippedSegments.flatten =
+                                                        rotationPrefix ++
+                                                          rotationSuffix ∧
+                                                      firstArc ++ secondArc =
+                                                          rotationSuffix ++
+                                                            rotationPrefix ∧
+                                                        certificate.CuspFreeTraversal
+                                                            (firstArc ++
+                                                              secondArc) ∧
+                                                          certificate.CuspFreeTraversal
+                                                              firstArc ∧
+                                                            certificate.CuspFreeTraversal
+                                                                secondArc ∧
+                                                              (firstArc ++
+                                                                    secondArc).Perm
+                                                                  flippedSegments.flatten ∧
+                                                                rightOccurrence ∈
+                                                                    firstArc ∧
+                                                                  (leftOccurrence ∈
+                                                                      firstArc ∨
+                                                                    leftOccurrence ∈
+                                                                      secondArc) := by
   rcases
       allReflexive.flippedParObstruction_exists
         correct positive closed with
     ⟨flippedSegments, segmentCount, _flattenedNonempty,
-      _closedWalk, _cyclicReduced, _cuspFree, _closingCuspFree,
+      _closedWalk, _cyclicReduced, cuspFree, closingCuspFree,
       indexedFlipped, obstruction⟩
   rcases obstruction with
     ⟨before, left, right, conclusion, after,
@@ -24401,17 +24479,25 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
     rw [rightPathTraversal]
     exact rightFlipped.1.nonempty
   have closedIntervals :
-      ∃ firstArc secondArc,
+      ∃ firstArc secondArc rotationPrefix rotationSuffix,
         firstArc ≠ [] ∧
           certificate.fullGraph.EdgeWalk
               conclusion firstArc conclusion ∧
             certificate.fullGraph.EdgeWalk
                 conclusion secondArc conclusion ∧
-              (firstArc ++ secondArc).Perm
-                  flippedSegments.flatten ∧
-                rightOccurrence ∈ firstArc ∧
-                  (leftOccurrence ∈ firstArc ∨
-                    leftOccurrence ∈ secondArc) := by
+              flippedSegments.flatten =
+                  rotationPrefix ++ rotationSuffix ∧
+                firstArc ++ secondArc =
+                    rotationSuffix ++ rotationPrefix ∧
+                  certificate.CuspFreeTraversal
+                      (firstArc ++ secondArc) ∧
+                    certificate.CuspFreeTraversal firstArc ∧
+                      certificate.CuspFreeTraversal secondArc ∧
+                        (firstArc ++ secondArc).Perm
+                            flippedSegments.flatten ∧
+                          rightOccurrence ∈ firstArc ∧
+                            (leftOccurrence ∈ firstArc ∨
+                              leftOccurrence ∈ secondArc) := by
     rcases orderedSegments with
       ⟨_rightBeforeLeft, beforeSegments, middleSegments,
         afterSegments, familyEquation⟩ |
@@ -24484,6 +24570,34 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
           simpa [firstArc] using
             congrArg (List.take rightSegment.length) firstEmpty
         exact rightFlipped.1.nonempty rightEmpty
+      have rotationEquation :
+          firstArc ++ secondArc =
+            (firstArc ++ remaining) ++
+              beforeSegments.flatten := by
+        simp [secondArc, List.append_assoc]
+      have rotatedFree :
+          certificate.CuspFreeTraversal
+            ((firstArc ++ remaining) ++
+              beforeSegments.flatten) := by
+        have originalFree := cuspFree
+        have originalClosing := closingCuspFree
+        rw [flattenEquation] at originalFree originalClosing
+        exact
+          cuspFreeTraversal_rotate_of_closing
+            originalFree originalClosing
+      have arcsFree :
+          certificate.CuspFreeTraversal
+            (firstArc ++ secondArc) := by
+        rw [rotationEquation]
+        exact rotatedFree
+      have firstFree :
+          certificate.CuspFreeTraversal firstArc :=
+        CuspFreeTraversal.prefix certificate
+          (initial := firstArc) (suffix := secondArc) arcsFree
+      have secondFree :
+          certificate.CuspFreeTraversal secondArc :=
+        CuspFreeTraversal.suffix certificate
+          (initial := firstArc) (suffix := secondArc) arcsFree
       have rotationPermutation :
           (firstArc ++ secondArc).Perm
             flippedSegments.flatten := by
@@ -24503,9 +24617,11 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
         · exact .inr (by
             simp [secondArc, remaining, inOutgoing])
       exact
-        ⟨firstArc, secondArc, firstNonempty, firstWalk,
-          secondWalk, rotationPermutation, rightInFirst,
-          leftInArcs⟩
+        ⟨firstArc, secondArc, beforeSegments.flatten,
+          firstArc ++ remaining, firstNonempty, firstWalk,
+          secondWalk, flattenEquation, rotationEquation,
+          arcsFree, firstFree, secondFree, rotationPermutation,
+          rightInFirst, leftInArcs⟩
     · let prefixInitial :=
         beforeSegments.flatten ++ incoming.traversed
       let secondArc :=
@@ -24574,6 +24690,36 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
           simpa [suffix] using
             congrArg (List.take rightSegment.length) suffixEmpty
         exact rightFlipped.1.nonempty rightEmpty
+      have rotationEquation :
+          firstArc ++ secondArc =
+            suffix ++ (prefixInitial ++ secondArc) := by
+        simp [firstArc, List.append_assoc]
+      have flattenRotationEquation :
+          flippedSegments.flatten =
+            (prefixInitial ++ secondArc) ++ suffix := by
+        simpa [List.append_assoc] using flattenEquation
+      have rotatedFree :
+          certificate.CuspFreeTraversal
+            (suffix ++ (prefixInitial ++ secondArc)) := by
+        have originalFree := cuspFree
+        have originalClosing := closingCuspFree
+        rw [flattenRotationEquation] at originalFree originalClosing
+        exact
+          cuspFreeTraversal_rotate_of_closing
+            originalFree originalClosing
+      have arcsFree :
+          certificate.CuspFreeTraversal
+            (firstArc ++ secondArc) := by
+        rw [rotationEquation]
+        exact rotatedFree
+      have firstFree :
+          certificate.CuspFreeTraversal firstArc :=
+        CuspFreeTraversal.prefix certificate
+          (initial := firstArc) (suffix := secondArc) arcsFree
+      have secondFree :
+          certificate.CuspFreeTraversal secondArc :=
+        CuspFreeTraversal.suffix certificate
+          (initial := firstArc) (suffix := secondArc) arcsFree
       have rotationPermutation :
           (firstArc ++ secondArc).Perm
             flippedSegments.flatten := by
@@ -24593,9 +24739,11 @@ private theorem FullyCancellingDependencyCycleAllReflexive.flippedParConflict_be
         · exact .inr (by
             simp [secondArc, inOutgoing])
       exact
-        ⟨firstArc, secondArc, firstNonempty, firstWalk,
-          secondWalk, rotationPermutation, rightInFirst,
-          leftInArcs⟩
+        ⟨firstArc, secondArc, prefixInitial ++ secondArc,
+          suffix, firstNonempty, firstWalk, secondWalk,
+          flattenRotationEquation, rotationEquation, arcsFree,
+          firstFree, secondFree, rotationPermutation,
+          rightInFirst, leftInArcs⟩
   exact
     ⟨flippedSegments, rightStep, leftStep,
       rightSegment, leftSegment, before, left, right, conclusion,
