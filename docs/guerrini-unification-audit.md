@@ -306,7 +306,9 @@ or positive misses. The larger search recorded at most 995 link attempts and
    consume one exact premise and structural one-parent ownership would collapse
    two distinct simple-cycle nodes. Removing the exact source/frontier
    boundaries preserves no-immediate-reverse, so the deterministic active
-   family now consists of nonempty internally nonbacktracking cores. The
+   family now consists of nonempty internally nonbacktracking cores. Those
+   indexed cores are now composed into a nonempty closed full-graph walk whose
+   last endpoint returns to the first core's exact source-premise base. The
    immediate proof obligation is to exclude the resulting cycle of active
    retained spines and waiting-par incidences by an exact multi-par
    switching-flip/nesting argument and, in the nonempty branch, transport the

@@ -19684,6 +19684,55 @@ private def FullyCancellingDependencyCycleReflexiveCoreAt
                           certificate.referenceSwitchingMask[directed.index]? =
                             some true
 
+/-- Reconcile the existential source/frontier stored by a core witness with an
+external exact decomposition of the same indexed segment. -/
+private theorem
+    FullyCancellingDependencyCycleReflexiveCoreAt.walk_of_decomposition
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {segments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {step : Nat}
+    {core segment : List certificate.fullGraph.DirectedEdge}
+    {sourceEdge last : certificate.fullGraph.DirectedEdge}
+    (coreAt :
+      FullyCancellingDependencyCycleReflexiveCoreAt
+        certificate state chainAt segments step core)
+    (segmentLookup : segments[step]? = some segment)
+    (decomposition :
+      segment = sourceEdge :: (core ++ [last])) :
+    certificate.fullGraph.EdgeWalk
+      sourceEdge.target core last.source := by
+  rcases coreAt with
+    ⟨coreSegment, actualSourceEdge, actualLast,
+      coreSegmentLookup, coreDecomposition,
+      _sourceStart, _sourceBackward, _sourceParTarget,
+      _lastTarget, _lastForward, _reflexive, _sourceKept,
+      _threadToken, coreWalk, _coreKept⟩
+  have coreSegmentValue : coreSegment = segment :=
+    Option.some.inj (coreSegmentLookup.symm.trans segmentLookup)
+  have exactDecomposition :
+      segment =
+        actualSourceEdge :: (core ++ [actualLast]) :=
+    Eq.trans (Eq.symm coreSegmentValue) coreDecomposition
+  have sameTraversal :
+      actualSourceEdge :: (core ++ [actualLast]) =
+        sourceEdge :: (core ++ [last]) :=
+    Eq.trans (Eq.symm exactDecomposition) decomposition
+  have sourceEquation : actualSourceEdge = sourceEdge :=
+    (List.cons.inj sameTraversal).1
+  have tailEquation :
+      core ++ [actualLast] = core ++ [last] :=
+    (List.cons.inj sameTraversal).2
+  have lastEquation : actualLast = last := by
+    have singletonEquation : [actualLast] = [last] :=
+      List.append_cancel_left tailEquation
+    simpa using singletonEquation
+  subst actualSourceEdge
+  subst actualLast
+  exact coreWalk
+
 /-- Each residual spine is an exact walk in the deterministic reference
 switching after occurrence-index compaction.  Edge values and orientations
 are preserved pointwise, so future nesting arguments can move between the
@@ -19954,6 +20003,20 @@ private def dependencyResidualCores {graph : Graph}
     (segments : List (List graph.DirectedEdge)) :
     List (List graph.DirectedEdge) :=
   segments.map (fun segment => segment.tail.dropLast)
+
+/-- Start occurrence of an indexed residual core, read from the exact backward
+source incidence at the head of its containing dependency segment.  Defaults
+are unreachable in the proved nonempty in-bounds family. -/
+private def dependencyResidualBaseAt
+    {graph : Graph}
+    (segments : List (List graph.DirectedEdge))
+    (step : Nat) : Vertex :=
+  match segments[step]? with
+  | none => 0
+  | some segment =>
+      match segment.head? with
+      | none => 0
+      | some sourceEdge => sourceEdge.target
 
 /-- The existential core exposed by the reflexive decomposition is uniquely
 the deterministic `tail.dropLast` core of its indexed segment. -/
@@ -20230,6 +20293,31 @@ private theorem backward_par_parent_exists
 /-- Successor index in the finite simple dependency cycle. -/
 private def dependencyCycleSuccessor (count step : Nat) : Nat :=
   if step + 1 < count then step + 1 else 0
+
+/-- Cyclic endpoint convention used to compose the finite residual-core
+family.  The `count` endpoint returns to index zero. -/
+private def cyclicDependencyResidualBaseAt
+    {graph : Graph}
+    (count : Nat)
+    (segments : List (List graph.DirectedEdge))
+    (step : Nat) : Vertex :=
+  if step < count then dependencyResidualBaseAt segments step
+  else dependencyResidualBaseAt segments 0
+
+/-- The ordinary next endpoint of the cyclic base convention is exactly the
+stored cyclic-successor segment base. -/
+private theorem cyclicDependencyResidualBaseAt_next
+    {graph : Graph}
+    {count step : Nat}
+    {segments : List (List graph.DirectedEdge)} :
+    cyclicDependencyResidualBaseAt count segments (step + 1) =
+      dependencyResidualBaseAt segments
+        (dependencyCycleSuccessor count step) := by
+  by_cases interior : step + 1 < count
+  · simp [cyclicDependencyResidualBaseAt,
+      dependencyCycleSuccessor, interior]
+  · simp [cyclicDependencyResidualBaseAt,
+      dependencyCycleSuccessor, interior]
 
 /-- The cyclic successor stays inside every dependency cycle with at least two
 nodes. -/
@@ -20716,6 +20804,122 @@ private theorem
       ⟨core, by simpa [cores] using activeCore.1.residual_lookup,
         activeCore, chainedNonempty, chainedReduced⟩
 
+/-- The deterministic residual cores compose to a genuinely nonempty closed
+full-graph walk.  Each individual core is already internally nonbacktracking;
+therefore any later exact cancellation in the flattening must be localized to
+a cyclic junction between two cores. -/
+private theorem
+    FullyCancellingDependencyCycleActiveResidualCoreFamily.closedWalk
+    {certificate : Certificate}
+    {state : UnificationWorklistState}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {segments cores :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (family :
+      FullyCancellingDependencyCycleActiveResidualCoreFamily
+        certificate state chainAt count segments cores)
+    (chained :
+      FullyCancellingDependencyCycleReflexiveCoresChained
+        certificate state chainAt count segments)
+    (positive : 0 < count) :
+    cores.flatten ≠ [] ∧
+      certificate.fullGraph.EdgeWalk
+        (dependencyResidualBaseAt segments 0)
+          cores.flatten
+        (dependencyResidualBaseAt segments 0) := by
+  have flattenedNonempty : cores.flatten ≠ [] := by
+    rcases family.2.2 0 positive with
+      ⟨firstCore, firstLookup, _active,
+        firstNonempty, _firstReduced⟩
+    intro flattenedEmpty
+    have everyCoreEmpty :=
+      List.flatten_eq_nil_iff.mp flattenedEmpty
+    exact firstNonempty
+      (everyCoreEmpty firstCore
+        (List.mem_of_getElem? firstLookup))
+  let baseAt :=
+    cyclicDependencyResidualBaseAt count segments
+  have segmentAt :
+      ∀ step,
+        step < count →
+          ∃ traversed : List certificate.fullGraph.DirectedEdge,
+            traversed ≠ [] ∧
+              certificate.fullGraph.EdgeWalk
+                (baseAt step) traversed (baseAt (step + 1)) ∧
+                cores[step]? = some traversed ∧
+                  ∀ _directed, _directed ∈ traversed → True := by
+    intro step stepBound
+    rcases chained step stepBound with
+      ⟨core, segment, successorSegment, sourceEdge, last, successorEdge,
+        coreAt, coreNonempty, _coreReduced,
+        segmentLookup, decomposition, successorLookup,
+        successorHead, _successorEquation, successorTarget⟩
+    have coreWalk :
+        certificate.fullGraph.EdgeWalk
+          sourceEdge.target core last.source :=
+      coreAt.walk_of_decomposition segmentLookup decomposition
+    have sourceBase :
+        baseAt step = sourceEdge.target := by
+      simp [baseAt, cyclicDependencyResidualBaseAt, stepBound,
+        dependencyResidualBaseAt, segmentLookup, decomposition]
+    have successorBase :
+        dependencyResidualBaseAt segments
+            (dependencyCycleSuccessor count step) =
+          successorEdge.target := by
+      simp [dependencyResidualBaseAt, successorLookup, successorHead]
+    have nextBase :
+        baseAt (step + 1) = last.source := by
+      calc
+        baseAt (step + 1) =
+            dependencyResidualBaseAt segments
+              (dependencyCycleSuccessor count step) := by
+          exact cyclicDependencyResidualBaseAt_next
+        _ = successorEdge.target := successorBase
+        _ = last.source := successorTarget
+    have transported :
+        certificate.fullGraph.EdgeWalk
+          (baseAt step) core (baseAt (step + 1)) := by
+      rw [sourceBase, nextBase]
+      exact coreWalk
+    have coreLookup : cores[step]? = some core := by
+      rw [family.1]
+      exact coreAt.residual_lookup
+    exact
+      ⟨core, coreNonempty, transported, coreLookup,
+        fun _directed _membership => trivial⟩
+  rcases
+      fullGraphEdgeWalk_segmentFamily_exists
+        (fun _directed : certificate.fullGraph.DirectedEdge => True)
+        (fun step traversed => cores[step]? = some traversed)
+        baseAt count segmentAt with
+    ⟨chosen, chosenLength, chosenWalk, chosenProperties⟩
+  have chosenEquation : chosen = cores := by
+    apply List.ext_getElem?
+    intro step
+    by_cases stepBound : step < count
+    · rcases chosenProperties step stepBound with
+        ⟨traversed, chosenLookup, _nonempty,
+          coreLookup, _pointwise⟩
+      exact chosenLookup.trans coreLookup.symm
+    · have chosenNone : chosen[step]? = none :=
+        List.getElem?_eq_none (by
+          rw [chosenLength]
+          omega)
+      have coresNone : cores[step]? = none :=
+        List.getElem?_eq_none (by
+          rw [family.2.1]
+          omega)
+      rw [chosenNone, coresNone]
+  rw [chosenEquation] at chosenWalk
+  have baseZero :
+      baseAt 0 = dependencyResidualBaseAt segments 0 := by
+    simp [baseAt, cyclicDependencyResidualBaseAt]
+  have baseClosed : baseAt count = baseAt 0 := by
+    simp [baseAt, cyclicDependencyResidualBaseAt]
+  rw [baseClosed, baseZero] at chosenWalk
+  exact ⟨flattenedNonempty, chosenWalk⟩
+
 /-- Exact omitted-right-par occurrence forced in any nonempty normalized
 scheduler obstruction.  The stored prefix fixes the two par edge indices, and
 the omitted right occurrence is traversed backward. -/
@@ -20827,7 +21031,12 @@ private theorem
                                   (∃ cores,
                                     FullyCancellingDependencyCycleActiveResidualCoreFamily
                                       certificate final chainAt count segments
-                                        cores) ∧
+                                        cores ∧
+                                      cores.flatten ≠ [] ∧
+                                        certificate.fullGraph.EdgeWalk
+                                          (dependencyResidualBaseAt segments 0)
+                                            cores.flatten
+                                          (dependencyResidualBaseAt segments 0)) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -20927,7 +21136,12 @@ private theorem
                                   (∃ cores,
                                     FullyCancellingDependencyCycleActiveResidualCoreFamily
                                       certificate final chainAt count segments
-                                        cores) ∧
+                                        cores ∧
+                                      cores.flatten ≠ [] ∧
+                                        certificate.fullGraph.EdgeWalk
+                                          (dependencyResidualBaseAt segments 0)
+                                            cores.flatten
+                                          (dependencyResidualBaseAt segments 0)) ∧
                               original = segments.flatten ∧
                                 segments ≠ [] ∧
                                   (∀ segment, segment ∈ segments →
@@ -21094,10 +21308,21 @@ private theorem
             ∃ cores,
               FullyCancellingDependencyCycleActiveResidualCoreFamily
                 certificate final originalChain originalCount
-                  originalSegments cores :=
-          fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
-            originalSegmentCount activeReflexiveCores
-              reflexiveCoresChained
+                  originalSegments cores ∧
+                cores.flatten ≠ [] ∧
+                  certificate.fullGraph.EdgeWalk
+                    (dependencyResidualBaseAt originalSegments 0)
+                      cores.flatten
+                    (dependencyResidualBaseAt originalSegments 0) := by
+          rcases
+              fullyCancellingDependencyCycle_activeResidualCoreFamily_exists
+                originalSegmentCount activeReflexiveCores
+                  reflexiveCoresChained with
+            ⟨cores, activeFamily⟩
+          exact
+            ⟨cores, activeFamily,
+              activeFamily.closedWalk reflexiveCoresChained
+                (by omega)⟩
         have schedulerJunction :
             ∃ (source middle : Vertex)
                 (incoming :

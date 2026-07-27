@@ -168,7 +168,9 @@ cancellation is proved to cross their unique junction. The scheduler proof
  identify their stored links and contradict simplicity of the dependency
  cycle. Removing the source and frontier boundaries also preserves each core's
  exact no-immediate-reverse property, and the deterministic active family
- packages these nonempty internally nonbacktracking cores. The remaining
+ packages these nonempty internally nonbacktracking cores. Lean composes their
+ deterministic flattening into a nonempty closed full-graph walk whose last
+ endpoint returns to the first core's exact source-premise base. The remaining
  empty-branch obligation is therefore no longer a hidden formula tail or an
  endpoint-only token claim: it is to exclude the resulting multi-node cycle of
  nonempty active retained spines and waiting-par incidences by an exact

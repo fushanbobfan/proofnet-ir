@@ -231,8 +231,9 @@ occurrences. Every dependency carries that same-boundary classification
  make adjacent waiting pars consume the same exact premise, contradicting
  structural one-parent ownership and simple-cycle injectivity. Each core also
  inherits exact no-immediate-reverse from its containing segment, and the
- deterministic active family records both properties. The remaining gap is to
- exclude that exact empty
+ deterministic active family records both properties. Lean composes the
+ family into a nonempty closed full-graph walk with exact cyclic
+ source-premise endpoints. The remaining gap is to exclude that exact empty
  nesting and
  transport the turn evidence around that concrete nonempty obstruction into an
  excluded edge-simple switching cycle or forbidden nesting. This is

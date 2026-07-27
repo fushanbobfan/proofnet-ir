@@ -12,10 +12,13 @@
   exchange equal-valued parallel edges. Each core also inherits exact
   no-immediate-reverse from its containing dependency segment after removing
   the source and frontier boundaries. The deterministic active residual-core
-  family now packages both nonemptiness and internal nonbacktracking. The
-  remaining empty-normal-form obligation is to compose these cores and
-  localize/exclude their cross-core switching-tree backtracking/nesting;
-  pure-worklist completeness is still open;
+  family now packages both nonemptiness and internal nonbacktracking. Lean
+  composes that exact indexed family into a nonempty closed full-graph walk,
+  with the final core returning to the first core's exact source-premise base.
+  The remaining empty-normal-form obligation is now to normalize this
+  core-only closed walk, localize any cancellation to a cross-core cyclic
+  junction, and exclude the resulting switching-tree nesting; pure-worklist
+  completeness is still open;
 - retained the occurrence-indexed full-segment decomposition through the
   finite dependency family instead of projecting immediately to endpoint
   classifications. In the fully cancelling empty-normal-form branch, Lean now

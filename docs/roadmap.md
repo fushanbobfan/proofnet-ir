@@ -580,6 +580,8 @@
     - [x] Prove every residual core inherits exact no-immediate-reverse from
       its containing dependency segment, and package nonempty internally
       reduced cores in the deterministic active family.
+    - [x] Compose the deterministic active core family into a nonempty closed
+      full-graph walk with exact cyclic source-premise endpoints.
     - [ ] Exclude the resulting empty-branch nesting; in the nonempty branch
       transport
       the local turn classification through normalization, extract an exact
