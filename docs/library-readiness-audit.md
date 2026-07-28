@@ -1,7 +1,8 @@
 # Library-readiness audit
 
-Audit date: 2026-07-23
-Audited baseline: published v0.9.0 plus its tag-pinned downstream consumer
+Audit date: 2026-07-28
+Audited baseline: published v0.9.0 plus its tag-pinned downstream consumer and
+the current v0.10.0-dev scheduler checkpoint
 
 ## Verdict
 
@@ -302,8 +303,21 @@ part of the engineering and proof-identity gap.
    and four-tag `Nodup`. Its order
    `firstTag → lastTag → anchor → outerLast` separates rather than crosses the
    endpoint pairs. No interval nonemptiness, contiguity, fixed or modular rank,
-   or model-specific scheduler-order/proper-nesting contradiction is proved;
-   planarity is not assumed.
+   or model-specific scheduler-order contradiction is proved; planarity is not
+   assumed. Ordinary laminarity permits these separated pairs as siblings.
+   A stable small accepted three-axiom/two-tensor regression also starts token
+   ages 0, 1, and 2 and first merges ages 0 and 2 under the current reverse
+   connective queue. The worklist succeeds in two attempts, zero waiting
+   requeues, and two firings. The counters do not expose internal class
+   membership; that noncontiguous merge follows from the fixed links and
+   eager-start/reverse-queue definitions. Therefore contiguous age intervals
+   and Figure-7 LIFO are not invariants of the current flat scheduler, and
+   `tagSchedulerFamily.step` must be read as a dependency-segment index rather
+   than firing age.
+   Flat-worklist completeness may instead require preservation of the residual
+   parsing witness under arbitrary successful firings or an observational
+   local-confluence theorem. Faithful `NEXTAXIOM`/token-age stacks remain a
+   separate prerequisite for Guerrini-style linearity.
    Closing-par scheduler-order exclusion, correct-state progress, pure worklist
    completeness, recursive fallback removal, and a whole-program linear cost
    theorem remain open.
@@ -462,6 +476,9 @@ It should not yet be presented as:
 - a general Lean/mathlib proof assistant extension;
 - a performance-qualified executable sequentializer beyond the documented
   unit-free, cut-free MLL certificate model;
+- a pure-complete or Guerrini-linear flat worklist; general checker-accepted
+  sequentialization is complete, but the flat fast path still relies on the
+  recursive fallback for its exact decision;
 - a complete isomorphism-canonical proof identity library;
 - an arbitrary-isomorphism or conclusion-reordering canonicalizer; the new
   key is exact only for the explicitly documented `ProofNetEquivalent`

@@ -137,6 +137,18 @@ The event-driven worklist tier is subject to the identical trust boundary.
 `verifyDerivation?`, and Lean proves both worklist fast-path soundness and
 exact equality of its fallback wrapper with `check`. The worklist candidate
 carries an axiom-free proof of the conservative `n(n+4)+1` link-attempt cap.
+
+That receipt does not imply a Figure-7 stack discipline. A stable small
+accepted certificate with three axiom links and two tensors reconstructs in
+two attempts, zero waiting requeues, and two firings. From its exact link order,
+eager axiom initialization assigns ages 0, 1, and 2, and reverse connective
+queuing first merges the age-0 and age-2 premises. Public statistics do not
+expose token-class membership; the noncontiguous merge is derived from the
+fixed certificate and implementation definitions. Consequently callers and
+proofs must not assume contiguous age intervals, adjacent stack union, or LIFO
+behavior for the flat worklist. `tagSchedulerFamily.step` is a selected
+dependency-segment index, not firing time or token age.
+
 Current `main` additionally proves an exact distinct-firing history, bounded
 enqueue sources, insertion/pop conservation, and canonical queue exhaustion
 within that cap. The quiescent run now also gives an exact proof witness for
@@ -335,9 +347,12 @@ theorem returns both positioned witnesses with the display and four-tag
 The displayed occurrence order
 `firstTag → lastTag → anchor → outerLast` separates the inner and outer pairs;
 it is not a crossing. No interval is proved nonempty, so contiguity, fixed or
-modular rank, a model-specific scheduler-order/proper-nesting contradiction,
-closing-par exclusion, progress, and pure-worklist completeness remain open.
-No planarity principle is assumed.
+modular rank, closing-par exclusion, progress, and pure-worklist completeness
+remain open. Ordinary laminarity permits the separated pairs as siblings, and
+the executable regression refutes generic flat token-age/LIFO containment.
+The remaining flat-completeness option is a residual-witness preservation or
+observational confluence theorem. Guerrini-style linearity instead requires a
+faithful `NEXTAXIOM`/token-age scheduler. No planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -439,10 +454,14 @@ Lean now also constructs the exact simultaneous complementary
   distinct erased edges or
   vertices. The order is `firstTag → lastTag → anchor → outerLast`, which
   separates rather than crosses the two endpoint pairs; intervening intervals
-  may still be empty. Closing-par
-  scheduler-order exclusion, correct-state progress, pure-worklist
-  completeness, recursive fallback removal, and whole-program linearity
-  remain open.
+  may still be empty. Ordinary laminarity permits this sibling placement, and
+  the small accepted worklist regression rules out a generic flat
+  age-interval/LIFO contradiction. Residual-witness preservation or
+  observational confluence remains a possible route to flat completeness;
+  faithful `NEXTAXIOM`/token-age stacks remain required for linearity.
+  Closing-par scheduler-order exclusion, correct-state progress,
+  pure-worklist completeness, recursive fallback removal, and whole-program
+  linearity remain open.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

@@ -4342,6 +4342,67 @@ ProofNetIR.UnificationState.Abstractable.startMarking : ∀ {certificate : Proof
             ProofNetIR.UnificationState.Abstractable certificate (state.startMarking left right)
 ```
 
+### `ProofNetIR.UnificationState.OrderedParents.startMarking_representative_eq`
+
+Kind: theorem.
+
+Appending the fresh self-parent leaves the representative of every carrier
+token unchanged. For old allocated tokens this follows from ordered traversal;
+the fresh token and all still-unallocated carrier values are self-represented
+on both sides.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.startMarking_representative_eq : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents →
+    ∀ (left right : ProofNetIR.Vertex) (token : Nat),
+      (state.startMarking left right).representative token = state.representative token
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.startMarking_sameThread_iff`
+
+Kind: theorem.
+
+Starting a fresh axiom after earlier unions preserves executable thread
+equivalence on the entire fixed `Nat` carrier.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.startMarking_sameThread_iff : ∀ {state : ProofNetIR.UnificationState},
+  state.OrderedParents →
+    ∀ (left right : ProofNetIR.Vertex) (first second : Nat),
+      (state.startMarking left right).SameThread first second ↔ state.SameThread first second
+```
+
+### `ProofNetIR.UnificationState.Abstractable.startMarking_ordered`
+
+Kind: theorem.
+
+Starting an in-domain axiom after arbitrary ordered unions preserves the
+executable abstraction contract.
+
+```lean
+ProofNetIR.UnificationState.Abstractable.startMarking_ordered : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate state →
+    state.OrderedParents →
+      ∀ {left right : ProofNetIR.Vertex},
+        left < certificate.formulas.size →
+          right < certificate.formulas.size →
+            ProofNetIR.UnificationState.Abstractable certificate (state.startMarking left right)
+```
+
+### `ProofNetIR.UnificationState.OrderedParents.toMarking_isFreshToken`
+
+Kind: theorem.
+
+In the fixed-carrier abstraction, the next token exposed by any ordered
+parent forest is isolated from every already allocated token.
+
+```lean
+ProofNetIR.UnificationState.OrderedParents.toMarking_isFreshToken : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  state.OrderedParents →
+    ∀ (abstractable : ProofNetIR.UnificationState.Abstractable certificate state),
+      (state.toMarking certificate abstractable).IsFreshToken (state.toMarking certificate abstractable).tokenCount
+```
+
 ### `ProofNetIR.UnificationState.IdentityParents.toMarking_isFreshToken`
 
 Kind: theorem.
@@ -4354,6 +4415,24 @@ ProofNetIR.UnificationState.IdentityParents.toMarking_isFreshToken : ∀ {certif
   state.IdentityParents →
     ∀ (abstractable : ProofNetIR.UnificationState.Abstractable certificate state),
       (state.toMarking certificate abstractable).IsFreshToken (state.toMarking certificate abstractable).tokenCount
+```
+
+### `ProofNetIR.UnificationState.startMarking_toMarking_mark_ordered`
+
+Kind: theorem.
+
+Forgetting a fresh axiom start after arbitrary ordered unions is exactly
+the two abstract `setMark` updates.
+
+```lean
+ProofNetIR.UnificationState.startMarking_toMarking_mark_ordered : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) (ordered : state.OrderedParents)
+  {left right : ProofNetIR.Vertex} (leftBound : left < certificate.formulas.size)
+  (rightBound : right < certificate.formulas.size),
+  ((state.startMarking left right).toMarking certificate ⋯).mark =
+    ProofNetIR.UnificationMarking.setMark
+      (ProofNetIR.UnificationMarking.setMark (state.toMarking certificate abstractable).mark left state.parents.size)
+      right state.parents.size
 ```
 
 ### `ProofNetIR.UnificationState.startMarking_toMarking_mark`
@@ -4372,6 +4451,25 @@ ProofNetIR.UnificationState.startMarking_toMarking_mark : ∀ {certificate : Pro
     ProofNetIR.UnificationMarking.setMark
       (ProofNetIR.UnificationMarking.setMark (state.toMarking certificate abstractable).mark left state.parents.size)
       right state.parents.size
+```
+
+### `ProofNetIR.UnificationState.startMarking_startStep_ordered`
+
+Kind: theorem.
+
+A fresh axiom start after arbitrary ordered unions refines one independent
+Figure-5 start step.
+
+```lean
+ProofNetIR.UnificationState.startMarking_startStep_ordered : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate state) (ordered : state.OrderedParents)
+  {left right : ProofNetIR.Vertex},
+  ProofNetIR.Link.axiom left right ∈ certificate.links →
+    ∀ (leftBound : left < certificate.formulas.size) (rightBound : right < certificate.formulas.size),
+      state.assignedToken? left = none →
+        state.assignedToken? right = none →
+          ProofNetIR.UnificationStep certificate (state.toMarking certificate abstractable)
+            ((state.startMarking left right).toMarking certificate ⋯)
 ```
 
 ### `ProofNetIR.UnificationState.startMarking_startStep`

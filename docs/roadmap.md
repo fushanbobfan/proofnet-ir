@@ -693,21 +693,29 @@
       both it and the inner normalized closing witness through ancestry to the
       complete initial family. Return both exact positioned witnesses with the
       four-point display and four-tag `Nodup` fact in one specialized theorem.
-    - [ ] Prove a model-specific proper-nesting/LIFO scheduler invariant from
-      the actual flat-scheduler semantics, or implement faithful
-      `NEXTAXIOM`/token-age stacks and prove it there. The current order
-      `firstTag → lastTag → anchor → outerLast` separates the inner and outer
-      pairs rather than crossing them. It proves no interval nonemptiness,
-      contiguity, fixed or modular rank, or scheduler-order contradiction;
-      commutative MLL supplies no planarity principle.
-      Closing-par exclusion and the path-exposed waiting-par obstruction remain
-      open.
+    - [x] Audit and reject contiguous token-age/proper-nesting/LIFO as an
+      invariant of the actual flat scheduler. A stable small accepted
+      three-axiom/two-tensor regression starts ages 0, 1, and 2 and, under
+      reverse connective queuing, first joins ages 0 and 2. Its public receipt
+      is two attempts, zero waiting requeues, and two firings; the class shape
+      follows from the fixed links and scheduler definitions, not from those
+      statistics alone. `tagSchedulerFamily.step` is a selected dependency
+      segment index rather than firing age. The order
+      `firstTag → lastTag → anchor → outerLast` separates the two pairs, which
+      ordinary laminarity permits as siblings.
+    - [ ] Prove that the residual parsing witness survives every arbitrary
+      successful flat-worklist firing, or establish an equivalent
+      observational local-confluence theorem. Use that scheduler-specific
+      result to exclude the closing-par base and path-exposed waiting-par
+      obstruction. Closing-par exclusion remains open.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential ready/waiting stacks; formalize
     `NEXTAXIOM`, token-age, and special union-find invariants; establish
     completeness of that later sequential executable; and extend the cost
     theorem to all implemented operations before claiming Guerrini linearity.
+    This faithful scheduler is required for the interval/LIFO and linearity
+    claims; those invariants are false for the current flat scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist
     completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and

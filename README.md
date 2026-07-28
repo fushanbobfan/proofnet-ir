@@ -69,6 +69,28 @@ intervening interval is proved nonempty, and contiguity, fixed or modular rank,
 a model-specific scheduler-order/proper-nesting contradiction, closing-par
 exclusion, progress, and pure-worklist completeness remain unproved. No
 planarity principle is assumed for commutative MLL.
+
+A stable three-axiom/two-tensor regression now rules out one proposed way of
+closing that gap. The current eager initializer assigns token ages in submitted
+axiom-link order, while the flat worklist reverses submitted connective order;
+the accepted regression therefore fires a tensor joining ages 0 and 2 before
+the intervening age-1 component. It succeeds in exactly two attempts, with no
+waiting requeue and two successful firings. These public counters are the
+regression receipt, not a direct observation of token-class membership; the
+noncontiguous merge follows from the fixed links and the eager-start and
+reverse-queue definitions. Thus the current flat scheduler does not preserve
+contiguous token-age intervals or a Figure-7 top-of-stack union discipline.
+`tagSchedulerFamily.step` is the index of a selected dependency-cycle segment,
+not a firing time or token age. Moreover, the displayed
+`firstTag → lastTag → anchor → outerLast` order consists of two separated
+endpoint pairs, which ordinary laminarity permits as siblings. Flat-worklist
+completeness may instead be pursued through preservation of a residual parsing
+witness or a suitable local-confluence theorem. Guerrini-style whole-program
+linearity remains a separate goal and requires a faithful
+`NEXTAXIOM`/token-age implementation. General checker-accepted
+sequentialization is already complete through recursive reconstruction;
+closing-par exclusion, correct-state progress, pure-worklist completeness,
+fallback removal, and linearity remain open.
 Independent
 transition refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
@@ -390,11 +412,14 @@ the four exact tags are now proved `Nodup` without claiming distinct erased
 edges or vertices. The same outer positioned choice and the inner positioned
 witness are both lifted through ancestry to that full family and returned with
 the display. Its `firstTag → lastTag → anchor → outerLast` order separates,
-rather than crosses, the two endpoint pairs; intervals may still be empty.
-Closing-par scheduler-order exclusion and
-correct-state progress remain open. Pure-worklist completeness,
-recursive-fallback removal, the later
-`NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
+rather than crosses, the two endpoint pairs; intervals may still be empty, and
+ordinary laminarity permits the pairs as siblings. The fixed accepted
+three-axiom regression refutes a generic flat age-interval/LIFO invariant.
+Flat completeness therefore points to residual-witness preservation or
+confluence, while faithful `NEXTAXIOM`/token-age stacks remain the separate
+linearity route. Closing-par scheduler-order exclusion and correct-state
+progress remain open. Pure-worklist completeness, recursive-fallback removal,
+the later `NEXTAXIOM` implementation, and a whole-program linear cost theorem
 remain separate open gates. See
 [the v0.10 design](docs/v0.10-design.md).
 
@@ -582,7 +607,13 @@ The repository currently contains:
   positioned witness and the same outer positioned choice survive ancestry and
   are returned with the display; the resulting
   `firstTag → lastTag → anchor → outerLast` order is separated rather than
-  crossing. Closing-par exclusion,
+  crossing. A stable accepted three-axiom regression independently shows that
+  this flat eager worklist can first merge token ages 0 and 2, so no generic
+  contiguous-age/LIFO invariant may be imported here. Ordinary laminarity also
+  permits the two displayed pairs as separated siblings. A residual-witness or
+  confluence argument is the remaining scheduler-preserving route for flat
+  completeness; faithful `NEXTAXIOM`/token-age stacks are reserved for the
+  Guerrini linearity layer. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an

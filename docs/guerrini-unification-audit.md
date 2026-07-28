@@ -214,6 +214,25 @@ a genuine unmarked internal occurrence, and every subsequent formula chase
 retains all exact connective/premise steps through its terminal waiting par.
 The global correct-state progress theorem remains open.
 
+A stable small regression makes the scheduler distinction executable. Its
+three submitted axiom links receive fresh ages 0, 1, and 2 in link order. Of
+the two submitted tensors, reverse connective queuing attempts the tensor over
+the age-0 and age-2 premises first. The certificate is structurally well
+formed, reference accepted, and the worklist succeeds with two attempts, zero
+waiting requeues, and two firings. Those public counters do not themselves
+reveal the noncontiguous token class; that fact follows from the exact
+certificate plus the eager-start and reverse-queue definitions. Consequently
+contiguous token-age intervals, top-adjacent interval union, and Figure-7 LIFO
+behavior are false as generic invariants of this flat scheduler.
+
+The `step` field of a `SchedulerOccurrence` produced by
+`tagSchedulerFamily` is likewise the index of a segment in a selected finite
+waiting-dependency cycle. It is not an absolute worklist firing time, axiom
+age, or stack depth. Finally, endpoint order
+`firstTag → lastTag → anchor → outerLast` places the two endpoint pairs in
+separated intervals; ordinary proper nesting permits such sibling intervals
+and therefore cannot supply a contradiction.
+
 Lean currently proves:
 
 ```text
@@ -259,6 +278,11 @@ theorem for the present executable would be incorrect.
 
 It additionally checks a structurally well-formed but disconnected
 two-axiom sentinel and requires the stable `nonUniqueThread` diagnostic. The
+audit also checks the accepted three-axiom/two-tensor reordered regression and
+requires worklist success with exactly two attempts, zero waiting requeues, and
+two successful firings. The fixture records the observable schedule receipt;
+its age-0/age-2 merge is obtained from the fixed links and scheduler
+definitions, not inferred from public statistics. The
 first recorded Windows run reported 750/750 positive fast-path hits, zero
 positive misses, zero false positives, and exact hybrid/reference agreement.
 This is regression evidence, not the missing fast-path completeness theorem.
@@ -444,17 +468,24 @@ or positive misses. The larger search recorded at most 995 link attempts and
     Guerrini's correctness/reduction
     results do not provide that bespoke final contradiction for the present
     flat eager scheduler.
-3. Prove a model-specific proper-nesting/LIFO scheduler invariant strong enough
-   to exclude the separated endpoint configuration, or replace the flat eager
-   scheduler with faithful `NEXTAXIOM`/token-age stacks and prove that
-   invariant there. Commutative MLL supplies no planarity principle for this
-   step. Then exclude the closing-par base and prove correct-quiescent-state
-   progress.
-4. Prove the current event-driven worklist complete, yielding
+3. Do not assume contiguous token-age intervals or generic LIFO nesting for the
+   current flat worklist: the fixed accepted regression above refutes that
+   invariant, and ordinary laminarity permits the separated endpoint pairs as
+   siblings. Instead, investigate preservation of the existing residual
+   parsing witness under every competing successful firing, or prove an
+   equivalent local-diamond/confluence theorem modulo the observable
+   partition/frontier state.
+4. Use that residual/confluence result, or another scheduler-specific progress
+   argument, to exclude the closing-par base and prove
+   correct-quiescent-state progress. Then prove the current event-driven
+   worklist complete, yielding
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist
    decision only after that equality is kernel checked.
 6. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
-   discipline; the current flat scheduler's fuel is already proved sufficient.
+   discipline for the separate sequential executable. Formalize
+   `NEXTAXIOM`, contiguous token-age intervals, and ready/waiting stacks there;
+   the current flat scheduler's fuel is already proved sufficient, but its
+   counterexample prevents reusing those stack invariants.
 7. Only after `NEXTAXIOM`, token-age, waiting-stack, and union-find invariants are
    formalized should the library expose a Guerrini-linear complexity theorem.

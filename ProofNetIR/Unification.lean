@@ -680,6 +680,36 @@ theorem IdentityParents.push_fresh
     simpa using Nat.lt_of_le_of_ne
       (Nat.le_of_lt_succ (by simpa using bound)) fresh
 
+/-- Appending one fresh self-parent does not change any bounded traversal that
+starts at an already allocated token in an ordered parent forest. -/
+private theorem OrderedParents.representativeWithFuel_push_fresh_eq
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (fuel : Nat) {token : Nat}
+    (bound : token < state.parents.size) :
+    representativeWithFuel
+        (state.parents.push state.parents.size) fuel token =
+      representativeWithFuel state.parents fuel token := by
+  induction fuel generalizing token with
+  | zero =>
+      rfl
+  | succ fuel induction =>
+      simp only [representativeWithFuel]
+      have different : token ≠ state.parents.size :=
+        Nat.ne_of_lt bound
+      rw [Array.getElem?_push, if_neg different]
+      cases lookup : state.parents[token]? with
+      | none =>
+          rfl
+      | some parent =>
+          by_cases self : parent = token
+          · subst parent
+            simp
+          · have parentBound : parent < state.parents.size :=
+              Nat.lt_of_le_of_lt (ordered lookup) bound
+            simp [self]
+            exact induction parentBound
+
 /-- Observation-equivalent states satisfy the same abstraction contract. -/
 theorem ObservationEquivalent.abstractable
     {certificate : Certificate} {first second : UnificationState}
@@ -853,6 +883,110 @@ theorem OrderedParents.startMarking
     simpa [UnificationState.startMarking,
       Array.getElem?_push, fresh] using lookup
 
+/-- Appending the fresh self-parent leaves the representative of every carrier
+token unchanged. For old allocated tokens this follows from ordered traversal;
+the fresh token and all still-unallocated carrier values are self-represented
+on both sides. -/
+theorem OrderedParents.startMarking_representative_eq
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (left right : Vertex) (token : Nat) :
+    (state.startMarking left right).representative token =
+      state.representative token := by
+  by_cases old : token < state.parents.size
+  · unfold representative
+    change
+      representativeWithFuel
+          (state.parents.push state.parents.size)
+          (state.parents.push state.parents.size).size token =
+        representativeWithFuel state.parents state.parents.size token
+    rw [ordered.representativeWithFuel_push_fresh_eq
+      (state.parents.push state.parents.size).size old]
+    apply ordered.representativeWithFuel_eq_of_token_lt
+    · simpa using Nat.lt_succ_of_lt old
+    · exact old
+  · by_cases fresh : token = state.parents.size
+    · subst token
+      have nextLookup :
+          (state.startMarking left right).parents[state.parents.size]? =
+            some state.parents.size := by
+        change
+          (state.parents.push state.parents.size)[state.parents.size]? =
+            some state.parents.size
+        exact Array.getElem?_push_size
+      rw [representative_eq_of_lookup_self nextLookup,
+        representative_eq_of_size_le state (Nat.le_refl _)]
+    · have oldOut : state.parents.size ≤ token :=
+        Nat.le_of_not_gt old
+      have nextOut :
+          (state.startMarking left right).parents.size ≤ token := by
+        change (state.parents.push state.parents.size).size ≤ token
+        simp
+        omega
+      rw [representative_eq_of_size_le state oldOut,
+        representative_eq_of_size_le
+          (state.startMarking left right) nextOut]
+
+/-- Starting a fresh axiom after earlier unions preserves executable thread
+equivalence on the entire fixed `Nat` carrier. -/
+theorem OrderedParents.startMarking_sameThread_iff
+    {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (left right : Vertex) (first second : Nat) :
+    (state.startMarking left right).SameThread first second ↔
+      state.SameThread first second := by
+  unfold SameThread
+  rw [ordered.startMarking_representative_eq left right first,
+    ordered.startMarking_representative_eq left right second]
+
+/-- Starting an in-domain axiom after arbitrary ordered unions preserves the
+executable abstraction contract. -/
+theorem Abstractable.startMarking_ordered
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right : Vertex}
+    (leftBound : left < certificate.formulas.size)
+    (rightBound : right < certificate.formulas.size) :
+    (state.startMarking left right).Abstractable certificate := by
+  have nextOrdered :
+      (state.startMarking left right).OrderedParents :=
+    ordered.startMarking left right
+  apply nextOrdered.abstractable
+  · simp [UnificationState.startMarking, abstractable.markArraySize]
+  · intro vertex token marked
+    by_cases atRight : right = vertex
+    · simpa [atRight] using rightBound
+    · by_cases atLeft : left = vertex
+      · simpa [atLeft] using leftBound
+      · apply abstractable.markedVertexBound
+        simpa [UnificationState.startMarking, assignedToken?,
+          Array.getElem?_setIfInBounds, atRight, atLeft] using marked
+  · intro vertex token marked
+    by_cases atRight : right = vertex
+    · subst vertex
+      simp [UnificationState.startMarking, assignedToken?, rightBound,
+        abstractable.markArraySize] at marked
+      subst token
+      change state.parents.size <
+        (state.parents.push state.parents.size).size
+      simp
+    · by_cases atLeft : left = vertex
+      · subst vertex
+        simp [UnificationState.startMarking, assignedToken?, atRight, leftBound,
+          abstractable.markArraySize] at marked
+        subst token
+        change state.parents.size <
+          (state.parents.push state.parents.size).size
+        simp
+      · have oldMarked :
+            state.assignedToken? vertex = some token := by
+          simpa [UnificationState.startMarking, assignedToken?,
+            Array.getElem?_setIfInBounds, atRight, atLeft] using marked
+        have oldBound := abstractable.markedTokenBound oldMarked
+        simpa [UnificationState.startMarking] using
+          Nat.lt_succ_of_lt oldBound
+
 /-- Starting an in-domain axiom in the identity-parent phase preserves the
 executable abstraction contract. -/
 theorem Abstractable.startMarking
@@ -913,6 +1047,22 @@ theorem Abstractable.startMarking
     rw [nextIdentity.representative_eq bound]
     exact nextIdentity.representative_eq bound
 
+/-- In the fixed-carrier abstraction, the next token exposed by any ordered
+parent forest is isolated from every already allocated token. -/
+theorem OrderedParents.toMarking_isFreshToken
+    {certificate : Certificate} {state : UnificationState}
+    (ordered : state.OrderedParents)
+    (abstractable : state.Abstractable certificate) :
+    (state.toMarking certificate abstractable).IsFreshToken
+      (state.toMarking certificate abstractable).tokenCount := by
+  intro old oldBound synchronized
+  change old < state.parents.size at oldBound
+  change state.SameThread old state.parents.size at synchronized
+  unfold SameThread at synchronized
+  rw [representative_eq_of_size_le state (Nat.le_refl _)] at synchronized
+  have representativeBound := ordered.representative_lt oldBound
+  omega
+
 /-- In the fixed-carrier abstraction, the next token number exposed by an
 identity-parent state is isolated from every allocated token. -/
 theorem IdentityParents.toMarking_isFreshToken
@@ -927,6 +1077,41 @@ theorem IdentityParents.toMarking_isFreshToken
   have equal : old = state.parents.size :=
     (identity.sameThread_iff old state.parents.size).mp synchronized
   omega
+
+/-- Forgetting a fresh axiom start after arbitrary ordered unions is exactly
+the two abstract `setMark` updates. -/
+theorem startMarking_toMarking_mark_ordered
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right : Vertex}
+    (leftBound : left < certificate.formulas.size)
+    (rightBound : right < certificate.formulas.size) :
+    ((state.startMarking left right).toMarking certificate
+      (abstractable.startMarking_ordered
+        ordered leftBound rightBound)).mark =
+        UnificationMarking.setMark
+          (UnificationMarking.setMark
+            (state.toMarking certificate abstractable).mark
+            left state.parents.size)
+          right state.parents.size := by
+  funext vertex
+  by_cases atRight : vertex = right
+  · subst vertex
+    simp [UnificationState.startMarking, toMarking, assignedToken?,
+      UnificationMarking.setMark, rightBound,
+      abstractable.markArraySize]
+  · by_cases atLeft : vertex = left
+    · subst vertex
+      have different : right ≠ left := Ne.symm atRight
+      simp [UnificationState.startMarking, toMarking, assignedToken?,
+        UnificationMarking.setMark, atRight, different, leftBound,
+        abstractable.markArraySize]
+    · have rightDifferent : right ≠ vertex := Ne.symm atRight
+      have leftDifferent : left ≠ vertex := Ne.symm atLeft
+      simp [UnificationState.startMarking, toMarking, assignedToken?,
+        UnificationMarking.setMark, atRight, atLeft,
+        rightDifferent, leftDifferent]
 
 /-- Forgetting a concrete axiom/start marking update is exactly the two
 abstract `setMark` updates with one fresh token. -/
@@ -961,6 +1146,38 @@ theorem startMarking_toMarking_mark
       simp [UnificationState.startMarking, toMarking, assignedToken?,
         UnificationMarking.setMark, atRight, atLeft,
         rightDifferent, leftDifferent]
+
+/-- A fresh axiom start after arbitrary ordered unions refines one independent
+Figure-5 start step. -/
+theorem startMarking_startStep_ordered
+    {certificate : Certificate} {state : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right : Vertex}
+    (linkMembership :
+      Link.axiom left right ∈ certificate.links)
+    (leftBound : left < certificate.formulas.size)
+    (rightBound : right < certificate.formulas.size)
+    (leftUnmarked : state.assignedToken? left = none)
+    (rightUnmarked : state.assignedToken? right = none) :
+    UnificationStep certificate
+      (state.toMarking certificate abstractable)
+      ((state.startMarking left right).toMarking certificate
+        (abstractable.startMarking_ordered
+          ordered leftBound rightBound)) := by
+  apply UnificationStep.start linkMembership
+  · exact leftUnmarked
+  · exact rightUnmarked
+  · exact ordered.toMarking_isFreshToken abstractable
+  · change (state.parents.push state.parents.size).size =
+      state.parents.size + 1
+    simp
+  · exact state.startMarking_toMarking_mark_ordered abstractable ordered
+      leftBound rightBound
+  · intro first second
+    change (state.startMarking left right).SameThread first second ↔
+      state.SameThread first second
+    exact ordered.startMarking_sameThread_iff left right first second
 
 /-- The concrete token-semantic axiom update refines one independent start
 step while union-find parents are still identities. -/
@@ -3099,6 +3316,45 @@ private theorem startAxiom?_success_componentsFormulaConsistent
 
 /-- Every successful concrete axiom initialization, including component
 construction, refines one independent Figure-5 start step. -/
+private theorem startAxiom?_refines_start_ordered
+    {certificate : Certificate} {state next : UnificationState}
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents)
+    {left right : Vertex}
+    (linkMembership :
+      Link.axiom left right ∈ certificate.links)
+    (equation :
+      certificate.startAxiom? state left right = some next) :
+    ∃ nextAbstractable : next.Abstractable certificate,
+      UnificationStep certificate
+        (state.toMarking certificate abstractable)
+        (next.toMarking certificate nextAbstractable) := by
+  rcases certificate.startAxiom?_success equation with
+    ⟨leftReady, rightReady, observation⟩
+  have leftMarksBound : left < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp leftReady).choose
+  have rightMarksBound : right < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp rightReady).choose
+  have leftBound : left < certificate.formulas.size := by
+    simpa [abstractable.markArraySize] using leftMarksBound
+  have rightBound : right < certificate.formulas.size := by
+    simpa [abstractable.markArraySize] using rightMarksBound
+  have leftUnmarked : state.assignedToken? left = none := by
+    simp [UnificationState.assignedToken?, leftReady]
+  have rightUnmarked : state.assignedToken? right = none := by
+    simp [UnificationState.assignedToken?, rightReady]
+  let markedAbstractable :=
+    abstractable.startMarking_ordered ordered leftBound rightBound
+  let nextAbstractable :=
+    observation.abstractable markedAbstractable
+  refine ⟨nextAbstractable, ?_⟩
+  rw [observation.toMarking_eq markedAbstractable]
+  exact state.startMarking_startStep_ordered abstractable ordered
+    linkMembership leftBound rightBound leftUnmarked rightUnmarked
+
+/-- Every successful concrete axiom initialization, including component
+construction, refines one independent Figure-5 start step during the eager
+identity-parent phase. -/
 private theorem startAxiom?_refines_start
     {certificate : Certificate} {state next : UnificationState}
     (abstractable : state.Abstractable certificate)

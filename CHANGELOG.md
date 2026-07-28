@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- added a stable small flat-scheduler counterexample regression with three
+  axioms and two tensors. The certificate is structurally well formed,
+  reference accepted, and reconstructed by the event-driven worklist in
+  exactly two link attempts, zero waiting requeues, and two successful
+  firings. By the exact submitted link order, eager axiom initialization gives
+  ages 0, 1, and 2; reverse connective queuing fires the tensor over ages 0
+  and 2 first. The public statistics do not expose token-class membership, so
+  the noncontiguous merge is derived from those source definitions rather than
+  claimed from the counters alone. This refutes contiguous token-age intervals
+  and Figure-7 LIFO union as invariants of the current flat eager scheduler.
+  `tagSchedulerFamily.step` indexes a selected dependency-cycle segment, not
+  firing time or token age. Ordinary laminarity does not exclude the separated
+  sibling endpoint order
+  `firstTag → lastTag → anchor → outerLast`. The proof plan now separates a
+  residual-witness/local-confluence route for current flat-worklist
+  completeness from a faithful `NEXTAXIOM`/token-age implementation required
+  for Guerrini-style whole-program linearity. General checker-accepted
+  sequentialization remains complete through recursive reconstruction;
+  closing-par exclusion, correct-state progress, pure-worklist completeness,
+  fallback removal, and linearity remain open.
 - specialized the terminal four-point result to the complete initial
   `tagSchedulerFamily`. That ambient family is duplicate-free in exact
   `SchedulerOccurrence` coordinates, so the displayed

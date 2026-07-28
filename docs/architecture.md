@@ -189,12 +189,24 @@ within that budget. At quiescence, every submitted but unfired connective is
 kernel-classified as idle, a distinct-thread waiting par, or a same-thread
 tensor deadlock. A least-formula-complexity argument then recovers a concrete
 submitted source whose premises are already assigned, so an incomplete
-canonical run cannot be witnessed only by an idle premise. A separately
-proved active-reference invariant connects every semantic thread by already
-active all-left switching edges. Closing such a path with the two fixed edges
-of an unfired same-thread tensor would form an edge-simple reference-switching
-cycle, so declarative correctness excludes that obstruction. Reachable-state
-semantics also proves causal marking closure and the converse edge invariant:
+canonical run cannot be witnessed only by an idle premise.
+
+This flat scheduler has no Figure-7 token-age interval or LIFO invariant. A
+stable small accepted certificate starts three axiom tokens in ages 0, 1, and
+2; reverse connective queuing fires a tensor over ages 0 and 2 first. The
+worklist succeeds in two attempts with zero waiting requeues and two successful
+firings. These public counts are a regression receipt, not an observation of
+the internal class: the noncontiguous merge follows from the fixed links and
+the eager-start/reverse-queue definitions. Likewise,
+`tagSchedulerFamily.step` indexes one selected waiting-dependency segment,
+not firing time, token age, or stack depth.
+
+A separately proved active-reference invariant connects every semantic thread
+by already active all-left switching edges. Closing such a path with the two
+fixed edges of an unfired same-thread tensor would form an edge-simple
+reference-switching cycle, so declarative correctness excludes that
+obstruction. Reachable-state semantics also proves causal marking closure and
+the converse edge invariant:
 active-reference walks between marked occurrences are equivalent to
   union-find thread equality. The remaining missing progress argument is now
   path-localized and cycle-indexed. Occurrence-aware tree-edge exchange first
@@ -389,14 +401,20 @@ active-reference walks between marked occurrences are equivalent to
   Their cyclic order is `firstTag → lastTag → anchor → outerLast`, so the inner
   and outer pairs are separated rather than alternating: this is not a crossing
   witness. No intervening interval is proved nonempty, and there is still no
-  contiguity, fixed or modular rank, or model-specific
-  scheduler-order/proper-nesting contradiction. Planarity is not assumed for
+  contiguity or fixed/modular rank. Ordinary laminarity permits these separated
+  pairs as siblings, and the small accepted regression refutes generic flat
+  token-age/LIFO containment. Flat-worklist completeness may still be proved
+  through residual-parsing-witness preservation or an observational
+  local-confluence theorem. Faithful `NEXTAXIOM`/token-age stacks are instead
+  required for the later Guerrini linearity layer. Planarity is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain
-flat, and `NEXTAXIOM`/stack invariants are absent.
+flat, and `NEXTAXIOM`/stack invariants are absent. General checker-accepted
+sequentialization remains complete through the recursive tier; recursive
+fallback removal and whole-program linearity remain separate open gates.
 
 ## Persistent LeanProp bridge
 

@@ -26,6 +26,38 @@ def structuralNegative : Certificate where
   links := [.axiom 0 1, .axiom 2 3]
   conclusions := [0, 1, 2, 3]
 
+/-- Small fixed token-age counterexample to importing the Figure-7 interval/LIFO
+invariant into the current flat eager worklist. Axiom initialization follows
+submitted link order, so the three axiom links below receive fresh token ages
+0, 1, and 2. `initialWorklistQueue` reverses the submitted connective order,
+so link 4 (`tensor 0 2 4`) is attempted before link 3 and merges the classes
+started at ages 0 and 2.
+
+The public worklist statistics checked below do not themselves expose token
+class membership. The noncontiguous `{0, 2}` observation follows from this
+exact certificate together with the definitions of eager axiom initialization
+and reverse connective queuing; the regression records the stable observable
+success and schedule counts. -/
+def flatAgeIntervalCounterexample : Certificate where
+  formulas := #[
+    .atom "flat-age-p" true,
+    .atom "flat-age-p" false,
+    .atom "flat-age-q" true,
+    .atom "flat-age-q" false,
+    .tensor (.atom "flat-age-p" true) (.atom "flat-age-q" true),
+    .atom "flat-age-r" true,
+    .atom "flat-age-r" false,
+    .tensor
+      (.tensor (.atom "flat-age-p" true) (.atom "flat-age-q" true))
+      (.atom "flat-age-r" true)]
+  links := [
+    .axiom 0 1,
+    .axiom 5 6,
+    .axiom 2 3,
+    .tensor 4 5 7,
+    .tensor 0 2 4]
+  conclusions := [7, 1, 3, 6]
+
 /-- Differential audit for the deterministic Guerrini-style fast path and its
 exact hybrid wrapper. The audit intentionally records fast-path misses
 separately: the theorem for `unificationCheck` is unconditional, whereas full
@@ -59,6 +91,27 @@ def run : IO Unit := do
   | .ok _ =>
       throw <| IO.userError
         "disconnected sentinel unexpectedly produced a unification result"
+  if !flatAgeIntervalCounterexample.wellFormed then
+    throw <| IO.userError
+      "flat age-interval counterexample is not structurally well formed"
+  if !flatAgeIntervalCounterexample.check then
+    throw <| IO.userError
+      "flat age-interval counterexample was rejected by the reference checker"
+  match flatAgeIntervalCounterexample.unificationWorklistReconstructWithStats with
+  | .error error =>
+      throw <| IO.userError
+        s!"flat age-interval counterexample missed in the worklist: {error.render}"
+  | .ok result =>
+      let stats := result.candidate.stats
+      if stats.linkAttempts != 2 then
+        throw <| IO.userError
+          s!"flat age-interval counterexample attempts={stats.linkAttempts}, expected=2"
+      if stats.waitingRequeues != 0 then
+        throw <| IO.userError
+          s!"flat age-interval counterexample waiting_requeues={stats.waitingRequeues}, expected=0"
+      if stats.successfulFirings != 2 then
+        throw <| IO.userError
+          s!"flat age-interval counterexample successful_firings={stats.successfulFirings}, expected=2"
   for seed in List.range seeds do
     let tree := CutFreeDerivation.generate seed 2
     let certificate ← match tree.desequentialize? with
@@ -143,7 +196,7 @@ def run : IO Unit := do
     throw <| IO.userError
       s!"unification audit budget exceeded: {elapsed}ms > {budgetMs}ms"
   IO.println
-    s!"unification-audit-ok cases={total} structural_negative_sentinels=1 reference_positives={referencePositive} reference_negatives={referenceNegative} fast_positive_hits={fastPositiveHits} fast_positive_misses={fastPositiveMisses} fast_false_positives={fastFalsePositives} max_passes={maxPasses} max_link_visits={maxLinkVisits} worklist_positive_hits={worklistPositiveHits} worklist_positive_misses={worklistPositiveMisses} worklist_false_positives={worklistFalsePositives} max_worklist_attempts={maxWorklistAttempts} max_worklist_waiting_requeues={maxWorklistWaitingRequeues} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
+    s!"unification-audit-ok cases={total} structural_negative_sentinels=1 flat_age_interval_counterexamples=1 reference_positives={referencePositive} reference_negatives={referenceNegative} fast_positive_hits={fastPositiveHits} fast_positive_misses={fastPositiveMisses} fast_false_positives={fastFalsePositives} max_passes={maxPasses} max_link_visits={maxLinkVisits} worklist_positive_hits={worklistPositiveHits} worklist_positive_misses={worklistPositiveMisses} worklist_false_positives={worklistFalsePositives} max_worklist_attempts={maxWorklistAttempts} max_worklist_waiting_requeues={maxWorklistWaitingRequeues} checksum={checksum} elapsed_ms={elapsed} budget_ms={budgetMs}"
 
 end ProofNetIRUnificationAudit
 

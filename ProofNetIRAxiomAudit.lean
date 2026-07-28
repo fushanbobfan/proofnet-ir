@@ -115,6 +115,12 @@ expansion.
 #print axioms UnificationState.ObservationEquivalent.identityParents
 #print axioms UnificationState.ObservationEquivalent.toMarking_eq
 #print axioms UnificationState.Abstractable.markConclusion
+#print axioms UnificationState.OrderedParents.startMarking_representative_eq
+#print axioms UnificationState.OrderedParents.startMarking_sameThread_iff
+#print axioms UnificationState.Abstractable.startMarking_ordered
+#print axioms UnificationState.OrderedParents.toMarking_isFreshToken
+#print axioms UnificationState.startMarking_toMarking_mark_ordered
+#print axioms UnificationState.startMarking_startStep_ordered
 #print axioms UnificationState.markConclusion_toMarking_mark
 #print axioms UnificationState.mergeConclusion_toMarking_mark
 #print axioms UnificationState.markConclusion_forwardStep
