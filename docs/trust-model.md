@@ -314,10 +314,15 @@ The first-opening proof uses the shell case split internally, but its returned
 proposition does not expose the selected frame together with the anchor origin.
 Endpoint-gap sublist preservation carries the whole `taggedArc` in its original
 linear order through ancestry into the initial-family gap, retaining the same
-named head and last occurrences. The ordered sublist is not necessarily
-contiguous and proves neither cyclic betweenness nor a noncrossing
-scheduler-order contradiction, so it is not yet closing-par exclusion or a
-progress theorem.
+named head and last occurrences. A generic theorem decomposes the containing
+gap from those exact head/getLast lookups as
+`g0 ++ anchor :: g1 ++ outerLast :: g2`; the endpoint zipper then yields
+`CyclicFourPointDisplayAt firstTag lastTag anchor outerLast` for the initial
+family. The relation permits empty intervening lists and repeated values
+generically. It is not a strict scheduler-rank theorem: the ordered sublist is
+not necessarily contiguous, and the display proves no fixed linear rank,
+crossing, cyclic betweenness, or noncrossing scheduler-order contradiction.
+It is therefore not yet closing-par exclusion or a progress theorem.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -407,8 +412,12 @@ Lean now also constructs the exact simultaneous complementary
   chosen frame to the separately retained anchor origin. Sublist monotonicity
   carries the complete outer `taggedArc` in its original linear order through
   ancestry to the initial-family gap. It retains the same head and last
-  occurrences but need not be contiguous; cyclic betweenness and the required
-  noncrossing scheduler-order contradiction are still unproved. Closing-par
+  occurrences. Their exact lookups yield
+  `g0 ++ anchor :: g1 ++ outerLast :: g2` and
+  `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
+  display allows empty intervals and repeated values, and proves no
+  contiguity, fixed linear rank, crossing, cyclic betweenness, or required
+  noncrossing scheduler-order contradiction. Closing-par
   scheduler-order exclusion, correct-state progress, pure-worklist
   completeness, recursive fallback removal, and whole-program linearity
   remain open.

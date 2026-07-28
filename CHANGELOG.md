@@ -25,9 +25,16 @@
   replay. Continuing the canonical base zipper through exact global ancestry
   keeps the entire outer `taggedArc` as an ordered sublist of the initial
   scheduler-family gap, with the same omitted-right head and retained-left last
-  occurrence. `List.Sublist` preserves linear order but not contiguity and does
-  not establish cyclic betweenness or a noncrossing scheduler-order
-  contradiction. The tagged closing-par base, correct-state progress,
+  occurrence. A generic head/getLast-plus-sublist lemma decomposes the containing
+  list around those endpoints. The initial exact gap is therefore exhibited as
+  `g0 ++ anchor :: g1 ++ outerLast :: g2`, and the initial scheduler family
+  satisfies
+  `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
+  display permits empty intervening lists and repeated values; it is not a
+  strict scheduler-rank result. `List.Sublist` preserves linear order but not
+  contiguity, and the display proves no fixed linear rank, crossing,
+  cyclic-betweenness, or noncrossing scheduler-order contradiction. The tagged
+  closing-par base, correct-state progress,
   pure-worklist completeness,
   recursive-fallback removal, `NEXTAXIOM` sequencing, and whole-program
   linearity remain open.

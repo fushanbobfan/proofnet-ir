@@ -422,15 +422,20 @@ or positive misses. The larger search recorded at most 995 link attempts and
     that frame together with the anchor origin. Gap sublist preservation
     carries the entire outer `taggedArc` in original linear order through
     ancestry into the initial scheduler-family gap, including its same
-    omitted-right head and retained-left last occurrence. The ordered sublist
-    need not be contiguous and provides no cyclic betweenness or noncrossing
-    scheduler-order relation.
+    omitted-right head and retained-left last occurrence. The generic
+    head/getLast-plus-sublist decomposition theorem further exhibits the gap as
+    `g0 ++ anchor :: g1 ++ outerLast :: g2`, and the zipper rotation supplies
+    `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. This generic
+    relation permits empty intervals and repeated values. It is not a strict
+    scheduler-rank theorem: the ordered sublist need not be contiguous, and the
+    display proves no fixed linear rank, crossing, cyclic betweenness, or
+    noncrossing scheduler-order relation.
     Guerrini's correctness/reduction
     results do not provide that bespoke final contradiction for the present
     flat eager scheduler.
-3. Derive the cyclic-betweenness or equivalent noncrossing scheduler-order
-   contradiction, exclude the closing-par base, and prove
-   correct-quiescent-state progress.
+3. Derive the strict scheduler-rank, cyclic-betweenness, or equivalent
+   noncrossing scheduler-order contradiction, exclude the closing-par base,
+   and prove correct-quiescent-state progress.
 4. Prove the current event-driven worklist complete, yielding
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist

@@ -282,10 +282,16 @@ part of the engineering and proof-identity gap.
    Endpoint-gap sublist preservation carries the entire outer `taggedArc` in
    its original linear order through exact ancestry into the initial
    scheduler-family gap, retaining its same omitted-right head and
-   retained-left last occurrence. This ordered sublist need not be contiguous
-   and establishes no cyclic betweenness or noncrossing scheduler-order
-   contradiction. Closing-par scheduler-order exclusion, correct-state
-   progress, pure worklist
+   retained-left last occurrence. A generic head/getLast-plus-sublist theorem
+   now exhibits that gap as
+   `g0 ++ anchor :: g1 ++ outerLast :: g2`; composing the decomposition with
+   the zipper rotation yields
+   `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
+   relation permits empty intervals and repeated values, so it is not the
+   missing strict scheduler-rank theorem. The ordered sublist need not be
+   contiguous, and the four-point display establishes no fixed linear rank,
+   crossing, cyclic betweenness, or noncrossing scheduler-order contradiction.
+   Closing-par scheduler-order exclusion, correct-state progress, pure worklist
    completeness, recursive fallback removal, and a whole-program linear cost
    theorem remain open.
    For callers that require fail-closed resource handling,

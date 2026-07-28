@@ -28539,6 +28539,56 @@ private theorem gap_mem
     value ∈ outerZipper.gap :=
   replay.gap_sublist.mem membership
 
+/-- If a nontrivial list is retained as a sublist, its exact head still occurs
+before its exact last element in the larger list.  The intervening elements of
+the larger list need not belong to the retained sublist, so this proves order
+but deliberately not contiguity. -/
+private theorem sublist_head_getLast_ordered_decomposition
+    {α : Type}
+    {retained larger : List α}
+    {first last : α}
+    (headLookup : retained.head? = some first)
+    (lastLookup : retained.getLast? = some last)
+    (endpointsDistinct : first ≠ last)
+    (sublist : retained.Sublist larger) :
+    ∃ before middle after,
+      larger = before ++ first :: middle ++ last :: after := by
+  rcases List.head?_eq_some_iff.mp headLookup with
+    ⟨tail, retainedEquation⟩
+  subst retained
+  have tailNonempty : tail ≠ [] := by
+    intro tailEmpty
+    subst tail
+    simp at lastLookup
+    exact endpointsDistinct lastLookup
+  have tailLast : tail.getLast? = some last := by
+    cases tail with
+    | nil =>
+        exact False.elim (tailNonempty rfl)
+    | cons next rest =>
+        simpa using lastLookup
+  rcases List.getLast?_eq_some_iff.mp tailLast with
+    ⟨retainedMiddle, tailEquation⟩
+  subst tail
+  change
+    ([first] ++ (retainedMiddle ++ [last])).Sublist larger at sublist
+  rcases List.append_sublist_iff.mp sublist with
+    ⟨firstChunk, lastChunk, largerEquation,
+      firstSublist, lastSublist⟩
+  have firstMembership : first ∈ firstChunk := by
+    exact List.singleton_sublist.mp firstSublist
+  have lastMembership : last ∈ lastChunk := by
+    apply lastSublist.mem
+    simp
+  rcases List.mem_iff_append.mp firstMembership with
+    ⟨before, afterFirst, firstChunkEquation⟩
+  rcases List.mem_iff_append.mp lastMembership with
+    ⟨beforeLast, after, lastChunkEquation⟩
+  exact
+    ⟨before, afterFirst ++ beforeLast, after, by
+      rw [largerEquation, firstChunkEquation, lastChunkEquation]
+      simp [List.append_assoc]⟩
+
 /-- If an endpoint replay begins with an empty exact gap and ends with a
 nonempty exact gap, some retained replay step is a genuine gap-opening step.
 The proof follows the endpoint replay only.  It neither reads the older cursor
@@ -28731,6 +28781,44 @@ private theorem firstGapOpeningInEitherPhase_exists
               closingGapEmpty middleGapEmpty insertedNonempty)
 
 end CyclicEndpointReplayAt
+
+/-- An exact four-point display on a cyclic list.  The four intervening lists
+are allowed to be empty, and repeated values are allowed: strictness is an
+occurrence-level consequence only after a separate `Nodup` hypothesis. -/
+private def CyclicFourPointDisplayAt {α : Type}
+    (first second third fourth : α) (current : List α) : Prop :=
+  ∃ firstSecond secondThird thirdFourth fourthFirst,
+    CyclicRotationAt current
+      ([first] ++ firstSecond ++
+        [second] ++ secondThird ++
+          [third] ++ thirdFourth ++
+            [fourth] ++ fourthFirst)
+
+namespace CyclicEndpointZipperAt
+
+/-- An ordered retained sublist of the complete endpoint gap supplies the
+third and fourth points of an exact cyclic display.  This preserves endpoint
+order but does not make the retained list contiguous in the gap. -/
+private theorem cyclicFourPointDisplay_of_sublist_gap
+    {α : Type}
+    {first second third fourth : α}
+    {seedMiddle current retained : List α}
+    (zipper :
+      CyclicEndpointZipperAt first second seedMiddle current)
+    (headLookup : retained.head? = some third)
+    (lastLookup : retained.getLast? = some fourth)
+    (endpointsDistinct : third ≠ fourth)
+    (sublist : retained.Sublist zipper.gap) :
+    CyclicFourPointDisplayAt first second third fourth current := by
+  rcases
+      CyclicEndpointReplayAt.sublist_head_getLast_ordered_decomposition
+        headLookup lastLookup endpointsDistinct sublist with
+    ⟨secondThird, thirdFourth, fourthFirst, gapEquation⟩
+  refine
+    ⟨zipper.between, secondThird, thirdFourth, fourthFirst, ?_⟩
+  simpa [gapEquation, List.append_assoc] using zipper.rotation
+
+end CyclicEndpointZipperAt
 
 namespace CyclicSeamReplayAt
 
@@ -37623,6 +37711,7 @@ private theorem
         ∃ initialZipper :
             CyclicEndpointZipperAt
               firstTag lastTag middle initial,
+          ∃ gapBefore gapMiddle gapAfter,
           SchedulerTaggedClosingParEndpointWitnessAt
               certificate chainAt count flippedSegments taggedNormalized
                 conclusion firstTag lastTag firstSegment lastSegment ∧
@@ -37642,8 +37731,15 @@ private theorem
                           taggedArc.head? = some anchor ∧
                             taggedArc.getLast? = some outerLast ∧
                               taggedArc.Sublist initialZipper.gap ∧
-                                anchor ∈ initialZipper.gap ∧
-                                  outerLast ∈ initialZipper.gap := by
+                                initialZipper.gap =
+                                  gapBefore ++
+                                    anchor :: gapMiddle ++
+                                      outerLast :: gapAfter ∧
+                                  CyclicFourPointDisplayAt
+                                    firstTag lastTag anchor outerLast
+                                      initial ∧
+                                    anchor ∈ initialZipper.gap ∧
+                                      outerLast ∈ initialZipper.gap := by
   rcases
       package.structuralEndpointTerminalGapOpeningWithOrigin_exists with
     ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
@@ -37668,6 +37764,28 @@ private theorem
   have taggedArcSublistInitial :
       taggedArc.Sublist initialZipper.gap :=
     taggedArcSublistBase.trans ancestryEndpointReplay.gap_sublist
+  have anchorOuterLastDistinct : anchor ≠ outerLast := by
+    intro endpointsEqual
+    have directionsEqual :
+        anchor.value.forward = outerLast.value.forward :=
+      congrArg
+        (fun occurrence :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge =>
+            occurrence.value.forward)
+        endpointsEqual
+    rw [anchorOrigin.2.1, outerLastForward] at directionsEqual
+    contradiction
+  rcases
+      CyclicEndpointReplayAt.sublist_head_getLast_ordered_decomposition
+        _anchorHead _outerLastAtEnd anchorOuterLastDistinct
+          taggedArcSublistInitial with
+    ⟨gapBefore, gapMiddle, gapAfter, initialGapDecomposition⟩
+  have cyclicFourPointDisplay :
+      CyclicFourPointDisplayAt
+        firstTag lastTag anchor outerLast initial :=
+    initialZipper.cyclicFourPointDisplay_of_sublist_gap
+      _anchorHead _outerLastAtEnd anchorOuterLastDistinct
+        taggedArcSublistInitial
   have anchorInInitialGap : anchor ∈ initialZipper.gap :=
     ancestryEndpointReplay.gap_mem anchorInBaseGap
   have outerLastInInitialGap : outerLast ∈ initialZipper.gap :=
@@ -37675,10 +37793,12 @@ private theorem
   exact
     ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment, middle,
       taggedArc, anchor, outerLast, initialZipper,
+      gapBefore, gapMiddle, gapAfter,
       endpointFacts, normalizedEquation, anchorOrigin,
       outerLastForward, terminalArcWalk, terminalArcFree,
       outerCusp, outerNontrivial, _anchorHead, _outerLastAtEnd,
-      taggedArcSublistInitial, anchorInInitialGap, outerLastInInitialGap⟩
+      taggedArcSublistInitial, initialGapDecomposition,
+      cyclicFourPointDisplay, anchorInInitialGap, outerLastInInitialGap⟩
 
 /-- Classify the global first exact-gap opening across the two retained replay
 phases.  The replay proofs are existentially named so the disjunction remains

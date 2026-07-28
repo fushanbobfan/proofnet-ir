@@ -365,9 +365,15 @@ active-reference walks between marked occurrences are equivalent to
   Endpoint splices preserve the old complete gap as a sublist. The ancestry
   replay therefore transports the entire outer `taggedArc` in its original
   linear order into the initial scheduler-family gap, including its named head
-  and last occurrences. This `List.Sublist` result establishes neither
-  contiguity, cyclic betweenness, nor a noncrossing scheduler-order
-  contradiction. Closing-par exclusion and
+  and last occurrences. A generic head/getLast-plus-sublist theorem now gives
+  the exact decomposition
+  `g0 ++ anchor :: g1 ++ outerLast :: g2`; combining it with the zipper
+  rotation yields
+  `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
+  relation allows empty intervening lists and repeated values. It is not the
+  missing strict scheduler-rank theorem: this result establishes neither
+  contiguity, a fixed linear rank, crossing, cyclic betweenness, nor a
+  noncrossing scheduler-order contradiction. Closing-par exclusion and
   correct-state progress therefore remain open. Pure-worklist completeness,
   recursive-fallback removal, and whole-program linearity remain later gates.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,

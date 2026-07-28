@@ -43,9 +43,16 @@ base gap is nonempty. Endpoint replay preserves the complete old gap as a
 sublist, so the whole `taggedArc` remains an ordered sublist of the exact gap
 after the ancestry replay reaches the initial scheduler family; in particular,
 its omitted-right head and retained-left last occurrence remain members there.
-This is linear ordered-sublist transport, not contiguity, cyclic betweenness,
-or a noncrossing scheduler-order theorem. Closing-par scheduler-order
-exclusion, correct-state progress,
+From a retained sublist's exact `head?` and `getLast?`, a generic list lemma now
+extracts an ordered decomposition of the containing list. Applied here, the
+initial exact gap has the form
+`g0 ++ anchor :: g1 ++ outerLast :: g2`, and the enclosing scheduler family
+has a `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
+four-point relation permits empty intervening lists and repeated values; it is
+not a strict scheduler-rank theorem. This is linear ordered-sublist transport,
+not contiguity, a fixed linear rank, crossing, cyclic betweenness, or a
+noncrossing scheduler-order theorem. Closing-par scheduler-order exclusion,
+correct-state progress,
 pure-worklist completeness,
 recursive-fallback removal, and the whole-program linear bound therefore
 remain open. Independent
@@ -359,9 +366,13 @@ the stated shell case split, but its returned proposition does not expose the
 chosen frame together with the anchor origin. The complete base gap is a
 sublist of every later ancestry gap, and the entire `taggedArc` therefore
 survives in its original linear order inside the initial scheduler-family gap.
-This does not make it contiguous and still gives neither cyclic betweenness nor
-a noncrossing scheduler-order contradiction. Closing-par scheduler-order
-exclusion and correct-state progress remain open. Pure-worklist completeness,
+The exact head/last lookups now decompose that gap as
+`g0 ++ anchor :: g1 ++ outerLast :: g2` and yield
+`CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
+display permits empty intervals and repeated values; it proves no contiguity,
+fixed linear rank, crossing, cyclic betweenness, or noncrossing
+scheduler-order contradiction. Closing-par scheduler-order exclusion and
+correct-state progress remain open. Pure-worklist completeness,
 recursive-fallback removal, the later
 `NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
 remain separate open gates. See
@@ -539,9 +550,13 @@ The repository currently contains:
   first-opening payload does not independently expose that branch or bind it to
   the anchor frame. Endpoint-gap sublist transport carries the whole
   `taggedArc` in its original linear order through ancestry into the
-  initial-family gap, including its named head and last occurrences. This does
-  not prove contiguity, cyclic betweenness, or a noncrossing scheduler-order
-  contradiction. Closing-par exclusion,
+  initial-family gap, including its named head and last occurrences. A generic
+  head/getLast-plus-sublist theorem gives the exact gap decomposition
+  `g0 ++ anchor :: g1 ++ outerLast :: g2` and a
+  `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. Its intervals
+  may be empty and its values may repeat generically, so this is not a strict
+  scheduler-rank theorem and proves no contiguity, fixed linear rank, crossing,
+  cyclic betweenness, or noncrossing contradiction. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an

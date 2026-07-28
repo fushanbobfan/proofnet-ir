@@ -679,10 +679,18 @@
       The first-opening construction internally splits on shell nonemptiness,
       but its returned proposition does not independently expose the selected
       frame together with the omitted-right anchor origin.
-    - [ ] Derive cyclic betweenness or an equivalent noncrossing
-      scheduler-order contradiction from the retained terminal geometry and
-      ancestry transport. Closing-par exclusion and the path-exposed
-      waiting-par obstruction remain open.
+    - [x] Derive a generic ordered decomposition from exact `head?` and
+      `getLast?` lookups plus the retained sublist. The initial exact gap is
+      exhibited as `g0 ++ anchor :: g1 ++ outerLast :: g2`, and the enclosing
+      family satisfies
+      `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
+      relation allows empty intervals and repeated values.
+    - [ ] Derive an actual strict scheduler-rank, cyclic-betweenness, or
+      equivalent noncrossing contradiction from the retained terminal geometry
+      and ancestry transport. The current four-point display proves no
+      contiguity, fixed linear rank, crossing, or noncrossing result.
+      Closing-par exclusion and the path-exposed waiting-par obstruction remain
+      open.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential ready/waiting stacks; formalize
