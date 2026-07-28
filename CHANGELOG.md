@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- added `ProofNetIR/SequentialUnification.lean` as the first bounded
+  Figures 7–8 checkpoint without claiming the full scheduler. A reusable
+  occurrence-source index is built once, and Lean proves every stored
+  incidence has exact submitted-link origin. The globally tagged
+  `nextAxiomWithFuel?` fails closed on missing, ambiguous, out-of-domain,
+  already tagged, or already marked sources. Every success retains the exact
+  submitted axiom link index and endpoints, final tags, and recursive trace;
+  kernel fields/theorems prove both endpoints were unmarked in the input state
+  and `trace.length ≤ fuel`. `dynamicStartWithFuel?` applies the existing token
+  update, and under `Abstractable` plus `OrderedParents` its result refines one
+  independent Figure-5 `start` step. Regressions cover the canonical
+  connective-to-axiom trace and tags, zero fuel, out-of-bounds, tagged and
+  marked starts, missing and non-unique sources, threaded-result-tags repeat
+  rejection, and dynamic token allocation. Trace `Nodup`, tag monotonicity, a
+  global no-revisit theorem, `σ`/`R`/`W` (ready/waiting), token-age interval
+  sequencing, correct-state progress, pure-worklist completeness, fallback
+  removal, and whole-program linearity remain open;
+- narrowed the flat-scheduler confluence route. Exact concrete-state
+  confluence is refuted by a derivation-generated correct certificate, while
+  structural-only confluence is refuted by a structurally well-formed
+  certificate. The surviving candidate quotient records the marked occurrence
+  domain and the occurrence-thread partition. No committed reproducible audit
+  or release/CI gate supports that quotient yet, and no confluence, progress,
+  pure-worklist-completeness, fallback-removal, or complexity theorem is
+  claimed. General checker-accepted sequentialization remains complete through
+  recursive reconstruction, and canonicalization remains exact only for
+  `ProofNetEquivalent` with ordered conclusions;
 - added a stable small flat-scheduler counterexample regression with three
   axioms and two tensors. The certificate is structurally well formed,
   reference accepted, and reconstructed by the event-driven worklist in
@@ -16,9 +43,9 @@
   firing time or token age. Ordinary laminarity does not exclude the separated
   sibling endpoint order
   `firstTag → lastTag → anchor → outerLast`. The proof plan now separates a
-  residual-witness/local-confluence route for current flat-worklist
-  completeness from a faithful `NEXTAXIOM`/token-age implementation required
-  for Guerrini-style whole-program linearity. General checker-accepted
+  residual-witness/quotient-confluence route for current flat-worklist
+  completeness from the full `NEXTAXIOM`/token-age scheduler required for
+  Guerrini-style whole-program linearity. General checker-accepted
   sequentialization remains complete through recursive reconstruction;
   closing-par exclusion, correct-state progress, pure-worklist completeness,
   fallback removal, and linearity remain open.
@@ -75,7 +102,7 @@
   cyclic-betweenness, or scheduler-order/proper-nesting contradiction. The tagged
   closing-par base, correct-state progress,
   pure-worklist completeness,
-  recursive-fallback removal, `NEXTAXIOM` sequencing, and whole-program
+  recursive-fallback removal, full `NEXTAXIOM` sequencing, and whole-program
   linearity remain open.
 - enriched the unified closing-package replay with an exact
   occurrence-position endpoint zipper. Its `gap` is definitionally the complete

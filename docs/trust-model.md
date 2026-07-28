@@ -122,8 +122,25 @@ the already complete checker-free reconstruction decision. Lean proves
 `unificationCheck = check`. Fast-path rejection alone is inconclusive, and no
 linearity claim is made. The current event-driven worklist must first be proved
 complete and the recursive fallback removed; a later Guerrini-style claim also
-requires the Figures 7--8 `NEXTAXIOM`, token-age, ready/waiting-stack, and
-special union-find invariants together with a whole-program cost theorem.
+requires the complete Figures 7--8 `NEXTAXIOM`, token-age,
+ready/waiting-stack, and special union-find invariants together with a
+whole-program cost theorem.
+
+The separate `SequentialUnification.lean` checkpoint narrows, but does not
+close, that requirement. Lean proves exact submitted-link origin for every
+entry in its reusable source-incidence index. A successful bounded/tagged
+`NEXTAXIOM` result carries the exact submitted axiom index/endpoints, final
+tags, and trace; its proof fields establish that both endpoints were unmarked
+in the input state and `trace.length ≤ fuel`. Its dynamic update refines one
+Figure-5 start step under `Abstractable` and `OrderedParents`. Missing,
+ambiguous, tagged, marked, or malformed sources fail closed, with dedicated
+regressions for zero fuel, out-of-bounds, tagged and marked starts, missing and
+duplicate sources, and repeat rejection after threading the first result's
+tags. The executable and its proof fields are trusted only after compilation
+like any other Lean declaration; the regression observations remain untrusted
+evidence. No theorem yet states trace `Nodup`, tag monotonicity, or a global
+no-revisit result, and no
+`σ`/`R`/`W` (ready/waiting) or token-age interval scheduler is implemented.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -351,8 +368,10 @@ modular rank, closing-par exclusion, progress, and pure-worklist completeness
 remain open. Ordinary laminarity permits the separated pairs as siblings, and
 the executable regression refutes generic flat token-age/LIFO containment.
 The remaining flat-completeness option is a residual-witness preservation or
-observational confluence theorem. Guerrini-style linearity instead requires a
-faithful `NEXTAXIOM`/token-age scheduler. No planarity principle is assumed.
+a theorem at the marked-domain/occurrence-thread quotient; exact-state and
+structural-only confluence are too fine. Guerrini-style linearity instead
+requires extending the bounded/tagged `NEXTAXIOM` checkpoint with no-revisit,
+`σ`/`R`/`W`, and token-age sequencing. No planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -456,9 +475,15 @@ Lean now also constructs the exact simultaneous complementary
   separates rather than crosses the two endpoint pairs; intervening intervals
   may still be empty. Ordinary laminarity permits this sibling placement, and
   the small accepted worklist regression rules out a generic flat
-  age-interval/LIFO contradiction. Residual-witness preservation or
-  observational confluence remains a possible route to flat completeness;
-  faithful `NEXTAXIOM`/token-age stacks remain required for linearity.
+  age-interval/LIFO contradiction. Exact concrete-state confluence is also
+  refuted on a derivation-generated correct certificate, and structural-only
+  confluence is refuted on a structurally well-formed certificate. The
+  remaining candidate quotient records the marked occurrence domain and
+  occurrence-thread partition. No committed reproducible audit or theorem
+  establishes confluence at that quotient.
+  Residual-witness preservation or a theorem at this quotient remains a
+  possible route to flat completeness; full `NEXTAXIOM`/token-age stacks
+  remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
   linearity remain open.

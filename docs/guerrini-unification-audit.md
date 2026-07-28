@@ -75,6 +75,29 @@ quadratic link-visit bound. This is not a total runtime theorem: frontier
 lookup, representative traversal, independent verification, and fallback are
 outside the counter.
 
+`ProofNetIR/SequentialUnification.lean` now isolates the first sequential
+primitive from those eager/worklist paths. It builds one reusable
+occurrence-source index and kernel-proves exact submitted-link origin for every
+stored incidence. `nextAxiomWithFuel?` is bounded and globally tagged. It
+fails closed on an out-of-domain, previously tagged, previously marked,
+missing, or non-unique source, and on malformed source orientation. A success
+retains the exact submitted axiom link index and endpoints, the updated tag
+array, and the recursive occurrence trace. Its proof fields and soundness
+theorem establish that both endpoints were unmarked in the input state and
+that `trace.length ≤ fuel`. `dynamicStartWithFuel?` then applies exactly the
+existing token-semantic start update; under `Abstractable` and
+`OrderedParents`, `DynamicStartResult.refinesStart` proves one Figure-5
+`UnificationStep.start`. Regressions cover the expected canonical trace/tags,
+zero fuel, out-of-bounds, already-tagged and marked starts, missing and
+duplicate source buckets, threaded-result-tags repeat rejection, and the
+dynamic state update.
+
+This checkpoint is deliberately weaker than Figures 7–8. There is not yet a
+kernel theorem that the trace is `Nodup`, that old tags are monotone, or that
+the search globally never revisits an occurrence. The `σ`/`R`/`W`
+(ready/waiting) state, token-age interval sequencing, and specialized
+whole-scheduler invariants are not implemented.
+
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
 marked conclusions, stores armed unequal-token pars in a deduplicated waiting
@@ -203,10 +226,12 @@ transport turn classifications around the concrete nonempty obstruction into
 an excluded edge-simple switching cycle or forbidden nesting in a correct
 quiescent state.
 
-This prototype is not the sequential strategy of Figures 7--8. It starts all
-axioms eagerly, uses a flat waiting set, and has no `NEXTAXIOM`, token-age
-stack, interval partition, or specialized union-find invariant. The attempt
-cap is no longer merely imposed by fuel: its scheduler sufficiency is proved.
+This flat production prototype is not the sequential strategy of Figures
+7--8. It starts all axioms eagerly, uses a flat waiting set, and does not use
+the separate bounded/tagged `NEXTAXIOM` checkpoint. It has no `σ`/`R`/`W`
+stack, token-age interval partition, or specialized union-find invariant. The
+attempt cap is no longer merely imposed by fuel: its scheduler sufficiency is
+proved.
 That result now rules out tensor deadlock on a correct nonfinal net and
 identifies the remaining waiting par as an exact active-component separation;
 the separation is now localized to a conclusion-avoiding reference path with
@@ -254,12 +279,18 @@ The following stronger claims are intentionally absent:
 - `unificationWorklistFastCheck = check`;
 - removal of the recursive reconstruction fallback;
 - completeness or confluence of the eager repeated-scan schedule;
+- exact-state or structural-only confluence of the flat worklist: the first is
+  refuted on a derivation-generated correct certificate and the second on a
+  structurally well-formed certificate;
 - a polynomial, quasi-linear, or linear bound for the hybrid
   `unificationCheck`;
 - a polynomial bound for the complete candidate-plus-verifier execution; the
   current proved quadratic statement counts eager link-list visits only;
-- equivalence between this eager implementation and the sequential stack,
-  waiting-set, `NEXTAXIOM`, and special union-find algorithm in Figures 7--8;
+- equivalence between this eager implementation and the full sequential
+  `σ`/`R`/`W`, token-age, `NEXTAXIOM`, and special union-find algorithm
+  in Figures 7--8;
+- trace `Nodup`, tag monotonicity, or a no-revisit theorem for the new bounded
+  `NEXTAXIOM` primitive;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The current repeated scan can take a quadratic number of link visits before
@@ -303,6 +334,19 @@ The same two gates now also require the event-driven worklist. They observed
 750/750 and 7,200/7,200 worklist hits, respectively, with zero false positives
 or positive misses. The larger search recorded at most 995 link attempts and
 691 waiting requeues. These remain finite regression results.
+
+An uncommitted exploratory local scheduler-state audit rejects exact
+concrete-state confluence on a derivation-generated correct certificate and
+rejects structural-only confluence on a structurally well-formed certificate.
+The surviving candidate quotient records the marked occurrence domain and the
+occurrence-thread partition. Across 80 derivation-generated correct
+certificates, that local run visited 2,734 reachable quotient states and
+checked 7,148 enabled critical pairs, observing 0 disabled pairs and
+0 quotient non-diamonds. There is currently no committed script or artifact
+that reproduces these counts, so they are not a release or CI gate. This
+exploratory result does not establish a local-diamond theorem, confluence,
+correct-state progress, pure-worklist completeness, fallback removal, or
+linearity.
 
 ## Remaining formalization route
 
@@ -471,10 +515,14 @@ or positive misses. The larger search recorded at most 995 link attempts and
 3. Do not assume contiguous token-age intervals or generic LIFO nesting for the
    current flat worklist: the fixed accepted regression above refutes that
    invariant, and ordinary laminarity permits the separated endpoint pairs as
-   siblings. Instead, investigate preservation of the existing residual
-   parsing witness under every competing successful firing, or prove an
-   equivalent local-diamond/confluence theorem modulo the observable
-   partition/frontier state.
+   siblings. Exact-state confluence and structural-only confluence are also
+   refuted. Instead, investigate preservation of the existing residual parsing
+   witness under every competing successful firing, or prove a
+   local-diamond/confluence theorem modulo the candidate observation consisting
+   of the marked occurrence domain and occurrence-thread partition. The
+   uncommitted exploratory 80-certificate/2,734-state/7,148-pair local audit
+   with zero observed quotient non-diamonds is neither reproducible release
+   evidence nor that theorem.
 4. Use that residual/confluence result, or another scheduler-specific progress
    argument, to exclude the closing-par base and prove
    correct-quiescent-state progress. Then prove the current event-driven
@@ -482,10 +530,12 @@ or positive misses. The larger search recorded at most 995 link attempts and
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist
    decision only after that equality is kernel checked.
-6. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
-   discipline for the separate sequential executable. Formalize
-   `NEXTAXIOM`, contiguous token-age intervals, and ready/waiting stacks there;
-   the current flat scheduler's fuel is already proved sufficient, but its
-   counterexample prevents reusing those stack invariants.
-7. Only after `NEXTAXIOM`, token-age, waiting-stack, and union-find invariants are
-   formalized should the library expose a Guerrini-linear complexity theorem.
+6. Extend the now-kernel-checked bounded/tagged `NEXTAXIOM` plus dynamic-start
+   checkpoint with trace `Nodup`, tag monotonicity/no-revisit, and the Figure-7
+   `σ`/`R`/`W` (ready/waiting) discipline. Replace eager axiom starts and flat
+   waiting requeues only after token-age interval sequencing and its
+   specialized union-find invariants are proved; the flat scheduler
+   counterexample prevents reusing those invariants.
+7. Only after the complete `NEXTAXIOM`, token-age, waiting-stack, union-find,
+   and implemented-operation cost invariants are formalized should the library
+   expose a Guerrini-linear complexity theorem.

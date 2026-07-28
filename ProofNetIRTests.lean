@@ -813,6 +813,129 @@ def canonical : Certificate where
   ]
   conclusions := [4, 5]
 
+/-- Empty token state used to exercise the bounded sequential `NEXTAXIOM`
+slice independently of the later `σ`/ready/waiting scheduler. -/
+def canonicalSequentialEmpty : UnificationState where
+  marks := Array.replicate canonical.formulas.size none
+  parents := #[]
+  components := #[]
+  startedAxioms := 0
+  firedConnectives := 0
+
+def canonicalSourceIndex : SequentialUnification.SourceIndex :=
+  SequentialUnification.sourceIndex canonical
+
+def canonicalNextAxiom :=
+  SequentialUnification.nextAxiom? canonical canonicalSequentialEmpty
+    canonicalSourceIndex
+    (SequentialUnification.sourceIndex_sound canonical)
+    (Array.replicate canonical.formulas.size false) 4
+
+example :
+    (match canonicalNextAxiom with
+    | none => false
+    | some result =>
+        result.linkIndex == 0 &&
+          result.left == 0 &&
+          result.right == 1 &&
+          result.trace == [4, 0] &&
+          result.tags[4]? == some true &&
+          result.tags[0]? == some true &&
+          result.tags[1]? == some true) = true := by
+  native_decide
+
+example :
+    (match canonicalNextAxiom with
+    | none => false
+    | some result =>
+        (SequentialUnification.nextAxiom? canonical
+          canonicalSequentialEmpty canonicalSourceIndex
+          (SequentialUnification.sourceIndex_sound canonical)
+          result.tags 4).isNone) = true := by
+  native_decide
+
+example :
+    SequentialUnification.nextAxiom? canonical canonicalSequentialEmpty
+      canonicalSourceIndex
+      (SequentialUnification.sourceIndex_sound canonical)
+      ((Array.replicate canonical.formulas.size false).setIfInBounds 4 true)
+      4 = none := by
+  native_decide
+
+example :
+    SequentialUnification.nextAxiomWithFuel? canonical
+      canonicalSequentialEmpty canonicalSourceIndex
+      (SequentialUnification.sourceIndex_sound canonical)
+      0 (Array.replicate canonical.formulas.size false) 4 = none := by
+  native_decide
+
+example :
+    SequentialUnification.nextAxiom? canonical canonicalSequentialEmpty
+      canonicalSourceIndex
+      (SequentialUnification.sourceIndex_sound canonical)
+      (Array.replicate canonical.formulas.size false)
+      canonical.formulas.size = none := by
+  native_decide
+
+example :
+    SequentialUnification.nextAxiom? canonical
+      { canonicalSequentialEmpty with
+        marks :=
+          canonicalSequentialEmpty.marks.setIfInBounds 4 (some 0) }
+      canonicalSourceIndex
+      (SequentialUnification.sourceIndex_sound canonical)
+      (Array.replicate canonical.formulas.size false) 4 = none := by
+  native_decide
+
+/-- Deliberately malformed: vertex `4` has no submitted source link. -/
+def canonicalMissingSource : Certificate where
+  formulas := canonical.formulas
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .par 1 3 5
+  ]
+  conclusions := canonical.conclusions
+
+example :
+    SequentialUnification.nextAxiom? canonicalMissingSource
+      canonicalSequentialEmpty
+      (SequentialUnification.sourceIndex canonicalMissingSource)
+      (SequentialUnification.sourceIndex_sound canonicalMissingSource)
+      (Array.replicate canonicalMissingSource.formulas.size false)
+      4 = none := by
+  native_decide
+
+/-- Deliberately malformed: vertex `4` has two submitted source links.
+`NEXTAXIOM` must reject the non-unique source bucket rather than choose one. -/
+def canonicalDuplicateSource : Certificate where
+  formulas := canonical.formulas
+  links := .tensor 0 2 4 :: canonical.links
+  conclusions := canonical.conclusions
+
+example :
+    SequentialUnification.nextAxiom? canonicalDuplicateSource
+      canonicalSequentialEmpty
+      (SequentialUnification.sourceIndex canonicalDuplicateSource)
+      (SequentialUnification.sourceIndex_sound canonicalDuplicateSource)
+      (Array.replicate canonicalDuplicateSource.formulas.size false)
+      4 = none := by
+  native_decide
+
+example :
+    (match SequentialUnification.dynamicStartWithFuel? canonical
+        canonicalSequentialEmpty canonicalSourceIndex
+        (SequentialUnification.sourceIndex_sound canonical)
+        canonical.formulas.size
+        (Array.replicate canonical.formulas.size false) 4 with
+    | none => false
+    | some result =>
+        result.after.parents == #[0] &&
+          result.after.startedAxioms == 1 &&
+          result.after.assignedToken? 0 == some 0 &&
+          result.after.assignedToken? 1 == some 0) = true := by
+  native_decide
+
 def canonicalParLeftIn : canonical.fullGraph.DirectedEdge where
   index := 4
   edge := { first := 1, second := 5 }

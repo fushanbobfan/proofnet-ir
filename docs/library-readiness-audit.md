@@ -75,6 +75,14 @@ part of the engineering and proof-identity gap.
   separate runtime path: finite terminal-par/splitting-tensor search, complete
   repeated-label boundary alignment, and fuel-bounded recursion return a
   proof-bearing result for every checker-accepted certificate.
+- current v0.10 development has a separate bounded/tagged `NEXTAXIOM`
+  checkpoint. Its reusable source-incidence index has kernel-proved exact
+  submitted-link origin. Every successful search retains the exact submitted
+  axiom index/endpoints, final tags, and trace, proves both endpoints were
+  unmarked in the input and `trace.length ≤ fuel`, and its dynamic start
+  refines Figure 5 under `OrderedParents`. Tests exercise expected tags/trace,
+  zero fuel, out-of-bounds, tagged and marked starts, missing and non-unique
+  sources, threaded-result-tags repeat rejection, and dynamic token allocation.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -314,11 +322,17 @@ part of the engineering and proof-identity gap.
    and Figure-7 LIFO are not invariants of the current flat scheduler, and
    `tagSchedulerFamily.step` must be read as a dependency-segment index rather
    than firing age.
-   Flat-worklist completeness may instead require preservation of the residual
-   parsing witness under arbitrary successful firings or an observational
-   local-confluence theorem. Faithful `NEXTAXIOM`/token-age stacks remain a
-   separate prerequisite for Guerrini-style linearity.
-   Closing-par scheduler-order exclusion, correct-state progress, pure worklist
+   Exact concrete-state confluence is refuted by a derivation-generated
+   correct certificate, and structural-only confluence is refuted by a
+   structurally well-formed certificate. Flat-worklist completeness may instead
+   require preservation of the residual parsing witness or a theorem modulo
+   the candidate marked-domain plus occurrence-thread-partition quotient. No
+   committed reproducible audit or kernel theorem currently establishes
+   confluence or completeness at that quotient.
+   The separate bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
+   kernel checked, but trace `Nodup`, tag monotonicity/no-revisit,
+   `σ`/`R`/`W` (ready/waiting), token-age interval sequencing, closing-par
+   scheduler-order exclusion, correct-state progress, pure worklist
    completeness, recursive fallback removal, and a whole-program linear cost
    theorem remain open.
    For callers that require fail-closed resource handling,
@@ -466,6 +480,9 @@ It can currently be used for:
   derivation-generated accepted nets, 5,000 malformed cases, and a measured
   qualification through 145 links;
 - running the focused-search comparison baseline;
+- experimenting with the proof-bearing bounded/tagged `NEXTAXIOM` and dynamic
+  Figure-5 start primitive while treating failure as inconclusive; it is not a
+  complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
 - auditing the frozen 180-task model experiment, amendment, raw responses,
@@ -479,6 +496,9 @@ It should not yet be presented as:
 - a pure-complete or Guerrini-linear flat worklist; general checker-accepted
   sequentialization is complete, but the flat fast path still relies on the
   recursive fallback for its exact decision;
+- a confluence-checked scheduler: exact-state and structural-only formulations
+  have counterexamples, while the marked-domain/thread-partition candidate has
+  no committed reproducible audit or theorem;
 - a complete isomorphism-canonical proof identity library;
 - an arbitrary-isomorphism or conclusion-reordering canonicalizer; the new
   key is exact only for the explicitly documented `ProofNetEquivalent`

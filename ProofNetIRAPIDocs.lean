@@ -434,6 +434,25 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Sequential unification primitives"
+    declarations := [
+      `ProofNetIR.SequentialUnification.SourceIncidence,
+      `ProofNetIR.SequentialUnification.SourceIndex,
+      `ProofNetIR.SequentialUnification.sourceIndex,
+      `ProofNetIR.SequentialUnification.sourceIndex_size,
+      `ProofNetIR.SequentialUnification.mem_sourceIndex_origin,
+      `ProofNetIR.SequentialUnification.SourceIndex.Sound,
+      `ProofNetIR.SequentialUnification.sourceIndex_sound,
+      `ProofNetIR.SequentialUnification.NextAxiomResult,
+      `ProofNetIR.SequentialUnification.nextAxiomWithFuel?,
+      `ProofNetIR.SequentialUnification.nextAxiom?,
+      `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_sound,
+      `ProofNetIR.SequentialUnification.DynamicStartResult,
+      `ProofNetIR.SequentialUnification.dynamicStartWithFuel?,
+      `ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart
+    ]
+  },
+  {
     title := "Serialization and untrusted input"
     declarations := [
       `ProofNetIR.ParseError,

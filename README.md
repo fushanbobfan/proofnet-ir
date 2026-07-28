@@ -85,12 +85,36 @@ not a firing time or token age. Moreover, the displayed
 `firstTag → lastTag → anchor → outerLast` order consists of two separated
 endpoint pairs, which ordinary laminarity permits as siblings. Flat-worklist
 completeness may instead be pursued through preservation of a residual parsing
-witness or a suitable local-confluence theorem. Guerrini-style whole-program
-linearity remains a separate goal and requires a faithful
-`NEXTAXIOM`/token-age implementation. General checker-accepted
+witness or a suitable theorem modulo an explicitly justified observation.
+Guerrini-style whole-program linearity remains a separate goal and requires a
+faithful full `NEXTAXIOM`/token-age scheduler. General checker-accepted
 sequentialization is already complete through recursive reconstruction;
 closing-par exclusion, correct-state progress, pure-worklist completeness,
 fallback removal, and linearity remain open.
+
+The first separate sequential primitive is now present in
+`SequentialUnification.lean`. Lean proves exact submitted-link origin for a
+reusable source-incidence index. Its bounded, globally tagged `NEXTAXIOM`
+search either fails closed or returns the exact submitted axiom link index and
+endpoints, the updated tag array, and the followed occurrence trace; both
+axiom endpoints were unmarked in the input state and
+`trace.length ≤ fuel`. A successful dynamic start refines one Figure-5
+`start` transition under the existing abstraction and `OrderedParents`
+invariants. Tests cover the canonical trace/tags, an already tagged start,
+zero fuel, out-of-bounds and marked starts, missing and non-unique sources,
+threaded-result-tags repeat rejection, and dynamic token allocation. This is
+not yet the Figures 7–8 algorithm: trace `Nodup`, tag monotonicity and a global
+no-revisit theorem are absent, and the `σ`/`R`/`W` (ready/waiting) state,
+token-age interval sequencing, correct-state progress, pure-worklist
+completeness, fallback removal, and whole-program linearity remain open.
+
+The flat-scheduler proof route was also narrowed by counterexample. Exact
+concrete-state confluence already fails on a derivation-generated correct
+certificate, and structural-only confluence fails on a structurally well-formed
+certificate. The current candidate observation is the marked occurrence
+domain together with the occurrence-thread partition. No confluence, progress,
+completeness, or complexity theorem at that quotient is claimed.
+
 Independent
 transition refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
@@ -416,11 +440,14 @@ rather than crosses, the two endpoint pairs; intervals may still be empty, and
 ordinary laminarity permits the pairs as siblings. The fixed accepted
 three-axiom regression refutes a generic flat age-interval/LIFO invariant.
 Flat completeness therefore points to residual-witness preservation or
-confluence, while faithful `NEXTAXIOM`/token-age stacks remain the separate
-linearity route. Closing-par scheduler-order exclusion and correct-state
-progress remain open. Pure-worklist completeness, recursive-fallback removal,
-the later `NEXTAXIOM` implementation, and a whole-program linear cost theorem
-remain separate open gates. See
+confluence modulo the marked-domain/occurrence-thread observation. Exact-state
+and structural-only confluence are already refuted; no theorem at the candidate
+quotient exists. The bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
+kernel checked, while its no-revisit theory and faithful `σ`/`R`/`W` plus
+token-age sequencing remain the separate linearity route. Closing-par
+scheduler-order exclusion and correct-state progress remain open.
+Pure-worklist completeness, recursive-fallback removal, and a whole-program
+linear cost theorem remain separate open gates. See
 [the v0.10 design](docs/v0.10-design.md).
 
 v0.9 exposes
@@ -537,7 +564,7 @@ The repository currently contains:
   unions. Every worklist success is independently verified and proved sound;
   the worklist-first hybrid is proved equal to `check`, while completeness,
   the final correctness-to-progress argument, flat-waiting-set complexity,
-  and faithful `NEXTAXIOM` sequentialization remain open. The current
+  and full Figures 7–8 `NEXTAXIOM` sequentialization remain open. The current
   production fuel is proved sufficient to empty its queue. If that quiescent
   run is incomplete, least-complexity descent eliminates idle premises and
   initially leaves a distinct-thread waiting par or same-thread tensor
@@ -610,12 +637,26 @@ The repository currently contains:
   crossing. A stable accepted three-axiom regression independently shows that
   this flat eager worklist can first merge token ages 0 and 2, so no generic
   contiguous-age/LIFO invariant may be imported here. Ordinary laminarity also
-  permits the two displayed pairs as separated siblings. A residual-witness or
-  confluence argument is the remaining scheduler-preserving route for flat
-  completeness; faithful `NEXTAXIOM`/token-age stacks are reserved for the
-  Guerrini linearity layer. Closing-par exclusion,
+  permits the two displayed pairs as separated siblings. Exact-state
+  confluence and structural-only confluence are independently refuted; a
+  candidate quotient retains the marked occurrence domain and induced
+  occurrence-thread partition. Residual-witness preservation or a theorem at
+  that quotient remains the
+  scheduler-preserving route for flat completeness. The separate
+  bounded/tagged `NEXTAXIOM` primitive is checked, while full
+  `σ`/`R`/`W` (ready/waiting) and token-age stacks remain for the Guerrini
+  linearity layer. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
+- a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
+  source-incidence index of proved exact submitted-link origin. Success retains
+  the exact axiom index/endpoints, final tags, and trace, proves both endpoints
+  were input-unmarked and the trace length is fuel-bounded, and its dynamic
+  start refines Figure 5 under `OrderedParents`; malformed or ambiguous source
+  buckets fail closed. Tests additionally cover zero fuel, out-of-bounds and
+  marked starts, missing sources, and repeat rejection using threaded result
+  tags. It does not yet prove trace `Nodup`, tag monotonicity, or a global
+  no-revisit theorem and does not implement `σ`/`R`/`W` or token-age stacks;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -922,6 +963,8 @@ ProofNetIR/IntrinsicCanonical.lean non-factorial exact canonical representative
 ProofNetIR/IntrinsicCanonicalKeyWire.lean v0.2 intrinsic-key wire and migration
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
+ProofNetIR/Unification.lean   eager/worklist Figure-5 token semantics
+ProofNetIR/SequentialUnification.lean bounded/tagged NEXTAXIOM and dynamic start
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter

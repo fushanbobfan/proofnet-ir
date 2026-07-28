@@ -703,19 +703,34 @@
       segment index rather than firing age. The order
       `firstTag → lastTag → anchor → outerLast` separates the two pairs, which
       ordinary laminarity permits as siblings.
+    - [x] Reject two over-strong flat-confluence formulations by explicit
+      counterexample: exact concrete-state confluence fails on a
+      derivation-generated correct certificate, and structural-only confluence
+      fails on a structurally well-formed certificate.
+    - [x] Identify marked occurrence domain plus occurrence-thread partition as
+      the next candidate quotient. No committed reproducible audit, release
+      gate, or theorem exists for it yet.
     - [ ] Prove that the residual parsing witness survives every arbitrary
-      successful flat-worklist firing, or establish an equivalent
-      observational local-confluence theorem. Use that scheduler-specific
-      result to exclude the closing-par base and path-exposed waiting-par
-      obstruction. Closing-par exclusion remains open.
+      successful flat-worklist firing, or establish the required theorem
+      modulo the marked-domain/occurrence-thread quotient. Use that
+      scheduler-specific result to exclude the closing-par base and
+      path-exposed waiting-par obstruction. Closing-par exclusion remains open.
     - [ ] Prove correct-quiescent-state progress.
-  - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
-    with the Figures 7--8 sequential ready/waiting stacks; formalize
-    `NEXTAXIOM`, token-age, and special union-find invariants; establish
-    completeness of that later sequential executable; and extend the cost
-    theorem to all implemented operations before claiming Guerrini linearity.
-    This faithful scheduler is required for the interval/LIFO and linearity
-    claims; those invariants are false for the current flat scheduler.
+  - [x] Add the first separate Figures 7--8 primitive: one reusable
+    source-incidence index with exact submitted-link-origin proof, a
+    bounded/globally tagged `NEXTAXIOM` returning exact axiom
+    index/endpoints/tags/trace with input-unmarked and trace-length bounds, and
+    a dynamic start proved to refine Figure 5 under `OrderedParents`. Cover
+    canonical tags/trace, zero fuel, out-of-bounds, tagged and marked starts,
+    missing and non-unique sources, threaded-result-tags repeat rejection, and
+    dynamic start.
+  - [ ] Prove trace `Nodup`, tag monotonicity, and no-revisit; then replace the
+    prototype's eager axiom starts and flat waiting requeues with the Figures
+    7--8 `σ`/`R`/`W` (ready/waiting) stacks. Establish token-age interval
+    sequencing, special union-find invariants, completeness of that sequential
+    executable, and a cost theorem over every implemented operation before
+    claiming Guerrini linearity. These stack invariants are false for the flat
+    scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist
     completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and

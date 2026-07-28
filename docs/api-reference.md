@@ -5378,6 +5378,208 @@ ProofNetIR.ExecutableSequentializationResult.proofNetEquivalent : ∀ {input : P
   result.output.ProofNetEquivalent input
 ```
 
+## Sequential unification primitives
+
+### `ProofNetIR.SequentialUnification.SourceIncidence`
+
+Kind: inductive type.
+
+One exact submitted link stored in the source-incidence table.
+
+```lean
+ProofNetIR.SequentialUnification.SourceIncidence : Type
+```
+
+### `ProofNetIR.SequentialUnification.SourceIndex`
+
+Kind: definition.
+
+Per-occurrence source incidences.  `nextAxiomWithFuel?` accepts only a
+singleton bucket and rejects zero or multiple source entries.  The later
+totality layer must separately expose the structural-to-singleton bridge.
+
+```lean
+ProofNetIR.SequentialUnification.SourceIndex : Type
+```
+
+### `ProofNetIR.SequentialUnification.sourceIndex`
+
+Kind: definition.
+
+Build the reusable occurrence-to-source table in one fold over submitted
+links.  Axioms are registered at both endpoints; connectives are registered at
+their conclusion.
+
+```lean
+ProofNetIR.SequentialUnification.sourceIndex : ProofNetIR.Certificate → ProofNetIR.SequentialUnification.SourceIndex
+```
+
+### `ProofNetIR.SequentialUnification.sourceIndex_size`
+
+Kind: theorem.
+
+Building the source table preserves the formula-occurrence carrier size.
+
+```lean
+ProofNetIR.SequentialUnification.sourceIndex_size : ∀ (certificate : ProofNetIR.Certificate),
+  Array.size (ProofNetIR.SequentialUnification.sourceIndex certificate) = certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialUnification.mem_sourceIndex_origin`
+
+Kind: theorem.
+
+Every stored source incidence names the exact submitted link at its exact
+list index and is genuinely incident as an axiom endpoint or connective
+conclusion.
+
+```lean
+ProofNetIR.SequentialUnification.mem_sourceIndex_origin : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex}
+  {candidate : ProofNetIR.SequentialUnification.SourceIncidence},
+  candidate ∈ (ProofNetIR.SequentialUnification.sourceIndex certificate)[vertex]?.getD [] →
+    certificate.links[candidate.linkIndex]? = some candidate.link ∧
+      (ProofNetIR.Link.containsAxiomEndpoint vertex candidate.link = true ∨
+        ProofNetIR.Link.produces vertex candidate.link = true)
+```
+
+### `ProofNetIR.SequentialUnification.SourceIndex.Sound`
+
+Kind: definition.
+
+Every table entry has exact submitted-link and source-incidence
+provenance.  Supplying this proof separately lets the recursive executable
+reuse one precomputed table without rebuilding it.
+
+```lean
+ProofNetIR.SequentialUnification.SourceIndex.Sound : ProofNetIR.Certificate → ProofNetIR.SequentialUnification.SourceIndex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.sourceIndex_sound`
+
+Kind: theorem.
+
+The production source-incidence table is sound.
+
+```lean
+ProofNetIR.SequentialUnification.sourceIndex_sound : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialUnification.SourceIndex.Sound certificate
+    (ProofNetIR.SequentialUnification.sourceIndex certificate)
+```
+
+### `ProofNetIR.SequentialUnification.NextAxiomResult`
+
+Kind: inductive type.
+
+Successful bounded `NEXTAXIOM` search.
+
+`trace` records the vertices actually followed by the recursive search.  The
+partner endpoint of the returned axiom is tagged as required by Guerrini but
+is not an additional recursive trace step.
+
+```lean
+ProofNetIR.SequentialUnification.NextAxiomResult : ProofNetIR.Certificate → ProofNetIR.UnificationState → Nat → Type
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?`
+
+Kind: definition.
+
+Bounded, tagged `NEXTAXIOM`.
+
+The search fails closed on out-of-domain, already tagged, already marked,
+missing, or non-unique source buckets.  Compound producers deterministically
+continue through their stored left premise.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel? : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.UnificationState) →
+    (index : ProofNetIR.SequentialUnification.SourceIndex) →
+      ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index →
+        (fuel : Nat) →
+          Array Bool →
+            ProofNetIR.Vertex → Option (ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel)
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiom?`
+
+Kind: definition.
+
+Production wrapper with the formula carrier as the conservative recursive
+search budget.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiom? : (certificate : ProofNetIR.Certificate) →
+  (state : ProofNetIR.UnificationState) →
+    (index : ProofNetIR.SequentialUnification.SourceIndex) →
+      ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index →
+        Array Bool →
+          ProofNetIR.Vertex →
+            Option (ProofNetIR.SequentialUnification.NextAxiomResult certificate state certificate.formulas.size)
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_sound`
+
+Kind: theorem.
+
+A successful search returns one exact submitted axiom whose two endpoint
+occurrences were unmarked in the input state.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel?_sound : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {fuel : Nat} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel},
+  ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state index ⋯ fuel tags vertex = some result →
+    certificate.links[result.linkIndex]? = some (ProofNetIR.Link.axiom result.left result.right) ∧
+      state.assignedToken? result.left = none ∧ state.assignedToken? result.right = none ∧ result.trace.length ≤ fuel
+```
+
+### `ProofNetIR.SequentialUnification.DynamicStartResult`
+
+Kind: inductive type.
+
+The token-semantic result of dynamically starting the axiom found by
+`NEXTAXIOM`.  Parsed-component scheduling is intentionally left to the later
+`σ`/ready/waiting layer.
+
+```lean
+ProofNetIR.SequentialUnification.DynamicStartResult : ProofNetIR.Certificate → ProofNetIR.UnificationState → Nat → Type
+```
+
+### `ProofNetIR.SequentialUnification.dynamicStartWithFuel?`
+
+Kind: definition.
+
+Search for one new axiom and apply exactly the Figure-5 token marking
+update.
+
+```lean
+ProofNetIR.SequentialUnification.dynamicStartWithFuel? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.UnificationState) →
+    (index : ProofNetIR.SequentialUnification.SourceIndex) →
+      ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index →
+        (fuel : Nat) →
+          Array Bool →
+            ProofNetIR.Vertex → Option (ProofNetIR.SequentialUnification.DynamicStartResult certificate before fuel)
+```
+
+### `ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart`
+
+Kind: theorem.
+
+A successful dynamic start after arbitrary prior ordered unions refines
+one independent Figure-5 `start` transition.
+
+```lean
+ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.UnificationState} {fuel : Nat}
+  (result : ProofNetIR.SequentialUnification.DynamicStartResult certificate before fuel)
+  (abstractable : ProofNetIR.UnificationState.Abstractable certificate before),
+  before.OrderedParents →
+    ∃ afterAbstractable,
+      ProofNetIR.UnificationStep certificate (before.toMarking certificate abstractable)
+        (result.after.toMarking certificate afterAbstractable)
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

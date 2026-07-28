@@ -135,6 +135,11 @@ expansion.
 #print axioms UnificationState.OrderedParents.setParent_sameThread
 #print axioms UnificationState.OrderedParents.setParent_sameThread_all
 #print axioms UnificationState.unifyTokens?_refines
+#print axioms SequentialUnification.sourceIndex_size
+#print axioms SequentialUnification.mem_sourceIndex_origin
+#print axioms SequentialUnification.sourceIndex_sound
+#print axioms SequentialUnification.nextAxiomWithFuel?_sound
+#print axioms SequentialUnification.DynamicStartResult.refinesStart
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound
 #print axioms Certificate.unificationReconstruct?_accepted
