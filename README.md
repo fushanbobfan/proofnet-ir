@@ -13,22 +13,27 @@ and non-goals.
 
 Development on `main` now continues as `v0.10.0-dev`. Lean now constructs one
 unified exact closing package with common terminal-base, complement-base,
-complement, and normalized-core indices, and kernel-checks a structural
-boundary-cursor/gap replay through that package. Starting from the normalized
-closing core's boundary-zero empty-gap seed, the replay follows the same exact
-terminal, reverse-shell, backward-search, nesting, and global-ancestry
-witnesses to the package's initial tagged family and proves that the accumulated
-candidate gap is nonempty and pointwise contained in that initial family. One
-exact gap occurrence is now traced from the head of the same terminal omitted
-arc through all remaining ancestry. Lean retains its offset-zero/backward
-scheduler coordinate, omitted reference-mask status, exact right-par incidence,
-classified segment head, waiting-dependency semantics, and source conclusion.
-This anchor is not identified with either closing-core endpoint, and the result
-proves no gap multiplicity, contiguity, relative order, or adjacency. The
-immediate proof boundary is the stronger zipper/order invariant needed to
-relate that typed anchor and every replay frame to the closing endpoints,
-followed by closing-par scheduler-order exclusion and correct-state progress.
-Pure worklist completeness comes only after that boundary. Independent
+complement, and normalized-core indices, then enriches its proof-relevant seam
+replay with an occurrence-position endpoint zipper. Unlike the older
+`CyclicSeamCursor.gap`, the zipper gap is definitionally the complete
+complementary arc between the fixed first and last tagged endpoint occurrences.
+Every indexed flipped scheduler segment is proved nonempty. Consequently, an
+empty zipper gap in the initial tagged scheduler family would force exactly the
+scheduler-coordinate adjacency already excluded by the closing endpoint
+witness, so that complete complementary arc is nonempty.
+
+Starting from the normalized closing core's empty exact gap, Lean retains the
+first replay step at which the zipper gap changes from empty to nonempty. The
+step carries its exact seam frame, the nonempty inserted block
+`rightContext ++ leftContext`, and the explicit gap-splice branch. The replay is
+also split at the shared Type-valued base zipper and the global first opening is
+classified by those concrete replay indices: it occurs either in the terminal
+phase, or every terminal-phase zipper gap stayed empty and it occurs in the
+ancestry phase. No theorem chooses one branch uniformly or yet attaches the
+scheduler-origin and reverse-shell semantics needed to turn either branch into
+a contradiction. Closing-par scheduler-order exclusion, correct-state
+progress, pure-worklist completeness, recursive-fallback removal, and the
+whole-program linear bound therefore remain open. Independent
 transition refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
 invariant are now kernel checked. Atomic pop-and-process restores complete
@@ -323,22 +328,21 @@ endpoint split: the first three share the same
 `(base, complementBase, taggedComplement, taggedNormalized)` tuple, and the
 split shares that exact `taggedNormalized`. The full terminal `StepAt` frame
 remains existential inside its step wrapper rather than a global package index.
-The structural boundary-cursor/gap theorem now consumes that wrapper once and
-replays the normalized closing seam through the terminal frame, backward
-frames, reverse shells, nesting, and global ancestry to a nonempty candidate
-gap. Gap containment in the current tagged family and preservation of every
-previously accumulated occurrence are now proved through every replay frame.
-The same terminal arc also supplies one concrete omitted-right head that
-survives into the initial family with its exact scheduler coordinate, par
-incidence, reference-mask omission, classified segment, waiting dependency,
-and source conclusion. This is still only an origin-typed member: it is not
-identified with either closing endpoint, and the gap carries no multiplicity,
-contiguous-slice, or relative-order guarantee. What remains is a zipper/order
-invariant relating that evidence to the exact closing endpoints. The gap alone
-is neither adjacency nor contradiction. Closing-par scheduler-order exclusion
-and correct-state
-progress follow only after that step. Pure-worklist completeness,
-recursive-fallback removal, the later
+The structural replay now consumes that wrapper once and carries both the
+older candidate cursor and an exact endpoint zipper through the terminal frame,
+backward frames, reverse shells, nesting, and global ancestry. The zipper's
+gap is the complete complementary endpoint arc, not the candidate cursor gap.
+Nonemptiness of every indexed flipped segment turns an empty final zipper gap
+into the already excluded scheduler-coordinate adjacency; hence the exact gap
+in the initial family is nonempty. The replay retains a genuine first
+empty-to-nonempty frame with a nonempty outside block and explicit gap splice.
+It also preserves terminal and ancestry phases around one shared base zipper:
+either the first opening is terminal, or a proof that every terminal gap stayed
+empty accompanies an ancestry opening. This replay-indexed classification does
+not uniformly choose a branch or supply the scheduler-origin semantics needed
+for the contradiction. Closing-par scheduler-order exclusion and correct-state
+progress remain open. Pure-worklist completeness, recursive-fallback removal,
+the later
 `NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
 remain separate open gates. See
 [the v0.10 design](docs/v0.10-design.md).
@@ -501,19 +505,18 @@ The repository currently contains:
   indexed witness, without the first generic `CyclicIntervalCut` lift. The
   terminal base, global trace, closing outcome, and normalized endpoint split
   are now assembled into one data-indexed closing package. A private
-  proof-relevant boundary-cursor/gap replay consumes each stored exact frame
-  without reselection and carries the normalized closing seam to the package's
-  initial tagged family with a nonempty accumulated candidate gap. Pointwise gap
-  containment and old-gap membership preservation are kernel checked. The head
-  of the same terminal omitted arc is also propagated as one exact
-  scheduler-origin anchor, retaining its zero offset, backward direction,
-  omitted reference entry, right-par incidence, classified segment, waiting
-  dependency, and source conclusion. It is not identified with the closing
-  endpoints. This structural result proves neither multiplicity, contiguity,
-  relative order, adjacency, nor contradiction. Its stronger zipper/order
-  invariant, closing-par scheduler-order exclusion, correct-state progress,
-  pure-worklist completeness, fallback removal, and whole-program linearity
-  remain open;
+  proof-relevant endpoint replay consumes each stored exact frame without
+  reselection. Its occurrence-position zipper defines the complete
+  complementary arc between the tagged closing endpoints. Every indexed
+  flipped segment is nonempty, so an empty final zipper gap would imply the
+  scheduler-coordinate adjacency already excluded by the endpoint witness;
+  the initial-family exact gap is therefore nonempty. Lean retains the first
+  empty-to-nonempty frame with its exact nonempty outside insertion and gap
+  splice, and classifies it by the concrete terminal/ancestry replay indices.
+  The ancestry branch carries a proof that every terminal gap stayed empty.
+  There is no uniform branch choice and no scheduler-origin contradiction yet.
+  Closing-par exclusion, correct-state progress, pure-worklist completeness,
+  fallback removal, and whole-program linearity remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

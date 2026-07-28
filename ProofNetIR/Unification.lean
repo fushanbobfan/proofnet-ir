@@ -5341,6 +5341,74 @@ private theorem fireConnective?_refines
       exact fireTensor?_refines_unify certificate abstractable ordered
         linkMembership equation
 
+/-- A proof-only residual parsing witness for the eager-start core.  It
+records one finite sequence of successful submitted connective firings ending
+in a total marking.  The witness is deliberately existential: it does not
+claim that the fixed worklist processes this distinguished sequence order,
+nor that it is preserved by an arbitrary competing successful firing. -/
+private inductive ResidualParsingWitness (certificate : Certificate) :
+    UnificationState → Prop where
+  | done {state : UnificationState}
+      (total : state.allMarked = true) :
+      ResidualParsingWitness certificate state
+  | step {state next : UnificationState}
+      {index : Nat} {link : Link}
+      (lookup : certificate.links[index]? = some link)
+      (firing : fireConnective? state link = some next)
+      (rest : ResidualParsingWitness certificate next) :
+      ResidualParsingWitness certificate state
+
+namespace ResidualParsingWitness
+
+/-- An incomplete state carrying a residual witness exposes the first
+submitted connective firing of that exact witness. -/
+private theorem fire_of_incomplete
+    {certificate : Certificate} {state : UnificationState}
+    (witness : ResidualParsingWitness certificate state)
+    (incomplete : state.allMarked = false) :
+    ∃ (index : Nat) (link : Link) (next : UnificationState),
+      certificate.links[index]? = some link ∧
+        fireConnective? state link = some next ∧
+          ResidualParsingWitness certificate next := by
+  cases witness with
+  | done total =>
+      simp [total] at incomplete
+  | step lookup firing rest =>
+      exact ⟨_, _, _, lookup, firing, rest⟩
+
+/-- Every concrete residual witness refines a finite independent Figure-5
+execution to a total marking.  This is a semantic bridge for a supplied
+witness, not an existence or deterministic-worklist completeness theorem. -/
+private theorem refines
+    {certificate : Certificate} {state : UnificationState}
+    (witness : ResidualParsingWitness certificate state)
+    (abstractable : state.Abstractable certificate)
+    (ordered : state.OrderedParents) :
+    ∃ (final : UnificationState)
+        (finalAbstractable : final.Abstractable certificate),
+      UnificationExecution certificate
+          (state.toMarking certificate abstractable)
+          (final.toMarking certificate finalAbstractable) ∧
+        final.allMarked = true := by
+  induction witness with
+  | done total =>
+      exact ⟨_, abstractable, .refl _, total⟩
+  | @step current next index link lookup firing rest induction =>
+      have membership : link ∈ certificate.links :=
+        List.mem_of_getElem? lookup
+      rcases fireConnective?_refines certificate abstractable ordered
+          membership firing with
+        ⟨nextAbstractable, transition⟩
+      have nextOrdered : next.OrderedParents :=
+        fireConnective?_success_ordered ordered firing
+      rcases induction nextAbstractable nextOrdered with
+        ⟨final, finalAbstractable, execution, total⟩
+      exact
+        ⟨final, finalAbstractable,
+          .step transition execution, total⟩
+
+end ResidualParsingWitness
+
 /-- One fold update for a deterministic connective pass. -/
 private def unificationFoldStep
     (current : UnificationState × Nat) (link : Link) :
@@ -9609,6 +9677,60 @@ private def processWorklistLink (certificate : Certificate)
                   requeueWaiting certificate.links.length fired
                 enqueueConsumers consumers conclusion requeued
       | _, _ => state
+
+/-- If the concrete connective operation succeeds, processing that submitted
+link performs exactly the same core transition.  Queue, waiting, and
+statistics bookkeeping do not alter the successor core. -/
+private theorem processWorklistLink_core_eq_of_fireConnective?
+    (certificate : Certificate) (consumers : Array (List Nat))
+    {index : Nat} {state : UnificationWorklistState}
+    {link : Link} {next : UnificationState}
+    (lookup : certificate.links[index]? = some link)
+    (firing : fireConnective? state.core link = some next) :
+    (processWorklistLink certificate consumers index state).core = next := by
+  cases link with
+  | «axiom» left right =>
+      simp [fireConnective?] at firing
+  | «par» left right conclusion =>
+      have parFiring :
+          firePar? state.core left right conclusion = some next := by
+        simpa [fireConnective?] using firing
+      rcases firePar?_success_observation parFiring with
+        ⟨outputToken, ready, _observation⟩
+      rcases UnificationState.forwardToken?_success ready with
+        ⟨_conclusionReady, leftReady, rightReady⟩
+      simp [processWorklistLink, lookup, leftReady, rightReady, parFiring]
+  | «tensor» left right conclusion =>
+      have tensorFiring :
+          fireTensor? state.core left right conclusion = some next := by
+        simpa [fireConnective?] using firing
+      rcases fireTensor?_success_observation tensorFiring with
+        ⟨leftToken, rightToken, ready, _observation⟩
+      rcases UnificationState.unifyTokens?_success ready with
+        ⟨_conclusionReady, leftReady, rightReady, different⟩
+      simp [processWorklistLink, lookup, leftReady, rightReady,
+        different, tensorFiring]
+
+namespace ResidualParsingWitness
+
+/-- When the worklist processes the distinguished first firing of a supplied
+residual witness, the witness tail is exactly a witness for the resulting
+core.  This theorem intentionally says nothing about processing a different
+successful link first. -/
+private theorem after_process_head
+    {certificate : Certificate} {consumers : Array (List Nat)}
+    {index : Nat} {state : UnificationWorklistState}
+    {link : Link} {next : UnificationState}
+    (lookup : certificate.links[index]? = some link)
+    (firing : fireConnective? state.core link = some next)
+    (rest : ResidualParsingWitness certificate next) :
+    ResidualParsingWitness certificate
+      (processWorklistLink certificate consumers index state).core := by
+  rw [processWorklistLink_core_eq_of_fireConnective?
+    certificate consumers lookup firing]
+  exact rest
+
+end ResidualParsingWitness
 
 /-- Processing never changes the number of canonical initial queue
 insertions. -/
@@ -26437,6 +26559,86 @@ private theorem tagSchedulerFamily_mem_lookup
   subst relativeStep
   exact ⟨segment, segmentLookup, valueLookup⟩
 
+/-- A scheduler coordinate has the expected exact global index in a family
+tagged from an arbitrary base step. -/
+private theorem tagSchedulerFamilyFrom_getElem?_coordinate
+    {α : Type} {segments : List (List α)}
+    (base : Nat)
+    {relativeStep offset : Nat} {segment : List α} {value : α}
+    (segmentLookup : segments[relativeStep]? = some segment)
+    (valueLookup : segment[offset]? = some value) :
+    (tagSchedulerFamilyFrom base segments)[
+        (segments.take relativeStep).flatten.length + offset]? =
+      some
+        { step := base + relativeStep
+          offset := offset
+          value := value } := by
+  induction segments generalizing
+      base relativeStep segment offset value with
+  | nil =>
+      simp at segmentLookup
+  | cons first rest induction =>
+      cases relativeStep with
+      | zero =>
+          have firstEquation : first = segment :=
+              Option.some.inj (by simpa using segmentLookup)
+          subst first
+          have taggedLookup :=
+            tagSchedulerSegment_getElem? base segment offset
+          rw [valueLookup] at taggedLookup
+          simp only [Option.map_some] at taggedLookup
+          simp only [List.take_zero, List.flatten_nil,
+            List.length_nil]
+          rw [tagSchedulerFamilyFrom, List.getElem?_append_left]
+          · simpa using taggedLookup
+          · simpa using
+              (List.getElem?_eq_some_iff.mp taggedLookup).1
+      | succ relativeStep =>
+          have tailLookup :
+              rest[relativeStep]? = some segment := by
+            simpa using segmentLookup
+          have tailCoordinate :=
+            induction (base := base + 1) tailLookup valueLookup
+          have taggedLength :
+              (tagSchedulerSegment base first).length = first.length := by
+            have erasedLength :=
+              congrArg List.length
+                (tagSchedulerSegment_erase base first)
+            simpa using erasedLength
+          have indexEquation :
+              ((first :: rest).take (relativeStep + 1)).flatten.length +
+                  offset =
+                (tagSchedulerSegment base first).length +
+                  ((rest.take relativeStep).flatten.length + offset) := by
+            rw [taggedLength]
+            simp [Nat.add_comm, Nat.add_left_comm]
+          rw [tagSchedulerFamilyFrom, indexEquation]
+          rw [List.getElem?_append_right]
+          · rw [Nat.add_sub_cancel_left]
+            have stepEquation :
+                base + 1 + relativeStep =
+                  base + (relativeStep + 1) := by
+              omega
+            rw [← stepEquation]
+            exact tailCoordinate
+          · exact Nat.le_add_right _ _
+
+/-- Zero-based specialization of the exact global coordinate lookup. -/
+private theorem tagSchedulerFamily_getElem?_coordinate
+    {α : Type} {segments : List (List α)}
+    {step offset : Nat} {segment : List α} {value : α}
+    (segmentLookup : segments[step]? = some segment)
+    (valueLookup : segment[offset]? = some value) :
+    (tagSchedulerFamily segments)[
+        (segments.take step).flatten.length + offset]? =
+      some
+        { step := step
+          offset := offset
+          value := value } := by
+  simpa [tagSchedulerFamily] using
+    tagSchedulerFamilyFrom_getElem?_coordinate
+      (base := 0) segmentLookup valueLookup
+
 /-- Every pair of successful relative segment/offset lookups yields the
 corresponding coordinate-exact occurrence in a family tagged from an explicit
 base step. -/
@@ -27016,7 +27218,97 @@ private def CyclicGapFrameAt {α : Type}
     rotationSuffix ++ rotationPrefix =
       leftContext ++ inner ++ rightContext
 
+/-- Existence of one positional cyclic rotation.  A witness split does not
+select values, so the relation remains valid when values repeat; because the
+witness lives in `Prop`, this relation does not retain a canonical cut
+identity. -/
+private def CyclicRotationAt {α : Type}
+    (source target : List α) : Prop :=
+  ∃ rotationPrefix rotationSuffix,
+    source = rotationPrefix ++ rotationSuffix ∧
+      target = rotationSuffix ++ rotationPrefix
+
+namespace CyclicRotationAt
+
+/-- The empty prefix displays the reflexive cyclic rotation. -/
+private theorem refl {α : Type} (source : List α) :
+    CyclicRotationAt source source := by
+  exact ⟨[], source, by simp, by simp⟩
+
+/-- Reverse a cyclic rotation without selecting occurrences by value. -/
+private theorem symm
+    {α : Type} {source target : List α}
+    (rotation : CyclicRotationAt source target) :
+    CyclicRotationAt target source := by
+  rcases rotation with
+    ⟨rotationPrefix, rotationSuffix, sourceEquation, targetEquation⟩
+  exact
+    ⟨rotationSuffix, rotationPrefix, targetEquation, sourceEquation⟩
+
+/-- Cyclic rotations compose.  The proof compares witness cuts by append
+decomposition; no equality or uniqueness of list values is required. -/
+private theorem trans
+    {α : Type} {source middle target : List α}
+    (first : CyclicRotationAt source middle)
+    (second : CyclicRotationAt middle target) :
+    CyclicRotationAt source target := by
+  rcases first with
+    ⟨firstPrefix, firstSuffix, sourceEquation, middleEquation⟩
+  rcases second with
+    ⟨secondPrefix, secondSuffix, secondMiddleEquation, targetEquation⟩
+  have overlap :
+      firstSuffix ++ firstPrefix =
+        secondPrefix ++ secondSuffix :=
+    middleEquation.symm.trans secondMiddleEquation
+  rcases List.append_eq_append_iff.mp overlap with
+    firstCut | secondCut
+  · rcases firstCut with
+      ⟨bridge, secondPrefixEquation, firstPrefixEquation⟩
+    refine ⟨bridge, secondSuffix ++ firstSuffix, ?_, ?_⟩
+    · rw [sourceEquation, firstPrefixEquation]
+      simp [List.append_assoc]
+    · rw [targetEquation, secondPrefixEquation]
+      simp [List.append_assoc]
+  · rcases secondCut with
+      ⟨bridge, firstSuffixEquation, secondSuffixEquation⟩
+    refine ⟨firstPrefix ++ secondPrefix, bridge, ?_, ?_⟩
+    · rw [sourceEquation, firstSuffixEquation]
+      simp [List.append_assoc]
+    · rw [targetEquation, secondSuffixEquation]
+      simp [List.append_assoc]
+
+/-- A positional cyclic rotation preserves the complete occurrence multiset. -/
+private theorem perm
+    {α : Type} {source target : List α}
+    (rotation : CyclicRotationAt source target) :
+    source.Perm target := by
+  rcases rotation with
+    ⟨rotationPrefix, rotationSuffix, sourceEquation, targetEquation⟩
+  rw [sourceEquation, targetEquation]
+  exact List.perm_append_comm
+
+/-- Exact occurrence uniqueness is invariant under positional rotation. -/
+private theorem nodup_iff
+    {α : Type} {source target : List α}
+    (rotation : CyclicRotationAt source target) :
+    source.Nodup ↔ target.Nodup :=
+  rotation.perm.nodup_iff
+
+end CyclicRotationAt
+
 namespace CyclicGapFrameAt
+
+/-- Project a frame to its outer cyclic-rotation relation. -/
+private theorem rotation
+    {α : Type}
+    {inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α}
+    (frame :
+      CyclicGapFrameAt
+        inner outer rotationPrefix rotationSuffix leftContext rightContext) :
+    CyclicRotationAt outer (leftContext ++ inner ++ rightContext) := by
+  exact
+    ⟨rotationPrefix, rotationSuffix, frame.1, frame.2.symm⟩
 
 /-- Every value in the displayed rotated interval belongs to the outer list. -/
 private theorem mem_outer_of_mem_rotated
@@ -27083,6 +27375,448 @@ private theorem right_context_mem_outer
   simp [membership]
 
 end CyclicGapFrameAt
+
+/-- An occurrence-position zipper for two distinguished endpoints of a cyclic
+interval.  The two rotation pieces remember the exact cut in the current
+linear representation; the second equation exposes the cyclic order from
+`first` through the retained `between` arc and then through `gap`.  Thus this
+new `gap` field is, by definition, the complete complementary endpoint arc.
+It is not the older candidate `CyclicSeamCursor.gap`: no bridge to that field,
+nor existence or preservation along scheduler ancestry, is claimed here.  No
+element uniqueness is assumed. -/
+private structure CyclicEndpointZipperAt {α : Type}
+    (first last : α) (seedMiddle current : List α) where
+  between : List α
+  gap : List α
+  rotationPrefix : List α
+  rotationSuffix : List α
+  currentRotation :
+    current = rotationPrefix ++ rotationSuffix
+  endpointRotation :
+    rotationSuffix ++ rotationPrefix =
+      [first] ++ between ++ [last] ++ gap
+  seedMiddle_sublist :
+    seedMiddle.Sublist between
+
+/-- Exact adjacency of two displayed positions in a cyclic list: either the
+pair is linearly adjacent or it is the closing last/first pair.  This minimal
+relation does not select a canonical cut when values repeat. -/
+private def CyclicListAdjacentAt {α : Type}
+    (last first : α) (current : List α) : Prop :=
+  (∃ before after,
+      current = before ++ last :: first :: after) ∨
+    ∃ middle,
+      current = first :: middle ++ [last]
+
+namespace CyclicEndpointZipperAt
+
+/-- Forget the exact cut data while retaining the displayed endpoint
+rotation. -/
+private theorem rotation
+    {α : Type} {first last : α}
+    {seedMiddle current : List α}
+    (zipper :
+      CyclicEndpointZipperAt first last seedMiddle current) :
+    CyclicRotationAt current
+      ([first] ++ zipper.between ++ [last] ++ zipper.gap) := by
+  exact
+    ⟨zipper.rotationPrefix, zipper.rotationSuffix,
+      zipper.currentRotation, zipper.endpointRotation.symm⟩
+
+/-- A zipper over an occurrence-unique current list exposes an
+occurrence-unique endpoint representation. -/
+private theorem endpointRotation_nodup
+    {α : Type} {first last : α}
+    {seedMiddle current : List α}
+    (zipper :
+      CyclicEndpointZipperAt first last seedMiddle current)
+    (currentNodup : current.Nodup) :
+    ([first] ++ zipper.between ++ [last] ++ zipper.gap).Nodup :=
+  zipper.rotation.nodup_iff.mp currentNodup
+
+/-- An empty exact endpoint gap exposes occurrence-position adjacency in the
+current cyclic list.  No equality decision or value uniqueness is used. -/
+private theorem cyclicAdjacent_of_gap_eq_nil
+    {α : Type} {first last : α}
+    {seedMiddle current : List α}
+    (zipper :
+      CyclicEndpointZipperAt first last seedMiddle current)
+    (gapEmpty : zipper.gap = []) :
+    CyclicListAdjacentAt last first current := by
+  have endpointRotation :
+      zipper.rotationSuffix ++ zipper.rotationPrefix =
+        first :: zipper.between ++ [last] := by
+    simpa [gapEmpty, List.append_assoc] using
+      zipper.endpointRotation
+  cases rotationPrefixEquation : zipper.rotationPrefix with
+  | nil =>
+      refine Or.inr ⟨zipper.between, ?_⟩
+      calc
+        current =
+            zipper.rotationPrefix ++ zipper.rotationSuffix :=
+          zipper.currentRotation
+        _ = zipper.rotationSuffix := by
+          simp [rotationPrefixEquation]
+        _ = first :: zipper.between ++ [last] := by
+          simpa [rotationPrefixEquation] using endpointRotation
+  | cons prefixHead prefixTail =>
+      cases rotationSuffixEquation : zipper.rotationSuffix with
+      | nil =>
+          refine Or.inr ⟨zipper.between, ?_⟩
+          calc
+            current =
+                zipper.rotationPrefix ++ zipper.rotationSuffix :=
+              zipper.currentRotation
+            _ = zipper.rotationPrefix := by
+              simp [rotationSuffixEquation]
+            _ = first :: zipper.between ++ [last] := by
+              simpa [rotationSuffixEquation] using endpointRotation
+      | cons suffixHead suffixTail =>
+          have rotatedEquation :
+              suffixHead ::
+                  (suffixTail ++ prefixHead :: prefixTail) =
+                first :: zipper.between ++ [last] := by
+            simpa [rotationPrefixEquation, rotationSuffixEquation,
+              List.append_assoc] using endpointRotation
+          have suffixHeadEquation : suffixHead = first :=
+            (List.cons.inj rotatedEquation).1
+          have rotatedLast :
+              (zipper.rotationSuffix ++
+                  zipper.rotationPrefix).getLast? =
+                some last := by
+            rw [endpointRotation]
+            apply List.getLast?_eq_some_iff.mpr
+            exact
+              ⟨first :: zipper.between,
+                by simp⟩
+          have prefixLast :
+              zipper.rotationPrefix.getLast? = some last := by
+            simpa [rotationPrefixEquation] using rotatedLast
+          rcases List.getLast?_eq_some_iff.mp prefixLast with
+            ⟨before, prefixEquation⟩
+          refine Or.inl ⟨before, suffixTail, ?_⟩
+          calc
+            current =
+                zipper.rotationPrefix ++ zipper.rotationSuffix :=
+              zipper.currentRotation
+            _ = (before ++ [last]) ++
+                (suffixHead :: suffixTail) := by
+              rw [prefixEquation, rotationSuffixEquation]
+            _ = before ++ last :: first :: suffixTail := by
+              simp [suffixHeadEquation, List.append_assoc]
+
+/-- The exact unrotated closing interval seeds an endpoint zipper with an
+empty complementary gap. -/
+private def closingSeed {α : Type}
+    (first last : α) (middle : List α) :
+    CyclicEndpointZipperAt first last middle
+      ([first] ++ middle ++ [last]) where
+  between := middle
+  gap := []
+  rotationPrefix := []
+  rotationSuffix := [first] ++ middle ++ [last]
+  currentRotation := by simp
+  endpointRotation := by simp
+  seedMiddle_sublist := List.Sublist.refl middle
+
+end CyclicEndpointZipperAt
+
+/-- One exact insertion into one of the two endpoint-delimited arcs.  The
+disjunction records one admissible arc branch; when `inserted = []`, both
+branches may hold.  This is an algebraic relation between zipper fields and
+does not identify a particular `CyclicGapFrameAt` context. -/
+private def CyclicEndpointSpliceAt {α : Type}
+    {first last : α} {seedMiddle inner outer : List α}
+    (innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner)
+    (outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer)
+    (inserted : List α) : Prop :=
+  (∃ before after,
+      innerZipper.between = before ++ after ∧
+        outerZipper.between =
+          before ++ inserted ++ after ∧
+        outerZipper.gap = innerZipper.gap) ∨
+    ∃ before after,
+      innerZipper.gap = before ++ after ∧
+        outerZipper.gap =
+          before ++ inserted ++ after ∧
+        outerZipper.between = innerZipper.between
+
+/-- If the exact positional cut leaves a nonempty suffix, it occurs at or
+after the distinguished first endpoint.  Inserting there extends exactly one
+of the two endpoint-delimited arcs.  This is positional list algebra:
+duplicate endpoint values are harmless. -/
+private theorem endpoint_insert_of_suffix_ne_nil {α : Type}
+    {first last : α}
+    {between gap rotationPrefix rotationSuffix inserted : List α}
+    (endpointRotation :
+      rotationSuffix ++ rotationPrefix =
+        [first] ++ between ++ [last] ++ gap)
+    (suffixNonempty : rotationSuffix ≠ []) :
+    ∃ between' gap',
+      rotationSuffix ++ inserted ++ rotationPrefix =
+        [first] ++ between' ++ [last] ++ gap' ∧
+      ((∃ before after,
+          between = before ++ after ∧
+            between' = before ++ inserted ++ after ∧
+            gap' = gap) ∨
+        ∃ before after,
+          gap = before ++ after ∧
+            gap' = before ++ inserted ++ after ∧
+            between' = between) := by
+  cases rotationSuffix with
+  | nil =>
+      exact (suffixNonempty rfl).elim
+  | cons head tail =>
+      have rotationEquation :
+          head :: (tail ++ rotationPrefix) =
+            first :: (between ++ [last] ++ gap) := by
+        simpa [List.append_assoc] using endpointRotation
+      have headEquation : head = first :=
+        (List.cons.inj rotationEquation).1
+      have tailEquation :
+          tail ++ rotationPrefix = between ++ ([last] ++ gap) := by
+        simpa [List.append_assoc] using
+          (List.cons.inj rotationEquation).2
+      subst head
+      rcases List.append_eq_append_iff.mp tailEquation with
+        ⟨middle, betweenEquation, prefixEquation⟩ |
+        ⟨middle, tailEquation, restEquation⟩
+      · refine
+          ⟨tail ++ inserted ++ middle, gap, ?_, Or.inl ?_⟩
+        · simp [prefixEquation, List.append_assoc]
+        · exact
+            ⟨tail, middle, betweenEquation, rfl, rfl⟩
+      · cases middle with
+        | nil =>
+            refine
+              ⟨between ++ inserted, gap, ?_, Or.inl ?_⟩
+            · simp [tailEquation, restEquation, List.append_assoc]
+            · exact
+                ⟨between, [], by simp, by simp, rfl⟩
+        | cons middleHead middleTail =>
+            have restConsEquation :
+                last :: gap =
+                  middleHead :: (middleTail ++ rotationPrefix) := by
+              simpa [List.append_assoc] using restEquation
+            have middleHeadEquation : middleHead = last :=
+              (List.cons.inj restConsEquation).1.symm
+            have gapEquation :
+                gap = middleTail ++ rotationPrefix :=
+              (List.cons.inj restConsEquation).2
+            subst middleHead
+            refine
+              ⟨between,
+                middleTail ++ inserted ++ rotationPrefix,
+                ?_, Or.inr ?_⟩
+            · simp [tailEquation, List.append_assoc]
+            · exact
+                ⟨middleTail, rotationPrefix, gapEquation,
+                  rfl, rfl⟩
+
+/-- Inserting a contiguous block preserves the old list as a sublist. -/
+private theorem sublist_insert_middle {α : Type}
+    (before inserted after : List α) :
+    (before ++ after).Sublist
+      (before ++ inserted ++ after) := by
+  rw [List.append_assoc]
+  exact
+    (List.Sublist.refl before).append
+      (List.sublist_append_right inserted after)
+
+/-- A single cyclic replay frame always lifts an exact endpoint zipper.  The
+inserted circular block is `rightContext ++ leftContext`: it extends the
+retained between-arc or the complementary gap according to the zipper's exact
+positional cut.  The theorem does not choose the gap branch, identify this
+`gap` with `CyclicSeamCursor.gap`, or by itself establish zipper existence
+along scheduler ancestry.  Neither `Nodup` nor endpoint-value uniqueness is
+required. -/
+private theorem CyclicGapFrameAt.endpointZipper_exists {α : Type}
+    {first last : α}
+    {seedMiddle inner outer rotationPrefix rotationSuffix
+      leftContext rightContext : List α}
+    (frame :
+      CyclicGapFrameAt
+        inner outer rotationPrefix rotationSuffix
+          leftContext rightContext)
+    (innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner) :
+    ∃ outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer,
+      CyclicEndpointSpliceAt innerZipper outerZipper
+        (rightContext ++ leftContext) := by
+  have embeddedRotation :
+      CyclicRotationAt
+        (leftContext ++ inner ++ rightContext)
+        ((innerZipper.rotationSuffix ++ rightContext) ++
+          (leftContext ++ innerZipper.rotationPrefix)) := by
+    refine
+      ⟨leftContext ++ innerZipper.rotationPrefix,
+        innerZipper.rotationSuffix ++ rightContext, ?_, rfl⟩
+    calc
+      leftContext ++ inner ++ rightContext =
+          leftContext ++
+            (innerZipper.rotationPrefix ++
+              innerZipper.rotationSuffix) ++ rightContext :=
+        congrArg (fun current =>
+          leftContext ++ current ++ rightContext)
+            innerZipper.currentRotation
+      _ = (leftContext ++ innerZipper.rotationPrefix) ++
+          (innerZipper.rotationSuffix ++ rightContext) := by
+        simp [List.append_assoc]
+  have outerRawRotation :
+      CyclicRotationAt outer
+        ((innerZipper.rotationSuffix ++ rightContext) ++
+          (leftContext ++ innerZipper.rotationPrefix)) :=
+    frame.rotation.trans embeddedRotation
+  by_cases suffixEmpty : innerZipper.rotationSuffix = []
+  · have innerEndpointRotation :
+        innerZipper.rotationPrefix =
+          [first] ++ innerZipper.between ++
+            [last] ++ innerZipper.gap := by
+      simpa [suffixEmpty] using innerZipper.endpointRotation
+    have rawSplit :
+        (innerZipper.rotationSuffix ++ rightContext) ++
+            (leftContext ++ innerZipper.rotationPrefix) =
+          (rightContext ++ leftContext) ++
+            ([first] ++ innerZipper.between ++
+              [last] ++ innerZipper.gap) := by
+      simp [suffixEmpty, innerEndpointRotation,
+        List.append_assoc]
+    have rawToEndpoint :
+        CyclicRotationAt
+          ((innerZipper.rotationSuffix ++ rightContext) ++
+            (leftContext ++ innerZipper.rotationPrefix))
+          (([first] ++ innerZipper.between ++
+              [last] ++ innerZipper.gap) ++
+            (rightContext ++ leftContext)) := by
+      exact
+        ⟨rightContext ++ leftContext,
+          [first] ++ innerZipper.between ++
+            [last] ++ innerZipper.gap,
+          rawSplit, rfl⟩
+    rcases outerRawRotation.trans rawToEndpoint with
+      ⟨endpointPrefix, endpointSuffix,
+        endpointCurrentRotation, endpointRotationEquation⟩
+    let outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer :=
+      { between := innerZipper.between
+        gap := innerZipper.gap ++
+          (rightContext ++ leftContext)
+        rotationPrefix := endpointPrefix
+        rotationSuffix := endpointSuffix
+        currentRotation := endpointCurrentRotation
+        endpointRotation := by
+          simpa [List.append_assoc] using
+            endpointRotationEquation.symm
+        seedMiddle_sublist :=
+          innerZipper.seedMiddle_sublist }
+    refine ⟨outerZipper, Or.inr ?_⟩
+    exact
+      ⟨innerZipper.gap, [], by simp,
+        by simp [outerZipper],
+        by simp [outerZipper]⟩
+  · rcases outerRawRotation with
+      ⟨outerPrefix, outerSuffix,
+        outerRotation, rawEndpointRotation⟩
+    have rawEndpointRotation' :
+        outerSuffix ++ outerPrefix =
+          innerZipper.rotationSuffix ++
+            (rightContext ++ leftContext) ++
+              innerZipper.rotationPrefix := by
+      simpa [List.append_assoc] using
+        rawEndpointRotation.symm
+    rcases endpoint_insert_of_suffix_ne_nil
+        (inserted := rightContext ++ leftContext)
+          innerZipper.endpointRotation suffixEmpty with
+      ⟨outerBetween, outerGap, endpointRotation, splice⟩
+    have seedMiddleSublist :
+        seedMiddle.Sublist outerBetween := by
+      rcases splice with
+        ⟨before, after, betweenEquation,
+          outerBetweenEquation, _gapEquation⟩ |
+        ⟨_before, _after, _gapEquation,
+          _outerGapEquation, outerBetweenEquation⟩
+      · apply innerZipper.seedMiddle_sublist.trans
+        rw [betweenEquation, outerBetweenEquation]
+        exact sublist_insert_middle before
+          (rightContext ++ leftContext) after
+      · simpa [outerBetweenEquation] using
+          innerZipper.seedMiddle_sublist
+    let outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer :=
+      { between := outerBetween
+        gap := outerGap
+        rotationPrefix := outerPrefix
+        rotationSuffix := outerSuffix
+        currentRotation := outerRotation
+        endpointRotation := by
+          rw [rawEndpointRotation']
+          exact endpointRotation
+        seedMiddle_sublist := seedMiddleSublist }
+    refine ⟨outerZipper, ?_⟩
+    rcases splice with
+      ⟨before, after, betweenEquation,
+        outerBetweenEquation, gapEquation⟩ |
+      ⟨before, after, gapEquation,
+        outerGapEquation, outerBetweenEquation⟩
+    · exact Or.inl
+        ⟨before, after, betweenEquation,
+          by simpa [outerZipper] using outerBetweenEquation,
+          by simpa [outerZipper] using gapEquation⟩
+    · exact Or.inr
+        ⟨before, after, gapEquation,
+          by simpa [outerZipper] using outerGapEquation,
+          by simpa [outerZipper] using outerBetweenEquation⟩
+
+/-- The endpoint zipper records context that the weaker seam candidate may
+intentionally omit: after the same two frames, its complementary endpoint arc
+is exactly `[2, 3]`. -/
+private theorem
+    cyclicEndpointZipper_tracks_ordinaryFrameContext :
+    let seed :
+        CyclicEndpointZipperAt 0 1 [] ([0, 1] : List Nat) :=
+      CyclicEndpointZipperAt.closingSeed 0 1 []
+    let once :
+        CyclicEndpointZipperAt 0 1 [] ([0, 1, 2] : List Nat) :=
+      { between := []
+        gap := [2]
+        rotationPrefix := []
+        rotationSuffix := [0, 1, 2]
+        currentRotation := by simp
+        endpointRotation := by simp
+        seedMiddle_sublist := by simp }
+    let twice :
+        CyclicEndpointZipperAt 0 1 [] ([3, 0, 1, 2] : List Nat) :=
+      { between := []
+        gap := [2, 3]
+        rotationPrefix := [3]
+        rotationSuffix := [0, 1, 2]
+        currentRotation := by simp
+        endpointRotation := by simp
+        seedMiddle_sublist := by simp }
+    CyclicGapFrameAt
+        ([0, 1] : List Nat) [0, 1, 2]
+          [0, 1] [2] [2] [] ∧
+      CyclicEndpointSpliceAt seed once [2] ∧
+        CyclicGapFrameAt
+          ([0, 1, 2] : List Nat) [3, 0, 1, 2]
+            [] [3, 0, 1, 2] [3] [] ∧
+          CyclicEndpointSpliceAt once twice [3] ∧
+            twice.gap = [2, 3] ∧
+              twice.rotationSuffix ++ twice.rotationPrefix =
+                [0] ++ twice.between ++ [1] ++ twice.gap := by
+  dsimp [CyclicEndpointZipperAt.closingSeed]
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [CyclicGapFrameAt]
+  · exact Or.inr
+      ⟨[], [], by simp, by simp, by simp⟩
+  · simp [CyclicGapFrameAt]
+  · exact Or.inr
+      ⟨[2], [], by simp, by simp, by simp⟩
+  · rfl
+  · rfl
 
 /-- A boundary cursor on a nonempty cyclic list.  Boundary zero is the
 distinguished closing seam.  The two legs carry the candidate gap accumulated
@@ -27419,6 +28153,44 @@ private theorem closing_seed_advance_exists
 
 end CyclicSeamAdvanceAt
 
+/-- Regression: the candidate seam gap is intentionally weaker than the exact
+complementary endpoint arc.  A seam lift records `2`, while a later ordinary
+lift inserts `3` on the same actual endpoint arc without changing the cursor
+legs.  This example prevents future proofs from silently treating
+`CyclicSeamCursor.gap` as the complete endpoint arc. -/
+private theorem
+    cyclicSeamCursor_candidateGap_can_miss_ordinaryFrameContext :
+    let seed : CyclicSeamCursor ([0, 1] : List Nat) :=
+      { boundary := 0
+        boundary_lt := by decide
+        rightLeg := []
+        leftLeg := [] }
+    let afterSeam : CyclicSeamCursor ([0, 1, 2] : List Nat) :=
+      { boundary := 2
+        boundary_lt := by decide
+        rightLeg := []
+        leftLeg := [2] }
+    let afterOrdinary : CyclicSeamCursor ([3, 0, 1, 2] : List Nat) :=
+      { boundary := 3
+        boundary_lt := by decide
+        rightLeg := []
+        leftLeg := [2] }
+    CyclicSeamAdvanceAt
+        [0, 1] [0, 1, 2] [0, 1] [2] [2] []
+          seed afterSeam ∧
+      CyclicSeamAdvanceAt
+          [0, 1, 2] [3, 0, 1, 2] [] [3, 0, 1, 2] [3] []
+            afterSeam afterOrdinary ∧
+        afterOrdinary.gap = [2] ∧
+          afterOrdinary.gap ≠ [2, 3] ∧
+          ([3, 0, 1, 2].drop afterOrdinary.boundary ++
+              [3, 0, 1, 2].take afterOrdinary.boundary) =
+            [2, 3, 0, 1] ∧
+            afterOrdinary.leftLeg ++ [0, 1] ++ afterOrdinary.rightLeg ≠
+              [2, 3, 0, 1] := by
+  simp [CyclicSeamAdvanceAt, CyclicGapFrameAt,
+    CyclicSeamCursor.gap]
+
 /-- Proof-relevant replay of a seam cursor through zero or more exact cyclic
 gap frames.  Each step retains the frame used for that lift. -/
 private inductive CyclicSeamReplayAt {α : Type} :
@@ -27440,7 +28212,492 @@ private inductive CyclicSeamReplayAt {α : Type} :
       (tail : CyclicSeamReplayAt middleCursor outerCursor) :
       CyclicSeamReplayAt innerCursor outerCursor
 
+/-- A seam replay enriched with an exact endpoint zipper at every stored
+frame.  Each constructor retains the original cursor advance and the matching
+zipper splice by `rightContext ++ leftContext`.  This trace does not select the
+gap branch of a splice and does not identify either zipper arc with the older
+candidate `CyclicSeamCursor.gap`. -/
+private inductive CyclicEndpointReplayAt {α : Type}
+    {first last : α} {seedMiddle : List α} :
+    {inner outer : List α} →
+      CyclicSeamCursor inner → CyclicSeamCursor outer →
+        CyclicEndpointZipperAt first last seedMiddle inner →
+          CyclicEndpointZipperAt first last seedMiddle outer → Prop where
+  | refl
+      {current : List α}
+      (cursor : CyclicSeamCursor current)
+      (zipper :
+        CyclicEndpointZipperAt first last seedMiddle current) :
+      CyclicEndpointReplayAt cursor cursor zipper zipper
+  | step
+      {inner middle outer : List α}
+      {innerCursor : CyclicSeamCursor inner}
+      {middleCursor : CyclicSeamCursor middle}
+      {outerCursor : CyclicSeamCursor outer}
+      {innerZipper :
+        CyclicEndpointZipperAt first last seedMiddle inner}
+      {outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer}
+      {rotationPrefix rotationSuffix leftContext rightContext inserted :
+        List α}
+      (advance :
+        CyclicSeamAdvanceAt
+          inner middle rotationPrefix rotationSuffix leftContext rightContext
+            innerCursor middleCursor)
+      (insertedEquation : inserted = rightContext ++ leftContext)
+      (middleZipper :
+        CyclicEndpointZipperAt first last seedMiddle middle)
+      (splice :
+        CyclicEndpointSpliceAt innerZipper middleZipper inserted)
+      (tail :
+        CyclicEndpointReplayAt
+          middleCursor outerCursor middleZipper outerZipper) :
+      CyclicEndpointReplayAt
+        innerCursor outerCursor innerZipper outerZipper
+
+/-- One exact endpoint-replay step at which the complete complementary gap
+opens from empty to nonempty.  The witness retains the original seam frame,
+the exact inserted circular block, the unspecialized splice, and its explicit
+gap branch.  It contains no equation with `CyclicSeamCursor.gap`. -/
+private def CyclicEndpointGapOpeningStepAt {α : Type}
+    (first last : α) (seedMiddle : List α) : Prop :=
+  ∃ (inner middle : List α)
+      (innerCursor : CyclicSeamCursor inner)
+      (middleCursor : CyclicSeamCursor middle)
+      (innerZipper :
+        CyclicEndpointZipperAt first last seedMiddle inner)
+      (middleZipper :
+        CyclicEndpointZipperAt first last seedMiddle middle)
+      (rotationPrefix rotationSuffix leftContext rightContext inserted :
+        List α),
+    CyclicSeamAdvanceAt
+        inner middle rotationPrefix rotationSuffix
+          leftContext rightContext innerCursor middleCursor ∧
+      inserted = rightContext ++ leftContext ∧
+        CyclicEndpointSpliceAt
+            innerZipper middleZipper inserted ∧
+          (∃ before after,
+            innerZipper.gap = before ++ after ∧
+              middleZipper.gap =
+                before ++ inserted ++ after ∧
+              middleZipper.between = innerZipper.between) ∧
+            innerZipper.gap = [] ∧
+              middleZipper.gap ≠ [] ∧
+                inserted ≠ []
+
+/-- The first exact empty-to-nonempty gap transition inside one supplied
+endpoint replay.  The `here` constructor retains the opening frame itself;
+`later` records that the skipped frame still ended with an empty exact gap.
+Indexing by the replay keeps a later phase split from erasing which replay
+contains the first opening frame. -/
+private inductive CyclicEndpointFirstGapOpeningInReplayAt {α : Type}
+    {first last : α} {seedMiddle : List α} :
+    {inner outer : List α} →
+      {innerCursor : CyclicSeamCursor inner} →
+        {outerCursor : CyclicSeamCursor outer} →
+          {innerZipper :
+            CyclicEndpointZipperAt first last seedMiddle inner} →
+            {outerZipper :
+              CyclicEndpointZipperAt first last seedMiddle outer} →
+              CyclicEndpointReplayAt
+                  innerCursor outerCursor innerZipper outerZipper →
+                Prop where
+  | here
+      {inner middle outer : List α}
+      {innerCursor : CyclicSeamCursor inner}
+      {middleCursor : CyclicSeamCursor middle}
+      {outerCursor : CyclicSeamCursor outer}
+      {innerZipper :
+        CyclicEndpointZipperAt first last seedMiddle inner}
+      {outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer}
+      {rotationPrefix rotationSuffix leftContext rightContext inserted :
+        List α}
+      (advance :
+        CyclicSeamAdvanceAt
+          inner middle rotationPrefix rotationSuffix leftContext rightContext
+            innerCursor middleCursor)
+      (insertedEquation : inserted = rightContext ++ leftContext)
+      (middleZipper :
+        CyclicEndpointZipperAt first last seedMiddle middle)
+      (splice :
+        CyclicEndpointSpliceAt innerZipper middleZipper inserted)
+      (tail :
+        CyclicEndpointReplayAt
+          middleCursor outerCursor middleZipper outerZipper)
+      (gapBranch :
+        ∃ before after,
+          innerZipper.gap = before ++ after ∧
+            middleZipper.gap =
+              before ++ inserted ++ after ∧
+                middleZipper.between = innerZipper.between)
+      (innerGapEmpty : innerZipper.gap = [])
+      (middleGapNonempty : middleZipper.gap ≠ [])
+      (insertedNonempty : inserted ≠ []) :
+      CyclicEndpointFirstGapOpeningInReplayAt
+        (.step advance insertedEquation middleZipper splice tail)
+  | later
+      {inner middle outer : List α}
+      {innerCursor : CyclicSeamCursor inner}
+      {middleCursor : CyclicSeamCursor middle}
+      {outerCursor : CyclicSeamCursor outer}
+      {innerZipper :
+        CyclicEndpointZipperAt first last seedMiddle inner}
+      {outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer}
+      {rotationPrefix rotationSuffix leftContext rightContext inserted :
+        List α}
+      (advance :
+        CyclicSeamAdvanceAt
+          inner middle rotationPrefix rotationSuffix leftContext rightContext
+            innerCursor middleCursor)
+      (insertedEquation : inserted = rightContext ++ leftContext)
+      (middleZipper :
+        CyclicEndpointZipperAt first last seedMiddle middle)
+      (splice :
+        CyclicEndpointSpliceAt innerZipper middleZipper inserted)
+      (tail :
+        CyclicEndpointReplayAt
+          middleCursor outerCursor middleZipper outerZipper)
+      (innerGapEmpty : innerZipper.gap = [])
+      (middleGapEmpty : middleZipper.gap = [])
+      (tailFirst :
+        CyclicEndpointFirstGapOpeningInReplayAt tail) :
+      CyclicEndpointFirstGapOpeningInReplayAt
+        (.step advance insertedEquation middleZipper splice tail)
+
+/-- Every exact zipper gap encountered by one endpoint replay is empty.  This
+is the negative certificate needed when the global first opening lies in a
+later replay phase. -/
+private inductive CyclicEndpointGapStaysEmptyInReplayAt {α : Type}
+    {first last : α} {seedMiddle : List α} :
+    {inner outer : List α} →
+      {innerCursor : CyclicSeamCursor inner} →
+        {outerCursor : CyclicSeamCursor outer} →
+          {innerZipper :
+            CyclicEndpointZipperAt first last seedMiddle inner} →
+            {outerZipper :
+              CyclicEndpointZipperAt first last seedMiddle outer} →
+              CyclicEndpointReplayAt
+                  innerCursor outerCursor innerZipper outerZipper →
+                Prop where
+  | refl
+      {current : List α}
+      {cursor : CyclicSeamCursor current}
+      {zipper :
+        CyclicEndpointZipperAt first last seedMiddle current}
+      (gapEmpty : zipper.gap = []) :
+      CyclicEndpointGapStaysEmptyInReplayAt
+        (.refl cursor zipper)
+  | step
+      {inner middle outer : List α}
+      {innerCursor : CyclicSeamCursor inner}
+      {middleCursor : CyclicSeamCursor middle}
+      {outerCursor : CyclicSeamCursor outer}
+      {innerZipper :
+        CyclicEndpointZipperAt first last seedMiddle inner}
+      {outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer}
+      {rotationPrefix rotationSuffix leftContext rightContext inserted :
+        List α}
+      (advance :
+        CyclicSeamAdvanceAt
+          inner middle rotationPrefix rotationSuffix leftContext rightContext
+            innerCursor middleCursor)
+      (insertedEquation : inserted = rightContext ++ leftContext)
+      (middleZipper :
+        CyclicEndpointZipperAt first last seedMiddle middle)
+      (splice :
+        CyclicEndpointSpliceAt innerZipper middleZipper inserted)
+      (tail :
+        CyclicEndpointReplayAt
+          middleCursor outerCursor middleZipper outerZipper)
+      (innerGapEmpty : innerZipper.gap = [])
+      (middleGapEmpty : middleZipper.gap = [])
+      (tailEmpty :
+        CyclicEndpointGapStaysEmptyInReplayAt tail) :
+      CyclicEndpointGapStaysEmptyInReplayAt
+        (.step advance insertedEquation middleZipper splice tail)
+
+namespace CyclicEndpointReplayAt
+
+/-- Forget only the endpoint geometry; the exact seam replay and every stored
+frame remain reconstructible from an endpoint replay. -/
+private theorem seamReplay
+    {α : Type} {first last : α}
+    {seedMiddle inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    {innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner}
+    {outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer}
+    (replay :
+      CyclicEndpointReplayAt
+        innerCursor outerCursor innerZipper outerZipper) :
+    CyclicSeamReplayAt innerCursor outerCursor := by
+  induction replay with
+  | refl cursor _zipper =>
+      exact .refl cursor
+  | step advance _insertedEquation _middleZipper
+      _splice _tail induction =>
+      exact .step advance induction
+
+/-- Compose two endpoint-enriched replay phases without erasing their common
+zipper or any stored frame/splice witness. -/
+private theorem trans
+    {α : Type} {first last : α}
+    {seedMiddle inner middle outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {middleCursor : CyclicSeamCursor middle}
+    {outerCursor : CyclicSeamCursor outer}
+    {innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner}
+    {middleZipper :
+      CyclicEndpointZipperAt first last seedMiddle middle}
+    {outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer}
+    (firstReplay :
+      CyclicEndpointReplayAt
+        innerCursor middleCursor innerZipper middleZipper)
+    (secondReplay :
+      CyclicEndpointReplayAt
+        middleCursor outerCursor middleZipper outerZipper) :
+    CyclicEndpointReplayAt
+      innerCursor outerCursor innerZipper outerZipper := by
+  induction firstReplay with
+  | refl =>
+      exact secondReplay
+  | step advance insertedEquation nextZipper
+      splice _tail induction =>
+      exact
+        .step advance insertedEquation nextZipper splice
+          (induction secondReplay)
+
+/-- If an endpoint replay begins with an empty exact gap and ends with a
+nonempty exact gap, some retained replay step is a genuine gap-opening step.
+The proof follows the endpoint replay only.  It neither reads the older cursor
+gap nor derives a scheduler contradiction. -/
+private theorem gapOpeningStep_exists
+    {α : Type} {first last : α}
+    {seedMiddle inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    {innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner}
+    {outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer}
+    (replay :
+      CyclicEndpointReplayAt
+        innerCursor outerCursor innerZipper outerZipper)
+    (initialGapEmpty : innerZipper.gap = [])
+    (finalGapNonempty : outerZipper.gap ≠ []) :
+    CyclicEndpointGapOpeningStepAt first last seedMiddle := by
+  induction replay with
+  | refl _cursor _zipper =>
+      exact False.elim (finalGapNonempty initialGapEmpty)
+  | @step inner middle outer innerCursor middleCursor outerCursor
+      innerZipper outerZipper rotationPrefix rotationSuffix
+      leftContext rightContext inserted advance insertedEquation
+      middleZipper splice tail induction =>
+      by_cases middleGapEmpty : middleZipper.gap = []
+      · exact induction middleGapEmpty finalGapNonempty
+      · rcases splice with
+          ⟨before, after, _innerBetweenEquation,
+            _middleBetweenEquation, gapEquation⟩ |
+          ⟨before, after, innerGapEquation,
+            middleGapEquation, middleBetweenEquation⟩
+        · exact False.elim
+            (middleGapEmpty (gapEquation.trans initialGapEmpty))
+        · have beforeAfterEmpty :
+              before = [] ∧ after = [] := by
+            have decompositionEmpty :
+                before ++ after = [] :=
+              innerGapEquation.symm.trans initialGapEmpty
+            simpa using decompositionEmpty
+          have insertedNonempty : inserted ≠ [] := by
+            intro insertedEmpty
+            apply middleGapEmpty
+            simpa [beforeAfterEmpty.1, beforeAfterEmpty.2,
+              insertedEmpty] using middleGapEquation
+          exact
+            ⟨inner, middle, innerCursor, middleCursor,
+              innerZipper, middleZipper,
+              rotationPrefix, rotationSuffix,
+              leftContext, rightContext, inserted,
+              advance, insertedEquation,
+              Or.inr
+                ⟨before, after, innerGapEquation,
+                  middleGapEquation, middleBetweenEquation⟩,
+              ⟨before, after, innerGapEquation,
+                middleGapEquation, middleBetweenEquation⟩,
+              initialGapEmpty, middleGapEmpty, insertedNonempty⟩
+
+/-- Strengthen `gapOpeningStep_exists` by retaining the exact replay in which
+the first empty-to-nonempty transition occurs. -/
+private theorem firstGapOpeningInReplay_exists
+    {α : Type} {first last : α}
+    {seedMiddle inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    {innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner}
+    {outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer}
+    (replay :
+      CyclicEndpointReplayAt
+        innerCursor outerCursor innerZipper outerZipper)
+    (initialGapEmpty : innerZipper.gap = [])
+    (finalGapNonempty : outerZipper.gap ≠ []) :
+    CyclicEndpointFirstGapOpeningInReplayAt replay := by
+  induction replay with
+  | refl _cursor _zipper =>
+      exact False.elim (finalGapNonempty initialGapEmpty)
+  | @step inner middle outer innerCursor middleCursor outerCursor
+      innerZipper outerZipper rotationPrefix rotationSuffix
+      leftContext rightContext inserted advance insertedEquation
+      middleZipper splice tail induction =>
+      by_cases middleGapEmpty : middleZipper.gap = []
+      · exact
+          .later advance insertedEquation middleZipper splice tail
+            initialGapEmpty middleGapEmpty
+              (induction middleGapEmpty finalGapNonempty)
+      · rcases splice with
+          ⟨before, after, _innerBetweenEquation,
+            _middleBetweenEquation, gapEquation⟩ |
+          ⟨before, after, innerGapEquation,
+            middleGapEquation, middleBetweenEquation⟩
+        · exact False.elim
+            (middleGapEmpty (gapEquation.trans initialGapEmpty))
+        · have beforeAfterEmpty :
+              before = [] ∧ after = [] := by
+            have decompositionEmpty :
+                before ++ after = [] :=
+              innerGapEquation.symm.trans initialGapEmpty
+            simpa using decompositionEmpty
+          have insertedNonempty : inserted ≠ [] := by
+            intro insertedEmpty
+            apply middleGapEmpty
+            simpa [beforeAfterEmpty.1, beforeAfterEmpty.2,
+              insertedEmpty] using middleGapEquation
+          exact
+            .here advance insertedEquation middleZipper
+              (Or.inr
+                ⟨before, after, innerGapEquation,
+                  middleGapEquation, middleBetweenEquation⟩)
+              tail
+              ⟨before, after, innerGapEquation,
+                middleGapEquation, middleBetweenEquation⟩
+              initialGapEmpty middleGapEmpty insertedNonempty
+
+/-- Classify the global first exact gap opening across two replay phases.
+If it lies in the second phase, the returned negative certificate proves that
+every exact zipper gap in the first phase remained empty. -/
+private theorem firstGapOpeningInEitherPhase_exists
+    {α : Type} {first last : α}
+    {seedMiddle closing base initial : List α}
+    {closingCursor : CyclicSeamCursor closing}
+    {baseCursor : CyclicSeamCursor base}
+    {initialCursor : CyclicSeamCursor initial}
+    {closingZipper :
+      CyclicEndpointZipperAt first last seedMiddle closing}
+    {baseZipper :
+      CyclicEndpointZipperAt first last seedMiddle base}
+    {initialZipper :
+      CyclicEndpointZipperAt first last seedMiddle initial}
+    (terminalReplay :
+      CyclicEndpointReplayAt
+        closingCursor baseCursor closingZipper baseZipper)
+    (ancestryReplay :
+      CyclicEndpointReplayAt
+        baseCursor initialCursor baseZipper initialZipper)
+    (closingGapEmpty : closingZipper.gap = [])
+    (initialGapNonempty : initialZipper.gap ≠ []) :
+    CyclicEndpointFirstGapOpeningInReplayAt terminalReplay ∨
+      (CyclicEndpointGapStaysEmptyInReplayAt terminalReplay ∧
+        CyclicEndpointFirstGapOpeningInReplayAt ancestryReplay) := by
+  induction terminalReplay with
+  | refl cursor zipper =>
+      exact Or.inr
+        ⟨.refl closingGapEmpty,
+          ancestryReplay.firstGapOpeningInReplay_exists
+            closingGapEmpty initialGapNonempty⟩
+  | @step inner middle outer innerCursor middleCursor outerCursor
+      innerZipper outerZipper rotationPrefix rotationSuffix
+      leftContext rightContext inserted advance insertedEquation
+      middleZipper splice tail induction =>
+      by_cases middleGapEmpty : middleZipper.gap = []
+      · rcases
+          induction ancestryReplay middleGapEmpty with
+          tailFirst | ⟨tailEmpty, ancestryFirst⟩
+        · exact Or.inl
+            (.later advance insertedEquation middleZipper splice tail
+              closingGapEmpty middleGapEmpty tailFirst)
+        · exact Or.inr
+            ⟨.step advance insertedEquation middleZipper splice tail
+                closingGapEmpty middleGapEmpty tailEmpty,
+              ancestryFirst⟩
+      · rcases splice with
+          ⟨before, after, _innerBetweenEquation,
+            _middleBetweenEquation, gapEquation⟩ |
+          ⟨before, after, innerGapEquation,
+            middleGapEquation, middleBetweenEquation⟩
+        · exact False.elim
+            (middleGapEmpty (gapEquation.trans closingGapEmpty))
+        · have beforeAfterEmpty :
+              before = [] ∧ after = [] := by
+            have decompositionEmpty :
+                before ++ after = [] :=
+              innerGapEquation.symm.trans closingGapEmpty
+            simpa using decompositionEmpty
+          have insertedNonempty : inserted ≠ [] := by
+            intro insertedEmpty
+            apply middleGapEmpty
+            simpa [beforeAfterEmpty.1, beforeAfterEmpty.2,
+              insertedEmpty] using middleGapEquation
+          exact Or.inl
+            (.here advance insertedEquation middleZipper
+              (Or.inr
+                ⟨before, after, innerGapEquation,
+                  middleGapEquation, middleBetweenEquation⟩)
+              tail
+              ⟨before, after, innerGapEquation,
+                middleGapEquation, middleBetweenEquation⟩
+              closingGapEmpty middleGapEmpty insertedNonempty)
+
+end CyclicEndpointReplayAt
+
 namespace CyclicSeamReplayAt
+
+/-- Lift every exact frame of one supplied seam replay to endpoint zippers.
+The returned enriched trace uses that replay's stored advances in order.  It
+establishes neither that a particular insertion lands in the complementary
+gap nor any relation to `CyclicSeamCursor.gap`. -/
+private theorem endpointReplay_exists
+    {α : Type}
+    {first last : α} {seedMiddle : List α}
+    {inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    (replay : CyclicSeamReplayAt innerCursor outerCursor)
+    (innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner) :
+    ∃ outerZipper :
+        CyclicEndpointZipperAt first last seedMiddle outer,
+      CyclicEndpointReplayAt
+        innerCursor outerCursor innerZipper outerZipper := by
+  induction replay with
+  | refl =>
+      exact ⟨innerZipper, .refl _ innerZipper⟩
+  | step advance _tail induction =>
+      rcases
+          advance.1.endpointZipper_exists innerZipper with
+        ⟨middleZipper, splice⟩
+      rcases induction middleZipper with
+        ⟨outerZipper, tailReplay⟩
+      exact
+        ⟨outerZipper,
+          .step advance rfl middleZipper splice tailReplay⟩
 
 /-- Compose two exact seam-replay traces without erasing their frames. -/
 private theorem trans
@@ -33929,6 +35186,475 @@ private def SchedulerCyclicCoordinateAdjacent
         ((last.step + 1 < count ∧ first.step = last.step + 1) ∨
           (last.step + 1 = count ∧ first.step = 0)))
 
+/-- Regression: empty scheduler segments are a genuine obstruction to deriving
+the current coordinate-adjacency predicate merely from an empty exact endpoint
+gap.  The tagged cyclic order below contains no occurrence between `lastTag`
+and `firstTag`, but their coordinates skip the empty segment at step one.
+Later scheduler-order bridges must therefore use the independently available
+nonemptiness of every flipped segment. -/
+private theorem
+    cyclicEndpointZipper_gap_empty_can_skip_empty_scheduler_segment :
+    let segments : List (List Nat) := [[7], [], [9]]
+    let lastTag : SchedulerOccurrence Nat :=
+      { step := 0, offset := 0, value := 7 }
+    let firstTag : SchedulerOccurrence Nat :=
+      { step := 2, offset := 0, value := 9 }
+    let zipper :
+        CyclicEndpointZipperAt firstTag lastTag []
+          (tagSchedulerFamily segments) :=
+      { between := []
+        gap := []
+        rotationPrefix := [lastTag]
+        rotationSuffix := [firstTag]
+        currentRotation := by decide
+        endpointRotation := by decide
+        seedMiddle_sublist := by simp }
+    segments.length = 3 ∧
+      segments[lastTag.step]? = some [7] ∧
+      [7][lastTag.offset]? = some lastTag.value ∧
+      segments[firstTag.step]? = some [9] ∧
+      [9][firstTag.offset]? = some firstTag.value ∧
+      zipper.gap = [] ∧
+      ¬SchedulerCyclicCoordinateAdjacent
+        3 [7].length lastTag firstTag := by
+  dsimp
+  simp [SchedulerCyclicCoordinateAdjacent]
+
+/-- Exact cyclic list adjacency becomes adjacency of global occurrence ranks
+inside the duplicate-free tagged family.  This layer still permits skipped
+empty segments; no coordinate-step conclusion is drawn yet. -/
+private theorem tagSchedulerFamily_rank_cyclicAdjacent
+    {α : Type} {segments : List (List α)}
+    {last first : SchedulerOccurrence α}
+    {lastSegment firstSegment : List α}
+    (lastSegmentLookup :
+      segments[last.step]? = some lastSegment)
+    (lastOffsetLookup :
+      lastSegment[last.offset]? = some last.value)
+    (firstSegmentLookup :
+      segments[first.step]? = some firstSegment)
+    (firstOffsetLookup :
+      firstSegment[first.offset]? = some first.value)
+    (adjacent :
+      CyclicListAdjacentAt
+        last first (tagSchedulerFamily segments)) :
+    ((segments.take first.step).flatten.length + first.offset =
+        (segments.take last.step).flatten.length + last.offset + 1) ∨
+      ((segments.take first.step).flatten.length + first.offset = 0 ∧
+        (segments.take last.step).flatten.length + last.offset + 1 =
+          (tagSchedulerFamily segments).length) := by
+  have lastRankLookup :=
+    tagSchedulerFamily_getElem?_coordinate
+      lastSegmentLookup lastOffsetLookup
+  have firstRankLookup :=
+    tagSchedulerFamily_getElem?_coordinate
+      firstSegmentLookup firstOffsetLookup
+  have taggedNodup := tagSchedulerFamily_nodup segments
+  rcases adjacent with
+    ⟨before, after, taggedEquation⟩ |
+    ⟨middle, taggedEquation⟩
+  · have lastAtBoundary :
+        (tagSchedulerFamily segments)[before.length]? =
+          some last := by
+      rw [taggedEquation]
+      simp
+    have firstAfterBoundary :
+        (tagSchedulerFamily segments)[before.length + 1]? =
+          some first := by
+      rw [taggedEquation]
+      simp
+    have lastRankBound :=
+      (List.getElem?_eq_some_iff.mp lastRankLookup).1
+    have firstRankBound :=
+      (List.getElem?_eq_some_iff.mp firstRankLookup).1
+    have lastRankEquation :
+        (segments.take last.step).flatten.length + last.offset =
+          before.length :=
+      (List.getElem?_inj lastRankBound taggedNodup).mp
+        (lastRankLookup.trans lastAtBoundary.symm)
+    have firstRankEquation :
+        (segments.take first.step).flatten.length + first.offset =
+          before.length + 1 :=
+      (List.getElem?_inj firstRankBound taggedNodup).mp
+        (firstRankLookup.trans firstAfterBoundary.symm)
+    exact Or.inl (by omega)
+  · have firstAtHead :
+        (tagSchedulerFamily segments)[0]? = some first := by
+      rw [taggedEquation]
+      simp
+    have lastAtEnd :
+        (tagSchedulerFamily segments)[middle.length + 1]? =
+          some last := by
+      rw [taggedEquation]
+      simp
+    have taggedLength :
+        (tagSchedulerFamily segments).length =
+          middle.length + 2 := by
+      rw [taggedEquation]
+      simp
+    have lastRankBound :=
+      (List.getElem?_eq_some_iff.mp lastRankLookup).1
+    have firstRankBound :=
+      (List.getElem?_eq_some_iff.mp firstRankLookup).1
+    have lastRankEquation :
+        (segments.take last.step).flatten.length + last.offset =
+          middle.length + 1 :=
+      (List.getElem?_inj lastRankBound taggedNodup).mp
+        (lastRankLookup.trans lastAtEnd.symm)
+    have firstRankEquation :
+        (segments.take first.step).flatten.length + first.offset = 0 :=
+      (List.getElem?_inj firstRankBound taggedNodup).mp
+        (firstRankLookup.trans firstAtHead.symm)
+    exact Or.inr ⟨firstRankEquation, by omega⟩
+
+/-- A positive-length block family has a positive prefix at every positive
+in-range step. -/
+private theorem positiveBlocks_take_sum_pos
+    {blocks : List Nat}
+    (positive : ∀ block, block ∈ blocks → 0 < block)
+    {step : Nat}
+    (stepPositive : 0 < step)
+    (stepBound : step ≤ blocks.length) :
+    0 < (blocks.take step).sum := by
+  cases blocks with
+  | nil =>
+      simp at stepBound
+      omega
+  | cons block rest =>
+      cases step with
+      | zero =>
+          omega
+      | succ step =>
+          have blockPositive : 0 < block :=
+            positive block (by simp)
+          simp
+          omega
+
+/-- A family whose every block length is positive has sum zero only when it
+is empty. -/
+private theorem positiveBlocks_eq_nil_of_sum_eq_zero
+    {blocks : List Nat}
+    (positive : ∀ block, block ∈ blocks → 0 < block)
+    (sumZero : blocks.sum = 0) :
+    blocks = [] := by
+  cases blocks with
+  | nil =>
+      rfl
+  | cons block rest =>
+      have blockPositive : 0 < block :=
+        positive block (by simp)
+      simp at sumZero
+      omega
+
+/-- Rank zero in a positive block family is exactly offset zero in block
+zero. -/
+private theorem positiveBlocks_rank_eq_zero
+    {blocks : List Nat}
+    (positive : ∀ block, block ∈ blocks → 0 < block)
+    {step offset blockLength : Nat}
+    (blockLookup : blocks[step]? = some blockLength)
+    (_offsetBound : offset < blockLength)
+    (rankZero : (blocks.take step).sum + offset = 0) :
+    step = 0 ∧ offset = 0 := by
+  have stepBound : step < blocks.length :=
+    (List.getElem?_eq_some_iff.mp blockLookup).1
+  have offsetZero : offset = 0 := by omega
+  have prefixZero : (blocks.take step).sum = 0 := by omega
+  have stepZero : step = 0 := by
+    by_cases equation : step = 0
+    · exact equation
+    · have prefixPositive :
+          0 < (blocks.take step).sum :=
+        positiveBlocks_take_sum_pos positive
+          (Nat.pos_of_ne_zero equation) (Nat.le_of_lt stepBound)
+      omega
+  exact ⟨stepZero, offsetZero⟩
+
+/-- The final global rank in a positive block family is exactly the final
+offset of the final block. -/
+private theorem positiveBlocks_rank_eq_sum
+    {blocks : List Nat}
+    (positive : ∀ block, block ∈ blocks → 0 < block)
+    {step offset blockLength : Nat}
+    (blockLookup : blocks[step]? = some blockLength)
+    (offsetBound : offset < blockLength)
+    (rankEnd :
+      (blocks.take step).sum + offset + 1 = blocks.sum) :
+    offset + 1 = blockLength ∧ step + 1 = blocks.length := by
+  induction blocks generalizing step with
+  | nil =>
+      simp at blockLookup
+  | cons first rest induction =>
+      have firstPositive : 0 < first :=
+        positive first (by simp)
+      have restPositive :
+          ∀ block, block ∈ rest → 0 < block := by
+        intro block membership
+        exact positive block (by simp [membership])
+      cases step with
+      | zero =>
+          have blockEquation : first = blockLength :=
+            Option.some.inj (by simpa using blockLookup)
+          subst first
+          have restSumZero : rest.sum = 0 := by
+            simp at rankEnd
+            omega
+          have restEmpty :
+              rest = [] :=
+            positiveBlocks_eq_nil_of_sum_eq_zero
+              restPositive restSumZero
+          subst rest
+          simp at rankEnd
+          exact ⟨by omega, by simp⟩
+      | succ step =>
+          have tailLookup :
+              rest[step]? = some blockLength := by
+            simpa using blockLookup
+          have tailRankEnd :
+              (rest.take step).sum + offset + 1 = rest.sum := by
+            simp at rankEnd
+            omega
+          rcases induction restPositive tailLookup tailRankEnd with
+            ⟨offsetEquation, stepEquation⟩
+          exact ⟨offsetEquation, by simp; omega⟩
+
+/-- Consecutive global ranks in a positive block family are either consecutive
+offsets in one block or the exact boundary between two consecutive blocks. -/
+private theorem positiveBlocks_rank_succ
+    {blocks : List Nat}
+    (positive : ∀ block, block ∈ blocks → 0 < block)
+    {lastStep firstStep lastOffset firstOffset
+      lastLength firstLength : Nat}
+    (lastLookup : blocks[lastStep]? = some lastLength)
+    (lastOffsetBound : lastOffset < lastLength)
+    (firstLookup : blocks[firstStep]? = some firstLength)
+    (firstOffsetBound : firstOffset < firstLength)
+    (rankSucc :
+      (blocks.take firstStep).sum + firstOffset =
+        (blocks.take lastStep).sum + lastOffset + 1) :
+    (lastStep = firstStep ∧
+        firstOffset = lastOffset + 1) ∨
+      (lastOffset + 1 = lastLength ∧
+        firstOffset = 0 ∧
+          lastStep + 1 < blocks.length ∧
+            firstStep = lastStep + 1) := by
+  induction blocks generalizing lastStep firstStep with
+  | nil =>
+      simp at lastLookup
+  | cons block rest induction =>
+      have blockPositive : 0 < block :=
+        positive block (by simp)
+      have restPositive :
+          ∀ length, length ∈ rest → 0 < length := by
+        intro length membership
+        exact positive length (by simp [membership])
+      cases lastStep with
+      | zero =>
+          have lastLengthEquation : block = lastLength :=
+            Option.some.inj (by simpa using lastLookup)
+          subst block
+          cases firstStep with
+          | zero =>
+              exact Or.inl ⟨rfl, by simpa using rankSucc⟩
+          | succ firstStep =>
+              have tailFirstLookup :
+                  rest[firstStep]? = some firstLength := by
+                simpa using firstLookup
+              have firstStepBound : firstStep < rest.length :=
+                (List.getElem?_eq_some_iff.mp tailFirstLookup).1
+              have prefixZero :
+                  (rest.take firstStep).sum = 0 := by
+                simp at rankSucc
+                omega
+              have firstOffsetZero : firstOffset = 0 := by
+                simp at rankSucc
+                omega
+              have lastAtEnd :
+                  lastOffset + 1 = lastLength := by
+                simp at rankSucc
+                omega
+              have firstStepZero : firstStep = 0 := by
+                by_cases equation : firstStep = 0
+                · exact equation
+                · have prefixPositive :
+                      0 < (rest.take firstStep).sum :=
+                    positiveBlocks_take_sum_pos restPositive
+                      (Nat.pos_of_ne_zero equation)
+                      (Nat.le_of_lt firstStepBound)
+                  omega
+              refine Or.inr
+                ⟨lastAtEnd, firstOffsetZero, ?_, ?_⟩
+              · simp
+                omega
+              · omega
+      | succ lastStep =>
+          have tailLastLookup :
+              rest[lastStep]? = some lastLength := by
+            simpa using lastLookup
+          cases firstStep with
+          | zero =>
+              have firstLengthEquation : block = firstLength :=
+                Option.some.inj (by simpa using firstLookup)
+              subst block
+              simp at rankSucc
+              omega
+          | succ firstStep =>
+              have tailFirstLookup :
+                  rest[firstStep]? = some firstLength := by
+                simpa using firstLookup
+              have tailRankSucc :
+                  (rest.take firstStep).sum + firstOffset =
+                    (rest.take lastStep).sum + lastOffset + 1 := by
+                simp at rankSucc
+                omega
+              rcases induction restPositive
+                  tailLastLookup tailFirstLookup tailRankSucc with
+                same | boundary
+              · exact Or.inl ⟨by omega, same.2⟩
+              · exact Or.inr
+                  ⟨boundary.1, boundary.2.1,
+                    by simp; omega, by omega⟩
+
+/-- For a scheduler family whose every segment is nonempty, an empty exact
+endpoint gap forces the existing occurrence-coordinate adjacency predicate.
+The proof remains exact when erased edge values repeat: all ordering and
+injectivity arguments are performed on `SchedulerOccurrence` tags. -/
+private theorem
+    CyclicEndpointZipperAt.schedulerCyclicCoordinateAdjacent_of_gap_eq_nil
+    {α : Type}
+    {segments : List (List α)} {count : Nat}
+    {first last : SchedulerOccurrence α}
+    {firstSegment lastSegment : List α}
+    {seedMiddle : List (SchedulerOccurrence α)}
+    (segmentCount : segments.length = count)
+    (segmentsNonempty :
+      ∀ segment, segment ∈ segments → segment ≠ [])
+    (firstSegmentLookup :
+      segments[first.step]? = some firstSegment)
+    (firstOffsetLookup :
+      firstSegment[first.offset]? = some first.value)
+    (lastSegmentLookup :
+      segments[last.step]? = some lastSegment)
+    (lastOffsetLookup :
+      lastSegment[last.offset]? = some last.value)
+    (zipper :
+      CyclicEndpointZipperAt first last seedMiddle
+        (tagSchedulerFamily segments))
+    (gapEmpty : zipper.gap = []) :
+    SchedulerCyclicCoordinateAdjacent
+      count lastSegment.length last first := by
+  let blockLengths : List Nat :=
+    segments.map List.length
+  have blockPositive :
+      ∀ length, length ∈ blockLengths → 0 < length := by
+    intro length membership
+    rcases List.mem_map.mp membership with
+      ⟨segment, segmentMembership, lengthEquation⟩
+    subst length
+    exact List.length_pos_iff.mpr
+      (segmentsNonempty segment segmentMembership)
+  have firstLengthLookup :
+      blockLengths[first.step]? = some firstSegment.length := by
+    apply Option.some.inj
+    simpa [blockLengths] using
+      congrArg (Option.map List.length) firstSegmentLookup
+  have lastLengthLookup :
+      blockLengths[last.step]? = some lastSegment.length := by
+    apply Option.some.inj
+    simpa [blockLengths] using
+      congrArg (Option.map List.length) lastSegmentLookup
+  have firstOffsetBound : first.offset < firstSegment.length :=
+    (List.getElem?_eq_some_iff.mp firstOffsetLookup).1
+  have lastOffsetBound : last.offset < lastSegment.length :=
+    (List.getElem?_eq_some_iff.mp lastOffsetLookup).1
+  have adjacent :
+      CyclicListAdjacentAt
+        last first (tagSchedulerFamily segments) :=
+    zipper.cyclicAdjacent_of_gap_eq_nil gapEmpty
+  have rankAdjacent :=
+    tagSchedulerFamily_rank_cyclicAdjacent
+      lastSegmentLookup lastOffsetLookup
+        firstSegmentLookup firstOffsetLookup adjacent
+  have taggedLength :
+      (tagSchedulerFamily segments).length = blockLengths.sum := by
+    have erasedLength :=
+      congrArg List.length (tagSchedulerFamily_erase segments)
+    simpa [blockLengths] using erasedLength
+  unfold SchedulerCyclicCoordinateAdjacent
+  rcases rankAdjacent with linearRank | closingRank
+  · have blockLinearRank :
+        (blockLengths.take first.step).sum + first.offset =
+          (blockLengths.take last.step).sum + last.offset + 1 := by
+      simpa [blockLengths] using linearRank
+    rcases positiveBlocks_rank_succ
+        blockPositive lastLengthLookup lastOffsetBound
+          firstLengthLookup firstOffsetBound blockLinearRank with
+      sameSegment | segmentBoundary
+    · exact Or.inl sameSegment
+    · exact Or.inr
+        ⟨segmentBoundary.1, segmentBoundary.2.1,
+          Or.inl
+            ⟨by
+                simpa [blockLengths, segmentCount] using
+                  segmentBoundary.2.2.1,
+              segmentBoundary.2.2.2⟩⟩
+  · have firstRankZero :
+        (blockLengths.take first.step).sum + first.offset = 0 := by
+      simpa [blockLengths] using closingRank.1
+    have lastRankEnd :
+        (blockLengths.take last.step).sum + last.offset + 1 =
+          blockLengths.sum := by
+      have exactEnd := closingRank.2
+      rw [taggedLength] at exactEnd
+      simpa [blockLengths] using exactEnd
+    rcases positiveBlocks_rank_eq_zero
+        blockPositive firstLengthLookup firstOffsetBound
+          firstRankZero with
+      ⟨firstStepZero, firstOffsetZero⟩
+    rcases positiveBlocks_rank_eq_sum
+        blockPositive lastLengthLookup lastOffsetBound
+          lastRankEnd with
+      ⟨lastOffsetEnd, lastStepEnd⟩
+    exact Or.inr
+      ⟨lastOffsetEnd, firstOffsetZero,
+        Or.inr
+          ⟨by
+              simpa [blockLengths, segmentCount] using lastStepEnd,
+            firstStepZero⟩⟩
+
+/-- The indexed flipped scheduler package supplies the nonempty-segment
+hypothesis required by the coordinate-adjacency bridge. -/
+private theorem indexedFlipped_segments_nonempty
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment) :
+    ∀ segment, segment ∈ flippedSegments → segment ≠ [] := by
+  intro segment membership
+  rcases List.mem_iff_getElem?.mp membership with
+    ⟨step, segmentLookup⟩
+  have stepBoundSegments : step < flippedSegments.length :=
+    (List.getElem?_eq_some_iff.mp segmentLookup).1
+  have stepBound : step < count := by
+    omega
+  rcases indexedFlipped step stepBound with
+    ⟨classifiedSegment, classifiedLookup, classified⟩
+  have segmentEquation : segment = classifiedSegment :=
+    Option.some.inj (segmentLookup.symm.trans classifiedLookup)
+  subst classifiedSegment
+  exact classified.1.nonempty
+
 private def SchedulerTaggedClosingParEndpointWitnessAt
     (certificate : Certificate)
     (chainAt : Nat → Vertex)
@@ -34808,6 +36534,63 @@ private theorem
     apply lastTargetStepNeConclusion
     exact lastTargetStep.symm.trans lastTargetConclusion
 
+/-- The exact complementary arc of the same closing endpoint witness is
+nonempty when replayed to the complete nonempty scheduler family.  Otherwise
+the zipper bridge would make the endpoints coordinate-adjacent, contradicting
+their classified scheduler sources. -/
+private theorem
+    SchedulerTaggedClosingParEndpointWitnessAt.schedulerFamilyGap_nonempty
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {conclusion : Vertex}
+    {firstTag lastTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge}
+    {firstSegment lastSegment :
+      List certificate.fullGraph.DirectedEdge}
+    {seedMiddle :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (segmentsNonempty :
+      ∀ segment, segment ∈ flippedSegments → segment ≠ [])
+    (witness :
+      SchedulerTaggedClosingParEndpointWitnessAt
+        certificate chainAt count flippedSegments tagged
+          conclusion firstTag lastTag firstSegment lastSegment)
+    (zipper :
+      CyclicEndpointZipperAt
+        firstTag lastTag seedMiddle
+          (tagSchedulerFamily flippedSegments)) :
+    zipper.gap ≠ [] := by
+  have nonAdjacent := witness.notCyclicCoordinateAdjacent
+  have witnessCopy := witness
+  rcases witnessCopy with
+    ⟨_firstHead, _lastLast, _cusp, _nontrivial, _lastColor,
+      _firstReverseColor, _lastForward, _firstBackward,
+      _firstStepBound, firstSegmentLookup, firstOffsetLookup,
+      _firstClassified, _lastStepBound, lastSegmentLookup,
+      lastOffsetLookup, _lastClassified, _lastKept,
+      _firstOffsetZero, _lastOffsetNonzero, _firstSegmentHead,
+      _firstSourceConclusion, _lastTargetConclusion,
+      _firstStepConclusion, _endpointStepsDistinct,
+      _lastTargetStepNeConclusion, _normalizedBase,
+      _normalizedWalk⟩
+  intro gapEmpty
+  apply nonAdjacent
+  exact
+    zipper.schedulerCyclicCoordinateAdjacent_of_gap_eq_nil
+      segmentCount segmentsNonempty
+        firstSegmentLookup firstOffsetLookup
+          lastSegmentLookup lastOffsetLookup gapEmpty
+
 /-- Strengthen a closing outcome without changing its existential choices:
 the normalization core, closing cusp, endpoint obstruction, and exact tagged
 forward split all share the same `taggedNormalized`. -/
@@ -35139,6 +36922,470 @@ private theorem descent
           complementBase taggedComplement taggedNormalized) :
     CyclicIntervalDescent base initial :=
   package.2.1.descent
+
+/-- Replay the exact first/last endpoint split of the surviving normalized
+core to the package's initial scheduler family.  The exact split existential is
+opened once: its endpoint facts, positioned obstruction, closing seed, and the
+entire endpoint replay therefore share the same `firstTag`, `lastTag`, and
+`middle`.  This theorem retains both possible splice branches and asserts no
+scheduler-order contradiction. -/
+private theorem structuralEndpointReplay_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after middle,
+      SchedulerTaggedClosingParEndpointWitnessAt
+          certificate chainAt count flippedSegments taggedNormalized
+            conclusion firstTag lastTag firstSegment lastSegment ∧
+        SchedulerTaggedPositionedParObstructionAt
+            certificate chainAt count flippedSegments taggedNormalized
+              before left right conclusion after
+                lastTag.value firstTag.value
+                  firstTag.step lastTag.step lastTag.offset
+                    firstSegment lastSegment ∧
+          taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+            ∃ closingCursor : CyclicSeamCursor taggedNormalized,
+              closingCursor.boundary = 0 ∧
+                closingCursor.gap = [] ∧
+                  ∃ closingZipper :
+                      CyclicEndpointZipperAt
+                        firstTag lastTag middle taggedNormalized,
+                    closingZipper.between = middle ∧
+                      closingZipper.gap = [] ∧
+                        ∃ initialCursor : CyclicSeamCursor initial,
+                          ∃ initialZipper :
+                              CyclicEndpointZipperAt
+                                firstTag lastTag middle initial,
+                            CyclicEndpointReplayAt
+                              closingCursor initialCursor
+                                closingZipper initialZipper := by
+  rcases package.2.2.2 with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation⟩
+  subst taggedNormalized
+  have normalizedNonempty :
+      firstTag :: middle ++ [lastTag] ≠ [] := by
+    simp
+  let closingCursor :
+      CyclicSeamCursor (firstTag :: middle ++ [lastTag]) :=
+    CyclicSeamCursor.closingSeed normalizedNonempty
+  let closingZipper :
+      CyclicEndpointZipperAt
+        firstTag lastTag middle (firstTag :: middle ++ [lastTag]) := by
+    simpa using
+      (CyclicEndpointZipperAt.closingSeed firstTag lastTag middle)
+  rcases package.1.1.seamReplay_exists closingCursor with
+    ⟨baseCursor, baseReplay, _baseGapAtSeam⟩
+  rcases package.2.1.seamReplay_exists baseCursor with
+    ⟨initialCursor, ancestryReplay⟩
+  have totalReplay :
+      CyclicSeamReplayAt closingCursor initialCursor :=
+    baseReplay.trans ancestryReplay
+  rcases totalReplay.endpointReplay_exists closingZipper with
+    ⟨initialZipper, endpointReplay⟩
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, rfl,
+      closingCursor, rfl, rfl, closingZipper, rfl, rfl,
+      initialCursor, initialZipper, endpointReplay⟩
+
+/-- Preserve the terminal and ancestry phases of the exact endpoint replay
+separately.  Both phases share the same Type-valued `baseZipper`, so later
+proofs can determine in which phase the complementary gap first opens without
+assuming zipper uniqueness or reconstructing either phase. -/
+private theorem structuralEndpointReplay_phases_gap_nonempty_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base
+          (tagSchedulerFamily flippedSegments)
+            complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after middle,
+      SchedulerTaggedClosingParEndpointWitnessAt
+          certificate chainAt count flippedSegments taggedNormalized
+            conclusion firstTag lastTag firstSegment lastSegment ∧
+        SchedulerTaggedPositionedParObstructionAt
+            certificate chainAt count flippedSegments taggedNormalized
+              before left right conclusion after
+                lastTag.value firstTag.value
+                  firstTag.step lastTag.step lastTag.offset
+                    firstSegment lastSegment ∧
+          taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+            ∃ closingCursor : CyclicSeamCursor taggedNormalized,
+              closingCursor.boundary = 0 ∧
+                closingCursor.gap = [] ∧
+                  ∃ closingZipper :
+                      CyclicEndpointZipperAt
+                        firstTag lastTag middle taggedNormalized,
+                    closingZipper.between = middle ∧
+                      closingZipper.gap = [] ∧
+                        ∃ baseCursor : CyclicSeamCursor base,
+                          ∃ baseZipper :
+                              CyclicEndpointZipperAt
+                                firstTag lastTag middle base,
+                            CyclicEndpointReplayAt
+                                closingCursor baseCursor
+                                  closingZipper baseZipper ∧
+                              ∃ initialCursor :
+                                  CyclicSeamCursor
+                                    (tagSchedulerFamily flippedSegments),
+                                ∃ initialZipper :
+                                    CyclicEndpointZipperAt
+                                      firstTag lastTag middle
+                                        (tagSchedulerFamily flippedSegments),
+                                  CyclicEndpointReplayAt
+                                      baseCursor initialCursor
+                                        baseZipper initialZipper ∧
+                                    initialZipper.gap ≠ [] := by
+  have segmentsNonempty :
+      ∀ segment, segment ∈ flippedSegments → segment ≠ [] :=
+    indexedFlipped_segments_nonempty segmentCount indexedFlipped
+  rcases package.2.2.2 with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation⟩
+  subst taggedNormalized
+  have normalizedNonempty :
+      firstTag :: middle ++ [lastTag] ≠ [] := by
+    simp
+  let closingCursor :
+      CyclicSeamCursor (firstTag :: middle ++ [lastTag]) :=
+    CyclicSeamCursor.closingSeed normalizedNonempty
+  let closingZipper :
+      CyclicEndpointZipperAt
+        firstTag lastTag middle (firstTag :: middle ++ [lastTag]) := by
+    simpa using
+      (CyclicEndpointZipperAt.closingSeed firstTag lastTag middle)
+  rcases package.1.1.seamReplay_exists closingCursor with
+    ⟨baseCursor, baseReplay, _baseGapAtSeam⟩
+  rcases baseReplay.endpointReplay_exists closingZipper with
+    ⟨baseZipper, terminalEndpointReplay⟩
+  rcases package.2.1.seamReplay_exists baseCursor with
+    ⟨initialCursor, ancestryReplay⟩
+  rcases ancestryReplay.endpointReplay_exists baseZipper with
+    ⟨initialZipper, ancestryEndpointReplay⟩
+  have initialGapNonempty : initialZipper.gap ≠ [] :=
+    endpointFacts.schedulerFamilyGap_nonempty
+      segmentCount segmentsNonempty initialZipper
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, rfl,
+      closingCursor, rfl, rfl, closingZipper, rfl, rfl,
+      baseCursor, baseZipper, terminalEndpointReplay,
+      initialCursor, initialZipper, ancestryEndpointReplay,
+      initialGapNonempty⟩
+
+/-- Classify the global first exact-gap opening across the two retained replay
+phases.  The replay proofs are existentially named so the disjunction remains
+indexed by the concrete phase: the left branch opens in the terminal phase;
+the right branch proves every terminal gap stayed empty before opening in the
+ancestry phase.  This neither chooses one branch uniformly nor attaches
+scheduler-origin semantics to the opening frame. -/
+private theorem structuralEndpointGapOpeningPhase_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base
+          (tagSchedulerFamily flippedSegments)
+            complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after middle,
+      SchedulerTaggedClosingParEndpointWitnessAt
+          certificate chainAt count flippedSegments taggedNormalized
+            conclusion firstTag lastTag firstSegment lastSegment ∧
+        SchedulerTaggedPositionedParObstructionAt
+            certificate chainAt count flippedSegments taggedNormalized
+              before left right conclusion after
+                lastTag.value firstTag.value
+                  firstTag.step lastTag.step lastTag.offset
+                    firstSegment lastSegment ∧
+          taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+            ∃ closingCursor : CyclicSeamCursor taggedNormalized,
+              closingCursor.boundary = 0 ∧
+                closingCursor.gap = [] ∧
+                  ∃ closingZipper :
+                      CyclicEndpointZipperAt
+                        firstTag lastTag middle taggedNormalized,
+                    closingZipper.between = middle ∧
+                      closingZipper.gap = [] ∧
+                        ∃ baseCursor : CyclicSeamCursor base,
+                          ∃ baseZipper :
+                              CyclicEndpointZipperAt
+                                firstTag lastTag middle base,
+                            ∃ terminalEndpointReplay :
+                                CyclicEndpointReplayAt
+                                  closingCursor baseCursor
+                                    closingZipper baseZipper,
+                              ∃ initialCursor :
+                                  CyclicSeamCursor
+                                    (tagSchedulerFamily flippedSegments),
+                                ∃ initialZipper :
+                                    CyclicEndpointZipperAt
+                                      firstTag lastTag middle
+                                        (tagSchedulerFamily flippedSegments),
+                                  ∃ ancestryEndpointReplay :
+                                      CyclicEndpointReplayAt
+                                        baseCursor initialCursor
+                                          baseZipper initialZipper,
+                                    initialZipper.gap ≠ [] ∧
+                                      (CyclicEndpointFirstGapOpeningInReplayAt
+                                          terminalEndpointReplay ∨
+                                        (CyclicEndpointGapStaysEmptyInReplayAt
+                                            terminalEndpointReplay ∧
+                                          CyclicEndpointFirstGapOpeningInReplayAt
+                                            ancestryEndpointReplay)) := by
+  rcases
+      package.structuralEndpointReplay_phases_gap_nonempty_exists
+        segmentCount indexedFlipped with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation,
+      closingCursor, closingBoundary, closingGap,
+      closingZipper, closingBetween, closingZipperGap,
+      baseCursor, baseZipper, terminalEndpointReplay,
+      initialCursor, initialZipper, ancestryEndpointReplay,
+      initialGapNonempty⟩
+  have phaseOpening :
+      CyclicEndpointFirstGapOpeningInReplayAt terminalEndpointReplay ∨
+        (CyclicEndpointGapStaysEmptyInReplayAt terminalEndpointReplay ∧
+          CyclicEndpointFirstGapOpeningInReplayAt
+            ancestryEndpointReplay) :=
+    terminalEndpointReplay.firstGapOpeningInEitherPhase_exists
+      ancestryEndpointReplay closingZipperGap initialGapNonempty
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation,
+      closingCursor, closingBoundary, closingGap,
+      closingZipper, closingBetween, closingZipperGap,
+      baseCursor, baseZipper, terminalEndpointReplay,
+      initialCursor, initialZipper, ancestryEndpointReplay,
+      initialGapNonempty, phaseOpening⟩
+
+/-- The same one-choice endpoint replay reaches the complete scheduler family
+with a genuinely nonempty exact complementary arc.  Segment nonemptiness is
+derived from the supplied indexed flipped traversals; the contradiction used
+to exclude an empty arc is the endpoint witness's already proved coordinate
+non-adjacency, not the weaker candidate seam gap. -/
+private theorem structuralEndpointReplay_gap_nonempty_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base
+          (tagSchedulerFamily flippedSegments)
+            complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after middle,
+      SchedulerTaggedClosingParEndpointWitnessAt
+          certificate chainAt count flippedSegments taggedNormalized
+            conclusion firstTag lastTag firstSegment lastSegment ∧
+        SchedulerTaggedPositionedParObstructionAt
+            certificate chainAt count flippedSegments taggedNormalized
+              before left right conclusion after
+                lastTag.value firstTag.value
+                  firstTag.step lastTag.step lastTag.offset
+                    firstSegment lastSegment ∧
+          taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+            ∃ closingCursor : CyclicSeamCursor taggedNormalized,
+              closingCursor.boundary = 0 ∧
+                closingCursor.gap = [] ∧
+                  ∃ closingZipper :
+                      CyclicEndpointZipperAt
+                        firstTag lastTag middle taggedNormalized,
+                    closingZipper.between = middle ∧
+                      closingZipper.gap = [] ∧
+                        ∃ initialCursor :
+                            CyclicSeamCursor
+                              (tagSchedulerFamily flippedSegments),
+                          ∃ initialZipper :
+                              CyclicEndpointZipperAt
+                                firstTag lastTag middle
+                                  (tagSchedulerFamily flippedSegments),
+                            CyclicEndpointReplayAt
+                                closingCursor initialCursor
+                                  closingZipper initialZipper ∧
+                              initialZipper.gap ≠ [] := by
+  have segmentsNonempty :
+      ∀ segment, segment ∈ flippedSegments → segment ≠ [] :=
+    indexedFlipped_segments_nonempty segmentCount indexedFlipped
+  rcases package.structuralEndpointReplay_exists with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation,
+      closingCursor, closingBoundary, closingGap,
+      closingZipper, closingBetween, closingZipperGap,
+      initialCursor, initialZipper, endpointReplay⟩
+  have initialGapNonempty : initialZipper.gap ≠ [] :=
+    endpointFacts.schedulerFamilyGap_nonempty
+      segmentCount segmentsNonempty initialZipper
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation,
+      closingCursor, closingBoundary, closingGap,
+      closingZipper, closingBetween, closingZipperGap,
+      initialCursor, initialZipper, endpointReplay,
+      initialGapNonempty⟩
+
+/-- The same fixed closing package therefore exposes one concrete replay frame
+that first opens the exact complementary endpoint gap.  Its frame contexts,
+inserted block, gap splice branch, and scheduler endpoint witnesses all come
+from the one package.  This weaker projection deliberately discards the
+terminal/ancestry phase classification retained by
+`structuralEndpointGapOpeningPhase_exists`, and it does not yet exclude the
+closing-par base. -/
+private theorem structuralEndpointGapOpeningStep_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base
+          (tagSchedulerFamily flippedSegments)
+            complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after middle,
+      SchedulerTaggedClosingParEndpointWitnessAt
+          certificate chainAt count flippedSegments taggedNormalized
+            conclusion firstTag lastTag firstSegment lastSegment ∧
+        SchedulerTaggedPositionedParObstructionAt
+            certificate chainAt count flippedSegments taggedNormalized
+              before left right conclusion after
+                lastTag.value firstTag.value
+                  firstTag.step lastTag.step lastTag.offset
+                    firstSegment lastSegment ∧
+          taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+            CyclicEndpointGapOpeningStepAt
+              firstTag lastTag middle := by
+  rcases
+      package.structuralEndpointReplay_gap_nonempty_exists
+        segmentCount indexedFlipped with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation,
+      _closingCursor, _closingBoundary, _closingGap,
+      closingZipper, _closingBetween, closingZipperGap,
+      _initialCursor, initialZipper, endpointReplay,
+      initialGapNonempty⟩
+  have openingStep :
+      CyclicEndpointGapOpeningStepAt
+        firstTag lastTag middle :=
+    endpointReplay.gapOpeningStep_exists
+      closingZipperGap initialGapNonempty
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation, openingStep⟩
 
 /-- Replay the exact artificial closing seam of the surviving normalized core
 all the way back to the package's initial tagged family.  The closing seed, the

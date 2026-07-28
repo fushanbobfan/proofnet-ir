@@ -291,18 +291,21 @@ and reference-kept forward last incidence are now retained. The same dependent
 witness binds those tags to the par link, normalized closed core, and exact
 `first :: middle ++ [last]` order. Its artificial closing seam is proved not
 to be a same-segment or segment-boundary scheduler coordinate adjacency.
-A private structural replay now threads that closing seam from a
-boundary-zero empty-gap seed through the same terminal reverse shells and
-omitted arc, then through every exact nesting and backward-search frame, to
-the package's initial tagged family. The final candidate gap is nonempty and
-pointwise contained there; every already accumulated occurrence survives each
-frame. The same terminal omitted arc also supplies one exact zero-offset
-backward anchor with its right-par incidence, false reference-mask entry,
-classified segment, waiting-dependency semantics, and source conclusion.
-This is not an adjacency or contradiction: the anchor is not identified with
-either closing endpoint, and the replay proves no multiplicity, contiguity, or
-relative scheduler order. A later zipper/order theorem must consume the exact
-package/trace alongside it.
+A private structural replay now threads that closing seam through the same
+terminal reverse shells and omitted arc, then through every exact nesting and
+backward-search frame, to the package's initial tagged family. In addition to
+the older candidate cursor, it carries an occurrence-position endpoint zipper
+whose gap is definitionally the complete complementary arc between the fixed
+tagged endpoints. Every indexed flipped segment is nonempty, so an empty final
+exact gap would force the scheduler-coordinate adjacency already excluded by
+the endpoint witness. The exact initial-family gap is therefore nonempty.
+The replay retains the first empty-to-nonempty frame, its nonempty outside
+insertion, and its explicit gap-splice branch. Terminal and ancestry phases
+share the same Type-valued base zipper. The first opening is replay-indexed as
+terminal or ancestry; the ancestry branch proves every terminal-phase gap
+stayed empty. No theorem chooses a branch uniformly or yet connects either
+branch to scheduler-origin/reverse-shell semantics, so this is not the
+closing-par contradiction or a progress theorem.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -373,20 +376,20 @@ Lean now also constructs the exact simultaneous complementary
   `(base, complementBase, taggedComplement, taggedNormalized)`, and the split
   shares that `taggedNormalized`. This does not yet expose the complete
   terminal `StepAt` frame as global indices; those data remain existential
-  inside the step wrapper. The structural replay now consumes each wrapper once
+  inside the step wrapper. The structural replay consumes each wrapper once
   and folds the terminal frame, exact backward cuts, reverse-shell arms,
-  nesting, and global ancestry into a nonempty pointwise-contained candidate
-  gap. One exact terminal omitted-right head now survives as an origin-typed
-  member of the initial family with its coordinate, par incidence, reference
-  omission, segment classification, dependency semantics, and source
-  conclusion. Excluding the single remaining base still requires a
-  scheduler-specific zipper/order invariant that relates this anchor, the
-  closing endpoints, and the exact frame origins, or an independent
-  residual-derivation progress proof. Pointwise membership alone is not
-  multiplicity, contiguity, adjacency, relative order, or contradiction.
-  Closing-par scheduler-order exclusion, correct-state progress, pure-worklist
-  completeness, recursive fallback removal, and whole-program linearity remain
-  open.
+  nesting, and global ancestry into an exact endpoint zipper replay. Its gap
+  is the complete complementary endpoint arc, not the older cursor candidate.
+  Nonemptiness of every indexed flipped segment makes the initial-family exact
+  gap nonempty: emptiness would imply the coordinate adjacency already
+  excluded by the endpoint witness. The replay retains the first
+  empty-to-nonempty frame and classifies it by the concrete terminal/ancestry
+  replay indices. If it opens in ancestry, a proof records that every terminal
+  gap stayed empty. There is no uniform branch choice and no theorem yet
+  relating either opening branch to the scheduler-origin/reverse-shell
+  semantics needed for a contradiction. Closing-par scheduler-order
+  exclusion, correct-state progress, pure-worklist completeness, recursive
+  fallback removal, and whole-program linearity remain open.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

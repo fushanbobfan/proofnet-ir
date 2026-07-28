@@ -253,24 +253,24 @@ part of the engineering and proof-identity gap.
    `(base, complementBase, taggedComplement, taggedNormalized)`, and the split
    shares that `taggedNormalized`. The full terminal `StepAt` frame remains
    existential inside the step wrapper rather than a global package index, but
-   the structural boundary-cursor/gap theorem now opens that wrapper exactly
-   once and reuses the same frame. It folds the exact terminal, reverse-shell,
-   backward-search, nesting, and global ancestry into a replay from the
-   normalized closing seed to a nonempty candidate gap in the initial tagged
-   family. Pointwise gap containment and preservation of every incoming gap
-   occurrence are now kernel checked. The same terminal omitted arc contributes
-   one zero-offset backward head that survives into the initial family with its
-   exact right-par incidence, false reference-mask entry, classified segment,
-   waiting-dependency semantics, and source conclusion. The anchor is not
-   identified with either closing-core endpoint, and no multiplicity,
-   contiguity, adjacency, or relative scheduler order follows. Excluding that
-   final base still requires a stronger zipper/order invariant retaining the
-   frame origins and reverse-shell evidence, or a separate residual-derivation
-   progress invariant. The nonempty origin-typed gap alone is not a
-   contradiction. Closing-par
-   scheduler-order exclusion, correct-state
-   progress, pure worklist completeness, recursive fallback removal, and a
-   whole-program linear cost theorem remain open.
+   the structural replay opens that wrapper exactly once and reuses the same
+   frame. It now enriches the older boundary cursor with an
+   occurrence-position endpoint zipper whose gap is the complete complementary
+   arc between the fixed tagged endpoints. These two gap notions are not
+   equated.
+
+   Every indexed flipped segment is nonempty. Hence an empty exact zipper gap
+   in the initial tagged scheduler family would force the coordinate adjacency
+   already excluded by the endpoint witness, and the exact gap is nonempty. The
+   replay retains the first empty-to-nonempty frame, its nonempty outside
+   insertion, and the explicit gap-splice branch. It also preserves terminal
+   and ancestry phases around one shared Type-valued base zipper. The first
+   opening is classified by those replay indices; the ancestry branch carries
+   a proof that every terminal gap stayed empty. This is not a uniform branch
+   choice and provides no scheduler-origin/reverse-shell contradiction yet.
+   Closing-par scheduler-order exclusion, correct-state progress, pure worklist
+   completeness, recursive fallback removal, and a whole-program linear cost
+   theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

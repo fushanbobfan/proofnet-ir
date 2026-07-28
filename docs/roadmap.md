@@ -647,14 +647,22 @@
       arc's zero-offset backward head into the initial tagged family with its
       exact par incidence, omitted reference-mask entry, classified segment,
       waiting-dependency semantics, and source conclusion.
-    - [ ] Prove a scheduler-specific semantic invariant while retaining the
-      exact origin and reverse-shell evidence of every replay frame, or replace
-      this route with a kernel-checked residual-derivation progress invariant;
-      then exclude the remaining tagged closing-par base and discharge the
-      path-exposed waiting-par obstruction. Nonempty candidate gap alone is not
-      an adjacency or contradiction; the current typed anchor is not identified
-      with a closing endpoint and carries no multiplicity, contiguity, or
-      relative-order theorem.
+    - [x] Enrich the same replay with an occurrence-position endpoint zipper
+      whose gap is the complete complementary arc between the fixed tagged
+      endpoints; keep it explicitly distinct from the weaker candidate cursor
+      gap.
+    - [x] Derive nonemptiness of every indexed flipped segment and prove the
+      initial scheduler-family exact gap nonempty, since an empty gap would
+      force the already-excluded scheduler-coordinate adjacency.
+    - [x] Retain the first exact empty-to-nonempty gap-opening frame, including
+      its nonempty outside insertion and explicit gap splice; classify it by
+      concrete replay index as terminal or ancestry. In the ancestry branch,
+      retain a proof that every terminal-phase gap stayed empty.
+    - [ ] Attach the replay-indexed opening to its exact scheduler origin and
+      reverse-shell semantics and derive the contradiction uniformly across
+      both branches. No uniform terminal/ancestry branch choice is proved yet;
+      closing-par exclusion and the path-exposed waiting-par obstruction remain
+      open.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential ready/waiting stacks; formalize

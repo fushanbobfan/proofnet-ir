@@ -334,22 +334,25 @@ active-reference walks between marked occurrences are equivalent to
   decomposition, occurrences, scheduler coordinates, and segments of the
   underlying `SchedulerTaggedTerminalComplementStepAt` remain existential
   inside the stored step wrapper, not global package indices. A private
-  structural replay now opens each wrapper once, reuses that same frame, and
-  folds terminal, reverse-shell, backward-search, nesting, and global ancestry
-  into a boundary cursor whose candidate gap starts empty and is nonempty at
-  the initial tagged family. It now proves pointwise gap containment and
-  preserves every incoming gap occurrence through each frame. The terminal
-  frame also contributes one exact anchor from the head of that same omitted
-  arc; its zero offset, backward orientation, right-par incidence, false
-  reference-mask entry, classified segment head, waiting-dependency semantics,
-  and source conclusion survive into the initial family. This anchor is not
-  identified with a closing endpoint, and the replay proves no multiplicity,
-  contiguity, adjacency, or relative order. Pure completeness still needs a
-  stronger zipper/order invariant over the replay and exact trace—or an
-  independent residual-derivation progress invariant—to exclude the closing-par
-  base and prove correct-state progress. Pure-worklist
-  completeness, recursive-fallback removal, and whole-program linearity remain
-  later gates.
+  structural replay opens each wrapper once, reuses that same frame, and folds
+  terminal, reverse-shell, backward-search, nesting, and global ancestry into
+  both the older boundary cursor and an occurrence-position endpoint zipper.
+  The zipper's gap is definitionally the complete complementary arc between the
+  fixed tagged endpoints, not the cursor's candidate gap.
+
+  Every indexed flipped segment is nonempty. Thus an empty exact gap in the
+  initial tagged family would force the scheduler-coordinate adjacency already
+  excluded by the endpoint witness; the exact gap is nonempty. The replay
+  retains its first empty-to-nonempty frame with the nonempty
+  `rightContext ++ leftContext` insertion and explicit gap-splice branch.
+  Terminal and ancestry replays share one Type-valued base zipper, and the
+  first opening is classified by those concrete replay indices. The ancestry
+  branch additionally proves that every terminal-phase gap stayed empty. There
+  is no uniform branch choice, and the opening frame has not yet been connected
+  to the scheduler-origin/reverse-shell semantics needed for a contradiction.
+  Closing-par exclusion and correct-state progress therefore remain open.
+  Pure-worklist completeness, recursive-fallback removal, and whole-program
+  linearity remain later gates.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

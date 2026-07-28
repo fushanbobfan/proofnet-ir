@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+- enriched the unified closing-package replay with an exact
+  occurrence-position endpoint zipper. Its `gap` is definitionally the complete
+  complementary arc between the fixed first and last tagged endpoint
+  occurrences, rather than the weaker `CyclicSeamCursor.gap` candidate.
+  Indexed flipped traversals prove every scheduler segment nonempty; an empty
+  exact gap in the initial tagged family would therefore imply the
+  scheduler-coordinate adjacency already excluded by the closing endpoint
+  witness. The initial exact gap is consequently nonempty. Lean retains the
+  first replay-indexed empty-to-nonempty transition, including the original
+  seam frame, the nonempty insertion `rightContext ++ leftContext`, and the
+  explicit gap-splice branch. The terminal and ancestry phases share the same
+  Type-valued base zipper. The first opening is classified as terminal or
+  ancestry; in the latter branch a proof records that every terminal-phase gap
+  stayed empty. No theorem chooses one branch uniformly, attaches
+  scheduler-origin semantics to the opening, excludes the tagged closing-par
+  base, proves progress or pure-worklist completeness, or removes the
+  recursive fallback.
+- added two kernel-checked regressions delimiting that result. In the first, a
+  seam lift records candidate gap `[2]`, a later ordinary lift leaves that
+  candidate unchanged, and the exact complementary endpoint arc is `[2, 3]`;
+  the candidate cursor is therefore not silently treated as a complete arc. In
+  the second, tagged segments `[[7], [], [9]]` have an empty exact endpoint gap
+  while their endpoint coordinates skip the empty middle segment and are not
+  adjacent. The scheduler-coordinate bridge consequently requires the
+  independently proved nonemptiness of every indexed flipped segment.
 - enriched the private seam replay with a first typed scheduler-origin anchor
   without promoting it to an order theorem. Lean now proves pointwise
   `GapContained` for the closing seed and preserves it through every exact

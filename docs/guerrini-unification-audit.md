@@ -397,24 +397,27 @@ or positive misses. The larger search recorded at most 995 link attempts and
     `(base, complementBase, taggedComplement, taggedNormalized)`, while the
     endpoint split shares that `taggedNormalized`. The complete terminal
     `StepAt` frame remains existential inside its wrapper rather than an index
-    of the global package, but a private structural theorem now opens each
-    wrapper once and threads that same frame through reverse-shell,
-    backward-search, nesting, and global ancestry. Starting from the normalized
-    closing seed, the resulting boundary cursor reaches the initial tagged
-    family with a nonempty pointwise-contained candidate gap, and every
-    previously accumulated occurrence survives each replay frame. The head of
-    the same terminal omitted arc is now propagated as one exact anchor with
-    zero offset, backward orientation, omitted reference-mask status, precise
-    right-par incidence, classified segment, waiting-dependency semantics, and
-    source conclusion. It is not identified with a closing endpoint and
-    carries no multiplicity, contiguity, adjacency, or relative-order result.
-    The immediate remaining obligation is a stronger scheduler-specific
-    zipper/order invariant relating that anchor, the closing endpoints, and
-    every exact frame origin/reverse-shell relation, or instead a
-    residual-derivation progress proof. Guerrini's
-    correctness/reduction results do not provide this bespoke seam invariant
-    for the present flat eager scheduler.
-3. Exclude the closing-par base by exact scheduler order and prove
+    of the global package, but a private structural theorem opens each wrapper
+    once and threads that same frame through reverse-shell, backward-search,
+    nesting, and global ancestry.
+
+    The enriched replay now carries an occurrence-position endpoint zipper
+    whose gap is the complete complementary arc between the fixed tagged
+    endpoints, explicitly distinct from the older candidate cursor gap. Every
+    indexed flipped segment is nonempty. An empty exact gap in the initial
+    scheduler family would therefore force the coordinate adjacency already
+    excluded by the endpoint witness, so the complete gap is nonempty. Lean
+    retains the first empty-to-nonempty replay frame with its nonempty outside
+    insertion and explicit gap-splice branch. The terminal and ancestry phases
+    share one Type-valued base zipper. Their replay-indexed disjunction puts the
+    first opening either in the terminal phase or in ancestry together with a
+    proof that every terminal gap stayed empty. It does not choose a branch
+    uniformly or yet connect the opening to its scheduler-origin and
+    reverse-shell semantics. Guerrini's correctness/reduction results do not
+    provide this bespoke final contradiction for the present flat eager
+    scheduler.
+3. Derive the scheduler-order contradiction uniformly from both replay-indexed
+   opening branches, exclude the closing-par base, and prove
    correct-quiescent-state progress.
 4. Prove the current event-driven worklist complete, yielding
    `unificationWorklistFastCheck = check`.
