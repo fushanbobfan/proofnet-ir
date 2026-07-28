@@ -634,16 +634,20 @@
     - [x] Assemble the terminal base, data-indexed global ancestry, closing
       outcome, and normalized endpoint split into one exact package with common
       base/complement-base/complement/normalized-core indices.
-    - [ ] Lift the complete `SchedulerTaggedTerminalComplementStepAt` frame into
+    - [x] Lift the complete `SchedulerTaggedTerminalComplementStepAt` frame into
       a seam-specific indexed object, or destruct and thread its existing
       existential wrapper exactly once, so replay cannot silently select a
       different arc, rotation, link split, occurrence, coordinate, or segment.
-    - [ ] Replay the artificial closing seam outward through the exact terminal,
-      backward, and reverse-shell frames as a boundary cursor with a nonempty
-      accumulated outside gap; prove a scheduler-specific semantic invariant
-      over that gap, or replace this route with a kernel-checked
-      residual-derivation progress invariant; then exclude the remaining tagged
-      closing-par base and discharge the path-exposed waiting-par obstruction.
+    - [x] Replay the artificial closing seam outward through the exact terminal,
+      backward, reverse-shell, nesting, and global-ancestry frames as a boundary
+      cursor, starting with an empty gap and reaching the initial tagged family
+      with a nonempty accumulated candidate gap.
+    - [ ] Prove a scheduler-specific semantic invariant while retaining the
+      exact origin and reverse-shell evidence of every replay frame, or replace
+      this route with a kernel-checked residual-derivation progress invariant;
+      then exclude the remaining tagged closing-par base and discharge the
+      path-exposed waiting-par obstruction. Nonempty candidate gap alone is not
+      an adjacency or contradiction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential ready/waiting stacks; formalize

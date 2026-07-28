@@ -333,12 +333,16 @@ active-reference walks between marked occurrences are equivalent to
   endpoint split shares the same `taggedNormalized`. The arc, rotations, link
   decomposition, occurrences, scheduler coordinates, and segments of the
   underlying `SchedulerTaggedTerminalComplementStepAt` remain existential
-  inside the stored step wrapper, not global package indices. Pure completeness
-  still needs to consume or lift that same frame without reselection, replay
-  the specialized seam as a boundary cursor with a nonempty accumulated
-  outside gap, and prove a scheduler-specific semantic invariant over that
-  gap—or use an independent residual-derivation progress invariant—to exclude
-  the closing-par base and prove correct-state progress. Pure-worklist
+  inside the stored step wrapper, not global package indices. A private
+  structural replay now opens each wrapper once, reuses that same frame, and
+  folds terminal, reverse-shell, backward-search, nesting, and global ancestry
+  into a boundary cursor whose candidate gap starts empty and is nonempty at
+  the initial tagged family. The generic cursor replay does not itself retain
+  scheduler-origin or reverse-shell relation evidence and does not make the gap
+  contiguous or adjacent. Pure completeness still needs a scheduler-specific
+  semantic invariant over the replay and exact trace—or an independent
+  residual-derivation progress invariant—to exclude the closing-par base and
+  prove correct-state progress. Pure-worklist
   completeness, recursive-fallback removal, and whole-program linearity remain
   later gates.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,

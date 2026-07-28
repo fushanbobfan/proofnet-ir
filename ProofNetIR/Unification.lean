@@ -27005,6 +27005,346 @@ private theorem CyclicIntervalCut.mem_larger
     exact List.perm_append_comm
   exact rotationPermutation.mem_iff.mp inRotated
 
+/-- One exact replay frame for a cyclic subinterval.  The source list is
+rotated by the displayed prefix/suffix boundary, and the retained inner list
+is surrounded by the displayed left and right contexts in that same rotated
+view.  Empty rotations and empty contexts are intentionally permitted. -/
+private def CyclicGapFrameAt {α : Type}
+    (inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α) : Prop :=
+  outer = rotationPrefix ++ rotationSuffix ∧
+    rotationSuffix ++ rotationPrefix =
+      leftContext ++ inner ++ rightContext
+
+/-- A boundary cursor on a nonempty cyclic list.  Boundary zero is the
+distinguished closing seam.  The two legs carry the candidate gap accumulated
+to the right and left of that seam.  Only a replay from a valid seed gives
+them that geometric interpretation; the bare structure does not assert it or
+any scheduler adjacency. -/
+private structure CyclicSeamCursor {α : Type}
+    (current : List α) where
+  boundary : Nat
+  boundary_lt : boundary < current.length
+  rightLeg : List α
+  leftLeg : List α
+
+namespace CyclicSeamCursor
+
+/-- The empty-gap cursor at the distinguished closing seam of a nonempty
+cyclic list. -/
+private def closingSeed {α : Type} {current : List α}
+    (currentNonempty : current ≠ []) :
+    CyclicSeamCursor current where
+  boundary := 0
+  boundary_lt := by
+    exact List.length_pos_iff.mpr currentNonempty
+  rightLeg := []
+  leftLeg := []
+
+/-- The accumulated seam gap, with the right leg encountered before the left
+leg in the replay orientation. -/
+private def gap {α : Type} {current : List α}
+    (cursor : CyclicSeamCursor current) : List α :=
+  cursor.rightLeg ++ cursor.leftLeg
+
+end CyclicSeamCursor
+
+/-- Lift one cursor through one exact cyclic gap frame.  At the closing seam,
+the omitted right and left contexts extend the corresponding gap legs.  At
+an ordinary boundary, the boundary is transported through the left context
+without changing either gap leg. -/
+private def CyclicSeamAdvanceAt {α : Type}
+    (inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α)
+    (innerCursor : CyclicSeamCursor inner)
+    (outerCursor : CyclicSeamCursor outer) : Prop :=
+  CyclicGapFrameAt
+      inner outer rotationPrefix rotationSuffix leftContext rightContext ∧
+    outerCursor.boundary =
+      (rotationPrefix.length +
+        (if innerCursor.boundary = 0 then
+          0
+        else
+          leftContext.length + innerCursor.boundary)) %
+        outer.length ∧
+      outerCursor.rightLeg =
+        (if innerCursor.boundary = 0 then
+          innerCursor.rightLeg ++ rightContext
+        else
+          innerCursor.rightLeg) ∧
+        outerCursor.leftLeg =
+          (if innerCursor.boundary = 0 then
+            leftContext ++ innerCursor.leftLeg
+          else
+            innerCursor.leftLeg)
+
+/-- Every cursor on the retained inner list advances through an exact frame.
+The cursor itself proves that the inner list is nonempty; the frame equations
+then prove that the outer modulus is also nonzero. -/
+private theorem CyclicSeamAdvanceAt.advance_exists
+    {α : Type}
+    {inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α}
+    (frame :
+      CyclicGapFrameAt
+        inner outer rotationPrefix rotationSuffix leftContext rightContext)
+    (innerCursor : CyclicSeamCursor inner) :
+    ∃ outerCursor : CyclicSeamCursor outer,
+      CyclicSeamAdvanceAt
+        inner outer rotationPrefix rotationSuffix leftContext rightContext
+          innerCursor outerCursor := by
+  rcases frame with ⟨outerRotation, rotatedInterval⟩
+  have boundaryBound := innerCursor.boundary_lt
+  have innerPositive : 0 < inner.length := by
+    omega
+  have outerLength :
+      outer.length =
+        leftContext.length + inner.length + rightContext.length := by
+    calc
+      outer.length =
+          (rotationPrefix ++ rotationSuffix).length := by
+        rw [outerRotation]
+      _ = (rotationSuffix ++ rotationPrefix).length := by
+        simp [Nat.add_comm]
+      _ = (leftContext ++ inner ++ rightContext).length := by
+        rw [rotatedInterval]
+      _ =
+          leftContext.length + inner.length + rightContext.length := by
+        simp [Nat.add_assoc]
+  have outerPositive : 0 < outer.length := by
+    rw [outerLength]
+    omega
+  by_cases atSeam : innerCursor.boundary = 0
+  · let outerCursor : CyclicSeamCursor outer :=
+      { boundary := rotationPrefix.length % outer.length
+        boundary_lt := Nat.mod_lt _ outerPositive
+        rightLeg := innerCursor.rightLeg ++ rightContext
+        leftLeg := leftContext ++ innerCursor.leftLeg }
+    refine ⟨outerCursor, ?_⟩
+    simp [CyclicSeamAdvanceAt, CyclicGapFrameAt,
+      outerCursor, outerRotation, rotatedInterval, atSeam]
+  · let outerCursor : CyclicSeamCursor outer :=
+      { boundary :=
+          (rotationPrefix.length +
+            (leftContext.length + innerCursor.boundary)) %
+              outer.length
+        boundary_lt := Nat.mod_lt _ outerPositive
+        rightLeg := innerCursor.rightLeg
+        leftLeg := innerCursor.leftLeg }
+    refine ⟨outerCursor, ?_⟩
+    simp [CyclicSeamAdvanceAt, CyclicGapFrameAt,
+      outerCursor, outerRotation, rotatedInterval, atSeam]
+
+namespace CyclicSeamAdvanceAt
+
+/-- Advancing a seam cursor never shortens its accumulated gap.  At an
+ordinary boundary the length is unchanged; at the closing seam the two frame
+contexts are appended on their respective sides. -/
+private theorem gap_length_le
+    {α : Type}
+    {inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    (advance :
+      CyclicSeamAdvanceAt
+        inner outer rotationPrefix rotationSuffix leftContext rightContext
+          innerCursor outerCursor) :
+    innerCursor.gap.length ≤ outerCursor.gap.length := by
+  unfold CyclicSeamAdvanceAt at advance
+  rcases advance with
+    ⟨_frame, _boundary, rightLeg, leftLeg⟩
+  by_cases atSeam : innerCursor.boundary = 0
+  · simp only [atSeam, if_pos] at rightLeg leftLeg
+    change
+      (innerCursor.rightLeg ++ innerCursor.leftLeg).length ≤
+        (outerCursor.rightLeg ++ outerCursor.leftLeg).length
+    rw [rightLeg, leftLeg]
+    simp only [List.length_append]
+    omega
+  · simp [atSeam] at rightLeg leftLeg
+    change
+      (innerCursor.rightLeg ++ innerCursor.leftLeg).length ≤
+        (outerCursor.rightLeg ++ outerCursor.leftLeg).length
+    rw [rightLeg, leftLeg]
+    exact Nat.le_refl _
+
+/-- A nonempty accumulated gap remains nonempty after one replay frame. -/
+private theorem gap_nonempty
+    {α : Type}
+    {inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    (advance :
+      CyclicSeamAdvanceAt
+        inner outer rotationPrefix rotationSuffix leftContext rightContext
+          innerCursor outerCursor)
+    (innerNonempty : innerCursor.gap ≠ []) :
+    outerCursor.gap ≠ [] := by
+  have innerPositive : 0 < innerCursor.gap.length :=
+    List.length_pos_iff.mpr innerNonempty
+  have lengthLe := advance.gap_length_le
+  have outerPositive : 0 < outerCursor.gap.length := by
+    omega
+  exact List.length_pos_iff.mp outerPositive
+
+/-- Replaying the closing seam through a frame with a nonempty outside context
+produces a nonempty accumulated gap, even when the incoming gap is empty. -/
+private theorem gap_nonempty_of_closing_context
+    {α : Type}
+    {inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    (advance :
+      CyclicSeamAdvanceAt
+        inner outer rotationPrefix rotationSuffix leftContext rightContext
+          innerCursor outerCursor)
+    (atSeam : innerCursor.boundary = 0)
+    (outsideNonempty : leftContext ≠ [] ∨ rightContext ≠ []) :
+    outerCursor.gap ≠ [] := by
+  unfold CyclicSeamAdvanceAt at advance
+  rcases advance with
+    ⟨_frame, _boundary, rightLeg, leftLeg⟩
+  simp only [atSeam, if_pos] at rightLeg leftLeg
+  apply List.length_pos_iff.mp
+  change
+    0 <
+      (outerCursor.rightLeg ++ outerCursor.leftLeg).length
+  rw [rightLeg, leftLeg]
+  simp only [List.length_append]
+  rcases outsideNonempty with leftNonempty | rightNonempty
+  · have leftPositive : 0 < leftContext.length :=
+      List.length_pos_iff.mpr leftNonempty
+    omega
+  · have rightPositive : 0 < rightContext.length :=
+      List.length_pos_iff.mpr rightNonempty
+    omega
+
+/-- A nonempty inner list and a nonempty outside context determine an exact
+closing-seam advance whose incoming gap is empty and outgoing gap is
+nonempty. -/
+private theorem closing_seed_advance_exists
+    {α : Type}
+    {inner outer rotationPrefix rotationSuffix leftContext rightContext :
+      List α}
+    (frame :
+      CyclicGapFrameAt
+        inner outer rotationPrefix rotationSuffix leftContext rightContext)
+    (innerNonempty : inner ≠ [])
+    (outsideNonempty : leftContext ≠ [] ∨ rightContext ≠ []) :
+    ∃ innerCursor : CyclicSeamCursor inner,
+      ∃ outerCursor : CyclicSeamCursor outer,
+        innerCursor.boundary = 0 ∧
+          innerCursor.gap = [] ∧
+            CyclicSeamAdvanceAt
+              inner outer rotationPrefix rotationSuffix
+                leftContext rightContext innerCursor outerCursor ∧
+              outerCursor.gap ≠ [] := by
+  let innerCursor : CyclicSeamCursor inner :=
+    CyclicSeamCursor.closingSeed innerNonempty
+  obtain ⟨outerCursor, advance⟩ :=
+    CyclicSeamAdvanceAt.advance_exists frame innerCursor
+  refine
+    ⟨innerCursor, outerCursor, rfl, ?_, advance,
+      advance.gap_nonempty_of_closing_context rfl outsideNonempty⟩
+  rfl
+
+end CyclicSeamAdvanceAt
+
+/-- Proof-relevant replay of a seam cursor through zero or more exact cyclic
+gap frames.  Each step retains the frame used for that lift. -/
+private inductive CyclicSeamReplayAt {α : Type} :
+    {inner outer : List α} →
+      CyclicSeamCursor inner → CyclicSeamCursor outer → Prop where
+  | refl {current : List α}
+      (cursor : CyclicSeamCursor current) :
+      CyclicSeamReplayAt cursor cursor
+  | step
+      {inner middle outer : List α}
+      {innerCursor : CyclicSeamCursor inner}
+      {middleCursor : CyclicSeamCursor middle}
+      {outerCursor : CyclicSeamCursor outer}
+      {rotationPrefix rotationSuffix leftContext rightContext : List α}
+      (advance :
+        CyclicSeamAdvanceAt
+          inner middle rotationPrefix rotationSuffix leftContext rightContext
+            innerCursor middleCursor)
+      (tail : CyclicSeamReplayAt middleCursor outerCursor) :
+      CyclicSeamReplayAt innerCursor outerCursor
+
+namespace CyclicSeamReplayAt
+
+/-- Compose two exact seam-replay traces without erasing their frames. -/
+private theorem trans
+    {α : Type}
+    {inner middle outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {middleCursor : CyclicSeamCursor middle}
+    {outerCursor : CyclicSeamCursor outer}
+    (first : CyclicSeamReplayAt innerCursor middleCursor)
+    (second : CyclicSeamReplayAt middleCursor outerCursor) :
+    CyclicSeamReplayAt innerCursor outerCursor := by
+  induction first with
+  | refl =>
+      exact second
+  | step advance _tail induction =>
+      exact .step advance (induction second)
+
+/-- A complete seam replay never shortens its accumulated gap. -/
+private theorem gap_length_le
+    {α : Type}
+    {inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    (replay : CyclicSeamReplayAt innerCursor outerCursor) :
+    innerCursor.gap.length ≤ outerCursor.gap.length := by
+  induction replay with
+  | refl =>
+      exact Nat.le_refl _
+  | step advance _tail induction =>
+      exact Nat.le_trans advance.gap_length_le induction
+
+/-- A nonempty accumulated gap remains nonempty through a complete replay. -/
+private theorem gap_nonempty
+    {α : Type}
+    {inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    (replay : CyclicSeamReplayAt innerCursor outerCursor)
+    (innerNonempty : innerCursor.gap ≠ []) :
+    outerCursor.gap ≠ [] := by
+  have innerPositive : 0 < innerCursor.gap.length :=
+    List.length_pos_iff.mpr innerNonempty
+  have lengthLe := replay.gap_length_le
+  have outerPositive : 0 < outerCursor.gap.length := by
+    omega
+  exact List.length_pos_iff.mp outerPositive
+
+end CyclicSeamReplayAt
+
+/-- A reverse-shell normalization is an exact zero-rotation replay frame.
+Its left and right contexts retain the value-level reverse relation carried
+by the source normalization witness. -/
+private theorem SchedulerCyclicReverseShellNormalization.seamFrame
+    {graph : Graph}
+    {before after :
+      List (SchedulerOccurrence graph.DirectedEdge)}
+    (normalization :
+      SchedulerCyclicReverseShellNormalization before after) :
+    ∃ opening closing,
+      CyclicGapFrameAt after before [] before opening closing ∧
+        closing.map SchedulerOccurrence.erase =
+          Graph.EdgeWalk.reverseTraversal
+            (opening.map SchedulerOccurrence.erase) := by
+  rcases normalization.context with
+    ⟨opening, closing, decomposition, reverseValues⟩
+  exact
+    ⟨opening, closing,
+      ⟨by simp, by simpa using decomposition⟩,
+      reverseValues⟩
+
 /-- Proof-relevant reflexive/transitive closure of strict cyclic-interval
 cuts.  Keeping the complete chain avoids collapsing recursive scheduler
 geometry to a bare length inequality. -/
@@ -27820,6 +28160,54 @@ private theorem cut
       largerEquation, by
         simpa [smallerEquation, List.append_assoc] using rotatedEquation,
       shorter⟩
+
+/-- Recover the exact replay frame directly from the stored backward
+obstruction.  The nonempty left context and both cyclic decompositions come
+from that same generator witness; no frame is selected from the derived bare
+cyclic cut. -/
+private theorem seamFrame
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {smaller larger :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (backward :
+      SchedulerTaggedBackwardParCut
+        certificate chainAt count flippedSegments smaller larger) :
+    ∃ rotationPrefix rotationSuffix leftContext,
+      leftContext ≠ [] ∧
+        CyclicGapFrameAt
+          smaller larger rotationPrefix rotationSuffix leftContext [] := by
+  rcases backward with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, _positioned, _leftBackward,
+      rightBefore, rightAfter, leftBefore, leftAfter,
+      largerEquation, rotatedEquation, leftBeforeNonempty,
+      smallerEquation⟩
+  let rightTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := rightStep, offset := 0, value := rightOccurrence }
+  let leftTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := leftStep, offset := leftOffset, value := leftOccurrence }
+  change larger = rightBefore ++ rightTag :: rightAfter at largerEquation
+  change
+    (rightTag :: rightAfter) ++ rightBefore =
+      leftBefore ++ leftTag :: leftAfter at rotatedEquation
+  change smaller = leftTag :: leftAfter at smallerEquation
+  refine
+    ⟨rightBefore, rightTag :: rightAfter, leftBefore,
+      leftBeforeNonempty, ?_⟩
+  exact
+    ⟨largerEquation,
+      by
+        simpa [smallerEquation, List.append_assoc] using
+          rotatedEquation⟩
 
 end SchedulerTaggedBackwardParCut
 
@@ -29876,6 +30264,52 @@ private def SchedulerTaggedTerminalComplementStepAt
           SchedulerCyclicReverseShellNormalization
             taggedComplement taggedNormalized
 
+/-- Recover the terminal-complement replay frame from the exact terminal
+generator stored in this step.  The fixed complement, omitted arc, and
+rotation are reused verbatim rather than reselected from its derived
+`CyclicIntervalCut`. -/
+private theorem SchedulerTaggedTerminalComplementStepAt.seamFrame
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedArc taggedComplement taggedNormalized
+      rotationPrefix rotationSuffix :
+        List
+          (SchedulerOccurrence
+            certificate.fullGraph.DirectedEdge)}
+    {before : List Link}
+    {left right complementBase : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep leftOffset : Nat}
+    {rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge}
+    (step :
+      SchedulerTaggedTerminalComplementStepAt
+        certificate chainAt count flippedSegments
+          current taggedArc taggedComplement taggedNormalized
+            rotationPrefix rotationSuffix
+              before left right complementBase after
+                leftOccurrence rightOccurrence rightStep leftStep leftOffset
+                  rightSegment leftSegment) :
+    taggedArc ≠ [] ∧
+      CyclicGapFrameAt
+        taggedComplement current rotationPrefix rotationSuffix taggedArc [] := by
+  rcases step with
+    ⟨terminal, _complementNonempty, _complementWalk,
+      _complementFree, _normalization⟩
+  rcases terminal with
+    ⟨_state, _positioned, arcNonempty, _terminalComplementNonempty,
+      currentRotation, intervalRotation, _arcHead, _arcLast,
+      _edgeTerminal⟩
+  exact
+    ⟨arcNonempty, currentRotation,
+      by
+        simpa [List.append_assoc] using intervalRotation.symm⟩
+
 /-- Existential wrapper for one exact terminal-complement step, indexed by the
 parent, complement base, complement, and normalized core used downstream. -/
 private def SchedulerTaggedTerminalComplementStep
@@ -30105,6 +30539,63 @@ private theorem descent
     CyclicIntervalDescent taggedNormalized current :=
   step.reverseShells.descent.trans
     (.step step.cut (.refl taggedComplement))
+
+/-- Replay a cursor from the normalized terminal core through the exact
+reverse shells and then through the omitted terminal arc.  The existential
+terminal wrapper is opened once, so both frames come from the same fixed
+generator witness.  A cursor at the distinguished closing seam acquires a
+nonempty syntactic gap from that generator's nonempty omitted arc; no
+scheduler adjacency or semantic contradiction is asserted. -/
+private theorem seamReplay_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized)
+    (normalizedCursor : CyclicSeamCursor taggedNormalized) :
+    ∃ currentCursor : CyclicSeamCursor current,
+      CyclicSeamReplayAt normalizedCursor currentCursor ∧
+        (normalizedCursor.boundary = 0 →
+          currentCursor.gap ≠ []) := by
+  rcases step with
+    ⟨taggedArc, rotationPrefix, rotationSuffix,
+      before, left, right, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, stepAt⟩
+  rcases stepAt.seamFrame with
+    ⟨arcNonempty, terminalFrame⟩
+  rcases stepAt.2.2.2.2.seamFrame with
+    ⟨opening, closing, reverseFrame, _reverseValues⟩
+  obtain ⟨complementCursor, reverseAdvance⟩ :=
+    CyclicSeamAdvanceAt.advance_exists
+      reverseFrame normalizedCursor
+  obtain ⟨currentCursor, terminalAdvance⟩ :=
+    CyclicSeamAdvanceAt.advance_exists
+      terminalFrame complementCursor
+  have reverseReplay :
+      CyclicSeamReplayAt normalizedCursor complementCursor :=
+    .step reverseAdvance (.refl complementCursor)
+  have terminalReplay :
+      CyclicSeamReplayAt complementCursor currentCursor :=
+    .step terminalAdvance (.refl currentCursor)
+  refine
+    ⟨currentCursor, reverseReplay.trans terminalReplay, ?_⟩
+  intro normalizedAtSeam
+  have complementAtSeam : complementCursor.boundary = 0 := by
+    rw [reverseAdvance.2.1]
+    simp [normalizedAtSeam]
+  exact
+    terminalAdvance.gap_nonempty_of_closing_context
+      complementAtSeam (Or.inl arcNonempty)
 
 end SchedulerTaggedTerminalComplementStep
 
@@ -30475,6 +30966,42 @@ private theorem descent
       exact .refl _
   | descend largerState smallerState backward tail induction =>
       exact .step backward.cut induction
+
+/-- Fold every generator-exact backward search frame into a cursor replay.
+The returned cursor is constructed from the stored backward-cut witnesses in
+trace order; no cyclic interval is decomposed a second time. -/
+private theorem seamReplay_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {terminal initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedForwardSearchTrace
+        certificate chainAt count flippedSegments terminal initial)
+    (terminalCursor : CyclicSeamCursor terminal) :
+    ∃ initialCursor : CyclicSeamCursor initial,
+      CyclicSeamReplayAt terminalCursor initialCursor := by
+  induction trace generalizing terminalCursor with
+  | terminal state =>
+      exact ⟨terminalCursor, .refl terminalCursor⟩
+  | descend largerState smallerState backward tail induction =>
+      rcases induction terminalCursor with
+        ⟨smallerCursor, terminalReplay⟩
+      rcases backward.seamFrame with
+        ⟨rotationPrefix, rotationSuffix, leftContext,
+          _leftNonempty, frame⟩
+      obtain ⟨largerCursor, advance⟩ :=
+        CyclicSeamAdvanceAt.advance_exists frame smallerCursor
+      have lastReplay :
+          CyclicSeamReplayAt smallerCursor largerCursor :=
+        .step advance (.refl largerCursor)
+      exact
+        ⟨largerCursor, terminalReplay.trans lastReplay⟩
 
 end SchedulerTaggedForwardSearchTrace
 
@@ -31102,6 +31629,48 @@ private theorem descent
     CyclicIntervalDescent base initial :=
   trace.old.descent
 
+/-- Fold the data-indexed nesting ancestry into exact seam replay.  The stop
+case is reflexive because the final base's own terminal-complement step is
+replayed separately by the package that owns its fixed normalized core.  A
+nested case replays the stored tail, its forward-search trace, and then the
+same terminal wrapper's reverse shells and omitted arc, in that order. -/
+private theorem seamReplay_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {baseComplement : Vertex}
+    {baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base baseComplement baseTaggedComplement baseTaggedNormalized
+            initial)
+    (baseCursor : CyclicSeamCursor base) :
+    ∃ initialCursor : CyclicSeamCursor initial,
+      CyclicSeamReplayAt baseCursor initialCursor := by
+  induction trace generalizing baseCursor with
+  | stop baseState =>
+      exact ⟨baseCursor, .refl baseCursor⟩
+  | nested complementBase step normalizedState forwardTrace tail induction =>
+      rcases induction baseCursor with
+        ⟨nestedCursor, baseReplay⟩
+      rcases forwardTrace.seamReplay_exists nestedCursor with
+        ⟨normalizedCursor, forwardReplay⟩
+      rcases step.seamReplay_exists normalizedCursor with
+        ⟨currentCursor, terminalReplay, _closingGap⟩
+      exact
+        ⟨currentCursor,
+          (baseReplay.trans forwardReplay).trans terminalReplay⟩
+
 end SchedulerTaggedNestingTraceExactAt
 
 /-- Complete state-and-interval ancestry from the final nesting base to the
@@ -31223,6 +31792,40 @@ private theorem descent
             baseTaggedNormalized) :
     CyclicIntervalDescent base initial :=
   trace.old.descent
+
+/-- Compose the exact nesting replay with the original terminal forward-search
+trace.  Both halves are taken directly from the one global existential
+package, so the intermediate terminal list is definitionally shared. -/
+private theorem seamReplay_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {baseComplement : Vertex}
+    {baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedGlobalNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base initial baseComplement baseTaggedComplement
+            baseTaggedNormalized)
+    (baseCursor : CyclicSeamCursor base) :
+    ∃ initialCursor : CyclicSeamCursor initial,
+      CyclicSeamReplayAt baseCursor initialCursor := by
+  rcases trace with ⟨terminal, nestingTrace, forwardTrace⟩
+  rcases nestingTrace.seamReplay_exists baseCursor with
+    ⟨terminalCursor, nestingReplay⟩
+  rcases forwardTrace.seamReplay_exists terminalCursor with
+    ⟨initialCursor, forwardReplay⟩
+  exact
+    ⟨initialCursor, nestingReplay.trans forwardReplay⟩
 
 end SchedulerTaggedGlobalNestingTraceExactAt
 
@@ -34135,6 +34738,58 @@ private theorem descent
           complementBase taggedComplement taggedNormalized) :
     CyclicIntervalDescent base initial :=
   package.2.1.descent
+
+/-- Replay the exact artificial closing seam of the surviving normalized core
+all the way back to the package's initial tagged family.  The closing seed, the
+base terminal wrapper, every nesting/forward frame, and the final cursor are
+threaded through the one unified package.  The result establishes only a
+nonempty accumulated candidate gap; it does not identify that gap with an
+adjacent scheduler slice or exclude the closing-par base. -/
+private theorem structuralSeamReplay_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    ∃ closingCursor : CyclicSeamCursor taggedNormalized,
+      closingCursor.boundary = 0 ∧
+        closingCursor.gap = [] ∧
+          ∃ initialCursor : CyclicSeamCursor initial,
+            CyclicSeamReplayAt closingCursor initialCursor ∧
+              initialCursor.gap ≠ [] := by
+  have normalizedNonempty : taggedNormalized ≠ [] := by
+    rcases package.2.2.2 with
+      ⟨_conclusion, firstTag, lastTag, _firstSegment, _lastSegment,
+        _before, _left, _right, _after, middle,
+        _endpoint, _positioned, normalizedEquation⟩
+    rw [normalizedEquation]
+    simp
+  let closingCursor : CyclicSeamCursor taggedNormalized :=
+    CyclicSeamCursor.closingSeed normalizedNonempty
+  rcases package.1.1.seamReplay_exists closingCursor with
+    ⟨baseCursor, baseReplay, baseGapAtSeam⟩
+  have baseGapNonempty : baseCursor.gap ≠ [] :=
+    baseGapAtSeam rfl
+  rcases package.2.1.seamReplay_exists baseCursor with
+    ⟨initialCursor, ancestryReplay⟩
+  have initialGapNonempty : initialCursor.gap ≠ [] :=
+    ancestryReplay.gap_nonempty baseGapNonempty
+  exact
+    ⟨closingCursor, rfl, rfl, initialCursor,
+      baseReplay.trans ancestryReplay, initialGapNonempty⟩
 
 end SchedulerTaggedClosingParNestingPackageAt
 

@@ -396,12 +396,16 @@ or positive misses. The larger search recorded at most 995 link attempts and
     into one exact closing package: the first three share
     `(base, complementBase, taggedComplement, taggedNormalized)`, while the
     endpoint split shares that `taggedNormalized`. The complete terminal
-    `StepAt` frame is still existential inside its wrapper rather than an index
-    of the global package. The immediate remaining obligation is to consume or
-    lift that same frame without reselection, replay its seam outward as an
-    exact boundary cursor with a nonempty accumulated outside gap, then prove a
-    scheduler-specific semantic invariant over that gap, or instead derive
-    progress from a residual-derivation invariant. Guerrini's
+    `StepAt` frame remains existential inside its wrapper rather than an index
+    of the global package, but a private structural theorem now opens each
+    wrapper once and threads that same frame through reverse-shell,
+    backward-search, nesting, and global ancestry. Starting from the normalized
+    closing seed, the resulting boundary cursor reaches the initial tagged
+    family with a nonempty candidate gap. The immediate remaining obligation is
+    to prove a scheduler-specific semantic invariant while retaining the exact
+    frame origins and reverse-shell relations, or instead derive progress from
+    a residual-derivation invariant. A nonempty generic gap is not an adjacency
+    or contradiction. Guerrini's
     correctness/reduction results do not provide this bespoke seam invariant
     for the present flat eager scheduler.
 3. Exclude the closing-par base by exact scheduler order and prove

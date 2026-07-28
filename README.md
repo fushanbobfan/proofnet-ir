@@ -13,11 +13,17 @@ and non-goals.
 
 Development on `main` now continues as `v0.10.0-dev`. Lean now constructs one
 unified exact closing package with common terminal-base, complement-base,
-complement, and normalized-core indices. The immediate proof boundary is a
-sound boundary-cursor/gap replay through that package and a scheduler-specific
-semantic invariant over the accumulated outside gap, followed by closing-par
-scheduler-order exclusion and correct-state progress. Pure worklist
-completeness comes only after that boundary. Independent transition
+complement, and normalized-core indices, and kernel-checks a structural
+boundary-cursor/gap replay through that package. Starting from the normalized
+closing core's boundary-zero empty-gap seed, the replay follows the same exact
+terminal, reverse-shell, backward-search, nesting, and global-ancestry
+witnesses to the package's initial tagged family and proves that the accumulated
+candidate gap is nonempty. It does not identify that gap with a contiguous
+scheduler slice or prove an endpoint adjacency. The immediate proof boundary is
+a scheduler-specific semantic invariant over the replay while retaining its
+exact frame origins, followed by closing-par scheduler-order exclusion and
+correct-state progress. Pure worklist completeness comes only after that
+boundary. Independent transition
 refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
 invariant are now kernel checked. Atomic pop-and-process restores complete
@@ -312,11 +318,13 @@ endpoint split: the first three share the same
 `(base, complementBase, taggedComplement, taggedNormalized)` tuple, and the
 split shares that exact `taggedNormalized`. The full terminal `StepAt` frame
 remains existential inside its step wrapper rather than a global package index.
-What remains is to consume or lift that same frame without reselection, perform
-sound boundary-cursor/gap replay through the terminal frame, backward frames,
-and reverse shells, and prove a scheduler-specific semantic invariant over the
-resulting nonempty outside gap. Closing-par scheduler-order exclusion and
-correct-state progress follow only after that step. Pure-worklist completeness,
+The structural boundary-cursor/gap theorem now consumes that wrapper once and
+replays the normalized closing seam through the terminal frame, backward
+frames, reverse shells, nesting, and global ancestry to a nonempty candidate
+gap. What remains is a scheduler-specific semantic invariant that retains the
+exact origins erased by the generic replay; the gap alone is neither adjacency
+nor contradiction. Closing-par scheduler-order exclusion and correct-state
+progress follow only after that step. Pure-worklist completeness,
 recursive-fallback removal, the later
 `NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
 remain separate open gates. See
@@ -479,10 +487,15 @@ The repository currently contains:
   reverse-shell normalization, and nesting trace now likewise share one
   indexed witness, without the first generic `CyclicIntervalCut` lift. The
   terminal base, global trace, closing outcome, and normalized endpoint split
-  are now assembled into one data-indexed closing package. Boundary-cursor/gap
-  replay, its scheduler-specific semantic contradiction, closing-par
-  scheduler-order exclusion, correct-state progress, pure-worklist
-  completeness, fallback removal, and whole-program linearity remain open;
+  are now assembled into one data-indexed closing package. A private
+  proof-relevant boundary-cursor/gap replay consumes each stored exact frame
+  without reselection and carries the normalized closing seam to the package's
+  initial tagged family with a nonempty accumulated candidate gap. This
+  structural result neither makes that gap a contiguous scheduler slice nor
+  turns it into an adjacency or contradiction. Its scheduler-specific semantic
+  invariant, closing-par scheduler-order exclusion, correct-state progress,
+  pure-worklist completeness, fallback removal, and whole-program linearity
+  remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

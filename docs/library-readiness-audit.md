@@ -252,11 +252,16 @@ part of the engineering and proof-identity gap.
    are also assembled into one exact package: the first three share
    `(base, complementBase, taggedComplement, taggedNormalized)`, and the split
    shares that `taggedNormalized`. The full terminal `StepAt` frame remains
-   existential inside the step wrapper and is not yet a global package index.
-   Excluding that final base still requires consuming or lifting that same
-   frame without reselection, a sound boundary-cursor/gap replay, and a
-   scheduler-specific semantic invariant, or a separate residual-derivation
-   progress invariant. Closing-par scheduler-order exclusion, correct-state
+   existential inside the step wrapper rather than a global package index, but
+   the structural boundary-cursor/gap theorem now opens that wrapper exactly
+   once and reuses the same frame. It folds the exact terminal, reverse-shell,
+   backward-search, nesting, and global ancestry into a replay from the
+   normalized closing seed to a nonempty candidate gap in the initial tagged
+   family. Excluding that final base still requires a scheduler-specific
+   semantic invariant that also retains each frame's origin and reverse-shell
+   evidence, or a separate residual-derivation progress invariant. The
+   nonempty generic gap alone is not adjacency or contradiction. Closing-par
+   scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, and a
    whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,

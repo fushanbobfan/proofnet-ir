@@ -291,6 +291,13 @@ and reference-kept forward last incidence are now retained. The same dependent
 witness binds those tags to the par link, normalized closed core, and exact
 `first :: middle ++ [last]` order. Its artificial closing seam is proved not
 to be a same-segment or segment-boundary scheduler coordinate adjacency.
+A private structural replay now threads that closing seam from a
+boundary-zero empty-gap seed through the same terminal reverse shells and
+omitted arc, then through every exact nesting and backward-search frame, to
+the package's initial tagged family. The final candidate gap is nonempty.
+This is not an adjacency or contradiction: the generic replay does not by
+itself retain each frame's scheduler-origin and reverse-shell relation, so a
+later semantic theorem must consume the exact package/trace alongside it.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -361,11 +368,12 @@ Lean now also constructs the exact simultaneous complementary
   `(base, complementBase, taggedComplement, taggedNormalized)`, and the split
   shares that `taggedNormalized`. This does not yet expose the complete
   terminal `StepAt` frame as global indices; those data remain existential
-  inside the step wrapper. Excluding the single remaining base still requires
-  consuming or lifting that same frame without reselection, sound
-  boundary-cursor/gap replay through the terminal frame, exact backward cuts,
-  and reverse-shell arms, plus a scheduler-specific semantic invariant over the
-  accumulated gap, or an independent residual-derivation progress proof.
+  inside the step wrapper. The structural replay now consumes each wrapper once
+  and folds the terminal frame, exact backward cuts, reverse-shell arms,
+  nesting, and global ancestry into a nonempty candidate gap. Excluding the
+  single remaining base still requires a scheduler-specific semantic invariant
+  that retains those exact frame origins, or an independent residual-derivation
+  progress proof. The generic gap alone is not adjacency or contradiction.
   Closing-par scheduler-order exclusion, correct-state progress, pure-worklist
   completeness, recursive fallback removal, and whole-program linearity remain
   open.

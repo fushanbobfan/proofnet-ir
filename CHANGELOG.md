@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added a private proof-relevant structural seam replay for the unified exact
+  closing package. Lean now starts from the surviving normalized core's
+  boundary-zero empty-gap cursor, opens each stored terminal wrapper exactly
+  once, replays its source-fixed reverse shells and nonempty omitted arc, folds
+  every generator-exact backward-search and nested-terminal frame, and reaches
+  the package's initial tagged family with a nonempty accumulated candidate
+  gap. The replay does not use the legacy `CyclicIntervalDescent`, a bare
+  `CyclicIntervalCut`, or an independently reselected frame. The candidate gap
+  is not proved to be a contiguous scheduler slice or an endpoint adjacency,
+  and the generic replay alone does not retain each frame's scheduler-origin
+  and reverse-shell relation. A semantic invariant must therefore consume the
+  exact package/trace alongside the replay, or strengthen the replay with typed
+  origin evidence, before closing-par exclusion, progress, or completeness can
+  be claimed.
 - assembled the surviving closing case into one data-indexed exact package.
   The terminal base, exact global ancestry, and closing outcome now share the
   same `base`, `complementBase`, tagged complement, and tagged normalized core;
@@ -13,7 +27,7 @@
   decomposition, occurrences, scheduler coordinates, and segments—remains
   existential inside `SchedulerTaggedTerminalComplementStep`; it has not been
   promoted to the global package indices. This removes displayed-tuple drift
-  but does not prove uniqueness, canonicality, seam replay, closing-par
+  but does not prove uniqueness, canonicality, closing-par
   exclusion, correct-state progress, pure-worklist completeness, or fallback
   removal.
 - strengthened the sole surviving tagged closing-par base without claiming its
@@ -46,13 +60,11 @@
   boundary is now generator-exact: one indexed terminal-complement step binds
   its generator, arc, complement, derived cut, closed walk, source-fixed
   reverse-shell normalization; the surrounding nesting trace stores that exact
-  step wrapper. The remaining proof must consume or lift the same hidden
-  `StepAt` frame without selecting a replacement, then establish a sound
-  boundary-cursor/gap replay through those exact frames plus a
-  scheduler-specific semantic invariant over the accumulated gap (or a
-  separate residual-derivation progress proof) before the closing base,
-  correct-state progress, pure-worklist completeness, and fallback removal can
-  be claimed;
+  step wrapper. The newer structural replay above now consumes that hidden
+  `StepAt` frame without selecting a replacement. A scheduler-specific semantic
+  invariant over the replay and exact trace (or a separate residual-derivation
+  progress proof) is still required before the closing base, correct-state
+  progress, pure-worklist completeness, and fallback removal can be claimed;
 - threaded coordinate-exact scheduler occurrences through the complete
   backward-chord recursion required by the remaining v0.10 contradiction.
   `SchedulerOccurrence` distinguishes a
