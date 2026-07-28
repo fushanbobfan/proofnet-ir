@@ -285,11 +285,18 @@ For the
  closing traversal kernel-proved equal to the reverse of the opening traversal.
  Lean now uses that same exact shell equation together with inherited internal
  cusp-freedom to exclude the empty branch: the midpoint is an unavoidable
- occurrence/reverse cusp. The surviving closing-par core carries exact first
- and last scheduler tags, their segment/offset lookups and flipped-segment
- classifications, and proof that its forward last incidence is retained by
- the reference switching. Excluding this one remaining base is required before
- the recursive fallback can be removed. The
+occurrence/reverse cusp. The surviving closing-par core carries exact first
+and last scheduler tags, their segment/offset lookups and flipped-segment
+classifications, and proof that its forward last incidence is retained by
+the reference switching. Those exact tags now share one dependent witness with
+the same par link and normalization core; Lean proves the tagged core has the
+form `first :: middle ++ [last]`, remains closed, and its artificial closing
+seam is neither a same-segment nor a segment-boundary adjacency of the original
+scheduler. The retained state-and-interval ancestry is stronger than a bare
+cyclic descent, but it does not yet bind every recursive cut to the exact par
+obstruction or terminal complement that generated it. That semantic
+step/seam-origin invariant is required to exclude the remaining base before
+the recursive fallback can be removed. The
  later
  `NEXTAXIOM`/token-age implementation and whole-program cost theorem remain
  separate from that logical completeness result. See
@@ -443,7 +450,11 @@ The repository currently contains:
   occurrence-aware dependency, flipped-cycle, terminal-cusp, reverse-shell,
   and well-founded nesting arguments exclude the empty reverse-shell base by
   its forced midpoint cusp and reduce the remaining progress proof to one
-  scheduler-located nontrivial closing-par core with exact endpoint tags;
+  scheduler-located nontrivial closing-par core. Its exact endpoint tags,
+  par link, normalized core, and first-to-last tagged split now share one
+  witness, and its artificial seam is proved not to be an original scheduler
+  coordinate adjacency. Replaying that seam through generator-exact recursive
+  frames remains open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

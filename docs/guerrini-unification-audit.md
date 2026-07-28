@@ -362,9 +362,11 @@ or positive misses. The larger search recorded at most 995 link attempts and
     cut. Rotating omitted-right to the head and cutting at retained-left yields
     either a forward closing par cusp or a strictly shorter backward state.
     Every step records the exact rotation and smaller contiguous cyclic
-    interval in a proof-relevant descent trace. Well-founded recursion on
+    interval in a proof-relevant state-and-interval trace. The current trace
+    still does not identify that cut with the exact positioned right/left tags
+    that generated it. Well-founded recursion on
     traversal length closes the infinite-backward branch and produces a
-    terminal forward par-cusp interval with its order trace back to the
+    terminal forward par-cusp interval with its interval trace back to the
     original flipped family. The terminal object now retains the exact
     complementary cyclic interval, proves it nonempty, closed, internally
     cusp-free, and strictly shorter, and proves that any closing cusp there is
@@ -377,9 +379,15 @@ or positive misses. The larger search recorded at most 995 link attempts and
     cusp-free nonempty core. Well-founded descent first leaves an empty shell
     core or a nontrivial closing-par core. The empty shell is now excluded by
     its forced midpoint occurrence/reverse cusp, contradicting inherited
-    internal cusp-freedom. The immediate remaining obligation is the exact
-    scheduler-order exclusion of the closing-par core, whose first and last
-    scheduler tags and segment/offset lookups are retained.
+    internal cusp-freedom. The closing core's first/last scheduler tags now
+    share one witness with the same par link, normalized closed core, and exact
+    `first :: middle ++ [last]` split. Lean proves this artificial seam is not
+    an original same-segment or segment-boundary coordinate adjacency. The
+    immediate remaining obligation is to replace bare cuts and complements by
+    generator-exact semantic frames and replay the seam to an original
+    boundary, or instead derive progress from a residual-derivation invariant.
+    Guerrini's correctness/reduction results do not provide this bespoke seam
+    invariant for the present flat eager scheduler.
 3. Prove the deterministic schedule complete, yielding
    `unificationFastCheck = check` and removing the recursive fallback.
 4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack

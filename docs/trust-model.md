@@ -255,8 +255,10 @@ a proof-relevant edge cut can also be lifted existentially from its retained
 append decompositions. This does not recover a canonical visit from an edge
 value. Every surviving tag is inverted to its original segment/offset lookup,
 and each recursive state recomputes its positioned par obstruction on those
-coordinates. Lean now reaches the terminal forward cusp with a complete tagged
-descent from the original family. Coordinate-exact reverse-shell normalization
+coordinates. Lean now reaches the terminal forward cusp with a tagged
+state-and-interval descent from the original family. It does not yet identify
+each stored cut with the exact positioned obstruction that generated it.
+Coordinate-exact reverse-shell normalization
 also exists, erases to the graph-level relation, and positionally lifts every
 graph shell from its stored list decompositions. The terminal complement and
 all later nested cores now compose exact tagged cuts and shell descents back to
@@ -281,7 +283,10 @@ uses the stronger inherited `CuspFreeTraversal`: the shell midpoint contains
 an exact occurrence immediately followed by its reverse, hence a forbidden
 cusp. The empty base is therefore excluded. The nontrivial closing-par base
 remains; its exact first/last scheduler tags, segment/offset classifications,
-and reference-kept forward last incidence are now retained.
+and reference-kept forward last incidence are now retained. The same dependent
+witness binds those tags to the par link, normalized closed core, and exact
+`first :: middle ++ [last]` order. Its artificial closing seam is proved not
+to be a same-segment or segment-boundary scheduler coordinate adjacency.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -325,8 +330,10 @@ Lean now also constructs the exact simultaneous complementary
   preserved. Each step also retains the exact rotation/contiguous-subinterval
   witness in a proof-relevant cyclic-interval trace. Recursion on traversal
   length proves that a terminal forward par-cusp interval exists together with
-  its full trace back to the original flipped family. The terminal object now
-  retains an exact nonempty, closed, internally cusp-free, strictly shorter
+  its state-and-interval trace back to the original flipped family. This trace
+  still needs an explicit relation tying each cut to its generator tags. The
+  terminal object now retains an exact nonempty, closed, internally cusp-free,
+  strictly shorter
   complementary cyclic interval. A closing cusp on that complement is
   kernel-proved to be only the exact last/first reverse, not another nontrivial
   par cusp. Ordinary loop erasure is not used because it can create a new
@@ -339,9 +346,12 @@ Lean now also constructs the exact simultaneous complementary
   excluded by its forced midpoint cusp. The terminal cusp and its
   scheduler location are now carried by one position-aware witness, preventing
   later proofs from combining unrelated existential par occurrences; terminal
-  bases likewise contain no independent duplicate location witness. Excluding
-  the single remaining closing-par base is still required for the correct-state
-  progress theorem and pure-worklist completeness.
+  bases likewise contain no independent duplicate location witness. The
+  closing normalization and exact endpoint split now also share one explicit
+  normalized list. Excluding the single remaining base requires
+  generator-exact backward-chord and terminal-complement frames plus a
+  seam-origin argument, or an independent residual-derivation progress proof;
+  correct-state progress and pure-worklist completeness remain open.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

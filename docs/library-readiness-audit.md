@@ -202,8 +202,10 @@ part of the engineering and proof-identity gap.
    genuinely nonempty closed occurrence-aware `fullGraph` walk. Exact
    occurrence cancellation, residual-core analysis, and simultaneous
    switching flips reduce every correct fully reflexive dependency cycle to a
-   terminal forward retained-left par cusp with a complete cyclic-interval
-   descent trace. Its exact complementary interval is nonempty, closed,
+   terminal forward retained-left par cusp with a complete
+   state-and-interval-cut trace. This trace does not yet bind each cut to the
+   exact positioned obstruction that generated it. Its exact complementary
+   interval is nonempty, closed,
    internally cusp-free, and strictly shorter. Proof-relevant cyclic
    normalization now strips only exact first/last reverse shells, retains the
    full positional context and length equation, and transports scheduler
@@ -236,9 +238,14 @@ part of the engineering and proof-identity gap.
    cusp-free empty branch is now kernel-excluded without assuming the false
    transitivity of generic cyclic-interval convexity. The tagged closing-par
    base now retains exact first/last scheduler tags, source segment/offset
-   lookups, and reference retention of its forward last incidence. Excluding
-   that final base, pure worklist completeness, and a full cost theorem remain
-   open.
+   lookups, and reference retention of its forward last incidence. The same
+   dependent package now binds those tags to the par link, normalization core,
+   closed walk, and exact `first :: middle ++ [last]` tagged split; Lean proves
+   its artificial seam is not an original same-segment or segment-boundary
+   coordinate adjacency. Excluding that final base still requires
+   generator-exact backward-chord and terminal-complement frames plus seam
+   replay, or a separate residual-derivation progress invariant. Pure worklist
+   completeness and a full cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

@@ -613,8 +613,21 @@
     - [x] Bind the surviving closing-par cusp's first/last tags to exact
       scheduler segments and offsets and prove its forward last incidence
       reference-kept.
-    - [ ] Exclude the remaining tagged closing-par base by exact scheduler
-      order and discharge the remaining path-exposed waiting-par obstruction.
+    - [x] Bind the same tags, par link, normalization core, and exact
+      `first :: middle ++ [last]` split in one dependent witness; prove the
+      endpoint steps distinct, the last scheduler target unequal to the common
+      conclusion, and the artificial seam not an original coordinate
+      adjacency.
+    - [x] Retain all intermediate tagged states, interval cuts, closed
+      cusp-free complements, reverse shells, and recursive searches in a
+      state-and-interval ancestry object.
+    - [ ] Strengthen that ancestry with generator-exact backward-chord and
+      terminal-complement frames; bare `CyclicIntervalCut` fields do not tie a
+      cut to the existential positioned obstruction inside its state.
+    - [ ] Replay the closing seam through those exact frames, or replace this
+      route with a kernel-checked residual-derivation progress invariant; then
+      exclude the remaining tagged closing-par base and discharge the
+      path-exposed waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential stack, formalize

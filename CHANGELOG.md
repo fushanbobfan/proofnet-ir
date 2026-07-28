@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- strengthened the sole surviving tagged closing-par base without claiming its
+  exclusion. Lean now proves that its first tag is the zero-offset omitted
+  segment head, its last tag is a nonzero-offset reference-kept forward visit,
+  both target/source the same par conclusion, the tags come from distinct
+  scheduler steps, `chainAt (last.step + 1)` is not that conclusion, and the
+  normalized tagged core remains a closed walk. The endpoint package and its
+  positioned par obstruction now share the same explicit conclusion, first and
+  last tags, segments, offsets, and par link; the exact tagged order is
+  `firstTag :: middle ++ [lastTag]`. The reverse-shell normalization, closing
+  cusp, and this endpoint split likewise share one explicit
+  `taggedNormalized`, eliminating the remaining endpoint/normalization
+  existential drift. A separate kernel theorem excludes both same-segment and
+  segment-boundary adjacency of this artificial closing seam in the original
+  scheduler coordinates. State-and-interval traces now retain every
+  intermediate tagged state, interval cut, terminal complement, closed
+  cusp-free complement walk, reverse-shell normalization, and recursive
+  forward search, and still project to the previous
+  `CyclicIntervalDescent`. These traces deliberately do not yet identify each
+  interval cut with the exact positioned obstruction that generated it, nor
+  each stored complement with the existential complement inside its terminal
+  cusp. Explicit backward-chord and terminal-complement step relations, then a
+  two-sided seam-origin argument (or a separate residual-derivation progress
+  proof), remain necessary before the closing base, correct-state progress,
+  pure-worklist completeness, and fallback removal can be claimed;
 - threaded coordinate-exact scheduler occurrences through the complete
   backward-chord recursion required by the remaining v0.10 contradiction.
   `SchedulerOccurrence` distinguishes a
@@ -106,10 +130,11 @@
   descent trace. Well-founded recursion on traversal length therefore closes
   the entire backward branch and proves that every fully reflexive flipped
   dependency family reaches a terminal forward retained-left par-cusp interval
-  together with its full order trace back to the original family. This does not
-  yet turn that interval into the forbidden reference-switching cycle or strict
-  nesting, so correct-state progress and pure-worklist completeness remain
-  open;
+  together with its full interval-cut trace back to the original family. This
+  trace does not by itself bind every cut to its generating par witness and
+  does not yet turn that interval into the forbidden reference-switching cycle
+  or strict nesting, so correct-state progress and pure-worklist completeness
+  remain open;
 - strengthened the terminal forward-cusp proof object so “interval” is no
   longer only commentary: it retains the exact cyclic rotation, the
   complementary contiguous interval, and the nontrivial left/right par cusp.

@@ -241,9 +241,11 @@ active-reference walks between marked occurrences are equivalent to
   strictly shorter state. Every step records the exact larger-list rotation
   and the smaller contiguous cyclic interval in a proof-relevant descent trace;
   well-founded recursion on list length therefore reaches a terminal forward
-  retained-left par-cusp interval while preserving its order provenance back
-  to the original flipped family. The terminal object retains its exact
-  complementary cyclic interval; this complement is nonempty, closed,
+  retained-left par-cusp interval while preserving an interval-cut trace back
+  to the original flipped family. This trace does not yet identify each cut
+  with the exact positioned par witness that generated it. The terminal object
+  retains its exact complementary cyclic interval; this complement is nonempty,
+  closed,
   internally cusp-free, and strictly shorter. A kernel theorem shows that any
   closing cusp of the complement is necessarily the exact last/first reverse,
   because a nontrivial par cusp would violate the inherited boundary freedom.
@@ -276,7 +278,10 @@ active-reference walks between marked occurrences are equivalent to
   lift from every graph shell's stored singleton/middle/singleton
   decomposition. The terminal complement cut and all later normalized cores
   therefore retain exact tags through the complete nested-base recursion; the
-  final tagged base carries one composed descent back to the original family.
+  final tagged base carries one composed state-and-interval ancestry and its
+  projected descent back to the original family. The current ancestry
+  constructors still need generator-exact backward-chord and
+  terminal-complement relations before they support seam replay.
   If that base has an empty core, every exact visit is now paired with a
   distinct reverse-valued visit from a different scheduler step; a same-step
   pair would repeat one edge index inside a simple path. Its terminal object
@@ -304,11 +309,17 @@ active-reference walks between marked occurrences are equivalent to
   that rules out this branch; no tree-acyclicity claim about an arbitrary
   out-and-back walk is used. The sole surviving nontrivial closing-par base now
   retains exact first and last scheduler tags, source-segment/offset
-  classifications, and reference retention of its forward last incidence.
+  classifications, and reference retention of its forward last incidence. One
+  dependent package now ties those tags to the same par link, normalized core,
+  closed walk, and exact `first :: middle ++ [last]` split. Lean also proves
+  that the resulting artificial closing seam is neither same-segment nor
+  segment-boundary adjacent in the original scheduler coordinates.
   Generic cyclic-interval descent is not itself a convexity invariant because
   a nested cut may wrap around a boundary introduced by an earlier cut. Pure
-  completeness must use the specialized closing-cusp endpoints and scheduler
-  order to exclude that final base.
+  completeness must replay the specialized seam through generator-exact
+  backward-cut, terminal-complement, and reverse-shell frames—or establish an
+  independent residual-derivation progress invariant—to exclude that final
+  base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain
