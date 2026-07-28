@@ -330,8 +330,10 @@ Lean now also constructs the exact simultaneous complementary
   preserved. Each step also retains the exact rotation/contiguous-subinterval
   witness in a proof-relevant cyclic-interval trace. Recursion on traversal
   length proves that a terminal forward par-cusp interval exists together with
-  its state-and-interval trace back to the original flipped family. This trace
-  still needs an explicit relation tying each cut to its generator tags. The
+  its state-and-interval trace back to the original flipped family. Every
+  backward step in that trace now ties its exact scheduler tags, positioned
+  obstruction, cyclic decompositions, retained suffix, and strict cut in one
+  generator-exact witness. The
   terminal object now retains an exact nonempty, closed, internally cusp-free,
   strictly shorter
   complementary cyclic interval. A closing cusp on that complement is
@@ -348,10 +350,11 @@ Lean now also constructs the exact simultaneous complementary
   later proofs from combining unrelated existential par occurrences; terminal
   bases likewise contain no independent duplicate location witness. The
   closing normalization and exact endpoint split now also share one explicit
-  normalized list. Excluding the single remaining base requires
-  generator-exact backward-chord and terminal-complement frames plus a
-  seam-origin argument, or an independent residual-derivation progress proof;
-  correct-state progress and pure-worklist completeness remain open.
+  normalized list. Excluding the single remaining base requires a
+  generator-exact terminal-complement frame plus a seam-origin argument through
+  that frame, the now-exact backward cuts, and reverse shells, or an independent
+  residual-derivation progress proof; correct-state progress and pure-worklist
+  completeness remain open.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

@@ -279,9 +279,12 @@ active-reference walks between marked occurrences are equivalent to
   decomposition. The terminal complement cut and all later normalized cores
   therefore retain exact tags through the complete nested-base recursion; the
   final tagged base carries one composed state-and-interval ancestry and its
-  projected descent back to the original family. The current ancestry
-  constructors still need generator-exact backward-chord and
-  terminal-complement relations before they support seam replay.
+  projected descent back to the original family. Every backward-chord
+  constructor now carries a generator-exact semantic cut whose positioned
+  obstruction, endpoint tags, rotation, retained suffix, and strict interval
+  are one witness. The terminal forward-cusp/complement constructor still
+  needs an analogous generator-exact relation before the ancestry supports
+  seam replay.
   If that base has an empty core, every exact visit is now paired with a
   distinct reverse-valued visit from a different scheduler step; a same-step
   pair would repeat one edge index inside a simple path. Its terminal object
@@ -316,10 +319,10 @@ active-reference walks between marked occurrences are equivalent to
   segment-boundary adjacent in the original scheduler coordinates.
   Generic cyclic-interval descent is not itself a convexity invariant because
   a nested cut may wrap around a boundary introduced by an earlier cut. Pure
-  completeness must replay the specialized seam through generator-exact
-  backward-cut, terminal-complement, and reverse-shell frames—or establish an
-  independent residual-derivation progress invariant—to exclude that final
-  base.
+  completeness must finish the generator-exact terminal-complement frame and
+  replay the specialized seam through it, the now-exact backward cuts, and
+  reverse shells—or establish an independent residual-derivation progress
+  invariant—to exclude that final base.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

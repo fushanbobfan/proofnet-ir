@@ -453,8 +453,11 @@ The repository currently contains:
   scheduler-located nontrivial closing-par core. Its exact endpoint tags,
   par link, normalized core, and first-to-last tagged split now share one
   witness, and its artificial seam is proved not to be an original scheduler
-  coordinate adjacency. Replaying that seam through generator-exact recursive
-  frames remains open;
+  coordinate adjacency. Every recursive backward-chord frame is now generated
+  by the same coordinate-exact positioned obstruction and retained in the
+  search trace. Binding the terminal complement to its exact forward-cusp
+  generator and replaying the seam through the resulting two-sided frames
+  remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

@@ -621,9 +621,13 @@
     - [x] Retain all intermediate tagged states, interval cuts, closed
       cusp-free complements, reverse shells, and recursive searches in a
       state-and-interval ancestry object.
-    - [ ] Strengthen that ancestry with generator-exact backward-chord and
-      terminal-complement frames; bare `CyclicIntervalCut` fields do not tie a
-      cut to the existential positioned obstruction inside its state.
+    - [x] Strengthen every backward-search step with a generator-exact semantic
+      cut tying the `CyclicIntervalCut`, omitted-right and retained-left tags,
+      both cyclic decompositions, and retained suffix to the same positioned
+      obstruction.
+    - [ ] Strengthen the terminal-complement step with an analogous
+      generator-exact frame tying the complement to the exact terminal
+      forward-cusp split.
     - [ ] Replay the closing seam through those exact frames, or replace this
       route with a kernel-checked residual-derivation progress invariant; then
       exclude the remaining tagged closing-par base and discharge the

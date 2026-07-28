@@ -27687,6 +27687,142 @@ private theorem
     ⟨rightBefore, rightAfter, leftBefore, leftAfter,
       rightTraversal, leftTraversal, leftBeforeNonempty, cut⟩
 
+/-- Generator-exact form of one tagged backward chord cut.  The larger state,
+the omitted-right and retained-left scheduler tags, both cyclic append
+decompositions, and the retained smaller suffix all share one explicit
+positioned obstruction.  In particular, equal erased edge values cannot supply
+different visits for the semantic cut.  The strict `CyclicIntervalCut` is
+derived from these equations rather than stored as an independent existential
+decomposition. -/
+private def SchedulerTaggedBackwardParCutAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (smaller larger :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (before : List Link)
+    (left right conclusion : Vertex)
+    (after : List Link)
+    (leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge)
+    (rightStep leftStep leftOffset : Nat)
+    (rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  SchedulerTaggedPositionedParObstructionAt
+      certificate chainAt count flippedSegments larger
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep leftOffset
+            rightSegment leftSegment ∧
+    leftOccurrence.forward = false ∧
+      ∃ rightBefore rightAfter leftBefore leftAfter,
+        larger =
+            rightBefore ++
+              ({ step := rightStep,
+                 offset := 0,
+                 value := rightOccurrence } :
+                SchedulerOccurrence
+                  certificate.fullGraph.DirectedEdge) ::
+                rightAfter ∧
+          (({ step := rightStep,
+               offset := 0,
+               value := rightOccurrence } :
+              SchedulerOccurrence
+                certificate.fullGraph.DirectedEdge) ::
+              rightAfter) ++ rightBefore =
+            leftBefore ++
+              ({ step := leftStep,
+                 offset := leftOffset,
+                 value := leftOccurrence } :
+                SchedulerOccurrence
+                  certificate.fullGraph.DirectedEdge) ::
+                leftAfter ∧
+            leftBefore ≠ [] ∧
+              smaller =
+                ({ step := leftStep,
+                   offset := leftOffset,
+                   value := leftOccurrence } :
+                  SchedulerOccurrence
+                    certificate.fullGraph.DirectedEdge) ::
+                  leftAfter
+
+/-- Existential wrapper for a generator-exact tagged backward chord cut. -/
+private def SchedulerTaggedBackwardParCut
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (smaller larger :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ (before : List Link) (left right conclusion : Vertex)
+      (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (rightStep leftStep leftOffset : Nat)
+      (rightSegment leftSegment :
+        List certificate.fullGraph.DirectedEdge),
+    SchedulerTaggedBackwardParCutAt
+      certificate chainAt count flippedSegments smaller larger
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep leftOffset
+            rightSegment leftSegment
+
+namespace SchedulerTaggedBackwardParCut
+
+/-- Forget generator identity and recover the strict cyclic interval cut. -/
+private theorem cut
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {smaller larger :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (backward :
+      SchedulerTaggedBackwardParCut
+        certificate chainAt count flippedSegments smaller larger) :
+    CyclicIntervalCut smaller larger := by
+  rcases backward with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, positioned, leftBackward,
+      rightBefore, rightAfter, leftBefore, leftAfter,
+      largerEquation, rotatedEquation, leftBeforeNonempty,
+      smallerEquation⟩
+  let rightTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := rightStep, offset := 0, value := rightOccurrence }
+  let leftTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := leftStep, offset := leftOffset, value := leftOccurrence }
+  change larger = rightBefore ++ rightTag :: rightAfter at largerEquation
+  change
+    (rightTag :: rightAfter) ++ rightBefore =
+      leftBefore ++ leftTag :: leftAfter at rotatedEquation
+  change smaller = leftTag :: leftAfter at smallerEquation
+  have shorter : smaller.length < larger.length := by
+    rw [smallerEquation, largerEquation]
+    have leftBeforePositive : 0 < leftBefore.length :=
+      List.length_pos_iff.mpr leftBeforeNonempty
+    have lengthEquation := congrArg List.length rotatedEquation
+    simp only [List.length_append, List.length_cons] at lengthEquation ⊢
+    omega
+  exact
+    ⟨rightBefore, rightTag :: rightAfter, leftBefore, [],
+      largerEquation, by
+        simpa [smallerEquation, List.append_assoc] using rotatedEquation,
+      shorter⟩
+
+end SchedulerTaggedBackwardParCut
+
 /-- Recompute a positioned par obstruction directly on a tagged interval.
 The two obstruction memberships are first lifted to concrete tags; aligned
 provenance then fixes the same scheduler steps and offsets used by the
@@ -28696,13 +28832,24 @@ scheduler-located par obstruction from correctness.
 
 This lemma is independent of whole-segment ordering; that is the key transport
 from the initial flattened dependency family to recursively cut subarcs. -/
-private theorem schedulerCyclicParState_forward_or_descends
+private theorem
+    schedulerCyclicParState_forward_or_descends_of_positionedSplit
     {certificate : Certificate}
     {chainAt : Nat → Vertex}
     {count : Nat}
     {flippedSegments :
       List (List certificate.fullGraph.DirectedEdge)}
     {traversed : List certificate.fullGraph.DirectedEdge}
+    {before : List Link}
+    {left right conclusion : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep : Nat}
+    {rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge}
+    {rightBefore rightAfter leftBefore leftAfter :
+      List certificate.fullGraph.DirectedEdge}
     (correct : certificate.DeclarativelyCorrect)
     (prefixInjective :
       ∀ first,
@@ -28713,13 +28860,28 @@ private theorem schedulerCyclicParState_forward_or_descends
                 first = second)
     (state :
       SchedulerCyclicParState
-        certificate chainAt count flippedSegments traversed) :
+        certificate chainAt count flippedSegments traversed)
+    (positionedFacts :
+      SchedulerPositionedParObstructionAt
+        certificate chainAt count flippedSegments traversed
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep
+              rightSegment leftSegment)
+    (rightTraversal :
+      traversed =
+        rightBefore ++ rightOccurrence :: rightAfter)
+    (leftTraversal :
+      (rightOccurrence :: rightAfter) ++ rightBefore =
+        leftBefore ++ leftOccurrence :: leftAfter)
+    (leftBeforeNonempty : leftBefore ≠ []) :
     SchedulerForwardParCuspArc
         certificate chainAt count flippedSegments traversed ∨
-      ∃ shorter,
+      (leftOccurrence.forward = false ∧
         SchedulerCyclicParState
-            certificate chainAt count flippedSegments shorter ∧
-          CyclicIntervalCut shorter traversed := by
+            certificate chainAt count flippedSegments
+              (leftOccurrence :: leftAfter) ∧
+          CyclicIntervalCut
+            (leftOccurrence :: leftAfter) traversed) := by
   rcases state with
     ⟨base, traversedNonempty, closedWalk, cuspFree, closingCuspFree,
       forwardKept, schedulerProvenance, obstruction, schedulerLocated⟩
@@ -28728,19 +28890,11 @@ private theorem schedulerCyclicParState_forward_or_descends
         certificate chainAt count flippedSegments traversed :=
     ⟨base, traversedNonempty, closedWalk, cuspFree, closingCuspFree,
       forwardKept, schedulerProvenance, obstruction, schedulerLocated⟩
-  have alignedPositioned :=
-    (obstruction.schedulerLocated
-      schedulerProvenance prefixInjective).positioned
-  rcases alignedPositioned with
-    ⟨before, left, right, conclusion, after,
-      leftOccurrence, rightOccurrence,
-      rightStep, leftStep, rightSegment, leftSegment,
-      positionedFacts⟩
   have positionedForTerminal := positionedFacts
   rcases positionedFacts with
     ⟨
-      linksEquation, leftMembership, leftIndex,
-      rightMembership, rightIndex, distinctOccurrences,
+      linksEquation, _leftMembership, leftIndex,
+      _rightMembership, rightIndex, distinctOccurrences,
       rightBackward, _rightStepBound, _leftStepBound,
       _distinctSteps, _rightLookup, _rightHead, _rightFlipped,
       _sourceConclusion, _conclusionNeLeftStart,
@@ -28820,8 +28974,6 @@ private theorem schedulerCyclicParState_forward_or_descends
         leftOccurrence conclusion).2
           ⟨leftForward, leftParTarget⟩
     rw [leftColor, rightReverseColor]
-  rcases List.mem_iff_append.mp rightMembership with
-    ⟨rightBefore, rightAfter, rightTraversal⟩
   have rightSource :
       rightOccurrence.source = conclusion := by
     simp [Graph.DirectedEdge.source, rightEdge, rightBackward]
@@ -28861,23 +29013,6 @@ private theorem schedulerCyclicParState_forward_or_descends
       ((rightOccurrence :: rightAfter) ++ rightBefore).head? =
         some rightOccurrence := by
     simp
-  have leftRotated :
-      leftOccurrence ∈
-        (rightOccurrence :: rightAfter) ++ rightBefore :=
-    rotatedPermutation.mem_iff.mpr leftMembership
-  rcases List.mem_iff_append.mp leftRotated with
-    ⟨leftBefore, leftAfter, leftTraversal⟩
-  have leftBeforeNonempty : leftBefore ≠ [] := by
-    intro leftBeforeEmpty
-    have leftHead :
-        ((rightOccurrence :: rightAfter) ++ rightBefore).head? =
-          some leftOccurrence := by
-      rw [leftTraversal, leftBeforeEmpty]
-      simp
-    have rightEqualsLeft :
-        rightOccurrence = leftOccurrence :=
-      Option.some.inj (rotatedHead.symm.trans leftHead)
-    exact distinctOccurrences rightEqualsLeft.symm
   have leftBeforeHead :
       leftBefore.head? = some rightOccurrence := by
     have headEquation := rotatedHead
@@ -29109,11 +29244,99 @@ private theorem schedulerCyclicParState_forward_or_descends
             simpa [List.append_assoc] using leftTraversal,
           shorterLength⟩
       exact .inr
-        ⟨leftOccurrence :: leftAfter,
+        ⟨rfl,
           ⟨conclusion, shorterNonempty, shorterWalk, shorterFree,
             shorterClosing, shorterForwardKept, shorterProvenance,
             shorterObstruction, shorterLocated⟩,
           intervalCut⟩
+
+/-- Compatibility wrapper for the graph-level cyclic-interval search.  It
+selects concrete edge-value positions and then delegates all geometry to the
+positioned-split core.  Coordinate-exact callers use that core directly. -/
+private theorem schedulerCyclicParState_forward_or_descends
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed) :
+    SchedulerForwardParCuspArc
+        certificate chainAt count flippedSegments traversed ∨
+      ∃ shorter,
+        SchedulerCyclicParState
+            certificate chainAt count flippedSegments shorter ∧
+          CyclicIntervalCut shorter traversed := by
+  rcases state with
+    ⟨base, traversedNonempty, closedWalk, cuspFree, closingCuspFree,
+      forwardKept, schedulerProvenance, obstruction, schedulerLocated⟩
+  have originalState :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed :=
+    ⟨base, traversedNonempty, closedWalk, cuspFree, closingCuspFree,
+      forwardKept, schedulerProvenance, obstruction, schedulerLocated⟩
+  have alignedPositioned :=
+    (obstruction.schedulerLocated
+      schedulerProvenance prefixInjective).positioned
+  rcases alignedPositioned with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence,
+      rightStep, leftStep, rightSegment, leftSegment,
+      positionedFacts⟩
+  have positionedForCore := positionedFacts
+  rcases positionedFacts with
+    ⟨_linksEquation, leftMembership, _leftIndex,
+      rightMembership, _rightIndex, distinctOccurrences,
+      _rightBackward, _rightStepBound, _leftStepBound,
+      _distinctSteps, _rightLookup, _rightHead, _rightFlipped,
+      _sourceConclusion, _conclusionNeLeftStart,
+      _leftLookup, _leftSegmentPosition, _leftFlipped,
+      _conclusionInLeftTail, _traversalOrder, _schedulerOrder⟩
+  rcases List.mem_iff_append.mp rightMembership with
+    ⟨rightBefore, rightAfter, rightTraversal⟩
+  have rotatedPermutation :
+      ((rightOccurrence :: rightAfter) ++ rightBefore).Perm traversed := by
+    rw [rightTraversal]
+    exact List.perm_append_comm
+  have leftRotated :
+      leftOccurrence ∈
+        (rightOccurrence :: rightAfter) ++ rightBefore :=
+    rotatedPermutation.mem_iff.mpr leftMembership
+  rcases List.mem_iff_append.mp leftRotated with
+    ⟨leftBefore, leftAfter, leftTraversal⟩
+  have leftBeforeNonempty : leftBefore ≠ [] := by
+    intro leftBeforeEmpty
+    have rightHead :
+        ((rightOccurrence :: rightAfter) ++ rightBefore).head? =
+          some rightOccurrence := by
+      simp
+    have leftHead :
+        ((rightOccurrence :: rightAfter) ++ rightBefore).head? =
+          some leftOccurrence := by
+      rw [leftTraversal, leftBeforeEmpty]
+      simp
+    exact distinctOccurrences
+      (Option.some.inj (leftHead.symm.trans rightHead))
+  rcases
+      schedulerCyclicParState_forward_or_descends_of_positionedSplit
+        correct prefixInjective originalState positionedForCore
+          rightTraversal leftTraversal leftBeforeNonempty with
+    terminal | ⟨_leftBackward, shorterState, intervalCut⟩
+  · exact .inl terminal
+  · exact
+      .inr
+        ⟨leftOccurrence :: leftAfter,
+          shorterState, intervalCut⟩
 
 /-- A coordinate-exact state whose erased traversal has reached the existing
 terminal forward par-cusp geometry.  The tagged state remains available for
@@ -29134,10 +29357,10 @@ private def SchedulerTaggedForwardParCuspState
       certificate chainAt count flippedSegments
         (tagged.map SchedulerOccurrence.erase)
 
-/-- Lift the existing graph-level forward-or-descends theorem through exact
-scheduler tags.  An edge-level cut is lifted from its proof-relevant append
-decomposition, and the next tagged obstruction is recomputed on the retained
-coordinates. -/
+/-- Run one forward-or-descends step on the exact scheduler occurrences
+selected by the tagged positioned obstruction.  A backward result keeps the
+same generator, both cyclic decompositions, the retained suffix, and the
+derived strict cut; no erased edge-value position is lifted back into tags. -/
 private theorem schedulerTaggedCyclicParState_forward_or_descends
     {certificate : Certificate}
     {chainAt : Nat → Vertex}
@@ -29174,27 +29397,98 @@ private theorem schedulerTaggedCyclicParState_forward_or_descends
       ∃ smaller,
         SchedulerTaggedCyclicParState
             certificate chainAt count flippedSegments smaller ∧
-          CyclicIntervalCut smaller tagged := by
+          SchedulerTaggedBackwardParCut
+            certificate chainAt count flippedSegments smaller tagged := by
+  rcases state.2.2 with
+    ⟨before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence,
+      rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, positioned⟩
+  rcases positioned.chordCut with
+    ⟨rightBefore, rightAfter, leftBefore, leftAfter,
+      rightTraversal, leftTraversal, leftBeforeNonempty, taggedCut⟩
+  let rightTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := rightStep, offset := 0, value := rightOccurrence }
+  let leftTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := leftStep, offset := leftOffset, value := leftOccurrence }
+  change tagged = rightBefore ++ rightTag :: rightAfter at rightTraversal
+  change
+    (rightTag :: rightAfter) ++ rightBefore =
+      leftBefore ++ leftTag :: leftAfter at leftTraversal
+  change CyclicIntervalCut (leftTag :: leftAfter) tagged at taggedCut
+  have edgeRightTraversal :
+      tagged.map SchedulerOccurrence.erase =
+        rightBefore.map SchedulerOccurrence.erase ++
+          rightOccurrence ::
+            rightAfter.map SchedulerOccurrence.erase := by
+    simpa [rightTag, SchedulerOccurrence.erase] using
+      congrArg (List.map SchedulerOccurrence.erase) rightTraversal
+  have edgeLeftTraversal :
+      (rightOccurrence ::
+          rightAfter.map SchedulerOccurrence.erase) ++
+            rightBefore.map SchedulerOccurrence.erase =
+        leftBefore.map SchedulerOccurrence.erase ++
+          leftOccurrence ::
+            leftAfter.map SchedulerOccurrence.erase := by
+    simpa [rightTag, leftTag, SchedulerOccurrence.erase] using
+      congrArg (List.map SchedulerOccurrence.erase) leftTraversal
+  have edgeLeftBeforeNonempty :
+      leftBefore.map SchedulerOccurrence.erase ≠ [] := by
+    intro erasedEmpty
+    apply leftBeforeNonempty
+    apply List.eq_nil_of_length_eq_zero
+    have lengths := congrArg List.length erasedEmpty
+    simpa using lengths
   rcases
-      schedulerCyclicParState_forward_or_descends
-        correct prefixInjective state.erased with
-    terminal | ⟨shorter, shorterState, edgeCut⟩
+      schedulerCyclicParState_forward_or_descends_of_positionedSplit
+        (rightBefore := rightBefore.map SchedulerOccurrence.erase)
+        (rightAfter := rightAfter.map SchedulerOccurrence.erase)
+        (leftBefore := leftBefore.map SchedulerOccurrence.erase)
+        (leftAfter := leftAfter.map SchedulerOccurrence.erase)
+        correct prefixInjective state.erased positioned.1
+          edgeRightTraversal edgeLeftTraversal
+            edgeLeftBeforeNonempty with
+    terminal | ⟨leftBackward, shorterState, _edgeCut⟩
   · exact .inl ⟨state, terminal⟩
-  · rcases
-        edgeCut.exists_lift_map
-          (function := SchedulerOccurrence.erase)
-          (tagged := tagged) rfl with
-      ⟨smaller, smallerMap, taggedCut⟩
+  ·
     have smallerErased :
         SchedulerCyclicParState
           certificate chainAt count flippedSegments
-            (smaller.map SchedulerOccurrence.erase) := by
-      rw [smallerMap]
-      exact shorterState
-    have smallerTagged :=
+            ((leftTag :: leftAfter).map SchedulerOccurrence.erase) := by
+      simpa [leftTag, SchedulerOccurrence.erase] using shorterState
+    have smallerTagged :
+        SchedulerTaggedCyclicParState
+          certificate chainAt count flippedSegments
+            (leftTag :: leftAfter) :=
       state.ofCut taggedCut smallerErased
         segmentCount indexedFlipped prefixInjective
-    exact .inr ⟨smaller, smallerTagged, taggedCut⟩
+    have backwardAt :
+        SchedulerTaggedBackwardParCutAt
+          certificate chainAt count flippedSegments
+            (leftTag :: leftAfter) tagged
+            before left right conclusion after
+              leftOccurrence rightOccurrence
+                rightStep leftStep leftOffset
+                  rightSegment leftSegment := by
+      refine
+        ⟨positioned, leftBackward,
+          rightBefore, rightAfter, leftBefore, leftAfter,
+          ?_, ?_, leftBeforeNonempty, rfl⟩
+      · simpa [rightTag] using rightTraversal
+      · simpa [rightTag, leftTag] using leftTraversal
+    have backward :
+        SchedulerTaggedBackwardParCut
+          certificate chainAt count flippedSegments
+            (leftTag :: leftAfter) tagged :=
+      ⟨before, left, right, conclusion, after,
+        leftOccurrence, rightOccurrence,
+        rightStep, leftStep, leftOffset,
+        rightSegment, leftSegment, backwardAt⟩
+    exact
+      .inr
+        ⟨leftTag :: leftAfter, smallerTagged, backward⟩
 
 /-- Finite tagged traversal length closes the recursive backward-chord branch
 without ever collapsing scheduler coordinates to edge-value membership. -/
@@ -29236,7 +29530,7 @@ private theorem schedulerTaggedCyclicParState_forward_exists
   rcases
       schedulerTaggedCyclicParState_forward_or_descends
         segmentCount indexedFlipped correct prefixInjective state with
-    terminal | ⟨smaller, smallerState, intervalCut⟩
+    terminal | ⟨smaller, smallerState, backward⟩
   · exact ⟨tagged, terminal, .refl tagged⟩
   · rcases
         schedulerTaggedCyclicParState_forward_exists
@@ -29245,16 +29539,17 @@ private theorem schedulerTaggedCyclicParState_forward_exists
       ⟨terminal, terminalForward, terminalDescent⟩
     exact
       ⟨terminal, terminalForward,
-        .step intervalCut terminalDescent⟩
+        .step backward.cut terminalDescent⟩
 termination_by tagged.length
 decreasing_by
-  exact intervalCut.length_lt
+  exact backward.cut.length_lt
 
 /-- Proof-relevant history of the backward-chord search for a terminal
 forward cusp.  Every strict step retains both endpoint tagged scheduler states
-and the lifted cut between them.  This does not yet identify the existential
-positioned obstruction stored in the larger state with the particular
-edge-level witness used to construct that cut. -/
+and a generator-exact backward cut whose positioned obstruction, exact right
+and left tags, cyclic rotation, and retained suffix determine the strict
+interval without a second existential decomposition.  The terminal forward
+cusp itself remains a separate object. -/
 private inductive SchedulerTaggedForwardSearchTrace
     (certificate : Certificate)
     (chainAt : Nat → Vertex)
@@ -29288,7 +29583,9 @@ private inductive SchedulerTaggedForwardSearchTrace
       (smallerState :
         SchedulerTaggedCyclicParState
           certificate chainAt count flippedSegments smaller)
-      (cut : CyclicIntervalCut smaller larger)
+      (backward :
+        SchedulerTaggedBackwardParCut
+          certificate chainAt count flippedSegments smaller larger)
       (tail :
         SchedulerTaggedForwardSearchTrace
           certificate chainAt count flippedSegments terminal smaller) :
@@ -29316,14 +29613,15 @@ private theorem descent
   induction trace with
   | terminal state =>
       exact .refl _
-  | descend largerState smallerState cut tail induction =>
-      exact .step cut induction
+  | descend largerState smallerState backward tail induction =>
+      exact .step backward.cut induction
 
 end SchedulerTaggedForwardSearchTrace
 
 /-- Traced companion to `schedulerTaggedCyclicParState_forward_exists`.
 Unlike the projection theorem, it keeps every intermediate tagged state and
-lifted interval cut.  Generator identity remains a separate obligation. -/
+generator-exact backward cut.  Binding the terminal complement to the exact
+forward-cusp generator remains a separate obligation. -/
 private theorem schedulerTaggedCyclicParState_forward_exists_traced
     {certificate : Certificate}
     {chainAt : Nat → Vertex}
@@ -29363,7 +29661,7 @@ private theorem schedulerTaggedCyclicParState_forward_exists_traced
   rcases
       schedulerTaggedCyclicParState_forward_or_descends
         segmentCount indexedFlipped correct prefixInjective state with
-    terminal | ⟨smaller, smallerState, intervalCut⟩
+    terminal | ⟨smaller, smallerState, backward⟩
   · exact
       ⟨tagged, terminal,
         .terminal terminal⟩
@@ -29374,10 +29672,10 @@ private theorem schedulerTaggedCyclicParState_forward_exists_traced
       ⟨terminal, terminalForward, terminalTrace⟩
     exact
       ⟨terminal, terminalForward,
-        .descend state smallerState intervalCut terminalTrace⟩
+        .descend state smallerState backward terminalTrace⟩
 termination_by tagged.length
 decreasing_by
-  exact intervalCut.length_lt
+  exact backward.cut.length_lt
 
 /-- Strip a terminal complement without discarding scheduler coordinates.
 The edge-level complement cut and every reverse shell are lifted from their

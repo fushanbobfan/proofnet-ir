@@ -383,8 +383,11 @@ or positive misses. The larger search recorded at most 995 link attempts and
     share one witness with the same par link, normalized closed core, and exact
     `first :: middle ++ [last]` split. Lean proves this artificial seam is not
     an original same-segment or segment-boundary coordinate adjacency. The
-    immediate remaining obligation is to replace bare cuts and complements by
-    generator-exact semantic frames and replay the seam to an original
+    backward search now replaces every bare cut by a generator-exact semantic
+    frame sharing one positioned obstruction, both endpoint tags, both cyclic
+    decompositions, and the retained suffix. The immediate remaining
+    obligation is to bind the terminal complement to its exact forward-cusp
+    generator and replay the seam through the resulting frames to an original
     boundary, or instead derive progress from a residual-derivation invariant.
     Guerrini's correctness/reduction results do not provide this bespoke seam
     invariant for the present flat eager scheduler.
