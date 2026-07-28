@@ -401,11 +401,17 @@ or positive misses. The larger search recorded at most 995 link attempts and
     wrapper once and threads that same frame through reverse-shell,
     backward-search, nesting, and global ancestry. Starting from the normalized
     closing seed, the resulting boundary cursor reaches the initial tagged
-    family with a nonempty candidate gap. The immediate remaining obligation is
-    to prove a scheduler-specific semantic invariant while retaining the exact
-    frame origins and reverse-shell relations, or instead derive progress from
-    a residual-derivation invariant. A nonempty generic gap is not an adjacency
-    or contradiction. Guerrini's
+    family with a nonempty pointwise-contained candidate gap, and every
+    previously accumulated occurrence survives each replay frame. The head of
+    the same terminal omitted arc is now propagated as one exact anchor with
+    zero offset, backward orientation, omitted reference-mask status, precise
+    right-par incidence, classified segment, waiting-dependency semantics, and
+    source conclusion. It is not identified with a closing endpoint and
+    carries no multiplicity, contiguity, adjacency, or relative-order result.
+    The immediate remaining obligation is a stronger scheduler-specific
+    zipper/order invariant relating that anchor, the closing endpoints, and
+    every exact frame origin/reverse-shell relation, or instead a
+    residual-derivation progress proof. Guerrini's
     correctness/reduction results do not provide this bespoke seam invariant
     for the present flat eager scheduler.
 3. Exclude the closing-par base by exact scheduler order and prove

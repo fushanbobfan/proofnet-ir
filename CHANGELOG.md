@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- enriched the private seam replay with a first typed scheduler-origin anchor
+  without promoting it to an order theorem. Lean now proves pointwise
+  `GapContained` for the closing seed and preserves it through every exact
+  replay frame; every pre-existing gap occurrence likewise survives each
+  advance. The terminal replay destructs its existential frame only once and
+  selects the head of that same terminal omitted arc. The resulting exact
+  `SchedulerOccurrence` is carried through the remaining ancestry into the
+  initial tagged family together with offset zero, backward orientation,
+  omitted reference-mask status, the precise right-par incidence index,
+  classified flipped-segment head, waiting-dependency semantics, and
+  `conclusion = chainAt step`. This proves neither multiplicity nor contiguity
+  of the gap, does not identify the anchor with either closing-core endpoint,
+  and does not establish relative scheduler order, adjacency, closing-par
+  exclusion, progress, pure-worklist completeness, or fallback removal.
 - added a private proof-relevant structural seam replay for the unified exact
   closing package. Lean now starts from the surviving normalized core's
   boundary-zero empty-gap cursor, opens each stored terminal wrapper exactly

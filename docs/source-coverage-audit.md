@@ -1,6 +1,6 @@
 # Local source coverage audit
 
-Audit date: 2026-07-22; live inventory and hashes refreshed 2026-07-26
+Audit date: 2026-07-22; live inventory and hashes refreshed 2026-07-28
 
 ## Review question
 
@@ -65,10 +65,16 @@ For each source:
 6. recheck every code-level mathematical claim against the resulting matrix.
 
 The linked page matrices are the evidence behind the completion claim. A live
-2026-07-26 SHA-256 refresh matched every original-source prefix recorded in
-`reading-ledger.md` and the full Guerrini digest below. This ledger does not
-turn adjacent sources into proof-net authorities and does not replace kernel
-checking of the implementation.
+2026-07-28 rescan again found the same 16 PDFs, with no new, removed, or
+changed research source. Its SHA-256 refresh matched every original-source
+prefix recorded in `reading-ledger.md` and the full Guerrini digest below.
+The same bounded scan classified all 39 Markdown candidates as ten
+ledger/map/page-matrix/Guerrini-audit artifacts and 29 project
+design/release/architecture documents, not new external papers or books. The
+DOCX/HTML Chinese guide remains a duplicate-format derivative, temporary text
+files remain extractions, and the Rowling brief is unchanged. This ledger does
+not turn adjacent sources into proof-net authorities and does not replace
+kernel checking of the implementation.
 
 ## Supplemental primary-source audit
 

@@ -18,13 +18,18 @@ boundary-cursor/gap replay through that package. Starting from the normalized
 closing core's boundary-zero empty-gap seed, the replay follows the same exact
 terminal, reverse-shell, backward-search, nesting, and global-ancestry
 witnesses to the package's initial tagged family and proves that the accumulated
-candidate gap is nonempty. It does not identify that gap with a contiguous
-scheduler slice or prove an endpoint adjacency. The immediate proof boundary is
-a scheduler-specific semantic invariant over the replay while retaining its
-exact frame origins, followed by closing-par scheduler-order exclusion and
-correct-state progress. Pure worklist completeness comes only after that
-boundary. Independent transition
-refinement and the
+candidate gap is nonempty and pointwise contained in that initial family. One
+exact gap occurrence is now traced from the head of the same terminal omitted
+arc through all remaining ancestry. Lean retains its offset-zero/backward
+scheduler coordinate, omitted reference-mask status, exact right-par incidence,
+classified segment head, waiting-dependency semantics, and source conclusion.
+This anchor is not identified with either closing-core endpoint, and the result
+proves no gap multiplicity, contiguity, relative order, or adjacency. The
+immediate proof boundary is the stronger zipper/order invariant needed to
+relate that typed anchor and every replay frame to the closing endpoints,
+followed by closing-par scheduler-order exclusion and correct-state progress.
+Pure worklist completeness comes only after that boundary. Independent
+transition refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
 invariant are now kernel checked. Atomic pop-and-process restores complete
 scheduler coverage once the popped index is known to be a submitted
@@ -321,9 +326,17 @@ remains existential inside its step wrapper rather than a global package index.
 The structural boundary-cursor/gap theorem now consumes that wrapper once and
 replays the normalized closing seam through the terminal frame, backward
 frames, reverse shells, nesting, and global ancestry to a nonempty candidate
-gap. What remains is a scheduler-specific semantic invariant that retains the
-exact origins erased by the generic replay; the gap alone is neither adjacency
-nor contradiction. Closing-par scheduler-order exclusion and correct-state
+gap. Gap containment in the current tagged family and preservation of every
+previously accumulated occurrence are now proved through every replay frame.
+The same terminal arc also supplies one concrete omitted-right head that
+survives into the initial family with its exact scheduler coordinate, par
+incidence, reference-mask omission, classified segment, waiting dependency,
+and source conclusion. This is still only an origin-typed member: it is not
+identified with either closing endpoint, and the gap carries no multiplicity,
+contiguous-slice, or relative-order guarantee. What remains is a zipper/order
+invariant relating that evidence to the exact closing endpoints. The gap alone
+is neither adjacency nor contradiction. Closing-par scheduler-order exclusion
+and correct-state
 progress follow only after that step. Pure-worklist completeness,
 recursive-fallback removal, the later
 `NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
@@ -490,9 +503,14 @@ The repository currently contains:
   are now assembled into one data-indexed closing package. A private
   proof-relevant boundary-cursor/gap replay consumes each stored exact frame
   without reselection and carries the normalized closing seam to the package's
-  initial tagged family with a nonempty accumulated candidate gap. This
-  structural result neither makes that gap a contiguous scheduler slice nor
-  turns it into an adjacency or contradiction. Its scheduler-specific semantic
+  initial tagged family with a nonempty accumulated candidate gap. Pointwise gap
+  containment and old-gap membership preservation are kernel checked. The head
+  of the same terminal omitted arc is also propagated as one exact
+  scheduler-origin anchor, retaining its zero offset, backward direction,
+  omitted reference entry, right-par incidence, classified segment, waiting
+  dependency, and source conclusion. It is not identified with the closing
+  endpoints. This structural result proves neither multiplicity, contiguity,
+  relative order, adjacency, nor contradiction. Its stronger zipper/order
   invariant, closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, fallback removal, and whole-program linearity
   remain open;

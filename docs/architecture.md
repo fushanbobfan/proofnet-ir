@@ -337,12 +337,17 @@ active-reference walks between marked occurrences are equivalent to
   structural replay now opens each wrapper once, reuses that same frame, and
   folds terminal, reverse-shell, backward-search, nesting, and global ancestry
   into a boundary cursor whose candidate gap starts empty and is nonempty at
-  the initial tagged family. The generic cursor replay does not itself retain
-  scheduler-origin or reverse-shell relation evidence and does not make the gap
-  contiguous or adjacent. Pure completeness still needs a scheduler-specific
-  semantic invariant over the replay and exact trace—or an independent
-  residual-derivation progress invariant—to exclude the closing-par base and
-  prove correct-state progress. Pure-worklist
+  the initial tagged family. It now proves pointwise gap containment and
+  preserves every incoming gap occurrence through each frame. The terminal
+  frame also contributes one exact anchor from the head of that same omitted
+  arc; its zero offset, backward orientation, right-par incidence, false
+  reference-mask entry, classified segment head, waiting-dependency semantics,
+  and source conclusion survive into the initial family. This anchor is not
+  identified with a closing endpoint, and the replay proves no multiplicity,
+  contiguity, adjacency, or relative order. Pure completeness still needs a
+  stronger zipper/order invariant over the replay and exact trace—or an
+  independent residual-derivation progress invariant—to exclude the closing-par
+  base and prove correct-state progress. Pure-worklist
   completeness, recursive-fallback removal, and whole-program linearity remain
   later gates.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,

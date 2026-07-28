@@ -257,10 +257,17 @@ part of the engineering and proof-identity gap.
    once and reuses the same frame. It folds the exact terminal, reverse-shell,
    backward-search, nesting, and global ancestry into a replay from the
    normalized closing seed to a nonempty candidate gap in the initial tagged
-   family. Excluding that final base still requires a scheduler-specific
-   semantic invariant that also retains each frame's origin and reverse-shell
-   evidence, or a separate residual-derivation progress invariant. The
-   nonempty generic gap alone is not adjacency or contradiction. Closing-par
+   family. Pointwise gap containment and preservation of every incoming gap
+   occurrence are now kernel checked. The same terminal omitted arc contributes
+   one zero-offset backward head that survives into the initial family with its
+   exact right-par incidence, false reference-mask entry, classified segment,
+   waiting-dependency semantics, and source conclusion. The anchor is not
+   identified with either closing-core endpoint, and no multiplicity,
+   contiguity, adjacency, or relative scheduler order follows. Excluding that
+   final base still requires a stronger zipper/order invariant retaining the
+   frame origins and reverse-shell evidence, or a separate residual-derivation
+   progress invariant. The nonempty origin-typed gap alone is not a
+   contradiction. Closing-par
    scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, and a
    whole-program linear cost theorem remain open.

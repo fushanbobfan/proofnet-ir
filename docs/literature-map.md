@@ -8,11 +8,12 @@ proof-structure dataset even if it does not improve end-to-end solve rate?
 
 ## Local screening
 
-The parent knowledge folder was inventoried on 2026-07-21. Included sources are
-papers, books, and project research notes with mathematical or architectural
-relevance. Course homework, rendered page images, temporary extraction files,
-and format duplicates of the same Chinese guide were excluded from the
-research-source count.
+The parent knowledge folder was inventoried on 2026-07-21 and live-rescanned on
+2026-07-28 with no added, removed, or hash-changed research source. Included
+sources are papers, books, and project research notes with mathematical or
+architectural relevance. Course homework, rendered page images, temporary
+extraction files, and format duplicates of the same Chinese guide were excluded
+from the research-source count.
 
 | Source | Type | Main contribution | Project use |
 |---|---|---|---|

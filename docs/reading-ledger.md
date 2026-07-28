@@ -13,6 +13,15 @@ homework, rendered page images, temporary text extractions, and the DOCX/HTML/
 PDF renderings of the same Chinese `paper1` guide are not counted as additional
 sources.
 
+A bounded live rescan on 2026-07-28 found the same 16 PDFs: seven coursework
+artifacts, one derived guide rendering, seven original project sources, and the
+supplemental Guerrini primary source. No research source was added, removed, or
+changed. All eight included-PDF SHA-256 values still match the frozen entries
+below, and the short Rowling brief remains unchanged. The 39 Markdown
+candidates are literature-audit artifacts or project documentation rather than
+untracked original papers or textbooks; the DOCX/HTML guide and temporary text
+extractions remain duplicate formats, not additional sources.
+
 All original PDFs were extracted to searchable text without modifying the
 source files. A section/theorem sweep was performed across the full extracted
 corpus. Close reading is complete for all seven original PDFs and the project

@@ -294,10 +294,15 @@ to be a same-segment or segment-boundary scheduler coordinate adjacency.
 A private structural replay now threads that closing seam from a
 boundary-zero empty-gap seed through the same terminal reverse shells and
 omitted arc, then through every exact nesting and backward-search frame, to
-the package's initial tagged family. The final candidate gap is nonempty.
-This is not an adjacency or contradiction: the generic replay does not by
-itself retain each frame's scheduler-origin and reverse-shell relation, so a
-later semantic theorem must consume the exact package/trace alongside it.
+the package's initial tagged family. The final candidate gap is nonempty and
+pointwise contained there; every already accumulated occurrence survives each
+frame. The same terminal omitted arc also supplies one exact zero-offset
+backward anchor with its right-par incidence, false reference-mask entry,
+classified segment, waiting-dependency semantics, and source conclusion.
+This is not an adjacency or contradiction: the anchor is not identified with
+either closing endpoint, and the replay proves no multiplicity, contiguity, or
+relative scheduler order. A later zipper/order theorem must consume the exact
+package/trace alongside it.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -370,10 +375,15 @@ Lean now also constructs the exact simultaneous complementary
   terminal `StepAt` frame as global indices; those data remain existential
   inside the step wrapper. The structural replay now consumes each wrapper once
   and folds the terminal frame, exact backward cuts, reverse-shell arms,
-  nesting, and global ancestry into a nonempty candidate gap. Excluding the
-  single remaining base still requires a scheduler-specific semantic invariant
-  that retains those exact frame origins, or an independent residual-derivation
-  progress proof. The generic gap alone is not adjacency or contradiction.
+  nesting, and global ancestry into a nonempty pointwise-contained candidate
+  gap. One exact terminal omitted-right head now survives as an origin-typed
+  member of the initial family with its coordinate, par incidence, reference
+  omission, segment classification, dependency semantics, and source
+  conclusion. Excluding the single remaining base still requires a
+  scheduler-specific zipper/order invariant that relates this anchor, the
+  closing endpoints, and the exact frame origins, or an independent
+  residual-derivation progress proof. Pointwise membership alone is not
+  multiplicity, contiguity, adjacency, relative order, or contradiction.
   Closing-par scheduler-order exclusion, correct-state progress, pure-worklist
   completeness, recursive fallback removal, and whole-program linearity remain
   open.

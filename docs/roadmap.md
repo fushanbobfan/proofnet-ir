@@ -642,12 +642,19 @@
       backward, reverse-shell, nesting, and global-ancestry frames as a boundary
       cursor, starting with an empty gap and reaching the initial tagged family
       with a nonempty accumulated candidate gap.
+    - [x] Prove pointwise gap containment and old-gap occurrence preservation
+      through every exact replay frame; propagate the same terminal omitted
+      arc's zero-offset backward head into the initial tagged family with its
+      exact par incidence, omitted reference-mask entry, classified segment,
+      waiting-dependency semantics, and source conclusion.
     - [ ] Prove a scheduler-specific semantic invariant while retaining the
       exact origin and reverse-shell evidence of every replay frame, or replace
       this route with a kernel-checked residual-derivation progress invariant;
       then exclude the remaining tagged closing-par base and discharge the
       path-exposed waiting-par obstruction. Nonempty candidate gap alone is not
-      an adjacency or contradiction.
+      an adjacency or contradiction; the current typed anchor is not identified
+      with a closing endpoint and carries no multiplicity, contiguity, or
+      relative-order theorem.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential ready/waiting stacks; formalize
