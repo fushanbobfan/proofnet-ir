@@ -24,8 +24,10 @@ structure SourceIncidence where
   deriving Repr, DecidableEq
 
 /-- Per-occurrence source incidences.  `nextAxiomWithFuel?` accepts only a
-singleton bucket and rejects zero or multiple source entries.  The later
-totality layer must separately expose the structural-to-singleton bridge. -/
+singleton bucket and rejects zero or multiple source entries.
+`StructurallyWellFormed.sourceIndex_lookup_eq_singleton` proves that every
+in-bounds production bucket is a singleton on the structural theorem
+domain. -/
 abbrev SourceIndex := Array (List SourceIncidence)
 
 private def pushSource (index : SourceIndex) (vertex : Vertex)
@@ -81,6 +83,272 @@ private theorem foldl_addSourceIncidences_size
 @[simp] theorem sourceIndex_size (certificate : Certificate) :
     (sourceIndex certificate).size = certificate.formulas.size := by
   simp [sourceIndex, foldl_addSourceIncidences_size]
+
+/- `sourceMultiplicity` deliberately counts the two stored endpoints of an
+axiom separately.  Thus a malformed self-axiom contributes two entries to one
+bucket.  The structural singleton theorem below eliminates that case through
+`LinkWellFormed`, rather than silently identifying the two insertions. -/
+private def sourceMultiplicity (vertex : Vertex) : Link → Nat
+  | .axiom left right =>
+      (if left = vertex then 1 else 0) +
+        (if right = vertex then 1 else 0)
+  | .tensor _ _ conclusion
+  | .par _ _ conclusion =>
+      if conclusion = vertex then 1 else 0
+
+private theorem pushSource_bucket_length
+    {index : SourceIndex} {vertex insertedVertex : Vertex}
+    {source : SourceIncidence}
+    (vertexBound : vertex < index.size) :
+    (((pushSource index insertedVertex source)[vertex]?).getD []).length =
+      (if insertedVertex = vertex then 1 else 0) +
+        (((index[vertex]?).getD []).length) := by
+  by_cases insertedBound : insertedVertex < index.size
+  · by_cases same : insertedVertex = vertex
+    · subst insertedVertex
+      simp [pushSource, vertexBound, Nat.add_comm]
+    · simp [pushSource, insertedBound, vertexBound, same]
+  · have different : insertedVertex ≠ vertex := by
+      intro equation
+      subst insertedVertex
+      exact insertedBound vertexBound
+    have lookupNone : index[insertedVertex]? = none :=
+      Array.getElem?_eq_none (Nat.le_of_not_gt insertedBound)
+    simp [pushSource, lookupNone, vertexBound, different]
+
+private theorem addSourceIncidences_bucket_length
+    {index : SourceIndex} {entry : Link × Nat} {vertex : Vertex}
+    (vertexBound : vertex < index.size) :
+    (((addSourceIncidences index entry)[vertex]?).getD []).length =
+      sourceMultiplicity vertex entry.1 +
+        (((index[vertex]?).getD []).length) := by
+  rcases entry with ⟨link, linkIndex⟩
+  cases link with
+  | «axiom» left right =>
+      unfold addSourceIncidences
+      rw [pushSource_bucket_length
+        (index := pushSource index left
+          { linkIndex := linkIndex, link := .axiom left right })
+        (by simpa using vertexBound)]
+      rw [pushSource_bucket_length (index := index) vertexBound]
+      simp [sourceMultiplicity, Nat.add_assoc, Nat.add_left_comm]
+  | tensor left right conclusion =>
+      simpa [addSourceIncidences, sourceMultiplicity] using
+        pushSource_bucket_length
+          (index := index) (insertedVertex := conclusion)
+          (source :=
+            { linkIndex := linkIndex,
+              link := .tensor left right conclusion })
+          vertexBound
+  | «par» left right conclusion =>
+      simpa [addSourceIncidences, sourceMultiplicity] using
+        pushSource_bucket_length
+          (index := index) (insertedVertex := conclusion)
+          (source :=
+            { linkIndex := linkIndex,
+              link := .par left right conclusion })
+          vertexBound
+
+private theorem foldl_addSourceIncidences_bucket_length
+    (entries : List (Link × Nat)) {index : SourceIndex}
+    {vertex : Vertex} (vertexBound : vertex < index.size) :
+    (((entries.foldl addSourceIncidences index)[vertex]?).getD []).length =
+      (entries.map (sourceMultiplicity vertex ∘ Prod.fst)).sum +
+        (((index[vertex]?).getD []).length) := by
+  induction entries generalizing index with
+  | nil =>
+      simp
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      rw [induction (index := addSourceIncidences index head)
+        (by simpa using vertexBound)]
+      rw [addSourceIncidences_bucket_length vertexBound]
+      simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
+private theorem sourceMultiplicity_eq_axiomIndicator_of_atom
+    {certificate : Certificate} {vertex : Vertex} {link : Link}
+    {name : String} {positive : Bool}
+    (wellFormed : certificate.LinkWellFormed link)
+    (formulaLookup :
+      certificate.formula? vertex = some (.atom name positive)) :
+    sourceMultiplicity vertex link =
+      if link.containsAxiomEndpoint vertex = true then 1 else 0 := by
+  cases link with
+  | «axiom» left right =>
+      by_cases leftAt : left = vertex <;>
+      by_cases rightAt : right = vertex <;>
+        simp_all [sourceMultiplicity, Link.containsAxiomEndpoint]
+      exact wellFormed.1 rfl
+  | tensor left right conclusion =>
+      by_cases conclusionAt : conclusion = vertex
+      · subst conclusion
+        rcases wellFormed.tensor_conclusionFormula with
+          ⟨leftFormula, rightFormula, conclusionLookup⟩
+        rw [formulaLookup] at conclusionLookup
+        cases Option.some.inj conclusionLookup
+      · simp [sourceMultiplicity, Link.containsAxiomEndpoint,
+          conclusionAt]
+  | «par» left right conclusion =>
+      by_cases conclusionAt : conclusion = vertex
+      · subst conclusion
+        rcases wellFormed.par_conclusionFormula with
+          ⟨leftFormula, rightFormula, conclusionLookup⟩
+        rw [formulaLookup] at conclusionLookup
+        cases Option.some.inj conclusionLookup
+      · simp [sourceMultiplicity, Link.containsAxiomEndpoint,
+          conclusionAt]
+
+private theorem sourceMultiplicity_eq_producerIndicator_of_compound
+    {certificate : Certificate} {vertex : Vertex} {link : Link}
+    {formula : Formula}
+    (wellFormed : certificate.LinkWellFormed link)
+    (formulaLookup : certificate.formula? vertex = some formula)
+    (compound : formula.isAtom = false) :
+    sourceMultiplicity vertex link =
+      if link.produces vertex = true then 1 else 0 := by
+  cases link with
+  | «axiom» left right =>
+      by_cases leftAt : left = vertex
+      · subst left
+        rcases wellFormed.axiom_endpointFormula (Or.inl rfl) with
+          ⟨name, positive, atomLookup⟩
+        rw [formulaLookup] at atomLookup
+        have shape := Option.some.inj atomLookup
+        subst formula
+        simp [Formula.isAtom] at compound
+      · by_cases rightAt : right = vertex
+        · subst right
+          rcases wellFormed.axiom_endpointFormula (Or.inr rfl) with
+            ⟨name, positive, atomLookup⟩
+          rw [formulaLookup] at atomLookup
+          have shape := Option.some.inj atomLookup
+          subst formula
+          simp [Formula.isAtom] at compound
+        · simp [sourceMultiplicity, Link.produces, leftAt, rightAt]
+  | tensor left right conclusion =>
+      simp [sourceMultiplicity, Link.produces]
+  | «par» left right conclusion =>
+      simp [sourceMultiplicity, Link.produces]
+
+private theorem sum_sourceMultiplicity_eq_axiomCount
+    {certificate : Certificate} {vertex : Vertex}
+    {name : String} {positive : Bool}
+    (formulaLookup :
+      certificate.formula? vertex = some (.atom name positive))
+    (links : List Link)
+    (allWellFormed :
+      ∀ link ∈ links, certificate.LinkWellFormed link) :
+    (links.map (sourceMultiplicity vertex)).sum =
+      (links.filter (·.containsAxiomEndpoint vertex)).length := by
+  induction links with
+  | nil =>
+      simp
+  | cons head tail induction =>
+      have headWellFormed := allWellFormed head (by simp)
+      have tailWellFormed :
+          ∀ link ∈ tail, certificate.LinkWellFormed link := by
+        intro link membership
+        exact allWellFormed link (by simp [membership])
+      rw [List.map_cons, List.sum_cons,
+        sourceMultiplicity_eq_axiomIndicator_of_atom
+          headWellFormed formulaLookup,
+        induction tailWellFormed]
+      by_cases accepted :
+          head.containsAxiomEndpoint vertex = true <;>
+        simp [accepted, Nat.add_comm]
+
+private theorem sum_sourceMultiplicity_eq_producerCount
+    {certificate : Certificate} {vertex : Vertex} {formula : Formula}
+    (formulaLookup : certificate.formula? vertex = some formula)
+    (compound : formula.isAtom = false)
+    (links : List Link)
+    (allWellFormed :
+      ∀ link ∈ links, certificate.LinkWellFormed link) :
+    (links.map (sourceMultiplicity vertex)).sum =
+      (links.filter (·.produces vertex)).length := by
+  induction links with
+  | nil =>
+      simp
+  | cons head tail induction =>
+      have headWellFormed := allWellFormed head (by simp)
+      have tailWellFormed :
+          ∀ link ∈ tail, certificate.LinkWellFormed link := by
+        intro link membership
+        exact allWellFormed link (by simp [membership])
+      rw [List.map_cons, List.sum_cons,
+        sourceMultiplicity_eq_producerIndicator_of_compound
+          headWellFormed formulaLookup compound,
+        induction tailWellFormed]
+      by_cases accepted : head.produces vertex = true <;>
+        simp [accepted, Nat.add_comm]
+
+private theorem sourceIndex_bucket_length_eq_one
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {vertex : Vertex} (vertexBound : vertex < certificate.formulas.size) :
+    ((((sourceIndex certificate)[vertex]?).getD []).length) = 1 := by
+  have folded :=
+    foldl_addSourceIncidences_bucket_length certificate.links.zipIdx
+      (index := Array.replicate certificate.formulas.size [])
+      (vertex := vertex) (by simpa using vertexBound)
+  have initialLookup :
+      (Array.replicate certificate.formulas.size
+        ([] : List SourceIncidence))[vertex]? = some [] := by
+    simp [vertexBound]
+  rw [initialLookup] at folded
+  simp only [Option.getD_some, List.length_nil, Nat.add_zero] at folded
+  unfold sourceIndex
+  rw [folded]
+  rw [← List.map_map, List.zipIdx_map_fst]
+  have node := structural.2.2.2.2.2 vertex vertexBound
+  cases formulaEquation : certificate.formula? vertex with
+  | none =>
+      simp [Certificate.NodeWellFormed, formulaEquation] at node
+  | some formula =>
+      cases formula with
+      | atom name positive =>
+          rw [sum_sourceMultiplicity_eq_axiomCount formulaEquation
+            certificate.links structural.2.2.2.2.1]
+          simpa [Certificate.axiomCount,
+            Certificate.NodeWellFormed, formulaEquation] using node.1
+      | tensor left right =>
+          rw [sum_sourceMultiplicity_eq_producerCount formulaEquation
+            (by simp [Formula.isAtom]) certificate.links
+            structural.2.2.2.2.1]
+          simpa [Certificate.producerCount,
+            Certificate.NodeWellFormed, formulaEquation] using node.1
+      | «par» left right =>
+          rw [sum_sourceMultiplicity_eq_producerCount formulaEquation
+            (by simp [Formula.isAtom]) certificate.links
+            structural.2.2.2.2.1]
+          simpa [Certificate.producerCount,
+            Certificate.NodeWellFormed, formulaEquation] using node.1
+
+/-- Every in-bounds formula occurrence of a structurally well-formed
+certificate has exactly one source-incidence entry.  In particular, the
+executable singleton pattern used by `nextAxiomWithFuel?` cannot fail merely
+because the input passed the structural checker. -/
+theorem StructurallyWellFormed.sourceIndex_lookup_eq_singleton
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {vertex : Vertex} (vertexBound : vertex < certificate.formulas.size) :
+    ∃ source,
+      (sourceIndex certificate)[vertex]? = some [source] := by
+  have sourceIndexBound :
+      vertex < (sourceIndex certificate).size := by
+    simpa using vertexBound
+  have lookupSome :
+      ∃ sources, (sourceIndex certificate)[vertex]? = some sources := by
+    exact
+      ⟨(sourceIndex certificate)[vertex],
+        Array.getElem?_eq_getElem sourceIndexBound⟩
+  rcases lookupSome with ⟨sources, lookup⟩
+  have length : sources.length = 1 := by
+    have bucketLength :=
+      sourceIndex_bucket_length_eq_one structural vertexBound
+    simpa [lookup] using bucketLength
+  rcases List.length_eq_one_iff.mp length with ⟨source, rfl⟩
+  exact ⟨source, lookup⟩
 
 private theorem mem_pushSource_origin
     {index : SourceIndex} {vertex insertedVertex : Vertex}
@@ -239,7 +507,8 @@ theorem sourceIndex_sound (certificate : Certificate) :
 partner endpoint of the returned axiom is tagged as required by Guerrini but
 is not an additional recursive trace step. -/
 structure NextAxiomResult (certificate : Certificate)
-    (state : UnificationState) (fuel : Nat) where
+    (state : UnificationState) (fuel : Nat)
+    (inputTags : Array Bool) where
   linkIndex : Nat
   left : Vertex
   right : Vertex
@@ -250,11 +519,71 @@ structure NextAxiomResult (certificate : Certificate)
   leftReady : state.marks[left]? = some none
   rightReady : state.marks[right]? = some none
   traceLength : trace.length ≤ fuel
+  tagsSize : tags.size = inputTags.size
+  preservesTrue :
+    ∀ {vertex : Vertex}, inputTags[vertex]? = some true →
+      tags[vertex]? = some true
+  traceNodup : trace.Nodup
+  traceTagged :
+    ∀ {vertex : Vertex}, vertex ∈ trace →
+      inputTags[vertex]? = some false ∧
+        tags[vertex]? = some true
+  leftTagged :
+    inputTags[left]? = some false ∧
+      tags[left]? = some true
+  rightTagged :
+    inputTags[right]? = some false ∧
+      tags[right]? = some true
   deriving Repr
+
+/-- A vertex touched by one successful `NEXTAXIOM` call: either a recursive
+trace vertex or one of the two returned axiom endpoints.  The partner endpoint
+need not occur in `trace`, so it is named explicitly here. -/
+def NextAxiomResult.Touched
+    {certificate : Certificate} {state : UnificationState} {fuel : Nat}
+    {inputTags : Array Bool}
+    (result : NextAxiomResult certificate state fuel inputTags)
+    (vertex : Vertex) : Prop :=
+  vertex ∈ result.trace ∨
+    vertex = result.left ∨ vertex = result.right
 
 private def setTag (tags : Array Bool) (vertex : Vertex) :
     Array Bool :=
   tags.setIfInBounds vertex true
+
+@[simp] private theorem setTag_size
+    (tags : Array Bool) (vertex : Vertex) :
+    (setTag tags vertex).size = tags.size := by
+  simp [setTag]
+
+private theorem setTag_self_true
+    {tags : Array Bool} {vertex : Vertex}
+    (inputFalse : tags[vertex]? = some false) :
+    (setTag tags vertex)[vertex]? = some true := by
+  have bound : vertex < tags.size :=
+    (Array.getElem?_eq_some_iff.mp inputFalse).1
+  simp [setTag, bound]
+
+private theorem setTag_true_monotone
+    {tags : Array Bool} {tagged vertex : Vertex}
+    (inputTrue : tags[tagged]? = some true) :
+    (setTag tags vertex)[tagged]? = some true := by
+  by_cases same : vertex = tagged
+  · subst tagged
+    have bound : vertex < tags.size :=
+      (Array.getElem?_eq_some_iff.mp inputTrue).1
+    simp [setTag, bound]
+  · simpa [setTag, same] using inputTrue
+
+private theorem setTag_false_reflection
+    {tags : Array Bool} {tagged vertex : Vertex}
+    (outputFalse : (setTag tags tagged)[vertex]? = some false) :
+    tags[vertex]? = some false ∧ vertex ≠ tagged := by
+  by_cases same : tagged = vertex
+  · subst vertex
+    simp [setTag, Array.getElem?_setIfInBounds_self] at outputFalse
+  · exact ⟨by simpa [setTag, same] using outputFalse,
+      fun reverse => same reverse.symm⟩
 
 /-- Bounded, tagged `NEXTAXIOM`.
 
@@ -264,8 +593,8 @@ continue through their stored left premise. -/
 def nextAxiomWithFuel? (certificate : Certificate)
     (state : UnificationState) (index : SourceIndex)
     (indexSound : SourceIndex.Sound certificate index) :
-    (fuel : Nat) → Array Bool → Vertex →
-      Option (NextAxiomResult certificate state fuel)
+    (fuel : Nat) → (tags : Array Bool) → Vertex →
+      Option (NextAxiomResult certificate state fuel tags)
   | 0, _tags, _vertex => none
   | fuel + 1, tags, vertex =>
       if vertexTag : tags[vertex]? = some false then
@@ -300,6 +629,37 @@ def nextAxiomWithFuel? (certificate : Certificate)
                                 leftReady
                                 rightReady
                                 traceLength := by simp
+                                tagsSize := by
+                                  simp
+                                preservesTrue := by
+                                  intro tagged inputTrue
+                                  exact setTag_true_monotone
+                                    (setTag_true_monotone inputTrue)
+                                traceNodup := by simp
+                                traceTagged := by
+                                  intro tagged membership
+                                  simp only [List.mem_singleton] at membership
+                                  subst tagged
+                                  refine ⟨vertexTag, ?_⟩
+                                  rcases atEndpoint with rfl | rfl
+                                  · exact setTag_true_monotone
+                                      (setTag_self_true leftTag)
+                                  · have rightAfterLeft :
+                                        (setTag tags left)[vertex]? =
+                                          some false := by
+                                      simpa [setTag, different] using vertexTag
+                                    exact setTag_self_true rightAfterLeft
+                                leftTagged := by
+                                  refine ⟨leftTag, ?_⟩
+                                  exact setTag_true_monotone
+                                    (setTag_self_true leftTag)
+                                rightTagged := by
+                                  refine ⟨rightTag, ?_⟩
+                                  have rightAfterLeft :
+                                      (setTag tags left)[right]? =
+                                        some false := by
+                                    simpa [setTag, different] using rightTag
+                                  exact setTag_self_true rightAfterLeft
                               }
                             else none
                           else none
@@ -315,11 +675,55 @@ def nextAxiomWithFuel? (certificate : Certificate)
                     | none => none
                     | some result =>
                         some {
-                          result with
+                          linkIndex := result.linkIndex
+                          left := result.left
+                          right := result.right
+                          tags := result.tags
                           trace := vertex :: result.trace
+                          exactLink := result.exactLink
+                          leftReady := result.leftReady
+                          rightReady := result.rightReady
                           traceLength := by
                             simpa using
                               Nat.succ_le_succ result.traceLength
+                          tagsSize := by
+                            simpa using result.tagsSize
+                          preservesTrue := by
+                            intro tagged inputTrue
+                            exact result.preservesTrue
+                              (setTag_true_monotone inputTrue)
+                          traceNodup := by
+                            rw [List.nodup_cons]
+                            refine ⟨?_, result.traceNodup⟩
+                            intro membership
+                            have recursiveFalse :=
+                              (result.traceTagged membership).1
+                            have currentTrue :=
+                              setTag_self_true vertexTag
+                            rw [currentTrue] at recursiveFalse
+                            contradiction
+                          traceTagged := by
+                            intro tagged membership
+                            simp only [List.mem_cons] at membership
+                            rcases membership with rfl | membership
+                            · refine ⟨vertexTag, ?_⟩
+                              exact result.preservesTrue
+                                (setTag_self_true vertexTag)
+                            · have recursive :=
+                                result.traceTagged membership
+                              exact
+                                ⟨(setTag_false_reflection recursive.1).1,
+                                  recursive.2⟩
+                          leftTagged := by
+                            exact
+                              ⟨(setTag_false_reflection
+                                  result.leftTagged.1).1,
+                                result.leftTagged.2⟩
+                          rightTagged := by
+                            exact
+                              ⟨(setTag_false_reflection
+                                  result.rightTagged.1).1,
+                                result.rightTagged.2⟩
                         }
                   else none
           | _ => none
@@ -333,7 +737,7 @@ def nextAxiom? (certificate : Certificate)
     (indexSound : SourceIndex.Sound certificate index)
     (tags : Array Bool) (vertex : Vertex) :
     Option
-      (NextAxiomResult certificate state certificate.formulas.size) :=
+      (NextAxiomResult certificate state certificate.formulas.size tags) :=
   nextAxiomWithFuel? certificate state index indexSound
     certificate.formulas.size tags vertex
 
@@ -344,7 +748,7 @@ theorem nextAxiomWithFuel?_sound
     {index : SourceIndex} {fuel : Nat} {tags : Array Bool}
     {indexSound : SourceIndex.Sound certificate index}
     {vertex : Vertex}
-    {result : NextAxiomResult certificate state fuel}
+    {result : NextAxiomResult certificate state fuel tags}
     (_equation :
       nextAxiomWithFuel? certificate state index indexSound fuel tags vertex =
         some result) :
@@ -358,12 +762,95 @@ theorem nextAxiomWithFuel?_sound
   · simp [UnificationState.assignedToken?, result.leftReady]
   · simp [UnificationState.assignedToken?, result.rightReady]
 
+/-- A successful bounded search preserves the tag carrier and all input `true`
+tags, never repeats a recursively visited vertex, and changes every trace
+vertex and both returned axiom endpoints from input `false` to output `true`.
+
+These guarantees are per call.  Successive-call disjointness below requires
+threading the first call's output tag array into the second call. -/
+theorem nextAxiomWithFuel?_tag_trace_invariants
+    {certificate : Certificate} {state : UnificationState}
+    {index : SourceIndex} {fuel : Nat} {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {vertex : Vertex}
+    {result : NextAxiomResult certificate state fuel tags}
+    (_equation :
+      nextAxiomWithFuel? certificate state index indexSound fuel tags vertex =
+        some result) :
+    result.tags.size = tags.size ∧
+      (∀ {visited : Vertex},
+        tags[visited]? = some true →
+          result.tags[visited]? = some true) ∧
+      result.trace.Nodup ∧
+      (∀ {visited : Vertex}, visited ∈ result.trace →
+        tags[visited]? = some false ∧
+          result.tags[visited]? = some true) ∧
+      (tags[result.left]? = some false ∧
+        result.tags[result.left]? = some true) ∧
+      (tags[result.right]? = some false ∧
+        result.tags[result.right]? = some true) := by
+  exact
+    ⟨result.tagsSize, result.preservesTrue, result.traceNodup,
+      result.traceTagged, result.leftTagged, result.rightTagged⟩
+
+/-- Every touched vertex of a successful search changed from input `false` to
+output `true`.  This includes the non-recursive partner endpoint. -/
+theorem nextAxiomWithFuel?_touched_tagged
+    {certificate : Certificate} {state : UnificationState}
+    {index : SourceIndex} {fuel : Nat} {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {vertex touched : Vertex}
+    {result : NextAxiomResult certificate state fuel tags}
+    (_equation :
+      nextAxiomWithFuel? certificate state index indexSound fuel tags vertex =
+        some result)
+    (isTouched : result.Touched touched) :
+    tags[touched]? = some false ∧
+      result.tags[touched]? = some true := by
+  rcases isTouched with inTrace | rfl | rfl
+  · exact result.traceTagged inTrace
+  · exact result.leftTagged
+  · exact result.rightTagged
+
+/-- Two successful calls, including calls across different marking states,
+have disjoint touched sets when, and only as claimed here, the first call's
+output tags are threaded into the second call. -/
+theorem nextAxiomWithFuel?_threaded_touched_disjoint
+    {certificate : Certificate}
+    {firstState secondState : UnificationState}
+    {index : SourceIndex} {firstFuel secondFuel : Nat}
+    {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {firstVertex secondVertex : Vertex}
+    {first :
+      NextAxiomResult certificate firstState firstFuel tags}
+    (firstEquation :
+      nextAxiomWithFuel? certificate firstState index indexSound
+          firstFuel tags firstVertex = some first)
+    {second :
+      NextAxiomResult certificate secondState secondFuel first.tags}
+    (secondEquation :
+      nextAxiomWithFuel? certificate secondState index indexSound
+          secondFuel first.tags secondVertex = some second) :
+    ∀ {touched : Vertex},
+      first.Touched touched → second.Touched touched → False := by
+  intro touched firstTouched secondTouched
+  have firstTrue :=
+    (nextAxiomWithFuel?_touched_tagged
+      firstEquation firstTouched).2
+  have secondFalse :=
+    (nextAxiomWithFuel?_touched_tagged
+      secondEquation secondTouched).1
+  rw [firstTrue] at secondFalse
+  contradiction
+
 /-- The token-semantic result of dynamically starting the axiom found by
 `NEXTAXIOM`.  Parsed-component scheduling is intentionally left to the later
 `σ`/ready/waiting layer. -/
 structure DynamicStartResult (certificate : Certificate)
-    (before : UnificationState) (fuel : Nat) where
-  search : NextAxiomResult certificate before fuel
+    (before : UnificationState) (fuel : Nat)
+    (inputTags : Array Bool) where
+  search : NextAxiomResult certificate before fuel inputTags
   after : UnificationState
   after_eq :
     after = before.startMarking search.left search.right
@@ -375,7 +862,7 @@ def dynamicStartWithFuel? (certificate : Certificate)
     (before : UnificationState) (index : SourceIndex)
     (indexSound : SourceIndex.Sound certificate index)
     (fuel : Nat) (tags : Array Bool) (vertex : Vertex) :
-    Option (DynamicStartResult certificate before fuel) :=
+    Option (DynamicStartResult certificate before fuel tags) :=
   (nextAxiomWithFuel? certificate before index indexSound
       fuel tags vertex).map
     fun search =>
@@ -387,7 +874,8 @@ def dynamicStartWithFuel? (certificate : Certificate)
 one independent Figure-5 `start` transition. -/
 theorem DynamicStartResult.refinesStart
     {certificate : Certificate} {before : UnificationState}
-    {fuel : Nat} (result : DynamicStartResult certificate before fuel)
+    {fuel : Nat} {inputTags : Array Bool}
+    (result : DynamicStartResult certificate before fuel inputTags)
     (abstractable : before.Abstractable certificate)
     (ordered : before.OrderedParents) :
     ∃ afterAbstractable : result.after.Abstractable certificate,

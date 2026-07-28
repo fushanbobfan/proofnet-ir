@@ -175,16 +175,25 @@ the architecture still needs the Figures 7--8 sequential ready/waiting stacks,
 token-age sequencing and special union-find invariants, plus a whole-program
 cost model covering frontier manipulation, verification, and fallback. A
 separate `SequentialUnification.lean` checkpoint now supplies a reusable
-source-incidence index whose entries have exact submitted-link origin, a
-bounded/globally tagged `NEXTAXIOM` search, and a dynamic Figure-5 start. Every
-search success retains the exact submitted axiom index/endpoints, final tags,
-and trace, proves the endpoints were input-unmarked and
-`trace.length ≤ fuel`, and the dynamic update refines `UnificationStep.start`
-under `OrderedParents`. Regressions cover zero fuel, out-of-bounds, tagged and
-marked starts, missing and ambiguous source buckets, threaded-result-tags
-repeat rejection, and the successful dynamic update. This layer does not yet
-prove trace `Nodup`, tag monotonicity, or a global no-revisit theorem and does
-not implement `σ`/`R`/`W` (ready/waiting) or token-age intervals.
+source-incidence index whose entries have exact submitted-link origin.
+`SourceIndex.Sound` alone supplies only provenance, not lookup existence or
+uniqueness; because both endpoints are registered, a malformed self-axiom
+contributes twice to one bucket. Structural well-formedness now proves every
+in-bounds occurrence has exactly one source entry. The checkpoint also
+supplies a bounded/globally tagged `NEXTAXIOM` search and a dynamic Figure-5
+start. Every search success retains the exact submitted axiom
+index/endpoints, final tags, and trace, and proves tag-array size preservation,
+monotonicity of old true tags, trace `Nodup`, input-false/output-true tagging of
+the trace and endpoints, input-unmarked endpoints, and
+`trace.length ≤ fuel`. Its touched carrier is the trace plus both endpoints;
+successive successful calls have disjoint touched carriers when the second
+call uses exactly `first.tags`. This is the scope of the global no-revisit
+discipline; resetting or replacing tags is outside the theorem. The dynamic
+update refines `UnificationStep.start` under `OrderedParents`. Regressions
+cover zero fuel, out-of-bounds, tagged and marked starts, missing and ambiguous
+source buckets, threaded-result-tags repeat rejection, and the successful
+dynamic update. Total start selection, `σ`/`R`/`W` (ready/waiting), token-age
+intervals, and full scheduler correctness and cost remain unimplemented.
 The separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
@@ -426,18 +435,22 @@ active-reference walks between marked occurrences are equivalent to
   separately refuted. Flat-worklist completeness may still be proved through
   residual-parsing-witness preservation or a theorem modulo the
   marked-domain/occurrence-thread quotient. The bounded/tagged `NEXTAXIOM` and
-  dynamic-start primitive is now kernel checked. Its no-revisit theory and faithful
-  `σ`/`R`/`W` plus token-age stacks are still required for the later
-  Guerrini linearity layer. Planarity is not assumed for commutative MLL.
-  Closing-par exclusion, progress, and pure-worklist completeness remain open.
+  dynamic-start primitive is now kernel checked, including per-call trace/tag
+  invariants and touched-set disjointness for successive calls that strictly
+  thread `first.tags`. That result does not cover reset tag arrays. Total start
+  selection and faithful `σ`/`R`/`W` plus token-age stacks are still required
+  for the later Guerrini linearity layer. Planarity is not assumed for
+  commutative MLL. Closing-par exclusion, progress, and pure-worklist
+  completeness remain open.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: its production path still starts all axioms
 eagerly and uses flat waiting requeues. The separate bounded/tagged
 `NEXTAXIOM` primitive is not yet integrated with `σ`/`R`/`W`,
-token-age intervals, or a proved no-revisit discipline. General checker-accepted
-sequentialization remains complete through the recursive tier; recursive
-fallback removal and whole-program linearity remain separate open gates.
+token-age intervals, or total scheduler start selection. General
+checker-accepted sequentialization remains complete through the recursive
+tier; recursive fallback removal and whole-program linearity remain separate
+open gates.
 
 ## Persistent LeanProp bridge
 

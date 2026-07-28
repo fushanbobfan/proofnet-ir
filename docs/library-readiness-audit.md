@@ -77,12 +77,20 @@ part of the engineering and proof-identity gap.
   proof-bearing result for every checker-accepted certificate.
 - current v0.10 development has a separate bounded/tagged `NEXTAXIOM`
   checkpoint. Its reusable source-incidence index has kernel-proved exact
-  submitted-link origin. Every successful search retains the exact submitted
-  axiom index/endpoints, final tags, and trace, proves both endpoints were
-  unmarked in the input and `trace.length ≤ fuel`, and its dynamic start
-  refines Figure 5 under `OrderedParents`. Tests exercise expected tags/trace,
-  zero fuel, out-of-bounds, tagged and marked starts, missing and non-unique
-  sources, threaded-result-tags repeat rejection, and dynamic token allocation.
+  submitted-link origin. This `SourceIndex.Sound` fact alone is only
+  provenance: both endpoints of a malformed self-axiom enter the same bucket,
+  while structural well-formedness now proves a singleton source lookup at
+  every in-bounds occurrence. Every successful search retains the exact
+  submitted axiom index/endpoints, final tags, and trace, and proves tag-array
+  size preservation, monotonicity of old true tags, trace `Nodup`,
+  input-false/output-true tagging of the trace and endpoints, input-unmarked
+  endpoints, and `trace.length ≤ fuel`. Successive touched carriers are
+  disjoint when the second call uses exactly `first.tags`; this is the precise
+  scope of the global no-revisit discipline, and the theorem does not cover
+  reset tags. Its dynamic start refines Figure 5 under `OrderedParents`.
+  Tests exercise expected tags/trace, zero fuel, out-of-bounds, tagged and
+  marked starts, missing and non-unique sources, threaded-result-tags repeat
+  rejection, and dynamic token allocation.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -330,11 +338,12 @@ part of the engineering and proof-identity gap.
    committed reproducible audit or kernel theorem currently establishes
    confluence or completeness at that quotient.
    The separate bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
-   kernel checked, but trace `Nodup`, tag monotonicity/no-revisit,
-   `σ`/`R`/`W` (ready/waiting), token-age interval sequencing, closing-par
-   scheduler-order exclusion, correct-state progress, pure worklist
-   completeness, recursive fallback removal, and a whole-program linear cost
-   theorem remain open.
+   kernel checked, including per-call trace/tag invariants and touched-set
+   disjointness for successive calls that strictly thread `first.tags`; reset
+   tags are outside that theorem. Total start selection, `σ`/`R`/`W`
+   (ready/waiting), token-age interval sequencing, closing-par scheduler-order
+   exclusion, correct-state progress, pure worklist completeness, recursive
+   fallback removal, and a whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
@@ -481,8 +490,10 @@ It can currently be used for:
   qualification through 145 links;
 - running the focused-search comparison baseline;
 - experimenting with the proof-bearing bounded/tagged `NEXTAXIOM` and dynamic
-  Figure-5 start primitive while treating failure as inconclusive; it is not a
-  complete scheduler API;
+  Figure-5 start primitive, including its proved structural source-singleton,
+  per-call tag/trace invariants, and strictly threaded touched-set
+  disjointness, while treating failure as inconclusive; it is not a complete
+  scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
 - auditing the frozen 180-task model experiment, amendment, raw responses,

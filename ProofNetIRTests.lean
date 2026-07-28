@@ -825,6 +825,28 @@ def canonicalSequentialEmpty : UnificationState where
 def canonicalSourceIndex : SequentialUnification.SourceIndex :=
   SequentialUnification.sourceIndex canonical
 
+/-- The structural source table contains one and only one source at every
+canonical occurrence, including both atomic endpoints and compound
+conclusions. -/
+def canonicalSourceBucketsSingleton : Bool :=
+  (List.range canonical.formulas.size).all fun vertex =>
+    match canonicalSourceIndex[vertex]? with
+    | some [_source] => true
+    | _ => false
+
+example : canonicalSourceBucketsSingleton = true := by
+  native_decide
+
+example (vertex : Vertex) (vertexBound : vertex < canonical.formulas.size) :
+    ∃ source,
+      canonicalSourceIndex[vertex]? = some [source] := by
+  have structural : canonical.StructurallyWellFormed := by
+    exact canonical.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide)
+  exact
+    SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_singleton
+      structural vertexBound
+
 def canonicalNextAxiom :=
   SequentialUnification.nextAxiom? canonical canonicalSequentialEmpty
     canonicalSourceIndex
@@ -852,6 +874,29 @@ example :
           canonicalSequentialEmpty canonicalSourceIndex
           (SequentialUnification.sourceIndex_sound canonical)
           result.tags 4).isNone) = true := by
+  native_decide
+
+/-- Thread the first search's output tags into a disjoint second axiom start.
+This is the executable counterpart of
+`nextAxiomWithFuel?_threaded_touched_disjoint`; restarting from the original
+tag array is intentionally outside that theorem's claim. -/
+example :
+    (match canonicalNextAxiom with
+    | none => false
+    | some first =>
+        match SequentialUnification.nextAxiom? canonical
+            canonicalSequentialEmpty canonicalSourceIndex
+            (SequentialUnification.sourceIndex_sound canonical)
+            first.tags 2 with
+        | none => false
+        | some second =>
+            second.linkIndex == 1 &&
+              second.trace == [2] &&
+              second.tags[2]? == some true &&
+              second.tags[3]? == some true &&
+              second.tags[4]? == some true &&
+              second.tags[0]? == some true &&
+              second.tags[1]? == some true) = true := by
   native_decide
 
 example :

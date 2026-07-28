@@ -78,14 +78,23 @@ outside the counter.
 `ProofNetIR/SequentialUnification.lean` now isolates the first sequential
 primitive from those eager/worklist paths. It builds one reusable
 occurrence-source index and kernel-proves exact submitted-link origin for every
-stored incidence. `nextAxiomWithFuel?` is bounded and globally tagged. It
-fails closed on an out-of-domain, previously tagged, previously marked,
-missing, or non-unique source, and on malformed source orientation. A success
-retains the exact submitted axiom link index and endpoints, the updated tag
-array, and the recursive occurrence trace. Its proof fields and soundness
-theorem establish that both endpoints were unmarked in the input state and
-that `trace.length ≤ fuel`. `dynamicStartWithFuel?` then applies exactly the
-existing token-semantic start update; under `Abstractable` and
+stored incidence. That `SourceIndex.Sound` theorem gives provenance only, not
+lookup existence or uniqueness. Since both axiom endpoints are registered, a
+malformed self-axiom contributes twice to one source bucket; structural
+well-formedness is what now proves a singleton lookup at every in-bounds
+occurrence. `nextAxiomWithFuel?` is bounded and globally tagged. It fails
+closed on an out-of-domain, previously tagged, previously marked, missing, or
+non-unique source, and on malformed source orientation. A success retains the
+exact submitted axiom link index and endpoints, the updated tag array, and the
+recursive occurrence trace. Its proof fields and soundness theorems establish
+tag-array size preservation, monotonicity of old true tags, trace `Nodup`,
+input-false/output-true tagging of every trace occurrence and both endpoints,
+input-unmarked endpoints, and `trace.length ≤ fuel`. Its `Touched` carrier is
+the trace plus both endpoints, and two successful calls have disjoint touched
+carriers if the second call uses exactly `first.tags`. This is the scope of the
+global no-revisit discipline; resetting or replacing that array is outside the
+theorem. `dynamicStartWithFuel?` then applies exactly the existing
+token-semantic start update; under `Abstractable` and
 `OrderedParents`, `DynamicStartResult.refinesStart` proves one Figure-5
 `UnificationStep.start`. Regressions cover the expected canonical trace/tags,
 zero fuel, out-of-bounds, already-tagged and marked starts, missing and
@@ -93,10 +102,9 @@ duplicate source buckets, threaded-result-tags repeat rejection, and the
 dynamic state update.
 
 This checkpoint is deliberately weaker than Figures 7–8. There is not yet a
-kernel theorem that the trace is `Nodup`, that old tags are monotone, or that
-the search globally never revisits an occurrence. The `σ`/`R`/`W`
+total start-selection theorem or implementation of the complete `σ`/`R`/`W`
 (ready/waiting) state, token-age interval sequencing, and specialized
-whole-scheduler invariants are not implemented.
+whole-scheduler invariants and cost model.
 
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
@@ -289,8 +297,9 @@ The following stronger claims are intentionally absent:
 - equivalence between this eager implementation and the full sequential
   `σ`/`R`/`W`, token-age, `NEXTAXIOM`, and special union-find algorithm
   in Figures 7--8;
-- trace `Nodup`, tag monotonicity, or a no-revisit theorem for the new bounded
-  `NEXTAXIOM` primitive;
+- total start selection and the complete `σ`/`R`/`W`, token-age, scheduler
+  correctness, and scheduler-cost theorems for the new bounded `NEXTAXIOM`
+  primitive;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The current repeated scan can take a quadratic number of link visits before
@@ -531,7 +540,8 @@ linearity.
 5. Remove the recursive reconstruction fallback from the exact worklist
    decision only after that equality is kernel checked.
 6. Extend the now-kernel-checked bounded/tagged `NEXTAXIOM` plus dynamic-start
-   checkpoint with trace `Nodup`, tag monotonicity/no-revisit, and the Figure-7
+   checkpoint, whose per-call invariants and strictly threaded touched-set
+   disjointness are already proved, with total start selection and the Figure-7
    `σ`/`R`/`W` (ready/waiting) discipline. Replace eager axiom starts and flat
    waiting requeues only after token-age interval sequencing and its
    specialized union-find invariants are proved; the flat scheduler

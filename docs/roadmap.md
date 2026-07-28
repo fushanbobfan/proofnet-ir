@@ -717,20 +717,28 @@
       path-exposed waiting-par obstruction. Closing-par exclusion remains open.
     - [ ] Prove correct-quiescent-state progress.
   - [x] Add the first separate Figures 7--8 primitive: one reusable
-    source-incidence index with exact submitted-link-origin proof, a
-    bounded/globally tagged `NEXTAXIOM` returning exact axiom
-    index/endpoints/tags/trace with input-unmarked and trace-length bounds, and
-    a dynamic start proved to refine Figure 5 under `OrderedParents`. Cover
-    canonical tags/trace, zero fuel, out-of-bounds, tagged and marked starts,
-    missing and non-unique sources, threaded-result-tags repeat rejection, and
-    dynamic start.
-  - [ ] Prove trace `Nodup`, tag monotonicity, and no-revisit; then replace the
-    prototype's eager axiom starts and flat waiting requeues with the Figures
-    7--8 `σ`/`R`/`W` (ready/waiting) stacks. Establish token-age interval
-    sequencing, special union-find invariants, completeness of that sequential
-    executable, and a cost theorem over every implemented operation before
-    claiming Guerrini linearity. These stack invariants are false for the flat
-    scheduler.
+    source-incidence index with exact submitted-link-origin proof and a
+    structural singleton theorem. `SourceIndex.Sound` alone is provenance, not
+    lookup uniqueness: both endpoints of a malformed self-axiom enter the same
+    bucket, and structural well-formedness excludes that multiplicity.
+  - [x] Add a bounded/globally tagged `NEXTAXIOM` returning the exact axiom
+    index/endpoints/tags/trace, with input-unmarked and trace-length bounds,
+    tag-array size preservation, old-true-tag monotonicity, trace `Nodup`, and
+    input-false/output-true tagging of the trace and endpoints. Define its
+    touched carrier as trace plus endpoints.
+  - [x] Prove touched-set disjointness for successive successful calls that
+    strictly thread `first.tags`. Treat this as the exact scope of the global
+    no-revisit discipline; do not extend it to reset or replaced tags. Add a
+    dynamic start proved to refine Figure 5 under
+    `OrderedParents`. Cover canonical tags/trace, zero fuel, out-of-bounds,
+    tagged and marked starts, missing and non-unique sources,
+    threaded-result-tags repeat rejection, and dynamic start.
+  - [ ] Prove total `NEXTAXIOM` start selection; then replace the prototype's
+    eager axiom starts and flat waiting requeues with the Figures 7--8
+    `σ`/`R`/`W` (ready/waiting) stacks. Establish token-age interval sequencing,
+    special union-find invariants, completeness of that sequential executable,
+    and a cost theorem over every implemented operation before claiming
+    Guerrini linearity. These stack invariants are false for the flat scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist
     completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and

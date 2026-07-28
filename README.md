@@ -94,18 +94,35 @@ fallback removal, and linearity remain open.
 
 The first separate sequential primitive is now present in
 `SequentialUnification.lean`. Lean proves exact submitted-link origin for a
-reusable source-incidence index. Its bounded, globally tagged `NEXTAXIOM`
-search either fails closed or returns the exact submitted axiom link index and
-endpoints, the updated tag array, and the followed occurrence trace; both
-axiom endpoints were unmarked in the input state and
-`trace.length ≤ fuel`. A successful dynamic start refines one Figure-5
-`start` transition under the existing abstraction and `OrderedParents`
-invariants. Tests cover the canonical trace/tags, an already tagged start,
-zero fuel, out-of-bounds and marked starts, missing and non-unique sources,
-threaded-result-tags repeat rejection, and dynamic token allocation. This is
-not yet the Figures 7–8 algorithm: trace `Nodup`, tag monotonicity and a global
-no-revisit theorem are absent, and the `σ`/`R`/`W` (ready/waiting) state,
-token-age interval sequencing, correct-state progress, pure-worklist
+reusable source-incidence index. Exact origin alone is only the `Sound`
+contract: it does not imply that a bucket exists or is unique, and a malformed
+self-axiom is deliberately counted twice at one endpoint. The stronger
+`StructurallyWellFormed.sourceIndex_lookup_eq_singleton` theorem now proves
+that every in-bounds occurrence of a structurally well-formed certificate has
+exactly the singleton bucket consumed by the executable. Its bounded, globally
+tagged `NEXTAXIOM` search either fails closed or returns the exact submitted
+axiom link index and endpoints, the updated tag array, and the followed
+occurrence trace; both axiom endpoints were unmarked in the input state and
+`trace.length ≤ fuel`.
+
+The result type is indexed by its input tags. Kernel-checked fields and
+`nextAxiomWithFuel?_tag_trace_invariants` prove that the tag carrier size is
+preserved, every input `true` tag stays `true`, the recursive trace is `Nodup`,
+and every trace occurrence plus both axiom endpoints changes from input
+`false` to output `true`. `NextAxiomResult.Touched` includes the trace and both
+endpoints, including the non-recursive axiom partner. Two successful calls
+have disjoint touched sets when the second call is made with exactly
+`first.tags`. Thus the global no-revisit discipline applies only to a chain
+that strictly passes each result's tags onward; the theorem does not apply
+after resetting or replacing the tag array. A successful dynamic start refines
+one Figure-5 `start` transition
+under the existing abstraction and `OrderedParents` invariants. Tests cover
+the canonical trace/tags, an already tagged start, zero fuel, out-of-bounds and
+marked starts, missing and non-unique malformed sources, a distinct second
+start using threaded result tags, repeat rejection, and dynamic token
+allocation. This is not yet the Figures 7–8 algorithm: total start selection,
+the `σ`/`R`/`W` (ready/waiting) state, token-age interval sequencing, full
+scheduler correctness and cost, correct-state progress, pure-worklist
 completeness, fallback removal, and whole-program linearity remain open.
 
 The flat-scheduler proof route was also narrowed by counterexample. Exact
@@ -443,8 +460,10 @@ Flat completeness therefore points to residual-witness preservation or
 confluence modulo the marked-domain/occurrence-thread observation. Exact-state
 and structural-only confluence are already refuted; no theorem at the candidate
 quotient exists. The bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
-kernel checked, while its no-revisit theory and faithful `σ`/`R`/`W` plus
-token-age sequencing remain the separate linearity route. Closing-par
+kernel checked, including per-call trace/tag invariants and touched-set
+disjointness for successive calls that strictly thread `first.tags`. Total
+start selection and faithful `σ`/`R`/`W` plus token-age sequencing remain the
+separate linearity route. Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
 linear cost theorem remain separate open gates. See
@@ -649,14 +668,23 @@ The repository currently contains:
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
-  source-incidence index of proved exact submitted-link origin. Success retains
-  the exact axiom index/endpoints, final tags, and trace, proves both endpoints
-  were input-unmarked and the trace length is fuel-bounded, and its dynamic
-  start refines Figure 5 under `OrderedParents`; malformed or ambiguous source
-  buckets fail closed. Tests additionally cover zero fuel, out-of-bounds and
-  marked starts, missing sources, and repeat rejection using threaded result
-  tags. It does not yet prove trace `Nodup`, tag monotonicity, or a global
-  no-revisit theorem and does not implement `σ`/`R`/`W` or token-age stacks;
+  source-incidence index of proved exact submitted-link origin.
+  `SourceIndex.Sound` alone is only provenance; structural well-formedness now
+  additionally proves a singleton lookup at every in-bounds occurrence,
+  including the multiplicity argument that prevents malformed self-axioms from
+  masquerading as singleton buckets. Success retains the exact axiom
+  index/endpoints, final tags, and trace, proves both endpoints were
+  input-unmarked and the trace length is fuel-bounded, preserves the tag
+  carrier and old `true` tags, and proves trace `Nodup` plus input-`false` to
+  output-`true` for every trace vertex and both endpoints. Successive touched
+  sets are disjoint only under strict `first.tags` threading, which is the
+  scope of the global no-revisit discipline; reset tags are outside the
+  theorem. Its dynamic start refines Figure 5 under
+  `OrderedParents`; malformed source buckets still fail closed. Tests
+  additionally cover zero fuel, out-of-bounds and marked starts, missing
+  sources, a threaded distinct second start, and repeat rejection. Total start
+  selection, `σ`/`R`/`W`, token-age stacks, full scheduler correctness, and a
+  whole-program cost proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

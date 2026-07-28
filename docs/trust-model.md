@@ -128,19 +128,28 @@ whole-program cost theorem.
 
 The separate `SequentialUnification.lean` checkpoint narrows, but does not
 close, that requirement. Lean proves exact submitted-link origin for every
-entry in its reusable source-incidence index. A successful bounded/tagged
-`NEXTAXIOM` result carries the exact submitted axiom index/endpoints, final
-tags, and trace; its proof fields establish that both endpoints were unmarked
-in the input state and `trace.length ≤ fuel`. Its dynamic update refines one
-Figure-5 start step under `Abstractable` and `OrderedParents`. Missing,
+entry in its reusable source-incidence index. `SourceIndex.Sound` is only a
+provenance property: it does not establish lookup existence or uniqueness, and
+both endpoints of a malformed self-axiom are intentionally inserted into one
+bucket. Structural well-formedness now proves singleton lookup for every
+in-bounds occurrence. A successful bounded/tagged `NEXTAXIOM` result carries
+the exact submitted axiom index/endpoints, final tags, and trace; its proof
+fields establish tag-array size preservation, monotonicity of old true tags,
+trace `Nodup`, input-false/output-true tagging of every trace occurrence and
+both endpoints, input-unmarked endpoints, and `trace.length ≤ fuel`. Its
+`Touched` carrier is the trace plus endpoints, and successive successful calls
+have disjoint touched carriers when the second uses exactly `first.tags`. This
+is the scope of the global no-revisit discipline; no result is claimed after
+tags are reset or replaced. Its dynamic update refines one Figure-5 start step
+under `Abstractable` and `OrderedParents`. Missing,
 ambiguous, tagged, marked, or malformed sources fail closed, with dedicated
 regressions for zero fuel, out-of-bounds, tagged and marked starts, missing and
 duplicate sources, and repeat rejection after threading the first result's
 tags. The executable and its proof fields are trusted only after compilation
 like any other Lean declaration; the regression observations remain untrusted
-evidence. No theorem yet states trace `Nodup`, tag monotonicity, or a global
-no-revisit result, and no
-`σ`/`R`/`W` (ready/waiting) or token-age interval scheduler is implemented.
+evidence. Total start selection and the complete `σ`/`R`/`W`
+(ready/waiting), token-age, scheduler-correctness, and scheduler-cost layers
+remain unimplemented.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -370,8 +379,10 @@ the executable regression refutes generic flat token-age/LIFO containment.
 The remaining flat-completeness option is a residual-witness preservation or
 a theorem at the marked-domain/occurrence-thread quotient; exact-state and
 structural-only confluence are too fine. Guerrini-style linearity instead
-requires extending the bounded/tagged `NEXTAXIOM` checkpoint with no-revisit,
-`σ`/`R`/`W`, and token-age sequencing. No planarity principle is assumed.
+requires extending the bounded/tagged `NEXTAXIOM` checkpoint with total start
+selection, `σ`/`R`/`W`, and token-age sequencing. Its per-call invariants and
+strictly threaded touched-set disjointness are already proved. No planarity
+principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -482,8 +493,10 @@ Lean now also constructs the exact simultaneous complementary
   occurrence-thread partition. No committed reproducible audit or theorem
   establishes confluence at that quotient.
   Residual-witness preservation or a theorem at this quotient remains a
-  possible route to flat completeness; full `NEXTAXIOM`/token-age stacks
-  remain required for linearity.
+  possible route to flat completeness. The bounded primitive already has
+  per-call trace/tag invariants and strictly threaded touched-set disjointness;
+  total start selection and full `NEXTAXIOM`/token-age stacks remain required
+  for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
   linearity remain open.

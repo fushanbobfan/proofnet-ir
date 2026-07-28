@@ -5,20 +5,30 @@
 - added `ProofNetIR/SequentialUnification.lean` as the first bounded
   Figures 7–8 checkpoint without claiming the full scheduler. A reusable
   occurrence-source index is built once, and Lean proves every stored
-  incidence has exact submitted-link origin. The globally tagged
+  incidence has exact submitted-link origin. That `SourceIndex.Sound` fact is
+  only provenance: it does not imply lookup existence or uniqueness, and the
+  index deliberately records both endpoints of a malformed self-axiom in the
+  same bucket. Under `StructurallyWellFormed`, Lean now proves every in-bounds
+  occurrence has exactly one source entry. The globally tagged
   `nextAxiomWithFuel?` fails closed on missing, ambiguous, out-of-domain,
   already tagged, or already marked sources. Every success retains the exact
   submitted axiom link index and endpoints, final tags, and recursive trace;
-  kernel fields/theorems prove both endpoints were unmarked in the input state
-  and `trace.length ≤ fuel`. `dynamicStartWithFuel?` applies the existing token
+  kernel fields/theorems prove tag-array size preservation, monotonicity of old
+  true tags, trace `Nodup`, input-false/output-true tagging of every trace
+  occurrence and both endpoints, input-unmarked endpoints, and
+  `trace.length ≤ fuel`. Its `Touched` carrier is the trace plus both endpoints,
+  and two successful calls have disjoint touched carriers when the second call
+  uses exactly `first.tags`. This is the scope of the global no-revisit
+  discipline; no such theorem is claimed after resetting or replacing the
+  tags. `dynamicStartWithFuel?` applies the existing token
   update, and under `Abstractable` plus `OrderedParents` its result refines one
   independent Figure-5 `start` step. Regressions cover the canonical
   connective-to-axiom trace and tags, zero fuel, out-of-bounds, tagged and
   marked starts, missing and non-unique sources, threaded-result-tags repeat
-  rejection, and dynamic token allocation. Trace `Nodup`, tag monotonicity, a
-  global no-revisit theorem, `σ`/`R`/`W` (ready/waiting), token-age interval
-  sequencing, correct-state progress, pure-worklist completeness, fallback
-  removal, and whole-program linearity remain open;
+  rejection, and dynamic token allocation. Total `NEXTAXIOM` start selection,
+  `σ`/`R`/`W` (ready/waiting), token-age interval sequencing, full scheduler
+  correctness and cost, correct-state progress, pure-worklist completeness,
+  fallback removal, and whole-program linearity remain open;
 - narrowed the flat-scheduler confluence route. Exact concrete-state
   confluence is refuted by a derivation-generated correct certificate, while
   structural-only confluence is refuted by a structurally well-formed
