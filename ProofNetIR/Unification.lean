@@ -28794,6 +28794,78 @@ private def CyclicFourPointDisplayAt {α : Type}
           [third] ++ thirdFourth ++
             [fourth] ++ fourthFirst)
 
+namespace CyclicFourPointDisplayAt
+
+/-- A four-point display inside an occurrence-unique cyclic list has four
+distinct displayed occurrences.  This conclusion is deliberately about the
+four exact values only; it does not make any intervening interval nonempty or
+impose a linear rank order at the original cut. -/
+private theorem distinguished_nodup
+    {α : Type}
+    {first second third fourth : α}
+    {current : List α}
+    (display :
+      CyclicFourPointDisplayAt first second third fourth current)
+    (currentNodup : current.Nodup) :
+    [first, second, third, fourth].Nodup := by
+  rcases display with
+    ⟨firstSecond, secondThird, thirdFourth, fourthFirst, rotation⟩
+  have displayedNodup :
+      ([first] ++ firstSecond ++
+        [second] ++ secondThird ++
+          [third] ++ thirdFourth ++
+            [fourth] ++ fourthFirst).Nodup :=
+    rotation.nodup_iff.mp currentNodup
+  have firstConsNodup :
+      (first ::
+        (firstSecond ++
+          second ::
+            (secondThird ++
+              third :: (thirdFourth ++ fourth :: fourthFirst)))).Nodup := by
+    simpa [List.append_assoc] using displayedNodup
+  have secondConsNodup :
+      (second ::
+        (secondThird ++
+          third :: (thirdFourth ++ fourth :: fourthFirst))).Nodup :=
+    (List.nodup_append.mp
+      (List.nodup_cons.mp firstConsNodup).2).2.1
+  have thirdConsNodup :
+      (third :: (thirdFourth ++ fourth :: fourthFirst)).Nodup :=
+    (List.nodup_append.mp
+      (List.nodup_cons.mp secondConsNodup).2).2.1
+  apply List.nodup_cons.mpr
+  constructor
+  · intro membership
+    apply (List.nodup_cons.mp firstConsNodup).1
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at membership
+    rcases membership with same | same | same
+    · subst second
+      simp
+    · subst third
+      simp
+    · subst fourth
+      simp
+  apply List.nodup_cons.mpr
+  constructor
+  · intro membership
+    apply (List.nodup_cons.mp secondConsNodup).1
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at membership
+    rcases membership with same | same
+    · subst third
+      simp
+    · subst fourth
+      simp
+  apply List.nodup_cons.mpr
+  constructor
+  · intro membership
+    apply (List.nodup_cons.mp thirdConsNodup).1
+    simp only [List.mem_singleton] at membership
+    subst fourth
+    simp
+  · simp
+
+end CyclicFourPointDisplayAt
+
 namespace CyclicEndpointZipperAt
 
 /-- An ordered retained sublist of the complete endpoint gap supplies the
@@ -29522,8 +29594,47 @@ private def SchedulerTaggedPositionedParObstruction
           leftOccurrence rightOccurrence rightStep leftStep leftOffset
             rightSegment leftSegment
 
-/-- Restrict an exact tagged obstruction to a new tagged interval once the
-same two coordinate visits are proved to survive. The traversal order is
+/-- One exact positioned obstruction whose omitted-right and retained-left
+scheduler tags are named as the displayed outer endpoints.  The equations
+bind the semantic obstruction to those exact `SchedulerOccurrence` values;
+they do not identify either endpoint by erased edge value alone. -/
+private def SchedulerTaggedPositionedParObstructionEndpointsAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (conclusion : Vertex)
+    (anchor outerLast :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge) : Prop :=
+  ∃ (before : List Link) (left right : Vertex) (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (rightStep leftStep leftOffset : Nat)
+      (rightSegment leftSegment :
+        List certificate.fullGraph.DirectedEdge),
+    anchor =
+        ({ step := rightStep
+           offset := 0
+           value := rightOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∧
+      outerLast =
+        ({ step := leftStep
+           offset := leftOffset
+           value := leftOccurrence } :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∧
+        SchedulerTaggedPositionedParObstructionAt
+          certificate chainAt count flippedSegments tagged
+            before left right conclusion after
+              leftOccurrence rightOccurrence rightStep leftStep leftOffset
+                rightSegment leftSegment
+
+/-- Retarget an exact tagged obstruction to another tagged traversal once the
+same two coordinate visits are proved to occur there. The traversal order is
 recomputed from those visits; all scheduler coordinates remain unchanged. -/
 private theorem
     SchedulerTaggedPositionedParObstructionAt.of_mem
@@ -29532,7 +29643,7 @@ private theorem
     {count : Nat}
     {flippedSegments :
       List (List certificate.fullGraph.DirectedEdge)}
-    {tagged smaller :
+    {tagged target :
       List
         (SchedulerOccurrence
           certificate.fullGraph.DirectedEdge)}
@@ -29555,15 +29666,15 @@ private theorem
          offset := 0
          value := rightOccurrence } :
           SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
-        smaller)
+        target)
     (leftMembership :
       ({ step := leftStep
          offset := leftOffset
          value := leftOccurrence } :
           SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
-        smaller) :
+        target) :
     SchedulerTaggedPositionedParObstructionAt
-      certificate chainAt count flippedSegments smaller
+      certificate chainAt count flippedSegments target
         before left right conclusion after
           leftOccurrence rightOccurrence rightStep leftStep leftOffset
             rightSegment leftSegment := by
@@ -29579,7 +29690,7 @@ private theorem
       _oldTraversalOrder, schedulerOrder⟩
   have rightValueMembership :
       rightOccurrence ∈
-        smaller.map SchedulerOccurrence.erase := by
+        target.map SchedulerOccurrence.erase := by
     apply List.mem_map.mpr
     exact
       ⟨({ step := rightStep
@@ -29589,7 +29700,7 @@ private theorem
         rightMembership, rfl⟩
   have leftValueMembership :
       leftOccurrence ∈
-        smaller.map SchedulerOccurrence.erase := by
+        target.map SchedulerOccurrence.erase := by
     apply List.mem_map.mpr
     exact
       ⟨({ step := leftStep
@@ -32458,6 +32569,9 @@ private theorem endpointReplay_firstGapOpening_exists
                             certificate.Cusp
                               outerLast.value anchor.value ∧
                               outerLast.value ≠ anchor.value.reverse ∧
+                    SchedulerTaggedPositionedParObstructionEndpointsAt
+                      certificate chainAt count flippedSegments current
+                        complementBase anchor outerLast ∧
                     SchedulerTerminalOmittedAnchorAt
                       certificate chainAt count flippedSegments
                         complementBase anchor ∧
@@ -32531,6 +32645,15 @@ private theorem endpointReplay_firstGapOpening_exists
   have outerNontrivial :
       outerLast.value ≠ anchor.value.reverse := by
     simpa [outerLast, anchor] using terminalNontrivial
+  have outerPositioned :
+      SchedulerTaggedPositionedParObstructionEndpointsAt
+        certificate chainAt count flippedSegments current
+          complementBase anchor outerLast := by
+    exact
+      ⟨before, left, right, after,
+        leftOccurrence, rightOccurrence,
+        rightStep, leftStep, leftOffset, rightSegment, leftSegment,
+        rfl, rfl, positioned⟩
   have anchorOrigin :
       SchedulerTerminalOmittedAnchorAt
         certificate chainAt count flippedSegments complementBase anchor := by
@@ -32688,7 +32811,7 @@ private theorem endpointReplay_firstGapOpening_exists
       arcNonempty, complementEquation, reverseValues,
       anchorHead, outerLastAtEnd, outerLastForward,
       terminalArcWalk, terminalArcFree, outerCusp, outerNontrivial,
-      anchorOrigin,
+      outerPositioned, anchorOrigin,
       closingCursor, closingZipper, currentCursor, currentZipper, replay,
       rfl, rfl, rfl, rfl,
       anchorInCurrentGap, outerLastInCurrentGap,
@@ -37621,6 +37744,9 @@ private theorem structuralEndpointTerminalGapOpeningWithOrigin_exists
                               certificate.Cusp
                                 outerLast.value anchor.value ∧
                                 outerLast.value ≠ anchor.value.reverse ∧
+                          SchedulerTaggedPositionedParObstructionEndpointsAt
+                            certificate chainAt count flippedSegments base
+                              complementBase anchor outerLast ∧
                           SchedulerTerminalOmittedAnchorAt
                             certificate chainAt count flippedSegments
                               complementBase anchor ∧
@@ -37658,7 +37784,7 @@ private theorem structuralEndpointTerminalGapOpeningWithOrigin_exists
       arcNonempty, complementEquation, reverseValues,
       anchorHead, outerLastAtEnd, outerLastForward,
       terminalArcWalk, terminalArcFree, outerCusp, outerNontrivial,
-      anchorOrigin,
+      outerPositioned, anchorOrigin,
       closingCursor, closingZipper, baseCursor, baseZipper,
       terminalEndpointReplay, closingBoundary, closingBetween,
       closingGap, baseGap, anchorInBaseGap, outerLastInBaseGap,
@@ -37670,7 +37796,7 @@ private theorem structuralEndpointTerminalGapOpeningWithOrigin_exists
       arcNonempty, complementEquation, reverseValues,
       anchorHead, outerLastAtEnd, outerLastForward,
       terminalArcWalk, terminalArcFree, outerCusp, outerNontrivial,
-      anchorOrigin,
+      outerPositioned, anchorOrigin,
       closingCursor, closingZipper, baseCursor, baseZipper,
       terminalEndpointReplay, closingBoundary, closingBetween,
       closingGap, baseGap, anchorInBaseGap, outerLastInBaseGap,
@@ -37701,7 +37827,8 @@ private theorem
       SchedulerTaggedClosingParNestingPackageAt
         certificate chainAt count flippedSegments base initial
           complementBase taggedComplement taggedNormalized) :
-    ∃ conclusion firstTag lastTag firstSegment lastSegment middle,
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after middle,
       ∃ taggedArc :
           List
             (SchedulerOccurrence
@@ -37715,7 +37842,16 @@ private theorem
           SchedulerTaggedClosingParEndpointWitnessAt
               certificate chainAt count flippedSegments taggedNormalized
                 conclusion firstTag lastTag firstSegment lastSegment ∧
-            taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+            SchedulerTaggedPositionedParObstructionAt
+                certificate chainAt count flippedSegments initial
+                  before left right conclusion after
+                    lastTag.value firstTag.value
+                      firstTag.step lastTag.step lastTag.offset
+                        firstSegment lastSegment ∧
+              taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+                SchedulerTaggedPositionedParObstructionEndpointsAt
+                  certificate chainAt count flippedSegments initial
+                    complementBase anchor outerLast ∧
               SchedulerTerminalOmittedAnchorAt
                 certificate chainAt count flippedSegments
                   complementBase anchor ∧
@@ -37744,11 +37880,11 @@ private theorem
       package.structuralEndpointTerminalGapOpeningWithOrigin_exists with
     ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
       before, left, right, after, middle, taggedArc, opening, closing,
-      anchor, outerLast, endpointFacts, _positionedAt,
+      anchor, outerLast, endpointFacts, positionedAt,
       normalizedEquation, _arcNonempty, _complementEquation,
       _reverseValues, _anchorHead, _outerLastAtEnd,
       outerLastForward, terminalArcWalk, terminalArcFree,
-      outerCusp, outerNontrivial, anchorOrigin,
+      outerCusp, outerNontrivial, outerPositioned, anchorOrigin,
       _closingCursor, _closingZipper, baseCursor, baseZipper,
       _terminalEndpointReplay, _closingBoundary, _closingBetween,
       _closingGap, _baseGap, anchorInBaseGap, outerLastInBaseGap,
@@ -37790,15 +37926,165 @@ private theorem
     ancestryEndpointReplay.gap_mem anchorInBaseGap
   have outerLastInInitialGap : outerLast ∈ initialZipper.gap :=
     ancestryEndpointReplay.gap_mem outerLastInBaseGap
+  have firstTagInInitial : firstTag ∈ initial := by
+    apply initialZipper.rotation.perm.mem_iff.mpr
+    simp
+  have lastTagInInitial : lastTag ∈ initial := by
+    apply initialZipper.rotation.perm.mem_iff.mpr
+    simp
+  have firstOffsetZero : firstTag.offset = 0 := by
+    rcases endpointFacts with
+      ⟨_firstHead, _lastLast, _cusp, _nontrivial,
+        _lastColor, _firstReverseColor, _lastForward, _firstBackward,
+        _firstStepBound, _firstSegmentLookup, _firstOffsetLookup,
+        _firstClassified, _lastStepBound, _lastSegmentLookup,
+        _lastOffsetLookup, _lastClassified, _lastKept,
+        exactOffset, _lastOffsetNonzero, _firstSegmentHead,
+        _firstSourceConclusion, _lastTargetConclusion,
+        _firstStepConclusion, _endpointStepsDistinct,
+        _lastTargetStepNeConclusion, _normalizedBase,
+        _normalizedWalk⟩
+    exact exactOffset
+  have innerRightInInitial :
+      ({ step := firstTag.step
+         offset := 0
+         value := firstTag.value } :
+        SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+          initial := by
+    cases firstTag with
+    | mk step offset value =>
+        simp only at firstOffsetZero
+        subst offset
+        exact firstTagInInitial
+  have innerLeftInInitial :
+      ({ step := lastTag.step
+         offset := lastTag.offset
+         value := lastTag.value } :
+        SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+          initial := by
+    simpa using lastTagInInitial
+  have innerPositionedAtInitial :=
+    positionedAt.of_mem innerRightInInitial innerLeftInInitial
+  have anchorInInitial : anchor ∈ initial := by
+    apply initialZipper.rotation.perm.mem_iff.mpr
+    simp [anchorInInitialGap]
+  have outerLastInInitial : outerLast ∈ initial := by
+    apply initialZipper.rotation.perm.mem_iff.mpr
+    simp [outerLastInInitialGap]
+  rcases outerPositioned with
+    ⟨outerBefore, outerLeft, outerRight, outerAfter,
+      outerLeftOccurrence, outerRightOccurrence,
+      outerRightStep, outerLeftStep, outerLeftOffset,
+      outerRightSegment, outerLeftSegment,
+      anchorEquation, outerLastEquation, outerPositionedAtBase⟩
+  have outerRightInInitial :
+      ({ step := outerRightStep
+         offset := 0
+         value := outerRightOccurrence } :
+        SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+          initial := by
+    simpa [← anchorEquation] using anchorInInitial
+  have outerLeftInInitial :
+      ({ step := outerLeftStep
+         offset := outerLeftOffset
+         value := outerLeftOccurrence } :
+        SchedulerOccurrence certificate.fullGraph.DirectedEdge) ∈
+          initial := by
+    simpa [← outerLastEquation] using outerLastInInitial
+  have outerPositionedAtInitial :=
+    outerPositionedAtBase.of_mem
+      outerRightInInitial outerLeftInInitial
+  have outerPositionedInitial :
+      SchedulerTaggedPositionedParObstructionEndpointsAt
+        certificate chainAt count flippedSegments initial
+          complementBase anchor outerLast :=
+    ⟨outerBefore, outerLeft, outerRight, outerAfter,
+      outerLeftOccurrence, outerRightOccurrence,
+      outerRightStep, outerLeftStep, outerLeftOffset,
+      outerRightSegment, outerLeftSegment,
+      anchorEquation, outerLastEquation, outerPositionedAtInitial⟩
   exact
-    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment, middle,
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
       taggedArc, anchor, outerLast, initialZipper,
       gapBefore, gapMiddle, gapAfter,
-      endpointFacts, normalizedEquation, anchorOrigin,
+      endpointFacts, innerPositionedAtInitial, normalizedEquation,
+      outerPositionedInitial, anchorOrigin,
       outerLastForward, terminalArcWalk, terminalArcFree,
       outerCusp, outerNontrivial, _anchorHead, _outerLastAtEnd,
       taggedArcSublistInitial, initialGapDecomposition,
       cyclicFourPointDisplay, anchorInInitialGap, outerLastInInitialGap⟩
+
+/-- In the actual complete scheduler family, the surviving closing package
+exposes both exact positioned par generators at once: the normalized inner
+closing cusp and the outer terminal arc transported through every ancestry
+frame.  Their four named scheduler occurrences have the displayed cyclic
+order and are duplicate-free.  This is an occurrence theorem only; it proves
+neither nonempty intervening intervals nor crossing, planarity, or exclusion
+of the closing-par outcome. -/
+private theorem
+    structuralEndpointInitialFourPointPositioned_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base
+          (tagSchedulerFamily flippedSegments)
+            complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after anchor outerLast,
+      SchedulerTaggedClosingParEndpointWitnessAt
+          certificate chainAt count flippedSegments taggedNormalized
+            conclusion firstTag lastTag firstSegment lastSegment ∧
+        SchedulerTaggedPositionedParObstructionAt
+            certificate chainAt count flippedSegments
+              (tagSchedulerFamily flippedSegments)
+                before left right conclusion after
+                  lastTag.value firstTag.value
+                    firstTag.step lastTag.step lastTag.offset
+                      firstSegment lastSegment ∧
+          SchedulerTaggedPositionedParObstructionEndpointsAt
+            certificate chainAt count flippedSegments
+              (tagSchedulerFamily flippedSegments)
+                complementBase anchor outerLast ∧
+            CyclicFourPointDisplayAt
+              firstTag lastTag anchor outerLast
+                (tagSchedulerFamily flippedSegments) ∧
+              [firstTag, lastTag, anchor, outerLast].Nodup := by
+  rcases
+      package.structuralEndpointInitialGap_containsTerminalArcEndpoints_exists
+    with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      taggedArc, anchor, outerLast, initialZipper,
+      gapBefore, gapMiddle, gapAfter,
+      endpointFacts, innerPositioned, _normalizedEquation,
+      outerPositioned, _anchorOrigin, _outerLastForward,
+      _terminalArcWalk, _terminalArcFree, _outerCusp,
+      _outerNontrivial, _anchorHead, _outerLastAtEnd,
+      _taggedArcSublist, _initialGapDecomposition,
+      display, _anchorInGap, _outerLastInGap⟩
+  have distinguishedNodup :
+      [firstTag, lastTag, anchor, outerLast].Nodup :=
+    display.distinguished_nodup
+      (tagSchedulerFamily_nodup flippedSegments)
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, anchor, outerLast,
+      endpointFacts, innerPositioned, outerPositioned,
+      display, distinguishedNodup⟩
 
 /-- Classify the global first exact-gap opening across the two retained replay
 phases.  The replay proofs are existentially named so the disjunction remains

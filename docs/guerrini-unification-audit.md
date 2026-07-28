@@ -429,13 +429,27 @@ or positive misses. The larger search recorded at most 995 link attempts and
     relation permits empty intervals and repeated values. It is not a strict
     scheduler-rank theorem: the ordered sublist need not be contiguous, and the
     display proves no fixed linear rank, crossing, cyclic betweenness, or
-    noncrossing scheduler-order relation.
+    model-specific scheduler-order/proper-nesting relation.
+    The complete initial `tagSchedulerFamily` is `Nodup` in exact
+    `SchedulerOccurrence` coordinates, so the specialized result now proves
+    `[firstTag, lastTag, anchor, outerLast].Nodup`. This does not distinguish
+    their erased directed edges, endpoints, or vertices. The terminal replay
+    retains the same outer positioned par choice, and exact ancestry membership
+    lifts both that choice and the inner normalized closing witness to the
+    complete initial family. One theorem returns both positioned witnesses,
+    four-point display, and four-tag `Nodup` together. The resulting order
+    `firstTag → lastTag → anchor → outerLast` separates the paired inner and
+    outer endpoints rather than alternating them, so it is not a crossing.
+    Intervening intervals may be empty.
     Guerrini's correctness/reduction
     results do not provide that bespoke final contradiction for the present
     flat eager scheduler.
-3. Derive the strict scheduler-rank, cyclic-betweenness, or equivalent
-   noncrossing scheduler-order contradiction, exclude the closing-par base,
-   and prove correct-quiescent-state progress.
+3. Prove a model-specific proper-nesting/LIFO scheduler invariant strong enough
+   to exclude the separated endpoint configuration, or replace the flat eager
+   scheduler with faithful `NEXTAXIOM`/token-age stacks and prove that
+   invariant there. Commutative MLL supplies no planarity principle for this
+   step. Then exclude the closing-par base and prove correct-quiescent-state
+   progress.
 4. Prove the current event-driven worklist complete, yielding
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist

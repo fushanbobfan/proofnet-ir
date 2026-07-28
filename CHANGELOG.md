@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- specialized the terminal four-point result to the complete initial
+  `tagSchedulerFamily`. That ambient family is duplicate-free in exact
+  `SchedulerOccurrence` coordinates, so the displayed
+  `[firstTag, lastTag, anchor, outerLast]` is now proved `Nodup`. This does not
+  imply that the four erased directed-edge values, their endpoints, or their
+  vertices are distinct: scheduler coordinates can distinguish repeated
+  erased values. The endpoint replay now retains the same exact outer
+  positioned par choice which names `anchor` and `outerLast`; exact membership
+  transport lifts that outer witness and the normalized inner closing witness
+  through ancestry to the complete initial family. A specialized theorem
+  returns both positioned witnesses together with
+  `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast` and the
+  four-tag `Nodup` fact. The cyclic occurrence order
+  `firstTag → lastTag → anchor → outerLast` separates the inner pair from the
+  outer pair; it is not an alternating crossing witness. Intervening intervals
+  are not proved nonempty, and no contiguity, fixed or modular scheduler rank,
+  model-specific scheduler-order/proper-nesting contradiction, closing-par
+  exclusion, progress, or pure-worklist completeness follows yet. Planarity is
+  not assumed for commutative MLL.
 - strengthened the closing-package endpoint layer with a canonical replay of
   the fixed terminal-complement step. Starting from the normalized closing
   core's empty exact gap, this replay always first-opens in the terminal phase:
@@ -33,7 +52,7 @@
   display permits empty intervening lists and repeated values; it is not a
   strict scheduler-rank result. `List.Sublist` preserves linear order but not
   contiguity, and the display proves no fixed linear rank, crossing,
-  cyclic-betweenness, or noncrossing scheduler-order contradiction. The tagged
+  cyclic-betweenness, or scheduler-order/proper-nesting contradiction. The tagged
   closing-par base, correct-state progress,
   pure-worklist completeness,
   recursive-fallback removal, `NEXTAXIOM` sequencing, and whole-program
@@ -55,7 +74,7 @@
   proves terminal-phase opening and separately retains the scheduler origin of
   the omitted-right anchor. Its returned first-opening proposition does not
   connect those facts in a branch/origin payload. Neither result supplies the
-  still-missing noncrossing scheduler-order contradiction.
+  still-missing model-specific scheduler-order/proper-nesting contradiction.
 - added two kernel-checked regressions delimiting that result. In the first, a
   seam lift records candidate gap `[2]`, a later ordinary lift leaves that
   candidate unchanged, and the exact complementary endpoint arc is `[2, 3]`;

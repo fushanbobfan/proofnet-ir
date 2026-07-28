@@ -685,10 +685,21 @@
       family satisfies
       `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
       relation allows empty intervals and repeated values.
-    - [ ] Derive an actual strict scheduler-rank, cyclic-betweenness, or
-      equivalent noncrossing contradiction from the retained terminal geometry
-      and ancestry transport. The current four-point display proves no
-      contiguity, fixed linear rank, crossing, or noncrossing result.
+    - [x] Specialize to the complete initial `tagSchedulerFamily`, derive
+      `[firstTag, lastTag, anchor, outerLast].Nodup` from its exact-coordinate
+      `Nodup`, and retain the boundary that erased edges and vertices need not
+      be distinct.
+    - [x] Keep the same outer positioned choice in the endpoint replay and lift
+      both it and the inner normalized closing witness through ancestry to the
+      complete initial family. Return both exact positioned witnesses with the
+      four-point display and four-tag `Nodup` fact in one specialized theorem.
+    - [ ] Prove a model-specific proper-nesting/LIFO scheduler invariant from
+      the actual flat-scheduler semantics, or implement faithful
+      `NEXTAXIOM`/token-age stacks and prove it there. The current order
+      `firstTag → lastTag → anchor → outerLast` separates the inner and outer
+      pairs rather than crossing them. It proves no interval nonemptiness,
+      contiguity, fixed or modular rank, or scheduler-order contradiction;
+      commutative MLL supplies no planarity principle.
       Closing-par exclusion and the path-exposed waiting-par obstruction remain
       open.
     - [ ] Prove correct-quiescent-state progress.

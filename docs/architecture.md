@@ -373,9 +373,26 @@ active-reference walks between marked occurrences are equivalent to
   relation allows empty intervening lists and repeated values. It is not the
   missing strict scheduler-rank theorem: this result establishes neither
   contiguity, a fixed linear rank, crossing, cyclic betweenness, nor a
-  noncrossing scheduler-order contradiction. Closing-par exclusion and
+  model-specific scheduler-order/proper-nesting contradiction. Closing-par exclusion and
   correct-state progress therefore remain open. Pure-worklist completeness,
   recursive-fallback removal, and whole-program linearity remain later gates.
+  On the complete initial `tagSchedulerFamily`, exact scheduler coordinates are
+  duplicate-free even when erased directed-edge values repeat. The four-point
+  display therefore yields
+  `[firstTag, lastTag, anchor, outerLast].Nodup`, but this does not imply
+  distinct erased edges, edge endpoints, or vertices. The endpoint replay now
+  also retains the exact outer positioned choice naming `anchor` and
+  `outerLast`. Membership transport through ancestry lifts that same outer
+  witness and the inner normalized closing witness to the complete initial
+  family. A specialized theorem returns both positioned witnesses, the
+  four-point display, and four-tag `Nodup` together.
+  Their cyclic order is `firstTag → lastTag → anchor → outerLast`, so the inner
+  and outer pairs are separated rather than alternating: this is not a crossing
+  witness. No intervening interval is proved nonempty, and there is still no
+  contiguity, fixed or modular rank, or model-specific
+  scheduler-order/proper-nesting contradiction. Planarity is not assumed for
+  commutative MLL. Closing-par exclusion, progress, and pure-worklist
+  completeness remain open.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

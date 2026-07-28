@@ -321,8 +321,23 @@ gap from those exact head/getLast lookups as
 family. The relation permits empty intervening lists and repeated values
 generically. It is not a strict scheduler-rank theorem: the ordered sublist is
 not necessarily contiguous, and the display proves no fixed linear rank,
-crossing, cyclic betweenness, or noncrossing scheduler-order contradiction.
+crossing, cyclic betweenness, or scheduler-order/proper-nesting contradiction.
 It is therefore not yet closing-par exclusion or a progress theorem.
+For the complete initial `tagSchedulerFamily`, Lean now derives
+`[firstTag, lastTag, anchor, outerLast].Nodup` from duplicate-freedom of the
+exact scheduler coordinates. Erasure is not injective here: the four erased
+directed edges, their endpoints, and their vertices are not proved distinct.
+The endpoint replay retains the same outer positioned par choice which named
+`anchor` and `outerLast`; ancestry membership lifts that outer witness and the
+inner normalized closing witness to the full initial family. The specialized
+theorem returns both positioned witnesses with the display and four-tag
+`Nodup`.
+The displayed occurrence order
+`firstTag → lastTag → anchor → outerLast` separates the inner and outer pairs;
+it is not a crossing. No interval is proved nonempty, so contiguity, fixed or
+modular rank, a model-specific scheduler-order/proper-nesting contradiction,
+closing-par exclusion, progress, and pure-worklist completeness remain open.
+No planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -417,7 +432,14 @@ Lean now also constructs the exact simultaneous complementary
   `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
   display allows empty intervals and repeated values, and proves no
   contiguity, fixed linear rank, crossing, cyclic betweenness, or required
-  noncrossing scheduler-order contradiction. Closing-par
+  scheduler-order/proper-nesting contradiction. In the complete initial
+  `tagSchedulerFamily`, the four exact `SchedulerOccurrence` tags are now
+  proved `Nodup`; both the inner positioned witness and the same outer
+  positioned choice are retained after ancestry. This says nothing about
+  distinct erased edges or
+  vertices. The order is `firstTag → lastTag → anchor → outerLast`, which
+  separates rather than crosses the two endpoint pairs; intervening intervals
+  may still be empty. Closing-par
   scheduler-order exclusion, correct-state progress, pure-worklist
   completeness, recursive fallback removal, and whole-program linearity
   remain open.

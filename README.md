@@ -49,13 +49,27 @@ initial exact gap has the form
 `g0 ++ anchor :: g1 ++ outerLast :: g2`, and the enclosing scheduler family
 has a `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
 four-point relation permits empty intervening lists and repeated values; it is
-not a strict scheduler-rank theorem. This is linear ordered-sublist transport,
-not contiguity, a fixed linear rank, crossing, cyclic betweenness, or a
-noncrossing scheduler-order theorem. Closing-par scheduler-order exclusion,
-correct-state progress,
-pure-worklist completeness,
-recursive-fallback removal, and the whole-program linear bound therefore
-remain open. Independent
+not a strict scheduler-rank theorem. This generic result is linear
+ordered-sublist transport, not contiguity, a fixed linear rank, crossing,
+cyclic betweenness, or a model-specific scheduler-order/proper-nesting theorem.
+For the actual complete initial `tagSchedulerFamily`, the ambient scheduler
+coordinates are `Nodup`, even when erased directed-edge values repeat. Lean now
+uses that fact to prove
+`[firstTag, lastTag, anchor, outerLast].Nodup`; this distinguishes the four
+exact `SchedulerOccurrence` tags, not their erased edges, edge endpoints, or
+vertices. The endpoint replay retains the same outer positioned par choice
+which names `anchor` and `outerLast`. Exact membership transport then lifts
+both that outer witness and the normalized inner closing witness through
+ancestry to the complete initial family. One specialized theorem returns both
+positioned witnesses, the four-point display, and the four-tag `Nodup` fact
+together. Its cyclic point order is
+`firstTag → lastTag → anchor → outerLast`: the inner and outer endpoint pairs
+are separated, not alternating, so this is not a crossing witness. No
+intervening interval is proved nonempty, and contiguity, fixed or modular rank,
+a model-specific scheduler-order/proper-nesting contradiction, closing-par
+exclusion, progress, and pure-worklist completeness remain unproved. No
+planarity principle is assumed for commutative MLL.
+Independent
 transition refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
 invariant are now kernel checked. Atomic pop-and-process restores complete
@@ -370,8 +384,14 @@ The exact head/last lookups now decompose that gap as
 `g0 ++ anchor :: g1 ++ outerLast :: g2` and yield
 `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. The generic
 display permits empty intervals and repeated values; it proves no contiguity,
-fixed linear rank, crossing, cyclic betweenness, or noncrossing
-scheduler-order contradiction. Closing-par scheduler-order exclusion and
+fixed linear rank, crossing, cyclic betweenness, or model-specific
+scheduler-order/proper-nesting contradiction. In the complete initial `tagSchedulerFamily`,
+the four exact tags are now proved `Nodup` without claiming distinct erased
+edges or vertices. The same outer positioned choice and the inner positioned
+witness are both lifted through ancestry to that full family and returned with
+the display. Its `firstTag → lastTag → anchor → outerLast` order separates,
+rather than crosses, the two endpoint pairs; intervals may still be empty.
+Closing-par scheduler-order exclusion and
 correct-state progress remain open. Pure-worklist completeness,
 recursive-fallback removal, the later
 `NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
@@ -556,7 +576,13 @@ The repository currently contains:
   `CyclicFourPointDisplayAt firstTag lastTag anchor outerLast`. Its intervals
   may be empty and its values may repeat generically, so this is not a strict
   scheduler-rank theorem and proves no contiguity, fixed linear rank, crossing,
-  cyclic betweenness, or noncrossing contradiction. Closing-par exclusion,
+  cyclic betweenness, or scheduler-order/proper-nesting contradiction. On the complete initial
+  family, exact scheduler-coordinate `Nodup` distinguishes the four tags
+  without distinguishing their erased edges or vertices. Both the inner
+  positioned witness and the same outer positioned choice survive ancestry and
+  are returned with the display; the resulting
+  `firstTag → lastTag → anchor → outerLast` order is separated rather than
+  crossing. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an

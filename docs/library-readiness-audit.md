@@ -290,7 +290,20 @@ part of the engineering and proof-identity gap.
    relation permits empty intervals and repeated values, so it is not the
    missing strict scheduler-rank theorem. The ordered sublist need not be
    contiguous, and the four-point display establishes no fixed linear rank,
-   crossing, cyclic betweenness, or noncrossing scheduler-order contradiction.
+   crossing, cyclic betweenness, or scheduler-order/proper-nesting contradiction.
+   In the complete initial `tagSchedulerFamily`, its ambient exact-coordinate
+   `Nodup` now implies
+   `[firstTag, lastTag, anchor, outerLast].Nodup`. This is a theorem about the
+   four `SchedulerOccurrence` tags only; erased edges, edge endpoints, and
+   vertices may repeat. The endpoint replay preserves the same exact outer
+   positioned choice, and exact ancestry membership lifts both that outer
+   witness and the inner normalized closing witness to the full initial family.
+   A specialized theorem returns those two witnesses together with the display
+   and four-tag `Nodup`. Its order
+   `firstTag → lastTag → anchor → outerLast` separates rather than crosses the
+   endpoint pairs. No interval nonemptiness, contiguity, fixed or modular rank,
+   or model-specific scheduler-order/proper-nesting contradiction is proved;
+   planarity is not assumed.
    Closing-par scheduler-order exclusion, correct-state progress, pure worklist
    completeness, recursive fallback removal, and a whole-program linear cost
    theorem remain open.
