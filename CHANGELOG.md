@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+- strengthened the closing-package endpoint layer with a canonical replay of
+  the fixed terminal-complement step. Starting from the normalized closing
+  core's empty exact gap, this replay always first-opens in the terminal phase:
+  a nonempty reverse-shell context opens in the first frame, while an empty
+  shell leaves the generator's nonempty omitted arc to open in the second
+  frame. This branch distinction is used inside the proof; the returned
+  first-opening proposition does not independently expose a branch/origin sum
+  or bind the opening frame to the omitted-right anchor. The theorem separately
+  retains the exact equation
+  `closing.map erase = reverseTraversal (opening.map erase)`, the omitted-right
+  zero-offset backward anchor at the arc head, the forward retained-left last
+  occurrence of that outer arc, and the canonical base gap
+  `closing ++ taggedArc ++ opening`. The base gap is nonempty and contains both
+  named occurrences. Erasing the outer `taggedArc` yields a closed `EdgeWalk`
+  at the complement base and a `CuspFreeTraversal`; its exact cyclic closing
+  pair is a cusp from the outer last occurrence to the anchor, and those two
+  directed occurrences are not reverses. This wraparound cusp is compatible
+  with the linear internal cusp-free predicate.
+- proved that every endpoint splice preserves the old complete complementary
+  gap as a sublist, and hence preserves membership through a complete endpoint
+  replay. Continuing the canonical base zipper through exact global ancestry
+  keeps the entire outer `taggedArc` as an ordered sublist of the initial
+  scheduler-family gap, with the same omitted-right head and retained-left last
+  occurrence. `List.Sublist` preserves linear order but not contiguity and does
+  not establish cyclic betweenness or a noncrossing scheduler-order
+  contradiction. The tagged closing-par base, correct-state progress,
+  pure-worklist completeness,
+  recursive-fallback removal, `NEXTAXIOM` sequencing, and whole-program
+  linearity remain open.
 - enriched the unified closing-package replay with an exact
   occurrence-position endpoint zipper. Its `gap` is definitionally the complete
   complementary arc between the fixed first and last tagged endpoint
@@ -13,12 +42,13 @@
   first replay-indexed empty-to-nonempty transition, including the original
   seam frame, the nonempty insertion `rightContext ++ leftContext`, and the
   explicit gap-splice branch. The terminal and ancestry phases share the same
-  Type-valued base zipper. The first opening is classified as terminal or
-  ancestry; in the latter branch a proof records that every terminal-phase gap
-  stayed empty. No theorem chooses one branch uniformly, attaches
-  scheduler-origin semantics to the opening, excludes the tagged closing-par
-  base, proves progress or pure-worklist completeness, or removes the
-  recursive fallback.
+  Type-valued base zipper. A generic replay-indexed theorem still classifies
+  the first opening as terminal or ancestry, with a terminal-empty certificate
+  in the latter branch; the stronger canonical terminal construction above now
+  proves terminal-phase opening and separately retains the scheduler origin of
+  the omitted-right anchor. Its returned first-opening proposition does not
+  connect those facts in a branch/origin payload. Neither result supplies the
+  still-missing noncrossing scheduler-order contradiction.
 - added two kernel-checked regressions delimiting that result. In the first, a
   seam lift records candidate gap `[2]`, a later ordinary lift leaves that
   candidate unchanged, and the exact complementary endpoint arc is `[2, 3]`;

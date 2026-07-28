@@ -342,17 +342,34 @@ active-reference walks between marked occurrences are equivalent to
 
   Every indexed flipped segment is nonempty. Thus an empty exact gap in the
   initial tagged family would force the scheduler-coordinate adjacency already
-  excluded by the endpoint witness; the exact gap is nonempty. The replay
-  retains its first empty-to-nonempty frame with the nonempty
-  `rightContext ++ leftContext` insertion and explicit gap-splice branch.
-  Terminal and ancestry replays share one Type-valued base zipper, and the
-  first opening is classified by those concrete replay indices. The ancestry
-  branch additionally proves that every terminal-phase gap stayed empty. There
-  is no uniform branch choice, and the opening frame has not yet been connected
-  to the scheduler-origin/reverse-shell semantics needed for a contradiction.
-  Closing-par exclusion and correct-state progress therefore remain open.
-  Pure-worklist completeness, recursive-fallback removal, and whole-program
-  linearity remain later gates.
+  excluded by the endpoint witness; the exact gap is nonempty. More directly,
+  the canonical endpoint replay of the fixed terminal step always first-opens
+  before ancestry begins. Its first reverse-shell frame inserts
+  `closing ++ opening`; when that list is empty, the generator's nonempty
+  omitted arc opens the gap in the second frame instead. The construction
+  retains
+  `closing.map erase = reverseTraversal (opening.map erase)`, the omitted-right
+  zero-offset backward anchor at the arc head, the forward retained-left last
+  occurrence, and the exact base gap
+  `closing ++ taggedArc ++ opening`.
+
+  Erasing the outer `taggedArc` gives a closed `EdgeWalk` at the complement
+  base and satisfies `CuspFreeTraversal` internally. Its exact cyclic closing
+  pair from the outer last occurrence to the anchor is nevertheless a cusp,
+  and those occurrences are not directed reverses. The closing cusp is
+  therefore a wraparound fact rather than an internal turn forbidden by the
+  linear cusp-free predicate. The shell case split constructs the
+  first-opening proof, but the returned first-opening proposition does not
+  expose a consumer-facing frame/origin sum or bind that frame to the anchor.
+
+  Endpoint splices preserve the old complete gap as a sublist. The ancestry
+  replay therefore transports the entire outer `taggedArc` in its original
+  linear order into the initial scheduler-family gap, including its named head
+  and last occurrences. This `List.Sublist` result establishes neither
+  contiguity, cyclic betweenness, nor a noncrossing scheduler-order
+  contradiction. Closing-par exclusion and
+  correct-state progress therefore remain open. Pure-worklist completeness,
+  recursive-fallback removal, and whole-program linearity remain later gates.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

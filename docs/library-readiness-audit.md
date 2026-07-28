@@ -261,14 +261,31 @@ part of the engineering and proof-identity gap.
 
    Every indexed flipped segment is nonempty. Hence an empty exact zipper gap
    in the initial tagged scheduler family would force the coordinate adjacency
-   already excluded by the endpoint witness, and the exact gap is nonempty. The
-   replay retains the first empty-to-nonempty frame, its nonempty outside
-   insertion, and the explicit gap-splice branch. It also preserves terminal
-   and ancestry phases around one shared Type-valued base zipper. The first
-   opening is classified by those replay indices; the ancestry branch carries
-   a proof that every terminal gap stayed empty. This is not a uniform branch
-   choice and provides no scheduler-origin/reverse-shell contradiction yet.
-   Closing-par scheduler-order exclusion, correct-state progress, pure worklist
+   already excluded by the endpoint witness, and the exact gap is nonempty.
+   The canonical endpoint replay of the fixed terminal step now always
+   first-opens before ancestry: a nonempty reverse shell opens in the first
+   frame; otherwise the generator's nonempty omitted arc opens in the second.
+   It retains
+   `closing.map erase = reverseTraversal (opening.map erase)`, the
+   omitted-right zero-offset backward anchor, the forward retained-left last
+   occurrence of the outer terminal arc, and the exact base gap
+   `closing ++ taggedArc ++ opening`.
+
+   Erasing the outer `taggedArc` produces a closed `EdgeWalk` at the complement
+   base and satisfies `CuspFreeTraversal` internally; the exact cyclic closing
+   pair from its outer last occurrence to the anchor is a cusp, and those
+   directed occurrences are not reverses. The first-opening proof is built by
+   an internal shell-nonempty/empty split, but its returned proposition does
+   not expose a separately consumable frame/origin branch tying the opening to
+   the anchor.
+
+   Endpoint-gap sublist preservation carries the entire outer `taggedArc` in
+   its original linear order through exact ancestry into the initial
+   scheduler-family gap, retaining its same omitted-right head and
+   retained-left last occurrence. This ordered sublist need not be contiguous
+   and establishes no cyclic betweenness or noncrossing scheduler-order
+   contradiction. Closing-par scheduler-order exclusion, correct-state
+   progress, pure worklist
    completeness, recursive fallback removal, and a whole-program linear cost
    theorem remain open.
    For callers that require fail-closed resource handling,

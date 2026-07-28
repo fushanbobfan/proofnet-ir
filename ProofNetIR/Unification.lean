@@ -27625,6 +27625,31 @@ private theorem sublist_insert_middle {α : Type}
     (List.Sublist.refl before).append
       (List.sublist_append_right inserted after)
 
+/-- One endpoint splice preserves the complete old complementary gap as a
+sublist.  A between-arc insertion leaves the gap unchanged; a gap insertion
+adds one contiguous block without deleting either old side. -/
+private theorem CyclicEndpointSpliceAt.gap_sublist
+    {α : Type}
+    {first last : α}
+    {seedMiddle inner outer : List α}
+    {innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner}
+    {outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer}
+    {inserted : List α}
+    (splice :
+      CyclicEndpointSpliceAt innerZipper outerZipper inserted) :
+    innerZipper.gap.Sublist outerZipper.gap := by
+  rcases splice with
+    ⟨_before, _after, _betweenEquation,
+      _outerBetweenEquation, outerGapEquation⟩ |
+    ⟨before, after, innerGapEquation,
+      outerGapEquation, _outerBetweenEquation⟩
+  · rw [outerGapEquation]
+    exact List.Sublist.refl _
+  · rw [innerGapEquation, outerGapEquation]
+    exact sublist_insert_middle before inserted after
+
 /-- A single cyclic replay frame always lifts an exact endpoint zipper.  The
 inserted circular block is `rightContext ++ leftContext`: it extends the
 retained between-arc or the complementary gap according to the zipper's exact
@@ -28473,6 +28498,46 @@ private theorem trans
       exact
         .step advance insertedEquation nextZipper splice
           (induction secondReplay)
+
+/-- Exact endpoint replay never deletes an occurrence already present in the
+complete complementary gap. -/
+private theorem gap_sublist
+    {α : Type} {first last : α}
+    {seedMiddle inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    {innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner}
+    {outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer}
+    (replay :
+      CyclicEndpointReplayAt
+        innerCursor outerCursor innerZipper outerZipper) :
+    innerZipper.gap.Sublist outerZipper.gap := by
+  induction replay with
+  | refl =>
+      exact List.Sublist.refl _
+  | step _advance _insertedEquation _middleZipper
+      splice _tail induction =>
+      exact splice.gap_sublist.trans induction
+
+/-- Membership in the complete complementary gap is monotone along endpoint
+replay. -/
+private theorem gap_mem
+    {α : Type} {first last value : α}
+    {seedMiddle inner outer : List α}
+    {innerCursor : CyclicSeamCursor inner}
+    {outerCursor : CyclicSeamCursor outer}
+    {innerZipper :
+      CyclicEndpointZipperAt first last seedMiddle inner}
+    {outerZipper :
+      CyclicEndpointZipperAt first last seedMiddle outer}
+    (replay :
+      CyclicEndpointReplayAt
+        innerCursor outerCursor innerZipper outerZipper)
+    (membership : value ∈ innerZipper.gap) :
+    value ∈ outerZipper.gap :=
+  replay.gap_sublist.mem membership
 
 /-- If an endpoint replay begins with an empty exact gap and ends with a
 nonempty exact gap, some retained replay step is a genuine gap-opening step.
@@ -32254,6 +32319,292 @@ private theorem seamReplayAnchor_exists
   exact
     ⟨currentCursor, anchor, reverseReplay.trans terminalReplay,
       anchorInCurrentGap, anchorOrigin⟩
+
+/-- The two exact frames of one terminal-complement step already open the
+complete endpoint gap.  Reverse-shell context is inserted first; if that
+context is empty, the generator's nonempty omitted terminal arc opens the gap
+in the following frame.  The replay, both zippers, and the first-opening proof
+are constructed from the one supplied terminal generator and normalization,
+so no ancestry frame or independently selected cyclic cut is used. -/
+private theorem endpointReplay_firstGapOpening_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {firstTag lastTag :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge}
+    {middle :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized)
+    (normalizedEquation :
+      taggedNormalized = firstTag :: middle ++ [lastTag]) :
+    ∃ taggedArc opening closing,
+      ∃ anchor outerLast :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge,
+        taggedArc ≠ [] ∧
+          taggedComplement =
+            opening ++ taggedNormalized ++ closing ∧
+            closing.map SchedulerOccurrence.erase =
+              Graph.EdgeWalk.reverseTraversal
+                (opening.map SchedulerOccurrence.erase) ∧
+                  taggedArc.head? = some anchor ∧
+                    taggedArc.getLast? = some outerLast ∧
+                      outerLast.value.forward = true ∧
+                        certificate.fullGraph.EdgeWalk
+                          complementBase
+                            (taggedArc.map SchedulerOccurrence.erase)
+                              complementBase ∧
+                          certificate.CuspFreeTraversal
+                            (taggedArc.map SchedulerOccurrence.erase) ∧
+                            certificate.Cusp
+                              outerLast.value anchor.value ∧
+                              outerLast.value ≠ anchor.value.reverse ∧
+                    SchedulerTerminalOmittedAnchorAt
+                      certificate chainAt count flippedSegments
+                        complementBase anchor ∧
+                  ∃ closingCursor : CyclicSeamCursor taggedNormalized,
+                    ∃ closingZipper :
+                        CyclicEndpointZipperAt
+                          firstTag lastTag middle taggedNormalized,
+                      ∃ currentCursor : CyclicSeamCursor current,
+                        ∃ currentZipper :
+                            CyclicEndpointZipperAt
+                              firstTag lastTag middle current,
+                          ∃ replay :
+                              CyclicEndpointReplayAt
+                                closingCursor currentCursor
+                                  closingZipper currentZipper,
+                            closingCursor.boundary = 0 ∧
+                              closingZipper.between = middle ∧
+                                closingZipper.gap = [] ∧
+                                  currentZipper.gap =
+                                    closing ++ taggedArc ++ opening ∧
+                                    anchor ∈ currentZipper.gap ∧
+                                      outerLast ∈ currentZipper.gap ∧
+                                        currentZipper.gap ≠ [] ∧
+                                          CyclicEndpointFirstGapOpeningInReplayAt
+                                            replay := by
+  rcases step with
+    ⟨taggedArc, terminalRotationPrefix, terminalRotationSuffix,
+      before, left, right, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, stepAt⟩
+  rcases stepAt with
+    ⟨terminalAt, _complementNonempty, _complementWalk,
+      _complementFree, reverseShells⟩
+  rcases terminalAt with
+    ⟨_taggedState, positioned, arcNonempty,
+      _terminalComplementNonempty, currentRotation,
+      intervalRotation, arcHead, arcLast, edgeTerminal⟩
+  have terminalFrame :
+      CyclicGapFrameAt
+        taggedComplement current terminalRotationPrefix terminalRotationSuffix
+          taggedArc [] := by
+    exact
+      ⟨currentRotation,
+        by
+          simpa [List.append_assoc] using intervalRotation.symm⟩
+  let anchor :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := rightStep
+      offset := 0
+      value := rightOccurrence }
+  let outerLast :
+      SchedulerOccurrence certificate.fullGraph.DirectedEdge :=
+    { step := leftStep
+      offset := leftOffset
+      value := leftOccurrence }
+  have anchorHead : taggedArc.head? = some anchor := by
+    simpa [anchor] using arcHead
+  have outerLastAtEnd : taggedArc.getLast? = some outerLast := by
+    simpa [outerLast] using arcLast
+  rcases edgeTerminal with
+    ⟨_edgePositioned, terminalLeftForward, _edgeArcNonempty,
+      terminalArcWalk, terminalArcFree, _edgeArcHead, _edgeArcLast,
+      terminalCusp, terminalNontrivial, _edgeTraversalRotation,
+      _edgeIntervalRotation, _edgeComplementNonempty,
+      _edgeComplementWalk, _edgeArcsFree, _edgeArcsClosing⟩
+  have outerLastForward : outerLast.value.forward = true := by
+    simpa [outerLast] using terminalLeftForward
+  have outerCusp :
+      certificate.Cusp outerLast.value anchor.value := by
+    simpa [outerLast, anchor] using terminalCusp
+  have outerNontrivial :
+      outerLast.value ≠ anchor.value.reverse := by
+    simpa [outerLast, anchor] using terminalNontrivial
+  have anchorOrigin :
+      SchedulerTerminalOmittedAnchorAt
+        certificate chainAt count flippedSegments complementBase anchor := by
+    simpa [anchor] using positioned.rightAnchor
+  rcases reverseShells.context with
+    ⟨opening, closing, complementEquation, reverseValues⟩
+  have normalizedNonempty : taggedNormalized ≠ [] := by
+    rw [normalizedEquation]
+    simp
+  let closingCursor : CyclicSeamCursor taggedNormalized :=
+    CyclicSeamCursor.closingSeed normalizedNonempty
+  let closingZipper :
+      CyclicEndpointZipperAt
+        firstTag lastTag middle taggedNormalized :=
+    { between := middle
+      gap := []
+      rotationPrefix := []
+      rotationSuffix := taggedNormalized
+      currentRotation := by simp
+      endpointRotation := by
+        rw [normalizedEquation]
+        simp
+      seedMiddle_sublist := List.Sublist.refl middle }
+  have reverseFrame :
+      CyclicGapFrameAt
+        taggedNormalized taggedComplement [] taggedComplement
+          opening closing := by
+    exact
+      ⟨by simp,
+        by simpa [List.append_assoc] using complementEquation⟩
+  obtain ⟨complementCursor, reverseAdvance⟩ :=
+    CyclicSeamAdvanceAt.advance_exists reverseFrame closingCursor
+  let complementZipper :
+      CyclicEndpointZipperAt
+        firstTag lastTag middle taggedComplement :=
+    { between := middle
+      gap := closing ++ opening
+      rotationPrefix := opening
+      rotationSuffix := taggedNormalized ++ closing
+      currentRotation := by
+        rw [complementEquation]
+        simp [List.append_assoc]
+      endpointRotation := by
+        rw [normalizedEquation]
+        simp [List.append_assoc]
+      seedMiddle_sublist := List.Sublist.refl middle }
+  have reverseSplice :
+      CyclicEndpointSpliceAt
+        closingZipper complementZipper (closing ++ opening) := by
+    right
+    exact
+      ⟨[], [], by simp [closingZipper],
+        by simp [complementZipper],
+        by simp [closingZipper, complementZipper]⟩
+  obtain ⟨currentCursor, terminalAdvance⟩ :=
+    CyclicSeamAdvanceAt.advance_exists terminalFrame complementCursor
+  have recentered :
+      CyclicRotationAt
+        (taggedArc ++ taggedComplement)
+        ([firstTag] ++ middle ++ [lastTag] ++
+          (closing ++ taggedArc ++ opening)) := by
+    refine
+      ⟨taggedArc ++ opening, taggedNormalized ++ closing, ?_, ?_⟩
+    · rw [complementEquation]
+      simp [List.append_assoc]
+    · rw [normalizedEquation]
+      simp [List.append_assoc]
+  have recenteredFromFrame :
+      CyclicRotationAt
+        (taggedArc ++ taggedComplement ++ [])
+        ([firstTag] ++ middle ++ [lastTag] ++
+          (closing ++ taggedArc ++ opening)) := by
+    simpa using recentered
+  rcases terminalFrame.rotation.trans recenteredFromFrame with
+    ⟨currentRotationPrefix, currentRotationSuffix,
+      currentRotation, currentEndpointRotation⟩
+  let currentZipper :
+      CyclicEndpointZipperAt
+        firstTag lastTag middle current :=
+    { between := middle
+      gap := closing ++ taggedArc ++ opening
+      rotationPrefix := currentRotationPrefix
+      rotationSuffix := currentRotationSuffix
+      currentRotation := currentRotation
+      endpointRotation := currentEndpointRotation.symm
+      seedMiddle_sublist := List.Sublist.refl middle }
+  have terminalSplice :
+      CyclicEndpointSpliceAt
+        complementZipper currentZipper taggedArc := by
+    right
+    exact
+      ⟨closing, opening, by simp [complementZipper],
+        by simp [currentZipper, List.append_assoc],
+        by simp [complementZipper, currentZipper]⟩
+  have anchorInArc : anchor ∈ taggedArc := by
+    have anchorLookup : taggedArc[0]? = some anchor := by
+      simpa [List.head?_eq_getElem?] using anchorHead
+    exact List.mem_of_getElem? anchorLookup
+  have outerLastInArc : outerLast ∈ taggedArc := by
+    rcases List.getLast?_eq_some_iff.mp outerLastAtEnd with
+      ⟨outerBefore, outerEquation⟩
+    rw [outerEquation]
+    simp
+  have anchorInCurrentGap : anchor ∈ currentZipper.gap := by
+    change anchor ∈ closing ++ taggedArc ++ opening
+    simp [anchorInArc]
+  have outerLastInCurrentGap : outerLast ∈ currentZipper.gap := by
+    change outerLast ∈ closing ++ taggedArc ++ opening
+    simp [outerLastInArc]
+  have currentGapNonempty : currentZipper.gap ≠ [] := by
+    intro currentGapEmpty
+    have lengthEquation := congrArg List.length currentGapEmpty
+    have arcLengthZero : taggedArc.length = 0 := by
+      simp only [currentZipper, List.length_append, List.length_nil] at lengthEquation
+      omega
+    exact arcNonempty (List.eq_nil_of_length_eq_zero arcLengthZero)
+  have terminalReplay :
+      CyclicEndpointReplayAt
+        complementCursor currentCursor complementZipper currentZipper :=
+    .step terminalAdvance (by simp) currentZipper terminalSplice
+      (.refl currentCursor currentZipper)
+  let replay :
+      CyclicEndpointReplayAt
+        closingCursor currentCursor closingZipper currentZipper :=
+    .step reverseAdvance rfl complementZipper reverseSplice terminalReplay
+  have firstOpening :
+      CyclicEndpointFirstGapOpeningInReplayAt replay := by
+    by_cases shellNonempty : closing ++ opening ≠ []
+    · exact
+        .here reverseAdvance rfl complementZipper reverseSplice
+          terminalReplay
+          ⟨[], [], by simp [closingZipper],
+            by simp [complementZipper],
+            by simp [closingZipper, complementZipper]⟩
+          (by simp [closingZipper])
+          (by simpa [complementZipper] using shellNonempty)
+          shellNonempty
+    · have complementGapEmpty : complementZipper.gap = [] := by
+        simpa [complementZipper] using
+          Classical.not_not.mp shellNonempty
+      have terminalFirst :
+          CyclicEndpointFirstGapOpeningInReplayAt terminalReplay :=
+        .here terminalAdvance (by simp) currentZipper terminalSplice
+          (.refl currentCursor currentZipper)
+          ⟨closing, opening, by simp [complementZipper],
+            by simp [currentZipper, List.append_assoc],
+            by simp [complementZipper, currentZipper]⟩
+          complementGapEmpty currentGapNonempty arcNonempty
+      exact
+        .later reverseAdvance rfl complementZipper reverseSplice
+          terminalReplay
+          (by simp [closingZipper]) complementGapEmpty terminalFirst
+  exact
+    ⟨taggedArc, opening, closing, anchor, outerLast,
+      arcNonempty, complementEquation, reverseValues,
+      anchorHead, outerLastAtEnd, outerLastForward,
+      terminalArcWalk, terminalArcFree, outerCusp, outerNontrivial,
+      anchorOrigin,
+      closingCursor, closingZipper, currentCursor, currentZipper, replay,
+      rfl, rfl, rfl, rfl,
+      anchorInCurrentGap, outerLastInCurrentGap,
+      currentGapNonempty, firstOpening⟩
 
 end SchedulerTaggedTerminalComplementStep
 
@@ -37117,6 +37468,217 @@ private theorem structuralEndpointReplay_phases_gap_nonempty_exists
       baseCursor, baseZipper, terminalEndpointReplay,
       initialCursor, initialZipper, ancestryEndpointReplay,
       initialGapNonempty⟩
+
+/-- The fixed terminal-complement step already supplies a first exact-gap
+opening somewhere in its canonical two-frame replay.  Separately, its
+reverse-shell contexts retain their exact reversal equation while the nonempty
+omitted arc retains the zero-offset backward anchor at its head.  The returned
+first-opening proposition does not bind that anchor to the opening frame: when
+the shell context is nonempty, the shell frame opens first.  Hence the terminal
+phase can be chosen without inspecting global ancestry, but this still proves
+no order or adjacency relation between the closing endpoints and the newly
+exposed context. -/
+private theorem structuralEndpointTerminalGapOpeningWithOrigin_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment
+        before left right after middle taggedArc opening closing,
+      ∃ anchor outerLast :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge,
+        SchedulerTaggedClosingParEndpointWitnessAt
+            certificate chainAt count flippedSegments taggedNormalized
+              conclusion firstTag lastTag firstSegment lastSegment ∧
+          SchedulerTaggedPositionedParObstructionAt
+              certificate chainAt count flippedSegments taggedNormalized
+                before left right conclusion after
+                  lastTag.value firstTag.value
+                    firstTag.step lastTag.step lastTag.offset
+                      firstSegment lastSegment ∧
+            taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+              taggedArc ≠ [] ∧
+                taggedComplement =
+                  opening ++ taggedNormalized ++ closing ∧
+                  closing.map SchedulerOccurrence.erase =
+                    Graph.EdgeWalk.reverseTraversal
+                      (opening.map SchedulerOccurrence.erase) ∧
+                    taggedArc.head? = some anchor ∧
+                      taggedArc.getLast? = some outerLast ∧
+                        outerLast.value.forward = true ∧
+                          certificate.fullGraph.EdgeWalk
+                            complementBase
+                              (taggedArc.map SchedulerOccurrence.erase)
+                                complementBase ∧
+                            certificate.CuspFreeTraversal
+                              (taggedArc.map SchedulerOccurrence.erase) ∧
+                              certificate.Cusp
+                                outerLast.value anchor.value ∧
+                                outerLast.value ≠ anchor.value.reverse ∧
+                          SchedulerTerminalOmittedAnchorAt
+                            certificate chainAt count flippedSegments
+                              complementBase anchor ∧
+                        ∃ closingCursor :
+                            CyclicSeamCursor taggedNormalized,
+                          ∃ closingZipper :
+                              CyclicEndpointZipperAt
+                                firstTag lastTag middle taggedNormalized,
+                            ∃ baseCursor : CyclicSeamCursor base,
+                              ∃ baseZipper :
+                                  CyclicEndpointZipperAt
+                                    firstTag lastTag middle base,
+                                ∃ terminalEndpointReplay :
+                                    CyclicEndpointReplayAt
+                                      closingCursor baseCursor
+                                        closingZipper baseZipper,
+                                  closingCursor.boundary = 0 ∧
+                                    closingZipper.between = middle ∧
+                                      closingZipper.gap = [] ∧
+                                        baseZipper.gap =
+                                          closing ++ taggedArc ++ opening ∧
+                                          anchor ∈ baseZipper.gap ∧
+                                            outerLast ∈ baseZipper.gap ∧
+                                              baseZipper.gap ≠ [] ∧
+                                                CyclicEndpointFirstGapOpeningInReplayAt
+                                                  terminalEndpointReplay := by
+  rcases package.2.2.2 with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle,
+      endpointFacts, positionedAt, normalizedEquation⟩
+  rcases
+      package.1.1.endpointReplay_firstGapOpening_exists
+        normalizedEquation with
+    ⟨taggedArc, opening, closing, anchor, outerLast,
+      arcNonempty, complementEquation, reverseValues,
+      anchorHead, outerLastAtEnd, outerLastForward,
+      terminalArcWalk, terminalArcFree, outerCusp, outerNontrivial,
+      anchorOrigin,
+      closingCursor, closingZipper, baseCursor, baseZipper,
+      terminalEndpointReplay, closingBoundary, closingBetween,
+      closingGap, baseGap, anchorInBaseGap, outerLastInBaseGap,
+      baseGapNonempty, terminalFirstOpening⟩
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle, taggedArc, opening, closing,
+      anchor, outerLast, endpointFacts, positionedAt, normalizedEquation,
+      arcNonempty, complementEquation, reverseValues,
+      anchorHead, outerLastAtEnd, outerLastForward,
+      terminalArcWalk, terminalArcFree, outerCusp, outerNontrivial,
+      anchorOrigin,
+      closingCursor, closingZipper, baseCursor, baseZipper,
+      terminalEndpointReplay, closingBoundary, closingBetween,
+      closingGap, baseGap, anchorInBaseGap, outerLastInBaseGap,
+      baseGapNonempty, terminalFirstOpening⟩
+
+/-- Continue only the canonical terminal zipper through global ancestry.  The
+entire outer terminal arc remains an ordered sublist of the complete exact gap
+in the initial family; in particular, its omitted-right head and retained-left
+last occurrence remain members there.  This is exact ordered-sublist
+transport, not yet cyclic betweenness or a scheduler-order contradiction. -/
+private theorem
+    structuralEndpointInitialGap_containsTerminalArcEndpoints_exists
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    ∃ conclusion firstTag lastTag firstSegment lastSegment middle,
+      ∃ taggedArc :
+          List
+            (SchedulerOccurrence
+              certificate.fullGraph.DirectedEdge),
+        ∃ anchor outerLast :
+          SchedulerOccurrence certificate.fullGraph.DirectedEdge,
+        ∃ initialZipper :
+            CyclicEndpointZipperAt
+              firstTag lastTag middle initial,
+          SchedulerTaggedClosingParEndpointWitnessAt
+              certificate chainAt count flippedSegments taggedNormalized
+                conclusion firstTag lastTag firstSegment lastSegment ∧
+            taggedNormalized = firstTag :: middle ++ [lastTag] ∧
+              SchedulerTerminalOmittedAnchorAt
+                certificate chainAt count flippedSegments
+                  complementBase anchor ∧
+                outerLast.value.forward = true ∧
+                  certificate.fullGraph.EdgeWalk
+                    complementBase
+                      (taggedArc.map SchedulerOccurrence.erase)
+                        complementBase ∧
+                    certificate.CuspFreeTraversal
+                      (taggedArc.map SchedulerOccurrence.erase) ∧
+                      certificate.Cusp outerLast.value anchor.value ∧
+                        outerLast.value ≠ anchor.value.reverse ∧
+                          taggedArc.head? = some anchor ∧
+                            taggedArc.getLast? = some outerLast ∧
+                              taggedArc.Sublist initialZipper.gap ∧
+                                anchor ∈ initialZipper.gap ∧
+                                  outerLast ∈ initialZipper.gap := by
+  rcases
+      package.structuralEndpointTerminalGapOpeningWithOrigin_exists with
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment,
+      before, left, right, after, middle, taggedArc, opening, closing,
+      anchor, outerLast, endpointFacts, _positionedAt,
+      normalizedEquation, _arcNonempty, _complementEquation,
+      _reverseValues, _anchorHead, _outerLastAtEnd,
+      outerLastForward, terminalArcWalk, terminalArcFree,
+      outerCusp, outerNontrivial, anchorOrigin,
+      _closingCursor, _closingZipper, baseCursor, baseZipper,
+      _terminalEndpointReplay, _closingBoundary, _closingBetween,
+      _closingGap, _baseGap, anchorInBaseGap, outerLastInBaseGap,
+      _baseGapNonempty, _terminalFirstOpening⟩
+  rcases package.2.1.seamReplay_exists baseCursor with
+    ⟨initialCursor, ancestrySeamReplay⟩
+  rcases ancestrySeamReplay.endpointReplay_exists baseZipper with
+    ⟨initialZipper, ancestryEndpointReplay⟩
+  have taggedArcSublistBase :
+      taggedArc.Sublist baseZipper.gap := by
+    rw [_baseGap]
+    exact (List.infix_append closing taggedArc opening).sublist
+  have taggedArcSublistInitial :
+      taggedArc.Sublist initialZipper.gap :=
+    taggedArcSublistBase.trans ancestryEndpointReplay.gap_sublist
+  have anchorInInitialGap : anchor ∈ initialZipper.gap :=
+    ancestryEndpointReplay.gap_mem anchorInBaseGap
+  have outerLastInInitialGap : outerLast ∈ initialZipper.gap :=
+    ancestryEndpointReplay.gap_mem outerLastInBaseGap
+  exact
+    ⟨conclusion, firstTag, lastTag, firstSegment, lastSegment, middle,
+      taggedArc, anchor, outerLast, initialZipper,
+      endpointFacts, normalizedEquation, anchorOrigin,
+      outerLastForward, terminalArcWalk, terminalArcFree,
+      outerCusp, outerNontrivial, _anchorHead, _outerLastAtEnd,
+      taggedArcSublistInitial, anchorInInitialGap, outerLastInInitialGap⟩
 
 /-- Classify the global first exact-gap opening across the two retained replay
 phases.  The replay proofs are existentially named so the disjunction remains

@@ -22,18 +22,33 @@ empty zipper gap in the initial tagged scheduler family would force exactly the
 scheduler-coordinate adjacency already excluded by the closing endpoint
 witness, so that complete complementary arc is nonempty.
 
-Starting from the normalized closing core's empty exact gap, Lean retains the
-first replay step at which the zipper gap changes from empty to nonempty. The
-step carries its exact seam frame, the nonempty inserted block
-`rightContext ++ leftContext`, and the explicit gap-splice branch. The replay is
-also split at the shared Type-valued base zipper and the global first opening is
-classified by those concrete replay indices: it occurs either in the terminal
-phase, or every terminal-phase zipper gap stayed empty and it occurs in the
-ancestry phase. No theorem chooses one branch uniformly or yet attaches the
-scheduler-origin and reverse-shell semantics needed to turn either branch into
-a contradiction. Closing-par scheduler-order exclusion, correct-state
-progress, pure-worklist completeness, recursive-fallback removal, and the
-whole-program linear bound therefore remain open. Independent
+Starting from the normalized closing core's empty exact gap, Lean now builds a
+canonical endpoint replay of the fixed terminal-complement step. It always
+first-opens in that terminal replay by an internal case split: if the exact
+reverse-shell context is nonempty, the reverse-shell frame opens the gap first;
+otherwise the generator's nonempty omitted arc opens it in the second frame.
+The returned first-opening proposition does not itself expose a separately
+consumable branch/origin sum or identify the anchor as the opening frame.
+Alongside that proposition, the construction separately retains
+`closing.map erase = reverseTraversal (opening.map erase)`, the omitted-right
+zero-offset backward anchor at the arc head, the forward retained-left last
+occurrence of that outer arc, and the exact base-gap equation
+`closing ++ taggedArc ++ opening`. Erasing the nonempty outer `taggedArc`
+gives a closed `EdgeWalk` at the complement base and a
+`CuspFreeTraversal`; its exact cyclic closing pair is nevertheless
+`Cusp outerLast.value anchor.value`, with
+`outerLast.value ≠ anchor.value.reverse`. The cusp is at the wraparound pair,
+not an internal adjacency forbidden by the linear cusp-free predicate. The
+base gap is nonempty. Endpoint replay preserves the complete old gap as a
+sublist, so the whole `taggedArc` remains an ordered sublist of the exact gap
+after the ancestry replay reaches the initial scheduler family; in particular,
+its omitted-right head and retained-left last occurrence remain members there.
+This is linear ordered-sublist transport, not contiguity, cyclic betweenness,
+or a noncrossing scheduler-order theorem. Closing-par scheduler-order
+exclusion, correct-state progress,
+pure-worklist completeness,
+recursive-fallback removal, and the whole-program linear bound therefore
+remain open. Independent
 transition refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
 invariant are now kernel checked. Atomic pop-and-process restores complete
@@ -332,17 +347,22 @@ The structural replay now consumes that wrapper once and carries both the
 older candidate cursor and an exact endpoint zipper through the terminal frame,
 backward frames, reverse shells, nesting, and global ancestry. The zipper's
 gap is the complete complementary endpoint arc, not the candidate cursor gap.
-Nonemptiness of every indexed flipped segment turns an empty final zipper gap
-into the already excluded scheduler-coordinate adjacency; hence the exact gap
-in the initial family is nonempty. The replay retains a genuine first
-empty-to-nonempty frame with a nonempty outside block and explicit gap splice.
-It also preserves terminal and ancestry phases around one shared base zipper:
-either the first opening is terminal, or a proof that every terminal gap stayed
-empty accompanies an ancestry opening. This replay-indexed classification does
-not uniformly choose a branch or supply the scheduler-origin semantics needed
-for the contradiction. Closing-par scheduler-order exclusion and correct-state
-progress remain open. Pure-worklist completeness, recursive-fallback removal,
-the later
+The canonical terminal replay fixes the reverse-shell opening and closing
+contexts and the nonempty omitted arc. Its first opening is the reverse-shell
+frame when `closing ++ opening` is nonempty and otherwise the omitted-arc
+frame. The resulting base gap is exactly
+`closing ++ taggedArc ++ opening`; it contains the omitted-right anchor and
+the outer retained-left last occurrence. Its erased outer arc is a closed,
+internally cusp-free walk whose exact wraparound from the outer last occurrence
+to the anchor is a nontrivial cusp. The first-opening proof is constructed by
+the stated shell case split, but its returned proposition does not expose the
+chosen frame together with the anchor origin. The complete base gap is a
+sublist of every later ancestry gap, and the entire `taggedArc` therefore
+survives in its original linear order inside the initial scheduler-family gap.
+This does not make it contiguous and still gives neither cyclic betweenness nor
+a noncrossing scheduler-order contradiction. Closing-par scheduler-order
+exclusion and correct-state progress remain open. Pure-worklist completeness,
+recursive-fallback removal, the later
 `NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
 remain separate open gates. See
 [the v0.10 design](docs/v0.10-design.md).
@@ -507,16 +527,23 @@ The repository currently contains:
   are now assembled into one data-indexed closing package. A private
   proof-relevant endpoint replay consumes each stored exact frame without
   reselection. Its occurrence-position zipper defines the complete
-  complementary arc between the tagged closing endpoints. Every indexed
-  flipped segment is nonempty, so an empty final zipper gap would imply the
-  scheduler-coordinate adjacency already excluded by the endpoint witness;
-  the initial-family exact gap is therefore nonempty. Lean retains the first
-  empty-to-nonempty frame with its exact nonempty outside insertion and gap
-  splice, and classifies it by the concrete terminal/ancestry replay indices.
-  The ancestry branch carries a proof that every terminal gap stayed empty.
-  There is no uniform branch choice and no scheduler-origin contradiction yet.
-  Closing-par exclusion, correct-state progress, pure-worklist completeness,
-  fallback removal, and whole-program linearity remain open;
+  complementary arc between the tagged closing endpoints. The canonical
+  terminal replay always supplies the first opening: a nonempty reverse shell
+  opens in the first frame, while an empty shell leaves the generator's
+  nonempty omitted arc to open in the second. It retains the exact reverse
+  equation, omitted-right anchor, outer retained-left last occurrence, and
+  base gap `closing ++ taggedArc ++ opening`. The erased outer arc is a closed
+  `EdgeWalk` and `CuspFreeTraversal`, with an exact nontrivial closing cusp from
+  its retained-left last occurrence to its omitted-right head. The construction
+  proves the first-opening fact by its shell case split, while the returned
+  first-opening payload does not independently expose that branch or bind it to
+  the anchor frame. Endpoint-gap sublist transport carries the whole
+  `taggedArc` in its original linear order through ancestry into the
+  initial-family gap, including its named head and last occurrences. This does
+  not prove contiguity, cyclic betweenness, or a noncrossing scheduler-order
+  contradiction. Closing-par exclusion,
+  correct-state progress, pure-worklist completeness, fallback removal, and
+  whole-program linearity remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

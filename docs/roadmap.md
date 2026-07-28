@@ -658,11 +658,31 @@
       its nonempty outside insertion and explicit gap splice; classify it by
       concrete replay index as terminal or ancestry. In the ancestry branch,
       retain a proof that every terminal-phase gap stayed empty.
-    - [ ] Attach the replay-indexed opening to its exact scheduler origin and
-      reverse-shell semantics and derive the contradiction uniformly across
-      both branches. No uniform terminal/ancestry branch choice is proved yet;
-      closing-par exclusion and the path-exposed waiting-par obstruction remain
-      open.
+    - [x] Construct the canonical endpoint replay of the fixed terminal step.
+      Prove that it always first-opens in that replay: a nonempty reverse shell
+      opens in the first frame, while an empty shell leaves the nonempty omitted
+      terminal arc to open in the second frame.
+    - [x] Retain the exact reverse-shell equation, the omitted-right
+      zero-offset backward anchor, the forward retained-left last occurrence of
+      the outer terminal arc, and the canonical base gap
+      `closing ++ taggedArc ++ opening`.
+    - [x] Retain the erased outer `taggedArc` as a closed `EdgeWalk` at the
+      complement base and a `CuspFreeTraversal`, with the exact cyclic closing
+      cusp from its outer last occurrence to its anchor and proof that those
+      directed occurrences are not reverses.
+    - [x] Prove endpoint-gap sublist and membership preservation, and carry the
+      complete outer `taggedArc` in its original linear order through exact
+      ancestry into the initial scheduler-family gap, retaining its
+      omitted-right head and retained-left last occurrence. This ordered
+      sublist is not asserted contiguous or cyclically between the closing
+      endpoints.
+      The first-opening construction internally splits on shell nonemptiness,
+      but its returned proposition does not independently expose the selected
+      frame together with the omitted-right anchor origin.
+    - [ ] Derive cyclic betweenness or an equivalent noncrossing
+      scheduler-order contradiction from the retained terminal geometry and
+      ancestry transport. Closing-par exclusion and the path-exposed
+      waiting-par obstruction remain open.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the Figures 7--8 sequential ready/waiting stacks; formalize

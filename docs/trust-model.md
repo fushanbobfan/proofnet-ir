@@ -299,13 +299,25 @@ whose gap is definitionally the complete complementary arc between the fixed
 tagged endpoints. Every indexed flipped segment is nonempty, so an empty final
 exact gap would force the scheduler-coordinate adjacency already excluded by
 the endpoint witness. The exact initial-family gap is therefore nonempty.
-The replay retains the first empty-to-nonempty frame, its nonempty outside
-insertion, and its explicit gap-splice branch. Terminal and ancestry phases
-share the same Type-valued base zipper. The first opening is replay-indexed as
-terminal or ancestry; the ancestry branch proves every terminal-phase gap
-stayed empty. No theorem chooses a branch uniformly or yet connects either
-branch to scheduler-origin/reverse-shell semantics, so this is not the
-closing-par contradiction or a progress theorem.
+
+The canonical replay of the fixed terminal step always first-opens before
+ancestry begins. If `closing ++ opening` is nonempty, the reverse-shell frame
+opens the gap first; otherwise the generator's nonempty omitted arc opens it in
+the second frame. Lean retains the exact reverse equation, the omitted-right
+zero-offset backward anchor, the forward retained-left last occurrence of the
+outer terminal arc, and the canonical base gap
+`closing ++ taggedArc ++ opening`. The erased outer arc is a closed `EdgeWalk`
+at the complement base and a `CuspFreeTraversal`. Its exact cyclic closing pair
+from the outer last occurrence to the anchor is a cusp, with non-reverse
+directed endpoints; this is a wraparound closure rather than an internal cusp.
+The first-opening proof uses the shell case split internally, but its returned
+proposition does not expose the selected frame together with the anchor origin.
+Endpoint-gap sublist preservation carries the whole `taggedArc` in its original
+linear order through ancestry into the initial-family gap, retaining the same
+named head and last occurrences. The ordered sublist is not necessarily
+contiguous and proves neither cyclic betweenness nor a noncrossing
+scheduler-order contradiction, so it is not yet closing-par exclusion or a
+progress theorem.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -382,14 +394,24 @@ Lean now also constructs the exact simultaneous complementary
   is the complete complementary endpoint arc, not the older cursor candidate.
   Nonemptiness of every indexed flipped segment makes the initial-family exact
   gap nonempty: emptiness would imply the coordinate adjacency already
-  excluded by the endpoint witness. The replay retains the first
-  empty-to-nonempty frame and classifies it by the concrete terminal/ancestry
-  replay indices. If it opens in ancestry, a proof records that every terminal
-  gap stayed empty. There is no uniform branch choice and no theorem yet
-  relating either opening branch to the scheduler-origin/reverse-shell
-  semantics needed for a contradiction. Closing-par scheduler-order
-  exclusion, correct-state progress, pure-worklist completeness, recursive
-  fallback removal, and whole-program linearity remain open.
+  excluded by the endpoint witness.
+
+  The canonical terminal replay now proves a first opening by an internal case
+  split. Its first reverse-shell frame opens when its context is nonempty; the
+  second, nonempty omitted-arc frame opens otherwise. The exact reverse equation,
+  omitted-right anchor, outer retained-left last occurrence, and base-gap
+  formula `closing ++ taggedArc ++ opening` are retained. Its erased outer arc
+  is a closed, internally cusp-free walk with an exact nontrivial closing cusp
+  from the outer last occurrence to the anchor. The internal shell case split
+  constructs first opening, but the returned proposition does not bind its
+  chosen frame to the separately retained anchor origin. Sublist monotonicity
+  carries the complete outer `taggedArc` in its original linear order through
+  ancestry to the initial-family gap. It retains the same head and last
+  occurrences but need not be contiguous; cyclic betweenness and the required
+  noncrossing scheduler-order contradiction are still unproved. Closing-par
+  scheduler-order exclusion, correct-state progress, pure-worklist
+  completeness, recursive fallback removal, and whole-program linearity
+  remain open.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

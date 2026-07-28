@@ -406,18 +406,30 @@ or positive misses. The larger search recorded at most 995 link attempts and
     endpoints, explicitly distinct from the older candidate cursor gap. Every
     indexed flipped segment is nonempty. An empty exact gap in the initial
     scheduler family would therefore force the coordinate adjacency already
-    excluded by the endpoint witness, so the complete gap is nonempty. Lean
-    retains the first empty-to-nonempty replay frame with its nonempty outside
-    insertion and explicit gap-splice branch. The terminal and ancestry phases
-    share one Type-valued base zipper. Their replay-indexed disjunction puts the
-    first opening either in the terminal phase or in ancestry together with a
-    proof that every terminal gap stayed empty. It does not choose a branch
-    uniformly or yet connect the opening to its scheduler-origin and
-    reverse-shell semantics. Guerrini's correctness/reduction results do not
-    provide this bespoke final contradiction for the present flat eager
-    scheduler.
-3. Derive the scheduler-order contradiction uniformly from both replay-indexed
-   opening branches, exclude the closing-par base, and prove
+    excluded by the endpoint witness, so the complete gap is nonempty.
+
+    The stronger canonical replay of the fixed terminal step now always
+    first-opens before ancestry: a nonempty reverse-shell context opens in its
+    first frame, while an empty shell leaves the generator's nonempty omitted
+    arc to open in the second. It retains the exact reverse equation, the
+    omitted-right zero-offset backward anchor, the forward retained-left last
+    occurrence of the outer terminal arc, and the canonical base gap
+    `closing ++ taggedArc ++ opening`. The erased outer arc is a closed
+    `EdgeWalk` at the complement base and a `CuspFreeTraversal`, while its exact
+    cyclic closing pair from the outer last occurrence to the anchor is a
+    nontrivial cusp. The proof internally uses the shell branch to construct
+    first opening, but the returned first-opening proposition does not expose
+    that frame together with the anchor origin. Gap sublist preservation
+    carries the entire outer `taggedArc` in original linear order through
+    ancestry into the initial scheduler-family gap, including its same
+    omitted-right head and retained-left last occurrence. The ordered sublist
+    need not be contiguous and provides no cyclic betweenness or noncrossing
+    scheduler-order relation.
+    Guerrini's correctness/reduction
+    results do not provide that bespoke final contradiction for the present
+    flat eager scheduler.
+3. Derive the cyclic-betweenness or equivalent noncrossing scheduler-order
+   contradiction, exclude the closing-par base, and prove
    correct-quiescent-state progress.
 4. Prove the current event-driven worklist complete, yielding
    `unificationWorklistFastCheck = check`.
