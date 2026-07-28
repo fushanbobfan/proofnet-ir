@@ -247,11 +247,18 @@ part of the engineering and proof-identity gap.
    closed walk, and exact `first :: middle ++ [last]` tagged split; Lean proves
    its artificial seam is not an original same-segment or segment-boundary
    coordinate adjacency. Backward-search ancestry and the terminal-complement
-   step now carry generator-exact indexed witnesses. Excluding that final base
-   still requires a unified exact closing package plus seam replay, or a
-   separate residual-derivation progress invariant. Closing-par scheduler-order
-   exclusion, correct-state progress, pure worklist completeness, recursive
-   fallback removal, and a whole-program linear cost theorem remain open.
+   step now carry generator-exact indexed witnesses. The terminal base,
+   data-indexed global ancestry, closing outcome, and normalized endpoint split
+   are also assembled into one exact package: the first three share
+   `(base, complementBase, taggedComplement, taggedNormalized)`, and the split
+   shares that `taggedNormalized`. The full terminal `StepAt` frame remains
+   existential inside the step wrapper and is not yet a global package index.
+   Excluding that final base still requires consuming or lifting that same
+   frame without reselection, a sound boundary-cursor/gap replay, and a
+   scheduler-specific semantic invariant, or a separate residual-derivation
+   progress invariant. Closing-par scheduler-order exclusion, correct-state
+   progress, pure worklist completeness, recursive fallback removal, and a
+   whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

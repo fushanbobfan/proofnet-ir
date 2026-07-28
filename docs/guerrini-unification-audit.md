@@ -391,12 +391,19 @@ or positive misses. The larger search recorded at most 995 link attempts and
     binds its generator, arc, complement, derived strict cut, closed walk,
     source-fixed reverse-shell normalization, and nesting trace in one indexed
     witness; the terminal path no longer uses the first generic
-    `CyclicIntervalCut` positional lift. The immediate remaining obligation is
-    to assemble a unified exact closing package and replay its seam through the
-    terminal frame, exact backward frames, and reverse-shell arms to an
-    original boundary, or instead derive progress from a residual-derivation
-    invariant. Guerrini's correctness/reduction results do not provide this
-    bespoke seam invariant for the present flat eager scheduler.
+    `CyclicIntervalCut` positional lift. The terminal base, data-indexed global
+    ancestry, closing outcome, and normalized endpoint split are now assembled
+    into one exact closing package: the first three share
+    `(base, complementBase, taggedComplement, taggedNormalized)`, while the
+    endpoint split shares that `taggedNormalized`. The complete terminal
+    `StepAt` frame is still existential inside its wrapper rather than an index
+    of the global package. The immediate remaining obligation is to consume or
+    lift that same frame without reselection, replay its seam outward as an
+    exact boundary cursor with a nonempty accumulated outside gap, then prove a
+    scheduler-specific semantic invariant over that gap, or instead derive
+    progress from a residual-derivation invariant. Guerrini's
+    correctness/reduction results do not provide this bespoke seam invariant
+    for the present flat eager scheduler.
 3. Exclude the closing-par base by exact scheduler order and prove
    correct-quiescent-state progress.
 4. Prove the current event-driven worklist complete, yielding

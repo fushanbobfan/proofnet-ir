@@ -30807,8 +30807,34 @@ private def SchedulerTaggedTerminalNestingBase
                     NontrivialClosingParCusp certificate
                       (taggedNormalized.map SchedulerOccurrence.erase))
 
-/-- Generator-exact terminal nesting base.  The terminal state and terminal
-complement outcome are joined by the same indexed normalization step. -/
+/-- Generator-exact terminal nesting base at one fixed complement and
+normalization.  The indexed step and terminal alternative share all displayed
+data. -/
+private def SchedulerTaggedTerminalNestingBaseExactAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (complementBase : Vertex)
+    (taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  SchedulerTaggedTerminalComplementStep
+      certificate chainAt count flippedSegments
+        tagged complementBase taggedComplement taggedNormalized ∧
+    (taggedNormalized = [] ∨
+      SchedulerTaggedPositionedParObstruction
+          certificate chainAt count flippedSegments taggedNormalized ∧
+        NontrivialClosingParCusp certificate
+          (taggedNormalized.map SchedulerOccurrence.erase))
+
+/-- Existential wrapper for a generator-exact terminal nesting base. -/
 private def SchedulerTaggedTerminalNestingBaseExact
     (certificate : Certificate)
     (chainAt : Nat → Vertex)
@@ -30820,14 +30846,9 @@ private def SchedulerTaggedTerminalNestingBaseExact
         (SchedulerOccurrence
           certificate.fullGraph.DirectedEdge)) : Prop :=
   ∃ complementBase taggedComplement taggedNormalized,
-    SchedulerTaggedTerminalComplementStep
-        certificate chainAt count flippedSegments
-          tagged complementBase taggedComplement taggedNormalized ∧
-      (taggedNormalized = [] ∨
-        SchedulerTaggedPositionedParObstruction
-            certificate chainAt count flippedSegments taggedNormalized ∧
-          NontrivialClosingParCusp certificate
-            (taggedNormalized.map SchedulerOccurrence.erase))
+    SchedulerTaggedTerminalNestingBaseExactAt
+      certificate chainAt count flippedSegments tagged
+        complementBase taggedComplement taggedNormalized
 
 namespace SchedulerTaggedTerminalNestingBaseExact
 
@@ -30935,6 +30956,154 @@ private theorem descent
 
 end SchedulerTaggedNestingTrace
 
+/-- Data-indexed ancestry of terminal-complement nesting.  The final `stop`
+constructor is indexed by the exact base, complement base, complement, and
+normalization rather than an existential terminal base, so these data cannot
+drift from the trace that reaches them. -/
+private inductive SchedulerTaggedNestingTraceExactAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (base :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (baseComplement : Vertex)
+    (baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) :
+    List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge) →
+      Prop
+  | stop
+      (baseState :
+        SchedulerTaggedTerminalNestingBaseExactAt
+          certificate chainAt count flippedSegments base
+            baseComplement baseTaggedComplement baseTaggedNormalized) :
+      SchedulerTaggedNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base baseComplement baseTaggedComplement baseTaggedNormalized base
+  | nested
+      {nested normalized complement current :
+        List
+          (SchedulerOccurrence
+            certificate.fullGraph.DirectedEdge)}
+      (complementBase : Vertex)
+      (step :
+        SchedulerTaggedTerminalComplementStep
+          certificate chainAt count flippedSegments
+            current complementBase complement normalized)
+      (normalizedState :
+        SchedulerTaggedCyclicParState
+          certificate chainAt count flippedSegments normalized)
+      (forwardTrace :
+        SchedulerTaggedForwardSearchTrace
+          certificate chainAt count flippedSegments nested normalized)
+      (tail :
+        SchedulerTaggedNestingTraceExactAt
+          certificate chainAt count flippedSegments
+            base baseComplement baseTaggedComplement baseTaggedNormalized
+              nested) :
+      SchedulerTaggedNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base baseComplement baseTaggedComplement baseTaggedNormalized current
+
+namespace SchedulerTaggedNestingTraceExactAt
+
+/-- Recover the data-indexed terminal base stored by the final `stop`. -/
+private theorem baseStateAt
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {baseComplement : Vertex}
+    {baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base baseComplement baseTaggedComplement baseTaggedNormalized
+            initial) :
+    SchedulerTaggedTerminalNestingBaseExactAt
+      certificate chainAt count flippedSegments base
+        baseComplement baseTaggedComplement baseTaggedNormalized := by
+  induction trace with
+  | stop baseState =>
+      exact baseState
+  | nested complementBase step normalizedState forwardTrace tail induction =>
+      exact induction
+
+/-- Forget the explicit final-data indices and recover the existing nesting
+trace.  There is deliberately no converse selector. -/
+private theorem old
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {baseComplement : Vertex}
+    {baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base baseComplement baseTaggedComplement baseTaggedNormalized
+            initial) :
+    SchedulerTaggedNestingTrace
+      certificate chainAt count flippedSegments base initial := by
+  induction trace with
+  | stop baseState =>
+      exact
+        .stop
+          ⟨baseComplement, baseTaggedComplement, baseTaggedNormalized,
+            baseState⟩
+  | nested complementBase step normalizedState forwardTrace tail induction =>
+      exact
+        .nested complementBase step normalizedState forwardTrace induction
+
+/-- Project the exact ancestry to its composed cyclic-interval descent. -/
+private theorem descent
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {baseComplement : Vertex}
+    {baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base baseComplement baseTaggedComplement baseTaggedNormalized
+            initial) :
+    CyclicIntervalDescent base initial :=
+  trace.old.descent
+
+end SchedulerTaggedNestingTraceExactAt
+
 /-- Complete state-and-interval ancestry from the final nesting base to the
 original scheduler family, split at the first terminal forward cusp.  Backward
 cuts and terminal-complement steps retain their exact tagged generators; this
@@ -30976,6 +31145,86 @@ private theorem descent
   exact nestingTrace.descent.trans forwardTrace.descent
 
 end SchedulerTaggedGlobalNestingTrace
+
+/-- Global ancestry whose final `stop` is indexed by one exact terminal
+complement data tuple. -/
+private def SchedulerTaggedGlobalNestingTraceExactAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (baseComplement : Vertex)
+    (baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) :
+    Prop :=
+  ∃ terminal,
+    SchedulerTaggedNestingTraceExactAt
+      certificate chainAt count flippedSegments
+        base baseComplement baseTaggedComplement baseTaggedNormalized
+          terminal ∧
+      SchedulerTaggedForwardSearchTrace
+        certificate chainAt count flippedSegments terminal initial
+
+namespace SchedulerTaggedGlobalNestingTraceExactAt
+
+/-- Forget the explicit final-data indices and recover the existing global trace. -/
+private theorem old
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {baseComplement : Vertex}
+    {baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedGlobalNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base initial baseComplement baseTaggedComplement
+            baseTaggedNormalized) :
+    SchedulerTaggedGlobalNestingTrace
+      certificate chainAt count flippedSegments base initial := by
+  rcases trace with ⟨terminal, nestingTrace, forwardTrace⟩
+  exact ⟨terminal, nestingTrace.old, forwardTrace⟩
+
+/-- Project the exact global ancestry to its composed cyclic descent. -/
+private theorem descent
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {baseComplement : Vertex}
+    {baseTaggedComplement baseTaggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (trace :
+      SchedulerTaggedGlobalNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base initial baseComplement baseTaggedComplement
+            baseTaggedNormalized) :
+    CyclicIntervalDescent base initial :=
+  trace.old.descent
+
+end SchedulerTaggedGlobalNestingTraceExactAt
 
 /-- In an empty-core terminal complement, every surviving scheduler visit is
 paired with a distinct reverse-valued visit from a different scheduler step.
@@ -33593,6 +33842,336 @@ private theorem
     ⟨terminal, complementBase, taggedComplement, taggedNormalized,
       outcomeAt, exactSplit⟩
 
+/-- The empty alternative of one data-indexed exact base is impossible.  This
+reuses the source-fixed reverse-shell geometry of that same indexed terminal
+step; it does not select another complement. -/
+private theorem SchedulerTaggedTerminalNestingBaseExactAt.not_empty
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (baseState :
+      SchedulerTaggedTerminalNestingBaseExactAt
+        certificate chainAt count flippedSegments tagged
+          complementBase taggedComplement taggedNormalized)
+    (normalizedEmpty : taggedNormalized = []) :
+    False := by
+  have terminal := baseState.1.old
+  have shellNesting :=
+    terminal.emptyComplementCore_referenceShellNesting
+      segmentCount indexedFlipped baseState.1.cut
+        baseState.1.complementNonempty baseState.1.complementWalk
+          baseState.1.reverseShells normalizedEmpty
+  rcases shellNesting with
+    ⟨opening, closing, _midpoint,
+      _openingRetained, _closingRetained,
+      shellEquation, openingNonempty, _closingNonempty,
+      closingReverse, _openingWalk, _closingWalk,
+      _openingRetainedNonempty, _closingRetainedNonempty,
+      _closingRetainedReverse⟩
+  have erasedOpeningNonempty :
+      opening.map SchedulerOccurrence.erase ≠ [] := by
+    simpa using openingNonempty
+  have erasedShellEquation :
+      taggedComplement.map SchedulerOccurrence.erase =
+        opening.map SchedulerOccurrence.erase ++
+          Graph.EdgeWalk.reverseTraversal
+            (opening.map SchedulerOccurrence.erase) := by
+    calc
+      taggedComplement.map SchedulerOccurrence.erase =
+          opening.map SchedulerOccurrence.erase ++
+            closing.map SchedulerOccurrence.erase := by
+        rw [shellEquation, List.map_append]
+      _ =
+          opening.map SchedulerOccurrence.erase ++
+            Graph.EdgeWalk.reverseTraversal
+              (opening.map SchedulerOccurrence.erase) := by
+        rw [closingReverse]
+  have shellFree :
+      certificate.CuspFreeTraversal
+        (opening.map SchedulerOccurrence.erase ++
+          Graph.EdgeWalk.reverseTraversal
+            (opening.map SchedulerOccurrence.erase)) := by
+    rw [← erasedShellEquation]
+    exact baseState.1.complementFree
+  exact
+    noCuspFreeTraversal_append_reverseTraversal
+      certificate (opening.map SchedulerOccurrence.erase)
+        erasedOpeningNonempty shellFree
+
+/-- Derive the surviving closing outcome on the exact complement and
+normalization indexed by the terminal base. -/
+private theorem
+    SchedulerTaggedTerminalNestingBaseExactAt.closingOutcomeAt
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (baseState :
+      SchedulerTaggedTerminalNestingBaseExactAt
+        certificate chainAt count flippedSegments tagged
+          complementBase taggedComplement taggedNormalized)
+    (closing :
+      SchedulerTaggedPositionedParObstruction
+          certificate chainAt count flippedSegments taggedNormalized ∧
+        NontrivialClosingParCusp certificate
+          (taggedNormalized.map SchedulerOccurrence.erase)) :
+    SchedulerTaggedClosingParNestingOutcomeAt
+      certificate chainAt count flippedSegments tagged
+        complementBase taggedComplement taggedNormalized := by
+  have step := baseState.1
+  have taggedState := step.exact.state
+  have normalizedToFamily :
+      CyclicIntervalDescent taggedNormalized
+        (tagSchedulerFamily flippedSegments) :=
+    step.descent.trans taggedState.2.1
+  have normalizedProvenance :
+      SchedulerTaggedProvenance
+        certificate chainAt count flippedSegments taggedNormalized :=
+    normalizedToFamily.schedulerTaggedProvenance
+      segmentCount indexedFlipped
+  rcases taggedState.1 with
+    ⟨_base, _taggedNonempty, _taggedWalk,
+      _taggedFree, _taggedClosingFree, forwardKept,
+      _schedulerProvenance, _taggedObstruction,
+      _taggedLocated⟩
+  have normalizedForwardKept :
+      ∀ occurrence,
+        occurrence ∈ taggedNormalized →
+          occurrence.value.forward = true →
+            certificate.referenceSwitchingMask[
+              occurrence.value.index]? = some true := by
+    intro occurrence membership forward
+    have occurrenceInTagged : occurrence ∈ tagged :=
+      step.descent.mem_initial membership
+    exact forwardKept occurrence.value
+      (List.mem_map.mpr
+        ⟨occurrence, occurrenceInTagged, rfl⟩)
+      forward
+  exact
+    ⟨step.cut, step.complementNonempty, step.complementWalk,
+      step.complementFree, step.reverseShells, closing.1, closing.2,
+      normalizedToFamily, normalizedProvenance, normalizedForwardKept⟩
+
+/-- One unified exact closing package.  The terminal base, global ancestry, and
+closing outcome share the displayed base, complement base, complement, and
+normalization indices; the endpoint split is indexed by that same
+normalization. -/
+private def SchedulerTaggedClosingParNestingPackageAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (complementBase : Vertex)
+    (taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  SchedulerTaggedTerminalNestingBaseExactAt
+      certificate chainAt count flippedSegments base
+        complementBase taggedComplement taggedNormalized ∧
+    SchedulerTaggedGlobalNestingTraceExactAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized ∧
+      SchedulerTaggedClosingParNestingOutcomeAt
+          certificate chainAt count flippedSegments base
+            complementBase taggedComplement taggedNormalized ∧
+        SchedulerTaggedClosingParExactForwardSplit
+          certificate chainAt count flippedSegments taggedNormalized
+
+/-- Existential wrapper for a unified exact closing package. -/
+private def SchedulerTaggedClosingParNestingPackageExact
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ base complementBase taggedComplement taggedNormalized,
+    SchedulerTaggedClosingParNestingPackageAt
+      certificate chainAt count flippedSegments base initial
+        complementBase taggedComplement taggedNormalized
+
+namespace SchedulerTaggedClosingParNestingPackageAt
+
+/-- Project the exact package to the legacy terminal base. -/
+private theorem oldBase
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    SchedulerTaggedTerminalNestingBase
+      certificate chainAt count flippedSegments base := by
+  have exactBase :
+      SchedulerTaggedTerminalNestingBaseExact
+        certificate chainAt count flippedSegments base :=
+    ⟨complementBase, taggedComplement, taggedNormalized,
+      package.1⟩
+  exact exactBase.old
+
+/-- Project the exact package to the existing global ancestry. -/
+private theorem oldTrace
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    SchedulerTaggedGlobalNestingTrace
+      certificate chainAt count flippedSegments base initial :=
+  package.2.1.old
+
+/-- Project the exact package to the existing exact closing outcome. -/
+private theorem closingOutcome
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    SchedulerTaggedClosingParNestingOutcomeExact
+      certificate chainAt count flippedSegments base := by
+  exact
+    ⟨package.1.1.old, complementBase, taggedComplement, taggedNormalized,
+      package.2.2.1, package.2.2.2⟩
+
+/-- Project the exact package to its composed cyclic descent. -/
+private theorem descent
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {base initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    {taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageAt
+        certificate chainAt count flippedSegments base initial
+          complementBase taggedComplement taggedNormalized) :
+    CyclicIntervalDescent base initial :=
+  package.2.1.descent
+
+end SchedulerTaggedClosingParNestingPackageAt
+
+namespace SchedulerTaggedClosingParNestingPackageExact
+
+/-- Forget the unified indices and recover the former separated result shape.
+No converse selector is provided. -/
+private theorem old
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {initial :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (package :
+      SchedulerTaggedClosingParNestingPackageExact
+        certificate chainAt count flippedSegments initial) :
+    ∃ base,
+      SchedulerTaggedTerminalNestingBase
+          certificate chainAt count flippedSegments base ∧
+        SchedulerTaggedGlobalNestingTrace
+            certificate chainAt count flippedSegments base initial ∧
+          CyclicIntervalDescent base initial ∧
+            SchedulerTaggedClosingParNestingOutcomeExact
+              certificate chainAt count flippedSegments base := by
+  rcases package with
+    ⟨base, complementBase, taggedComplement, taggedNormalized,
+      packageAt⟩
+  exact
+    ⟨base, packageAt.oldBase, packageAt.oldTrace,
+      packageAt.descent, packageAt.closingOutcome⟩
+
+end SchedulerTaggedClosingParNestingPackageExact
+
 /-- Repeated terminal-complement stripping reaches a coordinate-exact base.
 Every complement cut, reverse shell, and nested forward-cusp descent remains
 composed into one trace back to the original scheduler interval. -/
@@ -33628,37 +34207,26 @@ private theorem
     (terminal :
       SchedulerTaggedForwardParCuspStateExact
         certificate chainAt count flippedSegments tagged) :
-    ∃ base,
-      SchedulerTaggedTerminalNestingBaseExact
-          certificate chainAt count flippedSegments base ∧
-        SchedulerTaggedNestingTrace
-          certificate chainAt count flippedSegments base tagged := by
+    ∃ base baseComplement baseTaggedComplement baseTaggedNormalized,
+      SchedulerTaggedNestingTraceExactAt
+        certificate chainAt count flippedSegments
+          base baseComplement baseTaggedComplement baseTaggedNormalized
+            tagged := by
   rcases
       terminal.complement_empty_or_nestedForward_or_closingPar
         segmentCount indexedFlipped correct prefixInjective with
     ⟨complementBase, taggedComplement, taggedNormalized,
       terminalStep, outcome⟩
   have complementCut := terminalStep.cut
-  have complementNonempty := terminalStep.complementNonempty
-  have complementWalk := terminalStep.complementWalk
-  have complementFree := terminalStep.complementFree
   have reverseShells := terminalStep.reverseShells
   rcases outcome with normalizedEmpty | closingOrNested
-  · let baseState :
-        SchedulerTaggedTerminalNestingBaseExact
-          certificate chainAt count flippedSegments tagged :=
-      ⟨complementBase, taggedComplement, taggedNormalized,
-        terminalStep, .inl normalizedEmpty⟩
-    exact
-      ⟨tagged, baseState, .stop baseState⟩
+  · exact
+      ⟨tagged, complementBase, taggedComplement, taggedNormalized,
+        .stop ⟨terminalStep, .inl normalizedEmpty⟩⟩
   · rcases closingOrNested with closingPar | nestedOutcome
-    · let baseState :
-          SchedulerTaggedTerminalNestingBaseExact
-            certificate chainAt count flippedSegments tagged :=
-        ⟨complementBase, taggedComplement, taggedNormalized,
-          terminalStep, .inr closingPar⟩
-      exact
-        ⟨tagged, baseState, .stop baseState⟩
+    · exact
+        ⟨tagged, complementBase, taggedComplement, taggedNormalized,
+          .stop ⟨terminalStep, .inr closingPar⟩⟩
     · rcases nestedOutcome with
         ⟨nested, taggedNormalizedState,
           nestedTerminal, forwardTrace⟩
@@ -33671,9 +34239,11 @@ private theorem
       rcases
           nestedTerminal.nestingBase_exists
             segmentCount indexedFlipped correct prefixInjective with
-        ⟨base, baseState, tailTrace⟩
+        ⟨base, baseComplement, baseTaggedComplement,
+          baseTaggedNormalized, tailTrace⟩
       exact
-        ⟨base, baseState,
+        ⟨base, baseComplement, baseTaggedComplement,
+          baseTaggedNormalized,
           .nested complementBase terminalStep
             taggedNormalizedState forwardTrace tailTrace⟩
 termination_by tagged.length
@@ -34114,13 +34684,13 @@ private theorem
       terminal, terminalExact, forwardTrace⟩
 
 /-- Coordinate-exact global closing-par extraction.  Starting from a fully
-reflexive dependency cycle, this theorem retains the indexed flipped scheduler
-family, reaches a tagged forward cusp, strips every terminal complement through
-tagged reverse shells, composes the final base back to the original tagged
-family, excludes the forced-cusp empty shell, and exposes the positioned
-nontrivial closing-par base. -/
+reflexive dependency cycle, this theorem retains one indexed terminal
+complement, its normalization, the ancestry reaching that exact terminal data,
+and the resulting closing outcome in a unified package.  It excludes the
+forced-cusp empty shell, but does not yet replay or exclude the artificial
+closing seam. -/
 private theorem
-    FullyCancellingDependencyCycleAllReflexive.flippedTaggedClosingParNestingBase_exists
+    FullyCancellingDependencyCycleAllReflexive.flippedTaggedClosingParNestingPackage_exists
     {certificate : Certificate}
     {state : UnificationWorklistState}
     {chainAt : Nat → Vertex}
@@ -34151,16 +34721,9 @@ private theorem
                   certificate
                     (chainAt step) (chainAt (step + 1))
                       segment) ∧
-          ∃ base,
-            SchedulerTaggedTerminalNestingBase
-                certificate chainAt count flippedSegments base ∧
-              SchedulerTaggedGlobalNestingTrace
-                  certificate chainAt count flippedSegments
-                    base (tagSchedulerFamily flippedSegments) ∧
-                CyclicIntervalDescent
-                    base (tagSchedulerFamily flippedSegments) ∧
-                SchedulerTaggedClosingParNestingOutcomeExact
-                  certificate chainAt count flippedSegments base := by
+          SchedulerTaggedClosingParNestingPackageExact
+            certificate chainAt count flippedSegments
+              (tagSchedulerFamily flippedSegments) := by
   rcases
       allReflexive.flippedTaggedForwardParCuspState_exists
         correct positive closed prefixInjective with
@@ -34169,24 +34732,36 @@ private theorem
   rcases
       terminalState.nestingBase_exists
         segmentCount indexedFlipped correct prefixInjective with
-    ⟨base, baseState, nestingTrace⟩
+    ⟨base, complementBase, taggedComplement, taggedNormalized,
+      nestingTrace⟩
   let ancestry :
-      SchedulerTaggedGlobalNestingTrace
+      SchedulerTaggedGlobalNestingTraceExactAt
         certificate chainAt count flippedSegments
-          base (tagSchedulerFamily flippedSegments) :=
+          base (tagSchedulerFamily flippedSegments)
+            complementBase taggedComplement taggedNormalized :=
     ⟨terminal, nestingTrace, forwardTrace⟩
-  have baseStateOld :
-      SchedulerTaggedTerminalNestingBase
-        certificate chainAt count flippedSegments base :=
-    baseState.old
-  have outcome :=
-    baseStateOld.emptyReferenceTreeWalk_or_closingPar
-      segmentCount indexedFlipped
-  have closingOutcome := outcome.closingPar
-  exact
-    ⟨flippedSegments, segmentCount, indexedFlipped, base,
-      baseStateOld, ancestry, ancestry.descent,
-      closingOutcome.exact correct prefixInjective⟩
+  have baseStateAt := nestingTrace.baseStateAt
+  rcases baseStateAt.2 with normalizedEmpty | closing
+  · exact False.elim
+      (baseStateAt.not_empty
+        segmentCount indexedFlipped normalizedEmpty)
+  · have closingAt :=
+      baseStateAt.closingOutcomeAt
+        segmentCount indexedFlipped closing
+    have endpointWitness := closingAt.endpointWitness correct
+    have positionedWitness :=
+      endpointWitness.positionedAt correct prefixInjective
+    have exactSplit := positionedWitness.exactForwardSplit
+    have packageAt :
+        SchedulerTaggedClosingParNestingPackageAt
+          certificate chainAt count flippedSegments
+            base (tagSchedulerFamily flippedSegments)
+              complementBase taggedComplement taggedNormalized :=
+      ⟨baseStateAt, ancestry, closingAt, exactSplit⟩
+    exact
+      ⟨flippedSegments, segmentCount, indexedFlipped,
+        base, complementBase, taggedComplement, taggedNormalized,
+        packageAt⟩
 
 /-- Every fully reflexive waiting-dependency cycle reaches a finite terminal
 nesting base. This composes the initial backward-chord descent with exact

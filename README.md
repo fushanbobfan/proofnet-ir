@@ -11,10 +11,13 @@ whole-program linear bound are not claimed. See [CHANGELOG.md](CHANGELOG.md)
 and [the release audit](docs/v0.9-release-audit.md) for the precise guarantees
 and non-goals.
 
-Development on `main` now continues as `v0.10.0-dev`. The immediate proof
-boundary is a unified exact closing package and sound seam replay, followed by
-closing-par scheduler-order exclusion and correct-state progress. Pure
-worklist completeness comes only after that boundary. Independent transition
+Development on `main` now continues as `v0.10.0-dev`. Lean now constructs one
+unified exact closing package with common terminal-base, complement-base,
+complement, and normalized-core indices. The immediate proof boundary is a
+sound boundary-cursor/gap replay through that package and a scheduler-specific
+semantic invariant over the accumulated outside gap, followed by closing-par
+scheduler-order exclusion and correct-state progress. Pure worklist
+completeness comes only after that boundary. Independent transition
 refinement and the
 production run's bundled abstraction/forest/component/pending-frontier
 invariant are now kernel checked. Atomic pop-and-process restores complete
@@ -303,10 +306,18 @@ backward-search cut to its positioned par obstruction and binds every terminal
 complement to the same indexed forward-cusp generator, arc, derived cut, closed
 walk, and reverse-shell trace. The terminal path no longer invokes the generic
 `CyclicIntervalCut` positional lift; only the source-fixed reverse-shell
-decomposition is lifted. What remains is a unified exact closing package and
-sound seam replay through the terminal frame, backward frames, and reverse
-shells, followed by closing-par scheduler-order exclusion and correct-state
-progress. Pure-worklist completeness, recursive-fallback removal, the later
+decomposition is lifted. The global closing theorem now packages that exact
+terminal base, its data-indexed global ancestry, the closing outcome, and the
+endpoint split: the first three share the same
+`(base, complementBase, taggedComplement, taggedNormalized)` tuple, and the
+split shares that exact `taggedNormalized`. The full terminal `StepAt` frame
+remains existential inside its step wrapper rather than a global package index.
+What remains is to consume or lift that same frame without reselection, perform
+sound boundary-cursor/gap replay through the terminal frame, backward frames,
+and reverse shells, and prove a scheduler-specific semantic invariant over the
+resulting nonempty outside gap. Closing-par scheduler-order exclusion and
+correct-state progress follow only after that step. Pure-worklist completeness,
+recursive-fallback removal, the later
 `NEXTAXIOM`/token-age implementation, and a whole-program linear cost theorem
 remain separate open gates. See
 [the v0.10 design](docs/v0.10-design.md).
@@ -466,10 +477,12 @@ The repository currently contains:
   the same coordinate-exact positioned obstruction and retained in the search
   trace. The terminal generator, arc, complement, derived cut, closed walk,
   reverse-shell normalization, and nesting trace now likewise share one
-  indexed witness, without the first generic `CyclicIntervalCut` lift. A
-  unified exact closing package and seam replay, closing-par scheduler-order
-  exclusion, correct-state progress, pure-worklist completeness, fallback
-  removal, and whole-program linearity remain open;
+  indexed witness, without the first generic `CyclicIntervalCut` lift. The
+  terminal base, global trace, closing outcome, and normalized endpoint split
+  are now assembled into one data-indexed closing package. Boundary-cursor/gap
+  replay, its scheduler-specific semantic contradiction, closing-par
+  scheduler-order exclusion, correct-state progress, pure-worklist
+  completeness, fallback removal, and whole-program linearity remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full

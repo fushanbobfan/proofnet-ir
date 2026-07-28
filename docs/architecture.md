@@ -325,13 +325,22 @@ active-reference walks between marked occurrences are equivalent to
   that the resulting artificial closing seam is neither same-segment nor
   segment-boundary adjacent in the original scheduler coordinates.
   Generic cyclic-interval descent is not itself a convexity invariant because
-  a nested cut may wrap around a boundary introduced by an earlier cut. Pure
-  completeness still needs a unified exact closing package spanning the
-  terminal frame, backward cuts, reverse-shell arms, and closing endpoints,
-  plus a sound replay of the specialized seam—or an independent
-  residual-derivation progress invariant—to exclude the closing-par base and
-  prove correct-state progress. Pure-worklist completeness, recursive-fallback
-  removal, and whole-program linearity remain later gates.
+  a nested cut may wrap around a boundary introduced by an earlier cut. The
+  terminal base, its data-indexed global ancestry, the closing outcome, and the
+  normalized endpoint split are now assembled into one exact closing package
+  whose first three components share
+  `(base, complementBase, taggedComplement, taggedNormalized)` and whose
+  endpoint split shares the same `taggedNormalized`. The arc, rotations, link
+  decomposition, occurrences, scheduler coordinates, and segments of the
+  underlying `SchedulerTaggedTerminalComplementStepAt` remain existential
+  inside the stored step wrapper, not global package indices. Pure completeness
+  still needs to consume or lift that same frame without reselection, replay
+  the specialized seam as a boundary cursor with a nonempty accumulated
+  outside gap, and prove a scheduler-specific semantic invariant over that
+  gap—or use an independent residual-derivation progress invariant—to exclude
+  the closing-par base and prove correct-state progress. Pure-worklist
+  completeness, recursive-fallback removal, and whole-program linearity remain
+  later gates.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

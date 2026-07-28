@@ -355,12 +355,20 @@ Lean now also constructs the exact simultaneous complementary
   bases likewise contain no independent duplicate location witness. The
   closing normalization and exact endpoint split now also share one explicit
   normalized list. The terminal-complement frame is now generator-exact and
-  removes the first generic cut lift. Excluding the single remaining base still
-  requires a unified exact closing package plus sound seam replay through that
-  terminal frame, the exact backward cuts, and reverse-shell arms, or an
-  independent residual-derivation progress proof. Closing-par scheduler-order
-  exclusion, correct-state progress, pure-worklist completeness, recursive
-  fallback removal, and whole-program linearity remain open.
+  removes the first generic cut lift. The terminal base, data-indexed global
+  ancestry, closing outcome, and normalized endpoint split are now assembled
+  into one exact package: the first three share
+  `(base, complementBase, taggedComplement, taggedNormalized)`, and the split
+  shares that `taggedNormalized`. This does not yet expose the complete
+  terminal `StepAt` frame as global indices; those data remain existential
+  inside the step wrapper. Excluding the single remaining base still requires
+  consuming or lifting that same frame without reselection, sound
+  boundary-cursor/gap replay through the terminal frame, exact backward cuts,
+  and reverse-shell arms, plus a scheduler-specific semantic invariant over the
+  accumulated gap, or an independent residual-derivation progress proof.
+  Closing-par scheduler-order exclusion, correct-state progress, pure-worklist
+  completeness, recursive fallback removal, and whole-program linearity remain
+  open.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and
