@@ -101,10 +101,40 @@ zero fuel, out-of-bounds, already-tagged and marked starts, missing and
 duplicate source buckets, threaded-result-tags repeat rejection, and the
 dynamic state update.
 
-This checkpoint is deliberately weaker than Figures 7–8. There is not yet a
-total start-selection theorem or implementation of the complete `σ`/`R`/`W`
-(ready/waiting) state, token-age interval sequencing, and specialized
-whole-scheduler invariants and cost model.
+`SequentialRoute.lean` now proves the exact orientation missing from the result
+fields alone: the successful trace is a nonempty chain from the requested
+start through exact submitted tensor/par conclusions to stored left premises,
+ending at the axiom endpoint actually reached. The other endpoint is its
+partner, and a proof relates the pair to either submitted axiom orientation.
+The stored-right canonical regression reaches `1` through `[5, 1]` while the
+submitted link remains `.axiom 0 1`.
+
+There is also a precise initial/local totality result.
+`SearchClearThrough certificate state tags rank` requires every in-bounds
+occurrence at complexity at most `rank` to be untagged and unassigned. Under
+that premise, structural well-formedness, state abstraction, and
+`formulaComplexityAt start < fuel`,
+`nextAxiomWithFuel?_exists_of_structural_clearThrough` proves the production
+source-index call returns `some`. Full carrier freshness gives the rank budget
+`formulaComplexityAt start + 1`. This does not prove totality of the existing
+carrier-size `nextAxiom?` wrapper, nor does it prove that a later Figure-7
+`new` state satisfies the freshness premise. In fact, one success tags
+complexity-zero axiom endpoints, so the global low-rank predicate cannot be
+threaded unchanged to a second call at any natural rank. The full scheduler
+needs a route-local freshness invariant.
+
+This checkpoint remains deliberately weaker than Figures 7–8.
+`dynamicStartWithFuel?` immediately marks both endpoints with a fresh token; it
+is an independent eager Figure-5 refinement, not the paper's delayed
+`init`/`new` transition, which first pushes axiom endpoints into `R`.
+The full sequential state must still formalize a strictly increasing `σ` stack
+whose boundaries encode contiguous raw token-age intervals, an aligned stack
+`R` of sets that is popped before marking `μ`, and a partial map `W` that
+distinguishes undefined `⊥` from initialized empty `∅`. Guards in the paper
+compare raw assigned token ages; replacing those ages by their union-find
+representatives would change the algorithm. Later-state start selection,
+these `σ`/`R`/`W` invariants, scheduler correctness, and the whole-scheduler
+cost model remain open.
 
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
@@ -297,9 +327,9 @@ The following stronger claims are intentionally absent:
 - equivalence between this eager implementation and the full sequential
   `σ`/`R`/`W`, token-age, `NEXTAXIOM`, and special union-find algorithm
   in Figures 7--8;
-- total start selection and the complete `σ`/`R`/`W`, token-age, scheduler
-  correctness, and scheduler-cost theorems for the new bounded `NEXTAXIOM`
-  primitive;
+- later-state start selection and the complete `σ`/`R`/`W`, token-age,
+  scheduler-correctness, and scheduler-cost theorems for the bounded
+  `NEXTAXIOM` primitive; only initial/local rank-scoped totality is proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The current repeated scan can take a quadratic number of link visits before
@@ -539,13 +569,14 @@ linearity.
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist
    decision only after that equality is kernel checked.
-6. Extend the now-kernel-checked bounded/tagged `NEXTAXIOM` plus dynamic-start
-   checkpoint, whose per-call invariants and strictly threaded touched-set
-   disjointness are already proved, with total start selection and the Figure-7
-   `σ`/`R`/`W` (ready/waiting) discipline. Replace eager axiom starts and flat
-   waiting requeues only after token-age interval sequencing and its
-   specialized union-find invariants are proved; the flat scheduler
-   counterexample prevents reusing those invariants.
+6. Extend the now-kernel-checked bounded/tagged `NEXTAXIOM` checkpoint, whose
+   oriented route, initial/local rank-scoped totality, per-call invariants, and
+   strictly threaded touched-set disjointness are already proved, with
+   later-state selection and the Figure-7 `σ`/`R`/`W` discipline. Keep the
+   immediate dynamic-start refinement separate from delayed `init`/`new`.
+   Replace eager axiom starts and flat waiting requeues only after token-age
+   interval sequencing and its specialized union-find invariants are proved;
+   the flat scheduler counterexample prevents reusing those invariants.
 7. Only after the complete `NEXTAXIOM`, token-age, waiting-stack, union-find,
    and implemented-operation cost invariants are formalized should the library
    expose a Guerrini-linear complexity theorem.

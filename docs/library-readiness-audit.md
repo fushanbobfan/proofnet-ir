@@ -87,10 +87,20 @@ part of the engineering and proof-identity gap.
   endpoints, and `trace.length ≤ fuel`. Successive touched carriers are
   disjoint when the second call uses exactly `first.tags`; this is the precise
   scope of the global no-revisit discipline, and the theorem does not cover
-  reset tags. Its dynamic start refines Figure 5 under `OrderedParents`.
+  reset tags. The separate oriented-route theorem proves the trace follows
+  exact submitted source-left steps to the endpoint actually reached and does
+  not confuse that endpoint with the axiom's stored left endpoint.
+  `SearchClearThrough` then gives local totality under rank-scoped
+  untagged/unassigned freshness and fuel greater than the start complexity;
+  full initial-carrier freshness yields the exact `complexity + 1` budget.
+  This is not totality of the carrier-size wrapper or of later Figure-7
+  scheduler calls. Its dynamic start refines an immediate eager Figure-5 step
+  under `OrderedParents`, not the delayed Figures 7–8 `init`/`new` transition.
   Tests exercise expected tags/trace, zero fuel, out-of-bounds, tagged and
   marked starts, missing and non-unique sources, threaded-result-tags repeat
-  rejection, and dynamic token allocation.
+  rejection, stored-right orientation, every canonical initial start under
+  its rank budget, a depth-two exact rank-versus-`rank + 1` fuel boundary, and
+  dynamic token allocation.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -338,12 +348,13 @@ part of the engineering and proof-identity gap.
    committed reproducible audit or kernel theorem currently establishes
    confluence or completeness at that quotient.
    The separate bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
-   kernel checked, including per-call trace/tag invariants and touched-set
+   kernel checked, including per-call trace/tag invariants, oriented route
+   correctness, initial/local rank-scoped totality, and touched-set
    disjointness for successive calls that strictly thread `first.tags`; reset
-   tags are outside that theorem. Total start selection, `σ`/`R`/`W`
-   (ready/waiting), token-age interval sequencing, closing-par scheduler-order
-   exclusion, correct-state progress, pure worklist completeness, recursive
-   fallback removal, and a whole-program linear cost theorem remain open.
+   tags are outside that theorem. Later-state selection, `σ`/`R`/`W`,
+   token-age interval sequencing, closing-par scheduler-order exclusion,
+   correct-state progress, pure worklist completeness, recursive fallback
+   removal, and a whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
@@ -403,9 +414,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for ninety-six public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 108 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
-  `Classical.choice`, and `Quot.sound`;
+  `Classical.choice`, and `Quot.sound`; it separately locks 18 axiom-free,
+  33 `propext`-only, and 20 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

@@ -6,13 +6,21 @@ namespace ProofNetIR
 # Sequential unification primitives
 
 This module begins the separate Guerrini Figures 7--8 implementation.  It
-deliberately stops before the `σ`/ready/waiting scheduler: the first slice is
-the bounded, globally tagged `NEXTAXIOM` search and its dynamic Figure-5 start
-step.
+deliberately stops before the `σ`/ready/waiting scheduler.  The current slice
+contains the bounded, globally tagged `NEXTAXIOM` search, a rank-scoped
+initial/local totality theorem, and an independent dynamic Figure-5 start
+refinement.
 
 The search follows the stored left premise of a tensor or par producer.  At an
 atom it returns the exact submitted axiom incidence.  A source-incidence table
 is built once, so one search step does not rescan the submitted link list.
+`SequentialRoute.lean` separately identifies the endpoint actually reached by
+the search, which need not be the stored left endpoint of that axiom.
+
+The dynamic start immediately assigns a fresh token and is not the delayed
+Figures 7--8 `init`/`new` transition.  Total later-scheduler start selection,
+the `σ`/`R`/`W` state, token-age sequencing, and whole-program cost remain
+outside this module.
 -/
 
 namespace SequentialUnification
@@ -547,6 +555,21 @@ def NextAxiomResult.Touched
   vertex ∈ result.trace ∨
     vertex = result.left ∨ vertex = result.right
 
+/-- Dynamic freshness through one formula-complexity rank.
+
+This is a sufficient local precondition for the bounded `NEXTAXIOM` search,
+not a reachable-state invariant for the complete Figure-7 scheduler.  It is
+intentionally rank-scoped: all in-bounds occurrences no more complex than
+`rank` must still be untagged and semantically unassigned. -/
+def SearchClearThrough (certificate : Certificate)
+    (state : UnificationState) (tags : Array Bool)
+    (rank : Nat) : Prop :=
+  ∀ {vertex : Vertex},
+    vertex < certificate.formulas.size →
+      certificate.formulaComplexityAt vertex ≤ rank →
+        tags[vertex]? = some false ∧
+          state.assignedToken? vertex = none
+
 private def setTag (tags : Array Bool) (vertex : Vertex) :
     Array Bool :=
   tags.setIfInBounds vertex true
@@ -584,6 +607,30 @@ private theorem setTag_false_reflection
     simp [setTag, Array.getElem?_setIfInBounds_self] at outputFalse
   · exact ⟨by simpa [setTag, same] using outputFalse,
       fun reverse => same reverse.symm⟩
+
+/-- Tagging a strictly more complex parent preserves rank-scoped freshness
+through a selected lower-complexity premise. -/
+private theorem SearchClearThrough.setTag_of_strict
+    {certificate : Certificate} {state : UnificationState}
+    {tags : Array Bool} {parent child : Vertex}
+    (clear :
+      SearchClearThrough certificate state tags
+        (certificate.formulaComplexityAt parent))
+    (strict :
+      certificate.formulaComplexityAt child <
+        certificate.formulaComplexityAt parent) :
+    SearchClearThrough certificate state (setTag tags parent)
+      (certificate.formulaComplexityAt child) := by
+  intro candidate candidateBound candidateRank
+  have candidateClear :=
+    clear candidateBound
+      (Nat.le_trans candidateRank (Nat.le_of_lt strict))
+  have different : parent ≠ candidate := by
+    intro same
+    subst candidate
+    omega
+  refine ⟨?_, candidateClear.2⟩
+  simpa [setTag, different] using candidateClear.1
 
 /-- Bounded, tagged `NEXTAXIOM`.
 
@@ -725,10 +772,305 @@ def nextAxiomWithFuel? (certificate : Certificate)
                                   result.rightTagged.1).1,
                                 result.rightTagged.2⟩
                         }
-                  else none
+                      else none
           | _ => none
         else none
       else none
+
+/-- On the production source index, structural well-formedness and
+rank-scoped dynamic freshness make bounded `NEXTAXIOM` locally total whenever
+the fuel strictly exceeds the starting formula complexity.
+
+This theorem discharges the static missing/non-unique-source, malformed
+orientation, out-of-bounds, and recursive-fuel failure modes for this local
+call.  It does not state that an arbitrary later Figure-7 `new` call satisfies
+the freshness premise. -/
+theorem nextAxiomWithFuel?_exists_of_structural_clearThrough
+    {certificate : Certificate} {state : UnificationState}
+    {fuel : Nat} {tags : Array Bool} {vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.Abstractable certificate)
+    (vertexBound : vertex < certificate.formulas.size)
+    (clear :
+      SearchClearThrough certificate state tags
+        (certificate.formulaComplexityAt vertex))
+    (fuelEnough :
+      certificate.formulaComplexityAt vertex < fuel) :
+    ∃ result,
+      nextAxiomWithFuel? certificate state
+          (sourceIndex certificate) (sourceIndex_sound certificate)
+          fuel tags vertex =
+        some result := by
+  let startRank := certificate.formulaComplexityAt vertex
+  have general :
+      ∀ rank,
+        rank ≤ startRank →
+          ∀ (candidate : Vertex) (remainingFuel : Nat)
+              (candidateTags : Array Bool),
+            certificate.formulaComplexityAt candidate = rank →
+              candidate < certificate.formulas.size →
+                SearchClearThrough certificate state candidateTags rank →
+                  rank < remainingFuel →
+                    ∃ result,
+                      nextAxiomWithFuel? certificate state
+                          (sourceIndex certificate)
+                          (sourceIndex_sound certificate)
+                          remainingFuel candidateTags candidate =
+                        some result := by
+    intro rank rankAtMostStart
+    induction rank using Nat.strongRecOn with
+    | ind rank induction =>
+        intro candidate remainingFuel candidateTags
+          candidateRank candidateBound candidateClear remainingEnough
+        cases remainingFuel with
+        | zero =>
+            omega
+        | succ remainingFuel =>
+            have currentClear :
+                candidateTags[candidate]? = some false ∧
+                  state.assignedToken? candidate = none := by
+              exact candidateClear candidateBound
+                (by simp [candidateRank])
+            have currentReady :
+                state.marks[candidate]? = some none :=
+              abstractable.markSlotReady_of_unassigned
+                candidateBound currentClear.2
+            rcases
+                StructurallyWellFormed.sourceIndex_lookup_eq_singleton
+                  structural candidateBound with
+              ⟨source, sourceLookup⟩
+            have sourceMembership :
+                source ∈
+                  (((sourceIndex certificate)[candidate]?).getD []) := by
+              simp [sourceLookup]
+            have sourceOrigin :=
+              sourceIndex_sound certificate sourceMembership
+            have linkMembership :
+                source.link ∈ certificate.links :=
+              List.mem_of_getElem? sourceOrigin.1
+            have sourceWellFormed :
+                certificate.LinkWellFormed source.link :=
+              structural.2.2.2.2.1 source.link linkMembership
+            cases linkEquation : source.link with
+            | «axiom» left right =>
+                have axiomWellFormed :
+                    certificate.LinkWellFormed (.axiom left right) := by
+                  simpa [linkEquation] using sourceWellFormed
+                have endpoint :
+                    candidate = left ∨ candidate = right := by
+                  have incident := sourceOrigin.2
+                  simp [linkEquation, Link.containsAxiomEndpoint,
+                    Link.produces] at incident
+                  rcases incident with incident | incident
+                  · exact .inl incident.symm
+                  · exact .inr incident.symm
+                have leftBound :
+                    left < certificate.formulas.size :=
+                  axiomWellFormed.2.1
+                have rightBound :
+                    right < certificate.formulas.size :=
+                  axiomWellFormed.2.2.1
+                rcases
+                    axiomWellFormed.axiom_endpointFormula (Or.inl rfl) with
+                  ⟨leftName, leftPositive, leftFormula⟩
+                rcases
+                    axiomWellFormed.axiom_endpointFormula (Or.inr rfl) with
+                  ⟨rightName, rightPositive, rightFormula⟩
+                have leftRank :
+                    certificate.formulaComplexityAt left = 0 := by
+                  simp [Certificate.formulaComplexityAt, leftFormula,
+                    Formula.complexity]
+                have rightRank :
+                    certificate.formulaComplexityAt right = 0 := by
+                  simp [Certificate.formulaComplexityAt, rightFormula,
+                    Formula.complexity]
+                have leftClear :=
+                  candidateClear leftBound (by simp [leftRank])
+                have rightClear :=
+                  candidateClear rightBound (by simp [rightRank])
+                have leftReady :
+                    state.marks[left]? = some none :=
+                  abstractable.markSlotReady_of_unassigned
+                    leftBound leftClear.2
+                have rightReady :
+                    state.marks[right]? = some none :=
+                  abstractable.markSlotReady_of_unassigned
+                    rightBound rightClear.2
+                unfold nextAxiomWithFuel?
+                simp only [dif_pos currentClear.1, dif_pos currentReady]
+                split
+                · rename_i sourceInFunction lookupInFunction
+                  have sameSingleton :
+                      (some [sourceInFunction] :
+                          Option (List SourceIncidence)) =
+                        some [source] := by
+                    exact lookupInFunction.symm.trans sourceLookup
+                  have sameSource : sourceInFunction = source := by
+                    simpa using sameSingleton
+                  subst sourceInFunction
+                  split <;> simp_all
+                  exact ⟨_, axiomWellFormed.1, rfl⟩
+                · simp_all
+            | tensor left right conclusion =>
+                have tensorWellFormed :
+                    certificate.LinkWellFormed
+                      (.tensor left right conclusion) := by
+                  simpa [linkEquation] using sourceWellFormed
+                have produced : conclusion = candidate := by
+                  have incident := sourceOrigin.2
+                  simpa [linkEquation, Link.containsAxiomEndpoint,
+                    Link.produces] using incident
+                subst conclusion
+                have leftBound :
+                    left < certificate.formulas.size :=
+                  tensorWellFormed.2.2.2.1
+                have strict :
+                    certificate.formulaComplexityAt left <
+                      certificate.formulaComplexityAt candidate := by
+                  simpa [Certificate.linkConclusionComplexity] using
+                    tensorWellFormed.premise_complexity_lt_conclusion
+                      (premise := left) (by simp [Link.premises])
+                have strictRank :
+                    certificate.formulaComplexityAt left < rank := by
+                  simpa [candidateRank] using strict
+                have remainingEnough :
+                    certificate.formulaComplexityAt left <
+                      remainingFuel := by
+                  omega
+                have recursiveClear :
+                    SearchClearThrough certificate state
+                      (setTag candidateTags candidate)
+                      (certificate.formulaComplexityAt left) := by
+                  have clearAtCandidate :
+                      SearchClearThrough certificate state candidateTags
+                        (certificate.formulaComplexityAt candidate) := by
+                    intro visited visitedBound visitedRank
+                    exact candidateClear visitedBound
+                      (by simpa [candidateRank] using visitedRank)
+                  intro visited visitedBound visitedRank
+                  exact
+                    SearchClearThrough.setTag_of_strict
+                      (certificate := certificate) (state := state)
+                      (tags := candidateTags) (parent := candidate)
+                      (child := left) (vertex := visited)
+                      clearAtCandidate strict visitedBound visitedRank
+                rcases induction
+                    (certificate.formulaComplexityAt left) strictRank
+                    (Nat.le_trans (Nat.le_of_lt strictRank)
+                      rankAtMostStart)
+                    left remainingFuel
+                    (setTag candidateTags candidate) rfl leftBound
+                    recursiveClear remainingEnough with
+                  ⟨result, recursiveEquation⟩
+                unfold nextAxiomWithFuel?
+                simp only [dif_pos currentClear.1, dif_pos currentReady]
+                split
+                · rename_i sourceInFunction lookupInFunction
+                  have sameSingleton :
+                      (some [sourceInFunction] :
+                          Option (List SourceIncidence)) =
+                        some [source] := by
+                    exact lookupInFunction.symm.trans sourceLookup
+                  have sameSource : sourceInFunction = source := by
+                    simpa using sameSingleton
+                  subst sourceInFunction
+                  split <;> simp_all
+                · simp_all
+            | «par» left right conclusion =>
+                have parWellFormed :
+                    certificate.LinkWellFormed
+                      (.par left right conclusion) := by
+                  simpa [linkEquation] using sourceWellFormed
+                have produced : conclusion = candidate := by
+                  have incident := sourceOrigin.2
+                  simpa [linkEquation, Link.containsAxiomEndpoint,
+                    Link.produces] using incident
+                subst conclusion
+                have leftBound :
+                    left < certificate.formulas.size :=
+                  parWellFormed.2.2.2.1
+                have strict :
+                    certificate.formulaComplexityAt left <
+                      certificate.formulaComplexityAt candidate := by
+                  simpa [Certificate.linkConclusionComplexity] using
+                    parWellFormed.premise_complexity_lt_conclusion
+                      (premise := left) (by simp [Link.premises])
+                have strictRank :
+                    certificate.formulaComplexityAt left < rank := by
+                  simpa [candidateRank] using strict
+                have remainingEnough :
+                    certificate.formulaComplexityAt left <
+                      remainingFuel := by
+                  omega
+                have recursiveClear :
+                    SearchClearThrough certificate state
+                      (setTag candidateTags candidate)
+                      (certificate.formulaComplexityAt left) := by
+                  have clearAtCandidate :
+                      SearchClearThrough certificate state candidateTags
+                        (certificate.formulaComplexityAt candidate) := by
+                    intro visited visitedBound visitedRank
+                    exact candidateClear visitedBound
+                      (by simpa [candidateRank] using visitedRank)
+                  intro visited visitedBound visitedRank
+                  exact
+                    SearchClearThrough.setTag_of_strict
+                      (certificate := certificate) (state := state)
+                      (tags := candidateTags) (parent := candidate)
+                      (child := left) (vertex := visited)
+                      clearAtCandidate strict visitedBound visitedRank
+                rcases induction
+                    (certificate.formulaComplexityAt left) strictRank
+                    (Nat.le_trans (Nat.le_of_lt strictRank)
+                      rankAtMostStart)
+                    left remainingFuel
+                    (setTag candidateTags candidate) rfl leftBound
+                    recursiveClear remainingEnough with
+                  ⟨result, recursiveEquation⟩
+                unfold nextAxiomWithFuel?
+                simp only [dif_pos currentClear.1, dif_pos currentReady]
+                split
+                · rename_i sourceInFunction lookupInFunction
+                  have sameSingleton :
+                      (some [sourceInFunction] :
+                          Option (List SourceIncidence)) =
+                        some [source] := by
+                    exact lookupInFunction.symm.trans sourceLookup
+                  have sameSource : sourceInFunction = source := by
+                    simpa using sameSingleton
+                  subst sourceInFunction
+                  split <;> simp_all
+                · simp_all
+  exact
+    general startRank (Nat.le_refl startRank) vertex fuel tags rfl
+      vertexBound clear fuelEnough
+
+/-- Initial/local totality corollary.  If every formula occurrence is still
+untagged and unassigned, any in-bounds start succeeds with the exact
+formula-rank budget.  This is sufficient for the initial Figure-7 `init`
+search; it is not the later scheduler's `new`-call invariant. -/
+theorem nextAxiomWithFuel?_exists_of_structural_carrierClear
+    {certificate : Certificate} {state : UnificationState}
+    {tags : Array Bool} {vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (abstractable : state.Abstractable certificate)
+    (vertexBound : vertex < certificate.formulas.size)
+    (carrierClear :
+      ∀ {candidate : Vertex},
+        candidate < certificate.formulas.size →
+          tags[candidate]? = some false ∧
+            state.assignedToken? candidate = none) :
+    ∃ result,
+      nextAxiomWithFuel? certificate state
+          (sourceIndex certificate) (sourceIndex_sound certificate)
+          (certificate.formulaComplexityAt vertex + 1)
+          tags vertex =
+        some result := by
+  apply nextAxiomWithFuel?_exists_of_structural_clearThrough
+    structural abstractable vertexBound
+  · intro candidate candidateBound _candidateRank
+    exact carrierClear candidateBound
+  · omega
 
 /-- Production wrapper with the formula carrier as the conservative recursive
 search budget. -/

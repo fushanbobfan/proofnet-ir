@@ -822,6 +822,40 @@ def canonicalSequentialEmpty : UnificationState where
   startedAxioms := 0
   firedConnectives := 0
 
+/-- No canonical occurrence has a token in the empty sequential state. -/
+theorem canonicalSequentialEmpty_assignedToken?_eq_none
+    (vertex : Vertex) :
+    canonicalSequentialEmpty.assignedToken? vertex = none := by
+  by_cases vertexBound : vertex < canonical.formulas.size
+  · simp [canonicalSequentialEmpty, UnificationState.assignedToken?,
+      vertexBound]
+  · have outOfBounds : canonical.formulas.size ≤ vertex :=
+      Nat.le_of_not_gt vertexBound
+    simp [canonicalSequentialEmpty, UnificationState.assignedToken?,
+      outOfBounds]
+
+/-- The empty state used by the initial/local `NEXTAXIOM` totality theorem has
+the exact executable carrier required by the independent marking semantics. -/
+theorem canonicalSequentialEmpty_abstractable :
+    canonicalSequentialEmpty.Abstractable canonical := by
+  refine {
+    markArraySize := by
+      simp [canonicalSequentialEmpty]
+    markedVertexBound := ?_
+    markedTokenBound := ?_
+    representativeBound := ?_
+    representativeIdempotent := ?_ }
+  · intro vertex token assigned
+    rw [canonicalSequentialEmpty_assignedToken?_eq_none vertex] at assigned
+    simp at assigned
+  · intro vertex token assigned
+    rw [canonicalSequentialEmpty_assignedToken?_eq_none vertex] at assigned
+    simp at assigned
+  · intro token tokenBound
+    simp [canonicalSequentialEmpty] at tokenBound
+  · intro token tokenBound
+    simp [canonicalSequentialEmpty] at tokenBound
+
 def canonicalSourceIndex : SequentialUnification.SourceIndex :=
   SequentialUnification.sourceIndex canonical
 
@@ -847,11 +881,187 @@ example (vertex : Vertex) (vertexBound : vertex < canonical.formulas.size) :
     SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_singleton
       structural vertexBound
 
+/-- With the entire initial carrier untagged and unassigned, every in-bounds
+canonical occurrence has a kernel-proved successful rank-budget search.  This
+is the initial/local theorem, not a Figure-7 `new`-state result. -/
+example (vertex : Vertex) (vertexBound : vertex < canonical.formulas.size) :
+    ∃ result,
+      SequentialUnification.nextAxiomWithFuel? canonical
+          canonicalSequentialEmpty canonicalSourceIndex
+          (SequentialUnification.sourceIndex_sound canonical)
+          (canonical.formulaComplexityAt vertex + 1)
+          (Array.replicate canonical.formulas.size false) vertex =
+        some result := by
+  apply
+    SequentialUnification.nextAxiomWithFuel?_exists_of_structural_carrierClear
+      (canonical.wellFormed_iff_structurallyWellFormed.mp
+        (by native_decide))
+      canonicalSequentialEmpty_abstractable vertexBound
+  intro candidate candidateBound
+  constructor
+  · simp [candidateBound]
+  · exact canonicalSequentialEmpty_assignedToken?_eq_none candidate
+
+/-- Executable coverage of the rank-budget initial theorem at all six
+canonical occurrences, including both compound starts. -/
+def canonicalRankBudgetNextAxiomsAll : Bool :=
+  (List.range canonical.formulas.size).all fun vertex =>
+    (SequentialUnification.nextAxiomWithFuel? canonical
+      canonicalSequentialEmpty canonicalSourceIndex
+      (SequentialUnification.sourceIndex_sound canonical)
+      (canonical.formulaComplexityAt vertex + 1)
+      (Array.replicate canonical.formulas.size false) vertex).isSome
+
+example : canonicalRankBudgetNextAxiomsAll = true := by
+  native_decide
+
+/-- A depth-two source-left route used to lock the strict fuel boundary of
+the rank-scoped `NEXTAXIOM` totality theorem. -/
+def nestedRankBudgetR : Formula := .atom "r" true
+
+def nestedRankBudgetRDual : Formula := nestedRankBudgetR.dual
+
+def nestedRankBudget : Certificate where
+  formulas := #[
+    p, pDual, q, qDual, nestedRankBudgetR, nestedRankBudgetRDual,
+    .tensor p q, .tensor (.tensor p q) nestedRankBudgetR
+  ]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .axiom 4 5,
+    .tensor 0 2 6,
+    .tensor 6 4 7
+  ]
+  conclusions := [7, 1, 3, 5]
+
+def nestedRankBudgetEmpty : UnificationState where
+  marks := Array.replicate nestedRankBudget.formulas.size none
+  parents := #[]
+  components := #[]
+  startedAxioms := 0
+  firedConnectives := 0
+
+theorem nestedRankBudgetEmpty_assignedToken?_eq_none
+    (vertex : Vertex) :
+    nestedRankBudgetEmpty.assignedToken? vertex = none := by
+  by_cases vertexBound : vertex < nestedRankBudget.formulas.size
+  · simp [nestedRankBudgetEmpty, UnificationState.assignedToken?,
+      vertexBound]
+  · have outOfBounds : nestedRankBudget.formulas.size ≤ vertex :=
+      Nat.le_of_not_gt vertexBound
+    simp [nestedRankBudgetEmpty, UnificationState.assignedToken?,
+      outOfBounds]
+
+theorem nestedRankBudgetEmpty_abstractable :
+    nestedRankBudgetEmpty.Abstractable nestedRankBudget := by
+  refine {
+    markArraySize := by
+      simp [nestedRankBudgetEmpty]
+    markedVertexBound := ?_
+    markedTokenBound := ?_
+    representativeBound := ?_
+    representativeIdempotent := ?_ }
+  · intro vertex token assigned
+    rw [nestedRankBudgetEmpty_assignedToken?_eq_none vertex] at assigned
+    simp at assigned
+  · intro vertex token assigned
+    rw [nestedRankBudgetEmpty_assignedToken?_eq_none vertex] at assigned
+    simp at assigned
+  · intro token tokenBound
+    simp [nestedRankBudgetEmpty] at tokenBound
+  · intro token tokenBound
+    simp [nestedRankBudgetEmpty] at tokenBound
+
+def nestedRankBudgetSourceIndex : SequentialUnification.SourceIndex :=
+  SequentialUnification.sourceIndex nestedRankBudget
+
+example : nestedRankBudget.wellFormed = true := by
+  native_decide
+
+theorem nestedRankBudget_startComplexity :
+    nestedRankBudget.formulaComplexityAt 7 = 2 := by
+  native_decide
+
+/-- Fuel equal to the starting rank is one recursive step too short. -/
+example :
+    SequentialUnification.nextAxiomWithFuel? nestedRankBudget
+      nestedRankBudgetEmpty nestedRankBudgetSourceIndex
+      (SequentialUnification.sourceIndex_sound nestedRankBudget)
+      2 (Array.replicate nestedRankBudget.formulas.size false) 7 = none := by
+  native_decide
+
+/-- The exact `rank + 1` budget succeeds by the general structural theorem,
+not only by reduction of this fixture. -/
+example :
+    ∃ result,
+      SequentialUnification.nextAxiomWithFuel? nestedRankBudget
+        nestedRankBudgetEmpty nestedRankBudgetSourceIndex
+        (SequentialUnification.sourceIndex_sound nestedRankBudget)
+        3 (Array.replicate nestedRankBudget.formulas.size false) 7 =
+          some result := by
+  have success :
+      ∃ result,
+        SequentialUnification.nextAxiomWithFuel? nestedRankBudget
+          nestedRankBudgetEmpty nestedRankBudgetSourceIndex
+          (SequentialUnification.sourceIndex_sound nestedRankBudget)
+          (nestedRankBudget.formulaComplexityAt 7 + 1)
+          (Array.replicate nestedRankBudget.formulas.size false) 7 =
+            some result := by
+    apply
+      SequentialUnification.nextAxiomWithFuel?_exists_of_structural_carrierClear
+        (nestedRankBudget.wellFormed_iff_structurallyWellFormed.mp
+          (by native_decide))
+        nestedRankBudgetEmpty_abstractable (by native_decide)
+    intro candidate candidateBound
+    constructor
+    · simp [candidateBound]
+    · exact nestedRankBudgetEmpty_assignedToken?_eq_none candidate
+  rw [nestedRankBudget_startComplexity] at success
+  simpa using success
+
+example :
+    (SequentialUnification.nextAxiomWithFuel? nestedRankBudget
+      nestedRankBudgetEmpty nestedRankBudgetSourceIndex
+      (SequentialUnification.sourceIndex_sound nestedRankBudget)
+      3 (Array.replicate nestedRankBudget.formulas.size false) 7).isSome =
+        true := by
+  native_decide
+
 def canonicalNextAxiom :=
   SequentialUnification.nextAxiom? canonical canonicalSequentialEmpty
     canonicalSourceIndex
     (SequentialUnification.sourceIndex_sound canonical)
     (Array.replicate canonical.formulas.size false) 4
+
+/-- Starting from the par conclusion reaches stored-right axiom endpoint `1`.
+This regression prevents future Figure-7 code from confusing the submitted
+`left/right` order with the direction in which `NEXTAXIOM` found the axiom. -/
+def canonicalStoredRightNextAxiom :=
+  SequentialUnification.nextAxiom? canonical canonicalSequentialEmpty
+    canonicalSourceIndex
+    (SequentialUnification.sourceIndex_sound canonical)
+    (Array.replicate canonical.formulas.size false) 5
+
+example :
+    (match canonicalStoredRightNextAxiom with
+    | none => false
+    | some result =>
+        result.linkIndex == 0 &&
+          result.left == 0 &&
+          result.right == 1 &&
+          result.trace == [5, 1]) = true := by
+  native_decide
+
+/-- Every successful stored-right regression result carries an oriented route;
+the route's `traceLast` identifies the reached endpoint independently of the
+submitted axiom orientation. -/
+example {result}
+    (equation : canonicalStoredRightNextAxiom = some result) :
+    ∃ reached partner,
+      SequentialUnification.NextAxiomRoute 5 result reached partner := by
+  exact SequentialUnification.nextAxiom?_route (by
+    simpa [canonicalStoredRightNextAxiom] using equation)
 
 example :
     (match canonicalNextAxiom with

@@ -20,15 +20,34 @@
   and two successful calls have disjoint touched carriers when the second call
   uses exactly `first.tags`. This is the scope of the global no-revisit
   discipline; no such theorem is claimed after resetting or replacing the
-  tags. `dynamicStartWithFuel?` applies the existing token
+  tags. `SequentialRoute.lean` now proves every successful trace is an exact
+  submitted source-left chain from the requested start to the endpoint
+  actually reached, and relates that endpoint and its partner to either stored
+  orientation of the returned axiom. A stored-right regression fixes the
+  distinction. `SearchClearThrough` and
+  `nextAxiomWithFuel?_exists_of_structural_clearThrough` prove local totality
+  when all in-bounds occurrences through the starting formula-complexity rank
+  are untagged and unassigned and the fuel exceeds that rank; a full-carrier
+  clear corollary supplies the exact `rank + 1` budget. This does not prove the
+  carrier-size `nextAxiom?` wrapper total or establish freshness for later
+  Figure-7 `new` calls. Since a success tags complexity-zero endpoints, this
+  global low-rank predicate cannot be threaded to a second call; later
+  scheduling needs route-local freshness. `dynamicStartWithFuel?` applies the existing token
   update, and under `Abstractable` plus `OrderedParents` its result refines one
-  independent Figure-5 `start` step. Regressions cover the canonical
+  independent eager Figure-5 `start` step; its immediate assignment is not the
+  delayed Figures 7–8 `init`/`new` transition. Regressions cover the canonical
   connective-to-axiom trace and tags, zero fuel, out-of-bounds, tagged and
   marked starts, missing and non-unique sources, threaded-result-tags repeat
-  rejection, and dynamic token allocation. Total `NEXTAXIOM` start selection,
-  `σ`/`R`/`W` (ready/waiting), token-age interval sequencing, full scheduler
+  rejection, stored-right orientation, all initial canonical starts under the
+  rank budget, a depth-two exact boundary where rank fuel fails and
+  `rank + 1` succeeds, and dynamic token allocation. Later-state start
+  selection, `σ`/`R`/`W`, token-age interval sequencing, full scheduler
   correctness and cost, correct-state progress, pure-worklist completeness,
-  fallback removal, and whole-program linearity remain open;
+  fallback removal, and whole-program linearity remain open. The future
+  scheduler must preserve
+  the paper's undefined-versus-initialized-empty distinction for `W`, align
+  `R` with the strictly increasing interval-boundary stack `σ`, and compare
+  raw assigned token ages in guards rather than union-find representatives;
 - narrowed the flat-scheduler confluence route. Exact concrete-state
   confluence is refuted by a derivation-generated correct certificate, while
   structural-only confluence is refuted by a structurally well-formed

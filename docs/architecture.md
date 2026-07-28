@@ -188,12 +188,36 @@ the trace and endpoints, input-unmarked endpoints, and
 `trace.length ≤ fuel`. Its touched carrier is the trace plus both endpoints;
 successive successful calls have disjoint touched carriers when the second
 call uses exactly `first.tags`. This is the scope of the global no-revisit
-discipline; resetting or replacing tags is outside the theorem. The dynamic
-update refines `UnificationStep.start` under `OrderedParents`. Regressions
-cover zero fuel, out-of-bounds, tagged and marked starts, missing and ambiguous
-source buckets, threaded-result-tags repeat rejection, and the successful
-dynamic update. Total start selection, `σ`/`R`/`W` (ready/waiting), token-age
-intervals, and full scheduler correctness and cost remain unimplemented.
+discipline; resetting or replacing tags is outside the theorem.
+`SequentialRoute.lean` proves that every successful trace is the exact chain of
+submitted connective conclusions to stored left premises and names the axiom
+endpoint actually reached independently of the axiom's submitted
+`left`/`right` order.
+
+`SearchClearThrough` supports a separate local totality theorem. Under
+structural well-formedness, state abstraction, rank-scoped untagged/unassigned
+freshness, and fuel strictly greater than the starting formula complexity, the
+production-index call succeeds. Full carrier freshness gives the exact
+`complexity + 1` budget. This proves the initial/local call only; it does not
+prove the existing carrier-size wrapper total or preserve the premise for
+later Figures 7–8 scheduler states. A success tags complexity-zero axiom
+endpoints, so the global low-rank predicate cannot itself be threaded to a
+second call; the scheduler needs a route-local freshness invariant.
+
+The dynamic update immediately allocates and assigns a token and refines
+`UnificationStep.start` under `OrderedParents`. It is an independent eager
+Figure-5 refinement, not the delayed Figures 7–8 `init`/`new` transition.
+Regressions cover zero fuel, out-of-bounds, tagged and marked starts, missing
+and ambiguous source buckets, threaded-result-tags repeat rejection,
+stored-right orientation, all canonical initial starts under their rank
+budgets, a depth-two exact rank-versus-`rank + 1` fuel boundary, and the
+successful dynamic update. Later-state start selection, `σ`/`R`/`W`,
+token-age intervals, and full scheduler correctness and cost remain
+unimplemented. In the future state, `σ` is a strictly increasing stack
+of contiguous raw token-age interval boundaries, `R` is an aligned stack of
+sets, and `W` is a partial map whose undefined and initialized-empty states
+must not be collapsed. Scheduler guards compare raw assigned ages, not
+union-find representatives.
 The separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
@@ -436,8 +460,9 @@ active-reference walks between marked occurrences are equivalent to
   residual-parsing-witness preservation or a theorem modulo the
   marked-domain/occurrence-thread quotient. The bounded/tagged `NEXTAXIOM` and
   dynamic-start primitive is now kernel checked, including per-call trace/tag
-  invariants and touched-set disjointness for successive calls that strictly
-  thread `first.tags`. That result does not cover reset tag arrays. Total start
+  invariants, exact oriented routes, initial/local rank-scoped totality, and
+  touched-set disjointness for successive calls that strictly thread
+  `first.tags`. That result does not cover reset tag arrays. Later-state
   selection and faithful `σ`/`R`/`W` plus token-age stacks are still required
   for the later Guerrini linearity layer. Planarity is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
@@ -447,7 +472,7 @@ then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: its production path still starts all axioms
 eagerly and uses flat waiting requeues. The separate bounded/tagged
 `NEXTAXIOM` primitive is not yet integrated with `σ`/`R`/`W`,
-token-age intervals, or total scheduler start selection. General
+token-age intervals, or later-state scheduler start selection. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

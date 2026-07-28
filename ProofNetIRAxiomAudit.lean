@@ -140,9 +140,15 @@ expansion.
 #print axioms SequentialUnification.mem_sourceIndex_origin
 #print axioms SequentialUnification.sourceIndex_sound
 #print axioms SequentialUnification.nextAxiomWithFuel?_sound
+#print axioms SequentialUnification.nextAxiomWithFuel?_exists_of_structural_clearThrough
+#print axioms SequentialUnification.nextAxiomWithFuel?_exists_of_structural_carrierClear
 #print axioms SequentialUnification.nextAxiomWithFuel?_tag_trace_invariants
 #print axioms SequentialUnification.nextAxiomWithFuel?_touched_tagged
 #print axioms SequentialUnification.nextAxiomWithFuel?_threaded_touched_disjoint
+#print axioms SequentialUnification.SourceLeftChain.cons_of_head
+#print axioms SequentialUnification.SourceLeftChain.reachable_of_head_last
+#print axioms SequentialUnification.nextAxiomWithFuel?_route
+#print axioms SequentialUnification.nextAxiom?_route
 #print axioms SequentialUnification.DynamicStartResult.refinesStart
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound

@@ -733,12 +733,35 @@
     `OrderedParents`. Cover canonical tags/trace, zero fuel, out-of-bounds,
     tagged and marked starts, missing and non-unique sources,
     threaded-result-tags repeat rejection, and dynamic start.
-  - [ ] Prove total `NEXTAXIOM` start selection; then replace the prototype's
-    eager axiom starts and flat waiting requeues with the Figures 7--8
-    `σ`/`R`/`W` (ready/waiting) stacks. Establish token-age interval sequencing,
-    special union-find invariants, completeness of that sequential executable,
-    and a cost theorem over every implemented operation before claiming
-    Guerrini linearity. These stack invariants are false for the flat scheduler.
+  - [x] Prove every successful trace is an exact oriented source-left route to
+    the axiom endpoint actually reached, independently of submitted
+    `left`/`right` orientation. Fix the stored-right case by executable and
+    theorem regression.
+  - [x] Prove initial/local `NEXTAXIOM` totality on the production source index
+    under `SearchClearThrough` and fuel strictly greater than the starting
+    formula complexity; derive the full-carrier-clear `complexity + 1`
+    corollary, test every canonical occurrence, and lock a depth-two fixture
+    where rank fuel fails but `rank + 1` succeeds.
+  - [ ] Prove later-state `NEXTAXIOM` start selection; do not treat the local
+    theorem as totality of the carrier-size wrapper or Figure-7 `new`.
+    - [ ] Replace global low-rank freshness with a route-local invariant that
+      remains usable after earlier calls have tagged complexity-zero axiom
+      endpoints.
+    - [ ] Prove the formula-complexity/carrier bound needed for a
+      `nextAxiom?` wrapper corollary, if the current carrier-size fuel is to
+      become part of the total API contract.
+    - [ ] Factor the local theorem's mark-slot requirement from the stronger
+      full `Abstractable` runtime invariant when a more reusable interface is
+      needed.
+  - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
+    with the Figures 7--8 `σ`/`R`/`W` state. Define `σ` as strictly increasing
+    boundaries of contiguous raw token-age intervals, align `R` with those
+    intervals and pop before marking, preserve `W`'s undefined-versus-empty
+    distinction, and compare raw assigned ages rather than representatives.
+    Establish the special union-find invariants, completeness of that
+    sequential executable, and a cost theorem over every implemented
+    operation before claiming Guerrini linearity. These stack invariants are
+    false for the flat scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist
     completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and

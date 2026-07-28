@@ -25,6 +25,7 @@ import ProofNetIR.DerivationVerifier
 import ProofNetIR.ReconstructionChecker
 import ProofNetIR.Unification
 import ProofNetIR.SequentialUnification
+import ProofNetIR.SequentialRoute
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

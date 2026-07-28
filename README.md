@@ -105,6 +105,14 @@ axiom link index and endpoints, the updated tag array, and the followed
 occurrence trace; both axiom endpoints were unmarked in the input state and
 `trace.length ≤ fuel`.
 
+`SequentialRoute.lean` now gives that trace its exact orientation. Every
+successful search has a nonempty source-left chain from the requested start to
+the endpoint actually reached, plus the other axiom endpoint. The reached
+endpoint is related by proof to the submitted axiom's stored `left`/`right`
+orientation instead of being silently identified with `left`; the canonical
+stored-right regression reaches endpoint `1` along trace `[5, 1]` while the
+submitted axiom remains `.axiom 0 1`.
+
 The result type is indexed by its input tags. Kernel-checked fields and
 `nextAxiomWithFuel?_tag_trace_invariants` prove that the tag carrier size is
 preserved, every input `true` tag stays `true`, the recursive trace is `Nodup`,
@@ -114,16 +122,34 @@ endpoints, including the non-recursive axiom partner. Two successful calls
 have disjoint touched sets when the second call is made with exactly
 `first.tags`. Thus the global no-revisit discipline applies only to a chain
 that strictly passes each result's tags onward; the theorem does not apply
-after resetting or replacing the tag array. A successful dynamic start refines
-one Figure-5 `start` transition
-under the existing abstraction and `OrderedParents` invariants. Tests cover
+after resetting or replacing the tag array.
+`nextAxiomWithFuel?_exists_of_structural_clearThrough` additionally proves
+local totality on the production source index when structural well-formedness,
+state abstraction, rank-scoped untagged/unassigned freshness, and
+`formulaComplexityAt start < fuel` hold. Its full-carrier-clear corollary uses
+the exact rank budget `formulaComplexityAt start + 1`; this is an initial/local
+result, not totality of the carrier-size `nextAxiom?` wrapper or of later
+Figure-7 `new` calls. Indeed, one success tags complexity-zero axiom endpoints,
+so this global low-rank freshness predicate cannot itself be threaded to a
+second call at any natural rank; the later scheduler needs a route-local
+freshness invariant.
+
+A successful dynamic start immediately allocates and assigns a token and
+refines one independent Figure-5 `start` transition under the existing
+abstraction and `OrderedParents` invariants. It is not the delayed marking of
+Figures 7–8 `init`/`new`. Tests cover
 the canonical trace/tags, an already tagged start, zero fuel, out-of-bounds and
 marked starts, missing and non-unique malformed sources, a distinct second
 start using threaded result tags, repeat rejection, and dynamic token
-allocation. This is not yet the Figures 7–8 algorithm: total start selection,
-the `σ`/`R`/`W` (ready/waiting) state, token-age interval sequencing, full
-scheduler correctness and cost, correct-state progress, pure-worklist
-completeness, fallback removal, and whole-program linearity remain open.
+allocation. A depth-two fixture locks the exact fuel boundary: rank fuel `2`
+fails and `rank + 1 = 3` succeeds both by theorem and execution. This is not
+yet the Figures 7–8 algorithm: later-state start
+selection, the `σ`/`R`/`W` state, token-age interval sequencing, full scheduler
+correctness and cost, correct-state progress, pure-worklist completeness,
+fallback removal, and whole-program linearity remain open. In that future
+state, `W` must distinguish undefined from initialized-empty, interval guards
+must compare raw assigned token ages rather than representatives, and `σ` must
+encode the strictly increasing boundaries of contiguous age intervals.
 
 The flat-scheduler proof route was also narrowed by counterexample. Exact
 concrete-state confluence already fails on a derivation-generated correct
@@ -460,10 +486,11 @@ Flat completeness therefore points to residual-witness preservation or
 confluence modulo the marked-domain/occurrence-thread observation. Exact-state
 and structural-only confluence are already refuted; no theorem at the candidate
 quotient exists. The bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
-kernel checked, including per-call trace/tag invariants and touched-set
-disjointness for successive calls that strictly thread `first.tags`. Total
-start selection and faithful `σ`/`R`/`W` plus token-age sequencing remain the
-separate linearity route. Closing-par
+kernel checked, including per-call trace/tag invariants, exact oriented routes,
+initial/local rank-scoped totality, and touched-set disjointness for successive
+calls that strictly thread `first.tags`. Later-state selection and faithful
+`σ`/`R`/`W` plus token-age sequencing remain the separate linearity route.
+Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
 linear cost theorem remain separate open gates. See
@@ -679,10 +706,13 @@ The repository currently contains:
   output-`true` for every trace vertex and both endpoints. Successive touched
   sets are disjoint only under strict `first.tags` threading, which is the
   scope of the global no-revisit discipline; reset tags are outside the
-  theorem. Its dynamic start refines Figure 5 under
-  `OrderedParents`; malformed source buckets still fail closed. Tests
+  theorem. Successful traces now carry exact oriented source-left routes, and
+  initial/local calls are total under rank-scoped freshness with
+  `complexity + 1` fuel. Its immediate dynamic start refines eager Figure 5
+  under `OrderedParents`; malformed source buckets still fail closed. Tests
   additionally cover zero fuel, out-of-bounds and marked starts, missing
-  sources, a threaded distinct second start, and repeat rejection. Total start
+  sources, a threaded distinct second start, stored-right orientation, and
+  repeat rejection, plus a depth-two exact rank/fuel boundary. Later-state
   selection, `σ`/`R`/`W`, token-age stacks, full scheduler correctness, and a
   whole-program cost proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
@@ -859,8 +889,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-  separately audits ninety-six public MLL logical-boundary theorems against the exact axiom set
-`[propext, Classical.choice, Quot.sound]`. LeanProp boundaries are audited
+separately audits 108 public MLL logical-boundary theorems against the exact
+axiom set `[propext, Classical.choice, Quot.sound]`, plus 18 axiom-free,
+33 `propext`-only, and 20 `propext`/`Quot.sound` boundaries. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
 Resource-count, dependent-environment round trips, packed-schema soundness,
@@ -992,7 +1023,8 @@ ProofNetIR/IntrinsicCanonicalKeyWire.lean v0.2 intrinsic-key wire and migration
 ProofNetIR/Serialization.lean v0.2 fixed-number and v0.3 reindex wire formats
 ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundary
 ProofNetIR/Unification.lean   eager/worklist Figure-5 token semantics
-ProofNetIR/SequentialUnification.lean bounded/tagged NEXTAXIOM and dynamic start
+ProofNetIR/SequentialUnification.lean bounded/tagged NEXTAXIOM and local totality
+ProofNetIR/SequentialRoute.lean exact oriented successful NEXTAXIOM routes
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter

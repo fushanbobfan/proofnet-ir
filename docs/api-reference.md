@@ -5515,6 +5515,21 @@ ProofNetIR.SequentialUnification.NextAxiomResult.Touched : {certificate : ProofN
         ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags → ProofNetIR.Vertex → Prop
 ```
 
+### `ProofNetIR.SequentialUnification.SearchClearThrough`
+
+Kind: definition.
+
+Dynamic freshness through one formula-complexity rank.
+
+This is a sufficient local precondition for the bounded `NEXTAXIOM` search,
+not a reachable-state invariant for the complete Figure-7 scheduler.  It is
+intentionally rank-scoped: all in-bounds occurrences no more complex than
+`rank` must still be untagged and semantically unassigned.
+
+```lean
+ProofNetIR.SequentialUnification.SearchClearThrough : ProofNetIR.Certificate → ProofNetIR.UnificationState → Array Bool → Nat → Prop
+```
+
 ### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?`
 
 Kind: definition.
@@ -5567,6 +5582,59 @@ ProofNetIR.SequentialUnification.nextAxiomWithFuel?_sound : ∀ {certificate : P
   ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state index ⋯ fuel tags vertex = some result →
     certificate.links[result.linkIndex]? = some (ProofNetIR.Link.axiom result.left result.right) ∧
       state.assignedToken? result.left = none ∧ state.assignedToken? result.right = none ∧ result.trace.length ≤ fuel
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_clearThrough`
+
+Kind: theorem.
+
+On the production source index, structural well-formedness and
+rank-scoped dynamic freshness make bounded `NEXTAXIOM` locally total whenever
+the fuel strictly exceeds the starting formula complexity.
+
+This theorem discharges the static missing/non-unique-source, malformed
+orientation, out-of-bounds, and recursive-fuel failure modes for this local
+call.  It does not state that an arbitrary later Figure-7 `new` call satisfies
+the freshness premise.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_clearThrough : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {vertex : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.UnificationState.Abstractable certificate state →
+      vertex < certificate.formulas.size →
+        ProofNetIR.SequentialUnification.SearchClearThrough certificate state tags
+            (certificate.formulaComplexityAt vertex) →
+          certificate.formulaComplexityAt vertex < fuel →
+            ∃ result,
+              ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state
+                  (ProofNetIR.SequentialUnification.sourceIndex certificate) ⋯ fuel tags vertex =
+                some result
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_carrierClear`
+
+Kind: theorem.
+
+Initial/local totality corollary.  If every formula occurrence is still
+untagged and unassigned, any in-bounds start succeeds with the exact
+formula-rank budget.  This is sufficient for the initial Figure-7 `init`
+search; it is not the later scheduler's `new`-call invariant.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_carrierClear : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {tags : Array Bool}
+  {vertex : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.UnificationState.Abstractable certificate state →
+      vertex < certificate.formulas.size →
+        (∀ {candidate : ProofNetIR.Vertex},
+            candidate < certificate.formulas.size →
+              tags[candidate]? = some false ∧ state.assignedToken? candidate = none) →
+          ∃ result,
+            ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state
+                (ProofNetIR.SequentialUnification.sourceIndex certificate) ⋯
+                (certificate.formulaComplexityAt vertex + 1) tags vertex =
+              some result
 ```
 
 ### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_tag_trace_invariants`
@@ -5633,6 +5701,118 @@ ProofNetIR.SequentialUnification.nextAxiomWithFuel?_threaded_touched_disjoint : 
             secondVertex =
           some second →
         ∀ {touched : ProofNetIR.Vertex}, first.Touched touched → second.Touched touched → False
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftStep`
+
+Kind: inductive type.
+
+One recursive `NEXTAXIOM` step: from the conclusion of an exact submitted
+tensor or par link to that link's stored left premise.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftStep : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftReachable`
+
+Kind: inductive type.
+
+Reflexive-transitive reachability along exact submitted source-left
+steps.  Reflexivity covers a call whose starting vertex is already an axiom
+endpoint.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftReachable : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftChain`
+
+Kind: inductive type.
+
+A list records precisely a (possibly empty-step) source-left route.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftChain : ProofNetIR.Certificate → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftChain.cons_of_head`
+
+Kind: theorem.
+
+Prepend one exact source-left step to a nonempty recorded route.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftChain.cons_of_head : ∀ {certificate : ProofNetIR.Certificate} {source next : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialUnification.SourceLeftStep certificate source next →
+    ProofNetIR.SequentialUnification.SourceLeftChain certificate trace →
+      trace.head? = some next → ProofNetIR.SequentialUnification.SourceLeftChain certificate (source :: trace)
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_last`
+
+Kind: theorem.
+
+A recorded chain with named endpoints is sound for source-left
+reachability.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_last : ∀ {certificate : ProofNetIR.Certificate} {trace : List ProofNetIR.Vertex} {source target : ProofNetIR.Vertex},
+  ProofNetIR.SequentialUnification.SourceLeftChain certificate trace →
+    trace.head? = some source →
+      trace.getLast? = some target → ProofNetIR.SequentialUnification.SourceLeftReachable certificate source target
+```
+
+### `ProofNetIR.SequentialUnification.NextAxiomRoute`
+
+Kind: inductive type.
+
+The oriented semantic content of a successful bounded `NEXTAXIOM` call.
+
+`reached` is the final vertex actually visited by the recursive search;
+`partner` is the other endpoint of the submitted axiom.  The disjunction in
+`exactAxiom` is intentional: the submitted link keeps its own stored
+orientation, independently of the search orientation.
+
+```lean
+ProofNetIR.SequentialUnification.NextAxiomRoute : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.UnificationState} →
+    {fuel : Nat} →
+      {inputTags : Array Bool} →
+        ProofNetIR.Vertex →
+          ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags →
+            ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_route`
+
+Kind: theorem.
+
+A successful bounded `NEXTAXIOM` computation determines the actual
+reached axiom endpoint and the exact source-left route to it.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel?_route : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {fuel : Nat} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel tags},
+  ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state index ⋯ fuel tags start = some result →
+    ∃ reached partner, ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiom?_route`
+
+Kind: theorem.
+
+Production-wrapper form of `nextAxiomWithFuel?_route`.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiom?_route : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state certificate.formulas.size tags},
+  ProofNetIR.SequentialUnification.nextAxiom? certificate state index ⋯ tags start = some result →
+    ∃ reached partner, ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner
 ```
 
 ### `ProofNetIR.SequentialUnification.DynamicStartResult`

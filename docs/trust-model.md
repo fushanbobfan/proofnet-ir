@@ -140,16 +140,32 @@ both endpoints, input-unmarked endpoints, and `trace.length ≤ fuel`. Its
 `Touched` carrier is the trace plus endpoints, and successive successful calls
 have disjoint touched carriers when the second uses exactly `first.tags`. This
 is the scope of the global no-revisit discipline; no result is claimed after
-tags are reset or replaced. Its dynamic update refines one Figure-5 start step
-under `Abstractable` and `OrderedParents`. Missing,
+tags are reset or replaced. A separate oriented-route theorem proves that the
+trace is an exact submitted source-left chain to the axiom endpoint actually
+reached and relates that endpoint to either stored axiom orientation.
+`SearchClearThrough` supports a local totality theorem: structural
+well-formedness, state abstraction, freshness through the starting complexity
+rank, and fuel greater than that rank imply success on the production index.
+Full initial-carrier freshness yields the exact `rank + 1` budget. This does
+not prove the carrier-size wrapper total or establish freshness in a later
+Figure-7 scheduler state. Because success tags complexity-zero axiom
+endpoints, the global low-rank predicate cannot itself be threaded to a second
+call; later scheduling requires a route-local freshness invariant.
+
+Its dynamic update immediately allocates and assigns a token and refines one
+eager Figure-5 start step under `Abstractable` and `OrderedParents`; it is not
+the delayed Figures 7–8 `init`/`new` transition. Missing,
 ambiguous, tagged, marked, or malformed sources fail closed, with dedicated
 regressions for zero fuel, out-of-bounds, tagged and marked starts, missing and
-duplicate sources, and repeat rejection after threading the first result's
-tags. The executable and its proof fields are trusted only after compilation
-like any other Lean declaration; the regression observations remain untrusted
-evidence. Total start selection and the complete `σ`/`R`/`W`
-(ready/waiting), token-age, scheduler-correctness, and scheduler-cost layers
-remain unimplemented.
+duplicate sources, stored-right orientation, initial rank-budget coverage, and
+repeat rejection after threading the first result's tags. The executable and
+its proof fields are trusted only after compilation like any other Lean
+declaration; the regression observations remain untrusted evidence.
+Later-state start selection and the complete `σ`/`R`/`W`, token-age,
+scheduler-correctness, and scheduler-cost layers remain unimplemented. The
+future model must preserve `W`'s undefined-versus-initialized-empty states,
+align `R` with strictly increasing `σ` boundaries for contiguous raw token-age
+intervals, and use raw assigned ages—not representatives—in scheduler guards.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -379,10 +395,10 @@ the executable regression refutes generic flat token-age/LIFO containment.
 The remaining flat-completeness option is a residual-witness preservation or
 a theorem at the marked-domain/occurrence-thread quotient; exact-state and
 structural-only confluence are too fine. Guerrini-style linearity instead
-requires extending the bounded/tagged `NEXTAXIOM` checkpoint with total start
-selection, `σ`/`R`/`W`, and token-age sequencing. Its per-call invariants and
-strictly threaded touched-set disjointness are already proved. No planarity
-principle is assumed.
+requires extending the bounded/tagged `NEXTAXIOM` checkpoint with later-state
+selection, `σ`/`R`/`W`, and token-age sequencing. Its exact oriented routes,
+initial/local totality, per-call invariants, and strictly threaded touched-set
+disjointness are already proved. No planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -494,9 +510,10 @@ Lean now also constructs the exact simultaneous complementary
   establishes confluence at that quotient.
   Residual-witness preservation or a theorem at this quotient remains a
   possible route to flat completeness. The bounded primitive already has
-  per-call trace/tag invariants and strictly threaded touched-set disjointness;
-  total start selection and full `NEXTAXIOM`/token-age stacks remain required
-  for linearity.
+  per-call trace/tag invariants, exact oriented routes, initial/local
+  rank-scoped totality, and strictly threaded touched-set disjointness;
+  later-state selection and the full `NEXTAXIOM`/token-age stacks remain
+  required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
   linearity remain open.
