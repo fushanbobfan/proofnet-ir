@@ -120,8 +120,10 @@ accept an invalid certificate. `unificationCheck` is the exact public
 decision: it short-circuits on the verified fast path and otherwise invokes
 the already complete checker-free reconstruction decision. Lean proves
 `unificationCheck = check`. Fast-path rejection alone is inconclusive, and no
-linearity claim is made until its completeness and worklist/union-find
-invariants are proved.
+linearity claim is made. The current event-driven worklist must first be proved
+complete and the recursive fallback removed; a later Guerrini-style claim also
+requires the Figures 7--8 `NEXTAXIOM`, token-age, ready/waiting-stack, and
+special union-find invariants together with a whole-program cost theorem.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -252,17 +254,19 @@ in-segment offset, and the complete tagged family is proved duplicate-free
 before its tags are erased. Erasure recovers the existing flattened edge
 traversal. Exact cyclic cuts and descent traces map from tags to edge values;
 a proof-relevant edge cut can also be lifted existentially from its retained
-append decompositions. This does not recover a canonical visit from an edge
-value. Every surviving tag is inverted to its original segment/offset lookup,
-and each recursive state recomputes its positioned par obstruction on those
-coordinates. Lean now reaches the terminal forward cusp with a tagged
-state-and-interval descent from the original family. It does not yet identify
-each stored cut with the exact positioned obstruction that generated it.
-Coordinate-exact reverse-shell normalization
-also exists, erases to the graph-level relation, and positionally lifts every
-graph shell from its stored list decompositions. The terminal complement and
-all later nested cores now compose exact tagged cuts and shell descents back to
-the original scheduler family. For an empty core, Lean additionally proves
+append decompositions. This general theorem does not recover a canonical visit
+from an edge value, and the terminal-complement path no longer uses it. Every
+surviving tag is inverted to its original segment/offset lookup, and each
+recursive state recomputes its positioned par obstruction on those coordinates.
+Each backward cut is bound to that exact obstruction. Lean reaches the terminal
+forward cusp with a tagged state-and-interval descent from the original family,
+then binds the terminal generator, arc, complement, derived strict cut, closed
+walk, source-fixed reverse-shell normalization, and nesting trace in one
+indexed witness. Coordinate-exact reverse-shell normalization erases to the
+graph-level relation and retains the positional lift from each shell's stored
+list decomposition. The terminal complement and all later nested cores compose
+exact tagged cuts and shell descents back to the original scheduler family.
+For an empty core, Lean additionally proves
 that every exact visit has a distinct reverse-valued partner from another
 scheduler step; same-step pairing is ruled out by simple-path edge-index
 uniqueness. The strengthened terminal witness retains the complement's exact
@@ -350,11 +354,13 @@ Lean now also constructs the exact simultaneous complementary
   later proofs from combining unrelated existential par occurrences; terminal
   bases likewise contain no independent duplicate location witness. The
   closing normalization and exact endpoint split now also share one explicit
-  normalized list. Excluding the single remaining base requires a
-  generator-exact terminal-complement frame plus a seam-origin argument through
-  that frame, the now-exact backward cuts, and reverse shells, or an independent
-  residual-derivation progress proof; correct-state progress and pure-worklist
-  completeness remain open.
+  normalized list. The terminal-complement frame is now generator-exact and
+  removes the first generic cut lift. Excluding the single remaining base still
+  requires a unified exact closing package plus sound seam replay through that
+  terminal frame, the exact backward cuts, and reverse-shell arms, or an
+  independent residual-derivation progress proof. Closing-par scheduler-order
+  exclusion, correct-state progress, pure-worklist completeness, recursive
+  fallback removal, and whole-program linearity remain open.
  The
  attempt accounting also excludes
  consumer-table construction, waiting-list traversal, frontier work, and

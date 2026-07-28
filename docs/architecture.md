@@ -171,8 +171,10 @@ The `WithStats` variants retain a proof-relevant operational receipt. Their
 candidate records satisfy `passes ≤ |links|` and
 `linkVisits = passes * |links|`, yielding an axiom-free square bound on eager
 link-list visits. That result characterizes the current scan schedule only;
-the architecture still needs explicit ready/waiting worklists and a cost model
-covering frontier manipulation, union-find, verification, and fallback.
+the architecture still needs the Figures 7--8 sequential ready/waiting stacks,
+`NEXTAXIOM`/token-age and special union-find invariants, plus a whole-program
+cost model covering frontier manipulation, verification, and fallback. The
+separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
 `Certificate.unificationWorklistFastCheck`, precomputes an occurrence-to-link
@@ -242,10 +244,11 @@ active-reference walks between marked occurrences are equivalent to
   and the smaller contiguous cyclic interval in a proof-relevant descent trace;
   well-founded recursion on list length therefore reaches a terminal forward
   retained-left par-cusp interval while preserving an interval-cut trace back
-  to the original flipped family. This trace does not yet identify each cut
-  with the exact positioned par witness that generated it. The terminal object
-  retains its exact complementary cyclic interval; this complement is nonempty,
-  closed,
+  to the original flipped family. Every backward cut now shares one indexed
+  witness with the positioned par obstruction that generated it. The terminal
+  object similarly binds its generator, arc, exact complementary cyclic
+  interval, derived strict cut, closed complement walk, reverse-shell
+  normalization, and nesting trace. This complement is nonempty, closed,
   internally cusp-free, and strictly shorter. A kernel theorem shows that any
   closing cusp of the complement is necessarily the exact last/first reverse,
   because a nontrivial par cusp would violate the inherited boundary freedom.
@@ -267,24 +270,28 @@ active-reference walks between marked occurrences are equivalent to
   `SchedulerOccurrence` tags every visit by its segment step and in-segment
   offset, the complete tagged family is proved duplicate-free, and erasure is
   proved to recover the original flattened traversal. Cyclic cuts and complete
-  descent traces map from tagged occurrences to edge values. Conversely, an
-  edge cut carrying its exact append decompositions has an existential
-  positional lift to tags; this is not a canonical choice from repeated edge
-  values. The cyclic state now retains a tagged descent from the initial
+  descent traces map from tagged occurrences to edge values. A general edge cut
+  carrying exact append decompositions still has an existential positional
+  lift to tags; this is not a canonical choice from repeated edge values. The
+  terminal-complement path no longer uses that lift: its tagged complement and
+  strict cut are fixed directly by the same indexed terminal witness. The
+  cyclic state now retains a tagged descent from the initial
   family, inverts every surviving tag to its original segment/offset lookup,
   recomputes its positioned obstruction after each cut, and reaches the
   terminal forward cusp by tagged well-founded recursion. Tagged reverse-shell
-  normalization is defined, erases soundly, and now has a converse positional
-  lift from every graph shell's stored singleton/middle/singleton
-  decomposition. The terminal complement cut and all later normalized cores
-  therefore retain exact tags through the complete nested-base recursion; the
-  final tagged base carries one composed state-and-interval ancestry and its
+  normalization is defined, erases soundly, and retains a source-fixed
+  positional lift from each graph shell's stored
+  singleton/middle/singleton decomposition. The terminal complement cut is
+  derived without the first generic cut lift, and all later normalized cores
+  retain exact tags through the complete nested-base recursion; the final
+  tagged base carries one composed state-and-interval ancestry and its
   projected descent back to the original family. Every backward-chord
-  constructor now carries a generator-exact semantic cut whose positioned
+  constructor carries a generator-exact semantic cut whose positioned
   obstruction, endpoint tags, rotation, retained suffix, and strict interval
-  are one witness. The terminal forward-cusp/complement constructor still
-  needs an analogous generator-exact relation before the ancestry supports
-  seam replay.
+  are one witness. The terminal forward-cusp/complement constructor now has
+  the analogous indexed relation, including its complement walk,
+  reverse-shell normalization, and trace. This closes identity drift but does
+  not itself replay the artificial closing seam.
   If that base has an empty core, every exact visit is now paired with a
   distinct reverse-valued visit from a different scheduler step; a same-step
   pair would repeat one edge index inside a simple path. Its terminal object
@@ -319,10 +326,12 @@ active-reference walks between marked occurrences are equivalent to
   segment-boundary adjacent in the original scheduler coordinates.
   Generic cyclic-interval descent is not itself a convexity invariant because
   a nested cut may wrap around a boundary introduced by an earlier cut. Pure
-  completeness must finish the generator-exact terminal-complement frame and
-  replay the specialized seam through it, the now-exact backward cuts, and
-  reverse shells—or establish an independent residual-derivation progress
-  invariant—to exclude that final base.
+  completeness still needs a unified exact closing package spanning the
+  terminal frame, backward cuts, reverse-shell arms, and closing endpoints,
+  plus a sound replay of the specialized seam—or an independent
+  residual-derivation progress invariant—to exclude the closing-par base and
+  prove correct-state progress. Pure-worklist completeness, recursive-fallback
+  removal, and whole-program linearity remain later gates.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: all axioms start eagerly, waiting requeues remain

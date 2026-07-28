@@ -28352,6 +28352,53 @@ private theorem SchedulerTaggedCyclicParState.ofCut
       (.step cut (.refl smaller)) smallerErased
         segmentCount indexedFlipped prefixInjective
 
+/-- Explicit-generator form of one terminal forward par-cusp arc.  The
+positioned obstruction, retained arc, complementary interval, and cyclic
+rotation are parameters rather than independently chosen existential
+witnesses. -/
+private def SchedulerForwardParCuspArcAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (traversed : List certificate.fullGraph.DirectedEdge)
+    (before : List Link)
+    (left right conclusion : Vertex)
+    (after : List Link)
+    (leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge)
+    (rightStep leftStep : Nat)
+    (rightSegment leftSegment arc complement
+      rotationPrefix rotationSuffix :
+        List certificate.fullGraph.DirectedEdge) : Prop :=
+  SchedulerPositionedParObstructionAt
+      certificate chainAt count flippedSegments traversed
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep
+            rightSegment leftSegment ∧
+    leftOccurrence.forward = true ∧
+      arc ≠ [] ∧
+        certificate.fullGraph.EdgeWalk conclusion arc conclusion ∧
+          certificate.CuspFreeTraversal arc ∧
+            arc.head? = some rightOccurrence ∧
+              arc.getLast? = some leftOccurrence ∧
+                certificate.Cusp leftOccurrence rightOccurrence ∧
+                  leftOccurrence ≠ rightOccurrence.reverse ∧
+                    traversed = rotationPrefix ++ rotationSuffix ∧
+                      arc ++ complement =
+                        rotationSuffix ++ rotationPrefix ∧
+                        complement ≠ [] ∧
+                          certificate.fullGraph.EdgeWalk
+                            conclusion complement conclusion ∧
+                            certificate.CuspFreeTraversal
+                              (arc ++ complement) ∧
+                              ∀ first last,
+                                (arc ++ complement).head? = some first →
+                                  (arc ++ complement).getLast? =
+                                      some last →
+                                    ¬certificate.Cusp last first
+
 /-- Terminal result of the cyclic chord descent.  The retained left
 occurrence is forward, so the interval beginning at the omitted right
 occurrence is a nonempty closed internally cusp-free arc whose closing turn is
@@ -28408,12 +28455,49 @@ private def SchedulerForwardParCuspArc
                               conclusion complement conclusion ∧
                               certificate.CuspFreeTraversal
                                 (arc ++ complement) ∧
-                                ∀ first last,
-                                  (arc ++ complement).head? =
-                                      some first →
-                                    (arc ++ complement).getLast? =
-                                        some last →
-                                      ¬certificate.Cusp last first
+                                  ∀ first last,
+                                    (arc ++ complement).head? =
+                                        some first →
+                                      (arc ++ complement).getLast? =
+                                          some last →
+                                        ¬certificate.Cusp last first
+
+/-- Forget the explicit terminal generator while retaining the legacy
+existential API.  There is deliberately no projection in the reverse
+direction to a caller-selected generator. -/
+private theorem SchedulerForwardParCuspArcAt.toArc
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    {before : List Link}
+    {left right conclusion : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep : Nat}
+    {rightSegment leftSegment arc complement
+      rotationPrefix rotationSuffix :
+        List certificate.fullGraph.DirectedEdge}
+    (terminalAt :
+      SchedulerForwardParCuspArcAt
+        certificate chainAt count flippedSegments traversed
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep
+              rightSegment leftSegment arc complement
+                rotationPrefix rotationSuffix)
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed) :
+    SchedulerForwardParCuspArc
+      certificate chainAt count flippedSegments traversed := by
+  exact
+    ⟨state, before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep,
+      rightSegment, leftSegment, arc, complement,
+      rotationPrefix, rotationSuffix, terminalAt⟩
 
 /-- Every terminal forward cusp exposes the exact position-aware scheduler
 obstruction that also supplies its concrete cusp occurrences. -/
@@ -28823,6 +28907,186 @@ private theorem
           ⟨normalizedEmpty, normalizedReduced, obstruction, located,
             closingShape⟩
 
+/-- Normalize the fixed complementary interval of an explicit terminal
+forward cusp.  Unlike the legacy wrapper, this theorem never re-selects the
+complement existentially. -/
+private theorem
+    SchedulerForwardParCuspArcAt.complement_reverseShell_normalForm
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {traversed : List certificate.fullGraph.DirectedEdge}
+    {before : List Link}
+    {left right conclusion : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep : Nat}
+    {rightSegment leftSegment arc complement
+      rotationPrefix rotationSuffix :
+        List certificate.fullGraph.DirectedEdge}
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (state :
+      SchedulerCyclicParState
+        certificate chainAt count flippedSegments traversed)
+    (terminal :
+      SchedulerForwardParCuspArcAt
+        certificate chainAt count flippedSegments traversed
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep
+              rightSegment leftSegment arc complement
+                rotationPrefix rotationSuffix) :
+    ∃ (normalizedBase : Vertex)
+        (normalized : List certificate.fullGraph.DirectedEdge),
+      CyclicIntervalCut complement traversed ∧
+        complement ≠ [] ∧
+          certificate.fullGraph.EdgeWalk
+            conclusion complement conclusion ∧
+            certificate.CuspFreeTraversal complement ∧
+              certificate.fullGraph.EdgeWalk
+                normalizedBase normalized normalizedBase ∧
+                Graph.EdgeWalk.CyclicImmediateReverseNormalization
+                  complement normalized ∧
+                  Graph.EdgeWalk.CyclicReverseShellNormalization
+                    complement normalized ∧
+                    ∃ opening,
+                      complement =
+                        opening ++ normalized ++
+                          Graph.EdgeWalk.reverseTraversal opening ∧
+                        complement.length =
+                          normalized.length + 2 * opening.length ∧
+                          (normalized = [] ∨
+                            normalized ≠ [] ∧
+                              Graph.EdgeWalk.CyclicNoImmediateReverse
+                                normalized ∧
+                                NormalizedNonemptyParObstruction
+                                  certificate normalized ∧
+                                  SchedulerLocatedParObstruction
+                                    certificate chainAt count flippedSegments
+                                      normalized ∧
+                                    ((∀ first last,
+                                      normalized.head? = some first →
+                                        normalized.getLast? = some last →
+                                          ¬certificate.Cusp last first) ∨
+                                      NontrivialClosingParCusp
+                                        certificate normalized)) := by
+  rcases terminal with
+    ⟨_positioned, _leftForward, arcNonempty,
+      _arcWalk, _arcFree, _arcHead, _arcLast,
+      _terminalCusp, _terminalNontrivial,
+      traversedRotation, intervalRotation,
+      complementNonempty, complementWalk,
+      arcsFree, _arcsClosing⟩
+  have arcLengthPositive : 0 < arc.length :=
+    List.length_pos_iff.mpr arcNonempty
+  have complementShorter :
+      complement.length < traversed.length := by
+    have lengthEquation :
+        arc.length + complement.length = traversed.length := by
+      calc
+        arc.length + complement.length =
+            (arc ++ complement).length := by simp
+        _ = (rotationSuffix ++ rotationPrefix).length := by
+          rw [intervalRotation]
+        _ = (rotationPrefix ++ rotationSuffix).length := by
+          simp [List.length_append, Nat.add_comm]
+        _ = traversed.length := by rw [traversedRotation]
+    omega
+  have complementCut :
+      CyclicIntervalCut complement traversed :=
+    ⟨rotationPrefix, rotationSuffix, arc, [],
+      traversedRotation, by
+        simpa [List.append_assoc] using intervalRotation.symm,
+      complementShorter⟩
+  have complementFree :
+      certificate.CuspFreeTraversal complement :=
+    CuspFreeTraversal.suffix certificate arcsFree
+  rcases
+      complementWalk.normalizeCyclicImmediateReversalsTraced with
+    ⟨normalizedBase, normalized, normalizedWalk, normalization,
+      normalizedShape⟩
+  have complementNoImmediateReverse :
+      Graph.EdgeWalk.NoImmediateReverse complement :=
+    noImmediateReverse_of_cuspFreeTraversal complementFree
+  have reverseShells :
+      Graph.EdgeWalk.CyclicReverseShellNormalization
+        complement normalized :=
+    normalization.reverseShells_of_noImmediateReverse
+      complementNoImmediateReverse
+  rcases reverseShells.length_eq with
+    ⟨opening, shellEquation, shellLength⟩
+  refine
+    ⟨normalizedBase, normalized, complementCut,
+      complementNonempty, complementWalk, complementFree,
+      normalizedWalk, normalization, reverseShells,
+      opening, shellEquation, shellLength, ?_⟩
+  rcases normalizedShape with normalizedEmpty | normalizedReduced
+  · exact .inl normalizedEmpty
+  · by_cases normalizedEmpty : normalized = []
+    · exact .inl normalizedEmpty
+    · have normalizedInTraversed :
+          ∀ directed,
+            directed ∈ normalized →
+              directed ∈ traversed := by
+        intro directed membership
+        exact complementCut.mem_larger
+          (normalization.membership_subset directed membership)
+      rcases state with
+        ⟨_base, _traversedNonempty, _closedWalk, _cuspFree,
+          _closingCuspFree, forwardKept, schedulerProvenance,
+          _obstruction, _schedulerLocated⟩
+      have normalizedForwardKept :
+          ∀ directed,
+            directed ∈ normalized →
+              directed.forward = true →
+                certificate.referenceSwitchingMask[directed.index]? =
+                  some true := by
+        intro directed membership forward
+        exact forwardKept directed
+          (normalizedInTraversed directed membership) forward
+      have normalizedProvenance :
+          ∀ directed,
+            directed ∈ normalized →
+              ∃ step segment,
+                step < count ∧
+                  flippedSegments[step]? = some segment ∧
+                    directed ∈ segment ∧
+                      QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                        certificate
+                          (chainAt step) (chainAt (step + 1))
+                            segment := by
+        intro directed membership
+        exact schedulerProvenance directed
+          (normalizedInTraversed directed membership)
+      have rawObstruction :=
+        correct.cyclicNoImmediateReverse_uses_backwardRightPar
+          normalizedEmpty normalizedWalk normalizedReduced
+            normalizedForwardKept
+      have obstruction :
+          NormalizedNonemptyParObstruction certificate normalized := by
+        simpa [NormalizedNonemptyParObstruction] using rawObstruction
+      have located :
+          SchedulerLocatedParObstruction
+            certificate chainAt count flippedSegments normalized :=
+        obstruction.schedulerLocated
+          normalizedProvenance prefixInjective
+      have closingShape :=
+        closingCuspFree_or_nontrivialPar_of_cyclicNoImmediateReverse
+          (certificate := certificate) normalizedReduced
+      exact
+        .inr
+          ⟨normalizedEmpty, normalizedReduced, obstruction, located,
+            closingShape⟩
+
 /-- One generic cyclic-interval step.  Rotating the omitted right occurrence
 to the head exposes the retained left occurrence at a unique later list
 position.  A forward retained left closes a par-cusp arc.  A backward retained
@@ -28874,8 +29138,13 @@ private theorem
       (rightOccurrence :: rightAfter) ++ rightBefore =
         leftBefore ++ leftOccurrence :: leftAfter)
     (leftBeforeNonempty : leftBefore ≠ []) :
-    SchedulerForwardParCuspArc
-        certificate chainAt count flippedSegments traversed ∨
+    SchedulerForwardParCuspArcAt
+        certificate chainAt count flippedSegments traversed
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep
+              rightSegment leftSegment
+                (leftBefore ++ [leftOccurrence]) leftAfter
+                  rightBefore (rightOccurrence :: rightAfter) ∨
       (leftOccurrence.forward = false ∧
         SchedulerCyclicParState
             certificate chainAt count flippedSegments
@@ -29111,18 +29380,12 @@ private theorem
         rw [intervalEquation]
         exact rotatedClosing
       exact .inl
-        ⟨originalState,
-          before, left, right, conclusion, after,
-          leftOccurrence, rightOccurrence, rightStep, leftStep,
-          rightSegment, leftSegment,
-          leftBefore ++ [leftOccurrence], leftAfter,
-            rightBefore, rightOccurrence :: rightAfter,
-            positionedForTerminal,
-            leftOrientation, by simp, firstWalk, firstFree,
-            firstHead, firstLast,
-            chordCusp_of_forward leftOrientation, differentReverse,
-            rightTraversal, intervalEquation, complementNonempty,
-            complementWalk, arcsFree, arcsClosing⟩
+        ⟨positionedForTerminal,
+          leftOrientation, by simp, firstWalk, firstFree,
+          firstHead, firstLast,
+          chordCusp_of_forward leftOrientation, differentReverse,
+          rightTraversal, intervalEquation, complementNonempty,
+          complementWalk, arcsFree, arcsClosing⟩
   | false =>
       have leftSource :
           leftOccurrence.source = conclusion := by
@@ -29332,7 +29595,7 @@ private theorem schedulerCyclicParState_forward_or_descends
         correct prefixInjective originalState positionedForCore
           rightTraversal leftTraversal leftBeforeNonempty with
     terminal | ⟨_leftBackward, shorterState, intervalCut⟩
-  · exact .inl terminal
+  · exact .inl (terminal.toArc originalState)
   · exact
       .inr
         ⟨leftOccurrence :: leftAfter,
@@ -29357,11 +29620,499 @@ private def SchedulerTaggedForwardParCuspState
       certificate chainAt count flippedSegments
         (tagged.map SchedulerOccurrence.erase)
 
+/-- Generator-exact tagged terminal forward cusp.  The terminal arc and its
+complement are fixed tagged intervals whose erasures are the corresponding
+explicit edge-level intervals. -/
+private def SchedulerTaggedForwardParCuspArcAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged taggedArc taggedComplement rotationPrefix rotationSuffix :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (before : List Link)
+    (left right conclusion : Vertex)
+    (after : List Link)
+    (leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge)
+    (rightStep leftStep leftOffset : Nat)
+    (rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  SchedulerTaggedCyclicParState
+      certificate chainAt count flippedSegments tagged ∧
+    SchedulerTaggedPositionedParObstructionAt
+      certificate chainAt count flippedSegments tagged
+        before left right conclusion after
+          leftOccurrence rightOccurrence rightStep leftStep leftOffset
+            rightSegment leftSegment ∧
+      taggedArc ≠ [] ∧
+        taggedComplement ≠ [] ∧
+          tagged = rotationPrefix ++ rotationSuffix ∧
+            taggedArc ++ taggedComplement =
+              rotationSuffix ++ rotationPrefix ∧
+              taggedArc.head? =
+                some
+                  ({ step := rightStep,
+                     offset := 0,
+                     value := rightOccurrence } :
+                    SchedulerOccurrence
+                      certificate.fullGraph.DirectedEdge) ∧
+                taggedArc.getLast? =
+                  some
+                    ({ step := leftStep,
+                       offset := leftOffset,
+                       value := leftOccurrence } :
+                      SchedulerOccurrence
+                        certificate.fullGraph.DirectedEdge) ∧
+                  SchedulerForwardParCuspArcAt
+                    certificate chainAt count flippedSegments
+                      (tagged.map SchedulerOccurrence.erase)
+                        before left right conclusion after
+                          leftOccurrence rightOccurrence rightStep leftStep
+                            rightSegment leftSegment
+                              (taggedArc.map SchedulerOccurrence.erase)
+                              (taggedComplement.map SchedulerOccurrence.erase)
+                               (rotationPrefix.map SchedulerOccurrence.erase)
+                               (rotationSuffix.map SchedulerOccurrence.erase)
+
+/-- The fixed tagged complement is a strict cyclic interval of the parent
+because the same exact terminal witness supplies the nonempty omitted arc and
+both cyclic rotation equations. -/
+private theorem SchedulerTaggedForwardParCuspArcAt.complementCut
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged taggedArc taggedComplement rotationPrefix rotationSuffix :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {before : List Link}
+    {left right conclusion : Vertex}
+    {after : List Link}
+    {leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge}
+    {rightStep leftStep leftOffset : Nat}
+    {rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge}
+    (terminal :
+      SchedulerTaggedForwardParCuspArcAt
+        certificate chainAt count flippedSegments
+          tagged taggedArc taggedComplement rotationPrefix rotationSuffix
+            before left right conclusion after
+              leftOccurrence rightOccurrence rightStep leftStep leftOffset
+                rightSegment leftSegment) :
+    CyclicIntervalCut taggedComplement tagged := by
+  rcases terminal with
+    ⟨_taggedState, _positioned, arcNonempty, _complementNonempty,
+      taggedRotation, intervalRotation, _arcHead, _arcLast,
+      _edgeTerminal⟩
+  have shorter : taggedComplement.length < tagged.length := by
+    have arcPositive : 0 < taggedArc.length :=
+      List.length_pos_iff.mpr arcNonempty
+    have lengthEquation :
+        taggedArc.length + taggedComplement.length = tagged.length := by
+      calc
+        taggedArc.length + taggedComplement.length =
+            (taggedArc ++ taggedComplement).length := by simp
+        _ = (rotationSuffix ++ rotationPrefix).length := by
+          rw [intervalRotation]
+        _ = (rotationPrefix ++ rotationSuffix).length := by
+          simp [List.length_append, Nat.add_comm]
+        _ = tagged.length := by rw [taggedRotation]
+    omega
+  exact
+    ⟨rotationPrefix, rotationSuffix, taggedArc, [],
+      taggedRotation, by
+        simpa [List.append_assoc] using intervalRotation.symm,
+      shorter⟩
+
+/-- Existential wrapper retaining one exact tagged terminal generator and its
+fixed complementary interval. -/
+private def SchedulerTaggedForwardParCuspStateExact
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ (taggedArc taggedComplement rotationPrefix rotationSuffix :
+        List
+          (SchedulerOccurrence
+            certificate.fullGraph.DirectedEdge))
+      (before : List Link) (left right conclusion : Vertex)
+      (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (rightStep leftStep leftOffset : Nat)
+      (rightSegment leftSegment :
+        List certificate.fullGraph.DirectedEdge),
+    SchedulerTaggedForwardParCuspArcAt
+      certificate chainAt count flippedSegments
+        tagged taggedArc taggedComplement rotationPrefix rotationSuffix
+          before left right conclusion after
+            leftOccurrence rightOccurrence rightStep leftStep leftOffset
+              rightSegment leftSegment
+
+namespace SchedulerTaggedForwardParCuspStateExact
+
+/-- Forget exact tagged interval identity and recover the legacy terminal
+state.  No converse selector is provided. -/
+private theorem old
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspStateExact
+        certificate chainAt count flippedSegments tagged) :
+    SchedulerTaggedForwardParCuspState
+      certificate chainAt count flippedSegments tagged := by
+  rcases terminal with
+    ⟨taggedArc, taggedComplement, rotationPrefix, rotationSuffix,
+      before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, taggedState, _positioned,
+      _arcNonempty, _complementNonempty, _taggedRotation,
+      _intervalRotation, _arcHead, _arcLast, edgeTerminal⟩
+  exact ⟨taggedState, edgeTerminal.toArc taggedState.erased⟩
+
+/-- Recover the semantic tagged state at the exact terminal interval. -/
+private theorem state
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspStateExact
+        certificate chainAt count flippedSegments tagged) :
+    SchedulerTaggedCyclicParState
+      certificate chainAt count flippedSegments tagged := by
+  rcases terminal with
+    ⟨_taggedArc, _taggedComplement, _rotationPrefix, _rotationSuffix,
+      _before, _left, _right, _conclusion, _after,
+      _leftOccurrence, _rightOccurrence, _rightStep, _leftStep, _leftOffset,
+      _rightSegment, _leftSegment, taggedState, _rest⟩
+  exact taggedState
+
+/-- The fixed terminal complement is a strict cyclic interval of the exact
+tagged parent. -/
+private theorem cut
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (terminal :
+      SchedulerTaggedForwardParCuspStateExact
+        certificate chainAt count flippedSegments tagged) :
+    ∃ taggedComplement,
+      CyclicIntervalCut taggedComplement tagged := by
+  rcases terminal with
+    ⟨taggedArc, taggedComplement, rotationPrefix, rotationSuffix,
+      before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, terminalAt⟩
+  exact ⟨taggedComplement, terminalAt.complementCut⟩
+
+end SchedulerTaggedForwardParCuspStateExact
+
+/-- One exact terminal-complement normalization step.  The tagged terminal
+generator, fixed complement, strict cut, closed cusp-free complement walk, and
+reverse-shell normalization all share the displayed data. -/
+private def SchedulerTaggedTerminalComplementStepAt
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (current taggedArc taggedComplement taggedNormalized
+      rotationPrefix rotationSuffix :
+        List
+          (SchedulerOccurrence
+            certificate.fullGraph.DirectedEdge))
+    (before : List Link)
+    (left right complementBase : Vertex)
+    (after : List Link)
+    (leftOccurrence rightOccurrence :
+      certificate.fullGraph.DirectedEdge)
+    (rightStep leftStep leftOffset : Nat)
+    (rightSegment leftSegment :
+      List certificate.fullGraph.DirectedEdge) : Prop :=
+  SchedulerTaggedForwardParCuspArcAt
+      certificate chainAt count flippedSegments
+        current taggedArc taggedComplement rotationPrefix rotationSuffix
+          before left right complementBase after
+            leftOccurrence rightOccurrence rightStep leftStep leftOffset
+              rightSegment leftSegment ∧
+    taggedComplement ≠ [] ∧
+      certificate.fullGraph.EdgeWalk
+        complementBase
+          (taggedComplement.map SchedulerOccurrence.erase)
+            complementBase ∧
+        certificate.CuspFreeTraversal
+          (taggedComplement.map SchedulerOccurrence.erase) ∧
+          SchedulerCyclicReverseShellNormalization
+            taggedComplement taggedNormalized
+
+/-- Existential wrapper for one exact terminal-complement step, indexed by the
+parent, complement base, complement, and normalized core used downstream. -/
+private def SchedulerTaggedTerminalComplementStep
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (current :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge))
+    (complementBase : Vertex)
+    (taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ (taggedArc rotationPrefix rotationSuffix :
+        List
+          (SchedulerOccurrence
+            certificate.fullGraph.DirectedEdge))
+      (before : List Link) (left right : Vertex)
+      (after : List Link)
+      (leftOccurrence rightOccurrence :
+        certificate.fullGraph.DirectedEdge)
+      (rightStep leftStep leftOffset : Nat)
+      (rightSegment leftSegment :
+        List certificate.fullGraph.DirectedEdge),
+    SchedulerTaggedTerminalComplementStepAt
+      certificate chainAt count flippedSegments
+        current taggedArc taggedComplement taggedNormalized
+          rotationPrefix rotationSuffix
+            before left right complementBase after
+              leftOccurrence rightOccurrence rightStep leftStep leftOffset
+                rightSegment leftSegment
+
+namespace SchedulerTaggedTerminalComplementStep
+
+private theorem exact
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    SchedulerTaggedForwardParCuspStateExact
+      certificate chainAt count flippedSegments current := by
+  rcases step with
+    ⟨taggedArc, rotationPrefix, rotationSuffix,
+      before, left, right, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, terminalAt,
+      _complementNonempty, _complementWalk, _complementFree,
+      _reverseShells⟩
+  exact
+    ⟨taggedArc, taggedComplement, rotationPrefix, rotationSuffix,
+      before, left, right, complementBase, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, terminalAt⟩
+
+private theorem old
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    SchedulerTaggedForwardParCuspState
+      certificate chainAt count flippedSegments current :=
+  step.exact.old
+
+private theorem cut
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    CyclicIntervalCut taggedComplement current := by
+  rcases step with
+    ⟨taggedArc, rotationPrefix, rotationSuffix,
+      before, left, right, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, terminalAt, _rest⟩
+  exact terminalAt.complementCut
+
+private theorem complementNonempty
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    taggedComplement ≠ [] := by
+  rcases step with
+    ⟨_taggedArc, _rotationPrefix, _rotationSuffix,
+      _before, _left, _right, _after,
+      _leftOccurrence, _rightOccurrence, _rightStep, _leftStep, _leftOffset,
+      _rightSegment, _leftSegment, _terminalAt, complementNonempty, _rest⟩
+  exact complementNonempty
+
+private theorem complementWalk
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    certificate.fullGraph.EdgeWalk
+      complementBase
+        (taggedComplement.map SchedulerOccurrence.erase)
+          complementBase := by
+  rcases step with
+    ⟨_taggedArc, _rotationPrefix, _rotationSuffix,
+      _before, _left, _right, _after,
+      _leftOccurrence, _rightOccurrence, _rightStep, _leftStep, _leftOffset,
+      _rightSegment, _leftSegment, _terminalAt,
+      _complementNonempty, complementWalk, _rest⟩
+  exact complementWalk
+
+private theorem complementFree
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    certificate.CuspFreeTraversal
+      (taggedComplement.map SchedulerOccurrence.erase) := by
+  rcases step with
+    ⟨_taggedArc, _rotationPrefix, _rotationSuffix,
+      _before, _left, _right, _after,
+      _leftOccurrence, _rightOccurrence, _rightStep, _leftStep, _leftOffset,
+      _rightSegment, _leftSegment, _terminalAt,
+      _complementNonempty, _complementWalk, complementFree, _rest⟩
+  exact complementFree
+
+private theorem reverseShells
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    SchedulerCyclicReverseShellNormalization
+      taggedComplement taggedNormalized := by
+  rcases step with
+    ⟨_taggedArc, _rotationPrefix, _rotationSuffix,
+      _before, _left, _right, _after,
+      _leftOccurrence, _rightOccurrence, _rightStep, _leftStep, _leftOffset,
+      _rightSegment, _leftSegment, _terminalAt,
+      _complementNonempty, _complementWalk, _complementFree,
+      reverseShells⟩
+  exact reverseShells
+
+private theorem descent
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {current taggedComplement taggedNormalized :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    {complementBase : Vertex}
+    (step :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          current complementBase taggedComplement taggedNormalized) :
+    CyclicIntervalDescent taggedNormalized current :=
+  step.reverseShells.descent.trans
+    (.step step.cut (.refl taggedComplement))
+
+end SchedulerTaggedTerminalComplementStep
+
 /-- Run one forward-or-descends step on the exact scheduler occurrences
 selected by the tagged positioned obstruction.  A backward result keeps the
 same generator, both cyclic decompositions, the retained suffix, and the
 derived strict cut; no erased edge-value position is lifted back into tags. -/
-private theorem schedulerTaggedCyclicParState_forward_or_descends
+private theorem schedulerTaggedCyclicParState_forward_or_descends_exact
     {certificate : Certificate}
     {chainAt : Nat → Vertex}
     {count : Nat}
@@ -29392,7 +30143,7 @@ private theorem schedulerTaggedCyclicParState_forward_or_descends
     (state :
       SchedulerTaggedCyclicParState
         certificate chainAt count flippedSegments tagged) :
-    SchedulerTaggedForwardParCuspState
+    SchedulerTaggedForwardParCuspStateExact
         certificate chainAt count flippedSegments tagged ∨
       ∃ smaller,
         SchedulerTaggedCyclicParState
@@ -29451,7 +30202,68 @@ private theorem schedulerTaggedCyclicParState_forward_or_descends
           edgeRightTraversal edgeLeftTraversal
             edgeLeftBeforeNonempty with
     terminal | ⟨leftBackward, shorterState, _edgeCut⟩
-  · exact .inl ⟨state, terminal⟩
+  ·
+    have edgeComplementNonempty :
+        leftAfter.map SchedulerOccurrence.erase ≠ [] := by
+      rcases terminal with
+        ⟨_positioned, _leftForward, _arcNonempty,
+          _arcWalk, _arcFree, _arcHead, _arcLast,
+          _terminalCusp, _terminalNontrivial,
+          _edgeRotation, _edgeIntervalRotation,
+          complementNonempty, _complementWalk,
+          _arcsFree, _arcsClosing⟩
+      exact complementNonempty
+    have taggedComplementNonempty : leftAfter ≠ [] := by
+      intro complementEmpty
+      subst leftAfter
+      exact edgeComplementNonempty (by simp)
+    have rotatedHead :
+        ((rightTag :: rightAfter) ++ rightBefore).head? =
+          some rightTag := by
+      simp
+    have leftBeforeHead : leftBefore.head? = some rightTag := by
+      have headEquation := rotatedHead
+      rw [leftTraversal] at headEquation
+      cases leftBefore with
+      | nil =>
+          exact False.elim (leftBeforeNonempty rfl)
+      | cons first rest =>
+          simpa using headEquation
+    have taggedArcHead :
+        (leftBefore ++ [leftTag]).head? = some rightTag := by
+      rw [List.head?_append, leftBeforeHead]
+      simp
+    have taggedArcLast :
+        (leftBefore ++ [leftTag]).getLast? = some leftTag := by
+      simp [List.getLast?_append]
+    have taggedIntervalRotation :
+        (leftBefore ++ [leftTag]) ++ leftAfter =
+          (rightTag :: rightAfter) ++ rightBefore := by
+      simpa [List.append_assoc] using leftTraversal.symm
+    have mappedTerminal :
+        SchedulerForwardParCuspArcAt
+          certificate chainAt count flippedSegments
+            (tagged.map SchedulerOccurrence.erase)
+              before left right conclusion after
+                leftOccurrence rightOccurrence rightStep leftStep
+                  rightSegment leftSegment
+                    ((leftBefore ++ [leftTag]).map
+                      SchedulerOccurrence.erase)
+                    (leftAfter.map SchedulerOccurrence.erase)
+                    (rightBefore.map SchedulerOccurrence.erase)
+                    ((rightTag :: rightAfter).map
+                      SchedulerOccurrence.erase) := by
+      simpa [rightTag, leftTag, SchedulerOccurrence.erase] using terminal
+    exact
+      .inl
+        ⟨leftBefore ++ [leftTag], leftAfter,
+          rightBefore, rightTag :: rightAfter,
+          before, left, right, conclusion, after,
+          leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+          rightSegment, leftSegment,
+          state, positioned, by simp, taggedComplementNonempty,
+          rightTraversal, taggedIntervalRotation,
+          taggedArcHead, taggedArcLast, mappedTerminal⟩
   ·
     have smallerErased :
         SchedulerCyclicParState
@@ -29489,6 +30301,54 @@ private theorem schedulerTaggedCyclicParState_forward_or_descends
     exact
       .inr
         ⟨leftTag :: leftAfter, smallerTagged, backward⟩
+
+/-- Compatibility projection for callers that only need the legacy terminal
+existential.  Exact callers use
+`schedulerTaggedCyclicParState_forward_or_descends_exact`. -/
+private theorem schedulerTaggedCyclicParState_forward_or_descends
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (segmentCount : flippedSegments.length = count)
+    (indexedFlipped :
+      ∀ step,
+        step < count →
+          ∃ segment,
+            flippedSegments[step]? = some segment ∧
+              QuiescentWaitingParDependencyFlippedTraversalAvoidsTargetLeft
+                certificate
+                  (chainAt step) (chainAt (step + 1))
+                    segment)
+    (correct : certificate.DeclarativelyCorrect)
+    (prefixInjective :
+      ∀ first,
+        first < count →
+          ∀ second,
+            second < count →
+              chainAt first = chainAt second →
+                first = second)
+    (state :
+      SchedulerTaggedCyclicParState
+        certificate chainAt count flippedSegments tagged) :
+    SchedulerTaggedForwardParCuspState
+        certificate chainAt count flippedSegments tagged ∨
+      ∃ smaller,
+        SchedulerTaggedCyclicParState
+            certificate chainAt count flippedSegments smaller ∧
+          SchedulerTaggedBackwardParCut
+            certificate chainAt count flippedSegments smaller tagged := by
+  rcases
+      schedulerTaggedCyclicParState_forward_or_descends_exact
+        segmentCount indexedFlipped correct prefixInjective state with
+    terminal | shorter
+  · exact .inl terminal.old
+  · exact .inr shorter
 
 /-- Finite tagged traversal length closes the recursive backward-chord branch
 without ever collapsing scheduler coordinates to edge-value membership. -/
@@ -29568,7 +30428,7 @@ private inductive SchedulerTaggedForwardSearchTrace
           (SchedulerOccurrence
             certificate.fullGraph.DirectedEdge)}
       (state :
-        SchedulerTaggedForwardParCuspState
+        SchedulerTaggedForwardParCuspStateExact
           certificate chainAt count flippedSegments tagged) :
       SchedulerTaggedForwardSearchTrace
         certificate chainAt count flippedSegments tagged tagged
@@ -29620,8 +30480,8 @@ end SchedulerTaggedForwardSearchTrace
 
 /-- Traced companion to `schedulerTaggedCyclicParState_forward_exists`.
 Unlike the projection theorem, it keeps every intermediate tagged state and
-generator-exact backward cut.  Binding the terminal complement to the exact
-forward-cusp generator remains a separate obligation. -/
+generator-exact backward cut, then returns an exact terminal forward-cusp
+frame whose complement is fixed by that same generator witness. -/
 private theorem schedulerTaggedCyclicParState_forward_exists_traced
     {certificate : Certificate}
     {chainAt : Nat → Vertex}
@@ -29654,12 +30514,12 @@ private theorem schedulerTaggedCyclicParState_forward_exists_traced
       SchedulerTaggedCyclicParState
         certificate chainAt count flippedSegments tagged) :
     ∃ terminal,
-      SchedulerTaggedForwardParCuspState
+      SchedulerTaggedForwardParCuspStateExact
           certificate chainAt count flippedSegments terminal ∧
         SchedulerTaggedForwardSearchTrace
           certificate chainAt count flippedSegments terminal tagged := by
   rcases
-      schedulerTaggedCyclicParState_forward_or_descends
+      schedulerTaggedCyclicParState_forward_or_descends_exact
         segmentCount indexedFlipped correct prefixInjective state with
     terminal | ⟨smaller, smallerState, backward⟩
   · exact
@@ -29678,13 +30538,14 @@ decreasing_by
   exact backward.cut.length_lt
 
 /-- Strip a terminal complement without discarding scheduler coordinates.
-The edge-level complement cut and every reverse shell are lifted from their
-proof-relevant decompositions.  If a nonempty closing-cusp-free core survives,
-its exact tagged descent is composed with the original scheduler descent,
-the positioned obstruction is recomputed there, and recursive chord descent
-continues on those same surviving tags. -/
+The complement is fixed by the tagged terminal generator before erasure; only
+the reverse-shell normalization is lifted from its proof-relevant
+decompositions.  If a nonempty closing-cusp-free core survives, its exact
+tagged descent is composed with the original scheduler descent, the positioned
+obstruction is recomputed there, and recursive chord descent continues on
+those same surviving tags. -/
 private theorem
-    SchedulerTaggedForwardParCuspState.complement_empty_or_nestedForward_or_closingPar
+    SchedulerTaggedForwardParCuspStateExact.complement_empty_or_nestedForward_or_closingPar
     {certificate : Certificate}
     {chainAt : Nat → Vertex}
     {count : Nat}
@@ -29713,49 +30574,59 @@ private theorem
               chainAt first = chainAt second →
                 first = second)
     (terminal :
-      SchedulerTaggedForwardParCuspState
+      SchedulerTaggedForwardParCuspStateExact
         certificate chainAt count flippedSegments tagged) :
     ∃ complementBase taggedComplement taggedNormalized,
-      CyclicIntervalCut taggedComplement tagged ∧
-        taggedComplement ≠ [] ∧
-          certificate.fullGraph.EdgeWalk
-            complementBase
-              (taggedComplement.map SchedulerOccurrence.erase)
-                complementBase ∧
-            certificate.CuspFreeTraversal
-              (taggedComplement.map SchedulerOccurrence.erase) ∧
-              SchedulerCyclicReverseShellNormalization
-                taggedComplement taggedNormalized ∧
-                (taggedNormalized = [] ∨
-                  (SchedulerTaggedPositionedParObstruction
-                      certificate chainAt count flippedSegments
-                        taggedNormalized ∧
-                    NontrivialClosingParCusp certificate
-                      (taggedNormalized.map SchedulerOccurrence.erase)) ∨
-                  ∃ nested,
-                    SchedulerTaggedCyclicParState
-                        certificate chainAt count flippedSegments
-                          taggedNormalized ∧
-                      SchedulerTaggedForwardParCuspState
-                        certificate chainAt count flippedSegments nested ∧
-                    SchedulerTaggedForwardSearchTrace
-                      certificate chainAt count flippedSegments
-                        nested taggedNormalized) := by
+      SchedulerTaggedTerminalComplementStep
+          certificate chainAt count flippedSegments
+            tagged complementBase taggedComplement taggedNormalized ∧
+        (taggedNormalized = [] ∨
+          (SchedulerTaggedPositionedParObstruction
+              certificate chainAt count flippedSegments
+                taggedNormalized ∧
+            NontrivialClosingParCusp certificate
+              (taggedNormalized.map SchedulerOccurrence.erase)) ∨
+          ∃ nested,
+            SchedulerTaggedCyclicParState
+                certificate chainAt count flippedSegments
+                  taggedNormalized ∧
+              SchedulerTaggedForwardParCuspStateExact
+                certificate chainAt count flippedSegments nested ∧
+            SchedulerTaggedForwardSearchTrace
+              certificate chainAt count flippedSegments
+                nested taggedNormalized) := by
+  rcases terminal with
+    ⟨taggedArc, taggedComplement, rotationPrefix, rotationSuffix,
+      before, left, right, conclusion, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, taggedState, taggedPositioned,
+      taggedArcNonempty, taggedComplementNonempty,
+      taggedRotation, taggedIntervalRotation,
+      taggedArcHead, taggedArcLast, edgeTerminal⟩
+  have taggedTerminalAt :
+      SchedulerTaggedForwardParCuspArcAt
+        certificate chainAt count flippedSegments
+          tagged taggedArc taggedComplement rotationPrefix rotationSuffix
+            before left right conclusion after
+              leftOccurrence rightOccurrence rightStep leftStep leftOffset
+                rightSegment leftSegment :=
+    ⟨taggedState, taggedPositioned,
+      taggedArcNonempty, taggedComplementNonempty,
+      taggedRotation, taggedIntervalRotation,
+      taggedArcHead, taggedArcLast, edgeTerminal⟩
+  have taggedComplementCut :
+      CyclicIntervalCut taggedComplement tagged :=
+    taggedTerminalAt.complementCut
   rcases
-      terminal.2.complement_reverseShell_normalForm
-        correct prefixInjective with
-    ⟨conclusion, normalizedBase, complement, normalized,
-      complementCut, complementNonempty, complementWalk,
+      edgeTerminal.complement_reverseShell_normalForm
+        correct prefixInjective taggedState.erased with
+    ⟨normalizedBase, normalized,
+      complementCut, _edgeComplementNonempty, complementWalk,
       complementFree, normalizedWalk, normalization, reverseShells,
       opening, shellEquation, _shellLength, normalizedShape⟩
   rcases
-      complementCut.exists_lift_map
-        (function := SchedulerOccurrence.erase)
-        (tagged := tagged) rfl with
-    ⟨taggedComplement, complementMap, taggedComplementCut⟩
-  rcases
       SchedulerCyclicReverseShellNormalization.exists_lift_map
-        complementMap reverseShells with
+        (tagged := taggedComplement) rfl reverseShells with
     ⟨taggedNormalized, normalizedMap, taggedReverseShells⟩
   have taggedComplementDescent :
       CyclicIntervalDescent taggedComplement tagged :=
@@ -29766,27 +30637,33 @@ private theorem
   have taggedNormalizedFullDescent :
       CyclicIntervalDescent taggedNormalized
         (tagSchedulerFamily flippedSegments) :=
-    taggedNormalizedDescent.trans terminal.1.2.1
+    taggedNormalizedDescent.trans taggedState.2.1
   have taggedNormalizedProvenance :
       SchedulerTaggedProvenance
         certificate chainAt count flippedSegments taggedNormalized :=
     taggedNormalizedFullDescent.schedulerTaggedProvenance
       segmentCount indexedFlipped
-  have taggedComplementNonempty : taggedComplement ≠ [] := by
-    intro taggedComplementEmpty
-    subst taggedComplement
-    apply complementNonempty
-    simpa using complementMap.symm
+  have terminalStepAt :
+      SchedulerTaggedTerminalComplementStepAt
+        certificate chainAt count flippedSegments
+          tagged taggedArc taggedComplement taggedNormalized
+            rotationPrefix rotationSuffix
+              before left right conclusion after
+                leftOccurrence rightOccurrence rightStep leftStep leftOffset
+                  rightSegment leftSegment :=
+    ⟨taggedTerminalAt, taggedComplementNonempty, complementWalk,
+      complementFree, taggedReverseShells⟩
+  have terminalStep :
+      SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          tagged conclusion taggedComplement taggedNormalized :=
+    ⟨taggedArc, rotationPrefix, rotationSuffix,
+      before, left, right, after,
+      leftOccurrence, rightOccurrence, rightStep, leftStep, leftOffset,
+      rightSegment, leftSegment, terminalStepAt⟩
   refine
     ⟨conclusion, taggedComplement, taggedNormalized,
-      taggedComplementCut, taggedComplementNonempty,
-      by
-        rw [complementMap]
-        exact complementWalk,
-      by
-        rw [complementMap]
-        exact complementFree,
-      taggedReverseShells, ?_⟩
+      terminalStep, ?_⟩
   rcases normalizedShape with
     normalizedEmpty |
       ⟨normalizedNonempty, _normalizedReduced, obstruction,
@@ -29815,7 +30692,7 @@ private theorem
       have normalizedFree :
           certificate.CuspFreeTraversal normalized :=
         CuspFreeTraversal.prefix certificate suffixFree
-      rcases terminal.2.1 with
+      rcases taggedState.1 with
         ⟨_base, _taggedNonempty, _taggedWalk,
           _taggedFree, _taggedClosing, forwardKept,
           schedulerProvenance, _taggedObstruction,
@@ -29866,7 +30743,7 @@ private theorem
       have taggedNormalizedState :
           SchedulerTaggedCyclicParState
             certificate chainAt count flippedSegments taggedNormalized :=
-        terminal.1.ofDescent
+        taggedState.ofDescent
           taggedNormalizedDescent taggedNormalizedEdgeState
             segmentCount indexedFlipped prefixInjective
       rcases
@@ -29930,14 +30807,62 @@ private def SchedulerTaggedTerminalNestingBase
                     NontrivialClosingParCusp certificate
                       (taggedNormalized.map SchedulerOccurrence.erase))
 
-/-- Proof-relevant ancestry of terminal-complement nesting.  A strict nesting
-step remembers the terminal cusp, the exact complement cut, its closed
-cusp-free walk, the reverse shells removed there, the scheduler state on the
-surviving core, and the complete forward search from that core to the next
-terminal cusp.  Thus the trace retains semantic states and decompositions that
-bare `CyclicIntervalDescent` forgets.  The constructor does not yet identify
-these fields with the existential complement stored in `currentState`; that
-requires a future explicit terminal-complement step relation. -/
+/-- Generator-exact terminal nesting base.  The terminal state and terminal
+complement outcome are joined by the same indexed normalization step. -/
+private def SchedulerTaggedTerminalNestingBaseExact
+    (certificate : Certificate)
+    (chainAt : Nat → Vertex)
+    (count : Nat)
+    (flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge))
+    (tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)) : Prop :=
+  ∃ complementBase taggedComplement taggedNormalized,
+    SchedulerTaggedTerminalComplementStep
+        certificate chainAt count flippedSegments
+          tagged complementBase taggedComplement taggedNormalized ∧
+      (taggedNormalized = [] ∨
+        SchedulerTaggedPositionedParObstruction
+            certificate chainAt count flippedSegments taggedNormalized ∧
+          NontrivialClosingParCusp certificate
+            (taggedNormalized.map SchedulerOccurrence.erase))
+
+namespace SchedulerTaggedTerminalNestingBaseExact
+
+/-- Forget terminal-generator identity and recover the legacy terminal-base
+package used by the existing empty-shell and closing-par analyses. -/
+private theorem old
+    {certificate : Certificate}
+    {chainAt : Nat → Vertex}
+    {count : Nat}
+    {flippedSegments :
+      List (List certificate.fullGraph.DirectedEdge)}
+    {tagged :
+      List
+        (SchedulerOccurrence
+          certificate.fullGraph.DirectedEdge)}
+    (baseState :
+      SchedulerTaggedTerminalNestingBaseExact
+        certificate chainAt count flippedSegments tagged) :
+    SchedulerTaggedTerminalNestingBase
+      certificate chainAt count flippedSegments tagged := by
+  rcases baseState with
+    ⟨complementBase, taggedComplement, taggedNormalized,
+      step, outcome⟩
+  exact
+    ⟨step.old, complementBase, taggedComplement, taggedNormalized,
+      step.cut, step.complementNonempty,
+      step.complementWalk, step.complementFree,
+      step.reverseShells, outcome⟩
+
+end SchedulerTaggedTerminalNestingBaseExact
+
+/-- Proof-relevant ancestry of terminal-complement nesting.  Every strict
+nesting constructor stores one generator-exact terminal-complement step, so
+the terminal cusp, complement interval, closed cusp-free walk, and reverse
+shells cannot be selected from different existential witnesses. -/
 private inductive SchedulerTaggedNestingTrace
     (certificate : Certificate)
     (chainAt : Nat → Vertex)
@@ -29957,7 +30882,7 @@ private inductive SchedulerTaggedNestingTrace
           (SchedulerOccurrence
             certificate.fullGraph.DirectedEdge)}
       (baseState :
-        SchedulerTaggedTerminalNestingBase
+        SchedulerTaggedTerminalNestingBaseExact
           certificate chainAt count flippedSegments base) :
       SchedulerTaggedNestingTrace
         certificate chainAt count flippedSegments base base
@@ -29966,21 +30891,11 @@ private inductive SchedulerTaggedNestingTrace
         List
           (SchedulerOccurrence
             certificate.fullGraph.DirectedEdge)}
-      (currentState :
-        SchedulerTaggedForwardParCuspState
-          certificate chainAt count flippedSegments current)
       (complementBase : Vertex)
-      (complementCut : CyclicIntervalCut complement current)
-      (complementNonempty : complement ≠ [])
-      (complementWalk :
-        certificate.fullGraph.EdgeWalk
-          complementBase (complement.map SchedulerOccurrence.erase)
-            complementBase)
-      (complementFree :
-        certificate.CuspFreeTraversal
-          (complement.map SchedulerOccurrence.erase))
-      (reverseShells :
-        SchedulerCyclicReverseShellNormalization complement normalized)
+      (step :
+        SchedulerTaggedTerminalComplementStep
+          certificate chainAt count flippedSegments
+            current complementBase complement normalized)
       (normalizedState :
         SchedulerTaggedCyclicParState
           certificate chainAt count flippedSegments normalized)
@@ -30013,20 +30928,17 @@ private theorem descent
   induction trace with
   | stop baseState =>
       exact .refl _
-  | nested currentState complementBase complementCut complementNonempty
-      complementWalk complementFree reverseShells normalizedState
-        forwardTrace tail induction =>
+  | nested complementBase step normalizedState forwardTrace tail induction =>
       exact
         induction.trans
-          (forwardTrace.descent.trans
-            (reverseShells.descent.trans
-              (.step complementCut (.refl _))))
+          (forwardTrace.descent.trans step.descent)
 
 end SchedulerTaggedNestingTrace
 
 /-- Complete state-and-interval ancestry from the final nesting base to the
-original scheduler family, split at the first terminal forward cusp.  It does
-not yet encode generator identity for every stored cut. -/
+original scheduler family, split at the first terminal forward cusp.  Backward
+cuts and terminal-complement steps retain their exact tagged generators; this
+trace does not by itself prove the later closing-seam exclusion. -/
 private def SchedulerTaggedGlobalNestingTrace
     (certificate : Certificate)
     (chainAt : Nat → Vertex)
@@ -32685,7 +33597,7 @@ private theorem
 Every complement cut, reverse shell, and nested forward-cusp descent remains
 composed into one trace back to the original scheduler interval. -/
 private theorem
-    SchedulerTaggedForwardParCuspState.nestingBase_exists
+    SchedulerTaggedForwardParCuspStateExact.nestingBase_exists
     {certificate : Certificate}
     {chainAt : Nat → Vertex}
     {count : Nat}
@@ -32714,10 +33626,10 @@ private theorem
               chainAt first = chainAt second →
                 first = second)
     (terminal :
-      SchedulerTaggedForwardParCuspState
+      SchedulerTaggedForwardParCuspStateExact
         certificate chainAt count flippedSegments tagged) :
     ∃ base,
-      SchedulerTaggedTerminalNestingBase
+      SchedulerTaggedTerminalNestingBaseExact
           certificate chainAt count flippedSegments base ∧
         SchedulerTaggedNestingTrace
           certificate chainAt count flippedSegments base tagged := by
@@ -32725,26 +33637,26 @@ private theorem
       terminal.complement_empty_or_nestedForward_or_closingPar
         segmentCount indexedFlipped correct prefixInjective with
     ⟨complementBase, taggedComplement, taggedNormalized,
-      complementCut, complementNonempty, complementWalk,
-      complementFree, reverseShells, outcome⟩
+      terminalStep, outcome⟩
+  have complementCut := terminalStep.cut
+  have complementNonempty := terminalStep.complementNonempty
+  have complementWalk := terminalStep.complementWalk
+  have complementFree := terminalStep.complementFree
+  have reverseShells := terminalStep.reverseShells
   rcases outcome with normalizedEmpty | closingOrNested
   · let baseState :
-        SchedulerTaggedTerminalNestingBase
+        SchedulerTaggedTerminalNestingBaseExact
           certificate chainAt count flippedSegments tagged :=
-      ⟨terminal, complementBase, taggedComplement,
-        taggedNormalized, complementCut, complementNonempty,
-        complementWalk, complementFree, reverseShells,
-        .inl normalizedEmpty⟩
+      ⟨complementBase, taggedComplement, taggedNormalized,
+        terminalStep, .inl normalizedEmpty⟩
     exact
       ⟨tagged, baseState, .stop baseState⟩
   · rcases closingOrNested with closingPar | nestedOutcome
     · let baseState :
-          SchedulerTaggedTerminalNestingBase
+          SchedulerTaggedTerminalNestingBaseExact
             certificate chainAt count flippedSegments tagged :=
-        ⟨terminal, complementBase, taggedComplement,
-          taggedNormalized, complementCut, complementNonempty,
-          complementWalk, complementFree, reverseShells,
-          .inr closingPar⟩
+        ⟨complementBase, taggedComplement, taggedNormalized,
+          terminalStep, .inr closingPar⟩
       exact
         ⟨tagged, baseState, .stop baseState⟩
     · rcases nestedOutcome with
@@ -32762,9 +33674,8 @@ private theorem
         ⟨base, baseState, tailTrace⟩
       exact
         ⟨base, baseState,
-          .nested terminal complementBase complementCut
-            complementNonempty complementWalk complementFree
-              reverseShells taggedNormalizedState forwardTrace tailTrace⟩
+          .nested complementBase terminalStep
+            taggedNormalizedState forwardTrace tailTrace⟩
 termination_by tagged.length
 decreasing_by
   exact nestedShorter
@@ -33117,9 +34028,10 @@ private theorem
         correct prefixInjective initialState⟩
 
 /-- Coordinate-exact companion to `flippedForwardParCuspArc_exists`.
-The full scheduler family is tagged before the first cut, every recursive cut
-is lifted positionally, and the terminal erased cusp state is accompanied by
-one exact descent of scheduler visits. -/
+The full scheduler family is tagged before the first cut, every recursive
+backward cut remains generator-exact, and the terminal frame fixes its tagged
+complement.  Later normalization only lifts the source-fixed reverse-shell
+decomposition positionally. -/
 private theorem
     FullyCancellingDependencyCycleAllReflexive.flippedTaggedForwardParCuspState_exists
     {certificate : Certificate}
@@ -33153,7 +34065,7 @@ private theorem
                     (chainAt step) (chainAt (step + 1))
                       segment) ∧
           ∃ terminal,
-            SchedulerTaggedForwardParCuspState
+            SchedulerTaggedForwardParCuspStateExact
                 certificate chainAt count flippedSegments terminal ∧
               SchedulerTaggedForwardSearchTrace
                 certificate chainAt count flippedSegments
@@ -33193,10 +34105,13 @@ private theorem
       closingCuspFree, allForwardKept, schedulerProvenance,
       obstruction, schedulerLocated⟩
   have initialTagged := initialState.taggedInitial
+  rcases
+      schedulerTaggedCyclicParState_forward_exists_traced
+        segmentCount indexedFlipped correct prefixInjective initialTagged with
+    ⟨terminal, terminalExact, forwardTrace⟩
   exact
     ⟨flippedSegments, segmentCount, indexedFlipped,
-      schedulerTaggedCyclicParState_forward_exists_traced
-        segmentCount indexedFlipped correct prefixInjective initialTagged⟩
+      terminal, terminalExact, forwardTrace⟩
 
 /-- Coordinate-exact global closing-par extraction.  Starting from a fully
 reflexive dependency cycle, this theorem retains the indexed flipped scheduler
@@ -33260,13 +34175,17 @@ private theorem
         certificate chainAt count flippedSegments
           base (tagSchedulerFamily flippedSegments) :=
     ⟨terminal, nestingTrace, forwardTrace⟩
+  have baseStateOld :
+      SchedulerTaggedTerminalNestingBase
+        certificate chainAt count flippedSegments base :=
+    baseState.old
   have outcome :=
-    baseState.emptyReferenceTreeWalk_or_closingPar
+    baseStateOld.emptyReferenceTreeWalk_or_closingPar
       segmentCount indexedFlipped
   have closingOutcome := outcome.closingPar
   exact
     ⟨flippedSegments, segmentCount, indexedFlipped, base,
-      baseState, ancestry, ancestry.descent,
+      baseStateOld, ancestry, ancestry.descent,
       closingOutcome.exact correct prefixInjective⟩
 
 /-- Every fully reflexive waiting-dependency cycle reaches a finite terminal

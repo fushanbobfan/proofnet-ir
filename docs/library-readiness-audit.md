@@ -203,9 +203,11 @@ part of the engineering and proof-identity gap.
    occurrence cancellation, residual-core analysis, and simultaneous
    switching flips reduce every correct fully reflexive dependency cycle to a
    terminal forward retained-left par cusp with a complete
-   state-and-interval-cut trace. This trace does not yet bind each cut to the
-   exact positioned obstruction that generated it. Its exact complementary
-   interval is nonempty, closed,
+   state-and-interval-cut trace. Every backward cut is now bound to the exact
+   positioned obstruction that generated it. The terminal step likewise binds
+   its indexed generator, arc, exact complementary interval, derived strict
+   cut, closed walk, reverse-shell normalization, and nested trace. The
+   complement is nonempty, closed,
    internally cusp-free, and strictly shorter. Proof-relevant cyclic
    normalization now strips only exact first/last reverse shells, retains the
    full positional context and length equation, and transports scheduler
@@ -213,9 +215,11 @@ part of the engineering and proof-identity gap.
    cusp-free, the same construction yields a strictly nested terminal cusp;
    well-founded descent therefore terminates at either an empty shell core or
    a scheduler-located nontrivial closing-par core. The terminal complement,
-   reverse shells, normalized cores, and recursively exposed cusps now also
-   carry exact scheduler tags through one composed descent from the original
-   family. The terminal base retains its complement walk and cusp-freedom.
+   reverse shells, normalized cores, and recursively exposed cusps carry exact
+   scheduler tags through one composed descent from the original family. The
+   terminal path derives its cut from the same indexed terminal witness instead
+   of invoking the first generic `CyclicIntervalCut` positional lift. The
+   terminal base retains its complement walk and cusp-freedom.
    In the empty-core branch, every exact visit has a distinct reverse partner
    from another scheduler step, every edge is reference-kept, the nonempty
    complement transports to the reference-switching tree, and no visit is a
@@ -242,11 +246,12 @@ part of the engineering and proof-identity gap.
    dependent package now binds those tags to the par link, normalization core,
    closed walk, and exact `first :: middle ++ [last]` tagged split; Lean proves
    its artificial seam is not an original same-segment or segment-boundary
-   coordinate adjacency. Backward-search ancestry now carries
-   generator-exact semantic cuts, but excluding that final base still requires
-   an analogous terminal-complement frame plus seam replay, or a separate
-   residual-derivation progress invariant. Pure worklist completeness and a
-   full cost theorem remain open.
+   coordinate adjacency. Backward-search ancestry and the terminal-complement
+   step now carry generator-exact indexed witnesses. Excluding that final base
+   still requires a unified exact closing package plus seam replay, or a
+   separate residual-derivation progress invariant. Closing-par scheduler-order
+   exclusion, correct-state progress, pure worklist completeness, recursive
+   fallback removal, and a whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

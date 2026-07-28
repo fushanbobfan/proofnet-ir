@@ -232,6 +232,8 @@ those branches enumerates switching graphs.
 The following stronger claims are intentionally absent:
 
 - `unificationFastCheck = check`;
+- `unificationWorklistFastCheck = check`;
+- removal of the recursive reconstruction fallback;
 - completeness or confluence of the eager repeated-scan schedule;
 - a polynomial, quasi-linear, or linear bound for the hybrid
   `unificationCheck`;
@@ -362,9 +364,9 @@ or positive misses. The larger search recorded at most 995 link attempts and
     cut. Rotating omitted-right to the head and cutting at retained-left yields
     either a forward closing par cusp or a strictly shorter backward state.
     Every step records the exact rotation and smaller contiguous cyclic
-    interval in a proof-relevant state-and-interval trace. The current trace
-    still does not identify that cut with the exact positioned right/left tags
-    that generated it. Well-founded recursion on
+    interval in a proof-relevant state-and-interval trace. Every backward step
+    now identifies that cut with the exact positioned right/left tags that
+    generated it. Well-founded recursion on
     traversal length closes the infinite-backward branch and produces a
     terminal forward par-cusp interval with its interval trace back to the
     original flipped family. The terminal object now retains the exact
@@ -385,15 +387,23 @@ or positive misses. The larger search recorded at most 995 link attempts and
     an original same-segment or segment-boundary coordinate adjacency. The
     backward search now replaces every bare cut by a generator-exact semantic
     frame sharing one positioned obstruction, both endpoint tags, both cyclic
-    decompositions, and the retained suffix. The immediate remaining
-    obligation is to bind the terminal complement to its exact forward-cusp
-    generator and replay the seam through the resulting frames to an original
-    boundary, or instead derive progress from a residual-derivation invariant.
-    Guerrini's correctness/reduction results do not provide this bespoke seam
-    invariant for the present flat eager scheduler.
-3. Prove the deterministic schedule complete, yielding
-   `unificationFastCheck = check` and removing the recursive fallback.
-4. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
+    decompositions, and the retained suffix. The terminal step now likewise
+    binds its generator, arc, complement, derived strict cut, closed walk,
+    source-fixed reverse-shell normalization, and nesting trace in one indexed
+    witness; the terminal path no longer uses the first generic
+    `CyclicIntervalCut` positional lift. The immediate remaining obligation is
+    to assemble a unified exact closing package and replay its seam through the
+    terminal frame, exact backward frames, and reverse-shell arms to an
+    original boundary, or instead derive progress from a residual-derivation
+    invariant. Guerrini's correctness/reduction results do not provide this
+    bespoke seam invariant for the present flat eager scheduler.
+3. Exclude the closing-par base by exact scheduler order and prove
+   correct-quiescent-state progress.
+4. Prove the current event-driven worklist complete, yielding
+   `unificationWorklistFastCheck = check`.
+5. Remove the recursive reconstruction fallback from the exact worklist
+   decision only after that equality is kernel checked.
+6. Replace eager axiom starts and flat waiting requeues with the Figure-7 stack
    discipline; the current flat scheduler's fuel is already proved sufficient.
-5. Only after `NEXTAXIOM`, token-age, waiting-stack, and union-find invariants are
+7. Only after `NEXTAXIOM`, token-age, waiting-stack, and union-find invariants are
    formalized should the library expose a Guerrini-linear complexity theorem.

@@ -426,8 +426,9 @@
   - [x] Differentially qualify the worklist on the 1,500-case
     reference/mutation audit and the 7,200-case reordered positive search with
     no observed miss or false positive.
-  - [ ] Prove the pure deterministic unification path complete, removing the
-    recursive fallback from the logical decision.
+  - [ ] Prove
+    `Certificate.unificationWorklistFastCheck = Certificate.check` for the
+    current event-driven worklist path.
     - [x] Prove canonical initialization plus the complete production
       worklist run preserve abstraction, ordered parents, component/formula
       consistency, and exact pending-premise frontier coverage.
@@ -625,19 +626,25 @@
       cut tying the `CyclicIntervalCut`, omitted-right and retained-left tags,
       both cyclic decompositions, and retained suffix to the same positioned
       obstruction.
-    - [ ] Strengthen the terminal-complement step with an analogous
-      generator-exact frame tying the complement to the exact terminal
-      forward-cusp split.
-    - [ ] Replay the closing seam through those exact frames, or replace this
-      route with a kernel-checked residual-derivation progress invariant; then
-      exclude the remaining tagged closing-par base and discharge the
-      path-exposed waiting-par obstruction.
+    - [x] Strengthen the terminal-complement step with a generator-exact indexed
+      frame tying the terminal generator, arc, complement, derived strict cut,
+      closed walk, source-fixed reverse-shell normalization, and nesting trace
+      to the same forward-cusp split; remove the terminal path's first generic
+      `CyclicIntervalCut` positional lift.
+    - [ ] Assemble a unified exact closing package across that terminal frame,
+      the exact backward frames, reverse-shell arms, and closing endpoints;
+      replay the closing seam through it, or replace this route with a
+      kernel-checked residual-derivation progress invariant; then exclude the
+      remaining tagged closing-par base and discharge the path-exposed
+      waiting-par obstruction.
     - [ ] Prove correct-quiescent-state progress.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
-    with the Figures 7--8 sequential stack, formalize
-    `NEXTAXIOM`/union-find invariants, prove pure completeness, and extend the
-    cost theorem to all implemented operations
-    before claiming Guerrini linearity.
+    with the Figures 7--8 sequential ready/waiting stacks; formalize
+    `NEXTAXIOM`, token-age, and special union-find invariants; establish
+    completeness of that later sequential executable; and extend the cost
+    theorem to all implemented operations before claiming Guerrini linearity.
+  - [ ] Remove the recursive reconstruction fallback only after pure worklist
+    completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and
   explicit `release_ref=v0.9.0` CI, and pin a clean consumer to the exact
   public tag.
