@@ -308,13 +308,26 @@ in the post-mark state, then appends and reserves the returned axiom through
 `operationalNewEnqueue?`. The old active waiting boundary becomes initialized
 and the fresh active top remains undefined. The dependent success witness
 carries the input invariant and binds search to the post-mark core. This is not
-yet a reachable-state characterization: `ReservationInvariant` has only tag
+yet a full-scheduler characterization: `ReservationInvariant` has only tag
 carrier size, not tag provenance/monotonicity, and it lacks ready/waiting
-payload ownership and global ready-bucket uniqueness. The `wait`/`unify`
-payload rules, the other Figure-7 rules, later-state totality, correct-state
-progress, pure-worklist completeness, fallback removal, and whole-program
-linearity remain open. Future guards must continue to compare raw assigned
-ages, not union-find representatives.
+payload ownership and global queue uniqueness.
+
+`SequentialFigure7History.lean` adds a separate inductive
+`InitNewHistory` whose constructors retain exact successful empty,
+initialization, and operational-`new` witnesses. Unlike
+`ReservationInvariant`, this type is reachability by execution. Its theorems
+prove tags are true exactly at the union of recorded search-touched sets,
+successive touched sets are disjoint, submitted axiom-link indices are
+globally `Nodup`, and the history length equals both `stack.nextAge` and
+`core.startedAxioms`. The type deliberately cannot be extended naively with
+non-reserving rules: a future complete rule history must distinguish total
+rule steps from axiom-reservation events.
+
+The `wait`/`unify` payload rules, `concl`/`nop`/`forward`, later-state totality,
+correct-state progress, pure-worklist completeness, fallback removal, and
+whole-program linearity remain open. Future guards must continue to compare
+raw assigned ages, not union-find representatives. The current global
+ready/waiting absence check scans stored lists and is not a linearity result.
 The separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
@@ -573,10 +586,13 @@ active-reference walks between marked occurrences are equivalent to
   `new` pipeline now add pop/raw-mark, orientation-aware tensor-mate lookup,
   post-mark search, and later reservation with the old-boundary/fresh-top
   waiting update. Reset tags can replay low-level search, but the operational
-  stack guard rejects endpoints already present in ready buckets; the
-  low-level reservation primitive itself remains replayable. This local rule
-  is not a full reachable scheduler. Waiting
-  payload ownership and the `wait`/`unify` payload rules remain open. Planarity
+  stack guard rejects endpoints already stored in ready or waiting payloads;
+  the low-level reservation primitive itself remains replayable. The
+  proof-relevant `InitNewHistory` now characterizes exact empty/init/new
+  executions and proves tag provenance, global submitted-slot non-reuse, and
+  reservation-count alignment. This fragment is not a full reachable
+  scheduler. Waiting payload ownership and the remaining Figure-7 rules remain
+  open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -587,9 +603,10 @@ eagerly and uses flat waiting requeues. The separate bounded/tagged
 `NEXTAXIOM` primitive now has an exact initial/later reservation bridge and an
 invariant-bound operational local `new` transition in the delayed
 `SequentialSchedulerState`. The literal printed fresh-cell update remains a
-separate display-only helper. Ready/waiting payload ownership, the
-`wait`/`unify` payload rules, the remaining rules, a reachable-state invariant,
-and later-state scheduler totality are not yet integrated. General
+separate display-only helper. Exact init/new execution history is integrated;
+ready/waiting payload ownership, the `concl`/`nop`/`wait`/`forward`/`unify`
+rules, a full-rule reachable-state invariant, and later-state scheduler
+totality are not. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

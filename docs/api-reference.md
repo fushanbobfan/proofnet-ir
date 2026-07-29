@@ -5733,6 +5733,38 @@ ProofNetIR.SequentialUnification.nextAxiomWithFuel?_touched_tagged : ∀ {certif
     result.Touched touched → tags[touched]? = some false ∧ result.tags[touched]? = some true
 ```
 
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_tagged_iff_input_or_touched`
+
+Kind: theorem.
+
+A successful bounded search contains no unexplained true tag: every output
+true tag was already true on input or was touched by this exact execution.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel?_tagged_iff_input_or_touched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {fuel : Nat} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel tags},
+  ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state index ⋯ fuel tags start = some result →
+    ∀ {vertex : ProofNetIR.Vertex}, result.tags[vertex]? = some true ↔ tags[vertex]? = some true ∨ result.Touched vertex
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiom?_tagged_iff_input_or_touched`
+
+Kind: theorem.
+
+Production-wrapper form of
+`nextAxiomWithFuel?_tagged_iff_input_or_touched`.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiom?_tagged_iff_input_or_touched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state certificate.formulas.size tags},
+  ProofNetIR.SequentialUnification.nextAxiom? certificate state index ⋯ tags start = some result →
+    ∀ {vertex : ProofNetIR.Vertex}, result.tags[vertex]? = some true ↔ tags[vertex]? = some true ∨ result.Touched vertex
+```
+
 ### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_threaded_touched_disjoint`
 
 Kind: theorem.
@@ -6672,6 +6704,41 @@ Concrete Figures 7--8 bookkeeping before the transition system itself.
 ProofNetIR.SequentialSchedulerState.SequentialStackState : Type
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingCell.vertices`
+
+Kind: definition.
+
+The vertices currently stored in one waiting cell.  Paper-level
+`undefined` contributes no payload, while an initialized cell contributes its
+complete stored list.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingCell.vertices : ProofNetIR.SequentialSchedulerState.WaitingCell → List ProofNetIR.Vertex
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.waitingVertices`
+
+Kind: definition.
+
+All waiting payloads in raw-age order.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.waitingVertices : ProofNetIR.SequentialSchedulerState.SequentialStackState → List ProofNetIR.Vertex
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.queuedVertices`
+
+Kind: definition.
+
+Every occurrence currently stored by either the ready stack or the waiting
+table.  This is the executable domain against which later enqueue operations
+must check global absence.  Semantic ownership and uniqueness remain separate
+history invariants.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.queuedVertices : ProofNetIR.SequentialSchedulerState.SequentialStackState → List ProofNetIR.Vertex
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt`
 
 Kind: definition.
@@ -7154,8 +7221,9 @@ Executable guard for the operationally coherent later reservation.
 
 `active` is the old top `sigma` boundary.  It must still have an undefined
 waiting cell, while the fresh raw age at `nextAge` must also be unused.  The
-new endpoints are required to be globally absent from the current ready stack,
-so this local transition cannot introduce a cross-bucket duplicate.
+new endpoints are required to be globally absent from both the ready stack and
+every waiting payload, so this local transition cannot introduce a duplicate
+that a later `unify` would drain back into ready work.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalNewReadyAt : ProofNetIR.SequentialSchedulerState.SequentialStackState →
@@ -8194,8 +8262,8 @@ Figure-7 `new` transition.
 The type of `search` mentions `coreMarked`, so the witness records the
 mathematically material ordering: `u₁` is raw-marked before `NEXTAXIOM(u₂)` is
 evaluated.  `before_invariant` prevents independent stack/core/raw-age
-forgeries, while the stronger reachable-scheduler invariant remains future
-work.
+forgeries, while the stronger full-rule reachable-scheduler invariant remains
+future work.
 
 ```lean
 ProofNetIR.SequentialFigure7.NewStep : ProofNetIR.Certificate →
@@ -8325,6 +8393,285 @@ ProofNetIR.SequentialFigure7.new?_reservationInvariant : ∀ {certificate : Proo
   (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
   ProofNetIR.SequentialFigure7.new? certificate before invariant = some after →
     ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+## Executed init/new history
+
+### `ProofNetIR.SequentialFigure7.TagsExtend`
+
+Kind: definition.
+
+Pointwise monotonicity of boolean tag carriers.
+
+```lean
+ProofNetIR.SequentialFigure7.TagsExtend : Array Bool → Array Bool → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.TagsExtend.refl`
+
+Kind: theorem.
+
+Every tag carrier pointwise extends itself.
+
+```lean
+ProofNetIR.SequentialFigure7.TagsExtend.refl : ∀ (tags : Array Bool), ProofNetIR.SequentialFigure7.TagsExtend tags tags
+```
+
+### `ProofNetIR.SequentialFigure7.TagsExtend.trans`
+
+Kind: theorem.
+
+Pointwise tag extension composes transitively.
+
+```lean
+ProofNetIR.SequentialFigure7.TagsExtend.trans : ∀ {first second third : Array Bool},
+  ProofNetIR.SequentialFigure7.TagsExtend first second →
+    ProofNetIR.SequentialFigure7.TagsExtend second third → ProofNetIR.SequentialFigure7.TagsExtend first third
+```
+
+### `ProofNetIR.SequentialFigure7.initial_output_tags_eq`
+
+Kind: theorem.
+
+Exact output tag projection of an initialization witness.
+
+```lean
+ProofNetIR.SequentialFigure7.initial_output_tags_eq : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  after.tags = step.result.tags
+```
+
+### `ProofNetIR.SequentialFigure7.initial_tagsExtend`
+
+Kind: theorem.
+
+Initialization preserves every pre-existing true tag.  Its concrete input
+is all false, but the theorem is useful as the uniform first history step.
+
+```lean
+ProofNetIR.SequentialFigure7.initial_tagsExtend : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialFigure7.TagsExtend (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate).tags
+    after.tags
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.output_tags_eq`
+
+Kind: theorem.
+
+Exact output tag projection of a complete operational `new` witness.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.output_tags_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after), after.tags = step.search.tags
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.tagsExtend`
+
+Kind: theorem.
+
+A complete operational `new` only adds true tags.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.tagsExtend : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialFigure7.TagsExtend before.tags after.tags
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory`
+
+Kind: inductive type.
+
+Proof-relevant history of exactly the implemented init/new reservation
+fragment.
+
+`empty` is the zero-event run.  `init` is intrinsically tied to the exact
+empty production state by `InitialReservationStep`.  Every `later` constructor
+stores a complete operational `new`, not the reservation-only helper.  This
+type is intentionally not a generic Figure-7 rule history: `concl`, `nop`,
+`wait`, `forward`, and `unify` need separate rule-step and reservation-count
+accounting when they are implemented.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew`
+
+Kind: definition.
+
+Honest reachability for exactly the implemented init/new fragment.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.Touched`
+
+Kind: definition.
+
+Vertices touched by any exact `NEXTAXIOM` search in the history.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.Touched : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.InitNewHistory certificate state → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.linkIndices`
+
+Kind: definition.
+
+Submitted axiom-link slots, newest first.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.linkIndices : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.InitNewHistory certificate state → List Nat
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.length`
+
+Kind: definition.
+
+Number of exact axiom-search/reservation events.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.length : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.InitNewHistory certificate state → Nat
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.reservationInvariant`
+
+Kind: theorem.
+
+Every state named by an executed history satisfies the current
+reservation-layer invariant.  This is a consequence of execution, not the
+definition of reachability.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.InitNewHistory certificate state),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.tagged_iff_touched`
+
+Kind: theorem.
+
+Exact tag provenance for the implemented history: a current true tag
+exists exactly when some recorded search touched that vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.tagged_iff_touched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.InitNewHistory certificate state) {vertex : ProofNetIR.Vertex},
+  state.tags[vertex]? = some true ↔ history.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.touched_disjoint_next`
+
+Kind: theorem.
+
+Every earlier touched vertex is unavailable to the next exact search.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.touched_disjoint_next : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.InitNewHistory certificate before)
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after) {vertex : ProofNetIR.Vertex},
+  history.Touched vertex → step.search.Touched vertex → False
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.mem_linkIndices_witness`
+
+Kind: theorem.
+
+Membership in the history's submitted-slot list carries an exact axiom
+lookup and a touched endpoint witness.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.mem_linkIndices_witness : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.InitNewHistory certificate state) {index : Nat},
+  index ∈ history.linkIndices →
+    ∃ left right, certificate.links[index]? = some (ProofNetIR.Link.axiom left right) ∧ history.Touched left
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.linkIndices_nodup`
+
+Kind: theorem.
+
+No submitted axiom-link slot occurs twice anywhere in a genuine
+implemented history.  This strengthens the adjacent replay theorem to the
+whole recorded execution and still deliberately distinguishes duplicate link
+slots with equal values.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.linkIndices_nodup : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.InitNewHistory certificate state), history.linkIndices.Nodup
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.length_eq_nextAge`
+
+Kind: theorem.
+
+Event count agrees with the raw-age allocation horizon.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.length_eq_nextAge : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.InitNewHistory certificate state), history.length = state.stack.nextAge
+```
+
+### `ProofNetIR.SequentialFigure7.InitNewHistory.length_eq_startedAxioms`
+
+Kind: theorem.
+
+The same event count agrees with the production axiom counter.
+
+```lean
+ProofNetIR.SequentialFigure7.InitNewHistory.length_eq_startedAxioms : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.InitNewHistory certificate state), history.length = state.core.startedAxioms
+```
+
+### `ProofNetIR.SequentialFigure7.reachable_empty`
+
+Kind: theorem.
+
+The exact empty state is reachable by the zero-event history.
+
+```lean
+ProofNetIR.SequentialFigure7.reachable_empty : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate
+    (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.reachable_of_initializeReservation?_eq_some`
+
+Kind: theorem.
+
+Every successful executable initialization creates an exact history.
+
+```lean
+ProofNetIR.SequentialFigure7.reachable_of_initializeReservation?_eq_some : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some after →
+    ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new`
+
+Kind: theorem.
+
+Extending an executed history by a successful complete operational `new`
+creates another executed history.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate before →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.new? certificate before invariant = some after →
+        ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate after
 ```
 
 ## Serialization and untrusted input

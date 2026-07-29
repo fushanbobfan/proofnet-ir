@@ -112,12 +112,19 @@ of the paper's surrounding prose and its `wait`/`unify` behavior, not an
 author-confirmed erratum or a uniqueness result. The proof argument rules out
 independently forged stack horizons, raw ages, and production carriers, and
 callers cannot substitute a partial consumer table. This remains a local rule,
-not a reachable-state or full scheduler theorem: `ReservationInvariant`
-records only tag-array size rather than tag provenance/monotonicity, and it
-does not establish waiting-payload ownership, global ready-bucket ownership,
-or the `wait`/`unify` transfer rules. The other Figure-7 rules, correct-state
-progress, pure-worklist completeness, fallback removal, and linearity remain
-open.
+not a full scheduler theorem: `ReservationInvariant` alone records only
+tag-array size rather than tag provenance/monotonicity, and it does not
+establish waiting-payload ownership, global queue ownership, or the
+`wait`/`unify` transfer rules. `SequentialFigure7History.lean` now separately
+defines proof-relevant reachability for exactly the empty/init/operational-new
+fragment. For every such execution, Lean proves current tags are true exactly
+at vertices touched by a recorded search, submitted axiom-link slots never
+repeat across the whole history, and the reservation-event count equals both
+`nextAge` and `startedAxioms`. This dedicated `InitNewHistory` is intentionally
+not a generic Figure-7 history: `concl`, `nop`, `wait`, `forward`, and `unify`
+need distinct rule-step and reservation-count accounting. Full queue
+ownership, those remaining rules, correct-state progress, pure-worklist
+completeness, fallback removal, and linearity remain open.
 
 The first separate sequential primitive is now present in
 `SequentialUnification.lean`. Lean proves exact submitted-link origin for a
@@ -145,7 +152,13 @@ The result type is indexed by its input tags. Kernel-checked fields and
 preserved, every input `true` tag stays `true`, the recursive trace is `Nodup`,
 and every trace occurrence plus both axiom endpoints changes from input
 `false` to output `true`. `NextAxiomResult.Touched` includes the trace and both
-endpoints, including the non-recursive axiom partner. Two successful calls
+endpoints, including the non-recursive axiom partner.
+The equation-backed
+`nextAxiomWithFuel?_tagged_iff_input_or_touched` and production-wrapper
+corollary additionally prove that every output true tag was either already
+true on input or belongs to that exact touched set; there are no unexplained
+true tags in an executable result. The execution equation is essential because
+the public result record remains manually constructible. Two successful calls
 have disjoint touched sets when the second call is made with exactly
 `first.tags`. Thus the global no-revisit discipline applies only to a chain
 that strictly passes each result's tags onward; the theorem does not apply
@@ -220,8 +233,9 @@ two later steps, return different link indices. Without a structural
 single-source/duplicate-link premise, this does not identify equal axiom values
 at different indices. Reset/replaced tags are outside the guarantee and can
 make low-level `NEXTAXIOM` rediscover an old axiom; the operational wrapper
-independently rejects endpoints already in the ready stack. Direct low-level
-`reserveAxiomAt?` calls remain replayable because they have neither guard.
+independently rejects endpoints already stored anywhere in the ready stack or
+waiting payload table. Direct low-level `reserveAxiomAt?` calls remain
+replayable because they have neither guard.
 `ReservationInvariant` bundles delayed `WellShaped`,
 `OperationalWaitingDomain`, `RealizesSigma`, production `OrderedParents`,
 `Abstractable`,
@@ -253,10 +267,12 @@ lookup, post-mark `NEXTAXIOM`, and later reservation under a supplied
 `ReservationInvariant`; its canonical regression yields marks/sigma/ready
 `μ(0)=0`, `σ=[0,1]`, and `R=[[1],[2,3]]`, with `W(0)=∅` and the fresh
 `W(1)=⊥`. The invariant does not yet express semantic ownership of ready or
-waiting payloads, tag history, global ready disjointness, later-state totality,
-or the transition semantics for `concl`/`nop`/`wait`/`forward`/`unify`.
-Correct-state progress, pure-worklist completeness, fallback removal, and
-whole-program linearity therefore remain open.
+waiting payloads, global queue uniqueness, later-state totality, or the
+transition semantics for `concl`/`nop`/`wait`/`forward`/`unify`. The separate
+`InitNewHistory` proves exact tag history, whole-history submitted-slot
+non-reuse, and event-counter alignment only for genuine empty/init/new
+executions. Correct-state progress, pure-worklist completeness, fallback
+removal, and whole-program linearity therefore remain open.
 
 The flat-scheduler proof route was also narrowed by counterexample. Exact
 concrete-state confluence already fails on a derivation-generated correct
@@ -612,10 +628,13 @@ The canonical receipt is submitted/ready `[0,1]`/`[1,0]` followed by
 performs
 the synchronized pop/raw-mark prefix, fixed canonical tensor-consumer lookup,
 opposite-premise search in the marked state, and the same exact later
-reservation. Its input carries `ReservationInvariant`, but that is not yet a
-reachable-scheduler certificate: ready/waiting payload ownership, tag history,
-global ready-bucket disjointness, the `wait`/`unify` payload rules, the other
-local rules, and a total later-state transition system remain open.
+reservation. Its input carries `ReservationInvariant`, which alone is not a
+reachable-scheduler certificate. The dedicated `InitNewHistory` now records
+only genuine empty/init/new executions and proves exact tags-as-touched,
+whole-history submitted-slot non-reuse, and reservation-count alignment.
+Ready/waiting payload ownership, global queue uniqueness, the
+`concl`/`nop`/`wait`/`forward`/`unify` rules, and a total later-state transition
+system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -837,10 +856,13 @@ The repository currently contains:
   canonical
   index, performs pop-before-mark, raw marking, orientation-aware tensor-mate
   lookup, post-mark `NEXTAXIOM`, and operational later reservation, and carries
-  the input reservation invariant in its dependent success witness. This still
-  is not a reachable-state characterization: ready/waiting payload ownership,
-  tag provenance, global ready-bucket uniqueness, `wait`/`unify` payload
-  transfer, the other rules, and later totality remain open. Closing-par
+  the input reservation invariant in its dependent success witness. A separate
+  proof-relevant `InitNewHistory` now characterizes exactly executed
+  empty/init/new histories and proves exact tag provenance, submitted-slot
+  `Nodup`, and reservation-count alignment. This is not a characterization of
+  the full scheduler: ready/waiting payload ownership, global queue
+  uniqueness, `concl`/`nop`/`wait`/`forward`/`unify`, and later totality remain
+  open. Closing-par
   exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
@@ -1051,9 +1073,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 145 public MLL logical-boundary theorems against the exact
-axiom set `[propext, Classical.choice, Quot.sound]`, plus 21 axiom-free,
-62 `propext`-only, and 63 `propext`/`Quot.sound` boundaries. LeanProp
+separately audits 159 public MLL logical-boundary theorems against the exact
+axiom set `[propext, Classical.choice, Quot.sound]`, plus 23 axiom-free,
+64 `propext`-only, and 63 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1196,6 +1218,7 @@ ProofNetIR/SequentialConsumerIndex.lean shared sound/complete consumer lookup
 ProofNetIR/SequentialSchedulerState.lean delayed raw-age sigma/ready/waiting state
 ProofNetIR/SequentialSchedulerBridge.lean typed initial/later reservation bridge
 ProofNetIR/SequentialFigure7New.lean invariant-bound operational Figure-7 new rule
+ProofNetIR/SequentialFigure7History.lean proof-relevant empty/init/new history
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRConsumerIndexTests.lean orientation and fail-closed consumer tests

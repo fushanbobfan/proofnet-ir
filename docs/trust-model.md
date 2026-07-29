@@ -210,8 +210,9 @@ Complete tag threading proves that each adjacent composable wrapper-step pair
 reserves distinct submitted axiom-link indices. It does not equate duplicate
 axiom values at different indices without an extra structural premise. The
 scope is exact: reset/replaced tags can replay low-level search, while the
-operational stack guard independently rejects endpoints already present in
-ready buckets; direct low-level reservations remain replayable. The canonical
+operational stack guard independently rejects endpoints already stored in
+ready or waiting payloads; direct low-level reservations remain replayable.
+The canonical
 two-call regression locks submitted/ready orientations
 `[0,1]`/`[1,0]`, then `[2,3]`/`[3,2]`. The next trusted layer implements the
 project's operational local Figure-7 `new` transition under a supplied
@@ -219,14 +220,16 @@ project's operational local Figure-7 `new` transition under a supplied
 sound-and-complete consumer lookup, orientation-aware tensor mate, post-mark
 `NEXTAXIOM`, and an operational later reservation that initializes the old
 active waiting boundary while leaving the fresh top undefined. Its proof
-argument blocks independently
-forged stack/core horizons and raw ages, and callers cannot inject a partial
-consumer table. It is still not a full reachable Figure-7 scheduler: tag
-provenance/monotonicity, global ready-bucket uniqueness, ready/waiting payload
-ownership, the `wait`/`unify` payload rules, the other rules, later-state
-totality, correct-state progress, pure-worklist completeness, fallback
-removal, and whole-program linearity remain unimplemented. Future guards must
-use raw assigned ages—not representatives.
+argument blocks independently forged stack/core horizons and raw ages, and
+callers cannot inject a partial consumer table. A separate proof-relevant
+`InitNewHistory` now characterizes exact empty/init/new executions and proves
+tag iff recorded touch, global submitted-slot non-reuse, and
+reservation-count alignment. It is still not a full reachable Figure-7
+scheduler: global queue uniqueness and ownership, the
+`concl`/`nop`/`wait`/`forward`/`unify` rules, later-state totality,
+correct-state progress, pure-worklist completeness, fallback removal, and
+whole-program linearity remain unimplemented. Future guards must use raw
+assigned ages—not representatives.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -464,9 +467,10 @@ initial/later calls, axiom-link-index replay exclusion for composable calls
 under exact output tag threading, later `RealizesSigma` preservation, and a
 bundled invariant preserved across both stages. The invariant-bound local
 `new` layer now adds pop-before-mark, binary-mate lookup, raw-age marking,
-post-mark search, and the operational old-boundary/fresh-top reservation. It
-does not add a reachable-state invariant, later totality, ready/waiting payload
-ownership, the `wait`/`unify` payload rules, or the other Figure-7 rules. No
+post-mark search, and the operational old-boundary/fresh-top reservation. The
+dedicated init/new history adds exact reachability and tag provenance for that
+fragment. It does not add later totality, ready/waiting payload ownership, a
+full-rule reachability invariant, or the remaining Figure-7 rules. No
 planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
@@ -581,9 +585,10 @@ Lean now also constructs the exact simultaneous complementary
   possible route to flat completeness. The bounded primitive already has
   per-call trace/tag invariants, exact oriented routes, initial/local
   rank-scoped totality, and strictly threaded touched-set disjointness;
-  the operational waiting-cell domain is also preserved. Later-state
-  selection, ready/waiting payload ownership, the `wait`/`unify` rules, and
-  the remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
+  the operational waiting-cell domain and exact init/new history are also
+  proved. Later-state selection, ready/waiting payload ownership,
+  `concl`/`nop`/`wait`/`forward`/`unify`, and the remaining
+  `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
   linearity remain open.

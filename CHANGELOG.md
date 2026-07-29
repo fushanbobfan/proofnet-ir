@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7History.lean`, a proof-relevant execution history
+  restricted to the exact empty/init/operational-new reservation fragment.
+  Kernel-checked theorems prove output tags are true exactly at vertices
+  touched by recorded searches, every submitted axiom-link slot occurs at most
+  once in the whole history, and the reservation-event count equals both the
+  delayed raw-age horizon and the production started-axiom counter. This is
+  deliberately not a generic Figure-7 history: `concl`, `nop`, `wait`,
+  `forward`, and `unify` require separate rule-step and reservation-count
+  accounting. Equation-backed bounded and production-wrapper theorems prove
+  exact true-tag origin without changing the public `NextAxiomResult` record,
+  so existing manual record constructors remain source compatible. The
+  operational later-reservation guard now
+  rejects endpoints already stored in either ready or waiting payloads, not
+  only ready buckets. Its current list scans are a safety guard, not a
+  whole-program linear-time implementation;
 - distinguished the literal printed Figure-7 `new` display from the project's
   production transition. `newEnqueue?` remains a source-audit helper which
   writes `W` at the freshly pushed age exactly as printed; it preserves the
@@ -15,8 +30,8 @@
   is the project's interpretation of the paper's prose-defined nonactive
   waiting domain and its `wait`/`unify` behavior, not an author-confirmed
   erratum or a uniqueness claim. The invariant still does not establish
-  scheduler reachability, ready/waiting payload ownership, tag history,
-  global ready-bucket uniqueness, or the `wait`/`unify` payload-transfer rules;
+  full-scheduler reachability, ready/waiting payload ownership,
+  global queue uniqueness, or the `wait`/`unify` payload-transfer rules;
 - added the invariant-bound operational local Figure-7 `new` pipeline. It
   performs synchronized pop/raw-mark, uses the fixed sound-and-complete
   consumer index for orientation-aware tensor-mate lookup, runs `NEXTAXIOM`
@@ -40,7 +55,8 @@
   duplicate equal-valued axioms at different indices without an additional
   structural premise. Resetting or replacing tags can make low-level
   `NEXTAXIOM` rediscover an old axiom, although the operational stack guard
-  independently rejects endpoints already present in ready buckets. Direct
+  independently rejects endpoints already stored in ready or waiting
+  payloads. Direct
   low-level `reserveAxiomAt?` remains replayable.
   The canonical two-step fixture reserves submitted/ready
   `[0,1]`/`[1,0]`, then `[2,3]`/`[3,2]`;
@@ -64,11 +80,11 @@
   refutes deriving `RealizesSigma` from `WellShaped`, marks/horizon alignment,
   and `OrderedParents` alone. The bridge remains a reservation tail; the
   separate operational local `new` module now supplies pop-before-mark,
-  binary-mate handling, raw-age marking, and post-mark search. Full scheduler
+  binary-mate handling, raw-age marking, and post-mark search. Full-scheduler
   reachability, ready/waiting payload ownership, `wait`/`unify` rules, later
   totality, correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 145 full-classical, 21 axiom-free, 62 `propext`-only, and
+  audit covers 159 full-classical, 23 axiom-free, 64 `propext`-only, and
   63 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the

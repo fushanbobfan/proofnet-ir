@@ -183,7 +183,8 @@ the same submitted axiom-link index. This does not identify equal-valued
 duplicate axioms at different indices without another structural premise. It
 is scoped replay exclusion, not a low-level global property: resetting tags
 can make `NEXTAXIOM` rediscover the old axiom, while the operational stack
-guard independently rejects endpoints already present in ready buckets.
+guard independently rejects endpoints already stored in ready or waiting
+payloads.
 `reserveAxiomAt?` itself has no tag or queue guard and remains replayable.
 The canonical receipt reserves submitted/ready `[0,1]`/`[1,0]`, then
 `[2,3]`/`[3,2]`.
@@ -208,13 +209,18 @@ supplied `ReservationInvariant`. It synchronizes pop-before-mark and raw-age
 marking, fixes lookup to the certificate's sound-and-complete consumer index,
 handles both tensor premise orientations, searches from the mate in the
 post-mark core, and appends/reserves the exact returned axiom. The proof
-argument blocks independently forged stack/core horizons and raw ages. This
-still does not define ready/waiting payload ownership or a reachable scheduler
-invariant. Exact tag-history provenance, global ready-bucket ownership,
-the paper's `wait` and `unify` transitions, later-state totality, progress,
-pure-worklist completeness, fallback removal, scheduler correctness, and the
-whole-scheduler linear cost model remain open. Future guards must compare raw
-assigned ages; replacing them by representatives would change the algorithm.
+argument blocks independently forged stack/core horizons and raw ages.
+`SequentialFigure7History.lean` now inductively retains exact
+empty/init/operational-new executions. For this restricted history Lean proves
+tags iff recorded search touch, pairwise disjoint touched sets, globally
+distinct submitted axiom-link slots, and reservation-event counts equal to
+both raw-age and production counters. This does not define ready/waiting
+payload ownership or the full scheduler invariant. Global queue ownership,
+the paper's `concl`, `nop`, `wait`, `forward`, and `unify` transitions,
+later-state totality, progress, pure-worklist completeness, fallback removal,
+scheduler correctness, and the whole-scheduler linear cost model remain open.
+Future guards must compare raw assigned ages; replacing them by
+representatives would change the algorithm.
 
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
@@ -413,11 +419,12 @@ The following stronger claims are intentionally absent:
   calls that thread the complete output tags, and says nothing about
   equal-valued duplicate axioms at different indices without extra structure;
 - reachable later-state selection totality, ready/waiting payload ownership,
-  the `wait` and `unify` transitions, exact tag-history provenance, the
-  complete scheduler transition system, scheduler correctness, and
-  scheduler-cost theorems. Initial/local search totality, initial/later
-  reservation invariant preservation, `OperationalWaitingDomain`, and the
-  exact invariant-bound local `new` pipeline are proved;
+  the `concl`, `nop`, `wait`, `forward`, and `unify` transitions, the complete
+  scheduler transition system, scheduler correctness, and scheduler-cost
+  theorems. Initial/local search totality, initial/later reservation invariant
+  preservation, `OperationalWaitingDomain`, the exact invariant-bound local
+  `new` pipeline, and exact tag history for genuine init/new executions are
+  proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The current repeated scan can take a quadratic number of link visits before
@@ -665,10 +672,11 @@ linearity.
    the preserved `ReservationInvariant` are already proved. Keep the immediate
    dynamic-start refinement separate from the mark-preserving delayed
    reservation wrappers.
-7. Extend the now-proved invariant-bound local Figure-7 `new` into a reachable
-   transition system: prove tag-history provenance/monotonicity, global
+7. Extend the now-proved invariant-bound local Figure-7 `new` and exact
+   init/new execution history into a full transition system: prove global
    ready/waiting payload ownership/disjointness, later-state selection
-   totality, and the paper's `wait` and `unify` transitions. Keep the printed
+   totality, and the paper's `concl`, `nop`, `wait`, `forward`, and `unify`
+   transitions. Keep the printed
    fresh-cell helper and the project's operational inactive-boundary
    interpretation distinct; the latter is kernel checked but is not an
    author-confirmed erratum.

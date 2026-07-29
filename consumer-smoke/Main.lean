@@ -30,6 +30,14 @@ def consumedTreeSwap : VertexRenaming consumedTreeGraph.vertexCount :=
 
 example : consumedCertificate.check = true := by native_decide
 
+/-- The path-based downstream consumer can use the new proof-relevant
+empty/init/new reachability boundary without constructing internal witnesses. -/
+example :
+    SequentialFigure7.ReachableByImplementedInitNew consumedCertificate
+      (SequentialSchedulerBridge.ReservationState.empty
+        consumedCertificate) :=
+  SequentialFigure7.reachable_empty consumedCertificate
+
 example : consumedCertificate.compactCheck = true := by native_decide
 
 example : consumedCertificate.compactCheck = consumedCertificate.check :=

@@ -653,6 +653,15 @@ private theorem setTag_true_monotone
     simp [setTag, bound]
   · simpa [setTag, same] using inputTrue
 
+private theorem setTag_true_origin
+    {tags : Array Bool} {tagged vertex : Vertex}
+    (outputTrue : (setTag tags tagged)[vertex]? = some true) :
+    tags[vertex]? = some true ∨ vertex = tagged := by
+  by_cases same : tagged = vertex
+  · exact Or.inr same.symm
+  · exact Or.inl (by
+      simpa [setTag, same] using outputTrue)
+
 private theorem setTag_false_reflection
     {tags : Array Bool} {tagged vertex : Vertex}
     (outputFalse : (setTag tags tagged)[vertex]? = some false) :
@@ -831,6 +840,84 @@ def nextAxiomWithFuel? (certificate : Certificate)
           | _ => none
         else none
       else none
+
+/-- Every true output tag of one successful executable `NEXTAXIOM` call comes
+from the input carrier or the exact trace/endpoints touched by that call.  The
+execution equation is essential: the public result record by itself permits
+manual inhabitants that do not arise from the search. -/
+private theorem nextAxiomWithFuel?_true_origin
+    {certificate : Certificate} {state : UnificationState}
+    {index : SourceIndex} {fuel : Nat} {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {start : Vertex}
+    {result : NextAxiomResult certificate state fuel tags}
+    (equation :
+      nextAxiomWithFuel? certificate state index indexSound fuel tags start =
+        some result) :
+    ∀ {tagged : Vertex},
+      result.tags[tagged]? = some true →
+        tags[tagged]? = some true ∨ result.Touched tagged := by
+  induction fuel generalizing tags start with
+  | zero =>
+      simp [nextAxiomWithFuel?] at equation
+  | succ fuel induction =>
+      simp only [nextAxiomWithFuel?] at equation
+      repeat
+        first
+        | split at equation
+        | contradiction
+      all_goals simp at equation
+      case h_1.isTrue.isTrue.isTrue.isTrue.isTrue.isTrue =>
+        rename_i vertexTag vertexReady source sourceLookup left right
+          linkEquation different atEndpoint leftTag rightTag leftReady
+          rightReady
+        subst result
+        intro tagged outputTrue
+        rcases setTag_true_origin outputTrue with
+          taggedAfterLeft | rfl
+        · rcases setTag_true_origin taggedAfterLeft with
+            inputTrue | rfl
+          · exact Or.inl inputTrue
+          · exact Or.inr (Or.inr (Or.inl rfl))
+        · exact Or.inr (Or.inr (Or.inr rfl))
+      case h_2 =>
+        rename_i vertexTag vertexReady source sourceLookup left right
+          conclusion linkEquation
+        rcases equation with ⟨produced, equation⟩
+        split at equation
+        · simp at equation
+        · rename_i recursiveResult recursiveEquation
+          simp at equation
+          subst result
+          intro tagged outputTrue
+          rcases induction recursiveEquation outputTrue with
+            recursiveInput | recursiveTouched
+          · rcases setTag_true_origin recursiveInput with inputTrue | rfl
+            · exact Or.inl inputTrue
+            · exact Or.inr (Or.inl (by simp))
+          · rcases recursiveTouched with inTrace | sameLeft | sameRight
+            · exact Or.inr (Or.inl (by simp [inTrace]))
+            · exact Or.inr (Or.inr (Or.inl sameLeft))
+            · exact Or.inr (Or.inr (Or.inr sameRight))
+      case h_3 =>
+        rename_i vertexTag vertexReady source sourceLookup left right
+          conclusion linkEquation
+        rcases equation with ⟨produced, equation⟩
+        split at equation
+        · simp at equation
+        · rename_i recursiveResult recursiveEquation
+          simp at equation
+          subst result
+          intro tagged outputTrue
+          rcases induction recursiveEquation outputTrue with
+            recursiveInput | recursiveTouched
+          · rcases setTag_true_origin recursiveInput with inputTrue | rfl
+            · exact Or.inl inputTrue
+            · exact Or.inr (Or.inl (by simp))
+          · rcases recursiveTouched with inTrace | sameLeft | sameRight
+            · exact Or.inr (Or.inl (by simp [inTrace]))
+            · exact Or.inr (Or.inr (Or.inl sameLeft))
+            · exact Or.inr (Or.inr (Or.inr sameRight))
 
 /-- On the production source index, structural well-formedness and
 rank-scoped dynamic freshness make bounded `NEXTAXIOM` locally total whenever
@@ -1208,6 +1295,49 @@ theorem nextAxiomWithFuel?_touched_tagged
   · exact result.traceTagged inTrace
   · exact result.leftTagged
   · exact result.rightTagged
+
+/-- A successful bounded search contains no unexplained true tag: every output
+true tag was already true on input or was touched by this exact execution. -/
+theorem nextAxiomWithFuel?_tagged_iff_input_or_touched
+    {certificate : Certificate} {state : UnificationState}
+    {index : SourceIndex} {fuel : Nat} {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {start : Vertex}
+    {result : NextAxiomResult certificate state fuel tags}
+    (equation :
+      nextAxiomWithFuel? certificate state index indexSound fuel tags start =
+        some result)
+    {vertex : Vertex} :
+    result.tags[vertex]? = some true ↔
+      tags[vertex]? = some true ∨ result.Touched vertex := by
+  constructor
+  · exact nextAxiomWithFuel?_true_origin equation
+  · rintro (inputTrue | touched)
+    · exact result.preservesTrue inputTrue
+    · rcases touched with inTrace | sameLeft | sameRight
+      · exact (result.traceTagged inTrace).2
+      · subst vertex
+        exact result.leftTagged.2
+      · subst vertex
+        exact result.rightTagged.2
+
+/-- Production-wrapper form of
+`nextAxiomWithFuel?_tagged_iff_input_or_touched`. -/
+theorem nextAxiom?_tagged_iff_input_or_touched
+    {certificate : Certificate} {state : UnificationState}
+    {index : SourceIndex} {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {start : Vertex}
+    {result :
+      NextAxiomResult certificate state certificate.formulas.size tags}
+    (equation :
+      nextAxiom? certificate state index indexSound tags start =
+        some result)
+    {vertex : Vertex} :
+    result.tags[vertex]? = some true ↔
+      tags[vertex]? = some true ∨ result.Touched vertex := by
+  exact nextAxiomWithFuel?_tagged_iff_input_or_touched (by
+    simpa [nextAxiom?] using equation)
 
 /-- Two successful calls, including calls across different marking states,
 have disjoint touched sets when, and only as claimed here, the first call's

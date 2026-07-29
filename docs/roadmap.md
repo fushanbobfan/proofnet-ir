@@ -771,18 +771,21 @@
     keeping submitted and reached/partner orientations distinct.
   - [x] Add the invariant-bound local Figure-7 pop-before-mark, raw-age mark,
     tensor-mate, post-mark search, and operational `new` pipeline.
-  - [ ] Prove a reachable-state and exact tag-history characterization for
-    these wrappers; the preservation bundle alone does not exclude reset or
-    forged tag arrays.
+  - [x] Add proof-relevant reachability for exactly the
+    empty/init/operational-new fragment. Prove current tag iff recorded touch,
+    whole-history submitted axiom-slot `Nodup`, and reservation-event count
+    alignment. Keep this separate from `ReservationInvariant`, which alone
+    still permits reset or forged tag arrays.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
-    route-local later-call freshness, and implement the paper's `wait` and
-    `unify` transitions under the operational waiting domain. Establish the
-    special union-find invariants, reachability, tag provenance, progress,
-    completeness of that sequential executable, and a cost theorem over every
-    implemented operation before claiming Guerrini linearity. These stack
-    invariants are false for the flat scheduler.
+    route-local later-call freshness, and implement the paper's `concl`, `nop`,
+    `wait`, `forward`, and `unify` transitions under the operational waiting
+    domain. Establish the special union-find invariants, full-rule
+    reachability, queue provenance, progress, completeness of that sequential
+    executable, and a cost theorem over every implemented operation before
+    claiming Guerrini linearity. These stack invariants are false for the flat
+    scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist
     completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and

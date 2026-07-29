@@ -136,9 +136,12 @@ hash of the unaltered original PDF.
   audit helper. Its production interpretation initializes the old active
   boundary and leaves the new top undefined, with a kernel-checked
   `OperationalWaitingDomain`. This is not an author-confirmed erratum.
-- That domain invariant does not yet supply ready/waiting payload ownership,
-  executable `wait`/`unify`, reachable-history or tag-history
-  characterizations, or scheduler progress/completeness.
+- That domain invariant alone does not supply reachability or tag provenance.
+  A separate exact empty/init/operational-new history now proves tag iff
+  recorded touch, whole-history submitted-slot non-reuse, and
+  reservation-count alignment. Ready/waiting payload ownership,
+  `concl`/`nop`/`wait`/`forward`/`unify`, full-rule reachability, and scheduler
+  progress/completeness remain open.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at
   the Figure-5 rule level but does not claim Theorem 16's linear bound.
 

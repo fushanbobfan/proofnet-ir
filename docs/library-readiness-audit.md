@@ -123,8 +123,12 @@ part of the engineering and proof-identity gap.
   boundary lookup; the same route-bound result exposes production submitted
   orientation separately from delayed reached/partner order. Typed
   initial/later wrappers thread the complete tag array and preserve
-  `ReservationInvariant`, including `OperationalWaitingDomain`, but this does
-  not characterize reachable histories or exclude reset tags.
+  `ReservationInvariant`, including `OperationalWaitingDomain`.
+  `SequentialFigure7History.lean` now separately characterizes exact
+  empty/init/operational-new executions and proves tags iff recorded touch,
+  whole-history submitted-slot non-reuse, and reservation-count alignment.
+  The preservation record alone still does not exclude reset tags, and the
+  history result does not cover the unimplemented rules.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -381,8 +385,10 @@ part of the engineering and proof-identity gap.
    `OperationalWaitingDomain`. Initial and later reservations, submitted/search
    orientation separation, the narrow `RealizesSigma` relation, and the local
    pop/mark/mate-search/new pipeline are kernel checked under the supplied
-   invariant. Ready/waiting payload ownership, executable `wait` and `unify`,
-   reachable-state and exact tag-history characterizations, later-state
+   invariant. Exact init/new execution history, tag provenance, global
+   submitted-slot non-reuse, and reservation-count alignment are also kernel
+   checked. Ready/waiting payload ownership, executable
+   `concl`/`nop`/`wait`/`forward`/`unify`, full-rule reachability, later-state
    selection totality, closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, and a
    whole-program linear cost theorem remain open.
@@ -445,10 +451,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 145 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 159 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
-  `Classical.choice`, and `Quot.sound`; it separately locks 21 axiom-free,
-  62 `propext`-only, and 63 `propext`/`Quot.sound` boundaries;
+  `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
+  64 `propext`-only, and 63 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -538,8 +544,10 @@ It can currently be used for:
   threaded touched-set, `σ` partition, operational inactive-boundary waiting
   domain, typed initial/later reservations, and local pop/mark/new pipeline,
   while treating search failure as inconclusive; ready/waiting payload
-  ownership, wait/unify, reachability, and tag-history are still absent, so
-  together these are not a complete scheduler API;
+  ownership and executable `concl`/`nop`/`wait`/`forward`/`unify` remain
+  absent. Exact init/new reachability and tag history are present, but
+  full-rule reachability and queue provenance are not, so together these are
+  not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
 - auditing the frozen 180-task model experiment, amendment, raw responses,

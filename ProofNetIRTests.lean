@@ -1,5 +1,5 @@
 import ProofNetIR
-import ProofNetIR.SequentialFigure7New
+import ProofNetIR.SequentialFigure7History
 
 example {certificate : ProofNetIR.Certificate}
     {state next : ProofNetIR.UnificationMarking certificate}
@@ -1610,6 +1610,44 @@ example :
       3 2 = none := by
   native_decide
 
+/-- A later reservation must also reject an endpoint already stored by an
+inactive waiting payload.  Checking only `ready.flatten` would accept this
+state and later reintroduce vertex 5 when `W(0)` is drained. -/
+def delayedWithWaitingEndpoint : SequentialStackState :=
+  { delayedAfterOperationalNew with
+    waiting :=
+      delayedAfterOperationalNew.waiting.setIfInBounds
+        0 (.initialized [5]) }
+
+example :
+    delayedWithWaitingEndpoint.waitingVertices = [5] ∧
+      5 ∉ delayedWithWaitingEndpoint.ready.flatten ∧
+      5 ∈ delayedWithWaitingEndpoint.queuedVertices := by
+  native_decide
+
+/-- Every condition from the former ready-only guard still holds; the sole
+newly exposed conflict is membership in the waiting payload.  This prevents
+the negative regression from passing because of an unrelated side guard. -/
+example :
+    0 < delayedWithWaitingEndpoint.nextAge ∧
+      delayedWithWaitingEndpoint.sigma.getLast? = some 1 ∧
+      1 < delayedWithWaitingEndpoint.nextAge ∧
+      5 < delayedWithWaitingEndpoint.marks.size ∧
+      4 < delayedWithWaitingEndpoint.marks.size ∧
+      5 ≠ 4 ∧
+      5 ∉ delayedWithWaitingEndpoint.ready.flatten ∧
+      4 ∉ delayedWithWaitingEndpoint.ready.flatten ∧
+      delayedWithWaitingEndpoint.marks[5]? = some none ∧
+      delayedWithWaitingEndpoint.marks[4]? = some none ∧
+      delayedWithWaitingEndpoint.waiting[1]? = some .undefined ∧
+      delayedWithWaitingEndpoint.waiting[
+        delayedWithWaitingEndpoint.nextAge]? = some .undefined := by
+  native_decide
+
+example :
+    operationalNewEnqueue? delayedWithWaitingEndpoint 5 4 = none := by
+  native_decide
+
 /-- A second primitive-only operational reservation initializes the previous
 top and again leaves the newly allocated top undefined. -/
 def delayedAfterSecondOperationalNew : SequentialStackState where
@@ -1794,6 +1832,60 @@ example {before after : ReservationState}
     ReservationInvariant canonical after := by
   exact SequentialFigure7.new?_reservationInvariant
     (canonicalFigure7NewInitial_invariant initialEquation) newEquation
+
+/-- A concrete successful init/new pair builds a proof-relevant two-event
+history.  The history carries exact tag provenance, globally distinct
+submitted axiom slots, and counters aligned with both scheduler and production
+state.  This is a successful-run property, not a progress theorem. -/
+example {before after : ReservationState}
+    (initialEquation :
+      canonicalFigure7NewInitial = some before)
+    (newEquation :
+      SequentialFigure7.new? canonical before
+          (canonicalFigure7NewInitial_invariant initialEquation) =
+        some after) :
+    ∃ history : SequentialFigure7.InitNewHistory canonical after,
+      history.length = 2 ∧
+      history.linkIndices.Nodup ∧
+      history.length = after.stack.nextAge ∧
+      history.length = after.core.startedAxioms ∧
+      (∀ {vertex : Vertex},
+        after.tags[vertex]? = some true ↔ history.Touched vertex) := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [canonicalFigure7NewInitial] using initialEquation) with
+    ⟨initialStep⟩
+  rcases
+      (SequentialFigure7.new?_some_iff
+        (canonicalFigure7NewInitial_invariant initialEquation)).mp
+        newEquation with
+    ⟨newStep⟩
+  let history : SequentialFigure7.InitNewHistory canonical after :=
+    .later (.init initialStep) newStep
+  refine ⟨history, rfl, history.linkIndices_nodup,
+    history.length_eq_nextAge, history.length_eq_startedAxioms, ?_⟩
+  intro vertex
+  exact history.tagged_iff_touched
+
+/-- Exact tag origin follows from a successful NEXTAXIOM execution equation,
+including the equations retained inside proof-relevant scheduler histories. -/
+example {certificate : Certificate} {state : UnificationState}
+    {index : SequentialUnification.SourceIndex}
+    {fuel : Nat} {inputTags : Array Bool}
+    {indexSound :
+      SequentialUnification.SourceIndex.Sound certificate index}
+    {start : Vertex}
+    (result :
+      SequentialUnification.NextAxiomResult
+        certificate state fuel inputTags)
+    (equation :
+      SequentialUnification.nextAxiomWithFuel?
+          certificate state index indexSound fuel inputTags start =
+        some result)
+    {vertex : Vertex} :
+    result.tags[vertex]? = some true ↔
+      inputTags[vertex]? = some true ∨ result.Touched vertex :=
+  SequentialUnification.nextAxiomWithFuel?_tagged_iff_input_or_touched
+    equation
 
 /-- The composed Figure-7 step exports the operational waiting-domain fact,
 not only carrier alignment. -/

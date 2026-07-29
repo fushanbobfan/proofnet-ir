@@ -309,6 +309,24 @@ structure SequentialStackState where
 
 namespace SequentialStackState
 
+/-- The vertices currently stored in one waiting cell.  Paper-level
+`undefined` contributes no payload, while an initialized cell contributes its
+complete stored list. -/
+def WaitingCell.vertices : WaitingCell → List Vertex
+  | .undefined => []
+  | .initialized vertices => vertices
+
+/-- All waiting payloads in raw-age order. -/
+def waitingVertices (state : SequentialStackState) : List Vertex :=
+  state.waiting.toList.flatMap WaitingCell.vertices
+
+/-- Every occurrence currently stored by either the ready stack or the waiting
+table.  This is the executable domain against which later enqueue operations
+must check global absence.  Semantic ownership and uniqueness remain separate
+history invariants. -/
+def queuedVertices (state : SequentialStackState) : List Vertex :=
+  state.ready.flatten ++ state.waitingVertices
+
 /-- Empty fixed-carrier scheduler storage. -/
 def empty (carrierSize : Nat) : SequentialStackState where
   marks := Array.replicate carrierSize none
@@ -1073,8 +1091,9 @@ theorem newEnqueue?_wellShaped
 
 `active` is the old top `sigma` boundary.  It must still have an undefined
 waiting cell, while the fresh raw age at `nextAge` must also be unused.  The
-new endpoints are required to be globally absent from the current ready stack,
-so this local transition cannot introduce a cross-bucket duplicate. -/
+new endpoints are required to be globally absent from both the ready stack and
+every waiting payload, so this local transition cannot introduce a duplicate
+that a later `unify` would drain back into ready work. -/
 def OperationalNewReadyAt (state : SequentialStackState)
     (active : RawTokenAge) (reached partner : Vertex) : Prop :=
   0 < state.nextAge ∧
@@ -1083,8 +1102,8 @@ def OperationalNewReadyAt (state : SequentialStackState)
   reached < state.marks.size ∧
   partner < state.marks.size ∧
   reached ≠ partner ∧
-  reached ∉ state.ready.flatten ∧
-  partner ∉ state.ready.flatten ∧
+  reached ∉ state.queuedVertices ∧
+  partner ∉ state.queuedVertices ∧
   state.marks[reached]? = some none ∧
   state.marks[partner]? = some none ∧
   state.waiting[active]? = some .undefined ∧
@@ -1195,7 +1214,7 @@ theorem operationalNewEnqueue?_exact
     ⟨active, activeEquation, ready, rfl⟩
   rcases ready with
     ⟨positive, activeEquation', activeLt, reachedBound, partnerBound,
-      distinct, reachedAbsent, partnerAbsent, reachedUnmarked,
+      distinct, reachedAbsentQueued, partnerAbsentQueued, reachedUnmarked,
       partnerUnmarked, activeUndefined, freshUndefined⟩
   have activeWaitingBound : active < state.waiting.size :=
     (Array.getElem?_eq_some_iff.mp activeUndefined).1
@@ -1234,8 +1253,16 @@ theorem operationalNewEnqueue?_wellShaped
     ⟨active, activeEquation, ready, rfl⟩
   rcases ready with
     ⟨positive, activeEquation', activeLt, reachedBound, partnerBound,
-      distinct, reachedAbsent, partnerAbsent, reachedUnmarked,
+      distinct, reachedAbsentQueued, partnerAbsentQueued, reachedUnmarked,
       partnerUnmarked, activeUndefined, freshUndefined⟩
+  have reachedAbsent : reached ∉ state.ready.flatten := by
+    intro membership
+    exact reachedAbsentQueued (by
+      simp [queuedVertices, membership])
+  have partnerAbsent : partner ∉ state.ready.flatten := by
+    intro membership
+    exact partnerAbsentQueued (by
+      simp [queuedVertices, membership])
   have reachedCarrier : reached < carrierSize := by
     rw [← wellShaped.marks_size]
     exact reachedBound
@@ -1301,7 +1328,7 @@ theorem operationalNewEnqueue?_operationalWaitingDomain
     ⟨sigmaPrefix, sigmaEquation⟩
   rcases ready with
     ⟨positive, activeEquation', activeLt, reachedBound, partnerBound,
-      distinct, reachedAbsent, partnerAbsent, reachedUnmarked,
+      distinct, reachedAbsentQueued, partnerAbsentQueued, reachedUnmarked,
       partnerUnmarked, activeUndefined, freshUndefined⟩
   have activeWaitingBound : active < state.waiting.size :=
     (Array.getElem?_eq_some_iff.mp activeUndefined).1

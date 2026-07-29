@@ -9,6 +9,14 @@ change accepted-certificate semantics or wire output. Every release pins its
 Lean toolchain in `lean-toolchain`; consumers should use the same toolchain or
 test their own explicitly.
 
+The unreleased v0.10 scheduler checkpoint preserves the public
+`SequentialUnification.NextAxiomResult` record shape. Exact true-tag origin is
+proved by the successful `nextAxiomWithFuel?` or `nextAxiom?` execution
+equation rather than by adding a structure field, so existing manual record
+constructors remain source compatible. The same checkpoint tightens the
+experimental operational-`new` guard: an endpoint already stored in either a
+ready bucket or a waiting payload is rejected.
+
 ## Wire API
 
 Wire versions are independent, explicit contracts. Existing version markers

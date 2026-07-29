@@ -129,8 +129,8 @@ Figure-7 `new` transition.
 The type of `search` mentions `coreMarked`, so the witness records the
 mathematically material ordering: `u₁` is raw-marked before `NEXTAXIOM(u₂)` is
 evaluated.  `before_invariant` prevents independent stack/core/raw-age
-forgeries, while the stronger reachable-scheduler invariant remains future
-work. -/
+forgeries, while the stronger full-rule reachable-scheduler invariant remains
+future work. -/
 structure NewStep (certificate : Certificate)
     (before after : ReservationState) : Type where
   before_invariant : ReservationInvariant certificate before

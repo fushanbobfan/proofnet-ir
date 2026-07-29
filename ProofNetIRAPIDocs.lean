@@ -457,6 +457,8 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_carrierClear,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_tag_trace_invariants,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_touched_tagged,
+      `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_tagged_iff_input_or_touched,
+      `ProofNetIR.SequentialUnification.nextAxiom?_tagged_iff_input_or_touched,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_threaded_touched_disjoint,
       `ProofNetIR.SequentialUnification.SourceLeftStep,
       `ProofNetIR.SequentialUnification.SourceLeftReachable,
@@ -539,6 +541,9 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.boundary_exists,
       `ProofNetIR.SequentialSchedulerState.sigmaBoundary_unique_of_greatest,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingCell.vertices,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.waitingVertices,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.queuedVertices,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.active_undefined,
@@ -669,6 +674,33 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.NewStep.markedMiddle_reservationInvariant,
       `ProofNetIR.SequentialFigure7.NewStep.reservationInvariant,
       `ProofNetIR.SequentialFigure7.new?_reservationInvariant
+    ]
+  },
+  {
+    title := "Executed init/new history"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.TagsExtend,
+      `ProofNetIR.SequentialFigure7.TagsExtend.refl,
+      `ProofNetIR.SequentialFigure7.TagsExtend.trans,
+      `ProofNetIR.SequentialFigure7.initial_output_tags_eq,
+      `ProofNetIR.SequentialFigure7.initial_tagsExtend,
+      `ProofNetIR.SequentialFigure7.NewStep.output_tags_eq,
+      `ProofNetIR.SequentialFigure7.NewStep.tagsExtend,
+      `ProofNetIR.SequentialFigure7.InitNewHistory,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.Touched,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.linkIndices,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.length,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.reservationInvariant,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.tagged_iff_touched,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.touched_disjoint_next,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.mem_linkIndices_witness,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.linkIndices_nodup,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.length_eq_nextAge,
+      `ProofNetIR.SequentialFigure7.InitNewHistory.length_eq_startedAxioms,
+      `ProofNetIR.SequentialFigure7.reachable_empty,
+      `ProofNetIR.SequentialFigure7.reachable_of_initializeReservation?_eq_some,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new
     ]
   },
   {
