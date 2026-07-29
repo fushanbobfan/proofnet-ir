@@ -213,10 +213,13 @@ stored-right orientation, all canonical initial starts under their rank
 budgets, a depth-two exact rank-versus-`rank + 1` fuel boundary, and the
 successful dynamic update.
 
-`SequentialSchedulerState.lean` is a separate, non-production delayed-state
-specification. Its `RawTokenAge` is the immutable discovery-order age, never a
-union-find representative. `SigmaAgePartition` proves that the boundary list
-is empty exactly at raw-age horizon zero, begins at zero at a positive horizon,
+`SequentialSchedulerState.lean` remains a separate, non-production
+delayed-state specification. `SequentialSchedulerBridge.lean` now relates its
+empty/initial reservation to the exact production carrier without identifying
+the two state records. Its `RawTokenAge` is the immutable discovery-order age,
+never a union-find representative. `SigmaAgePartition` proves that the
+boundary list is empty exactly at raw-age horizon zero, begins at zero at a
+positive horizon,
 is strictly increasing, and contains only boundaries below that horizon.
 `sigmaBoundary?` selects the greatest boundary not exceeding a raw age.
 Waiting storage is fixed-capacity and intentionally has three observably
@@ -238,10 +241,17 @@ says `W` is defined at nonactive boundaries, while the Figure-7 `init`/`new`
 displays pull in a different direction: the displayed initialization leaves
 `W(0)` undefined whereas `new` initializes its fresh age.
 
-Later-state start selection, a `reserveAxiom?`/`RealizesSigma` bridge to
-`UnificationState`, the full aligned `R`/`W` transition semantics, scheduler
-correctness, and scheduler cost remain unimplemented. Future guards must
-continue to compare raw assigned ages, not union-find representatives.
+`reserveAxiomAt?` now creates a locally well-formed submitted-orientation live
+axiom component and a fresh self-parent while leaving marks unchanged.
+`RealizesSigma` equates raw marks, the carrier horizon, and each executable
+`sigmaBoundary?` lookup with the production representative. The initial
+route-bound theorem exposes both the delayed `[reached, partner]` ready bucket
+and the production `[result.left, result.right]` frontier from the same result
+and link index. `RealizesSigma` alone is deliberately not a `WellShaped` or
+reachability bundle. Replay protection, later-state reservation/selection,
+the full aligned `R`/`W` transition semantics, scheduler correctness, and
+scheduler cost remain unimplemented. Future guards must continue to compare
+raw assigned ages, not union-find representatives.
 The separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
@@ -490,17 +500,19 @@ active-reference walks between marked occurrences are equivalent to
   selection and faithful full `R`/`W` transitions are still required for the
   later Guerrini linearity layer. The independent delayed-state checkpoint
   already proves the raw-age `σ` partition, three waiting-cell states,
-  reached/partner reservation order, and local shape preservation, but has no
-  production-state realization theorem. Planarity is not assumed for
+  reached/partner reservation order, and local shape preservation. Its first
+  production bridge now proves exact unmarked reservation and a narrow
+  `RealizesSigma` theorem for the initial carrier, but not a full reachable
+  scheduler invariant. Planarity is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: its production path still starts all axioms
 eagerly and uses flat waiting requeues. The separate bounded/tagged
-`NEXTAXIOM` primitive is not yet integrated with the delayed
-`SequentialSchedulerState`, its future `R` semantics, or later-state scheduler
-start selection. General
+`NEXTAXIOM` primitive now has an exact one-reservation bridge to the delayed
+`SequentialSchedulerState`, but is not yet integrated into complete `R`/`W`
+semantics or later-state scheduler start selection. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

@@ -1195,6 +1195,7 @@ namespace SequentialSchedulerStateTests
 
 open SequentialSchedulerState
 open SequentialSchedulerState.SequentialStackState
+open SequentialSchedulerBridge
 
 /-- A representative raw-age interval stack: `[0,2,5]` partitions ages below
 `7` into intervals beginning at exactly those boundaries. -/
@@ -1253,6 +1254,12 @@ example : WaitingCell.undefined ≠ WaitingCell.initialized [] :=
 def delayedInitial : SequentialStackState :=
   SequentialStackState.empty canonical.formulas.size
 
+/-- The exact production empty core and delayed empty stack agree before the
+first reservation. -/
+example :
+    RealizesSigma delayedInitial canonical.initialUnificationState := by
+  exact initial_realizesSigma canonical
+
 /-- Expected delayed `init` output.  The `(1,0)` endpoint order locks the
 stored-right `NEXTAXIOM` fixture semantics. -/
 def delayedAfterInit : SequentialStackState where
@@ -1309,6 +1316,144 @@ example :
   exact initEnqueue?_endpoint_unmarked
     (state := delayedInitial) (after := delayedAfterInit)
     (reached := 1) (partner := 0) (by native_decide)
+
+/-- Re-run the stored-right search against the exact public production empty
+core used by the scheduler bridge. -/
+def canonicalStoredRightBridgeNextAxiom :=
+  SequentialUnification.nextAxiom? canonical
+    canonical.initialUnificationState canonicalSourceIndex
+    (SequentialUnification.sourceIndex_sound canonical)
+    (Array.replicate canonical.formulas.size false) 5
+
+/-- The exact bridge search result carries a kernel-checked oriented route. -/
+example {result}
+    (equation :
+      canonicalStoredRightBridgeNextAxiom = some result) :
+    ∃ reached partner,
+      SequentialUnification.NextAxiomRoute
+        5 result reached partner := by
+  exact SequentialUnification.nextAxiom?_route (by
+    simpa [canonicalStoredRightBridgeNextAxiom] using equation)
+
+/-- One and the same successful result controls both sides of the bridge:
+the production component keeps submitted frontier `[0,1]`, while the delayed
+ready bucket keeps search orientation `[1,0]`. -/
+example :
+    (match canonicalStoredRightBridgeNextAxiom with
+    | none => false
+    | some result =>
+        result.orientedEndpoints? == some (1, 0) &&
+        match
+            initEnqueue? delayedInitial 1 0,
+            canonical.reserveAxiomAt?
+              canonical.initialUnificationState result.linkIndex with
+        | some stackAfter, some coreAfter =>
+            stackAfter.ready == [[1, 0]] &&
+            coreAfter.parents == #[0] &&
+            coreAfter.startedAxioms == 1 &&
+            coreAfter.firedConnectives == 0 &&
+            coreAfter.marks == canonical.initialUnificationState.marks &&
+            match coreAfter.components[0]? with
+            | some (some component) =>
+                component.frontier == [0, 1]
+            | _ => false
+        | _, _ => false) = true := by
+  native_decide
+
+/-- The route-bound theorem uses that same result's `linkIndex` for the
+submitted-orientation reservation and its reached/partner pair for delayed
+enqueueing. -/
+example
+    {result :
+      SequentialUnification.NextAxiomResult canonical
+        canonical.initialUnificationState canonical.formulas.size
+        (Array.replicate canonical.formulas.size false)}
+    {stackAfter : SequentialStackState}
+    {coreAfter : UnificationState}
+    (route :
+      SequentialUnification.NextAxiomRoute 5 result 1 0)
+    (stackEquation :
+      initEnqueue? delayedInitial 1 0 = some stackAfter)
+    (coreEquation :
+      canonical.reserveAxiomAt?
+          canonical.initialUnificationState result.linkIndex =
+        some coreAfter) :
+    result.orientedEndpoints? = some (1, 0) ∧
+      RealizesSigma stackAfter coreAfter := by
+  exact init_reserve_route_exact route stackEquation coreEquation
+
+/-- The stronger route-bound corollary exposes both endpoint orders for every
+successful first bridge step, not just for the executable canonical fixture. -/
+example
+    {result :
+      SequentialUnification.NextAxiomResult canonical
+        canonical.initialUnificationState canonical.formulas.size
+        (Array.replicate canonical.formulas.size false)}
+    {stackAfter : SequentialStackState}
+    {coreAfter : UnificationState}
+    (route :
+      SequentialUnification.NextAxiomRoute 5 result 1 0)
+    (stackEquation :
+      initEnqueue? delayedInitial 1 0 = some stackAfter)
+    (coreEquation :
+      canonical.reserveAxiomAt?
+          canonical.initialUnificationState result.linkIndex =
+        some coreAfter) :
+    result.orientedEndpoints? = some (1, 0) ∧
+      stackAfter.ready = [[1, 0]] ∧
+      ∃ component,
+        coreAfter.components = #[some component] ∧
+        component.frontier = [result.left, result.right] ∧
+        RealizesSigma stackAfter coreAfter := by
+  exact init_reserve_route_fields route stackEquation coreEquation
+
+/-- A reservation index must designate an axiom link. -/
+example :
+    canonical.reserveAxiomAt?
+        canonical.initialUnificationState 2 = none := by
+  native_decide
+
+/-- An out-of-bounds reservation index fails closed. -/
+example :
+    canonical.reserveAxiomAt?
+        canonical.initialUnificationState 99 = none := by
+  native_decide
+
+/-- Local axiom well-formedness is checked rather than inferred from the
+low-level component constructor. -/
+def malformedReservationCertificate : Certificate where
+  formulas := #[p, pDual, q]
+  links := [.axiom 0 2]
+  conclusions := [0, 2]
+
+example :
+    malformedReservationCertificate.reserveAxiomAt?
+        malformedReservationCertificate.initialUnificationState 0 =
+      none := by
+  native_decide
+
+/-- Reservation is delayed but still requires both submitted endpoints to be
+currently unmarked. -/
+def canonicalMarkedReservationState : UnificationState :=
+  { canonical.initialUnificationState with
+    marks :=
+      canonical.initialUnificationState.marks.setIfInBounds
+        0 (some 0) }
+
+example :
+    canonical.reserveAxiomAt? canonicalMarkedReservationState 0 =
+      none := by
+  native_decide
+
+/-- The component and parent carriers must be aligned before a reservation. -/
+def canonicalMisalignedReservationState : UnificationState :=
+  { canonical.initialUnificationState with
+    components := #[none] }
+
+example :
+    canonical.reserveAxiomAt? canonicalMisalignedReservationState 0 =
+      none := by
+  native_decide
 
 /-- Expected delayed `new` output.  Raw age one is reserved, its endpoint
 bucket is appended, and exactly `W(1)` becomes initialized `∅`. -/

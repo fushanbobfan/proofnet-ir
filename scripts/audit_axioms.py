@@ -112,6 +112,15 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_clearThrough",
     "ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_carrierClear",
     "ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart",
+    "ProofNetIR.Certificate.UnificationComponent.axiom?_formulaConsistent",
+    "ProofNetIR.Certificate.reserveAxiomAt?_orderedParents",
+    "ProofNetIR.Certificate.reserveAxiomAt?_abstractable",
+    "ProofNetIR.Certificate.reserveAxiomAt?_componentsFormulaConsistent",
+    "ProofNetIR.Certificate.reserveAxiomAt?_old_representative",
+    "ProofNetIR.Certificate.reserveAxiomAt?_fresh_representative",
+    "ProofNetIR.SequentialSchedulerBridge.init_reserve_carrier_realizesSigma",
+    "ProofNetIR.SequentialSchedulerBridge.init_reserve_route_exact",
+    "ProofNetIR.SequentialSchedulerBridge.init_reserve_route_fields",
     "ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined.lookup",
     "ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_exact",
     "ProofNetIR.UnificationState.mergeConclusion_toMarking_mark",
@@ -144,6 +153,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.UnificationState.ObservationEquivalent.identityParents",
     "ProofNetIR.SequentialSchedulerState.WaitingCell.undefined_ne_initialized_empty",
     "ProofNetIR.SequentialSchedulerState.sigmaBoundary_unique_of_greatest",
+    "ProofNetIR.SequentialSchedulerBridge.RealizesSigma.rawAgeAt?_eq_assignedToken?",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.Certificate.linkLeftRetainedEdges_lookup_origin",
@@ -169,6 +179,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_last",
     "ProofNetIR.SequentialUnification.nextAxiomWithFuel?_route",
     "ProofNetIR.SequentialUnification.nextAxiom?_route",
+    "ProofNetIR.Certificate.UnificationComponent.axiom?_success",
+    "ProofNetIR.SequentialSchedulerBridge.initial_realizesSigma",
     "ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem",
     "ProofNetIR.SequentialSchedulerState.sigmaBoundary?_le",
     "ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped.waiting_lookup_exists",
@@ -219,6 +231,11 @@ EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_endpoint_unmarked",
     "ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_wellShaped",
     "ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped",
+    "ProofNetIR.SequentialUnification.NextAxiomRoute.orientedEndpoints?_eq",
+    "ProofNetIR.Certificate.reserveAxiomAt?_exact",
+    "ProofNetIR.Certificate.reserveAxiomAt?_endpoint_unmarked",
+    "ProofNetIR.Certificate.reserveAxiomAt?_componentsParentsAligned",
+    "ProofNetIR.Certificate.reserveAxiomAt?_counterAligned",
 }
 EXPECTED_THEOREMS = (
     EXPECTED_CLASSICAL_THEOREMS

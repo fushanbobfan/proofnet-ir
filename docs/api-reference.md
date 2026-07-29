@@ -5515,6 +5515,24 @@ ProofNetIR.SequentialUnification.NextAxiomResult.Touched : {certificate : ProofN
         ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags → ProofNetIR.Vertex → Prop
 ```
 
+### `ProofNetIR.SequentialUnification.NextAxiomResult.orientedEndpoints?`
+
+Kind: definition.
+
+Recover search-oriented axiom endpoints from a successful result.
+
+The stored `left/right` fields retain submitted-link orientation.  The last
+recursive trace vertex determines which of them was actually reached.
+
+```lean
+ProofNetIR.SequentialUnification.NextAxiomResult.orientedEndpoints? : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.UnificationState} →
+    {fuel : Nat} →
+      {inputTags : Array Bool} →
+        ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags →
+          Option (ProofNetIR.Vertex × ProofNetIR.Vertex)
+```
+
 ### `ProofNetIR.SequentialUnification.SearchClearThrough`
 
 Kind: definition.
@@ -5782,6 +5800,21 @@ ProofNetIR.SequentialUnification.NextAxiomRoute : {certificate : ProofNetIR.Cert
         ProofNetIR.Vertex →
           ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags →
             ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.NextAxiomRoute.orientedEndpoints?_eq`
+
+Kind: theorem.
+
+An exact route proves that the executable endpoint extractor returns the
+actual search orientation.
+
+```lean
+ProofNetIR.SequentialUnification.NextAxiomRoute.orientedEndpoints?_eq : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {inputTags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags},
+  ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
+    result.orientedEndpoints? = some (reached, partner)
 ```
 
 ### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_route`
@@ -6308,6 +6341,336 @@ Reserving a later raw age preserves all state-shape invariants.
 ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
   {reached partner : ProofNetIR.Vertex},
   state.WellShaped carrierSize → state.newEnqueue? reached partner = some after → after.WellShaped carrierSize
+```
+
+## Delayed scheduler / production bridge
+
+### `ProofNetIR.Certificate.initialUnificationState`
+
+Kind: definition.
+
+Empty executable unification core on the certificate carrier.
+
+This constructor is public so the delayed scheduler bridge can relate its
+independent empty stack to the exact production carrier without duplicating
+the production initialization record.
+
+```lean
+ProofNetIR.Certificate.initialUnificationState : ProofNetIR.Certificate → ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.Certificate.UnificationComponent.axiom?`
+
+Kind: definition.
+
+The unique production constructor for an axiom component.
+
+The stored submitted orientation is preserved in `frontier`.  Right-endpoint
+typing is intentionally certified by `LinkWellFormed`, not silently repaired
+or reoriented here.
+
+```lean
+ProofNetIR.Certificate.UnificationComponent.axiom? : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Option ProofNetIR.UnificationComponent
+```
+
+### `ProofNetIR.Certificate.UnificationComponent.axiom?_success`
+
+Kind: theorem.
+
+Exact inversion for a successful production axiom-component
+construction.
+
+```lean
+ProofNetIR.Certificate.UnificationComponent.axiom?_success : ∀ {certificate : ProofNetIR.Certificate} {left right : ProofNetIR.Vertex} {component : ProofNetIR.UnificationComponent},
+  ProofNetIR.Certificate.UnificationComponent.axiom? certificate left right = some component →
+    ∃ name positive,
+      certificate.formula? left = some (ProofNetIR.Formula.atom name positive) ∧
+        component = { tree := ProofNetIR.CutFreeDerivation.axiom name positive, frontier := [left, right] }
+```
+
+### `ProofNetIR.Certificate.UnificationComponent.axiom?_formulaConsistent`
+
+Kind: theorem.
+
+A successfully constructed locally well-formed axiom component is
+formula-consistent with the certificate.
+
+```lean
+ProofNetIR.Certificate.UnificationComponent.axiom?_formulaConsistent : ∀ {certificate : ProofNetIR.Certificate} {left right : ProofNetIR.Vertex} {component : ProofNetIR.UnificationComponent},
+  certificate.LinkWellFormed (ProofNetIR.Link.axiom left right) →
+    ProofNetIR.Certificate.UnificationComponent.axiom? certificate left right = some component →
+      ProofNetIR.UnificationComponent.FormulaConsistent certificate component
+```
+
+### `ProofNetIR.Certificate.AxiomReservationReady`
+
+Kind: definition.
+
+Local precondition for reserving one submitted axiom without activating
+its endpoints.
+
+```lean
+ProofNetIR.Certificate.AxiomReservationReady : ProofNetIR.Certificate → ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?`
+
+Kind: definition.
+
+Reserve the exact submitted axiom at `linkIndex`.
+
+The submitted endpoint orientation is used for the live component.  Marks and
+the connective counter are unchanged; the scheduler's search orientation is
+kept separately in its ready bucket.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt? : ProofNetIR.Certificate → ProofNetIR.UnificationState → Nat → Option ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_exact`
+
+Kind: theorem.
+
+Successful reservation exposes the exact submitted axiom, constructor,
+local guard, and all changed and unchanged production fields.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_exact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  certificate.reserveAxiomAt? before linkIndex = some after →
+    ∃ left right component,
+      certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) ∧
+        certificate.AxiomReservationReady before left right ∧
+          ProofNetIR.Certificate.UnificationComponent.axiom? certificate left right = some component ∧
+            component.frontier = [left, right] ∧
+              after.marks = before.marks ∧
+                after.parents = before.parents.push before.parents.size ∧
+                  after.components = before.components.push (some component) ∧
+                    after.startedAxioms = before.startedAxioms + 1 ∧ after.firedConnectives = before.firedConnectives
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_endpoint_unmarked`
+
+Kind: theorem.
+
+Reservation leaves both submitted axiom endpoints unmarked.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_endpoint_unmarked : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  certificate.reserveAxiomAt? before linkIndex = some after →
+    ∃ left right,
+      certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) ∧
+        after.marks[left]? = some none ∧ after.marks[right]? = some none
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_componentsParentsAligned`
+
+Kind: theorem.
+
+Reservation preserves parent/component carrier alignment.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_componentsParentsAligned : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  certificate.reserveAxiomAt? before linkIndex = some after → after.components.size = after.parents.size
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_orderedParents`
+
+Kind: theorem.
+
+Reservation preserves the ordered union-find forest.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_orderedParents : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  before.OrderedParents → certificate.reserveAxiomAt? before linkIndex = some after → after.OrderedParents
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_abstractable`
+
+Kind: theorem.
+
+Reservation preserves the production abstraction contract.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_abstractable : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  ProofNetIR.UnificationState.Abstractable certificate before →
+    before.OrderedParents →
+      certificate.reserveAxiomAt? before linkIndex = some after →
+        ProofNetIR.UnificationState.Abstractable certificate after
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_componentsFormulaConsistent`
+
+Kind: theorem.
+
+A formula-consistent component carrier stays consistent after reservation.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_componentsFormulaConsistent : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate before →
+    certificate.reserveAxiomAt? before linkIndex = some after →
+      ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate after
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_counterAligned`
+
+Kind: theorem.
+
+Axiom reservations and the production token horizon advance together.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_counterAligned : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  before.startedAxioms = before.parents.size →
+    certificate.reserveAxiomAt? before linkIndex = some after → after.startedAxioms = after.parents.size
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_old_representative`
+
+Kind: theorem.
+
+Pushing the reserved self-parent leaves every old representative
+unchanged.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_old_representative : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex token : Nat},
+  before.OrderedParents →
+    certificate.reserveAxiomAt? before linkIndex = some after → after.representative token = before.representative token
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_fresh_representative`
+
+Kind: theorem.
+
+The newly reserved token is represented by itself.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_fresh_representative : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  certificate.reserveAxiomAt? before linkIndex = some after →
+    after.representative before.parents.size = before.parents.size
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.rawAgeAt?`
+
+Kind: definition.
+
+Raw discovery age stored at an occurrence, without representative
+lookup.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.rawAgeAt? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.RawTokenAge
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.RealizesSigma`
+
+Kind: inductive type.
+
+The narrow correspondence between delayed raw-age storage and the
+production union-find carrier.
+
+The representative equation identifies the production representative with the
+executable `sigmaBoundary?` lookup value.  Interpreting that value as the left
+boundary of a valid raw-age interval additionally requires the scheduler's
+`SigmaAgePartition`/`WellShaped` invariant; that stronger bundle is deliberately
+not part of this relation.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.RealizesSigma : ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.RealizesSigma.rawAgeAt?_eq_assignedToken?`
+
+Kind: theorem.
+
+A realization identifies scheduler raw-age lookup with the production
+raw mark, without conflating either one with its representative.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.RealizesSigma.rawAgeAt?_eq_assignedToken? : ∀ {stack : ProofNetIR.SequentialSchedulerState.SequentialStackState} {core : ProofNetIR.UnificationState},
+  ProofNetIR.SequentialSchedulerBridge.RealizesSigma stack core →
+    ∀ (vertex : ProofNetIR.Vertex), stack.rawAgeAt? vertex = core.assignedToken? vertex
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.initial_realizesSigma`
+
+Kind: theorem.
+
+The exact empty production core realizes the exact empty delayed stack.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.initial_realizesSigma : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialSchedulerBridge.RealizesSigma
+    (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty certificate.formulas.size)
+    certificate.initialUnificationState
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.init_reserve_carrier_realizesSigma`
+
+Kind: theorem.
+
+One successful delayed initial enqueue and any successful first production
+reservation realize the same singleton carrier partition.
+
+This carrier-only lemma intentionally does not relate the enqueue endpoints to
+the reserved submitted link.  `init_reserve_route_exact` adds that binding.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.init_reserve_carrier_realizesSigma : ∀ {certificate : ProofNetIR.Certificate} {reached partner : ProofNetIR.Vertex}
+  {stackAfter : ProofNetIR.SequentialSchedulerState.SequentialStackState} {coreAfter : ProofNetIR.UnificationState}
+  {linkIndex : Nat},
+  (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty certificate.formulas.size).initEnqueue? reached
+        partner =
+      some stackAfter →
+    certificate.reserveAxiomAt? certificate.initialUnificationState linkIndex = some coreAfter →
+      ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.init_reserve_route_exact`
+
+Kind: theorem.
+
+A single successful `NEXTAXIOM` result binds the search-oriented delayed
+ready bucket and submitted-orientation production reservation to the same
+exact result.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.init_reserve_route_exact : ∀ {certificate : ProofNetIR.Certificate} {fuel : Nat} {tags : Array Bool} {start reached partner : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate certificate.initialUnificationState fuel tags}
+  {stackAfter : ProofNetIR.SequentialSchedulerState.SequentialStackState} {coreAfter : ProofNetIR.UnificationState},
+  ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
+    (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty certificate.formulas.size).initEnqueue? reached
+          partner =
+        some stackAfter →
+      certificate.reserveAxiomAt? certificate.initialUnificationState result.linkIndex = some coreAfter →
+        result.orientedEndpoints? = some (reached, partner) ∧
+          ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.init_reserve_route_fields`
+
+Kind: theorem.
+
+The field-level companion to `init_reserve_route_exact`.
+
+The delayed side exposes the actual search orientation in its ready bucket,
+while the production component keeps the submitted axiom orientation from the
+same `NextAxiomResult.linkIndex`.  This remains a one-reservation theorem: it
+does not provide replay protection or a later-state transition invariant.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.init_reserve_route_fields : ∀ {certificate : ProofNetIR.Certificate} {fuel : Nat} {tags : Array Bool} {start reached partner : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate certificate.initialUnificationState fuel tags}
+  {stackAfter : ProofNetIR.SequentialSchedulerState.SequentialStackState} {coreAfter : ProofNetIR.UnificationState},
+  ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
+    (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty certificate.formulas.size).initEnqueue? reached
+          partner =
+        some stackAfter →
+      certificate.reserveAxiomAt? certificate.initialUnificationState result.linkIndex = some coreAfter →
+        result.orientedEndpoints? = some (reached, partner) ∧
+          stackAfter.ready = [[reached, partner]] ∧
+            ∃ component,
+              coreAfter.components = #[some component] ∧
+                component.frontier = [result.left, result.right] ∧
+                  ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
 ```
 
 ## Serialization and untrusted input

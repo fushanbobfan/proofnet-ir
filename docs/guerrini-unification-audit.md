@@ -145,11 +145,16 @@ This does not resolve a source-level tension by fiat. The paper's prose says
 display leaves the age-zero cell undefined and the `new` display initializes
 the fresh cell. The model therefore records those local
 states and transitions but proves no `iff` characterization of the full `W`
-domain. It also does not yet define the aligned paper `R` stack, pop-before-mark
-transition system, or a realization in the production state. Later-state
-selection, a `reserveAxiom?`/`RealizesSigma` bridge, scheduler correctness, and
-the whole-scheduler cost model remain open. Future guards must compare raw
-assigned ages; replacing them by representatives would change the algorithm.
+domain. `SequentialSchedulerBridge.lean` now provides the first production
+realization: an exact submitted axiom is reserved as an unmarked live component
+with a fresh self-parent, and the narrow `RealizesSigma` relation connects raw
+marks/horizon/lookup to production representatives. The route-bound theorem
+keeps submitted component orientation separate from reached/partner ready
+order. It still does not define the aligned paper `R` stack, pop-before-mark
+transition system, replay protection, or later-state realization. Scheduler
+correctness and the whole-scheduler cost model remain open. Future guards must
+compare raw assigned ages; replacing them by representatives would change the
+algorithm.
 
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
@@ -343,10 +348,11 @@ The following stronger claims are intentionally absent:
 - equivalence between this eager implementation and the full sequential
   `σ`/`R`/`W`, token-age, `NEXTAXIOM`, and special union-find algorithm
   in Figures 7--8;
-- a production realization of the independent raw-age `σ`/waiting-state
-  checkpoint, later-state start selection, the complete `R`/`W` transition
-  system, scheduler correctness, and scheduler-cost theorems for the bounded
-  `NEXTAXIOM` primitive; only initial/local search totality and local
+- a replay-safe later-state production realization extending the now-proved
+  initial `reserveAxiomAt?`/`RealizesSigma` bridge, later-state start selection,
+  the complete `R`/`W` transition system, scheduler correctness, and
+  scheduler-cost theorems for the bounded `NEXTAXIOM` primitive; only
+  initial/local search totality and local
   delayed-reservation shape preservation are proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
@@ -587,13 +593,13 @@ linearity.
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist
    decision only after that equality is kernel checked.
-6. Bridge the now-kernel-checked bounded/tagged `NEXTAXIOM` checkpoint, whose
-   oriented route, initial/local rank-scoped totality, per-call invariants, and
-   strictly threaded touched-set disjointness are already proved, to the new
-   delayed raw-age state through `reserveAxiom?` and a `RealizesSigma`
-   invariant. Keep the immediate dynamic-start refinement separate from the
-   already mark-preserving delayed `init`/`new`, and preserve their exact
-   `[reached, partner]` ready order.
+6. Extend the now-kernel-checked initial bridge between bounded/tagged
+   `NEXTAXIOM`, delayed raw-age state, and production `UnificationState`.
+   `reserveAxiomAt?`, the narrow `RealizesSigma` relation, submitted component
+   orientation, and exact `[reached, partner]` ready order are already proved.
+   Next add replay-safe later reservations and a reachable-state invariant.
+   Keep the immediate dynamic-start refinement separate from the
+   mark-preserving delayed `init`/`new`.
 7. Extend that bridge with later-state selection and the full Figure-7
    `R`/`W` discipline. Do not invent an `iff` domain theorem for `W` until the
    prose/display tension is resolved.

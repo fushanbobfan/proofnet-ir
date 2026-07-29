@@ -2,10 +2,25 @@
 
 ## Unreleased
 
+- added `ProofNetIR/SequentialSchedulerBridge.lean` as the first exact
+  connection between the delayed raw-age state and the production carrier.
+  `reserveAxiomAt?` reuses the production axiom-component constructor, checks
+  local well-formedness, unmarked endpoints, and component/parent alignment,
+  then appends a live submitted-orientation component and fresh self-parent
+  without changing marks. `RealizesSigma` relates raw marks, horizon, and
+  executable `sigmaBoundary?` lookup to production representatives. The
+  route-bound initial theorem uses the same `NextAxiomResult.linkIndex` and
+  exposes delayed `[reached, partner]` separately from production
+  `[result.left, result.right]`. Kernel-checked regressions reject out-of-range,
+  non-axiom, malformed, already-marked, and misaligned reservations. This is
+  not replay protection, a later-state bridge, a full reachable invariant,
+  complete `R`/`W` semantics, scheduler completeness, fallback removal, or a
+  linearity theorem. The expanded exact trust audit covers 119 full-classical,
+  21 axiom-free, 43 `propext`-only, and 35 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
-  delayed Figures 7–8 state layer, without connecting it to the production
-  unifier. `RawTokenAge` records discovery order and is explicitly not a
-  union-find representative. `SigmaAgePartition` requires `σ` to be empty
+  delayed Figures 7–8 state layer. It was initially separate from the
+  production unifier. `RawTokenAge` records discovery order and is explicitly
+  not a union-find representative. `SigmaAgePartition` requires `σ` to be empty
   exactly at horizon zero, to start at zero at every positive horizon, to be
   strictly increasing, and to stay below the raw-age horizon; executable
   lookup returns the greatest eligible boundary. Fixed-capacity `WaitingCell`
@@ -19,9 +34,9 @@
   No `iff` characterization of the paper's `W` domain is claimed: its prose
   says `W` is defined at nonactive boundaries, whereas the Figure-7
   initialization display leaves `W(0)` undefined and `new` initializes the
-  fresh age. A
-  `reserveAxiom?`/`RealizesSigma` bridge to production state is next; later
-  `NEXTAXIOM` totality, the full transition system, progress, completeness,
+  fresh age. The initial `reserveAxiomAt?`/`RealizesSigma` bridge to production
+  state is now present; replay-safe later reservations, later `NEXTAXIOM`
+  totality, the full transition system, progress, completeness,
   fallback removal, and whole-program linearity remain open;
 - added `ProofNetIR/SequentialUnification.lean` as the first bounded
   Figures 7–8 checkpoint without claiming the full scheduler. A reusable
@@ -62,8 +77,8 @@
   rejection, stored-right orientation, all initial canonical starts under the
   rank budget, a depth-two exact boundary where rank fuel fails and
   `rank + 1` succeeds, and dynamic token allocation. Later-state start
-  selection, the production bridge from the separate raw-age state,
-  complete `R`/`W` token-age sequencing, full scheduler correctness and cost,
+  selection, replay-safe extension of the initial production bridge, complete
+  `R`/`W` token-age sequencing, full scheduler correctness and cost,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - narrowed the flat-scheduler confluence route. Exact concrete-state

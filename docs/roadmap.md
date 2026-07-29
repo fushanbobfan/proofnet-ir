@@ -762,9 +762,16 @@
     enqueue `[reached, partner]`, and preserve only the local `WellShaped`
     invariant. Retain the paper's `W` domain tension instead of claiming an
     unsupported `iff`.
-  - [ ] Add `reserveAxiom?` and prove `RealizesSigma` to bridge the delayed
-    state to the production `UnificationState` without changing endpoint order
-    or treating raw ages as representatives.
+  - [x] Add `reserveAxiomAt?` and prove the initial narrow `RealizesSigma`
+    bridge to production `UnificationState` without changing endpoint order or
+    treating raw ages as representatives. The same exact search result now
+    exposes delayed `[reached, partner]` and submitted
+    `[result.left, result.right]`; reservation leaves both endpoints unmarked.
+    This intentionally does not include replay protection, `WellShaped`, or
+    later-state reachability.
+  - [ ] Extend the bridge through later `new` reservations with scheduler
+    tags/replay protection and a reachable-state invariant that bundles
+    `WellShaped`, component/carrier consistency, and exact `R`/`W` domains.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, pop before marking, state route-local later-call

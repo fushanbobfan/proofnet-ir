@@ -27,6 +27,7 @@ import ProofNetIR.Unification
 import ProofNetIR.SequentialUnification
 import ProofNetIR.SequentialRoute
 import ProofNetIR.SequentialSchedulerState
+import ProofNetIR.SequentialSchedulerBridge
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

@@ -446,6 +446,7 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.sourceIndex_sound,
       `ProofNetIR.SequentialUnification.NextAxiomResult,
       `ProofNetIR.SequentialUnification.NextAxiomResult.Touched,
+      `ProofNetIR.SequentialUnification.NextAxiomResult.orientedEndpoints?,
       `ProofNetIR.SequentialUnification.SearchClearThrough,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?,
       `ProofNetIR.SequentialUnification.nextAxiom?,
@@ -461,6 +462,7 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.SourceLeftChain.cons_of_head,
       `ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_last,
       `ProofNetIR.SequentialUnification.NextAxiomRoute,
+      `ProofNetIR.SequentialUnification.NextAxiomRoute.orientedEndpoints?_eq,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_route,
       `ProofNetIR.SequentialUnification.nextAxiom?_route,
       `ProofNetIR.SequentialUnification.DynamicStartResult,
@@ -506,6 +508,33 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_waiting_of_ne,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_unmarked,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped
+    ]
+  },
+  {
+    title := "Delayed scheduler / production bridge"
+    declarations := [
+      `ProofNetIR.Certificate.initialUnificationState,
+      `ProofNetIR.Certificate.UnificationComponent.axiom?,
+      `ProofNetIR.Certificate.UnificationComponent.axiom?_success,
+      `ProofNetIR.Certificate.UnificationComponent.axiom?_formulaConsistent,
+      `ProofNetIR.Certificate.AxiomReservationReady,
+      `ProofNetIR.Certificate.reserveAxiomAt?,
+      `ProofNetIR.Certificate.reserveAxiomAt?_exact,
+      `ProofNetIR.Certificate.reserveAxiomAt?_endpoint_unmarked,
+      `ProofNetIR.Certificate.reserveAxiomAt?_componentsParentsAligned,
+      `ProofNetIR.Certificate.reserveAxiomAt?_orderedParents,
+      `ProofNetIR.Certificate.reserveAxiomAt?_abstractable,
+      `ProofNetIR.Certificate.reserveAxiomAt?_componentsFormulaConsistent,
+      `ProofNetIR.Certificate.reserveAxiomAt?_counterAligned,
+      `ProofNetIR.Certificate.reserveAxiomAt?_old_representative,
+      `ProofNetIR.Certificate.reserveAxiomAt?_fresh_representative,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.rawAgeAt?,
+      `ProofNetIR.SequentialSchedulerBridge.RealizesSigma,
+      `ProofNetIR.SequentialSchedulerBridge.RealizesSigma.rawAgeAt?_eq_assignedToken?,
+      `ProofNetIR.SequentialSchedulerBridge.initial_realizesSigma,
+      `ProofNetIR.SequentialSchedulerBridge.init_reserve_carrier_realizesSigma,
+      `ProofNetIR.SequentialSchedulerBridge.init_reserve_route_exact,
+      `ProofNetIR.SequentialSchedulerBridge.init_reserve_route_fields
     ]
   },
   {

@@ -169,17 +169,21 @@ increasing boundary list below the raw-age horizon. Waiting cells retain three
 distinct observations: out of bounds, in-bounds undefined, and initialized
 empty. Strict empty `init` leaves `W(0)` undefined; later `new` initializes the
 fresh waiting cell. Both keep marks unchanged and store the ready endpoints in
-`[reached, partner]` order. The preservation theorem is only for the local
-`WellShaped` record; it is not a proof that this state realizes the production
-unifier or the complete paper scheduler.
+`[reached, partner]` order. That preservation theorem alone is only for the
+local `WellShaped` record; the narrower initial production realization is
+provided separately below and still does not prove the complete paper
+scheduler.
 
 The paper's prose says `W` is defined at nonactive boundaries, while its
 Figure-7 initialization leaves the initial cell undefined and `new`
 initializes the fresh cell. The trusted API intentionally makes no `iff` claim
-resolving that tension. Later-state start selection, a
-`reserveAxiom?`/`RealizesSigma` bridge, complete `R`/`W` token-age transitions,
-scheduler correctness, and scheduler cost remain unimplemented. Future guards
-must use raw assigned ages—not representatives.
+resolving that tension. The separate bridge now kernel-checks one exact
+unmarked submitted-axiom reservation and a narrow `RealizesSigma` relation
+between raw marks, horizon, executable `sigmaBoundary?`, and production
+representatives. It does not bundle `WellShaped`, replay protection, or
+reachability. Later-state start selection/reservation, complete `R`/`W`
+token-age transitions, scheduler correctness, and scheduler cost remain
+unimplemented. Future guards must use raw assigned ages—not representatives.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -413,8 +417,10 @@ requires extending the bounded/tagged `NEXTAXIOM` checkpoint with later-state
 selection and complete `R`/`W` token-age sequencing. Its exact oriented routes,
 initial/local totality, per-call invariants, and strictly threaded touched-set
 disjointness are already proved; the separate state layer now proves the
-raw-age `σ` partition and mark-preserving delayed reservations. No production
-realization or planarity principle is assumed.
+raw-age `σ` partition and mark-preserving delayed reservations. The initial
+`reserveAxiomAt?`/`RealizesSigma` production realization is proved, while
+replay-safe later-state realization and complete `R`/`W` semantics remain
+open. No planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is

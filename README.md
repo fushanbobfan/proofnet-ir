@@ -134,8 +134,10 @@ so this global low-rank freshness predicate cannot itself be threaded to a
 second call at any natural rank; the later scheduler needs a route-local
 freshness invariant.
 
-`SequentialSchedulerState.lean` now isolates the first delayed Figures 7–8
-state layer without connecting it to the production unifier. `RawTokenAge` is
+`SequentialSchedulerState.lean` isolates the first delayed Figures 7–8 state
+layer. `SequentialSchedulerBridge.lean` now connects its empty/initial
+reservation to the production unifier without collapsing the two state
+representations. `RawTokenAge` is
 the discovery-order age and is deliberately not a union-find representative.
 `SigmaAgePartition` makes `σ` a strictly increasing boundary list below
 `nextAge`, with boundary `0` at every positive horizon, and the executable
@@ -169,12 +171,16 @@ marked starts, missing and non-unique malformed sources, a distinct second
 start using threaded result tags, repeat rejection, and dynamic token
 allocation. A depth-two fixture locks the exact fuel boundary: rank fuel `2`
 fails and `rank + 1 = 3` succeeds both by theorem and execution. This is not
-yet the Figures 7–8 algorithm: the new delayed state is not bridged to
-`UnificationState`, `R`, or production `NEXTAXIOM`. A proved
-`reserveAxiom?`/`RealizesSigma` bridge, route-local later-state freshness, the
-full transition system and scheduler correctness/cost, correct-state progress,
-pure-worklist completeness, fallback removal, and whole-program linearity
-remain open.
+yet the Figures 7–8 algorithm. `reserveAxiomAt?` now creates the
+submitted-orientation production component and fresh self-parent without
+marking the endpoints; `RealizesSigma` relates raw marks, the token horizon,
+and executable `sigmaBoundary?` lookup. The route-bound initial theorem uses
+one exact `NextAxiomResult`: the delayed ready bucket keeps
+`[reached, partner]`, while the production component keeps
+`[result.left, result.right]`. The relation is intentionally narrow: it does
+not include `WellShaped`, replay protection, later `new`, complete `R`/`W`
+semantics, scheduler correctness/cost, correct-state progress, pure-worklist
+completeness, fallback removal, or whole-program linearity.
 
 The flat-scheduler proof route was also narrowed by counterexample. Exact
 concrete-state confluence already fails on a derivation-generated correct
@@ -513,12 +519,14 @@ and structural-only confluence are already refuted; no theorem at the candidate
 quotient exists. The bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
 kernel checked, including per-call trace/tag invariants, exact oriented routes,
 initial/local rank-scoped totality, and touched-set disjointness for successive
-calls that strictly thread `first.tags`. The separate delayed state checkpoint
-now proves raw-age `σ` partitioning, the three waiting-cell states, exact
-mark-preserving `init`/`new` reservations, and local `WellShaped` preservation.
-It does not yet provide the `reserveAxiom?`/`RealizesSigma` production bridge,
-later-state selection, faithful full `R`/`W` sequencing, or a transition
-system.
+calls that strictly thread `first.tags`. The delayed state checkpoint proves
+raw-age `σ` partitioning, the three waiting-cell states, exact mark-preserving
+`init`/`new` reservations, and local `WellShaped` preservation. The initial
+production bridge additionally proves exact unmarked axiom reservation,
+submitted-versus-search endpoint orientation, component/parent and counter
+alignment, formula consistency, and the narrow `RealizesSigma` relation. It
+does not yet provide replay protection, later-state selection/reservation,
+faithful full `R`/`W` sequencing, or a transition system.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -721,9 +729,11 @@ The repository currently contains:
   bounded/tagged `NEXTAXIOM` primitive and the first independent delayed
   raw-age state layer are checked. The latter proves strictly increasing `σ`
   boundaries, distinct out-of-bounds/undefined/initialized-empty waiting
-  states, and mark-preserving `init`/`new` ready-bucket reservations, but is not
-  integrated with the production unifier. Full `R`/`W` sequencing remains for
-  the Guerrini linearity layer. Closing-par exclusion,
+  states, and mark-preserving `init`/`new` ready-bucket reservations. A narrow
+  initial bridge now reserves the same submitted axiom in the production
+  carrier and proves `RealizesSigma`, while deliberately leaving replay
+  protection, later `new`, and full `R`/`W` sequencing for the Guerrini
+  linearity layer. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -746,10 +756,11 @@ The repository currently contains:
   sources, a threaded distinct second start, stored-right orientation, and
   repeat rejection, plus a depth-two exact rank/fuel boundary. A separate
   delayed-state checkpoint now covers raw ages, `σ`, waiting-cell distinctions,
-  and exact mark-preserving initial/later reservations. Its
-  `reserveAxiom?`/`RealizesSigma` production bridge, later-state selection,
-  complete `R`/`W` sequencing, full scheduler correctness, and a whole-program
-  cost proof remain open;
+  and exact mark-preserving initial/later reservations. Its initial
+  `reserveAxiomAt?`/`RealizesSigma` production bridge is proved with both
+  submitted and reached/partner orientations exposed. Replay protection,
+  later-state selection/reservation, complete `R`/`W` sequencing, full
+  scheduler correctness, and a whole-program cost proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -924,9 +935,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 110 public MLL logical-boundary theorems against the exact
-axiom set `[propext, Classical.choice, Quot.sound]`, plus 20 axiom-free,
-41 `propext`-only, and 30 `propext`/`Quot.sound` boundaries. LeanProp boundaries are audited
+separately audits 119 public MLL logical-boundary theorems against the exact
+axiom set `[propext, Classical.choice, Quot.sound]`, plus 21 axiom-free,
+43 `propext`-only, and 35 `propext`/`Quot.sound` boundaries. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
 Resource-count, dependent-environment round trips, packed-schema soundness,
@@ -1061,6 +1072,7 @@ ProofNetIR/Unification.lean   eager/worklist Figure-5 token semantics
 ProofNetIR/SequentialUnification.lean bounded/tagged NEXTAXIOM and local totality
 ProofNetIR/SequentialRoute.lean exact oriented successful NEXTAXIOM routes
 ProofNetIR/SequentialSchedulerState.lean delayed raw-age sigma/ready/waiting state
+ProofNetIR/SequentialSchedulerBridge.lean initial delayed/production reservation bridge
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter

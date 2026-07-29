@@ -13,6 +13,23 @@ without changing the executable result type.
 
 namespace SequentialUnification
 
+/-- Recover search-oriented axiom endpoints from a successful result.
+
+The stored `left/right` fields retain submitted-link orientation.  The last
+recursive trace vertex determines which of them was actually reached. -/
+def NextAxiomResult.orientedEndpoints?
+    {certificate : Certificate} {state : UnificationState} {fuel : Nat}
+    {inputTags : Array Bool}
+    (result : NextAxiomResult certificate state fuel inputTags) :
+    Option (Vertex × Vertex) := do
+  let reached ← result.trace.getLast?
+  if reached = result.left then
+    some (reached, result.right)
+  else if reached = result.right then
+    some (reached, result.left)
+  else
+    none
+
 /-- One recursive `NEXTAXIOM` step: from the conclusion of an exact submitted
 tensor or par link to that link's stored left premise. -/
 inductive SourceLeftStep (certificate : Certificate) : Vertex → Vertex → Prop
@@ -119,6 +136,27 @@ structure NextAxiomRoute
   storedEndpoints :
     (reached = result.left ∧ partner = result.right) ∨
       (reached = result.right ∧ partner = result.left)
+
+/-- An exact route proves that the executable endpoint extractor returns the
+actual search orientation. -/
+theorem NextAxiomRoute.orientedEndpoints?_eq
+    {certificate : Certificate} {state : UnificationState} {fuel : Nat}
+    {inputTags : Array Bool} {start reached partner : Vertex}
+    {result : NextAxiomResult certificate state fuel inputTags}
+    (route : NextAxiomRoute start result reached partner) :
+    result.orientedEndpoints? = some (reached, partner) := by
+  unfold NextAxiomResult.orientedEndpoints?
+  rw [route.traceLast]
+  rcases route.storedEndpoints with
+    ⟨reachedEq, partnerEq⟩ | ⟨reachedEq, partnerEq⟩
+  · subst reached
+    subst partner
+    simp
+  · subst reached
+    subst partner
+    by_cases same : result.right = result.left
+    · simp [same]
+    · simp [same]
 
 /-- A successful bounded `NEXTAXIOM` computation determines the actual
 reached axiom endpoint and the exact source-left route to it. -/

@@ -113,7 +113,14 @@ part of the engineering and proof-identity gap.
   Only exact field facts and local `WellShaped` preservation are proved. The
   paper's prose says `W` is defined at nonactive boundaries, while its Figure-7
   initialization leaves `W(0)` undefined. That tension is retained; no `iff`
-  domain invariant is claimed.
+  domain invariant is claimed. `SequentialSchedulerBridge.lean` now adds the
+  first exact production connection: a locally well-formed submitted axiom is
+  reserved as an unmarked live component with a fresh self-parent, and the
+  narrow `RealizesSigma` relation covers raw marks, horizon, and executable
+  boundary lookup. The same route-bound result exposes production submitted
+  orientation separately from delayed reached/partner order. This is not
+  replay protection, later-state realization, or a full reachable scheduler
+  invariant.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -366,9 +373,10 @@ part of the engineering and proof-identity gap.
    disjointness for successive calls that strictly thread `first.tags`; reset
    tags are outside that theorem. The separate raw-age state checkpoint proves
    the initial `σ`/waiting representation and mark-preserving `init`/`new`
-   reservations, but no production realization. A
-   `reserveAxiom?`/`RealizesSigma` bridge, later-state selection, complete
-   `R`/`W` token-age sequencing, closing-par scheduler-order exclusion,
+   reservations. Its first production realization now proves exact unmarked
+   `reserveAxiomAt?`, submitted/search orientation separation, and the narrow
+   `RealizesSigma` relation. Replay-safe later-state selection/reservation,
+   complete `R`/`W` token-age sequencing, closing-par scheduler-order exclusion,
    correct-state progress, pure worklist completeness, recursive fallback
    removal, and a whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,
@@ -430,10 +438,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 110 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 119 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
-  `Classical.choice`, and `Quot.sound`; it separately locks 20 axiom-free,
-  41 `propext`-only, and 30 `propext`/`Quot.sound` boundaries;
+  `Classical.choice`, and `Quot.sound`; it separately locks 21 axiom-free,
+  43 `propext`-only, and 35 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

@@ -2388,7 +2388,12 @@ private theorem structurallyWellFormed_sourceLink_exists
         ⟨.par left right, link, index,
           formulaLookup, linkLookup, parts.2⟩
 
-private def initialUnificationState (certificate : Certificate) :
+/-- Empty executable unification core on the certificate carrier.
+
+This constructor is public so the delayed scheduler bridge can relate its
+independent empty stack to the exact production carrier without duplicating
+the production initialization record. -/
+def initialUnificationState (certificate : Certificate) :
     UnificationState where
   marks := Array.replicate certificate.formulas.size none
   parents := #[]
@@ -2716,6 +2721,72 @@ private theorem axiom_formulaConsistent
     (Formula.atom name positive).dual], rfl, ?_⟩
   simp [leftFormula, rightFormula]
 
+/-- The unique production constructor for an axiom component.
+
+The stored submitted orientation is preserved in `frontier`.  Right-endpoint
+typing is intentionally certified by `LinkWellFormed`, not silently repaired
+or reoriented here. -/
+def axiom? (certificate : Certificate) (left right : Vertex) :
+    Option UnificationComponent := do
+  let leftFormula ← certificate.formula? left
+  match leftFormula with
+  | .atom name positive =>
+      some {
+        tree := .axiom name positive
+        frontier := [left, right] }
+  | _ => none
+
+/-- Exact inversion for a successful production axiom-component
+construction. -/
+theorem axiom?_success
+    {certificate : Certificate} {left right : Vertex}
+    {component : UnificationComponent}
+    (equation :
+      axiom? certificate left right = some component) :
+    ∃ name positive,
+      certificate.formula? left = some (.atom name positive) ∧
+        component = {
+          tree := .axiom name positive
+          frontier := [left, right] } := by
+  unfold axiom? at equation
+  cases leftLookup : certificate.formula? left with
+  | none =>
+      simp [leftLookup] at equation
+  | some formula =>
+      cases formula with
+      | atom name positive =>
+          simp [leftLookup] at equation
+          subst component
+          exact ⟨name, positive, rfl, rfl⟩
+      | tensor first second =>
+          simp [leftLookup] at equation
+      | par first second =>
+          simp [leftLookup] at equation
+
+/-- A successfully constructed locally well-formed axiom component is
+formula-consistent with the certificate. -/
+theorem axiom?_formulaConsistent
+    {certificate : Certificate} {left right : Vertex}
+    {component : UnificationComponent}
+    (wellFormed :
+      certificate.LinkWellFormed (.axiom left right))
+    (equation :
+      axiom? certificate left right = some component) :
+    component.FormulaConsistent certificate := by
+  rcases axiom?_success equation with
+    ⟨name, positive, leftFormula, rfl⟩
+  rcases wellFormed with
+    ⟨_different, _leftBound, _rightBound, typing⟩
+  rw [leftFormula] at typing
+  cases rightLookup : certificate.formula? right with
+  | none =>
+      simp [rightLookup] at typing
+  | some rightFormula =>
+      simp [rightLookup] at typing
+      subst rightFormula
+      exact axiom_formulaConsistent leftFormula (by
+        simpa using rightLookup)
+
 /-- Applying one well-typed par rule to a consistent component preserves exact
 agreement between the derivation sequent and occurrence frontier. -/
 private theorem FormulaConsistent.par
@@ -2817,14 +2888,8 @@ private def startAxiom? (certificate : Certificate)
     Option UnificationState := do
   guard (state.marks[left]? = some none)
   guard (state.marks[right]? = some none)
-  let leftFormula ← certificate.formula? left
-  let (name, positive) ←
-    match leftFormula with
-    | .atom name positive => some (name, positive)
-    | _ => none
-  let component : UnificationComponent :=
-    { tree := .axiom name positive
-      frontier := [left, right] }
+  let component ←
+    UnificationComponent.axiom? certificate left right
   let marked := state.startMarking left right
   pure {
     marked with
@@ -2849,17 +2914,17 @@ private theorem startAxiom?_success
     · simp [rightReady] at equation
       cases formulaLookup : certificate.formula? left with
       | none =>
-          simp [formulaLookup] at equation
+          simp [UnificationComponent.axiom?, formulaLookup] at equation
       | some formula =>
           cases formula with
           | atom name positive =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
               subst next
               exact ⟨leftReady, rightReady, rfl, rfl⟩
           | tensor first second =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
           | par first second =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
     · have failed : (failure : Option Unit) = none := rfl
       simp [rightReady, failed] at equation
   · have failed : (failure : Option Unit) = none := rfl
@@ -2882,11 +2947,11 @@ private theorem startAxiom?_success_component_push
     · simp [rightReady] at equation
       cases formulaLookup : certificate.formula? left with
       | none =>
-          simp [formulaLookup] at equation
+          simp [UnificationComponent.axiom?, formulaLookup] at equation
       | some formula =>
           cases formula with
           | atom name positive =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
               subst next
               refine
                 ⟨{ tree := .axiom name positive
@@ -2894,9 +2959,9 @@ private theorem startAxiom?_success_component_push
               · simp
               · simp
           | tensor first second =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
           | par first second =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
     · have failed : (failure : Option Unit) = none := rfl
       simp [rightReady, failed] at equation
   · have failed : (failure : Option Unit) = none := rfl
@@ -3279,11 +3344,11 @@ private theorem startAxiom?_success_componentsFormulaConsistent
     · simp [rightReady] at equation
       cases formulaLookup : certificate.formula? left with
       | none =>
-          simp [formulaLookup] at equation
+          simp [UnificationComponent.axiom?, formulaLookup] at equation
       | some formula =>
           cases formula with
           | atom name positive =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
               subst next
               have rightFormula :
                   certificate.formula? right =
@@ -3306,9 +3371,9 @@ private theorem startAxiom?_success_componentsFormulaConsistent
                   formulaLookup rightFormula
               exact consistent.push componentConsistent
           | tensor first second =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
           | par first second =>
-              simp [formulaLookup] at equation
+              simp [UnificationComponent.axiom?, formulaLookup] at equation
     · have failed : (failure : Option Unit) = none := rfl
       simp [rightReady, failed] at equation
   · have failed : (failure : Option Unit) = none := rfl
