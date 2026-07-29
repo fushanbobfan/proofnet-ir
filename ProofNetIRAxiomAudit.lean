@@ -132,6 +132,7 @@ expansion.
 #print axioms UnificationState.Abstractable.tokenAt?_root
 #print axioms UnificationState.ComponentsFormulaConsistent.componentAt
 #print axioms Certificate.FirstOccurrencePick.exists_of_mem
+#print axioms Certificate.FirstOccurrencePick.positional
 #print axioms Certificate.FirstOccurrencePick.mem_remaining_of_ne
 #print axioms Certificate.FirstOccurrencePick.two_of_mem
 #print axioms UnificationState.OrderedParents.setParent_representative
@@ -353,6 +354,18 @@ expansion.
 #print axioms Certificate.queueTensor?_orderedParents
 #print axioms Certificate.queueTensor?_abstractable
 #print axioms Certificate.queueTensor?_componentsFormulaConsistent
+#print axioms Certificate.ExactOccurrencePick.ofFirst
+#print axioms Certificate.OccurrenceDerivation.usedLink_lookup
+#print axioms Certificate.OccurrenceDerivation.usedLinkIndex_lt
+#print axioms Certificate.OccurrenceDerivation.usedConnectiveConclusion_owned
+#print axioms Certificate.OccurrenceDerivation.frontier_subset_owned
+#print axioms Certificate.OccurrenceDerivation.owned_inBounds
+#print axioms Certificate.OccurrenceDerivation.formulaConsistent
+#print axioms Certificate.OccurrenceDerivation.ofQueueParStep
+#print axioms Certificate.OccurrenceDerivation.ofQueueTensorStep
+#print axioms Certificate.ComponentOccurrenceWitness.axiom_of_submitted
+#print axioms Certificate.reserveAxiomAt?_componentOccurrenceWitness
+#print axioms Certificate.ExactOccurrencePick.rejects_same_formula_alias
 #print axioms SequentialSchedulerBridge.enqueueWaitingAtRawAge?_some_iff
 #print axioms SequentialSchedulerBridge.WaitDestinationStep.boundary_properties
 #print axioms SequentialSchedulerBridge.WaitDestinationStep.exact

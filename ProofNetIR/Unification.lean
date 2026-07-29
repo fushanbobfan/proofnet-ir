@@ -2893,6 +2893,38 @@ theorem exists_of_mem
       FirstOccurrencePick source vertex index remaining := by
   exact pickVertex?_exists_of_mem membership
 
+/-- The production first-occurrence picker records the same positional
+selection as the derivation-level list picker.  This exposes the exact focus
+equation without making the recursive production helper public. -/
+theorem positional
+    {source remaining : List Vertex}
+    {vertex index : Nat}
+    (picked :
+      FirstOccurrencePick source vertex index remaining) :
+    CutFreeDerivation.pick? source index =
+      some (vertex, remaining) := by
+  induction source generalizing index remaining with
+  | nil =>
+      simp [FirstOccurrencePick, pickVertex?] at picked
+  | cons head tail induction =>
+      by_cases same : head = vertex
+      · subst head
+        simp [FirstOccurrencePick, pickVertex?] at picked
+        rcases picked with ⟨rfl, rfl⟩
+        rfl
+      · simp only [FirstOccurrencePick] at picked
+        simp [pickVertex?, same] at picked
+        cases tailPick : pickVertex? tail vertex with
+        | none =>
+            simp [tailPick] at picked
+        | some result =>
+            rcases result with ⟨tailIndex, tailRemaining⟩
+            simp [tailPick] at picked
+            rcases picked with ⟨rfl, rfl⟩
+            simp only [CutFreeDerivation.pick?]
+            rw [induction tailPick]
+            rfl
+
 /-- Picking one occurrence preserves every differently named occurrence in
 the returned remainder. -/
 theorem mem_remaining_of_ne

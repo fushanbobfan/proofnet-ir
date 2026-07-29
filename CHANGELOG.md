@@ -34,15 +34,33 @@
   because their output is precisely `prepared.after`.
   `SigmaAgePartition.sigmaBoundary?_eq_top` exposes the minimal active-boundary
   fact used to identify the selected raw-age component.
-  Exact occurrence provenance for internal component-tree nodes remains open:
-  repeated formula labels mean `FormulaConsistent` is not a link-identity
-  witness.
+  Added the proof-only `SequentialComponentProvenance.lean` foundation:
+  `OccurrenceDerivation` binds every runtime derivation constructor to exact
+  submitted link indices, exact formula vertices, exact first-occurrence
+  focuses, and complete owned-occurrence lists. Local
+  `ComponentOccurrenceWitness` records require `Nodup`, while
+  `ComponentForestProvenance` additionally enforces disjoint used-link/owned
+  sets across live components. Every marked owned occurrence resolves to that
+  exact live raw slot;
+  every unmarked owned occurrence remains on that same component frontier;
+  conversely, every concrete raw mark is owned by the live component at its
+  representative slot. The layer implies the existing
+  `FormulaConsistent` contract, gives exact axiom-reservation witnesses, and
+  supplies local par/tensor queue extensions once their truly absent submitted
+  link index/lookup is provided. A repeated-label regression demonstrates
+  that formula consistency accepts a forged axiom frontier while occurrence
+  provenance rejects it. Predicate-level regressions also reject a mark whose
+  raw age resolves to a different live slot and a raw mark with no live
+  component owner.
   This does not yet prove state-only preservation through `wait` or complete
-  `forward`/`unify`, dispatcher progress, completeness, or linearity;
+  `forward`/`unify`; the forest predicate is not yet a field of
+  `SchedulerInvariant`, and complete forest preservation still needs fresh
+  link/conclusion and branch-disjointness proofs. Dispatcher progress,
+  completeness, and linearity also remain open;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
-  `mem_remaining_of_ne`, and `two_of_mem` wrappers for future deterministic
-  waiting-payload activation while retaining the recursive executable picker
-  as a private implementation detail;
+  `positional`, `mem_remaining_of_ne`, and `two_of_mem` wrappers for future
+  deterministic waiting-payload activation while retaining the recursive
+  executable picker as a private implementation detail;
 - added four bounded production-core primitives needed by later Figure-7
   `forward`/`unify`, without claiming either complete rule.
   `Certificate.queuePar?` and `Certificate.queueTensor?` reuse the production

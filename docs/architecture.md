@@ -403,9 +403,27 @@ the ready/frontier correspondence, transports ready/waiting global `Nodup`,
 and handles the new raw mark either as an old marked premise or as the
 selected live-frontier premise. Exact `concl`/`nop` witnesses and their
 successful executables inherit this result through `prepared.after`.
-This remains a foundation checkpoint: occurrence-faithful internal component
-provenance, state-only preservation through `wait` and complete
-`forward`/`unify`, dispatcher progress, and completeness remain open.
+`SequentialComponentProvenance.lean` separately provides occurrence-faithful
+internal component provenance without changing the runtime representation.
+Its inductive relation records exact submitted link positions, exact
+first-occurrence derivation focuses, complete owned formula vertices, and
+exchange permutations. Local witnesses require `Nodup` link/vertex
+accounting; the proof-only forest assigns a witness to each live raw slot,
+requires cross-slot disjointness, binds every marked owned vertex's raw age
+to that exact representative slot, keeps every unmarked owned vertex on the
+same frontier, and conversely assigns every concrete raw mark to the component
+at its representative. It implies `FormulaConsistent`, initializes on exact
+submitted axiom reservations, and has sound local par/tensor queue extensions.
+The queue witnesses do not carry certificate link identity, so
+those extensions correctly require the submitted link index and lookup from
+the future rule wrapper. A concrete repeated-label fixture shows why this
+extra relation is necessary. Two additional predicate fixtures reject
+cross-representative ownership and a forest-external raw mark.
+This remains a foundation checkpoint: the forest predicate has not yet been
+added to `SchedulerInvariant` or preserved through a whole queue transition;
+fresh link/conclusion and branch-disjointness obligations remain. State-only
+preservation through `wait` and complete `forward`/`unify`, dispatcher
+progress, and completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 

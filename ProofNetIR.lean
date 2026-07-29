@@ -29,6 +29,7 @@ import ProofNetIR.SequentialUnification
 import ProofNetIR.SequentialRoute
 import ProofNetIR.SequentialSchedulerState
 import ProofNetIR.SequentialSchedulerBridge
+import ProofNetIR.SequentialComponentProvenance
 import ProofNetIR.SequentialFigure7New
 import ProofNetIR.SequentialFigure7History
 import ProofNetIR.SequentialFigure7Rules

@@ -4935,6 +4935,20 @@ ProofNetIR.Certificate.FirstOccurrencePick.exists_of_mem : ∀ {source : List Pr
   vertex ∈ source → ∃ index remaining, ProofNetIR.Certificate.FirstOccurrencePick source vertex index remaining
 ```
 
+### `ProofNetIR.Certificate.FirstOccurrencePick.positional`
+
+Kind: theorem.
+
+The production first-occurrence picker records the same positional
+selection as the derivation-level list picker.  This exposes the exact focus
+equation without making the recursive production helper public.
+
+```lean
+ProofNetIR.Certificate.FirstOccurrencePick.positional : ∀ {source remaining : List ProofNetIR.Vertex} {vertex index : Nat},
+  ProofNetIR.Certificate.FirstOccurrencePick source vertex index remaining →
+    ProofNetIR.CutFreeDerivation.pick? source index = some (vertex, remaining)
+```
+
 ### `ProofNetIR.Certificate.FirstOccurrencePick.mem_remaining_of_ne`
 
 Kind: theorem.
@@ -5264,6 +5278,279 @@ ProofNetIR.Certificate.queueTensor?_componentsFormulaConsistent : ∀ {certifica
       certificate.LinkWellFormed (ProofNetIR.Link.tensor left right conclusion) →
         ProofNetIR.Certificate.queueTensor? before left right conclusion = some after →
           ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate after
+```
+
+### `ProofNetIR.Certificate.ExactOccurrencePick`
+
+Kind: inductive type.
+
+One premise selection keeps both exact views needed by the two existing
+executables: the production picker selects the first matching vertex, while
+the derivation picker records the occurrence position stored in the runtime
+tree.  Keeping both equations avoids identifying repeated formula labels.
+
+```lean
+ProofNetIR.Certificate.ExactOccurrencePick : {source remaining : List ProofNetIR.Vertex} → Nat → Nat → Prop
+```
+
+### `ProofNetIR.Certificate.ExactOccurrencePick.ofFirst`
+
+Kind: theorem.
+
+The stable public production-picker bridge supplies the positional half
+of an exact occurrence selection.
+
+```lean
+ProofNetIR.Certificate.ExactOccurrencePick.ofFirst : ∀ {source remaining : List ProofNetIR.Vertex} {vertex index : Nat},
+  ProofNetIR.Certificate.FirstOccurrencePick source vertex index remaining →
+    ProofNetIR.Certificate.ExactOccurrencePick vertex index
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation`
+
+Kind: inductive type.
+
+Exact occurrence-level provenance for a runtime derivation component.
+
+`usedLinks` records submitted link positions, not link values.  `owned`
+records every certificate formula vertex covered by the partial derivation:
+both endpoints for an axiom and, recursively, every premise occurrence plus
+the newly introduced connective conclusion.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation : ProofNetIR.Certificate →
+  ProofNetIR.CutFreeDerivation → List ProofNetIR.Vertex → List Nat → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.Certificate.ComponentOccurrenceWitness`
+
+Kind: inductive type.
+
+A live component has one occurrence-exact derivation and locally linear
+link/vertex accounting.  This is a proposition only; it adds no runtime data
+to `UnificationComponent`.
+
+```lean
+ProofNetIR.Certificate.ComponentOccurrenceWitness : ProofNetIR.Certificate → ProofNetIR.UnificationComponent → List Nat → List Nat → Prop
+```
+
+### `ProofNetIR.Certificate.OwnedOccurrenceAccounted`
+
+Kind: definition.
+
+Every occurrence owned by one live raw component slot is accounted for
+at that exact slot.  A marked occurrence's raw age must resolve to the slot;
+an unmarked occurrence must still be exposed on the same component frontier.
+
+```lean
+ProofNetIR.Certificate.OwnedOccurrenceAccounted : ProofNetIR.UnificationState → Nat → ProofNetIR.UnificationComponent → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.Certificate.MarkedOccurrencesOwned`
+
+Kind: definition.
+
+Conversely, every concrete raw mark belongs to an occurrence owned by
+the live component stored at its exact current representative slot.
+
+```lean
+ProofNetIR.Certificate.MarkedOccurrencesOwned : ProofNetIR.UnificationState → (Nat → List ProofNetIR.Vertex) → Prop
+```
+
+### `ProofNetIR.Certificate.ComponentForestProvenance`
+
+Kind: definition.
+
+Proof-only forest accounting for all live component slots.
+
+Each live slot receives exact local provenance, and distinct live slots own
+disjoint submitted links and formula vertices.  Ownership is exact in both
+directions: each owned vertex is either unmarked on that same frontier or
+marked into that slot's representative class, and every concrete raw mark is
+owned by the component at its representative.  This predicate is independent
+of the older executable `Produced` relation.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance : ProofNetIR.Certificate → ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.usedLink_lookup`
+
+Kind: theorem.
+
+Every recorded link position is an exact submitted-list lookup.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.usedLink_lookup : ∀ {certificate : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+  certificate.OccurrenceDerivation tree frontier usedLinks owned →
+    ∀ {linkIndex : Nat}, linkIndex ∈ usedLinks → ∃ link, certificate.links[linkIndex]? = some link
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.usedLinkIndex_lt`
+
+Kind: theorem.
+
+Recorded submitted positions are in bounds in the exact input link list.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.usedLinkIndex_lt : ∀ {certificate : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+  certificate.OccurrenceDerivation tree frontier usedLinks owned →
+    ∀ {linkIndex : Nat}, linkIndex ∈ usedLinks → linkIndex < certificate.links.length
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.usedConnectiveConclusion_owned`
+
+Kind: theorem.
+
+The conclusion of every recorded submitted connective belongs to the
+component's exact owned-occurrence list.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.usedConnectiveConclusion_owned : ∀ {certificate : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+  certificate.OccurrenceDerivation tree frontier usedLinks owned →
+    ∀ {linkIndex left right conclusion : Nat},
+      linkIndex ∈ usedLinks →
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∨
+            certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+          conclusion ∈ owned
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.frontier_subset_owned`
+
+Kind: theorem.
+
+Every exposed frontier occurrence is owned by the same component.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.frontier_subset_owned : ∀ {certificate : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+  certificate.OccurrenceDerivation tree frontier usedLinks owned → ∀ (vertex : Nat), vertex ∈ frontier → vertex ∈ owned
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.owned_inBounds`
+
+Kind: theorem.
+
+Under certificate structural well-formedness, every owned formula
+occurrence is an in-bounds input vertex.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.owned_inBounds : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier usedLinks owned →
+        ∀ (vertex : Nat), vertex ∈ owned → vertex < certificate.formulas.size
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.formulaConsistent`
+
+Kind: theorem.
+
+Occurrence provenance implies the existing formula-consistency contract
+without ever equating vertices merely because their formula labels agree.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.formulaConsistent : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier usedLinks owned →
+        ProofNetIR.UnificationComponent.FormulaConsistent certificate { tree := tree, frontier := frontier }
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.ofQueueParStep`
+
+Kind: theorem.
+
+A local delayed-par queue extends occurrence provenance once the caller
+supplies the exact submitted link position and lookup, the only link-identity
+facts absent from `QueueParStep`.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.ofQueueParStep : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {left right conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.Certificate.QueueParStep before after left right conclusion) {usedLinks owned : List Nat},
+  certificate.OccurrenceDerivation step.component.tree step.component.frontier usedLinks owned →
+    ∀ (linkIndex : Nat),
+      certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+        certificate.OccurrenceDerivation
+          (ProofNetIR.CutFreeDerivation.par step.leftFocus step.rightFocus step.component.tree)
+          (step.context ++ [conclusion]) (linkIndex :: usedLinks) (conclusion :: owned)
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.ofQueueTensorStep`
+
+Kind: theorem.
+
+A local delayed-tensor queue has the analogous strongest sound extension:
+the queue witness supplies exact component/picker data, while the caller must
+supply only the submitted tensor index and lookup.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.ofQueueTensorStep : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {left right conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.Certificate.QueueTensorStep before after left right conclusion)
+  {leftUsed rightUsed leftOwned rightOwned : List Nat},
+  certificate.OccurrenceDerivation step.leftComponent.tree step.leftComponent.frontier leftUsed leftOwned →
+    certificate.OccurrenceDerivation step.rightComponent.tree step.rightComponent.frontier rightUsed rightOwned →
+      ∀ (linkIndex : Nat),
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) →
+          certificate.OccurrenceDerivation
+            (ProofNetIR.CutFreeDerivation.tensor step.leftFocus step.rightFocus step.leftComponent.tree
+              step.rightComponent.tree)
+            (conclusion :: (step.leftContext ++ step.rightContext)) (linkIndex :: (leftUsed ++ rightUsed))
+            (conclusion :: (leftOwned ++ rightOwned))
+```
+
+### `ProofNetIR.Certificate.ComponentOccurrenceWitness.axiom_of_submitted`
+
+Kind: theorem.
+
+Exact locally linear witness for one submitted, well-formed axiom in its
+stored endpoint orientation.
+
+```lean
+ProofNetIR.Certificate.ComponentOccurrenceWitness.axiom_of_submitted : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {linkIndex left right : Nat} {name : String} {positive : Bool},
+      certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) →
+        certificate.formula? left = some (ProofNetIR.Formula.atom name positive) →
+          certificate.ComponentOccurrenceWitness
+            { tree := ProofNetIR.CutFreeDerivation.axiom name positive, frontier := [left, right] } [linkIndex]
+            [left, right]
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_componentOccurrenceWitness`
+
+Kind: theorem.
+
+Reserving a submitted axiom installs an exact occurrence-provenance
+witness at the freshly appended component slot.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_componentOccurrenceWitness : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+      certificate.reserveAxiomAt? before linkIndex = some after →
+        ∃ left right name positive,
+          certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) ∧
+            after.components[before.components.size]? =
+                some (some { tree := ProofNetIR.CutFreeDerivation.axiom name positive, frontier := [left, right] }) ∧
+              certificate.ComponentOccurrenceWitness
+                { tree := ProofNetIR.CutFreeDerivation.axiom name positive, frontier := [left, right] } [linkIndex]
+                [left, right]
+```
+
+### `ProofNetIR.Certificate.ExactOccurrencePick.rejects_same_formula_alias`
+
+Kind: theorem.
+
+Equal formula labels do not let a different certificate vertex satisfy
+an occurrence-position witness.  This is the local repeated-label rejection
+gate used by later provenance-preservation proofs.
+
+```lean
+ProofNetIR.Certificate.ExactOccurrencePick.rejects_same_formula_alias : ∀ {certificate : ProofNetIR.Certificate} {head alias : ProofNetIR.Vertex} {tail remaining : List ProofNetIR.Vertex},
+  head ≠ alias →
+    certificate.formula? head = certificate.formula? alias → ProofNetIR.Certificate.ExactOccurrencePick alias 0 → False
 ```
 
 ### `ProofNetIR.UnificationScanStats`

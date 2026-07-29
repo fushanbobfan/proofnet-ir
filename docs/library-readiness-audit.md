@@ -401,8 +401,20 @@ part of the engineering and proof-identity gap.
    transport, combined ready/waiting queue uniqueness, waiting-span transport,
    causal produced-premise marking, pending-premise coverage for the newly
    marked selected occurrence, and unchanged live-component counter/domain
-   facts. It does not add occurrence-faithful internal component/link
-   provenance or state-only preservation for `wait`.
+   facts. The separate proof-only `SequentialComponentProvenance` module now
+   records exact submitted link indices, exact formula vertices and focus
+   positions, locally duplicate-free component ownership, and cross-slot
+   disjoint forest accounting. Marked owned vertices resolve to the exact live
+   representative slot, unmarked owned vertices remain on the same frontier,
+   and every concrete raw mark is conversely owned at its representative.
+   The layer proves formula-consistency soundness, exact axiom-reservation
+   provenance, and local par/tensor queue provenance extension; a
+   repeated-label fixture rejects a component that the older formula-only
+   predicate accepts. Separate closed fixtures reject a marked occurrence
+   assigned to the wrong representative slot and an ownerless raw mark. The
+   forest predicate is not yet integrated
+   into `SchedulerInvariant` or proved preserved as a whole, and it does not
+   add state-only preservation for `wait`.
    The local `wait` destination is exactly
    `sigmaBoundary? stack.sigma mateRawAge`, and its initialized-cell cons
    update does not claim global ownership. Ready/waiting payload ownership,
@@ -575,11 +587,13 @@ It can currently be used for:
   threaded touched-set, `σ` partition, operational inactive-boundary waiting
   domain, typed initial/later reservations, and local pop/mark/new pipeline,
   while treating search failure as inconclusive; local exact
-  `concl`/`nop`/`wait` are now present, and the current state-only invariant is
-  preserved through the common prepared prefix plus `concl`/`nop`; state-only
-  `wait` preservation, ready/waiting payload ownership, executable
-  `forward`/`unify`, and full-history rule integration remain absent. The
-  local `wait` cons update is not an ownership theorem.
+  `concl`/`nop`/`wait` are now present, the current state-only invariant is
+  preserved through the common prepared prefix plus `concl`/`nop`, and a
+  separate exact occurrence-provenance relation is available for component
+  proofs. Whole-forest invariant integration, state-only `wait` preservation,
+  ready/waiting payload ownership, executable `forward`/`unify`, and
+  full-history rule integration remain absent. The local `wait` cons update
+  is not an ownership theorem.
   Exact init/new reachability and tag history are present, but
   full-rule reachability and queue provenance are not, so together these are
   not a complete scheduler API;

@@ -795,7 +795,9 @@
     route-local later-call freshness, integrate the local initialized-cell
     `wait` rule, implement `forward` and `unify` under the operational waiting
     domain, and integrate the already-local `concl`/`nop`/`wait` rules into a
-    complete history/dispatcher. Establish the
+    complete history/dispatcher. A proof-only exact component/link occurrence
+    relation and bidirectional raw-mark ownership predicate are now present;
+    whole-forest integration and preservation remain open. Establish the
     special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before

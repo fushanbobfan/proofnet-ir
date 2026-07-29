@@ -352,9 +352,11 @@ either a concrete raw mark or live-frontier membership;
 `ProducedPremisesMarked` requires both submitted premises of every such
 par/tensor to have concrete raw marks. Together with a future rule's
 pre-prefix unmarked-premise witness, this is a necessary causal
-anti-reconstruction guard. It is not yet exact internal link provenance:
+anti-reconstruction guard. It is not, by itself, exact internal link provenance:
 repeated formula labels mean `FormulaConsistent` alone cannot bind every
-internal derivation node to one certificate-link occurrence.
+internal derivation node to one certificate-link occurrence. The separate
+occurrence-provenance layer described below supplies that missing identity
+without changing this observable state predicate.
 `WaitingSpanExact` gives every delayed par an
 exact unique producer, raw-unmarked conclusion, and strict older/younger
 marked-premise span; `FiredCounterExact` counts connective constructors in the
@@ -367,10 +369,29 @@ component frontier, every other ready bucket, waiting span, queue uniqueness,
 premise coverage, and counter equation are transported exactly. Exact
 `ConclStep`/`NopStep` witnesses and successful `concl?`/`nop?` calls inherit
 that theorem because their output is `prepared.after`. This does not add
-occurrence-faithful internal component provenance or a reachability claim.
-Preservation through `wait`, complete `forward`/`unify`, dispatcher progress,
-completeness, and linearity remain open. A local `wait` records a promise and
-is not counted as an already constructed connective.
+reachability.
+`SequentialComponentProvenance.lean` now supplies the proof-only exact
+occurrence layer that formula consistency could not: every partial derivation
+constructor records submitted link indices, exact frontier picks, and every
+owned certificate vertex. Local witnesses require duplicate-free used-link
+and owned lists; the forest predicate requires distinct live slots to be
+disjoint. A marked owned vertex's raw age must resolve to that exact live
+slot, an unmarked owned vertex must remain on the same component frontier,
+and every concrete raw mark is conversely owned by the component at its
+representative slot. This exact relation implies
+`FormulaConsistent`, initializes on a submitted axiom, and extends through the
+local par/tensor queue constructors when their submitted link index/lookup is
+provided. A repeated-label regression keeps the distinction concrete:
+formula consistency accepts a forged same-label axiom frontier, while exact
+occurrence provenance rejects it because no such submitted axiom exists.
+Two closed predicate regressions separately reject a marked owned vertex
+whose raw age resolves to another live slot and a raw mark outside every live
+component's ownership forest.
+The forest predicate is not yet integrated into `SchedulerInvariant` or
+proved preserved by complete queue rules. Preservation through `wait`,
+complete `forward`/`unify`, dispatcher progress, completeness, and linearity
+remain open. A local `wait` records a promise and is not counted as an already
+constructed connective.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
 fresh-boundary lemma and the production old/fresh representative lemmas align
@@ -1350,6 +1371,8 @@ ProofNetIR/SequentialSchedulerBridge.lean typed initial/later reservation bridge
 ProofNetIR/SequentialFigure7New.lean invariant-bound operational Figure-7 new rule
 ProofNetIR/SequentialFigure7History.lean proof-relevant empty/init/new history
 ProofNetIR/SequentialFigure7Rules.lean generic consumer view and local concl/nop
+ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant
+ProofNetIR/SequentialComponentProvenance.lean exact proof-only component identity
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRConsumerIndexTests.lean orientation and fail-closed consumer tests

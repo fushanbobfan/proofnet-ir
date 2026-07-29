@@ -230,8 +230,19 @@ canonical consumer/conclusion view and preserve the reservation invariant.
 The common prepared pop/raw-mark prefix is also proved to preserve every
 current state-only field of `SchedulerInvariant`; exact and executable
 `concl`/`nop` inherit that theorem because they return `prepared.after`.
-This state theorem does not recover exact internal component/link occurrence
-provenance, does not prove the analogous claim for `wait`, and is not a
+The independent proof-only `SequentialComponentProvenance` layer now recovers
+exact internal component/link occurrence identity: it records submitted link
+positions, exact first-occurrence focuses, complete owned vertices, local
+`Nodup`, and cross-live-slot disjointness. Its bidirectional accounting binds
+marked owned vertices to the exact representative slot, leaves unmarked owned
+vertices on that component frontier, and assigns every concrete raw mark to
+an owner at its representative. It soundly refines the older
+formula-consistency predicate and rejects a concrete same-label alias. The
+layer also has closed rejection fixtures for cross-representative ownership
+and forest-external raw marks. These propositions are not runtime trusted
+state, and the whole-forest predicate has not
+yet been incorporated into or preserved by `SchedulerInvariant`. The state
+theorem still does not prove the analogous claim for `wait` and is not a
 dispatcher reachability theorem.
 The local `wait` uses the mate's raw mark and the exact `sigmaBoundary?`
 destination, then performs one initialized-cell cons without a global queue

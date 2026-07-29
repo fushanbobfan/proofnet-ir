@@ -1,4 +1,5 @@
 import ProofNetIR.SequentialSchedulerInvariant
+import ProofNetIR.SequentialComponentProvenance
 
 namespace ProofNetIR
 
@@ -68,6 +69,16 @@ example :
     Certificate.FirstOccurrencePick [2, 1, 2] 2 0 [1, 2] := by
   rfl
 
+/-- The public production picker exposes the exact derivation focus, rather
+than merely preserving a value-level membership fact. -/
+example :
+    CutFreeDerivation.pick? ([2, 1, 2] : List Vertex) 0 =
+      some (2, [1, 2]) := by
+  exact Certificate.FirstOccurrencePick.positional
+    (show
+      Certificate.FirstOccurrencePick [2, 1, 2] 2 0 [1, 2] by
+        rfl)
+
 example :
     1 ∈ ([1, 2] : List Vertex) := by
   exact Certificate.FirstOccurrencePick.mem_remaining_of_ne
@@ -83,6 +94,150 @@ example :
           rightIndex context := by
   exact Certificate.FirstOccurrencePick.two_of_mem
     (by decide) (by decide) (by decide)
+
+private def repeatedOccurrenceCertificate : Certificate where
+  formulas := #[
+    .atom "p" true,
+    .atom "p" false,
+    .atom "p" true,
+    .atom "p" false,
+    .tensor (.atom "p" true) (.atom "p" true)]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .tensor 0 2 4]
+  conclusions := [4, 1, 3]
+
+private theorem repeatedOccurrenceCertificate_structural :
+    repeatedOccurrenceCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      repeatedOccurrenceCertificate).mp (by native_decide)
+
+private def forgedRepeatedComponent : UnificationComponent where
+  tree := .axiom "p" true
+  frontier := [0, 3]
+
+/-- Formula consistency alone accepts this forged component because vertices
+`1` and `3` carry the same negative atom label. -/
+example :
+    forgedRepeatedComponent.FormulaConsistent
+      repeatedOccurrenceCertificate := by
+  exact ⟨[.atom "p" true, .atom "p" false], rfl, rfl⟩
+
+private theorem no_submitted_axiom_zero_three :
+    ¬ ∃ linkIndex : Nat,
+      repeatedOccurrenceCertificate.links[linkIndex]? =
+        some (Link.axiom 0 3) := by
+  rintro ⟨linkIndex, lookup⟩
+  have membership :
+      (.axiom 0 3 : Link) ∈ repeatedOccurrenceCertificate.links :=
+    List.mem_of_getElem? lookup
+  have impossible :
+      (.axiom 0 3 : Link) ∉ repeatedOccurrenceCertificate.links := by
+    native_decide
+  exact impossible membership
+
+/-- Occurrence provenance rejects the same-label alias: no submitted axiom
+connects the exact certificate vertices `0` and `3`. -/
+example :
+    ¬ ∃ usedLinks owned,
+      Certificate.OccurrenceDerivation repeatedOccurrenceCertificate
+        forgedRepeatedComponent.tree forgedRepeatedComponent.frontier
+        usedLinks owned := by
+  rintro ⟨usedLinks, owned, witness⟩
+  cases witness with
+  | «axiom» linkIndex left right name positive linkLookup leftFormula =>
+      exact no_submitted_axiom_zero_three ⟨linkIndex, linkLookup⟩
+
+/-- A real submitted axiom reservation receives exact local occurrence
+provenance, including locally duplicate-free link and vertex ownership. -/
+example :
+    ∃ after left right name positive,
+      repeatedOccurrenceCertificate.reserveAxiomAt?
+          repeatedOccurrenceCertificate.initialUnificationState 0 =
+        some after ∧
+      after.components[
+          repeatedOccurrenceCertificate.initialUnificationState
+            |>.components.size]? =
+        some (some {
+          tree := .axiom name positive
+          frontier := [left, right] }) ∧
+      Certificate.ComponentOccurrenceWitness
+        repeatedOccurrenceCertificate
+        { tree := .axiom name positive, frontier := [left, right] }
+        [0] [left, right] := by
+  have success :
+      (repeatedOccurrenceCertificate.reserveAxiomAt?
+        repeatedOccurrenceCertificate.initialUnificationState 0).isSome =
+        true := by
+    native_decide
+  cases equation :
+      repeatedOccurrenceCertificate.reserveAxiomAt?
+        repeatedOccurrenceCertificate.initialUnificationState 0 with
+  | none =>
+      simp [equation] at success
+  | some after =>
+      rcases
+          Certificate.reserveAxiomAt?_componentOccurrenceWitness
+            repeatedOccurrenceCertificate_structural equation with
+        ⟨left, right, name, positive, linkLookup,
+          componentLookup, witness⟩
+      exact
+        ⟨after, left, right, name, positive, rfl,
+          componentLookup, witness⟩
+
+private def crossRepresentativeState : UnificationState where
+  marks := #[some 1]
+  parents := #[0, 1]
+  components := #[
+    some forgedRepeatedComponent,
+    some forgedRepeatedComponent]
+  startedAxioms := 2
+  firedConnectives := 0
+
+/-- Forest accounting rejects an owned occurrence whose concrete raw mark
+resolves to a different live representative slot. -/
+example :
+    ¬ Certificate.OwnedOccurrenceAccounted
+      crossRepresentativeState 0 forgedRepeatedComponent [0] := by
+  intro accounted
+  rcases accounted 0 (by simp) with
+    ⟨rawAge, markLookup, representative⟩ |
+    ⟨unmarked, _frontier⟩
+  · have rawAgeEq : 1 = rawAge := by
+      simpa [crossRepresentativeState] using markLookup
+    subst rawAge
+    have representativeSelf :
+        crossRepresentativeState.representative 1 = 1 := by
+      native_decide
+    exact Nat.one_ne_zero
+      (representativeSelf.symm.trans representative)
+  · have marked :
+        crossRepresentativeState.marks[0]? = some (some 1) := by
+      rfl
+    have impossible := marked.symm.trans unmarked
+    simp at impossible
+
+private def orphanMarkedState : UnificationState where
+  marks := #[some 0]
+  parents := #[0]
+  components := #[]
+  startedAxioms := 0
+  firedConnectives := 0
+
+/-- Reverse forest coverage rejects a concrete raw mark when no live
+component at its representative owns that occurrence. -/
+example :
+    ¬ Certificate.MarkedOccurrencesOwned
+      orphanMarkedState (fun _index => []) := by
+  intro coverage
+  have marked :
+      orphanMarkedState.marks[0]? = some (some 0) := by
+    rfl
+  rcases coverage marked with
+    ⟨index, component, _representative, componentLookup, _owned⟩
+  simp [orphanMarkedState] at componentLookup
 
 /-- Initialization executes on the smallest valid axiom certificate and its
 typed witness establishes the complete state-based scheduler foundation. -/
