@@ -680,13 +680,16 @@
     }
   },
   "model": {
+    "artifactFileName": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "artifactSha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450",
+    "artifactSha256Status": "verified-local-artifact-2026-07-28",
     "calls": 360,
     "completionTokens": 24299,
     "errors": 0,
     "promptTokens": 126888,
-    "requestedId": "D:\\ucla\\models\\gguf\\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "requestedId": "qwen3.6-35b-a3b-ud-q4_k_xl",
     "responseModels": [
-      "D:\\ucla\\models\\gguf\\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+      "qwen3.6-35b-a3b-ud-q4_k_xl"
     ],
     "systemFingerprints": [
       "b10068-571d0d540"
@@ -694,10 +697,14 @@
   },
   "negativeTasks": 90,
   "positiveTasks": 90,
-  "preregistrationSha256": "09ea8a03905d75331420a126803260a74ead5b882217de58df84fac295364a98",
-  "protocolAmendmentSha256": "b678ac5e8bef72bca0c73c6ded3d8c4b32ab90994af2ebd070c026ebea6bd35c",
-  "rawResponsesSha256": "5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef",
-  "resultsSha256": "ece2210e47f18db8fda9bbe02959d6978fb084251c9127053b25bea765c87421",
+  "preregistrationSha256": "721fef14f1dd3249a1db1600d87d8677b1fed6e5ca98533a520581b7fc99be98",
+  "protocolAmendmentSha256": "76b4866b7baa4fc9d614645a456c6e96175351a22c35c9a192be622fc7fdbaab",
+  "publicationRedaction": {
+    "receipt": "publication-redaction-amendment-1.json",
+    "version": "model-v0.2-publication-redaction-amendment-1"
+  },
+  "rawResponsesSha256": "aaa3a4e145255161c6499674a9088285081f313e8b27c14a74f22452cf8da0f1",
+  "resultsSha256": "c9d1e103f15eefa41986bcc555baa79dfa309eab6137d91cde7ce4f940935142",
   "taskCount": 180,
   "version": "model-v0.2-amendment-1"
 }

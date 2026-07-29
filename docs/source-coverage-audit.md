@@ -44,6 +44,7 @@ extractable text and requires visual/OCR treatment.
 | *Geometry of Neuroscience* | 33 | complete ordered text reading and visual inspection of all 33 pages and Figures 1--10; [page matrix and claim boundary](source-pages/geometry-of-neuroscience.md) | complete, but adjacent generated exposition rather than core authority |
 | Park, *Open Book Decompositions with Page a Four-Punctured Sphere* | 76 | complete ordered text reading and rendered inspection of pages 1--74, covering every mathematical diagram, code listing, and data table; [page matrix and claim boundary](source-pages/park-four-punctured-sphere.md) | complete |
 | `Rowling_s chat history.txt` | short text | read completely | complete |
+| Guerrini, *A linear algorithm for MLL proof net correctness and sequentialization* (TCS 2011) | not locally held | official metadata and abstract checked; full text inaccessible and unread | metadata-only follow-up, excluded from PDF/page/hash counts |
 
 Consequently, all seven original project PDFs and the complete Rowling chat
 have now been read in full under the recorded protocol. This is a corpus
@@ -91,3 +92,23 @@ total-marking/single-thread acceptance condition, and the extra worklist,
 `NEXTAXIOM`, and special union-find structure needed for the paper's linear
 theorem. The code-level mapping and nonclaims are recorded in
 [guerrini-unification-audit.md](guerrini-unification-audit.md).
+
+The same audit records an internal Figure-7 indexing conflict: the 1999 prose
+defines `W` on inactive `σ` boundaries and `unify` reads the old predecessor,
+whereas the printed `new` writes the fresh active top. The literal transition
+is retained only for source comparison. Production code uses a documented
+project interpretation that initializes the old active boundary and leaves the
+fresh top undefined, with kernel-checked `OperationalWaitingDomain`
+preservation. This is not presented as an author-confirmed erratum.
+The invariant does not by itself establish payload ownership, executable
+`wait`/`unify`, scheduler reachability, tag-history provenance, progress, or
+pure-worklist completeness.
+
+On 2026-07-28 the official metadata and abstract were checked for Guerrini,
+[*A linear algorithm for MLL proof net correctness and
+sequentialization*](https://www.sciencedirect.com/science/article/pii/S0304397510007127),
+*Theoretical Computer Science* 412(20), 2011,
+DOI `10.1016/j.tcs.2010.12.021`. The abstract describes a full-detail account
+of the 1999 algorithm. The full text could not be accessed and was not read;
+the record therefore does not change the 16-PDF inventory, included-page
+counts, completion claims, or the status of the 1999 indexing conflict.

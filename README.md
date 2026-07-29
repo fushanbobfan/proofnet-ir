@@ -92,6 +92,33 @@ sequentialization is already complete through recursive reconstruction;
 closing-par exclusion, correct-state progress, pure-worklist completeness,
 fallback removal, and linearity remain open.
 
+The separate delayed-scheduler track now implements the project's operational
+local Figure-7 `new` pipeline over the currently proved
+`ReservationInvariant`. It pops the
+deterministic head of the last ready bucket without discarding an exhausted
+bucket, raw-marks that occurrence at the old last `σ` boundary in both state
+views, resolves the unique orientation-aware tensor consumer through the
+certificate's fixed sound-and-complete `ConsumerIndex`, runs `NEXTAXIOM` from
+the opposite tensor premise in the post-mark production state, and appends and
+reserves the returned axiom with fully threaded tags. That reservation uses
+`operationalNewEnqueue?`: the old active `σ` boundary becomes an initialized
+empty waiting cell, while the newly pushed active top remains undefined. Lean
+proves preservation of `OperationalWaitingDomain`, which says exactly that
+allocated initialized waiting cells are the inactive boundaries
+`sigma.dropLast`. The printed Figure-7 update that writes the fresh cell is
+retained separately as the display-only `newEnqueue?`; production code does
+not call it. Choosing the old-boundary update is this project's interpretation
+of the paper's surrounding prose and its `wait`/`unify` behavior, not an
+author-confirmed erratum or a uniqueness result. The proof argument rules out
+independently forged stack horizons, raw ages, and production carriers, and
+callers cannot substitute a partial consumer table. This remains a local rule,
+not a reachable-state or full scheduler theorem: `ReservationInvariant`
+records only tag-array size rather than tag provenance/monotonicity, and it
+does not establish waiting-payload ownership, global ready-bucket ownership,
+or the `wait`/`unify` transfer rules. The other Figure-7 rules, correct-state
+progress, pure-worklist completeness, fallback removal, and linearity remain
+open.
+
 The first separate sequential primitive is now present in
 `SequentialUnification.lean`. Lean proves exact submitted-link origin for a
 reusable source-incidence index. Exact origin alone is only the `Sound`
@@ -153,14 +180,19 @@ in bounds. Global carrier agreement and the remaining `WellShaped` obligations
 are separate preservation-theorem preconditions. `initEnqueue?` then reserves
 age `0`, records
 `[[reached, partner]]`, and leaves both endpoint marks and `W(0)` unchanged,
-so `W(0)` remains `undefined`. `newEnqueue?` appends the old age horizon to
-`σ`, appends the ready bucket `[reached, partner]`, initializes only the fresh
-waiting cell to `[]`, and likewise leaves endpoint marks unchanged. Lean proves
-only the exact field equations, endpoint facts, and preservation of the local
-`WellShaped` invariant. The paper's prose about where `W` is defined and its
-Figure-7 `init`/`new` displays are not turned into an `iff` domain invariant:
-the prose says `W` is defined at nonactive boundaries, while the displayed
-initialization leaves `W(0)` undefined and `new` initializes the fresh age.
+so `W(0)` remains `undefined`. The literal `newEnqueue?` source-audit helper
+appends the old age horizon to `σ`, appends the ready bucket
+`[reached, partner]`, and writes `[]` to the fresh waiting cell exactly as the
+printed Figure-7 display does. It preserves only the deliberately weak
+`WellShaped` invariant and is not the production transition.
+`operationalNewEnqueue?` instead initializes the old active `σ` boundary,
+leaves the fresh active top `undefined`, and preserves
+`OperationalWaitingDomain`: among allocated ages, a waiting cell is
+initialized iff its age lies in `sigma.dropLast`. This one-cell update is the
+project's interpretation of the prose-defined nonactive waiting domain and
+the later `wait`/`unify` operations. It is not presented as an
+author-confirmed erratum or as the uniquely possible reconstruction of the
+paper.
 
 A successful dynamic start immediately allocates and assigns a token and
 refines one independent Figure-5 `start` transition under the existing
@@ -186,32 +218,45 @@ Strict tag threading rules out replay of the same submitted axiom-link index
 across composable wrapper calls: an initial step followed by a later step, and
 two later steps, return different link indices. Without a structural
 single-source/duplicate-link premise, this does not identify equal axiom values
-at different indices. The guarantee also does not cover reset/replaced tags or
-direct low-level `reserveAxiomAt?` calls, both of which remain replayable.
-`ReservationInvariant` bundles delayed `WellShaped`, `RealizesSigma`,
-production `OrderedParents`, `Abstractable`,
+at different indices. Reset/replaced tags are outside the guarantee and can
+make low-level `NEXTAXIOM` rediscover an old axiom; the operational wrapper
+independently rejects endpoints already in the ready stack. Direct low-level
+`reserveAxiomAt?` calls remain replayable because they have neither guard.
+`ReservationInvariant` bundles delayed `WellShaped`,
+`OperationalWaitingDomain`, `RealizesSigma`, production `OrderedParents`,
+`Abstractable`,
 `ComponentsFormulaConsistent`, component/parent carrier alignment,
 started-axiom/counter alignment, and tag-domain alignment. It holds after
 initialization and is preserved by every successful later reservation. This is
 a preservation bundle for wrapper-generated histories, not an inductive
 reachability or tag-history characterization: its tag field proves only size,
-so a reset-tag state may still satisfy the record.
+so a reset-tag state may still satisfy the record. The waiting-domain field
+characterizes initialized cells, not ownership or correctness of their
+payloads and not the `wait`/`unify` transfer rules.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
 fresh-boundary lemma and the production old/fresh representative lemmas align
 the appended self-parent.
 
-The canonical two-step regression makes both orientations concrete: submitted
-`[0,1]` / ready `[1,0]`, then submitted `[2,3]` / ready `[3,2]`. A deliberately
+The canonical two-step reservation regression makes both orientations
+concrete: submitted `[0,1]` / ready `[1,0]`, then submitted `[2,3]` / ready
+`[3,2]`. A deliberately
 arbitrary ordered parent forest with parents `#[0, 1, 0]` and
 `sigma = [0, 1]` maps raw age `2` to boundary `1` but representative `0`.
 That state is not proved reachable by an actual `unify`/union transition; it
 only refutes deriving `RealizesSigma` automatically from `WellShaped`,
 marks/horizon alignment, and `OrderedParents`. This checkpoint still does not
-implement the full Figure-7 `new`, pop-before-mark, binary-mate handling,
-raw-age marking, semantic ownership of `R`/`W`, later-state totality,
-correct-state progress, pure-worklist completeness, fallback removal, or
-whole-program linearity.
+prove a full reachable Figure-7 state machine. The operational local `new`
+transition
+now composes pop-before-mark, raw-age marking, orientation-aware binary-mate
+lookup, post-mark `NEXTAXIOM`, and later reservation under a supplied
+`ReservationInvariant`; its canonical regression yields marks/sigma/ready
+`μ(0)=0`, `σ=[0,1]`, and `R=[[1],[2,3]]`, with `W(0)=∅` and the fresh
+`W(1)=⊥`. The invariant does not yet express semantic ownership of ready or
+waiting payloads, tag history, global ready disjointness, later-state totality,
+or the transition semantics for `concl`/`nop`/`wait`/`forward`/`unify`.
+Correct-state progress, pure-worklist completeness, fallback removal, and
+whole-program linearity therefore remain open.
 
 The flat-scheduler proof route was also narrowed by counterexample. Exact
 concrete-state confluence already fails on a derivation-generated correct
@@ -551,19 +596,26 @@ quotient exists. The bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
 kernel checked, including per-call trace/tag invariants, exact oriented routes,
 initial/local rank-scoped totality, and touched-set disjointness for successive
 calls that strictly thread `first.tags`. The delayed state checkpoint proves
-raw-age `σ` partitioning, the three waiting-cell states, exact mark-preserving
-`init`/`new` reservations, and local `WellShaped` preservation. The production
+raw-age `σ` partitioning, the three waiting-cell states, the mark-preserving
+`init`, the display-only printed `new`, and the separate operational `new`
+that preserves `OperationalWaitingDomain`. The production
 bridge now packages both views in `ReservationState`, supplies executable
 initial and later reservation wrappers with typed success witnesses and
 `some_iff` characterizations, and preserves the complete
-`ReservationInvariant` bundle across both stages. Complete output-tag
+`ReservationInvariant` bundle, including the waiting domain, across both
+stages. Complete output-tag
 threading excludes replay of one submitted axiom-link index between composable
 wrapper calls, but resetting tags or using the low-level reservation primitive
 remains outside that result.
 The canonical receipt is submitted/ready `[0,1]`/`[1,0]` followed by
-`[2,3]`/`[3,2]`. This is still only a reservation prefix, not full Figure-7
-`new`, pop-before-mark, binary-mate handling, raw-age marking, semantic `R`/`W`
-ownership, or a total later-state transition system.
+`[2,3]`/`[3,2]`. The newer operational local Figure-7 `new` layer additionally
+performs
+the synchronized pop/raw-mark prefix, fixed canonical tensor-consumer lookup,
+opposite-premise search in the marked state, and the same exact later
+reservation. Its input carries `ReservationInvariant`, but that is not yet a
+reachable-scheduler certificate: ready/waiting payload ownership, tag history,
+global ready-bucket disjointness, the `wait`/`unify` payload rules, the other
+local rules, and a total later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -766,18 +818,30 @@ The repository currently contains:
   bounded/tagged `NEXTAXIOM` primitive and the first independent delayed
   raw-age state layer are checked. The latter proves strictly increasing `σ`
   boundaries, distinct out-of-bounds/undefined/initialized-empty waiting
-  states, and mark-preserving `init`/`new` ready-bucket reservations.
+  states, a mark-preserving `init`, the literal printed `new` display helper,
+  and a separate operational `new` preserving `OperationalWaitingDomain`.
   `ReservationState`, `initializeReservation?`, and `reserveNewAxiom?` now
   connect those reservations to the production carrier. Typed initial/later
   witnesses and their `some_iff` theorems expose exact success; complete tag
   threading excludes replay of the same submitted axiom-link index between
   composable wrapper calls; and
   `ReservationInvariant` is established initially and preserved later,
-  including `WellShaped`, `RealizesSigma`, production forest/abstraction/formula
-  consistency, and carrier/counter/tag alignment. Reset tags and direct
-  low-level reservation remain replayable. Full Figure-7 `new`,
-  pop-before-mark, binary-mate/raw-age marking, semantic `R`/`W` ownership, and
-  later totality remain open. Closing-par exclusion,
+  including `WellShaped`, `OperationalWaitingDomain`, `RealizesSigma`,
+  production forest/abstraction/formula consistency, and
+  carrier/counter/tag alignment. Reset tags can replay the low-level search,
+  although the operational stack guard rejects already queued endpoints;
+  direct low-level reservation remains replayable. A single shared public
+  `ConsumerIndex` now replaces the former private worklist builder and is
+  proved sound and complete; structural linear ownership gives set-level
+  singleton consumers. The operational local Figure-7 `new` rule fixes that
+  canonical
+  index, performs pop-before-mark, raw marking, orientation-aware tensor-mate
+  lookup, post-mark `NEXTAXIOM`, and operational later reservation, and carries
+  the input reservation invariant in its dependent success witness. This still
+  is not a reachable-state characterization: ready/waiting payload ownership,
+  tag provenance, global ready-bucket uniqueness, `wait`/`unify` payload
+  transfer, the other rules, and later totality remain open. Closing-par
+  exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -806,9 +870,13 @@ The repository currently contains:
   invariant across later appends, and exposes both submitted and
   reached/partner orientations. Strictly threaded wrapper calls cannot reserve
   the same submitted axiom-link index; reset tags or direct low-level
-  reservation can. Later start
-  totality, complete Figure-7 `new` sequencing and `R`/`W` semantics, full
-  scheduler correctness, and a whole-program cost proof remain open;
+  reservation can. The next layer gives the project's operational local
+  Figure-7 `new` sequencing under `ReservationInvariant`, with a fixed
+  sound-and-complete consumer index, mark-before-search dependency, and
+  preservation of the exact initialized-cell domain. Reachable later-state
+  totality, ready/waiting payload ownership, the `wait`/`unify` payload rules,
+  the remaining Figure-7 rules, full scheduler correctness, and a
+  whole-program cost proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -983,9 +1051,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 131 public MLL logical-boundary theorems against the exact
+separately audits 145 public MLL logical-boundary theorems against the exact
 axiom set `[propext, Classical.choice, Quot.sound]`, plus 21 axiom-free,
-46 `propext`-only, and 36 `propext`/`Quot.sound` boundaries. LeanProp
+62 `propext`-only, and 63 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1063,6 +1131,8 @@ Lean version is recorded in `lean-toolchain`.
 ```powershell
 lake build
 lake exe proofnet_ir_tests
+lake exe proofnet_ir_consumer_index_tests
+lake exe proofnet_ir_figure7_primitives_tests
 python scripts/generate_dataset.py --check
 python scripts/audit_v03_canonical.py
 lake exe proofnet_ir_api_docs --check
@@ -1072,6 +1142,8 @@ lake exe proofnet_ir_reconstruction_audit
 lake exe proofnet_ir_reconstruction_stress
 python scripts/focused_search.py examples/focused-sequent-v0.2.json --require-found
 python scripts/run_matched_experiment.py --check-committed
+python scripts/validate_model_publication_redaction.py
+python scripts/test_model_publication_redaction.py
 python scripts/run_model_experiment.py --check-preregistered
 python scripts/run_model_experiment_amended.py --check-amendment
 python scripts/run_model_experiment_amended.py --check-committed
@@ -1120,10 +1192,14 @@ ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundar
 ProofNetIR/Unification.lean   eager/worklist Figure-5 token semantics
 ProofNetIR/SequentialUnification.lean bounded/tagged NEXTAXIOM and local totality
 ProofNetIR/SequentialRoute.lean exact oriented successful NEXTAXIOM routes
+ProofNetIR/SequentialConsumerIndex.lean shared sound/complete consumer lookup
 ProofNetIR/SequentialSchedulerState.lean delayed raw-age sigma/ready/waiting state
 ProofNetIR/SequentialSchedulerBridge.lean typed initial/later reservation bridge
+ProofNetIR/SequentialFigure7New.lean invariant-bound operational Figure-7 new rule
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
+ProofNetIRConsumerIndexTests.lean orientation and fail-closed consumer tests
+ProofNetIRFigure7PrimitivesTests.lean pop/raw-mark regression tests
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget
@@ -1136,6 +1212,7 @@ consumer-release-smoke/       clean consumer pinned to public v0.5.0 tag
 consumer-v06-candidate-smoke/  clean consumer pinned to public v0.6.0 tag
 consumer-v07-candidate-smoke/  clean consumer pinned to public v0.7.0 tag
 consumer-v08-candidate-smoke/  clean consumer pinned to public v0.8.0 tag
+consumer-v09-candidate-smoke/  clean consumer pinned to public v0.9.0 tag
 schemas/                      versioned external certificate contract
 examples/                     valid and invalid JSON certificates
 datasets/v0.2/                committed checker-labeled corpus and manifest
@@ -1144,6 +1221,8 @@ scripts/focused_search.py     focused cut-free comparison baseline
 scripts/run_matched_experiment.py matched generation/repair experiment runner
 scripts/run_model_experiment.py preregistered held-out model experiment runner
 scripts/run_model_experiment_amended.py hard-timeout protocol amendment runner
+scripts/validate_model_publication_redaction.py metadata-redaction history audit
+scripts/test_model_publication_redaction.py redaction mutation regression
 scripts/audit_v03_canonical.py independent 1,000-record reindex-key audit
 scripts/fuzz_malformed_parser.py deterministic 5,000-case parser fuzz gate
 docs/                         architecture, literature map, roadmap, trust boundary
@@ -1166,13 +1245,19 @@ A second 180-task study is now preregistered across depths 2--4, repeated-label
 and unique-label strata, balanced positive/negative tasks, and reference repair
 distances two/three. All 360 model calls are frozen, but the original runner's
 soft-only wall-clock budget prevented scoring from completing in 120 minutes.
-A public amendment preserves the original runner and every response while
-adding process-level hard deadlines. Final results are now committed: focused
-search 85/180, net generation 160/180, constructed distance-ordered repair
-180/180, model direct 117/180, and model repair 2/180. Model direct was only
-27/90 on positives despite 90/90 on deliberately atom-imbalanced negatives.
-See the [final report](experiments/model-v0.2/report.md) for the exact receipt
-and limitations.
+A public amendment preserves the byte-exact original runner in Git and every
+response while adding process-level hard deadlines. A later transparent
+publication-only amendment replaces the machine-local GGUF path with a stable
+model alias; it retains every historical request hash and adds independently
+recomputable canonical request hashes. Its history audit fixes the source
+corpus, rejects duplicate JSON keys, and mutation-tests both semantic drift and
+cross-platform absolute-path encodings. Final results are now committed:
+focused search 85/180, net generation 160/180, constructed distance-ordered
+repair 180/180, model direct 117/180, and model repair 2/180. Model direct was
+only 27/90 on positives despite 90/90 on deliberately atom-imbalanced
+negatives. See the [final report](experiments/model-v0.2/report.md) and
+[redaction receipt](experiments/model-v0.2/publication-redaction-amendment-1.json)
+for the exact evidence and limitations.
 
 The broader plan is in [docs/roadmap.md](docs/roadmap.md). Source screening and
 project rationale are recorded in [docs/literature-map.md](docs/literature-map.md).

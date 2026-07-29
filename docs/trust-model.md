@@ -167,14 +167,19 @@ checkpoint. Its `RawTokenAge` is not a representative. Kernel-checked
 `SigmaAgePartition` fields enforce an empty-zero/positive-zero-head, strictly
 increasing boundary list below the raw-age horizon. Waiting cells retain three
 distinct observations: out of bounds, in-bounds undefined, and initialized
-empty. Strict empty `init` leaves `W(0)` undefined; later `new` initializes the
-fresh waiting cell. Both keep marks unchanged and store the ready endpoints in
-`[reached, partner]` order.
+empty. Strict empty `init` leaves `W(0)` undefined. The literal
+`newEnqueue?` source-audit helper writes the fresh waiting cell exactly as the
+printed Figure-7 display does, preserves only the weak shape invariant, and is
+not used by the production bridge. `operationalNewEnqueue?` instead
+initializes the old active `σ` boundary and leaves the freshly pushed active
+top undefined. The compiled `OperationalWaitingDomain` states that, among
+allocated ages, initialized waiting cells are exactly `sigma.dropLast`; both
+`init` and the operational later reservation preserve it.
 
-The paper's prose says `W` is defined at nonactive boundaries, while its
-Figure-7 initialization leaves the initial cell undefined and `new`
-initializes the fresh cell. The trusted API intentionally makes no `iff` claim
-resolving that tension. `SequentialSchedulerBridge.lean` now defines
+This old-boundary update is the project's interpretation of the paper's prose
+that defines `W` on nonactive boundaries and of the later `wait`/`unify`
+behavior. It is not an author-confirmed erratum or a theorem that this is the
+unique reconstruction of the display. `SequentialSchedulerBridge.lean` now defines
 `ReservationState`, `initializeReservation?`, and `reserveNewAxiom?` to keep
 the delayed stack, production core, and complete search tags synchronized
 through initial and later reservation-only calls. The typed
@@ -183,14 +188,17 @@ through initial and later reservation-only calls. The typed
 opaque wrapper result.
 
 `ReservationInvariant` is the compiled preservation bundle for
-wrapper-generated histories: delayed
-`WellShaped`; `RealizesSigma`; production `OrderedParents`, `Abstractable`, and
-`ComponentsFormulaConsistent`; component/parent carrier alignment;
-started-axiom/counter alignment; and tag-domain alignment. It is proved for the
-empty state, established by a successful initialization, and preserved by
-every successful later reservation. The record is not itself a reachability or
-tag-history characterization: `tags_size` proves only carrier size, so reset
-tags may still satisfy it. Later `RealizesSigma` preservation uses
+wrapper-generated histories: delayed `WellShaped` and
+`OperationalWaitingDomain`; `RealizesSigma`; production `OrderedParents`,
+`Abstractable`, and `ComponentsFormulaConsistent`; component/parent carrier
+alignment; started-axiom/counter alignment; and tag-domain alignment. It is
+proved for the empty state, established by a successful initialization, and
+preserved by every successful operational later reservation. The record is
+not itself a reachability or tag-history characterization: `tags_size` proves
+only carrier size, so reset tags may still satisfy it. Its waiting-domain field
+specifies which cells are initialized, not semantic ownership or correctness
+of their payloads and not `wait`/`unify` transfer behavior. Later
+`RealizesSigma` preservation uses
 the sigma-append old/fresh lemmas together with the corresponding production
 old/fresh representative lemmas. A deliberately arbitrary ordered parent
 forest `#[0, 1, 0]` with `sigma = [0, 1]` sends age `2` to boundary `1` but
@@ -201,11 +209,21 @@ marks/horizon alignment, and `OrderedParents`.
 Complete tag threading proves that each adjacent composable wrapper-step pair
 reserves distinct submitted axiom-link indices. It does not equate duplicate
 axiom values at different indices without an extra structural premise. The
-scope is exact: reset/replaced tags and direct low-level reservations remain
-replayable. The canonical two-call regression locks submitted/ready orientations
-`[0,1]`/`[1,0]`, then `[2,3]`/`[3,2]`. This is still not the full Figure-7
-`new`: pop-before-mark,
-binary-mate handling, raw-age marking, semantic `R`/`W` ownership, later-state
+scope is exact: reset/replaced tags can replay low-level search, while the
+operational stack guard independently rejects endpoints already present in
+ready buckets; direct low-level reservations remain replayable. The canonical
+two-call regression locks submitted/ready orientations
+`[0,1]`/`[1,0]`, then `[2,3]`/`[3,2]`. The next trusted layer implements the
+project's operational local Figure-7 `new` transition under a supplied
+`ReservationInvariant`: synchronized pop/raw-mark, fixed canonical
+sound-and-complete consumer lookup, orientation-aware tensor mate, post-mark
+`NEXTAXIOM`, and an operational later reservation that initializes the old
+active waiting boundary while leaving the fresh top undefined. Its proof
+argument blocks independently
+forged stack/core horizons and raw ages, and callers cannot inject a partial
+consumer table. It is still not a full reachable Figure-7 scheduler: tag
+provenance/monotonicity, global ready-bucket uniqueness, ready/waiting payload
+ownership, the `wait`/`unify` payload rules, the other rules, later-state
 totality, correct-state progress, pure-worklist completeness, fallback
 removal, and whole-program linearity remain unimplemented. Future guards must
 use raw assigned ages—not representatives.
@@ -444,10 +462,12 @@ initial/local totality, per-call invariants, and strictly threaded touched-set
 disjointness are already proved. The reservation wrapper now adds typed
 initial/later calls, axiom-link-index replay exclusion for composable calls
 under exact output tag threading, later `RealizesSigma` preservation, and a
-bundled invariant preserved across both stages. It does not add later totality,
-pop-before-mark,
-binary mates, raw-age marking, or semantic `R`/`W` ownership. No planarity
-principle is assumed.
+bundled invariant preserved across both stages. The invariant-bound local
+`new` layer now adds pop-before-mark, binary-mate lookup, raw-age marking,
+post-mark search, and the operational old-boundary/fresh-top reservation. It
+does not add a reachable-state invariant, later totality, ready/waiting payload
+ownership, the `wait`/`unify` payload rules, or the other Figure-7 rules. No
+planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is
@@ -561,8 +581,9 @@ Lean now also constructs the exact simultaneous complementary
   possible route to flat completeness. The bounded primitive already has
   per-call trace/tag invariants, exact oriented routes, initial/local
   rank-scoped totality, and strictly threaded touched-set disjointness;
-  later-state selection and the full `NEXTAXIOM`/token-age stacks remain
-  required for linearity.
+  the operational waiting-cell domain is also preserved. Later-state
+  selection, ready/waiting payload ownership, the `wait`/`unify` rules, and
+  the remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
   linearity remain open.

@@ -23,11 +23,13 @@ import ProofNetIR.IntrinsicCanonical
 import ProofNetIR.IntrinsicCanonicalKeyWire
 import ProofNetIR.DerivationVerifier
 import ProofNetIR.ReconstructionChecker
+import ProofNetIR.SequentialConsumerIndex
 import ProofNetIR.Unification
 import ProofNetIR.SequentialUnification
 import ProofNetIR.SequentialRoute
 import ProofNetIR.SequentialSchedulerState
 import ProofNetIR.SequentialSchedulerBridge
+import ProofNetIR.SequentialFigure7New
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

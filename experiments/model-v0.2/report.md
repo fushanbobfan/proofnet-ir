@@ -35,6 +35,16 @@ amended scoring, preserved every task, prompt, response, method, budget, and
 success rule while isolating each task/method in a child process with a real
 60-second deadline and atomic per-task checkpointing.
 
+A later publication-only amendment removed the machine-local absolute GGUF
+path from tracked artifacts without rewriting history. The stable public alias
+is `qwen3.6-35b-a3b-ud-q4_k_xl`; the untracked artifact filename and locally
+verified content hash are recorded in the
+[redaction receipt](publication-redaction-amendment-1.json). All 360 historical
+`requestSha256` values remain unchanged, while 360
+`canonicalRequestSha256` values bind the same requests to the alias. The
+validator checks the publication artifacts against the byte-exact originals at
+source commit `605648ea12598ed4f713976a7448dc77762a42b8`.
+
 The amended run took 2,644,471 ms, including scoring and final Lean batch
 verification. Worker startup is included in algorithmic timings, so raw
 latencies should not be interpreted as hardware-normalized compute comparisons
@@ -87,9 +97,28 @@ theorem `Certificate.sequentialize_complete`, not from the sample.
 ## Artifact hashes
 
 - corpus: `0bb9a950ebb5f3706cd0f0629d668801ae7174e97c6fa9f4f175c7c299d36dc2`
-- raw responses: `5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef`
-- per-task results: `ece2210e47f18db8fda9bbe02959d6978fb084251c9127053b25bea765c87421`
-- summary: `af64c103b497bb6316aa83078047242c4ec67881e817e65dd057293faff08db8`
+- publication raw responses: `aaa3a4e145255161c6499674a9088285081f313e8b27c14a74f22452cf8da0f1`
+- publication per-task results: `c9d1e103f15eefa41986bcc555baa79dfa309eab6137d91cde7ce4f940935142`
+- publication summary: `152964a23619c6311ebda29f93cab4fb72f6d20946696888e2e8ce88c2e8ac4c`
+
+The receipt records both these hashes and the original historical artifact
+hashes. Recheck the allowed metadata-only transformation first:
+
+```text
+python scripts/validate_model_publication_redaction.py
+python scripts/test_model_publication_redaction.py
+```
+
+The first command reconstructs every historical request from the fixed source
+commit and derives its canonical hash by replacing only `model`; it also
+enforces exact source/published byte pairs for both runners. The second command
+proves that self-declared receipt updates cannot admit seed, prompt,
+request-field, scoring, raw-field, corpus, or historical-hash mutations. It
+also rejects duplicate JSON keys and tests drive-letter, POSIX, UNC, and
+`file://` paths across escaped, apostrophe, UTF-16, and invalid-UTF8 carriers.
+The receipt has no validator self-hash: the reviewed checker is the repo-local
+trust root, while independent authentication requires external protected
+review/CI or a signed release policy.
 
 Recheck every committed hash and the Lean-verification equality with:
 

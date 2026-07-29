@@ -473,6 +473,54 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Shared sequential consumer index"
+    declarations := [
+      `ProofNetIR.ConsumerIndex,
+      `ProofNetIR.ConsumerIndex.build,
+      `ProofNetIR.ConsumerIndex.bucket,
+      `ProofNetIR.ConsumerIndex.build_size,
+      `ProofNetIR.ConsumerIndex.Sound,
+      `ProofNetIR.ConsumerIndex.Complete,
+      `ProofNetIR.ConsumerIndex.build_origin,
+      `ProofNetIR.ConsumerIndex.build_complete,
+      `ProofNetIR.ConsumerIndex.build_sound,
+      `ProofNetIR.ConsumerIndex.build_isComplete,
+      `ProofNetIR.ConsumerIndex.Sound.origin,
+      `ProofNetIR.ConsumerIndex.build_members_eq,
+      `ProofNetIR.ConsumerIndex.build_singleton,
+      `ProofNetIR.ConsumerIndex.uniqueConsumer?,
+      `ProofNetIR.ConsumerIndex.uniqueConsumer?_eq_some_iff,
+      `ProofNetIR.ConsumerIndex.build_uniqueConsumer?_eq_some,
+      `ProofNetIR.TensorPremiseSide,
+      `ProofNetIR.TensorPremiseSide.premise,
+      `ProofNetIR.TensorPremiseSide.mate,
+      `ProofNetIR.TensorBelow,
+      `ProofNetIR.TensorBelow.premise,
+      `ProofNetIR.TensorBelow.mate,
+      `ProofNetIR.TensorBelow.Valid,
+      `ProofNetIR.tensorBelow?,
+      `ProofNetIR.tensorBelow?_eq_some_iff,
+      `ProofNetIR.tensorBelow?_consumer,
+      `ProofNetIR.tensorBelow?_link,
+      `ProofNetIR.tensorBelow?_wellFormed,
+      `ProofNetIR.tensorBelow?_premise,
+      `ProofNetIR.tensorBelow?_mate_ne,
+      `ProofNetIR.Certificate.consumerIndex,
+      `ProofNetIR.Certificate.tensorBelow?,
+      `ProofNetIR.Certificate.tensorBelow?_eq_some_iff,
+      `ProofNetIR.Certificate.tensorBelow?_consumer,
+      `ProofNetIR.Certificate.tensorBelow?_link,
+      `ProofNetIR.Certificate.tensorBelow?_wellFormed,
+      `ProofNetIR.Certificate.tensorBelow?_premise,
+      `ProofNetIR.Certificate.tensorBelow?_mate_ne,
+      `ProofNetIR.Certificate.worklistConsumers,
+      `ProofNetIR.Certificate.mem_worklistConsumers_of_premise,
+      `ProofNetIR.Certificate.mem_worklistConsumers_origin,
+      `ProofNetIR.Certificate.mem_worklistConsumers_submitted_connective,
+      `ProofNetIR.Certificate.worklistConsumers_members_eq
+    ]
+  },
+  {
     title := "Delayed sequential-scheduler state"
     declarations := [
       `ProofNetIR.SequentialSchedulerState.RawTokenAge,
@@ -491,10 +539,21 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.boundary_exists,
       `ProofNetIR.SequentialSchedulerState.sigmaBoundary_unique_of_greatest,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.active_undefined,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped.waiting_lookup_exists,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_wellShaped,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_operationalWaitingDomain,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkError,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkStep,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_ok_iff,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_exact,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_wellShaped,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined.lookup,
@@ -505,13 +564,33 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_exact,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_endpoint_unmarked,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_wellShaped,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_operationalWaitingDomain
+    ]
+  },
+  {
+    title := "Printed Figure-7 new display audit"
+    declarations := [
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.NewReady,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.PrintedNewStep,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_some_iff,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_exact,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_waiting_of_ne,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_unmarked,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped
+    ]
+  },
+  {
+    title := "Operational Figure-7 new reservation"
+    declarations := [
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalNewReadyAt,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalNewStep,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_some_iff,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_exact,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_endpoint_unmarked,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_wellShaped,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_operationalWaitingDomain
     ]
   },
   {
@@ -532,6 +611,18 @@ def sections : List Section := [
       `ProofNetIR.Certificate.reserveAxiomAt?_counterAligned,
       `ProofNetIR.Certificate.reserveAxiomAt?_old_representative,
       `ProofNetIR.Certificate.reserveAxiomAt?_fresh_representative,
+      `ProofNetIR.UnificationState.MarkReadyRawError,
+      `ProofNetIR.UnificationState.markReadyRaw?,
+      `ProofNetIR.UnificationState.MarkReadyRawStep,
+      `ProofNetIR.UnificationState.markReadyRaw?_ok_iff,
+      `ProofNetIR.UnificationState.markReadyRaw?_markOutOfBounds_iff,
+      `ProofNetIR.UnificationState.markReadyRaw?_alreadyMarked_iff,
+      `ProofNetIR.UnificationState.markReadyRaw?_exact,
+      `ProofNetIR.UnificationState.markReadyRaw?_carriers,
+      `ProofNetIR.UnificationState.markReadyRaw?_counters,
+      `ProofNetIR.UnificationState.markReadyRaw?_orderedParents,
+      `ProofNetIR.UnificationState.markReadyRaw?_abstractable,
+      `ProofNetIR.UnificationState.markReadyRaw?_componentsFormulaConsistent,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.rawAgeAt?,
       `ProofNetIR.SequentialSchedulerBridge.ReservationState,
       `ProofNetIR.SequentialSchedulerBridge.ReservationState.empty,
@@ -557,7 +648,27 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerBridge.new_reserve_carrier_realizesSigma,
       `ProofNetIR.SequentialSchedulerBridge.new_reserve_route_exact,
       `ProofNetIR.SequentialSchedulerBridge.new_reserve_route_fields,
-      `ProofNetIR.SequentialSchedulerBridge.NewReservationStep.reservationInvariant
+      `ProofNetIR.SequentialSchedulerBridge.NewReservationStep.reservationInvariant,
+      `ProofNetIR.SequentialSchedulerBridge.popReadyMark_markReadyRaw_realizesSigma,
+      `ProofNetIR.SequentialSchedulerBridge.popReadyMark_markReadyRaw_reservationInvariant
+    ]
+  },
+  {
+    title := "Executable Figure-7 new transition"
+    declarations := [
+      `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_startReady,
+      `ProofNetIR.SequentialUnification.nextAxiom?_startReady,
+      `ProofNetIR.SequentialFigure7.new?,
+      `ProofNetIR.SequentialFigure7.NewStep,
+      `ProofNetIR.SequentialFigure7.new?_some_iff,
+      `ProofNetIR.SequentialFigure7.NewStep.tensorValid,
+      `ProofNetIR.SequentialFigure7.NewStep.mate_unmarked,
+      `ProofNetIR.SequentialFigure7.NewStep.route,
+      `ProofNetIR.SequentialFigure7.NewStep.markedMiddle,
+      `ProofNetIR.SequentialFigure7.NewStep.reservationStep,
+      `ProofNetIR.SequentialFigure7.NewStep.markedMiddle_reservationInvariant,
+      `ProofNetIR.SequentialFigure7.NewStep.reservationInvariant,
+      `ProofNetIR.SequentialFigure7.new?_reservationInvariant
     ]
   },
   {

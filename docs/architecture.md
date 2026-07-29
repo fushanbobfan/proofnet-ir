@@ -241,14 +241,18 @@ to be distinct and in bounds. Global carrier agreement and the remaining
 `WellShaped` obligations are separate preservation-theorem preconditions. Its
 executable reservation produces `σ = [0]` and
 ready buckets `[[reached, partner]]` while preserving the mark array and
-leaving `W(0)` undefined. The later reservation appends the old horizon to
-`σ`, appends `[reached, partner]`, initializes only the fresh waiting cell to
-empty, and also preserves marks. The current proof establishes exact fields,
-unmarked endpoints, and only the local `WellShaped` invariant. It does not
-assert the paper-level statement “`W` is defined exactly at ...”: the prose
-says `W` is defined at nonactive boundaries, while the Figure-7 `init`/`new`
-displays pull in a different direction: the displayed initialization leaves
-`W(0)` undefined whereas `new` initializes its fresh age.
+leaving `W(0)` undefined. The literal `newEnqueue?` source-audit helper appends
+the old horizon to `σ`, appends `[reached, partner]`, and initializes the fresh
+waiting cell exactly as the printed Figure-7 display does. That helper
+preserves the weak local `WellShaped` invariant but is not the production
+transition. The production bridge uses `operationalNewEnqueue?`, which
+initializes the old active `σ` boundary and leaves the freshly pushed active
+top undefined. Lean proves that `initEnqueue?` and this operational transition
+preserve `OperationalWaitingDomain`: among allocated ages, initialized waiting
+cells are exactly `sigma.dropLast`. This is the project's one-cell
+interpretation of the prose-defined nonactive waiting domain and the later
+`wait`/`unify` behavior, not an author-confirmed erratum or a uniqueness
+theorem.
 
 `reserveAxiomAt?` creates a locally well-formed submitted-orientation live
 axiom component and a fresh self-parent while leaving marks unchanged. Each
@@ -279,23 +283,38 @@ automatically from `WellShaped`, marks/horizon alignment, and
 `OrderedParents`.
 
 `ReservationInvariant` is the preserved reservation-layer bundle:
-delayed-state `WellShaped`, `RealizesSigma`, production `OrderedParents`,
-`Abstractable`, and `ComponentsFormulaConsistent`, component/parent carrier
-alignment, `startedAxioms`/parent-counter alignment, and tag/formula-domain
-alignment. The exact empty state satisfies it; a successful
+delayed-state `WellShaped`, `OperationalWaitingDomain`, `RealizesSigma`,
+production `OrderedParents`, `Abstractable`, and
+`ComponentsFormulaConsistent`, component/parent carrier alignment,
+`startedAxioms`/parent-counter alignment, and tag/formula-domain alignment.
+The exact empty state satisfies it; a successful
 `InitialReservationStep` establishes it; and every successful
 `NewReservationStep` preserves it. The structure itself is not an inductive
 reachability or tag-history characterization: `tags_size` records only the tag
-carrier, so a reset-tag state may still satisfy the bundle. The canonical
+carrier, so a reset-tag state may still satisfy the bundle. Its waiting-domain
+field says which cells are initialized, not who owns their payloads or how
+`wait`/`unify` transfers or drains them. The canonical
 two-step fixture locks
 submitted/ready orientation as `[0,1]`/`[1,0]`, then
 `[2,3]`/`[3,2]`.
 
-This still is not the full Figure-7 `new`. It has no pop-before-mark step,
-binary-mate transition, raw-age endpoint marking, semantic ownership invariant
-for `R` and `W`, later-state totality, correct-state progress, pure-worklist
-completeness, fallback removal, or whole-program linearity. Future guards must
-continue to compare raw assigned ages, not union-find representatives.
+The next module, `SequentialFigure7New.lean`, now composes the project's
+operational local Figure-7 `new` rule over a supplied
+`ReservationInvariant`. It retains an
+exhausted last ready bucket, writes the old top raw age in both state views,
+uses the certificate's fixed sound-and-complete `ConsumerIndex` to obtain the
+unique orientation-aware tensor and opposite premise, evaluates `NEXTAXIOM`
+in the post-mark state, then appends and reserves the returned axiom through
+`operationalNewEnqueue?`. The old active waiting boundary becomes initialized
+and the fresh active top remains undefined. The dependent success witness
+carries the input invariant and binds search to the post-mark core. This is not
+yet a reachable-state characterization: `ReservationInvariant` has only tag
+carrier size, not tag provenance/monotonicity, and it lacks ready/waiting
+payload ownership and global ready-bucket uniqueness. The `wait`/`unify`
+payload rules, the other Figure-7 rules, later-state totality, correct-state
+progress, pure-worklist completeness, fallback removal, and whole-program
+linearity remain open. Future guards must continue to compare raw assigned
+ages, not union-find representatives.
 The separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
@@ -549,19 +568,28 @@ active-reference walks between marked occurrences are equivalent to
   `some_iff` success witnesses, composable-call axiom-link-index replay
   exclusion under complete tag threading, later `RealizesSigma` preservation,
   and a `ReservationInvariant` preserved across initialization and later
-  reservations. Reset tags and the low-level reservation primitive remain
-  replayable, and the wrapper is still not full Figure-7 `new`. Planarity is
-  not assumed for
+  reservations, including the exact `OperationalWaitingDomain`. A shared
+  public `ConsumerIndex` and the invariant-bound operational local Figure-7
+  `new` pipeline now add pop/raw-mark, orientation-aware tensor-mate lookup,
+  post-mark search, and later reservation with the old-boundary/fresh-top
+  waiting update. Reset tags can replay low-level search, but the operational
+  stack guard rejects endpoints already present in ready buckets; the
+  low-level reservation primitive itself remains replayable. This local rule
+  is not a full reachable scheduler. Waiting
+  payload ownership and the `wait`/`unify` payload rules remain open. Planarity
+  is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: its production path still starts all axioms
 eagerly and uses flat waiting requeues. The separate bounded/tagged
-`NEXTAXIOM` primitive now has an exact initial/later reservation bridge to the
-delayed `SequentialSchedulerState`, but is not yet integrated into
-pop-before-mark, binary-mate/raw-age marking, complete semantic `R`/`W`
-ownership, or later-state scheduler totality. General
+`NEXTAXIOM` primitive now has an exact initial/later reservation bridge and an
+invariant-bound operational local `new` transition in the delayed
+`SequentialSchedulerState`. The literal printed fresh-cell update remains a
+separate display-only helper. Ready/waiting payload ownership, the
+`wait`/`unify` payload rules, the remaining rules, a reachable-state invariant,
+and later-state scheduler totality are not yet integrated. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

@@ -27,6 +27,17 @@
     "totalObservedWallMinutes": 120.2
   },
   "originalPreregistrationCommit": "3d767aa5aec53060272007209e91b7531b45929e",
+  "publicationRedaction": {
+    "artifactFileName": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "artifactSha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450",
+    "artifactSha256Status": "verified-local-artifact-2026-07-28",
+    "publishedRawResponsesSha256": "aaa3a4e145255161c6499674a9088285081f313e8b27c14a74f22452cf8da0f1",
+    "publishedValidationRunnerSha256": "78b7ae31e2ba8d9171f1708e1c49b2355121a26015b723ef1ce24956a0d7bd64",
+    "receipt": "publication-redaction-amendment-1.json",
+    "sourceCommit": "605648ea12598ed4f713976a7448dc77762a42b8",
+    "stableModelAlias": "qwen3.6-35b-a3b-ud-q4_k_xl",
+    "version": "model-v0.2-publication-redaction-amendment-1"
+  },
   "rawResponseRows": 360,
   "rawResponsesSha256": "5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef",
   "registeredLocalDate": "2026-07-22 America/Los_Angeles",

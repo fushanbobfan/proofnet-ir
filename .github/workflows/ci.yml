@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.release_ref || github.ref }}
+          fetch-depth: 0
       - name: Verify requested release revision
         if: ${{ inputs.release_ref != '' }}
         env:
@@ -33,6 +34,10 @@ jobs:
         run: ~/.elan/bin/lake build
       - name: Run smoke test
         run: ~/.elan/bin/lake exe proofnet_ir_tests
+      - name: Run Figure-7 consumer and primitive regressions
+        run: |
+          ~/.elan/bin/lake exe proofnet_ir_consumer_index_tests
+          ~/.elan/bin/lake exe proofnet_ir_figure7_primitives_tests
       - name: Validate generated LeanProp template corpus
         run: ~/.elan/bin/lake exe proofnet_ir_leanprop_corpus
       - name: Verify Lean-emitted LeanProp corpus manifest
@@ -87,6 +92,10 @@ jobs:
         run: python scripts/run_matched_experiment.py --check-committed
       - name: Validate model-experiment preregistration
         run: |
+          if test -f scripts/validate_model_publication_redaction.py; then
+            python scripts/validate_model_publication_redaction.py
+            python scripts/test_model_publication_redaction.py
+          fi
           python scripts/run_model_experiment.py --check-preregistered
           python scripts/run_model_experiment_amended.py --check-amendment
           python scripts/run_model_experiment_amended.py --smoke

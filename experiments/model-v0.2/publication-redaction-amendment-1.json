@@ -1,0 +1,120 @@
+{
+  "allowedArtifactChanges": {
+    "experiments/model-v0.2/preregistration.json": [
+      "/model/id",
+      "/model/artifactFileName (added)",
+      "/model/artifactSha256 (added)",
+      "/model/artifactSha256Status (added)",
+      "/publicationRedaction (added)"
+    ],
+    "experiments/model-v0.2/protocol-amendment-1.json": [
+      "/publicationRedaction (added)"
+    ],
+    "experiments/model-v0.2/raw-responses.jsonl": [
+      "/*/response/model",
+      "/*/canonicalRequestSha256 (added)"
+    ],
+    "experiments/model-v0.2/results.jsonl": [
+      "/*/modelDirect/responseModel",
+      "/*/modelRepair/responseModel"
+    ],
+    "experiments/model-v0.2/summary.json": [
+      "/model/requestedId",
+      "/model/responseModels",
+      "/model/artifactFileName (added)",
+      "/model/artifactSha256 (added)",
+      "/model/artifactSha256Status (added)",
+      "/preregistrationSha256",
+      "/protocolAmendmentSha256",
+      "/rawResponsesSha256",
+      "/resultsSha256",
+      "/publicationRedaction (added)"
+    ],
+    "scripts/run_model_experiment.py": [
+      "exact source/published byte pair fixed by the checker",
+      "stable public model alias and artifact identity",
+      "runtime request-id override separated from publication metadata",
+      "canonical request hash emission and redaction validation bridge"
+    ],
+    "scripts/run_model_experiment_amended.py": [
+      "exact source/published byte pair fixed by the checker",
+      "published-artifact hash and redaction validation bridge",
+      "publication metadata emission and historical-runner clarification"
+    ]
+  },
+  "files": {
+    "experiments/model-v0.2/preregistration.json": {
+      "originalSha256": "09ea8a03905d75331420a126803260a74ead5b882217de58df84fac295364a98",
+      "publishedSha256": "721fef14f1dd3249a1db1600d87d8677b1fed6e5ca98533a520581b7fc99be98"
+    },
+    "experiments/model-v0.2/protocol-amendment-1.json": {
+      "originalSha256": "b678ac5e8bef72bca0c73c6ded3d8c4b32ab90994af2ebd070c026ebea6bd35c",
+      "publishedSha256": "76b4866b7baa4fc9d614645a456c6e96175351a22c35c9a192be622fc7fdbaab"
+    },
+    "experiments/model-v0.2/raw-responses.jsonl": {
+      "originalSha256": "5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef",
+      "publishedSha256": "aaa3a4e145255161c6499674a9088285081f313e8b27c14a74f22452cf8da0f1"
+    },
+    "experiments/model-v0.2/results.jsonl": {
+      "originalSha256": "ece2210e47f18db8fda9bbe02959d6978fb084251c9127053b25bea765c87421",
+      "publishedSha256": "c9d1e103f15eefa41986bcc555baa79dfa309eab6137d91cde7ce4f940935142"
+    },
+    "experiments/model-v0.2/summary.json": {
+      "originalSha256": "af64c103b497bb6316aa83078047242c4ec67881e817e65dd057293faff08db8",
+      "publishedSha256": "152964a23619c6311ebda29f93cab4fb72f6d20946696888e2e8ce88c2e8ac4c"
+    },
+    "scripts/run_model_experiment.py": {
+      "originalSha256": "63b0e1f806b82da1cb03da1a578a3a2196605d292541b77225f65118e5a17a92",
+      "publishedSha256": "394761dd2a49eb139d263a1dbb2809ad1915bf37cfedbe0988a86eaacfd58ee6"
+    },
+    "scripts/run_model_experiment_amended.py": {
+      "originalSha256": "4e2819087f5c270463579aeac9bcae9b9d2619f29961c31c9ed3f505655fb2a8",
+      "publishedSha256": "78b7ae31e2ba8d9171f1708e1c49b2355121a26015b723ef1ce24956a0d7bd64"
+    }
+  },
+  "historicalIntegrity": {
+    "canonicalRequestSha256": "added in all 360 raw rows as the hash of the same request with only model.id replaced by the stable alias",
+    "historyRewrite": false,
+    "originalArtifacts": "byte-exact artifacts remain available at sourceCommit and are verified by originalSha256",
+    "originalRequestSha256": "retained byte-for-byte in all 360 raw rows as the hash of the request actually sent"
+  },
+  "mathematicalResultsUnchanged": {
+    "leanVerification": {
+      "accepted": 92,
+      "rejected": 184,
+      "sequentialized": 92,
+      "uniqueInputs": 276
+    },
+    "methodSuccesses": {
+      "algorithmicRepair": 180,
+      "focused": 85,
+      "modelDirect": 117,
+      "modelRepair": 2,
+      "netGeneration": 160
+    },
+    "rawRequestSha256Retained": 360,
+    "scope": "all task inputs, response contents, method outcomes, timings, token counts, checker results, and sequentialization results are unchanged",
+    "taskCount": 180
+  },
+  "modelArtifact": {
+    "artifactFileName": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "sha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450",
+    "sha256Status": "verified-local-artifact-2026-07-28",
+    "sizeBytes": 22360456160,
+    "verificationBoundary": "SHA-256 computed from the local artifact; the untracked machine path is intentionally not published"
+  },
+  "reason": "remove a machine-specific absolute GGUF path from publication artifacts without changing model identity, responses, scores, or mathematical conclusions",
+  "registeredLocalDate": "2026-07-28 America/Los_Angeles",
+  "sourceCommit": "605648ea12598ed4f713976a7448dc77762a42b8",
+  "sourceCommitMeaning": "last public commit containing the unredacted machine-local metadata; history is retained and not rewritten",
+  "stableModelAlias": "qwen3.6-35b-a3b-ud-q4_k_xl",
+  "validation": {
+    "command": "python scripts/validate_model_publication_redaction.py",
+    "mutationRegressionCommand": "python scripts/test_model_publication_redaction.py",
+    "requiresFullGitHistory": true,
+    "runnerTransformEnforcement": "checker-hardcoded-byte-exact-source-published-pairs",
+    "trackedAbsoluteGgufPathScan": true,
+    "trustBoundary": "the reviewed checker implementation is the remaining repo-local trust root; independent authentication requires external protected review/CI or a signed release policy, not a checker self-hash"
+  },
+  "version": "model-v0.2-publication-redaction-amendment-1"
+}

@@ -16,6 +16,7 @@ import hashlib
 import itertools
 import json
 import math
+import os
 import platform
 import subprocess
 import sys
@@ -64,7 +65,13 @@ TASK_COUNT = 180
 METHOD_CANDIDATE_BUDGET = 1_000
 WALL_CLOCK_BUDGET_MS = 60_000.0
 MODEL_ENDPOINT = "http://127.0.0.1:8080/v1/chat/completions"
-MODEL_ID = r"D:\ucla\models\gguf\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+MODEL_ALIAS = "qwen3.6-35b-a3b-ud-q4_k_xl"
+MODEL_ARTIFACT_FILE_NAME = "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+MODEL_ARTIFACT_SHA256 = (
+    "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450"
+)
+MODEL_ID = MODEL_ALIAS
+MODEL_REQUEST_ID = os.environ.get("PROOFNET_IR_MODEL_REQUEST_ID", MODEL_ALIAS)
 MODEL_SEED = 20_260_723
 MODEL_MAX_TOKENS = 128
 MODEL_TIMEOUT_SECONDS = 60
@@ -87,6 +94,18 @@ def implementation_hashes() -> dict[str, str]:
         name: file_sha256(path)
         for name, path in sorted(IMPLEMENTATION_PATHS.items())
     }
+
+
+def publication_model_id(value: object) -> object:
+    """Map the known local artifact identifier to its stable public alias."""
+
+    if value is None:
+        return None
+    text = str(value)
+    file_name = text.replace("\\", "/").rsplit("/", maxsplit=1)[-1]
+    if text == MODEL_ALIAS or file_name.casefold() == MODEL_ARTIFACT_FILE_NAME.casefold():
+        return MODEL_ALIAS
+    return text
 
 
 def recursive_atom_names(value: dict[str, Any]) -> Iterator[str]:
@@ -474,6 +493,9 @@ def prepare() -> None:
         "model": {
             "endpoint": MODEL_ENDPOINT,
             "id": MODEL_ID,
+            "artifactFileName": MODEL_ARTIFACT_FILE_NAME,
+            "artifactSha256": MODEL_ARTIFACT_SHA256,
+            "artifactSha256Status": "verified-local-artifact-2026-07-28",
             "temperature": 0,
             "seed": MODEL_SEED,
             "thinking": False,
@@ -548,10 +570,12 @@ def render_task(task: dict[str, Any], mode: str) -> str:
     return " ".join(fields)
 
 
-def request_body(task: dict[str, Any], mode: str) -> dict[str, Any]:
+def request_body(
+    task: dict[str, Any], mode: str, model_id: str = MODEL_ALIAS
+) -> dict[str, Any]:
     system = DIRECT_SYSTEM if mode == "direct" else REPAIR_SYSTEM
     return {
-        "model": MODEL_ID,
+        "model": model_id,
         "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": render_task(task, mode)},
@@ -564,8 +588,12 @@ def request_body(task: dict[str, Any], mode: str) -> dict[str, Any]:
 
 
 def call_model(task: dict[str, Any], mode: str) -> dict[str, Any]:
-    body = request_body(task, mode)
+    body = request_body(task, mode, model_id=MODEL_REQUEST_ID)
     encoded = compact_json(body).encode("utf-8")
+    request_sha256 = sha256_text(encoded.decode("utf-8"))
+    canonical_request_sha256 = sha256_text(
+        compact_json(request_body(task, mode))
+    )
     request = urllib.request.Request(
         MODEL_ENDPOINT,
         data=encoded,
@@ -576,6 +604,8 @@ def call_model(task: dict[str, Any], mode: str) -> dict[str, Any]:
     try:
         with urllib.request.urlopen(request, timeout=MODEL_TIMEOUT_SECONDS) as response:
             result = json.loads(response.read().decode("utf-8"))
+        if isinstance(result, dict) and "model" in result:
+            result["model"] = publication_model_id(result.get("model"))
         error = None
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exception:
         result = None
@@ -584,7 +614,8 @@ def call_model(task: dict[str, Any], mode: str) -> dict[str, Any]:
     return {
         "id": task["id"],
         "mode": mode,
-        "requestSha256": sha256_text(encoded.decode("utf-8")),
+        "requestSha256": request_sha256,
+        "canonicalRequestSha256": canonical_request_sha256,
         "elapsedMs": elapsed_ms,
         "error": error,
         "response": result,
@@ -618,7 +649,21 @@ def collect_model_responses(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]
                 expected_request_hash = sha256_text(
                     compact_json(request_body(task, mode))
                 )
-                if rows[key].get("requestSha256") != expected_request_hash:
+                canonical_request_hash = rows[key].get(
+                    "canonicalRequestSha256"
+                )
+                if canonical_request_hash is not None:
+                    recorded_request_hash = canonical_request_hash
+                else:
+                    recorded_request_hash = rows[key].get("requestSha256")
+                    expected_request_hash = sha256_text(
+                        compact_json(
+                            request_body(
+                                task, mode, model_id=MODEL_REQUEST_ID
+                            )
+                        )
+                    )
+                if recorded_request_hash != expected_request_hash:
                     raise AssertionError(
                         f"stale partial model response for {task['id']} {mode}"
                     )
@@ -696,7 +741,7 @@ def score_model(
     result["promptTokens"] = int(usage.get("prompt_tokens", 0))
     result["completionTokens"] = int(usage.get("completion_tokens", 0))
     result["totalTokens"] = int(usage.get("total_tokens", 0))
-    result["responseModel"] = response.get("model")
+    result["responseModel"] = publication_model_id(response.get("model"))
     result["systemFingerprint"] = response.get("system_fingerprint")
     try:
         choice = response["choices"][0]
@@ -944,7 +989,7 @@ def formal_run(write: bool) -> dict[str, Any]:
     results_payload = jsonl_payload(rows)
     response_models = sorted(
         {
-            str(row["response"].get("model"))
+            str(publication_model_id(row["response"].get("model")))
             for row in raw_rows
             if isinstance(row.get("response"), dict)
         }
@@ -968,6 +1013,9 @@ def formal_run(write: bool) -> dict[str, Any]:
         "model": {
             "requestedId": MODEL_ID,
             "responseModels": response_models,
+            "artifactFileName": MODEL_ARTIFACT_FILE_NAME,
+            "artifactSha256": MODEL_ARTIFACT_SHA256,
+            "artifactSha256Status": "verified-local-artifact-2026-07-28",
             "systemFingerprints": fingerprints,
             "calls": len(raw_rows),
             "errors": sum(int(row.get("error") is not None) for row in raw_rows),
@@ -1037,8 +1085,25 @@ def check_committed() -> None:
 def check_preregistered(regenerate: bool = True) -> list[dict[str, Any]]:
     tasks = load_tasks()
     preregistration = json.loads(PREREG_PATH.read_text(encoding="utf-8"))
-    if preregistration.get("implementationSha256") != implementation_hashes():
-        raise AssertionError("preregistered implementation hash mismatch")
+    expected_implementation = preregistration.get("implementationSha256")
+    current_implementation = implementation_hashes()
+    if expected_implementation != current_implementation:
+        mismatches = {
+            name
+            for name in set(expected_implementation or {}) | set(current_implementation)
+            if (expected_implementation or {}).get(name)
+            != current_implementation.get(name)
+        }
+        if mismatches != {"runner"}:
+            raise AssertionError(
+                "preregistered implementation hash mismatch: "
+                + ", ".join(sorted(mismatches))
+            )
+        from validate_model_publication_redaction import (
+            validate_publication_redaction,
+        )
+
+        validate_publication_redaction(scan_tracked=False)
     strata: Counter[str] = Counter()
     for task in tasks:
         expected = bool(task["expectedProvable"])

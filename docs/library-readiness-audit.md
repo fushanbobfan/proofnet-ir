@@ -108,19 +108,23 @@ part of the engineering and proof-identity gap.
   greatest eligible boundary. `WaitingCell` distinguishes an out-of-bounds
   lookup, in-bounds undefined `⊥`, and initialized empty `∅`. Strict empty
   `init` reserves age zero, keeps `W(0)` undefined, preserves marks, and queues
-  `[reached, partner]`; `new` appends the fresh `σ` boundary and same endpoint
-  order, initializes only the fresh waiting cell, and also preserves marks.
-  Only exact field facts and local `WellShaped` preservation are proved. The
-  paper's prose says `W` is defined at nonactive boundaries, while its Figure-7
-  initialization leaves `W(0)` undefined. That tension is retained; no `iff`
-  domain invariant is claimed. `SequentialSchedulerBridge.lean` now adds the
-  first exact production connection: a locally well-formed submitted axiom is
-  reserved as an unmarked live component with a fresh self-parent, and the
-  narrow `RealizesSigma` relation covers raw marks, horizon, and executable
-  boundary lookup. The same route-bound result exposes production submitted
-  orientation separately from delayed reached/partner order. This is not
-  replay protection, later-state realization, or a full reachable scheduler
-  invariant.
+  `[reached, partner]`. Guerrini's 1999 prose defines `W` at the inactive
+  `σ` boundaries, and `unify` reads the old predecessor; the printed Figure-7
+  `new` instead writes the fresh top. `newEnqueue?` retains that literal
+  fresh-cell update only for source audit. The production
+  `operationalNewEnqueue?` initializes the old active boundary and leaves the
+  fresh top undefined. The kernel-checked `OperationalWaitingDomain` says that
+  allocated initialized cells are exactly `sigma.dropLast`; `init` establishes
+  it and operational `new` preserves it. This is the project's operational
+  interpretation, not an author-confirmed erratum or uniqueness claim.
+  `SequentialSchedulerBridge.lean` uses the operational update and reserves a
+  locally well-formed submitted axiom as an unmarked live component with a
+  fresh self-parent. `RealizesSigma` covers raw marks, horizon, and executable
+  boundary lookup; the same route-bound result exposes production submitted
+  orientation separately from delayed reached/partner order. Typed
+  initial/later wrappers thread the complete tag array and preserve
+  `ReservationInvariant`, including `OperationalWaitingDomain`, but this does
+  not characterize reachable histories or exclude reset tags.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -372,13 +376,16 @@ part of the engineering and proof-identity gap.
    correctness, initial/local rank-scoped totality, and touched-set
    disjointness for successive calls that strictly thread `first.tags`; reset
    tags are outside that theorem. The separate raw-age state checkpoint proves
-   the initial `σ`/waiting representation and mark-preserving `init`/`new`
-   reservations. Its first production realization now proves exact unmarked
-   `reserveAxiomAt?`, submitted/search orientation separation, and the narrow
-   `RealizesSigma` relation. Replay-safe later-state selection/reservation,
-   complete `R`/`W` token-age sequencing, closing-par scheduler-order exclusion,
-   correct-state progress, pure worklist completeness, recursive fallback
-   removal, and a whole-program linear cost theorem remain open.
+   the initial `σ`/waiting representation, the literal printed `new` audit
+   helper, and the separate production update that preserves
+   `OperationalWaitingDomain`. Initial and later reservations, submitted/search
+   orientation separation, the narrow `RealizesSigma` relation, and the local
+   pop/mark/mate-search/new pipeline are kernel checked under the supplied
+   invariant. Ready/waiting payload ownership, executable `wait` and `unify`,
+   reachable-state and exact tag-history characterizations, later-state
+   selection totality, closing-par scheduler-order exclusion, correct-state
+   progress, pure worklist completeness, recursive fallback removal, and a
+   whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns
@@ -438,10 +445,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 119 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 145 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 21 axiom-free,
-  43 `propext`-only, and 35 `propext`/`Quot.sound` boundaries;
+  62 `propext`-only, and 63 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -528,9 +535,11 @@ It can currently be used for:
 - experimenting with the proof-bearing bounded/tagged `NEXTAXIOM`, dynamic
   Figure-5 start, and independent delayed raw-age state primitives, including
   their proved structural source-singleton, per-call tag/trace, strictly
-  threaded touched-set, `σ` partition, waiting-cell distinction, and local
-  shape invariants, while treating search failure as inconclusive; together
-  they are not a complete scheduler API;
+  threaded touched-set, `σ` partition, operational inactive-boundary waiting
+  domain, typed initial/later reservations, and local pop/mark/new pipeline,
+  while treating search failure as inconclusive; ready/waiting payload
+  ownership, wait/unify, reachability, and tag-history are still absent, so
+  together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
 - auditing the frozen 180-task model experiment, amendment, raw responses,

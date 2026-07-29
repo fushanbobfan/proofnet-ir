@@ -31,8 +31,11 @@
     "model repair proposal"
   ],
   "model": {
+    "artifactFileName": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "artifactSha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450",
+    "artifactSha256Status": "verified-local-artifact-2026-07-28",
     "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
-    "id": "D:\\ucla\\models\\gguf\\Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "id": "qwen3.6-35b-a3b-ud-q4_k_xl",
     "seed": 20260723,
     "temperature": 0,
     "thinking": false
@@ -42,6 +45,10 @@
   "promptSha256": {
     "directSystem": "49aa790cfc9025cd7646b6d70d8aef295b1f8a73bba5fdc01b684b7cbb16d95a",
     "repairSystem": "b96c34e410c08f7f4e32bcfd72fca8bec2660c37d8e5056e9a616ca4666d5d28"
+  },
+  "publicationRedaction": {
+    "receipt": "publication-redaction-amendment-1.json",
+    "version": "model-v0.2-publication-redaction-amendment-1"
   },
   "registeredLocalDate": "2026-07-22 America/Los_Angeles",
   "repairDistance": "number of reference axiom links absent from the repair source; positive tasks alternate exactly 2 and 3",

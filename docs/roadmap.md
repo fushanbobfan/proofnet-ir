@@ -757,29 +757,32 @@
     `RawTokenAge` is discovery order rather than a representative;
     `SigmaAgePartition` gives strictly increasing `σ` boundaries below the
     horizon; waiting storage distinguishes out-of-bounds, undefined `⊥`, and
-    initialized empty `∅`; strict empty `init` keeps `W(0)` undefined; and
-    `new` initializes only the fresh cell. Both operations preserve marks,
-    enqueue `[reached, partner]`, and preserve only the local `WellShaped`
-    invariant. Retain the paper's `W` domain tension instead of claiming an
-    unsupported `iff`.
-  - [x] Add `reserveAxiomAt?` and prove the initial narrow `RealizesSigma`
-    bridge to production `UnificationState` without changing endpoint order or
-    treating raw ages as representatives. The same exact search result now
-    exposes delayed `[reached, partner]` and submitted
-    `[result.left, result.right]`; reservation leaves both endpoints unmarked.
-    This intentionally does not include replay protection, `WellShaped`, or
-    later-state reachability.
-  - [ ] Extend the bridge through later `new` reservations with scheduler
-    tags/replay protection and a reachable-state invariant that bundles
-    `WellShaped`, component/carrier consistency, and exact `R`/`W` domains.
+    initialized empty `∅`; strict empty `init` keeps `W(0)` undefined and
+    establishes `OperationalWaitingDomain`.
+  - [x] Keep the printed Figure-7 fresh-cell `newEnqueue?` as a literal audit
+    helper only. Production `operationalNewEnqueue?` initializes the old active
+    boundary, leaves the fresh top undefined, and kernel-proves preservation of
+    `WellShaped` and `OperationalWaitingDomain` (initialized allocated cells
+    exactly `sigma.dropLast`). This resolves the code path by a documented
+    project interpretation, not an author-confirmed erratum.
+  - [x] Add initial and typed later reservation bridges to production
+    `UnificationState`, preserving `RealizesSigma`, the operational waiting
+    domain, component/carrier consistency, and complete threaded tags while
+    keeping submitted and reached/partner orientations distinct.
+  - [x] Add the invariant-bound local Figure-7 pop-before-mark, raw-age mark,
+    tensor-mate, post-mark search, and operational `new` pipeline.
+  - [ ] Prove a reachable-state and exact tag-history characterization for
+    these wrappers; the preservation bundle alone does not exclude reset or
+    forged tag arrays.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
-    `R` stack with `σ`, pop before marking, state route-local later-call
-    freshness, and finish `W` semantics only after resolving the prose/display
-    domain tension. Establish the special union-find invariants, completeness
-    of that sequential executable, and a cost theorem over every implemented
-    operation before claiming Guerrini linearity. These stack invariants are
-    false for the flat scheduler.
+    `R` stack with `σ`, prove ready/waiting payload ownership, state
+    route-local later-call freshness, and implement the paper's `wait` and
+    `unify` transitions under the operational waiting domain. Establish the
+    special union-find invariants, reachability, tag provenance, progress,
+    completeness of that sequential executable, and a cost theorem over every
+    implemented operation before claiming Guerrini linearity. These stack
+    invariants are false for the flat scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist
     completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and

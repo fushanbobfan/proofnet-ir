@@ -5930,6 +5930,541 @@ ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart : ∀ {certific
         (result.after.toMarking certificate afterAbstractable)
 ```
 
+## Shared sequential consumer index
+
+### `ProofNetIR.ConsumerIndex`
+
+Kind: definition.
+
+A single premise-to-submitted-link index shared by the worklist engine and
+the sequential Figure-7 bridge.  Each bucket stores submitted link indices
+whose connective uses the addressed formula occurrence as a premise.
+
+```lean
+ProofNetIR.ConsumerIndex : Type
+```
+
+### `ProofNetIR.ConsumerIndex.build`
+
+Kind: definition.
+
+Build the canonical premise-consumer table.
+
+This is a pure builder, not a hidden cache. Callers proving a complexity bound
+must thread the resulting table explicitly instead of assuming repeated calls
+are constant-time. Out-of-range premises are ignored, so malformed input fails
+closed.
+
+```lean
+ProofNetIR.ConsumerIndex.build : ProofNetIR.Certificate → ProofNetIR.ConsumerIndex
+```
+
+### `ProofNetIR.ConsumerIndex.bucket`
+
+Kind: definition.
+
+Total bucket projection. Out-of-range vertices have no consumers.
+
+```lean
+ProofNetIR.ConsumerIndex.bucket : ProofNetIR.ConsumerIndex → ProofNetIR.Vertex → List Nat
+```
+
+### `ProofNetIR.ConsumerIndex.build_size`
+
+Kind: theorem.
+
+The table carrier is exactly the formula-occurrence carrier.
+
+```lean
+ProofNetIR.ConsumerIndex.build_size : ∀ (certificate : ProofNetIR.Certificate),
+  Array.size (ProofNetIR.ConsumerIndex.build certificate) = certificate.formulas.size
+```
+
+### `ProofNetIR.ConsumerIndex.Sound`
+
+Kind: definition.
+
+Every stored entry has exact submitted-link and premise provenance.
+
+```lean
+ProofNetIR.ConsumerIndex.Sound : ProofNetIR.Certificate → ProofNetIR.ConsumerIndex → Prop
+```
+
+### `ProofNetIR.ConsumerIndex.Complete`
+
+Kind: definition.
+
+Every submitted, in-bounds connective premise is represented.
+
+```lean
+ProofNetIR.ConsumerIndex.Complete : ProofNetIR.Certificate → ProofNetIR.ConsumerIndex → Prop
+```
+
+### `ProofNetIR.ConsumerIndex.build_origin`
+
+Kind: theorem.
+
+Exact origin theorem for the shared built index.
+
+```lean
+ProofNetIR.ConsumerIndex.build_origin : ∀ {certificate : ProofNetIR.Certificate} {premise candidate : Nat},
+  candidate ∈ (ProofNetIR.ConsumerIndex.build certificate).bucket premise →
+    ∃ link, certificate.links[candidate]? = some link ∧ link.isConnective = true ∧ premise ∈ link.premises
+```
+
+### `ProofNetIR.ConsumerIndex.build_complete`
+
+Kind: theorem.
+
+Exact no-missed-dependency theorem for the shared built index.
+
+```lean
+ProofNetIR.ConsumerIndex.build_complete : ∀ {certificate : ProofNetIR.Certificate} {link : ProofNetIR.Link} {linkIndex premise : Nat},
+  certificate.links[linkIndex]? = some link →
+    premise < certificate.formulas.size →
+      premise ∈ link.premises → linkIndex ∈ (ProofNetIR.ConsumerIndex.build certificate).bucket premise
+```
+
+### `ProofNetIR.ConsumerIndex.build_sound`
+
+Kind: theorem.
+
+The shared index satisfies exact carrier and origin soundness.
+
+```lean
+ProofNetIR.ConsumerIndex.build_sound : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.ConsumerIndex.Sound certificate (ProofNetIR.ConsumerIndex.build certificate)
+```
+
+### `ProofNetIR.ConsumerIndex.build_isComplete`
+
+Kind: theorem.
+
+The shared index is complete for every in-bounds connective premise.
+
+```lean
+ProofNetIR.ConsumerIndex.build_isComplete : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.ConsumerIndex.Complete certificate (ProofNetIR.ConsumerIndex.build certificate)
+```
+
+### `ProofNetIR.ConsumerIndex.Sound.origin`
+
+Kind: theorem.
+
+Soundness exposes exact origin without depending on the builder.
+
+```lean
+ProofNetIR.ConsumerIndex.Sound.origin : ∀ {certificate : ProofNetIR.Certificate} {index : ProofNetIR.ConsumerIndex},
+  ProofNetIR.ConsumerIndex.Sound certificate index →
+    ∀ {premise candidate : Nat},
+      candidate ∈ index.bucket premise →
+        ∃ link, certificate.links[candidate]? = some link ∧ link.isConnective = true ∧ premise ∈ link.premises
+```
+
+### `ProofNetIR.ConsumerIndex.build_members_eq`
+
+Kind: theorem.
+
+Structural linear ownership makes all consumer indices in a bucket equal.
+This is set-level singleton uniqueness; no list-order claim is needed.
+
+```lean
+ProofNetIR.ConsumerIndex.build_members_eq : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {premise first second : Nat},
+      first ∈ (ProofNetIR.ConsumerIndex.build certificate).bucket premise →
+        second ∈ (ProofNetIR.ConsumerIndex.build certificate).bucket premise → first = second
+```
+
+### `ProofNetIR.ConsumerIndex.build_singleton`
+
+Kind: theorem.
+
+A concrete in-bounds premise has a set-level singleton consumer bucket in
+every structurally well-formed certificate.
+
+```lean
+ProofNetIR.ConsumerIndex.build_singleton : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {link : ProofNetIR.Link} {linkIndex premise : Nat},
+      certificate.links[linkIndex]? = some link →
+        premise < certificate.formulas.size →
+          premise ∈ link.premises →
+            linkIndex ∈ (ProofNetIR.ConsumerIndex.build certificate).bucket premise ∧
+              ∀ {candidate : Nat},
+                candidate ∈ (ProofNetIR.ConsumerIndex.build certificate).bucket premise → candidate = linkIndex
+```
+
+### `ProofNetIR.ConsumerIndex.uniqueConsumer?`
+
+Kind: definition.
+
+Return the unique semantic consumer of one occurrence. Repeated copies of
+the same index are harmless, while two distinct candidates fail closed.
+
+```lean
+ProofNetIR.ConsumerIndex.uniqueConsumer? : ProofNetIR.ConsumerIndex → ProofNetIR.Vertex → Option Nat
+```
+
+### `ProofNetIR.ConsumerIndex.uniqueConsumer?_eq_some_iff`
+
+Kind: theorem.
+
+Exact semantic-singleton characterization of `uniqueConsumer?`.
+
+```lean
+ProofNetIR.ConsumerIndex.uniqueConsumer?_eq_some_iff : ∀ {index : ProofNetIR.ConsumerIndex} {vertex candidate : Nat},
+  index.uniqueConsumer? vertex = some candidate ↔
+    candidate ∈ index.bucket vertex ∧ ∀ {other : Nat}, other ∈ index.bucket vertex → other = candidate
+```
+
+### `ProofNetIR.ConsumerIndex.build_uniqueConsumer?_eq_some`
+
+Kind: theorem.
+
+On structurally well-formed input, every concrete in-bounds premise makes
+the shared index's unique-consumer query succeed at its submitted index.
+
+```lean
+ProofNetIR.ConsumerIndex.build_uniqueConsumer?_eq_some : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {link : ProofNetIR.Link} {linkIndex premise : Nat},
+      certificate.links[linkIndex]? = some link →
+        premise < certificate.formulas.size →
+          premise ∈ link.premises →
+            (ProofNetIR.ConsumerIndex.build certificate).uniqueConsumer? premise = some linkIndex
+```
+
+### `ProofNetIR.TensorPremiseSide`
+
+Kind: inductive type.
+
+Stored orientation of the queried occurrence within a tensor link.
+
+```lean
+ProofNetIR.TensorPremiseSide : Type
+```
+
+### `ProofNetIR.TensorPremiseSide.premise`
+
+Kind: definition.
+
+The premise selected by this stored orientation.
+
+```lean
+ProofNetIR.TensorPremiseSide.premise : ProofNetIR.TensorPremiseSide → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.TensorPremiseSide.mate`
+
+Kind: definition.
+
+The other tensor premise selected by this stored orientation.
+
+```lean
+ProofNetIR.TensorPremiseSide.mate : ProofNetIR.TensorPremiseSide → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.TensorBelow`
+
+Kind: inductive type.
+
+Exact orientation-aware view of the tensor immediately consuming one
+formula occurrence. This is a lookup result, not a complete Figure-7 `new`
+transition.
+
+```lean
+ProofNetIR.TensorBelow : Type
+```
+
+### `ProofNetIR.TensorBelow.premise`
+
+Kind: definition.
+
+Stored premise addressed by the view.
+
+```lean
+ProofNetIR.TensorBelow.premise : ProofNetIR.TensorBelow → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.TensorBelow.mate`
+
+Kind: definition.
+
+Opposite tensor premise addressed by the view.
+
+```lean
+ProofNetIR.TensorBelow.mate : ProofNetIR.TensorBelow → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.TensorBelow.Valid`
+
+Kind: definition.
+
+Exact successful-result semantics for `tensorBelow?`.
+
+```lean
+ProofNetIR.TensorBelow.Valid : ProofNetIR.Certificate → ProofNetIR.ConsumerIndex → ProofNetIR.Vertex → ProofNetIR.TensorBelow → Prop
+```
+
+### `ProofNetIR.tensorBelow?`
+
+Kind: definition.
+
+Low-level tensor-mate lookup relative to an explicitly supplied table.
+
+The lookup rejects absent or nonunique entries *in that table*, axiom/par
+entries, malformed tensor links, occurrences that are not the stored left or
+right premise, and self-mates. It does not prove that an arbitrary supplied
+table is the certificate's complete consumer index. Production scheduler code
+must use `Certificate.tensorBelow?`, which fixes the table to
+`certificate.consumerIndex`.
+
+```lean
+ProofNetIR.tensorBelow? : ProofNetIR.Certificate → ProofNetIR.ConsumerIndex → ProofNetIR.Vertex → Option ProofNetIR.TensorBelow
+```
+
+### `ProofNetIR.tensorBelow?_eq_some_iff`
+
+Kind: theorem.
+
+Exact table-relative success characterization of the low-level query.
+
+```lean
+ProofNetIR.tensorBelow?_eq_some_iff : ∀ {certificate : ProofNetIR.Certificate} {index : ProofNetIR.ConsumerIndex} {vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.TensorBelow},
+  ProofNetIR.tensorBelow? certificate index vertex = some result ↔
+    ProofNetIR.TensorBelow.Valid certificate index vertex result
+```
+
+### `ProofNetIR.tensorBelow?_consumer`
+
+Kind: theorem.
+
+Successful lookup identifies the exact semantic-singleton consumer.
+
+```lean
+ProofNetIR.tensorBelow?_consumer : ∀ {certificate : ProofNetIR.Certificate} {index : ProofNetIR.ConsumerIndex} {vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.TensorBelow},
+  ProofNetIR.tensorBelow? certificate index vertex = some result → index.uniqueConsumer? vertex = some result.linkIndex
+```
+
+### `ProofNetIR.tensorBelow?_link`
+
+Kind: theorem.
+
+Successful lookup identifies the exact submitted tensor slot.
+
+```lean
+ProofNetIR.tensorBelow?_link : ∀ {certificate : ProofNetIR.Certificate} {index : ProofNetIR.ConsumerIndex} {vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.TensorBelow},
+  ProofNetIR.tensorBelow? certificate index vertex = some result →
+    certificate.links[result.linkIndex]? =
+      some (ProofNetIR.Link.tensor result.storedLeft result.storedRight result.conclusion)
+```
+
+### `ProofNetIR.tensorBelow?_wellFormed`
+
+Kind: theorem.
+
+Successful lookup exposes an independently well-formed tensor.
+
+```lean
+ProofNetIR.tensorBelow?_wellFormed : ∀ {certificate : ProofNetIR.Certificate} {index : ProofNetIR.ConsumerIndex} {vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.TensorBelow},
+  ProofNetIR.tensorBelow? certificate index vertex = some result →
+    certificate.LinkWellFormed (ProofNetIR.Link.tensor result.storedLeft result.storedRight result.conclusion)
+```
+
+### `ProofNetIR.tensorBelow?_premise`
+
+Kind: theorem.
+
+Successful lookup preserves the stored left/right orientation exactly.
+
+```lean
+ProofNetIR.tensorBelow?_premise : ∀ {certificate : ProofNetIR.Certificate} {index : ProofNetIR.ConsumerIndex} {vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.TensorBelow},
+  ProofNetIR.tensorBelow? certificate index vertex = some result → vertex = result.premise
+```
+
+### `ProofNetIR.tensorBelow?_mate_ne`
+
+Kind: theorem.
+
+A successful tensor-below view never returns its input as its mate.
+
+```lean
+ProofNetIR.tensorBelow?_mate_ne : ∀ {certificate : ProofNetIR.Certificate} {index : ProofNetIR.ConsumerIndex} {vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.TensorBelow},
+  ProofNetIR.tensorBelow? certificate index vertex = some result → result.mate ≠ vertex
+```
+
+### `ProofNetIR.Certificate.consumerIndex`
+
+Kind: definition.
+
+Canonical pure projection of a certificate to its consumer index.
+
+The definition deliberately carries no memoization claim. A future
+whole-program linearity layer must store and thread this value rather than
+recompute it at every scheduler step.
+
+```lean
+ProofNetIR.Certificate.consumerIndex : ProofNetIR.Certificate → ProofNetIR.ConsumerIndex
+```
+
+### `ProofNetIR.Certificate.tensorBelow?`
+
+Kind: definition.
+
+Canonical fail-closed tensor-mate lookup.
+
+Unlike the low-level table-relative query, this API fixes lookup to the
+certificate's sound-and-complete built consumer index. It therefore cannot
+accept a caller-supplied partial table that hides a second consumer.
+
+```lean
+ProofNetIR.Certificate.tensorBelow? : ProofNetIR.Certificate → ProofNetIR.Vertex → Option ProofNetIR.TensorBelow
+```
+
+### `ProofNetIR.Certificate.tensorBelow?_eq_some_iff`
+
+Kind: theorem.
+
+Exact success characterization of the canonical tensor-below query.
+
+```lean
+ProofNetIR.Certificate.tensorBelow?_eq_some_iff : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex} {result : ProofNetIR.TensorBelow},
+  certificate.tensorBelow? vertex = some result ↔
+    ProofNetIR.TensorBelow.Valid certificate certificate.consumerIndex vertex result
+```
+
+### `ProofNetIR.Certificate.tensorBelow?_consumer`
+
+Kind: theorem.
+
+Canonical lookup identifies the exact built-index singleton consumer.
+
+```lean
+ProofNetIR.Certificate.tensorBelow?_consumer : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex} {result : ProofNetIR.TensorBelow},
+  certificate.tensorBelow? vertex = some result →
+    certificate.consumerIndex.uniqueConsumer? vertex = some result.linkIndex
+```
+
+### `ProofNetIR.Certificate.tensorBelow?_link`
+
+Kind: theorem.
+
+Canonical lookup identifies the exact submitted tensor slot.
+
+```lean
+ProofNetIR.Certificate.tensorBelow?_link : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex} {result : ProofNetIR.TensorBelow},
+  certificate.tensorBelow? vertex = some result →
+    certificate.links[result.linkIndex]? =
+      some (ProofNetIR.Link.tensor result.storedLeft result.storedRight result.conclusion)
+```
+
+### `ProofNetIR.Certificate.tensorBelow?_wellFormed`
+
+Kind: theorem.
+
+Canonical lookup exposes an independently well-formed tensor.
+
+```lean
+ProofNetIR.Certificate.tensorBelow?_wellFormed : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex} {result : ProofNetIR.TensorBelow},
+  certificate.tensorBelow? vertex = some result →
+    certificate.LinkWellFormed (ProofNetIR.Link.tensor result.storedLeft result.storedRight result.conclusion)
+```
+
+### `ProofNetIR.Certificate.tensorBelow?_premise`
+
+Kind: theorem.
+
+Canonical lookup preserves the stored left/right orientation exactly.
+
+```lean
+ProofNetIR.Certificate.tensorBelow?_premise : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex} {result : ProofNetIR.TensorBelow},
+  certificate.tensorBelow? vertex = some result → vertex = result.premise
+```
+
+### `ProofNetIR.Certificate.tensorBelow?_mate_ne`
+
+Kind: theorem.
+
+Canonical tensor-below lookup never returns its input as its mate.
+
+```lean
+ProofNetIR.Certificate.tensorBelow?_mate_ne : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex} {result : ProofNetIR.TensorBelow},
+  certificate.tensorBelow? vertex = some result → result.mate ≠ vertex
+```
+
+### `ProofNetIR.Certificate.worklistConsumers`
+
+Kind: definition.
+
+Compatibility projection for the existing worklist engine. This is an
+alias of `consumerIndex`, not a second independently maintained table.
+
+```lean
+ProofNetIR.Certificate.worklistConsumers : ProofNetIR.Certificate → Array (List Nat)
+```
+
+### `ProofNetIR.Certificate.mem_worklistConsumers_of_premise`
+
+Kind: theorem.
+
+Every concrete in-bounds premise dependency is present in the shared
+worklist-compatible consumer table.
+
+```lean
+ProofNetIR.Certificate.mem_worklistConsumers_of_premise : ∀ {certificate : ProofNetIR.Certificate} {link : ProofNetIR.Link} {linkIndex premise : Nat},
+  certificate.links[linkIndex]? = some link →
+    premise < certificate.formulas.size →
+      premise ∈ link.premises → linkIndex ∈ certificate.worklistConsumers[premise]?.getD []
+```
+
+### `ProofNetIR.Certificate.mem_worklistConsumers_origin`
+
+Kind: theorem.
+
+Every entry in a worklist-compatible bucket has exact submitted-link and
+premise provenance.
+
+```lean
+ProofNetIR.Certificate.mem_worklistConsumers_origin : ∀ {certificate : ProofNetIR.Certificate} {premise candidate : Nat},
+  candidate ∈ certificate.worklistConsumers[premise]?.getD [] →
+    ∃ link, certificate.links[candidate]? = some link ∧ link.isConnective = true ∧ premise ∈ link.premises
+```
+
+### `ProofNetIR.Certificate.mem_worklistConsumers_submitted_connective`
+
+Kind: theorem.
+
+Every worklist-compatible dependency names a submitted connective rather
+than an axiom or an out-of-range slot.
+
+```lean
+ProofNetIR.Certificate.mem_worklistConsumers_submitted_connective : ∀ {certificate : ProofNetIR.Certificate} {premise candidate : Nat},
+  candidate ∈ certificate.worklistConsumers[premise]?.getD [] →
+    ∃ link, certificate.links[candidate]? = some link ∧ link.isConnective = true
+```
+
+### `ProofNetIR.Certificate.worklistConsumers_members_eq`
+
+Kind: theorem.
+
+Structural linear ownership makes all indices in one worklist-compatible
+consumer bucket equal.
+
+```lean
+ProofNetIR.Certificate.worklistConsumers_members_eq : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {premise first second : Nat},
+      first ∈ certificate.worklistConsumers[premise]?.getD [] →
+        second ∈ certificate.worklistConsumers[premise]?.getD [] → first = second
+```
+
 ## Delayed sequential-scheduler state
 
 ### `ProofNetIR.SequentialSchedulerState.RawTokenAge`
@@ -6137,6 +6672,56 @@ Concrete Figures 7--8 bookkeeping before the transition system itself.
 ProofNetIR.SequentialSchedulerState.SequentialStackState : Type
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt`
+
+Kind: definition.
+
+The waiting-table cell at `age` has been initialized, with an arbitrary
+current payload.  This intentionally distinguishes initialized empty `∅` from
+paper-level undefined `⊥`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt : ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain`
+
+Kind: inductive type.
+
+Operational waiting-domain alignment for the sequential scheduler.
+
+Among allocated raw ages, initialized waiting cells are exactly the inactive
+`sigma` boundaries.  The current active boundary (the last element of
+`sigma`) is therefore still `⊥`; an age outside the allocated horizon is
+handled separately by the executable fresh-cell guard.
+
+This is the coherent invariant needed by `wait`/`unify`.  Guerrini's printed
+Figure 7 writes `W[j ↦ ∅]` at the freshly pushed age, but the surrounding prose
+defines `W` on nonactive boundaries and `unify` reads the old boundary.  The
+literal printed transition is retained below for auditability, while the
+production bridge uses the operational transition proved to preserve this
+invariant.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain : ProofNetIR.SequentialSchedulerState.SequentialStackState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.active_undefined`
+
+Kind: theorem.
+
+In a well-shaped operational state, the active `sigma` boundary is the
+paper-level undefined waiting cell.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.active_undefined : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat},
+  state.OperationalWaitingDomain →
+    state.WellShaped carrierSize →
+      ∀ {active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+        state.sigma.getLast? = some active →
+          state.waiting[active]? = some ProofNetIR.SequentialSchedulerState.WaitingCell.undefined
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty`
 
 Kind: definition.
@@ -6184,6 +6769,124 @@ The empty fixed-carrier state is well shaped.
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_wellShaped : ∀ (carrierSize : Nat),
   (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty carrierSize).WellShaped carrierSize
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_operationalWaitingDomain`
+
+Kind: theorem.
+
+The empty fixed-carrier state has the exact empty operational waiting
+domain.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_operationalWaitingDomain : ∀ (carrierSize : Nat),
+  (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty carrierSize).OperationalWaitingDomain
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkError`
+
+Kind: inductive type.
+
+Explicit failures of the Figure-7 pop-before-mark primitive.
+
+`markOutOfBounds` is deliberately distinct from `alreadyMarked`: array lookup
+`none` is a carrier error, while `some (some age)` is an in-carrier occurrence
+that already has a raw mark.  An in-carrier unmarked occurrence has lookup
+`some none` and is the only successful case.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkError : Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult`
+
+Kind: inductive type.
+
+Executable output of one Figure-7 pop-before-mark action.  The selected
+vertex is removed from the top (last) ready bucket, but the bucket itself is
+retained even when `remainingTop = []`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult : Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?`
+
+Kind: definition.
+
+Pop the first selected vertex from the top (last) ready bucket and mark it
+with the old top raw-age boundary.
+
+This is only the common first line of the non-`init` rules in Guerrini
+Figure 7.  It does not inspect the link below the selected vertex, mutate
+`sigma` or `waiting`, or run `NEXTAXIOM`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  Except ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkError
+    ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful pop-before-mark
+action.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkStep : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult → Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_ok_iff`
+
+Kind: theorem.
+
+Executable success is equivalent to the exact dependent
+pop-before-mark witness.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_ok_iff : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {result : ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult},
+  state.popReadyMark? = Except.ok result ↔ Nonempty (state.PopReadyMarkStep result)
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_exact`
+
+Kind: theorem.
+
+Exact changed and unchanged stack fields of a successful
+pop-before-mark action.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_exact : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {result : ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult},
+  state.popReadyMark? = Except.ok result →
+    state.ready.getLast? = some (result.vertex :: result.remainingTop) ∧
+      state.sigma.getLast? = some result.rawAge ∧
+        state.marks[result.vertex]? = some none ∧
+          result.after.marks = state.marks.setIfInBounds result.vertex (some result.rawAge) ∧
+            result.after.nextAge = state.nextAge ∧
+              result.after.sigma = state.sigma ∧
+                result.after.ready = state.ready.dropLast ++ [result.remainingTop] ∧
+                  result.after.waiting = state.waiting ∧ result.after.marks[result.vertex]? = some (some result.rawAge)
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_wellShaped`
+
+Kind: theorem.
+
+The common Figure-7 pop-before-mark action preserves scheduler shape.
+
+The explicit successful-step guards supply all facts needed here: the selected
+vertex is an in-bounds member of the old top bucket, and the assigned raw age
+is the old top `sigma` boundary.  No semantic readiness claim is inferred.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.popReadyMark?_wellShaped : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {result : ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult} {carrierSize : Nat},
+  state.WellShaped carrierSize → state.popReadyMark? = Except.ok result → result.after.WellShaped carrierSize
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined`
@@ -6315,13 +7018,31 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_wellShaped
   state.WellShaped carrierSize → state.initEnqueue? reached partner = some after → after.WellShaped carrierSize
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_operationalWaitingDomain`
+
+Kind: theorem.
+
+Strict delayed initialization establishes the exact operational waiting
+domain: the sole active boundary `0` remains `⊥`, so no allocated waiting cell
+is initialized.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_operationalWaitingDomain : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.initEnqueue? reached partner = some after → after.OperationalWaitingDomain
+```
+
+## Printed Figure-7 new display audit
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.NewReady`
 
 Kind: definition.
 
-Local executable guard for reserving a later raw token age.  It does not
-replace the global `WellShaped` precondition used by the preservation theorem,
-nor does it assert that the endpoints are absent from older ready buckets.
+Literal guard for the `new` line printed in Guerrini's Figure 7.
+
+This display-level transition initializes the freshly pushed age.  It is
+retained to make the source discrepancy auditable, but it does not preserve the
+operational waiting-domain semantics required by the surrounding prose and
+`unify`; production scheduler code uses `operationalNewEnqueue?` below.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.NewReady : ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
@@ -6331,33 +7052,48 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.NewReady : ProofNetIR.S
 
 Kind: definition.
 
-Delayed `new` reservation at the current raw-age horizon.
+Literal transcription of the printed Figure-7 `new` waiting update.
+
+This is not the production scheduler transition: it writes the fresh top
+waiting cell, whereas the prose-defined waiting domain requires initializing
+the old active boundary.  Use `operationalNewEnqueue?` for composable scheduler
+work.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
   ProofNetIR.Vertex → ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.SequentialStackState
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.PrintedNewStep`
+
+Kind: inductive type.
+
+Public proof-relevant specification of the literal printed `new` display.
+The output equation avoids exposing the private executable helper.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.PrintedNewStep : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → ProofNetIR.Vertex → Type
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_some_iff`
 
 Kind: theorem.
 
-Successful delayed `new` reservation is exactly its local precondition
-together with the state obtained by reserving the current raw-age horizon.
+The literal printed `new` display succeeds exactly under its local guard.
+This theorem specifies the source-audit helper, not the production transition.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_some_iff : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
-  state.newEnqueue? reached partner = some after ↔
-    state.NewReady reached partner ∧
-      after = ProofNetIR.SequentialSchedulerState.SequentialStackState.newAfter✝ state reached partner
+  state.newEnqueue? reached partner = some after ↔ Nonempty (state.PrintedNewStep after reached partner)
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_exact`
 
 Kind: theorem.
 
-Exact delayed-`new` fields, including the transition of the fresh waiting
-cell from `⊥` to initialized `∅`.
+Exact fields of the literal printed `new` display, including its fresh-cell
+write.  That write is retained for source comparison and is not operational.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_exact : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
@@ -6376,7 +7112,7 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_exact : ∀
 
 Kind: theorem.
 
-A delayed `new` reservation changes no non-fresh waiting cell.
+The literal printed `new` display changes no non-fresh waiting cell.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_waiting_of_ne : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex}
@@ -6388,7 +7124,7 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_waiting_of_
 
 Kind: theorem.
 
-Delayed `new` leaves both newly enqueued endpoints unmarked.
+The literal printed `new` display leaves both endpoints unmarked.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_unmarked : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
@@ -6399,12 +7135,141 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_un
 
 Kind: theorem.
 
-Reserving a later raw age preserves all state-shape invariants.
+The literal printed transition preserves the deliberately weak shape
+invariant.  It does not preserve `OperationalWaitingDomain`.
 
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
   {reached partner : ProofNetIR.Vertex},
   state.WellShaped carrierSize → state.newEnqueue? reached partner = some after → after.WellShaped carrierSize
+```
+
+## Operational Figure-7 new reservation
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalNewReadyAt`
+
+Kind: definition.
+
+Executable guard for the operationally coherent later reservation.
+
+`active` is the old top `sigma` boundary.  It must still have an undefined
+waiting cell, while the fresh raw age at `nextAge` must also be unused.  The
+new endpoints are required to be globally absent from the current ready stack,
+so this local transition cannot introduce a cross-bucket duplicate.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalNewReadyAt : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?`
+
+Kind: definition.
+
+Operational later reservation.
+
+The freshly allocated raw age becomes the new active top and remains `⊥`.
+Instead, the old active boundary becomes inactive and is initialized to `∅`.
+This is the chosen one-cell interpretation compatible with the prose
+definition of `W`, the `wait` lookup, and the `unify` rule that later drains
+that boundary.  No author-confirmed erratum or uniqueness theorem is claimed.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.Vertex → ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalNewStep`
+
+Kind: inductive type.
+
+Public proof-relevant specification of one successful operational `new`.
+
+The output equation is stated as an explicit record rather than exposing the
+private executable helper in the public theorem signature.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalNewStep : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_some_iff`
+
+Kind: theorem.
+
+Executable success is equivalent to the public exact operational step.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_some_iff : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.operationalNewEnqueue? reached partner = some after ↔ Nonempty (state.OperationalNewStep after reached partner)
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_exact`
+
+Kind: theorem.
+
+Exact fields of the operational later reservation.  The witness exposes
+both the initialized old boundary and the still-undefined fresh top.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_exact : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.operationalNewEnqueue? reached partner = some after →
+    ∃ active,
+      state.sigma.getLast? = some active ∧
+        active < state.nextAge ∧
+          after.marks = state.marks ∧
+            after.nextAge = state.nextAge + 1 ∧
+              after.sigma = state.sigma ++ [state.nextAge] ∧
+                after.ready = state.ready ++ [[reached, partner]] ∧
+                  after.waiting =
+                      state.waiting.setIfInBounds active
+                        (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized []) ∧
+                    after.waiting[active]? = some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized []) ∧
+                      after.waiting[state.nextAge]? = some ProofNetIR.SequentialSchedulerState.WaitingCell.undefined
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_endpoint_unmarked`
+
+Kind: theorem.
+
+Operational `new` leaves both newly enqueued endpoints unmarked.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_endpoint_unmarked : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.operationalNewEnqueue? reached partner = some after →
+    after.marks[reached]? = some none ∧ after.marks[partner]? = some none
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_wellShaped`
+
+Kind: theorem.
+
+Operational `new` preserves the deliberately structural `WellShaped`
+invariant.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_wellShaped : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
+  {reached partner : ProofNetIR.Vertex},
+  state.WellShaped carrierSize →
+    state.operationalNewEnqueue? reached partner = some after → after.WellShaped carrierSize
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_operationalWaitingDomain`
+
+Kind: theorem.
+
+Operational `new` preserves the exact initialized waiting domain.
+
+Before the push, initialized cells correspond to `sigma.dropLast`; setting the
+old last boundary initializes exactly the one additional member needed for the
+new inactive set `sigma`.  The fresh new top is checked to remain undefined.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_operationalWaitingDomain : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
+  {reached partner : ProofNetIR.Vertex},
+  state.OperationalWaitingDomain →
+    state.WellShaped carrierSize →
+      state.operationalNewEnqueue? reached partner = some after → after.OperationalWaitingDomain
 ```
 
 ## Delayed scheduler / production bridge
@@ -6612,6 +7477,178 @@ ProofNetIR.Certificate.reserveAxiomAt?_fresh_representative : ∀ {certificate :
     after.representative before.parents.size = before.parents.size
 ```
 
+### `ProofNetIR.UnificationState.MarkReadyRawError`
+
+Kind: inductive type.
+
+Explicit failures of the production-side raw marking primitive.  As on the
+independent stack, an out-of-bounds lookup is not conflated with an allocated
+but already marked occurrence.
+
+```lean
+ProofNetIR.UnificationState.MarkReadyRawError : Type
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?`
+
+Kind: definition.
+
+Production-core update corresponding only to the common
+`μ[u₁ ↦ i]` prefix of the non-`init` rules in Guerrini Figure 7.
+
+The update writes one raw age into an explicitly unmarked occurrence.  It does
+not append or union parents, mutate parsed components, advance either counter,
+or invoke the eager `startMarking`/`markConclusion` operations.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw? : ProofNetIR.UnificationState →
+  ProofNetIR.Vertex →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge →
+      Except ProofNetIR.UnificationState.MarkReadyRawError ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.UnificationState.MarkReadyRawStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful production raw-mark
+update.
+
+```lean
+ProofNetIR.UnificationState.MarkReadyRawStep : ProofNetIR.UnificationState →
+  ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → Type
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_ok_iff`
+
+Kind: theorem.
+
+Executable raw-mark success is equivalent to the exact dependent update
+witness.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_ok_iff : ∀ {before after : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  before.markReadyRaw? vertex rawAge = Except.ok after ↔ Nonempty (before.MarkReadyRawStep after vertex rawAge)
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_markOutOfBounds_iff`
+
+Kind: theorem.
+
+An out-of-bounds raw-mark failure is exactly an array lookup returning
+`none`; it is not the successful in-bounds unmarked lookup `some none`.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_markOutOfBounds_iff : ∀ {state : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  state.markReadyRaw? vertex rawAge =
+      Except.error (ProofNetIR.UnificationState.MarkReadyRawError.markOutOfBounds vertex) ↔
+    state.marks[vertex]? = none
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_alreadyMarked_iff`
+
+Kind: theorem.
+
+An already-marked failure carries the exact previous raw age.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_alreadyMarked_iff : ∀ {state : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge previousRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  state.markReadyRaw? vertex rawAge =
+      Except.error (ProofNetIR.UnificationState.MarkReadyRawError.alreadyMarked vertex previousRawAge) ↔
+    state.marks[vertex]? = some (some previousRawAge)
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_exact`
+
+Kind: theorem.
+
+Exact changed and unchanged production fields of a successful raw-mark
+update.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_exact : ∀ {before after : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  before.markReadyRaw? vertex rawAge = Except.ok after →
+    before.marks[vertex]? = some none ∧
+      after.marks = before.marks.setIfInBounds vertex (some rawAge) ∧
+        after.parents = before.parents ∧
+          after.components = before.components ∧
+            after.startedAxioms = before.startedAxioms ∧
+              after.firedConnectives = before.firedConnectives ∧ after.marks[vertex]? = some (some rawAge)
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_carriers`
+
+Kind: theorem.
+
+Raw marking changes neither the parent carrier nor the parsed-component
+carrier.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_carriers : ∀ {before after : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  before.markReadyRaw? vertex rawAge = Except.ok after →
+    after.parents = before.parents ∧ after.components = before.components
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_counters`
+
+Kind: theorem.
+
+Raw marking advances neither production counter.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_counters : ∀ {before after : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  before.markReadyRaw? vertex rawAge = Except.ok after →
+    after.startedAxioms = before.startedAxioms ∧ after.firedConnectives = before.firedConnectives
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_orderedParents`
+
+Kind: theorem.
+
+Raw marking leaves the ordered parent forest unchanged.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_orderedParents : ∀ {before after : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  before.OrderedParents → before.markReadyRaw? vertex rawAge = Except.ok after → after.OrderedParents
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_abstractable`
+
+Kind: theorem.
+
+Raw marking preserves the executable abstraction contract when the raw age
+is already allocated in the unchanged parent carrier.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_abstractable : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.UnificationState.Abstractable certificate before →
+    rawAge < before.parents.size →
+      before.markReadyRaw? vertex rawAge = Except.ok after → ProofNetIR.UnificationState.Abstractable certificate after
+```
+
+### `ProofNetIR.UnificationState.markReadyRaw?_componentsFormulaConsistent`
+
+Kind: theorem.
+
+Raw marking cannot change formula consistency because the component array
+is unchanged.
+
+```lean
+ProofNetIR.UnificationState.markReadyRaw?_componentsFormulaConsistent : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {vertex : ProofNetIR.Vertex}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate before →
+    before.markReadyRaw? vertex rawAge = Except.ok after →
+      ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate after
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.rawAgeAt?`
 
 Kind: definition.
@@ -6666,11 +7703,12 @@ Kind: definition.
 
 Search and reserve one later axiom.
 
-This is a reservation-only prefix of Guerrini's `new`: it appends the
-search-oriented ready bucket, initializes the fresh waiting cell, appends the
-submitted-orientation production component, and threads the complete tag
-array.  It deliberately performs no endpoint marking, waiting-list draining,
-unification, or connective firing.
+This is a reservation-only prefix of the operational `new`: it appends the
+search-oriented ready bucket, initializes the old active waiting boundary
+while leaving the fresh top undefined, appends the submitted-orientation
+production component, and threads the complete tag array.  It deliberately
+performs no endpoint marking, waiting-list draining, unification, or
+connective firing.
 
 ```lean
 ProofNetIR.SequentialSchedulerBridge.reserveNewAxiom? : ProofNetIR.Certificate →
@@ -6814,10 +7852,12 @@ Kind: inductive type.
 Reservation-layer invariant currently proved for initialization and every
 successful reservation-only `new` wrapper.
 
-It combines scheduler shape, the exact raw-age/representative bridge,
-production carrier soundness, counter alignment, and tag-domain alignment.
-It intentionally does not assert Figure-7 liveness, waiting-dependency
-semantics, cross-ready-bucket uniqueness, or completeness.
+It combines scheduler shape, the exact initialized waiting-cell domain, the
+raw-age/representative bridge, production carrier soundness, counter alignment,
+and tag-domain alignment.  The waiting-domain field says which cells are
+initialized, not who owns each payload or how wait/unify transfers it.  The
+invariant intentionally does not assert Figure-7 liveness, payload/dependency
+semantics, global queue provenance, or completeness.
 
 ```lean
 ProofNetIR.SequentialSchedulerBridge.ReservationInvariant : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
@@ -6965,7 +8005,7 @@ ProofNetIR.SequentialSchedulerBridge.new_reserve_carrier_realizesSigma : ∀ {ce
   stackBefore.WellShaped certificate.formulas.size →
     ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackBefore coreBefore →
       coreBefore.OrderedParents →
-        stackBefore.newEnqueue? reached partner = some stackAfter →
+        stackBefore.operationalNewEnqueue? reached partner = some stackAfter →
           certificate.reserveAxiomAt? coreBefore linkIndex = some coreAfter →
             ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
 ```
@@ -6988,7 +8028,7 @@ ProofNetIR.SequentialSchedulerBridge.new_reserve_route_exact : ∀ {certificate 
     ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackBefore coreBefore →
       coreBefore.OrderedParents →
         ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
-          stackBefore.newEnqueue? reached partner = some stackAfter →
+          stackBefore.operationalNewEnqueue? reached partner = some stackAfter →
             certificate.reserveAxiomAt? coreBefore result.linkIndex = some coreAfter →
               result.orientedEndpoints? = some (reached, partner) ∧
                 ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
@@ -7012,7 +8052,7 @@ ProofNetIR.SequentialSchedulerBridge.new_reserve_route_fields : ∀ {certificate
     ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackBefore coreBefore →
       coreBefore.OrderedParents →
         ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
-          stackBefore.newEnqueue? reached partner = some stackAfter →
+          stackBefore.operationalNewEnqueue? reached partner = some stackAfter →
             certificate.reserveAxiomAt? coreBefore result.linkIndex = some coreAfter →
               result.orientedEndpoints? = some (reached, partner) ∧
                 stackAfter.ready = stackBefore.ready ++ [[reached, partner]] ∧
@@ -7035,6 +8075,256 @@ ProofNetIR.SequentialSchedulerBridge.NewReservationStep.reservationInvariant : �
   ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
     ∀ (step : ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate before after start),
       ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.popReadyMark_markReadyRaw_realizesSigma`
+
+Kind: theorem.
+
+Synchronizing the independent pop-before-mark update with the production
+raw-mark update preserves the exact raw-age/union-find bridge.
+
+Both primitives write the same selected vertex with the same old top raw age.
+Neither changes `sigma` or the parent carrier, so the representative equation
+is inherited unchanged.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.popReadyMark_markReadyRaw_realizesSigma : ∀ {stackBefore : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {stackResult : ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult}
+  {coreBefore coreAfter : ProofNetIR.UnificationState},
+  ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackBefore coreBefore →
+    stackBefore.popReadyMark? = Except.ok stackResult →
+      coreBefore.markReadyRaw? stackResult.vertex stackResult.rawAge = Except.ok coreAfter →
+        ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackResult.after coreAfter
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.popReadyMark_markReadyRaw_reservationInvariant`
+
+Kind: theorem.
+
+The synchronized common prefix of every non-`init` Figure-7 rule preserves
+the complete reservation-layer invariant.
+
+This theorem still does not choose among `concl`/`nop`/`wait`/`forward`/`new`/
+`unify`.  It only pops and marks the selected `u₁`, leaving tags unchanged.
+The allocated-age side condition needed by the production abstraction follows
+from the old top `sigma` membership and `RealizesSigma.horizon_eq`.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.popReadyMark_markReadyRaw_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {stackResult : ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult}
+  {coreAfter : ProofNetIR.UnificationState},
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+    before.stack.popReadyMark? = Except.ok stackResult →
+      before.core.markReadyRaw? stackResult.vertex stackResult.rawAge = Except.ok coreAfter →
+        ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate
+          { stack := stackResult.after, core := coreAfter, tags := before.tags }
+```
+
+## Executable Figure-7 new transition
+
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_startReady`
+
+Kind: theorem.
+
+A successful bounded `NEXTAXIOM` call passed its first dynamic guard: the
+starting occurrence was in bounds and unmarked in the exact input production
+state.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel?_startReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {fuel : Nat} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel tags},
+  ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state index ⋯ fuel tags start = some result →
+    state.marks[start]? = some none
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiom?_startReady`
+
+Kind: theorem.
+
+Production-wrapper form of `nextAxiomWithFuel?_startReady`.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiom?_startReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state certificate.formulas.size tags},
+  ProofNetIR.SequentialUnification.nextAxiom? certificate state index ⋯ tags start = some result →
+    state.marks[start]? = some none
+```
+
+### `ProofNetIR.SequentialFigure7.new?`
+
+Kind: definition.
+
+Execute the deterministic-head operational interpretation of Figure-7
+`new`.
+
+The input proof binds the executable pipeline to the synchronized
+reservation-layer state: in particular the stack horizon/raw ages and the
+production parent carrier cannot be forged independently.  The consumer
+lookup is fixed to the certificate's sound-and-complete public
+`consumerIndex`; callers cannot substitute a partial or forged table.  The
+source index used by `NEXTAXIOM` remains its distinct producer/axiom-incidence
+index.  Every query fails closed; no eager marking operation, waiting-list
+drain, connective firing, or union is hidden in this transition.
+
+Success is therefore the exact local operational rule over the currently
+proved reservation layer.  The 1999 printed fresh-cell assignment is retained
+separately by `newEnqueue?`; this transition instead initializes the old active
+boundary and leaves the fresh top undefined.  It is not by itself a
+reachability, progress, or no-repeated-axiom theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.new? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful deterministic
+Figure-7 `new` transition.
+
+The type of `search` mentions `coreMarked`, so the witness records the
+mathematically material ordering: `u₁` is raw-marked before `NEXTAXIOM(u₂)` is
+evaluated.  `before_invariant` prevents independent stack/core/raw-age
+forgeries, while the stronger reachable-scheduler invariant remains future
+work.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.new?_some_iff`
+
+Kind: theorem.
+
+Executable success is equivalent to the exact dependent Figure-7 `new`
+witness.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.new? certificate before invariant = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.NewStep certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.tensorValid`
+
+Kind: theorem.
+
+The exact tensor below the selected occurrence, including its stored
+orientation and opposite premise.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.tensorValid : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.TensorBelow.Valid certificate certificate.consumerIndex step.stackResult.vertex step.tensor
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.mate_unmarked`
+
+Kind: theorem.
+
+Figure 7's dynamic side condition `μ(u₂) = ⊥` holds in the state after
+marking `u₁` and before searching from `u₂`.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.mate_unmarked : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  step.coreMarked.marks[step.tensor.mate]? = some none
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.route`
+
+Kind: theorem.
+
+The successful search records the exact source-left route from the
+opposite tensor premise to the reached endpoint of the newly reserved axiom.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.route : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialUnification.NextAxiomRoute step.tensor.mate step.search step.reached step.partner
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.markedMiddle`
+
+Kind: definition.
+
+The common pop/raw-mark prefix packaged as the exact bridge state expected
+by the existing later-reservation theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.markedMiddle : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewStep certificate before after →
+      ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.reservationStep`
+
+Kind: definition.
+
+One full `new` witness contains an exact later reservation step from its
+already-marked middle state.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.reservationStep : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    (step : ProofNetIR.SequentialFigure7.NewStep certificate before after) →
+      ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate step.markedMiddle after step.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.markedMiddle_reservationInvariant`
+
+Kind: theorem.
+
+The synchronized pop/raw-mark prefix preserves the reservation-layer
+invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.markedMiddle_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate step.markedMiddle
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.reservationInvariant`
+
+Kind: theorem.
+
+Every successful deterministic Figure-7 `new` transition preserves the
+complete invariant currently established for the reservation layer.
+
+This is preservation, not progress: it assumes the executable transition
+succeeds and does not yet prove that a correct reachable state must select
+`new` or that `NEXTAXIOM` is total there.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.new?_reservationInvariant`
+
+Kind: theorem.
+
+Success of the executable composed local `new` transition preserves the
+current reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.new? certificate before invariant = some after →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
 ```
 
 ## Serialization and untrusted input

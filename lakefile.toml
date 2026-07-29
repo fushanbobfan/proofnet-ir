@@ -1,6 +1,11 @@
 name = "proofnet-ir"
 version = "0.10.0-dev"
-defaultTargets = ["ProofNetIR", "proofnet_ir_tests"]
+defaultTargets = [
+  "ProofNetIR",
+  "proofnet_ir_tests",
+  "proofnet_ir_consumer_index_tests",
+  "proofnet_ir_figure7_primitives_tests"
+]
 moreLeanArgs = ["-DwarningAsError=true"]
 
 [[lean_lib]]
@@ -9,6 +14,14 @@ name = "ProofNetIR"
 [[lean_exe]]
 name = "proofnet_ir_tests"
 root = "ProofNetIRTests"
+
+[[lean_exe]]
+name = "proofnet_ir_consumer_index_tests"
+root = "ProofNetIRConsumerIndexTests"
+
+[[lean_exe]]
+name = "proofnet_ir_figure7_primitives_tests"
+root = "ProofNetIRFigure7PrimitivesTests"
 
 [[lean_exe]]
 name = "proofnet_ir_audit_graph"

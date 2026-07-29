@@ -51,6 +51,15 @@ primary source was added for the v0.9 algorithm audit:
 |---|---:|---:|---|---|
 | Guerrini, *Correctness of Multiplicative Proof Nets is Linear* (LICS 1999) | 10 | 8,788 | complete extracted-text reading and rendered inspection of Figures 1--8; [implementation audit](guerrini-unification-audit.md) | `47c2b9fe82c7` |
 
+The official metadata and abstract were also checked for Guerrini,
+[*A linear algorithm for MLL proof net correctness and
+sequentialization*](https://www.sciencedirect.com/science/article/pii/S0304397510007127),
+*Theoretical Computer Science* 412(20), 2011,
+DOI `10.1016/j.tcs.2010.12.021`. The abstract identifies it as a full-detail
+presentation of the 1999 algorithm. Its full text was inaccessible during this
+audit and was not read, so it is not a locally read PDF, is not added to the
+counts or hash table, and is not used to resolve source ambiguities.
+
 ### Duplicate-page finding
 
 `linearlogic.pdf` contains two exact repetitions, confirmed independently by
@@ -121,6 +130,15 @@ hash of the unaltered original PDF.
 - Correctness is equivalent to a total marking with one token class, but the
   paper's linear bound additionally depends on its sequential strategy,
   ready/waiting organization, `NEXTAXIOM`, and special ordered union-find.
+- The 1999 prose defines `W` on inactive `σ` boundaries and `unify` consumes
+  the old predecessor's cell, while the printed `new` writes the freshly
+  pushed active cell. The repository retains that printed update only as an
+  audit helper. Its production interpretation initializes the old active
+  boundary and leaves the new top undefined, with a kernel-checked
+  `OperationalWaitingDomain`. This is not an author-confirmed erratum.
+- That domain invariant does not yet supply ready/waiting payload ownership,
+  executable `wait`/`unify`, reachable-history or tag-history
+  characterizations, or scheduler progress/completeness.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at
   the Figure-5 rule level but does not claim Theorem 16's linear bound.
 
@@ -199,3 +217,6 @@ The rendered formulas agree with the descriptions used in the repository.
 6. Measure proof identity only after defining a canonical net isomorphism or
    canonical serialization.
 7. Keep later persistent hypotheses, contraction, and weakening explicit.
+8. Keep literal source transcriptions separate from project operational
+   interpretations, and do not upgrade an internal source conflict into an
+   author-confirmed erratum.

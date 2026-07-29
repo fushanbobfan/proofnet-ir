@@ -10,6 +10,16 @@ The complete extracted text and all eight figures were inspected. The paper is
 supplemental primary literature; it was not one of the seven original PDFs
 placed in the parent knowledge folder.
 
+The official record and abstract for Guerrini's later journal article,
+[*A linear algorithm for MLL proof net correctness and
+sequentialization*](https://www.sciencedirect.com/science/article/pii/S0304397510007127),
+*Theoretical Computer Science* 412(20), 2011,
+DOI `10.1016/j.tcs.2010.12.021`, were checked on 2026-07-28. The abstract
+describes the article as the full-detail presentation of the algorithm first
+introduced in 1999. The full text was not accessible in this audit and has not
+been read. It is therefore not counted as a locally read PDF and cannot be used
+to settle the indexing discrepancy below.
+
 The paper treats multiplicative proof structures without constants and also
 allows cuts through a dummy-link encoding. ProofNet-IR v0.9 currently
 formalizes only the cut-free, unit-free fragment, so dummy links and cut
@@ -135,23 +145,36 @@ raw-age interval boundaries below the horizon, beginning at zero whenever the
 horizon is positive. Fixed-capacity `WaitingCell` storage separates
 out-of-bounds lookup from in-bounds undefined `⊥` and initialized empty `∅`.
 The strict empty `init` reserves raw age zero and enqueues
-`[reached, partner]` without marking either endpoint or defining `W(0)`;
-`new` appends the fresh boundary and the same endpoint order, initializes the
-fresh `W` cell to `∅`, and likewise leaves marks unchanged. The exact field
-equations and local `WellShaped` preservation are kernel checked.
+`[reached, partner]` without marking either endpoint or defining `W(0)`.
 
-This does not resolve a source-level tension by fiat. The paper's prose says
-`W` is defined at nonactive boundaries, while the Figure-7 initialization
-display leaves the age-zero cell undefined and the `new` display initializes
-the fresh cell. The model therefore records those local
-states and transitions but proves no `iff` characterization of the full `W`
-domain. `SequentialSchedulerBridge.lean` now provides the first production
-realization. `ReservationState` holds the delayed stack, production core, and
-complete tags. `initializeReservation?` and `reserveNewAxiom?` execute initial
-and later reservation-only prefixes; the typed `InitialReservationStep` and
-`NewReservationStep` records expose the exact successful search, orientations,
-enqueue, production reservation, and output. Their `some_iff` theorems are
-bidirectional executable specifications.
+There is an internal source conflict at the next `new`. The prose defines
+`W(j)` only for the nonactive boundaries
+`j ∈ {i₀, ..., i_{l-1}}` of `σ = i₀ : ... : i_l`, and says that an undefined
+cell cannot be operated on. The printed `new` line instead writes `∅` at the
+freshly pushed top. The printed `unify` line then pops the active top, reads the
+old predecessor's waiting set, and clears that predecessor. Taken literally,
+the printed `new` leaves the cell needed by the next `unify` undefined while
+initializing the new active cell that the prose excludes from the domain.
+
+The code keeps both readings visible. `newEnqueue?` is a literal transcription
+of the printed fresh-cell write and is retained only as a source-audit helper;
+production code does not compose it. `operationalNewEnqueue?` implements the
+project's operational interpretation: it initializes the old active boundary
+to `∅`, appends the fresh boundary as the new active top, and leaves that fresh
+cell `⊥`. `OperationalWaitingDomain` states that, below the allocated horizon,
+initialized waiting cells are exactly `sigma.dropLast`. Strict `init`
+establishes this invariant, and operational `new` preserves it, all with
+kernel-checked proofs. This is a project interpretation chosen to make the
+prose, `wait`, and `unify` composable; it is not an author-confirmed erratum or
+a claim that no other repair is possible.
+
+`SequentialSchedulerBridge.lean` uses only the operational transition for
+production reservations. `ReservationState` holds the delayed stack,
+production core, and complete tags. `initializeReservation?` and
+`reserveNewAxiom?` execute initial and later reservation-only prefixes; the
+typed `InitialReservationStep` and `NewReservationStep` records expose the
+exact successful search, orientations, enqueue, production reservation, and
+output. Their `some_iff` theorems are bidirectional executable specifications.
 
 The wrapper keeps submitted component orientation separate from
 `[reached, partner]` ready order and threads the entire result tag array.
@@ -159,30 +182,39 @@ Composable initial/later or later/later typed steps therefore cannot reserve
 the same submitted axiom-link index. This does not identify equal-valued
 duplicate axioms at different indices without another structural premise. It
 is scoped replay exclusion, not a low-level global property: resetting tags
-makes the wrapper replayable, and `reserveAxiomAt?` itself has no tag guard.
+can make `NEXTAXIOM` rediscover the old axiom, while the operational stack
+guard independently rejects endpoints already present in ready buckets.
+`reserveAxiomAt?` itself has no tag or queue guard and remains replayable.
 The canonical receipt reserves submitted/ready `[0,1]`/`[1,0]`, then
 `[2,3]`/`[3,2]`.
 
 `ReservationInvariant` bundles `WellShaped`, `RealizesSigma`,
 `OrderedParents`, `Abstractable`, `ComponentsFormulaConsistent`,
 component/parent carrier alignment, started-axiom/counter alignment, and tag
-alignment. Initialization establishes it and every successful later wrapper
-preserves it. It is a preservation bundle for wrapper-generated histories, not
-a reachability or tag-history characterization; `tags_size` does not rule out
-reset tags. Later `RealizesSigma` preservation uses the sigma-append
-old/fresh lemmas and the production old/fresh representative lemmas. A
+alignment, together with `OperationalWaitingDomain`. Initialization
+establishes it and every successful later wrapper preserves it. It is a
+preservation bundle for wrapper-generated histories, not a reachability or
+tag-history characterization; `tags_size` does not rule out reset tags. Later
+`RealizesSigma` preservation uses the sigma-append old/fresh lemmas and the
+production old/fresh representative lemmas. A
 deliberately arbitrary ordered parent forest `#[0, 1, 0]` with
 `sigma = [0, 1]` has age `2` at sigma boundary `1` but production
 representative `0`. It is not proved reachable by an actual `unify`/union
 transition; it only refutes automatic derivation of `RealizesSigma` from
 `WellShaped`, marks/horizon alignment, and `OrderedParents`.
 
-The checkpoint still does not define full Figure-7 `new`, the aligned semantic
-`R`/`W` ownership discipline, pop-before-mark, binary-mate handling, raw-age
-marking, later-state totality, progress, pure-worklist completeness, fallback
-removal, scheduler correctness, or the whole-scheduler linear cost model.
-Future guards must compare raw assigned ages; replacing them by
-representatives would change the algorithm.
+The next checkpoint defines the exact local Figure-7 `new` rule under a
+supplied `ReservationInvariant`. It synchronizes pop-before-mark and raw-age
+marking, fixes lookup to the certificate's sound-and-complete consumer index,
+handles both tensor premise orientations, searches from the mate in the
+post-mark core, and appends/reserves the exact returned axiom. The proof
+argument blocks independently forged stack/core horizons and raw ages. This
+still does not define ready/waiting payload ownership or a reachable scheduler
+invariant. Exact tag-history provenance, global ready-bucket ownership,
+the paper's `wait` and `unify` transitions, later-state totality, progress,
+pure-worklist completeness, fallback removal, scheduler correctness, and the
+whole-scheduler linear cost model remain open. Future guards must compare raw
+assigned ages; replacing them by representatives would change the algorithm.
 
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
@@ -380,11 +412,12 @@ The following stronger claims are intentionally absent:
   low-level reservation. The proved result covers only composable typed wrapper
   calls that thread the complete output tags, and says nothing about
   equal-valued duplicate axioms at different indices without extra structure;
-- later-state start totality, full Figure-7 `new` with pop-before-mark,
-  binary-mate/raw-age marking, semantic `R`/`W` ownership, the complete
-  scheduler transition system, scheduler correctness, and scheduler-cost
-  theorems. Initial/local search totality and initial/later reservation
-  invariant preservation are proved;
+- reachable later-state selection totality, ready/waiting payload ownership,
+  the `wait` and `unify` transitions, exact tag-history provenance, the
+  complete scheduler transition system, scheduler correctness, and
+  scheduler-cost theorems. Initial/local search totality, initial/later
+  reservation invariant preservation, `OperationalWaitingDomain`, and the
+  exact invariant-bound local `new` pipeline are proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The current repeated scan can take a quadratic number of link visits before
@@ -632,10 +665,13 @@ linearity.
    the preserved `ReservationInvariant` are already proved. Keep the immediate
    dynamic-start refinement separate from the mark-preserving delayed
    reservation wrappers.
-7. Add later-state selection totality and the full Figure-7 `new`, including
-   pop-before-mark, binary-mate handling, raw-age marking, and semantic `R`/`W`
-   ownership. Do not invent an `iff` domain theorem for `W` until the
-   prose/display tension is resolved.
+7. Extend the now-proved invariant-bound local Figure-7 `new` into a reachable
+   transition system: prove tag-history provenance/monotonicity, global
+   ready/waiting payload ownership/disjointness, later-state selection
+   totality, and the paper's `wait` and `unify` transitions. Keep the printed
+   fresh-cell helper and the project's operational inactive-boundary
+   interpretation distinct; the latter is kernel checked but is not an
+   author-confirmed erratum.
    Replace eager axiom starts and flat waiting requeues only after token-age
    interval sequencing and its specialized union-find invariants are proved;
    the flat scheduler counterexample prevents reusing those invariants.

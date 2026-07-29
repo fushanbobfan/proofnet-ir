@@ -14,6 +14,8 @@ sources are papers, books, and project research notes with mathematical or
 architectural relevance. Course homework, rendered page images, temporary
 extraction files, and format duplicates of the same Chinese guide were excluded
 from the research-source count.
+The table also records one metadata/abstract-only journal follow-up as an
+explicit unread gate; that row is not part of the local-source count.
 
 | Source | Type | Main contribution | Project use |
 |---|---|---|---|
@@ -21,6 +23,7 @@ from the research-source count.
 | Yu. I. Manin, *A Course in Mathematical Logic for Mathematicians*, 2nd ed. (2010) | textbook | Formal languages, truth/deducibility, computability, and the explicit contrast between linear strings and nonlinear graph languages | Original motivation; formal-language and graph-language framing |
 | *Proof Nets as Graphical Proof Objects* (2026) | technical exposition | Formula occurrences, switchings, Danos-Regnier correctness, contraction, sequentialization, proof identity | Direct checker specification |
 | Stefano Guerrini, *Correctness of Multiplicative Proof Nets is Linear* (LICS 1999) | supplemental primary paper | Danos contractibility as token unification; ready/waiting links; sequential unification and special union-find | Exact source for the v0.9 unification rules and the boundary of any future linearity claim |
+| Stefano Guerrini, *A linear algorithm for MLL proof net correctness and sequentialization* (TCS 2011) | official metadata/abstract only; full text unread | Abstract describes the full-detail journal presentation of the 1999 algorithm | Follow-up reading gate only; not a locally read PDF and not authority for resolving the current `W` indexing conflict |
 | *ProofNet-IR Research Plan* (2026) | project plan | Verified graph IR, MLL-Core/LeanProp/LeanStruct staging, trust model, datasets, evaluation | Initial requirements, revised into testable milestones here |
 | Marcolli, Berwick, Chomsky, *Syntax-Semantics Interface: An Algebraic Model* (arXiv:2311.06189) | preprint | Hopf/Rota-Baxter/operadic and geometric models of Merge, parsing, semantics, and attention | Adjacent evidence that tree/graph/algebra IRs can expose composition; not evidence for proof-net gains |
 | *Geometry of Neuroscience* (2026 expository notes) | expository notes | Fractals, graph Laplacians, random graphs, variational methods, GFFs, contact geometry, and algebraic language models | Broad mathematical training; graph and energy intuitions, not a proof-net foundation |
@@ -41,11 +44,19 @@ from the research-source count.
    “graphical” with “automatically easier to search.”
 6. The neuroscience and contact-topology sources provide graph-rich and
    dependency-rich mathematics, but they belong to later case-study work.
-7. Guerrini supplies the primary operational rules behind the new
+7. Guerrini 1999 supplies the primary operational rules behind the new
    unification path. The current eager repeated-scan implementation matches
-   Figure 5 but does not yet implement or inherit the linear sequential
-   strategy of Figures 7--8.
-8. Pfenning's focusing result changes the experimental baseline: comparison
+   Figure 5 but does not inherit the linear sequential strategy of Figures
+   7--8. Within Figure 7, the prose defines `W` on inactive boundaries and
+   `unify` reads the old predecessor, while the printed `new` writes the fresh
+   top. ProofNet-IR keeps the literal update only for audit and uses a separately
+   identified, kernel-checked operational interpretation that initializes the
+   old active boundary and leaves the fresh top undefined. This is not an
+   author-confirmed erratum.
+8. The official metadata and abstract for Guerrini 2011 were checked, but the
+   full text was inaccessible and unread. It is a follow-up reading gate, not
+   a locally read source or evidence resolving the 1999 display/prose conflict.
+9. Pfenning's focusing result changes the experimental baseline: comparison
    against naive rule enumeration alone would exaggerate the benefit of
    quotienting harmless inference order.
 
@@ -64,6 +75,10 @@ from the research-source count.
   net is now kernel checked via `sequentialization_of_check` and
   `generallySequentializable`. Broader logic fragments and library-readiness
   validation remain separate obligations.
+- For the separate Figure-7 scheduler, the operational `W` domain is proved,
+  but ready/waiting payload ownership, `wait`/`unify` transitions,
+  reachable-history and tag-history invariants, progress, and pure-worklist
+  completeness remain open.
 
 ## Reading record
 
@@ -81,6 +96,9 @@ The later Guerrini primary-source audit is supplemental to that frozen local
 corpus: all ten pages of extracted text and Figures 1--8 were inspected, and
 the implementation/claim boundary is recorded separately in
 [guerrini-unification-audit.md](guerrini-unification-audit.md).
+The 2011 journal follow-up appears in the map only because its official
+metadata and abstract were checked; its inaccessible full text was not read
+and is excluded from the local-PDF coverage count.
 
 The resulting controlled evaluation design is specified in
 [experiment-protocol.md](experiment-protocol.md).

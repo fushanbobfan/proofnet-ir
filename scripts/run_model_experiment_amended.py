@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Execute model-v0.2 under the publicly disclosed hard-timeout amendment.
 
-The original preregistered runner remains byte-for-byte unchanged.  This
-runner reuses its frozen corpus, prompts, raw model responses, scoring rules,
-and method implementations, but isolates each algorithmic method in a child
-process.  The predeclared 60-second wall-clock budget is therefore a real hard
-deadline rather than a post-return classification.  Per-task scoring is also
-atomically checkpointed so an interrupted audit does not repeat completed
-work.
+The byte-exact preregistered and amended scoring runners remain available at
+the source commit recorded by the publication-redaction receipt.  The current
+copies differ only where required to replace a machine-local model path with a
+stable public alias and to validate that transparent transformation.  This
+runner otherwise reuses the frozen corpus, prompts, raw model responses,
+scoring rules, and method implementations, but isolates each algorithmic
+method in a child process.  The predeclared 60-second wall-clock budget is
+therefore a real hard deadline rather than a post-return classification.
+Per-task scoring is also atomically checkpointed so an interrupted audit does
+not repeat completed work.
 """
 
 from __future__ import annotations
@@ -29,11 +32,16 @@ from run_matched_experiment import compact_json, sha256_text, verify_with_lean
 
 
 AMENDMENT_PATH = frozen.OUTPUT_DIR / "protocol-amendment-1.json"
+PUBLICATION_RECEIPT_PATH = (
+    frozen.OUTPUT_DIR / "publication-redaction-amendment-1.json"
+)
 RAW_PATH = frozen.RAW_PATH
 RESULTS_PATH = frozen.RESULTS_PATH
 SUMMARY_PATH = frozen.SUMMARY_PATH
 SCORED_PARTIAL_PATH = frozen.ROOT / "tmp" / "model-v0.2-scored-amendment-1.partial.jsonl"
-EXPECTED_RAW_SHA256 = "5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef"
+EXPECTED_ORIGINAL_RAW_SHA256 = (
+    "5cff2378c2d6d3454ec7dc51c0ae39db3f8cbaa612a5b6faef00c977b48f0bef"
+)
 ORIGINAL_PREREGISTRATION_COMMIT = "3d767aa5aec53060272007209e91b7531b45929e"
 
 
@@ -51,8 +59,12 @@ def atomic_write(path: Path, payload: str) -> None:
 def load_raw_rows(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     if not RAW_PATH.is_file():
         raise AssertionError("captured raw model responses are missing")
-    if file_sha256(RAW_PATH) != EXPECTED_RAW_SHA256:
-        raise AssertionError("captured raw model response hash mismatch")
+    receipt = json.loads(PUBLICATION_RECEIPT_PATH.read_text(encoding="utf-8"))
+    expected_published_hash = receipt["files"][
+        "experiments/model-v0.2/raw-responses.jsonl"
+    ]["publishedSha256"]
+    if file_sha256(RAW_PATH) != expected_published_hash:
+        raise AssertionError("published raw model response hash mismatch")
     rows = [
         json.loads(line)
         for line in RAW_PATH.read_text(encoding="utf-8").splitlines()
@@ -69,8 +81,10 @@ def load_raw_rows(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
             if row is None:
                 raise AssertionError(f"missing raw response: {task['id']} {mode}")
             expected = sha256_text(compact_json(frozen.request_body(task, mode)))
-            if row.get("requestSha256") != expected:
-                raise AssertionError(f"raw request hash drift: {task['id']} {mode}")
+            if row.get("canonicalRequestSha256") != expected:
+                raise AssertionError(
+                    f"canonical raw request hash drift: {task['id']} {mode}"
+                )
     return [by_key[key] for key in sorted(by_key)]
 
 
@@ -81,12 +95,17 @@ def check_amendment(require_results: bool = False) -> list[dict[str, Any]]:
     amendment = json.loads(AMENDMENT_PATH.read_text(encoding="utf-8"))
     if amendment.get("originalPreregistrationCommit") != ORIGINAL_PREREGISTRATION_COMMIT:
         raise AssertionError("original preregistration commit mismatch")
-    if amendment.get("rawResponsesSha256") != EXPECTED_RAW_SHA256:
+    if amendment.get("rawResponsesSha256") != EXPECTED_ORIGINAL_RAW_SHA256:
         raise AssertionError("amendment raw response hash mismatch")
     if amendment.get("rawResponseRows") != frozen.TASK_COUNT * 2:
         raise AssertionError("amendment raw response count mismatch")
-    if amendment.get("amendedRunnerSha256") != file_sha256(Path(__file__)):
-        raise AssertionError("amended runner hash mismatch")
+    publication = amendment.get("publicationRedaction", {})
+    if publication.get("receipt") != PUBLICATION_RECEIPT_PATH.name:
+        raise AssertionError("publication-redaction receipt mismatch")
+    if publication.get("publishedValidationRunnerSha256") != file_sha256(
+        Path(__file__)
+    ):
+        raise AssertionError("published validation runner hash mismatch")
     load_raw_rows(tasks)
     if require_results and not all(
         path.is_file() for path in (RESULTS_PATH, SUMMARY_PATH)
@@ -379,6 +398,9 @@ def formal_run() -> dict[str, Any]:
         "model": {
             "requestedId": frozen.MODEL_ID,
             "responseModels": response_models,
+            "artifactFileName": frozen.MODEL_ARTIFACT_FILE_NAME,
+            "artifactSha256": frozen.MODEL_ARTIFACT_SHA256,
+            "artifactSha256Status": "verified-local-artifact-2026-07-28",
             "systemFingerprints": fingerprints,
             "calls": len(raw_rows),
             "errors": sum(int(row.get("error") is not None) for row in raw_rows),
@@ -406,6 +428,10 @@ def formal_run() -> dict[str, Any]:
             "python": platform.python_version(),
         },
         "interpretationBoundary": "held-out unit-free cut-free MLL local-model experiment only; no ordinary Lean/mathlib or general model-advantage claim",
+        "publicationRedaction": {
+            "receipt": PUBLICATION_RECEIPT_PATH.name,
+            "version": "model-v0.2-publication-redaction-amendment-1",
+        },
     }
     atomic_write(RESULTS_PATH, results_payload)
     atomic_write(

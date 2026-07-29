@@ -11,13 +11,15 @@ kept distinct from future token representatives.  Waiting storage also
 distinguishes an out-of-bounds lookup, an in-bounds undefined cell (`⊥`), and
 an initialized empty cell (`∅`).
 
-The two executable operations below only reserve a fresh raw age and enqueue
-the reached/partner endpoints in that order.  They deliberately leave marks
-unchanged.  This module does not prove later `NEXTAXIOM` totality, define the
-full transition system, establish scheduler progress or completeness, remove
-the recursive fallback, or prove a complexity bound.  The eager
-`SequentialUnification.dynamicStartWithFuel?` operation remains a separate
-Figure-5 refinement and is not used here.
+The reservation operations below reserve a fresh raw age and enqueue the
+reached/partner endpoints in that order.  They deliberately leave marks
+unchanged.  The literal printed `new` display and the operationally coherent
+reservation are exposed separately; only the latter preserves the exact
+waiting-domain invariant used by the production bridge.  This module does not
+prove later `NEXTAXIOM` totality, define the full transition system, establish
+scheduler progress or completeness, remove the recursive fallback, or prove a
+complexity bound.  The eager `SequentialUnification.dynamicStartWithFuel?`
+operation remains a separate Figure-5 refinement and is not used here.
 -/
 
 namespace SequentialSchedulerState
@@ -335,6 +337,32 @@ structure WellShaped (state : SequentialStackState)
       ∀ (vertex : Vertex), vertex ∈ bucket → vertex < carrierSize
   nextAge_le_waiting : state.nextAge ≤ state.waiting.size
 
+/-- The waiting-table cell at `age` has been initialized, with an arbitrary
+current payload.  This intentionally distinguishes initialized empty `∅` from
+paper-level undefined `⊥`. -/
+def WaitingInitializedAt (state : SequentialStackState)
+    (age : RawTokenAge) : Prop :=
+  ∃ payload, state.waiting[age]? = some (.initialized payload)
+
+/-- Operational waiting-domain alignment for the sequential scheduler.
+
+Among allocated raw ages, initialized waiting cells are exactly the inactive
+`sigma` boundaries.  The current active boundary (the last element of
+`sigma`) is therefore still `⊥`; an age outside the allocated horizon is
+handled separately by the executable fresh-cell guard.
+
+This is the coherent invariant needed by `wait`/`unify`.  Guerrini's printed
+Figure 7 writes `W[j ↦ ∅]` at the freshly pushed age, but the surrounding prose
+defines `W` on nonactive boundaries and `unify` reads the old boundary.  The
+literal printed transition is retained below for auditability, while the
+production bridge uses the operational transition proved to preserve this
+invariant. -/
+structure OperationalWaitingDomain
+    (state : SequentialStackState) : Prop where
+  initialized_iff_inactive :
+    ∀ {age : RawTokenAge}, age < state.nextAge →
+      (state.WaitingInitializedAt age ↔ age ∈ state.sigma.dropLast)
+
 /-- Every reserved raw age addresses an actual waiting cell.  Thus an array
 lookup returning `none` is an out-of-bounds fact and cannot be confused with
 the in-bounds paper state `undefined`. -/
@@ -347,6 +375,50 @@ theorem WellShaped.waiting_lookup_exists
     Nat.lt_of_lt_of_le ageBound wellShaped.nextAge_le_waiting
   exact ⟨state.waiting[age],
     Array.getElem?_eq_some_iff.mpr ⟨waitingBound, rfl⟩⟩
+
+/-- In a well-shaped operational state, the active `sigma` boundary is the
+paper-level undefined waiting cell. -/
+theorem OperationalWaitingDomain.active_undefined
+    {state : SequentialStackState} {carrierSize : Nat}
+    (domain : state.OperationalWaitingDomain)
+    (wellShaped : state.WellShaped carrierSize)
+    {active : RawTokenAge}
+    (activeEquation : state.sigma.getLast? = some active) :
+    state.waiting[active]? = some .undefined := by
+  have activeMembership : active ∈ state.sigma := by
+    rcases List.getLast?_eq_some_iff.mp activeEquation with
+      ⟨sigmaPrefix, sigmaEquation⟩
+    rw [sigmaEquation]
+    simp
+  have activeBound : active < state.nextAge :=
+    wellShaped.sigma_partition.boundary_lt active activeMembership
+  have activeNotInactive : active ∉ state.sigma.dropLast := by
+    rcases List.getLast?_eq_some_iff.mp activeEquation with
+      ⟨sigmaPrefix, sigmaEquation⟩
+    have increasing :
+        (sigmaPrefix ++ [active]).Pairwise (· < ·) := by
+      simpa [sigmaEquation] using
+        wellShaped.sigma_partition.strictIncreasing
+    have cross := (List.pairwise_append.mp increasing).2.2
+    intro activeInPrefix
+    have activeInPrefix' : active ∈ sigmaPrefix := by
+      simpa [sigmaEquation] using activeInPrefix
+    have activeLtSelf :=
+      cross active activeInPrefix' active (by simp)
+    exact Nat.lt_irrefl active activeLtSelf
+  have notInitialized :
+      ¬ state.WaitingInitializedAt active := by
+    intro initialized
+    exact activeNotInactive
+      ((OperationalWaitingDomain.initialized_iff_inactive
+        domain activeBound).mp initialized)
+  rcases wellShaped.waiting_lookup_exists activeBound with
+    ⟨cell, cellEquation⟩
+  cases cell with
+  | undefined =>
+      exact cellEquation
+  | initialized payload =>
+      exact False.elim (notInitialized ⟨payload, cellEquation⟩)
 
 /-- The empty fixed-carrier state is well shaped. -/
 theorem empty_wellShaped (carrierSize : Nat) :
@@ -364,6 +436,261 @@ theorem empty_wellShaped (carrierSize : Nat) :
     ready_nodup := by simp [empty]
     ready_in_bounds := by simp [empty]
     nextAge_le_waiting := by simp [empty] }
+
+/-- The empty fixed-carrier state has the exact empty operational waiting
+domain. -/
+theorem empty_operationalWaitingDomain (carrierSize : Nat) :
+    (empty carrierSize).OperationalWaitingDomain := by
+  exact {
+    initialized_iff_inactive :=
+      fun {age : RawTokenAge}
+          (ageBound : age < (empty carrierSize).nextAge) => by
+      simp [empty] at ageBound }
+
+/-- Explicit failures of the Figure-7 pop-before-mark primitive.
+
+`markOutOfBounds` is deliberately distinct from `alreadyMarked`: array lookup
+`none` is a carrier error, while `some (some age)` is an in-carrier occurrence
+that already has a raw mark.  An in-carrier unmarked occurrence has lookup
+`some none` and is the only successful case. -/
+inductive PopReadyMarkError where
+  | noReadyBucket
+  | emptyTopBucket
+  | noSigmaBoundary
+  | markOutOfBounds (vertex : Vertex)
+  | alreadyMarked (vertex : Vertex) (rawAge : RawTokenAge)
+  deriving Repr, DecidableEq
+
+/-- Executable output of one Figure-7 pop-before-mark action.  The selected
+vertex is removed from the top (last) ready bucket, but the bucket itself is
+retained even when `remainingTop = []`. -/
+structure PopReadyMarkResult where
+  vertex : Vertex
+  rawAge : RawTokenAge
+  remainingTop : List Vertex
+  after : SequentialStackState
+  deriving Repr, DecidableEq
+
+/-- Pop the first selected vertex from the top (last) ready bucket and mark it
+with the old top raw-age boundary.
+
+This is only the common first line of the non-`init` rules in Guerrini
+Figure 7.  It does not inspect the link below the selected vertex, mutate
+`sigma` or `waiting`, or run `NEXTAXIOM`. -/
+def popReadyMark?
+    (state : SequentialStackState) :
+    Except PopReadyMarkError PopReadyMarkResult :=
+  match state.ready.getLast? with
+  | none => .error .noReadyBucket
+  | some [] => .error .emptyTopBucket
+  | some (vertex :: remainingTop) =>
+      match state.sigma.getLast? with
+      | none => .error .noSigmaBoundary
+      | some rawAge =>
+          match state.marks[vertex]? with
+          | none => .error (.markOutOfBounds vertex)
+          | some none =>
+              .ok {
+                vertex := vertex
+                rawAge := rawAge
+                remainingTop := remainingTop
+                after := {
+                  state with
+                  marks :=
+                    state.marks.setIfInBounds vertex (some rawAge)
+                  ready :=
+                    state.ready.dropLast ++ [remainingTop] } }
+          | some (some previousRawAge) =>
+              .error (.alreadyMarked vertex previousRawAge)
+
+/-- Proof-relevant exact specification of one successful pop-before-mark
+action. -/
+structure PopReadyMarkStep (before : SequentialStackState)
+    (result : PopReadyMarkResult) : Type where
+  top_eq :
+    before.ready.getLast? =
+      some (result.vertex :: result.remainingTop)
+  sigma_top_eq :
+    before.sigma.getLast? = some result.rawAge
+  unmarked :
+    before.marks[result.vertex]? = some none
+  after_eq :
+    result.after = {
+      before with
+      marks :=
+        before.marks.setIfInBounds result.vertex (some result.rawAge)
+      ready :=
+        before.ready.dropLast ++ [result.remainingTop] }
+
+/-- Executable success is equivalent to the exact dependent
+pop-before-mark witness. -/
+theorem popReadyMark?_ok_iff
+    {state : SequentialStackState} {result : PopReadyMarkResult} :
+    state.popReadyMark? = .ok result ↔
+      Nonempty (PopReadyMarkStep state result) := by
+  cases result with
+  | mk resultVertex resultAge resultTail resultAfter =>
+      constructor
+      · intro equation
+        unfold popReadyMark? at equation
+        cases topEquation : state.ready.getLast? with
+        | none =>
+            simp [topEquation] at equation
+        | some top =>
+            cases top with
+            | nil =>
+                simp [topEquation] at equation
+            | cons vertex remainingTop =>
+                cases sigmaEquation : state.sigma.getLast? with
+                | none =>
+                    simp [topEquation, sigmaEquation] at equation
+                | some rawAge =>
+                    cases markEquation : state.marks[vertex]? with
+                    | none =>
+                        simp [topEquation, sigmaEquation, markEquation]
+                          at equation
+                    | some mark =>
+                        cases mark with
+                        | none =>
+                            simp [topEquation, sigmaEquation, markEquation]
+                              at equation
+                            rcases equation with
+                              ⟨rfl, rfl, rfl, rfl⟩
+                            exact ⟨{
+                              top_eq := topEquation
+                              sigma_top_eq := sigmaEquation
+                              unmarked := markEquation
+                              after_eq := rfl }⟩
+                        | some previousRawAge =>
+                            simp [topEquation, sigmaEquation, markEquation]
+                              at equation
+      · rintro ⟨step⟩
+        rcases step with
+          ⟨topEquation, sigmaEquation, unmarked, afterEquation⟩
+        simp [popReadyMark?, topEquation, sigmaEquation, unmarked]
+          at afterEquation ⊢
+        exact afterEquation.symm
+
+/-- Exact changed and unchanged stack fields of a successful
+pop-before-mark action. -/
+theorem popReadyMark?_exact
+    {state : SequentialStackState} {result : PopReadyMarkResult}
+    (equation : state.popReadyMark? = .ok result) :
+    state.ready.getLast? =
+        some (result.vertex :: result.remainingTop) ∧
+      state.sigma.getLast? = some result.rawAge ∧
+      state.marks[result.vertex]? = some none ∧
+      result.after.marks =
+        state.marks.setIfInBounds result.vertex (some result.rawAge) ∧
+      result.after.nextAge = state.nextAge ∧
+      result.after.sigma = state.sigma ∧
+      result.after.ready =
+        state.ready.dropLast ++ [result.remainingTop] ∧
+      result.after.waiting = state.waiting ∧
+      result.after.marks[result.vertex]? =
+        some (some result.rawAge) := by
+  rcases popReadyMark?_ok_iff.mp equation with ⟨step⟩
+  have vertexBound : result.vertex < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp step.unmarked).1
+  refine ⟨step.top_eq, step.sigma_top_eq, step.unmarked,
+    ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [step.after_eq]
+  · rw [step.after_eq]
+  · rw [step.after_eq]
+  · rw [step.after_eq]
+  · rw [step.after_eq]
+  · rw [step.after_eq]
+    simp [vertexBound]
+
+/-- The common Figure-7 pop-before-mark action preserves scheduler shape.
+
+The explicit successful-step guards supply all facts needed here: the selected
+vertex is an in-bounds member of the old top bucket, and the assigned raw age
+is the old top `sigma` boundary.  No semantic readiness claim is inferred. -/
+theorem popReadyMark?_wellShaped
+    {state : SequentialStackState} {result : PopReadyMarkResult}
+    {carrierSize : Nat}
+    (wellShaped : state.WellShaped carrierSize)
+    (equation : state.popReadyMark? = .ok result) :
+    result.after.WellShaped carrierSize := by
+  rcases popReadyMark?_exact equation with
+    ⟨topEquation, sigmaTopEquation, unmarked, marksEquation,
+      nextAgeEquation, sigmaEquation, readyEquation, waitingEquation,
+      marked⟩
+  rcases List.getLast?_eq_some_iff.mp topEquation with
+    ⟨readyPrefix, readyDecomposition⟩
+  rcases List.getLast?_eq_some_iff.mp sigmaTopEquation with
+    ⟨sigmaPrefix, sigmaDecomposition⟩
+  have topMembership :
+      result.vertex :: result.remainingTop ∈ state.ready := by
+    rw [readyDecomposition]
+    simp
+  have topNodup :
+      (result.vertex :: result.remainingTop).Nodup :=
+    wellShaped.ready_nodup _ topMembership
+  have rawAgeMembership : result.rawAge ∈ state.sigma := by
+    rw [sigmaDecomposition]
+    simp
+  have rawAgeBound : result.rawAge < state.nextAge :=
+    wellShaped.sigma_partition.boundary_lt
+      result.rawAge rawAgeMembership
+  have vertexBound : result.vertex < state.marks.size :=
+    (Array.getElem?_eq_some_iff.mp unmarked).1
+  exact {
+    marks_size := by
+      rw [marksEquation]
+      simpa using wellShaped.marks_size
+    waiting_size := by
+      rw [waitingEquation]
+      exact wellShaped.waiting_size
+    assigned_age_bound := by
+      intro vertex rawAge assigned
+      rw [marksEquation] at assigned
+      by_cases same : result.vertex = vertex
+      · subst vertex
+        simp [vertexBound] at assigned
+        subst rawAge
+        rw [nextAgeEquation]
+        exact rawAgeBound
+      · have oldAssigned :
+            state.marks[vertex]? = some (some rawAge) := by
+          simpa [Array.getElem?_setIfInBounds, same] using assigned
+        rw [nextAgeEquation]
+        exact wellShaped.assigned_age_bound vertex rawAge oldAssigned
+    sigma_partition := by
+      rw [sigmaEquation, nextAgeEquation]
+      exact wellShaped.sigma_partition
+    ready_aligned := by
+      rw [readyEquation, sigmaEquation]
+      calc
+        (state.ready.dropLast ++ [result.remainingTop]).length =
+            state.ready.length := by
+          rw [readyDecomposition]
+          simp
+        _ = state.sigma.length := wellShaped.ready_aligned
+    ready_nodup := by
+      intro bucket membership
+      rw [readyEquation] at membership
+      simp only [List.mem_append, List.mem_singleton] at membership
+      rcases membership with oldMembership | rfl
+      · exact wellShaped.ready_nodup bucket
+          (Graph.mem_of_mem_dropLast oldMembership)
+      · exact topNodup.tail
+    ready_in_bounds := by
+      intro bucket membership vertex vertexMembership
+      rw [readyEquation] at membership
+      simp only [List.mem_append, List.mem_singleton] at membership
+      rcases membership with oldMembership | rfl
+      · exact wellShaped.ready_in_bounds bucket
+          (Graph.mem_of_mem_dropLast oldMembership)
+          vertex vertexMembership
+      · exact wellShaped.ready_in_bounds
+          (result.vertex :: result.remainingTop)
+          topMembership vertex
+          (List.mem_cons_of_mem result.vertex vertexMembership)
+    nextAge_le_waiting := by
+      rw [nextAgeEquation, waitingEquation]
+      exact wellShaped.nextAge_le_waiting }
 
 /-- Executable predicate asserting that every allocated occurrence is
 unmarked. -/
@@ -465,6 +792,37 @@ theorem initEnqueue?_exact
   exact ⟨rfl, rfl, rfl, rfl, rfl,
     allWaiting.lookup waitingPositive⟩
 
+/-- Strict delayed initialization establishes the exact operational waiting
+domain: the sole active boundary `0` remains `⊥`, so no allocated waiting cell
+is initialized. -/
+theorem initEnqueue?_operationalWaitingDomain
+    {state after : SequentialStackState} {reached partner : Vertex}
+    (equation : initEnqueue? state reached partner = some after) :
+    after.OperationalWaitingDomain := by
+  rcases initEnqueue?_some_iff.mp equation with ⟨ready, rfl⟩
+  rcases ready with
+    ⟨nextAgeZero, sigmaEmpty, readyEmpty, allMarks, allWaiting,
+      waitingPositive, reachedBound, partnerBound, distinct⟩
+  exact {
+    initialized_iff_inactive :=
+      fun {age : RawTokenAge}
+          (ageBound :
+            age < (initAfter state reached partner).nextAge) => by
+      constructor
+      · rintro ⟨payload, initialized⟩
+        have ageWaitingBound : age < state.waiting.size := by
+          have ageZero : age = 0 := by
+            simpa [initAfter] using ageBound
+          subst age
+          exact waitingPositive
+        have undefined := allWaiting.lookup ageWaitingBound
+        rw [show
+            (initAfter state reached partner).waiting = state.waiting by rfl,
+          undefined] at initialized
+        cases Option.some.inj initialized
+      · intro inactive
+        simp [initAfter] at inactive }
+
 /-- Delayed initialization leaves both enqueued endpoints unmarked. -/
 theorem initEnqueue?_endpoint_unmarked
     {state after : SequentialStackState} {reached partner : Vertex}
@@ -528,9 +886,12 @@ theorem initEnqueue?_wellShaped
       change 1 ≤ state.waiting.size
       exact waitingPositive }
 
-/-- Local executable guard for reserving a later raw token age.  It does not
-replace the global `WellShaped` precondition used by the preservation theorem,
-nor does it assert that the endpoints are absent from older ready buckets. -/
+/-- Literal guard for the `new` line printed in Guerrini's Figure 7.
+
+This display-level transition initializes the freshly pushed age.  It is
+retained to make the source discrepancy auditable, but it does not preserve the
+operational waiting-domain semantics required by the surrounding prose and
+`unify`; production scheduler code uses `operationalNewEnqueue?` below. -/
 def NewReady (state : SequentialStackState)
     (reached partner : Vertex) : Prop :=
   0 < state.nextAge ∧
@@ -555,7 +916,12 @@ private def newAfter (state : SequentialStackState)
   waiting :=
     state.waiting.setIfInBounds state.nextAge (.initialized [])
 
-/-- Delayed `new` reservation at the current raw-age horizon. -/
+/-- Literal transcription of the printed Figure-7 `new` waiting update.
+
+This is not the production scheduler transition: it writes the fresh top
+waiting cell, whereas the prose-defined waiting domain requires initializing
+the old active boundary.  Use `operationalNewEnqueue?` for composable scheduler
+work. -/
 def newEnqueue? (state : SequentialStackState)
     (reached partner : Vertex) : Option SequentialStackState :=
   if NewReady state reached partner then
@@ -563,17 +929,48 @@ def newEnqueue? (state : SequentialStackState)
   else
     none
 
-/-- Successful delayed `new` reservation is exactly its local precondition
-together with the state obtained by reserving the current raw-age horizon. -/
-theorem newEnqueue?_some_iff
+/-- Public proof-relevant specification of the literal printed `new` display.
+The output equation avoids exposing the private executable helper. -/
+structure PrintedNewStep
+    (before after : SequentialStackState)
+    (reached partner : Vertex) : Type where
+  ready : NewReady before reached partner
+  after_eq :
+    after = {
+      marks := before.marks
+      nextAge := before.nextAge + 1
+      sigma := before.sigma ++ [before.nextAge]
+      ready := before.ready ++ [[reached, partner]]
+      waiting :=
+        before.waiting.setIfInBounds before.nextAge (.initialized []) }
+
+private theorem newEnqueue?_some_iff_internal
     {state after : SequentialStackState} {reached partner : Vertex} :
     newEnqueue? state reached partner = some after ↔
       NewReady state reached partner ∧
         after = newAfter state reached partner := by
   simp [newEnqueue?, eq_comm]
 
-/-- Exact delayed-`new` fields, including the transition of the fresh waiting
-cell from `⊥` to initialized `∅`. -/
+/-- The literal printed `new` display succeeds exactly under its local guard.
+This theorem specifies the source-audit helper, not the production transition. -/
+theorem newEnqueue?_some_iff
+    {state after : SequentialStackState} {reached partner : Vertex} :
+    newEnqueue? state reached partner = some after ↔
+      Nonempty (PrintedNewStep state after reached partner) := by
+  constructor
+  · intro equation
+    rcases newEnqueue?_some_iff_internal.mp equation with ⟨ready, rfl⟩
+    exact ⟨{
+      ready := ready
+      after_eq := rfl }⟩
+  · rintro ⟨step⟩
+    have helperEquation :
+        after = newAfter state reached partner := by
+      simpa [newAfter] using step.after_eq
+    exact newEnqueue?_some_iff_internal.mpr ⟨step.ready, helperEquation⟩
+
+/-- Exact fields of the literal printed `new` display, including its fresh-cell
+write.  That write is retained for source comparison and is not operational. -/
 theorem newEnqueue?_exact
     {state after : SequentialStackState} {reached partner : Vertex}
     (equation : newEnqueue? state reached partner = some after) :
@@ -584,7 +981,7 @@ theorem newEnqueue?_exact
     after.waiting =
       state.waiting.setIfInBounds state.nextAge (.initialized []) ∧
     after.waiting[state.nextAge]? = some (.initialized []) := by
-  rcases newEnqueue?_some_iff.mp equation with ⟨ready, rfl⟩
+  rcases newEnqueue?_some_iff_internal.mp equation with ⟨ready, rfl⟩
   rcases ready with
     ⟨positive, reachedBound, partnerBound, distinct, reachedUnmarked,
       partnerUnmarked, waitingFresh⟩
@@ -594,7 +991,7 @@ theorem newEnqueue?_exact
   refine ⟨rfl, rfl, rfl, rfl, rfl, ?_⟩
   simp [newAfter, freshBound]
 
-/-- A delayed `new` reservation changes no non-fresh waiting cell. -/
+/-- The literal printed `new` display changes no non-fresh waiting cell. -/
 theorem newEnqueue?_waiting_of_ne
     {state after : SequentialStackState} {reached partner : Vertex}
     {index : RawTokenAge}
@@ -604,26 +1001,27 @@ theorem newEnqueue?_waiting_of_ne
   rw [(newEnqueue?_exact equation).2.2.2.2.1]
   exact Array.getElem?_setIfInBounds_ne different.symm
 
-/-- Delayed `new` leaves both newly enqueued endpoints unmarked. -/
+/-- The literal printed `new` display leaves both endpoints unmarked. -/
 theorem newEnqueue?_endpoint_unmarked
     {state after : SequentialStackState} {reached partner : Vertex}
     (equation : newEnqueue? state reached partner = some after) :
     after.marks[reached]? = some none ∧
       after.marks[partner]? = some none := by
-  rcases newEnqueue?_some_iff.mp equation with ⟨ready, rfl⟩
+  rcases newEnqueue?_some_iff_internal.mp equation with ⟨ready, rfl⟩
   rcases ready with
     ⟨positive, reachedBound, partnerBound, distinct, reachedUnmarked,
       partnerUnmarked, waitingFresh⟩
   exact ⟨reachedUnmarked, partnerUnmarked⟩
 
-/-- Reserving a later raw age preserves all state-shape invariants. -/
+/-- The literal printed transition preserves the deliberately weak shape
+invariant.  It does not preserve `OperationalWaitingDomain`. -/
 theorem newEnqueue?_wellShaped
     {state after : SequentialStackState} {carrierSize : Nat}
     {reached partner : Vertex}
     (wellShaped : state.WellShaped carrierSize)
     (equation : newEnqueue? state reached partner = some after) :
     after.WellShaped carrierSize := by
-  rcases newEnqueue?_some_iff.mp equation with ⟨ready, rfl⟩
+  rcases newEnqueue?_some_iff_internal.mp equation with ⟨ready, rfl⟩
   rcases ready with
     ⟨positive, reachedBound, partnerBound, distinct, reachedUnmarked,
       partnerUnmarked, waitingFresh⟩
@@ -670,6 +1068,288 @@ theorem newEnqueue?_wellShaped
         (state.waiting.setIfInBounds state.nextAge
           (.initialized [])).size
       simpa using (Nat.succ_le_of_lt freshBound) }
+
+/-- Executable guard for the operationally coherent later reservation.
+
+`active` is the old top `sigma` boundary.  It must still have an undefined
+waiting cell, while the fresh raw age at `nextAge` must also be unused.  The
+new endpoints are required to be globally absent from the current ready stack,
+so this local transition cannot introduce a cross-bucket duplicate. -/
+def OperationalNewReadyAt (state : SequentialStackState)
+    (active : RawTokenAge) (reached partner : Vertex) : Prop :=
+  0 < state.nextAge ∧
+  state.sigma.getLast? = some active ∧
+  active < state.nextAge ∧
+  reached < state.marks.size ∧
+  partner < state.marks.size ∧
+  reached ≠ partner ∧
+  reached ∉ state.ready.flatten ∧
+  partner ∉ state.ready.flatten ∧
+  state.marks[reached]? = some none ∧
+  state.marks[partner]? = some none ∧
+  state.waiting[active]? = some .undefined ∧
+  state.waiting[state.nextAge]? = some .undefined
+
+instance (state : SequentialStackState) (active : RawTokenAge)
+    (reached partner : Vertex) :
+    Decidable (OperationalNewReadyAt state active reached partner) := by
+  unfold OperationalNewReadyAt
+  infer_instance
+
+private def operationalNewAfter (state : SequentialStackState)
+    (active : RawTokenAge) (reached partner : Vertex) :
+    SequentialStackState where
+  marks := state.marks
+  nextAge := state.nextAge + 1
+  sigma := state.sigma ++ [state.nextAge]
+  ready := state.ready ++ [[reached, partner]]
+  waiting :=
+    state.waiting.setIfInBounds active (.initialized [])
+
+/-- Operational later reservation.
+
+The freshly allocated raw age becomes the new active top and remains `⊥`.
+Instead, the old active boundary becomes inactive and is initialized to `∅`.
+This is the chosen one-cell interpretation compatible with the prose
+definition of `W`, the `wait` lookup, and the `unify` rule that later drains
+that boundary.  No author-confirmed erratum or uniqueness theorem is claimed. -/
+def operationalNewEnqueue? (state : SequentialStackState)
+    (reached partner : Vertex) : Option SequentialStackState :=
+  match state.sigma.getLast? with
+  | none => none
+  | some active =>
+      if OperationalNewReadyAt state active reached partner then
+        some (operationalNewAfter state active reached partner)
+      else
+        none
+
+/-- Public proof-relevant specification of one successful operational `new`.
+
+The output equation is stated as an explicit record rather than exposing the
+private executable helper in the public theorem signature. -/
+structure OperationalNewStep
+    (before after : SequentialStackState)
+    (reached partner : Vertex) : Type where
+  active : RawTokenAge
+  ready : OperationalNewReadyAt before active reached partner
+  after_eq :
+    after = {
+      marks := before.marks
+      nextAge := before.nextAge + 1
+      sigma := before.sigma ++ [before.nextAge]
+      ready := before.ready ++ [[reached, partner]]
+      waiting :=
+        before.waiting.setIfInBounds active (.initialized []) }
+
+private theorem operationalNewEnqueue?_some_iff_internal
+    {state after : SequentialStackState} {reached partner : Vertex} :
+    operationalNewEnqueue? state reached partner = some after ↔
+      ∃ active,
+        state.sigma.getLast? = some active ∧
+        OperationalNewReadyAt state active reached partner ∧
+        after = operationalNewAfter state active reached partner := by
+  cases activeEquation : state.sigma.getLast? with
+  | none =>
+      simp [operationalNewEnqueue?, activeEquation]
+  | some active =>
+      simp [operationalNewEnqueue?, activeEquation, eq_comm]
+
+/-- Executable success is equivalent to the public exact operational step. -/
+theorem operationalNewEnqueue?_some_iff
+    {state after : SequentialStackState} {reached partner : Vertex} :
+    operationalNewEnqueue? state reached partner = some after ↔
+      Nonempty (OperationalNewStep state after reached partner) := by
+  constructor
+  · intro equation
+    rcases operationalNewEnqueue?_some_iff_internal.mp equation with
+      ⟨active, activeEquation, ready, rfl⟩
+    exact ⟨{
+      active := active
+      ready := ready
+      after_eq := rfl }⟩
+  · rintro ⟨step⟩
+    have helperEquation :
+        after = operationalNewAfter state step.active reached partner := by
+      simpa [operationalNewAfter] using step.after_eq
+    exact operationalNewEnqueue?_some_iff_internal.mpr
+      ⟨step.active, step.ready.2.1, step.ready, helperEquation⟩
+
+/-- Exact fields of the operational later reservation.  The witness exposes
+both the initialized old boundary and the still-undefined fresh top. -/
+theorem operationalNewEnqueue?_exact
+    {state after : SequentialStackState} {reached partner : Vertex}
+    (equation :
+      operationalNewEnqueue? state reached partner = some after) :
+    ∃ active,
+      state.sigma.getLast? = some active ∧
+      active < state.nextAge ∧
+      after.marks = state.marks ∧
+      after.nextAge = state.nextAge + 1 ∧
+      after.sigma = state.sigma ++ [state.nextAge] ∧
+      after.ready = state.ready ++ [[reached, partner]] ∧
+      after.waiting =
+        state.waiting.setIfInBounds active (.initialized []) ∧
+      after.waiting[active]? = some (.initialized []) ∧
+      after.waiting[state.nextAge]? = some .undefined := by
+  rcases operationalNewEnqueue?_some_iff_internal.mp equation with
+    ⟨active, activeEquation, ready, rfl⟩
+  rcases ready with
+    ⟨positive, activeEquation', activeLt, reachedBound, partnerBound,
+      distinct, reachedAbsent, partnerAbsent, reachedUnmarked,
+      partnerUnmarked, activeUndefined, freshUndefined⟩
+  have activeWaitingBound : active < state.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp activeUndefined).1
+  have activeNeFresh : active ≠ state.nextAge :=
+    Nat.ne_of_lt activeLt
+  refine ⟨active, activeEquation, activeLt, rfl, rfl, rfl, rfl, rfl,
+    ?_, ?_⟩
+  · simp [operationalNewAfter, activeWaitingBound]
+  · rw [show
+        (operationalNewAfter state active reached partner).waiting =
+          state.waiting.setIfInBounds active (.initialized []) by rfl]
+    rw [Array.getElem?_setIfInBounds_ne activeNeFresh]
+    exact freshUndefined
+
+/-- Operational `new` leaves both newly enqueued endpoints unmarked. -/
+theorem operationalNewEnqueue?_endpoint_unmarked
+    {state after : SequentialStackState} {reached partner : Vertex}
+    (equation :
+      operationalNewEnqueue? state reached partner = some after) :
+    after.marks[reached]? = some none ∧
+      after.marks[partner]? = some none := by
+  rcases operationalNewEnqueue?_some_iff_internal.mp equation with
+    ⟨active, activeEquation, ready, rfl⟩
+  exact ⟨ready.2.2.2.2.2.2.2.2.1, ready.2.2.2.2.2.2.2.2.2.1⟩
+
+/-- Operational `new` preserves the deliberately structural `WellShaped`
+invariant. -/
+theorem operationalNewEnqueue?_wellShaped
+    {state after : SequentialStackState} {carrierSize : Nat}
+    {reached partner : Vertex}
+    (wellShaped : state.WellShaped carrierSize)
+    (equation :
+      operationalNewEnqueue? state reached partner = some after) :
+    after.WellShaped carrierSize := by
+  rcases operationalNewEnqueue?_some_iff_internal.mp equation with
+    ⟨active, activeEquation, ready, rfl⟩
+  rcases ready with
+    ⟨positive, activeEquation', activeLt, reachedBound, partnerBound,
+      distinct, reachedAbsent, partnerAbsent, reachedUnmarked,
+      partnerUnmarked, activeUndefined, freshUndefined⟩
+  have reachedCarrier : reached < carrierSize := by
+    rw [← wellShaped.marks_size]
+    exact reachedBound
+  have partnerCarrier : partner < carrierSize := by
+    rw [← wellShaped.marks_size]
+    exact partnerBound
+  have activeWaitingBound : active < state.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp activeUndefined).1
+  have freshWaitingBound : state.nextAge < state.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp freshUndefined).1
+  exact {
+    marks_size := wellShaped.marks_size
+    waiting_size := by
+      simpa [operationalNewAfter] using wellShaped.waiting_size
+    assigned_age_bound := by
+      intro vertex age assigned
+      have oldBound :=
+        wellShaped.assigned_age_bound vertex age assigned
+      exact Nat.lt_trans oldBound (Nat.lt_succ_self _)
+    sigma_partition :=
+      SigmaAgePartition.appendFresh wellShaped.sigma_partition positive
+    ready_aligned := by
+      simp [operationalNewAfter, wellShaped.ready_aligned]
+    ready_nodup := by
+      intro bucket membership
+      change bucket ∈ state.ready ++ [[reached, partner]] at membership
+      simp only [List.mem_append, List.mem_singleton] at membership
+      rcases membership with oldMembership | rfl
+      · exact wellShaped.ready_nodup bucket oldMembership
+      · simp [distinct]
+    ready_in_bounds := by
+      intro bucket membership vertex vertexMembership
+      change bucket ∈ state.ready ++ [[reached, partner]] at membership
+      simp only [List.mem_append, List.mem_singleton] at membership
+      rcases membership with oldMembership | rfl
+      · exact wellShaped.ready_in_bounds bucket oldMembership
+          vertex vertexMembership
+      · simp only [List.mem_cons, List.not_mem_nil, or_false] at vertexMembership
+        rcases vertexMembership with rfl | rfl
+        · exact reachedCarrier
+        · exact partnerCarrier
+    nextAge_le_waiting := by
+      change state.nextAge + 1 ≤
+        (state.waiting.setIfInBounds active (.initialized [])).size
+      simpa using (Nat.succ_le_of_lt freshWaitingBound) }
+
+/-- Operational `new` preserves the exact initialized waiting domain.
+
+Before the push, initialized cells correspond to `sigma.dropLast`; setting the
+old last boundary initializes exactly the one additional member needed for the
+new inactive set `sigma`.  The fresh new top is checked to remain undefined. -/
+theorem operationalNewEnqueue?_operationalWaitingDomain
+    {state after : SequentialStackState} {carrierSize : Nat}
+    {reached partner : Vertex}
+    (domain : state.OperationalWaitingDomain)
+    (wellShaped : state.WellShaped carrierSize)
+    (equation :
+      operationalNewEnqueue? state reached partner = some after) :
+    after.OperationalWaitingDomain := by
+  rcases operationalNewEnqueue?_some_iff_internal.mp equation with
+    ⟨active, activeEquation, ready, rfl⟩
+  rcases List.getLast?_eq_some_iff.mp activeEquation with
+    ⟨sigmaPrefix, sigmaEquation⟩
+  rcases ready with
+    ⟨positive, activeEquation', activeLt, reachedBound, partnerBound,
+      distinct, reachedAbsent, partnerAbsent, reachedUnmarked,
+      partnerUnmarked, activeUndefined, freshUndefined⟩
+  have activeWaitingBound : active < state.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp activeUndefined).1
+  have activeNeFresh : active ≠ state.nextAge :=
+    Nat.ne_of_lt activeLt
+  have freshNotMember : state.nextAge ∉ state.sigma := by
+    intro membership
+    have boundaryLt :=
+      wellShaped.sigma_partition.boundary_lt
+        state.nextAge membership
+    exact (Nat.lt_irrefl state.nextAge boundaryLt)
+  exact {
+    initialized_iff_inactive :=
+      fun {age : RawTokenAge}
+          (ageBound :
+            age <
+              (operationalNewAfter
+                state active reached partner).nextAge) => by
+      have ageBound' : age < state.nextAge + 1 := by
+        simpa [operationalNewAfter] using ageBound
+      rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ ageBound') with
+        oldAge | freshAge
+      · by_cases ageActive : age = active
+        · subst age
+          simp [WaitingInitializedAt, operationalNewAfter,
+            activeWaitingBound, sigmaEquation]
+        · have oldDomain :=
+            OperationalWaitingDomain.initialized_iff_inactive
+              domain oldAge
+          change
+            (∃ payload,
+              (state.waiting.setIfInBounds active (.initialized []))[age]? =
+                some (.initialized payload)) ↔
+              age ∈ (state.sigma ++ [state.nextAge]).dropLast
+          rw [Array.getElem?_setIfInBounds_ne (Ne.symm ageActive)]
+          simpa [WaitingInitializedAt, sigmaEquation, ageActive] using
+            oldDomain
+      · subst age
+        constructor
+        · rintro ⟨payload, initialized⟩
+          rw [show
+              (operationalNewAfter state active reached partner).waiting =
+                state.waiting.setIfInBounds active (.initialized []) by rfl,
+            Array.getElem?_setIfInBounds_ne activeNeFresh] at initialized
+          rw [freshUndefined] at initialized
+          cases Option.some.inj initialized
+        · intro membership
+          simp [operationalNewAfter, freshNotMember] at membership }
 
 end SequentialStackState
 

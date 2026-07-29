@@ -1,4 +1,5 @@
 import ProofNetIR
+import ProofNetIR.SequentialFigure7New
 
 example {certificate : ProofNetIR.Certificate}
     {state next : ProofNetIR.UnificationMarking certificate}
@@ -1196,6 +1197,7 @@ namespace SequentialSchedulerStateTests
 open SequentialSchedulerState
 open SequentialSchedulerState.SequentialStackState
 open SequentialSchedulerBridge
+open SequentialFigure7
 
 /-- A representative raw-age interval stack: `[0,2,5]` partitions ages below
 `7` into intervals beginning at exactly those boundaries. -/
@@ -1455,9 +1457,10 @@ example :
       none := by
   native_decide
 
-/-- Expected delayed `new` output.  Raw age one is reserved, its endpoint
-bucket is appended, and exactly `W(1)` becomes initialized `∅`. -/
-def delayedAfterNew : SequentialStackState where
+/-- Literal output of the `new` line as printed in Figure 7.  This fixture is
+kept as an auditable negative control: it initializes fresh `W(1)` and therefore
+does not satisfy the operational waiting-domain invariant. -/
+def delayedAfterLiteralNew : SequentialStackState where
   marks := Array.replicate canonical.formulas.size none
   nextAge := 2
   sigma := [0, 1]
@@ -1467,10 +1470,11 @@ def delayedAfterNew : SequentialStackState where
       1 (.initialized [])
 
 example :
-    newEnqueue? delayedAfterInit 3 2 = some delayedAfterNew := by
+    newEnqueue? delayedAfterInit 3 2 = some delayedAfterLiteralNew := by
   native_decide
 
-/-- A later reservation rejects an endpoint that has already been marked. -/
+/-- The literal transcription still fails closed on an already marked
+endpoint.  Production scheduling does not call this display-level helper. -/
 example :
     newEnqueue?
       { delayedAfterInit with
@@ -1478,7 +1482,7 @@ example :
       3 2 = none := by
   native_decide
 
-/-- A later reservation also rejects a fresh raw-age cell that was already
+/-- The literal transcription also rejects a fresh cell that was already
 initialized. -/
 example :
     newEnqueue?
@@ -1488,26 +1492,147 @@ example :
       3 2 = none := by
   native_decide
 
-theorem delayedAfterNew_wellShaped :
-    delayedAfterNew.WellShaped canonical.formulas.size := by
+theorem delayedAfterLiteralNew_wellShaped :
+    delayedAfterLiteralNew.WellShaped canonical.formulas.size := by
   exact newEnqueue?_wellShaped delayedAfterInit_wellShaped
     (reached := 3) (partner := 2)
     (by native_decide)
 
 example :
-    delayedAfterNew.marks = delayedAfterInit.marks ∧
-    delayedAfterNew.sigma = delayedAfterInit.sigma ++ [1] ∧
-    delayedAfterNew.ready = delayedAfterInit.ready ++ [[3, 2]] ∧
-    delayedAfterNew.waiting[0]? = some .undefined ∧
-    delayedAfterNew.waiting[1]? = some (.initialized []) := by
+    delayedAfterLiteralNew.marks = delayedAfterInit.marks ∧
+    delayedAfterLiteralNew.sigma = delayedAfterInit.sigma ++ [1] ∧
+    delayedAfterLiteralNew.ready = delayedAfterInit.ready ++ [[3, 2]] ∧
+    delayedAfterLiteralNew.waiting[0]? = some .undefined ∧
+    delayedAfterLiteralNew.waiting[1]? = some (.initialized []) := by
   native_decide
 
 example :
-    delayedAfterNew.marks[3]? = some none ∧
-      delayedAfterNew.marks[2]? = some none := by
+    delayedAfterLiteralNew.marks[3]? = some none ∧
+      delayedAfterLiteralNew.marks[2]? = some none := by
   exact newEnqueue?_endpoint_unmarked
-    (state := delayedAfterInit) (after := delayedAfterNew)
+    (state := delayedAfterInit) (after := delayedAfterLiteralNew)
     (reached := 3) (partner := 2) (by native_decide)
+
+/-- Operational `new` initializes the old active boundary `W(0)` and leaves the
+fresh top `W(1)` undefined. -/
+def delayedAfterOperationalNew : SequentialStackState where
+  marks := Array.replicate canonical.formulas.size none
+  nextAge := 2
+  sigma := [0, 1]
+  ready := [[1, 0], [3, 2]]
+  waiting :=
+    (Array.replicate canonical.formulas.size .undefined).setIfInBounds
+      0 (.initialized [])
+
+example :
+    operationalNewEnqueue? delayedAfterInit 3 2 =
+      some delayedAfterOperationalNew := by
+  native_decide
+
+theorem delayedAfterInit_operationalWaitingDomain :
+    delayedAfterInit.OperationalWaitingDomain := by
+  exact initEnqueue?_operationalWaitingDomain
+    (state := delayedInitial) (after := delayedAfterInit)
+    (reached := 1) (partner := 0) (by native_decide)
+
+theorem delayedAfterOperationalNew_wellShaped :
+    delayedAfterOperationalNew.WellShaped canonical.formulas.size := by
+  exact operationalNewEnqueue?_wellShaped delayedAfterInit_wellShaped
+    (reached := 3) (partner := 2) (by native_decide)
+
+theorem delayedAfterOperationalNew_operationalWaitingDomain :
+    delayedAfterOperationalNew.OperationalWaitingDomain := by
+  exact operationalNewEnqueue?_operationalWaitingDomain
+    delayedAfterInit_operationalWaitingDomain
+    delayedAfterInit_wellShaped
+    (reached := 3) (partner := 2) (by native_decide)
+
+/-- The source-literal and operational outputs are deliberately distinct. -/
+example :
+    delayedAfterLiteralNew ≠ delayedAfterOperationalNew := by
+  native_decide
+
+/-- The source-literal fresh-cell write violates the production domain:
+inactive boundary zero remains undefined. -/
+example :
+    ¬ delayedAfterLiteralNew.OperationalWaitingDomain := by
+  intro domain
+  have initialized :
+      delayedAfterLiteralNew.WaitingInitializedAt 0 :=
+    (domain.initialized_iff_inactive (age := 0) (by native_decide)).mpr
+      (by native_decide)
+  rcases initialized with ⟨payload, equation⟩
+  have lookup :
+      delayedAfterLiteralNew.waiting[0]? = some .undefined := by
+    native_decide
+  rw [lookup] at equation
+  cases equation
+
+example :
+    delayedAfterOperationalNew.marks = delayedAfterInit.marks ∧
+    delayedAfterOperationalNew.sigma = delayedAfterInit.sigma ++ [1] ∧
+    delayedAfterOperationalNew.ready = delayedAfterInit.ready ++ [[3, 2]] ∧
+    delayedAfterOperationalNew.waiting[0]? = some (.initialized []) ∧
+    delayedAfterOperationalNew.waiting[1]? = some .undefined := by
+  native_decide
+
+example :
+    delayedAfterOperationalNew.marks[3]? = some none ∧
+      delayedAfterOperationalNew.marks[2]? = some none := by
+  exact operationalNewEnqueue?_endpoint_unmarked
+    (state := delayedAfterInit) (after := delayedAfterOperationalNew)
+    (reached := 3) (partner := 2) (by native_decide)
+
+/-- The domain theorem, rather than a fixture computation, recovers the
+undefined fresh top from the new active `sigma` boundary. -/
+example :
+    delayedAfterOperationalNew.waiting[1]? = some .undefined := by
+  exact
+    delayedAfterOperationalNew_operationalWaitingDomain.active_undefined
+      delayedAfterOperationalNew_wellShaped (by native_decide)
+
+/-- Operational `new` cannot reuse an old active boundary whose waiting cell
+has already been initialized. -/
+example :
+    operationalNewEnqueue?
+      { delayedAfterInit with
+        waiting :=
+          delayedAfterInit.waiting.setIfInBounds 0 (.initialized []) }
+      3 2 = none := by
+  native_decide
+
+/-- Operational `new` also rejects a fresh top that is not unused. -/
+example :
+    operationalNewEnqueue?
+      { delayedAfterInit with
+        waiting :=
+          delayedAfterInit.waiting.setIfInBounds 1 (.initialized []) }
+      3 2 = none := by
+  native_decide
+
+/-- A second primitive-only operational reservation initializes the previous
+top and again leaves the newly allocated top undefined. -/
+def delayedAfterSecondOperationalNew : SequentialStackState where
+  marks := Array.replicate canonical.formulas.size none
+  nextAge := 3
+  sigma := [0, 1, 2]
+  ready := [[1, 0], [3, 2], [5, 4]]
+  waiting :=
+    ((Array.replicate canonical.formulas.size .undefined).setIfInBounds
+      0 (.initialized [])).setIfInBounds 1 (.initialized [])
+
+example :
+    operationalNewEnqueue? delayedAfterOperationalNew 5 4 =
+      some delayedAfterSecondOperationalNew := by
+  native_decide
+
+example :
+    delayedAfterSecondOperationalNew.waiting[0]? =
+        some (.initialized []) ∧
+      delayedAfterSecondOperationalNew.waiting[1]? =
+        some (.initialized []) ∧
+      delayedAfterSecondOperationalNew.waiting[2]? = some .undefined := by
+  native_decide
 
 /-- Executable first reservation, including exact route recovery, submitted
 component creation, and complete tag threading. -/
@@ -1535,14 +1660,14 @@ example :
         | _ => false) = true := by
   native_decide
 
-/-- The later production call reserves the other submitted axiom, while the
-delayed state appends the search-oriented `[3,2]` bucket and initializes only
-the fresh waiting cell. -/
+/-- The later production call reserves the other submitted axiom, appends the
+search-oriented `[3,2]` bucket, initializes the old active waiting boundary,
+and leaves the fresh top undefined. -/
 example :
     (match canonicalTwoReservations with
     | none => false
     | some after =>
-        after.stack == delayedAfterNew &&
+        after.stack == delayedAfterOperationalNew &&
         after.core.parents == #[0, 1] &&
         after.core.startedAxioms == 2 &&
         after.core.firedConnectives == 0 &&
@@ -1566,9 +1691,22 @@ example :
         (reserveNewAxiom? canonical first 5).isNone) = true := by
   native_decide
 
-/-- Resetting tags is outside the wrapper invariant and demonstrates why the
-threaded-tag precondition is semantically material: the low-level
-reservation-only primitives can then reserve the old axiom again. -/
+/-- Resetting tags is outside the wrapper invariant.  The low-level search can
+then rediscover an already reserved axiom, demonstrating why tag provenance is
+semantically material independently of the stack transition. -/
+example :
+    (match canonicalInitialReservation with
+    | none => false
+    | some first =>
+        (SequentialUnification.nextAxiom? canonical first.core
+          (SequentialUnification.sourceIndex canonical)
+          (SequentialUnification.sourceIndex_sound canonical)
+          (Array.replicate canonical.formulas.size false) 5).isSome) = true := by
+  native_decide
+
+/-- Even under that deliberately invalid tag reset, the operational wrapper
+fails closed because it also forbids re-enqueueing endpoints already present in
+the ready stack. -/
 example :
     (match canonicalInitialReservation with
     | none => false
@@ -1576,10 +1714,10 @@ example :
         (reserveNewAxiom? canonical
           { first with
             tags := Array.replicate canonical.formulas.size false }
-          5).isSome) = true := by
+          5).isNone) = true := by
   native_decide
 
-example {after : ReservationState}
+theorem canonicalInitialReservation_invariant {after : ReservationState}
     (equation :
       canonicalInitialReservation = some after) :
     ReservationInvariant canonical after := by
@@ -1601,6 +1739,87 @@ example {before after : ReservationState}
     ⟨laterStep⟩
   exact laterStep.reservationInvariant
     initialStep.reservationInvariant
+
+/-- Starting from the tensor conclusion discovers `[0,1]`; the deterministic
+Figure-7 `new` step then marks `0`, follows the opposite tensor premise `2`,
+and reserves the exact second axiom in search orientation `[2,3]`. -/
+def canonicalFigure7NewInitial : Option ReservationState :=
+  initializeReservation? canonical 4
+
+theorem canonicalFigure7NewInitial_invariant {before : ReservationState}
+    (equation : canonicalFigure7NewInitial = some before) :
+    ReservationInvariant canonical before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [canonicalFigure7NewInitial] using equation) with
+    ⟨initialStep⟩
+  exact initialStep.reservationInvariant
+
+def canonicalFigure7NewTransition : Option ReservationState :=
+  match equation : canonicalFigure7NewInitial with
+  | none => none
+  | some before =>
+      SequentialFigure7.new? canonical before
+        (canonicalFigure7NewInitial_invariant equation)
+
+example :
+    (match canonicalFigure7NewTransition with
+    | none => false
+    | some after =>
+        after.stack.marks[0]? == some (some 0) &&
+        after.stack.marks[1]? == some none &&
+        after.stack.sigma == [0, 1] &&
+        after.stack.ready == [[1], [2, 3]] &&
+        after.stack.waiting[0]? == some (.initialized []) &&
+        after.stack.waiting[1]? == some .undefined &&
+        after.core.marks == after.stack.marks &&
+        after.core.parents == #[0, 1] &&
+        after.core.startedAxioms == 2 &&
+        after.core.firedConnectives == 0 &&
+        match after.core.components[0]?, after.core.components[1]? with
+        | some (some first), some (some second) =>
+            first.frontier == [0, 1] &&
+            second.frontier == [2, 3]
+        | _, _ => false) = true := by
+  native_decide
+
+/-- The exact success witness proves invariant preservation through the
+mark-before-search transition, not merely through its reservation suffix. -/
+example {before after : ReservationState}
+    (initialEquation :
+      canonicalFigure7NewInitial = some before)
+    (newEquation :
+      SequentialFigure7.new? canonical before
+          (canonicalFigure7NewInitial_invariant initialEquation) =
+        some after) :
+    ReservationInvariant canonical after := by
+  exact SequentialFigure7.new?_reservationInvariant
+    (canonicalFigure7NewInitial_invariant initialEquation) newEquation
+
+/-- The composed Figure-7 step exports the operational waiting-domain fact,
+not only carrier alignment. -/
+example {before after : ReservationState}
+    (initialEquation :
+      canonicalFigure7NewInitial = some before)
+    (newEquation :
+      SequentialFigure7.new? canonical before
+          (canonicalFigure7NewInitial_invariant initialEquation) =
+        some after) :
+    after.stack.OperationalWaitingDomain := by
+  exact
+    (SequentialFigure7.new?_reservationInvariant
+      (canonicalFigure7NewInitial_invariant initialEquation)
+      newEquation).stack_operationalWaitingDomain
+
+/-- A stored par below the selected ready occurrence is not silently treated
+as Figure-7 `new`. -/
+example :
+    (match equation : canonicalInitialReservation with
+    | none => false
+    | some before =>
+        (SequentialFigure7.new?
+          canonical before
+          (canonicalInitialReservation_invariant equation)).isNone) = true := by
+  native_decide
 
 /-- The generic replay theorem does not depend on the canonical indices. -/
 example {middle after : ReservationState}
