@@ -153,6 +153,24 @@ theorem SigmaAgePartition.sigmaBoundary?_append_fresh_self
     sigmaBoundary? (sigma ++ [nextAge]) nextAge = some nextAge := by
   exact sigmaBoundary?_append_self_of_all_lt partition.boundary_lt
 
+/-- The active (last) boundary of a valid scheduler partition is returned
+exactly when queried at its own raw age. -/
+theorem SigmaAgePartition.sigmaBoundary?_eq_top
+    {nextAge : RawTokenAge} {sigma : List RawTokenAge}
+    (partition : SigmaAgePartition nextAge sigma)
+    {active : RawTokenAge}
+    (activeEquation : sigma.getLast? = some active) :
+    sigmaBoundary? sigma active = some active := by
+  rcases List.getLast?_eq_some_iff.mp activeEquation with
+    ⟨sigmaPrefix, rfl⟩
+  apply sigmaBoundary?_append_self_of_all_lt
+  have increasing :
+      (sigmaPrefix ++ [active]).Pairwise (· < ·) :=
+    partition.strictIncreasing
+  have cross := (List.pairwise_append.mp increasing).2.2
+  intro boundary membership
+  exact cross boundary membership active (by simp)
+
 /-- Removing the active boundary from a partition with at least two explicit
 tail boundaries leaves a valid partition at the unchanged raw-age horizon.
 The horizon is an allocation counter, so a `unify` pop does not decrement it. -/

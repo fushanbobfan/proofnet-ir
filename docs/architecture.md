@@ -396,9 +396,15 @@ connective constructors actually present in live component trees. The exact
 empty state and every successful initial reservation on a structurally
 well-formed certificate satisfy their combined `SchedulerInvariant`. The
 initial proof explicitly handles the possible search/submitted axiom
-orientation reversal. This is a foundation checkpoint:
-occurrence-faithful internal component provenance, preservation of these
-fields (including global queue uniqueness) through complete
+orientation reversal. The common `PreparedStep` additionally preserves all
+current state-only fields. Its proof uses the active top boundary to recover
+the exact live component, removes the selected occurrence extensionally from
+the ready/frontier correspondence, transports ready/waiting global `Nodup`,
+and handles the new raw mark either as an old marked premise or as the
+selected live-frontier premise. Exact `concl`/`nop` witnesses and their
+successful executables inherit this result through `prepared.after`.
+This remains a foundation checkpoint: occurrence-faithful internal component
+provenance, state-only preservation through `wait` and complete
 `forward`/`unify`, dispatcher progress, and completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.

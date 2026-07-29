@@ -136,6 +136,102 @@ example :
       rcases initializeReservation?_some_iff.mp equation with ⟨step⟩
       exact step.schedulerInvariant axiomCertificate_structural
 
+private def axiomInitial : Option ReservationState :=
+  initializeReservation? axiomCertificate 0
+
+private theorem axiomInitial_schedulerInvariant
+    {before : ReservationState}
+    (equation : axiomInitial = some before) :
+    SchedulerInvariant axiomCertificate before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [axiomInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant axiomCertificate_structural
+
+/-- The common prepared state has removed exactly the selected endpoint,
+marked it at the active raw age, and still satisfies all current state-only
+fields of `SchedulerInvariant`. -/
+example {before : ReservationState}
+    (initialEquation : axiomInitial = some before)
+    {prepared : SequentialFigure7.PreparedStep before}
+    (_prepareEquation :
+      SequentialFigure7.prepare? before = some prepared) :
+    SchedulerInvariant axiomCertificate prepared.after := by
+  exact prepared.schedulerInvariant
+    (axiomInitial_schedulerInvariant initialEquation)
+
+/-- On an axiom-only certificate the selected endpoint is an exact
+conclusion, so executable `concl?` returns precisely the prepared state. -/
+example :
+    (match initialEquation : axiomInitial with
+    | none => false
+    | some before =>
+        match
+            SequentialFigure7.concl? axiomCertificate before
+              (axiomInitial_schedulerInvariant initialEquation
+                |>.toReservationInvariant) with
+        | none => false
+        | some after =>
+            after.stack.ready == [[1]] &&
+              after.stack.marks[0]? == some (some 0) &&
+              after.core.marks[0]? == some (some 0) &&
+              after.core.firedConnectives == 0) = true := by
+  native_decide
+
+example {before after : ReservationState}
+    (initialEquation : axiomInitial = some before)
+    (conclEquation :
+      SequentialFigure7.concl? axiomCertificate before
+          (axiomInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some after) :
+    SchedulerInvariant axiomCertificate after := by
+  exact SequentialFigure7.concl?_schedulerInvariant
+    (axiomInitial_schedulerInvariant initialEquation) conclEquation
+
+private def parInitial : Option ReservationState :=
+  initializeReservation? parCertificate 0
+
+private theorem parInitial_schedulerInvariant
+    {before : ReservationState}
+    (equation : parInitial = some before) :
+    SchedulerInvariant parCertificate before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [parInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant parCertificate_structural
+
+/-- With the opposite par premise still raw-unmarked, executable `nop?`
+performs only the synchronized prepared prefix and preserves the current
+state-based scheduler invariant. -/
+example :
+    (match initialEquation : parInitial with
+    | none => false
+    | some before =>
+        match
+            SequentialFigure7.nop? parCertificate before
+              (parInitial_schedulerInvariant initialEquation
+                |>.toReservationInvariant) with
+        | none => false
+        | some after =>
+            after.stack.ready == [[1]] &&
+              after.stack.marks[0]? == some (some 0) &&
+              after.core.marks[0]? == some (some 0) &&
+              after.core.marks[1]? == some none &&
+              after.core.firedConnectives == 0) = true := by
+  native_decide
+
+example {before after : ReservationState}
+    (initialEquation : parInitial = some before)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate before
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some after) :
+    SchedulerInvariant parCertificate after := by
+  exact SequentialFigure7.nop?_schedulerInvariant
+    (parInitial_schedulerInvariant initialEquation) nopEquation
+
 /-- Counter accounting counts logical connective constructors in live trees;
 exchange is bookkeeping rather than a firing. -/
 example :

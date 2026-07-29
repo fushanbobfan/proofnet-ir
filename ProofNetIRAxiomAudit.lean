@@ -192,6 +192,7 @@ expansion.
 #print axioms SequentialSchedulerState.SigmaAgePartition.appendFresh
 #print axioms SequentialSchedulerState.sigmaBoundary?_append_fresh_old
 #print axioms SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_append_fresh_self
+#print axioms SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top
 #print axioms SequentialSchedulerState.sigmaBoundary?_mem
 #print axioms SequentialSchedulerState.sigmaBoundary?_le
 #print axioms SequentialSchedulerState.sigmaBoundary?_greatest
@@ -272,6 +273,11 @@ expansion.
 #print axioms SequentialSchedulerBridge.InitialReservationStep.pendingPremisesCoveredExceptReady
 #print axioms SequentialSchedulerBridge.InitialReservationStep.firedCounterExact
 #print axioms SequentialSchedulerBridge.InitialReservationStep.schedulerInvariant
+#print axioms SequentialFigure7.PreparedStep.schedulerInvariant
+#print axioms SequentialFigure7.ConclStep.schedulerInvariant
+#print axioms SequentialFigure7.concl?_schedulerInvariant
+#print axioms SequentialFigure7.NopStep.schedulerInvariant
+#print axioms SequentialFigure7.nop?_schedulerInvariant
 #print axioms SequentialFigure7.new?_some_iff
 #print axioms SequentialFigure7.NewStep.tensorValid
 #print axioms SequentialFigure7.NewStep.mate_unmarked

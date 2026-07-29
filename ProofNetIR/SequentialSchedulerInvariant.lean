@@ -736,4 +736,568 @@ theorem InitialReservationStep.schedulerInvariant
 
 end SequentialSchedulerBridge
 
+namespace SequentialFigure7
+
+open SequentialSchedulerState
+open SequentialSchedulerState.SequentialStackState
+open SequentialSchedulerBridge
+
+namespace PreparedStep
+
+private theorem mem_liveFrontierVertices_of_raw
+    {state : UnificationState} {token : Nat}
+    {component : UnificationComponent} {vertex : Vertex}
+    (componentLookup :
+      state.components[token]? = some (some component))
+    (vertexMembership : vertex ∈ component.frontier) :
+    vertex ∈ state.liveFrontierVertices := by
+  unfold UnificationState.liveFrontierVertices
+  apply List.mem_flatMap.mpr
+  refine ⟨some component, ?_, ?_⟩
+  · exact List.mem_of_getElem? (by simpa using componentLookup)
+  · simpa using vertexMembership
+
+/-- The synchronized pop/raw-mark prefix preserves every current state-only
+field of `SchedulerInvariant`.  It removes exactly the selected occurrence
+from the active ready bucket and gives that already-live frontier occurrence
+its active raw-age mark; components, waiting payloads, `sigma`, counters, and
+tags are unchanged. -/
+theorem schedulerInvariant
+    {certificate : Certificate} {before : ReservationState}
+    (step : PreparedStep before)
+    (invariant : SchedulerInvariant certificate before) :
+    SchedulerInvariant certificate step.after := by
+  rcases
+      SequentialStackState.popReadyMark?_exact step.stack_eq with
+    ⟨topEquation, sigmaTopEquation, stackUnmarked,
+      stackMarksEquation, stackNextAgeEquation, stackSigmaEquation,
+      stackReadyEquation, stackWaitingEquation, stackMarked⟩
+  rcases
+      UnificationState.markReadyRaw?_exact step.core_mark_eq with
+    ⟨coreUnmarked, coreMarksEquation, coreParentsEquation,
+      coreComponentsEquation, coreStartedEquation,
+      coreFiredEquation, coreMarked⟩
+  rcases List.getLast?_eq_some_iff.mp topEquation with
+    ⟨readyPrefix, readyDecomposition⟩
+  rcases List.getLast?_eq_some_iff.mp sigmaTopEquation with
+    ⟨sigmaPrefix, sigmaDecomposition⟩
+  have prefixLengths : readyPrefix.length = sigmaPrefix.length := by
+    have aligned := invariant.stack_wellShaped.ready_aligned
+    rw [readyDecomposition, sigmaDecomposition] at aligned
+    simp at aligned
+    omega
+  have afterReady :
+      step.after.stack.ready =
+        readyPrefix ++ [step.stackResult.remainingTop] := by
+    change step.stackResult.after.ready =
+      readyPrefix ++ [step.stackResult.remainingTop]
+    rw [stackReadyEquation, readyDecomposition]
+    simp
+  have afterSigma :
+      step.after.stack.sigma = before.stack.sigma := by
+    change step.stackResult.after.sigma = before.stack.sigma
+    exact stackSigmaEquation
+  have afterWaiting :
+      step.after.stack.waiting = before.stack.waiting := by
+    change step.stackResult.after.waiting = before.stack.waiting
+    exact stackWaitingEquation
+  have afterComponents :
+      step.after.core.components = before.core.components :=
+    coreComponentsEquation
+  have afterParents :
+      step.after.core.parents = before.core.parents :=
+    coreParentsEquation
+  have afterMarks :
+      step.after.core.marks =
+        before.core.marks.setIfInBounds
+          step.stackResult.vertex
+          (some step.stackResult.rawAge) :=
+    coreMarksEquation
+  have afterFired :
+      step.after.core.firedConnectives =
+        before.core.firedConnectives :=
+    coreFiredEquation
+  have selectedOldReady :
+      step.stackResult.vertex ∈ before.stack.ready.flatten := by
+    rw [readyDecomposition]
+    simp
+  have selectedOldQueued :
+      step.stackResult.vertex ∈ before.stack.queuedVertices := by
+    simp [SequentialStackState.queuedVertices, selectedOldReady]
+  have beforeQueued :
+      before.stack.queuedVertices =
+        readyPrefix.flatten ++
+          step.stackResult.vertex ::
+            (step.stackResult.remainingTop ++
+              before.stack.waitingVertices) := by
+    simp [SequentialStackState.queuedVertices, readyDecomposition,
+      List.append_assoc]
+  have afterQueued :
+      step.after.stack.queuedVertices =
+        readyPrefix.flatten ++
+          (step.stackResult.remainingTop ++
+            before.stack.waitingVertices) := by
+    simp [SequentialStackState.queuedVertices, afterReady,
+      SequentialStackState.waitingVertices, afterWaiting,
+      List.append_assoc]
+  have oldQueueParts :
+      readyPrefix.flatten.Nodup ∧
+        (step.stackResult.vertex ::
+          (step.stackResult.remainingTop ++
+            before.stack.waitingVertices)).Nodup ∧
+        ∀ first ∈ readyPrefix.flatten,
+          ∀ second ∈
+              step.stackResult.vertex ::
+                (step.stackResult.remainingTop ++
+                  before.stack.waitingVertices),
+            first ≠ second := by
+    apply List.nodup_append.mp
+    rw [← beforeQueued]
+    exact invariant.queued_vertices_nodup
+  have selectedNotAfterQueued :
+      step.stackResult.vertex ∉ step.after.stack.queuedVertices := by
+    rw [afterQueued]
+    intro membership
+    simp only [List.mem_append] at membership
+    rcases membership with inPrefix | inTail
+    · exact oldQueueParts.2.2
+        step.stackResult.vertex inPrefix
+        step.stackResult.vertex (by simp) rfl
+    · exact
+        (List.nodup_cons.mp oldQueueParts.2.1).1
+          (by simpa using inTail)
+  have afterQueuedSubsetOld :
+      ∀ {vertex},
+        vertex ∈ step.after.stack.queuedVertices →
+          vertex ∈ before.stack.queuedVertices := by
+    intro vertex membership
+    rw [afterQueued] at membership
+    rw [beforeQueued]
+    simp only [List.mem_append, List.mem_cons] at membership ⊢
+    rcases membership with inPrefix | inTail
+    · exact Or.inl inPrefix
+    · exact Or.inr (Or.inr inTail)
+  have topSigmaLookup :
+      before.stack.sigma[readyPrefix.length]? =
+        some step.stackResult.rawAge := by
+    rw [sigmaDecomposition, prefixLengths]
+    simp
+  have topReadyLookup :
+      before.stack.ready[readyPrefix.length]? =
+        some
+          (step.stackResult.vertex ::
+            step.stackResult.remainingTop) := by
+    rw [readyDecomposition]
+    simp
+  rcases
+      invariant.ready_bucket_frontier_exact
+        topSigmaLookup topReadyLookup with
+    ⟨topComponent, topComponentLookup, topFrontier⟩
+  have selectedTopFrontier :
+      step.stackResult.vertex ∈ topComponent.frontier :=
+    (topFrontier step.stackResult.vertex).mp (by simp) |>.1
+  have selectedOldProduced :
+      Produced before step.stackResult.vertex :=
+    Or.inr
+      (mem_liveFrontierVertices_of_raw
+        topComponentLookup selectedTopFrontier)
+  have rawAgeBound :
+      step.stackResult.rawAge < before.stack.nextAge := by
+    have membership : step.stackResult.rawAge ∈ before.stack.sigma := by
+      rw [sigmaDecomposition]
+      simp
+    exact invariant.stack_wellShaped.sigma_partition.boundary_lt
+      step.stackResult.rawAge membership
+  have rawAgeRootBefore :
+      before.core.representative step.stackResult.rawAge =
+        step.stackResult.rawAge := by
+    have boundaryLookup :
+        sigmaBoundary? before.stack.sigma
+            step.stackResult.rawAge =
+          some step.stackResult.rawAge :=
+      invariant.stack_wellShaped.sigma_partition
+        |>.sigmaBoundary?_eq_top sigmaTopEquation
+    have realizesLookup :=
+      invariant.realizesSigma.representative_eq_boundary rawAgeBound
+    exact Option.some.inj (realizesLookup.symm.trans boundaryLookup)
+  have representativeUnchanged :
+      ∀ token,
+        step.after.core.representative token =
+          before.core.representative token := by
+    intro token
+    unfold UnificationState.representative
+    rw [afterParents]
+  have rawAgeRootAfter :
+      step.after.core.representative step.stackResult.rawAge =
+        step.stackResult.rawAge := by
+    rw [representativeUnchanged]
+    exact rawAgeRootBefore
+  have afterSelectedMarked :
+      step.after.core.marks[step.stackResult.vertex]? =
+        some (some step.stackResult.rawAge) := by
+    exact coreMarked
+  have preserveOldMarked :
+      ∀ {vertex : Vertex} {age : RawTokenAge},
+        before.core.marks[vertex]? = some (some age) →
+          step.after.core.marks[vertex]? = some (some age) := by
+    intro vertex age marked
+    have selectedNe :
+        step.stackResult.vertex ≠ vertex := by
+      intro same
+      subst vertex
+      rw [coreUnmarked] at marked
+      simp at marked
+    rw [afterMarks]
+    simpa [Array.getElem?_setIfInBounds, selectedNe] using marked
+  refine {
+    toReservationInvariant :=
+      step.reservationInvariant invariant.toReservationInvariant
+    structural := invariant.structural
+    component_domain_exact := ?_
+    live_frontiers_nodup := ?_
+    ready_bucket_frontier_exact := ?_
+    queued_vertices_nodup := ?_
+    queued_vertices_unmarked := ?_
+    produced_premises_marked := ?_
+    waiting_span_exact := ?_
+    pending_premises_covered_except_ready := ?_
+    fired_counter_exact := ?_ }
+  · intro token
+    simpa [ComponentDomainExact, afterComponents, afterSigma] using
+      invariant.component_domain_exact token
+  · unfold LiveFrontiersNodup
+    unfold UnificationState.liveFrontierVertices
+    rw [afterComponents]
+    exact invariant.live_frontiers_nodup
+  · unfold ReadyBucketFrontierExact
+    intro position boundary bucket sigmaLookup readyLookup
+    have positionBound :
+        position < (readyPrefix ++
+          [step.stackResult.remainingTop]).length := by
+      rw [← afterReady]
+      exact (List.getElem?_eq_some_iff.mp readyLookup).1
+    have oldSigmaLookup :
+        before.stack.sigma[position]? = some boundary := by
+      rw [afterSigma] at sigmaLookup
+      exact sigmaLookup
+    by_cases inPrefix : position < readyPrefix.length
+    · have oldReadyLookup :
+          before.stack.ready[position]? = some bucket := by
+        rw [readyDecomposition, List.getElem?_append_left inPrefix]
+        rw [afterReady, List.getElem?_append_left inPrefix] at readyLookup
+        exact readyLookup
+      rcases
+          invariant.ready_bucket_frontier_exact
+            oldSigmaLookup oldReadyLookup with
+        ⟨component, componentLookup, exactMembership⟩
+      refine ⟨component, ?_, ?_⟩
+      · rw [afterComponents]
+        exact componentLookup
+      · intro vertex
+        constructor
+        · intro vertexInBucket
+          have oldExact := (exactMembership vertex).mp vertexInBucket
+          have bucketInAfter :
+              bucket ∈ step.after.stack.ready :=
+            List.mem_of_getElem? readyLookup
+          have vertexAfterQueued :
+              vertex ∈ step.after.stack.queuedVertices := by
+            unfold SequentialStackState.queuedVertices
+            apply List.mem_append_left
+            exact List.mem_flatten.mpr
+              ⟨bucket, bucketInAfter, vertexInBucket⟩
+          have selectedNe :
+              step.stackResult.vertex ≠ vertex := by
+            intro same
+            subst vertex
+            exact selectedNotAfterQueued vertexAfterQueued
+          refine ⟨oldExact.1, ?_⟩
+          rw [afterMarks]
+          simpa [Array.getElem?_setIfInBounds, selectedNe] using
+            oldExact.2
+        · rintro ⟨vertexFrontier, vertexUnmarked⟩
+          have selectedNe :
+              step.stackResult.vertex ≠ vertex := by
+            intro same
+            subst vertex
+            rw [afterSelectedMarked] at vertexUnmarked
+            simp at vertexUnmarked
+          apply (exactMembership vertex).mpr
+          refine ⟨vertexFrontier, ?_⟩
+          rw [afterMarks] at vertexUnmarked
+          simpa [Array.getElem?_setIfInBounds, selectedNe] using
+            vertexUnmarked
+    · have positionTop : position = readyPrefix.length := by
+        simp at positionBound
+        omega
+      subst position
+      have bucketEquation :
+          bucket = step.stackResult.remainingTop := by
+        rw [afterReady] at readyLookup
+        simp at readyLookup
+        exact readyLookup.symm
+      have boundaryEquation :
+          boundary = step.stackResult.rawAge := by
+        rw [sigmaDecomposition, prefixLengths] at oldSigmaLookup
+        simp at oldSigmaLookup
+        exact oldSigmaLookup.symm
+      subst bucket
+      subst boundary
+      refine ⟨topComponent, ?_, ?_⟩
+      · rw [afterComponents]
+        exact topComponentLookup
+      · intro vertex
+        constructor
+        · intro vertexInTail
+          have oldExact :=
+            (topFrontier vertex).mp (by simp [vertexInTail])
+          have selectedNe :
+              step.stackResult.vertex ≠ vertex := by
+            intro same
+            apply
+              (List.nodup_cons.mp
+                (invariant.stack_wellShaped.ready_nodup
+                  (step.stackResult.vertex ::
+                    step.stackResult.remainingTop)
+                  (by rw [readyDecomposition]; simp))).1
+            rw [same]
+            exact vertexInTail
+          refine ⟨oldExact.1, ?_⟩
+          rw [afterMarks]
+          simpa [Array.getElem?_setIfInBounds, selectedNe] using
+            oldExact.2
+        · rintro ⟨vertexFrontier, vertexUnmarked⟩
+          have selectedNe :
+              step.stackResult.vertex ≠ vertex := by
+            intro same
+            subst vertex
+            rw [afterSelectedMarked] at vertexUnmarked
+            simp at vertexUnmarked
+          have oldUnmarked :
+              before.core.marks[vertex]? = some none := by
+            rw [afterMarks] at vertexUnmarked
+            simpa [Array.getElem?_setIfInBounds, selectedNe] using
+              vertexUnmarked
+          have oldMembership :=
+            (topFrontier vertex).mpr
+              ⟨vertexFrontier, oldUnmarked⟩
+          have vertexNeSelected :
+              vertex ≠ step.stackResult.vertex :=
+            selectedNe.symm
+          simpa [vertexNeSelected] using oldMembership
+  · unfold QueuedVerticesNodup
+    rw [afterQueued]
+    apply List.nodup_append.mpr
+    refine ⟨oldQueueParts.1, ?_, ?_⟩
+    · exact (List.nodup_cons.mp oldQueueParts.2.1).2
+    · intro first firstMembership second secondMembership same
+      exact oldQueueParts.2.2 first firstMembership second
+        (by simp [secondMembership]) same
+  · intro vertex membership
+    have oldMembership := afterQueuedSubsetOld membership
+    have oldUnmarked :=
+      invariant.queued_vertices_unmarked vertex oldMembership
+    have selectedNe :
+        step.stackResult.vertex ≠ vertex := by
+      intro same
+      subst vertex
+      exact selectedNotAfterQueued membership
+    rw [afterMarks]
+    simpa [Array.getElem?_setIfInBounds, selectedNe] using oldUnmarked
+  · intro link linkMembership
+    cases link with
+    | «axiom» left right =>
+        trivial
+    | tensor left right conclusion
+    | «par» left right conclusion =>
+        intro producedAfter
+        have producedBefore : Produced before conclusion := by
+          rcases producedAfter with markedAfter | frontierAfter
+          · rcases markedAfter with ⟨age, markedAfter⟩
+            by_cases selected :
+                step.stackResult.vertex = conclusion
+            · subst conclusion
+              exact selectedOldProduced
+            · left
+              refine ⟨age, ?_⟩
+              rw [afterMarks] at markedAfter
+              simpa [Array.getElem?_setIfInBounds, selected] using
+                markedAfter
+          · right
+            unfold UnificationState.liveFrontierVertices at frontierAfter ⊢
+            rw [afterComponents] at frontierAfter
+            exact frontierAfter
+        rcases
+            invariant.produced_premises_marked
+              linkMembership producedBefore with
+          ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
+        exact
+          ⟨⟨leftAge, preserveOldMarked leftMarked⟩,
+            rightAge, preserveOldMarked rightMarked⟩
+  · unfold WaitingSpanExact
+    intro boundary payload conclusion waitingLookup conclusionMembership
+    have oldWaitingLookup :
+        before.stack.waiting[boundary]? =
+          some (.initialized payload) := by
+      rw [afterWaiting] at waitingLookup
+      exact waitingLookup
+    rcases
+        invariant.waiting_span_exact
+          oldWaitingLookup conclusionMembership with
+      ⟨linkIndex, left, right, olderPremise, youngerPremise,
+        olderAge, youngerAge, youngerBoundary,
+        linkLookup, sourceLookup, conclusionUnmarked,
+        premiseOrientation, olderMarked, youngerMarked,
+        olderBoundary, youngerBoundaryLookup, boundaryLt⟩
+    have conclusionAfterQueued :
+        conclusion ∈ step.after.stack.queuedVertices := by
+      unfold SequentialStackState.queuedVertices
+      apply List.mem_append_right
+      unfold SequentialStackState.waitingVertices
+      apply List.mem_flatMap.mpr
+      refine ⟨WaitingCell.initialized payload, ?_, ?_⟩
+      · exact List.mem_of_getElem? (by simpa using waitingLookup)
+      · simpa [WaitingCell.vertices] using conclusionMembership
+    have selectedNeConclusion :
+        step.stackResult.vertex ≠ conclusion := by
+      intro same
+      subst conclusion
+      exact selectedNotAfterQueued conclusionAfterQueued
+    refine
+      ⟨linkIndex, left, right, olderPremise, youngerPremise,
+        olderAge, youngerAge, youngerBoundary,
+        linkLookup, sourceLookup, ?_, premiseOrientation,
+        ?_, ?_, ?_, ?_, boundaryLt⟩
+    · rw [afterMarks]
+      simpa [Array.getElem?_setIfInBounds, selectedNeConclusion] using
+        conclusionUnmarked
+    · exact preserveOldMarked olderMarked
+    · exact preserveOldMarked youngerMarked
+    · rw [afterSigma]
+      exact olderBoundary
+    · rw [afterSigma]
+      exact youngerBoundaryLookup
+  · intro link linkMembership
+    cases link with
+    | «axiom» left right =>
+        trivial
+    | tensor left right conclusion
+    | «par» left right conclusion =>
+        intro conclusionUnmarked conclusionNotReady premise token
+          premiseMembership tokenAt
+        have selectedNeConclusion :
+            step.stackResult.vertex ≠ conclusion := by
+          intro same
+          subst conclusion
+          rw [afterSelectedMarked] at conclusionUnmarked
+          simp at conclusionUnmarked
+        have oldConclusionUnmarked :
+            before.core.marks[conclusion]? = some none := by
+          rw [afterMarks] at conclusionUnmarked
+          simpa [Array.getElem?_setIfInBounds,
+            selectedNeConclusion] using conclusionUnmarked
+        have oldConclusionNotReady :
+            conclusion ∉ before.stack.ready.flatten := by
+          intro oldMembership
+          have oldCases :
+              conclusion ∈ readyPrefix.flatten ∨
+                conclusion = step.stackResult.vertex ∨
+                conclusion ∈ step.stackResult.remainingTop := by
+            rw [readyDecomposition] at oldMembership
+            simpa using oldMembership
+          rcases oldCases with inPrefix | same | inTail
+          · apply conclusionNotReady
+            rw [afterReady]
+            simpa using Or.inl inPrefix
+          · exact selectedNeConclusion same.symm
+          · apply conclusionNotReady
+            rw [afterReady]
+            simpa using Or.inr inTail
+        by_cases selectedPremise :
+            step.stackResult.vertex = premise
+        · subst premise
+          have tokenEquation :
+              token = step.stackResult.rawAge := by
+            unfold UnificationState.tokenAt? at tokenAt
+            rw [afterSelectedMarked] at tokenAt
+            simp [rawAgeRootAfter] at tokenAt
+            exact tokenAt.symm
+          subst token
+          refine ⟨topComponent, ?_, selectedTopFrontier⟩
+          unfold UnificationState.componentAt?
+          rw [rawAgeRootAfter, afterComponents]
+          simp [topComponentLookup]
+        · have oldTokenAt :
+              before.core.tokenAt? premise = some token := by
+            unfold UnificationState.tokenAt? at tokenAt ⊢
+            rw [afterMarks] at tokenAt
+            simpa [Array.getElem?_setIfInBounds, selectedPremise,
+              representativeUnchanged] using tokenAt
+          rcases
+              invariant.pending_premises_covered_except_ready
+                linkMembership oldConclusionUnmarked
+                oldConclusionNotReady premiseMembership oldTokenAt with
+            ⟨component, componentLookup, frontierMembership⟩
+          refine ⟨component, ?_, frontierMembership⟩
+          unfold UnificationState.componentAt? at componentLookup ⊢
+          rw [representativeUnchanged, afterComponents]
+          exact componentLookup
+  · unfold FiredCounterExact
+    rw [afterFired]
+    unfold UnificationState.liveConnectiveCount
+    rw [afterComponents]
+    exact invariant.fired_counter_exact
+
+end PreparedStep
+
+/-- Exact `concl` witnesses preserve the current state-based scheduler invariant
+because their output is precisely the synchronized prepared state. -/
+theorem ConclStep.schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ConclStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    SchedulerInvariant certificate after := by
+  rw [step.output_eq]
+  exact step.prepared.schedulerInvariant invariant
+
+/-- Executable `concl?` success preserves the current state-based scheduler
+invariant. -/
+theorem concl?_schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (equation :
+      concl? certificate before invariant.toReservationInvariant =
+        some after) :
+    SchedulerInvariant certificate after := by
+  rcases
+      (concl?_some_iff invariant.toReservationInvariant).mp equation with
+    ⟨step⟩
+  exact step.schedulerInvariant invariant
+
+/-- Exact `nop` witnesses preserve the current state-based scheduler invariant
+because their output is precisely the synchronized prepared state. -/
+theorem NopStep.schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (step : NopStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    SchedulerInvariant certificate after := by
+  rw [step.output_eq]
+  exact step.prepared.schedulerInvariant invariant
+
+/-- Executable `nop?` success preserves the current state-based scheduler
+invariant. -/
+theorem nop?_schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (equation :
+      nop? certificate before invariant.toReservationInvariant =
+        some after) :
+    SchedulerInvariant certificate after := by
+  rcases
+      (nop?_some_iff invariant.toReservationInvariant).mp equation with
+    ⟨step⟩
+  exact step.schedulerInvariant invariant
+
+end SequentialFigure7
+
 end ProofNetIR

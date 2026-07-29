@@ -6992,6 +6992,21 @@ ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_append_fres
     ProofNetIR.SequentialSchedulerState.sigmaBoundary? (sigma ++ [nextAge]) nextAge = some nextAge
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top`
+
+Kind: theorem.
+
+The active (last) boundary of a valid scheduler partition is returned
+exactly when queried at its own raw age.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    ∀ {active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      sigma.getLast? = some active → ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma active = some active
+```
+
 ### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem`
 
 Kind: theorem.
@@ -8978,6 +8993,79 @@ ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.schedulerInvariant :
   {start : ProofNetIR.Vertex}
   (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
   certificate.StructurallyWellFormed → ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.schedulerInvariant`
+
+Kind: theorem.
+
+The synchronized pop/raw-mark prefix preserves every current state-only
+field of `SchedulerInvariant`.  It removes exactly the selected occurrence
+from the active ready bucket and gives that already-live frontier occurrence
+its active raw-age mark; components, waiting payloads, `sigma`, counters, and
+tags are unchanged.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate step.after
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.schedulerInvariant`
+
+Kind: theorem.
+
+Exact `concl` witnesses preserve the current state-based scheduler invariant
+because their output is precisely the synchronized prepared state.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable `concl?` success preserves the current state-based scheduler
+invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.concl? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.schedulerInvariant`
+
+Kind: theorem.
+
+Exact `nop` witnesses preserve the current state-based scheduler invariant
+because their output is precisely the synchronized prepared state.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable `nop?` success preserves the current state-based scheduler
+invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.nop? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
 ### `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?`

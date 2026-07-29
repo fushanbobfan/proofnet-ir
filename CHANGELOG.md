@@ -25,11 +25,20 @@
   including reversed search orientation. A predicate-level adversarial
   regression for a structurally well-formed axiom-plus-par certificate rejects
   a forged raw-unmarked live-frontier conclusion whose premises are unmarked.
+  The synchronized `PreparedStep` now preserves every current state-only field
+  of that invariant. The proof removes the selected occurrence extensionally
+  from the active ready/frontier bucket, transports global queue uniqueness
+  and waiting spans, treats the new selected raw mark as an already-live
+  component witness for pending-premise coverage, and leaves component/counter
+  facts unchanged. Exact and executable `concl`/`nop` preservation follow
+  because their output is precisely `prepared.after`.
+  `SigmaAgePartition.sigmaBoundary?_eq_top` exposes the minimal active-boundary
+  fact used to identify the selected raw-age component.
   Exact occurrence provenance for internal component-tree nodes remains open:
   repeated formula labels mean `FormulaConsistent` is not a link-identity
   witness.
-  This does not yet prove preservation through complete `forward`/`unify`,
-  dispatcher progress, completeness, or linearity;
+  This does not yet prove state-only preservation through `wait` or complete
+  `forward`/`unify`, dispatcher progress, completeness, or linearity;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
   `mem_remaining_of_ne`, and `two_of_mem` wrappers for future deterministic
   waiting-payload activation while retaining the recursive executable picker

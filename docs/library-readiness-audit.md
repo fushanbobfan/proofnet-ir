@@ -395,10 +395,19 @@ part of the engineering and proof-identity gap.
    uniqueness are kernel checked (`wait` uniqueness under structural
    validity and the supplied invariant); this does not establish dispatcher
    reachability or progress.
+   The stronger current state-only `SchedulerInvariant` is now preserved by
+   the synchronized prepared pop/raw-mark prefix and therefore by exact and
+   executable `concl`/`nop`. This includes extensional active ready/frontier
+   transport, combined ready/waiting queue uniqueness, waiting-span transport,
+   causal produced-premise marking, pending-premise coverage for the newly
+   marked selected occurrence, and unchanged live-component counter/domain
+   facts. It does not add occurrence-faithful internal component/link
+   provenance or state-only preservation for `wait`.
    The local `wait` destination is exactly
    `sigmaBoundary? stack.sigma mateRawAge`, and its initialized-cell cons
    update does not claim global ownership. Ready/waiting payload ownership,
-   complete executable `forward`/`unify`, full-history integration of
+   state-only `wait` preservation, complete executable `forward`/`unify`,
+   full-history integration of
    `concl`/`nop`/`wait`, full-rule reachability, later-state selection totality,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, and a
@@ -566,9 +575,11 @@ It can currently be used for:
   threaded touched-set, `σ` partition, operational inactive-boundary waiting
   domain, typed initial/later reservations, and local pop/mark/new pipeline,
   while treating search failure as inconclusive; local exact
-  `concl`/`nop`/`wait` are now present, but ready/waiting payload ownership,
-  executable `forward`/`unify`, and full-history rule integration remain
-  absent. The local `wait` cons update is not an ownership theorem.
+  `concl`/`nop`/`wait` are now present, and the current state-only invariant is
+  preserved through the common prepared prefix plus `concl`/`nop`; state-only
+  `wait` preservation, ready/waiting payload ownership, executable
+  `forward`/`unify`, and full-history rule integration remain absent. The
+  local `wait` cons update is not an ownership theorem.
   Exact init/new reachability and tag history are present, but
   full-rule reachability and queue provenance are not, so together these are
   not a complete scheduler API;

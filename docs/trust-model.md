@@ -227,10 +227,17 @@ tag iff recorded touch, global submitted-slot non-reuse, and
 reservation-count alignment. It is still not a full reachable Figure-7
 scheduler. Exact local `concl`/`nop`/`wait` now require a proof-carrying
 canonical consumer/conclusion view and preserve the reservation invariant.
+The common prepared pop/raw-mark prefix is also proved to preserve every
+current state-only field of `SchedulerInvariant`; exact and executable
+`concl`/`nop` inherit that theorem because they return `prepared.after`.
+This state theorem does not recover exact internal component/link occurrence
+provenance, does not prove the analogous claim for `wait`, and is not a
+dispatcher reachability theorem.
 The local `wait` uses the mate's raw mark and the exact `sigmaBoundary?`
 destination, then performs one initialized-cell cons without a global queue
-scan or ownership claim. Global queue uniqueness and ownership,
-`forward`/`unify`, full-history rule integration, later-state totality,
+scan or ownership claim. Global queue uniqueness and ownership, state-only
+`wait` preservation, `forward`/`unify`, full-history rule integration,
+later-state totality,
 correct-state progress, pure-worklist
 completeness, fallback removal, and whole-program linearity remain
 unimplemented. Their current dependent step records exactly characterize the

@@ -361,10 +361,16 @@ marked-premise span; `FiredCounterExact` counts connective constructors in the
 actual live production trees. Empty state and successful initialization
 establish the combined `SchedulerInvariant` for structurally well-formed
 certificates, including either search orientation of the submitted axiom.
-Occurrence-faithful internal component provenance, full-rule preservation,
-`forward`/`unify`, dispatcher progress, completeness, and linearity remain
-open. A local `wait` records a promise and is not counted as an already
-constructed connective.
+The synchronized `PreparedStep` now preserves every current state-only field:
+the active ready occurrence is removed and raw-marked while its already-live
+component frontier, every other ready bucket, waiting span, queue uniqueness,
+premise coverage, and counter equation are transported exactly. Exact
+`ConclStep`/`NopStep` witnesses and successful `concl?`/`nop?` calls inherit
+that theorem because their output is `prepared.after`. This does not add
+occurrence-faithful internal component provenance or a reachability claim.
+Preservation through `wait`, complete `forward`/`unify`, dispatcher progress,
+completeness, and linearity remain open. A local `wait` records a promise and
+is not counted as an already constructed connective.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
 fresh-boundary lemma and the production old/fresh representative lemmas align
