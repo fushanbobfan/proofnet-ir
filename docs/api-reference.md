@@ -4920,6 +4920,50 @@ recursive helper part of the callable API.
 ProofNetIR.Certificate.FirstOccurrencePick : List ProofNetIR.Vertex → Nat → Nat → List ProofNetIR.Vertex → Prop
 ```
 
+### `ProofNetIR.Certificate.FirstOccurrencePick.exists_of_mem`
+
+Kind: theorem.
+
+Every listed occurrence admits an exact public first-occurrence pick.
+
+The recursive executable picker remains an implementation detail; this
+wrapper is the stable proposition-level interface needed by scheduler proofs
+that activate a finite waiting payload.
+
+```lean
+ProofNetIR.Certificate.FirstOccurrencePick.exists_of_mem : ∀ {source : List ProofNetIR.Vertex} {vertex : ProofNetIR.Vertex},
+  vertex ∈ source → ∃ index remaining, ProofNetIR.Certificate.FirstOccurrencePick source vertex index remaining
+```
+
+### `ProofNetIR.Certificate.FirstOccurrencePick.mem_remaining_of_ne`
+
+Kind: theorem.
+
+Picking one occurrence preserves every differently named occurrence in
+the returned remainder.
+
+```lean
+ProofNetIR.Certificate.FirstOccurrencePick.mem_remaining_of_ne : ∀ {source remaining : List ProofNetIR.Vertex} {selected candidate index : Nat},
+  ProofNetIR.Certificate.FirstOccurrencePick source selected index remaining →
+    candidate ≠ selected → candidate ∈ source → candidate ∈ remaining
+```
+
+### `ProofNetIR.Certificate.FirstOccurrencePick.two_of_mem`
+
+Kind: theorem.
+
+Two distinct listed occurrences admit exact consecutive public picks.
+
+```lean
+ProofNetIR.Certificate.FirstOccurrencePick.two_of_mem : ∀ {source : List ProofNetIR.Vertex} {left right : ProofNetIR.Vertex},
+  left ≠ right →
+    left ∈ source →
+      right ∈ source →
+        ∃ leftIndex afterLeft rightIndex context,
+          ProofNetIR.Certificate.FirstOccurrencePick source left leftIndex afterLeft ∧
+            ProofNetIR.Certificate.FirstOccurrencePick afterLeft right rightIndex context
+```
+
 ### `ProofNetIR.Certificate.queuePar?`
 
 Kind: definition.
@@ -8561,6 +8605,379 @@ semantics, global queue provenance, or completeness.
 
 ```lean
 ProofNetIR.SequentialSchedulerBridge.ReservationInvariant : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.CutFreeDerivation.connectiveCount`
+
+Kind: definition.
+
+Number of multiplicative connective constructors in a derivation tree.
+Exchange contributes no logical connective.
+
+```lean
+ProofNetIR.CutFreeDerivation.connectiveCount : ProofNetIR.CutFreeDerivation → Nat
+```
+
+### `ProofNetIR.UnificationComponent.connectiveCount`
+
+Kind: definition.
+
+Number of already constructed multiplicative connectives in one live
+production component.
+
+```lean
+ProofNetIR.UnificationComponent.connectiveCount : ProofNetIR.UnificationComponent → Nat
+```
+
+### `ProofNetIR.UnificationState.liveFrontierVertices`
+
+Kind: definition.
+
+Frontier occurrences of every live component slot, in raw component-array
+order. Retired slots contribute no occurrences.
+
+```lean
+ProofNetIR.UnificationState.liveFrontierVertices : ProofNetIR.UnificationState → List ProofNetIR.Vertex
+```
+
+### `ProofNetIR.UnificationState.liveConnectiveCount`
+
+Kind: definition.
+
+Total number of constructed multiplicative connectives across all live
+component slots.  Retired slots contribute zero.
+
+```lean
+ProofNetIR.UnificationState.liveConnectiveCount : ProofNetIR.UnificationState → Nat
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.ComponentDomainExact`
+
+Kind: definition.
+
+Live raw component slots are exactly the current `sigma` boundaries.
+
+The statement uses raw component-array slots rather than `componentAt?`, whose
+representative lookup would make the reverse direction tautological after a
+union.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.ComponentDomainExact : ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.LiveFrontiersNodup`
+
+Kind: definition.
+
+No formula occurrence appears in two live production frontiers (or twice
+inside one live frontier).
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.LiveFrontiersNodup : ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.ReadyBucketFrontierExact`
+
+Kind: definition.
+
+Every aligned ready bucket is exactly the raw-unmarked frontier of the
+live component stored at its matching `sigma` boundary.
+
+This is an extensional membership statement.  It intentionally does not
+identify the deterministic list order with the set order used in the paper.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.ReadyBucketFrontierExact : ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.QueuedVerticesNodup`
+
+Kind: definition.
+
+Every scheduler-queued occurrence appears exactly once across all ready
+and initialized waiting payloads.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.QueuedVerticesNodup : ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked`
+
+Kind: definition.
+
+Scheduler-queued occurrences have not yet received a raw mark.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked : ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.Produced`
+
+Kind: definition.
+
+Observable production evidence in the current executable state: a raw
+mark or membership in a live production-component frontier.  The second
+disjunct covers constructed conclusions that remain deliberately unmarked
+while queued.
+
+This predicate does not, by itself, recover the certificate-link identity of
+an internal derivation-tree node.  Exact internal occurrence provenance is a
+separate obligation for the complete Figure-7 rules.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.Produced : ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.ProducedPremisesMarked`
+
+Kind: definition.
+
+Causal production discipline for submitted multiplicative links.
+
+Whenever a submitted par or tensor conclusion has observable production
+evidence, both of its submitted premises have concrete raw marks.  Combined
+with the pre-prefix fact that a selected ready premise is raw-unmarked, this
+supplies the contradiction needed to rule out an observably produced
+conclusion before a future `forward`/`unify` firing.
+
+This is a necessary state predicate, not a runtime scan and not yet a complete
+occurrence-faithful account of internal derivation nodes.  Repeated formula
+labels mean that `FormulaConsistent` alone cannot identify an internal tree
+node with one exact certificate link; that provenance remains an explicit
+pre-rule obligation.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.ProducedPremisesMarked : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.WaitingSpanExact`
+
+Kind: definition.
+
+Exact semantic span carried by one delayed par conclusion.
+
+Every waiting occurrence names its unique submitted par producer.  Its two
+premises are already marked: the older raw age maps to the waiting cell's
+boundary and the younger raw age maps to a strictly later boundary.  In the
+combined scheduler invariant, `RealizesSigma` and premise coverage relate
+those boundaries to live components; this predicate alone does not assert
+frontier membership.  The disjunction retains which submitted premise is the
+older one without imposing a list order on the waiting bucket.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.WaitingSpanExact : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.PendingPremisesCoveredExceptReady`
+
+Kind: definition.
+
+Pending-premise coverage adapted to delayed conclusion marking.
+
+A connective whose conclusion is already in a ready bucket has been
+constructed even though its raw mark is deliberately still undefined. Every
+other raw-unmarked connective must expose each marked premise in its live
+component. Waiting conclusions are not exempt: their pars have not yet been
+constructed.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.PendingPremisesCoveredExceptReady : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.FiredCounterExact`
+
+Kind: definition.
+
+The production firing counter equals the number of logical connective
+constructors actually present in live production components.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.FiredCounterExact : ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant`
+
+Kind: inductive type.
+
+Non-circular semantic invariant for the currently constructed scheduler
+state.
+
+This foundation says nothing about dispatcher progress, full-rule
+reachability, token-age strategy, fallback removal, or whole-program
+complexity.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.empty_schedulerInvariant`
+
+Kind: theorem.
+
+On a structurally well-formed certificate, the exact empty state has no
+produced occurrence, live component, ready work, waiting promise, or fired
+connective.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.empty_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate
+      (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.componentDomainExact`
+
+Kind: theorem.
+
+A successful initial reservation establishes the exact live-component
+domain.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.componentDomainExact : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.ComponentDomainExact after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.reached_ne_partner`
+
+Kind: theorem.
+
+The two search-oriented endpoints retained by a successful initial
+reservation are distinct.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.reached_ne_partner : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  step.reached ≠ step.partner
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.liveFrontiersNodup`
+
+Kind: theorem.
+
+The sole live initial axiom frontier contains each occurrence once.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.liveFrontiersNodup : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.LiveFrontiersNodup after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.queuedVerticesNodup`
+
+Kind: theorem.
+
+The initial ready pair is globally duplicate-free; the waiting table is
+still empty.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.queuedVerticesNodup : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.QueuedVerticesNodup after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.queuedVerticesUnmarked`
+
+Kind: theorem.
+
+Both search-oriented initial endpoints are raw-unmarked.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.queuedVerticesUnmarked : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.readyBucketFrontierExact`
+
+Kind: theorem.
+
+A successful initial reservation aligns its search-oriented ready pair
+extensionally with the submitted-orientation axiom frontier.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.readyBucketFrontierExact : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.ReadyBucketFrontierExact after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.producedPremisesMarked`
+
+Kind: theorem.
+
+Initial production contains only the submitted axiom component.  Structural
+formula ownership prevents either atomic frontier endpoint from simultaneously
+being the conclusion of a submitted par or tensor, so the causal production
+obligation holds before any premise has been marked.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.producedPremisesMarked : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    ∀ (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+      ProofNetIR.SequentialSchedulerBridge.ProducedPremisesMarked certificate after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.waitingSpanExact`
+
+Kind: theorem.
+
+The initial reservation has no waiting payload.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.waitingSpanExact : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.WaitingSpanExact certificate after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.pendingPremisesCoveredExceptReady`
+
+Kind: theorem.
+
+No premise is marked immediately after initial reservation, so delayed
+pending-premise coverage holds independently of the certificate's later
+connective structure.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.pendingPremisesCoveredExceptReady : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.PendingPremisesCoveredExceptReady certificate after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.firedCounterExact`
+
+Kind: theorem.
+
+The first reserved component is an axiom tree, so its exact live
+connective count is zero.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.firedCounterExact : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.FiredCounterExact after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.schedulerInvariant`
+
+Kind: theorem.
+
+Every successful exact initial wrapper call establishes the complete
+state-based scheduler foundation.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
 ### `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?`

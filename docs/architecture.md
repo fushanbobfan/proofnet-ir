@@ -370,12 +370,43 @@ level. The paper's cells are sets, so the list order is an executable project
 choice. Component-frontier derivation/exchange order is not scheduler-ready
 list order; the eventual wrapper must relate them by membership/permutation,
 not definitional list equality. Shape preservation requires explicit merged
-`Nodup` and payload-bound
-proofs and performs no global queue scan.
+`Nodup` and payload-bound proofs and performs no global queue scan.
 
-The complete `forward`/`unify` payload rules, global waiting-payload ownership,
-integration of `concl`/`nop`/`wait` into a full rule history/dispatcher,
-later-state totality, correct-state progress,
+`SequentialSchedulerInvariant.lean` now supplies that semantic foundation
+without defining reachability in terms of the invariant. The bundle carries
+`StructurallyWellFormed` explicitly. `ComponentDomainExact` identifies raw live
+component slots with `sigma` boundaries;
+`ReadyBucketFrontierExact` relates each aligned ready bucket by membership to
+the raw-unmarked frontier of that live component; live frontiers and the
+combined ready/waiting queue are globally `Nodup`, every queued occurrence is
+raw-unmarked, and `PendingPremisesCoveredExceptReady` keeps marked premises of
+not-yet-constructed connectives on a live frontier. `Produced` records
+observable production by a concrete raw mark or live-frontier membership,
+while `ProducedPremisesMarked` requires concrete raw marks on both submitted
+premises of every such par/tensor. Combined with the pre-prefix unmarkedness
+of a selected ready premise, this is the necessary causal contradiction for
+an observably produced conclusion. It does not yet bind internal
+derivation-tree nodes to exact certificate-link occurrences: repeated formula
+labels make `FormulaConsistent` insufficient for that purpose.
+`WaitingSpanExact` records
+each delayed par's unique submitted producer, raw-unmarked conclusion, two
+marked premises, and strict older-to-younger scheduler span; and
+`FiredCounterExact` counts logical
+connective constructors actually present in live component trees. The exact
+empty state and every successful initial reservation on a structurally
+well-formed certificate satisfy their combined `SchedulerInvariant`. The
+initial proof explicitly handles the possible search/submitted axiom
+orientation reversal. This is a foundation checkpoint:
+occurrence-faithful internal component provenance, preservation of these
+fields (including global queue uniqueness) through complete
+`forward`/`unify`, dispatcher progress, and completeness remain open.
+In particular, the local `wait?` only records a waiting promise; it does not
+falsely count that par as already constructed.
+
+The complete `forward`/`unify` payload rules, preservation and reachability of
+global waiting-payload ownership through those rules, integration of
+`concl`/`nop`/`wait` into a full rule history/dispatcher, later-state totality,
+correct-state progress,
 pure-worklist completeness, fallback removal, and whole-program linearity
 remain open. Full `unify` must additionally bind the tensor representatives
 to exact scheduler `j/i`, orient `parent[i] := j`, and construct or activate

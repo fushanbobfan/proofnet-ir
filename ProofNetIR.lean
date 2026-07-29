@@ -32,6 +32,7 @@ import ProofNetIR.SequentialSchedulerBridge
 import ProofNetIR.SequentialFigure7New
 import ProofNetIR.SequentialFigure7History
 import ProofNetIR.SequentialFigure7Rules
+import ProofNetIR.SequentialSchedulerInvariant
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

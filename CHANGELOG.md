@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+- added `SequentialSchedulerInvariant.lean`, the first non-circular semantic
+  Figure-7 state bundle. It carries `StructurallyWellFormed` explicitly.
+  `ComponentDomainExact` equates live raw component slots with `sigma`
+  boundaries; `ReadyBucketFrontierExact` relates aligned ready buckets
+  extensionally to raw-unmarked component frontiers without claiming
+  Guerrini's set cells determine the internal list order. The bundle also
+  requires global live-frontier and combined ready/waiting queue `Nodup`,
+  raw-unmarkedness of every queued occurrence, and delayed pending-premise
+  coverage outside already constructed ready conclusions.
+  `ProducedPremisesMarked` treats either a concrete raw mark or live-frontier
+  membership as observable production evidence and requires both submitted
+  premises of every such par/tensor to have concrete raw marks. Together with
+  a future rule's pre-prefix unmarked-premise witness, this supplies a
+  necessary anti-reconstruction guard.
+  `WaitingSpanExact` records a delayed par's unique submitted producer,
+  raw-unmarked conclusion, and strict older/younger marked-premise span; and
+  `FiredCounterExact` counts logical connective constructors actually present
+  in live component trees.
+  For a structurally well-formed certificate, the exact empty state and every
+  successful initial reservation satisfy the combined `SchedulerInvariant`,
+  including reversed search orientation. A predicate-level adversarial
+  regression for a structurally well-formed axiom-plus-par certificate rejects
+  a forged raw-unmarked live-frontier conclusion whose premises are unmarked.
+  Exact occurrence provenance for internal component-tree nodes remains open:
+  repeated formula labels mean `FormulaConsistent` is not a link-identity
+  witness.
+  This does not yet prove preservation through complete `forward`/`unify`,
+  dispatcher progress, completeness, or linearity;
+- exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
+  `mem_remaining_of_ne`, and `two_of_mem` wrappers for future deterministic
+  waiting-payload activation while retaining the recursive executable picker
+  as a private implementation detail;
 - added four bounded production-core primitives needed by later Figure-7
   `forward`/`unify`, without claiming either complete rule.
   `Certificate.queuePar?` and `Certificate.queueTensor?` reuse the production

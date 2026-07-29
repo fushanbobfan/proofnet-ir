@@ -339,6 +339,32 @@ characterizes initialized cells, not ownership or correctness of their
   payloads. The local `wait` rule below proves one exact initialized-cell
   transfer, but the invariant still does not establish its global ownership;
   `unify` remains absent.
+`SequentialSchedulerInvariant.lean` adds a stronger, still state-only
+foundation without conflating invariance with reachability:
+the bundle carries `StructurallyWellFormed` explicitly,
+`ComponentDomainExact` matches live raw component slots to `sigma`,
+`ReadyBucketFrontierExact` matches aligned ready buckets extensionally to
+raw-unmarked component frontiers, live frontiers and the combined
+ready/waiting queue are globally `Nodup`, every queued occurrence is
+raw-unmarked, and delayed pending-premise coverage exempts only already
+constructed ready conclusions. `Produced` records observable production as
+either a concrete raw mark or live-frontier membership;
+`ProducedPremisesMarked` requires both submitted premises of every such
+par/tensor to have concrete raw marks. Together with a future rule's
+pre-prefix unmarked-premise witness, this is a necessary causal
+anti-reconstruction guard. It is not yet exact internal link provenance:
+repeated formula labels mean `FormulaConsistent` alone cannot bind every
+internal derivation node to one certificate-link occurrence.
+`WaitingSpanExact` gives every delayed par an
+exact unique producer, raw-unmarked conclusion, and strict older/younger
+marked-premise span; `FiredCounterExact` counts connective constructors in the
+actual live production trees. Empty state and successful initialization
+establish the combined `SchedulerInvariant` for structurally well-formed
+certificates, including either search orientation of the submitted axiom.
+Occurrence-faithful internal component provenance, full-rule preservation,
+`forward`/`unify`, dispatcher progress, completeness, and linearity remain
+open. A local `wait` records a promise and is not counted as an already
+constructed connective.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
 fresh-boundary lemma and the production old/fresh representative lemmas align
@@ -358,11 +384,13 @@ now composes pop-before-mark, raw-age marking, orientation-aware binary-mate
 lookup, post-mark `NEXTAXIOM`, and later reservation under a supplied
 `ReservationInvariant`; its canonical regression yields marks/sigma/ready
 `μ(0)=0`, `σ=[0,1]`, and `R=[[1],[2,3]]`, with `W(0)=∅` and the fresh
-`W(1)=⊥`. The invariant does not yet express semantic ownership of ready or
-  waiting payloads, global queue uniqueness, later-state totality, or the
-  transition semantics for `forward`/`unify`. The exact local
-  `concl`/`nop`/`wait` rules are not yet integrated into a full reachable
-  history or dispatcher. The separate
+`W(1)=⊥`. The `ReservationInvariant` supplied to this local transition does
+not by itself express semantic ownership or global queue uniqueness. The
+stronger state-only `SchedulerInvariant` above expresses those obligations,
+but preservation through `forward`/`unify`, later-state totality, and the exact
+transition semantics remain open. The exact local `concl`/`nop`/`wait` rules
+are not yet integrated into a full reachable history or dispatcher. The
+separate
 `InitNewHistory` proves exact tag history, whole-history submitted-slot
 non-reuse, and event-counter alignment only for genuine empty/init/new
 executions. Correct-state progress, pure-worklist completeness, fallback
@@ -726,9 +754,9 @@ reservation. Its input carries `ReservationInvariant`, which alone is not a
 reachable-scheduler certificate. The dedicated `InitNewHistory` now records
 only genuine empty/init/new executions and proves exact tags-as-touched,
 whole-history submitted-slot non-reuse, and reservation-count alignment.
-Ready/waiting payload ownership, global queue uniqueness, `forward`/`unify`,
-integration of local `concl`/`nop`/`wait` into full-rule history, and a total
-later-state transition system remain open.
+Preservation of ready/waiting payload ownership and global queue uniqueness
+through `forward`/`unify`, integration of local `concl`/`nop`/`wait` into
+full-rule history, and a total later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program

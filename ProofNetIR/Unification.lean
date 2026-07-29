@@ -2879,6 +2879,46 @@ def FirstOccurrencePick (source : List Vertex) (vertex index : Nat)
     (remaining : List Vertex) : Prop :=
   pickVertex? source vertex = some (index, remaining)
 
+namespace FirstOccurrencePick
+
+/-- Every listed occurrence admits an exact public first-occurrence pick.
+
+The recursive executable picker remains an implementation detail; this
+wrapper is the stable proposition-level interface needed by scheduler proofs
+that activate a finite waiting payload. -/
+theorem exists_of_mem
+    {source : List Vertex} {vertex : Vertex}
+    (membership : vertex ∈ source) :
+    ∃ index remaining,
+      FirstOccurrencePick source vertex index remaining := by
+  exact pickVertex?_exists_of_mem membership
+
+/-- Picking one occurrence preserves every differently named occurrence in
+the returned remainder. -/
+theorem mem_remaining_of_ne
+    {source remaining : List Vertex}
+    {selected candidate index : Nat}
+    (picked :
+      FirstOccurrencePick source selected index remaining)
+    (different : candidate ≠ selected)
+    (membership : candidate ∈ source) :
+    candidate ∈ remaining := by
+  exact pickVertex?_mem_remaining_of_ne picked different membership
+
+/-- Two distinct listed occurrences admit exact consecutive public picks. -/
+theorem two_of_mem
+    {source : List Vertex} {left right : Vertex}
+    (different : left ≠ right)
+    (leftMembership : left ∈ source)
+    (rightMembership : right ∈ source) :
+    ∃ leftIndex afterLeft rightIndex context,
+      FirstOccurrencePick source left leftIndex afterLeft ∧
+        FirstOccurrencePick afterLeft right rightIndex context := by
+  exact pickVertex?_two_of_mem different
+    leftMembership rightMembership
+
+end FirstOccurrencePick
+
 /-- Build one delayed Figure-7 par component without assigning a raw mark to
 its conclusion.
 

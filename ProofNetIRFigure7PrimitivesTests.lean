@@ -1,4 +1,4 @@
-import ProofNetIR.SequentialSchedulerBridge
+import ProofNetIR.SequentialSchedulerInvariant
 
 namespace ProofNetIR
 
@@ -6,6 +6,143 @@ open SequentialSchedulerState
 open SequentialSchedulerState.SequentialStackState
 
 namespace Figure7PrimitivesTests
+
+open SequentialSchedulerBridge
+
+private def axiomCertificate : Certificate where
+  formulas := #[.atom "p" true, .atom "p" false]
+  links := [.axiom 0 1]
+  conclusions := [0, 1]
+
+private theorem axiomCertificate_structural :
+    axiomCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      axiomCertificate).mp (by native_decide)
+
+private def parCertificate : Certificate where
+  formulas := #[
+    .atom "p" true,
+    .atom "p" false,
+    .par (.atom "p" true) (.atom "p" false)]
+  links := [.axiom 0 1, .par 0 1 2]
+  conclusions := [2]
+
+private theorem parCertificate_structural :
+    parCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      parCertificate).mp (by native_decide)
+
+private def forgedProducedParState : ReservationState where
+  stack := SequentialStackState.empty parCertificate.formulas.size
+  core := {
+    marks := #[none, none, none]
+    parents := #[0]
+    components := #[some {
+      tree := .axiom "p" true
+      frontier := [2] }]
+    startedAxioms := 1
+    firedConnectives := 0 }
+  tags := Array.replicate parCertificate.formulas.size false
+
+/-- Regression for the reviewed causal gap: structural certificate ownership
+alone does not make a forged unmarked live-frontier conclusion safe. The new
+predicate rejects it because its submitted premises have no concrete marks. -/
+example :
+    parCertificate.StructurallyWellFormed ∧
+      ¬ ProducedPremisesMarked parCertificate
+        forgedProducedParState := by
+  refine ⟨parCertificate_structural, ?_⟩
+  intro causal
+  have produced : Produced forgedProducedParState 2 :=
+    Or.inr (by native_decide)
+  have premiseMarks :=
+    causal (link := .par 0 1 2) (by native_decide) produced
+  rcases premiseMarks.1 with ⟨age, lookup⟩
+  simp [forgedProducedParState] at lookup
+
+/-- The public first-occurrence wrapper retains the exact executable first
+pick while keeping the recursive helper private. -/
+example :
+    Certificate.FirstOccurrencePick [2, 1, 2] 2 0 [1, 2] := by
+  rfl
+
+example :
+    1 ∈ ([1, 2] : List Vertex) := by
+  exact Certificate.FirstOccurrencePick.mem_remaining_of_ne
+    (show
+      Certificate.FirstOccurrencePick [2, 1, 2] 2 0 [1, 2] by rfl)
+    (by decide) (by decide)
+
+example :
+    ∃ leftIndex afterLeft rightIndex context,
+      Certificate.FirstOccurrencePick [2, 1, 3] 2
+          leftIndex afterLeft ∧
+        Certificate.FirstOccurrencePick afterLeft 3
+          rightIndex context := by
+  exact Certificate.FirstOccurrencePick.two_of_mem
+    (by decide) (by decide) (by decide)
+
+/-- Initialization executes on the smallest valid axiom certificate and its
+typed witness establishes the complete state-based scheduler foundation. -/
+example :
+    SchedulerInvariant axiomCertificate
+      (ReservationState.empty axiomCertificate) :=
+  empty_schedulerInvariant axiomCertificate_structural
+
+example :
+    ∃ after,
+      initializeReservation? axiomCertificate 0 = some after ∧
+        SchedulerInvariant axiomCertificate after := by
+  have existsResult :
+      (initializeReservation? axiomCertificate 0).isSome = true := by
+    native_decide
+  cases equation :
+      initializeReservation? axiomCertificate 0 with
+  | none =>
+      simp [equation] at existsResult
+  | some after =>
+      refine ⟨after, rfl, ?_⟩
+      rcases initializeReservation?_some_iff.mp equation with ⟨step⟩
+      exact step.schedulerInvariant axiomCertificate_structural
+
+/-- Starting from the submitted right endpoint reverses only the scheduler
+ready order; the live production frontier retains submitted orientation. -/
+example :
+    (match initializeReservation? axiomCertificate 1 with
+    | none => false
+    | some after =>
+        after.stack.ready == [[1, 0]] &&
+          match after.core.components[0]? with
+          | some (some component) =>
+              component.frontier == [0, 1]
+          | _ => false) = true := by
+  native_decide
+
+example :
+    ∃ after,
+      initializeReservation? axiomCertificate 1 = some after ∧
+        SchedulerInvariant axiomCertificate after := by
+  have existsResult :
+      (initializeReservation? axiomCertificate 1).isSome = true := by
+    native_decide
+  cases equation :
+      initializeReservation? axiomCertificate 1 with
+  | none =>
+      simp [equation] at existsResult
+  | some after =>
+      refine ⟨after, rfl, ?_⟩
+      rcases initializeReservation?_some_iff.mp equation with ⟨step⟩
+      exact step.schedulerInvariant axiomCertificate_structural
+
+/-- Counter accounting counts logical connective constructors in live trees;
+exchange is bookkeeping rather than a firing. -/
+example :
+    CutFreeDerivation.connectiveCount
+      (.exchange [0]
+        (.par 0 1 (.axiom "p" true))) = 1 := by
+  rfl
 
 private def stackFixture : SequentialStackState where
   marks := #[none, none]
