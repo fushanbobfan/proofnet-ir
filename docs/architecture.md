@@ -335,10 +335,13 @@ candidates. `nop` instead retains an exact submitted par and requires its
 opposite premise to remain raw unmarked after the selected premise is marked.
 The mate-distinctness and pre-state guard theorem proves that this is exactly
 the paper's `μ(u₂)=⊥` condition rather than a weakened post-state surrogate.
-These dependent rule witnesses are intentionally executable-shaped: they
-retain the `prepare?` and query equations. An independent Boolean-free
-Figure-7 relation plus executable refinement/completeness remains part of the
-future full dispatcher.
+The dependent rule witnesses remain executable-shaped and retain `prepare?`
+and query equations. A separate direct `RulePrefixAt`/`ConclRule`/`NopRule`
+layer is Boolean-free and independent of those functions. Executable
+soundness and completeness relative to that layer are kernel checked under
+whole-certificate `StructurallyWellFormed` and the supplied
+`ReservationInvariant`; direct outputs are unique. This is still a
+determinized list-level local relation, not a complete dispatcher.
 
 The `wait`/`forward`/`unify` payload rules, integration of `concl`/`nop` into a
 full rule history/dispatcher, later-state totality, correct-state progress,

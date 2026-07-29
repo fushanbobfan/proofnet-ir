@@ -145,11 +145,17 @@ preserve `ReservationInvariant`, and both return exactly the prefix state.
 `NopStep.mate_unmarked_before` proves that this post-prefix executable guard
 is the paper's pre-state `μ(u₂)=⊥` guard, because the locally well-formed mate
 is distinct from the only occurrence written by the prefix.
-The current `ConclStep`/`NopStep` specifications deliberately retain the
-equations returned by `prepare?` and the canonical queries. They exactly
-characterize executable success, but they are not yet an independent
-Boolean-free Figure-7 transition relation; that refinement/completeness layer
-belongs to the full dispatcher.
+`RulePrefixAt`, `ConclRule`, and `NopRule` now give a separate Boolean-free
+direct state relation: they mention neither `prepare?` nor either canonical
+query or rule executable. The old `ConclStep`/`NopStep` records remain as
+compatible equation-backed executable witnesses. Lean proves both executable
+soundness and valid-guard completeness for the direct relations under
+`StructurallyWellFormed` plus the supplied `ReservationInvariant`, and proves
+each relation has a unique output. `NopRule` states the paper-level `μ` guard
+directly as `before.core.marks`. Separately, the supplied invariant's
+`RealizesSigma.marks_eq` justifies identifying that
+production view with the delayed-stack `μ` view; neither statement identifies
+raw ages with union-find representatives.
 `NodeWellFormed` is a local ownership guard, not a replacement for
 `StructurallyWellFormed` or `check`: an eventual untrusted dispatcher must
 carry a checked/structural certificate gate and full reachable-state
@@ -1109,9 +1115,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 168 public MLL logical-boundary theorems against the exact
+separately audits 176 public MLL logical-boundary theorems against the exact
 axiom set `[propext, Classical.choice, Quot.sound]`, plus 23 axiom-free,
-65 `propext`-only, and 64 `propext`/`Quot.sound` boundaries. LeanProp
+65 `propext`-only, and 68 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.

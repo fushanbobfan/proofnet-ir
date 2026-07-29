@@ -8861,6 +8861,72 @@ ProofNetIR.SequentialFigure7.prepare? : (before : ProofNetIR.SequentialScheduler
   Option (ProofNetIR.SequentialFigure7.PreparedStep before)
 ```
 
+### `ProofNetIR.SequentialFigure7.RulePrefixAt`
+
+Kind: definition.
+
+Independent proposition-level meaning of the synchronized common prefix
+at one selected occurrence and raw age.
+
+This relation does not mention `prepare?`, either executable query, or either
+rule executable.  It directly states the list decomposition selected by the
+concrete scheduler policy and the two synchronized raw-mark updates.
+
+```lean
+ProofNetIR.SequentialFigure7.RulePrefixAt : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.Vertex → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.RulePrefix`
+
+Kind: definition.
+
+Existential form of the independent common-prefix relation.
+
+```lean
+ProofNetIR.SequentialFigure7.RulePrefix : ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.RulePrefix.ofPrepared`
+
+Kind: theorem.
+
+Every successful executable prefix realizes the independent direct state
+relation.
+
+```lean
+ProofNetIR.SequentialFigure7.RulePrefix.ofPrepared : ∀ {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (prepared : ProofNetIR.SequentialFigure7.PreparedStep before),
+  ProofNetIR.SequentialFigure7.RulePrefixAt before prepared.after prepared.stackResult.vertex
+    prepared.stackResult.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.RulePrefix.output_unique`
+
+Kind: theorem.
+
+The direct common-prefix relation has a unique output for a fixed input.
+
+```lean
+ProofNetIR.SequentialFigure7.RulePrefix.output_unique : ∀ {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.RulePrefix before first →
+    ProofNetIR.SequentialFigure7.RulePrefix before second → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.ConclRule`
+
+Kind: definition.
+
+Independent Boolean-free local Figure-7 `concl` relation for the
+unit-free certificate model.  On structurally valid input, declared boundary
+membership already entails that the occurrence has no consumer.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclRule : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
 ### `ProofNetIR.SequentialFigure7.concl?`
 
 Kind: definition.
@@ -8924,6 +8990,88 @@ ProofNetIR.SequentialFigure7.concl?_reservationInvariant : ∀ {certificate : Pr
   (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
   ProofNetIR.SequentialFigure7.concl? certificate before invariant = some after →
     ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.toRule`
+
+Kind: theorem.
+
+The equation-backed executable witness refines the independent direct
+`concl` relation.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  ProofNetIR.SequentialFigure7.ConclRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_sound`
+
+Kind: theorem.
+
+Executable `concl` is sound for the independent direct relation without
+assuming global certificate validity.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.concl? certificate before invariant = some after →
+    ProofNetIR.SequentialFigure7.ConclRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_complete_of_structural`
+
+Kind: theorem.
+
+On structurally valid input, the independent direct `concl` guard is
+complete for the executable rule.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_complete_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.ConclRule certificate before after →
+        ProofNetIR.SequentialFigure7.concl? certificate before invariant = some after
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_some_iff_rule_of_structural`
+
+Kind: theorem.
+
+Exact executable/declarative correspondence for `concl` under the
+certificate validity needed to make the paper guard unambiguous.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_some_iff_rule_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.concl? certificate before invariant = some after ↔
+        ProofNetIR.SequentialFigure7.ConclRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.ConclRule.output_unique`
+
+Kind: theorem.
+
+The independent `concl` relation has a unique output.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclRule.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ConclRule certificate before first →
+    ProofNetIR.SequentialFigure7.ConclRule certificate before second → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.NopRule`
+
+Kind: definition.
+
+Independent Boolean-free local Figure-7 `nop` relation.  The exact
+submitted par slot and its stored premise orientation are retained, while the
+paper guard is stated in the pre-prefix raw mark state.
+
+```lean
+ProofNetIR.SequentialFigure7.NopRule : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
 ```
 
 ### `ProofNetIR.SequentialFigure7.nop?`
@@ -9018,6 +9166,75 @@ ProofNetIR.SequentialFigure7.nop?_reservationInvariant : ∀ {certificate : Proo
   (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
   ProofNetIR.SequentialFigure7.nop? certificate before invariant = some after →
     ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.toRule`
+
+Kind: theorem.
+
+The equation-backed executable witness refines the independent direct
+`nop` relation.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialFigure7.NopRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_sound`
+
+Kind: theorem.
+
+Executable `nop` is sound for the independent direct relation without
+assuming global certificate validity.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.nop? certificate before invariant = some after →
+    ProofNetIR.SequentialFigure7.NopRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_complete_of_structural`
+
+Kind: theorem.
+
+On structurally valid input, the independent direct `nop` guard is
+complete for the executable rule.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_complete_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.NopRule certificate before after →
+        ProofNetIR.SequentialFigure7.nop? certificate before invariant = some after
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_some_iff_rule_of_structural`
+
+Kind: theorem.
+
+Exact executable/declarative correspondence for `nop` under the
+certificate validity needed to make the paper guard unambiguous.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_some_iff_rule_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.nop? certificate before invariant = some after ↔
+        ProofNetIR.SequentialFigure7.NopRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.NopRule.output_unique`
+
+Kind: theorem.
+
+The independent `nop` relation has a unique output.
+
+```lean
+ProofNetIR.SequentialFigure7.NopRule.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.NopRule certificate before first →
+    ProofNetIR.SequentialFigure7.NopRule certificate before second → first = second
 ```
 
 ## Serialization and untrusted input

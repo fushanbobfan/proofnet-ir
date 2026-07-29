@@ -53,6 +53,33 @@ def figure7ConclTransition :
 
 example : figure7ConclTransition.isSome = true := by native_decide
 
+/- The executable rule and the Boolean-free direct relation agree in both
+directions once the certificate is structurally valid.  This is deliberately
+exercised from an independent downstream Lake package. -/
+
+example
+    {before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7Initial = some before)
+    (transitionEquation :
+      SequentialFigure7.concl? axiomCertificate before
+          (figure7Initial_invariant initialEquation) =
+        some after) :
+    SequentialFigure7.ConclRule axiomCertificate before after :=
+  SequentialFigure7.concl?_sound
+    (figure7Initial_invariant initialEquation) transitionEquation
+
+example
+    {before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7Initial = some before)
+    (rule : SequentialFigure7.ConclRule axiomCertificate before after) :
+    SequentialFigure7.concl? axiomCertificate before
+        (figure7Initial_invariant initialEquation) =
+      some after :=
+  SequentialFigure7.concl?_complete_of_structural
+    (axiomCertificate.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (figure7Initial_invariant initialEquation) rule
+
 def q : Formula := .atom "q" true
 def qDual : Formula := .atom "q" false
 
@@ -89,6 +116,18 @@ def figure7NopTransition :
         (figure7ParInitial_invariant equation)
 
 example : figure7NopTransition.isSome = true := by native_decide
+
+example
+    {before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7ParInitial = some before) :
+    SequentialFigure7.nop? figure7ParCertificate before
+          (figure7ParInitial_invariant initialEquation) =
+        some after ↔
+      SequentialFigure7.NopRule figure7ParCertificate before after :=
+  SequentialFigure7.nop?_some_iff_rule_of_structural
+    (figure7ParCertificate.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (figure7ParInitial_invariant initialEquation)
 
 def checkedAxiomCertificate : CutFreeDerivation.CheckedCertificate :=
   ⟨axiomCertificate, by native_decide⟩

@@ -782,8 +782,11 @@
     `concl`/`nop` rules with dependent success characterizations and
     reservation-invariant preservation.
   - [ ] State an independent Boolean-free relation for every Figure-7 rule and
-    prove executable refinement and valid-guard completeness; the current
-    `ConclStep`/`NopStep` witnesses are exact but equation-backed.
+    prove executable refinement and valid-guard completeness. This is now
+    complete for the common prefix, `concl`, and `nop`; their old dependent
+    witnesses remain as exact equation-backed executable compatibility
+    records. The relation and equivalence layer for `wait`, `forward`, `new`,
+    and `unify` remains open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state

@@ -231,8 +231,11 @@ queue uniqueness and ownership, `wait`/`forward`/`unify`, full-history rule
 integration, later-state totality, correct-state progress, pure-worklist
 completeness, fallback removal, and whole-program linearity remain
 unimplemented. Their current dependent step records exactly characterize the
-program equations; an independent Boolean-free Figure-7 relation and its
-refinement/completeness theorem are not yet claimed. `ConclusionBelow`'s
+program equations. Independent Boolean-free direct relations now exist for
+the common prefix, `concl`, and `nop`; executable soundness and completeness
+are proved only under `StructurallyWellFormed` and the supplied
+`ReservationInvariant`, and do not imply reachability or progress.
+`ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
 dispatcher entry point. Future guards must use raw

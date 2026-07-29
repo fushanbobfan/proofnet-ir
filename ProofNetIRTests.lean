@@ -1813,6 +1813,27 @@ example :
         after.core.firedConnectives == 0) = true := by
   native_decide
 
+/-- The concrete `concl` prefix changes only the selected raw mark and ready
+top: age allocation, sigma boundaries, waiting storage, production metadata,
+and search tags are all retained exactly. -/
+example :
+    (match equation : axiomOnlyInitial with
+    | none => false
+    | some before =>
+        match SequentialFigure7.concl? axiomOnly before
+            (axiomOnlyInitial_invariant equation) with
+        | none => false
+        | some after =>
+            after.stack.nextAge == before.stack.nextAge &&
+            after.stack.sigma == before.stack.sigma &&
+            after.stack.waiting == before.stack.waiting &&
+            after.core.parents == before.core.parents &&
+            after.core.components == before.core.components &&
+            after.core.startedAxioms == before.core.startedAxioms &&
+            after.core.firedConnectives == before.core.firedConnectives &&
+            after.tags == before.tags) = true := by
+  native_decide
+
 example {before after : ReservationState}
     (initialEquation : axiomOnlyInitial = some before)
     (conclEquation :
@@ -1822,6 +1843,35 @@ example {before after : ReservationState}
     ReservationInvariant axiomOnly after :=
   SequentialFigure7.concl?_reservationInvariant
     (axiomOnlyInitial_invariant initialEquation) conclEquation
+
+/-- The executable conclusion step exposes the independent Boolean-free rule
+relation, and structural validity makes that relation complete. -/
+example {before after : ReservationState}
+    (initialEquation : axiomOnlyInitial = some before)
+    (conclEquation :
+      SequentialFigure7.concl? axiomOnly before
+          (axiomOnlyInitial_invariant initialEquation) =
+        some after) :
+    SequentialFigure7.ConclRule axiomOnly before after :=
+  SequentialFigure7.concl?_sound
+    (axiomOnlyInitial_invariant initialEquation) conclEquation
+
+example {before after : ReservationState}
+    (initialEquation : axiomOnlyInitial = some before)
+    (rule : SequentialFigure7.ConclRule axiomOnly before after) :
+    SequentialFigure7.concl? axiomOnly before
+        (axiomOnlyInitial_invariant initialEquation) =
+      some after :=
+  SequentialFigure7.concl?_complete_of_structural
+    (axiomOnly.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (axiomOnlyInitial_invariant initialEquation) rule
+
+example {before first second : ReservationState}
+    (left : SequentialFigure7.ConclRule axiomOnly before first)
+    (right : SequentialFigure7.ConclRule axiomOnly before second) :
+    first = second :=
+  left.output_unique right
 
 /-- A deliberately malformed explicit boundary has two distinct consumer
 slots.  The singleton query and an empty bucket can both appear as `none` at
@@ -1845,6 +1895,55 @@ example :
       (ambiguousBoundary.connectiveBelow? 4).isNone = true ∧
       (ambiguousBoundary.conclusionBelow? 4).isNone = true := by
   native_decide
+
+/-- `ConclRule` deliberately states only the paper-level boundary predicate.
+It can therefore be inhabited on malformed input; the executable-completeness
+theorem cannot be applied because structural well-formedness is false. -/
+def malformedConclBefore : ReservationState where
+  stack := {
+    marks := Array.replicate ambiguousBoundary.formulas.size none
+    nextAge := 1
+    sigma := [0]
+    ready := [[4]]
+    waiting :=
+      Array.replicate ambiguousBoundary.formulas.size .undefined }
+  core := {
+    marks := Array.replicate ambiguousBoundary.formulas.size none
+    parents := #[]
+    components := #[]
+    startedAxioms := 0
+    firedConnectives := 0 }
+  tags := Array.replicate ambiguousBoundary.formulas.size false
+
+def malformedConclAfter : ReservationState where
+  stack := {
+    malformedConclBefore.stack with
+    marks :=
+      malformedConclBefore.stack.marks.setIfInBounds 4 (some 0)
+    ready := [[]] }
+  core := {
+    malformedConclBefore.core with
+    marks :=
+      malformedConclBefore.core.marks.setIfInBounds 4 (some 0) }
+  tags := malformedConclBefore.tags
+
+example :
+    SequentialFigure7.ConclRule ambiguousBoundary
+      malformedConclBefore malformedConclAfter := by
+  refine ⟨4, 0, ?_, by simp [ambiguousBoundary]⟩
+  exact ⟨[], [], [], by native_decide, by native_decide,
+    by native_decide, by native_decide, rfl, rfl, rfl⟩
+
+example :
+    ¬ Certificate.StructurallyWellFormed ambiguousBoundary := by
+  intro structural
+  have accepted : ambiguousBoundary.wellFormed = true :=
+    ambiguousBoundary.wellFormed_iff_structurallyWellFormed.mpr
+      structural
+  have rejected : ambiguousBoundary.wellFormed = false := by
+    native_decide
+  rw [rejected] at accepted
+  cases accepted
 
 /-- Declared boundaries that are out of range or have no source incidence are
 also rejected rather than being accepted solely because their consumer bucket
@@ -1902,6 +2001,26 @@ example :
         after.core.firedConnectives == 0) = true := by
   native_decide
 
+/-- The concrete `nop` prefix likewise preserves every non-prefix field,
+including the complete tag array. -/
+example :
+    (match equation : canonicalInitialReservation with
+    | none => false
+    | some before =>
+        match SequentialFigure7.nop? canonical before
+            (canonicalInitialReservation_invariant equation) with
+        | none => false
+        | some after =>
+            after.stack.nextAge == before.stack.nextAge &&
+            after.stack.sigma == before.stack.sigma &&
+            after.stack.waiting == before.stack.waiting &&
+            after.core.parents == before.core.parents &&
+            after.core.components == before.core.components &&
+            after.core.startedAxioms == before.core.startedAxioms &&
+            after.core.firedConnectives == before.core.firedConnectives &&
+            after.tags == before.tags) = true := by
+  native_decide
+
 example {before after : ReservationState}
     (initialEquation : canonicalInitialReservation = some before)
     (nopEquation :
@@ -1911,6 +2030,30 @@ example {before after : ReservationState}
     ReservationInvariant canonical after :=
   SequentialFigure7.nop?_reservationInvariant
     (canonicalInitialReservation_invariant initialEquation) nopEquation
+
+/-- The canonical stored-left par step satisfies the independent pre-state
+rule and the structural completeness direction reconstructs the exact same
+executable output. -/
+example {before after : ReservationState}
+    (initialEquation : canonicalInitialReservation = some before)
+    (nopEquation :
+      SequentialFigure7.nop? canonical before
+          (canonicalInitialReservation_invariant initialEquation) =
+        some after) :
+    SequentialFigure7.NopRule canonical before after :=
+  SequentialFigure7.nop?_sound
+    (canonicalInitialReservation_invariant initialEquation) nopEquation
+
+example {before after : ReservationState}
+    (initialEquation : canonicalInitialReservation = some before)
+    (rule : SequentialFigure7.NopRule canonical before after) :
+    SequentialFigure7.nop? canonical before
+        (canonicalInitialReservation_invariant initialEquation) =
+      some after :=
+  SequentialFigure7.nop?_complete_of_structural
+    (canonical.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (canonicalInitialReservation_invariant initialEquation) rule
 
 /-- The same executable `nop` handles a selected stored-right premise rather
 than silently assuming the submitted left/right orientation. -/
@@ -1938,6 +2081,74 @@ example :
               after.stack.marks[2]? == some none &&
               after.stack.ready == [[2]]) = true := by
   native_decide
+
+/-- Stored-right orientation is covered by the same independent
+executable/declarative equivalence rather than a left-premise convention. -/
+example {before after : ReservationState}
+    (initialEquation :
+      canonicalStoredRightInitial = some before) :
+    SequentialFigure7.nop? canonical before
+          (canonicalStoredRightInitial_invariant initialEquation) =
+        some after ↔
+      SequentialFigure7.NopRule canonical before after :=
+  SequentialFigure7.nop?_some_iff_rule_of_structural
+    (canonical.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (canonicalStoredRightInitial_invariant initialEquation)
+
+example {before first second : ReservationState}
+    (left : SequentialFigure7.NopRule canonical before first)
+    (right : SequentialFigure7.NopRule canonical before second) :
+    first = second :=
+  left.output_unique right
+
+/-- A minimal relation-level negative fixture: the selected stored-left par
+premise is raw, but its mate is already marked.  Thus no `NopRule` output is
+possible, independently of the executable checker. -/
+def nopMateMarkedCertificate : Certificate where
+  formulas := #[p, pDual, .par p pDual]
+  links := [.par 0 1 2]
+  conclusions := [2]
+
+def nopMateMarkedBefore : ReservationState where
+  stack := {
+    marks := #[none, some 0, none]
+    nextAge := 1
+    sigma := [0]
+    ready := [[0]]
+    waiting := Array.replicate 3 .undefined }
+  core := {
+    marks := #[none, some 0, none]
+    parents := #[]
+    components := #[]
+    startedAxioms := 0
+    firedConnectives := 0 }
+  tags := Array.replicate 3 false
+
+example :
+    ¬ ∃ after,
+      SequentialFigure7.NopRule
+        nopMateMarkedCertificate nopMateMarkedBefore after := by
+  rintro ⟨after, vertex, rawAge, linkIndex, storedLeft,
+    storedRight, conclusion, side, prefixRule, linkEquation,
+    premiseEquation, mateUnmarked⟩
+  rcases prefixRule with
+    ⟨readyPrefix, readyTail, sigmaPrefix, readyEquation,
+      sigmaEquation, stackUnmarked, coreUnmarked, _⟩
+  have linkBound : linkIndex <
+      nopMateMarkedCertificate.links.length :=
+    (List.getElem?_eq_some_iff.mp linkEquation).1
+  have linkIndexZero : linkIndex = 0 := by
+    simpa [nopMateMarkedCertificate] using linkBound
+  subst linkIndex
+  simp [nopMateMarkedCertificate] at linkEquation
+  rcases linkEquation with
+    ⟨rfl, rfl, rfl, rfl⟩
+  cases side <;>
+    simp [TensorPremiseSide.premise] at premiseEquation <;>
+    subst vertex <;>
+    simp [TensorPremiseSide.mate, nopMateMarkedBefore]
+      at coreUnmarked mateUnmarked
 
 example {before after : ReservationState}
     (initialEquation :

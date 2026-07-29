@@ -390,7 +390,10 @@ part of the engineering and proof-identity gap.
    checked. Exact local `concl` and `nop` rules now preserve the reservation
    invariant, with conclusion lookup requiring local `NodeWellFormed`
    ownership and distinguishing an empty bucket from ambiguous
-   singleton-query failure. Ready/waiting payload ownership,
+   singleton-query failure. Their independent Boolean-free direct relations,
+   executable soundness, structurally valid completeness, and output
+   uniqueness are kernel checked; this does not establish dispatcher
+   reachability or progress. Ready/waiting payload ownership,
    executable `wait`/`forward`/`unify`, full-history integration of
    `concl`/`nop`, full-rule reachability, later-state selection totality,
    closing-par scheduler-order exclusion, correct-state
@@ -455,10 +458,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 168 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 176 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  65 `propext`-only, and 64 `propext`/`Quot.sound` boundaries;
+  65 `propext`-only, and 68 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

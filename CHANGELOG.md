@@ -15,12 +15,14 @@
   merely because `uniqueConsumer?` returns `none`; out-of-range and unproduced
   declared boundaries also fail closed. `NopStep.mate_unmarked_before` proves
   the executable post-prefix mate guard is exactly the paper's pre-state
-  `μ(u₂)=⊥` guard. The dependent `ConclStep`/`NopStep` records are exact
-  equation-backed executable specifications, not yet an independent
-  Boolean-free Figure-7 rule relation. The pure query rebuilds the consumer
-  table and is not a whole-program linearity claim. `wait`, `forward`,
-  `unify`, a full-rule history/dispatcher, payload ownership, progress, and
-  completeness remain open;
+  `μ(u₂)=⊥` guard. Added independent Boolean-free direct `RulePrefixAt`,
+  `ConclRule`, and `NopRule` relations, executable soundness, completeness
+  under `StructurallyWellFormed` plus `ReservationInvariant`, and output
+  uniqueness. The dependent `ConclStep`/`NopStep` records remain exact
+  equation-backed executable witnesses for compatibility. The pure query
+  rebuilds the consumer table and is not a whole-program linearity claim.
+  `wait`, `forward`, `unify`, a full-rule history/dispatcher, payload
+  ownership, progress, and completeness remain open;
 - added `SequentialFigure7History.lean`, a proof-relevant execution history
   restricted to the exact empty/init/operational-new reservation fragment.
   Kernel-checked theorems prove output tags are true exactly at vertices
@@ -106,8 +108,8 @@
   full-history integration of local `concl`/`nop`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 168 full-classical, 23 axiom-free, 65 `propext`-only, and
-  64 `propext`/`Quot.sound` theorems;
+  audit covers 176 full-classical, 23 axiom-free, 65 `propext`-only, and
+  68 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
   production unifier. `RawTokenAge` records discovery order and is explicitly

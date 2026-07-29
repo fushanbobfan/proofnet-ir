@@ -344,6 +344,171 @@ def prepare? (before : ReservationState) :
             stack_eq := stackEquation
             core_mark_eq := coreEquation }
 
+private theorem exists_prepare?_eq_some_of_ok
+    {before : ReservationState}
+    {stackResult : PopReadyMarkResult}
+    {coreMarked : UnificationState}
+    (stackEquation :
+      before.stack.popReadyMark? = .ok stackResult)
+    (coreEquation :
+      before.core.markReadyRaw?
+          stackResult.vertex stackResult.rawAge =
+        .ok coreMarked) :
+    ∃ prepared, prepare? before = some prepared := by
+  let prepared : PreparedStep before := {
+    stackResult
+    coreMarked
+    stack_eq := stackEquation
+    core_mark_eq := coreEquation }
+  refine ⟨prepared, ?_⟩
+  unfold prepare?
+  split
+  next stackError stackFailure =>
+    rw [stackEquation] at stackFailure
+    simp at stackFailure
+  next actualStack stackSuccess =>
+    have actualStackEq : actualStack = stackResult :=
+      Except.ok.inj (stackSuccess.symm.trans stackEquation)
+    subst actualStack
+    split
+    next coreError coreFailure =>
+      rw [coreEquation] at coreFailure
+      simp at coreFailure
+    next actualCore coreSuccess =>
+      have actualCoreEq : actualCore = coreMarked :=
+        Except.ok.inj (coreSuccess.symm.trans coreEquation)
+      subst actualCore
+      congr 2
+
+/-- Independent proposition-level meaning of the synchronized common prefix
+at one selected occurrence and raw age.
+
+This relation does not mention `prepare?`, either executable query, or either
+rule executable.  It directly states the list decomposition selected by the
+concrete scheduler policy and the two synchronized raw-mark updates. -/
+def RulePrefixAt (before after : ReservationState)
+    (vertex : Vertex) (rawAge : RawTokenAge) : Prop :=
+  ∃ (readyPrefix : List (List Vertex))
+      (readyTail : List Vertex)
+      (sigmaPrefix : List RawTokenAge),
+    before.stack.ready =
+        readyPrefix ++ [vertex :: readyTail] ∧
+    before.stack.sigma =
+        sigmaPrefix ++ [rawAge] ∧
+    before.stack.marks[vertex]? = some none ∧
+    before.core.marks[vertex]? = some none ∧
+    after.stack = {
+      before.stack with
+      marks :=
+        before.stack.marks.setIfInBounds vertex (some rawAge)
+      ready := readyPrefix ++ [readyTail] } ∧
+    after.core = {
+      before.core with
+      marks :=
+        before.core.marks.setIfInBounds vertex (some rawAge) } ∧
+    after.tags = before.tags
+
+/-- Existential form of the independent common-prefix relation. -/
+def RulePrefix (before after : ReservationState) : Prop :=
+  ∃ vertex rawAge, RulePrefixAt before after vertex rawAge
+
+namespace RulePrefix
+
+/-- Every successful executable prefix realizes the independent direct state
+relation. -/
+theorem ofPrepared
+    {before : ReservationState}
+    (prepared : PreparedStep before) :
+    RulePrefixAt before prepared.after
+      prepared.stackResult.vertex prepared.stackResult.rawAge := by
+  rcases
+      SequentialStackState.popReadyMark?_ok_iff.mp
+        prepared.stack_eq with
+    ⟨stackStep⟩
+  rcases
+      UnificationState.markReadyRaw?_ok_iff.mp
+        prepared.core_mark_eq with
+    ⟨coreStep⟩
+  rcases List.getLast?_eq_some_iff.mp stackStep.top_eq with
+    ⟨readyPrefix, readyEquation⟩
+  rcases List.getLast?_eq_some_iff.mp stackStep.sigma_top_eq with
+    ⟨sigmaPrefix, sigmaEquation⟩
+  refine ⟨readyPrefix, prepared.stackResult.remainingTop,
+    sigmaPrefix, readyEquation, sigmaEquation,
+    stackStep.unmarked, coreStep.unmarked, ?_, ?_, rfl⟩
+  ·
+      simp [PreparedStep.after, stackStep.after_eq,
+        readyEquation]
+  · simp [PreparedStep.after, coreStep.after_eq]
+
+/-- The direct common-prefix relation has a unique output for a fixed input. -/
+theorem output_unique
+    {before first second : ReservationState}
+    (left : RulePrefix before first)
+    (right : RulePrefix before second) :
+    first = second := by
+  rcases left with ⟨leftVertex, leftAge, leftRule⟩
+  rcases right with ⟨rightVertex, rightAge, rightRule⟩
+  rcases leftRule with
+    ⟨leftReadyPrefix, leftReadyTail, leftSigmaPrefix,
+      leftReady, leftSigma, _leftStackUnmarked,
+      _leftCoreUnmarked, leftStack, leftCore, leftTags⟩
+  rcases rightRule with
+    ⟨rightReadyPrefix, rightReadyTail, rightSigmaPrefix,
+      rightReady, rightSigma, _rightStackUnmarked,
+      _rightCoreUnmarked, rightStack, rightCore, rightTags⟩
+  have readySame :
+      leftVertex :: leftReadyTail =
+        rightVertex :: rightReadyTail := by
+    have sameLast :=
+      congrArg List.getLast? (leftReady.symm.trans rightReady)
+    simpa using sameLast
+  have vertexSame : leftVertex = rightVertex :=
+    List.cons.inj readySame |>.1
+  have tailSame : leftReadyTail = rightReadyTail :=
+    List.cons.inj readySame |>.2
+  have readyPrefixSame :
+      leftReadyPrefix = rightReadyPrefix := by
+    have sameDropLast :=
+      congrArg List.dropLast (leftReady.symm.trans rightReady)
+    simpa using sameDropLast
+  have ageSame : leftAge = rightAge := by
+    have sameLast :=
+      congrArg List.getLast? (leftSigma.symm.trans rightSigma)
+    simpa using sameLast
+  subst rightVertex
+  subst rightReadyTail
+  subst rightReadyPrefix
+  subst rightAge
+  cases first
+  cases second
+  simp_all
+
+end RulePrefix
+
+/-- Independent Boolean-free local Figure-7 `concl` relation for the
+unit-free certificate model.  On structurally valid input, declared boundary
+membership already entails that the occurrence has no consumer. -/
+def ConclRule (certificate : Certificate)
+    (before after : ReservationState) : Prop :=
+  ∃ vertex rawAge,
+    RulePrefixAt before after vertex rawAge ∧
+    vertex ∈ certificate.conclusions
+
+/-- Independent Boolean-free local Figure-7 `nop` relation.  The exact
+submitted par slot and its stored premise orientation are retained, while the
+paper guard is stated in the pre-prefix raw mark state. -/
+def NopRule (certificate : Certificate)
+    (before after : ReservationState) : Prop :=
+  ∃ (vertex rawAge linkIndex storedLeft storedRight conclusion : Nat),
+    ∃ side : TensorPremiseSide,
+    RulePrefixAt before after vertex rawAge ∧
+    certificate.links[linkIndex]? =
+      some (Link.par storedLeft storedRight conclusion) ∧
+    vertex = side.premise storedLeft storedRight ∧
+    before.core.marks[
+      side.mate storedLeft storedRight]? = some none
+
 /-- Execute Figure-7 `concl`: perform the common prefix only when the selected
 occurrence is a locally ownership-well-formed declared conclusion with an
 exactly empty consumer bucket. -/
@@ -432,6 +597,211 @@ theorem concl?_reservationInvariant
     ReservationInvariant certificate after := by
   rcases (concl?_some_iff invariant).mp equation with ⟨step⟩
   exact step.reservationInvariant
+
+/-- The equation-backed executable witness refines the independent direct
+`concl` relation. -/
+theorem ConclStep.toRule
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : ConclStep certificate before after) :
+    ConclRule certificate before after := by
+  rw [step.output_eq]
+  exact ⟨step.prepared.stackResult.vertex,
+    step.prepared.stackResult.rawAge,
+    RulePrefix.ofPrepared step.prepared, step.boundary.boundary⟩
+
+/-- Executable `concl` is sound for the independent direct relation without
+assuming global certificate validity. -/
+theorem concl?_sound
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation : concl? certificate before invariant = some after) :
+    ConclRule certificate before after := by
+  rcases (concl?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.toRule
+
+private theorem consumerBucket_eq_nil_of_structural_boundary
+    {certificate : Certificate} {vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (boundary : vertex ∈ certificate.conclusions) :
+    certificate.consumerIndex.bucket vertex = [] := by
+  have vertexBound : vertex < certificate.formulas.size :=
+    structural.2.2.1 vertex boundary
+  have node := structural.2.2.2.2.2 vertex vertexBound
+  have parentCount :
+      certificate.parentUseCount vertex = 0 := by
+    simpa [boundary] using node.2
+  cases bucketEquation :
+      certificate.consumerIndex.bucket vertex with
+  | nil => rfl
+  | cons linkIndex rest =>
+      have bucketMembership :
+          linkIndex ∈ certificate.consumerIndex.bucket vertex := by
+        rw [bucketEquation]
+        simp
+      rcases ConsumerIndex.build_origin bucketMembership with
+        ⟨link, linkEquation, _connective, premiseMembership⟩
+      have linkBound : linkIndex < certificate.links.length :=
+        (List.getElem?_eq_some_iff.mp linkEquation).1
+      have linkMembership : link ∈ certificate.links := by
+        have stored :=
+          List.getElem_mem (l := certificate.links) linkBound
+        simpa [(List.getElem?_eq_some_iff.mp linkEquation).2] using
+          stored
+      have uses : link.usesAsPremise vertex = true := by
+        simp [Link.usesAsPremise, premiseMembership]
+      have filtered :
+          link ∈
+            certificate.links.filter (·.usesAsPremise vertex) :=
+        List.mem_filter.mpr ⟨linkMembership, uses⟩
+      have positive : 0 < certificate.parentUseCount vertex := by
+        unfold Certificate.parentUseCount
+        exact List.length_pos_of_mem filtered
+      rw [parentCount] at positive
+      exact (Nat.not_lt_zero 0 positive).elim
+
+private theorem exists_conclusionBelow?_eq_some_of_structural
+    {certificate : Certificate} {vertex : Vertex}
+    (structural : certificate.StructurallyWellFormed)
+    (boundary : vertex ∈ certificate.conclusions) :
+    ∃ view : ConclusionBelow certificate vertex,
+      certificate.conclusionBelow? vertex = some view := by
+  have vertexBound : vertex < certificate.formulas.size :=
+    structural.2.2.1 vertex boundary
+  have node :=
+    structural.2.2.2.2.2 vertex vertexBound
+  have noConsumer :=
+    consumerBucket_eq_nil_of_structural_boundary structural boundary
+  let view : ConclusionBelow certificate vertex := {
+    boundary
+    nodeWellFormed := node
+    noConsumer }
+  refine ⟨view, ?_⟩
+  unfold Certificate.conclusionBelow?
+  simp [boundary,
+    (certificate.nodeWellFormed_iff vertex).mpr node,
+    noConsumer, view]
+
+/-- On structurally valid input, the independent direct `concl` guard is
+complete for the executable rule. -/
+theorem concl?_complete_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (rule : ConclRule certificate before after) :
+    concl? certificate before invariant = some after := by
+  rcases rule with
+    ⟨vertex, rawAge, prefixRule, boundary⟩
+  rcases prefixRule with
+    ⟨readyPrefix, readyTail, sigmaPrefix, readyEquation,
+      sigmaEquation, stackUnmarked, coreUnmarked,
+      stackAfter, coreAfter, tagsAfter⟩
+  let stackResult : PopReadyMarkResult := {
+    vertex
+    rawAge
+    remainingTop := readyTail
+    after := after.stack }
+  have stackEquation :
+      before.stack.popReadyMark? = .ok stackResult := by
+    apply SequentialStackState.popReadyMark?_ok_iff.mpr
+    exact ⟨{
+      top_eq := by
+        dsimp [stackResult]
+        rw [readyEquation]
+        simp
+      sigma_top_eq := by
+        dsimp [stackResult]
+        rw [sigmaEquation]
+        simp
+      unmarked := stackUnmarked
+      after_eq := by
+        dsimp [stackResult]
+        rw [stackAfter, readyEquation]
+        simp }⟩
+  have coreEquation :
+      before.core.markReadyRaw? vertex rawAge =
+        .ok after.core := by
+    apply UnificationState.markReadyRaw?_ok_iff.mpr
+    exact ⟨{
+      unmarked := coreUnmarked
+      after_eq := coreAfter }⟩
+  rcases
+      exists_prepare?_eq_some_of_ok
+        stackEquation coreEquation with
+    ⟨prepared, prepareEquation⟩
+  have preparedPrefix :
+      RulePrefix before prepared.after :=
+    ⟨prepared.stackResult.vertex,
+      prepared.stackResult.rawAge,
+      RulePrefix.ofPrepared prepared⟩
+  have directPrefix : RulePrefix before after :=
+    ⟨vertex, rawAge,
+      ⟨readyPrefix, readyTail, sigmaPrefix, readyEquation,
+        sigmaEquation, stackUnmarked, coreUnmarked,
+        stackAfter, coreAfter, tagsAfter⟩⟩
+  have outputEquation : after = prepared.after :=
+    RulePrefix.output_unique directPrefix preparedPrefix
+  have preparedTop :
+      before.stack.ready.getLast? =
+        some (prepared.stackResult.vertex ::
+          prepared.stackResult.remainingTop) :=
+    (SequentialStackState.popReadyMark?_exact
+      prepared.stack_eq).1
+  have directTop :
+      before.stack.ready.getLast? =
+        some (vertex :: readyTail) := by
+    rw [readyEquation]
+    simp
+  have vertexEquation :
+      prepared.stackResult.vertex = vertex := by
+    have same :
+        prepared.stackResult.vertex ::
+            prepared.stackResult.remainingTop =
+          vertex :: readyTail :=
+      Option.some.inj (preparedTop.symm.trans directTop)
+    exact List.cons.inj same |>.1
+  have preparedBoundaryMembership :
+      prepared.stackResult.vertex ∈ certificate.conclusions := by
+    simpa [vertexEquation] using boundary
+  rcases
+      exists_conclusionBelow?_eq_some_of_structural
+        structural preparedBoundaryMembership with
+    ⟨preparedBoundary, preparedBoundaryEquation⟩
+  apply (concl?_some_iff invariant).mpr
+  exact ⟨{
+    before_invariant := invariant
+    prepared
+    boundary := preparedBoundary
+    prepare_eq := prepareEquation
+    boundary_eq := preparedBoundaryEquation
+    output_eq := outputEquation }⟩
+
+/-- Exact executable/declarative correspondence for `concl` under the
+certificate validity needed to make the paper guard unambiguous. -/
+theorem concl?_some_iff_rule_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before) :
+    concl? certificate before invariant = some after ↔
+      ConclRule certificate before after :=
+  ⟨concl?_sound invariant,
+    concl?_complete_of_structural structural invariant⟩
+
+/-- The independent `concl` relation has a unique output. -/
+theorem ConclRule.output_unique
+    {certificate : Certificate}
+    {before first second : ReservationState}
+    (left : ConclRule certificate before first)
+    (right : ConclRule certificate before second) :
+    first = second := by
+  apply RulePrefix.output_unique
+  · rcases left with ⟨vertex, rawAge, prefixRule, _⟩
+    exact ⟨vertex, rawAge, prefixRule⟩
+  · rcases right with ⟨vertex, rawAge, prefixRule, _⟩
+    exact ⟨vertex, rawAge, prefixRule⟩
 
 /-- Execute Figure-7 `nop`: perform the common prefix only when the selected
 occurrence has one exact par consumer and the opposite par premise remains raw
@@ -581,6 +951,318 @@ theorem nop?_reservationInvariant
     ReservationInvariant certificate after := by
   rcases (nop?_some_iff invariant).mp equation with ⟨step⟩
   exact step.reservationInvariant
+
+/-- The equation-backed executable witness refines the independent direct
+`nop` relation. -/
+theorem NopStep.toRule
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : NopStep certificate before after) :
+    NopRule certificate before after := by
+  rw [step.output_eq]
+  exact ⟨step.prepared.stackResult.vertex,
+    step.prepared.stackResult.rawAge,
+    step.consumer.linkIndex,
+    step.consumer.storedLeft,
+    step.consumer.storedRight,
+    step.consumer.conclusion,
+    step.consumer.side,
+    RulePrefix.ofPrepared step.prepared,
+    step.submitted_par,
+    step.consumer.premise_eq,
+    step.mate_unmarked_before⟩
+
+/-- Executable `nop` is sound for the independent direct relation without
+assuming global certificate validity. -/
+theorem nop?_sound
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation : nop? certificate before invariant = some after) :
+    NopRule certificate before after := by
+  rcases (nop?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.toRule
+
+private theorem exists_connectiveBelow?_eq_some_par_of_structural
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {vertex linkIndex storedLeft storedRight conclusion : Vertex}
+    {side : TensorPremiseSide}
+    (linkEquation :
+      certificate.links[linkIndex]? =
+        some (.par storedLeft storedRight conclusion))
+    (premiseEquation :
+      vertex = side.premise storedLeft storedRight) :
+    ∃ consumer : ConnectiveBelow certificate vertex,
+      certificate.connectiveBelow? vertex = some consumer ∧
+      consumer.kind = .par ∧
+      consumer.side = side ∧
+      consumer.mate =
+        side.mate storedLeft storedRight := by
+  have linkBound : linkIndex < certificate.links.length :=
+    (List.getElem?_eq_some_iff.mp linkEquation).1
+  have linkMembership :
+      .par storedLeft storedRight conclusion ∈ certificate.links := by
+    have stored := List.getElem_mem (l := certificate.links) linkBound
+    simpa [(List.getElem?_eq_some_iff.mp linkEquation).2] using stored
+  have wellFormed :
+      certificate.LinkWellFormed
+        (.par storedLeft storedRight conclusion) :=
+    structural.2.2.2.2.1 _ linkMembership
+  cases side with
+  | storedLeft =>
+      simp [TensorPremiseSide.premise] at premiseEquation
+      subst vertex
+      have unique :
+          certificate.consumerIndex.uniqueConsumer? storedLeft =
+            some linkIndex := by
+        apply ConsumerIndex.build_uniqueConsumer?_eq_some
+          structural linkEquation
+        · exact wellFormed.2.2.2.1
+        · simp [Link.premises]
+      let consumer : ConnectiveBelow certificate storedLeft := {
+        linkIndex
+        kind := .par
+        storedLeft
+        storedRight
+        conclusion
+        side := .storedLeft
+        consumer_eq := unique
+        link_eq := by
+          simpa [SequentialConnectiveKind.asLink] using linkEquation
+        wellFormed
+        premise_eq := rfl }
+      refine ⟨consumer, ?_, rfl, rfl, rfl⟩
+      unfold Certificate.connectiveBelow?
+      split
+      next noConsumer =>
+        rw [unique] at noConsumer
+        simp at noConsumer
+      next actualIndex consumerLookup =>
+        have indexEquation : actualIndex = linkIndex :=
+          Option.some.inj (consumerLookup.symm.trans unique)
+        subst actualIndex
+        unfold connectiveBelowAt?
+        split
+        next left right target submitted =>
+          have same :
+              Link.par left right target =
+                .par storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases same
+          simp [(certificate.linkLocallyWellFormed_iff
+            (.par storedLeft storedRight conclusion)).mpr
+              wellFormed,
+            consumer]
+        next left right target submitted =>
+          have impossible :
+              Link.tensor left right target =
+                .par storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases impossible
+        next noPar noTensor =>
+          exact
+            (noPar storedLeft storedRight conclusion
+              linkEquation).elim
+  | storedRight =>
+      simp [TensorPremiseSide.premise] at premiseEquation
+      subst vertex
+      have unique :
+          certificate.consumerIndex.uniqueConsumer? storedRight =
+            some linkIndex := by
+        apply ConsumerIndex.build_uniqueConsumer?_eq_some
+          structural linkEquation
+        · exact wellFormed.2.2.2.2.1
+        · simp [Link.premises]
+      let consumer : ConnectiveBelow certificate storedRight := {
+        linkIndex
+        kind := .par
+        storedLeft
+        storedRight
+        conclusion
+        side := .storedRight
+        consumer_eq := unique
+        link_eq := by
+          simpa [SequentialConnectiveKind.asLink] using linkEquation
+        wellFormed
+        premise_eq := rfl }
+      refine ⟨consumer, ?_, rfl, rfl, rfl⟩
+      unfold Certificate.connectiveBelow?
+      split
+      next noConsumer =>
+        rw [unique] at noConsumer
+        simp at noConsumer
+      next actualIndex consumerLookup =>
+        have indexEquation : actualIndex = linkIndex :=
+          Option.some.inj (consumerLookup.symm.trans unique)
+        subst actualIndex
+        unfold connectiveBelowAt?
+        split
+        next left right target submitted =>
+          have same :
+              Link.par left right target =
+                .par storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases same
+          have rightNeLeft : storedRight ≠ storedLeft :=
+            wellFormed.1.symm
+          simp [(certificate.linkLocallyWellFormed_iff
+            (.par storedLeft storedRight conclusion)).mpr
+              wellFormed,
+            rightNeLeft, consumer]
+        next left right target submitted =>
+          have impossible :
+              Link.tensor left right target =
+                .par storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases impossible
+        next noPar noTensor =>
+          exact
+            (noPar storedLeft storedRight conclusion
+              linkEquation).elim
+
+/-- On structurally valid input, the independent direct `nop` guard is
+complete for the executable rule. -/
+theorem nop?_complete_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (rule : NopRule certificate before after) :
+    nop? certificate before invariant = some after := by
+  rcases rule with
+    ⟨vertex, rawAge, linkIndex, storedLeft, storedRight,
+      conclusion, side, prefixRule, linkEquation,
+      premiseEquation, mateUnmarked⟩
+  rcases prefixRule with
+    ⟨readyPrefix, readyTail, sigmaPrefix, readyEquation,
+      sigmaEquation, stackUnmarked, coreUnmarked,
+      stackAfter, coreAfter, tagsAfter⟩
+  let stackResult : PopReadyMarkResult := {
+    vertex
+    rawAge
+    remainingTop := readyTail
+    after := after.stack }
+  have stackEquation :
+      before.stack.popReadyMark? = .ok stackResult := by
+    apply SequentialStackState.popReadyMark?_ok_iff.mpr
+    exact ⟨{
+      top_eq := by
+        dsimp [stackResult]
+        rw [readyEquation]
+        simp
+      sigma_top_eq := by
+        dsimp [stackResult]
+        rw [sigmaEquation]
+        simp
+      unmarked := stackUnmarked
+      after_eq := by
+        dsimp [stackResult]
+        rw [stackAfter, readyEquation]
+        simp }⟩
+  have coreEquation :
+      before.core.markReadyRaw? vertex rawAge =
+        .ok after.core := by
+    apply UnificationState.markReadyRaw?_ok_iff.mpr
+    exact ⟨{
+      unmarked := coreUnmarked
+      after_eq := coreAfter }⟩
+  rcases
+      exists_prepare?_eq_some_of_ok
+        stackEquation coreEquation with
+    ⟨prepared, prepareEquation⟩
+  have preparedPrefix :
+      RulePrefix before prepared.after :=
+    ⟨prepared.stackResult.vertex,
+      prepared.stackResult.rawAge,
+      RulePrefix.ofPrepared prepared⟩
+  have directPrefix : RulePrefix before after :=
+    ⟨vertex, rawAge,
+      ⟨readyPrefix, readyTail, sigmaPrefix, readyEquation,
+        sigmaEquation, stackUnmarked, coreUnmarked,
+        stackAfter, coreAfter, tagsAfter⟩⟩
+  have outputEquation : after = prepared.after :=
+    RulePrefix.output_unique directPrefix preparedPrefix
+  have preparedTop :
+      before.stack.ready.getLast? =
+        some (prepared.stackResult.vertex ::
+          prepared.stackResult.remainingTop) :=
+    (SequentialStackState.popReadyMark?_exact
+      prepared.stack_eq).1
+  have directTop :
+      before.stack.ready.getLast? =
+        some (vertex :: readyTail) := by
+    rw [readyEquation]
+    simp
+  have vertexEquation :
+      prepared.stackResult.vertex = vertex := by
+    have same :
+        prepared.stackResult.vertex ::
+            prepared.stackResult.remainingTop =
+          vertex :: readyTail :=
+      Option.some.inj (preparedTop.symm.trans directTop)
+    exact List.cons.inj same |>.1
+  have preparedPremise :
+      prepared.stackResult.vertex =
+        side.premise storedLeft storedRight :=
+    vertexEquation.trans premiseEquation
+  rcases
+      exists_connectiveBelow?_eq_some_par_of_structural
+        structural linkEquation preparedPremise with
+    ⟨consumer, consumerEquation, parEquation,
+      sideEquation, mateEquation⟩
+  have mateUnmarkedBefore :
+      before.core.marks[consumer.mate]? = some none := by
+    rw [mateEquation]
+    exact mateUnmarked
+  have markExact :=
+    UnificationState.markReadyRaw?_exact
+      prepared.core_mark_eq
+  have selectedNeMate :
+      prepared.stackResult.vertex ≠ consumer.mate :=
+    consumer.mate_ne.symm
+  have mateUnmarkedAfter :
+      prepared.coreMarked.marks[consumer.mate]? =
+        some none := by
+    rw [markExact.2.1]
+    simpa [selectedNeMate] using mateUnmarkedBefore
+  apply (nop?_some_iff invariant).mpr
+  exact ⟨{
+    before_invariant := invariant
+    prepared
+    consumer
+    prepare_eq := prepareEquation
+    consumer_eq := consumerEquation
+    par_eq := parEquation
+    mate_unmarked := mateUnmarkedAfter
+    output_eq := outputEquation }⟩
+
+/-- Exact executable/declarative correspondence for `nop` under the
+certificate validity needed to make the paper guard unambiguous. -/
+theorem nop?_some_iff_rule_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before) :
+    nop? certificate before invariant = some after ↔
+      NopRule certificate before after :=
+  ⟨nop?_sound invariant,
+    nop?_complete_of_structural structural invariant⟩
+
+/-- The independent `nop` relation has a unique output. -/
+theorem NopRule.output_unique
+    {certificate : Certificate}
+    {before first second : ReservationState}
+    (left : NopRule certificate before first)
+    (right : NopRule certificate before second) :
+    first = second := by
+  apply RulePrefix.output_unique
+  · rcases left with
+      ⟨vertex, rawAge, _, _, _, _, _, prefixRule, _⟩
+    exact ⟨vertex, rawAge, prefixRule⟩
+  · rcases right with
+      ⟨vertex, rawAge, _, _, _, _, _, prefixRule, _⟩
+    exact ⟨vertex, rawAge, prefixRule⟩
 
 end SequentialFigure7
 
