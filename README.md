@@ -134,6 +134,32 @@ so this global low-rank freshness predicate cannot itself be threaded to a
 second call at any natural rank; the later scheduler needs a route-local
 freshness invariant.
 
+`SequentialSchedulerState.lean` now isolates the first delayed Figures 7–8
+state layer without connecting it to the production unifier. `RawTokenAge` is
+the discovery-order age and is deliberately not a union-find representative.
+`SigmaAgePartition` makes `σ` a strictly increasing boundary list below
+`nextAge`, with boundary `0` at every positive horizon, and the executable
+`sigmaBoundary?` returns the greatest boundary not exceeding a queried raw
+age. Fixed-capacity `WaitingCell` storage distinguishes three cases that must
+not be collapsed: an out-of-bounds array lookup, an in-bounds `undefined`
+cell (`⊥`), and `initialized []` (`∅`).
+
+The strict local initialization guard requires an empty scheduler view: age
+horizon, `σ`, and ready buckets are empty; every mark is absent; every
+allocated waiting cell is `undefined`; and the two endpoints are distinct and
+in bounds. Global carrier agreement and the remaining `WellShaped` obligations
+are separate preservation-theorem preconditions. `initEnqueue?` then reserves
+age `0`, records
+`[[reached, partner]]`, and leaves both endpoint marks and `W(0)` unchanged,
+so `W(0)` remains `undefined`. `newEnqueue?` appends the old age horizon to
+`σ`, appends the ready bucket `[reached, partner]`, initializes only the fresh
+waiting cell to `[]`, and likewise leaves endpoint marks unchanged. Lean proves
+only the exact field equations, endpoint facts, and preservation of the local
+`WellShaped` invariant. The paper's prose about where `W` is defined and its
+Figure-7 `init`/`new` displays are not turned into an `iff` domain invariant:
+the prose says `W` is defined at nonactive boundaries, while the displayed
+initialization leaves `W(0)` undefined and `new` initializes the fresh age.
+
 A successful dynamic start immediately allocates and assigns a token and
 refines one independent Figure-5 `start` transition under the existing
 abstraction and `OrderedParents` invariants. It is not the delayed marking of
@@ -143,13 +169,12 @@ marked starts, missing and non-unique malformed sources, a distinct second
 start using threaded result tags, repeat rejection, and dynamic token
 allocation. A depth-two fixture locks the exact fuel boundary: rank fuel `2`
 fails and `rank + 1 = 3` succeeds both by theorem and execution. This is not
-yet the Figures 7–8 algorithm: later-state start
-selection, the `σ`/`R`/`W` state, token-age interval sequencing, full scheduler
-correctness and cost, correct-state progress, pure-worklist completeness,
-fallback removal, and whole-program linearity remain open. In that future
-state, `W` must distinguish undefined from initialized-empty, interval guards
-must compare raw assigned token ages rather than representatives, and `σ` must
-encode the strictly increasing boundaries of contiguous age intervals.
+yet the Figures 7–8 algorithm: the new delayed state is not bridged to
+`UnificationState`, `R`, or production `NEXTAXIOM`. A proved
+`reserveAxiom?`/`RealizesSigma` bridge, route-local later-state freshness, the
+full transition system and scheduler correctness/cost, correct-state progress,
+pure-worklist completeness, fallback removal, and whole-program linearity
+remain open.
 
 The flat-scheduler proof route was also narrowed by counterexample. Exact
 concrete-state confluence already fails on a derivation-generated correct
@@ -488,8 +513,12 @@ and structural-only confluence are already refuted; no theorem at the candidate
 quotient exists. The bounded/tagged `NEXTAXIOM` and dynamic-start primitive is
 kernel checked, including per-call trace/tag invariants, exact oriented routes,
 initial/local rank-scoped totality, and touched-set disjointness for successive
-calls that strictly thread `first.tags`. Later-state selection and faithful
-`σ`/`R`/`W` plus token-age sequencing remain the separate linearity route.
+calls that strictly thread `first.tags`. The separate delayed state checkpoint
+now proves raw-age `σ` partitioning, the three waiting-cell states, exact
+mark-preserving `init`/`new` reservations, and local `WellShaped` preservation.
+It does not yet provide the `reserveAxiom?`/`RealizesSigma` production bridge,
+later-state selection, faithful full `R`/`W` sequencing, or a transition
+system.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -689,9 +718,12 @@ The repository currently contains:
   occurrence-thread partition. Residual-witness preservation or a theorem at
   that quotient remains the
   scheduler-preserving route for flat completeness. The separate
-  bounded/tagged `NEXTAXIOM` primitive is checked, while full
-  `σ`/`R`/`W` (ready/waiting) and token-age stacks remain for the Guerrini
-  linearity layer. Closing-par exclusion,
+  bounded/tagged `NEXTAXIOM` primitive and the first independent delayed
+  raw-age state layer are checked. The latter proves strictly increasing `σ`
+  boundaries, distinct out-of-bounds/undefined/initialized-empty waiting
+  states, and mark-preserving `init`/`new` ready-bucket reservations, but is not
+  integrated with the production unifier. Full `R`/`W` sequencing remains for
+  the Guerrini linearity layer. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -712,9 +744,12 @@ The repository currently contains:
   under `OrderedParents`; malformed source buckets still fail closed. Tests
   additionally cover zero fuel, out-of-bounds and marked starts, missing
   sources, a threaded distinct second start, stored-right orientation, and
-  repeat rejection, plus a depth-two exact rank/fuel boundary. Later-state
-  selection, `σ`/`R`/`W`, token-age stacks, full scheduler correctness, and a
-  whole-program cost proof remain open;
+  repeat rejection, plus a depth-two exact rank/fuel boundary. A separate
+  delayed-state checkpoint now covers raw ages, `σ`, waiting-cell distinctions,
+  and exact mark-preserving initial/later reservations. Its
+  `reserveAxiom?`/`RealizesSigma` production bridge, later-state selection,
+  complete `R`/`W` sequencing, full scheduler correctness, and a whole-program
+  cost proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -889,9 +924,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 108 public MLL logical-boundary theorems against the exact
-axiom set `[propext, Classical.choice, Quot.sound]`, plus 18 axiom-free,
-33 `propext`-only, and 20 `propext`/`Quot.sound` boundaries. LeanProp boundaries are audited
+separately audits 110 public MLL logical-boundary theorems against the exact
+axiom set `[propext, Classical.choice, Quot.sound]`, plus 20 axiom-free,
+41 `propext`-only, and 30 `propext`/`Quot.sound` boundaries. LeanProp boundaries are audited
 separately: the proof-term interpreter, proposition-level permutation
 completeness, and the two exchange-admissibility theorems are axiom-free.
 Resource-count, dependent-environment round trips, packed-schema soundness,
@@ -1025,6 +1060,7 @@ ProofNetIR/Parser.lean        v0.2/v0.3 parser, migration, checked-input boundar
 ProofNetIR/Unification.lean   eager/worklist Figure-5 token semantics
 ProofNetIR/SequentialUnification.lean bounded/tagged NEXTAXIOM and local totality
 ProofNetIR/SequentialRoute.lean exact oriented successful NEXTAXIOM routes
+ProofNetIR/SequentialSchedulerState.lean delayed raw-age sigma/ready/waiting state
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter

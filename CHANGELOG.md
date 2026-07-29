@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
+  delayed Figures 7–8 state layer, without connecting it to the production
+  unifier. `RawTokenAge` records discovery order and is explicitly not a
+  union-find representative. `SigmaAgePartition` requires `σ` to be empty
+  exactly at horizon zero, to start at zero at every positive horizon, to be
+  strictly increasing, and to stay below the raw-age horizon; executable
+  lookup returns the greatest eligible boundary. Fixed-capacity `WaitingCell`
+  storage distinguishes an out-of-bounds lookup, in-bounds `undefined` (`⊥`),
+  and `initialized []` (`∅`). Strict empty `initEnqueue?` reserves age zero,
+  appends the ready bucket `[reached, partner]`, preserves all marks, and
+  leaves `W(0)` undefined. `newEnqueue?` appends a fresh `σ` boundary and the
+  same reached/partner bucket order, initializes only the fresh `W` cell to
+  empty, and again preserves marks. Lean proves the exact fields, endpoint
+  unmarked facts, reserved-cell lookup, and local `WellShaped` preservation.
+  No `iff` characterization of the paper's `W` domain is claimed: its prose
+  says `W` is defined at nonactive boundaries, whereas the Figure-7
+  initialization display leaves `W(0)` undefined and `new` initializes the
+  fresh age. A
+  `reserveAxiom?`/`RealizesSigma` bridge to production state is next; later
+  `NEXTAXIOM` totality, the full transition system, progress, completeness,
+  fallback removal, and whole-program linearity remain open;
 - added `ProofNetIR/SequentialUnification.lean` as the first bounded
   Figures 7–8 checkpoint without claiming the full scheduler. A reusable
   occurrence-source index is built once, and Lean proves every stored
@@ -41,13 +62,10 @@
   rejection, stored-right orientation, all initial canonical starts under the
   rank budget, a depth-two exact boundary where rank fuel fails and
   `rank + 1` succeeds, and dynamic token allocation. Later-state start
-  selection, `σ`/`R`/`W`, token-age interval sequencing, full scheduler
-  correctness and cost, correct-state progress, pure-worklist completeness,
-  fallback removal, and whole-program linearity remain open. The future
-  scheduler must preserve
-  the paper's undefined-versus-initialized-empty distinction for `W`, align
-  `R` with the strictly increasing interval-boundary stack `σ`, and compare
-  raw assigned token ages in guards rather than union-find representatives;
+  selection, the production bridge from the separate raw-age state,
+  complete `R`/`W` token-age sequencing, full scheduler correctness and cost,
+  correct-state progress, pure-worklist completeness, fallback removal, and
+  whole-program linearity remain open;
 - narrowed the flat-scheduler confluence route. Exact concrete-state
   confluence is refuted by a derivation-generated correct certificate, while
   structural-only confluence is refuted by a structurally well-formed

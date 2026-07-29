@@ -1191,6 +1191,181 @@ example :
           result.after.assignedToken? 1 == some 0) = true := by
   native_decide
 
+namespace SequentialSchedulerStateTests
+
+open SequentialSchedulerState
+open SequentialSchedulerState.SequentialStackState
+
+/-- A representative raw-age interval stack: `[0,2,5]` partitions ages below
+`7` into intervals beginning at exactly those boundaries. -/
+theorem validSigmaSeven : SigmaAgePartition 7 [0, 2, 5] := by
+  exact {
+    empty_iff := by simp
+    head_zero := by simp
+    strictIncreasing := by decide
+    boundary_lt := by
+      intro boundary membership
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at membership
+      rcases membership with rfl | rfl | rfl <;> decide }
+
+example : sigmaBoundary? [0, 2, 5] 0 = some 0 := by native_decide
+example : sigmaBoundary? [0, 2, 5] 1 = some 0 := by native_decide
+example : sigmaBoundary? [0, 2, 5] 2 = some 2 := by native_decide
+example : sigmaBoundary? [0, 2, 5] 4 = some 2 := by native_decide
+example : sigmaBoundary? [0, 2, 5] 5 = some 5 := by native_decide
+example : sigmaBoundary? [0, 2, 5] 6 = some 5 := by native_decide
+
+/-- Duplicate interval boundaries violate strict increase. -/
+example : ¬ SigmaAgePartition 7 [0, 2, 2] := by
+  intro partition
+  have impossible : (2 : Nat) < 2 :=
+    List.rel_of_pairwise_cons partition.strictIncreasing.tail (by simp)
+  exact (Nat.lt_irrefl 2 impossible)
+
+/-- A nonempty raw-age partition must begin at boundary zero. -/
+example : ¬ SigmaAgePartition 7 [1, 2] := by
+  intro partition
+  have headZero := partition.head_zero (by decide)
+  have impossible : (1 : Nat) = 0 := Option.some.inj headZero
+  omega
+
+/-- Every boundary must be strictly below the raw-age horizon. -/
+example : ¬ SigmaAgePartition 7 [0, 2, 7] := by
+  intro partition
+  have boundaryBound := partition.boundary_lt 7 (by simp)
+  exact (Nat.lt_irrefl 7 boundaryBound)
+
+def waitingDistinction : Array WaitingCell :=
+  #[.undefined, .initialized []]
+
+/-- Out-of-bounds, `⊥`, and initialized `∅` are three executable lookup
+outcomes, not three spellings of the same state. -/
+example :
+    waitingDistinction[2]? = none ∧
+    waitingDistinction[0]? = some .undefined ∧
+    waitingDistinction[1]? = some (.initialized []) := by
+  native_decide
+
+example : WaitingCell.undefined ≠ WaitingCell.initialized [] :=
+  WaitingCell.undefined_ne_initialized_empty
+
+/-- Truly empty fixed-carrier scheduler storage. -/
+def delayedInitial : SequentialStackState :=
+  SequentialStackState.empty canonical.formulas.size
+
+/-- Expected delayed `init` output.  The `(1,0)` endpoint order locks the
+stored-right `NEXTAXIOM` fixture semantics. -/
+def delayedAfterInit : SequentialStackState where
+  marks := Array.replicate canonical.formulas.size none
+  nextAge := 1
+  sigma := [0]
+  ready := [[1, 0]]
+  waiting := Array.replicate canonical.formulas.size .undefined
+
+example :
+    initEnqueue? delayedInitial 1 0 = some delayedAfterInit := by
+  native_decide
+
+/-- Strict delayed initialization rejects a premarked carrier. -/
+example :
+    initEnqueue?
+      { delayedInitial with
+        marks := delayedInitial.marks.setIfInBounds 1 (some 0) }
+      1 0 = none := by
+  native_decide
+
+/-- Strict delayed initialization also rejects a waiting table that is not
+entirely paper-level `undefined`. -/
+example :
+    initEnqueue?
+      { delayedInitial with
+        waiting :=
+          delayedInitial.waiting.setIfInBounds 0 (.initialized []) }
+      1 0 = none := by
+  native_decide
+
+theorem delayedAfterInit_wellShaped :
+    delayedAfterInit.WellShaped canonical.formulas.size := by
+  exact initEnqueue?_wellShaped
+    (reached := 1) (partner := 0)
+    (SequentialStackState.empty_wellShaped canonical.formulas.size)
+    (by native_decide)
+
+/-- The reserved raw age has an actual in-bounds waiting cell; its content is
+the separately checked paper-level `undefined`, not array `none`. -/
+example :
+    ∃ cell, delayedAfterInit.waiting[0]? = some cell := by
+  exact delayedAfterInit_wellShaped.waiting_lookup_exists (by decide)
+
+example :
+    delayedAfterInit.waiting[0]? = some .undefined ∧
+    delayedAfterInit.marks[1]? = some none ∧
+    delayedAfterInit.marks[0]? = some none := by
+  native_decide
+
+example :
+    delayedAfterInit.marks[1]? = some none ∧
+      delayedAfterInit.marks[0]? = some none := by
+  exact initEnqueue?_endpoint_unmarked
+    (state := delayedInitial) (after := delayedAfterInit)
+    (reached := 1) (partner := 0) (by native_decide)
+
+/-- Expected delayed `new` output.  Raw age one is reserved, its endpoint
+bucket is appended, and exactly `W(1)` becomes initialized `∅`. -/
+def delayedAfterNew : SequentialStackState where
+  marks := Array.replicate canonical.formulas.size none
+  nextAge := 2
+  sigma := [0, 1]
+  ready := [[1, 0], [3, 2]]
+  waiting :=
+    (Array.replicate canonical.formulas.size .undefined).setIfInBounds
+      1 (.initialized [])
+
+example :
+    newEnqueue? delayedAfterInit 3 2 = some delayedAfterNew := by
+  native_decide
+
+/-- A later reservation rejects an endpoint that has already been marked. -/
+example :
+    newEnqueue?
+      { delayedAfterInit with
+        marks := delayedAfterInit.marks.setIfInBounds 3 (some 0) }
+      3 2 = none := by
+  native_decide
+
+/-- A later reservation also rejects a fresh raw-age cell that was already
+initialized. -/
+example :
+    newEnqueue?
+      { delayedAfterInit with
+        waiting :=
+          delayedAfterInit.waiting.setIfInBounds 1 (.initialized []) }
+      3 2 = none := by
+  native_decide
+
+theorem delayedAfterNew_wellShaped :
+    delayedAfterNew.WellShaped canonical.formulas.size := by
+  exact newEnqueue?_wellShaped delayedAfterInit_wellShaped
+    (reached := 3) (partner := 2)
+    (by native_decide)
+
+example :
+    delayedAfterNew.marks = delayedAfterInit.marks ∧
+    delayedAfterNew.sigma = delayedAfterInit.sigma ++ [1] ∧
+    delayedAfterNew.ready = delayedAfterInit.ready ++ [[3, 2]] ∧
+    delayedAfterNew.waiting[0]? = some .undefined ∧
+    delayedAfterNew.waiting[1]? = some (.initialized []) := by
+  native_decide
+
+example :
+    delayedAfterNew.marks[3]? = some none ∧
+      delayedAfterNew.marks[2]? = some none := by
+  exact newEnqueue?_endpoint_unmarked
+    (state := delayedAfterInit) (after := delayedAfterNew)
+    (reached := 3) (partner := 2) (by native_decide)
+
+end SequentialSchedulerStateTests
+
 def canonicalParLeftIn : canonical.fullGraph.DirectedEdge where
   index := 4
   edge := { first := 1, second := 5 }

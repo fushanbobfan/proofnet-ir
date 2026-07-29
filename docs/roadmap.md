@@ -753,13 +753,24 @@
     - [ ] Factor the local theorem's mark-slot requirement from the stronger
       full `Abstractable` runtime invariant when a more reusable interface is
       needed.
+  - [x] Formalize the first independent delayed state slice:
+    `RawTokenAge` is discovery order rather than a representative;
+    `SigmaAgePartition` gives strictly increasing `σ` boundaries below the
+    horizon; waiting storage distinguishes out-of-bounds, undefined `⊥`, and
+    initialized empty `∅`; strict empty `init` keeps `W(0)` undefined; and
+    `new` initializes only the fresh cell. Both operations preserve marks,
+    enqueue `[reached, partner]`, and preserve only the local `WellShaped`
+    invariant. Retain the paper's `W` domain tension instead of claiming an
+    unsupported `iff`.
+  - [ ] Add `reserveAxiom?` and prove `RealizesSigma` to bridge the delayed
+    state to the production `UnificationState` without changing endpoint order
+    or treating raw ages as representatives.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
-    with the Figures 7--8 `σ`/`R`/`W` state. Define `σ` as strictly increasing
-    boundaries of contiguous raw token-age intervals, align `R` with those
-    intervals and pop before marking, preserve `W`'s undefined-versus-empty
-    distinction, and compare raw assigned ages rather than representatives.
-    Establish the special union-find invariants, completeness of that
-    sequential executable, and a cost theorem over every implemented
+    with the complete Figures 7--8 state and transitions. Align the paper-level
+    `R` stack with `σ`, pop before marking, state route-local later-call
+    freshness, and finish `W` semantics only after resolving the prose/display
+    domain tension. Establish the special union-find invariants, completeness
+    of that sequential executable, and a cost theorem over every implemented
     operation before claiming Guerrini linearity. These stack invariants are
     false for the flat scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist

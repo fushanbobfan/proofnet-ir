@@ -469,6 +469,46 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Delayed sequential-scheduler state"
+    declarations := [
+      `ProofNetIR.SequentialSchedulerState.RawTokenAge,
+      `ProofNetIR.SequentialSchedulerState.WaitingCell,
+      `ProofNetIR.SequentialSchedulerState.WaitingCell.undefined_ne_initialized_empty,
+      `ProofNetIR.SequentialSchedulerState.SigmaAgePartition,
+      `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.empty,
+      `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.reserveInitial,
+      `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.appendFresh,
+      `ProofNetIR.SequentialSchedulerState.sigmaBoundary?,
+      `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem,
+      `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_le,
+      `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_greatest,
+      `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.boundary_exists,
+      `ProofNetIR.SequentialSchedulerState.sigmaBoundary_unique_of_greatest,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped.waiting_lookup_exists,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_wellShaped,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined.lookup,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined.lookup,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.InitReady,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_some_iff,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_exact,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_endpoint_unmarked,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_wellShaped,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.NewReady,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_some_iff,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_exact,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_waiting_of_ne,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_unmarked,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped
+    ]
+  },
+  {
     title := "Serialization and untrusted input"
     declarations := [
       `ProofNetIR.ParseError,

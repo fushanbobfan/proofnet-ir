@@ -101,6 +101,19 @@ part of the engineering and proof-identity gap.
   rejection, stored-right orientation, every canonical initial start under
   its rank budget, a depth-two exact rank-versus-`rank + 1` fuel boundary, and
   dynamic token allocation.
+- current v0.10 development also has an independent delayed scheduler-state
+  checkpoint. `RawTokenAge` is a discovery-order age, not a union-find
+  representative. `SigmaAgePartition` proves strictly increasing `σ`
+  boundaries below the raw-age horizon, and executable lookup returns the
+  greatest eligible boundary. `WaitingCell` distinguishes an out-of-bounds
+  lookup, in-bounds undefined `⊥`, and initialized empty `∅`. Strict empty
+  `init` reserves age zero, keeps `W(0)` undefined, preserves marks, and queues
+  `[reached, partner]`; `new` appends the fresh `σ` boundary and same endpoint
+  order, initializes only the fresh waiting cell, and also preserves marks.
+  Only exact field facts and local `WellShaped` preservation are proved. The
+  paper's prose says `W` is defined at nonactive boundaries, while its Figure-7
+  initialization leaves `W(0)` undefined. That tension is retained; no `iff`
+  domain invariant is claimed.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -351,8 +364,11 @@ part of the engineering and proof-identity gap.
    kernel checked, including per-call trace/tag invariants, oriented route
    correctness, initial/local rank-scoped totality, and touched-set
    disjointness for successive calls that strictly thread `first.tags`; reset
-   tags are outside that theorem. Later-state selection, `σ`/`R`/`W`,
-   token-age interval sequencing, closing-par scheduler-order exclusion,
+   tags are outside that theorem. The separate raw-age state checkpoint proves
+   the initial `σ`/waiting representation and mark-preserving `init`/`new`
+   reservations, but no production realization. A
+   `reserveAxiom?`/`RealizesSigma` bridge, later-state selection, complete
+   `R`/`W` token-age sequencing, closing-par scheduler-order exclusion,
    correct-state progress, pure worklist completeness, recursive fallback
    removal, and a whole-program linear cost theorem remain open.
    For callers that require fail-closed resource handling,
@@ -414,10 +430,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 108 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 110 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
-  `Classical.choice`, and `Quot.sound`; it separately locks 18 axiom-free,
-  33 `propext`-only, and 20 `propext`/`Quot.sound` boundaries;
+  `Classical.choice`, and `Quot.sound`; it separately locks 20 axiom-free,
+  41 `propext`-only, and 30 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -501,11 +517,12 @@ It can currently be used for:
   derivation-generated accepted nets, 5,000 malformed cases, and a measured
   qualification through 145 links;
 - running the focused-search comparison baseline;
-- experimenting with the proof-bearing bounded/tagged `NEXTAXIOM` and dynamic
-  Figure-5 start primitive, including its proved structural source-singleton,
-  per-call tag/trace invariants, and strictly threaded touched-set
-  disjointness, while treating failure as inconclusive; it is not a complete
-  scheduler API;
+- experimenting with the proof-bearing bounded/tagged `NEXTAXIOM`, dynamic
+  Figure-5 start, and independent delayed raw-age state primitives, including
+  their proved structural source-singleton, per-call tag/trace, strictly
+  threaded touched-set, `σ` partition, waiting-cell distinction, and local
+  shape invariants, while treating search failure as inconclusive; together
+  they are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
 - auditing the frozen 180-task model experiment, amendment, raw responses,

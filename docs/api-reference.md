@@ -5862,6 +5862,454 @@ ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart : ∀ {certific
         (result.after.toMarking certificate afterAbstractable)
 ```
 
+## Delayed sequential-scheduler state
+
+### `ProofNetIR.SequentialSchedulerState.RawTokenAge`
+
+Kind: definition.
+
+The discovery-order age assigned when a delayed scheduler token is
+reserved.  It is intentionally not a union-find representative.
+
+```lean
+ProofNetIR.SequentialSchedulerState.RawTokenAge : Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.WaitingCell`
+
+Kind: inductive type.
+
+One fixed-capacity waiting-table cell.  `undefined` represents `⊥`, while
+`initialized []` represents the distinct initialized empty set `∅`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.WaitingCell : Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.WaitingCell.undefined_ne_initialized_empty`
+
+Kind: theorem.
+
+The paper-level `⊥` and initialized `∅` waiting states are distinct.
+
+```lean
+ProofNetIR.SequentialSchedulerState.WaitingCell.undefined_ne_initialized_empty : ProofNetIR.SequentialSchedulerState.WaitingCell.undefined ≠
+  ProofNetIR.SequentialSchedulerState.WaitingCell.initialized []
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition`
+
+Kind: inductive type.
+
+`sigma` is the strictly increasing stack of boundaries of contiguous raw
+token-age intervals below `nextAge`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition : ProofNetIR.SequentialSchedulerState.RawTokenAge → List ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.empty`
+
+Kind: theorem.
+
+The unique partition at raw-age horizon zero.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.empty : ProofNetIR.SequentialSchedulerState.SigmaAgePartition 0 []
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.reserveInitial`
+
+Kind: theorem.
+
+Reserving the initial raw age produces the singleton boundary stack.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.reserveInitial : ProofNetIR.SequentialSchedulerState.SigmaAgePartition 1 [0]
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.appendFresh`
+
+Kind: theorem.
+
+Appending the current horizon reserves one new singleton interval.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.appendFresh : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    0 < nextAge → ProofNetIR.SequentialSchedulerState.SigmaAgePartition (nextAge + 1) (sigma ++ [nextAge])
+```
+
+### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?`
+
+Kind: definition.
+
+Greatest partition boundary not exceeding `age`.  The definition is
+executable and uses raw ages directly.
+
+```lean
+ProofNetIR.SequentialSchedulerState.sigmaBoundary? : List ProofNetIR.SequentialSchedulerState.RawTokenAge →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge → Option ProofNetIR.SequentialSchedulerState.RawTokenAge
+```
+
+### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem`
+
+Kind: theorem.
+
+Every returned boundary comes from the supplied stack.
+
+```lean
+ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem : ∀ {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {age boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some boundary → boundary ∈ sigma
+```
+
+### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_le`
+
+Kind: theorem.
+
+Every returned boundary is at most the queried raw age.
+
+```lean
+ProofNetIR.SequentialSchedulerState.sigmaBoundary?_le : ∀ {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {age boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some boundary → boundary ≤ age
+```
+
+### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_greatest`
+
+Kind: theorem.
+
+On an increasing boundary stack, the executable result dominates every
+other boundary that does not exceed the queried age.
+
+```lean
+ProofNetIR.SequentialSchedulerState.sigmaBoundary?_greatest : ∀ {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {age boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  List.Pairwise (fun x1 x2 => x1 < x2) sigma →
+    ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some boundary →
+      ∀ (candidate : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+        candidate ∈ sigma → candidate ≤ age → candidate ≤ boundary
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.boundary_exists`
+
+Kind: theorem.
+
+A nonempty partition always yields a boundary for any raw age below its
+horizon (the head boundary `0` is already eligible).
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.boundary_exists : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    ∀ {age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      age < nextAge → ∃ boundary, ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some boundary
+```
+
+### `ProofNetIR.SequentialSchedulerState.sigmaBoundary_unique_of_greatest`
+
+Kind: theorem.
+
+The greatest eligible boundary is mathematically unique.
+
+```lean
+ProofNetIR.SequentialSchedulerState.sigmaBoundary_unique_of_greatest : ∀ {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {age first second : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  first ∈ sigma →
+    first ≤ age →
+      (∀ (candidate : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+          candidate ∈ sigma → candidate ≤ age → candidate ≤ first) →
+        second ∈ sigma →
+          second ≤ age →
+            (∀ (candidate : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+                candidate ∈ sigma → candidate ≤ age → candidate ≤ second) →
+              first = second
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState`
+
+Kind: inductive type.
+
+Concrete Figures 7--8 bookkeeping before the transition system itself.
+`waiting` is a fixed-capacity table: array lookup `none` means out of bounds,
+`some undefined` means `⊥`, and `some (initialized [])` means `∅`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState : Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty`
+
+Kind: definition.
+
+Empty fixed-carrier scheduler storage.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.empty : Nat → ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped`
+
+Kind: inductive type.
+
+Shape and age invariants for the delayed scheduler state.  This is
+deliberately only a shape layer: it does not assert cross-bucket uniqueness,
+semantic readiness, constraints on initialized waiting payloads, or an exact
+domain correspondence between `waiting` and `sigma`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped : ProofNetIR.SequentialSchedulerState.SequentialStackState → Nat → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped.waiting_lookup_exists`
+
+Kind: theorem.
+
+Every reserved raw age addresses an actual waiting cell.  Thus an array
+lookup returning `none` is an out-of-bounds fact and cannot be confused with
+the in-bounds paper state `undefined`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped.waiting_lookup_exists : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat},
+  state.WellShaped carrierSize →
+    ∀ {age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      age < state.nextAge → ∃ cell, state.waiting[age]? = some cell
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_wellShaped`
+
+Kind: theorem.
+
+The empty fixed-carrier state is well shaped.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.empty_wellShaped : ∀ (carrierSize : Nat),
+  (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty carrierSize).WellShaped carrierSize
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined`
+
+Kind: definition.
+
+Executable predicate asserting that every allocated occurrence is
+unmarked.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined : ProofNetIR.SequentialSchedulerState.SequentialStackState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined`
+
+Kind: definition.
+
+Every allocated waiting-table cell is the paper-level `⊥`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined : ProofNetIR.SequentialSchedulerState.SequentialStackState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined.lookup`
+
+Kind: theorem.
+
+Executable all-undefined marking implies the exact lookup fact at every
+in-bounds occurrence.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.AllMarksUndefined.lookup : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState},
+  state.AllMarksUndefined → ∀ {vertex : ProofNetIR.Vertex}, vertex < state.marks.size → state.marks[vertex]? = some none
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined.lookup`
+
+Kind: theorem.
+
+Executable all-undefined waiting storage implies the exact `⊥` lookup
+fact at every in-bounds raw age.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.AllWaitingUndefined.lookup : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState},
+  state.AllWaitingUndefined →
+    ∀ {age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      age < state.waiting.size → state.waiting[age]? = some ProofNetIR.SequentialSchedulerState.WaitingCell.undefined
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.InitReady`
+
+Kind: definition.
+
+Local executable guard for the delayed initial reservation.  In
+particular, `nextAge = 0` alone is not accepted as an empty local state: all
+marks and waiting cells must be undefined, and both stacks must be empty.
+Carrier agreement and the other global shape obligations remain the separate
+precondition of `initEnqueue?_wellShaped`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.InitReady : ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?`
+
+Kind: definition.
+
+Delayed Figure-7-style initialization.  It reserves raw age `0`, enqueues
+the reached endpoint before its partner, and leaves both marks and `W(0)`
+unchanged (`W(0)` remains `⊥`).
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.Vertex → ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_some_iff`
+
+Kind: theorem.
+
+Successful delayed initialization is exactly the strict initial
+precondition together with the reserved state fields.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_some_iff : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.initEnqueue? reached partner = some after ↔
+    state.InitReady reached partner ∧
+      after = ProofNetIR.SequentialSchedulerState.SequentialStackState.initAfter✝ state reached partner
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_exact`
+
+Kind: theorem.
+
+Exact delayed-initialization fields.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_exact : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.initEnqueue? reached partner = some after →
+    after.marks = state.marks ∧
+      after.nextAge = 1 ∧
+        after.sigma = [0] ∧
+          after.ready = [[reached, partner]] ∧
+            after.waiting = state.waiting ∧
+              after.waiting[0]? = some ProofNetIR.SequentialSchedulerState.WaitingCell.undefined
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_endpoint_unmarked`
+
+Kind: theorem.
+
+Delayed initialization leaves both enqueued endpoints unmarked.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_endpoint_unmarked : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.initEnqueue? reached partner = some after →
+    after.marks[reached]? = some none ∧ after.marks[partner]? = some none
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_wellShaped`
+
+Kind: theorem.
+
+Delayed initialization preserves all shape invariants.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.initEnqueue?_wellShaped : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
+  {reached partner : ProofNetIR.Vertex},
+  state.WellShaped carrierSize → state.initEnqueue? reached partner = some after → after.WellShaped carrierSize
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.NewReady`
+
+Kind: definition.
+
+Local executable guard for reserving a later raw token age.  It does not
+replace the global `WellShaped` precondition used by the preservation theorem,
+nor does it assert that the endpoints are absent from older ready buckets.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.NewReady : ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?`
+
+Kind: definition.
+
+Delayed `new` reservation at the current raw-age horizon.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.Vertex → ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_some_iff`
+
+Kind: theorem.
+
+Successful delayed `new` reservation is exactly its local precondition
+together with the state obtained by reserving the current raw-age horizon.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_some_iff : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.newEnqueue? reached partner = some after ↔
+    state.NewReady reached partner ∧
+      after = ProofNetIR.SequentialSchedulerState.SequentialStackState.newAfter✝ state reached partner
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_exact`
+
+Kind: theorem.
+
+Exact delayed-`new` fields, including the transition of the fresh waiting
+cell from `⊥` to initialized `∅`.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_exact : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.newEnqueue? reached partner = some after →
+    after.marks = state.marks ∧
+      after.nextAge = state.nextAge + 1 ∧
+        after.sigma = state.sigma ++ [state.nextAge] ∧
+          after.ready = state.ready ++ [[reached, partner]] ∧
+            after.waiting =
+                state.waiting.setIfInBounds state.nextAge
+                  (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized []) ∧
+              after.waiting[state.nextAge]? = some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized [])
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_waiting_of_ne`
+
+Kind: theorem.
+
+A delayed `new` reservation changes no non-fresh waiting cell.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_waiting_of_ne : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex}
+  {index : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  state.newEnqueue? reached partner = some after → index ≠ state.nextAge → after.waiting[index]? = state.waiting[index]?
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_unmarked`
+
+Kind: theorem.
+
+Delayed `new` leaves both newly enqueued endpoints unmarked.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_unmarked : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.newEnqueue? reached partner = some after → after.marks[reached]? = some none ∧ after.marks[partner]? = some none
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped`
+
+Kind: theorem.
+
+Reserving a later raw age preserves all state-shape invariants.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
+  {reached partner : ProofNetIR.Vertex},
+  state.WellShaped carrierSize → state.newEnqueue? reached partner = some after → after.WellShaped carrierSize
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

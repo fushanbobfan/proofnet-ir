@@ -211,13 +211,37 @@ Regressions cover zero fuel, out-of-bounds, tagged and marked starts, missing
 and ambiguous source buckets, threaded-result-tags repeat rejection,
 stored-right orientation, all canonical initial starts under their rank
 budgets, a depth-two exact rank-versus-`rank + 1` fuel boundary, and the
-successful dynamic update. Later-state start selection, `σ`/`R`/`W`,
-token-age intervals, and full scheduler correctness and cost remain
-unimplemented. In the future state, `σ` is a strictly increasing stack
-of contiguous raw token-age interval boundaries, `R` is an aligned stack of
-sets, and `W` is a partial map whose undefined and initialized-empty states
-must not be collapsed. Scheduler guards compare raw assigned ages, not
-union-find representatives.
+successful dynamic update.
+
+`SequentialSchedulerState.lean` is a separate, non-production delayed-state
+specification. Its `RawTokenAge` is the immutable discovery-order age, never a
+union-find representative. `SigmaAgePartition` proves that the boundary list
+is empty exactly at raw-age horizon zero, begins at zero at a positive horizon,
+is strictly increasing, and contains only boundaries below that horizon.
+`sigmaBoundary?` selects the greatest boundary not exceeding a raw age.
+Waiting storage is fixed-capacity and intentionally has three observably
+different cases: array lookup `none` (out of bounds), `some undefined` (`⊥`),
+and `some (initialized [])` (`∅`).
+
+The strict local initialization guard requires both stacks and the age horizon
+to be empty, every mark and waiting cell to be undefined, and the two endpoints
+to be distinct and in bounds. Global carrier agreement and the remaining
+`WellShaped` obligations are separate preservation-theorem preconditions. Its
+executable reservation produces `σ = [0]` and
+ready buckets `[[reached, partner]]` while preserving the mark array and
+leaving `W(0)` undefined. The later reservation appends the old horizon to
+`σ`, appends `[reached, partner]`, initializes only the fresh waiting cell to
+empty, and also preserves marks. The current proof establishes exact fields,
+unmarked endpoints, and only the local `WellShaped` invariant. It does not
+assert the paper-level statement “`W` is defined exactly at ...”: the prose
+says `W` is defined at nonactive boundaries, while the Figure-7 `init`/`new`
+displays pull in a different direction: the displayed initialization leaves
+`W(0)` undefined whereas `new` initializes its fresh age.
+
+Later-state start selection, a `reserveAxiom?`/`RealizesSigma` bridge to
+`UnificationState`, the full aligned `R`/`W` transition semantics, scheduler
+correctness, and scheduler cost remain unimplemented. Future guards must
+continue to compare raw assigned ages, not union-find representatives.
 The separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
@@ -463,16 +487,20 @@ active-reference walks between marked occurrences are equivalent to
   invariants, exact oriented routes, initial/local rank-scoped totality, and
   touched-set disjointness for successive calls that strictly thread
   `first.tags`. That result does not cover reset tag arrays. Later-state
-  selection and faithful `σ`/`R`/`W` plus token-age stacks are still required
-  for the later Guerrini linearity layer. Planarity is not assumed for
+  selection and faithful full `R`/`W` transitions are still required for the
+  later Guerrini linearity layer. The independent delayed-state checkpoint
+  already proves the raw-age `σ` partition, three waiting-cell states,
+  reached/partner reservation order, and local shape preservation, but has no
+  production-state realization theorem. Planarity is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: its production path still starts all axioms
 eagerly and uses flat waiting requeues. The separate bounded/tagged
-`NEXTAXIOM` primitive is not yet integrated with `σ`/`R`/`W`,
-token-age intervals, or later-state scheduler start selection. General
+`NEXTAXIOM` primitive is not yet integrated with the delayed
+`SequentialSchedulerState`, its future `R` semantics, or later-state scheduler
+start selection. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

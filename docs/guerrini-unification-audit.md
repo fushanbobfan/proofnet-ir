@@ -123,18 +123,33 @@ complexity-zero axiom endpoints, so the global low-rank predicate cannot be
 threaded unchanged to a second call at any natural rank. The full scheduler
 needs a route-local freshness invariant.
 
-This checkpoint remains deliberately weaker than Figures 7–8.
+This search checkpoint remains deliberately weaker than Figures 7–8.
 `dynamicStartWithFuel?` immediately marks both endpoints with a fresh token; it
 is an independent eager Figure-5 refinement, not the paper's delayed
 `init`/`new` transition, which first pushes axiom endpoints into `R`.
-The full sequential state must still formalize a strictly increasing `σ` stack
-whose boundaries encode contiguous raw token-age intervals, an aligned stack
-`R` of sets that is popped before marking `μ`, and a partial map `W` that
-distinguishes undefined `⊥` from initialized empty `∅`. Guards in the paper
-compare raw assigned token ages; replacing those ages by their union-find
-representatives would change the algorithm. Later-state start selection,
-these `σ`/`R`/`W` invariants, scheduler correctness, and the whole-scheduler
-cost model remain open.
+
+`SequentialSchedulerState.lean` now formalizes the first independent delayed
+state slice. `RawTokenAge` is a discovery-order age and not a union-find
+representative. `SigmaAgePartition` makes `σ` a strictly increasing list of
+raw-age interval boundaries below the horizon, beginning at zero whenever the
+horizon is positive. Fixed-capacity `WaitingCell` storage separates
+out-of-bounds lookup from in-bounds undefined `⊥` and initialized empty `∅`.
+The strict empty `init` reserves raw age zero and enqueues
+`[reached, partner]` without marking either endpoint or defining `W(0)`;
+`new` appends the fresh boundary and the same endpoint order, initializes the
+fresh `W` cell to `∅`, and likewise leaves marks unchanged. The exact field
+equations and local `WellShaped` preservation are kernel checked.
+
+This does not resolve a source-level tension by fiat. The paper's prose says
+`W` is defined at nonactive boundaries, while the Figure-7 initialization
+display leaves the age-zero cell undefined and the `new` display initializes
+the fresh cell. The model therefore records those local
+states and transitions but proves no `iff` characterization of the full `W`
+domain. It also does not yet define the aligned paper `R` stack, pop-before-mark
+transition system, or a realization in the production state. Later-state
+selection, a `reserveAxiom?`/`RealizesSigma` bridge, scheduler correctness, and
+the whole-scheduler cost model remain open. Future guards must compare raw
+assigned ages; replacing them by representatives would change the algorithm.
 
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
@@ -266,8 +281,9 @@ quiescent state.
 
 This flat production prototype is not the sequential strategy of Figures
 7--8. It starts all axioms eagerly, uses a flat waiting set, and does not use
-the separate bounded/tagged `NEXTAXIOM` checkpoint. It has no `σ`/`R`/`W`
-stack, token-age interval partition, or specialized union-find invariant. The
+the separate bounded/tagged `NEXTAXIOM` or delayed-state checkpoints. Its own
+production state has no `σ`/`R`/`W` stack, token-age interval partition, or
+specialized union-find invariant. The
 attempt cap is no longer merely imposed by fuel: its scheduler sufficiency is
 proved.
 That result now rules out tensor deadlock on a correct nonfinal net and
@@ -327,9 +343,11 @@ The following stronger claims are intentionally absent:
 - equivalence between this eager implementation and the full sequential
   `σ`/`R`/`W`, token-age, `NEXTAXIOM`, and special union-find algorithm
   in Figures 7--8;
-- later-state start selection and the complete `σ`/`R`/`W`, token-age,
-  scheduler-correctness, and scheduler-cost theorems for the bounded
-  `NEXTAXIOM` primitive; only initial/local rank-scoped totality is proved;
+- a production realization of the independent raw-age `σ`/waiting-state
+  checkpoint, later-state start selection, the complete `R`/`W` transition
+  system, scheduler correctness, and scheduler-cost theorems for the bounded
+  `NEXTAXIOM` primitive; only initial/local search totality and local
+  delayed-reservation shape preservation are proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The current repeated scan can take a quadratic number of link visits before
@@ -569,14 +587,19 @@ linearity.
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist
    decision only after that equality is kernel checked.
-6. Extend the now-kernel-checked bounded/tagged `NEXTAXIOM` checkpoint, whose
+6. Bridge the now-kernel-checked bounded/tagged `NEXTAXIOM` checkpoint, whose
    oriented route, initial/local rank-scoped totality, per-call invariants, and
-   strictly threaded touched-set disjointness are already proved, with
-   later-state selection and the Figure-7 `σ`/`R`/`W` discipline. Keep the
-   immediate dynamic-start refinement separate from delayed `init`/`new`.
+   strictly threaded touched-set disjointness are already proved, to the new
+   delayed raw-age state through `reserveAxiom?` and a `RealizesSigma`
+   invariant. Keep the immediate dynamic-start refinement separate from the
+   already mark-preserving delayed `init`/`new`, and preserve their exact
+   `[reached, partner]` ready order.
+7. Extend that bridge with later-state selection and the full Figure-7
+   `R`/`W` discipline. Do not invent an `iff` domain theorem for `W` until the
+   prose/display tension is resolved.
    Replace eager axiom starts and flat waiting requeues only after token-age
    interval sequencing and its specialized union-find invariants are proved;
    the flat scheduler counterexample prevents reusing those invariants.
-7. Only after the complete `NEXTAXIOM`, token-age, waiting-stack, union-find,
+8. Only after the complete `NEXTAXIOM`, token-age, waiting-stack, union-find,
    and implemented-operation cost invariants are formalized should the library
    expose a Guerrini-linear complexity theorem.
