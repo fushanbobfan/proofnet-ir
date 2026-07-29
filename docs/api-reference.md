@@ -5515,6 +5515,41 @@ ProofNetIR.SequentialUnification.NextAxiomResult.Touched : {certificate : ProofN
         ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags → ProofNetIR.Vertex → Prop
 ```
 
+### `ProofNetIR.SequentialUnification.NextAxiomResult.linkIndex_ne_of_input_left_tagged`
+
+Kind: theorem.
+
+A later successful search cannot return the same submitted axiom-link
+index when its input already tags the earlier result's left endpoint.  This is
+a structural property of the two results: their marking states, fuel bounds,
+and search executions may all differ.  Distinct duplicate link slots are not
+identified by this theorem.
+
+```lean
+ProofNetIR.SequentialUnification.NextAxiomResult.linkIndex_ne_of_input_left_tagged : ∀ {certificate : ProofNetIR.Certificate} {firstState secondState : ProofNetIR.UnificationState}
+  {firstFuel secondFuel : Nat} {firstInput secondInput : Array Bool}
+  (first : ProofNetIR.SequentialUnification.NextAxiomResult certificate firstState firstFuel firstInput)
+  (second : ProofNetIR.SequentialUnification.NextAxiomResult certificate secondState secondFuel secondInput),
+  secondInput[first.left]? = some true → first.linkIndex ≠ second.linkIndex
+```
+
+### `ProofNetIR.SequentialUnification.NextAxiomResult.threaded_linkIndex_ne`
+
+Kind: theorem.
+
+Threading the complete output tag array of one successful search into the
+next search prevents replay of the first submitted axiom-link index.  No
+relation between the two unification states is required; distinct duplicate
+link slots are outside this conclusion.
+
+```lean
+ProofNetIR.SequentialUnification.NextAxiomResult.threaded_linkIndex_ne : ∀ {certificate : ProofNetIR.Certificate} {firstState secondState : ProofNetIR.UnificationState}
+  {firstFuel secondFuel : Nat} {inputTags : Array Bool}
+  (first : ProofNetIR.SequentialUnification.NextAxiomResult certificate firstState firstFuel inputTags)
+  (second : ProofNetIR.SequentialUnification.NextAxiomResult certificate secondState secondFuel first.tags),
+  first.linkIndex ≠ second.linkIndex
+```
+
 ### `ProofNetIR.SequentialUnification.NextAxiomResult.orientedEndpoints?`
 
 Kind: definition.
@@ -5984,6 +6019,35 @@ executable and uses raw ages directly.
 ```lean
 ProofNetIR.SequentialSchedulerState.sigmaBoundary? : List ProofNetIR.SequentialSchedulerState.RawTokenAge →
   ProofNetIR.SequentialSchedulerState.RawTokenAge → Option ProofNetIR.SequentialSchedulerState.RawTokenAge
+```
+
+### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_append_fresh_old`
+
+Kind: theorem.
+
+Appending the fresh raw-age boundary does not change any lookup strictly
+below the old horizon.
+
+```lean
+ProofNetIR.SequentialSchedulerState.sigmaBoundary?_append_fresh_old : ∀ {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {nextAge age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  age < nextAge →
+    ProofNetIR.SequentialSchedulerState.sigmaBoundary? (sigma ++ [nextAge]) age =
+      ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_append_fresh_self`
+
+Kind: theorem.
+
+The boundary appended at the old horizon is exactly the boundary returned
+for that freshly reserved raw age.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_append_fresh_self : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    ProofNetIR.SequentialSchedulerState.sigmaBoundary? (sigma ++ [nextAge]) nextAge = some nextAge
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem`
@@ -6560,6 +6624,172 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.rawAgeAt? : ProofNetIR.
   ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.RawTokenAge
 ```
 
+### `ProofNetIR.SequentialSchedulerBridge.ReservationState`
+
+Kind: inductive type.
+
+Executable state shared by the delayed scheduler reservation layer and
+the production unification carrier.
+
+The wrapper deliberately stores raw scheduler marks and production state side
+by side instead of identifying raw ages with current representatives.  Search
+tags are threaded independently and monotonically by `NEXTAXIOM`.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.ReservationState : Type
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.ReservationState.empty`
+
+Kind: definition.
+
+Exact empty state before the first axiom reservation.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.ReservationState.empty : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.initializeReservation?`
+
+Kind: definition.
+
+Search and reserve the first axiom while preserving the distinction
+between search-oriented and submitted endpoint order.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.initializeReservation? : ProofNetIR.Certificate → ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.reserveNewAxiom?`
+
+Kind: definition.
+
+Search and reserve one later axiom.
+
+This is a reservation-only prefix of Guerrini's `new`: it appends the
+search-oriented ready bucket, initializes the fresh waiting cell, appends the
+submitted-orientation production component, and threads the complete tag
+array.  It deliberately performs no endpoint marking, waiting-list draining,
+unification, or connective firing.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.reserveNewAxiom? : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful initial wrapper
+call.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.NewReservationStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful later wrapper call.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.NewReservationStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.initializeReservation?_some_iff`
+
+Kind: theorem.
+
+Executable initial success is equivalent to an exact proof-relevant
+initial reservation witness.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.initializeReservation?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some after ↔
+    Nonempty (ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start)
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.reserveNewAxiom?_some_iff`
+
+Kind: theorem.
+
+Executable later success is equivalent to an exact proof-relevant
+reservation witness.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.reserveNewAxiom?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.reserveNewAxiom? certificate before start = some after ↔
+    Nonempty (ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate before after start)
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.route`
+
+Kind: theorem.
+
+The executable initial witness contains the exact source-left route, not
+only an endpoint pair returned by an unchecked extractor.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.route : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialUnification.NextAxiomRoute start step.result step.reached step.partner
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.linkIndex_ne_next`
+
+Kind: theorem.
+
+Threading the initial wrapper's output tags into a later wrapper rules out
+reserving the first submitted axiom-link index again.  Distinct duplicate link
+slots require separate structural assumptions.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.linkIndex_ne_next : ∀ {certificate : ProofNetIR.Certificate} {middle after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {firstStart secondStart : ProofNetIR.Vertex}
+  (first : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate middle firstStart)
+  (second : ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate middle after secondStart),
+  first.result.linkIndex ≠ second.result.linkIndex
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.NewReservationStep.route`
+
+Kind: theorem.
+
+Every successful later wrapper witness contains its exact source-left
+route.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.NewReservationStep.route : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate before after start),
+  ProofNetIR.SequentialUnification.NextAxiomRoute start step.result step.reached step.partner
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.NewReservationStep.linkIndex_ne`
+
+Kind: theorem.
+
+Two composable later wrapper calls cannot reserve the same submitted
+axiom-link index when the first call's complete tag output is threaded
+unchanged.  Distinct duplicate link slots require separate structural
+assumptions.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.NewReservationStep.linkIndex_ne : ∀ {certificate : ProofNetIR.Certificate} {before middle after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {firstStart secondStart : ProofNetIR.Vertex}
+  (first : ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate before middle firstStart)
+  (second : ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate middle after secondStart),
+  first.result.linkIndex ≠ second.result.linkIndex
+```
+
 ### `ProofNetIR.SequentialSchedulerBridge.RealizesSigma`
 
 Kind: inductive type.
@@ -6575,6 +6805,22 @@ not part of this relation.
 
 ```lean
 ProofNetIR.SequentialSchedulerBridge.RealizesSigma : ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.ReservationInvariant`
+
+Kind: inductive type.
+
+Reservation-layer invariant currently proved for initialization and every
+successful reservation-only `new` wrapper.
+
+It combines scheduler shape, the exact raw-age/representative bridge,
+production carrier soundness, counter alignment, and tag-domain alignment.
+It intentionally does not assert Figure-7 liveness, waiting-dependency
+semantics, cross-ready-bucket uniqueness, or completeness.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.ReservationInvariant : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
 ```
 
 ### `ProofNetIR.SequentialSchedulerBridge.RealizesSigma.rawAgeAt?_eq_assignedToken?`
@@ -6601,6 +6847,19 @@ ProofNetIR.SequentialSchedulerBridge.initial_realizesSigma : ∀ (certificate : 
   ProofNetIR.SequentialSchedulerBridge.RealizesSigma
     (ProofNetIR.SequentialSchedulerState.SequentialStackState.empty certificate.formulas.size)
     certificate.initialUnificationState
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.empty_reservationInvariant`
+
+Kind: theorem.
+
+The exact empty wrapper state satisfies every reservation-layer
+invariant, before any reservation is attempted.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.empty_reservationInvariant : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate
+    (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
 ```
 
 ### `ProofNetIR.SequentialSchedulerBridge.init_reserve_carrier_realizesSigma`
@@ -6671,6 +6930,111 @@ ProofNetIR.SequentialSchedulerBridge.init_reserve_route_fields : ∀ {certificat
               coreAfter.components = #[some component] ∧
                 component.frontier = [result.left, result.right] ∧
                   ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.reservationInvariant`
+
+Kind: theorem.
+
+A successful exact initial wrapper call establishes the complete
+reservation-layer invariant.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.new_reserve_carrier_realizesSigma`
+
+Kind: theorem.
+
+Appending one delayed raw-age reservation and one production component
+reservation preserves the exact `sigma`/union-find correspondence.
+
+This theorem is intentionally carrier-local.  It requires the old
+`WellShaped` partition and ordered parent forest, but it does not claim that
+the selected endpoints are scheduler-live or that an arbitrary production
+merge preserves `RealizesSigma`.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.new_reserve_carrier_realizesSigma : ∀ {certificate : ProofNetIR.Certificate}
+  {stackBefore stackAfter : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {coreBefore coreAfter : ProofNetIR.UnificationState} {reached partner : ProofNetIR.Vertex} {linkIndex : Nat},
+  stackBefore.WellShaped certificate.formulas.size →
+    ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackBefore coreBefore →
+      coreBefore.OrderedParents →
+        stackBefore.newEnqueue? reached partner = some stackAfter →
+          certificate.reserveAxiomAt? coreBefore linkIndex = some coreAfter →
+            ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.new_reserve_route_exact`
+
+Kind: theorem.
+
+The later-state companion of `init_reserve_route_exact`: one exact
+`NEXTAXIOM` result controls both the search-oriented appended ready bucket and
+the submitted-orientation production reservation.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.new_reserve_route_exact : ∀ {certificate : ProofNetIR.Certificate}
+  {stackBefore stackAfter : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {coreBefore coreAfter : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate coreBefore fuel tags},
+  stackBefore.WellShaped certificate.formulas.size →
+    ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackBefore coreBefore →
+      coreBefore.OrderedParents →
+        ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
+          stackBefore.newEnqueue? reached partner = some stackAfter →
+            certificate.reserveAxiomAt? coreBefore result.linkIndex = some coreAfter →
+              result.orientedEndpoints? = some (reached, partner) ∧
+                ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.new_reserve_route_fields`
+
+Kind: theorem.
+
+Field-level later reservation theorem.  The newly appended ready bucket
+uses the search orientation while the newly appended production component
+uses the same result's submitted orientation.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.new_reserve_route_fields : ∀ {certificate : ProofNetIR.Certificate}
+  {stackBefore stackAfter : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {coreBefore coreAfter : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate coreBefore fuel tags},
+  stackBefore.WellShaped certificate.formulas.size →
+    ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackBefore coreBefore →
+      coreBefore.OrderedParents →
+        ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
+          stackBefore.newEnqueue? reached partner = some stackAfter →
+            certificate.reserveAxiomAt? coreBefore result.linkIndex = some coreAfter →
+              result.orientedEndpoints? = some (reached, partner) ∧
+                stackAfter.ready = stackBefore.ready ++ [[reached, partner]] ∧
+                  ∃ component,
+                    coreAfter.components = coreBefore.components.push (some component) ∧
+                      component.frontier = [result.left, result.right] ∧
+                        ProofNetIR.SequentialSchedulerBridge.RealizesSigma stackAfter coreAfter
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.NewReservationStep.reservationInvariant`
+
+Kind: theorem.
+
+Every successful later wrapper call preserves the complete
+reservation-layer invariant.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.NewReservationStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+    ∀ (step : ProofNetIR.SequentialSchedulerBridge.NewReservationStep certificate before after start),
+      ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
 ```
 
 ## Serialization and untrusted input

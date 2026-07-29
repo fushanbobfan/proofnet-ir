@@ -115,6 +115,42 @@ def sigmaBoundary? : List RawTokenAge → RawTokenAge → Option RawTokenAge
       else
         none
 
+/-- Appending the fresh raw-age boundary does not change any lookup strictly
+below the old horizon. -/
+theorem sigmaBoundary?_append_fresh_old
+    {sigma : List RawTokenAge} {nextAge age : RawTokenAge}
+    (ageBound : age < nextAge) :
+    sigmaBoundary? (sigma ++ [nextAge]) age =
+      sigmaBoundary? sigma age := by
+  induction sigma with
+  | nil =>
+      simp [sigmaBoundary?, Nat.not_le_of_gt ageBound]
+  | cons head tail induction =>
+      simp [sigmaBoundary?, induction]
+
+private theorem sigmaBoundary?_append_self_of_all_lt
+    {sigma : List RawTokenAge} {nextAge : RawTokenAge}
+    (allLt : ∀ boundary ∈ sigma, boundary < nextAge) :
+    sigmaBoundary? (sigma ++ [nextAge]) nextAge = some nextAge := by
+  induction sigma with
+  | nil =>
+      simp [sigmaBoundary?]
+  | cons head tail induction =>
+      have headLe : head ≤ nextAge :=
+        Nat.le_of_lt (allLt head List.mem_cons_self)
+      have tailLt : ∀ boundary ∈ tail, boundary < nextAge := by
+        intro boundary membership
+        exact allLt boundary (List.mem_cons_of_mem head membership)
+      simp [sigmaBoundary?, headLe, induction tailLt]
+
+/-- The boundary appended at the old horizon is exactly the boundary returned
+for that freshly reserved raw age. -/
+theorem SigmaAgePartition.sigmaBoundary?_append_fresh_self
+    {nextAge : RawTokenAge} {sigma : List RawTokenAge}
+    (partition : SigmaAgePartition nextAge sigma) :
+    sigmaBoundary? (sigma ++ [nextAge]) nextAge = some nextAge := by
+  exact sigmaBoundary?_append_self_of_all_lt partition.boundary_lt
+
 /-- Every returned boundary comes from the supplied stack. -/
 theorem sigmaBoundary?_mem
     {sigma : List RawTokenAge} {age boundary : RawTokenAge}

@@ -2,21 +2,46 @@
 
 ## Unreleased
 
-- added `ProofNetIR/SequentialSchedulerBridge.lean` as the first exact
-  connection between the delayed raw-age state and the production carrier.
-  `reserveAxiomAt?` reuses the production axiom-component constructor, checks
-  local well-formedness, unmarked endpoints, and component/parent alignment,
-  then appends a live submitted-orientation component and fresh self-parent
-  without changing marks. `RealizesSigma` relates raw marks, horizon, and
-  executable `sigmaBoundary?` lookup to production representatives. The
-  route-bound initial theorem uses the same `NextAxiomResult.linkIndex` and
-  exposes delayed `[reached, partner]` separately from production
-  `[result.left, result.right]`. Kernel-checked regressions reject out-of-range,
-  non-axiom, malformed, already-marked, and misaligned reservations. This is
-  not replay protection, a later-state bridge, a full reachable invariant,
-  complete `R`/`W` semantics, scheduler completeness, fallback removal, or a
-  linearity theorem. The expanded exact trust audit covers 119 full-classical,
-  21 axiom-free, 43 `propext`-only, and 35 `propext`/`Quot.sound` theorems;
+- extended `ProofNetIR/SequentialSchedulerBridge.lean` from the first carrier
+  bridge to a typed initial/later reservation checkpoint. `ReservationState`
+  keeps delayed stack, production core, and the complete search-tag array
+  together; `initializeReservation?` and `reserveNewAxiom?` search and reserve
+  the submitted axiom at `result.linkIndex` without marking its endpoints.
+  Proof-relevant
+  `InitialReservationStep` and `NewReservationStep` records expose the exact
+  search result, oriented ready endpoints, delayed enqueue, production
+  reservation, and output, while `initializeReservation?_some_iff` and
+  `reserveNewAxiom?_some_iff` characterize executable success. Exact output-tag
+  threading proves that composable initial/later and later/later wrapper calls
+  cannot reserve the same submitted axiom-link index. It does not identify
+  duplicate equal-valued axioms at different indices without an additional
+  structural premise. The guarantee also does not survive resetting or
+  replacing tags, and direct low-level `reserveAxiomAt?` remains replayable.
+  The canonical two-step fixture reserves submitted/ready
+  `[0,1]`/`[1,0]`, then `[2,3]`/`[3,2]`;
+- proved the later `RealizesSigma` bridge. Appending a reservation uses
+  `sigmaBoundary?_append_fresh_old` for every old age and the fresh-boundary
+  self lemma for the new age, matched to the production old/fresh
+  representative theorems. `ReservationInvariant` bundles delayed
+  `WellShaped`, `RealizesSigma`, production `OrderedParents`, `Abstractable`,
+  `ComponentsFormulaConsistent`, component/parent carrier alignment,
+  started-axiom/counter alignment, and tag-domain alignment. The empty state
+  satisfies it, a successful initial reservation establishes it, and every
+  successful later reservation preserves it. This is a preservation bundle
+  for wrapper-generated histories, not a reachability or tag-history
+  characterization: `tags_size` alone does not exclude reset-tag states. A
+  locked counterexample uses an
+  arbitrary ordered parent forest `#[0, 1, 0]` with `sigma = [0, 1]`: age `2`
+  has boundary `1` but representative `0`, so `RealizesSigma` fails. This state
+  is not proved reachable by an actual `unify`/union transition; it only
+  refutes deriving `RealizesSigma` from `WellShaped`, marks/horizon alignment,
+  and `OrderedParents` alone. This remains only a reservation prefix, not full
+  Figure-7 `new`: there is no pop-before-mark,
+  binary-mate handling, raw-age marking, semantic `R`/`W` ownership, later
+  totality, correct-state progress, pure-worklist completeness, fallback
+  removal, or whole-program linearity. The expanded exact trust audit covers
+  131 full-classical,
+  21 axiom-free, 46 `propext`-only, and 36 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
   production unifier. `RawTokenAge` records discovery order and is explicitly
@@ -34,10 +59,13 @@
   No `iff` characterization of the paper's `W` domain is claimed: its prose
   says `W` is defined at nonactive boundaries, whereas the Figure-7
   initialization display leaves `W(0)` undefined and `new` initializes the
-  fresh age. The initial `reserveAxiomAt?`/`RealizesSigma` bridge to production
-  state is now present; replay-safe later reservations, later `NEXTAXIOM`
-  totality, the full transition system, progress, completeness,
-  fallback removal, and whole-program linearity remain open;
+  fresh age. The production bridge now includes the typed initial/later
+  wrappers, complete-tag axiom-link-index replay exclusion for composable
+  calls, later `RealizesSigma` preservation, and the bundled
+  `ReservationInvariant`.
+  Later `NEXTAXIOM` totality, the complete Figure-7 transition system and
+  semantic `R`/`W` ownership, progress, completeness, fallback removal, and
+  whole-program linearity remain open;
 - added `ProofNetIR/SequentialUnification.lean` as the first bounded
   Figures 7–8 checkpoint without claiming the full scheduler. A reusable
   occurrence-source index is built once, and Lean proves every stored
@@ -76,11 +104,12 @@
   marked starts, missing and non-unique sources, threaded-result-tags repeat
   rejection, stored-right orientation, all initial canonical starts under the
   rank budget, a depth-two exact boundary where rank fuel fails and
-  `rank + 1` succeeds, and dynamic token allocation. Later-state start
-  selection, replay-safe extension of the initial production bridge, complete
-  `R`/`W` token-age sequencing, full scheduler correctness and cost,
-  correct-state progress, pure-worklist completeness, fallback removal, and
-  whole-program linearity remain open;
+  `rank + 1` succeeds, and dynamic token allocation. The separate reservation
+  wrapper now threads complete tags and preserves its initial/later invariant;
+  later-state start totality, pop-before-mark, binary-mate and raw-age marking,
+  complete semantic `R`/`W` token-age sequencing, full scheduler correctness
+  and cost, correct-state progress, pure-worklist completeness, fallback
+  removal, and whole-program linearity remain open;
 - narrowed the flat-scheduler confluence route. Exact concrete-state
   confluence is refuted by a derivation-generated correct certificate, while
   structural-only confluence is refuted by a structurally well-formed

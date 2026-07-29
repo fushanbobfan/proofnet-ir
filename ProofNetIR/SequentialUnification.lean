@@ -555,6 +555,61 @@ def NextAxiomResult.Touched
   vertex ∈ result.trace ∨
     vertex = result.left ∨ vertex = result.right
 
+/-- A later successful search cannot return the same submitted axiom-link
+index when its input already tags the earlier result's left endpoint.  This is
+a structural property of the two results: their marking states, fuel bounds,
+and search executions may all differ.  Distinct duplicate link slots are not
+identified by this theorem. -/
+theorem NextAxiomResult.linkIndex_ne_of_input_left_tagged
+    {certificate : Certificate}
+    {firstState secondState : UnificationState}
+    {firstFuel secondFuel : Nat}
+    {firstInput secondInput : Array Bool}
+    (first :
+      NextAxiomResult certificate firstState firstFuel firstInput)
+    (second :
+      NextAxiomResult certificate secondState secondFuel secondInput)
+    (firstLeftTagged :
+      secondInput[first.left]? = some true) :
+    first.linkIndex ≠ second.linkIndex := by
+  intro sameLinkIndex
+  have sameAxiom :
+      some (Link.axiom first.left first.right) =
+        some (Link.axiom second.left second.right) := by
+    calc
+      some (Link.axiom first.left first.right) =
+          certificate.links[first.linkIndex]? :=
+        first.exactLink.symm
+      _ = certificate.links[second.linkIndex]? := by
+        rw [sameLinkIndex]
+      _ = some (Link.axiom second.left second.right) :=
+        second.exactLink
+  have sameLink :
+      Link.axiom first.left first.right =
+        Link.axiom second.left second.right :=
+    Option.some.inj sameAxiom
+  have sameLeft : first.left = second.left := by
+    injection sameLink
+  rw [sameLeft] at firstLeftTagged
+  rw [second.leftTagged.1] at firstLeftTagged
+  contradiction
+
+/-- Threading the complete output tag array of one successful search into the
+next search prevents replay of the first submitted axiom-link index.  No
+relation between the two unification states is required; distinct duplicate
+link slots are outside this conclusion. -/
+theorem NextAxiomResult.threaded_linkIndex_ne
+    {certificate : Certificate}
+    {firstState secondState : UnificationState}
+    {firstFuel secondFuel : Nat}
+    {inputTags : Array Bool}
+    (first :
+      NextAxiomResult certificate firstState firstFuel inputTags)
+    (second :
+      NextAxiomResult certificate secondState secondFuel first.tags) :
+    first.linkIndex ≠ second.linkIndex :=
+  first.linkIndex_ne_of_input_left_tagged second first.leftTagged.2
+
 /-- Dynamic freshness through one formula-complexity rank.
 
 This is a sufficient local precondition for the bounded `NEXTAXIOM` search,

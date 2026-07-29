@@ -146,15 +146,43 @@ display leaves the age-zero cell undefined and the `new` display initializes
 the fresh cell. The model therefore records those local
 states and transitions but proves no `iff` characterization of the full `W`
 domain. `SequentialSchedulerBridge.lean` now provides the first production
-realization: an exact submitted axiom is reserved as an unmarked live component
-with a fresh self-parent, and the narrow `RealizesSigma` relation connects raw
-marks/horizon/lookup to production representatives. The route-bound theorem
-keeps submitted component orientation separate from reached/partner ready
-order. It still does not define the aligned paper `R` stack, pop-before-mark
-transition system, replay protection, or later-state realization. Scheduler
-correctness and the whole-scheduler cost model remain open. Future guards must
-compare raw assigned ages; replacing them by representatives would change the
-algorithm.
+realization. `ReservationState` holds the delayed stack, production core, and
+complete tags. `initializeReservation?` and `reserveNewAxiom?` execute initial
+and later reservation-only prefixes; the typed `InitialReservationStep` and
+`NewReservationStep` records expose the exact successful search, orientations,
+enqueue, production reservation, and output. Their `some_iff` theorems are
+bidirectional executable specifications.
+
+The wrapper keeps submitted component orientation separate from
+`[reached, partner]` ready order and threads the entire result tag array.
+Composable initial/later or later/later typed steps therefore cannot reserve
+the same submitted axiom-link index. This does not identify equal-valued
+duplicate axioms at different indices without another structural premise. It
+is scoped replay exclusion, not a low-level global property: resetting tags
+makes the wrapper replayable, and `reserveAxiomAt?` itself has no tag guard.
+The canonical receipt reserves submitted/ready `[0,1]`/`[1,0]`, then
+`[2,3]`/`[3,2]`.
+
+`ReservationInvariant` bundles `WellShaped`, `RealizesSigma`,
+`OrderedParents`, `Abstractable`, `ComponentsFormulaConsistent`,
+component/parent carrier alignment, started-axiom/counter alignment, and tag
+alignment. Initialization establishes it and every successful later wrapper
+preserves it. It is a preservation bundle for wrapper-generated histories, not
+a reachability or tag-history characterization; `tags_size` does not rule out
+reset tags. Later `RealizesSigma` preservation uses the sigma-append
+old/fresh lemmas and the production old/fresh representative lemmas. A
+deliberately arbitrary ordered parent forest `#[0, 1, 0]` with
+`sigma = [0, 1]` has age `2` at sigma boundary `1` but production
+representative `0`. It is not proved reachable by an actual `unify`/union
+transition; it only refutes automatic derivation of `RealizesSigma` from
+`WellShaped`, marks/horizon alignment, and `OrderedParents`.
+
+The checkpoint still does not define full Figure-7 `new`, the aligned semantic
+`R`/`W` ownership discipline, pop-before-mark, binary-mate handling, raw-age
+marking, later-state totality, progress, pure-worklist completeness, fallback
+removal, scheduler correctness, or the whole-scheduler linear cost model.
+Future guards must compare raw assigned ages; replacing them by
+representatives would change the algorithm.
 
 An event-driven prototype now precomputes which links consume each occurrence.
 It initially enqueues connectives once, enqueues only consumers of newly
@@ -348,12 +376,15 @@ The following stronger claims are intentionally absent:
 - equivalence between this eager implementation and the full sequential
   `σ`/`R`/`W`, token-age, `NEXTAXIOM`, and special union-find algorithm
   in Figures 7--8;
-- a replay-safe later-state production realization extending the now-proved
-  initial `reserveAxiomAt?`/`RealizesSigma` bridge, later-state start selection,
-  the complete `R`/`W` transition system, scheduler correctness, and
-  scheduler-cost theorems for the bounded `NEXTAXIOM` primitive; only
-  initial/local search totality and local
-  delayed-reservation shape preservation are proved;
+- axiom-link-index replay exclusion after resetting/replacing tags or direct
+  low-level reservation. The proved result covers only composable typed wrapper
+  calls that thread the complete output tags, and says nothing about
+  equal-valued duplicate axioms at different indices without extra structure;
+- later-state start totality, full Figure-7 `new` with pop-before-mark,
+  binary-mate/raw-age marking, semantic `R`/`W` ownership, the complete
+  scheduler transition system, scheduler correctness, and scheduler-cost
+  theorems. Initial/local search totality and initial/later reservation
+  invariant preservation are proved;
 - support for cuts, dummy links, units, Mix, additives, or exponentials.
 
 The current repeated scan can take a quadratic number of link visits before
@@ -593,15 +624,17 @@ linearity.
    `unificationWorklistFastCheck = check`.
 5. Remove the recursive reconstruction fallback from the exact worklist
    decision only after that equality is kernel checked.
-6. Extend the now-kernel-checked initial bridge between bounded/tagged
+6. Build on the now-kernel-checked initial/later bridge between bounded/tagged
    `NEXTAXIOM`, delayed raw-age state, and production `UnificationState`.
-   `reserveAxiomAt?`, the narrow `RealizesSigma` relation, submitted component
-   orientation, and exact `[reached, partner]` ready order are already proved.
-   Next add replay-safe later reservations and a reachable-state invariant.
-   Keep the immediate dynamic-start refinement separate from the
-   mark-preserving delayed `init`/`new`.
-7. Extend that bridge with later-state selection and the full Figure-7
-   `R`/`W` discipline. Do not invent an `iff` domain theorem for `W` until the
+   `ReservationState`, both executable wrappers and typed `some_iff`
+   specifications, strict-tag composable axiom-link-index replay exclusion,
+   later `RealizesSigma` preservation, submitted/ready orientation separation, and
+   the preserved `ReservationInvariant` are already proved. Keep the immediate
+   dynamic-start refinement separate from the mark-preserving delayed
+   reservation wrappers.
+7. Add later-state selection totality and the full Figure-7 `new`, including
+   pop-before-mark, binary-mate handling, raw-age marking, and semantic `R`/`W`
+   ownership. Do not invent an `iff` domain theorem for `W` until the
    prose/display tension is resolved.
    Replace eager axiom starts and flat waiting requeues only after token-age
    interval sequencing and its specialized union-find invariants are proved;

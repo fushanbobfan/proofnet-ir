@@ -169,21 +169,46 @@ increasing boundary list below the raw-age horizon. Waiting cells retain three
 distinct observations: out of bounds, in-bounds undefined, and initialized
 empty. Strict empty `init` leaves `W(0)` undefined; later `new` initializes the
 fresh waiting cell. Both keep marks unchanged and store the ready endpoints in
-`[reached, partner]` order. That preservation theorem alone is only for the
-local `WellShaped` record; the narrower initial production realization is
-provided separately below and still does not prove the complete paper
-scheduler.
+`[reached, partner]` order.
 
 The paper's prose says `W` is defined at nonactive boundaries, while its
 Figure-7 initialization leaves the initial cell undefined and `new`
 initializes the fresh cell. The trusted API intentionally makes no `iff` claim
-resolving that tension. The separate bridge now kernel-checks one exact
-unmarked submitted-axiom reservation and a narrow `RealizesSigma` relation
-between raw marks, horizon, executable `sigmaBoundary?`, and production
-representatives. It does not bundle `WellShaped`, replay protection, or
-reachability. Later-state start selection/reservation, complete `R`/`W`
-token-age transitions, scheduler correctness, and scheduler cost remain
-unimplemented. Future guards must use raw assigned ages—not representatives.
+resolving that tension. `SequentialSchedulerBridge.lean` now defines
+`ReservationState`, `initializeReservation?`, and `reserveNewAxiom?` to keep
+the delayed stack, production core, and complete search tags synchronized
+through initial and later reservation-only calls. The typed
+`InitialReservationStep` / `NewReservationStep` records and their executable
+`some_iff` theorems expose every successful subcall rather than trusting an
+opaque wrapper result.
+
+`ReservationInvariant` is the compiled preservation bundle for
+wrapper-generated histories: delayed
+`WellShaped`; `RealizesSigma`; production `OrderedParents`, `Abstractable`, and
+`ComponentsFormulaConsistent`; component/parent carrier alignment;
+started-axiom/counter alignment; and tag-domain alignment. It is proved for the
+empty state, established by a successful initialization, and preserved by
+every successful later reservation. The record is not itself a reachability or
+tag-history characterization: `tags_size` proves only carrier size, so reset
+tags may still satisfy it. Later `RealizesSigma` preservation uses
+the sigma-append old/fresh lemmas together with the corresponding production
+old/fresh representative lemmas. A deliberately arbitrary ordered parent
+forest `#[0, 1, 0]` with `sigma = [0, 1]` sends age `2` to boundary `1` but
+representative `0`. It is not proved reachable through actual `unify`/union;
+it only refutes automatic derivation of `RealizesSigma` from `WellShaped`,
+marks/horizon alignment, and `OrderedParents`.
+
+Complete tag threading proves that each adjacent composable wrapper-step pair
+reserves distinct submitted axiom-link indices. It does not equate duplicate
+axiom values at different indices without an extra structural premise. The
+scope is exact: reset/replaced tags and direct low-level reservations remain
+replayable. The canonical two-call regression locks submitted/ready orientations
+`[0,1]`/`[1,0]`, then `[2,3]`/`[3,2]`. This is still not the full Figure-7
+`new`: pop-before-mark,
+binary-mate handling, raw-age marking, semantic `R`/`W` ownership, later-state
+totality, correct-state progress, pure-worklist completeness, fallback
+removal, and whole-program linearity remain unimplemented. Future guards must
+use raw assigned ages—not representatives.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -416,11 +441,13 @@ structural-only confluence are too fine. Guerrini-style linearity instead
 requires extending the bounded/tagged `NEXTAXIOM` checkpoint with later-state
 selection and complete `R`/`W` token-age sequencing. Its exact oriented routes,
 initial/local totality, per-call invariants, and strictly threaded touched-set
-disjointness are already proved; the separate state layer now proves the
-raw-age `σ` partition and mark-preserving delayed reservations. The initial
-`reserveAxiomAt?`/`RealizesSigma` production realization is proved, while
-replay-safe later-state realization and complete `R`/`W` semantics remain
-open. No planarity principle is assumed.
+disjointness are already proved. The reservation wrapper now adds typed
+initial/later calls, axiom-link-index replay exclusion for composable calls
+under exact output tag threading, later `RealizesSigma` preservation, and a
+bundled invariant preserved across both stages. It does not add later totality,
+pop-before-mark,
+binary mates, raw-age marking, or semantic `R`/`W` ownership. No planarity
+principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
  flip around every fully reflexive dependency cycle. Each flipped segment is

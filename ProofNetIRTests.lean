@@ -1509,6 +1509,195 @@ example :
     (state := delayedAfterInit) (after := delayedAfterNew)
     (reached := 3) (partner := 2) (by native_decide)
 
+/-- Executable first reservation, including exact route recovery, submitted
+component creation, and complete tag threading. -/
+def canonicalInitialReservation : Option ReservationState :=
+  initializeReservation? canonical 5
+
+/-- The second call consumes the first call's state without resetting tags. -/
+def canonicalTwoReservations : Option ReservationState := do
+  let first ← canonicalInitialReservation
+  reserveNewAxiom? canonical first 3
+
+example :
+    (match canonicalInitialReservation with
+    | none => false
+    | some first =>
+        first.stack == delayedAfterInit &&
+        first.core.parents == #[0] &&
+        first.core.startedAxioms == 1 &&
+        first.tags[0]? == some true &&
+        first.tags[1]? == some true &&
+        first.tags[5]? == some true &&
+        match first.core.components[0]? with
+        | some (some component) =>
+            component.frontier == [0, 1]
+        | _ => false) = true := by
+  native_decide
+
+/-- The later production call reserves the other submitted axiom, while the
+delayed state appends the search-oriented `[3,2]` bucket and initializes only
+the fresh waiting cell. -/
+example :
+    (match canonicalTwoReservations with
+    | none => false
+    | some after =>
+        after.stack == delayedAfterNew &&
+        after.core.parents == #[0, 1] &&
+        after.core.startedAxioms == 2 &&
+        after.core.firedConnectives == 0 &&
+        after.tags[0]? == some true &&
+        after.tags[1]? == some true &&
+        after.tags[2]? == some true &&
+        after.tags[3]? == some true &&
+        after.tags[5]? == some true &&
+        match after.core.components[0]?, after.core.components[1]? with
+        | some (some first), some (some second) =>
+            first.frontier == [0, 1] &&
+            second.frontier == [2, 3]
+        | _, _ => false) = true := by
+  native_decide
+
+/-- Complete tag threading makes a replay search from the old start fail. -/
+example :
+    (match canonicalInitialReservation with
+    | none => false
+    | some first =>
+        (reserveNewAxiom? canonical first 5).isNone) = true := by
+  native_decide
+
+/-- Resetting tags is outside the wrapper invariant and demonstrates why the
+threaded-tag precondition is semantically material: the low-level
+reservation-only primitives can then reserve the old axiom again. -/
+example :
+    (match canonicalInitialReservation with
+    | none => false
+    | some first =>
+        (reserveNewAxiom? canonical
+          { first with
+            tags := Array.replicate canonical.formulas.size false }
+          5).isSome) = true := by
+  native_decide
+
+example {after : ReservationState}
+    (equation :
+      canonicalInitialReservation = some after) :
+    ReservationInvariant canonical after := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [canonicalInitialReservation] using equation) with
+    ⟨step⟩
+  exact step.reservationInvariant
+
+example {before after : ReservationState}
+    (initialEquation :
+      canonicalInitialReservation = some before)
+    (laterEquation :
+      reserveNewAxiom? canonical before 3 = some after) :
+    ReservationInvariant canonical after := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [canonicalInitialReservation] using initialEquation) with
+    ⟨initialStep⟩
+  rcases reserveNewAxiom?_some_iff.mp laterEquation with
+    ⟨laterStep⟩
+  exact laterStep.reservationInvariant
+    initialStep.reservationInvariant
+
+/-- The generic replay theorem does not depend on the canonical indices. -/
+example {middle after : ReservationState}
+    {firstStart secondStart : Vertex}
+    (first :
+      InitialReservationStep canonical middle firstStart)
+    (second :
+      NewReservationStep canonical middle after secondStart) :
+    first.result.linkIndex ≠ second.result.linkIndex :=
+  first.linkIndex_ne_next second
+
+/-- A deliberately arbitrary ordered parent forest does not by itself imply
+interval realization: raw age `2` lies in the σ interval beginning at `1`,
+while the manually chosen parent pointer sends it to representative `0`.
+This fixture is not claimed to be reachable through the production union
+transition. -/
+def arbitraryMergedStack : SequentialStackState where
+  marks := Array.replicate 3 none
+  nextAge := 3
+  sigma := [0, 1]
+  ready := [[], []]
+  waiting := Array.replicate 3 .undefined
+
+def arbitraryMergedCore : UnificationState where
+  marks := Array.replicate 3 none
+  parents := #[0, 1, 0]
+  components := #[none, none, none]
+  startedAxioms := 3
+  firedConnectives := 0
+
+theorem arbitraryMergedStack_wellShaped :
+    arbitraryMergedStack.WellShaped 3 := by
+  unfold arbitraryMergedStack
+  exact {
+    marks_size := by native_decide
+    waiting_size := by native_decide
+    assigned_age_bound := by
+      intro vertex age assigned
+      simp [Array.getElem?_replicate] at assigned
+    sigma_partition := {
+      empty_iff := by native_decide
+      head_zero := by
+        intro positive
+        native_decide
+      strictIncreasing := by decide
+      boundary_lt := by
+        intro boundary membership
+        simp only [List.mem_cons, List.not_mem_nil, or_false]
+          at membership
+        rcases membership with rfl | rfl <;> decide }
+    ready_aligned := by native_decide
+    ready_nodup := by
+      intro bucket membership
+      simp at membership
+      subst bucket
+      simp
+    ready_in_bounds := by
+      intro bucket membership vertex vertexMembership
+      simp at membership
+      subst bucket
+      simp at vertexMembership
+    nextAge_le_waiting := by native_decide }
+
+theorem arbitraryMergedCore_orderedParents :
+    arbitraryMergedCore.OrderedParents := by
+  intro token parent lookup
+  have tokenBound : token < 3 := by
+    have actual :=
+      (Array.getElem?_eq_some_iff.mp lookup).1
+    simpa [arbitraryMergedCore] using actual
+  have cases : token = 0 ∨ token = 1 ∨ token = 2 := by
+    omega
+  rcases cases with rfl | rfl | rfl <;>
+    simp [arbitraryMergedCore] at lookup <;>
+    omega
+
+example :
+    arbitraryMergedCore.marks = arbitraryMergedStack.marks ∧
+    arbitraryMergedCore.parents.size = arbitraryMergedStack.nextAge ∧
+    sigmaBoundary? arbitraryMergedStack.sigma 2 = some 1 ∧
+    arbitraryMergedCore.representative 2 = 0 := by
+  native_decide
+
+example :
+    ¬ RealizesSigma arbitraryMergedStack arbitraryMergedCore := by
+  intro realizes
+  have mismatch :=
+    realizes.representative_eq_boundary (age := 2) (by decide)
+  have boundary :
+      sigmaBoundary? arbitraryMergedStack.sigma 2 = some 1 := by
+    native_decide
+  have representative :
+      arbitraryMergedCore.representative 2 = 0 := by
+    native_decide
+  rw [boundary, representative] at mismatch
+  contradiction
+
 end SequentialSchedulerStateTests
 
 def canonicalParLeftIn : canonical.fullGraph.DirectedEdge where

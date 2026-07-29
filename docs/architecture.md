@@ -213,18 +213,27 @@ stored-right orientation, all canonical initial starts under their rank
 budgets, a depth-two exact rank-versus-`rank + 1` fuel boundary, and the
 successful dynamic update.
 
-`SequentialSchedulerState.lean` remains a separate, non-production
-delayed-state specification. `SequentialSchedulerBridge.lean` now relates its
-empty/initial reservation to the exact production carrier without identifying
-the two state records. Its `RawTokenAge` is the immutable discovery-order age,
-never a union-find representative. `SigmaAgePartition` proves that the
-boundary list is empty exactly at raw-age horizon zero, begins at zero at a
-positive horizon,
+`SequentialSchedulerState.lean` remains a separate delayed-state
+specification. `SequentialSchedulerBridge.lean` connects that state to the
+production carrier without identifying the two representations.
+`ReservationState` stores the delayed `SequentialStackState`, production
+`UnificationState`, and complete `NEXTAXIOM` tag array side by side.
+`initializeReservation?` starts from the exact empty wrapper;
+`reserveNewAxiom?` consumes a prior wrapper and threads its tags into one later
+search. Both reserve the returned submitted axiom without marking its
+endpoints. `InitialReservationStep` and `NewReservationStep` are typed,
+proof-relevant decompositions of successful calls, and the
+`initializeReservation?_some_iff` / `reserveNewAxiom?_some_iff` theorems make
+those records equivalent to executable `some` results.
+
+The state layer's `RawTokenAge` is the immutable discovery-order age, never a
+union-find representative. `SigmaAgePartition` proves that the boundary list
+is empty exactly at raw-age horizon zero, begins at zero at a positive horizon,
 is strictly increasing, and contains only boundaries below that horizon.
-`sigmaBoundary?` selects the greatest boundary not exceeding a raw age.
-Waiting storage is fixed-capacity and intentionally has three observably
-different cases: array lookup `none` (out of bounds), `some undefined` (`⊥`),
-and `some (initialized [])` (`∅`).
+`sigmaBoundary?` selects the greatest boundary not exceeding a raw age. Waiting
+storage is fixed-capacity and intentionally has three observably different
+cases: array lookup `none` (out of bounds), `some undefined` (`⊥`), and
+`some (initialized [])` (`∅`).
 
 The strict local initialization guard requires both stacks and the age horizon
 to be empty, every mark and waiting cell to be undefined, and the two endpoints
@@ -241,17 +250,52 @@ says `W` is defined at nonactive boundaries, while the Figure-7 `init`/`new`
 displays pull in a different direction: the displayed initialization leaves
 `W(0)` undefined whereas `new` initializes its fresh age.
 
-`reserveAxiomAt?` now creates a locally well-formed submitted-orientation live
-axiom component and a fresh self-parent while leaving marks unchanged.
+`reserveAxiomAt?` creates a locally well-formed submitted-orientation live
+axiom component and a fresh self-parent while leaving marks unchanged. Each
+wrapper uses one `NextAxiomResult`: its delayed bucket keeps
+`[reached, partner]`, while the production component keeps
+`[result.left, result.right]`. Exact tag threading is part of the wrapper
+composition. The typed-step theorems prove that an initial step followed by a
+later step, or two later steps, cannot return the same submitted axiom-link
+index. This is precisely scoped wrapper replay exclusion. It does not collapse
+equal-valued duplicate axioms at distinct indices without another structural
+premise. Resetting or replacing the tag array is outside the composable-step
+replay theorem, and the lower-level reservation primitive can reserve the old
+link index again.
+
 `RealizesSigma` equates raw marks, the carrier horizon, and each executable
-`sigmaBoundary?` lookup with the production representative. The initial
-route-bound theorem exposes both the delayed `[reached, partner]` ready bucket
-and the production `[result.left, result.right]` frontier from the same result
-and link index. `RealizesSigma` alone is deliberately not a `WellShaped` or
-reachability bundle. Replay protection, later-state reservation/selection,
-the full aligned `R`/`W` transition semantics, scheduler correctness, and
-scheduler cost remain unimplemented. Future guards must continue to compare
-raw assigned ages, not union-find representatives.
+`sigmaBoundary?` lookup with the production representative. Initialization
+establishes it, and `new_reserve_carrier_realizesSigma` preserves it on every
+later reservation. For an old raw age,
+`sigmaBoundary?_append_fresh_old` removes the appended boundary and
+`reserveAxiomAt?_old_representative` keeps its representative unchanged. For
+the fresh age, the `SigmaAgePartition` fresh-self append lemma matches
+`reserveAxiomAt?_fresh_representative`. This argument intentionally depends on
+the exact append transition. A deliberately arbitrary ordered parent forest
+with parents `#[0, 1, 0]` and `sigma = [0, 1]` gives raw age `2` boundary `1`
+but production representative `0`. It is not proved reachable by an actual
+`unify`/union transition; the example only refutes obtaining `RealizesSigma`
+automatically from `WellShaped`, marks/horizon alignment, and
+`OrderedParents`.
+
+`ReservationInvariant` is the preserved reservation-layer bundle:
+delayed-state `WellShaped`, `RealizesSigma`, production `OrderedParents`,
+`Abstractable`, and `ComponentsFormulaConsistent`, component/parent carrier
+alignment, `startedAxioms`/parent-counter alignment, and tag/formula-domain
+alignment. The exact empty state satisfies it; a successful
+`InitialReservationStep` establishes it; and every successful
+`NewReservationStep` preserves it. The structure itself is not an inductive
+reachability or tag-history characterization: `tags_size` records only the tag
+carrier, so a reset-tag state may still satisfy the bundle. The canonical
+two-step fixture locks
+submitted/ready orientation as `[0,1]`/`[1,0]`, then
+`[2,3]`/`[3,2]`.
+
+This still is not the full Figure-7 `new`. It has no pop-before-mark step,
+binary-mate transition, raw-age endpoint marking, semantic ownership invariant
+for `R` and `W`, later-state totality, correct-state progress, pure-worklist
+completeness, fallback removal, or whole-program linearity. Future guards must
+continue to compare raw assigned ages, not union-find representatives.
 The separate event-driven worklist tier described next is already implemented.
 
 The next executable layer,
@@ -500,19 +544,24 @@ active-reference walks between marked occurrences are equivalent to
   selection and faithful full `R`/`W` transitions are still required for the
   later Guerrini linearity layer. The independent delayed-state checkpoint
   already proves the raw-age `σ` partition, three waiting-cell states,
-  reached/partner reservation order, and local shape preservation. Its first
-  production bridge now proves exact unmarked reservation and a narrow
-  `RealizesSigma` theorem for the initial carrier, but not a full reachable
-  scheduler invariant. Planarity is not assumed for
+  reached/partner reservation order, and local shape preservation. The
+  production bridge now adds typed initial/later wrappers, exact
+  `some_iff` success witnesses, composable-call axiom-link-index replay
+  exclusion under complete tag threading, later `RealizesSigma` preservation,
+  and a `ReservationInvariant` preserved across initialization and later
+  reservations. Reset tags and the low-level reservation primitive remain
+  replayable, and the wrapper is still not full Figure-7 `new`. Planarity is
+  not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
 `Certificate.unificationCheck` now orders its tiers as worklist, eager scan,
 then complete recursive reconstruction. This is still not Guerrini Figures
 7--8 sequential unification: its production path still starts all axioms
 eagerly and uses flat waiting requeues. The separate bounded/tagged
-`NEXTAXIOM` primitive now has an exact one-reservation bridge to the delayed
-`SequentialSchedulerState`, but is not yet integrated into complete `R`/`W`
-semantics or later-state scheduler start selection. General
+`NEXTAXIOM` primitive now has an exact initial/later reservation bridge to the
+delayed `SequentialSchedulerState`, but is not yet integrated into
+pop-before-mark, binary-mate/raw-age marking, complete semantic `R`/`W`
+ownership, or later-state scheduler totality. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

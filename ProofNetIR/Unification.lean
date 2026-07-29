@@ -2401,7 +2401,7 @@ def initialUnificationState (certificate : Certificate) :
   startedAxioms := 0
   firedConnectives := 0
 
-private theorem initialUnificationState_abstractable
+theorem initialUnificationState_abstractable
     (certificate : Certificate) :
     certificate.initialUnificationState.Abstractable certificate := by
   refine {
@@ -2486,7 +2486,7 @@ private theorem initialUnificationState_causallyThreaded
           split at rightMarked <;> simp at rightMarked
 
 /-- The executable initial state starts with an empty ordered parent forest. -/
-private theorem initialUnificationState_orderedParents
+theorem initialUnificationState_orderedParents
     (certificate : Certificate) :
     certificate.initialUnificationState.OrderedParents := by
   intro token parent lookup
@@ -2500,7 +2500,7 @@ private theorem initialUnificationState_identityParents
   simp [initialUnificationState] at bound
 
 /-- The empty initial state has no inconsistent stored component. -/
-private theorem initialUnificationState_componentsFormulaConsistent
+theorem initialUnificationState_componentsFormulaConsistent
     (certificate : Certificate) :
     certificate.initialUnificationState.ComponentsFormulaConsistent
       certificate := by
@@ -2508,7 +2508,7 @@ private theorem initialUnificationState_componentsFormulaConsistent
   simp [initialUnificationState] at lookup
 
 /-- Initial component and parent carriers are both empty. -/
-private theorem initialUnificationState_componentsParentsAligned
+theorem initialUnificationState_componentsParentsAligned
     (certificate : Certificate) :
     certificate.initialUnificationState.components.size =
       certificate.initialUnificationState.parents.size := by
