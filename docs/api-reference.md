@@ -6739,6 +6739,108 @@ history invariants.
 ProofNetIR.SequentialSchedulerState.SequentialStackState.queuedVertices : ProofNetIR.SequentialSchedulerState.SequentialStackState → List ProofNetIR.Vertex
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?`
+
+Kind: definition.
+
+Prepend one conclusion to an already initialized waiting bucket.
+
+This is the exact constant-time payload update used by the local Figure-7
+`wait` slice.  It fails closed on an out-of-bounds lookup and on the distinct
+paper-level undefined cell `⊥`; an initialized empty bucket `∅` succeeds.
+Global queue ownership is deliberately not checked by this primitive.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge →
+    ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.PrependWaitingStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful waiting prepend.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.PrependWaitingStep : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.SequentialStackState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_some_iff`
+
+Kind: theorem.
+
+Waiting prepend succeeds exactly on an initialized in-bounds bucket.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_some_iff : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.prependWaiting? boundary conclusion = some after ↔
+    Nonempty (before.PrependWaitingStep after boundary conclusion)
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_exact`
+
+Kind: theorem.
+
+Exact changed and unchanged fields of a successful waiting prepend.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_exact : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.prependWaiting? boundary conclusion = some after →
+    ∃ payload,
+      before.waiting[boundary]? = some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) ∧
+        after.waiting =
+            before.waiting.setIfInBounds boundary
+              (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized (conclusion :: payload)) ∧
+          after.waiting[boundary]? =
+              some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized (conclusion :: payload)) ∧
+            after.marks = before.marks ∧
+              after.nextAge = before.nextAge ∧ after.sigma = before.sigma ∧ after.ready = before.ready
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_of_ne`
+
+Kind: theorem.
+
+A waiting prepend changes no bucket at a different raw-age index.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_of_ne : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {boundary other : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.prependWaiting? boundary conclusion = some after →
+    other ≠ boundary → after.waiting[other]? = before.waiting[other]?
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_wellShaped`
+
+Kind: theorem.
+
+Waiting prepend preserves scheduler shape; it changes only one payload
+inside an already initialized fixed-capacity cell.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_wellShaped : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
+  {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.WellShaped carrierSize → before.prependWaiting? boundary conclusion = some after → after.WellShaped carrierSize
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_operationalWaitingDomain`
+
+Kind: theorem.
+
+Waiting prepend preserves the exact initialized waiting domain.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_operationalWaitingDomain : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.OperationalWaitingDomain →
+    before.prependWaiting? boundary conclusion = some after → after.OperationalWaitingDomain
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt`
 
 Kind: definition.
@@ -7931,6 +8033,129 @@ semantics, global queue provenance, or completeness.
 ProofNetIR.SequentialSchedulerBridge.ReservationInvariant : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
 ```
 
+### `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?`
+
+Kind: definition.
+
+Enqueue one conclusion at the `sigma` boundary containing a supplied raw
+mate age.
+
+The lookup is deliberately performed in the delayed raw-age partition.  It
+does not call the production union-find representative and does not use the
+raw age itself as a waiting-table index.  The underlying prepend fails closed
+unless the resulting boundary cell is already initialized.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge? : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge →
+    ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep`
+
+Kind: inductive type.
+
+Proof-relevant exact destination selected by one successful local waiting
+enqueue.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?_some_iff`
+
+Kind: theorem.
+
+Executable destination success is exactly the raw-boundary typed witness.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?_some_iff : ∀ {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge? before mateRawAge conclusion = some after ↔
+    Nonempty (ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep before after mateRawAge conclusion)
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.boundary_properties`
+
+Kind: theorem.
+
+A successful destination is a member of `sigma` and is no greater than
+the mate's raw age.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.boundary_properties : ∀ {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep before after mateRawAge conclusion),
+  step.boundary ∈ before.stack.sigma ∧ step.boundary ≤ mateRawAge
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.exact`
+
+Kind: theorem.
+
+Waiting payload transfer changes no raw marks, partition, ready bucket,
+production carrier, counter, or search tag.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.exact : ∀ {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep before after mateRawAge conclusion),
+  ∃ payload,
+    before.stack.waiting[step.boundary]? = some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) ∧
+      after.stack.waiting[step.boundary]? =
+          some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized (conclusion :: payload)) ∧
+        after.stack.marks = before.stack.marks ∧
+          after.stack.nextAge = before.stack.nextAge ∧
+            after.stack.sigma = before.stack.sigma ∧
+              after.stack.ready = before.stack.ready ∧ after.core = before.core ∧ after.tags = before.tags
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.realizesSigma`
+
+Kind: theorem.
+
+Waiting prepend preserves the raw-age/production bridge because marks,
+the raw horizon, `sigma`, and the production core are unchanged.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.realizesSigma : ∀ {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep before after mateRawAge conclusion),
+  ProofNetIR.SequentialSchedulerBridge.RealizesSigma before.stack before.core →
+    ProofNetIR.SequentialSchedulerBridge.RealizesSigma after.stack after.core
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.reservationInvariant`
+
+Kind: theorem.
+
+A typed waiting destination preserves the complete reservation invariant.
+This preservation is local: it does not add a global payload-ownership claim.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep before after mateRawAge conclusion),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?_reservationInvariant`
+
+Kind: theorem.
+
+Executable waiting enqueue preserves the reservation invariant.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge? before mateRawAge conclusion = some after →
+      ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
 ### `ProofNetIR.SequentialSchedulerBridge.RealizesSigma.rawAgeAt?_eq_assignedToken?`
 
 Kind: theorem.
@@ -8490,9 +8715,11 @@ fragment.
 `empty` is the zero-event run.  `init` is intrinsically tied to the exact
 empty production state by `InitialReservationStep`.  Every `later` constructor
 stores a complete operational `new`, not the reservation-only helper.  This
-type is intentionally not a generic Figure-7 rule history: the implemented
-non-reserving `concl` and `nop` rules need separate rule-step accounting, while
-`wait`, `forward`, and `unify` still need both transitions and accounting.
+type is intentionally not a generic Figure-7 rule history. The implemented
+non-reserving `concl` and `nop` rules need separate rule-step accounting. The
+local `wait` transition now exists outside this history and still needs
+accounting here; `forward` and `unify` still need both transitions and
+accounting.
 
 ```lean
 ProofNetIR.SequentialFigure7.InitNewHistory : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
@@ -8674,7 +8901,7 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new : ∀ {certificat
         ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate after
 ```
 
-## Executable Figure-7 concl and nop rules
+## Executable Figure-7 concl, nop, and wait rules
 
 ### `ProofNetIR.SequentialConnectiveKind`
 
@@ -9235,6 +9462,245 @@ The independent `nop` relation has a unique output.
 ProofNetIR.SequentialFigure7.NopRule.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
   ProofNetIR.SequentialFigure7.NopRule certificate before first →
     ProofNetIR.SequentialFigure7.NopRule certificate before second → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingPrependAt`
+
+Kind: definition.
+
+Independent direct waiting-payload prepend relation.  Its equations expose
+the initialized pre-cell and the exact O(1) cons update without referring to
+the executable `Option` primitive.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingPrependAt : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.WaitRule`
+
+Kind: definition.
+
+Independent Boolean-free local Figure-7 `wait` relation.
+
+The paper guard compares the mate's raw mark with the selected raw age.  Its
+destination is the exact `sigmaBoundary?` result; neither a union-find
+representative nor the raw age itself is used as the waiting-table index.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitRule : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.wait?`
+
+Kind: definition.
+
+Execute Figure-7 `wait` after the synchronized common prefix.
+
+The mate lookup returns its stored raw age.  The strict guard compares that
+raw age with the selected occurrence's raw age, then the bridge computes the
+destination from `sigmaBoundary?` and prepends the connective conclusion to
+the initialized boundary bucket.  There is intentionally no global
+`queuedVertices` scan in this local rule.
+
+```lean
+ProofNetIR.SequentialFigure7.wait? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep`
+
+Kind: inductive type.
+
+Exact proof-relevant specification of one successful `wait` rule.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_some_iff`
+
+Kind: theorem.
+
+Executable `wait` success is exactly the typed rule witness.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.wait? certificate before invariant = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.submitted_par`
+
+Kind: theorem.
+
+The generic consumer retained by a `wait` witness is the exact submitted
+par link.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.submitted_par : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  certificate.links[step.consumer.linkIndex]? =
+    some (ProofNetIR.Link.par step.consumer.storedLeft step.consumer.storedRight step.consumer.conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.mate_marked_before`
+
+Kind: theorem.
+
+The mate raw age tested after the common prefix is exactly its pre-prefix
+paper mark.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.mate_marked_before : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  before.core.marks[step.consumer.mate]? = some (some step.mateRawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.reservationInvariant`
+
+Kind: theorem.
+
+A successful `wait` preserves the reservation invariant by composing the
+common-prefix and typed destination preservation theorems.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_reservationInvariant`
+
+Kind: theorem.
+
+Executable `wait` preserves the complete reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.wait? certificate before invariant = some after →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitDestinationStep.toWaitingPrependAt`
+
+Kind: theorem.
+
+A typed bridge destination refines the independent direct cons-update
+relation.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitDestinationStep.toWaitingPrependAt : ∀ {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep before after mateRawAge conclusion),
+  ProofNetIR.SequentialFigure7.WaitingPrependAt before after step.boundary conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.toRule`
+
+Kind: theorem.
+
+The equation-backed executable witness refines the independent direct
+`wait` relation.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialFigure7.WaitRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_sound`
+
+Kind: theorem.
+
+Executable `wait` is sound for the independent direct relation without a
+global certificate-validity assumption.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.wait? certificate before invariant = some after →
+    ProofNetIR.SequentialFigure7.WaitRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingPrependAt.toExecutable`
+
+Kind: theorem.
+
+A direct initialized-cell cons update is complete for the executable
+raw-boundary bridge.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingPrependAt.toExecutable : ∀ {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerState.sigmaBoundary? before.stack.sigma mateRawAge = some boundary →
+    ProofNetIR.SequentialFigure7.WaitingPrependAt before after boundary conclusion →
+      ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge? before mateRawAge conclusion = some after
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_complete_of_structural`
+
+Kind: theorem.
+
+On structurally valid input, the independent direct `wait` guard is
+complete for the executable local rule.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_complete_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.WaitRule certificate before after →
+        ProofNetIR.SequentialFigure7.wait? certificate before invariant = some after
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_some_iff_rule_of_structural`
+
+Kind: theorem.
+
+Exact executable/declarative correspondence for `wait` under the
+certificate validity needed to make the par consumer unambiguous.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_some_iff_rule_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.wait? certificate before invariant = some after ↔
+        ProofNetIR.SequentialFigure7.WaitRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitRule.output_unique_of_structural`
+
+Kind: theorem.
+
+Under structural certificate validity and the supplied reservation
+invariant, the independent `wait` relation has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitRule.output_unique_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      ProofNetIR.SequentialFigure7.WaitRule certificate before first →
+        ProofNetIR.SequentialFigure7.WaitRule certificate before second → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingPrependAt.output_unique`
+
+Kind: theorem.
+
+The direct cons-update relation has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingPrependAt.output_unique : ∀ {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.WaitingPrependAt before first boundary conclusion →
+    ProofNetIR.SequentialFigure7.WaitingPrependAt before second boundary conclusion → first = second
 ```
 
 ## Serialization and untrusted input

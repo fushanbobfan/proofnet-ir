@@ -544,6 +544,13 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingCell.vertices,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.waitingVertices,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.queuedVertices,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.PrependWaitingStep,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_some_iff,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_exact,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_of_ne,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_wellShaped,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_operationalWaitingDomain,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.active_undefined,
@@ -643,6 +650,14 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerBridge.NewReservationStep.linkIndex_ne,
       `ProofNetIR.SequentialSchedulerBridge.RealizesSigma,
       `ProofNetIR.SequentialSchedulerBridge.ReservationInvariant,
+      `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?,
+      `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep,
+      `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?_some_iff,
+      `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.boundary_properties,
+      `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.exact,
+      `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.realizesSigma,
+      `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.reservationInvariant,
+      `ProofNetIR.SequentialSchedulerBridge.enqueueWaitingAtRawAge?_reservationInvariant,
       `ProofNetIR.SequentialSchedulerBridge.RealizesSigma.rawAgeAt?_eq_assignedToken?,
       `ProofNetIR.SequentialSchedulerBridge.initial_realizesSigma,
       `ProofNetIR.SequentialSchedulerBridge.empty_reservationInvariant,
@@ -704,7 +719,7 @@ def sections : List Section := [
     ]
   },
   {
-    title := "Executable Figure-7 concl and nop rules"
+    title := "Executable Figure-7 concl, nop, and wait rules"
     declarations := [
       `ProofNetIR.SequentialConnectiveKind,
       `ProofNetIR.SequentialConnectiveKind.asLink,
@@ -748,7 +763,24 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.nop?_sound,
       `ProofNetIR.SequentialFigure7.nop?_complete_of_structural,
       `ProofNetIR.SequentialFigure7.nop?_some_iff_rule_of_structural,
-      `ProofNetIR.SequentialFigure7.NopRule.output_unique
+      `ProofNetIR.SequentialFigure7.NopRule.output_unique,
+      `ProofNetIR.SequentialFigure7.WaitingPrependAt,
+      `ProofNetIR.SequentialFigure7.WaitRule,
+      `ProofNetIR.SequentialFigure7.wait?,
+      `ProofNetIR.SequentialFigure7.WaitStep,
+      `ProofNetIR.SequentialFigure7.wait?_some_iff,
+      `ProofNetIR.SequentialFigure7.WaitStep.submitted_par,
+      `ProofNetIR.SequentialFigure7.WaitStep.mate_marked_before,
+      `ProofNetIR.SequentialFigure7.WaitStep.reservationInvariant,
+      `ProofNetIR.SequentialFigure7.wait?_reservationInvariant,
+      `ProofNetIR.SequentialFigure7.WaitDestinationStep.toWaitingPrependAt,
+      `ProofNetIR.SequentialFigure7.WaitStep.toRule,
+      `ProofNetIR.SequentialFigure7.wait?_sound,
+      `ProofNetIR.SequentialFigure7.WaitingPrependAt.toExecutable,
+      `ProofNetIR.SequentialFigure7.wait?_complete_of_structural,
+      `ProofNetIR.SequentialFigure7.wait?_some_iff_rule_of_structural,
+      `ProofNetIR.SequentialFigure7.WaitRule.output_unique_of_structural,
+      `ProofNetIR.SequentialFigure7.WaitingPrependAt.output_unique
     ]
   },
   {

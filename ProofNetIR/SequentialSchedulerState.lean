@@ -327,6 +327,102 @@ history invariants. -/
 def queuedVertices (state : SequentialStackState) : List Vertex :=
   state.ready.flatten ++ state.waitingVertices
 
+/-- Prepend one conclusion to an already initialized waiting bucket.
+
+This is the exact constant-time payload update used by the local Figure-7
+`wait` slice.  It fails closed on an out-of-bounds lookup and on the distinct
+paper-level undefined cell `⊥`; an initialized empty bucket `∅` succeeds.
+Global queue ownership is deliberately not checked by this primitive. -/
+def prependWaiting? (state : SequentialStackState)
+    (boundary : RawTokenAge) (conclusion : Vertex) :
+    Option SequentialStackState :=
+  match state.waiting[boundary]? with
+  | some (.initialized payload) =>
+      some {
+        state with
+        waiting :=
+          state.waiting.setIfInBounds boundary
+            (.initialized (conclusion :: payload)) }
+  | _ => none
+
+/-- Proof-relevant exact specification of one successful waiting prepend. -/
+structure PrependWaitingStep (before after : SequentialStackState)
+    (boundary : RawTokenAge) (conclusion : Vertex) : Type where
+  payload : List Vertex
+  initialized :
+    before.waiting[boundary]? = some (.initialized payload)
+  after_eq :
+    after = {
+      before with
+      waiting :=
+        before.waiting.setIfInBounds boundary
+          (.initialized (conclusion :: payload)) }
+
+/-- Waiting prepend succeeds exactly on an initialized in-bounds bucket. -/
+theorem prependWaiting?_some_iff
+    {before after : SequentialStackState}
+    {boundary : RawTokenAge} {conclusion : Vertex} :
+    before.prependWaiting? boundary conclusion = some after ↔
+      Nonempty
+        (PrependWaitingStep before after boundary conclusion) := by
+  constructor
+  · intro equation
+    unfold prependWaiting? at equation
+    cases lookup : before.waiting[boundary]? with
+    | none =>
+        simp [lookup] at equation
+    | some cell =>
+        cases cell with
+        | undefined =>
+            simp [lookup] at equation
+        | initialized payload =>
+            simp [lookup] at equation
+            subst after
+            exact ⟨{
+              payload
+              initialized := lookup
+              after_eq := rfl }⟩
+  · rintro ⟨step⟩
+    rcases step with ⟨payload, initialized, rfl⟩
+    simp [prependWaiting?, initialized]
+
+/-- Exact changed and unchanged fields of a successful waiting prepend. -/
+theorem prependWaiting?_exact
+    {before after : SequentialStackState}
+    {boundary : RawTokenAge} {conclusion : Vertex}
+    (equation :
+      before.prependWaiting? boundary conclusion = some after) :
+    ∃ payload,
+      before.waiting[boundary]? = some (.initialized payload) ∧
+      after.waiting =
+        before.waiting.setIfInBounds boundary
+          (.initialized (conclusion :: payload)) ∧
+      after.waiting[boundary]? =
+        some (.initialized (conclusion :: payload)) ∧
+      after.marks = before.marks ∧
+      after.nextAge = before.nextAge ∧
+      after.sigma = before.sigma ∧
+      after.ready = before.ready := by
+  rcases prependWaiting?_some_iff.mp equation with ⟨step⟩
+  rcases step with ⟨payload, initialized, rfl⟩
+  have boundaryBound : boundary < before.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp initialized).1
+  exact ⟨payload, initialized, rfl, by simp [boundaryBound],
+    rfl, rfl, rfl, rfl⟩
+
+/-- A waiting prepend changes no bucket at a different raw-age index. -/
+theorem prependWaiting?_of_ne
+    {before after : SequentialStackState}
+    {boundary other : RawTokenAge} {conclusion : Vertex}
+    (equation :
+      before.prependWaiting? boundary conclusion = some after)
+    (different : other ≠ boundary) :
+    after.waiting[other]? = before.waiting[other]? := by
+  rcases prependWaiting?_exact equation with
+    ⟨payload, initialized, waitingEquation, _, _⟩
+  rw [waitingEquation]
+  exact Array.getElem?_setIfInBounds_ne different.symm
+
 /-- Empty fixed-carrier scheduler storage. -/
 def empty (carrierSize : Nat) : SequentialStackState where
   marks := Array.replicate carrierSize none
@@ -437,6 +533,68 @@ theorem OperationalWaitingDomain.active_undefined
       exact cellEquation
   | initialized payload =>
       exact False.elim (notInitialized ⟨payload, cellEquation⟩)
+
+/-- Waiting prepend preserves scheduler shape; it changes only one payload
+inside an already initialized fixed-capacity cell. -/
+theorem prependWaiting?_wellShaped
+    {before after : SequentialStackState} {carrierSize : Nat}
+    {boundary : RawTokenAge} {conclusion : Vertex}
+    (wellShaped : before.WellShaped carrierSize)
+    (equation :
+      before.prependWaiting? boundary conclusion = some after) :
+    after.WellShaped carrierSize := by
+  rcases prependWaiting?_some_iff.mp equation with ⟨step⟩
+  rcases step with ⟨payload, initialized, rfl⟩
+  exact {
+    marks_size := wellShaped.marks_size
+    waiting_size := by
+      simpa using wellShaped.waiting_size
+    assigned_age_bound := wellShaped.assigned_age_bound
+    sigma_partition := wellShaped.sigma_partition
+    ready_aligned := wellShaped.ready_aligned
+    ready_nodup := wellShaped.ready_nodup
+    ready_in_bounds := wellShaped.ready_in_bounds
+    nextAge_le_waiting := by
+      simpa using wellShaped.nextAge_le_waiting }
+
+/-- Waiting prepend preserves the exact initialized waiting domain. -/
+theorem prependWaiting?_operationalWaitingDomain
+    {before after : SequentialStackState}
+    {boundary : RawTokenAge} {conclusion : Vertex}
+    (domain : before.OperationalWaitingDomain)
+    (equation :
+      before.prependWaiting? boundary conclusion = some after) :
+    after.OperationalWaitingDomain := by
+  rcases prependWaiting?_some_iff.mp equation with ⟨step⟩
+  rcases step with ⟨payload, initialized, rfl⟩
+  have boundaryBound : boundary < before.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp initialized).1
+  exact {
+    initialized_iff_inactive := by
+      intro age ageBound
+      have oldDomain :=
+        domain.initialized_iff_inactive ageBound
+      by_cases same : age = boundary
+      · subst age
+        constructor
+        · intro _
+          exact oldDomain.mp ⟨payload, initialized⟩
+        · intro _
+          exact ⟨conclusion :: payload, by
+            simp [boundaryBound]⟩
+      · constructor
+        · rintro ⟨stored, storedEquation⟩
+          apply oldDomain.mp
+          exact ⟨stored, by
+            rw [Array.getElem?_setIfInBounds_ne (Ne.symm same)]
+                at storedEquation
+            exact storedEquation⟩
+        · intro inactive
+          rcases oldDomain.mpr inactive with
+            ⟨stored, storedEquation⟩
+          exact ⟨stored, by
+            rw [Array.getElem?_setIfInBounds_ne (Ne.symm same)]
+            exact storedEquation⟩ }
 
 /-- The empty fixed-carrier state is well shaped. -/
 theorem empty_wellShaped (carrierSize : Nat) :

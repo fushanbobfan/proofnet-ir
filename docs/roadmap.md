@@ -783,16 +783,19 @@
     reservation-invariant preservation.
   - [ ] State an independent Boolean-free relation for every Figure-7 rule and
     prove executable refinement and valid-guard completeness. This is now
-    complete for the common prefix, `concl`, and `nop`; their old dependent
-    witnesses remain as exact equation-backed executable compatibility
-    records. The relation and equivalence layer for `wait`, `forward`, `new`,
-    and `unify` remains open.
+    complete for the common prefix, `concl`, `nop`, and local `wait`; their
+    dependent witnesses remain as exact equation-backed executable
+    compatibility records. `WaitRule` states the raw-age guard in
+    `before.core.marks` and uses an exact proposition-level
+    `sigmaBoundary? = some boundary` equation. The relation and equivalence
+    layer for `forward`, `new`, and `unify` remains open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
-    route-local later-call freshness, implement `wait`, `forward`, and `unify`
-    under the operational waiting domain, and integrate the already-local
-    `concl`/`nop` rules into a complete history/dispatcher. Establish the
+    route-local later-call freshness, integrate the local initialized-cell
+    `wait` rule, implement `forward` and `unify` under the operational waiting
+    domain, and integrate the already-local `concl`/`nop`/`wait` rules into a
+    complete history/dispatcher. Establish the
     special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before

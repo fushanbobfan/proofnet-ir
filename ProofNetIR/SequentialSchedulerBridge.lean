@@ -896,6 +896,187 @@ structure ReservationInvariant (certificate : Certificate)
   tags_size :
     state.tags.size = certificate.formulas.size
 
+/-- Enqueue one conclusion at the `sigma` boundary containing a supplied raw
+mate age.
+
+The lookup is deliberately performed in the delayed raw-age partition.  It
+does not call the production union-find representative and does not use the
+raw age itself as a waiting-table index.  The underlying prepend fails closed
+unless the resulting boundary cell is already initialized. -/
+def enqueueWaitingAtRawAge? (before : ReservationState)
+    (mateRawAge : RawTokenAge) (conclusion : Vertex) :
+    Option ReservationState := do
+  let boundary ← sigmaBoundary? before.stack.sigma mateRawAge
+  let stackAfter ←
+    before.stack.prependWaiting? boundary conclusion
+  some {
+    stack := stackAfter
+    core := before.core
+    tags := before.tags }
+
+/-- Proof-relevant exact destination selected by one successful local waiting
+enqueue. -/
+structure WaitDestinationStep
+    (before after : ReservationState)
+    (mateRawAge : RawTokenAge) (conclusion : Vertex) : Type where
+  boundary : RawTokenAge
+  stackAfter : SequentialStackState
+  boundary_eq :
+    sigmaBoundary? before.stack.sigma mateRawAge = some boundary
+  stack_eq :
+    before.stack.prependWaiting? boundary conclusion = some stackAfter
+  output_eq :
+    after = {
+      stack := stackAfter
+      core := before.core
+      tags := before.tags }
+
+/-- Executable destination success is exactly the raw-boundary typed witness. -/
+theorem enqueueWaitingAtRawAge?_some_iff
+    {before after : ReservationState}
+    {mateRawAge : RawTokenAge} {conclusion : Vertex} :
+    enqueueWaitingAtRawAge? before mateRawAge conclusion = some after ↔
+      Nonempty
+        (WaitDestinationStep before after mateRawAge conclusion) := by
+  constructor
+  · intro equation
+    unfold enqueueWaitingAtRawAge? at equation
+    cases boundaryLookup :
+        sigmaBoundary? before.stack.sigma mateRawAge with
+    | none =>
+        simp [boundaryLookup] at equation
+    | some boundary =>
+        cases stackLookup :
+            before.stack.prependWaiting? boundary conclusion with
+        | none =>
+            simp [boundaryLookup, stackLookup] at equation
+        | some stackAfter =>
+            simp [boundaryLookup, stackLookup] at equation
+            subst after
+            exact ⟨{
+              boundary
+              stackAfter
+              boundary_eq := boundaryLookup
+              stack_eq := stackLookup
+              output_eq := rfl }⟩
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨boundary, stackAfter, boundaryEquation,
+        stackEquation, rfl⟩
+    simp [enqueueWaitingAtRawAge?, boundaryEquation, stackEquation]
+
+/-- A successful destination is a member of `sigma` and is no greater than
+the mate's raw age. -/
+theorem WaitDestinationStep.boundary_properties
+    {before after : ReservationState}
+    {mateRawAge : RawTokenAge} {conclusion : Vertex}
+    (step :
+      WaitDestinationStep before after mateRawAge conclusion) :
+    step.boundary ∈ before.stack.sigma ∧
+      step.boundary ≤ mateRawAge :=
+  ⟨sigmaBoundary?_mem step.boundary_eq,
+    sigmaBoundary?_le step.boundary_eq⟩
+
+/-- Waiting payload transfer changes no raw marks, partition, ready bucket,
+production carrier, counter, or search tag. -/
+theorem WaitDestinationStep.exact
+    {before after : ReservationState}
+    {mateRawAge : RawTokenAge} {conclusion : Vertex}
+    (step :
+      WaitDestinationStep before after mateRawAge conclusion) :
+    ∃ payload,
+      before.stack.waiting[step.boundary]? =
+        some (.initialized payload) ∧
+      after.stack.waiting[step.boundary]? =
+        some (.initialized (conclusion :: payload)) ∧
+      after.stack.marks = before.stack.marks ∧
+      after.stack.nextAge = before.stack.nextAge ∧
+      after.stack.sigma = before.stack.sigma ∧
+      after.stack.ready = before.stack.ready ∧
+      after.core = before.core ∧
+      after.tags = before.tags := by
+  rcases step with
+    ⟨boundary, stackAfter, boundaryEquation, stackEquation, rfl⟩
+  rcases SequentialStackState.prependWaiting?_exact stackEquation with
+    ⟨payload, initialized, waitingEquation, updated,
+      marksEquation, nextAgeEquation, sigmaEquation, readyEquation⟩
+  exact ⟨payload, initialized, updated, marksEquation,
+    nextAgeEquation, sigmaEquation, readyEquation, rfl, rfl⟩
+
+/-- Waiting prepend preserves the raw-age/production bridge because marks,
+the raw horizon, `sigma`, and the production core are unchanged. -/
+theorem WaitDestinationStep.realizesSigma
+    {before after : ReservationState}
+    {mateRawAge : RawTokenAge} {conclusion : Vertex}
+    (step :
+      WaitDestinationStep before after mateRawAge conclusion)
+    (realizes : RealizesSigma before.stack before.core) :
+    RealizesSigma after.stack after.core := by
+  rcases step.exact with
+    ⟨payload, initialized, updated, marksEquation,
+      nextAgeEquation, sigmaEquation, readyEquation,
+      coreEquation, tagsEquation⟩
+  exact {
+    marks_eq := by
+      rw [coreEquation, marksEquation]
+      exact realizes.marks_eq
+    horizon_eq := by
+      rw [coreEquation, nextAgeEquation]
+      exact realizes.horizon_eq
+    representative_eq_boundary := by
+      intro age ageBound
+      have oldBound : age < before.stack.nextAge := by
+        simpa [nextAgeEquation] using ageBound
+      rw [sigmaEquation, coreEquation]
+      exact realizes.representative_eq_boundary oldBound }
+
+/-- A typed waiting destination preserves the complete reservation invariant.
+This preservation is local: it does not add a global payload-ownership claim. -/
+theorem WaitDestinationStep.reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    {mateRawAge : RawTokenAge} {conclusion : Vertex}
+    (step :
+      WaitDestinationStep before after mateRawAge conclusion)
+    (invariant : ReservationInvariant certificate before) :
+    ReservationInvariant certificate after := by
+  have stackWellShaped :
+      step.stackAfter.WellShaped certificate.formulas.size :=
+    SequentialStackState.prependWaiting?_wellShaped
+      invariant.stack_wellShaped step.stack_eq
+  have stackDomain :
+      step.stackAfter.OperationalWaitingDomain :=
+    SequentialStackState.prependWaiting?_operationalWaitingDomain
+      invariant.stack_operationalWaitingDomain step.stack_eq
+  have realization :
+      RealizesSigma after.stack after.core :=
+    step.realizesSigma invariant.realizesSigma
+  rw [step.output_eq] at realization ⊢
+  exact {
+    stack_wellShaped := stackWellShaped
+    stack_operationalWaitingDomain := stackDomain
+    realizesSigma := realization
+    core_orderedParents := invariant.core_orderedParents
+    core_abstractable := invariant.core_abstractable
+    core_componentsFormulaConsistent :=
+      invariant.core_componentsFormulaConsistent
+    core_carriers_aligned := invariant.core_carriers_aligned
+    core_counter_aligned := invariant.core_counter_aligned
+    tags_size := invariant.tags_size }
+
+/-- Executable waiting enqueue preserves the reservation invariant. -/
+theorem enqueueWaitingAtRawAge?_reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    {mateRawAge : RawTokenAge} {conclusion : Vertex}
+    (invariant : ReservationInvariant certificate before)
+    (equation :
+      enqueueWaitingAtRawAge? before mateRawAge conclusion =
+        some after) :
+    ReservationInvariant certificate after := by
+  rcases enqueueWaitingAtRawAge?_some_iff.mp equation with ⟨step⟩
+  exact step.reservationInvariant invariant
+
 /-- A realization identifies scheduler raw-age lookup with the production
 raw mark, without conflating either one with its representative. -/
 theorem RealizesSigma.rawAgeAt?_eq_assignedToken?

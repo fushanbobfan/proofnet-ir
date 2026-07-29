@@ -387,15 +387,19 @@ part of the engineering and proof-identity gap.
    pop/mark/mate-search/new pipeline are kernel checked under the supplied
    invariant. Exact init/new execution history, tag provenance, global
    submitted-slot non-reuse, and reservation-count alignment are also kernel
-   checked. Exact local `concl` and `nop` rules now preserve the reservation
+   checked. Exact local `concl`, `nop`, and `wait` rules now preserve the reservation
    invariant, with conclusion lookup requiring local `NodeWellFormed`
    ownership and distinguishing an empty bucket from ambiguous
    singleton-query failure. Their independent Boolean-free direct relations,
    executable soundness, structurally valid completeness, and output
-   uniqueness are kernel checked; this does not establish dispatcher
-   reachability or progress. Ready/waiting payload ownership,
-   executable `wait`/`forward`/`unify`, full-history integration of
-   `concl`/`nop`, full-rule reachability, later-state selection totality,
+   uniqueness are kernel checked (`wait` uniqueness under structural
+   validity and the supplied invariant); this does not establish dispatcher
+   reachability or progress.
+   The local `wait` destination is exactly
+   `sigmaBoundary? stack.sigma mateRawAge`, and its initialized-cell cons
+   update does not claim global ownership. Ready/waiting payload ownership,
+   executable `forward`/`unify`, full-history integration of
+   `concl`/`nop`/`wait`, full-rule reachability, later-state selection totality,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, and a
    whole-program linear cost theorem remain open.
@@ -458,10 +462,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 176 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 188 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  65 `propext`-only, and 68 `propext`/`Quot.sound` boundaries;
+  77 `propext`-only, and 68 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -550,9 +554,10 @@ It can currently be used for:
   their proved structural source-singleton, per-call tag/trace, strictly
   threaded touched-set, `σ` partition, operational inactive-boundary waiting
   domain, typed initial/later reservations, and local pop/mark/new pipeline,
-  while treating search failure as inconclusive; local exact `concl`/`nop`
-  are now present, but ready/waiting payload ownership, executable
-  `wait`/`forward`/`unify`, and full-history rule integration remain absent.
+  while treating search failure as inconclusive; local exact
+  `concl`/`nop`/`wait` are now present, but ready/waiting payload ownership,
+  executable `forward`/`unify`, and full-history rule integration remain
+  absent. The local `wait` cons update is not an ownership theorem.
   Exact init/new reachability and tag history are present, but
   full-rule reachability and queue provenance are not, so together these are
   not a complete scheduler API;

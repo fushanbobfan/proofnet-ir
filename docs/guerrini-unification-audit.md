@@ -215,11 +215,13 @@ empty/init/operational-new executions. For this restricted history Lean proves
 tags iff recorded search touch, pairwise disjoint touched sets, globally
 distinct submitted axiom-link slots, and reservation-event counts equal to
 both raw-age and production counters. This does not define ready/waiting
-payload ownership or the full scheduler invariant. Global queue ownership,
-the paper's `wait`, `forward`, and `unify` transitions, integration of the now
-exact local `concl`/`nop` rules into full reachability, later-state totality,
-progress, pure-worklist completeness, fallback removal, scheduler correctness,
-and the whole-scheduler linear cost model remain open.
+payload ownership or the full scheduler invariant. A separate exact local
+`wait` transition now compares raw marks, resolves the destination with
+`sigmaBoundary?`, and prepends to one initialized bucket, without claiming
+global ownership. Global queue ownership, `forward` and `unify`, integration of
+the now exact local `concl`/`nop`/`wait` rules into full reachability,
+later-state totality, progress, pure-worklist completeness, fallback removal,
+scheduler correctness, and the whole-scheduler linear cost model remain open.
 Future guards must compare raw assigned ages; replacing them by
 representatives would change the algorithm.
 
@@ -420,8 +422,9 @@ The following stronger claims are intentionally absent:
   calls that thread the complete output tags, and says nothing about
   equal-valued duplicate axioms at different indices without extra structure;
 - reachable later-state selection totality, ready/waiting payload ownership,
-  `wait`, `forward`, and `unify`, full-history integration of the exact local
-  `concl`/`nop` rules, the complete scheduler transition system, scheduler
+  `forward` and `unify`, full-history integration of the exact local
+  `concl`/`nop`/`wait` rules, the complete scheduler transition system,
+  scheduler
   correctness, and scheduler-cost
   theorems. Initial/local search totality, initial/later reservation invariant
   preservation, `OperationalWaitingDomain`, the exact invariant-bound local
@@ -674,11 +677,11 @@ linearity.
    the preserved `ReservationInvariant` are already proved. Keep the immediate
    dynamic-start refinement separate from the mark-preserving delayed
    reservation wrappers.
-7. Extend the now-proved invariant-bound local Figure-7 `new` and exact
+7. Extend the now-proved invariant-bound local Figure-7 `new`/`wait` and exact
    init/new execution history into a full transition system: prove global
    ready/waiting payload ownership/disjointness, later-state selection
-   totality, `wait`/`forward`/`unify`, and full-history integration of the
-   already-local `concl`/`nop` transitions. Keep the printed
+   totality, `forward`/`unify`, and full-history integration of the
+   already-local `concl`/`nop`/`wait` transitions. Keep the printed
    fresh-cell helper and the project's operational inactive-boundary
    interpretation distinct; the latter is kernel checked but is not an
    author-confirmed erratum.

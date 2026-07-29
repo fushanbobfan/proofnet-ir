@@ -16,14 +16,18 @@ It deliberately keeps three distinctions executable:
 
 The common prefix pops one occurrence from the top ready bucket and raw-marks
 it at the old active `sigma` boundary in both delayed and production views.
-The first two complete rules built from that prefix are:
+The first three complete local rules built from that prefix are:
 
 * `concl`: the selected occurrence is an explicit conclusion with no consumer;
 * `nop`: the selected occurrence is a par premise whose mate is still raw
-  unmarked.
+  unmarked;
+* `wait`: the selected occurrence is a par premise whose mate carries a
+  strictly older raw age, and the par conclusion is prepended to the
+  initialized waiting bucket selected by `sigmaBoundary?`.
 
-Both rules perform only the common prefix.  Waiting transfer, par forwarding,
-tensor unification, full-rule reachability, and progress remain separate.
+`concl` and `nop` perform only the common prefix; `wait` additionally performs
+one exact waiting cons update. Par forwarding, tensor unification, global
+payload ownership, full-rule reachability, and progress remain separate.
 -/
 
 /-- The submitted binary connective constructor retained by a generic
@@ -508,6 +512,44 @@ def NopRule (certificate : Certificate)
     vertex = side.premise storedLeft storedRight ∧
     before.core.marks[
       side.mate storedLeft storedRight]? = some none
+
+/-- Independent direct waiting-payload prepend relation.  Its equations expose
+the initialized pre-cell and the exact O(1) cons update without referring to
+the executable `Option` primitive. -/
+def WaitingPrependAt (before after : ReservationState)
+    (boundary : RawTokenAge) (conclusion : Vertex) : Prop :=
+  ∃ payload,
+    before.stack.waiting[boundary]? =
+      some (.initialized payload) ∧
+    after.stack = {
+      before.stack with
+      waiting :=
+        before.stack.waiting.setIfInBounds boundary
+          (.initialized (conclusion :: payload)) } ∧
+    after.core = before.core ∧
+    after.tags = before.tags
+
+/-- Independent Boolean-free local Figure-7 `wait` relation.
+
+The paper guard compares the mate's raw mark with the selected raw age.  Its
+destination is the exact `sigmaBoundary?` result; neither a union-find
+representative nor the raw age itself is used as the waiting-table index. -/
+def WaitRule (certificate : Certificate)
+    (before after : ReservationState) : Prop :=
+  ∃ (vertex rawAge linkIndex storedLeft storedRight conclusion : Nat),
+    ∃ (side : TensorPremiseSide) (middle : ReservationState)
+      (mateRawAge boundary : RawTokenAge),
+    RulePrefixAt before middle vertex rawAge ∧
+    certificate.links[linkIndex]? =
+      some (Link.par storedLeft storedRight conclusion) ∧
+    vertex = side.premise storedLeft storedRight ∧
+    before.core.marks[
+      side.mate storedLeft storedRight]? =
+        some (some mateRawAge) ∧
+    mateRawAge < rawAge ∧
+    sigmaBoundary? middle.stack.sigma mateRawAge =
+      some boundary ∧
+    WaitingPrependAt middle after boundary conclusion
 
 /-- Execute Figure-7 `concl`: perform the common prefix only when the selected
 occurrence is a locally ownership-well-formed declared conclusion with an
@@ -997,6 +1039,7 @@ private theorem exists_connectiveBelow?_eq_some_par_of_structural
       certificate.connectiveBelow? vertex = some consumer ∧
       consumer.kind = .par ∧
       consumer.side = side ∧
+      consumer.conclusion = conclusion ∧
       consumer.mate =
         side.mate storedLeft storedRight := by
   have linkBound : linkIndex < certificate.links.length :=
@@ -1032,7 +1075,7 @@ private theorem exists_connectiveBelow?_eq_some_par_of_structural
           simpa [SequentialConnectiveKind.asLink] using linkEquation
         wellFormed
         premise_eq := rfl }
-      refine ⟨consumer, ?_, rfl, rfl, rfl⟩
+      refine ⟨consumer, ?_, rfl, rfl, rfl, rfl⟩
       unfold Certificate.connectiveBelow?
       split
       next noConsumer =>
@@ -1086,7 +1129,7 @@ private theorem exists_connectiveBelow?_eq_some_par_of_structural
           simpa [SequentialConnectiveKind.asLink] using linkEquation
         wellFormed
         premise_eq := rfl }
-      refine ⟨consumer, ?_, rfl, rfl, rfl⟩
+      refine ⟨consumer, ?_, rfl, rfl, rfl, rfl⟩
       unfold Certificate.connectiveBelow?
       split
       next noConsumer =>
@@ -1210,7 +1253,7 @@ theorem nop?_complete_of_structural
       exists_connectiveBelow?_eq_some_par_of_structural
         structural linkEquation preparedPremise with
     ⟨consumer, consumerEquation, parEquation,
-      sideEquation, mateEquation⟩
+      sideEquation, _conclusionEquation, mateEquation⟩
   have mateUnmarkedBefore :
       before.core.marks[consumer.mate]? = some none := by
     rw [mateEquation]
@@ -1263,6 +1306,494 @@ theorem NopRule.output_unique
   · rcases right with
       ⟨vertex, rawAge, _, _, _, _, _, prefixRule, _⟩
     exact ⟨vertex, rawAge, prefixRule⟩
+
+/-- Execute Figure-7 `wait` after the synchronized common prefix.
+
+The mate lookup returns its stored raw age.  The strict guard compares that
+raw age with the selected occurrence's raw age, then the bridge computes the
+destination from `sigmaBoundary?` and prepends the connective conclusion to
+the initialized boundary bucket.  There is intentionally no global
+`queuedVertices` scan in this local rule. -/
+def wait? (certificate : Certificate)
+    (before : ReservationState)
+    (_invariant : ReservationInvariant certificate before) :
+    Option ReservationState :=
+  match prepare? before with
+  | none => none
+  | some prepared =>
+      match
+          certificate.connectiveBelow?
+            prepared.stackResult.vertex with
+      | none => none
+      | some consumer =>
+          if _par : consumer.kind = .par then
+            match
+                prepared.coreMarked.marks[consumer.mate]? with
+            | some (some mateRawAge) =>
+                if _younger :
+                    mateRawAge < prepared.stackResult.rawAge then
+                  enqueueWaitingAtRawAge? prepared.after mateRawAge
+                    consumer.conclusion
+                else
+                  none
+            | _ => none
+          else
+            none
+
+/-- Exact proof-relevant specification of one successful `wait` rule. -/
+structure WaitStep (certificate : Certificate)
+    (before after : ReservationState) : Type where
+  before_invariant : ReservationInvariant certificate before
+  prepared : PreparedStep before
+  consumer :
+    ConnectiveBelow certificate prepared.stackResult.vertex
+  mateRawAge : RawTokenAge
+  destination :
+    WaitDestinationStep prepared.after after
+      mateRawAge consumer.conclusion
+  prepare_eq : prepare? before = some prepared
+  consumer_eq :
+    certificate.connectiveBelow? prepared.stackResult.vertex =
+      some consumer
+  par_eq : consumer.kind = .par
+  mate_marked :
+    prepared.coreMarked.marks[consumer.mate]? =
+      some (some mateRawAge)
+  younger : mateRawAge < prepared.stackResult.rawAge
+  destination_eq :
+    enqueueWaitingAtRawAge? prepared.after mateRawAge
+        consumer.conclusion =
+      some after
+
+/-- Executable `wait` success is exactly the typed rule witness. -/
+theorem wait?_some_iff
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before) :
+    wait? certificate before invariant = some after ↔
+      Nonempty (WaitStep certificate before after) := by
+  constructor
+  · intro equation
+    unfold wait? at equation
+    cases prepareEquation : prepare? before with
+    | none =>
+        simp [prepareEquation] at equation
+    | some prepared =>
+        cases consumerEquation :
+            certificate.connectiveBelow?
+              prepared.stackResult.vertex with
+        | none =>
+            simp [prepareEquation, consumerEquation] at equation
+        | some consumer =>
+            by_cases parEquation : consumer.kind = .par
+            · cases mateEquation :
+                  prepared.coreMarked.marks[consumer.mate]? with
+              | none =>
+                  simp [prepareEquation, consumerEquation,
+                    parEquation, mateEquation] at equation
+              | some mark =>
+                  cases mark with
+                  | none =>
+                      simp [prepareEquation, consumerEquation,
+                        parEquation, mateEquation] at equation
+                  | some mateRawAge =>
+                      by_cases youngerEquation :
+                          mateRawAge <
+                            prepared.stackResult.rawAge
+                      · simp [prepareEquation, consumerEquation,
+                          parEquation, mateEquation,
+                          youngerEquation] at equation
+                        rcases
+                            enqueueWaitingAtRawAge?_some_iff.mp
+                              equation with
+                          ⟨destination⟩
+                        exact ⟨{
+                          before_invariant := invariant
+                          prepared
+                          consumer
+                          mateRawAge
+                          destination
+                          prepare_eq := prepareEquation
+                          consumer_eq := consumerEquation
+                          par_eq := parEquation
+                          mate_marked := mateEquation
+                          younger := youngerEquation
+                          destination_eq := equation }⟩
+                      · simp [prepareEquation, consumerEquation,
+                          parEquation, mateEquation,
+                          youngerEquation] at equation
+            · simp [prepareEquation, consumerEquation,
+                parEquation] at equation
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨stepInvariant, prepared, consumer, mateRawAge,
+        destination, prepareEquation, consumerEquation,
+        parEquation, mateEquation, youngerEquation,
+        destinationEquation⟩
+    simp [wait?, prepareEquation, consumerEquation, parEquation,
+      mateEquation, youngerEquation, destinationEquation]
+
+namespace WaitStep
+
+/-- The generic consumer retained by a `wait` witness is the exact submitted
+par link. -/
+theorem submitted_par
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : WaitStep certificate before after) :
+    certificate.links[step.consumer.linkIndex]? =
+      some (.par step.consumer.storedLeft
+        step.consumer.storedRight step.consumer.conclusion) := by
+  simpa [step.par_eq, SequentialConnectiveKind.asLink] using
+    step.consumer.link_eq
+
+/-- The mate raw age tested after the common prefix is exactly its pre-prefix
+paper mark. -/
+theorem mate_marked_before
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : WaitStep certificate before after) :
+    before.core.marks[step.consumer.mate]? =
+      some (some step.mateRawAge) := by
+  have markExact :=
+    UnificationState.markReadyRaw?_exact
+      step.prepared.core_mark_eq
+  have selectedNeMate :
+      step.prepared.stackResult.vertex ≠
+        step.consumer.mate :=
+    step.consumer.mate_ne.symm
+  have unchanged :
+      step.prepared.coreMarked.marks[step.consumer.mate]? =
+        before.core.marks[step.consumer.mate]? := by
+    rw [markExact.2.1]
+    simp [selectedNeMate]
+  exact unchanged.symm.trans step.mate_marked
+
+/-- A successful `wait` preserves the reservation invariant by composing the
+common-prefix and typed destination preservation theorems. -/
+theorem reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : WaitStep certificate before after) :
+    ReservationInvariant certificate after :=
+  step.destination.reservationInvariant
+    (step.prepared.reservationInvariant step.before_invariant)
+
+end WaitStep
+
+/-- Executable `wait` preserves the complete reservation invariant. -/
+theorem wait?_reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation : wait? certificate before invariant = some after) :
+    ReservationInvariant certificate after := by
+  rcases (wait?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.reservationInvariant
+
+/-- A typed bridge destination refines the independent direct cons-update
+relation. -/
+theorem WaitDestinationStep.toWaitingPrependAt
+    {before after : ReservationState}
+    {mateRawAge : RawTokenAge} {conclusion : Vertex}
+    (step :
+      WaitDestinationStep before after mateRawAge conclusion) :
+    WaitingPrependAt before after step.boundary conclusion := by
+  rcases step with
+    ⟨boundary, stackAfter, boundaryEquation, stackEquation, rfl⟩
+  rcases
+      SequentialStackState.prependWaiting?_some_iff.mp
+        stackEquation with
+    ⟨prepend⟩
+  rcases prepend with ⟨payload, initialized, rfl⟩
+  exact ⟨payload, initialized, rfl, rfl, rfl⟩
+
+/-- The equation-backed executable witness refines the independent direct
+`wait` relation. -/
+theorem WaitStep.toRule
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : WaitStep certificate before after) :
+    WaitRule certificate before after := by
+  exact ⟨step.prepared.stackResult.vertex,
+    step.prepared.stackResult.rawAge,
+    step.consumer.linkIndex,
+    step.consumer.storedLeft,
+    step.consumer.storedRight,
+    step.consumer.conclusion,
+    step.consumer.side,
+    step.prepared.after,
+    step.mateRawAge,
+    step.destination.boundary,
+    RulePrefix.ofPrepared step.prepared,
+    step.submitted_par,
+    step.consumer.premise_eq,
+    step.mate_marked_before,
+    step.younger,
+    step.destination.boundary_eq,
+    WaitDestinationStep.toWaitingPrependAt step.destination⟩
+
+/-- Executable `wait` is sound for the independent direct relation without a
+global certificate-validity assumption. -/
+theorem wait?_sound
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation : wait? certificate before invariant = some after) :
+    WaitRule certificate before after := by
+  rcases (wait?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.toRule
+
+/-- A direct initialized-cell cons update is complete for the executable
+raw-boundary bridge. -/
+theorem WaitingPrependAt.toExecutable
+    {before after : ReservationState}
+    {mateRawAge boundary : RawTokenAge} {conclusion : Vertex}
+    (boundaryEquation :
+      sigmaBoundary? before.stack.sigma mateRawAge =
+        some boundary)
+    (rule :
+      WaitingPrependAt before after boundary conclusion) :
+    enqueueWaitingAtRawAge? before mateRawAge conclusion =
+      some after := by
+  rcases rule with
+    ⟨payload, initialized, stackEquation, coreEquation, tagsEquation⟩
+  have stackStep :
+      before.stack.prependWaiting? boundary conclusion =
+        some after.stack := by
+    apply SequentialStackState.prependWaiting?_some_iff.mpr
+    exact ⟨{
+      payload
+      initialized
+      after_eq := stackEquation }⟩
+  apply enqueueWaitingAtRawAge?_some_iff.mpr
+  exact ⟨{
+    boundary
+    stackAfter := after.stack
+    boundary_eq := boundaryEquation
+    stack_eq := stackStep
+    output_eq := by
+      cases before
+      cases after
+      simp_all }⟩
+
+private theorem exists_prepared_of_rulePrefixAt
+    {before middle : ReservationState}
+    {vertex : Vertex} {rawAge : RawTokenAge}
+    (rule : RulePrefixAt before middle vertex rawAge) :
+    ∃ prepared : PreparedStep before,
+      prepare? before = some prepared ∧
+      prepared.after = middle ∧
+      prepared.stackResult.vertex = vertex ∧
+      prepared.stackResult.rawAge = rawAge := by
+  rcases rule with
+    ⟨readyPrefix, readyTail, sigmaPrefix, readyEquation,
+      sigmaEquation, stackUnmarked, coreUnmarked,
+      stackAfter, coreAfter, tagsAfter⟩
+  let stackResult : PopReadyMarkResult := {
+    vertex
+    rawAge
+    remainingTop := readyTail
+    after := middle.stack }
+  have stackEquation :
+      before.stack.popReadyMark? = .ok stackResult := by
+    apply SequentialStackState.popReadyMark?_ok_iff.mpr
+    exact ⟨{
+      top_eq := by
+        dsimp [stackResult]
+        rw [readyEquation]
+        simp
+      sigma_top_eq := by
+        dsimp [stackResult]
+        rw [sigmaEquation]
+        simp
+      unmarked := stackUnmarked
+      after_eq := by
+        dsimp [stackResult]
+        rw [stackAfter, readyEquation]
+        simp }⟩
+  have coreEquation :
+      before.core.markReadyRaw? vertex rawAge =
+        .ok middle.core := by
+    apply UnificationState.markReadyRaw?_ok_iff.mpr
+    exact ⟨{
+      unmarked := coreUnmarked
+      after_eq := coreAfter }⟩
+  rcases
+      exists_prepare?_eq_some_of_ok stackEquation coreEquation with
+    ⟨prepared, prepareEquation⟩
+  have preparedPrefix :
+      RulePrefix before prepared.after :=
+    ⟨prepared.stackResult.vertex,
+      prepared.stackResult.rawAge,
+      RulePrefix.ofPrepared prepared⟩
+  have directPrefix : RulePrefix before middle :=
+    ⟨vertex, rawAge,
+      ⟨readyPrefix, readyTail, sigmaPrefix, readyEquation,
+        sigmaEquation, stackUnmarked, coreUnmarked,
+        stackAfter, coreAfter, tagsAfter⟩⟩
+  have outputEquation : prepared.after = middle :=
+    RulePrefix.output_unique preparedPrefix directPrefix
+  have preparedTop :
+      before.stack.ready.getLast? =
+        some (prepared.stackResult.vertex ::
+          prepared.stackResult.remainingTop) :=
+    (SequentialStackState.popReadyMark?_exact
+      prepared.stack_eq).1
+  have directTop :
+      before.stack.ready.getLast? = some (vertex :: readyTail) := by
+    rw [readyEquation]
+    simp
+  have vertexEquation :
+      prepared.stackResult.vertex = vertex := by
+    have same :
+        prepared.stackResult.vertex ::
+            prepared.stackResult.remainingTop =
+          vertex :: readyTail :=
+      Option.some.inj (preparedTop.symm.trans directTop)
+    exact List.cons.inj same |>.1
+  have preparedSigmaTop :
+      before.stack.sigma.getLast? =
+        some prepared.stackResult.rawAge :=
+    (SequentialStackState.popReadyMark?_exact
+      prepared.stack_eq).2.1
+  have directSigmaTop :
+      before.stack.sigma.getLast? = some rawAge := by
+    rw [sigmaEquation]
+    simp
+  have rawAgeEquation :
+      prepared.stackResult.rawAge = rawAge :=
+    Option.some.inj (preparedSigmaTop.symm.trans directSigmaTop)
+  exact ⟨prepared, prepareEquation, outputEquation,
+    vertexEquation, rawAgeEquation⟩
+
+/-- On structurally valid input, the independent direct `wait` guard is
+complete for the executable local rule. -/
+theorem wait?_complete_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (rule : WaitRule certificate before after) :
+    wait? certificate before invariant = some after := by
+  rcases rule with
+    ⟨vertex, rawAge, linkIndex, storedLeft, storedRight,
+      conclusion, side, middle, mateRawAge, boundary,
+      prefixRule, linkEquation, premiseEquation,
+      mateMarkedBefore, younger, boundaryEquation,
+      waitingRule⟩
+  rcases exists_prepared_of_rulePrefixAt prefixRule with
+    ⟨prepared, prepareEquation, middleEquation,
+      vertexEquation, rawAgeEquation⟩
+  have preparedPremise :
+      prepared.stackResult.vertex =
+        side.premise storedLeft storedRight := by
+    rw [vertexEquation]
+    exact premiseEquation
+  rcases
+      exists_connectiveBelow?_eq_some_par_of_structural
+        structural linkEquation preparedPremise with
+    ⟨consumer, consumerEquation, parEquation,
+      sideEquation, conclusionEquation, mateEquation⟩
+  have mateMarkedBefore' :
+      before.core.marks[consumer.mate]? =
+        some (some mateRawAge) := by
+    rw [mateEquation]
+    exact mateMarkedBefore
+  have markExact :=
+    UnificationState.markReadyRaw?_exact
+      prepared.core_mark_eq
+  have selectedNeMate :
+      prepared.stackResult.vertex ≠ consumer.mate :=
+    consumer.mate_ne.symm
+  have mateMarkedAfter :
+      prepared.coreMarked.marks[consumer.mate]? =
+        some (some mateRawAge) := by
+    rw [markExact.2.1]
+    simpa [selectedNeMate] using mateMarkedBefore'
+  have youngerPrepared :
+      mateRawAge < prepared.stackResult.rawAge := by
+    simpa [rawAgeEquation] using younger
+  have boundaryPrepared :
+      sigmaBoundary? prepared.after.stack.sigma mateRawAge =
+        some boundary := by
+    rw [middleEquation]
+    exact boundaryEquation
+  have waitingPrepared :
+      WaitingPrependAt prepared.after after boundary conclusion := by
+    rw [middleEquation]
+    exact waitingRule
+  have destinationEquation :
+      enqueueWaitingAtRawAge? prepared.after mateRawAge consumer.conclusion =
+        some after :=
+    by
+      rw [conclusionEquation]
+      exact waitingPrepared.toExecutable boundaryPrepared
+  rcases
+      enqueueWaitingAtRawAge?_some_iff.mp destinationEquation with
+    ⟨destination⟩
+  apply (wait?_some_iff invariant).mpr
+  exact ⟨{
+    before_invariant := invariant
+    prepared
+    consumer
+    mateRawAge
+    destination
+    prepare_eq := prepareEquation
+    consumer_eq := consumerEquation
+    par_eq := parEquation
+    mate_marked := mateMarkedAfter
+    younger := youngerPrepared
+    destination_eq := destinationEquation }⟩
+
+/-- Exact executable/declarative correspondence for `wait` under the
+certificate validity needed to make the par consumer unambiguous. -/
+theorem wait?_some_iff_rule_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before) :
+    wait? certificate before invariant = some after ↔
+      WaitRule certificate before after :=
+  ⟨wait?_sound invariant,
+    wait?_complete_of_structural structural invariant⟩
+
+/-- Under structural certificate validity and the supplied reservation
+invariant, the independent `wait` relation has one exact output. -/
+theorem WaitRule.output_unique_of_structural
+    {certificate : Certificate}
+    {before first second : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (left : WaitRule certificate before first)
+    (right : WaitRule certificate before second) :
+    first = second := by
+  have leftExecutable :=
+    wait?_complete_of_structural structural invariant left
+  have rightExecutable :=
+    wait?_complete_of_structural structural invariant right
+  exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
+
+/-- The direct cons-update relation has one exact output. -/
+theorem WaitingPrependAt.output_unique
+    {before first second : ReservationState}
+    {boundary : RawTokenAge} {conclusion : Vertex}
+    (left : WaitingPrependAt before first boundary conclusion)
+    (right : WaitingPrependAt before second boundary conclusion) :
+    first = second := by
+  rcases left with
+    ⟨leftPayload, leftInitialized, leftStack, leftCore, leftTags⟩
+  rcases right with
+    ⟨rightPayload, rightInitialized,
+      rightStack, rightCore, rightTags⟩
+  have payloadEquation : leftPayload = rightPayload := by
+    exact WaitingCell.initialized.inj
+      (Option.some.inj
+        (leftInitialized.symm.trans rightInitialized))
+  subst rightPayload
+  cases first
+  cases second
+  simp_all
 
 end SequentialFigure7
 

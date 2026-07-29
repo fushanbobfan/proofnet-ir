@@ -326,9 +326,11 @@ rule steps from axiom-reservation events.
 `SequentialFigure7Rules.lean` adds a generic proof-carrying binary-consumer
 view over the canonical consumer index, an explicit-conclusion view requiring
 declared membership, local `NodeWellFormed` ownership, and an exactly empty
-bucket, plus the synchronized `prepare?` prefix. `concl?` and `nop?` have
-dependent executable specifications and preserve the reservation invariant
-while returning only the prefix state. The ownership and empty-bucket guards
+bucket, plus the synchronized `prepare?` prefix. `concl?`, `nop?`, and
+`wait?` have
+dependent executable specifications and preserve the reservation invariant.
+`concl` and `nop` return only the prefix state; `wait` then updates one exact
+initialized waiting bucket. The ownership and empty-bucket guards
 in `concl` reject out-of-range or unproduced declared boundaries;
 `uniqueConsumer? = none` also describes a malformed bucket with distinct
 candidates. `nop` instead retains an exact submitted par and requires its
@@ -336,15 +338,23 @@ opposite premise to remain raw unmarked after the selected premise is marked.
 The mate-distinctness and pre-state guard theorem proves that this is exactly
 the paper's `μ(u₂)=⊥` condition rather than a weakened post-state surrogate.
 The dependent rule witnesses remain executable-shaped and retain `prepare?`
-and query equations. A separate direct `RulePrefixAt`/`ConclRule`/`NopRule`
-layer is Boolean-free and independent of those functions. Executable
+and query equations. `wait?` compares the mate's raw mark with the selected
+raw age, resolves `sigmaBoundary? stack.sigma mateRawAge`, and performs one
+initialized-cell cons update without scanning `queuedVertices`. A separate
+direct `RulePrefixAt`/`ConclRule`/`NopRule`/`WaitRule` layer is Boolean-free
+and independent of those functions. Executable
 soundness and completeness relative to that layer are kernel checked under
 whole-certificate `StructurallyWellFormed` and the supplied
-`ReservationInvariant`; direct outputs are unique. This is still a
-determinized list-level local relation, not a complete dispatcher.
+`ReservationInvariant`; direct outputs are unique (for `wait`, under
+structural validity and the supplied invariant). `WaitRule` uses a
+proposition-level exact
+`sigmaBoundary? = some boundary` equation and states the paper guard in
+`before.core.marks`. This is still a determinized list-level local relation,
+not a complete dispatcher.
 
-The `wait`/`forward`/`unify` payload rules, integration of `concl`/`nop` into a
-full rule history/dispatcher, later-state totality, correct-state progress,
+The `forward`/`unify` payload rules, global waiting-payload ownership,
+integration of `concl`/`nop`/`wait` into a full rule history/dispatcher,
+later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, and whole-program linearity
 remain open. Future guards must continue to compare
 raw assigned ages, not union-find representatives. The current global
@@ -612,9 +622,9 @@ active-reference walks between marked occurrences are equivalent to
   proof-relevant `InitNewHistory` now characterizes exact empty/init/new
   executions and proves tag provenance, global submitted-slot non-reuse, and
   reservation-count alignment. This fragment is not a full reachable
-  scheduler. The local `concl`/`nop` rules now exist outside this history;
-  waiting payload ownership, their full-history integration, and
-  `wait`/`forward`/`unify` remain open. Planarity
+  scheduler. The local `concl`/`nop`/`wait` rules now exist outside this
+  history; waiting payload ownership, their full-history integration, and
+  `forward`/`unify` remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -626,8 +636,8 @@ eagerly and uses flat waiting requeues. The separate bounded/tagged
 invariant-bound operational local `new` transition in the delayed
 `SequentialSchedulerState`. The literal printed fresh-cell update remains a
 separate display-only helper. Exact init/new execution history is integrated;
-ready/waiting payload ownership, `wait`/`forward`/`unify`, full-history
-integration of the local `concl`/`nop` rules, a full-rule reachable-state
+ready/waiting payload ownership, `forward`/`unify`, full-history
+integration of the local `concl`/`nop`/`wait` rules, a full-rule reachable-state
 invariant, and later-state scheduler totality are not. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate

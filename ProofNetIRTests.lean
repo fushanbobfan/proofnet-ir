@@ -2150,6 +2150,202 @@ example :
     simp [TensorPremiseSide.mate, nopMateMarkedBefore]
       at coreUnmarked mateUnmarked
 
+/-! Exact executable Figure-7 `wait`. -/
+
+/-- Mark canonical premise `1` at raw age `0`, then reserve the second axiom
+so the new active bucket is `[3,2]`.  The selected stored-right premise `3`
+therefore has raw age `1`, while its mate `1` retains raw age `0`. -/
+def canonicalWaitBefore : Option ReservationState :=
+  match initialEquation : canonicalInitialReservation with
+  | none => none
+  | some initial =>
+      match _nopEquation :
+          SequentialFigure7.nop? canonical initial
+            (canonicalInitialReservation_invariant initialEquation) with
+      | none => none
+      | some afterNop =>
+          reserveNewAxiom? canonical afterNop 3
+
+theorem canonicalWaitBefore_invariant {before : ReservationState}
+    (equation : canonicalWaitBefore = some before) :
+    ReservationInvariant canonical before := by
+  unfold canonicalWaitBefore at equation
+  split at equation
+  next initialFailure =>
+    simp at equation
+  next initial initialEquation =>
+    split at equation
+    next nopFailure =>
+      simp at equation
+    next afterNop nopEquation =>
+      have afterNopInvariant :
+          ReservationInvariant canonical afterNop :=
+        SequentialFigure7.nop?_reservationInvariant
+          (canonicalInitialReservation_invariant initialEquation)
+          nopEquation
+      rcases reserveNewAxiom?_some_iff.mp equation with
+        ⟨newStep⟩
+      exact newStep.reservationInvariant afterNopInvariant
+
+example :
+    (match canonicalWaitBefore with
+    | none => false
+    | some before =>
+        before.stack.ready == [[0], [3, 2]] &&
+        before.stack.sigma == [0, 1] &&
+        before.stack.marks[1]? == some (some 0) &&
+        before.stack.marks[3]? == some none &&
+        before.stack.waiting[0]? == some (.initialized []) &&
+        before.stack.waiting[1]? == some .undefined) = true := by
+  native_decide
+
+def canonicalWaitTransition : Option ReservationState :=
+  match equation : canonicalWaitBefore with
+  | none => none
+  | some before =>
+      SequentialFigure7.wait? canonical before
+        (canonicalWaitBefore_invariant equation)
+
+/-- Canonical `wait` uses the mate's raw age `0`, resolves destination boundary
+`0`, and prepends conclusion `5` to the initialized empty bucket. -/
+example :
+    (match canonicalWaitTransition with
+    | none => false
+    | some after =>
+        after.stack.marks[3]? == some (some 1) &&
+        after.stack.marks[1]? == some (some 0) &&
+        after.stack.ready == [[0], [2]] &&
+        after.stack.sigma == [0, 1] &&
+        after.stack.waiting[0]? == some (.initialized [5]) &&
+        after.stack.waiting[1]? == some .undefined &&
+        after.core.marks == after.stack.marks &&
+        after.core.parents == #[0, 1] &&
+        after.core.startedAxioms == 2 &&
+        after.core.firedConnectives == 0) = true := by
+  native_decide
+
+example {before after : ReservationState}
+    (beforeEquation : canonicalWaitBefore = some before)
+    (waitEquation :
+      SequentialFigure7.wait? canonical before
+          (canonicalWaitBefore_invariant beforeEquation) =
+        some after) :
+    ReservationInvariant canonical after :=
+  SequentialFigure7.wait?_reservationInvariant
+    (canonicalWaitBefore_invariant beforeEquation) waitEquation
+
+example {before after : ReservationState}
+    (beforeEquation : canonicalWaitBefore = some before)
+    (waitEquation :
+      SequentialFigure7.wait? canonical before
+          (canonicalWaitBefore_invariant beforeEquation) =
+        some after) :
+    SequentialFigure7.WaitRule canonical before after :=
+  SequentialFigure7.wait?_sound
+    (canonicalWaitBefore_invariant beforeEquation) waitEquation
+
+example {before after : ReservationState}
+    (beforeEquation : canonicalWaitBefore = some before)
+    (rule : SequentialFigure7.WaitRule canonical before after) :
+    SequentialFigure7.wait? canonical before
+        (canonicalWaitBefore_invariant beforeEquation) =
+      some after :=
+  SequentialFigure7.wait?_complete_of_structural
+    (canonical.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (canonicalWaitBefore_invariant beforeEquation) rule
+
+/-- Boundary lookup is not raw-age indexing: raw mate age `1` belongs to the
+interval whose boundary is `0`, so only bucket `0` receives the payload. -/
+def separatedBoundaryState : ReservationState where
+  stack := {
+    marks := Array.replicate 6 none
+    nextAge := 3
+    sigma := [0, 2]
+    ready := [[], []]
+    waiting := #[
+      .initialized [],
+      .undefined,
+      .undefined,
+      .undefined,
+      .undefined,
+      .undefined] }
+  core := {
+    marks := Array.replicate 6 none
+    parents := #[0, 1, 2]
+    components := #[none, none, none]
+    startedAxioms := 3
+    firedConnectives := 0 }
+  tags := Array.replicate 6 false
+
+example :
+    sigmaBoundary? separatedBoundaryState.stack.sigma 1 = some 0 := by
+  native_decide
+
+example :
+    (match enqueueWaitingAtRawAge? separatedBoundaryState 1 5 with
+    | none => false
+    | some after =>
+        after.stack.waiting[0]? == some (.initialized [5]) &&
+        after.stack.waiting[1]? == some .undefined) = true := by
+  native_decide
+
+/-- Undefined and out-of-bounds destination cells fail closed, while an
+initialized empty cell is a successful writable bucket. -/
+example :
+    ((SequentialStackState.empty 1).prependWaiting? 0 5).isNone =
+        true ∧
+      ((SequentialStackState.empty 0).prependWaiting? 0 5).isNone =
+        true ∧
+      ({ (SequentialStackState.empty 1) with
+          waiting := #[.initialized []] } :
+        SequentialStackState).prependWaiting? 0 5 =
+          some {
+            (SequentialStackState.empty 1) with
+            waiting := #[.initialized [5]] } := by
+  native_decide
+
+/-- An unmarked mate does not satisfy `wait`; this is a reachable,
+invariant-carrying canonical stored-right state. -/
+example :
+    (match equation : canonicalStoredRightInitial with
+    | none => false
+    | some before =>
+        (SequentialFigure7.wait? canonical before
+          (canonicalStoredRightInitial_invariant equation)).isNone) =
+      true := by
+  native_decide
+
+/-- Equality of raw ages fails the strict paper guard.  The invariant argument
+is quantified because this test isolates the executable age comparison. -/
+def waitEqualAgeBefore : ReservationState where
+  stack := {
+    marks := #[none, some 1, none, none, none, none]
+    nextAge := 2
+    sigma := [0, 1]
+    ready := [[0], [3, 2]]
+    waiting := #[
+      .initialized [],
+      .undefined,
+      .undefined,
+      .undefined,
+      .undefined,
+      .undefined] }
+  core := {
+    marks := #[none, some 1, none, none, none, none]
+    parents := #[0, 1]
+    components := #[none, none]
+    startedAxioms := 2
+    firedConnectives := 0 }
+  tags := Array.replicate 6 false
+
+example
+    (invariant : ReservationInvariant canonical waitEqualAgeBefore) :
+    (SequentialFigure7.wait? canonical waitEqualAgeBefore invariant).isNone =
+      true := by
+  unfold SequentialFigure7.wait?
+  native_decide
+
 example {before after : ReservationState}
     (initialEquation :
       canonicalInitialReservation = some before)

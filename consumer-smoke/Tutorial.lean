@@ -129,6 +129,70 @@ example
       (by native_decide))
     (figure7ParInitial_invariant initialEquation)
 
+def figure7WaitBefore :
+    Option SequentialSchedulerBridge.ReservationState :=
+  match initialEquation : figure7ParInitial with
+  | none => none
+  | some initial =>
+      match _nopEquation :
+          SequentialFigure7.nop? figure7ParCertificate initial
+            (figure7ParInitial_invariant initialEquation) with
+      | none => none
+      | some afterNop =>
+          SequentialSchedulerBridge.reserveNewAxiom?
+            figure7ParCertificate afterNop 3
+
+theorem figure7WaitBefore_invariant
+    {before : SequentialSchedulerBridge.ReservationState}
+    (equation : figure7WaitBefore = some before) :
+    SequentialSchedulerBridge.ReservationInvariant
+      figure7ParCertificate before := by
+  unfold figure7WaitBefore at equation
+  split at equation
+  next =>
+    simp at equation
+  next initial initialEquation =>
+    split at equation
+    next =>
+      simp at equation
+    next afterNop nopEquation =>
+      have afterNopInvariant :=
+        SequentialFigure7.nop?_reservationInvariant
+          (figure7ParInitial_invariant initialEquation) nopEquation
+      rcases
+          SequentialSchedulerBridge.reserveNewAxiom?_some_iff.mp
+            equation with
+        ⟨newStep⟩
+      exact newStep.reservationInvariant afterNopInvariant
+
+def figure7WaitTransition :
+    Option SequentialSchedulerBridge.ReservationState :=
+  match equation : figure7WaitBefore with
+  | none => none
+  | some before =>
+      SequentialFigure7.wait? figure7ParCertificate before
+        (figure7WaitBefore_invariant equation)
+
+example :
+    (match figure7WaitTransition with
+    | none => false
+    | some after =>
+        after.stack.waiting[0]? ==
+          some (.initialized [5])) = true := by
+  native_decide
+
+example
+    {before after : SequentialSchedulerBridge.ReservationState}
+    (beforeEquation : figure7WaitBefore = some before) :
+    SequentialFigure7.wait? figure7ParCertificate before
+          (figure7WaitBefore_invariant beforeEquation) =
+        some after ↔
+      SequentialFigure7.WaitRule figure7ParCertificate before after :=
+  SequentialFigure7.wait?_some_iff_rule_of_structural
+    (figure7ParCertificate.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (figure7WaitBefore_invariant beforeEquation)
+
 def checkedAxiomCertificate : CutFreeDerivation.CheckedCertificate :=
   ⟨axiomCertificate, by native_decide⟩
 

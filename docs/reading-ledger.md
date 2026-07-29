@@ -139,10 +139,11 @@ hash of the unaltered original PDF.
 - That domain invariant alone does not supply reachability or tag provenance.
   A separate exact empty/init/operational-new history now proves tag iff
   recorded touch, whole-history submitted-slot non-reuse, and
-  reservation-count alignment. Exact local `concl`/`nop` are now executable
-  and invariant preserving; ready/waiting payload ownership,
-  `wait`/`forward`/`unify`, full-history integration, full-rule reachability,
-  and scheduler progress/completeness remain open.
+  reservation-count alignment. Exact local `concl`/`nop`/`wait` are now
+  executable and invariant preserving; the local `wait` result is not a
+  payload-ownership theorem. Ready/waiting payload ownership,
+  `forward`/`unify`, full-history integration, full-rule reachability, and
+  scheduler progress/completeness remain open.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at
   the Figure-5 rule level but does not claim Theorem 16's linear bound.
 

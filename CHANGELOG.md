@@ -6,7 +6,8 @@
   par/tensor consumer view fixed to the canonical `ConsumerIndex`, a separate
   explicit-conclusion view requiring declared membership, local
   `NodeWellFormed` ownership, and an exactly empty consumer bucket, plus the
-  synchronized common pop/raw-mark prefix. Executable `concl?` and `nop?`
+  synchronized common pop/raw-mark prefix. Executable `concl?`, `nop?`, and
+  local `wait?`
   now have exact dependent success witnesses and preserve
   `ReservationInvariant`; `concl` performs only the prefix at an explicit
   conclusion, while `nop` performs only the prefix when the selected premise
@@ -16,12 +17,23 @@
   declared boundaries also fail closed. `NopStep.mate_unmarked_before` proves
   the executable post-prefix mate guard is exactly the paper's pre-state
   `μ(u₂)=⊥` guard. Added independent Boolean-free direct `RulePrefixAt`,
-  `ConclRule`, and `NopRule` relations, executable soundness, completeness
+  `ConclRule`, `NopRule`, and `WaitRule` relations, executable soundness,
+  completeness
   under `StructurallyWellFormed` plus `ReservationInvariant`, and output
-  uniqueness. The dependent `ConclStep`/`NopStep` records remain exact
+  uniqueness (for `wait`, under structural validity and the supplied
+  invariant). `wait?` compares the
+  mate's raw mark to the selected raw age, uses
+  `sigmaBoundary? stack.sigma mateRawAge` as its only destination, fails
+  closed on out-of-bounds or undefined cells, and prepends the par conclusion
+  by bucket-local O(1) cons without a `queuedVertices` scan. Tail-based
+  ready/`sigma` operations, boundary lookup, and the overall transition carry
+  no O(1) or linearity claim. `WaitRule` states this as a
+  Boolean-free proposition with an exact boundary equation and the guard in
+  `before.core.marks`. The dependent
+  `ConclStep`/`NopStep`/`WaitStep` records remain exact
   equation-backed executable witnesses for compatibility. The pure query
   rebuilds the consumer table and is not a whole-program linearity claim.
-  `wait`, `forward`, `unify`, a full-rule history/dispatcher, payload
+  `forward`, `unify`, a full-rule history/dispatcher, payload
   ownership, progress, and completeness remain open;
 - added `SequentialFigure7History.lean`, a proof-relevant execution history
   restricted to the exact empty/init/operational-new reservation fragment.
@@ -30,8 +42,9 @@
   once in the whole history, and the reservation-event count equals both the
   delayed raw-age horizon and the production started-axiom counter. This is
   deliberately not a generic Figure-7 history: the executable non-reserving
-  `concl` and `nop` rules require separate rule-step and reservation-count
-  accounting, while `wait`, `forward`, and `unify` remain unimplemented.
+  `concl`, `nop`, and local `wait` rules require separate rule-step and
+  reservation-count accounting, while `forward` and `unify` remain
+  unimplemented and `wait` remains outside this history.
   Equation-backed bounded and production-wrapper theorems prove
   exact true-tag origin without changing the public `NextAxiomResult` record,
   so existing manual record constructors remain source compatible. The
@@ -52,14 +65,15 @@
   is the project's interpretation of the paper's prose-defined nonactive
   waiting domain and its `wait`/`unify` behavior, not an author-confirmed
   erratum or a uniqueness claim. The invariant still does not establish
-  full-scheduler reachability, ready/waiting payload ownership,
-  global queue uniqueness, or the `wait`/`unify` payload-transfer rules;
+  full-scheduler reachability, ready/waiting payload ownership, or global queue
+  uniqueness. The newer local `wait` transition proves one initialized-cell
+  transfer; `unify` remains absent;
 - added the invariant-bound operational local Figure-7 `new` pipeline. It
   performs synchronized pop/raw-mark, uses the fixed sound-and-complete
   consumer index for orientation-aware tensor-mate lookup, runs `NEXTAXIOM`
   in the post-mark state, and finishes with the operational later reservation.
-  This proves a local transition only. The local `concl` and `nop` rules are
-  now implemented separately; `wait`, `forward`, `unify`, later-state
+  This proves a local transition only. The local `concl`, `nop`, and `wait`
+  rules are now implemented separately; `forward`, `unify`, later-state
   totality, correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open;
 - extended `ProofNetIR/SequentialSchedulerBridge.lean` from the first carrier
@@ -103,12 +117,13 @@
   refutes deriving `RealizesSigma` from `WellShaped`, marks/horizon alignment,
   and `OrderedParents` alone. The bridge remains a reservation tail; the
   separate operational local `new` module now supplies pop-before-mark,
-  binary-mate handling, raw-age marking, and post-mark search. Full-scheduler
-  reachability, ready/waiting payload ownership, `wait`/`forward`/`unify`,
-  full-history integration of local `concl`/`nop`, later totality,
+  binary-mate handling, raw-age marking, and post-mark search; the local
+  `wait` transition is implemented separately. Full-scheduler reachability,
+  ready/waiting payload ownership, `forward`/`unify`, full-history integration
+  of local `concl`/`nop`/`wait`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 176 full-classical, 23 axiom-free, 65 `propext`-only, and
+  audit covers 188 full-classical, 23 axiom-free, 77 `propext`-only, and
   68 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
@@ -133,8 +148,8 @@
   calls, later `RealizesSigma` preservation, and the bundled
   `ReservationInvariant`.
   Later `NEXTAXIOM` totality, the complete Figure-7 transition system,
-  ready/waiting payload ownership, `wait`/`forward`/`unify`, full-history
-  integration of local `concl`/`nop`, progress,
+  ready/waiting payload ownership, `forward`/`unify`, full-history
+  integration of local `concl`/`nop`/`wait`, progress,
   completeness, fallback removal, and whole-program linearity remain open;
 - added `ProofNetIR/SequentialUnification.lean` as the first bounded
   Figures 7–8 checkpoint without claiming the full scheduler. A reusable
@@ -178,8 +193,9 @@
   wrapper now threads complete tags and preserves its initial/later invariant,
   including `OperationalWaitingDomain`; the separate local `new` layer now
   supplies pop-before-mark, binary-mate lookup, raw-age marking, and post-mark
-  search. Later-state start totality, ready/waiting payload ownership, the
-  `wait`/`unify` payload rules, the remaining scheduler transitions, full
+  search. Later-state start totality, ready/waiting payload ownership,
+  full-history integration of the newer local `wait`, the `forward`/`unify`
+  payload rules, the remaining scheduler transitions, full
   scheduler correctness and cost, correct-state progress, pure-worklist
   completeness, fallback removal, and whole-program linearity remain open;
 - narrowed the flat-scheduler confluence route. Exact concrete-state
