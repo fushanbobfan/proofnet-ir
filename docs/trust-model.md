@@ -225,10 +225,17 @@ callers cannot inject a partial consumer table. A separate proof-relevant
 `InitNewHistory` now characterizes exact empty/init/new executions and proves
 tag iff recorded touch, global submitted-slot non-reuse, and
 reservation-count alignment. It is still not a full reachable Figure-7
-scheduler: global queue uniqueness and ownership, the
-`concl`/`nop`/`wait`/`forward`/`unify` rules, later-state totality,
-correct-state progress, pure-worklist completeness, fallback removal, and
-whole-program linearity remain unimplemented. Future guards must use raw
+scheduler. Exact local `concl`/`nop` now require a proof-carrying canonical
+consumer/conclusion view and preserve the reservation invariant, but global
+queue uniqueness and ownership, `wait`/`forward`/`unify`, full-history rule
+integration, later-state totality, correct-state progress, pure-worklist
+completeness, fallback removal, and whole-program linearity remain
+unimplemented. Their current dependent step records exactly characterize the
+program equations; an independent Boolean-free Figure-7 relation and its
+refinement/completeness theorem are not yet claimed. `ConclusionBelow`'s
+`NodeWellFormed` field is only a local ownership check; it does not replace a
+whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
+dispatcher entry point. Future guards must use raw
 assigned ages—not representatives.
 
 `unificationDerivationCandidateWithStats` and
@@ -469,8 +476,9 @@ bundled invariant preserved across both stages. The invariant-bound local
 `new` layer now adds pop-before-mark, binary-mate lookup, raw-age marking,
 post-mark search, and the operational old-boundary/fresh-top reservation. The
 dedicated init/new history adds exact reachability and tag provenance for that
-fragment. It does not add later totality, ready/waiting payload ownership, a
-full-rule reachability invariant, or the remaining Figure-7 rules. No
+fragment. Local `concl`/`nop` exist outside it. It does not add later totality,
+ready/waiting payload ownership, a full-rule reachability invariant,
+full-history integration, or `wait`/`forward`/`unify`. No
 planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
@@ -586,8 +594,9 @@ Lean now also constructs the exact simultaneous complementary
   per-call trace/tag invariants, exact oriented routes, initial/local
   rank-scoped totality, and strictly threaded touched-set disjointness;
   the operational waiting-cell domain and exact init/new history are also
-  proved. Later-state selection, ready/waiting payload ownership,
-  `concl`/`nop`/`wait`/`forward`/`unify`, and the remaining
+  proved. Exact local `concl`/`nop` are also proved. Later-state selection,
+  ready/waiting payload ownership, `wait`/`forward`/`unify`, their full-history
+  integration, and the remaining
   `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program

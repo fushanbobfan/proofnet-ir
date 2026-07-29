@@ -46,6 +46,8 @@ jobs:
         run: python scripts/fuzz_leanprop_parser.py
       - name: Audit theorem trust dependencies
         run: python scripts/audit_axioms.py
+      - name: Kernel recheck public theorem boundary at trust zero
+        run: ~/.elan/bin/lake env lean --trust=0 ProofNetIRAxiomAudit.lean >/dev/null
       - name: Verify generated public API reference
         run: ~/.elan/bin/lake exe proofnet_ir_api_docs --check
       - name: Fuzz malformed parser inputs

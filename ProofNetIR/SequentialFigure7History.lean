@@ -95,9 +95,9 @@ fragment.
 `empty` is the zero-event run.  `init` is intrinsically tied to the exact
 empty production state by `InitialReservationStep`.  Every `later` constructor
 stores a complete operational `new`, not the reservation-only helper.  This
-type is intentionally not a generic Figure-7 rule history: `concl`, `nop`,
-`wait`, `forward`, and `unify` need separate rule-step and reservation-count
-accounting when they are implemented. -/
+type is intentionally not a generic Figure-7 rule history: the implemented
+non-reserving `concl` and `nop` rules need separate rule-step accounting, while
+`wait`, `forward`, and `unify` still need both transitions and accounting. -/
 inductive InitNewHistory (certificate : Certificate) :
     ReservationState → Type
   | empty :

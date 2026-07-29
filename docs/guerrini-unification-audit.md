@@ -216,9 +216,10 @@ tags iff recorded search touch, pairwise disjoint touched sets, globally
 distinct submitted axiom-link slots, and reservation-event counts equal to
 both raw-age and production counters. This does not define ready/waiting
 payload ownership or the full scheduler invariant. Global queue ownership,
-the paper's `concl`, `nop`, `wait`, `forward`, and `unify` transitions,
-later-state totality, progress, pure-worklist completeness, fallback removal,
-scheduler correctness, and the whole-scheduler linear cost model remain open.
+the paper's `wait`, `forward`, and `unify` transitions, integration of the now
+exact local `concl`/`nop` rules into full reachability, later-state totality,
+progress, pure-worklist completeness, fallback removal, scheduler correctness,
+and the whole-scheduler linear cost model remain open.
 Future guards must compare raw assigned ages; replacing them by
 representatives would change the algorithm.
 
@@ -419,8 +420,9 @@ The following stronger claims are intentionally absent:
   calls that thread the complete output tags, and says nothing about
   equal-valued duplicate axioms at different indices without extra structure;
 - reachable later-state selection totality, ready/waiting payload ownership,
-  the `concl`, `nop`, `wait`, `forward`, and `unify` transitions, the complete
-  scheduler transition system, scheduler correctness, and scheduler-cost
+  `wait`, `forward`, and `unify`, full-history integration of the exact local
+  `concl`/`nop` rules, the complete scheduler transition system, scheduler
+  correctness, and scheduler-cost
   theorems. Initial/local search totality, initial/later reservation invariant
   preservation, `OperationalWaitingDomain`, the exact invariant-bound local
   `new` pipeline, and exact tag history for genuine init/new executions are
@@ -675,8 +677,8 @@ linearity.
 7. Extend the now-proved invariant-bound local Figure-7 `new` and exact
    init/new execution history into a full transition system: prove global
    ready/waiting payload ownership/disjointness, later-state selection
-   totality, and the paper's `concl`, `nop`, `wait`, `forward`, and `unify`
-   transitions. Keep the printed
+   totality, `wait`/`forward`/`unify`, and full-history integration of the
+   already-local `concl`/`nop` transitions. Keep the printed
    fresh-cell helper and the project's operational inactive-boundary
    interpretation distinct; the latter is kernel checked but is not an
    author-confirmed erratum.

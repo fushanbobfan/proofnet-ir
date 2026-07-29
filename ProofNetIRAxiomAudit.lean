@@ -280,6 +280,17 @@ expansion.
 #print axioms SequentialFigure7.reachable_empty
 #print axioms SequentialFigure7.reachable_of_initializeReservation?_eq_some
 #print axioms SequentialFigure7.ReachableByImplementedInitNew.new
+#print axioms ConclusionBelow.not_connective
+#print axioms SequentialFigure7.PreparedStep.reservationInvariant
+#print axioms SequentialFigure7.concl?_some_iff
+#print axioms SequentialFigure7.ConclStep.reservationInvariant
+#print axioms SequentialFigure7.concl?_reservationInvariant
+#print axioms SequentialFigure7.nop?_some_iff
+#print axioms SequentialFigure7.NopStep.submitted_par
+#print axioms ConnectiveBelow.mate_ne
+#print axioms SequentialFigure7.NopStep.mate_unmarked_before
+#print axioms SequentialFigure7.NopStep.reservationInvariant
+#print axioms SequentialFigure7.nop?_reservationInvariant
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound
 #print axioms Certificate.unificationReconstruct?_accepted

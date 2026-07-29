@@ -103,8 +103,10 @@ preservation. This is not presented as an author-confirmed erratum.
 The invariant does not by itself establish payload ownership or reachability.
 The exact empty/init/operational-new execution history separately proves tag
 provenance, global submitted-slot non-reuse, and reservation-count alignment
-for that fragment. Executable `concl`/`nop`/`wait`/`forward`/`unify`,
-full-rule reachability, progress, and pure-worklist completeness remain open.
+for that fragment. Exact local `concl`/`nop` are now executable with
+proof-carrying canonical consumer/conclusion views. `wait`/`forward`/`unify`,
+full-history integration, full-rule reachability, progress, and pure-worklist
+completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,
 [*A linear algorithm for MLL proof net correctness and

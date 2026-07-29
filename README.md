@@ -121,10 +121,43 @@ fragment. For every such execution, Lean proves current tags are true exactly
 at vertices touched by a recorded search, submitted axiom-link slots never
 repeat across the whole history, and the reservation-event count equals both
 `nextAge` and `startedAxioms`. This dedicated `InitNewHistory` is intentionally
-not a generic Figure-7 history: `concl`, `nop`, `wait`, `forward`, and `unify`
-need distinct rule-step and reservation-count accounting. Full queue
-ownership, those remaining rules, correct-state progress, pure-worklist
-completeness, fallback removal, and linearity remain open.
+not a generic Figure-7 history: the now-executable non-reserving `concl` and
+`nop` rules need rule-step accounting distinct from reservation-event
+counting, while `wait`, `forward`, and `unify` still need their own exact
+transitions. Full queue ownership, integration of all rules into one reachable
+history, correct-state progress, pure-worklist completeness, fallback removal,
+and linearity remain open.
+
+`SequentialFigure7Rules.lean` now makes the common non-`init` prefix and the
+first two non-reserving rules exact. A proof-carrying generic
+`ConnectiveBelow` query fixes lookup to the certificate's canonical consumer
+index and retains the submitted par/tensor slot, stored premise orientation,
+opposite premise, conclusion, and local link well-formedness. A separate
+`ConclusionBelow` query requires explicit conclusion membership, local
+`NodeWellFormed` ownership, and an exactly empty consumer bucket; it
+deliberately does not identify
+`uniqueConsumer? = none` with a conclusion, because a malformed bucket with
+distinct consumers also returns `none`. `prepare?` synchronizes
+pop-before-mark with the production raw mark. `concl?` accepts only the exact
+conclusion view; `nop?` accepts only an exact par view whose mate remains raw
+unmarked after the prefix. Both have dependent success-iff witnesses and
+preserve `ReservationInvariant`, and both return exactly the prefix state.
+`NopStep.mate_unmarked_before` proves that this post-prefix executable guard
+is the paper's pre-state `μ(u₂)=⊥` guard, because the locally well-formed mate
+is distinct from the only occurrence written by the prefix.
+The current `ConclStep`/`NopStep` specifications deliberately retain the
+equations returned by `prepare?` and the canonical queries. They exactly
+characterize executable success, but they are not yet an independent
+Boolean-free Figure-7 transition relation; that refinement/completeness layer
+belongs to the full dispatcher.
+`NodeWellFormed` is a local ownership guard, not a replacement for
+`StructurallyWellFormed` or `check`: an eventual untrusted dispatcher must
+carry a checked/structural certificate gate and full reachable-state
+invariant.
+These local rules do not establish queue ownership, a rule dispatcher,
+full-rule reachability, progress, or a linear-time implementation; the
+canonical consumer table is still rebuilt by this pure API unless a future
+scheduler threads it explicitly.
 
 The first separate sequential primitive is now present in
 `SequentialUnification.lean`. Lean proves exact submitted-link origin for a
@@ -268,7 +301,9 @@ lookup, post-mark `NEXTAXIOM`, and later reservation under a supplied
 `μ(0)=0`, `σ=[0,1]`, and `R=[[1],[2,3]]`, with `W(0)=∅` and the fresh
 `W(1)=⊥`. The invariant does not yet express semantic ownership of ready or
 waiting payloads, global queue uniqueness, later-state totality, or the
-transition semantics for `concl`/`nop`/`wait`/`forward`/`unify`. The separate
+transition semantics for `wait`/`forward`/`unify`. The exact local
+`concl`/`nop` rules are not yet integrated into a full reachable history or
+dispatcher. The separate
 `InitNewHistory` proves exact tag history, whole-history submitted-slot
 non-reuse, and event-counter alignment only for genuine empty/init/new
 executions. Correct-state progress, pure-worklist completeness, fallback
@@ -632,9 +667,9 @@ reservation. Its input carries `ReservationInvariant`, which alone is not a
 reachable-scheduler certificate. The dedicated `InitNewHistory` now records
 only genuine empty/init/new executions and proves exact tags-as-touched,
 whole-history submitted-slot non-reuse, and reservation-count alignment.
-Ready/waiting payload ownership, global queue uniqueness, the
-`concl`/`nop`/`wait`/`forward`/`unify` rules, and a total later-state transition
-system remain open.
+Ready/waiting payload ownership, global queue uniqueness, `wait`/`forward`/
+`unify`, integration of `concl`/`nop` into full-rule history, and a total
+later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -861,8 +896,8 @@ The repository currently contains:
   empty/init/new histories and proves exact tag provenance, submitted-slot
   `Nodup`, and reservation-count alignment. This is not a characterization of
   the full scheduler: ready/waiting payload ownership, global queue
-  uniqueness, `concl`/`nop`/`wait`/`forward`/`unify`, and later totality remain
-  open. Closing-par
+  uniqueness, `wait`/`forward`/`unify`, full-history integration of the local
+  `concl`/`nop` rules, and later totality remain open. Closing-par
   exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
@@ -896,8 +931,9 @@ The repository currently contains:
   Figure-7 `new` sequencing under `ReservationInvariant`, with a fixed
   sound-and-complete consumer index, mark-before-search dependency, and
   preservation of the exact initialized-cell domain. Reachable later-state
-  totality, ready/waiting payload ownership, the `wait`/`unify` payload rules,
-  the remaining Figure-7 rules, full scheduler correctness, and a
+  totality, ready/waiting payload ownership, `wait`/`forward`/`unify`,
+  full-history integration of the local `concl`/`nop` rules, full scheduler
+  correctness, and a
   whole-program cost proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
@@ -1073,9 +1109,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 159 public MLL logical-boundary theorems against the exact
+separately audits 168 public MLL logical-boundary theorems against the exact
 axiom set `[propext, Classical.choice, Quot.sound]`, plus 23 axiom-free,
-64 `propext`-only, and 63 `propext`/`Quot.sound` boundaries. LeanProp
+65 `propext`-only, and 64 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1219,6 +1255,7 @@ ProofNetIR/SequentialSchedulerState.lean delayed raw-age sigma/ready/waiting sta
 ProofNetIR/SequentialSchedulerBridge.lean typed initial/later reservation bridge
 ProofNetIR/SequentialFigure7New.lean invariant-bound operational Figure-7 new rule
 ProofNetIR/SequentialFigure7History.lean proof-relevant empty/init/new history
+ProofNetIR/SequentialFigure7Rules.lean generic consumer view and local concl/nop
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRConsumerIndexTests.lean orientation and fail-closed consumer tests

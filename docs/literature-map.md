@@ -78,9 +78,10 @@ explicit unread gate; that row is not part of the local-source count.
 - For the separate Figure-7 scheduler, the operational `W` domain is proved,
   and exact empty/init/operational-new execution history now carries tag iff
   recorded touch, global submitted-slot non-reuse, and reservation-count
-  alignment. Ready/waiting payload ownership,
-  `concl`/`nop`/`wait`/`forward`/`unify`, full-rule reachability, progress, and
-  pure-worklist completeness remain open.
+  alignment. Exact local `concl`/`nop` now preserve the reservation invariant,
+  while ready/waiting payload ownership, `wait`/`forward`/`unify`,
+  full-history integration, full-rule reachability, progress, and pure-worklist
+  completeness remain open.
 
 ## Reading record
 

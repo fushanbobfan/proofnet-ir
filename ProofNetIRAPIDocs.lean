@@ -704,6 +704,38 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Executable Figure-7 concl and nop rules"
+    declarations := [
+      `ProofNetIR.SequentialConnectiveKind,
+      `ProofNetIR.SequentialConnectiveKind.asLink,
+      `ProofNetIR.ConnectiveBelow,
+      `ProofNetIR.ConnectiveBelow.premise,
+      `ProofNetIR.ConnectiveBelow.mate,
+      `ProofNetIR.ConnectiveBelow.submittedLink,
+      `ProofNetIR.ConnectiveBelow.mate_ne,
+      `ProofNetIR.Certificate.connectiveBelow?,
+      `ProofNetIR.ConclusionBelow,
+      `ProofNetIR.ConclusionBelow.not_connective,
+      `ProofNetIR.Certificate.conclusionBelow?,
+      `ProofNetIR.SequentialFigure7.PreparedStep,
+      `ProofNetIR.SequentialFigure7.PreparedStep.after,
+      `ProofNetIR.SequentialFigure7.PreparedStep.reservationInvariant,
+      `ProofNetIR.SequentialFigure7.prepare?,
+      `ProofNetIR.SequentialFigure7.concl?,
+      `ProofNetIR.SequentialFigure7.ConclStep,
+      `ProofNetIR.SequentialFigure7.concl?_some_iff,
+      `ProofNetIR.SequentialFigure7.ConclStep.reservationInvariant,
+      `ProofNetIR.SequentialFigure7.concl?_reservationInvariant,
+      `ProofNetIR.SequentialFigure7.nop?,
+      `ProofNetIR.SequentialFigure7.NopStep,
+      `ProofNetIR.SequentialFigure7.nop?_some_iff,
+      `ProofNetIR.SequentialFigure7.NopStep.submitted_par,
+      `ProofNetIR.SequentialFigure7.NopStep.mate_unmarked_before,
+      `ProofNetIR.SequentialFigure7.NopStep.reservationInvariant,
+      `ProofNetIR.SequentialFigure7.nop?_reservationInvariant
+    ]
+  },
+  {
     title := "Serialization and untrusted input"
     declarations := [
       `ProofNetIR.ParseError,

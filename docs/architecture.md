@@ -323,9 +323,27 @@ globally `Nodup`, and the history length equals both `stack.nextAge` and
 non-reserving rules: a future complete rule history must distinguish total
 rule steps from axiom-reservation events.
 
-The `wait`/`unify` payload rules, `concl`/`nop`/`forward`, later-state totality,
-correct-state progress, pure-worklist completeness, fallback removal, and
-whole-program linearity remain open. Future guards must continue to compare
+`SequentialFigure7Rules.lean` adds a generic proof-carrying binary-consumer
+view over the canonical consumer index, an explicit-conclusion view requiring
+declared membership, local `NodeWellFormed` ownership, and an exactly empty
+bucket, plus the synchronized `prepare?` prefix. `concl?` and `nop?` have
+dependent executable specifications and preserve the reservation invariant
+while returning only the prefix state. The ownership and empty-bucket guards
+in `concl` reject out-of-range or unproduced declared boundaries;
+`uniqueConsumer? = none` also describes a malformed bucket with distinct
+candidates. `nop` instead retains an exact submitted par and requires its
+opposite premise to remain raw unmarked after the selected premise is marked.
+The mate-distinctness and pre-state guard theorem proves that this is exactly
+the paper's `μ(u₂)=⊥` condition rather than a weakened post-state surrogate.
+These dependent rule witnesses are intentionally executable-shaped: they
+retain the `prepare?` and query equations. An independent Boolean-free
+Figure-7 relation plus executable refinement/completeness remains part of the
+future full dispatcher.
+
+The `wait`/`forward`/`unify` payload rules, integration of `concl`/`nop` into a
+full rule history/dispatcher, later-state totality, correct-state progress,
+pure-worklist completeness, fallback removal, and whole-program linearity
+remain open. Future guards must continue to compare
 raw assigned ages, not union-find representatives. The current global
 ready/waiting absence check scans stored lists and is not a linearity result.
 The separate event-driven worklist tier described next is already implemented.
@@ -591,8 +609,9 @@ active-reference walks between marked occurrences are equivalent to
   proof-relevant `InitNewHistory` now characterizes exact empty/init/new
   executions and proves tag provenance, global submitted-slot non-reuse, and
   reservation-count alignment. This fragment is not a full reachable
-  scheduler. Waiting payload ownership and the remaining Figure-7 rules remain
-  open. Planarity
+  scheduler. The local `concl`/`nop` rules now exist outside this history;
+  waiting payload ownership, their full-history integration, and
+  `wait`/`forward`/`unify` remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -604,9 +623,9 @@ eagerly and uses flat waiting requeues. The separate bounded/tagged
 invariant-bound operational local `new` transition in the delayed
 `SequentialSchedulerState`. The literal printed fresh-cell update remains a
 separate display-only helper. Exact init/new execution history is integrated;
-ready/waiting payload ownership, the `concl`/`nop`/`wait`/`forward`/`unify`
-rules, a full-rule reachable-state invariant, and later-state scheduler
-totality are not. General
+ready/waiting payload ownership, `wait`/`forward`/`unify`, full-history
+integration of the local `concl`/`nop` rules, a full-rule reachable-state
+invariant, and later-state scheduler totality are not. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

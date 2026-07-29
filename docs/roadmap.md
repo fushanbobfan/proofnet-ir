@@ -776,12 +776,21 @@
     whole-history submitted axiom-slot `Nodup`, and reservation-event count
     alignment. Keep this separate from `ReservationInvariant`, which alone
     still permits reset or forged tag arrays.
+  - [x] Add the canonical generic par/tensor consumer view, the exact declared
+    conclusion view with local `NodeWellFormed` ownership and an empty
+    consumer bucket, the synchronized common prefix, and local executable
+    `concl`/`nop` rules with dependent success characterizations and
+    reservation-invariant preservation.
+  - [ ] State an independent Boolean-free relation for every Figure-7 rule and
+    prove executable refinement and valid-guard completeness; the current
+    `ConclStep`/`NopStep` witnesses are exact but equation-backed.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
-    route-local later-call freshness, and implement the paper's `concl`, `nop`,
-    `wait`, `forward`, and `unify` transitions under the operational waiting
-    domain. Establish the special union-find invariants, full-rule
+    route-local later-call freshness, implement `wait`, `forward`, and `unify`
+    under the operational waiting domain, and integrate the already-local
+    `concl`/`nop` rules into a complete history/dispatcher. Establish the
+    special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before
     claiming Guerrini linearity. These stack invariants are false for the flat

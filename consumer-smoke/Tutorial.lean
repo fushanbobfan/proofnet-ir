@@ -19,6 +19,77 @@ example : axiomCertificate.check = true := by native_decide
 example : axiomCertificate.DeclarativelyCorrect :=
   axiomCertificate.check_iff_declarativelyCorrect.mp (by native_decide)
 
+/- The Figure-7 consumer views are ordinary public dependency APIs.  An
+explicit axiom conclusion has an empty consumer bucket, while the generic
+connective view rejects it. -/
+
+example : (axiomCertificate.conclusionBelow? 0).isSome = true := by
+  native_decide
+
+example : (axiomCertificate.connectiveBelow? 0).isNone = true := by
+  native_decide
+
+def figure7Initial :=
+  SequentialSchedulerBridge.initializeReservation? axiomCertificate 0
+
+theorem figure7Initial_invariant
+    {before : SequentialSchedulerBridge.ReservationState}
+    (equation : figure7Initial = some before) :
+    SequentialSchedulerBridge.ReservationInvariant
+      axiomCertificate before := by
+  rcases
+      SequentialSchedulerBridge.initializeReservation?_some_iff.mp
+        (by simpa [figure7Initial] using equation) with
+    ⟨step⟩
+  exact step.reservationInvariant
+
+def figure7ConclTransition :
+    Option SequentialSchedulerBridge.ReservationState :=
+  match equation : figure7Initial with
+  | none => none
+  | some before =>
+      SequentialFigure7.concl? axiomCertificate before
+        (figure7Initial_invariant equation)
+
+example : figure7ConclTransition.isSome = true := by native_decide
+
+def q : Formula := .atom "q" true
+def qDual : Formula := .atom "q" false
+
+def figure7ParCertificate : Certificate where
+  formulas := #[p, pDual, q, qDual, .tensor p q, .par pDual qDual]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .tensor 0 2 4,
+    .par 1 3 5
+  ]
+  conclusions := [4, 5]
+
+def figure7ParInitial :=
+  SequentialSchedulerBridge.initializeReservation? figure7ParCertificate 5
+
+theorem figure7ParInitial_invariant
+    {before : SequentialSchedulerBridge.ReservationState}
+    (equation : figure7ParInitial = some before) :
+    SequentialSchedulerBridge.ReservationInvariant
+      figure7ParCertificate before := by
+  rcases
+      SequentialSchedulerBridge.initializeReservation?_some_iff.mp
+        (by simpa [figure7ParInitial] using equation) with
+    ⟨step⟩
+  exact step.reservationInvariant
+
+def figure7NopTransition :
+    Option SequentialSchedulerBridge.ReservationState :=
+  match equation : figure7ParInitial with
+  | none => none
+  | some before =>
+      SequentialFigure7.nop? figure7ParCertificate before
+        (figure7ParInitial_invariant equation)
+
+example : figure7NopTransition.isSome = true := by native_decide
+
 def checkedAxiomCertificate : CutFreeDerivation.CheckedCertificate :=
   ⟨axiomCertificate, by native_decide⟩
 

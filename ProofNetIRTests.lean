@@ -1764,6 +1764,181 @@ theorem canonicalInitialReservation_invariant {after : ReservationState}
     ⟨step⟩
   exact step.reservationInvariant
 
+/-! Exact executable Figure-7 `concl` and `nop` base rules. -/
+
+/-- The one-axiom proof net makes both axiom endpoints explicit conclusions.
+Its first delayed reservation therefore feeds `concl`, not a connective rule. -/
+def axiomOnly : Certificate where
+  formulas := #[p, pDual]
+  links := [.axiom 0 1]
+  conclusions := [0, 1]
+
+def axiomOnlyInitial : Option ReservationState :=
+  initializeReservation? axiomOnly 0
+
+theorem axiomOnlyInitial_invariant {before : ReservationState}
+    (equation : axiomOnlyInitial = some before) :
+    ReservationInvariant axiomOnly before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [axiomOnlyInitial] using equation) with
+    ⟨initialStep⟩
+  exact initialStep.reservationInvariant
+
+/-- The explicit conclusion query requires both boundary membership and an
+exactly empty consumer bucket. -/
+example :
+    (axiomOnly.conclusionBelow? 0).isSome = true := by
+  native_decide
+
+def axiomOnlyConclTransition : Option ReservationState :=
+  match equation : axiomOnlyInitial with
+  | none => none
+  | some before =>
+      SequentialFigure7.concl? axiomOnly before
+        (axiomOnlyInitial_invariant equation)
+
+/-- `concl` performs only the common pop/raw-mark prefix. -/
+example :
+    (match axiomOnlyConclTransition with
+    | none => false
+    | some after =>
+        after.stack.marks[0]? == some (some 0) &&
+        after.stack.marks[1]? == some none &&
+        after.stack.ready == [[1]] &&
+        after.stack.sigma == [0] &&
+        after.stack.waiting[0]? == some .undefined &&
+        after.core.marks == after.stack.marks &&
+        after.core.parents == #[0] &&
+        after.core.startedAxioms == 1 &&
+        after.core.firedConnectives == 0) = true := by
+  native_decide
+
+example {before after : ReservationState}
+    (initialEquation : axiomOnlyInitial = some before)
+    (conclEquation :
+      SequentialFigure7.concl? axiomOnly before
+          (axiomOnlyInitial_invariant initialEquation) =
+        some after) :
+    ReservationInvariant axiomOnly after :=
+  SequentialFigure7.concl?_reservationInvariant
+    (axiomOnlyInitial_invariant initialEquation) conclEquation
+
+/-- A deliberately malformed explicit boundary has two distinct consumer
+slots.  The singleton query and an empty bucket can both appear as `none` at
+the `Option` level, so `concl` uses the exact bucket equation and rejects this
+case. -/
+def ambiguousBoundary : Certificate where
+  formulas := #[p, pDual, q, qDual, .tensor p q, .par pDual qDual]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .tensor 0 2 4,
+    .par 1 3 5,
+    .par 4 0 5,
+    .tensor 4 1 5
+  ]
+  conclusions := [4, 5]
+
+example :
+    ambiguousBoundary.consumerIndex.uniqueConsumer? 4 = none ∧
+      ambiguousBoundary.consumerIndex.bucket 4 ≠ [] ∧
+      (ambiguousBoundary.connectiveBelow? 4).isNone = true ∧
+      (ambiguousBoundary.conclusionBelow? 4).isNone = true := by
+  native_decide
+
+/-- Declared boundaries that are out of range or have no source incidence are
+also rejected rather than being accepted solely because their consumer bucket
+is empty. -/
+def outOfRangeBoundary : Certificate where
+  formulas := #[p, pDual]
+  links := [.axiom 0 1]
+  conclusions := [2]
+
+def unproducedBoundary : Certificate where
+  formulas := #[p]
+  links := []
+  conclusions := [0]
+
+example :
+    (outOfRangeBoundary.conclusionBelow? 2).isNone = true ∧
+      (unproducedBoundary.conclusionBelow? 0).isNone = true := by
+  native_decide
+
+/-- The canonical first reservation exposes selected premise `1` below the
+submitted par at slot `3`; its mate `3` remains raw unmarked, so the exact
+Figure-7 rule is `nop`. -/
+example :
+    (match canonical.connectiveBelow? 1 with
+    | none => false
+    | some consumer =>
+        consumer.kind == .par &&
+        consumer.linkIndex == 3 &&
+        consumer.storedLeft == 1 &&
+        consumer.storedRight == 3 &&
+        consumer.conclusion == 5 &&
+        consumer.premise == 1 &&
+        consumer.mate == 3) = true := by
+  native_decide
+
+def canonicalNopTransition : Option ReservationState :=
+  match equation : canonicalInitialReservation with
+  | none => none
+  | some before =>
+      SequentialFigure7.nop? canonical before
+        (canonicalInitialReservation_invariant equation)
+
+example :
+    (match canonicalNopTransition with
+    | none => false
+    | some after =>
+        after.stack.marks[1]? == some (some 0) &&
+        after.stack.marks[0]? == some none &&
+        after.stack.ready == [[0]] &&
+        after.stack.sigma == [0] &&
+        after.stack.waiting[0]? == some .undefined &&
+        after.core.marks == after.stack.marks &&
+        after.core.parents == #[0] &&
+        after.core.startedAxioms == 1 &&
+        after.core.firedConnectives == 0) = true := by
+  native_decide
+
+example {before after : ReservationState}
+    (initialEquation : canonicalInitialReservation = some before)
+    (nopEquation :
+      SequentialFigure7.nop? canonical before
+          (canonicalInitialReservation_invariant initialEquation) =
+        some after) :
+    ReservationInvariant canonical after :=
+  SequentialFigure7.nop?_reservationInvariant
+    (canonicalInitialReservation_invariant initialEquation) nopEquation
+
+/-- The same executable `nop` handles a selected stored-right premise rather
+than silently assuming the submitted left/right orientation. -/
+def canonicalStoredRightInitial : Option ReservationState :=
+  initializeReservation? canonical 3
+
+theorem canonicalStoredRightInitial_invariant
+    {before : ReservationState}
+    (equation : canonicalStoredRightInitial = some before) :
+    ReservationInvariant canonical before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [canonicalStoredRightInitial] using equation) with
+    ⟨initialStep⟩
+  exact initialStep.reservationInvariant
+
+example :
+    (match equation : canonicalStoredRightInitial with
+    | none => false
+    | some before =>
+        match SequentialFigure7.nop? canonical before
+            (canonicalStoredRightInitial_invariant equation) with
+        | none => false
+        | some after =>
+            after.stack.marks[3]? == some (some 0) &&
+              after.stack.marks[2]? == some none &&
+              after.stack.ready == [[2]]) = true := by
+  native_decide
+
 example {before after : ReservationState}
     (initialEquation :
       canonicalInitialReservation = some before)
@@ -1791,6 +1966,37 @@ theorem canonicalFigure7NewInitial_invariant {before : ReservationState}
       simpa [canonicalFigure7NewInitial] using equation) with
     ⟨initialStep⟩
   exact initialStep.reservationInvariant
+
+/-- Tensor-selected states are not silently accepted by the `nop` rule. -/
+example :
+    (match canonical.connectiveBelow? 0 with
+    | none => false
+    | some consumer =>
+        consumer.kind == .tensor &&
+        consumer.linkIndex == 2 &&
+        consumer.premise == 0 &&
+        consumer.mate == 2 &&
+        consumer.conclusion == 4) = true := by
+  native_decide
+
+example :
+    (match equation : canonicalFigure7NewInitial with
+    | none => false
+    | some before =>
+        (SequentialFigure7.nop?
+          canonical before
+          (canonicalFigure7NewInitial_invariant equation)).isNone) = true := by
+  native_decide
+
+/-- A nonboundary connective premise cannot run `concl`. -/
+example :
+    (match equation : canonicalFigure7NewInitial with
+    | none => false
+    | some before =>
+        (SequentialFigure7.concl?
+          canonical before
+          (canonicalFigure7NewInitial_invariant equation)).isNone) = true := by
+  native_decide
 
 def canonicalFigure7NewTransition : Option ReservationState :=
   match equation : canonicalFigure7NewInitial with

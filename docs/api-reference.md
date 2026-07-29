@@ -8490,9 +8490,9 @@ fragment.
 `empty` is the zero-event run.  `init` is intrinsically tied to the exact
 empty production state by `InitialReservationStep`.  Every `later` constructor
 stores a complete operational `new`, not the reservation-only helper.  This
-type is intentionally not a generic Figure-7 rule history: `concl`, `nop`,
-`wait`, `forward`, and `unify` need separate rule-step and reservation-count
-accounting when they are implemented.
+type is intentionally not a generic Figure-7 rule history: the implemented
+non-reserving `concl` and `nop` rules need separate rule-step accounting, while
+`wait`, `forward`, and `unify` still need both transitions and accounting.
 
 ```lean
 ProofNetIR.SequentialFigure7.InitNewHistory : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
@@ -8672,6 +8672,352 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new : ∀ {certificat
     ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
       ProofNetIR.SequentialFigure7.new? certificate before invariant = some after →
         ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate after
+```
+
+## Executable Figure-7 concl and nop rules
+
+### `ProofNetIR.SequentialConnectiveKind`
+
+Kind: inductive type.
+
+The submitted binary connective constructor retained by a generic
+consumer-below view.
+
+```lean
+ProofNetIR.SequentialConnectiveKind : Type
+```
+
+### `ProofNetIR.SequentialConnectiveKind.asLink`
+
+Kind: definition.
+
+Reconstruct the exact submitted link represented by a generic view.
+
+```lean
+ProofNetIR.SequentialConnectiveKind.asLink : ProofNetIR.SequentialConnectiveKind → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Link
+```
+
+### `ProofNetIR.ConnectiveBelow`
+
+Kind: inductive type.
+
+Proof-carrying exact view of the unique submitted connective consuming one
+formula occurrence.
+
+The result retains the submitted link index, constructor, stored orientation,
+local well-formedness, and the exact queried premise.  Because the canonical
+consumer index is fixed in the type, callers cannot supply a partial table
+that hides a competing consumer.
+
+```lean
+ProofNetIR.ConnectiveBelow : ProofNetIR.Certificate → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.ConnectiveBelow.premise`
+
+Kind: definition.
+
+Stored premise addressed by the generic connective view.
+
+```lean
+ProofNetIR.ConnectiveBelow.premise : {certificate : ProofNetIR.Certificate} →
+  {vertex : ProofNetIR.Vertex} → ProofNetIR.ConnectiveBelow certificate vertex → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.ConnectiveBelow.mate`
+
+Kind: definition.
+
+Opposite premise addressed by the generic connective view.
+
+```lean
+ProofNetIR.ConnectiveBelow.mate : {certificate : ProofNetIR.Certificate} →
+  {vertex : ProofNetIR.Vertex} → ProofNetIR.ConnectiveBelow certificate vertex → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.ConnectiveBelow.submittedLink`
+
+Kind: definition.
+
+Exact submitted link retained by the view.
+
+```lean
+ProofNetIR.ConnectiveBelow.submittedLink : {certificate : ProofNetIR.Certificate} →
+  {vertex : ProofNetIR.Vertex} → ProofNetIR.ConnectiveBelow certificate vertex → ProofNetIR.Link
+```
+
+### `ProofNetIR.ConnectiveBelow.mate_ne`
+
+Kind: theorem.
+
+A successful generic connective view never returns its queried premise as
+its mate.
+
+```lean
+ProofNetIR.ConnectiveBelow.mate_ne : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex}
+  (result : ProofNetIR.ConnectiveBelow certificate vertex), result.mate ≠ vertex
+```
+
+### `ProofNetIR.Certificate.connectiveBelow?`
+
+Kind: definition.
+
+Canonical generic connective-below lookup.
+
+An empty bucket, a non-singleton bucket, an axiom slot, a malformed submitted
+link, or a vertex that is not the retained stored premise all fail closed.
+
+```lean
+ProofNetIR.Certificate.connectiveBelow? : (certificate : ProofNetIR.Certificate) →
+  (vertex : ProofNetIR.Vertex) → Option (ProofNetIR.ConnectiveBelow certificate vertex)
+```
+
+### `ProofNetIR.ConclusionBelow`
+
+Kind: inductive type.
+
+Proof-carrying locally ownership-well-formed conclusion view.
+
+Besides declared boundary membership, this view requires the certificate's
+local node-ownership condition: the occurrence is in bounds, has exactly one
+source incidence/producer of the appropriate shape, and has no parent use.
+The empty canonical-consumer-bucket equation is also stored directly.  In
+particular,
+`uniqueConsumer? = none` is not accepted as a substitute, because that query
+also returns `none` for a malformed bucket containing distinct candidates.
+
+```lean
+ProofNetIR.ConclusionBelow : ProofNetIR.Certificate → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.ConclusionBelow.not_connective`
+
+Kind: theorem.
+
+A locally well-formed conclusion view and an exact connective-consumer
+view cannot describe the same occurrence.
+
+```lean
+ProofNetIR.ConclusionBelow.not_connective : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex}
+  (boundary : ProofNetIR.ConclusionBelow certificate vertex) (consumer : ProofNetIR.ConnectiveBelow certificate vertex),
+  False
+```
+
+### `ProofNetIR.Certificate.conclusionBelow?`
+
+Kind: definition.
+
+Canonical locally well-formed conclusion query with an exact empty
+consumer bucket.
+
+```lean
+ProofNetIR.Certificate.conclusionBelow? : (certificate : ProofNetIR.Certificate) →
+  (vertex : ProofNetIR.Vertex) → Option (ProofNetIR.ConclusionBelow certificate vertex)
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep`
+
+Kind: inductive type.
+
+Proof-carrying synchronized common prefix of every non-`init` Figure-7
+rule.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep : ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.after`
+
+Kind: definition.
+
+Exact state after the common pop/raw-mark prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.after : {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+  ProofNetIR.SequentialFigure7.PreparedStep before → ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.reservationInvariant`
+
+Kind: theorem.
+
+The common prefix preserves the current reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate step.after
+```
+
+### `ProofNetIR.SequentialFigure7.prepare?`
+
+Kind: definition.
+
+Execute the common pop/raw-mark prefix without selecting a later rule.
+
+```lean
+ProofNetIR.SequentialFigure7.prepare? : (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+  Option (ProofNetIR.SequentialFigure7.PreparedStep before)
+```
+
+### `ProofNetIR.SequentialFigure7.concl?`
+
+Kind: definition.
+
+Execute Figure-7 `concl`: perform the common prefix only when the selected
+occurrence is a locally ownership-well-formed declared conclusion with an
+exactly empty consumer bucket.
+
+```lean
+ProofNetIR.SequentialFigure7.concl? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep`
+
+Kind: inductive type.
+
+Exact proof-relevant specification of one successful `concl` rule.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_some_iff`
+
+Kind: theorem.
+
+Executable `concl` success is exactly the typed rule witness.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.concl? certificate before invariant = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.ConclStep certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.reservationInvariant`
+
+Kind: theorem.
+
+A successful `concl` rule changes only the synchronized common prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_reservationInvariant`
+
+Kind: theorem.
+
+Success of executable `concl` preserves the current reservation
+invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.concl? certificate before invariant = some after →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.nop?`
+
+Kind: definition.
+
+Execute Figure-7 `nop`: perform the common prefix only when the selected
+occurrence has one exact par consumer and the opposite par premise remains raw
+unmarked in the post-prefix production state.
+
+```lean
+ProofNetIR.SequentialFigure7.nop? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep`
+
+Kind: inductive type.
+
+Exact proof-relevant specification of one successful `nop` rule.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_some_iff`
+
+Kind: theorem.
+
+Executable `nop` success is exactly the typed rule witness.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.nop? certificate before invariant = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.NopStep certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.submitted_par`
+
+Kind: theorem.
+
+The generic consumer retained by a `nop` witness is the exact submitted
+par link.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.submitted_par : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  certificate.links[step.consumer.linkIndex]? =
+    some (ProofNetIR.Link.par step.consumer.storedLeft step.consumer.storedRight step.consumer.conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.mate_unmarked_before`
+
+Kind: theorem.
+
+The paper's `nop` guard holds already in the pre-prefix raw marking.
+
+The executable rule tests the post-prefix state, but the prefix changes only
+the selected premise.  Local link well-formedness makes its mate distinct, so
+the test is exactly Guerrini's pre-state `μ(u₂) = ⊥` guard.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.mate_unmarked_before : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  before.core.marks[step.consumer.mate]? = some none
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.reservationInvariant`
+
+Kind: theorem.
+
+A successful `nop` rule changes only the synchronized common prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_reservationInvariant`
+
+Kind: theorem.
+
+Success of executable `nop` preserves the current reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.nop? certificate before invariant = some after →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
 ```
 
 ## Serialization and untrusted input
