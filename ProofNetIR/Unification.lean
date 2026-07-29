@@ -2872,6 +2872,660 @@ private theorem FormulaConsistent.tensor
 
 end UnificationComponent
 
+/-- Public proof wrapper for the production first-occurrence frontier picker.
+The wrapper exposes exact successful selections without making the internal
+recursive helper part of the callable API. -/
+def FirstOccurrencePick (source : List Vertex) (vertex index : Nat)
+    (remaining : List Vertex) : Prop :=
+  pickVertex? source vertex = some (index, remaining)
+
+/-- Build one delayed Figure-7 par component without assigning a raw mark to
+its conclusion.
+
+Unlike the eager `firePar?` helper, this production-core primitive only
+constructs the component, exposes the conclusion on its frontier, and
+increments the connective counter.  A later ready-pop transition assigns the
+raw age.  Consequently this primitive does not refine a standalone Figure-5
+`UnificationStep`. -/
+def queuePar? (state : UnificationState)
+    (left right conclusion : Vertex) :
+    Option UnificationState :=
+  match state.forwardToken? left right conclusion with
+  | none => none
+  | some outputToken =>
+      match state.componentAt? outputToken with
+      | none => none
+      | some component =>
+          match pickVertex? component.frontier left with
+          | none => none
+          | some (leftFocus, afterLeft) =>
+              match pickVertex? afterLeft right with
+              | none => none
+              | some (rightFocus, context) =>
+                  let nextComponent : UnificationComponent := {
+                    tree :=
+                      .par leftFocus rightFocus component.tree
+                    frontier := context ++ [conclusion] }
+                  some {
+                    state with
+                    components :=
+                      state.components.setIfInBounds outputToken
+                        (some nextComponent)
+                    firedConnectives :=
+                      state.firedConnectives + 1 }
+
+/-- Exact proof-relevant witness for one delayed par-component queue. -/
+structure QueueParStep (before after : UnificationState)
+    (left right conclusion : Vertex) : Type where
+  outputToken : Nat
+  component : UnificationComponent
+  leftFocus : Nat
+  afterLeft : List Vertex
+  rightFocus : Nat
+  context : List Vertex
+  token_guard :
+    before.forwardToken? left right conclusion =
+      some outputToken
+  component_lookup :
+    before.componentAt? outputToken = some component
+  left_pick :
+    FirstOccurrencePick component.frontier left
+      leftFocus afterLeft
+  right_pick :
+    FirstOccurrencePick afterLeft right rightFocus context
+  after_eq :
+    after = {
+      before with
+      components :=
+        before.components.setIfInBounds outputToken
+          (some {
+            tree :=
+              .par leftFocus rightFocus component.tree
+            frontier := context ++ [conclusion] })
+      firedConnectives := before.firedConnectives + 1 }
+
+/-- Delayed par queuing succeeds exactly when its token, component, and two
+first-occurrence frontier selections have a typed success witness. -/
+theorem queuePar?_some_iff
+    {before after : UnificationState}
+    {left right conclusion : Vertex} :
+    queuePar? before left right conclusion = some after ↔
+      Nonempty
+        (QueueParStep before after left right conclusion) := by
+  constructor
+  · intro equation
+    unfold queuePar? at equation
+    split at equation <;> try contradiction
+    next outputToken tokenGuard =>
+      split at equation <;> try contradiction
+      next component componentLookup =>
+        split at equation <;> try contradiction
+        next leftFocus afterLeft leftPick =>
+          split at equation <;> try contradiction
+          next rightFocus context rightPick =>
+            simp at equation
+            subst after
+            exact ⟨{
+              outputToken
+              component
+              leftFocus
+              afterLeft
+              rightFocus
+              context
+              token_guard := tokenGuard
+              component_lookup := componentLookup
+              left_pick := leftPick
+              right_pick := rightPick
+              after_eq := rfl }⟩
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨outputToken, component, leftFocus, afterLeft,
+        rightFocus, context, tokenGuard, componentLookup,
+        leftPick, rightPick, rfl⟩
+    simp [queuePar?, tokenGuard, componentLookup,
+      FirstOccurrencePick] at leftPick rightPick ⊢
+    simp [leftPick, rightPick]
+
+/-- Exact core fields of one successful delayed par queue.  In particular,
+the conclusion and every other raw mark remain unchanged. -/
+theorem queuePar?_exact
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (equation :
+      queuePar? before left right conclusion = some after) :
+    ∃ outputToken component leftFocus afterLeft rightFocus context,
+      before.forwardToken? left right conclusion =
+        some outputToken ∧
+      before.componentAt? outputToken = some component ∧
+      FirstOccurrencePick component.frontier left
+        leftFocus afterLeft ∧
+      FirstOccurrencePick afterLeft right rightFocus context ∧
+      after.components =
+        before.components.setIfInBounds outputToken
+          (some {
+            tree :=
+              .par leftFocus rightFocus component.tree
+            frontier := context ++ [conclusion] }) ∧
+      after.marks = before.marks ∧
+      after.parents = before.parents ∧
+      after.startedAxioms = before.startedAxioms ∧
+      after.firedConnectives = before.firedConnectives + 1 := by
+  rcases queuePar?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨outputToken, component, leftFocus, afterLeft,
+      rightFocus, context, tokenGuard, componentLookup,
+      leftPick, rightPick, rfl⟩
+  exact ⟨outputToken, component, leftFocus, afterLeft,
+    rightFocus, context, tokenGuard, componentLookup,
+    leftPick, rightPick, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- Build and merge the two active tensor components without assigning a raw
+mark to the tensor conclusion.
+
+This is only the local tensor sub-primitive needed by a later Figure-7
+`unify`: it increments the connective counter once, points the larger current
+representative at the smaller one, and leaves the conclusion raw-unmarked.
+The full rule must first identify those representatives with the exact
+scheduler boundaries `j < i`, then drain `W(j)` and construct or activate the
+waiting par components (adding their own counter contributions). -/
+def queueTensor? (state : UnificationState)
+    (left right conclusion : Vertex) :
+    Option UnificationState :=
+  match state.unifyTokens? left right conclusion with
+  | none => none
+  | some (leftToken, rightToken) =>
+      match state.componentAt? leftToken with
+      | none => none
+      | some leftComponent =>
+          match state.componentAt? rightToken with
+          | none => none
+          | some rightComponent =>
+              match pickVertex? leftComponent.frontier left with
+              | none => none
+              | some (leftFocus, leftContext) =>
+                  match pickVertex? rightComponent.frontier right with
+                  | none => none
+                  | some (rightFocus, rightContext) =>
+                      let representative := min leftToken rightToken
+                      let retired := max leftToken rightToken
+                      let nextComponent : UnificationComponent := {
+                        tree :=
+                          .tensor leftFocus rightFocus
+                            leftComponent.tree rightComponent.tree
+                        frontier :=
+                          conclusion ::
+                            (leftContext ++ rightContext) }
+                      some {
+                        state with
+                        parents :=
+                          state.parents.setIfInBounds retired
+                            representative
+                        components :=
+                          (state.components.setIfInBounds representative
+                            (some nextComponent))
+                            |>.setIfInBounds retired none
+                        firedConnectives :=
+                          state.firedConnectives + 1 }
+
+/-- Exact proof-relevant witness for one delayed tensor-component queue. -/
+structure QueueTensorStep (before after : UnificationState)
+    (left right conclusion : Vertex) : Type where
+  leftToken : Nat
+  rightToken : Nat
+  leftComponent : UnificationComponent
+  rightComponent : UnificationComponent
+  leftFocus : Nat
+  leftContext : List Vertex
+  rightFocus : Nat
+  rightContext : List Vertex
+  token_guard :
+    before.unifyTokens? left right conclusion =
+      some (leftToken, rightToken)
+  left_component :
+    before.componentAt? leftToken = some leftComponent
+  right_component :
+    before.componentAt? rightToken = some rightComponent
+  left_pick :
+    FirstOccurrencePick leftComponent.frontier left
+      leftFocus leftContext
+  right_pick :
+    FirstOccurrencePick rightComponent.frontier right
+      rightFocus rightContext
+  after_eq :
+    after = {
+      before with
+      parents :=
+        before.parents.setIfInBounds
+          (max leftToken rightToken)
+          (min leftToken rightToken)
+      components :=
+        (before.components.setIfInBounds
+          (min leftToken rightToken)
+          (some {
+            tree :=
+              .tensor leftFocus rightFocus
+                leftComponent.tree rightComponent.tree
+            frontier :=
+              conclusion :: (leftContext ++ rightContext) }))
+          |>.setIfInBounds (max leftToken rightToken) none
+      firedConnectives := before.firedConnectives + 1 }
+
+/-- Delayed tensor queuing succeeds exactly when both live components and
+their exact first-occurrence premise selections are available. -/
+theorem queueTensor?_some_iff
+    {before after : UnificationState}
+    {left right conclusion : Vertex} :
+    queueTensor? before left right conclusion = some after ↔
+      Nonempty
+        (QueueTensorStep before after left right conclusion) := by
+  constructor
+  · intro equation
+    unfold queueTensor? at equation
+    split at equation <;> try contradiction
+    next leftToken rightToken tokenGuard =>
+      split at equation <;> try contradiction
+      next leftComponent leftComponentLookup =>
+        split at equation <;> try contradiction
+        next rightComponent rightComponentLookup =>
+          split at equation <;> try contradiction
+          next leftFocus leftContext leftPick =>
+            split at equation <;> try contradiction
+            next rightFocus rightContext rightPick =>
+              simp at equation
+              subst after
+              exact ⟨{
+                leftToken
+                rightToken
+                leftComponent
+                rightComponent
+                leftFocus
+                leftContext
+                rightFocus
+                rightContext
+                token_guard := tokenGuard
+                left_component := leftComponentLookup
+                right_component := rightComponentLookup
+                left_pick := leftPick
+                right_pick := rightPick
+                after_eq := rfl }⟩
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨leftToken, rightToken, leftComponent, rightComponent,
+        leftFocus, leftContext, rightFocus, rightContext,
+        tokenGuard, leftComponentLookup, rightComponentLookup,
+        leftPick, rightPick, rfl⟩
+    simp [queueTensor?, tokenGuard, leftComponentLookup,
+      rightComponentLookup, FirstOccurrencePick]
+      at leftPick rightPick ⊢
+    simp [leftPick, rightPick]
+
+/-- Exact core fields of one successful delayed tensor queue.  The conclusion
+is not marked; only the larger representative's parent, the two component
+slots, and the local connective counter change. -/
+theorem queueTensor?_exact
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (equation :
+      queueTensor? before left right conclusion = some after) :
+    ∃ leftToken rightToken leftComponent rightComponent
+        leftFocus leftContext rightFocus rightContext,
+      before.unifyTokens? left right conclusion =
+        some (leftToken, rightToken) ∧
+      before.componentAt? leftToken = some leftComponent ∧
+      before.componentAt? rightToken = some rightComponent ∧
+      FirstOccurrencePick leftComponent.frontier left
+        leftFocus leftContext ∧
+      FirstOccurrencePick rightComponent.frontier right
+        rightFocus rightContext ∧
+      after.parents =
+        before.parents.setIfInBounds
+          (max leftToken rightToken)
+          (min leftToken rightToken) ∧
+      after.components =
+        ((before.components.setIfInBounds
+            (min leftToken rightToken)
+            (some {
+              tree :=
+                .tensor leftFocus rightFocus
+                  leftComponent.tree rightComponent.tree
+              frontier :=
+                conclusion :: (leftContext ++ rightContext) }))
+          |>.setIfInBounds (max leftToken rightToken) none) ∧
+      after.marks = before.marks ∧
+      after.startedAxioms = before.startedAxioms ∧
+      after.firedConnectives = before.firedConnectives + 1 := by
+  rcases queueTensor?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      tokenGuard, leftComponentLookup, rightComponentLookup,
+      leftPick, rightPick, rfl⟩
+  exact ⟨leftToken, rightToken, leftComponent, rightComponent,
+    leftFocus, leftContext, rightFocus, rightContext,
+    tokenGuard, leftComponentLookup, rightComponentLookup,
+    leftPick, rightPick, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- A delayed par queue leaves its conclusion in the exact raw-unmarked
+array state required by a later ready-pop assignment. -/
+theorem queuePar?_conclusion_unmarked
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (equation :
+      queuePar? before left right conclusion = some after) :
+    after.marks[conclusion]? = some none := by
+  rcases queuePar?_exact equation with
+    ⟨outputToken, component, leftFocus, afterLeft,
+      rightFocus, context, tokenGuard, componentLookup,
+      leftPick, rightPick, componentsEquation, marksEquation,
+      parentsEquation, startedEquation, firedEquation⟩
+  rw [marksEquation]
+  exact (UnificationState.forwardToken?_success tokenGuard).1
+
+/-- A delayed tensor queue likewise leaves its conclusion raw-unmarked. -/
+theorem queueTensor?_conclusion_unmarked
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (equation :
+      queueTensor? before left right conclusion = some after) :
+    after.marks[conclusion]? = some none := by
+  rcases queueTensor?_exact equation with
+    ⟨leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      tokenGuard, leftComponentLookup, rightComponentLookup,
+      leftPick, rightPick, parentsEquation, componentsEquation,
+      marksEquation, startedEquation, firedEquation⟩
+  rw [marksEquation]
+  exact (UnificationState.unifyTokens?_success tokenGuard).1
+
+/-- A successful tensor queue exposes two distinct current representatives;
+therefore its `set`-then-`clear` component update cannot target one slot. -/
+theorem queueTensor?_representatives_distinct
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (equation :
+      queueTensor? before left right conclusion = some after) :
+    ∃ leftToken rightToken,
+      before.unifyTokens? left right conclusion =
+          some (leftToken, rightToken) ∧
+      leftToken ≠ rightToken ∧
+      min leftToken rightToken ≠ max leftToken rightToken := by
+  rcases queueTensor?_exact equation with
+    ⟨leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      tokenGuard, leftComponentLookup, rightComponentLookup,
+      leftPick, rightPick, parentsEquation, componentsEquation,
+      marksEquation, startedEquation, firedEquation⟩
+  have different :=
+    (UnificationState.unifyTokens?_success tokenGuard).2.2.2
+  refine ⟨leftToken, rightToken, tokenGuard, different, ?_⟩
+  omega
+
+/-- Delayed par queuing preserves the two carrier/counter alignments reused
+by the reservation invariant. -/
+theorem queuePar?_reservationAlignment
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (carriers :
+      before.components.size = before.parents.size)
+    (counter :
+      before.startedAxioms = before.parents.size)
+    (equation :
+      queuePar? before left right conclusion = some after) :
+    after.components.size = after.parents.size ∧
+      after.startedAxioms = after.parents.size := by
+  rcases queuePar?_exact equation with
+    ⟨outputToken, component, leftFocus, afterLeft,
+      rightFocus, context, tokenGuard, componentLookup,
+      leftPick, rightPick, componentsEquation, marksEquation,
+      parentsEquation, startedEquation, firedEquation⟩
+  constructor
+  · rw [componentsEquation, parentsEquation]
+    simpa using carriers
+  · rw [startedEquation, parentsEquation]
+    exact counter
+
+/-- The local tensor sub-primitive also preserves carrier size and the
+started-axiom/parent alignment: it mutates one parent cell and two component
+cells without resizing either array. -/
+theorem queueTensor?_reservationAlignment
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (carriers :
+      before.components.size = before.parents.size)
+    (counter :
+      before.startedAxioms = before.parents.size)
+    (equation :
+      queueTensor? before left right conclusion = some after) :
+    after.components.size = after.parents.size ∧
+      after.startedAxioms = after.parents.size := by
+  rcases queueTensor?_exact equation with
+    ⟨leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      tokenGuard, leftComponentLookup, rightComponentLookup,
+      leftPick, rightPick, parentsEquation, componentsEquation,
+      marksEquation, startedEquation, firedEquation⟩
+  constructor
+  · rw [componentsEquation, parentsEquation]
+    simpa using carriers
+  · rw [startedEquation, parentsEquation]
+    simpa using counter
+
+/-- Delayed par construction preserves the executable abstraction contract
+because raw marks and the parent forest are unchanged. -/
+theorem queuePar?_abstractable
+    {certificate : Certificate}
+    {before after : UnificationState}
+    (abstractable : before.Abstractable certificate)
+    {left right conclusion : Vertex}
+    (equation :
+      queuePar? before left right conclusion = some after) :
+    after.Abstractable certificate := by
+  rcases queuePar?_exact equation with
+    ⟨outputToken, component, leftFocus, afterLeft,
+      rightFocus, context, tokenGuard, componentLookup,
+      leftPick, rightPick, componentsEquation, marksEquation,
+      parentsEquation, startedEquation, firedEquation⟩
+  exact
+    (UnificationState.ObservationEquivalent.abstractable
+      { marks := marksEquation.symm
+        parents := parentsEquation.symm }
+      abstractable)
+
+/-- Delayed par construction preserves the ordered parent forest exactly. -/
+theorem queuePar?_orderedParents
+    {before after : UnificationState}
+    (ordered : before.OrderedParents)
+    {left right conclusion : Vertex}
+    (equation :
+      queuePar? before left right conclusion = some after) :
+    after.OrderedParents := by
+  rcases queuePar?_exact equation with
+    ⟨outputToken, component, leftFocus, afterLeft,
+      rightFocus, context, tokenGuard, componentLookup,
+      leftPick, rightPick, componentsEquation, marksEquation,
+      parentsEquation, startedEquation, firedEquation⟩
+  intro token parent lookup
+  apply ordered
+  rw [← parentsEquation]
+  exact lookup
+
+/-- The local tensor merge preserves ordered parents by pointing the larger
+current representative at the smaller one. -/
+theorem queueTensor?_orderedParents
+    {before after : UnificationState}
+    (ordered : before.OrderedParents)
+    {left right conclusion : Vertex}
+    (equation :
+      queueTensor? before left right conclusion = some after) :
+    after.OrderedParents := by
+  rcases queueTensor?_exact equation with
+    ⟨leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      tokenGuard, leftComponentLookup, rightComponentLookup,
+      leftPick, rightPick, parentsEquation, componentsEquation,
+      marksEquation, startedEquation, firedEquation⟩
+  have mergedOrdered :
+      (before.setParent
+        (max leftToken rightToken)
+        (min leftToken rightToken)).OrderedParents :=
+    ordered.setParent
+      (Nat.le_trans
+        (Nat.min_le_left leftToken rightToken)
+        (Nat.le_max_left leftToken rightToken))
+  intro token parent lookup
+  apply mergedOrdered
+  simpa [UnificationState.setParent, parentsEquation] using lookup
+
+/-- The local tensor merge preserves the executable abstraction contract
+under the existing ordered-parent invariant. -/
+theorem queueTensor?_abstractable
+    {certificate : Certificate}
+    {before after : UnificationState}
+    (abstractable : before.Abstractable certificate)
+    (ordered : before.OrderedParents)
+    {left right conclusion : Vertex}
+    (equation :
+      queueTensor? before left right conclusion = some after) :
+    after.Abstractable certificate := by
+  rcases queueTensor?_exact equation with
+    ⟨leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      tokenGuard, leftComponentLookup, rightComponentLookup,
+      leftPick, rightPick, parentsEquation, componentsEquation,
+      marksEquation, startedEquation, firedEquation⟩
+  have mergedAbstractable :
+      (before.setParent
+        (max leftToken rightToken)
+        (min leftToken rightToken)).Abstractable certificate :=
+    abstractable.setParent ordered
+      (Nat.le_trans
+        (Nat.min_le_left leftToken rightToken)
+        (Nat.le_max_left leftToken rightToken))
+  exact
+    (UnificationState.ObservationEquivalent.abstractable
+      { marks := by
+          simpa [UnificationState.setParent] using
+            marksEquation.symm
+        parents := by
+          simpa [UnificationState.setParent] using
+            parentsEquation.symm }
+      mergedAbstractable)
+
+/-- A well-typed delayed par queue replaces its live component by the exact
+formula-consistent par component while leaving all other live slots valid. -/
+theorem queuePar?_componentsFormulaConsistent
+    {certificate : Certificate}
+    {before after : UnificationState}
+    (consistent :
+      before.ComponentsFormulaConsistent certificate)
+    {left right conclusion : Vertex}
+    (wellFormed :
+      certificate.LinkWellFormed (.par left right conclusion))
+    (equation :
+      queuePar? before left right conclusion = some after) :
+    after.ComponentsFormulaConsistent certificate := by
+  rcases queuePar?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨outputToken, component, leftFocus, afterLeft,
+      rightFocus, context, tokenGuard, componentLookup,
+      leftPick, rightPick, rfl⟩
+  have componentConsistent :
+      component.FormulaConsistent certificate :=
+    consistent.componentAt componentLookup
+  rcases wellFormed.par_formulaData with
+    ⟨leftFormula, rightFormula, leftFormulaAt,
+      rightFormulaAt, conclusionFormula⟩
+  have nextConsistent :
+      ({ tree :=
+           .par leftFocus rightFocus component.tree
+         frontier := context ++ [conclusion] } :
+        UnificationComponent).FormulaConsistent certificate :=
+    UnificationComponent.FormulaConsistent.par
+      componentConsistent leftPick rightPick
+        leftFormulaAt rightFormulaAt conclusionFormula
+  change
+    ({ before with
+      components :=
+        before.components.setIfInBounds outputToken
+          (some {
+            tree :=
+              .par leftFocus rightFocus component.tree
+            frontier := context ++ [conclusion] }) } :
+      UnificationState).ComponentsFormulaConsistent certificate
+  exact consistent.set nextConsistent
+
+/-- A well-typed delayed tensor queue installs the exact consistent merged
+component and clears the retired slot.  This theorem covers only the local
+tensor sub-primitive; it does not activate components represented by a
+drained scheduler waiting bucket. -/
+theorem queueTensor?_componentsFormulaConsistent
+    {certificate : Certificate}
+    {before after : UnificationState}
+    (consistent :
+      before.ComponentsFormulaConsistent certificate)
+    {left right conclusion : Vertex}
+    (wellFormed :
+      certificate.LinkWellFormed
+        (.tensor left right conclusion))
+    (equation :
+      queueTensor? before left right conclusion = some after) :
+    after.ComponentsFormulaConsistent certificate := by
+  rcases queueTensor?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      tokenGuard, leftComponentLookup, rightComponentLookup,
+      leftPick, rightPick, rfl⟩
+  have leftConsistent :
+      leftComponent.FormulaConsistent certificate :=
+    consistent.componentAt leftComponentLookup
+  have rightConsistent :
+      rightComponent.FormulaConsistent certificate :=
+    consistent.componentAt rightComponentLookup
+  rcases wellFormed.tensor_formulaData with
+    ⟨leftFormula, rightFormula, leftFormulaAt,
+      rightFormulaAt, conclusionFormula⟩
+  have nextConsistent :
+      ({ tree :=
+           .tensor leftFocus rightFocus
+             leftComponent.tree rightComponent.tree
+         frontier :=
+           conclusion :: (leftContext ++ rightContext) } :
+        UnificationComponent).FormulaConsistent certificate :=
+    UnificationComponent.FormulaConsistent.tensor
+      leftConsistent rightConsistent leftPick rightPick
+        leftFormulaAt rightFormulaAt conclusionFormula
+  change
+    ({ before with
+      components :=
+        (before.components.setIfInBounds
+          (min leftToken rightToken)
+          (some {
+            tree :=
+              .tensor leftFocus rightFocus
+                leftComponent.tree rightComponent.tree
+            frontier :=
+              conclusion :: (leftContext ++ rightContext) }))
+          |>.setIfInBounds (max leftToken rightToken) none } :
+      UnificationState).ComponentsFormulaConsistent certificate
+  have setConsistent :
+      ({ before with
+        components :=
+          before.components.setIfInBounds
+            (min leftToken rightToken)
+            (some {
+              tree :=
+                .tensor leftFocus rightFocus
+                  leftComponent.tree rightComponent.tree
+              frontier :=
+                conclusion :: (leftContext ++ rightContext) }) } :
+        UnificationState).ComponentsFormulaConsistent certificate :=
+    consistent.set (index := min leftToken rightToken)
+      nextConsistent
+  intro index component lookup
+  exact
+    (setConsistent.clear (max leftToken rightToken)) lookup
+
 /-- Compute the exchange order that reads `target` from `source`. -/
 private def occurrenceOrder? (source : List Vertex) :
     List Vertex → Option (List Nat)

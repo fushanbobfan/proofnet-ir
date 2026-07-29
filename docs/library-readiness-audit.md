@@ -398,11 +398,22 @@ part of the engineering and proof-identity gap.
    The local `wait` destination is exactly
    `sigmaBoundary? stack.sigma mateRawAge`, and its initialized-cell cons
    update does not claim global ownership. Ready/waiting payload ownership,
-   executable `forward`/`unify`, full-history integration of
+   complete executable `forward`/`unify`, full-history integration of
    `concl`/`nop`/`wait`, full-rule reachability, later-state selection totality,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, and a
    whole-program linear cost theorem remain open.
+   The narrower production-core `queuePar?`/`queueTensor?` and delayed-stack
+   `prependReadyTop?`/`mergeTopReadyWaiting?` primitives are now kernel
+   checked with exact success witnesses. They leave queued conclusions
+   raw-unmarked and preserve the local abstraction, component, parent, carrier,
+   counter, shape, and waiting-domain invariants under explicit hypotheses.
+   They are not full rules: tensor queuing increments only the local tensor
+   count, while complete `unify` must bind representatives to scheduler
+   `j/i`, orient `parent[i] := j`, and construct or activate every par
+   component drained from `W(j)`. The stack's deterministic
+   `conclusion :: (payload ++ previousReady ++ activeReady)` order refines
+   paper-level sets and does not establish global ownership or linearity.
    For callers that require fail-closed resource handling,
    `reconstructDerivationWithinLimits` checks explicit formula, link, and
    conclusion ceilings and runs only the structure-guided tier. It returns

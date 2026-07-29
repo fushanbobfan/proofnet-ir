@@ -244,6 +244,24 @@ whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
 dispatcher entry point. Future guards must use raw
 assigned ages—not representatives.
 
+Four lower-level mutations are now in the kernel-checked API without being
+promoted to complete Figure-7 rules. `queuePar?` and `queueTensor?` construct
+the production components and increment the local connective count while
+leaving the conclusion raw-unmarked; their theorems preserve component
+formula consistency only from a prior consistency invariant plus explicit
+`LinkWellFormed`; separate local theorems preserve abstraction, ordered
+parents, carrier size, and started-axiom alignment. `prependReadyTop?` and
+`mergeTopReadyWaiting?` perform the corresponding local stack changes. The
+two-level stack merge deterministically chooses
+`conclusion :: (payload ++ previousReady ++ activeReady)` although the source
+algorithm uses sets, and its shape theorem requires explicit `Nodup` and
+payload-bound evidence rather than deriving ownership from a queue scan.
+These facts do not authorize a full `unify`: it must still identify the
+generic tensor roots with exact scheduler `j/i`, orient `parent[i] := j`, and
+construct or activate all waiting par components drained from `W(j)` (with
+their extra counter increments). No dispatcher, progress, completeness, O(1),
+or whole-program linearity claim follows.
+
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
 assumption. Proof fields certify at most `|links|²` eager link-list visits, and

@@ -2622,6 +2622,251 @@ example :
   rw [boundary, representative] at mismatch
   contradiction
 
+/-! Delayed Figure-7 production-core and two-level stack primitives.
+
+These tests intentionally stop before an executable `forward`/`unify` rule:
+the core constructors leave their conclusions raw-unmarked, and the stack
+updates are exercised independently. -/
+
+def canonicalQueueCoreBefore : UnificationState where
+  marks := #[some 0, some 0, some 1, some 1, none, none]
+  parents := #[0, 1]
+  components := #[
+    some {
+      tree := .axiom "p" true
+      frontier := [0, 1] },
+    some {
+      tree := .axiom "q" true
+      frontier := [2, 3] }]
+  startedAxioms := 2
+  firedConnectives := 0
+
+def canonicalQueuedTensor : Option UnificationState :=
+  Certificate.queueTensor? canonicalQueueCoreBefore 0 2 4
+
+/-- Local tensor queuing merges the two live components, retires the larger
+representative, increments only its own counter, and does not mark `4`. -/
+example :
+    (match canonicalQueuedTensor with
+    | none => false
+    | some after =>
+        after.marks == canonicalQueueCoreBefore.marks &&
+        after.marks[4]? == some none &&
+        after.parents == #[0, 0] &&
+        after.firedConnectives == 1 &&
+        match after.components[0]?, after.components[1]? with
+        | some (some component), some none =>
+            component.frontier == [4, 1, 3]
+        | _, _ => false) = true := by
+  native_decide
+
+def canonicalQueuedPar : Option UnificationState := do
+  let afterTensor ← canonicalQueuedTensor
+  Certificate.queuePar? afterTensor 1 3 5
+
+/-- Once tensor queuing has merged the representatives, local par queuing
+builds the par component and exposes `5`, still without assigning its raw
+age. -/
+example :
+    (match canonicalQueuedPar with
+    | none => false
+    | some after =>
+        after.marks == canonicalQueueCoreBefore.marks &&
+        after.marks[4]? == some none &&
+        after.marks[5]? == some none &&
+        after.parents == #[0, 0] &&
+        after.firedConnectives == 2 &&
+        match after.components[0]?, after.components[1]? with
+        | some (some component), some none =>
+            component.frontier == [4, 5]
+        | _, _ => false) = true := by
+  native_decide
+
+/-- Reversing the representative order does not reverse the submitted tensor
+premises: the larger token is still retired into the smaller token, while the
+derivation tree keeps the stored left/right component order. -/
+def reverseQueueCoreBefore : UnificationState where
+  marks := #[some 1, some 1, some 0, some 0, none]
+  parents := #[0, 1]
+  components := #[
+    some {
+      tree := .axiom "q" true
+      frontier := [2, 3] },
+    some {
+      tree := .axiom "p" true
+      frontier := [0, 1] }]
+  startedAxioms := 2
+  firedConnectives := 0
+
+example :
+    (match Certificate.queueTensor? reverseQueueCoreBefore 0 2 4 with
+    | none => false
+    | some after =>
+        after.parents == #[0, 0] &&
+        after.marks[4]? == some none &&
+        after.firedConnectives == 1 &&
+        match after.components[0]?, after.components[1]? with
+        | some (some component), some none =>
+            component.tree ==
+              (.tensor 0 0 (.axiom "p" true) (.axiom "q" true)) &&
+            component.frontier == [4, 1, 3]
+        | _, _ => false) = true := by
+  native_decide
+
+/-- The par sub-primitive fails before the tensor representatives have been
+merged, and the tensor sub-primitive fails if its conclusion is already
+marked. -/
+example :
+    (Certificate.queuePar?
+      canonicalQueueCoreBefore 1 3 5).isNone = true ∧
+    (Certificate.queueTensor?
+      { canonicalQueueCoreBefore with
+        marks :=
+          canonicalQueueCoreBefore.marks.setIfInBounds 4 (some 0) }
+      0 2 4).isNone = true := by
+  native_decide
+
+example {after : UnificationState}
+    (equation :
+      Certificate.queueTensor?
+          canonicalQueueCoreBefore 0 2 4 =
+        some after) :
+    after.marks[4]? = some none :=
+  Certificate.queueTensor?_conclusion_unmarked equation
+
+example {middle after : UnificationState}
+    (_tensorEquation :
+      Certificate.queueTensor?
+          canonicalQueueCoreBefore 0 2 4 =
+        some middle)
+    (parEquation :
+      Certificate.queuePar? middle 1 3 5 = some after) :
+    after.marks[5]? = some none :=
+  Certificate.queuePar?_conclusion_unmarked parEquation
+
+def stackPrimitiveBefore : SequentialStackState where
+  marks := Array.replicate 6 none
+  nextAge := 2
+  sigma := [0, 1]
+  ready := [[1], [2, 3]]
+  waiting := #[
+    .initialized [5],
+    .undefined,
+    .undefined,
+    .undefined,
+    .undefined,
+    .undefined]
+
+def stackPrependedReady : Option SequentialStackState :=
+  stackPrimitiveBefore.prependReadyTop? 4
+
+/-- Ready-top prepend changes only the active bucket and fixes project list
+order without scanning other ready or waiting payloads. -/
+example :
+    (match stackPrependedReady with
+    | none => false
+    | some after =>
+        after.ready == [[1], [4, 2, 3]] &&
+        after.sigma == stackPrimitiveBefore.sigma &&
+        after.waiting == stackPrimitiveBefore.waiting &&
+        after.marks == stackPrimitiveBefore.marks) = true := by
+  native_decide
+
+def stackMergedReadyWaiting : Option SequentialStackState :=
+  stackPrimitiveBefore.mergeTopReadyWaiting? 0 4
+
+/-- The deterministic refinement of the paper's set-valued merge is
+`4 :: ([5] ++ [1] ++ [2,3])`; the previous boundary becomes active and its
+waiting cell is therefore reset to `undefined`. -/
+example :
+    (match stackMergedReadyWaiting with
+    | none => false
+    | some after =>
+        after.sigma == [0] &&
+        after.ready == [[4, 5, 1, 2, 3]] &&
+        after.waiting[0]? == some .undefined &&
+        after.nextAge == 2 &&
+        after.marks == stackPrimitiveBefore.marks) = true := by
+  native_decide
+
+/-- An initialized empty waiting set is a valid merge input and remains
+operationally distinct from an undefined cell. -/
+def initializedEmptyMergeBefore : SequentialStackState where
+  marks := Array.replicate 6 none
+  nextAge := 2
+  sigma := [0, 1]
+  ready := [[1], [2, 3]]
+  waiting := #[.initialized [], .undefined, .undefined,
+    .undefined, .undefined, .undefined]
+
+example :
+    (match initializedEmptyMergeBefore.mergeTopReadyWaiting? 0 4 with
+    | none => false
+    | some after =>
+        after.sigma == [0] &&
+        after.ready == [[4, 1, 2, 3]] &&
+        after.waiting[0]? == some .undefined) = true := by
+  native_decide
+
+/-- Ready-top prepend accepts an existing empty active bucket; only a missing
+bucket fails. -/
+def emptyActiveReadyBefore : SequentialStackState :=
+  { initializedEmptyMergeBefore with
+    ready := [[]]
+    sigma := [0] }
+
+example :
+    emptyActiveReadyBefore.prependReadyTop? 4 =
+      some { emptyActiveReadyBefore with ready := [[4]] } := by
+  native_decide
+
+/-- Two levels and an initialized exact previous boundary are all required;
+out-of-bounds/undefined/wrong-boundary cases fail closed. -/
+example :
+    (SequentialStackState.empty 6
+      |>.prependReadyTop? 4).isNone = true ∧
+    ({ stackPrimitiveBefore with
+        sigma := [0]
+        ready := [[2, 3]] }
+      |>.mergeTopReadyWaiting? 0 4).isNone = true ∧
+    ({ stackPrimitiveBefore with
+        waiting :=
+          stackPrimitiveBefore.waiting.setIfInBounds
+            0 .undefined }
+      |>.mergeTopReadyWaiting? 0 4).isNone = true ∧
+    (stackPrimitiveBefore.mergeTopReadyWaiting? 1 4).isNone =
+      true := by
+  native_decide
+
+example {after : SequentialStackState}
+    (equation :
+      stackPrimitiveBefore.mergeTopReadyWaiting? 0 4 =
+        some after) :
+    ∃ sigmaPrefix activeBoundary readyPrefix previousReady
+        activeReady payload,
+      stackPrimitiveBefore.sigma =
+        sigmaPrefix ++ [0, activeBoundary] ∧
+      stackPrimitiveBefore.ready =
+        readyPrefix ++ [previousReady, activeReady] ∧
+      stackPrimitiveBefore.waiting[0]? =
+        some (.initialized payload) ∧
+      after.ready =
+        readyPrefix ++
+          [4 :: (payload ++ previousReady ++ activeReady)] :=
+  by
+    rcases
+        SequentialStackState.mergeTopReadyWaiting?_exact
+          equation with
+      ⟨sigmaPrefix, activeBoundary, readyPrefix,
+        previousReady, activeReady, payload,
+        sigmaEquation, readyEquation, waitingEquation,
+        sigmaAfter, readyAfter, waitingAfter, waitingLookup,
+        marksAfter, nextAgeAfter⟩
+    exact ⟨sigmaPrefix, activeBoundary, readyPrefix,
+      previousReady, activeReady, payload,
+      sigmaEquation, readyEquation, waitingEquation,
+      readyAfter⟩
+
 end SequentialSchedulerStateTests
 
 def canonicalParLeftIn : canonical.fullGraph.DirectedEdge where

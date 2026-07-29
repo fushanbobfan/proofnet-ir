@@ -352,11 +352,35 @@ proposition-level exact
 `before.core.marks`. This is still a determinized list-level local relation,
 not a complete dispatcher.
 
-The `forward`/`unify` payload rules, global waiting-payload ownership,
+`Unification.lean` now contains the narrower production-core
+`queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
+component constructors and preserve raw marks so the queued conclusion is not
+prematurely assigned. Separate theorems preserve formula consistency only
+from a prior `ComponentsFormulaConsistent` invariant plus an explicit
+`LinkWellFormed` hypothesis; the helpers themselves have no certificate
+argument. Abstraction, ordered parents, carrier sizes, and
+reservation-counter alignment are preserved locally. The tensor helper
+merges generic guarded representatives by `min`/`max` and increments only the
+tensor's own counter. `SequentialSchedulerState.lean` independently provides
+`prependReadyTop?` and a two-level `mergeTopReadyWaiting?`; the latter chooses
+the deterministic internal order
+`conclusion :: (payload ++ previousReady ++ activeReady)`, drains the previous
+waiting cell, makes it the undefined active boundary, and pops one stack
+level. The paper's cells are sets, so the list order is an executable project
+choice. Component-frontier derivation/exchange order is not scheduler-ready
+list order; the eventual wrapper must relate them by membership/permutation,
+not definitional list equality. Shape preservation requires explicit merged
+`Nodup` and payload-bound
+proofs and performs no global queue scan.
+
+The complete `forward`/`unify` payload rules, global waiting-payload ownership,
 integration of `concl`/`nop`/`wait` into a full rule history/dispatcher,
 later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, and whole-program linearity
-remain open. Future guards must continue to compare
+remain open. Full `unify` must additionally bind the tensor representatives
+to exact scheduler `j/i`, orient `parent[i] := j`, and construct or activate
+the par components drained from `W(j)` with their additional counter
+increments. Future guards must continue to compare
 raw assigned ages, not union-find representatives. The current global
 ready/waiting absence check scans stored lists and is not a linearity result.
 The separate event-driven worklist tier described next is already implemented.

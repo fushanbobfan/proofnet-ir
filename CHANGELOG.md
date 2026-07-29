@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+- added four bounded production-core primitives needed by later Figure-7
+  `forward`/`unify`, without claiming either complete rule.
+  `Certificate.queuePar?` and `Certificate.queueTensor?` reuse the production
+  first-occurrence picker and formula-consistent component constructors while
+  deliberately leaving each connective conclusion raw-unmarked for a later
+  ready-pop assignment. Their typed success witnesses expose exact guards,
+  components, selections, parent/component updates, and counters; Lean proves
+  raw-mark preservation, `Abstractable`, `OrderedParents`, carrier-size
+  alignment, and started-axiom/parent alignment. Preservation of
+  `ComponentsFormulaConsistent` additionally assumes the prior invariant and
+  an explicit `LinkWellFormed` hypothesis; the executable helpers themselves
+  do not accept a certificate. The tensor primitive increments only its own
+  connective count, merges generic representatives by `min`/`max`, and proves
+  those slots distinct from its token guard. A complete `unify` must still
+  prove that the representatives are the scheduler boundaries `j/i`, bind
+  `parent[i] := j`, drain `W(j)`, and construct/activate every waiting par
+  component (or use a proved producer-aware deferred representation), with
+  the corresponding additional counter increments;
+- added `prependReadyTop?` and `mergeTopReadyWaiting?` to the delayed stack.
+  The latter fixes the deterministic list refinement
+  `conclusion :: (payload ++ previousReady ++ activeReady)`, resets the
+  drained previous waiting boundary to `undefined`, and pops one active
+  `sigma`/ready level. Guerrini's cells are set-valued, so this internal list
+  order is a project choice. Exact witnesses and preservation theorems require
+  explicit merged `Nodup`, conclusion-bound, and waiting-payload-bound
+  evidence; neither primitive scans `queuedVertices` or establishes global
+  payload ownership. Tail-list operations and the full transition retain no
+  O(1), completeness, dispatcher, or linearity claim;
 - added `SequentialFigure7Rules.lean`, with a proof-carrying generic
   par/tensor consumer view fixed to the canonical `ConsumerIndex`, a separate
   explicit-conclusion view requiring declared membership, local

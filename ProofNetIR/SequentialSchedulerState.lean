@@ -153,6 +153,53 @@ theorem SigmaAgePartition.sigmaBoundary?_append_fresh_self
     sigmaBoundary? (sigma ++ [nextAge]) nextAge = some nextAge := by
   exact sigmaBoundary?_append_self_of_all_lt partition.boundary_lt
 
+/-- Removing the active boundary from a partition with at least two explicit
+tail boundaries leaves a valid partition at the unchanged raw-age horizon.
+The horizon is an allocation counter, so a `unify` pop does not decrement it. -/
+theorem SigmaAgePartition.popActive
+    {nextAge : RawTokenAge}
+    {sigma sigmaPrefix : List RawTokenAge}
+    {previous active : RawTokenAge}
+    (partition : SigmaAgePartition nextAge sigma)
+    (sigmaEquation :
+      sigma = sigmaPrefix ++ [previous, active]) :
+    SigmaAgePartition nextAge (sigmaPrefix ++ [previous]) := by
+  have positive : 0 < nextAge := by
+    have activeMembership : active ∈ sigma := by
+      rw [sigmaEquation]
+      simp
+    exact Nat.zero_lt_of_lt
+      (partition.boundary_lt active activeMembership)
+  have oldHead := partition.head_zero positive
+  have oldIncreasing := partition.strictIncreasing
+  rw [sigmaEquation] at oldHead oldIncreasing
+  have reducedIncreasing :
+      (sigmaPrefix ++ [previous]).Pairwise (· < ·) :=
+    (List.pairwise_append.mp (by
+      simpa [List.append_assoc] using oldIncreasing)).1
+  exact {
+    empty_iff := by
+      constructor
+      · intro impossible
+        simp at impossible
+      · intro nextAgeZero
+        subst nextAge
+        exact (Nat.not_lt_zero 0 positive).elim
+    head_zero := by
+      intro _
+      simpa [List.append_assoc] using oldHead
+    strictIncreasing := reducedIncreasing
+    boundary_lt := by
+      intro boundary membership
+      apply partition.boundary_lt boundary
+      rw [sigmaEquation]
+      simp only [List.mem_append, List.mem_cons] at membership ⊢
+      rcases membership with
+        inPrefix | rfl | impossible
+      · exact Or.inl inPrefix
+      · exact Or.inr (Or.inl rfl)
+      · simp at impossible }
+
 /-- Every returned boundary comes from the supplied stack. -/
 theorem sigmaBoundary?_mem
     {sigma : List RawTokenAge} {age boundary : RawTokenAge}
@@ -423,6 +470,275 @@ theorem prependWaiting?_of_ne
   rw [waitingEquation]
   exact Array.getElem?_setIfInBounds_ne different.symm
 
+/-- Prepend one conclusion to the current (last) ready bucket.
+
+This local primitive deliberately performs no global queued-occurrence scan.
+Its preservation theorem below therefore receives the exact local
+duplicate-freedom and carrier-bound facts as proof inputs. -/
+def prependReadyTop? (state : SequentialStackState)
+    (conclusion : Vertex) : Option SequentialStackState :=
+  match state.ready.getLast? with
+  | none => none
+  | some activeReady =>
+      some {
+        state with
+        ready :=
+          state.ready.dropLast ++ [conclusion :: activeReady] }
+
+/-- Proof-relevant exact specification of one successful ready-top prepend. -/
+structure PrependReadyTopStep (before after : SequentialStackState)
+    (conclusion : Vertex) : Type where
+  readyPrefix : List (List Vertex)
+  activeReady : List Vertex
+  ready_eq : before.ready = readyPrefix ++ [activeReady]
+  after_eq :
+    after = {
+      before with
+      ready := readyPrefix ++ [conclusion :: activeReady] }
+
+/-- Ready-top prepend succeeds exactly when the ready stack is nonempty. -/
+theorem prependReadyTop?_some_iff
+    {before after : SequentialStackState} {conclusion : Vertex} :
+    before.prependReadyTop? conclusion = some after ↔
+      Nonempty (PrependReadyTopStep before after conclusion) := by
+  constructor
+  · intro equation
+    unfold prependReadyTop? at equation
+    cases lookup : before.ready.getLast? with
+    | none =>
+        simp [lookup] at equation
+    | some activeReady =>
+        simp [lookup] at equation
+        subst after
+        rcases List.getLast?_eq_some_iff.mp lookup with
+          ⟨readyPrefix, readyEquation⟩
+        exact ⟨{
+          readyPrefix
+          activeReady
+          ready_eq := readyEquation
+          after_eq := by
+            rw [readyEquation]
+            simp }⟩
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨readyPrefix, activeReady, readyEquation, rfl⟩
+    simp [prependReadyTop?, readyEquation]
+
+/-- Exact changed and unchanged fields of a successful ready-top prepend. -/
+theorem prependReadyTop?_exact
+    {before after : SequentialStackState} {conclusion : Vertex}
+    (equation : before.prependReadyTop? conclusion = some after) :
+    ∃ readyPrefix activeReady,
+      before.ready = readyPrefix ++ [activeReady] ∧
+      after.ready =
+        readyPrefix ++ [conclusion :: activeReady] ∧
+      after.marks = before.marks ∧
+      after.nextAge = before.nextAge ∧
+      after.sigma = before.sigma ∧
+      after.waiting = before.waiting := by
+  rcases prependReadyTop?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨readyPrefix, activeReady, readyEquation, rfl⟩
+  exact ⟨readyPrefix, activeReady, readyEquation, rfl,
+    rfl, rfl, rfl, rfl⟩
+
+/-- Merge the two top scheduler buckets at an exact previous boundary.
+
+The deterministic list refinement is
+`conclusion :: (payload ++ previousReady ++ activeReady)`: Guerrini's paper
+uses sets inside its ready/waiting cells, so this list order is a project
+choice fixed here for executable reproducibility.  The operation drains
+`W(previousBoundary)`, makes that cell undefined because it becomes active,
+and pops only the active `sigma`/ready level.  It performs no global
+`queuedVertices` scan. -/
+def mergeTopReadyWaiting? (state : SequentialStackState)
+    (previousBoundary : RawTokenAge) (conclusion : Vertex) :
+    Option SequentialStackState :=
+  match state.sigma.getLast?,
+      state.sigma.dropLast.getLast?,
+      state.ready.getLast?,
+      state.ready.dropLast.getLast?,
+      state.waiting[previousBoundary]? with
+  | some _activeBoundary, some actualPrevious,
+      some activeReady, some previousReady,
+      some (.initialized payload) =>
+      if actualPrevious == previousBoundary then
+        some {
+          state with
+          sigma := state.sigma.dropLast
+          ready :=
+            state.ready.dropLast.dropLast ++
+              [conclusion ::
+                (payload ++ previousReady ++ activeReady)]
+          waiting :=
+            state.waiting.setIfInBounds previousBoundary
+              .undefined }
+      else
+        none
+  | _, _, _, _, _ => none
+
+/-- Proof-relevant exact specification of one successful two-level merge. -/
+structure MergeTopReadyWaitingStep
+    (before after : SequentialStackState)
+    (previousBoundary : RawTokenAge) (conclusion : Vertex) : Type where
+  sigmaPrefix : List RawTokenAge
+  activeBoundary : RawTokenAge
+  readyPrefix : List (List Vertex)
+  previousReady : List Vertex
+  activeReady : List Vertex
+  payload : List Vertex
+  sigma_eq :
+    before.sigma =
+      sigmaPrefix ++ [previousBoundary, activeBoundary]
+  ready_eq :
+    before.ready =
+      readyPrefix ++ [previousReady, activeReady]
+  waiting_initialized :
+    before.waiting[previousBoundary]? =
+      some (.initialized payload)
+  after_eq :
+    after = {
+      before with
+      sigma := sigmaPrefix ++ [previousBoundary]
+      ready :=
+        readyPrefix ++
+          [conclusion ::
+            (payload ++ previousReady ++ activeReady)]
+      waiting :=
+        before.waiting.setIfInBounds previousBoundary
+          .undefined }
+
+/-- The two-level merge succeeds exactly when both stacks expose two levels,
+the requested boundary is the previous `sigma` boundary, and its waiting cell
+is initialized. -/
+theorem mergeTopReadyWaiting?_some_iff
+    {before after : SequentialStackState}
+    {previousBoundary : RawTokenAge} {conclusion : Vertex} :
+    before.mergeTopReadyWaiting? previousBoundary conclusion =
+        some after ↔
+      Nonempty
+        (MergeTopReadyWaitingStep before after
+          previousBoundary conclusion) := by
+  constructor
+  · intro equation
+    unfold mergeTopReadyWaiting? at equation
+    split at equation <;> try contradiction
+    next activeBoundary actualPrevious activeReady previousReady payload
+        activeLookup previousLookup activeReadyLookup
+        previousReadyLookup waitingLookup =>
+      split at equation
+      next same =>
+        have previousEquation :
+            actualPrevious = previousBoundary := by
+          simpa using same
+        subst actualPrevious
+        simp at equation
+        subst after
+        rcases List.getLast?_eq_some_iff.mp activeLookup with
+          ⟨activePrefix, sigmaEquation⟩
+        have sigmaDrop :
+            before.sigma.dropLast = activePrefix := by
+          rw [sigmaEquation]
+          simp
+        rw [sigmaDrop] at previousLookup
+        rcases List.getLast?_eq_some_iff.mp previousLookup with
+          ⟨sigmaPrefix, activePrefixEquation⟩
+        rcases List.getLast?_eq_some_iff.mp activeReadyLookup with
+          ⟨activeReadyPrefix, readyEquation⟩
+        have readyDrop :
+            before.ready.dropLast = activeReadyPrefix := by
+          rw [readyEquation]
+          simp
+        rw [readyDrop] at previousReadyLookup
+        rcases List.getLast?_eq_some_iff.mp previousReadyLookup with
+          ⟨readyPrefix, activeReadyPrefixEquation⟩
+        have fullSigmaEquation :
+            before.sigma =
+              sigmaPrefix ++
+                [previousBoundary, activeBoundary] := by
+          calc
+            before.sigma =
+                activePrefix ++ [activeBoundary] :=
+              sigmaEquation
+            _ =
+                sigmaPrefix ++
+                  [previousBoundary, activeBoundary] := by
+              rw [activePrefixEquation]
+              simp [List.append_assoc]
+        have fullReadyEquation :
+            before.ready =
+              readyPrefix ++ [previousReady, activeReady] := by
+          calc
+            before.ready =
+                activeReadyPrefix ++ [activeReady] :=
+              readyEquation
+            _ =
+                readyPrefix ++
+                  [previousReady, activeReady] := by
+              rw [activeReadyPrefixEquation]
+              simp [List.append_assoc]
+        exact ⟨{
+          sigmaPrefix
+          activeBoundary
+          readyPrefix
+          previousReady
+          activeReady
+          payload
+          sigma_eq := fullSigmaEquation
+          ready_eq := fullReadyEquation
+          waiting_initialized := waitingLookup
+          after_eq := by
+            simp [fullSigmaEquation, fullReadyEquation,
+              List.append_assoc] }⟩
+      next different =>
+        simp at equation
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨sigmaPrefix, activeBoundary, readyPrefix,
+        previousReady, activeReady, payload,
+        sigmaEquation, readyEquation, waitingInitialized, rfl⟩
+    simp [mergeTopReadyWaiting?, sigmaEquation, readyEquation,
+      waitingInitialized, List.append_assoc]
+
+/-- Exact changed and unchanged fields of a successful two-level merge. -/
+theorem mergeTopReadyWaiting?_exact
+    {before after : SequentialStackState}
+    {previousBoundary : RawTokenAge} {conclusion : Vertex}
+    (equation :
+      before.mergeTopReadyWaiting? previousBoundary conclusion =
+        some after) :
+    ∃ sigmaPrefix activeBoundary readyPrefix previousReady
+        activeReady payload,
+      before.sigma =
+        sigmaPrefix ++ [previousBoundary, activeBoundary] ∧
+      before.ready =
+        readyPrefix ++ [previousReady, activeReady] ∧
+      before.waiting[previousBoundary]? =
+        some (.initialized payload) ∧
+      after.sigma = sigmaPrefix ++ [previousBoundary] ∧
+      after.ready =
+        readyPrefix ++
+          [conclusion ::
+            (payload ++ previousReady ++ activeReady)] ∧
+      after.waiting =
+        before.waiting.setIfInBounds previousBoundary
+          .undefined ∧
+      after.waiting[previousBoundary]? = some .undefined ∧
+      after.marks = before.marks ∧
+      after.nextAge = before.nextAge := by
+  rcases mergeTopReadyWaiting?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨sigmaPrefix, activeBoundary, readyPrefix,
+      previousReady, activeReady, payload,
+      sigmaEquation, readyEquation, waitingInitialized, rfl⟩
+  have boundaryBound :
+      previousBoundary < before.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp waitingInitialized).1
+  exact ⟨sigmaPrefix, activeBoundary, readyPrefix,
+    previousReady, activeReady, payload,
+    sigmaEquation, readyEquation, waitingInitialized,
+    rfl, rfl, rfl, by simp [boundaryBound], rfl, rfl⟩
+
 /-- Empty fixed-carrier scheduler storage. -/
 def empty (carrierSize : Nat) : SequentialStackState where
   marks := Array.replicate carrierSize none
@@ -594,6 +910,256 @@ theorem prependWaiting?_operationalWaitingDomain
             ⟨stored, storedEquation⟩
           exact ⟨stored, by
             rw [Array.getElem?_setIfInBounds_ne (Ne.symm same)]
+            exact storedEquation⟩ }
+
+/-- Ready-top prepend preserves scheduler shape from explicit local
+duplicate-freedom and carrier-bound evidence.  No global queue ownership is
+claimed or searched for. -/
+theorem prependReadyTop?_wellShaped
+    {before after : SequentialStackState} {carrierSize : Nat}
+    {conclusion : Vertex}
+    (wellShaped : before.WellShaped carrierSize)
+    (equation :
+      before.prependReadyTop? conclusion = some after)
+    (conclusionBound : conclusion < carrierSize)
+    (mergedNodup :
+      ∀ {activeReady},
+        before.ready.getLast? = some activeReady →
+          (conclusion :: activeReady).Nodup) :
+    after.WellShaped carrierSize := by
+  rcases prependReadyTop?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨readyPrefix, activeReady, readyEquation, rfl⟩
+  have activeLookup :
+      before.ready.getLast? = some activeReady := by
+    rw [readyEquation]
+    simp
+  have nextNodup :
+      (conclusion :: activeReady).Nodup :=
+    mergedNodup activeLookup
+  exact {
+    marks_size := wellShaped.marks_size
+    waiting_size := wellShaped.waiting_size
+    assigned_age_bound := wellShaped.assigned_age_bound
+    sigma_partition := wellShaped.sigma_partition
+    ready_aligned := by
+      have oldAligned := wellShaped.ready_aligned
+      rw [readyEquation] at oldAligned
+      simpa using oldAligned
+    ready_nodup := by
+      intro bucket membership
+      simp only [List.mem_append, List.mem_singleton]
+        at membership
+      rcases membership with inPrefix | rfl
+      · apply wellShaped.ready_nodup bucket
+        rw [readyEquation]
+        exact List.mem_append_left _ inPrefix
+      · exact nextNodup
+    ready_in_bounds := by
+      intro bucket membership vertex vertexMembership
+      simp only [List.mem_append, List.mem_singleton]
+        at membership
+      rcases membership with inPrefix | rfl
+      · apply wellShaped.ready_in_bounds bucket
+          (by
+            rw [readyEquation]
+            exact List.mem_append_left _ inPrefix)
+          vertex vertexMembership
+      · simp only [List.mem_cons] at vertexMembership
+        rcases vertexMembership with rfl | inActive
+        · exact conclusionBound
+        · apply wellShaped.ready_in_bounds activeReady
+            (by rw [readyEquation]; simp)
+            vertex inActive
+    nextAge_le_waiting := wellShaped.nextAge_le_waiting }
+
+/-- Ready-top prepend changes neither the boundary stack nor waiting storage,
+so it preserves the operational waiting domain exactly. -/
+theorem prependReadyTop?_operationalWaitingDomain
+    {before after : SequentialStackState}
+    {conclusion : Vertex}
+    (domain : before.OperationalWaitingDomain)
+    (equation :
+      before.prependReadyTop? conclusion = some after) :
+    after.OperationalWaitingDomain := by
+  rcases prependReadyTop?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨readyPrefix, activeReady, readyEquation, rfl⟩
+  exact {
+    initialized_iff_inactive :=
+      domain.initialized_iff_inactive }
+
+/-- The two-level merge preserves scheduler shape when its newly assembled
+bucket is explicitly duplicate-free, the newly queued conclusion is
+in-bounds, and every drained waiting occurrence is in-bounds.  Existing ready
+bucket bounds are inherited; no ownership theorem is inferred from a runtime
+scan. -/
+theorem mergeTopReadyWaiting?_wellShaped
+    {before after : SequentialStackState} {carrierSize : Nat}
+    {previousBoundary : RawTokenAge} {conclusion : Vertex}
+    (wellShaped : before.WellShaped carrierSize)
+    (equation :
+      before.mergeTopReadyWaiting? previousBoundary conclusion =
+        some after)
+    (conclusionBound : conclusion < carrierSize)
+    (payloadInBounds :
+      ∀ {payload},
+        before.waiting[previousBoundary]? =
+            some (.initialized payload) →
+          ∀ vertex ∈ payload, vertex < carrierSize)
+    (mergedNodup :
+      ∀ {previousReady activeReady payload},
+        before.ready.dropLast.getLast? = some previousReady →
+        before.ready.getLast? = some activeReady →
+        before.waiting[previousBoundary]? =
+            some (.initialized payload) →
+          (conclusion ::
+            (payload ++ previousReady ++ activeReady)).Nodup) :
+    after.WellShaped carrierSize := by
+  rcases mergeTopReadyWaiting?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨sigmaPrefix, activeBoundary, readyPrefix,
+      previousReady, activeReady, payload,
+      sigmaEquation, readyEquation, waitingInitialized, rfl⟩
+  have previousReadyLookup :
+      before.ready.dropLast.getLast? = some previousReady := by
+    rw [readyEquation]
+    simp
+  have activeReadyLookup :
+      before.ready.getLast? = some activeReady := by
+    rw [readyEquation]
+    simp
+  have nextNodup :
+      (conclusion ::
+        (payload ++ previousReady ++ activeReady)).Nodup :=
+    mergedNodup previousReadyLookup activeReadyLookup
+      waitingInitialized
+  have previousReadyMembership :
+      previousReady ∈ before.ready := by
+    rw [readyEquation]
+    simp
+  have activeReadyMembership :
+      activeReady ∈ before.ready := by
+    rw [readyEquation]
+    simp
+  have nextPartition :
+      SigmaAgePartition before.nextAge
+        (sigmaPrefix ++ [previousBoundary]) :=
+    wellShaped.sigma_partition.popActive sigmaEquation
+  exact {
+    marks_size := wellShaped.marks_size
+    waiting_size := by
+      simpa using wellShaped.waiting_size
+    assigned_age_bound := wellShaped.assigned_age_bound
+    sigma_partition := nextPartition
+    ready_aligned := by
+      have oldAligned := wellShaped.ready_aligned
+      rw [readyEquation] at oldAligned
+      rw [sigmaEquation] at oldAligned
+      simpa using oldAligned
+    ready_nodup := by
+      intro bucket membership
+      simp only [List.mem_append, List.mem_singleton]
+        at membership
+      rcases membership with inPrefix | rfl
+      · apply wellShaped.ready_nodup bucket
+        rw [readyEquation]
+        exact List.mem_append_left _ inPrefix
+      · exact nextNodup
+    ready_in_bounds := by
+      intro bucket membership vertex vertexMembership
+      simp only [List.mem_append, List.mem_singleton]
+        at membership
+      rcases membership with inPrefix | rfl
+      · apply wellShaped.ready_in_bounds bucket
+          (by
+            rw [readyEquation]
+            exact List.mem_append_left _ inPrefix)
+          vertex vertexMembership
+      · simp only [List.mem_cons, List.mem_append]
+          at vertexMembership
+        rcases vertexMembership with
+          rfl | inPayloadOrPrevious | inActive
+        · exact conclusionBound
+        · rcases inPayloadOrPrevious with
+            inPayload | inPrevious
+          · exact payloadInBounds waitingInitialized
+              vertex inPayload
+          · exact wellShaped.ready_in_bounds previousReady
+              previousReadyMembership vertex inPrevious
+        · exact wellShaped.ready_in_bounds activeReady
+            activeReadyMembership vertex inActive
+    nextAge_le_waiting := by
+      simpa using wellShaped.nextAge_le_waiting }
+
+/-- Draining the previous initialized waiting bucket and making it the new
+active boundary preserves the exact operational waiting domain. -/
+theorem mergeTopReadyWaiting?_operationalWaitingDomain
+    {before after : SequentialStackState}
+    {previousBoundary : RawTokenAge} {conclusion : Vertex}
+    (wellShaped : before.WellShaped before.marks.size)
+    (domain : before.OperationalWaitingDomain)
+    (equation :
+      before.mergeTopReadyWaiting? previousBoundary conclusion =
+        some after) :
+    after.OperationalWaitingDomain := by
+  rcases mergeTopReadyWaiting?_some_iff.mp equation with ⟨step⟩
+  rcases step with
+    ⟨sigmaPrefix, activeBoundary, readyPrefix,
+      previousReady, activeReady, payload,
+      sigmaEquation, readyEquation, waitingInitialized, rfl⟩
+  have previousBound :
+      previousBoundary < before.waiting.size :=
+    (Array.getElem?_eq_some_iff.mp waitingInitialized).1
+  have previousNotPrefix :
+      previousBoundary ∉ sigmaPrefix := by
+    have oldIncreasing := wellShaped.sigma_partition.strictIncreasing
+    rw [sigmaEquation] at oldIncreasing
+    have reducedIncreasing :
+        (sigmaPrefix ++ [previousBoundary]).Pairwise (· < ·) :=
+      (List.pairwise_append.mp (by
+        simpa [List.append_assoc] using oldIncreasing)).1
+    have cross :=
+      (List.pairwise_append.mp reducedIncreasing).2.2
+    intro membership
+    have impossible :=
+      cross previousBoundary membership previousBoundary (by simp)
+    exact Nat.lt_irrefl previousBoundary impossible
+  exact {
+    initialized_iff_inactive := by
+      intro age ageBound
+      have oldDomain :=
+        domain.initialized_iff_inactive ageBound
+      by_cases same : age = previousBoundary
+      · subst age
+        constructor
+        · rintro ⟨stored, storedEquation⟩
+          simp [previousBound] at storedEquation
+        · intro inactive
+          simp [previousNotPrefix] at inactive
+      · constructor
+        · rintro ⟨stored, storedEquation⟩
+          have oldStored :
+              before.WaitingInitializedAt age := by
+            exact ⟨stored, by
+              rw [Array.getElem?_setIfInBounds_ne
+                (Ne.symm same)] at storedEquation
+              exact storedEquation⟩
+          have oldInactive := oldDomain.mp oldStored
+          rw [sigmaEquation] at oldInactive
+          simpa [same, List.append_assoc] using oldInactive
+        · intro inactive
+          have inPrefix : age ∈ sigmaPrefix := by
+            simpa using inactive
+          have oldInactive :
+              age ∈ before.sigma.dropLast := by
+            rw [sigmaEquation]
+            simpa [same, List.append_assoc] using inPrefix
+          rcases oldDomain.mpr oldInactive with
+            ⟨stored, storedEquation⟩
+          exact ⟨stored, by
+            rw [Array.getElem?_setIfInBounds_ne
+              (Ne.symm same)]
             exact storedEquation⟩ }
 
 /-- The empty fixed-carrier state is well shaped. -/

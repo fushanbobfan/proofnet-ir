@@ -4908,6 +4908,320 @@ ProofNetIR.UnificationState.ComponentsFormulaConsistent.componentAt : ∀ {certi
         ProofNetIR.UnificationComponent.FormulaConsistent certificate component
 ```
 
+### `ProofNetIR.Certificate.FirstOccurrencePick`
+
+Kind: definition.
+
+Public proof wrapper for the production first-occurrence frontier picker.
+The wrapper exposes exact successful selections without making the internal
+recursive helper part of the callable API.
+
+```lean
+ProofNetIR.Certificate.FirstOccurrencePick : List ProofNetIR.Vertex → Nat → Nat → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.Certificate.queuePar?`
+
+Kind: definition.
+
+Build one delayed Figure-7 par component without assigning a raw mark to
+its conclusion.
+
+Unlike the eager `firePar?` helper, this production-core primitive only
+constructs the component, exposes the conclusion on its frontier, and
+increments the connective counter.  A later ready-pop transition assigns the
+raw age.  Consequently this primitive does not refine a standalone Figure-5
+`UnificationStep`.
+
+```lean
+ProofNetIR.Certificate.queuePar? : ProofNetIR.UnificationState →
+  ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Option ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.Certificate.QueueParStep`
+
+Kind: inductive type.
+
+Exact proof-relevant witness for one delayed par-component queue.
+
+```lean
+ProofNetIR.Certificate.QueueParStep : ProofNetIR.UnificationState →
+  ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.Certificate.queuePar?_some_iff`
+
+Kind: theorem.
+
+Delayed par queuing succeeds exactly when its token, component, and two
+first-occurrence frontier selections have a typed success witness.
+
+```lean
+ProofNetIR.Certificate.queuePar?_some_iff : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.Certificate.queuePar? before left right conclusion = some after ↔
+    Nonempty (ProofNetIR.Certificate.QueueParStep before after left right conclusion)
+```
+
+### `ProofNetIR.Certificate.queuePar?_exact`
+
+Kind: theorem.
+
+Exact core fields of one successful delayed par queue.  In particular,
+the conclusion and every other raw mark remain unchanged.
+
+```lean
+ProofNetIR.Certificate.queuePar?_exact : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.Certificate.queuePar? before left right conclusion = some after →
+    ∃ outputToken component leftFocus afterLeft rightFocus context,
+      before.forwardToken? left right conclusion = some outputToken ∧
+        before.componentAt? outputToken = some component ∧
+          ProofNetIR.Certificate.FirstOccurrencePick component.frontier left leftFocus afterLeft ∧
+            ProofNetIR.Certificate.FirstOccurrencePick afterLeft right rightFocus context ∧
+              after.components =
+                  before.components.setIfInBounds outputToken
+                    (some
+                      { tree := ProofNetIR.CutFreeDerivation.par leftFocus rightFocus component.tree,
+                        frontier := context ++ [conclusion] }) ∧
+                after.marks = before.marks ∧
+                  after.parents = before.parents ∧
+                    after.startedAxioms = before.startedAxioms ∧ after.firedConnectives = before.firedConnectives + 1
+```
+
+### `ProofNetIR.Certificate.queuePar?_conclusion_unmarked`
+
+Kind: theorem.
+
+A delayed par queue leaves its conclusion in the exact raw-unmarked
+array state required by a later ready-pop assignment.
+
+```lean
+ProofNetIR.Certificate.queuePar?_conclusion_unmarked : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.Certificate.queuePar? before left right conclusion = some after → after.marks[conclusion]? = some none
+```
+
+### `ProofNetIR.Certificate.queuePar?_reservationAlignment`
+
+Kind: theorem.
+
+Delayed par queuing preserves the two carrier/counter alignments reused
+by the reservation invariant.
+
+```lean
+ProofNetIR.Certificate.queuePar?_reservationAlignment : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  before.components.size = before.parents.size →
+    before.startedAxioms = before.parents.size →
+      ProofNetIR.Certificate.queuePar? before left right conclusion = some after →
+        after.components.size = after.parents.size ∧ after.startedAxioms = after.parents.size
+```
+
+### `ProofNetIR.Certificate.queuePar?_abstractable`
+
+Kind: theorem.
+
+Delayed par construction preserves the executable abstraction contract
+because raw marks and the parent forest are unchanged.
+
+```lean
+ProofNetIR.Certificate.queuePar?_abstractable : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate before →
+    ∀ {left right conclusion : ProofNetIR.Vertex},
+      ProofNetIR.Certificate.queuePar? before left right conclusion = some after →
+        ProofNetIR.UnificationState.Abstractable certificate after
+```
+
+### `ProofNetIR.Certificate.queuePar?_orderedParents`
+
+Kind: theorem.
+
+Delayed par construction preserves the ordered parent forest exactly.
+
+```lean
+ProofNetIR.Certificate.queuePar?_orderedParents : ∀ {before after : ProofNetIR.UnificationState},
+  before.OrderedParents →
+    ∀ {left right conclusion : ProofNetIR.Vertex},
+      ProofNetIR.Certificate.queuePar? before left right conclusion = some after → after.OrderedParents
+```
+
+### `ProofNetIR.Certificate.queuePar?_componentsFormulaConsistent`
+
+Kind: theorem.
+
+A well-typed delayed par queue replaces its live component by the exact
+formula-consistent par component while leaving all other live slots valid.
+
+```lean
+ProofNetIR.Certificate.queuePar?_componentsFormulaConsistent : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate before →
+    ∀ {left right conclusion : ProofNetIR.Vertex},
+      certificate.LinkWellFormed (ProofNetIR.Link.par left right conclusion) →
+        ProofNetIR.Certificate.queuePar? before left right conclusion = some after →
+          ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate after
+```
+
+### `ProofNetIR.Certificate.queueTensor?`
+
+Kind: definition.
+
+Build and merge the two active tensor components without assigning a raw
+mark to the tensor conclusion.
+
+This is only the local tensor sub-primitive needed by a later Figure-7
+`unify`: it increments the connective counter once, points the larger current
+representative at the smaller one, and leaves the conclusion raw-unmarked.
+The full rule must first identify those representatives with the exact
+scheduler boundaries `j < i`, then drain `W(j)` and construct or activate the
+waiting par components (adding their own counter contributions).
+
+```lean
+ProofNetIR.Certificate.queueTensor? : ProofNetIR.UnificationState →
+  ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Option ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.Certificate.QueueTensorStep`
+
+Kind: inductive type.
+
+Exact proof-relevant witness for one delayed tensor-component queue.
+
+```lean
+ProofNetIR.Certificate.QueueTensorStep : ProofNetIR.UnificationState →
+  ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.Certificate.queueTensor?_some_iff`
+
+Kind: theorem.
+
+Delayed tensor queuing succeeds exactly when both live components and
+their exact first-occurrence premise selections are available.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_some_iff : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.Certificate.queueTensor? before left right conclusion = some after ↔
+    Nonempty (ProofNetIR.Certificate.QueueTensorStep before after left right conclusion)
+```
+
+### `ProofNetIR.Certificate.queueTensor?_exact`
+
+Kind: theorem.
+
+Exact core fields of one successful delayed tensor queue.  The conclusion
+is not marked; only the larger representative's parent, the two component
+slots, and the local connective counter change.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_exact : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.Certificate.queueTensor? before left right conclusion = some after →
+    ∃ leftToken rightToken leftComponent rightComponent leftFocus leftContext rightFocus rightContext,
+      before.unifyTokens? left right conclusion = some (leftToken, rightToken) ∧
+        before.componentAt? leftToken = some leftComponent ∧
+          before.componentAt? rightToken = some rightComponent ∧
+            ProofNetIR.Certificate.FirstOccurrencePick leftComponent.frontier left leftFocus leftContext ∧
+              ProofNetIR.Certificate.FirstOccurrencePick rightComponent.frontier right rightFocus rightContext ∧
+                after.parents = before.parents.setIfInBounds (max leftToken rightToken) (min leftToken rightToken) ∧
+                  after.components =
+                      (before.components.setIfInBounds (min leftToken rightToken)
+                            (some
+                              {
+                                tree :=
+                                  ProofNetIR.CutFreeDerivation.tensor leftFocus rightFocus leftComponent.tree
+                                    rightComponent.tree,
+                                frontier := conclusion :: (leftContext ++ rightContext) })).setIfInBounds
+                        (max leftToken rightToken) none ∧
+                    after.marks = before.marks ∧
+                      after.startedAxioms = before.startedAxioms ∧ after.firedConnectives = before.firedConnectives + 1
+```
+
+### `ProofNetIR.Certificate.queueTensor?_conclusion_unmarked`
+
+Kind: theorem.
+
+A delayed tensor queue likewise leaves its conclusion raw-unmarked.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_conclusion_unmarked : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.Certificate.queueTensor? before left right conclusion = some after → after.marks[conclusion]? = some none
+```
+
+### `ProofNetIR.Certificate.queueTensor?_representatives_distinct`
+
+Kind: theorem.
+
+A successful tensor queue exposes two distinct current representatives;
+therefore its `set`-then-`clear` component update cannot target one slot.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_representatives_distinct : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.Certificate.queueTensor? before left right conclusion = some after →
+    ∃ leftToken rightToken,
+      before.unifyTokens? left right conclusion = some (leftToken, rightToken) ∧
+        leftToken ≠ rightToken ∧ min leftToken rightToken ≠ max leftToken rightToken
+```
+
+### `ProofNetIR.Certificate.queueTensor?_reservationAlignment`
+
+Kind: theorem.
+
+The local tensor sub-primitive also preserves carrier size and the
+started-axiom/parent alignment: it mutates one parent cell and two component
+cells without resizing either array.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_reservationAlignment : ∀ {before after : ProofNetIR.UnificationState} {left right conclusion : ProofNetIR.Vertex},
+  before.components.size = before.parents.size →
+    before.startedAxioms = before.parents.size →
+      ProofNetIR.Certificate.queueTensor? before left right conclusion = some after →
+        after.components.size = after.parents.size ∧ after.startedAxioms = after.parents.size
+```
+
+### `ProofNetIR.Certificate.queueTensor?_orderedParents`
+
+Kind: theorem.
+
+The local tensor merge preserves ordered parents by pointing the larger
+current representative at the smaller one.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_orderedParents : ∀ {before after : ProofNetIR.UnificationState},
+  before.OrderedParents →
+    ∀ {left right conclusion : ProofNetIR.Vertex},
+      ProofNetIR.Certificate.queueTensor? before left right conclusion = some after → after.OrderedParents
+```
+
+### `ProofNetIR.Certificate.queueTensor?_abstractable`
+
+Kind: theorem.
+
+The local tensor merge preserves the executable abstraction contract
+under the existing ordered-parent invariant.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_abstractable : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.Abstractable certificate before →
+    before.OrderedParents →
+      ∀ {left right conclusion : ProofNetIR.Vertex},
+        ProofNetIR.Certificate.queueTensor? before left right conclusion = some after →
+          ProofNetIR.UnificationState.Abstractable certificate after
+```
+
+### `ProofNetIR.Certificate.queueTensor?_componentsFormulaConsistent`
+
+Kind: theorem.
+
+A well-typed delayed tensor queue installs the exact consistent merged
+component and clears the retired slot.  This theorem covers only the local
+tensor sub-primitive; it does not activate components represented by a
+drained scheduler waiting bucket.
+
+```lean
+ProofNetIR.Certificate.queueTensor?_componentsFormulaConsistent : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState},
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate before →
+    ∀ {left right conclusion : ProofNetIR.Vertex},
+      certificate.LinkWellFormed (ProofNetIR.Link.tensor left right conclusion) →
+        ProofNetIR.Certificate.queueTensor? before left right conclusion = some after →
+          ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate after
+```
+
 ### `ProofNetIR.UnificationScanStats`
 
 Kind: inductive type.
@@ -6576,6 +6890,23 @@ ProofNetIR.SequentialSchedulerState.SigmaAgePartition.appendFresh : ∀ {nextAge
     0 < nextAge → ProofNetIR.SequentialSchedulerState.SigmaAgePartition (nextAge + 1) (sigma ++ [nextAge])
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.popActive`
+
+Kind: theorem.
+
+Removing the active boundary from a partition with at least two explicit
+tail boundaries leaves a valid partition at the unchanged raw-age horizon.
+The horizon is an allocation counter, so a `unify` pop does not decrement it.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.popActive : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma sigmaPrefix : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {previous active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    sigma = sigmaPrefix ++ [previous, active] →
+      ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge (sigmaPrefix ++ [previous])
+```
+
 ### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?`
 
 Kind: definition.
@@ -6839,6 +7170,205 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_operati
   {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
   before.OperationalWaitingDomain →
     before.prependWaiting? boundary conclusion = some after → after.OperationalWaitingDomain
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?`
+
+Kind: definition.
+
+Prepend one conclusion to the current (last) ready bucket.
+
+This local primitive deliberately performs no global queued-occurrence scan.
+Its preservation theorem below therefore receives the exact local
+duplicate-freedom and carrier-bound facts as proof inputs.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.PrependReadyTopStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful ready-top prepend.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.PrependReadyTopStep : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_some_iff`
+
+Kind: theorem.
+
+Ready-top prepend succeeds exactly when the ready stack is nonempty.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_some_iff : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {conclusion : ProofNetIR.Vertex},
+  before.prependReadyTop? conclusion = some after ↔ Nonempty (before.PrependReadyTopStep after conclusion)
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_exact`
+
+Kind: theorem.
+
+Exact changed and unchanged fields of a successful ready-top prepend.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_exact : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {conclusion : ProofNetIR.Vertex},
+  before.prependReadyTop? conclusion = some after →
+    ∃ readyPrefix activeReady,
+      before.ready = readyPrefix ++ [activeReady] ∧
+        after.ready = readyPrefix ++ [conclusion :: activeReady] ∧
+          after.marks = before.marks ∧
+            after.nextAge = before.nextAge ∧ after.sigma = before.sigma ∧ after.waiting = before.waiting
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_wellShaped`
+
+Kind: theorem.
+
+Ready-top prepend preserves scheduler shape from explicit local
+duplicate-freedom and carrier-bound evidence.  No global queue ownership is
+claimed or searched for.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_wellShaped : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
+  {conclusion : ProofNetIR.Vertex},
+  before.WellShaped carrierSize →
+    before.prependReadyTop? conclusion = some after →
+      conclusion < carrierSize →
+        (∀ {activeReady : List ProofNetIR.Vertex},
+            before.ready.getLast? = some activeReady → (conclusion :: activeReady).Nodup) →
+          after.WellShaped carrierSize
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_operationalWaitingDomain`
+
+Kind: theorem.
+
+Ready-top prepend changes neither the boundary stack nor waiting storage,
+so it preserves the operational waiting domain exactly.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_operationalWaitingDomain : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {conclusion : ProofNetIR.Vertex},
+  before.OperationalWaitingDomain → before.prependReadyTop? conclusion = some after → after.OperationalWaitingDomain
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?`
+
+Kind: definition.
+
+Merge the two top scheduler buckets at an exact previous boundary.
+
+The deterministic list refinement is
+`conclusion :: (payload ++ previousReady ++ activeReady)`: Guerrini's paper
+uses sets inside its ready/waiting cells, so this list order is a project
+choice fixed here for executable reproducibility.  The operation drains
+`W(previousBoundary)`, makes that cell undefined because it becomes active,
+and pops only the active `sigma`/ready level.  It performs no global
+`queuedVertices` scan.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting? : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge →
+    ProofNetIR.Vertex → Option ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.MergeTopReadyWaitingStep`
+
+Kind: inductive type.
+
+Proof-relevant exact specification of one successful two-level merge.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.MergeTopReadyWaitingStep : ProofNetIR.SequentialSchedulerState.SequentialStackState →
+  ProofNetIR.SequentialSchedulerState.SequentialStackState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_some_iff`
+
+Kind: theorem.
+
+The two-level merge succeeds exactly when both stacks expose two levels,
+the requested boundary is the previous `sigma` boundary, and its waiting cell
+is initialized.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_some_iff : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {previousBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.mergeTopReadyWaiting? previousBoundary conclusion = some after ↔
+    Nonempty (before.MergeTopReadyWaitingStep after previousBoundary conclusion)
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_exact`
+
+Kind: theorem.
+
+Exact changed and unchanged fields of a successful two-level merge.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_exact : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {previousBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.mergeTopReadyWaiting? previousBoundary conclusion = some after →
+    ∃ sigmaPrefix activeBoundary readyPrefix previousReady activeReady payload,
+      before.sigma = sigmaPrefix ++ [previousBoundary, activeBoundary] ∧
+        before.ready = readyPrefix ++ [previousReady, activeReady] ∧
+          before.waiting[previousBoundary]? =
+              some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) ∧
+            after.sigma = sigmaPrefix ++ [previousBoundary] ∧
+              after.ready = readyPrefix ++ [conclusion :: (payload ++ previousReady ++ activeReady)] ∧
+                after.waiting =
+                    before.waiting.setIfInBounds previousBoundary
+                      ProofNetIR.SequentialSchedulerState.WaitingCell.undefined ∧
+                  after.waiting[previousBoundary]? = some ProofNetIR.SequentialSchedulerState.WaitingCell.undefined ∧
+                    after.marks = before.marks ∧ after.nextAge = before.nextAge
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_wellShaped`
+
+Kind: theorem.
+
+The two-level merge preserves scheduler shape when its newly assembled
+bucket is explicitly duplicate-free, the newly queued conclusion is
+in-bounds, and every drained waiting occurrence is in-bounds.  Existing ready
+bucket bounds are inherited; no ownership theorem is inferred from a runtime
+scan.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_wellShaped : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {carrierSize : Nat}
+  {previousBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.WellShaped carrierSize →
+    before.mergeTopReadyWaiting? previousBoundary conclusion = some after →
+      conclusion < carrierSize →
+        (∀ {payload : List ProofNetIR.Vertex},
+            before.waiting[previousBoundary]? =
+                some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) →
+              ∀ (vertex : ProofNetIR.Vertex), vertex ∈ payload → vertex < carrierSize) →
+          (∀ {previousReady activeReady payload : List ProofNetIR.Vertex},
+              before.ready.dropLast.getLast? = some previousReady →
+                before.ready.getLast? = some activeReady →
+                  before.waiting[previousBoundary]? =
+                      some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) →
+                    (conclusion :: (payload ++ previousReady ++ activeReady)).Nodup) →
+            after.WellShaped carrierSize
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_operationalWaitingDomain`
+
+Kind: theorem.
+
+Draining the previous initialized waiting bucket and making it the new
+active boundary preserves the exact operational waiting domain.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_operationalWaitingDomain : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {previousBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
+  before.WellShaped before.marks.size →
+    before.OperationalWaitingDomain →
+      before.mergeTopReadyWaiting? previousBoundary conclusion = some after → after.OperationalWaitingDomain
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt`

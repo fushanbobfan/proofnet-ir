@@ -183,6 +183,39 @@ full-rule reachability, progress, or a linear-time implementation; the
 canonical consumer table is still rebuilt by this pure API unless a future
 scheduler threads it explicitly.
 
+The next bounded implementation slice supplies only the production-core
+mutations needed by eventual `forward`/`unify`. `Certificate.queuePar?` and
+`Certificate.queueTensor?` build par/tensor components, increment their local
+connective counter, and leave the conclusion's raw mark unchanged; under a
+prior `ComponentsFormulaConsistent` invariant and explicit `LinkWellFormed`
+hypothesis, separate theorems prove the new live components
+formula-consistent. The ready-pop rule is still responsible for assigning the
+conclusion's raw age.
+The tensor core merges the two generic current representatives by
+`min`/`max`, with distinctness extracted from the executable guard. The
+delayed state separately exposes `prependReadyTop?` and
+`mergeTopReadyWaiting?`. The two-level merge uses the reproducible list order
+`conclusion :: (payload ++ previousReady ++ activeReady)`, drains the previous
+waiting bucket, resets that boundary to `undefined`, and pops one active
+level. Figure 7 treats the bucket contents as sets, so this list order is a
+project-level deterministic refinement rather than a claim about source
+order. A component frontier's derivation/exchange order is also not the ready
+bucket's scheduling-list order; later correctness must use proved membership
+or permutation facts rather than defining those lists to be equal. Its
+`WellShaped` theorem takes merged `Nodup`, conclusion-bound, and
+waiting-payload-bound facts explicitly; no primitive infers ownership by
+scanning `queuedVertices`.
+
+These are not executable `forward`/`unify` rules. In particular, a complete
+`unify` must prove the generic tensor representatives equal the exact
+scheduler boundaries `j` and `i`, orient the update as `parent[i] := j`, and
+construct or activate every par component drained from `W(j)` (or justify a
+producer-aware deferred representation). The local tensor core increments
+only once; the complete rule must account for the additional waiting-par
+activations. Full payload ownership, dispatcher/history integration,
+progress, completeness, fallback removal, and whole-program linearity remain
+open. Tail-based list operations also carry no O(1) claim.
+
 The first separate sequential primitive is now present in
 `SequentialUnification.lean`. Lean proves exact submitted-link origin for a
 reusable source-incidence index. Exact origin alone is only the `Sound`
