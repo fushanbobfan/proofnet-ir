@@ -242,9 +242,14 @@ layer also has closed rejection fixtures for cross-representative ownership
 and forest-external raw marks. These propositions are not runtime trusted
 state. The whole-forest predicate is now a `SchedulerInvariant` field:
 empty/init establish it, and the prepared raw-mark prefix preserves it from
-the representative-indexed live owner, so `concl`/`nop` inherit it. The state
-theorem still does not cover later `new` or `wait` and is not a dispatcher
-reachability theorem.
+the representative-indexed live owner, so `concl`/`nop` inherit it. Successful
+deterministic `NewStep` and executable `new?` results now preserve the complete
+current occurrence-exact state-only invariant as well. The proof establishes
+fresh submitted-axiom occurrence ownership against the old forest and
+transports every current queue, causal, waiting, pending, and counter field.
+The theorem assumes an existing invariant and a successful step/equation; it
+does not establish later-state `new?` success, totality, or dispatcher
+reachability, and it still does not cover `wait`.
 The local `wait` uses the mate's raw mark and the exact `sigmaBoundary?`
 destination, then performs one initialized-cell cons without a global queue
 scan or ownership claim. Global queue uniqueness and ownership, state-only
@@ -638,8 +643,11 @@ Lean now also constructs the exact simultaneous complementary
   per-call trace/tag invariants, exact oriented routes, initial/local
   rank-scoped totality, and strictly threaded touched-set disjointness;
   the operational waiting-cell domain and exact init/new history are also
-  proved. Exact local `concl`/`nop`/`wait` are also proved. Later-state
-  selection, ready/waiting payload ownership, `forward`/`unify`, their
+  proved. Exact local `concl`/`nop`/`wait` are also proved, and successful
+  deterministic/executable `new` preserves the complete current
+  occurrence-exact state-only invariant. Later-state `new?` success/totality,
+  state-only `wait` preservation, ready/waiting payload ownership,
+  `forward`/`unify`, their
   full-history integration, and the remaining
   `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,

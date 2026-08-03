@@ -714,6 +714,57 @@ theorem ofQueueTensorStep
     (ExactOccurrencePick.ofFirst step.left_pick)
     (ExactOccurrencePick.ofFirst step.right_pick)
 
+/-- Every submitted axiom used by an occurrence derivation owns both exact
+endpoint occurrences.  This follows the submitted link index, never merely a
+formula label. -/
+theorem usedAxiomEndpoints_owned
+    {certificate : Certificate}
+    {tree : CutFreeDerivation} {frontier usedLinks owned : List Nat}
+    (witness : OccurrenceDerivation certificate tree frontier usedLinks owned)
+    {linkIndex left right : Nat}
+    (membership : linkIndex ∈ usedLinks)
+    (submitted : certificate.links[linkIndex]? = some (.axiom left right)) :
+    left ∈ owned ∧ right ∈ owned := by
+  induction witness generalizing linkIndex left right with
+  | «axiom» submittedIndex axiomLeft axiomRight name positive
+      linkLookup leftFormula =>
+      simp only [List.mem_singleton] at membership
+      subst linkIndex
+      have linkEquation :
+          Link.axiom axiomLeft axiomRight = .axiom left right :=
+        Option.some.inj (linkLookup.symm.trans submitted)
+      injection linkEquation with leftEquation rightEquation
+      subst left
+      subst right
+      simp
+  | par premiseWitness submittedIndex parLeft parRight conclusion
+      leftFocus rightFocus afterLeft context linkLookup leftPick rightPick
+      induction =>
+      simp only [List.mem_cons] at membership
+      rcases membership with rfl | oldMembership
+      · rw [linkLookup] at submitted
+        simp at submitted
+      · have oldOwned := induction oldMembership submitted
+        exact ⟨List.mem_cons_of_mem _ oldOwned.1,
+          List.mem_cons_of_mem _ oldOwned.2⟩
+  | tensor leftWitness rightWitness submittedIndex tensorLeft tensorRight
+      conclusion leftFocus rightFocus leftContext rightContext linkLookup
+      leftPick rightPick leftInduction rightInduction =>
+      simp only [List.mem_cons, List.mem_append] at membership
+      rcases membership with rfl | leftMembership | rightMembership
+      · rw [linkLookup] at submitted
+        simp at submitted
+      · have oldOwned := leftInduction leftMembership submitted
+        exact ⟨
+          List.mem_cons_of_mem _ (List.mem_append_left _ oldOwned.1),
+          List.mem_cons_of_mem _ (List.mem_append_left _ oldOwned.2)⟩
+      · have oldOwned := rightInduction rightMembership submitted
+        exact ⟨
+          List.mem_cons_of_mem _ (List.mem_append_right _ oldOwned.1),
+          List.mem_cons_of_mem _ (List.mem_append_right _ oldOwned.2)⟩
+  | exchange premiseWitness order reordered reorderEquation induction =>
+      exact induction membership submitted
+
 end OccurrenceDerivation
 
 namespace ComponentOccurrenceWitness
@@ -903,6 +954,186 @@ theorem markReadyRaw?_of_root_frontier
     rw [root]
     exact componentLookup
   · exact equation
+
+/-- Appending a fresh submitted axiom preserves the occurrence-exact live
+component forest when both exact endpoints are absent from every old owner. -/
+theorem reserveAxiomAt?_of_fresh
+    {certificate : Certificate} {before after : UnificationState}
+    {linkIndex : Nat}
+    (structural : certificate.StructurallyWellFormed)
+    (ordered : before.OrderedParents)
+    (forest : certificate.ComponentForestProvenance before)
+    (fresh : ∀ {left right},
+      certificate.links[linkIndex]? = some (.axiom left right) →
+      ∀ {index component owned},
+        before.components[index]? = some (some component) →
+        OwnedOccurrenceAccounted before index component owned →
+        left ∉ owned ∧ right ∉ owned)
+    (equation : certificate.reserveAxiomAt? before linkIndex = some after) :
+    certificate.ComponentForestProvenance after := by
+  rcases forest with ⟨usedAt, ownedAt, live, disjoint, covered⟩
+  rcases certificate.reserveAxiomAt?_exact equation with
+    ⟨left, right, newComponent, linkLookup, ready, componentLookup,
+      frontier, marksEq, parentsEq, componentsEq, counterEq, firedEq⟩
+  rcases UnificationComponent.axiom?_success componentLookup with
+    ⟨name, positive, leftFormula, newComponentEq⟩
+  let freshIndex := before.components.size
+  let newUsedAt : Nat → List Nat := fun index =>
+    if index = freshIndex then [linkIndex] else usedAt index
+  let newOwnedAt : Nat → List Nat := fun index =>
+    if index = freshIndex then [left, right] else ownedAt index
+  have newWitness :
+      ComponentOccurrenceWitness certificate newComponent
+        [linkIndex] [left, right] := by
+    rw [newComponentEq]
+    exact ComponentOccurrenceWitness.axiom_of_submitted
+      structural linkLookup leftFormula
+  have oldRepresentative : ∀ token,
+      after.representative token = before.representative token := by
+    intro token
+    exact certificate.reserveAxiomAt?_old_representative ordered equation
+  have oldEndpointFresh : ∀ {index component},
+      before.components[index]? = some (some component) →
+      left ∉ ownedAt index ∧ right ∉ ownedAt index := by
+    intro index component oldLookup
+    exact fresh linkLookup oldLookup (live oldLookup).2
+  have oldLinkFresh : ∀ {index component},
+      before.components[index]? = some (some component) →
+      linkIndex ∉ usedAt index := by
+    intro index component oldLookup linkUsed
+    have endpoints :=
+      (live oldLookup).1.derivation.usedAxiomEndpoints_owned
+        linkUsed linkLookup
+    exact (oldEndpointFresh oldLookup).1 endpoints.1
+  refine ⟨newUsedAt, newOwnedAt, ?_, ?_, ?_⟩
+  · intro index component afterLookup
+    by_cases isFresh : index = freshIndex
+    · subst index
+      have componentEq : component = newComponent := by
+        rw [componentsEq] at afterLookup
+        simpa [freshIndex] using afterLookup.symm
+      subst component
+      refine ⟨?_, ?_⟩
+      · simpa [newUsedAt, newOwnedAt] using newWitness
+      · intro vertex vertexOwned
+        simp only [newOwnedAt, if_pos, List.mem_cons,
+          List.not_mem_nil, or_false] at vertexOwned
+        rcases vertexOwned with rfl | rfl
+        · apply Or.inr
+          refine ⟨?_, ?_⟩
+          · rw [marksEq]
+            exact ready.2.1
+          · rw [frontier]
+            simp
+        · apply Or.inr
+          refine ⟨?_, ?_⟩
+          · rw [marksEq]
+            exact ready.2.2.1
+          · rw [frontier]
+            simp
+    · have oldLookup : before.components[index]? = some (some component) := by
+        rw [componentsEq] at afterLookup
+        simpa [Array.getElem?_push, freshIndex, isFresh] using afterLookup
+      rcases live oldLookup with ⟨oldWitness, oldAccounted⟩
+      refine ⟨?_, ?_⟩
+      · simpa [newUsedAt, newOwnedAt, isFresh] using oldWitness
+      · intro vertex vertexOwned
+        have oldOwned : vertex ∈ ownedAt index := by
+          simpa [newOwnedAt, isFresh] using vertexOwned
+        rcases oldAccounted vertex oldOwned with
+          ⟨rawAge, marked, representative⟩ | ⟨unmarked, inFrontier⟩
+        · apply Or.inl
+          refine ⟨rawAge, ?_, ?_⟩
+          · rw [marksEq]
+            exact marked
+          · rw [oldRepresentative]
+            exact representative
+        · apply Or.inr
+          refine ⟨?_, inFrontier⟩
+          rw [marksEq]
+          exact unmarked
+  · intro leftIndex rightIndex leftComponent rightComponent
+      leftLookup rightLookup different
+    by_cases leftFresh : leftIndex = freshIndex
+    · subst leftIndex
+      by_cases rightFresh : rightIndex = freshIndex
+      · exact False.elim (different rightFresh.symm)
+      · have rightOld : before.components[rightIndex]? = some (some rightComponent) := by
+          rw [componentsEq] at rightLookup
+          simpa [Array.getElem?_push, freshIndex, rightFresh] using rightLookup
+        have leftComponentEq : leftComponent = newComponent := by
+          rw [componentsEq] at leftLookup
+          simpa [freshIndex] using leftLookup.symm
+        subst leftComponent
+        have endpointFresh := oldEndpointFresh rightOld
+        have linkFresh := oldLinkFresh rightOld
+        constructor
+        · intro candidate candidateMembership candidateInRight
+          have candidateEq : candidate = linkIndex := by
+            simpa [newUsedAt] using candidateMembership
+          subst candidate
+          have oldMembership : linkIndex ∈ usedAt rightIndex := by
+            simpa [newUsedAt, rightFresh] using candidateInRight
+          exact linkFresh oldMembership
+        · intro vertex vertexMembership vertexInRight
+          have endpoint : vertex = left ∨ vertex = right := by
+            simpa [newOwnedAt] using vertexMembership
+          have oldMembership : vertex ∈ ownedAt rightIndex := by
+            simpa [newOwnedAt, rightFresh] using vertexInRight
+          rcases endpoint with rfl | rfl
+          · exact endpointFresh.1 oldMembership
+          · exact endpointFresh.2 oldMembership
+    · have leftOld : before.components[leftIndex]? = some (some leftComponent) := by
+        rw [componentsEq] at leftLookup
+        simpa [Array.getElem?_push, freshIndex, leftFresh] using leftLookup
+      by_cases rightFresh : rightIndex = freshIndex
+      · subst rightIndex
+        have rightComponentEq : rightComponent = newComponent := by
+          rw [componentsEq] at rightLookup
+          simpa [freshIndex] using rightLookup.symm
+        subst rightComponent
+        have endpointFresh := oldEndpointFresh leftOld
+        have linkFresh := oldLinkFresh leftOld
+        constructor
+        · intro candidate candidateMembership candidateInRight
+          have oldMembership : candidate ∈ usedAt leftIndex := by
+            simpa [newUsedAt, leftFresh] using candidateMembership
+          have candidateEq : candidate = linkIndex := by
+            simpa [newUsedAt] using candidateInRight
+          subst candidate
+          exact linkFresh oldMembership
+        · intro vertex vertexMembership vertexInRight
+          have oldMembership : vertex ∈ ownedAt leftIndex := by
+            simpa [newOwnedAt, leftFresh] using vertexMembership
+          have endpoint : vertex = left ∨ vertex = right := by
+            simpa [newOwnedAt] using vertexInRight
+          rcases endpoint with rfl | rfl
+          · exact endpointFresh.1 oldMembership
+          · exact endpointFresh.2 oldMembership
+      · have rightOld : before.components[rightIndex]? = some (some rightComponent) := by
+          rw [componentsEq] at rightLookup
+          simpa [Array.getElem?_push, freshIndex, rightFresh] using rightLookup
+        have oldDisjoint := disjoint leftOld rightOld different
+        simpa [newUsedAt, newOwnedAt, leftFresh, rightFresh] using oldDisjoint
+  · intro vertex rawAge afterMarked
+    have beforeMarked : before.marks[vertex]? = some (some rawAge) := by
+      rw [marksEq] at afterMarked
+      exact afterMarked
+    rcases covered beforeMarked with
+      ⟨index, component, representative, componentLookupOld, vertexOwned⟩
+    have indexBound := (Array.getElem?_eq_some_iff.mp componentLookupOld).1
+    have indexNotFresh : index ≠ freshIndex := by
+      intro same
+      rw [same] at indexBound
+      change freshIndex < before.components.size at indexBound
+      dsimp [freshIndex] at indexBound
+      exact (Nat.lt_irrefl _) indexBound
+    refine ⟨index, component, ?_, ?_, ?_⟩
+    · rw [oldRepresentative]
+      exact representative
+    · rw [componentsEq]
+      simpa [Array.getElem?_push, freshIndex, indexNotFresh] using componentLookupOld
+    · simpa [newOwnedAt, indexNotFresh] using vertexOwned
 
 end ComponentForestProvenance
 

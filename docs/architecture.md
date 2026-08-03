@@ -423,10 +423,17 @@ The forest is now a `SchedulerInvariant` field. The empty core and exact
 initial axiom reservation establish it, and a generic raw-mark theorem
 preserves it when the selected occurrence lies on the live component at its
 current representative. `PreparedStep` supplies that owner exactly, so
-`concl`/`nop` inherit the strengthened invariant. This remains a foundation
-checkpoint: later `new`, `wait`, and whole queue transitions still require
-fresh link/conclusion and branch-disjointness obligations where applicable.
-Complete `forward`/`unify`, dispatcher progress, and completeness remain open.
+`concl`/`nop` inherit the strengthened invariant. The deterministic
+`NewStep` proof now closes its successful-transition obligation as well: old
+owned but unmarked occurrences are forced into the old queue, the submitted
+axiom endpoints are excluded from that queue and hence from every old live
+frontier, and the exact fresh axiom witness extends the forest. The same proof
+transports all other current state-only fields, so
+`NewStep.schedulerInvariant` and `new?_schedulerInvariant` cover every
+successful typed/executable `new`. They do not show that `new?` returns `some`
+for every intended later state and do not establish reachability. State-only
+`wait` preservation and the complete queue transitions remain open. Complete
+`forward`/`unify`, dispatcher progress, and completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
@@ -698,7 +705,10 @@ active-reference walks between marked occurrences are equivalent to
   public `ConsumerIndex` and the invariant-bound operational local Figure-7
   `new` pipeline now add pop/raw-mark, orientation-aware tensor-mate lookup,
   post-mark search, and later reservation with the old-boundary/fresh-top
-  waiting update. Reset tags can replay low-level search, but the operational
+  waiting update. Every successful typed/executable `new` now preserves the
+  complete current occurrence-exact state-only `SchedulerInvariant`; the
+  theorem does not supply success or totality. Reset tags can replay low-level
+  search, but the operational
   stack guard rejects endpoints already stored in ready or waiting payloads;
   the low-level reservation primitive itself remains replayable. The
   proof-relevant `InitNewHistory` now characterizes exact empty/init/new
@@ -718,7 +728,9 @@ eagerly and uses flat waiting requeues. The separate bounded/tagged
 invariant-bound operational local `new` transition in the delayed
 `SequentialSchedulerState`. The literal printed fresh-cell update remains a
 separate display-only helper. Exact init/new execution history is integrated;
-ready/waiting payload ownership, `forward`/`unify`, full-history
+successful `new` preserves the full current state-only invariant, but
+later-state `new?` success/totality, ready/waiting payload ownership across the
+remaining rules, `forward`/`unify`, full-history
 integration of the local `concl`/`nop`/`wait` rules, a full-rule reachable-state
 invariant, and later-state scheduler totality are not. General
 checker-accepted sequentialization remains complete through the recursive

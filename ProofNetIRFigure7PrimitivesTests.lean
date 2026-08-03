@@ -239,6 +239,57 @@ example :
     ⟨index, component, _representative, componentLookup, _owned⟩
   simp [orphanMarkedState] at componentLookup
 
+private def repeatedInitial : Option ReservationState :=
+  initializeReservation? repeatedOccurrenceCertificate 0
+
+private theorem repeatedInitial_schedulerInvariant
+    {before : ReservationState}
+    (equation : repeatedInitial = some before) :
+    SchedulerInvariant repeatedOccurrenceCertificate before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [repeatedInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant repeatedOccurrenceCertificate_structural
+
+/-- A real deterministic `new` transition over repeated formula labels keeps
+the two exact submitted axiom occurrences separate.  The fresh ready pair is
+inserted after the old ready flattening and before waiting payloads; the old
+active waiting cell is initialized empty and the fresh one remains undefined. -/
+example :
+    (match initialEquation : repeatedInitial with
+    | none => false
+    | some before =>
+        match
+            SequentialFigure7.new? repeatedOccurrenceCertificate before
+              (repeatedInitial_schedulerInvariant initialEquation
+                |>.toReservationInvariant) with
+        | none => false
+        | some after =>
+            after.stack.sigma == [0, 1] &&
+              after.stack.ready == [[1], [2, 3]] &&
+              after.stack.waiting[0]? ==
+                some (.initialized []) &&
+              after.stack.waiting[1]? == some .undefined &&
+              match after.core.components[0]?, after.core.components[1]? with
+              | some (some first), some (some second) =>
+                  first.frontier == [0, 1] &&
+                    second.frontier == [2, 3]
+              | _, _ => false) = true := by
+  native_decide
+
+/-- Executable `new?` success preserves the full occurrence-exact scheduler
+invariant on the repeated-label regression certificate. -/
+example {before after : ReservationState}
+    (initialEquation : repeatedInitial = some before)
+    (newEquation :
+      SequentialFigure7.new? repeatedOccurrenceCertificate before
+          (repeatedInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some after) :
+    SchedulerInvariant repeatedOccurrenceCertificate after := by
+  exact SequentialFigure7.new?_schedulerInvariant
+    (repeatedInitial_schedulerInvariant initialEquation) newEquation
+
 /-- Initialization executes on the smallest valid axiom certificate and its
 typed witness establishes the complete state-based scheduler foundation. -/
 example :

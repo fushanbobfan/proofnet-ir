@@ -798,8 +798,14 @@
     complete history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
     the forest is integrated for empty/init and the common prepared prefix,
-    so `concl`/`nop` preserve it. Later `new`, `wait`, and complete queue
-    preservation remain open. Establish the
+    so `concl`/`nop` preserve it.
+  - [x] Preserve the complete current occurrence-exact state-only
+    `SchedulerInvariant` through every successful deterministic `NewStep` and
+    successful executable `new?`, including exact fresh-axiom forest extension
+    and all ready/queue, causal, waiting-span, pending-premise, and counter
+    fields. This does not prove later-state `new?` success or totality.
+  - [ ] Preserve the strengthened invariant through local `wait` and complete
+    `forward`/`unify` queue transitions. Establish the
     special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before

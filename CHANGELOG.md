@@ -56,10 +56,19 @@
   exact empty state and initial axiom reservation establish it; the common
   prepared pop/raw-mark prefix preserves it using the selected occurrence's
   representative-indexed live frontier, so exact/executable `concl` and `nop`
-  inherit the strengthened invariant. This does not yet prove preservation
-  through later `new`, `wait`, or complete `forward`/`unify`; those steps still
-  need fresh link/conclusion and branch-disjointness proofs where applicable.
-  Dispatcher progress, completeness, and linearity also remain open;
+  inherit the strengthened invariant. Successful deterministic `NewStep` and
+  successful executable `new?` now also preserve the complete current
+  occurrence-exact, state-only `SchedulerInvariant`. The proof derives exact
+  submitted-link and endpoint freshness against the old live forest from the
+  ownership-to-queue bridge, appends the fresh axiom component, and transports
+  every current component, ready/queue, causal-production, waiting-span,
+  pending-premise, and counter field. This is a conditional successful-step
+  theorem: it does not prove that `new?` succeeds on every intended later
+  state, later-state selection totality, or scheduler reachability. State-only
+  `wait` preservation, complete `forward`/`unify`, dispatcher/history
+  integration, progress, pure-worklist completeness, recursive-fallback
+  removal, faithful `NEXTAXIOM`/token-age scheduling, and whole-program
+  linearity remain open;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
   `positional`, `mem_remaining_of_ne`, and `two_of_mem` wrappers for future
   deterministic waiting-payload activation while retaining the recursive
@@ -213,7 +222,7 @@
   of local `concl`/`nop`/`wait`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 232 full-classical, 23 axiom-free, 87 `propext`-only, and
+  audit covers 253 full-classical, 23 axiom-free, 87 `propext`-only, and
   77 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the

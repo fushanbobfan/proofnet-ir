@@ -390,10 +390,15 @@ component's ownership forest.
 The forest predicate is now a field of `SchedulerInvariant`: empty and exact
 initial reservation establish it, while the prepared pop/raw-mark prefix
 preserves it from the representative-indexed live owner. Exact/executable
-`concl` and `nop` therefore preserve the strengthened bundle. Preservation
-through later `new`, `wait`, complete `forward`/`unify`, dispatcher progress,
-completeness, and linearity remain open. A local `wait` records a promise and
-is not counted as an already constructed connective.
+`concl` and `nop` therefore preserve the strengthened bundle. A successful
+deterministic `NewStep`, and hence an executable `new?` call returning `some`,
+now preserves the complete current occurrence-exact state-only bundle as well.
+This is not a proof that `new?` succeeds on every intended later state and is
+not a reachability or progress theorem. State-only `wait` preservation,
+complete `forward`/`unify`, dispatcher/history integration, later-state
+success/totality, pure-worklist completeness, fallback removal, and linearity
+remain open. A local `wait` records a promise and is not counted as an already
+constructed connective.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
 fresh-boundary lemma and the production old/fresh representative lemmas align
@@ -783,8 +788,12 @@ reservation. Its input carries `ReservationInvariant`, which alone is not a
 reachable-scheduler certificate. The dedicated `InitNewHistory` now records
 only genuine empty/init/new executions and proves exact tags-as-touched,
 whole-history submitted-slot non-reuse, and reservation-count alignment.
-Preservation of ready/waiting payload ownership and global queue uniqueness
-through `forward`/`unify`, integration of local `concl`/`nop`/`wait` into
+Successful `NewStep` and executable `new?` outputs now preserve the complete
+current occurrence-exact state-only `SchedulerInvariant`, including its
+component forest and global queued-occurrence fields. This conditional
+preservation result does not prove later `new?` success or totality.
+Preservation of ready/waiting payload ownership through state-only `wait` and
+complete `forward`/`unify`, integration of local `concl`/`nop`/`wait` into
 full-rule history, and a total later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
@@ -1007,13 +1016,17 @@ The repository currently contains:
   canonical
   index, performs pop-before-mark, raw marking, orientation-aware tensor-mate
   lookup, post-mark `NEXTAXIOM`, and operational later reservation, and carries
-  the input reservation invariant in its dependent success witness. A separate
+  the input reservation invariant in its dependent success witness. Successful
+  typed and executable `new` outputs now preserve the complete current
+  occurrence-exact state-only `SchedulerInvariant`, but no theorem says that
+  the executable must succeed on every intended later state. A separate
   proof-relevant `InitNewHistory` now characterizes exactly executed
   empty/init/new histories and proves exact tag provenance, submitted-slot
   `Nodup`, and reservation-count alignment. This is not a characterization of
-  the full scheduler: ready/waiting payload ownership, global queue
-  uniqueness, `forward`/`unify`, full-history integration of the local
-  `concl`/`nop`/`wait` rules, and later totality remain open. Closing-par
+  the full scheduler: state-only `wait` preservation, ready/waiting payload
+  ownership across the remaining rules, `forward`/`unify`, full-history
+  integration of the local `concl`/`nop`/`wait` rules, and later totality
+  remain open. Closing-par
   exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
@@ -1046,9 +1059,13 @@ The repository currently contains:
   reservation can. The next layer gives the project's operational local
   Figure-7 `new` sequencing under `ReservationInvariant`, with a fixed
   sound-and-complete consumer index, mark-before-search dependency, and
-  preservation of the exact initialized-cell domain. The separate local
+  preservation of the exact initialized-cell domain. Its successful typed
+  step, and executable `new?` success, now preserve the complete current
+  occurrence-exact state-only `SchedulerInvariant`; this does not establish
+  `new?` success or totality on every intended later state. The separate local
   `wait` rule now performs an exact raw-age-to-`sigma`-boundary payload cons.
-  Reachable later-state totality, ready/waiting payload ownership,
+  Reachable later-state totality, state-only `wait` preservation,
+  ready/waiting payload ownership across the remaining rules,
   `forward`/`unify`, full-history integration of the local
   `concl`/`nop`/`wait` rules, full scheduler correctness, and a
   whole-program cost proof remain open;
@@ -1226,7 +1243,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 232 public MLL logical-boundary theorems against the exact
+separately audits 253 public MLL logical-boundary theorems against the exact
 axiom set `[propext, Classical.choice, Quot.sound]`, plus 23 axiom-free,
 87 `propext`-only, and 77 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,

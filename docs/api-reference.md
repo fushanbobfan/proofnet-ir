@@ -5406,6 +5406,27 @@ ProofNetIR.Certificate.ComponentForestProvenance.markReadyRaw?_of_root_frontier 
         before.markReadyRaw? selected rawAge = Except.ok after → certificate.ComponentForestProvenance after
 ```
 
+### `ProofNetIR.Certificate.ComponentForestProvenance.reserveAxiomAt?_of_fresh`
+
+Kind: theorem.
+
+Appending a fresh submitted axiom preserves the occurrence-exact live
+component forest when both exact endpoints are absent from every old owner.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance.reserveAxiomAt?_of_fresh : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  certificate.StructurallyWellFormed →
+    before.OrderedParents →
+      certificate.ComponentForestProvenance before →
+        (∀ {left right : ProofNetIR.Vertex},
+            certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) →
+              ∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex},
+                before.components[index]? = some (some component) →
+                  ProofNetIR.Certificate.OwnedOccurrenceAccounted before index component owned →
+                    ¬left ∈ owned ∧ ¬right ∈ owned) →
+          certificate.reserveAxiomAt? before linkIndex = some after → certificate.ComponentForestProvenance after
+```
+
 ### `ProofNetIR.Certificate.initialUnificationState_componentForestProvenance`
 
 Kind: theorem.
@@ -5485,6 +5506,22 @@ ProofNetIR.Certificate.OccurrenceDerivation.usedConnectiveConclusion_owned : ∀
         certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) ∨
             certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
           conclusion ∈ owned
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.usedAxiomEndpoints_owned`
+
+Kind: theorem.
+
+Every submitted axiom used by an occurrence derivation owns both exact
+endpoint occurrences.  This follows the submitted link index, never merely a
+formula label.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.usedAxiomEndpoints_owned : ∀ {certificate : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+  certificate.OccurrenceDerivation tree frontier usedLinks owned →
+    ∀ {linkIndex left right : Nat},
+      linkIndex ∈ usedLinks →
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom left right) → left ∈ owned ∧ right ∈ owned
 ```
 
 ### `ProofNetIR.Certificate.OccurrenceDerivation.frontier_subset_owned`
@@ -8595,6 +8632,35 @@ ProofNetIR.Certificate.reserveAxiomAt?_fresh_representative : ∀ {certificate :
     after.representative before.parents.size = before.parents.size
 ```
 
+### `ProofNetIR.Certificate.reserveAxiomAt?_tokenAt_eq`
+
+Kind: theorem.
+
+Reserving an axiom preserves the exact token lookup of every existing
+occurrence.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_tokenAt_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  before.OrderedParents →
+    certificate.reserveAxiomAt? before linkIndex = some after →
+      ∀ (vertex : ProofNetIR.Vertex), after.tokenAt? vertex = before.tokenAt? vertex
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_componentAt?_of_some`
+
+Kind: theorem.
+
+A previously live component remains available through token lookup after
+an axiom is appended.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_componentAt?_of_some : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {linkIndex token : Nat}
+  {component : ProofNetIR.UnificationComponent},
+  before.OrderedParents →
+    certificate.reserveAxiomAt? before linkIndex = some after →
+      before.componentAt? token = some component → after.componentAt? token = some component
+```
+
 ### `ProofNetIR.UnificationState.MarkReadyRawError`
 
 Kind: inductive type.
@@ -9184,6 +9250,52 @@ complexity.
 ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
 ```
 
+### `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.frontier_unmarked_mem_queued`
+
+Kind: theorem.
+
+Every unmarked frontier occurrence in a live component appears in the
+current scheduler queue.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.frontier_unmarked_mem_queued : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {vertex : ProofNetIR.Vertex},
+      state.core.components[index]? = some (some component) →
+        vertex ∈ component.frontier → state.core.marks[vertex]? = some none → vertex ∈ state.stack.queuedVertices
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.unmarked_liveFrontier_mem_queued`
+
+Kind: theorem.
+
+An unmarked occurrence in any live component frontier is queued.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.unmarked_liveFrontier_mem_queued : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {vertex : ProofNetIR.Vertex},
+      vertex ∈ state.core.liveFrontierVertices →
+        state.core.marks[vertex]? = some none → vertex ∈ state.stack.queuedVertices
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.owned_unmarked_mem_queued`
+
+Kind: theorem.
+
+Every unmarked occurrence owned by an exact live-component witness is
+queued.  The marked-owner alternative is impossible for an unmarked vertex.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant.owned_unmarked_mem_queued : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex}
+      {vertex : ProofNetIR.Vertex},
+      state.core.components[index]? = some (some component) →
+        ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core index component owned →
+          vertex ∈ owned → state.core.marks[vertex]? = some none → vertex ∈ state.stack.queuedVertices
+```
+
 ### `ProofNetIR.SequentialSchedulerBridge.empty_schedulerInvariant`
 
 Kind: theorem.
@@ -9369,6 +9481,23 @@ ProofNetIR.SequentialFigure7.PreparedStep.schedulerInvariant : ∀ {certificate 
   (step : ProofNetIR.SequentialFigure7.PreparedStep before),
   ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
     ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate step.after
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.owned_unmarked_mem_after_queued`
+
+Kind: theorem.
+
+The prepared state inherits the general ownership-to-queue bridge.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.owned_unmarked_mem_after_queued : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex}
+      {vertex : ProofNetIR.Vertex},
+      step.after.core.components[index]? = some (some component) →
+        ProofNetIR.Certificate.OwnedOccurrenceAccounted step.after.core index component owned →
+          vertex ∈ owned → step.after.core.marks[vertex]? = some none → vertex ∈ step.after.stack.queuedVertices
 ```
 
 ### `ProofNetIR.SequentialFigure7.ConclStep.schedulerInvariant`
@@ -10012,6 +10141,192 @@ ProofNetIR.SequentialFigure7.new?_reservationInvariant : ∀ {certificate : Proo
   (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
   ProofNetIR.SequentialFigure7.new? certificate before invariant = some after →
     ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.markedMiddle_schedulerInvariant`
+
+Kind: theorem.
+
+The pop/raw-mark middle state of `new` satisfies the complete scheduler
+invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.markedMiddle_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate step.markedMiddle
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.componentForestProvenance`
+
+Kind: theorem.
+
+Appending the exact submitted axiom preserves bidirectional,
+occurrence-exact component ownership.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.componentForestProvenance : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    certificate.ComponentForestProvenance after.core
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.componentDomainExact`
+
+Kind: theorem.
+
+`new` appends one fresh live component and one matching fresh sigma
+boundary while preserving the exact old component domain.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.componentDomainExact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.ComponentDomainExact after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.liveFrontiersNodup`
+
+Kind: theorem.
+
+The two exact endpoints of the newly reserved axiom are fresh against all
+old live frontiers, so appending its frontier preserves global occurrence
+uniqueness.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.liveFrontiersNodup : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.LiveFrontiersNodup after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.readyBucketFrontierExact`
+
+Kind: theorem.
+
+Every old ready bucket retains its exact live frontier, and the new top
+bucket is exactly the raw-unmarked frontier of the fresh axiom component.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.readyBucketFrontierExact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.ReadyBucketFrontierExact after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.queuedVerticesNodup`
+
+Kind: theorem.
+
+The fresh reached/partner pair is disjoint from both old ready work and old
+waiting payloads, so the exact post-`new` queue remains duplicate-free.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.queuedVerticesNodup : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesNodup after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.queuedVerticesUnmarked`
+
+Kind: theorem.
+
+Every post-`new` queued occurrence is raw-unmarked in the production core,
+including both orientations of the newly discovered axiom endpoints.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.queuedVerticesUnmarked : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.producedPremisesMarked`
+
+Kind: theorem.
+
+Reserving a fresh axiom cannot forge a connective conclusion: structural
+typing separates its atomic endpoints, while old produced conclusions retain
+their marked premises.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.producedPremisesMarked : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.ProducedPremisesMarked certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.firedCounterExact`
+
+Kind: theorem.
+
+Appending an axiom component contributes zero logical connectives, so the
+production firing counter remains exactly the live connective count.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.firedCounterExact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.FiredCounterExact after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.waitingSpanExact`
+
+Kind: theorem.
+
+Initializing the old active waiting cell to empty adds no promise; every
+old payload and both of its sigma-boundary lookups survive the fresh append.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.waitingSpanExact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.WaitingSpanExact certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.pendingPremisesCoveredExceptReady`
+
+Kind: theorem.
+
+Every old pending premise remains covered by the same live component after
+the fresh axiom append; the newly queued endpoint pair is excluded by the
+ready-side exception.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.pendingPremisesCoveredExceptReady : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.PendingPremisesCoveredExceptReady certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.schedulerInvariant`
+
+Kind: theorem.
+
+A successful deterministic Figure-7 `new` step preserves every field of
+the current occurrence-exact, state-only scheduler invariant.  This theorem is
+preservation only; it does not assert executable success or progress.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.new?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable `new?` success preserves the complete current scheduler
+invariant.  Totality and dispatcher progress remain separate obligations.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.new? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
 ## Executed init/new history

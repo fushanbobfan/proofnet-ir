@@ -234,6 +234,8 @@ expansion.
 #print axioms Certificate.reserveAxiomAt?_counterAligned
 #print axioms Certificate.reserveAxiomAt?_old_representative
 #print axioms Certificate.reserveAxiomAt?_fresh_representative
+#print axioms Certificate.reserveAxiomAt?_tokenAt_eq
+#print axioms Certificate.reserveAxiomAt?_componentAt?_of_some
 #print axioms UnificationState.markReadyRaw?_ok_iff
 #print axioms UnificationState.markReadyRaw?_markOutOfBounds_iff
 #print axioms UnificationState.markReadyRaw?_alreadyMarked_iff
@@ -263,6 +265,9 @@ expansion.
 #print axioms SequentialSchedulerBridge.popReadyMark_markReadyRaw_realizesSigma
 #print axioms SequentialSchedulerBridge.popReadyMark_markReadyRaw_reservationInvariant
 #print axioms SequentialSchedulerBridge.empty_schedulerInvariant
+#print axioms SequentialSchedulerBridge.SchedulerInvariant.frontier_unmarked_mem_queued
+#print axioms SequentialSchedulerBridge.SchedulerInvariant.unmarked_liveFrontier_mem_queued
+#print axioms SequentialSchedulerBridge.SchedulerInvariant.owned_unmarked_mem_queued
 #print axioms SequentialSchedulerBridge.InitialReservationStep.componentDomainExact
 #print axioms SequentialSchedulerBridge.InitialReservationStep.reached_ne_partner
 #print axioms SequentialSchedulerBridge.InitialReservationStep.liveFrontiersNodup
@@ -275,6 +280,7 @@ expansion.
 #print axioms SequentialSchedulerBridge.InitialReservationStep.firedCounterExact
 #print axioms SequentialSchedulerBridge.InitialReservationStep.schedulerInvariant
 #print axioms SequentialFigure7.PreparedStep.schedulerInvariant
+#print axioms SequentialFigure7.PreparedStep.owned_unmarked_mem_after_queued
 #print axioms SequentialFigure7.ConclStep.schedulerInvariant
 #print axioms SequentialFigure7.concl?_schedulerInvariant
 #print axioms SequentialFigure7.NopStep.schedulerInvariant
@@ -286,6 +292,19 @@ expansion.
 #print axioms SequentialFigure7.NewStep.markedMiddle_reservationInvariant
 #print axioms SequentialFigure7.NewStep.reservationInvariant
 #print axioms SequentialFigure7.new?_reservationInvariant
+#print axioms SequentialFigure7.NewStep.markedMiddle_schedulerInvariant
+#print axioms SequentialFigure7.NewStep.componentForestProvenance
+#print axioms SequentialFigure7.NewStep.componentDomainExact
+#print axioms SequentialFigure7.NewStep.liveFrontiersNodup
+#print axioms SequentialFigure7.NewStep.readyBucketFrontierExact
+#print axioms SequentialFigure7.NewStep.queuedVerticesNodup
+#print axioms SequentialFigure7.NewStep.queuedVerticesUnmarked
+#print axioms SequentialFigure7.NewStep.producedPremisesMarked
+#print axioms SequentialFigure7.NewStep.firedCounterExact
+#print axioms SequentialFigure7.NewStep.waitingSpanExact
+#print axioms SequentialFigure7.NewStep.pendingPremisesCoveredExceptReady
+#print axioms SequentialFigure7.NewStep.schedulerInvariant
+#print axioms SequentialFigure7.new?_schedulerInvariant
 #print axioms SequentialFigure7.TagsExtend.refl
 #print axioms SequentialFigure7.TagsExtend.trans
 #print axioms SequentialFigure7.initial_output_tags_eq
@@ -358,6 +377,7 @@ expansion.
 #print axioms Certificate.OccurrenceDerivation.usedLink_lookup
 #print axioms Certificate.OccurrenceDerivation.usedLinkIndex_lt
 #print axioms Certificate.OccurrenceDerivation.usedConnectiveConclusion_owned
+#print axioms Certificate.OccurrenceDerivation.usedAxiomEndpoints_owned
 #print axioms Certificate.OccurrenceDerivation.frontier_subset_owned
 #print axioms Certificate.OccurrenceDerivation.owned_inBounds
 #print axioms Certificate.OccurrenceDerivation.formulaConsistent
@@ -368,6 +388,7 @@ expansion.
 #print axioms Certificate.ExactOccurrencePick.rejects_same_formula_alias
 #print axioms Certificate.ComponentForestProvenance.markReadyRaw?_of_representative_frontier
 #print axioms Certificate.ComponentForestProvenance.markReadyRaw?_of_root_frontier
+#print axioms Certificate.ComponentForestProvenance.reserveAxiomAt?_of_fresh
 #print axioms Certificate.initialUnificationState_componentForestProvenance
 #print axioms Certificate.reserveAxiomAt?_componentForestProvenance_of_initial
 #print axioms SequentialSchedulerBridge.InitialReservationStep.componentForestProvenance
