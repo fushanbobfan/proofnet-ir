@@ -5374,6 +5374,78 @@ of the older executable `Produced` relation.
 ProofNetIR.Certificate.ComponentForestProvenance : ProofNetIR.Certificate → ProofNetIR.UnificationState → Prop
 ```
 
+### `ProofNetIR.Certificate.ComponentForestProvenance.markReadyRaw?_of_representative_frontier`
+
+Kind: theorem.
+
+Marking one occurrence preserves the complete component forest when the
+selected occurrence lies on the live frontier at the raw age's current
+representative.  The successful update itself supplies raw-unmarkedness and
+leaves both component and parent carriers unchanged.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance.markReadyRaw?_of_representative_frontier : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {selected rawAge : Nat},
+  certificate.ComponentForestProvenance before →
+    (∃ component,
+        before.components[before.representative rawAge]? = some (some component) ∧ selected ∈ component.frontier) →
+      before.markReadyRaw? selected rawAge = Except.ok after → certificate.ComponentForestProvenance after
+```
+
+### `ProofNetIR.Certificate.ComponentForestProvenance.markReadyRaw?_of_root_frontier`
+
+Kind: theorem.
+
+Root-form convenience wrapper for scheduler callers, whose active raw
+age is already known to be the representative of its live component slot.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance.markReadyRaw?_of_root_frontier : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {selected rawAge : Nat},
+  certificate.ComponentForestProvenance before →
+    before.representative rawAge = rawAge →
+      (∃ component, before.components[rawAge]? = some (some component) ∧ selected ∈ component.frontier) →
+        before.markReadyRaw? selected rawAge = Except.ok after → certificate.ComponentForestProvenance after
+```
+
+### `ProofNetIR.Certificate.initialUnificationState_componentForestProvenance`
+
+Kind: theorem.
+
+The empty executable core admits a canonical empty
+component-provenance witness: no live slot has a witness and no concrete raw
+mark needs an owner.
+
+```lean
+ProofNetIR.Certificate.initialUnificationState_componentForestProvenance : ∀ (certificate : ProofNetIR.Certificate), certificate.ComponentForestProvenance certificate.initialUnificationState
+```
+
+### `ProofNetIR.Certificate.reserveAxiomAt?_componentForestProvenance_of_initial`
+
+Kind: theorem.
+
+Reserving the first submitted axiom over the empty executable core creates
+the singleton component-provenance forest at raw slot zero.
+
+```lean
+ProofNetIR.Certificate.reserveAxiomAt?_componentForestProvenance_of_initial : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.UnificationState} {linkIndex : Nat},
+  certificate.StructurallyWellFormed →
+    certificate.reserveAxiomAt? certificate.initialUnificationState linkIndex = some after →
+      certificate.ComponentForestProvenance after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.componentForestProvenance`
+
+Kind: theorem.
+
+A successful initial wrapper installs the exact one-component occurrence
+forest produced by its submitted axiom reservation.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.componentForestProvenance : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  certificate.StructurallyWellFormed → certificate.ComponentForestProvenance after.core
+```
+
 ### `ProofNetIR.Certificate.OccurrenceDerivation.usedLink_lookup`
 
 Kind: theorem.

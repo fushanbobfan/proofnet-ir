@@ -246,6 +246,14 @@ example :
       (ReservationState.empty axiomCertificate) :=
   empty_schedulerInvariant axiomCertificate_structural
 
+/-- The strengthened empty scheduler invariant exposes an exact empty
+occurrence forest, not only formula-level component consistency. -/
+example :
+    axiomCertificate.ComponentForestProvenance
+      axiomCertificate.initialUnificationState :=
+  (empty_schedulerInvariant axiomCertificate_structural)
+    |>.component_forest_provenance
+
 example :
     ∃ after,
       initializeReservation? axiomCertificate 0 = some after ∧
@@ -314,6 +322,18 @@ example {before : ReservationState}
     SchedulerInvariant axiomCertificate prepared.after := by
   exact prepared.schedulerInvariant
     (axiomInitial_schedulerInvariant initialEquation)
+
+/-- Prepared pop/raw-mark preservation carries the exact component forest
+through the newly assigned raw mark. -/
+example {before : ReservationState}
+    (initialEquation : axiomInitial = some before)
+    {prepared : SequentialFigure7.PreparedStep before}
+    (_prepareEquation :
+      SequentialFigure7.prepare? before = some prepared) :
+    axiomCertificate.ComponentForestProvenance prepared.after.core :=
+  (prepared.schedulerInvariant
+    (axiomInitial_schedulerInvariant initialEquation))
+    |>.component_forest_provenance
 
 /-- On an axiom-only certificate the selected endpoint is an exact
 conclusion, so executable `concl?` returns precisely the prepared state. -/

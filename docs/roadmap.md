@@ -797,7 +797,9 @@
     domain, and integrate the already-local `concl`/`nop`/`wait` rules into a
     complete history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
-    whole-forest integration and preservation remain open. Establish the
+    the forest is integrated for empty/init and the common prepared prefix,
+    so `concl`/`nop` preserve it. Later `new`, `wait`, and complete queue
+    preservation remain open. Establish the
     special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before

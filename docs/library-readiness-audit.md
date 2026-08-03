@@ -412,9 +412,10 @@ part of the engineering and proof-identity gap.
    repeated-label fixture rejects a component that the older formula-only
    predicate accepts. Separate closed fixtures reject a marked occurrence
    assigned to the wrong representative slot and an ownerless raw mark. The
-   forest predicate is not yet integrated
-   into `SchedulerInvariant` or proved preserved as a whole, and it does not
-   add state-only preservation for `wait`.
+   forest predicate is now integrated into `SchedulerInvariant`, established
+   by empty/init, and preserved by the common prepared raw-mark prefix; exact
+   and executable `concl`/`nop` inherit that result. It is not yet preserved
+   through later `new`, `wait`, or complete queue transitions.
    The local `wait` destination is exactly
    `sigmaBoundary? stack.sigma mateRawAge`, and its initialized-cell cons
    update does not claim global ownership. Ready/waiting payload ownership,
@@ -494,10 +495,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 188 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 232 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  77 `propext`-only, and 68 `propext`/`Quot.sound` boundaries;
+  87 `propext`-only, and 77 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -589,11 +590,11 @@ It can currently be used for:
   while treating search failure as inconclusive; local exact
   `concl`/`nop`/`wait` are now present, the current state-only invariant is
   preserved through the common prepared prefix plus `concl`/`nop`, and a
-  separate exact occurrence-provenance relation is available for component
-  proofs. Whole-forest invariant integration, state-only `wait` preservation,
-  ready/waiting payload ownership, executable `forward`/`unify`, and
-  full-history rule integration remain absent. The local `wait` cons update
-  is not an ownership theorem.
+  exact occurrence-provenance forest is integrated for empty/init and the
+  common prepared prefix, so `concl`/`nop` preserve it. Later `new`,
+  state-only `wait` preservation, ready/waiting payload ownership, executable
+  `forward`/`unify`, and full-history rule integration remain absent. The
+  local `wait` cons update is not an ownership theorem.
   Exact init/new reachability and tag history are present, but
   full-rule reachability and queue provenance are not, so together these are
   not a complete scheduler API;

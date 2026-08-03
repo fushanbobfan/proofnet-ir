@@ -419,11 +419,14 @@ those extensions correctly require the submitted link index and lookup from
 the future rule wrapper. A concrete repeated-label fixture shows why this
 extra relation is necessary. Two additional predicate fixtures reject
 cross-representative ownership and a forest-external raw mark.
-This remains a foundation checkpoint: the forest predicate has not yet been
-added to `SchedulerInvariant` or preserved through a whole queue transition;
-fresh link/conclusion and branch-disjointness obligations remain. State-only
-preservation through `wait` and complete `forward`/`unify`, dispatcher
-progress, and completeness remain open.
+The forest is now a `SchedulerInvariant` field. The empty core and exact
+initial axiom reservation establish it, and a generic raw-mark theorem
+preserves it when the selected occurrence lies on the live component at its
+current representative. `PreparedStep` supplies that owner exactly, so
+`concl`/`nop` inherit the strengthened invariant. This remains a foundation
+checkpoint: later `new`, `wait`, and whole queue transitions still require
+fresh link/conclusion and branch-disjointness obligations where applicable.
+Complete `forward`/`unify`, dispatcher progress, and completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 

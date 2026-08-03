@@ -776,6 +776,222 @@ theorem reserveAxiomAt?_componentOccurrenceWitness
   · exact ComponentOccurrenceWitness.axiom_of_submitted
       structural linkLookup leftFormula
 
+namespace ComponentForestProvenance
+
+/-- Marking one occurrence preserves the complete component forest when the
+selected occurrence lies on the live frontier at the raw age's current
+representative.  The successful update itself supplies raw-unmarkedness and
+leaves both component and parent carriers unchanged. -/
+theorem markReadyRaw?_of_representative_frontier
+    {certificate : Certificate}
+    {before after : UnificationState}
+    {selected rawAge : Nat}
+    (forest : certificate.ComponentForestProvenance before)
+    (owner : ∃ component,
+      before.components[before.representative rawAge]? =
+          some (some component) ∧
+        selected ∈ component.frontier)
+    (equation : before.markReadyRaw? selected rawAge = .ok after) :
+    certificate.ComponentForestProvenance after := by
+  rcases forest with ⟨usedAt, ownedAt, live, disjoint, covered⟩
+  rcases owner with ⟨ownerComponent, ownerLookup, ownerFrontier⟩
+  rcases UnificationState.markReadyRaw?_exact equation with
+    ⟨_selectedUnmarked, marksEq, parentsEq, componentsEq,
+      _startedEq, _firedEq, selectedMarked⟩
+  have ownerFacts := live ownerLookup
+  have selectedOwned :
+      selected ∈ ownedAt (before.representative rawAge) :=
+    ownerFacts.1.derivation.frontier_subset_owned selected ownerFrontier
+  have representativeEq : ∀ token,
+      after.representative token = before.representative token := by
+    intro token
+    unfold UnificationState.representative
+    rw [parentsEq]
+  refine ⟨usedAt, ownedAt, ?_, ?_, ?_⟩
+  · intro index component afterLookup
+    have beforeLookup :
+        before.components[index]? = some (some component) := by
+      rw [componentsEq] at afterLookup
+      exact afterLookup
+    rcases live beforeLookup with ⟨witness, accounted⟩
+    refine ⟨witness, ?_⟩
+    intro candidate candidateOwned
+    by_cases same : candidate = selected
+    · subst candidate
+      have indexEq : index = before.representative rawAge := by
+        by_cases equal : index = before.representative rawAge
+        · exact equal
+        · exfalso
+          have separation :=
+            (disjoint beforeLookup ownerLookup equal).2
+              selected candidateOwned
+          exact separation selectedOwned
+      apply Or.inl
+      refine ⟨rawAge, selectedMarked, ?_⟩
+      rw [representativeEq]
+      exact indexEq.symm
+    · have selectedNe : selected ≠ candidate := Ne.symm same
+      rcases accounted candidate candidateOwned with
+        ⟨oldRawAge, oldMarked, oldRepresentative⟩ |
+          ⟨oldUnmarked, oldFrontier⟩
+      · apply Or.inl
+        refine ⟨oldRawAge, ?_, ?_⟩
+        · rw [marksEq]
+          simpa [Array.getElem?_setIfInBounds, selectedNe] using
+            oldMarked
+        · rw [representativeEq]
+          exact oldRepresentative
+      · apply Or.inr
+        refine ⟨?_, oldFrontier⟩
+        rw [marksEq]
+        simpa [Array.getElem?_setIfInBounds, selectedNe] using
+          oldUnmarked
+  · intro leftIndex rightIndex leftComponent rightComponent
+      leftLookup rightLookup different
+    have leftBefore :
+        before.components[leftIndex]? = some (some leftComponent) := by
+      rw [componentsEq] at leftLookup
+      exact leftLookup
+    have rightBefore :
+        before.components[rightIndex]? = some (some rightComponent) := by
+      rw [componentsEq] at rightLookup
+      exact rightLookup
+    exact disjoint leftBefore rightBefore different
+  · intro candidate candidateRawAge afterMarked
+    by_cases same : candidate = selected
+    · subst candidate
+      have ageEq : candidateRawAge = rawAge := by
+        rw [selectedMarked] at afterMarked
+        simpa using afterMarked.symm
+      subst candidateRawAge
+      refine ⟨before.representative rawAge, ownerComponent, ?_, ?_,
+        selectedOwned⟩
+      · exact representativeEq rawAge
+      · rw [componentsEq]
+        exact ownerLookup
+    · have selectedNe : selected ≠ candidate := Ne.symm same
+      have beforeMarked :
+          before.marks[candidate]? = some (some candidateRawAge) := by
+        rw [marksEq] at afterMarked
+        simpa [Array.getElem?_setIfInBounds, selectedNe] using
+          afterMarked
+      rcases covered beforeMarked with
+        ⟨index, component, representative, componentLookup,
+          candidateOwned⟩
+      refine ⟨index, component, ?_, ?_, candidateOwned⟩
+      · rw [representativeEq]
+        exact representative
+      · rw [componentsEq]
+        exact componentLookup
+
+/-- Root-form convenience wrapper for scheduler callers, whose active raw
+age is already known to be the representative of its live component slot. -/
+theorem markReadyRaw?_of_root_frontier
+    {certificate : Certificate}
+    {before after : UnificationState}
+    {selected rawAge : Nat}
+    (forest : certificate.ComponentForestProvenance before)
+    (root : before.representative rawAge = rawAge)
+    (owner : ∃ component,
+      before.components[rawAge]? = some (some component) ∧
+        selected ∈ component.frontier)
+    (equation : before.markReadyRaw? selected rawAge = .ok after) :
+    certificate.ComponentForestProvenance after := by
+  apply forest.markReadyRaw?_of_representative_frontier
+  · rcases owner with ⟨component, componentLookup, frontier⟩
+    refine ⟨component, ?_, frontier⟩
+    rw [root]
+    exact componentLookup
+  · exact equation
+
+end ComponentForestProvenance
+
+/-- The empty executable core admits a canonical empty
+component-provenance witness: no live slot has a witness and no concrete raw
+mark needs an owner. -/
+theorem initialUnificationState_componentForestProvenance
+    (certificate : Certificate) :
+    certificate.ComponentForestProvenance
+      certificate.initialUnificationState := by
+  refine ⟨(fun _ => []), (fun _ => []), ?_, ?_, ?_⟩
+  · intro index component lookup
+    simp [Certificate.initialUnificationState] at lookup
+  · intro leftIndex rightIndex leftComponent rightComponent leftLookup
+    simp [Certificate.initialUnificationState] at leftLookup
+  · intro vertex rawAge marked
+    simp [Certificate.initialUnificationState,
+      Array.getElem?_replicate] at marked
+
+/-- Reserving the first submitted axiom over the empty executable core creates
+the singleton component-provenance forest at raw slot zero. -/
+theorem reserveAxiomAt?_componentForestProvenance_of_initial
+    {certificate : Certificate} {after : UnificationState}
+    {linkIndex : Nat}
+    (structural : certificate.StructurallyWellFormed)
+    (equation :
+      certificate.reserveAxiomAt?
+          certificate.initialUnificationState linkIndex = some after) :
+    certificate.ComponentForestProvenance after := by
+  rcases certificate.reserveAxiomAt?_exact equation with
+    ⟨left, right, component, linkLookup, ready, componentLookup,
+      frontier, marksEq, _parentsEq, componentsEq, _counterEq, _firedEq⟩
+  rcases UnificationComponent.axiom?_success componentLookup with
+    ⟨name, positive, leftFormula, componentEq⟩
+  let usedAt : Nat → List Nat :=
+    fun index => if index = 0 then [linkIndex] else []
+  let ownedAt : Nat → List Nat :=
+    fun index => if index = 0 then [left, right] else []
+  have witness :
+      certificate.ComponentOccurrenceWitness component
+        [linkIndex] [left, right] := by
+    rw [componentEq]
+    exact ComponentOccurrenceWitness.axiom_of_submitted
+      structural linkLookup leftFormula
+  have componentsSingleton :
+      after.components = #[some component] := by
+    simpa [Certificate.initialUnificationState] using componentsEq
+  refine ⟨usedAt, ownedAt, ?_, ?_, ?_⟩
+  · intro index candidate afterLookup
+    rw [componentsSingleton] at afterLookup
+    have indexZero : index = 0 := by
+      have indexBound := (Array.getElem?_eq_some_iff.mp afterLookup).1
+      simpa using indexBound
+    subst index
+    have candidateEq : candidate = component := by
+      simpa using afterLookup.symm
+    subst candidate
+    simp [usedAt, ownedAt]
+    refine ⟨witness, ?_⟩
+    intro vertex vertexOwned
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at vertexOwned
+    rcases vertexOwned with rfl | rfl
+    · apply Or.inr
+      refine ⟨?_, ?_⟩
+      · rw [marksEq]
+        exact ready.2.1
+      · rw [frontier]
+        simp
+    · apply Or.inr
+      refine ⟨?_, ?_⟩
+      · rw [marksEq]
+        exact ready.2.2.1
+      · rw [frontier]
+        simp
+  · intro leftIndex rightIndex leftComponent rightComponent
+      leftLookup rightLookup different
+    rw [componentsSingleton] at leftLookup rightLookup
+    have leftZero : leftIndex = 0 := by
+      have bound := (Array.getElem?_eq_some_iff.mp leftLookup).1
+      simpa using bound
+    have rightZero : rightIndex = 0 := by
+      have bound := (Array.getElem?_eq_some_iff.mp rightLookup).1
+      simpa using bound
+    exact False.elim (different (leftZero.trans rightZero.symm))
+  · intro vertex rawAge marked
+    rw [marksEq] at marked
+    simp [Certificate.initialUnificationState,
+      Array.getElem?_replicate] at marked
+
 /-- Equal formula labels do not let a different certificate vertex satisfy
 an occurrence-position witness.  This is the local repeated-label rejection
 gate used by later provenance-preservation proofs. -/

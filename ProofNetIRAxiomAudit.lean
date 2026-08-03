@@ -366,6 +366,11 @@ expansion.
 #print axioms Certificate.ComponentOccurrenceWitness.axiom_of_submitted
 #print axioms Certificate.reserveAxiomAt?_componentOccurrenceWitness
 #print axioms Certificate.ExactOccurrencePick.rejects_same_formula_alias
+#print axioms Certificate.ComponentForestProvenance.markReadyRaw?_of_representative_frontier
+#print axioms Certificate.ComponentForestProvenance.markReadyRaw?_of_root_frontier
+#print axioms Certificate.initialUnificationState_componentForestProvenance
+#print axioms Certificate.reserveAxiomAt?_componentForestProvenance_of_initial
+#print axioms SequentialSchedulerBridge.InitialReservationStep.componentForestProvenance
 #print axioms SequentialSchedulerBridge.enqueueWaitingAtRawAge?_some_iff
 #print axioms SequentialSchedulerBridge.WaitDestinationStep.boundary_properties
 #print axioms SequentialSchedulerBridge.WaitDestinationStep.exact

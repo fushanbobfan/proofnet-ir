@@ -1,4 +1,5 @@
 import ProofNetIR.SequentialFigure7Rules
+import ProofNetIR.SequentialComponentProvenance
 
 namespace ProofNetIR
 
@@ -279,6 +280,8 @@ structure SchedulerInvariant (certificate : Certificate)
     extends ReservationInvariant certificate state where
   structural : certificate.StructurallyWellFormed
   component_domain_exact : ComponentDomainExact state
+  component_forest_provenance :
+    certificate.ComponentForestProvenance state.core
   live_frontiers_nodup : LiveFrontiersNodup state
   ready_bucket_frontier_exact : ReadyBucketFrontierExact state
   queued_vertices_nodup : QueuedVerticesNodup state
@@ -301,6 +304,9 @@ theorem empty_schedulerInvariant {certificate : Certificate}
     toReservationInvariant := empty_reservationInvariant certificate
     structural := structural
     component_domain_exact := ?_
+    component_forest_provenance :=
+      Certificate.initialUnificationState_componentForestProvenance
+        certificate
     live_frontiers_nodup := ?_
     ready_bucket_frontier_exact := ?_
     queued_vertices_nodup := ?_
@@ -710,6 +716,19 @@ theorem InitialReservationStep.firedCounterExact
           0
   rfl
 
+/-- A successful initial wrapper installs the exact one-component occurrence
+forest produced by its submitted axiom reservation. -/
+theorem InitialReservationStep.componentForestProvenance
+    {certificate : Certificate} {after : ReservationState}
+    {start : Vertex}
+    (step : InitialReservationStep certificate after start)
+    (structural : certificate.StructurallyWellFormed) :
+    certificate.ComponentForestProvenance after.core := by
+  rw [step.output_eq]
+  exact
+    Certificate.reserveAxiomAt?_componentForestProvenance_of_initial
+      structural step.core_eq
+
 /-- Every successful exact initial wrapper call establishes the complete
 state-based scheduler foundation. -/
 theorem InitialReservationStep.schedulerInvariant
@@ -722,6 +741,8 @@ theorem InitialReservationStep.schedulerInvariant
     toReservationInvariant := step.reservationInvariant
     structural := structural
     component_domain_exact := step.componentDomainExact
+    component_forest_provenance :=
+      step.componentForestProvenance structural
     live_frontiers_nodup := step.liveFrontiersNodup
     ready_bucket_frontier_exact :=
       step.readyBucketFrontierExact
@@ -932,6 +953,13 @@ theorem schedulerInvariant
         step.stackResult.rawAge := by
     rw [representativeUnchanged]
     exact rawAgeRootBefore
+  have afterComponentForest :
+      certificate.ComponentForestProvenance step.after.core :=
+    invariant.component_forest_provenance
+      |>.markReadyRaw?_of_root_frontier
+        rawAgeRootBefore
+        ⟨topComponent, topComponentLookup, selectedTopFrontier⟩
+        step.core_mark_eq
   have afterSelectedMarked :
       step.after.core.marks[step.stackResult.vertex]? =
         some (some step.stackResult.rawAge) := by
@@ -954,6 +982,7 @@ theorem schedulerInvariant
       step.reservationInvariant invariant.toReservationInvariant
     structural := invariant.structural
     component_domain_exact := ?_
+    component_forest_provenance := afterComponentForest
     live_frontiers_nodup := ?_
     ready_bucket_frontier_exact := ?_
     queued_vertices_nodup := ?_

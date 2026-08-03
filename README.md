@@ -387,11 +387,13 @@ occurrence provenance rejects it because no such submitted axiom exists.
 Two closed predicate regressions separately reject a marked owned vertex
 whose raw age resolves to another live slot and a raw mark outside every live
 component's ownership forest.
-The forest predicate is not yet integrated into `SchedulerInvariant` or
-proved preserved by complete queue rules. Preservation through `wait`,
-complete `forward`/`unify`, dispatcher progress, completeness, and linearity
-remain open. A local `wait` records a promise and is not counted as an already
-constructed connective.
+The forest predicate is now a field of `SchedulerInvariant`: empty and exact
+initial reservation establish it, while the prepared pop/raw-mark prefix
+preserves it from the representative-indexed live owner. Exact/executable
+`concl` and `nop` therefore preserve the strengthened bundle. Preservation
+through later `new`, `wait`, complete `forward`/`unify`, dispatcher progress,
+completeness, and linearity remain open. A local `wait` records a promise and
+is not counted as an already constructed connective.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
 fresh-boundary lemma and the production old/fresh representative lemmas align
@@ -1224,9 +1226,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 188 public MLL logical-boundary theorems against the exact
+separately audits 232 public MLL logical-boundary theorems against the exact
 axiom set `[propext, Classical.choice, Quot.sound]`, plus 23 axiom-free,
-77 `propext`-only, and 68 `propext`/`Quot.sound` boundaries. LeanProp
+87 `propext`-only, and 77 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.

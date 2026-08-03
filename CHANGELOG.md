@@ -52,11 +52,14 @@
   provenance rejects it. Predicate-level regressions also reject a mark whose
   raw age resolves to a different live slot and a raw mark with no live
   component owner.
-  This does not yet prove state-only preservation through `wait` or complete
-  `forward`/`unify`; the forest predicate is not yet a field of
-  `SchedulerInvariant`, and complete forest preservation still needs fresh
-  link/conclusion and branch-disjointness proofs. Dispatcher progress,
-  completeness, and linearity also remain open;
+  `ComponentForestProvenance` is now a field of `SchedulerInvariant`. The
+  exact empty state and initial axiom reservation establish it; the common
+  prepared pop/raw-mark prefix preserves it using the selected occurrence's
+  representative-indexed live frontier, so exact/executable `concl` and `nop`
+  inherit the strengthened invariant. This does not yet prove preservation
+  through later `new`, `wait`, or complete `forward`/`unify`; those steps still
+  need fresh link/conclusion and branch-disjointness proofs where applicable.
+  Dispatcher progress, completeness, and linearity also remain open;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
   `positional`, `mem_remaining_of_ne`, and `two_of_mem` wrappers for future
   deterministic waiting-payload activation while retaining the recursive
@@ -210,8 +213,8 @@
   of local `concl`/`nop`/`wait`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 188 full-classical, 23 axiom-free, 77 `propext`-only, and
-  68 `propext`/`Quot.sound` theorems;
+  audit covers 232 full-classical, 23 axiom-free, 87 `propext`-only, and
+  77 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
   production unifier. `RawTokenAge` records discovery order and is explicitly

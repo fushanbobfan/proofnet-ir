@@ -240,10 +240,11 @@ an owner at its representative. It soundly refines the older
 formula-consistency predicate and rejects a concrete same-label alias. The
 layer also has closed rejection fixtures for cross-representative ownership
 and forest-external raw marks. These propositions are not runtime trusted
-state, and the whole-forest predicate has not
-yet been incorporated into or preserved by `SchedulerInvariant`. The state
-theorem still does not prove the analogous claim for `wait` and is not a
-dispatcher reachability theorem.
+state. The whole-forest predicate is now a `SchedulerInvariant` field:
+empty/init establish it, and the prepared raw-mark prefix preserves it from
+the representative-indexed live owner, so `concl`/`nop` inherit it. The state
+theorem still does not cover later `new` or `wait` and is not a dispatcher
+reachability theorem.
 The local `wait` uses the mate's raw mark and the exact `sigmaBoundary?`
 destination, then performs one initialized-cell cons without a global queue
 scan or ownership claim. Global queue uniqueness and ownership, state-only
