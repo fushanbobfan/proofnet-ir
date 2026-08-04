@@ -295,8 +295,21 @@ two-level drain atomically. Its high-level-executable-independent direct
 under the stated structural,
 `ReservationInvariant`, and final-ready `Nodup` premises; success preserves
 `ReservationInvariant` and satisfies exact `1 + payload.length` accounting.
-It does not derive payload applicability or occurrence-forest/
-`SchedulerInvariant` preservation. Correct-state progress,
+`SequentialFigure7UnifyPayloadInvariant.lean` additionally proves complete
+occurrence-forest/`SchedulerInvariant` preservation from a supplied full input
+invariant. The proof keeps a fixed final scheduler stack and a transient
+unactivated-suffix gap: the input forest proves each gap occurrence fresh and
+non-produced, exact producer/boundary facts identify its activation, and each
+activation establishes its new exact owner before the empty gap closes. No
+history/reachability assumption is trusted, and no ordinary invariant is
+assigned to physical intermediate tensor/fold states. The six new public
+theorem boundaries audited here are `SchedulerInvariant.withoutReady`,
+`UnifyPayloadGapInvariant.close`, `UnifyPayloadGapInvariant.activateHead`,
+`UnifyPayloadGapInvariant.WaitingParActivationFoldStep.closeGap`,
+`UnifyPayloadStep.schedulerInvariant`, and
+`unifyPayload?_schedulerInvariant`; each has only the existing
+`propext`/`Classical.choice`/`Quot.sound` dependency boundary. This does not
+derive payload applicability. Correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
@@ -340,9 +353,9 @@ the entire occurrence-exact state-only bundle.
 These scheduler-level facts plus `UnifyOne` authorize the singleton branch with
 the full state-only invariant. The arbitrary `UnifyPayload` executor now
 combines the tensor, all stored waiting-par activations, and the drain, proving
-the total `1 + |W(j)|` counter change and `ReservationInvariant` preservation.
-It still needs a proof that every payload is applicable in intended states and
-transport of exact occurrence/component and full scheduler invariants. The old
+the total `1 + |W(j)|` counter change and complete occurrence-exact invariant
+preservation for every successful step from a full input invariant. It still
+needs a proof that every payload is applicable in intended states. The old
 empty/singleton successes embed one way with the same output; no function
 equality or reverse equivalence is trusted. Guerrini's rule specifies moving a
 waiting set into ready; the project's stored head-to-tail order and explicit
@@ -595,8 +608,9 @@ dedicated init/new history adds exact reachability and tag provenance for that
  strict-singleton `UnifyOne` have direct correspondence, and successful
  typed/executable steps preserve the complete occurrence-exact state-only
  invariant. The local arbitrary-payload fold and atomic `UnifyPayload`
- composition exist outside this state/history layer. The atomic composition
- preserves only `ReservationInvariant`; it does not add later
+ composition exist outside this state/history layer. Successful atomic steps
+ preserve the complete occurrence-exact state-only invariant, but this does
+ not add later
  applicability/totality, a full-rule
  reachability invariant, or full-history integration. No
 planarity principle is assumed.
@@ -718,8 +732,9 @@ Lean now also constructs the exact simultaneous complementary
   successful deterministic/executable `new`, `wait`, `forward`, and bounded
   `UnifyEmpty` and strict-singleton `UnifyOne` preserve the complete current
   occurrence-exact state-only invariant. A local arbitrary-payload fold and
-  atomic tensor/fold/drain executor are proved separately, without complete
-  occurrence-exact invariant preservation. Later-state applicability and
+  atomic tensor/fold/drain executor are proved separately, with complete
+  successful-step occurrence-exact invariant preservation from a full input
+  invariant. Later-state applicability and
   totality, full-history integration, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,

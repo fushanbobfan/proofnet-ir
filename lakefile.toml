@@ -4,7 +4,8 @@ defaultTargets = [
   "ProofNetIR",
   "proofnet_ir_tests",
   "proofnet_ir_consumer_index_tests",
-  "proofnet_ir_figure7_primitives_tests"
+  "proofnet_ir_figure7_primitives_tests",
+  "proofnet_ir_figure7_unify_payload_invariant_tests"
 ]
 moreLeanArgs = ["-DwarningAsError=true"]
 
@@ -22,6 +23,10 @@ root = "ProofNetIRConsumerIndexTests"
 [[lean_exe]]
 name = "proofnet_ir_figure7_primitives_tests"
 root = "ProofNetIRFigure7PrimitivesTests"
+
+[[lean_exe]]
+name = "proofnet_ir_figure7_unify_payload_invariant_tests"
+root = "ProofNetIRFigure7UnifyPayloadInvariantTests"
 
 [[lean_exe]]
 name = "proofnet_ir_audit_graph"

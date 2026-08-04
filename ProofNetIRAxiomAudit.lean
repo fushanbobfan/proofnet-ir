@@ -500,6 +500,12 @@ expansion.
 #print axioms SequentialFigure7.UnifyPayloadStep.firedConnectives_eq_add_one_add_length
 #print axioms SequentialFigure7.UnifyPayloadStep.exact
 #print axioms SequentialFigure7.UnifyPayloadStep.output_unique
+#print axioms SequentialFigure7.SchedulerInvariant.withoutReady
+#print axioms SequentialFigure7.UnifyPayloadGapInvariant.close
+#print axioms SequentialFigure7.UnifyPayloadGapInvariant.activateHead
+#print axioms SequentialFigure7.UnifyPayloadGapInvariant.WaitingParActivationFoldStep.closeGap
+#print axioms SequentialFigure7.UnifyPayloadStep.schedulerInvariant
+#print axioms SequentialFigure7.unifyPayload?_schedulerInvariant
 #print axioms SequentialFigure7.unifyPayload?_sound
 #print axioms SequentialFigure7.unifyPayload?_reservationInvariant
 #print axioms SequentialFigure7.unifyPayload?_complete_of_structural

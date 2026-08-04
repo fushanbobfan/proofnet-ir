@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- added `SequentialFigure7UnifyPayloadInvariant.lean`, closing successful-step
+  preservation of the complete occurrence-exact state-only
+  `SchedulerInvariant` for arbitrary finite `UnifyPayload` payloads. The proof
+  is non-circular: `UnifyPayloadGapInvariant` fixes the final scheduler stack
+  and treats the not-yet-activated stored suffix as a transient gap; each
+  `activateHead` consumes exactly one head, and `closeGap` recovers the ordinary
+  ready/frontier invariant when the suffix is empty. The supplied input
+  `SchedulerInvariant` derives pre-activation forest-freshness/non-production,
+  raw-unmarkedness, exact submitted-par provenance, and boundary-token facts;
+  each activation then establishes exact occurrence ownership and the final
+  forest covers the whole payload. No history or reachability hypothesis is
+  added. The
+  six new audited public theorem boundaries are
+  `SchedulerInvariant.withoutReady`, `UnifyPayloadGapInvariant.close`,
+  `UnifyPayloadGapInvariant.activateHead`,
+  `UnifyPayloadGapInvariant.WaitingParActivationFoldStep.closeGap`,
+  `UnifyPayloadStep.schedulerInvariant`, and
+  `unifyPayload?_schedulerInvariant`. The physical tensor/fold intermediate
+  states are deliberately not claimed to satisfy `SchedulerInvariant`.
+  This closes state preservation only: payload applicability, dispatcher and
+  full-history integration, full-rule reachability, later-state totality,
+  progress, pure-worklist completeness, recursive-fallback removal, faithful
+  `NEXTAXIOM`/token-age scheduling, O(1) execution, and whole-program linearity
+  remain open. The exact axiom audit now covers 561 declarations: 337
+  full-classical, 23 axiom-free, 90 `propext`-only, and 111
+  `propext`/`Quot.sound` boundaries;
+- added a 13-occurrence, two-element waiting-payload regression that constructs
+  a genuine full `SchedulerInvariant`, executes `unifyPayload?`, checks the
+  exact final stack/core fields, reconstructs the typed step, and invokes
+  `unifyPayload?_schedulerInvariant` under Lean `--trust=0`;
 - added `SequentialFigure7UnifyPayload.lean`, the local atomic
   arbitrary-payload Figure-7 composition. `unifyPayload?` performs the common
   prepare prefix, one exact tensor construction/union, the deterministic
@@ -21,14 +51,14 @@
   equality, reverse equivalence, or replacement of the specialized APIs is
   claimed. Stored payload order fixes executable fold order and derivation
   nesting only; Guerrini's cell is set-valued, so there is no order-independence,
-  commutativity, or paper temporal-order claim. This local checkpoint does not
-  derive payload applicability, preserve `ComponentForestProvenance` or
-  `SchedulerInvariant`, integrate a dispatcher/history/reachability proof, show
+  commutativity, or paper temporal-order claim. The follow-on invariant module
+  now proves complete `ComponentForestProvenance`/`SchedulerInvariant`
+  preservation from a full input `SchedulerInvariant`, without claiming those
+  predicates for physical intermediate states. This local rule still does not
+  derive payload applicability, integrate a dispatcher/history/reachability proof, show
   later-state totality or progress, prove pure-worklist completeness or remove
   the recursive fallback, complete faithful `NEXTAXIOM`/token-age scheduling,
-  or establish O(1) behavior or whole-program linearity. The exact axiom audit
-  now covers 555 declarations: 331 full-classical, 23 axiom-free, 90
-  `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
+  or establish O(1) behavior or whole-program linearity;
 - added `SequentialFigure7Unify.lean`, a local production-core activation fold
   for arbitrary finite stored waiting payloads. The executable threads
   `activateWaitingPar?` head to tail; independent Boolean-free and typed fold

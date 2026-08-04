@@ -442,10 +442,17 @@ under the explicit structural, `ReservationInvariant`, and final-ready `Nodup`
 premises. `UnifyPayloadStep.exact` fixes the final stack equations, stored
 tensor orientation, and total project counter increase
 `1 + payload.length`; every successful typed/executable step preserves
-`ReservationInvariant`. The composition does not derive payload applicability
-and has no `ComponentForestProvenance` or `SchedulerInvariant` preservation
-theorem; in particular, no full scheduler invariant is claimed for its
-intermediate tensor/fold states. The specialized `UnifyEmpty` and `UnifyOne`
+`ReservationInvariant`. `SequentialFigure7UnifyPayloadInvariant.lean` adds
+complete occurrence-exact `SchedulerInvariant` preservation for every
+successful typed or executable arbitrary-payload step from a full input
+invariant. Its fixed-final-stack `UnifyPayloadGapInvariant` represents the
+unactivated stored suffix as a transient gap: each head activation establishes
+the exact new component ownership, and the empty suffix closes back to the
+ordinary ready/frontier invariant. Pre-activation forest-freshness,
+non-production, exact submitted-par provenance, and boundary-token facts come
+from the input invariant, with no history/reachability premise. The composition
+still does not derive payload applicability; no full scheduler invariant is
+claimed for its physical intermediate tensor/fold states. The specialized `UnifyEmpty` and `UnifyOne`
 successes embed one way into the new executor at the same exact output, without
 general function equality or reverse equivalence. Stored order is an executable
 and derivation-nesting choice, not a commutativity or source temporal-order
@@ -555,24 +562,26 @@ present. The bounded Boolean-free `UnifyEmptyRule` and strict-singleton
 `UnifyOneRule` executable correspondences are also present; every successful
 typed/executable bounded step preserves this stronger state-only invariant.
 The arbitrary-payload production-core fold and atomic `UnifyPayload`
-composition are present. The latter preserves `ReservationInvariant` but not
-the component forest or complete `SchedulerInvariant`.
+composition are present. The latter now preserves the component forest and
+complete `SchedulerInvariant` on every successful step from a full input
+invariant, without an intermediate-state or applicability claim.
 Forward/UnifyOne/UnifyPayload applicability and totality, dispatcher progress,
 and
 scheduler/pure-worklist completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
-The local atomic arbitrary-payload transition is implemented; reachability of
-global waiting-payload ownership and occurrence-exact invariant preservation
-through it remain open, as does integration of
+The local atomic arbitrary-payload transition and successful-step
+occurrence-exact invariant preservation are implemented. Applicability from
+reachable intended states and integration of
 `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` into a full
 rule history/dispatcher, later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open. The
 atomic rule connects the head-to-tail fold to one tensor and the scheduler
-drain and derives total `1 + |W(j)|` accounting, but still needs
-occurrence-forest and complete state-invariant transport. Future guards must continue to compare
+drain, derives total `1 + |W(j)|` accounting, and transports the complete
+state-only invariant through a transient fixed-final-stack gap proof. Future
+guards must continue to compare
 raw assigned ages, not union-find representatives. The current global
 ready/waiting absence check scans stored lists and is not a linearity result.
 The separate event-driven worklist tier described next is already implemented.
@@ -850,9 +859,10 @@ active-reference walks between marked occurrences are equivalent to
   exact submitted-par/forest/frontier/queue/pending/counter preservation, while
   bounded `UnifyEmpty` and strict-singleton `UnifyOne` preserve the same full
   state-only invariant. The local arbitrary waiting-payload fold and atomic
-  `UnifyPayload` composition are present outside the history, with only
-  `ReservationInvariant` preservation for the arbitrary composition.
-  Full-history integration remains open. Planarity
+  `UnifyPayload` composition are present outside the history, and successful
+  atomic steps preserve the same complete occurrence-exact state-only
+  invariant from a full input invariant. Applicability and full-history
+  integration remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -870,9 +880,9 @@ relation with exact executable correspondence. Bounded `UnifyEmpty` and
 strict-singleton `UnifyOne` have direct correspondences, and their successful
 typed/executable steps preserve the complete occurrence-exact
   `SchedulerInvariant`. The arbitrary production-core fold and atomic
-  tensor/fold/drain `UnifyPayload` are present, but later-state
-  applicability/totality, arbitrary-payload component-forest/full-invariant
-  preservation, and
+  tensor/fold/drain `UnifyPayload` are present and preserve the complete
+  occurrence-exact invariant on successful steps from a full input invariant;
+  later-state applicability/totality and
 full-history integration of the local
   `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` rules, a full-rule
 reachable-state invariant, and

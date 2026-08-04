@@ -474,8 +474,14 @@ part of the engineering and proof-identity gap.
    correspondence and output uniqueness under their documented structural,
    `ReservationInvariant`, and final-ready `Nodup` premises. Successful steps
    preserve `ReservationInvariant`, and the exact state theorem accounts for
-   `1 + payload.length`. It proves neither payload applicability nor
-   occurrence-forest/`SchedulerInvariant` transport. Full-history integration of
+   `1 + payload.length`. The follow-on
+   `SequentialFigure7UnifyPayloadInvariant.lean` proves complete
+   occurrence-forest/`SchedulerInvariant` transport for every successful typed
+   or executable step from a full input invariant. Its transient fixed-final-
+   stack gap derives pre-activation freshness and exact producer/boundary facts
+   from that input, establishes ownership head by head, and closes after the
+   last activation. It proves neither payload applicability nor invariance of
+   the physical tensor/fold intermediates. Full-history integration of
    `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload`,
    applicability/totality,
    full-rule reachability,
@@ -669,10 +675,10 @@ It can currently be used for:
   typed/executable bounded steps preserve the
   complete occurrence-exact `SchedulerInvariant`. The local arbitrary-payload
   fold and atomic `UnifyPayload` composition are present with exact
-  correspondence and `1 + payload.length` accounting; the latter preserves
-  `ReservationInvariant`, not `ComponentForestProvenance` or the full
-  `SchedulerInvariant`. Later-state applicability and totality, arbitrary
-  payload full-invariant preservation, and full-history rule
+  correspondence and `1 + payload.length` accounting; the latter now preserves
+  `ComponentForestProvenance` and the full `SchedulerInvariant` on every
+  successful step from a full input invariant. Later-state applicability and
+  totality, intermediate-state invariance, and full-history rule
   integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.

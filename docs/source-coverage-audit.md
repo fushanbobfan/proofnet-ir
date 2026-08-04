@@ -110,9 +110,14 @@ mate raw age through `sigmaBoundary?` and prepends only to an initialized
 cell. Forward now also has an independent Boolean-free direct rule and exact
 executable correspondence; its `Nodup` condition is explicitly a fail-closed
 list shape rather than the paper's non-strict raw-age guard. Conditional
-state-only queue ownership is preserved under the supplied invariant. Global
-reachable payload ownership, `unify`, full-history integration, full-rule
-reachability, progress, and pure-worklist completeness remain open.
+state-only queue ownership is preserved under the supplied invariant. The
+arbitrary-payload atomic `UnifyPayload` transition now also preserves the full
+occurrence-exact state-only invariant on every successful step: the input
+invariant yields pre-activation freshness/provenance, each stored par activation
+establishes exact ownership, and the final forest covers the payload. This does
+not prove applicability or reachability. Ownership through a complete reachable
+transition system, full-history integration, full-rule reachability, later-state
+totality, progress, and pure-worklist completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,
 [*A linear algorithm for MLL proof net correctness and

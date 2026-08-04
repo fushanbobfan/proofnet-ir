@@ -13149,6 +13149,155 @@ ProofNetIR.SequentialFigure7.UnifyPayloadStep.output_unique : ∀ {certificate :
   (right : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before second), first = second
 ```
 
+### `ProofNetIR.SequentialFigure7.SchedulerInvariantExceptReady`
+
+Kind: inductive type.
+
+All fields of `SchedulerInvariant` except the one intentionally broken by
+the transient ready/payload gap.  In particular, this is substantially stronger
+than `ReservationInvariant`: it retains occurrence-exact component provenance,
+payload uniqueness/unmarkedness, causal production, waiting-span semantics,
+pending-premise coverage, and the exact firing counter.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariantExceptReady : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.SchedulerInvariant.withoutReady`
+
+Kind: theorem.
+
+Forget only the ordinary ready/frontier equality.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariant.withoutReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialFigure7.SchedulerInvariantExceptReady certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyBucketFrontierExactWithGap`
+
+Kind: definition.
+
+Extensional ready/frontier equality with one distinguished payload gap.
+
+Every bucket other than `gapBoundary` is exactly its component's raw-unmarked
+frontier.  At `gapBoundary`, the bucket additionally contains precisely the
+remaining, not-yet-activated payload occurrences.  This is a set-level
+statement, just like `ReadyBucketFrontierExact`; deterministic list order is a
+separate executable refinement.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyBucketFrontierExactWithGap : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant`
+
+Kind: inductive type.
+
+Non-circular shadow invariant for one suffix of an arbitrary waiting
+payload.  Besides the sole ready/frontier gap, every ordinary scheduler field
+already holds on the shadow state.  Remaining payload occurrences are pairwise
+distinct, raw-unmarked, and absent from both raw marks and every live frontier;
+the latter condition is what supplies exact occurrence freshness to the next
+`queuePar` step.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → List ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant.close`
+
+Kind: theorem.
+
+Once the transient payload suffix is empty, the gap relation reduces
+definitionally to ordinary ready/frontier exactness and all retained fields
+reassemble into `SchedulerInvariant`.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant.close : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {gapBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant certificate state gapBoundary [] →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant.activateHead`
+
+Kind: theorem.
+
+The fundamental transient induction step: one successful stored-order par
+activation consumes exactly the gap head while preserving every non-ready
+scheduler field on the fixed final-stack shadow.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant.activateHead : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {gapBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  {payload : List ProofNetIR.Vertex} {afterCore : ProofNetIR.UnificationState},
+  ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant certificate state gapBoundary (conclusion :: payload) →
+    ∀ (step : ProofNetIR.SequentialFigure7.WaitingParActivationStep certificate state.core afterCore conclusion),
+      ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant certificate
+        { stack := state.stack, core := afterCore, tags := state.tags } gapBoundary payload
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant.WaitingParActivationFoldStep.closeGap`
+
+Kind: theorem.
+
+A proof-relevant stored-order activation fold closes a real transient gap.
+No physical intermediate is assigned `SchedulerInvariant`; each induction state
+uses the caller-supplied fixed final scheduler stack and only replaces its
+current production core.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant.WaitingParActivationFoldStep.closeGap : ∀ {certificate : ProofNetIR.Certificate} {shadow : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {beforeCore afterCore : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  {gapBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  (fold : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate beforeCore payload afterCore),
+  ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant certificate
+      { stack := shadow.stack, core := beforeCore, tags := shadow.tags } gapBoundary payload →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate
+      { stack := shadow.stack, core := afterCore, tags := shadow.tags }
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.schedulerInvariant`
+
+Kind: theorem.
+
+A successful atomic arbitrary-payload tensor-plus-stored-par-fold
+unification preserves the complete occurrence-exact state-only scheduler
+invariant.
+
+The proof uses a fixed-final-stack shadow whose gap is exactly the unactivated
+payload suffix.  It does not assign `SchedulerInvariant` to the physically
+misaligned tensor/fold intermediates, assume `InitNewHistory`, or claim rule
+applicability, dispatcher progress, global reachability, completeness, or
+complexity.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyPayload?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable arbitrary-payload `unifyPayload?` success preserves the
+complete occurrence-exact scheduler invariant.  This is a preservation
+corollary only; totality and dispatcher progress remain separate obligations.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyPayload?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyPayload? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
 ### `ProofNetIR.SequentialFigure7.unifyPayload?_sound`
 
 Kind: theorem.

@@ -798,16 +798,16 @@
     production-core activation fold now also has independent direct/typed/
     executable correspondence and exact output uniqueness. The atomic
     arbitrary-payload `UnifyPayload` direct/executable layer is now present;
-    a direct layer for `new` remains open, while applicability and complete
-    scheduler-invariant preservation for `UnifyPayload` remain open.
+    its complete occurrence-exact scheduler-invariant preservation is now
+    kernel checked through a transient fixed-final-stack gap proof. A direct
+    layer for `new` and applicability for `UnifyPayload` remain open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
     route-local later-call freshness, integrate the local initialized-cell
     `wait` rule into full history, integrate the successful local `forward`,
     bounded `UnifyEmpty`, strict-singleton `UnifyOne`, and atomic
-    `UnifyPayload`, preserve the complete occurrence-exact invariant through
-    the arbitrary composition, and integrate the already-local
+    `UnifyPayload`, and integrate the already-local
     `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` rules into a complete
     history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
@@ -879,9 +879,16 @@
     are one-way same-output compatibility only, not executor equality or reverse
     equivalence. Stored order fixes execution/nesting, without commutativity or
     paper-order claims.
-  - [ ] Prove arbitrary-payload applicability, transient occurrence provenance,
-    and complete `ComponentForestProvenance`/`SchedulerInvariant` preservation;
-    integrate the rule into full history/dispatch. Establish the special union-find invariants, full-rule
+  - [x] Prove complete arbitrary-payload
+    `ComponentForestProvenance`/`SchedulerInvariant` preservation for every
+    successful typed/executable step from a full input invariant. The
+    non-circular fixed-final-stack gap records the unactivated suffix,
+    derives pre-activation forest-freshness and exact producer/boundary facts,
+    establishes ownership one head at a time, and closes at the empty suffix.
+    This adds no history/reachability hypothesis and does not assign the
+    ordinary invariant to physical tensor/fold intermediates.
+  - [ ] Derive arbitrary-payload applicability and integrate the rule into full
+    history/dispatch. Establish the special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before
     claiming Guerrini linearity. These stack invariants are false for the flat

@@ -80,9 +80,14 @@ explicit unread gate; that row is not part of the local-source count.
   recorded touch, global submitted-slot non-reuse, and reservation-count
   alignment. Exact local `concl`/`nop`/`wait` now preserve the reservation
   invariant; `wait` performs only an initialized-cell cons at the exact
-  raw-age `sigma` boundary and does not establish global payload ownership.
-  Ready/waiting payload ownership, `forward`/`unify`, full-history integration,
-  full-rule reachability, progress, and pure-worklist completeness remain open.
+  raw-age `sigma` boundary and does not by itself establish global payload
+  ownership. Exact local `forward`, bounded empty/singleton unify, and atomic
+  arbitrary-payload `UnifyPayload` are now present. Successful arbitrary-payload
+  steps preserve the complete occurrence-exact invariant through a transient
+  ownership gap, without an applicability or reachability claim. Ownership
+  across complete reachable executions, full-history integration, full-rule
+  reachability, later-state totality, progress, and pure-worklist completeness
+  remain open.
 
 ## Reading record
 

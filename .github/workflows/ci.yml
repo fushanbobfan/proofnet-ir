@@ -38,6 +38,7 @@ jobs:
         run: |
           ~/.elan/bin/lake exe proofnet_ir_consumer_index_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_primitives_tests
+          ~/.elan/bin/lake exe proofnet_ir_figure7_unify_payload_invariant_tests
       - name: Validate generated LeanProp template corpus
         run: ~/.elan/bin/lake exe proofnet_ir_leanprop_corpus
       - name: Verify Lean-emitted LeanProp corpus manifest

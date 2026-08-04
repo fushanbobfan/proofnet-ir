@@ -140,10 +140,13 @@ hash of the unaltered original PDF.
   A separate exact empty/init/operational-new history now proves tag iff
   recorded touch, whole-history submitted-slot non-reuse, and
   reservation-count alignment. Exact local `concl`/`nop`/`wait` are now
-  executable and invariant preserving; the local `wait` result is not a
-  payload-ownership theorem. Ready/waiting payload ownership,
-  `forward`/`unify`, full-history integration, full-rule reachability, and
-  scheduler progress/completeness remain open.
+  executable and invariant preserving; the local `wait` result alone is not a
+  payload-ownership theorem. The atomic arbitrary-payload `UnifyPayload` rule
+  now preserves the full occurrence-exact invariant on successful steps via a
+  transient gap that establishes each payload occurrence's ownership before
+  closing the final forest. Applicability, ownership across a complete reachable
+  transition system, full-history integration, full-rule reachability,
+  later-state totality, and scheduler progress/completeness remain open.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at
   the Figure-5 rule level but does not claim Theorem 16's linear bound.
 
