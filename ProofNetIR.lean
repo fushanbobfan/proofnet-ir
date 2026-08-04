@@ -38,6 +38,7 @@ import ProofNetIR.SequentialSchedulerInvariant
 import ProofNetIR.SequentialFigure7Unify
 import ProofNetIR.SequentialFigure7UnifyPayload
 import ProofNetIR.SequentialFigure7UnifyPayloadInvariant
+import ProofNetIR.SequentialFigure7UnifyPayloadEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization

@@ -1,4 +1,5 @@
 import ProofNetIR.SequentialFigure7Dispatcher
+import ProofNetIR.SequentialFigure7UnifyPayloadEnabled
 
 namespace ProofNetIR
 
@@ -582,6 +583,149 @@ private theorem payloadInvariantBefore_schedulerInvariant :
     pending_premises_covered_except_ready :=
       payloadInvariantBefore_pendingPremisesCoveredExceptReady
     fired_counter_exact := payloadInvariantBefore_firedCounterExact }
+
+private def payloadInvariantConsumer : TensorBelow where
+  linkIndex := 6
+  storedLeft := 8
+  storedRight := 9
+  conclusion := 10
+  side := .storedLeft
+
+private def payloadInvariantInput :
+    SequentialFigure7.UnifyPayloadInput payloadInvariantCertificate
+      payloadInvariantBefore where
+  vertex := 8
+  readyTail := []
+  consumer := payloadInvariantConsumer
+  mateRawAge := 0
+  sigmaPrefix := []
+  previousBoundary := 0
+  activeBoundary := 2
+  top_ready := by native_decide
+  sigma_two_levels := by native_decide
+  consumer_valid :=
+    Certificate.tensorBelow?_eq_some_iff.mp (by native_decide)
+  mate_marked := by native_decide
+  lower := by decide
+  upper := by decide
+
+private theorem payloadInvariantEnabled :
+    SequentialFigure7.UnifyPayloadEnabled payloadInvariantCertificate
+      payloadInvariantBefore :=
+  ⟨payloadInvariantInput⟩
+
+/-- The input-only applicability theorem executes the genuine two-element
+waiting payload without carrying any post-state in the enabled witness. -/
+example :
+    ∃ after,
+      SequentialFigure7.unifyPayload? payloadInvariantCertificate
+          payloadInvariantBefore
+          payloadInvariantBefore_schedulerInvariant.toReservationInvariant =
+        some after :=
+  SequentialFigure7.unifyPayload?_exists_of_enabled
+    payloadInvariantBefore_schedulerInvariant payloadInvariantEnabled
+
+example :
+    ∃ after,
+      SequentialFigure7.unifyPayload? payloadInvariantCertificate
+          payloadInvariantBefore
+          payloadInvariantBefore_schedulerInvariant.toReservationInvariant =
+          some after ∧
+        SchedulerInvariant payloadInvariantCertificate after :=
+  SequentialFigure7.unifyPayload?_exists_schedulerInvariant_of_enabled
+    payloadInvariantBefore_schedulerInvariant payloadInvariantEnabled
+
+private def enabledAxiomOnlyCertificate : Certificate where
+  formulas := #[.atom "a" true, .atom "a" false]
+  links := [.axiom 0 1]
+  conclusions := [0, 1]
+
+private theorem enabledAxiomOnlyCertificate_structural :
+    enabledAxiomOnlyCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      enabledAxiomOnlyCertificate).mp (by native_decide)
+
+private theorem enabledAxiomOnly_not_enabled
+    (state : ReservationState) :
+    ¬ SequentialFigure7.UnifyPayloadEnabled
+      enabledAxiomOnlyCertificate state := by
+  intro enabled
+  rcases enabled with ⟨input⟩
+  have tensorLookup := input.consumer_valid.2.1
+  change ([.axiom 0 1] : List Link)[input.consumer.linkIndex]? =
+    some (.tensor input.consumer.storedLeft input.consumer.storedRight
+      input.consumer.conclusion) at tensorLookup
+  have indexBound := (List.getElem?_eq_some_iff.mp tensorLookup).1
+  have indexZero : input.consumer.linkIndex = 0 := by
+    simpa using indexBound
+  rw [indexZero] at tensorLookup
+  simp at tensorLookup
+
+/-- `SchedulerInvariant` alone does not imply arbitrary-payload
+applicability: the exact empty scheduler has no top ready occurrence. -/
+example :
+    SchedulerInvariant enabledAxiomOnlyCertificate
+        (ReservationState.empty enabledAxiomOnlyCertificate) ∧
+      ¬ SequentialFigure7.UnifyPayloadEnabled enabledAxiomOnlyCertificate
+        (ReservationState.empty enabledAxiomOnlyCertificate) := by
+  constructor
+  · exact empty_schedulerInvariant enabledAxiomOnlyCertificate_structural
+  · intro enabled
+    rcases enabled with ⟨input⟩
+    simpa [ReservationState.empty, SequentialStackState.empty] using
+      input.top_ready
+
+/-- A successfully initialized full-invariant axiom-only state has ready work
+but no tensor consumer, so it is another genuine non-enabled state. -/
+example :
+    ∃ after,
+      initializeReservation? enabledAxiomOnlyCertificate 0 = some after ∧
+        SchedulerInvariant enabledAxiomOnlyCertificate after ∧
+        ¬ SequentialFigure7.UnifyPayloadEnabled
+          enabledAxiomOnlyCertificate after := by
+  have existsResult :
+      (initializeReservation? enabledAxiomOnlyCertificate 0).isSome = true := by
+    native_decide
+  cases equation : initializeReservation? enabledAxiomOnlyCertificate 0 with
+  | none => simp [equation] at existsResult
+  | some after =>
+      refine ⟨after, rfl, ?_, enabledAxiomOnly_not_enabled after⟩
+      rcases initializeReservation?_some_iff.mp equation with ⟨step⟩
+      exact step.schedulerInvariant enabledAxiomOnlyCertificate_structural
+
+/-! The following fail-closed checks isolate executor guards.  They are guard
+regressions, not counterexamples satisfying the complete scheduler invariant.
+-/
+
+private def emptyTopGuardState : ReservationState := {
+  payloadInvariantBefore with
+  stack := { payloadInvariantBefore.stack with ready := [[], []] } }
+
+example : SequentialFigure7.prepare? emptyTopGuardState = none := by
+  native_decide
+
+private def singleSigmaGuardStack : SequentialStackState := {
+  payloadInvariantBefore.stack with
+  sigma := [2]
+  ready := [[8]] }
+
+example :
+    singleSigmaGuardStack.mergeTopReadyWaiting? 0 10 = none := by
+  native_decide
+
+private def undefinedWaitingGuardStack : SequentialStackState := {
+  payloadInvariantBefore.stack with
+  waiting := Array.replicate payloadInvariantCertificate.formulas.size
+    .undefined }
+
+example :
+    undefinedWaitingGuardStack.mergeTopReadyWaiting? 0 10 = none := by
+  native_decide
+
+example :
+    payloadInvariantBefore.stack.mergeTopReadyWaiting? 1 10 = none := by
+  native_decide
 
 private def payloadInvariantRun : Option ReservationState :=
   SequentialFigure7.unifyPayload? payloadInvariantCertificate

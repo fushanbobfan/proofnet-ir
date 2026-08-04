@@ -311,7 +311,12 @@ theorem boundaries audited here are `SchedulerInvariant.withoutReady`,
 `UnifyPayloadStep.schedulerInvariant`, and
 `unifyPayload?_schedulerInvariant`; each has only the existing
 `propext`/`Classical.choice`/`Quot.sound` dependency boundary. This does not
-derive payload applicability. Correct-state progress,
+by itself derive applicability. The separate audited boundaries
+`unifyPayload?_exists_of_enabled` and
+`unifyPayload?_exists_schedulerInvariant_of_enabled` prove conditional
+applicability from pure input-only `UnifyPayloadEnabled` plus the full
+invariant. They do not claim the invariant alone implies enabledness or select
+the correct dispatcher branch. Correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
@@ -367,14 +372,16 @@ These scheduler-level facts plus `UnifyOne` authorize the singleton branch with
 the full state-only invariant. The arbitrary `UnifyPayload` executor now
 combines the tensor, all stored waiting-par activations, and the drain, proving
 the total `1 + |W(j)|` counter change and complete occurrence-exact invariant
-preservation for every successful step from a full input invariant. It still
-needs a proof that every payload is applicable in intended states. The old
+preservation for every successful step from a full input invariant. Pure
+input-only `UnifyPayloadEnabled` plus that invariant now proves executable
+success and an invariant-preserving output; proving the predicate for every
+intended dispatcher-selected reachable state remains open. The old
 empty/singleton successes embed one way with the same output; no function
 equality or reverse equivalence is trusted. Guerrini's rule specifies moving a
 waiting set into ready; the project's stored head-to-tail order and explicit
 derivation/provenance construction are representation refinements, not paper
 claims, and imply neither commutativity nor paper temporal order. A canonical
-successful-step dispatcher now exists, but no guard-applicability, exhaustive
+successful-step dispatcher now exists, but no exhaustive branch-enabledness,
 progress, scheduler/pure-worklist
 completeness, O(1), or whole-program linearity claim follows.
 
@@ -623,9 +630,11 @@ dedicated init/new history adds exact reachability and tag provenance for that
  typed/executable steps preserve the complete occurrence-exact state-only
  invariant. The local arbitrary-payload fold and atomic `UnifyPayload`
  composition exist outside the dedicated init/new history layer. Successful
- atomic steps preserve the complete occurrence-exact state-only invariant, but
- this does not add later applicability/totality or unconditional full-rule
- reachability. A separate canonical priority dispatcher and proof-carrying
+ atomic steps preserve the complete occurrence-exact state-only invariant. The
+ input-only `UnifyPayloadEnabled` theorem adds conditional applicability and an
+ invariant-preserving result, but not exhaustive later branch enabledness,
+ totality, or unconditional full-rule reachability. A separate canonical
+ priority dispatcher and proof-carrying
  certified history now integrate all implemented successful branches, without
  lifting the richer init/new route/tag/slot laws. No
 planarity principle is assumed.
@@ -749,8 +758,10 @@ Lean now also constructs the exact simultaneous complementary
   occurrence-exact state-only invariant. A local arbitrary-payload fold and
   atomic tensor/fold/drain executor are proved separately, with complete
   successful-step occurrence-exact invariant preservation from a full input
-  invariant. A canonical successful-step dispatcher and certified history are
-  also kernel checked. Later-state applicability and totality, richer history
+  invariant. Conditional input-only applicability under `UnifyPayloadEnabled`
+  is also kernel checked. A canonical successful-step dispatcher and certified
+  history are also kernel checked. Exhaustive later-state branch enabledness
+  and totality, richer history
   commitments, unconditional full-rule reachability, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,

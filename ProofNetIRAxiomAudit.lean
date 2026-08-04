@@ -506,6 +506,8 @@ expansion.
 #print axioms SequentialFigure7.UnifyPayloadGapInvariant.WaitingParActivationFoldStep.closeGap
 #print axioms SequentialFigure7.UnifyPayloadStep.schedulerInvariant
 #print axioms SequentialFigure7.unifyPayload?_schedulerInvariant
+#print axioms SequentialFigure7.unifyPayload?_exists_of_enabled
+#print axioms SequentialFigure7.unifyPayload?_exists_schedulerInvariant_of_enabled
 #print axioms SequentialFigure7.unifyPayload?_sound
 #print axioms SequentialFigure7.unifyPayload?_reservationInvariant
 #print axioms SequentialFigure7.unifyPayload?_complete_of_structural

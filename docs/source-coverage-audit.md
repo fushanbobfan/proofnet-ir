@@ -114,8 +114,10 @@ state-only queue ownership is preserved under the supplied invariant. The
 arbitrary-payload atomic `UnifyPayload` transition now also preserves the full
 occurrence-exact state-only invariant on every successful step: the input
 invariant yields pre-activation freshness/provenance, each stored par activation
-establishes exact ownership, and the final forest covers the payload. This does
-not prove applicability or unconditional reachability. A canonical priority
+establishes exact ownership, and the final forest covers the payload. A
+separate input-only predicate proves conditional applicability under the full
+invariant, but not invariant-alone enabledness or unconditional reachability.
+A canonical priority
 dispatcher and proof-carrying certified history now integrate every implemented
 successful rule family. Ownership through a complete reachable transition
 system, richer route/tag/slot history commitments, later-state totality,

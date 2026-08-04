@@ -450,9 +450,14 @@ unactivated stored suffix as a transient gap: each head activation establishes
 the exact new component ownership, and the empty suffix closes back to the
 ordinary ready/frontier invariant. Pre-activation forest-freshness,
 non-production, exact submitted-par provenance, and boundary-token facts come
-from the input invariant, with no history/reachability premise. The composition
-still does not derive payload applicability; no full scheduler invariant is
-claimed for its physical intermediate tensor/fold states. The specialized `UnifyEmpty` and `UnifyOne`
+from the input invariant, with no history/reachability premise.
+`SequentialFigure7UnifyPayloadEnabled.lean` separates applicability from
+preservation. Its input-only `UnifyPayloadEnabled` fixes the ready occurrence,
+two adjacent sigma levels, canonical tensor consumer, and mate interval. The
+full invariant then derives all hidden executor guards and an
+invariant-preserving output. No post-state or success equation occurs in the
+predicate, and the invariant alone does not imply it. No full scheduler
+invariant is claimed for physical intermediate tensor/fold states. The specialized `UnifyEmpty` and `UnifyOne`
 successes embed one way into the new executor at the same exact output, without
 general function equality or reverse equivalence. Stored order is an executable
 and derivation-nesting choice, not a commutativity or source temporal-order
@@ -500,9 +505,11 @@ cannot establish the intended local construction: the stack move exposes
 delayed conclusions before the production core has built their par
 derivations. `UnifyPayload` now inserts the exact stored-order fold between
 those operations and proves the total `1 + |W(j)|` counter equation. What
-remains open for payload length at least two is semantic guard applicability
-and global progress, not the local tensor/fold/drain composition or successful-
-step transport of the occurrence-exact component/scheduler invariants.
+remains open for payload length at least two is deriving the explicit enabled
+predicate exhaustively at the selected reachable dispatcher branch and global
+progress, not conditional applicability, the local tensor/fold/drain
+composition, or successful-step transport of the occurrence-exact
+component/scheduler invariants.
 
 `SequentialSchedulerInvariant.lean` now supplies that semantic foundation
 without defining reachability in terms of the invariant. The bundle carries
@@ -579,16 +586,19 @@ typed/executable bounded step preserves this stronger state-only invariant.
 The arbitrary-payload production-core fold and atomic `UnifyPayload`
 composition are present. The latter now preserves the component forest and
 complete `SchedulerInvariant` on every successful step from a full input
-invariant, without an intermediate-state or applicability claim.
-Forward/UnifyOne/UnifyPayload applicability and totality, dispatcher progress,
-and
+invariant, without an intermediate-state claim. Conditional `UnifyPayload`
+applicability from input-only `UnifyPayloadEnabled` plus that invariant is now
+proved. The invariant alone does not imply the predicate.
+Forward/UnifyOne applicability, exhaustive `UnifyPayload` branch enabledness,
+later-state totality, dispatcher progress, and
 scheduler/pure-worklist completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
-The local atomic arbitrary-payload transition and successful-step
-occurrence-exact invariant preservation are implemented. Applicability from
-reachable intended states, exhaustive dispatcher enabledness, lifting the
+The local atomic arbitrary-payload transition, conditional input-only
+applicability, and successful-step occurrence-exact invariant preservation are
+implemented. Derivation of `UnifyPayloadEnabled` from reachable intended branch
+states, exhaustive dispatcher enabledness, lifting the
 richer init/new route/tag/slot laws into the canonical history, unconditional
 full-rule reachability, later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, faithful
@@ -877,10 +887,12 @@ active-reference walks between marked occurrences are equivalent to
   state-only invariant. The local arbitrary waiting-payload fold and atomic
   `UnifyPayload` composition are also outside `InitNewHistory`, and successful
   atomic steps preserve the same complete occurrence-exact state-only
-  invariant from a full input invariant. The separate canonical dispatcher
-  history accounts for all six successful rule families. Applicability,
-  richer-history-law transport, and unconditional full-rule reachability
-  remain open. Planarity
+  invariant from a full input invariant. Pure input-only
+  `UnifyPayloadEnabled` plus that invariant now implies executable success;
+  the invariant alone does not imply the predicate. The separate canonical
+  dispatcher history accounts for all six successful rule families. Exhaustive
+  branch enabledness, richer-history-law transport, and unconditional full-rule
+  reachability remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -900,10 +912,12 @@ typed/executable steps preserve the complete occurrence-exact
   `SchedulerInvariant`. The arbitrary production-core fold and atomic
   tensor/fold/drain `UnifyPayload` are present and preserve the complete
   occurrence-exact invariant on successful steps from a full input invariant;
-  a canonical priority dispatcher and proof-carrying certified history now
-  integrate every implemented successful rule family. Later-state
-  applicability/totality, unconditional full-rule reachability, and the richer
-  route/tag/slot history commitments are not proved. General
+  input-only `UnifyPayloadEnabled` plus that invariant proves conditional
+  arbitrary-payload success. A canonical priority dispatcher and proof-carrying
+  certified history now integrate every implemented successful rule family.
+  Exhaustive later-state branch enabledness/totality, unconditional full-rule
+  reachability, and the richer route/tag/slot history commitments are not
+  proved. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

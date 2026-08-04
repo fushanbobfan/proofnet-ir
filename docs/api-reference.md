@@ -13300,6 +13300,69 @@ ProofNetIR.SequentialFigure7.unifyPayload?_schedulerInvariant : ∀ {certificate
     ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
+### `ProofNetIR.SequentialFigure7.UnifyPayloadInput`
+
+Kind: inductive type.
+
+Pure input conditions selecting the arbitrary-payload unification rule.
+
+The ready query fixes the concrete top occurrence.  The sigma decomposition
+fixes two adjacent active levels, while the canonical tensor view records one
+unique, exact, locally well-formed submitted tensor consumer.  The remaining
+fields say that the opposite premise already has a raw age lying in the
+previous scheduler interval.  No executable output, intermediate state, or
+success equation is stored here.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadEnabled`
+
+Kind: definition.
+
+Input-only applicability proposition for arbitrary-payload unification.
+
+The data-bearing witness retains the exact selected occurrence, consumer, and
+adjacent boundaries without violating proof irrelevance.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadEnabled : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.unifyPayload?_exists_of_enabled`
+
+Kind: theorem.
+
+The complete scheduler invariant discharges every hidden mutation guard
+once the arbitrary-payload rule's read-only input conditions are enabled.
+
+This is conditional applicability, not a progress theorem: it does not assert
+that an arbitrary invariant state satisfies `UnifyPayloadEnabled`.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyPayload?_exists_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.UnifyPayloadEnabled certificate before →
+    ∃ after, ProofNetIR.SequentialFigure7.unifyPayload? certificate before ⋯ = some after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyPayload?_exists_schedulerInvariant_of_enabled`
+
+Kind: theorem.
+
+Enabled arbitrary-payload execution also returns a state satisfying the
+complete occurrence-exact scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyPayload?_exists_schedulerInvariant_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.UnifyPayloadEnabled certificate before →
+    ∃ after,
+      ProofNetIR.SequentialFigure7.unifyPayload? certificate before ⋯ = some after ∧
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
 ### `ProofNetIR.SequentialFigure7.unifyPayload?_sound`
 
 Kind: theorem.

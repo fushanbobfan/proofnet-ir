@@ -326,6 +326,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.UnifyPayloadGapInvariant.WaitingParActivationFoldStep.closeGap",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.schedulerInvariant",
     "ProofNetIR.SequentialFigure7.unifyPayload?_schedulerInvariant",
+    "ProofNetIR.SequentialFigure7.unifyPayload?_exists_of_enabled",
+    "ProofNetIR.SequentialFigure7.unifyPayload?_exists_schedulerInvariant_of_enabled",
     "ProofNetIR.SequentialFigure7.unifyPayload?_sound",
     "ProofNetIR.SequentialFigure7.unifyPayload?_reservationInvariant",
     "ProofNetIR.SequentialFigure7.unifyPayload?_complete_of_structural",

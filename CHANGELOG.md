@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added `SequentialFigure7UnifyPayloadEnabled.lean`, an input-only conditional
+  applicability layer for arbitrary finite waiting payloads.
+  `UnifyPayloadInput` records only the selected top-ready occurrence, an exact
+  two-level sigma decomposition, the canonical tensor consumer, and the mate's
+  raw age in the previous interval; `UnifyPayloadEnabled` contains no executor
+  output or success equation. From this predicate plus the complete
+  `SchedulerInvariant`, `unifyPayload?_exists_of_enabled` derives the prepare,
+  tensor union, stored payload fold, two-level merge, and final ready `Nodup`
+  guards and proves executable success. The companion existence theorem returns
+  a result satisfying the full invariant. A genuine length-two regression and
+  full-invariant empty/initialized-axiom counterexamples show both the positive
+  path and that `SchedulerInvariant` alone does not imply enabledness. This is
+  not exhaustive dispatcher branch selection, reachable-state totality,
+  progress, fallback removal, or a complexity theorem. The exact axiom audit now
+  covers 575 declarations: 351 full-classical, 23 axiom-free, 90
+  `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7Dispatcher.lean`, a canonical executable dispatcher
   for `concl`, `nop`, `new`, `wait`, `forward`, and general `unifyPayload`, in
   that fixed precedence. Priority-aware `DispatchStep` witnesses retain exact
@@ -20,7 +36,8 @@
   and an invariant-valid empty state with no enabled branch. The older
   `InitNewHistory` remains the separate source of tag-touch, axiom-slot
   non-reuse, and reservation-event-count theorems; those facts are not yet
-  lifted to the full certified trace. The exact axiom audit now covers 573
+  lifted to the full certified trace. At that checkpoint the exact axiom audit
+  covered 573
   declarations: 349 full-classical, 23 axiom-free, 90 `propext`-only, and 111
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7UnifyPayloadInvariant.lean`, closing successful-step

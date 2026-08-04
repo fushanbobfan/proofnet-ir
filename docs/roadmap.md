@@ -799,8 +799,11 @@
     executable correspondence and exact output uniqueness. The atomic
     arbitrary-payload `UnifyPayload` direct/executable layer is now present;
     its complete occurrence-exact scheduler-invariant preservation is now
-    kernel checked through a transient fixed-final-stack gap proof. A direct
-    layer for `new` and applicability for `UnifyPayload` remain open.
+    kernel checked through a transient fixed-final-stack gap proof. Input-only
+    conditional applicability for `UnifyPayload` is now proved from
+    `UnifyPayloadEnabled` plus the full invariant; exhaustive derivation of that
+    predicate for the dispatcher-selected reachable branch and a direct layer
+    for `new` remain open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
@@ -893,7 +896,11 @@
     establishes ownership one head at a time, and closes at the empty suffix.
     This adds no history/reachability hypothesis and does not assign the
     ordinary invariant to physical tensor/fold intermediates.
-  - [ ] Derive input-only arbitrary-payload applicability and then exhaustive
+  - [x] Derive input-only conditional arbitrary-payload applicability: the pure
+    `UnifyPayloadEnabled` predicate plus full `SchedulerInvariant` implies
+    executor success and an invariant-preserving result, while the invariant
+    alone is explicitly insufficient.
+  - [ ] Derive `UnifyPayloadEnabled` for the selected branch and then exhaustive
     dispatcher enabledness on correct certified-reachable nonterminal states.
     Lift route/tag/slot commitments into the canonical history, establish
     unconditional full-rule reachability, progress, completeness of that

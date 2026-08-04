@@ -145,8 +145,10 @@ hash of the unaltered original PDF.
   now preserves the full occurrence-exact invariant on successful steps via a
   transient gap that establishes each payload occurrence's ownership before
   closing the final forest. A canonical priority dispatcher and proof-carrying
-  certified history now record every implemented successful rule family.
-  Applicability, ownership across an unconditional complete reachable
+  certified history now record every implemented successful rule family. The
+  separate pure `UnifyPayloadEnabled` predicate plus the full invariant proves
+  conditional arbitrary-payload applicability. Deriving that predicate for the
+  selected reachable branch, ownership across an unconditional complete
   transition system, the richer route/tag/slot history laws, later-state
   totality, and scheduler progress/completeness remain open.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at

@@ -244,11 +244,14 @@ now kernel checked. Every successful typed/executable atomic step from a full
 input `SchedulerInvariant` preserves the complete occurrence-exact invariant:
 the input supplies pre-activation freshness and exact producer/boundary facts,
 each activation establishes ownership, and the final forest covers the whole
-payload. This is conditional preservation, not applicability or reachability.
+payload. A separate pure input predicate now proves conditional applicability
+from that predicate plus the full invariant; this is not unconditional branch
+enabledness or reachability.
 The canonical successful
 `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload` rules are now
 integrated into one priority dispatcher and proof-carrying certified history.
-Later-state applicability/totality, richer route/tag/slot commitments,
+Exhaustive later-state branch enabledness/totality, richer route/tag/slot
+commitments,
 unconditional full reachability, progress, pure-worklist completeness,
 fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, scheduler correctness, and the whole-scheduler
