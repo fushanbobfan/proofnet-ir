@@ -15,14 +15,15 @@ particular it does not inspect the `NEXTAXIOM` route or any tag beyond what is
 recorded by the separate route witness.
 
 `FreshSourceLeftRoute` records an exact bounded source-left chain to an exact
-submitted axiom, together with input tag freshness and endpoint readiness.  It
-contains no `nextAxiom?` equation, executable result, or post-state.
+submitted axiom, together with input tag freshness and production readiness
+for the whole trace and both terminal endpoints.  It contains no `nextAxiom?`
+equation, executable result, or post-state.
 `NewInputNecessary` combines that input-state route with `NewGuard`.  This
 checkpoint proves only the forward implication from executable success.  The
-converse is not justified: in particular, the witness does not record input
-production-mark readiness for every internal trace occurrence, recursive
-per-step tag updates, or exclusion of the terminal partner from the
-intermediate trace. Later-call `NEXTAXIOM` totality remains open, so the
+converse is not justified: in particular, the witness does not record the
+recursive per-step tag updates or exclusion of the terminal partner from the
+intermediate trace, and it does not include the later operational enqueue
+guard. Later-call `NEXTAXIOM` totality remains open, so the
 priority dispatcher deliberately continues to use `NewExecutableEnabled`.
 -/
 
@@ -66,12 +67,13 @@ end NewGuard
 /-- Declarative input-state content of one fresh bounded source-left route.
 
 The witness records only certificate structure, the input production marking,
-the input tag carrier, and a finite list of visited vertices.  `traceFresh`
-means tag freshness; endpoint production readiness is recorded separately.
-This is a necessary semantic projection of successful `NEXTAXIOM`, not a
-complete executable success criterion: it does not store production-mark
-readiness for every internal trace occurrence, recursive per-step tag-update
-equations, or terminal-partner exclusion from the intermediate trace. -/
+the input tag carrier, and a finite list of visited vertices. `traceFresh`
+means input tag freshness; `traceReady` records production readiness for every
+visited occurrence, while endpoint readiness is recorded explicitly. This is
+a necessary semantic projection of successful `NEXTAXIOM`, not a complete
+executable success criterion: it does not store recursive per-step tag-update
+equations, terminal-partner exclusion from the intermediate trace, or the
+later operational enqueue guard. -/
 structure FreshSourceLeftRoute (certificate : Certificate)
     (state : UnificationState) (tags : Array Bool)
     (start : Vertex) : Type where
@@ -92,6 +94,9 @@ structure FreshSourceLeftRoute (certificate : Certificate)
   traceNodup : trace.Nodup
   traceFresh :
     ∀ {vertex : Vertex}, vertex ∈ trace → tags[vertex]? = some false
+  traceReady :
+    ∀ {vertex : Vertex}, vertex ∈ trace →
+      state.marks[vertex]? = some none
   reachedReady : state.marks[reached]? = some none
   partnerReady : state.marks[partner]? = some none
   partnerFresh : tags[partner]? = some false
@@ -218,6 +223,8 @@ def freshSourceLeftRoute
     traceLength := step.search.traceLength
     traceNodup := step.search.traceNodup
     traceFresh := fun membership ↦ (step.search.traceTagged membership).1
+    traceReady :=
+      SequentialUnification.nextAxiom?_traceReady step.search_eq
     reachedReady := ?_
     partnerReady := ?_
     partnerFresh := ?_ }

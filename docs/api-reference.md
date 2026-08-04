@@ -14231,12 +14231,13 @@ Kind: inductive type.
 Declarative input-state content of one fresh bounded source-left route.
 
 The witness records only certificate structure, the input production marking,
-the input tag carrier, and a finite list of visited vertices.  `traceFresh`
-means tag freshness; endpoint production readiness is recorded separately.
-This is a necessary semantic projection of successful `NEXTAXIOM`, not a
-complete executable success criterion: it does not store production-mark
-readiness for every internal trace occurrence, recursive per-step tag-update
-equations, or terminal-partner exclusion from the intermediate trace.
+the input tag carrier, and a finite list of visited vertices. `traceFresh`
+means input tag freshness; `traceReady` records production readiness for every
+visited occurrence, while endpoint readiness is recorded explicitly. This is
+a necessary semantic projection of successful `NEXTAXIOM`, not a complete
+executable success criterion: it does not store recursive per-step tag-update
+equations, terminal-partner exclusion from the intermediate trace, or the
+later operational enqueue guard.
 
 ```lean
 ProofNetIR.SequentialFigure7.FreshSourceLeftRoute : ProofNetIR.Certificate → ProofNetIR.UnificationState → Array Bool → ProofNetIR.Vertex → Type

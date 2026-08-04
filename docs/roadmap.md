@@ -928,12 +928,13 @@
   - [x] Extract an honest input-only necessary projection for `new` without
     changing dispatcher priority. `NewGuard` records the ready head, exact
     tensor-below witness, and input-unmarked mate; `FreshSourceLeftRoute`
-    records the bounded exact route, input tag freshness, and ready axiom
-    endpoints. Prove only success-to-`NewInputNecessary`, including operational
+    records the bounded exact route, input tag freshness, whole-trace production
+    readiness, and ready axiom endpoints. Prove only
+    success-to-`NewInputNecessary`, including operational
     and priority bridges. Preserve all-true and terminal-partner-pretagged
     counterexamples to shallow-guard sufficiency. The projection omits
-    internal-trace production-mark readiness, recursive per-step tag-update
-    equations, and terminal-partner exclusion from the intermediate trace.
+    recursive per-step tag-update equations, terminal-partner exclusion from
+    the intermediate trace, and the later operational enqueue guard.
   - [ ] Replace the remaining operational `NewExecutableEnabled` with a
     genuinely sufficient input-only `NewEnabled` criterion if the intended
     Figure-7 model supports one; do not promote `NewInputNecessary` to that

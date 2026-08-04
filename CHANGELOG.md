@@ -7,19 +7,20 @@
   records a ready head, its exact valid tensor-below witness, and an unmarked
   opposite premise in the input production state. `FreshSourceLeftRoute`
   records a bounded source-left trace to an exact submitted axiom with input
-  tag freshness and ready endpoints, but contains no executor equation,
+  tag freshness, whole-trace production readiness, and ready endpoints, but
+  contains no executor equation,
   result, or post-state. `NewInputNecessary` deliberately does not use the
-  established `*Enabled` naming: it omits internal-trace production-mark
-  readiness, recursive per-step tag-update equations, and exclusion of the
-  terminal partner from the intermediate trace, so no success converse is
-  claimed. Lean reconstructs the witness from every typed `NewStep` and proves
+  established `*Enabled` naming: it omits recursive per-step tag-update
+  equations, exclusion of the terminal partner from the intermediate trace,
+  and the later operational enqueue guard, so no success converse is claimed.
+  Lean reconstructs the witness from every typed `NewStep` and proves
   `new?` success, `NewExecutableEnabled`, and priority-selected `new` imply it,
   while dispatcher priority remains operational. Regressions cover genuine
   success, pre-initialization, completed `[[]]`, and forged all-true or
   terminal-partner-pretagged states where the shallow guard holds but `new?`
   fails. This adds no later-call `NEXTAXIOM` totality, enabledness, progress,
   completeness, fallback-removal, or complexity claim. The exact axiom audit
-  now covers 632 declarations: 404 full-classical, 23 axiom-free, 92
+  now covers 634 declarations: 404 full-classical, 23 axiom-free, 94
   `propext`-only, and 113 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7PriorityEnabled.lean`, an exact priority-aware
   applicability interface for the existing canonical dispatcher. Successful

@@ -506,10 +506,11 @@ part of the engineering and proof-identity gap.
    have existential-success iff results under the complete invariant. `new`
    remains explicitly operational through `NewExecutableEnabled`.
    `SequentialFigure7NewInputNecessary.lean` adds only a pure necessary
-   projection: its shallow guard plus exact fresh route is reconstructed from
-   success, but it omits internal-trace production-mark readiness, recursive
-   per-step tag-update equations, and terminal-partner exclusion from the
-   intermediate trace. It therefore supplies no converse and is deliberately
+   projection: its shallow guard plus exact fresh route, including whole-trace
+   production readiness, is reconstructed from success, but it omits recursive
+   per-step tag-update equations, terminal-partner exclusion from the
+   intermediate trace, and the later operational enqueue guard. It therefore
+   supplies no converse and is deliberately
    not named `NewEnabled`. `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -614,10 +615,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 632 declarations: 404 public MLL
+- CI now parses `#print axioms` for 634 declarations: 404 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  92 `propext`-only, and 113 `propext`/`Quot.sound` boundaries;
+  94 `propext`-only, and 113 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

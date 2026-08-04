@@ -521,11 +521,12 @@ theorem follows.
 without changing that priority interface. `NewGuard` contains the ready head,
 exact valid tensor-below witness, and input-unmarked mate;
 `FreshSourceLeftRoute` contains a bounded exact source-left trace, input tag
-freshness, and ready terminal axiom endpoints. Successful typed/executable
+freshness, whole-trace production readiness, and ready terminal axiom
+endpoints. Successful typed/executable
 `new` steps reconstruct `NewInputNecessary`, but no converse is exposed. The
-witness omits production-mark readiness for every internal trace occurrence,
-recursive per-step tag-update equations, and terminal-partner exclusion from
-the intermediate trace. It is therefore a necessary observation, not an
+witness omits recursive per-step tag-update equations, terminal-partner
+exclusion from the intermediate trace, and the later operational enqueue
+guard. It is therefore a necessary observation, not an
 `*Enabled` predicate or progress premise; the canonical dispatcher continues
 to use `NewExecutableEnabled`.
 
