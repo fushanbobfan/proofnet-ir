@@ -2,6 +2,7 @@ import ProofNetIR.SequentialSchedulerInvariant
 import ProofNetIR.SequentialComponentProvenance
 import ProofNetIR.SequentialFigure7UnifyOne
 import ProofNetIR.SequentialFigure7Unify
+import ProofNetIR.SequentialFigure7UnifyPayload
 
 namespace ProofNetIR
 
@@ -2119,6 +2120,351 @@ example :
         unifyOneSchedulerDuplicateBefore
         unifyOneSchedulerDuplicateBefore_reservationInvariant =
       none := by
+  native_decide
+
+/-! Atomic arbitrary-payload unification regressions. -/
+
+/-- Two three-occurrence production components meet at one tensor.  The four
+remaining marked premises support two distinct independent waiting pars.
+
+This is a deliberately hand-built `ReservationInvariant` fixture.  It does
+not submit the axiom origins from which the two stored component trees would
+arise, so it is not a `StructurallyWellFormed` certificate fixture and does not
+exercise structural completeness, scheduler provenance, or reachability. -/
+private def unifyPayloadSchedulerCertificate : Certificate where
+  formulas := #[
+    .tensor (.atom "p" true) (.atom "p" true),
+    .atom "p" false,
+    .atom "p" false,
+    .tensor (.atom "p" true) (.atom "p" true),
+    .atom "p" false,
+    .atom "p" false,
+    .tensor
+      (.tensor (.atom "p" true) (.atom "p" true))
+      (.tensor (.atom "p" true) (.atom "p" true)),
+    .par (.atom "p" false) (.atom "p" false),
+    .par (.atom "p" false) (.atom "p" false)]
+  links := [
+    .tensor 0 3 6,
+    .par 1 2 7,
+    .par 4 5 8]
+  conclusions := [6, 7, 8]
+
+private theorem nat_cases_lt_nine {value : Nat} (bound : value < 9) :
+    value = 0 ∨ value = 1 ∨ value = 2 ∨ value = 3 ∨
+      value = 4 ∨ value = 5 ∨ value = 6 ∨ value = 7 ∨
+        value = 8 := by
+  omega
+
+private def unifyPayloadSchedulerBeforeWithPayload
+    (payload : List Vertex) : ReservationState where
+  stack := {
+    marks := #[
+      none, some 1, some 1, some 0, some 0, some 0,
+      none, none, none]
+    nextAge := 2
+    sigma := [0, 1]
+    ready := [[], [0]]
+    waiting := #[
+      .initialized payload, .undefined, .undefined, .undefined,
+      .undefined, .undefined, .undefined, .undefined, .undefined] }
+  core := {
+    marks := #[
+      none, some 1, some 1, some 0, some 0, some 0,
+      none, none, none]
+    parents := #[0, 1]
+    components := #[
+      some {
+        tree := .tensor 0 0 (.axiom "p" true) (.axiom "p" true)
+        frontier := [3, 4, 5] },
+      some {
+        tree := .tensor 0 0 (.axiom "p" true) (.axiom "p" true)
+        frontier := [0, 1, 2] }]
+    startedAxioms := 2
+    firedConnectives := 2 }
+  tags := Array.replicate 9 false
+
+private theorem unifyPayloadSchedulerBeforeWithPayload_reservationInvariant
+    (payload : List Vertex) :
+    ReservationInvariant unifyPayloadSchedulerCertificate
+      (unifyPayloadSchedulerBeforeWithPayload payload) := by
+  exact {
+    stack_wellShaped := {
+      marks_size := rfl
+      waiting_size := rfl
+      assigned_age_bound := by
+        intro vertex age assigned
+        have vertexBound : vertex < 9 := by
+          simpa [unifyPayloadSchedulerBeforeWithPayload] using
+            (Array.getElem?_eq_some_iff.mp assigned).1
+        have cases := nat_cases_lt_nine vertexBound
+        rcases cases with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+        · simp [unifyPayloadSchedulerBeforeWithPayload] at assigned
+        · have ageEquation : age = 1 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using assigned.symm
+          subst age
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have ageEquation : age = 1 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using assigned.symm
+          subst age
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have ageEquation : age = 0 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using assigned.symm
+          subst age
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have ageEquation : age = 0 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using assigned.symm
+          subst age
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have ageEquation : age = 0 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using assigned.symm
+          subst age
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        all_goals simp [unifyPayloadSchedulerBeforeWithPayload] at assigned
+      sigma_partition := {
+        empty_iff := by simp [unifyPayloadSchedulerBeforeWithPayload]
+        head_zero := by simp [unifyPayloadSchedulerBeforeWithPayload]
+        strictIncreasing := by simp [unifyPayloadSchedulerBeforeWithPayload]
+        boundary_lt := by
+          intro boundary membership
+          simp [unifyPayloadSchedulerBeforeWithPayload] at membership
+          rcases membership with rfl | rfl <;>
+            simp [unifyPayloadSchedulerBeforeWithPayload] }
+      ready_aligned := rfl
+      ready_nodup := by
+        intro bucket membership
+        simp [unifyPayloadSchedulerBeforeWithPayload] at membership
+        rcases membership with rfl | rfl <;> simp
+      ready_in_bounds := by
+        intro bucket membership vertex vertexMembership
+        simp [unifyPayloadSchedulerBeforeWithPayload] at membership
+        rcases membership with rfl | rfl
+        · simp at vertexMembership
+        · have vertexEquation : vertex = 0 := by
+            simpa using vertexMembership
+          subst vertex
+          simp [unifyPayloadSchedulerCertificate]
+      nextAge_le_waiting := by
+        simp [unifyPayloadSchedulerBeforeWithPayload] }
+    stack_operationalWaitingDomain := {
+      initialized_iff_inactive := by
+        intro age ageBound
+        change age < 2 at ageBound
+        have cases : age = 0 ∨ age = 1 := nat_cases_lt_two ageBound
+        rcases cases with rfl | rfl <;>
+          simp [SequentialStackState.WaitingInitializedAt,
+            unifyPayloadSchedulerBeforeWithPayload] }
+    realizesSigma := {
+      marks_eq := rfl
+      horizon_eq := rfl
+      representative_eq_boundary := by
+        intro age ageBound
+        change age < 2 at ageBound
+        have cases : age = 0 ∨ age = 1 := nat_cases_lt_two ageBound
+        rcases cases with rfl | rfl <;>
+          simp [unifyPayloadSchedulerBeforeWithPayload,
+            UnificationState.representative] <;> native_decide }
+    core_orderedParents := by
+      intro token parent lookup
+      have tokenBound : token < 2 := by
+        simpa [unifyPayloadSchedulerBeforeWithPayload] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have cases : token = 0 ∨ token = 1 := by omega
+      rcases cases with rfl | rfl <;>
+        simp [unifyPayloadSchedulerBeforeWithPayload] at lookup ⊢ <;> omega
+    core_abstractable := {
+      markArraySize := rfl
+      markedVertexBound := by
+        intro vertex token assigned
+        simpa [unifyPayloadSchedulerCertificate,
+          unifyPayloadSchedulerBeforeWithPayload] using
+          (Array.getElem?_eq_some_iff.mp
+            (UnificationState.assignedToken?_some_raw assigned)).1
+      markedTokenBound := by
+        intro vertex token assigned
+        have raw := UnificationState.assignedToken?_some_raw assigned
+        have vertexBound : vertex < 9 := by
+          simpa [unifyPayloadSchedulerBeforeWithPayload] using
+            (Array.getElem?_eq_some_iff.mp raw).1
+        have cases := nat_cases_lt_nine vertexBound
+        rcases cases with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+        · simp [unifyPayloadSchedulerBeforeWithPayload] at raw
+        · have tokenEquation : token = 1 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using raw.symm
+          subst token
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have tokenEquation : token = 1 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using raw.symm
+          subst token
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have tokenEquation : token = 0 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using raw.symm
+          subst token
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have tokenEquation : token = 0 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using raw.symm
+          subst token
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        · have tokenEquation : token = 0 := by
+            simpa [unifyPayloadSchedulerBeforeWithPayload] using raw.symm
+          subst token
+          simp [unifyPayloadSchedulerBeforeWithPayload]
+        all_goals simp [unifyPayloadSchedulerBeforeWithPayload] at raw
+      representativeBound := by
+        intro token tokenBound
+        change token < 2 at tokenBound
+        have cases : token = 0 ∨ token = 1 := by omega
+        rcases cases with rfl | rfl <;>
+          simp [unifyPayloadSchedulerBeforeWithPayload,
+            UnificationState.representative] <;> native_decide
+      representativeIdempotent := by
+        intro token tokenBound
+        change token < 2 at tokenBound
+        have cases : token = 0 ∨ token = 1 := by omega
+        rcases cases with rfl | rfl <;>
+          simp [unifyPayloadSchedulerBeforeWithPayload,
+            UnificationState.representative] <;> native_decide }
+    core_componentsFormulaConsistent := by
+      intro index component lookup
+      have indexBound : index < 2 := by
+        simpa [unifyPayloadSchedulerBeforeWithPayload] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have cases : index = 0 ∨ index = 1 := by omega
+      rcases cases with rfl | rfl
+      · simp [unifyPayloadSchedulerBeforeWithPayload] at lookup
+        subst component
+        exact ⟨[
+            .tensor (.atom "p" true) (.atom "p" true),
+            .atom "p" false, .atom "p" false],
+          by native_decide, by native_decide⟩
+      · simp [unifyPayloadSchedulerBeforeWithPayload] at lookup
+        subst component
+        exact ⟨[
+            .tensor (.atom "p" true) (.atom "p" true),
+            .atom "p" false, .atom "p" false],
+          by native_decide, by native_decide⟩
+    core_carriers_aligned := rfl
+    core_counter_aligned := rfl
+    tags_size := rfl }
+
+private def unifyPayloadSchedulerRun (payload : List Vertex) :
+    Option ReservationState :=
+  SequentialFigure7.unifyPayload? unifyPayloadSchedulerCertificate
+    (unifyPayloadSchedulerBeforeWithPayload payload)
+    (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant payload)
+
+/-- Empty payload: one tensor, no waiting par, then the exact drain. -/
+example :
+    (match unifyPayloadSchedulerRun [] with
+    | none => false
+    | some afterUnify =>
+        afterUnify.stack.sigma == [0] &&
+        afterUnify.stack.ready == [[6]] &&
+        afterUnify.core.firedConnectives == 3) = true := by
+  native_decide
+
+/-- Empty-shape compatibility uses the canonical generic-to-tensor query
+bridge and returns the old executor's exact output. -/
+example :
+    unifyPayloadSchedulerRun [] =
+      SequentialFigure7.unifyEmpty? unifyPayloadSchedulerCertificate
+        (unifyPayloadSchedulerBeforeWithPayload [])
+        (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant []) := by
+  native_decide
+
+example {after : ReservationState}
+    (equation :
+      SequentialFigure7.unifyEmpty? unifyPayloadSchedulerCertificate
+          (unifyPayloadSchedulerBeforeWithPayload [])
+          (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant []) =
+        some after) :
+    unifyPayloadSchedulerRun [] = some after := by
+  exact SequentialFigure7.unifyPayload?_of_unifyEmpty?_eq_some
+    (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [])
+    equation
+
+/-- Singleton payload: the unified executor agrees with the old strict
+singleton result through the explicit witness bridge. -/
+example :
+    unifyPayloadSchedulerRun [7] =
+      SequentialFigure7.unifyOne? unifyPayloadSchedulerCertificate
+        (unifyPayloadSchedulerBeforeWithPayload [7])
+        (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [7]) := by
+  native_decide
+
+example {after : ReservationState}
+    (equation :
+      SequentialFigure7.unifyOne? unifyPayloadSchedulerCertificate
+          (unifyPayloadSchedulerBeforeWithPayload [7])
+          (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [7]) =
+        some after) :
+    unifyPayloadSchedulerRun [7] = some after := by
+  exact SequentialFigure7.unifyPayload?_of_unifyOne?_eq_some
+    (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [7])
+    equation
+
+/-- Two distinct waiting conclusions are activated in stored order and the
+local counter records one tensor plus two pars. -/
+
+example :
+    (match unifyPayloadSchedulerRun [7, 8] with
+    | none => false
+    | some afterUnify =>
+        afterUnify.stack.sigma == [0] &&
+        afterUnify.stack.ready == [[6, 7, 8]] &&
+        afterUnify.core.firedConnectives == 5 &&
+        match afterUnify.core.components[0]? with
+        | some (some component) =>
+            component.frontier == [6, 7, 8] &&
+              component.tree ==
+                (.par 1 1
+                  (.par 1 1
+                    (.tensor 0 0
+                      (.tensor 0 0
+                        (.axiom "p" true) (.axiom "p" true))
+                      (.tensor 0 0
+                        (.axiom "p" true) (.axiom "p" true)))))
+        | _ => false) = true := by
+  native_decide
+
+/-- The concrete two-element success reconstructs the typed witness, the
+high-level-executable-independent direct relation, and the preserved
+reservation invariant. -/
+example {after : ReservationState}
+    (equation : unifyPayloadSchedulerRun [7, 8] = some after) :
+    Nonempty
+        (SequentialFigure7.UnifyPayloadStep
+          unifyPayloadSchedulerCertificate
+          (unifyPayloadSchedulerBeforeWithPayload [7, 8]) after) ∧
+      SequentialFigure7.UnifyPayloadRule
+        unifyPayloadSchedulerCertificate
+        (unifyPayloadSchedulerBeforeWithPayload [7, 8]) after ∧
+      ReservationInvariant unifyPayloadSchedulerCertificate after := by
+  have unfolded :
+      SequentialFigure7.unifyPayload? unifyPayloadSchedulerCertificate
+          (unifyPayloadSchedulerBeforeWithPayload [7, 8])
+          (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [7, 8]) =
+        some after := by
+    simpa [unifyPayloadSchedulerRun] using equation
+  exact ⟨
+    (SequentialFigure7.unifyPayload?_some_iff
+      (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [7, 8])).mp
+        unfolded,
+    SequentialFigure7.unifyPayload?_sound
+      (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [7, 8])
+      unfolded,
+    SequentialFigure7.unifyPayload?_reservationInvariant
+      (unifyPayloadSchedulerBeforeWithPayload_reservationInvariant [7, 8])
+      unfolded⟩
+
+/-- Duplicate activation fails on the threaded second lookup; no stale core
+is replayed. -/
+example : unifyPayloadSchedulerRun [7, 7] = none := by
+  native_decide
+
+/-- A malformed second payload element with no unique submitted par producer
+fails closed after the first activation. -/
+example : unifyPayloadSchedulerRun [7, 6] = none := by
   native_decide
 
 /-! Arbitrary waiting-payload activation-fold regressions. -/

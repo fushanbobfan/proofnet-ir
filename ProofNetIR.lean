@@ -36,6 +36,7 @@ import ProofNetIR.SequentialFigure7Rules
 import ProofNetIR.SequentialFigure7UnifyOne
 import ProofNetIR.SequentialSchedulerInvariant
 import ProofNetIR.SequentialFigure7Unify
+import ProofNetIR.SequentialFigure7UnifyPayload
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

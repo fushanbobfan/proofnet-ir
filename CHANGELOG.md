@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- added `SequentialFigure7UnifyPayload.lean`, the local atomic
+  arbitrary-payload Figure-7 composition. `unifyPayload?` performs the common
+  prepare prefix, one exact tensor construction/union, the deterministic
+  stored-head-to-tail `activateWaitingPayload?` fold, and the exact two-level
+  scheduler drain in one executable. The high-level-executable-independent
+  direct `UnifyPayloadRule`, typed `UnifyPayloadStep`, and executable have exact
+  correspondence and output uniqueness under their documented structural,
+  `ReservationInvariant`, and final-ready `Nodup` premises. Every successful
+  typed/executable step preserves `ReservationInvariant`; `UnifyPayloadStep.exact`
+  fixes the final stack fields, stored tensor orientation, and project-local
+  counter equation
+  `after.core.firedConnectives = before.core.firedConnectives + 1 + payload.length`.
+  Distinct two-element payload success plus duplicate and malformed-second
+  fail-closed regressions exercise the arbitrary branch. Existing
+  `UnifyEmpty`/`UnifyOne` successes are accepted by the new executor with the
+  same exact output through one-way witness bridges; no general executor
+  equality, reverse equivalence, or replacement of the specialized APIs is
+  claimed. Stored payload order fixes executable fold order and derivation
+  nesting only; Guerrini's cell is set-valued, so there is no order-independence,
+  commutativity, or paper temporal-order claim. This local checkpoint does not
+  derive payload applicability, preserve `ComponentForestProvenance` or
+  `SchedulerInvariant`, integrate a dispatcher/history/reachability proof, show
+  later-state totality or progress, prove pure-worklist completeness or remove
+  the recursive fallback, complete faithful `NEXTAXIOM`/token-age scheduling,
+  or establish O(1) behavior or whole-program linearity. The exact axiom audit
+  now covers 555 declarations: 331 full-classical, 23 axiom-free, 90
+  `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7Unify.lean`, a local production-core activation fold
   for arbitrary finite stored waiting payloads. The executable threads
   `activateWaitingPar?` head to tail; independent Boolean-free and typed fold
@@ -15,9 +42,9 @@
   project representation choices. This checkpoint does not add payload
   applicability, occurrence-forest or `SchedulerInvariant` preservation, an
   atomic tensor/fold/drain `Unify`, dispatcher/history/reachability, progress,
-  completeness, fallback removal, or a complexity result. The exact axiom
-  audit now covers 537 declarations: 315 full-classical, 23 axiom-free, 90
-  `propext`-only, and 109 `propext`/`Quot.sound` boundaries;
+  completeness, fallback removal, or a complexity result. At that checkpoint,
+  the exact axiom audit covered 537 declarations: 315 full-classical, 23
+  axiom-free, 90 `propext`-only, and 109 `propext`/`Quot.sound` boundaries;
 - added the strict-singleton Figure-7 `UnifyOne` slice for exactly
   `W(j) = [c]`. The occurrence source index recovers `c`'s unique exact
   submitted par producer slot and stored orientation. The executable performs

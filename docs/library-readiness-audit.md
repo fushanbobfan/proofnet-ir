@@ -457,7 +457,7 @@ part of the engineering and proof-identity gap.
    strict-singleton `UnifyOne` slice now accepts exactly `W(j) = [c]`, obtains
    `c`'s exact submitted par producer slot from the singleton occurrence-source
    bucket, and atomically performs prepare, tensor union, one par activation,
-   and scheduler drain. Its Boolean-free direct relations have exact
+   and scheduler drain. Its high-level-executable-independent direct relation has exact
    typed/executable correspondence and output uniqueness; successful steps
    preserve both `ReservationInvariant` and the complete occurrence-exact
    `SchedulerInvariant`, with an exact connective-counter increase of two.
@@ -465,12 +465,18 @@ part of the engineering and proof-identity gap.
    the waiting par is the project's derivation/provenance representation
    refinement of the paper's set-to-ready move, not a claim that the paper
    specifies that construction. A separate local head-to-tail production-core
-   fold now has direct/typed/executable correspondence, output uniqueness, the
+   fold has direct/typed/executable correspondence, output uniqueness, the
    documented core-field preservation, and exact `+ payload.length` counter
-   accounting. It has no scheduler stack and proves neither payload
-   applicability nor occurrence-forest/`SchedulerInvariant` transport. Atomic
-   arbitrary-payload `Unify`, full-history integration of
-   `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`,
+   accounting. `SequentialFigure7UnifyPayload.lean` now atomically composes
+   one exact tensor, that stored-order fold, and the two-level drain. Its
+   high-level-executable-independent direct relation, typed witness, and
+   executable have exact
+   correspondence and output uniqueness under their documented structural,
+   `ReservationInvariant`, and final-ready `Nodup` premises. Successful steps
+   preserve `ReservationInvariant`, and the exact state theorem accounts for
+   `1 + payload.length`. It proves neither payload applicability nor
+   occurrence-forest/`SchedulerInvariant` transport. Full-history integration of
+   `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload`,
    applicability/totality,
    full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
@@ -486,14 +492,13 @@ part of the engineering and proof-identity gap.
    binds the two representatives to scheduler `j/i`, orients
    `parent[i] := j`, and drains only `W(j) = []`; it increments only the tensor
    constructor. `UnifyOne` constructs exactly the singleton drained par. The
-   local production-core fold constructs an arbitrary stored payload head to
-   tail, but arbitrary-payload `unify` must prove every activation available and
-   connect the fold atomically to the tensor and scheduler drain. A direct longer-payload composition of
-   `queueTensor?` and `mergeTopReadyWaiting?` is therefore insufficient:
-   moved ready payloads lack constructed par components and the required
-   `1 + |W(j)|` counter change. Exact occurrence provenance and complete
-   scheduler-invariant preservation remain necessary for payload length at
-   least two.
+   local arbitrary executor now constructs every stored payload par head to
+   tail between the tensor and the drain and proves the required
+   `1 + |W(j)|` counter change. What remains necessary for payload length at
+   least two is applicability plus exact occurrence provenance and complete
+   scheduler-invariant preservation. Old empty/singleton success maps one way
+   to the same new output; no function equality or reverse equivalence is
+   asserted.
    The stack's deterministic
    `conclusion :: (payload ++ previousReady ++ activeReady)` order refines
    paper-level sets and does not establish global ownership or linearity.
@@ -556,10 +561,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 537 declarations: 315 public MLL
+- CI now parses `#print axioms` for 555 declarations: 331 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  90 `propext`-only, and 109 `propext`/`Quot.sound` boundaries;
+  90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -663,9 +668,11 @@ It can currently be used for:
   `UnifyOne` have direct rules and exact correspondence, and successful
   typed/executable bounded steps preserve the
   complete occurrence-exact `SchedulerInvariant`. The local arbitrary-payload
-  production-core fold is present with exact correspondence and counter
-  accounting. Later-state applicability and totality, atomic general `Unify`,
-  and full-history rule
+  fold and atomic `UnifyPayload` composition are present with exact
+  correspondence and `1 + payload.length` accounting; the latter preserves
+  `ReservationInvariant`, not `ComponentForestProvenance` or the full
+  `SchedulerInvariant`. Later-state applicability and totality, arbitrary
+  payload full-invariant preservation, and full-history rule
   integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.

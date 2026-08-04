@@ -285,13 +285,18 @@ tensor union → par activation → scheduler drain. Its independent
 Boolean-free direct relations, typed/executable correspondence, unique output,
 exact `+2` counter equation, and preservation of both `ReservationInvariant`
 and the full occurrence-exact `SchedulerInvariant` are kernel checked. Empty
-and length-at-least-two payloads fail closed. A separate local
-production-core fold now activates any finite stored payload head to tail with
-independent direct/typed/executable correspondence, output uniqueness, and an
-exact project-local `+ payload.length` connective counter. It preserves only
-the documented core fields under explicit hypotheses: it has no scheduler
-stack, does not derive applicability or occurrence-forest ownership, and does
-not define atomic arbitrary-payload `Unify`. Correct-state progress,
+and length-at-least-two payloads fail closed in that specialized executor. A
+separate local production-core fold activates any finite stored payload head
+to tail with independent direct/typed/executable correspondence, output
+uniqueness, and exact `+ payload.length` accounting.
+`SequentialFigure7UnifyPayload.lean` now composes one tensor, that fold, and the
+two-level drain atomically. Its high-level-executable-independent direct
+`UnifyPayloadRule`, typed witness, and executable have exact correspondence
+under the stated structural,
+`ReservationInvariant`, and final-ready `Nodup` premises; success preserves
+`ReservationInvariant` and satisfies exact `1 + payload.length` accounting.
+It does not derive payload applicability or occurrence-forest/
+`SchedulerInvariant` preservation. Correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
@@ -332,16 +337,17 @@ separate ready-list `Nodup` premise. A successful executable preserves the
 complete `ReservationInvariant`; under the stronger supplied
 `SchedulerInvariant`, the typed and executable preservation theorems retain
 the entire occurrence-exact state-only bundle.
-These scheduler-level facts plus `UnifyOne` authorize exactly the singleton
-atomic payload, not arbitrary-payload `Unify`. The local production-core fold
-does construct all listed waiting pars and proves its own
-`+ payload.length` change. The general atomic case must establish that every
-payload item is available, transport exact occurrence/component provenance,
-combine the tensor, fold, and scheduler drain, and prove the total
-`1 + |W(j)|` counter change. A direct longer-payload stack composition remains
-insufficient. Guerrini's rule specifies moving a waiting set into ready; the
-project's stored head-to-tail order and explicit derivation/provenance
-construction are representation refinements, not paper claims. No dispatcher,
+These scheduler-level facts plus `UnifyOne` authorize the singleton branch with
+the full state-only invariant. The arbitrary `UnifyPayload` executor now
+combines the tensor, all stored waiting-par activations, and the drain, proving
+the total `1 + |W(j)|` counter change and `ReservationInvariant` preservation.
+It still needs a proof that every payload is applicable in intended states and
+transport of exact occurrence/component and full scheduler invariants. The old
+empty/singleton successes embed one way with the same output; no function
+equality or reverse equivalence is trusted. Guerrini's rule specifies moving a
+waiting set into ready; the project's stored head-to-tail order and explicit
+derivation/provenance construction are representation refinements, not paper
+claims, and imply neither commutativity nor paper temporal order. No dispatcher,
 progress, scheduler/pure-worklist
 completeness, O(1), or whole-program linearity claim follows.
 
@@ -588,9 +594,10 @@ dedicated init/new history adds exact reachability and tag provenance for that
  direct rule with executable correspondence. Bounded `UnifyEmpty` and
  strict-singleton `UnifyOne` have direct correspondence, and successful
  typed/executable steps preserve the complete occurrence-exact state-only
- invariant. The local arbitrary-payload production-core fold exists outside
- this state/history layer. It does not add later applicability/totality, its
- atomic scheduler integration, a full-rule
+ invariant. The local arbitrary-payload fold and atomic `UnifyPayload`
+ composition exist outside this state/history layer. The atomic composition
+ preserves only `ReservationInvariant`; it does not add later
+ applicability/totality, a full-rule
  reachability invariant, or full-history integration. No
 planarity principle is assumed.
 
@@ -710,9 +717,10 @@ Lean now also constructs the exact simultaneous complementary
   proved. Exact local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` are also proved, and
   successful deterministic/executable `new`, `wait`, `forward`, and bounded
   `UnifyEmpty` and strict-singleton `UnifyOne` preserve the complete current
-  occurrence-exact state-only invariant. A local arbitrary-payload
-  production-core fold is proved separately. Later-state applicability and
-  totality, atomic arbitrary-payload `Unify`, full-history integration, and the
+  occurrence-exact state-only invariant. A local arbitrary-payload fold and
+  atomic tensor/fold/drain executor are proved separately, without complete
+  occurrence-exact invariant preservation. Later-state applicability and
+  totality, full-history integration, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
