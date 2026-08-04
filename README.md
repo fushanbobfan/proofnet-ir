@@ -233,6 +233,19 @@ enabled, and uniqueness of the priority kind. A real completed ready state
 exact interface to current dispatcher behavior, not a proof that every
 intended nonterminal state has a branch, nor progress, pure-worklist
 completeness, fallback removal, or whole-program linearity.
+`SequentialFigure7NewInputNecessary.lean` now exposes a separate, deliberately
+one-way input projection for `new`. `NewGuard` records the ready head, exact
+valid tensor-below consumer, and input-unmarked mate;
+`FreshSourceLeftRoute` adds a bounded exact source-left route with input tag
+freshness and ready axiom endpoints. A typed `NewStep`, executable `new?`
+success, `NewExecutableEnabled`, or a priority-selected `new` branch implies
+`NewInputNecessary`. There is no converse: the witness does not record
+production-mark readiness for every internal trace occurrence, recursive
+per-step tag-update equations, or exclusion of the terminal partner from the
+intermediate trace. All-true and terminal-partner-pretagged regressions keep
+the shallow guard while `new?` fails. Consequently dispatcher priority still
+uses operational `NewExecutableEnabled`; this module proves neither input-only
+enabledness nor later-call `NEXTAXIOM` totality.
 `SequentialFigure7TagHistory.lean` augments exactly those existing traces with
 branch-aligned tag evidence. The five non-`new` branches preserve the complete
 tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
@@ -1538,9 +1551,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 622 declarations: 398 public MLL logical-boundary theorems
+ separately audits 632 declarations: 404 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 23
- axiom-free, 90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries. LeanProp
+ axiom-free, 92 `propext`-only, and 113 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1693,6 +1706,7 @@ ProofNetIR/SequentialFigure7UnifyPayloadEnabled.lean input-only conditional payl
 ProofNetIR/SequentialFigure7StableEnabled.lean input-only stable-rule applicability
 ProofNetIR/SequentialFigure7Dispatcher.lean canonical six-rule dispatcher and certified history
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact priority-aware applicability correspondence
+ProofNetIR/SequentialFigure7NewInputNecessary.lean one-way input-only necessary projection for new
 ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
 ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant
 ProofNetIR/SequentialComponentProvenance.lean exact proof-only component identity

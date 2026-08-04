@@ -360,6 +360,17 @@ selected-kind iff, `none` iff no kind, and kind-uniqueness theorems therefore
 classify current executable behavior without asserting that an intended state
 must be executable. The real completed `[[]]` regression remains an explicit
 full-invariant no-branch case.
+`SequentialFigure7NewInputNecessary.lean` likewise adds no oracle or
+applicability axiom. It erases executor equations, results, and post-states from
+a successful `NewStep`, retaining only a shallow ready/tensor/mate guard and a
+bounded exact source-left route with input tag freshness and ready axiom
+endpoints. The checked direction is success to `NewInputNecessary`. No reverse
+direction exists because the witness omits production-mark readiness for every
+internal trace occurrence, recursive per-step tag-update equations, and
+terminal-partner exclusion from the intermediate trace. Forged all-true and
+terminal-partner-pretagged inputs demonstrate that `NewGuard` alone is not an
+oracle for success. `PriorityEnabled` therefore continues to store operational
+`NewExecutableEnabled` for its `new` branch.
 `SequentialFigure7TagHistory.lean` also adds no oracle. It pattern-matches only
 the exact typed branch recovered from an existing `DispatchStep` and augments
 the already-certified `ExecutedHistory`. The five stable branches prove array
@@ -371,9 +382,9 @@ duplicate-free, and show touched history-independence for a fixed state.
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
 separate nonreachability proof for that forged state. The exact trust audit now
-covers 622 declarations: 398 use exactly
-`[propext, Classical.choice, Quot.sound]`, 23 are axiom-free, 90 use exactly
-`[propext]`, and 111 use exactly `[propext, Quot.sound]`.
+covers 632 declarations: 404 use exactly
+`[propext, Classical.choice, Quot.sound]`, 23 are axiom-free, 92 use exactly
+`[propext]`, and 113 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted

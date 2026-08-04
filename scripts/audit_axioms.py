@@ -385,6 +385,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.wait?_success_iff_enabled",
     "ProofNetIR.SequentialFigure7.forward?_success_iff_enabled",
     "ProofNetIR.SequentialFigure7.unifyPayload?_success_iff_enabled",
+    "ProofNetIR.SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput",
+    "ProofNetIR.SequentialFigure7.NewStep.mate_unmarked_before",
+    "ProofNetIR.SequentialFigure7.NewStep.inputNecessary",
+    "ProofNetIR.SequentialFigure7.new?_success_implies_inputNecessary",
+    "ProofNetIR.SequentialFigure7.NewExecutableEnabled.inputNecessary",
+    "ProofNetIR.SequentialFigure7.PriorityEnabled.newInputNecessary",
     "ProofNetIR.SequentialFigure7.DispatchStep.priorityEnabled",
     "ProofNetIR.SequentialFigure7.PriorityEnabled.exists_dispatchStep",
     "ProofNetIR.SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled",
@@ -437,6 +443,8 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.TagsExtend.trans",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.start_mem",
+    "ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.startFresh",
     "ProofNetIR.Certificate.linkLeftRetainedEdges_lookup_origin",
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
     "ProofNetIR.LeanProp.Assumptions.split_append",
@@ -529,6 +537,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.NewGuard.tensor_eq",
+    "ProofNetIR.SequentialFigure7.NewGuard.mate_ne",
     "ProofNetIR.SequentialUnification.sourceIndex_par_mem",
     "ProofNetIR.Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true",
     "ProofNetIR.Graph.EdgeSimplePath.prefixBefore",

@@ -14147,6 +14147,237 @@ ProofNetIR.SequentialFigure7.WaitingPrependAt.output_unique : ∀ {before first 
     ProofNetIR.SequentialFigure7.WaitingPrependAt before second boundary conclusion → first = second
 ```
 
+## Input-only necessary projection for Figure-7 new
+
+### `ProofNetIR.SequentialFigure7.NewGuard`
+
+Kind: inductive type.
+
+Shallow, input-only necessary guard for Figure-7 `new`.
+
+The opposite premise is checked in the original production marking.  No tag
+freshness, source route, executor equation, or output state is stored here, so
+this type must not be read as sufficient executable applicability.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.tensor_eq`
+
+Kind: theorem.
+
+A shallow guard determines the exact canonical tensor lookup.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.tensor_eq : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+  certificate.tensorBelow? guard.head.vertex = some guard.tensor
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.mate_ne`
+
+Kind: theorem.
+
+The selected ready occurrence and its tensor mate are distinct.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.mate_ne : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before), guard.tensor.mate ≠ guard.head.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute`
+
+Kind: inductive type.
+
+Declarative input-state content of one fresh bounded source-left route.
+
+The witness records only certificate structure, the input production marking,
+the input tag carrier, and a finite list of visited vertices.  `traceFresh`
+means tag freshness; endpoint production readiness is recorded separately.
+This is a necessary semantic projection of successful `NEXTAXIOM`, not a
+complete executable success criterion: it does not store production-mark
+readiness for every internal trace occurrence, recursive per-step tag-update
+equations, or terminal-partner exclusion from the intermediate trace.
+
+```lean
+ProofNetIR.SequentialFigure7.FreshSourceLeftRoute : ProofNetIR.Certificate → ProofNetIR.UnificationState → Array Bool → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.start_mem`
+
+Kind: theorem.
+
+The named start belongs to every nonempty exact route.
+
+```lean
+ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.start_mem : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {tags : Array Bool}
+  {start : ProofNetIR.Vertex} (route : ProofNetIR.SequentialFigure7.FreshSourceLeftRoute certificate state tags start),
+  start ∈ route.trace
+```
+
+### `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.startFresh`
+
+Kind: theorem.
+
+The route start is false in the exact input tag carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.startFresh : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {tags : Array Bool}
+  {start : ProofNetIR.Vertex} (route : ProofNetIR.SequentialFigure7.FreshSourceLeftRoute certificate state tags start),
+  tags[start]? = some false
+```
+
+### `ProofNetIR.SequentialFigure7.NewInput`
+
+Kind: inductive type.
+
+Read-only data for the input-only necessary Figure-7 `new` predicate.
+
+`guard.head.markedCore` is a pure expression over the input state; it is not an
+executor result.  The structure contains no `new?`/`nextAxiom?` equation and no
+post-state.  No converse from this predicate to executable success is claimed.
+
+```lean
+ProofNetIR.SequentialFigure7.NewInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.NewInputNecessary`
+
+Kind: definition.
+
+Input-only necessary witness proposition for Figure-7 `new`.
+
+The name deliberately avoids `Enabled`: unlike the established Figure-7
+`*Enabled` predicates, this proposition does not imply executor success.
+
+```lean
+ProofNetIR.SequentialFigure7.NewInputNecessary : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.readyHeadInput`
+
+Kind: definition.
+
+Recover the shallow ready-head view from the exact input queries of a typed
+`new` success.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.readyHeadInput : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewStep certificate before after → ProofNetIR.SequentialFigure7.ReadyHeadInput before
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput`
+
+Kind: theorem.
+
+The production state obtained by the typed raw-mark query is definitionally
+the pure marked-core expression attached to its input-only ready head.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  step.coreMarked = step.readyHeadInput.markedCore
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.mate_unmarked_before`
+
+Kind: theorem.
+
+The opposite tensor premise was already unmarked in the original input
+state, before the selected ready occurrence was raw-marked.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.mate_unmarked_before : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  before.core.marks[step.tensor.mate]? = some none
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.guard`
+
+Kind: definition.
+
+Every typed `new` success reconstructs the shallow input-only guard.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.guard : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewStep certificate before after →
+      ProofNetIR.SequentialFigure7.NewGuard certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.freshSourceLeftRoute`
+
+Kind: definition.
+
+A typed `new` success projects to a result-free, equation-free fresh route
+over its exact input marking and tags.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.freshSourceLeftRoute : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    (step : ProofNetIR.SequentialFigure7.NewStep certificate before after) →
+      ProofNetIR.SequentialFigure7.FreshSourceLeftRoute certificate step.coreMarked before.tags step.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.inputNecessary`
+
+Kind: theorem.
+
+A typed executable `new` success reconstructs the combined input-only
+necessary predicate.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialFigure7.NewInputNecessary certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.new?_success_implies_inputNecessary`
+
+Kind: theorem.
+
+Executable `new?` success implies the input-only necessary predicate.
+
+There is deliberately no reverse theorem in this checkpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_success_implies_inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.new? certificate before invariant = some after →
+    ProofNetIR.SequentialFigure7.NewInputNecessary certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.NewExecutableEnabled.inputNecessary`
+
+Kind: theorem.
+
+The operational priority-layer `new` proposition implies the declarative
+input-only necessary predicate.  This implication is intentionally one-way.
+
+```lean
+ProofNetIR.SequentialFigure7.NewExecutableEnabled.inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before},
+  ProofNetIR.SequentialFigure7.NewExecutableEnabled certificate before invariant →
+    ProofNetIR.SequentialFigure7.NewInputNecessary certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.PriorityEnabled.newInputNecessary`
+
+Kind: theorem.
+
+A priority-selected `new` branch has the input-only necessary witness while
+the priority classifier itself remains tied to operational executor success.
+
+```lean
+ProofNetIR.SequentialFigure7.PriorityEnabled.newInputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before},
+  ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant
+      ProofNetIR.SequentialFigure7.Figure7RuleKind.new →
+    ProofNetIR.SequentialFigure7.NewInputNecessary certificate before
+```
+
 ## Priority-aware Figure-7 applicability
 
 ### `ProofNetIR.SequentialFigure7.PreparedStep.readyHeadInput`

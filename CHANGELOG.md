@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- added `SequentialFigure7NewInputNecessary.lean`, an honest input-only
+  necessary projection of operational Figure-7 `new` success. `NewGuard`
+  records a ready head, its exact valid tensor-below witness, and an unmarked
+  opposite premise in the input production state. `FreshSourceLeftRoute`
+  records a bounded source-left trace to an exact submitted axiom with input
+  tag freshness and ready endpoints, but contains no executor equation,
+  result, or post-state. `NewInputNecessary` deliberately does not use the
+  established `*Enabled` naming: it omits internal-trace production-mark
+  readiness, recursive per-step tag-update equations, and exclusion of the
+  terminal partner from the intermediate trace, so no success converse is
+  claimed. Lean reconstructs the witness from every typed `NewStep` and proves
+  `new?` success, `NewExecutableEnabled`, and priority-selected `new` imply it,
+  while dispatcher priority remains operational. Regressions cover genuine
+  success, pre-initialization, completed `[[]]`, and forged all-true or
+  terminal-partner-pretagged states where the shallow guard holds but `new?`
+  fails. This adds no later-call `NEXTAXIOM` totality, enabledness, progress,
+  completeness, fallback-removal, or complexity claim. The exact axiom audit
+  now covers 632 declarations: 404 full-classical, 23 axiom-free, 92
+  `propext`-only, and 113 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7PriorityEnabled.lean`, an exact priority-aware
   applicability interface for the existing canonical dispatcher. Successful
   typed `ConclStep`, `NopStep`, `WaitStep`, `ForwardStep`, and

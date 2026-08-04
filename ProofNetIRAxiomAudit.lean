@@ -584,6 +584,16 @@ expansion.
 #print axioms SequentialFigure7.wait?_success_iff_enabled
 #print axioms SequentialFigure7.forward?_success_iff_enabled
 #print axioms SequentialFigure7.unifyPayload?_success_iff_enabled
+#print axioms SequentialFigure7.NewGuard.tensor_eq
+#print axioms SequentialFigure7.NewGuard.mate_ne
+#print axioms SequentialFigure7.FreshSourceLeftRoute.start_mem
+#print axioms SequentialFigure7.FreshSourceLeftRoute.startFresh
+#print axioms SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput
+#print axioms SequentialFigure7.NewStep.mate_unmarked_before
+#print axioms SequentialFigure7.NewStep.inputNecessary
+#print axioms SequentialFigure7.new?_success_implies_inputNecessary
+#print axioms SequentialFigure7.NewExecutableEnabled.inputNecessary
+#print axioms SequentialFigure7.PriorityEnabled.newInputNecessary
 #print axioms SequentialFigure7.DispatchStep.priorityEnabled
 #print axioms SequentialFigure7.PriorityEnabled.exists_dispatchStep
 #print axioms SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled

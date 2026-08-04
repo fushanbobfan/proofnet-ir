@@ -506,8 +506,8 @@ the dispatcher, stable enabled predicates, and payload-enabled predicate. It
 does not change an executor. Successful typed steps for `concl`, `nop`,
 `wait`, `forward`, and `unifyPayload` reconstruct their existing input-only
 enabled witnesses; conversely, those witnesses plus `SchedulerInvariant`
-produce existential executor success. `new` has no corresponding pure guard in
-this slice: `NewExecutableEnabled` explicitly abbreviates existential `new?`
+produce existential executor success. `new` remains operational in this
+interface: `NewExecutableEnabled` explicitly abbreviates existential `new?`
 success. Indexed `PriorityEnabled` adds exactly the negative predicates needed
 by the fixed dispatcher order. It is equivalent to the matching `DispatchStep`,
 classifies an exact selected dispatcher kind, characterizes dispatcher `none`,
@@ -516,6 +516,18 @@ to the current executor order. In particular, a completed reachable stack
 `[[]]` can satisfy `SchedulerInvariant` while every priority kind is disabled;
 no intended-state exhaustiveness, nonterminality, progress, or completeness
 theorem follows.
+
+`SequentialFigure7NewInputNecessary.lean` adds a separate read-only projection
+without changing that priority interface. `NewGuard` contains the ready head,
+exact valid tensor-below witness, and input-unmarked mate;
+`FreshSourceLeftRoute` contains a bounded exact source-left trace, input tag
+freshness, and ready terminal axiom endpoints. Successful typed/executable
+`new` steps reconstruct `NewInputNecessary`, but no converse is exposed. The
+witness omits production-mark readiness for every internal trace occurrence,
+recursive per-step tag-update equations, and terminal-partner exclusion from
+the intermediate trace. It is therefore a necessary observation, not an
+`*Enabled` predicate or progress premise; the canonical dispatcher continues
+to use `NewExecutableEnabled`.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and

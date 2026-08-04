@@ -1078,6 +1078,28 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Input-only necessary projection for Figure-7 new"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.NewGuard,
+      `ProofNetIR.SequentialFigure7.NewGuard.tensor_eq,
+      `ProofNetIR.SequentialFigure7.NewGuard.mate_ne,
+      `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute,
+      `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.start_mem,
+      `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.startFresh,
+      `ProofNetIR.SequentialFigure7.NewInput,
+      `ProofNetIR.SequentialFigure7.NewInputNecessary,
+      `ProofNetIR.SequentialFigure7.NewStep.readyHeadInput,
+      `ProofNetIR.SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput,
+      `ProofNetIR.SequentialFigure7.NewStep.mate_unmarked_before,
+      `ProofNetIR.SequentialFigure7.NewStep.guard,
+      `ProofNetIR.SequentialFigure7.NewStep.freshSourceLeftRoute,
+      `ProofNetIR.SequentialFigure7.NewStep.inputNecessary,
+      `ProofNetIR.SequentialFigure7.new?_success_implies_inputNecessary,
+      `ProofNetIR.SequentialFigure7.NewExecutableEnabled.inputNecessary,
+      `ProofNetIR.SequentialFigure7.PriorityEnabled.newInputNecessary
+    ]
+  },
+  {
     title := "Priority-aware Figure-7 applicability"
     declarations := [
       `ProofNetIR.SequentialFigure7.PreparedStep.readyHeadInput,

@@ -925,9 +925,20 @@
     exact submitted par as `nop`, `wait`, or `forward`, without extending that
     local trichotomy to conclusions, tensors/`new`, unification, completed
     buckets, dispatcher priority, or arbitrary scheduler work.
+  - [x] Extract an honest input-only necessary projection for `new` without
+    changing dispatcher priority. `NewGuard` records the ready head, exact
+    tensor-below witness, and input-unmarked mate; `FreshSourceLeftRoute`
+    records the bounded exact route, input tag freshness, and ready axiom
+    endpoints. Prove only success-to-`NewInputNecessary`, including operational
+    and priority bridges. Preserve all-true and terminal-partner-pretagged
+    counterexamples to shallow-guard sufficiency. The projection omits
+    internal-trace production-mark readiness, recursive per-step tag-update
+    equations, and terminal-partner exclusion from the intermediate trace.
   - [ ] Replace the remaining operational `NewExecutableEnabled` with a
-    justified input-only criterion if the intended Figure-7 model supports
-    one, and derive exhaustive dispatcher enabledness on correct
+    genuinely sufficient input-only `NewEnabled` criterion if the intended
+    Figure-7 model supports one; do not promote `NewInputNecessary` to that
+    role without the missing route conditions and a checked success converse.
+    Then derive exhaustive dispatcher enabledness on correct
     certified-reachable nonterminal states.
     Generalize the remaining reservation-count/oriented-route commitments,
     establish unconditional full-rule reachability, progress, completeness of that

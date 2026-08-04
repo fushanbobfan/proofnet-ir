@@ -6,6 +6,7 @@ import ProofNetIR.SequentialFigure7UnifyPayload
 import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.SequentialFigure7PriorityEnabled
+import ProofNetIR.SequentialFigure7NewInputNecessary
 import ProofNetIR.SequentialFigure7TagHistory
 
 namespace ProofNetIR
@@ -3580,6 +3581,189 @@ example :
       repeatedStableState_invariant .new).mp selected
   exact ⟨⟨repeatedAfterNewStableState, repeatedAfterNewStableState_eq⟩,
     priority, selected⟩
+
+/-! Input-state necessary conditions for Figure-7 `new`. -/
+
+private def repeatedNewTensor : TensorBelow where
+  linkIndex := 2
+  storedLeft := 0
+  storedRight := 2
+  conclusion := 4
+  side := .storedLeft
+
+private def repeatedNewHead :
+    SequentialFigure7.ReadyHeadInput repeatedStableState where
+  vertex := 0
+  readyTail := [1]
+  rawAge := 0
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private def repeatedNewGuard :
+    SequentialFigure7.NewGuard repeatedOccurrenceCertificate
+      repeatedStableState where
+  head := repeatedNewHead
+  tensor := repeatedNewTensor
+  tensor_valid :=
+    Certificate.tensorBelow?_eq_some_iff.mp (by native_decide)
+  mate_unmarked := by native_decide
+
+/-- A genuine successful `new` reconstructs both the shallow guard and the
+result-free, equation-free fresh source-left route.  This is the proved
+one-way implication, not later-`NEXTAXIOM` totality. -/
+example :
+    SequentialFigure7.NewInputNecessary repeatedOccurrenceCertificate
+      repeatedStableState :=
+  SequentialFigure7.new?_success_implies_inputNecessary
+    repeatedStableState_invariant.toReservationInvariant
+    repeatedAfterNewStableState_eq
+
+private def repeatedAllTrueStableState : ReservationState :=
+  repeatedAllTrueTags repeatedStableState
+
+private theorem repeatedAllTrueStableState_invariant :
+    SchedulerInvariant repeatedOccurrenceCertificate
+      repeatedAllTrueStableState := by
+  exact {
+    repeatedStableState_invariant with
+    toReservationInvariant := {
+      repeatedStableState_invariant.toReservationInvariant with
+      tags_size := by simp [repeatedAllTrueStableState, repeatedAllTrueTags] } }
+
+private def repeatedAllTrueHead :
+    SequentialFigure7.ReadyHeadInput repeatedAllTrueStableState where
+  vertex := 0
+  readyTail := [1]
+  rawAge := 0
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private def repeatedAllTrueGuard :
+    SequentialFigure7.NewGuard repeatedOccurrenceCertificate
+      repeatedAllTrueStableState where
+  head := repeatedAllTrueHead
+  tensor := repeatedNewTensor
+  tensor_valid :=
+    Certificate.tensorBelow?_eq_some_iff.mp (by native_decide)
+  mate_unmarked := by native_decide
+
+/-- Same-sized all-true forged tags do not affect the deliberately shallow
+guard, but they make `NEXTAXIOM` fail immediately.  The combined input-only
+`NewInputNecessary` predicate rejects the state because its route start is not fresh.
+No claim is made that this forged state is reachable. -/
+example :
+    Nonempty
+        (SequentialFigure7.NewGuard repeatedOccurrenceCertificate
+          repeatedAllTrueStableState) ∧
+      ¬ SequentialFigure7.NewInputNecessary repeatedOccurrenceCertificate
+        repeatedAllTrueStableState ∧
+      SequentialFigure7.new? repeatedOccurrenceCertificate
+          repeatedAllTrueStableState
+          repeatedAllTrueStableState_invariant.toReservationInvariant = none := by
+  refine ⟨⟨repeatedAllTrueGuard⟩, ?_, by native_decide⟩
+  rintro ⟨input⟩
+  have fresh := input.route.startFresh
+  have bound : input.guard.tensor.mate < 5 :=
+    (Array.getElem?_eq_some_iff.mp fresh).1
+  have trueAt :
+      (Array.replicate 5 true)[input.guard.tensor.mate]? = some true := by
+    simp [bound]
+  have freshAllTrue :
+      (Array.replicate 5 true)[input.guard.tensor.mate]? = some false := by
+    simpa [repeatedAllTrueStableState, repeatedAllTrueTags,
+      repeatedOccurrenceCertificate] using fresh
+  rw [trueAt] at freshAllTrue
+  simp at freshAllTrue
+
+private def repeatedPartnerTaggedState : ReservationState :=
+  { repeatedStableState with
+    tags := repeatedStableState.tags.setIfInBounds 3 true }
+
+private theorem repeatedPartnerTaggedState_invariant :
+    SchedulerInvariant repeatedOccurrenceCertificate
+      repeatedPartnerTaggedState := by
+  exact {
+    repeatedStableState_invariant with
+    toReservationInvariant := {
+      repeatedStableState_invariant.toReservationInvariant with
+      tags_size := by
+        simp [repeatedPartnerTaggedState,
+          repeatedStableState_invariant.toReservationInvariant.tags_size] } }
+
+private def repeatedPartnerTaggedHead :
+    SequentialFigure7.ReadyHeadInput repeatedPartnerTaggedState where
+  vertex := 0
+  readyTail := [1]
+  rawAge := 0
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private def repeatedPartnerTaggedGuard :
+    SequentialFigure7.NewGuard repeatedOccurrenceCertificate
+      repeatedPartnerTaggedState where
+  head := repeatedPartnerTaggedHead
+  tensor := repeatedNewTensor
+  tensor_valid :=
+    Certificate.tensorBelow?_eq_some_iff.mp (by native_decide)
+  mate_unmarked := by native_decide
+
+/-- Pretagging only the terminal axiom partner leaves the ready/tensor/mate
+guard intact while the executor fails at the deeper route endpoint.  This is a
+concrete regression against treating `NewGuard` as sufficient. -/
+example :
+    Nonempty
+        (SequentialFigure7.NewGuard repeatedOccurrenceCertificate
+          repeatedPartnerTaggedState) ∧
+      SequentialFigure7.new? repeatedOccurrenceCertificate
+          repeatedPartnerTaggedState
+          repeatedPartnerTaggedState_invariant.toReservationInvariant = none := by
+  exact ⟨⟨repeatedPartnerTaggedGuard⟩, by native_decide⟩
+
+/-- The exact pre-initialization state has no ready head, hence neither a
+shallow `NewGuard` nor the stronger input-only `NewInputNecessary`. -/
+example :
+    let state := ReservationState.empty repeatedOccurrenceCertificate
+    ¬ Nonempty
+        (SequentialFigure7.NewGuard repeatedOccurrenceCertificate state) ∧
+      ¬ SequentialFigure7.NewInputNecessary repeatedOccurrenceCertificate state := by
+  let state := ReservationState.empty repeatedOccurrenceCertificate
+  have noHead :
+      ¬ Nonempty (SequentialFigure7.ReadyHeadInput state) := by
+    rintro ⟨head⟩
+    simpa [state, ReservationState.empty, SequentialStackState.empty] using
+      head.top_ready
+  constructor
+  · rintro ⟨guard⟩
+    exact noHead ⟨guard.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.guard.head⟩
+
+/-- The genuine completed `[[]]` state has no ready head and therefore no
+`NewGuard` or `NewInputNecessary`.  This remains a terminal boundary, not a global
+progress theorem. -/
+example :
+    ¬ Nonempty
+        (SequentialFigure7.NewGuard parCertificate parCompletedStableState) ∧
+      ¬ SequentialFigure7.NewInputNecessary parCertificate
+        parCompletedStableState := by
+  have readyEquation : parCompletedStableState.stack.ready = [[]] := by
+    native_decide
+  have noHead :
+      ¬ Nonempty
+        (SequentialFigure7.ReadyHeadInput parCompletedStableState) := by
+    rintro ⟨head⟩
+    have emptyTop :
+        parCompletedStableState.stack.ready.getLast? = some [] := by
+      rw [readyEquation]
+      rfl
+    have topReady := head.top_ready
+    rw [emptyTop] at topReady
+    simp at topReady
+  constructor
+  · rintro ⟨guard⟩
+    exact noHead ⟨guard.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.guard.head⟩
 
 /-- A completed full-invariant state obtained by the existing rule chain can
 have the aligned empty ready bucket and no selected rule.  This refutes only
