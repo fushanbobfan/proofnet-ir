@@ -387,6 +387,41 @@ theorem SigmaAgePartition.sigmaBoundary?_eq_top_of_le
     Nat.le_antisymm boundaryLeActive activeLeBoundary
   simpa [boundaryEquation] using boundaryLookup
 
+/-- A raw age between the two top adjacent scheduler boundaries resolves to
+the previous boundary.  This is the exact interval fact needed by Figure-7
+`unify`: if `sigma = prefix ++ [j, i]` and `j ≤ age < i`, then `age`
+belongs to the component represented by `j`, not the active component `i`.
+
+The allocation horizon is unchanged when the active boundary is popped, so
+the proof first removes `i` from the valid partition and then reuses the
+top-boundary interval theorem on the resulting stack. -/
+theorem SigmaAgePartition.sigmaBoundary?_eq_previous_of_between
+    {nextAge : RawTokenAge}
+    {sigma sigmaPrefix : List RawTokenAge}
+    {previous active age : RawTokenAge}
+    (partition : SigmaAgePartition nextAge sigma)
+    (sigmaEquation :
+      sigma = sigmaPrefix ++ [previous, active])
+    (previousLe : previous ≤ age)
+    (ageLtActive : age < active) :
+    sigmaBoundary? sigma age = some previous := by
+  have reduced :
+      SigmaAgePartition nextAge (sigmaPrefix ++ [previous]) :=
+    partition.popActive sigmaEquation
+  have activeMembership : active ∈ sigma := by
+    rw [sigmaEquation]
+    simp
+  have ageBound : age < nextAge :=
+    Nat.lt_trans ageLtActive
+      (partition.boundary_lt active activeMembership)
+  rw [sigmaEquation]
+  rw [show sigmaPrefix ++ [previous, active] =
+      (sigmaPrefix ++ [previous]) ++ [active] by
+        simp [List.append_assoc]]
+  rw [sigmaBoundary?_append_fresh_old ageLtActive]
+  exact reduced.sigmaBoundary?_eq_top_of_le
+    (by simp) previousLe ageBound
+
 /-- The greatest eligible boundary is mathematically unique. -/
 theorem sigmaBoundary_unique_of_greatest
     {sigma : List RawTokenAge} {age first second : RawTokenAge}

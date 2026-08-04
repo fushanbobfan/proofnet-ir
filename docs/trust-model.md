@@ -273,7 +273,9 @@ ready/waiting queue, waiting spans, pending coverage, and fired counter. The
 extra active-ready `Nodup` guard is only fail-closed shape validation, not a
 paper premise. A typed `init → nop → forward → concl` regression locks the
 successful composition. This still does not prove applicability, totality,
-dispatcher/history integration, or reachability. `Unify`, correct-state
+dispatcher/history integration, or reachability. Bounded `UnifyEmpty` now has
+direct/executable correspondence for `W(j) = []` under its documented
+premises, but no invariant-preservation theorem. Complete nonempty `Unify`, correct-state
 progress, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
@@ -305,14 +307,19 @@ algorithm uses sets, and its shape theorem requires explicit `Nodup` and
 payload-bound evidence rather than deriving ownership from a queue scan.
 The successful local `forward?` now composes the par and active-ready
 primitives, but those primitives do not state a rule by themselves. These facts
-still do not authorize a full `unify`: it must identify the
-generic tensor roots with exact scheduler `j/i`, orient `parent[i] := j`, and
+now support a bounded `UnifyEmpty` executable/direct correspondence when
+`W(j) = []`. Under `ReservationInvariant`, the successful executable identifies
+the generic tensor roots with exact scheduler `j/i`, orients
+`parent[i] := j`, and drains the empty previous cell. Soundness needs that
+invariant; completeness/iff additionally require structural validity and the
+separate ready-list `Nodup` premise. No invariant-preservation theorem follows.
+These facts still do not authorize a full nonempty-payload `unify`, which must
 construct or activate all waiting par components drained from `W(j)` (with
 their extra counter increments). A direct nonempty-payload composition would
 put delayed conclusions in ready without the corresponding production trees
 and would increment the counter only once, so a typed activation fold is a
-required proof layer. No dispatcher, progress, completeness, O(1),
-or whole-program linearity claim follows.
+required proof layer. No dispatcher, progress, scheduler/pure-worklist
+completeness, O(1), or whole-program linearity claim follows.
 
 `unificationDerivationCandidateWithStats` and
 `unificationReconstructWithStats` expose scan counters without adding a trust
@@ -552,10 +559,11 @@ bundled invariant preserved across both stages. The invariant-bound local
 `new` layer now adds pop-before-mark, binary-mate lookup, raw-age marking,
 post-mark search, and the operational old-boundary/fresh-top reservation. The
 dedicated init/new history adds exact reachability and tag provenance for that
- fragment. Local `concl`/`nop`/`wait`/`forward` exist outside it; successful
+ fragment. Local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` exist outside it; successful
  Forward has complete state-only invariant preservation and an independent
- direct rule with executable correspondence. It does not add later
- applicability/totality, `unify`, a full-rule
+ direct rule with executable correspondence. Bounded `UnifyEmpty` has direct
+ correspondence but no invariant-preservation theorem. It does not add later
+ applicability/totality, complete nonempty `unify`, a full-rule
  reachability invariant, or full-history integration. No
 planarity principle is assumed.
 
@@ -672,10 +680,11 @@ Lean now also constructs the exact simultaneous complementary
   per-call trace/tag invariants, exact oriented routes, initial/local
   rank-scoped totality, and strictly threaded touched-set disjointness;
   the operational waiting-cell domain and exact init/new history are also
-  proved. Exact local `concl`/`nop`/`wait`/`forward` are also proved, and
+  proved. Exact local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` are also proved, and
   successful deterministic/executable `new`, `wait`, and `forward` preserve the
   complete current occurrence-exact state-only invariant. Later-state
-  applicability and totality, `unify`, full-history integration, and the
+  applicability and totality, invariant preservation for bounded `UnifyEmpty`,
+  complete nonempty `unify`, full-history integration, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program

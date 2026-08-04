@@ -290,6 +290,260 @@ example {before after : ReservationState}
   exact SequentialFigure7.new?_schedulerInvariant
     (repeatedInitial_schedulerInvariant initialEquation) newEquation
 
+/-! Bounded empty-waiting-cell Figure-7 `unify`. -/
+
+/-- The concrete `init → new → unifyEmpty` path merges the two submitted
+axiom components through the exact tensor occurrence.  The previous and
+active ready buckets are combined in the project's deterministic order, the
+old empty waiting cell is drained to `undefined`, and the raw allocation
+horizon remains unchanged. -/
+private def repeatedEmptyUnifyTransition : Option ReservationState :=
+  match initialEquation : repeatedInitial with
+  | none => none
+  | some initial =>
+      let initialInvariant :=
+        repeatedInitial_schedulerInvariant initialEquation
+      match newEquation :
+          SequentialFigure7.new? repeatedOccurrenceCertificate initial
+            initialInvariant.toReservationInvariant with
+      | none => none
+      | some before =>
+          let beforeInvariant :=
+            SequentialFigure7.new?_schedulerInvariant
+              initialInvariant newEquation
+          SequentialFigure7.unifyEmpty?
+            repeatedOccurrenceCertificate before
+            beforeInvariant.toReservationInvariant
+
+example :
+    (match repeatedEmptyUnifyTransition with
+    | none => false
+    | some after =>
+        after.stack.sigma == [0] &&
+          after.stack.ready == [[4, 1, 3]] &&
+          after.stack.waiting[0]? == some .undefined &&
+          after.stack.marks ==
+            #[some 0, none, some 1, none, none] &&
+          after.core.marks == after.stack.marks &&
+          after.core.parents == #[0, 0] &&
+          after.core.firedConnectives == 1 &&
+          match after.core.components[0]?, after.core.components[1]? with
+          | some (some component), some none =>
+              component.frontier == [4, 1, 3]
+          | _, _ => false) = true := by
+  native_decide
+
+/-- Starting from the opposite submitted axiom makes the later selected
+tensor occurrence the stored-left premise.  The same raw-age bridge therefore
+returns `(leftToken, rightToken) = (active, previous)` while the scheduler
+ready merge retains its own search-oriented order. -/
+private def repeatedStoredLeftInitial : Option ReservationState :=
+  initializeReservation? repeatedOccurrenceCertificate 2
+
+private theorem repeatedStoredLeftInitial_schedulerInvariant
+    {before : ReservationState}
+    (equation : repeatedStoredLeftInitial = some before) :
+    SchedulerInvariant repeatedOccurrenceCertificate before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [repeatedStoredLeftInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant repeatedOccurrenceCertificate_structural
+
+private def repeatedStoredLeftUnifyTransition :
+    Option ReservationState :=
+  match initialEquation : repeatedStoredLeftInitial with
+  | none => none
+  | some initial =>
+      let initialInvariant :=
+        repeatedStoredLeftInitial_schedulerInvariant initialEquation
+      match newEquation :
+          SequentialFigure7.new? repeatedOccurrenceCertificate initial
+            initialInvariant.toReservationInvariant with
+      | none => none
+      | some before =>
+          SequentialFigure7.unifyEmpty?
+            repeatedOccurrenceCertificate before
+            (SequentialFigure7.new?_schedulerInvariant
+              initialInvariant newEquation |>.toReservationInvariant)
+
+example :
+    (match repeatedStoredLeftUnifyTransition with
+    | none => false
+    | some after =>
+        after.stack.sigma == [0] &&
+          after.stack.ready == [[4, 3, 1]] &&
+          after.core.parents == #[0, 0] &&
+          after.core.firedConnectives == 1 &&
+          match after.core.components[0]?, after.core.components[1]? with
+          | some (some component), some none =>
+              component.frontier == [4, 1, 3]
+          | _, _ => false) = true := by
+  native_decide
+
+/-- Three independently reserved axiom components expose why the lower raw
+age guard is not redundant.  The first component is marked at age `0`, a
+middle component is reserved at age `1`, and the selected tensor premise is
+reserved at age `2`.  The low-level production primitive can merge tokens
+`0` and `2`, but Figure 7 must reject it because the mate is not in the
+immediately previous interval: `1 ≤ 0` is false.
+
+This fixture is reached through the exact public prepare/reservation
+primitives and carries a genuine `ReservationInvariant`; it is not claimed
+to be a full-rule `SchedulerInvariant` history. -/
+private def nonadjacentMateCertificate : Certificate where
+  formulas := #[
+    .atom "p" true,
+    .atom "p" false,
+    .atom "r" true,
+    .atom "r" false,
+    .atom "q" true,
+    .atom "q" false,
+    .tensor (.atom "p" true) (.atom "q" true)]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .axiom 4 5,
+    .tensor 0 4 6]
+  conclusions := [1, 2, 3, 5, 6]
+
+private def nonadjacentMateGuardRegression : Bool :=
+  match initialEquation :
+      initializeReservation? nonadjacentMateCertificate 0 with
+  | none => false
+  | some initial =>
+      let initialInvariant :
+          ReservationInvariant nonadjacentMateCertificate initial := by
+        rcases initializeReservation?_some_iff.mp initialEquation with
+          ⟨step⟩
+        exact step.reservationInvariant
+      match prepareEquation : SequentialFigure7.prepare? initial with
+      | none => false
+      | some preparedInitial =>
+          let preparedInvariant :=
+            preparedInitial.reservationInvariant initialInvariant
+          match secondEquation :
+              reserveNewAxiom? nonadjacentMateCertificate
+                preparedInitial.after 2 with
+          | none => false
+          | some afterSecond =>
+              let secondInvariant :
+                  ReservationInvariant nonadjacentMateCertificate
+                    afterSecond := by
+                rcases reserveNewAxiom?_some_iff.mp secondEquation with
+                  ⟨step⟩
+                exact step.reservationInvariant preparedInvariant
+              match thirdEquation :
+                  reserveNewAxiom? nonadjacentMateCertificate
+                    afterSecond 4 with
+              | none => false
+              | some before =>
+                  let beforeInvariant :
+                      ReservationInvariant nonadjacentMateCertificate
+                        before := by
+                    rcases reserveNewAxiom?_some_iff.mp thirdEquation with
+                      ⟨step⟩
+                    exact step.reservationInvariant secondInvariant
+                  match SequentialFigure7.prepare? before with
+                  | none => false
+                  | some preparedFinal =>
+                      match
+                          nonadjacentMateCertificate.connectiveBelow?
+                            preparedFinal.stackResult.vertex with
+                      | none => false
+                      | some consumer =>
+                          before.stack.sigma == [0, 1, 2] &&
+                            preparedFinal.stackResult.vertex == 4 &&
+                            preparedFinal.stackResult.rawAge == 2 &&
+                            consumer.kind == .tensor &&
+                            consumer.linkIndex == 3 &&
+                            consumer.storedLeft == 0 &&
+                            consumer.storedRight == 4 &&
+                            consumer.conclusion == 6 &&
+                            consumer.side == .storedRight &&
+                            consumer.mate == 0 &&
+                            before.stack.marks[0]? == some (some 0) &&
+                            (preparedFinal.stackResult.after.sigma.dropLast.getLast? ==
+                              some 1) &&
+                            preparedFinal.stackResult.after.waiting[1]? ==
+                                some (.initialized []) &&
+                            decide (0 < preparedFinal.stackResult.rawAge) &&
+                            !(decide ((1 : Nat) ≤ 0)) &&
+                            (Certificate.queueTensor?
+                              preparedFinal.coreMarked 0 4 6).isSome &&
+                            (SequentialFigure7.unifyEmpty?
+                              nonadjacentMateCertificate before
+                              beforeInvariant).isNone
+
+example : nonadjacentMateGuardRegression = true := by
+  native_decide
+
+/-- Executable success exposes the exact submitted tensor index/orientation
+and the literal raw-age guard `j ≤ μ(u₂) < i`; neither fact is reconstructed
+from erased formula labels. -/
+example {initial before after : ReservationState}
+    (initialEquation : repeatedInitial = some initial)
+    (newEquation :
+      SequentialFigure7.new? repeatedOccurrenceCertificate initial
+          (repeatedInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (unifyEquation :
+      SequentialFigure7.unifyEmpty? repeatedOccurrenceCertificate before
+          (SequentialFigure7.new?_schedulerInvariant
+            (repeatedInitial_schedulerInvariant initialEquation)
+            newEquation |>.toReservationInvariant) =
+        some after) :
+    ∃ step : SequentialFigure7.UnifyEmptyStep
+        repeatedOccurrenceCertificate before after,
+      repeatedOccurrenceCertificate.links[step.consumer.linkIndex]? =
+          some (.tensor step.consumer.storedLeft
+            step.consumer.storedRight step.consumer.conclusion) ∧
+        step.previousBoundary ≤ step.mateRawAge ∧
+        step.mateRawAge < step.prepared.stackResult.rawAge := by
+  let invariant :=
+    SequentialFigure7.new?_schedulerInvariant
+      (repeatedInitial_schedulerInvariant initialEquation) newEquation
+      |>.toReservationInvariant
+  rcases
+      (SequentialFigure7.unifyEmpty?_some_iff invariant).mp
+        unifyEquation with
+    ⟨step⟩
+  exact ⟨step, step.submitted_tensor, step.lower, step.upper⟩
+
+/-- A nonempty `W(j)` is rejected fail-closed.  The payload is installed by
+the existing `ReservationInvariant`-preserving waiting primitive, so this
+regression does not rely on a forged proof argument or an ill-shaped
+reservation state.  It is not claimed to be a genuine waiting-par history or
+a state satisfying the stronger full `SchedulerInvariant`. -/
+private def repeatedNonemptyWaitingUnifyAttempt :
+    Option ReservationState :=
+  match initialEquation : repeatedInitial with
+  | none => none
+  | some initial =>
+      let initialInvariant :=
+        repeatedInitial_schedulerInvariant initialEquation
+      match newEquation :
+          SequentialFigure7.new? repeatedOccurrenceCertificate initial
+            initialInvariant.toReservationInvariant with
+      | none => none
+      | some before =>
+          let beforeInvariant :=
+            SequentialFigure7.new?_schedulerInvariant
+              initialInvariant newEquation
+              |>.toReservationInvariant
+          match payloadEquation :
+              enqueueWaitingAtRawAge? before 0 4 with
+          | none => none
+          | some withPayload =>
+              let payloadInvariant :=
+                enqueueWaitingAtRawAge?_reservationInvariant
+                  beforeInvariant payloadEquation
+              SequentialFigure7.unifyEmpty?
+                repeatedOccurrenceCertificate withPayload payloadInvariant
+
+example : repeatedNonemptyWaitingUnifyAttempt.isNone = true := by
+  native_decide
+
 /-- Initialization executes on the smallest valid axiom certificate and its
 typed witness establishes the complete state-based scheduler foundation. -/
 example :

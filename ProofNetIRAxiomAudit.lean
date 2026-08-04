@@ -422,6 +422,16 @@ expansion.
 #print axioms SequentialFigure7.forward?_schedulerInvariant
 #print axioms SequentialFigure7.forward?_complete_of_schedulerInvariant
 #print axioms SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant
+#print axioms SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_previous_of_between
+#print axioms SequentialFigure7.unifyEmpty?_some_iff
+#print axioms SequentialFigure7.UnifyEmptyStep.submitted_tensor
+#print axioms SequentialFigure7.UnifyEmptyStep.mate_marked_before
+#print axioms SequentialFigure7.UnifyEmptyStep.toRule
+#print axioms SequentialFigure7.UnifyEmptyStep.output_unique
+#print axioms SequentialFigure7.unifyEmpty?_sound
+#print axioms SequentialFigure7.unifyEmpty?_complete_of_structural
+#print axioms SequentialFigure7.unifyEmpty?_some_iff_rule_of_structural
+#print axioms SequentialFigure7.UnifyEmptyRule.output_unique_of_structural
 #print axioms SequentialFigure7.wait?_some_iff
 #print axioms SequentialFigure7.WaitStep.submitted_par
 #print axioms SequentialFigure7.WaitStep.mate_marked_before

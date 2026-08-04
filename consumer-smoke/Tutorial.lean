@@ -316,6 +316,107 @@ example
       (by native_decide))
     (figure7WaitBefore_invariant beforeEquation)
 
+/- The bounded tensor API exposes only the empty-waiting-cell Figure-7
+`unify` slice.  It retains the exact submitted tensor occurrence and keeps
+the list-level `Nodup` refinement as a separate premise. -/
+
+def figure7UnifyCertificate : Certificate where
+  formulas := #[p, pDual, q, qDual, .tensor p q]
+  links := [.axiom 0 1, .axiom 2 3, .tensor 0 2 4]
+  conclusions := [4, 1, 3]
+
+def figure7UnifyInitial :=
+  SequentialSchedulerBridge.initializeReservation?
+    figure7UnifyCertificate 0
+
+theorem figure7UnifyInitial_schedulerInvariant
+    {before : SequentialSchedulerBridge.ReservationState}
+    (equation : figure7UnifyInitial = some before) :
+    SequentialSchedulerBridge.SchedulerInvariant
+      figure7UnifyCertificate before := by
+  rcases
+      SequentialSchedulerBridge.initializeReservation?_some_iff.mp
+        (by simpa [figure7UnifyInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant
+    (figure7UnifyCertificate.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+
+def figure7UnifyTransition :
+    Option SequentialSchedulerBridge.ReservationState :=
+  match initialEquation : figure7UnifyInitial with
+  | none => none
+  | some initial =>
+      let initialInvariant :=
+        figure7UnifyInitial_schedulerInvariant initialEquation
+      match newEquation :
+          SequentialFigure7.new? figure7UnifyCertificate initial
+            initialInvariant.toReservationInvariant with
+      | none => none
+      | some before =>
+          SequentialFigure7.unifyEmpty? figure7UnifyCertificate before
+            (SequentialFigure7.new?_schedulerInvariant
+              initialInvariant newEquation |>.toReservationInvariant)
+
+example :
+    (match figure7UnifyTransition with
+    | none => false
+    | some after =>
+        after.stack.sigma == [0] &&
+          after.stack.ready == [[4, 1, 3]] &&
+          after.core.parents == #[0, 0] &&
+          after.core.firedConnectives == 1) = true := by
+  native_decide
+
+example
+    {initial before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7UnifyInitial = some initial)
+    (newEquation :
+      SequentialFigure7.new? figure7UnifyCertificate initial
+          (figure7UnifyInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (unifyEquation :
+      SequentialFigure7.unifyEmpty? figure7UnifyCertificate before
+          (SequentialFigure7.new?_schedulerInvariant
+            (figure7UnifyInitial_schedulerInvariant initialEquation)
+            newEquation |>.toReservationInvariant) =
+        some after) :
+    SequentialFigure7.UnifyEmptyRule
+      figure7UnifyCertificate before after :=
+  SequentialFigure7.unifyEmpty?_sound
+    (SequentialFigure7.new?_schedulerInvariant
+      (figure7UnifyInitial_schedulerInvariant initialEquation)
+      newEquation |>.toReservationInvariant)
+    unifyEquation
+
+example
+    {initial before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7UnifyInitial = some initial)
+    (newEquation :
+      SequentialFigure7.new? figure7UnifyCertificate initial
+          (figure7UnifyInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (readyShape :
+      SequentialFigure7.UnifyEmptyExecutableReadyNodup
+        figure7UnifyCertificate before)
+    (rule :
+      SequentialFigure7.UnifyEmptyRule
+        figure7UnifyCertificate before after) :
+    SequentialFigure7.unifyEmpty? figure7UnifyCertificate before
+        (SequentialFigure7.new?_schedulerInvariant
+          (figure7UnifyInitial_schedulerInvariant initialEquation)
+          newEquation |>.toReservationInvariant) =
+      some after :=
+  SequentialFigure7.unifyEmpty?_complete_of_structural
+    (figure7UnifyCertificate.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+    (SequentialFigure7.new?_schedulerInvariant
+      (figure7UnifyInitial_schedulerInvariant initialEquation)
+      newEquation |>.toReservationInvariant)
+    readyShape rule
+
 def checkedAxiomCertificate : CutFreeDerivation.CheckedCertificate :=
   ⟨axiomCertificate, by native_decide⟩
 

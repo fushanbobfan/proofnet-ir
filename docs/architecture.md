@@ -328,7 +328,8 @@ view over the canonical consumer index, an explicit-conclusion view requiring
 declared membership, local `NodeWellFormed` ownership, and an exactly empty
 bucket, plus the synchronized `prepare?` prefix. `concl?`, `nop?`, `wait?`, and
 `forward?` have dependent executable specifications and preserve the
-reservation invariant.
+reservation invariant. The bounded `unifyEmpty?` has a dependent executable
+specification and direct correspondence, but no invariant-preservation theorem.
 `concl` and `nop` return only the prefix state; `wait` then updates one exact
 initialized waiting bucket. The ownership and empty-bucket guards
 in `concl` reject out-of-range or unproduced declared boundaries;
@@ -379,6 +380,21 @@ the complete scheduler invariant derives the shape predicate and yields the
 corresponding higher-level completeness/iff. None of these results proves
 Forward applicability or scheduler progress.
 
+The same module now exposes a deliberately bounded empty-cell tensor slice.
+`unifyEmpty?` accepts exactly `W(j) = []`, retains the exact submitted tensor
+slot and stored orientation, and checks raw ages with
+`j ≤ μ(mate) < i`. The adjacent-boundary lemma and `RealizesSigma` derive that
+the production representatives are exactly `j/i`; the tensor core then binds
+`parent[i] := j`, while the stack pops the active level, makes `W(j)` undefined,
+and installs `conclusion :: (previousReady ++ activeReady)`. Independent
+`UnifyEmptyRule` equations do not call the high-level executable or mutation
+wrappers, although they explicitly reuse the low-level read-only
+`unifyTokens?` and `componentAt?` observations. Soundness assumes
+`ReservationInvariant`; completeness/iff additionally require structural
+validity and the separate final-ready-list `Nodup` premise. This is only local
+successful-step correspondence: it proves neither invariant preservation nor
+nonempty waiting-payload activation.
+
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
 component constructors and preserve raw marks so the queued conclusion is not
@@ -405,9 +421,9 @@ Directly composing `queueTensor?` with `mergeTopReadyWaiting?` for a nonempty
 old waiting cell cannot yet establish the semantic invariant: the stack move
 exposes delayed conclusions in ready before the production core has built the
 corresponding par derivations, and the core counter has increased by only one
-instead of `1 + |W(j)|`. The general `unify` wrapper therefore needs a typed
-waiting-payload activation fold; an empty-waiting-cell slice is the safe first
-composition target.
+instead of `1 + |W(j)|`. The bounded empty-waiting-cell composition is now
+implemented as `UnifyEmpty`; the general nonempty `unify` wrapper still needs a
+typed waiting-payload activation fold.
 
 `SequentialSchedulerInvariant.lean` now supplies that semantic foundation
 without defining reachability in terms of the invariant. The bundle carries
@@ -478,20 +494,24 @@ construction, live-frontier replacement, active-ready insertion, unchanged
 waiting spans, pending-premise transport, and exact counter increment. Its
 extra ready-list `Nodup` guard is only fail-closed shape validation. Independent
 Boolean-free `ForwardRule` semantics and successful-step correspondence are now
-present; forward applicability/totality, `unify`, dispatcher progress, and
-completeness remain open.
+present. The bounded Boolean-free `UnifyEmptyRule` and executable
+correspondence are also present, but do not preserve this invariant. Forward
+applicability/totality, complete nonempty `unify`, dispatcher progress, and
+scheduler/pure-worklist completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
-`Unify`, preservation and reachability of global waiting-payload ownership
-through that rule, integration of `concl`/`nop`/`wait`/`forward` into a full
+Invariant preservation through bounded `UnifyEmpty`, complete nonempty
+`Unify`, and reachability of global waiting-payload ownership through that
+rule remain open, as does integration of
+`concl`/`nop`/`wait`/`forward`/`UnifyEmpty` into a full
 rule history/dispatcher, later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open. Full
-`unify` must additionally bind the tensor representatives
-to exact scheduler `j/i`, orient `parent[i] := j`, and construct or activate
-the par components drained from `W(j)` with their additional counter
-increments. Future guards must continue to compare
+`unify` must additionally construct or activate the par components drained
+from nonempty `W(j)` with their additional counter increments; the exact
+representative-to-`j/i` bridge and parent orientation are proved only for the
+bounded empty-cell slice. Future guards must continue to compare
 raw assigned ages, not union-find representatives. The current global
 ready/waiting absence check scans stored lists and is not a linearity result.
 The separate event-driven worklist tier described next is already implemented.
@@ -763,11 +783,11 @@ active-reference walks between marked occurrences are equivalent to
   proof-relevant `InitNewHistory` now characterizes exact empty/init/new
   executions and proves tag provenance, global submitted-slot non-reuse, and
   reservation-count alignment. This fragment is not a full reachable
-  scheduler. The local `concl`/`nop`/`wait`/`forward` rules now exist outside
+  scheduler. The local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules now exist outside
   this history; `wait` has exact-span/queue preservation and `forward` has
   exact submitted-par/forest/frontier/queue/pending/counter preservation, but
-  full-history integration, `unify`, and activation of drained waiting payloads
-  remain open. Planarity
+  full-history integration, invariant preservation for `UnifyEmpty`, complete
+  `unify`, and activation of drained waiting payloads remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -781,9 +801,11 @@ invariant-bound operational local `new` transition in the delayed
 separate display-only helper. Exact init/new execution history is integrated;
 successful `new`, `wait`, and `forward` preserve the full current state-only
 invariant, and Forward additionally has an independent Boolean-free direct
-relation with exact executable correspondence. Later-state
-applicability/totality, `unify`, full-history integration of the local
-`concl`/`nop`/`wait`/`forward` rules, a full-rule reachable-state invariant, and
+relation with exact executable correspondence. Bounded `UnifyEmpty` has its own
+direct correspondence but no invariant-preservation theorem. Later-state
+applicability/totality, complete nonempty `unify`, full-history integration of
+the local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules, a full-rule
+reachable-state invariant, and
 later-state scheduler totality are not. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate

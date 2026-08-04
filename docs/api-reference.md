@@ -7553,6 +7553,28 @@ ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top_of_l
         active ≤ age → age < nextAge → ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some active
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_previous_of_between`
+
+Kind: theorem.
+
+A raw age between the two top adjacent scheduler boundaries resolves to
+the previous boundary.  This is the exact interval fact needed by Figure-7
+`unify`: if `sigma = prefix ++ [j, i]` and `j ≤ age < i`, then `age`
+belongs to the component represented by `j`, not the active component `i`.
+
+The allocation horizon is unchanged when the active boundary is popped, so
+the proof first removes `i` from the valid partition and then reuses the
+top-boundary interval theorem on the resulting stack.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_previous_of_between : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma sigmaPrefix : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {previous active age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    sigma = sigmaPrefix ++ [previous, active] →
+      previous ≤ age → age < active → ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some previous
+```
+
 ### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem`
 
 Kind: theorem.
@@ -11651,6 +11673,223 @@ ProofNetIR.SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant : ∀ 
   (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
   ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some after ↔
     ProofNetIR.SequentialFigure7.ForwardRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyRule`
+
+Kind: definition.
+
+High-level-executable-independent Figure-7 `unify` relation for the
+bounded case where the waiting payload at the previous scheduler boundary is
+exactly empty.
+
+The relation does not mention `unifyEmpty?`, `queueTensor?`, or
+`mergeTopReadyWaiting?`.  Like `ForwardRule`, it does reuse bounded read-only
+production observations (`unifyTokens?` and `componentAt?`) while spelling
+out the mutation equations propositionally; it should not be read as a
+relation free of every executable observation.
+
+The rule retains the exact submitted tensor slot and stored premise
+orientation.  Its paper guard is stated only with raw ages:
+`previousBoundary ≤ mateRawAge < activeRawAge`.  `RealizesSigma` is used by
+the executable correspondence theorem to justify the separately recorded
+token orientation; the rule itself never substitutes a union-find
+representative for a raw age.
+
+This is deliberately not the complete Figure-7 `unify` rule.  It drains only
+`W(previousBoundary) = ∅`; activating nonempty waiting payloads remains a
+separate future slice.  The paper treats ready cells as sets, so the
+list-representation `Nodup` requirement is also kept out of this relation.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyRule : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyExecutableReadyNodup`
+
+Kind: definition.
+
+Representation-only list freshness required by executable
+`unifyEmpty?`.
+
+The direct rule fixes the mathematical output before this predicate inspects
+its final ready bucket.  No Figure-7 applicability or progress premise is
+hidden here: this condition only says that the deterministic list refinement
+of the paper's set union is duplicate-free.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyExecutableReadyNodup : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.unifyEmpty?`
+
+Kind: definition.
+
+Execute the bounded empty-waiting-cell Figure-7 `unify` slice.
+
+After the synchronized pop/raw-mark prefix, the selected occurrence must have
+one exact submitted tensor consumer.  Its mate must have a raw age in the
+previous interval `j ≤ μ(u₂) < i`, and `W(j)` must be the initialized empty
+cell.  Only then are the two production components queued and the top two
+scheduler buckets merged.  A nonempty waiting payload is rejected rather
+than silently ignored.
+
+The final `Nodup` test is solely a fail-closed check on the deterministic list
+representation of the paper's set union.  This executable is a local
+successful-rule query, not a complete dispatcher or an applicability,
+progress, completeness, or complexity theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyEmpty? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep`
+
+Kind: inductive type.
+
+Exact proof-relevant specification of one successful bounded
+empty-waiting-cell `unify` step.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.unifyEmpty?_some_iff`
+
+Kind: theorem.
+
+Executable `unifyEmpty?` success is exactly the typed bounded local-rule
+witness.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyEmpty?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyEmpty? certificate before invariant = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.submitted_tensor`
+
+Kind: theorem.
+
+The generic consumer retained by the bounded witness is the exact
+submitted tensor occurrence at its original certificate index.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep.submitted_tensor : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after),
+  certificate.links[step.consumer.linkIndex]? =
+    some (ProofNetIR.Link.tensor step.consumer.storedLeft step.consumer.storedRight step.consumer.conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.mate_marked_before`
+
+Kind: theorem.
+
+The mate raw age tested after the prefix is its exact pre-prefix mark.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep.mate_marked_before : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after),
+  before.core.marks[step.consumer.mate]? = some (some step.mateRawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.toRule`
+
+Kind: theorem.
+
+The equation-backed bounded witness refines the independent direct rule.
+The executable ready-bucket `Nodup` check is intentionally absent from this
+refinement.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after),
+  ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.output_unique`
+
+Kind: theorem.
+
+The proof-relevant bounded executable relation has one exact output for a
+fixed input and invariant proof.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (left : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before first)
+  (right : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before second), first = second
+```
+
+### `ProofNetIR.SequentialFigure7.unifyEmpty?_sound`
+
+Kind: theorem.
+
+Executable bounded empty-cell unification is sound for the independent
+direct relation without a global certificate-validity assumption.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyEmpty?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyEmpty? certificate before invariant = some after →
+    ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyEmpty?_complete_of_structural`
+
+Kind: theorem.
+
+On structurally valid input, the independent bounded empty-cell `unify`
+rule is complete for the executable local query when the separate
+list-representation freshness condition is supplied.  This is successful-rule
+correspondence only; it does not assert that the rule is applicable.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyEmpty?_complete_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.UnifyEmptyExecutableReadyNodup certificate before →
+        ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before after →
+          ProofNetIR.SequentialFigure7.unifyEmpty? certificate before invariant = some after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyEmpty?_some_iff_rule_of_structural`
+
+Kind: theorem.
+
+Exact executable/declarative correspondence for the bounded empty-cell
+`unify` slice.  Structural validity disambiguates the submitted tensor
+consumer; `ReservationInvariant` supplies the raw-age/representative bridge;
+the final premise is only the list-level `Nodup` refinement.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyEmpty?_some_iff_rule_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.UnifyEmptyExecutableReadyNodup certificate before →
+        (ProofNetIR.SequentialFigure7.unifyEmpty? certificate before invariant = some after ↔
+          ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyRule.output_unique_of_structural`
+
+Kind: theorem.
+
+Under the explicit correspondence premises, the bounded direct relation
+has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyRule.output_unique_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      ProofNetIR.SequentialFigure7.UnifyEmptyExecutableReadyNodup certificate before →
+        ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before first →
+          ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before second → first = second
 ```
 
 ### `ProofNetIR.SequentialFigure7.WaitingPrependAt`

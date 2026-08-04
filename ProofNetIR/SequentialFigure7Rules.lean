@@ -29,10 +29,17 @@ The first four complete local rules built from that prefix are:
   production component, and its conclusion is prepended to the top ready
   bucket.
 
+The module also contains a deliberately bounded fifth slice,
+`unifyEmpty`: two exact tensor components are merged only when the previous
+waiting cell is initialized and exactly empty.  Nonempty waiting-payload
+activation remains outside this module's guarantee.
+
 `concl` and `nop` perform only the common prefix; `wait` additionally performs
 one exact waiting cons update. `forward` composes the existing delayed par and
-ready-top primitives. Tensor unification, global payload ownership, full-rule
-reachability, and progress remain separate.
+ready-top primitives. `unifyEmpty` composes the bounded tensor and two-level
+merge primitives without claiming invariant preservation. Nonempty tensor
+unification, global payload ownership, full-rule reachability, and progress
+remain separate.
 -/
 
 /-- The submitted binary connective constructor retained by a generic
@@ -622,6 +629,108 @@ def ForwardExecutableReadyNodup (certificate : Certificate)
     vertex = side.premise storedLeft storedRight →
     middle.stack.ready.getLast? = some activeReady →
     (conclusion :: activeReady).Nodup
+
+/-- High-level-executable-independent Figure-7 `unify` relation for the
+bounded case where the waiting payload at the previous scheduler boundary is
+exactly empty.
+
+The relation does not mention `unifyEmpty?`, `queueTensor?`, or
+`mergeTopReadyWaiting?`.  Like `ForwardRule`, it does reuse bounded read-only
+production observations (`unifyTokens?` and `componentAt?`) while spelling
+out the mutation equations propositionally; it should not be read as a
+relation free of every executable observation.
+
+The rule retains the exact submitted tensor slot and stored premise
+orientation.  Its paper guard is stated only with raw ages:
+`previousBoundary ≤ mateRawAge < activeRawAge`.  `RealizesSigma` is used by
+the executable correspondence theorem to justify the separately recorded
+token orientation; the rule itself never substitutes a union-find
+representative for a raw age.
+
+This is deliberately not the complete Figure-7 `unify` rule.  It drains only
+`W(previousBoundary) = ∅`; activating nonempty waiting payloads remains a
+separate future slice.  The paper treats ready cells as sets, so the
+list-representation `Nodup` requirement is also kept out of this relation. -/
+def UnifyEmptyRule (certificate : Certificate)
+    (before after : ReservationState) : Prop :=
+  ∃ (vertex activeRawAge linkIndex storedLeft storedRight
+      conclusion : Nat),
+    ∃ (side : TensorPremiseSide) (middle : ReservationState)
+      (mateRawAge previousBoundary : RawTokenAge)
+      (leftToken rightToken : Nat)
+      (leftComponent rightComponent : UnificationComponent)
+      (leftFocus : Nat) (leftContext : List Vertex)
+      (rightFocus : Nat) (rightContext : List Vertex)
+      (sigmaPrefix : List RawTokenAge)
+      (readyPrefix : List (List Vertex))
+      (previousReady activeReady : List Vertex),
+    RulePrefixAt before middle vertex activeRawAge ∧
+    certificate.links[linkIndex]? =
+      some (.tensor storedLeft storedRight conclusion) ∧
+    vertex = side.premise storedLeft storedRight ∧
+    before.core.marks[side.mate storedLeft storedRight]? =
+      some (some mateRawAge) ∧
+    middle.stack.sigma =
+      sigmaPrefix ++ [previousBoundary, activeRawAge] ∧
+    previousBoundary ≤ mateRawAge ∧
+    mateRawAge < activeRawAge ∧
+    middle.stack.waiting[previousBoundary]? =
+      some (.initialized []) ∧
+    middle.stack.ready =
+      readyPrefix ++ [previousReady, activeReady] ∧
+    middle.core.unifyTokens? storedLeft storedRight conclusion =
+      some (leftToken, rightToken) ∧
+    ((side = .storedLeft ∧
+        leftToken = activeRawAge ∧
+        rightToken = previousBoundary) ∨
+      (side = .storedRight ∧
+        leftToken = previousBoundary ∧
+        rightToken = activeRawAge)) ∧
+    middle.core.componentAt? leftToken = some leftComponent ∧
+    middle.core.componentAt? rightToken = some rightComponent ∧
+    Certificate.FirstOccurrencePick leftComponent.frontier storedLeft
+      leftFocus leftContext ∧
+    Certificate.FirstOccurrencePick rightComponent.frontier storedRight
+      rightFocus rightContext ∧
+    after.core = {
+      middle.core with
+      parents :=
+        middle.core.parents.setIfInBounds
+          (max leftToken rightToken) (min leftToken rightToken)
+      components :=
+        (middle.core.components.setIfInBounds
+          (min leftToken rightToken)
+          (some {
+            tree :=
+              .tensor leftFocus rightFocus
+                leftComponent.tree rightComponent.tree
+            frontier := conclusion :: (leftContext ++ rightContext) }))
+          |>.setIfInBounds (max leftToken rightToken) none
+      firedConnectives := middle.core.firedConnectives + 1 } ∧
+    after.stack = {
+      middle.stack with
+      sigma := sigmaPrefix ++ [previousBoundary]
+      ready :=
+        readyPrefix ++
+          [conclusion :: (previousReady ++ activeReady)]
+      waiting :=
+        middle.stack.waiting.setIfInBounds previousBoundary
+          .undefined } ∧
+    after.tags = middle.tags
+
+/-- Representation-only list freshness required by executable
+`unifyEmpty?`.
+
+The direct rule fixes the mathematical output before this predicate inspects
+its final ready bucket.  No Figure-7 applicability or progress premise is
+hidden here: this condition only says that the deterministic list refinement
+of the paper's set union is duplicate-free. -/
+def UnifyEmptyExecutableReadyNodup (certificate : Certificate)
+    (before : ReservationState) : Prop :=
+  ∀ {after : ReservationState},
+    UnifyEmptyRule certificate before after →
+    ∀ {merged : List Vertex},
+      after.stack.ready.getLast? = some merged → merged.Nodup
 
 /-- Execute Figure-7 `concl`: perform the common prefix only when the selected
 occurrence is a locally ownership-well-formed declared conclusion with an
@@ -1236,6 +1345,147 @@ private theorem exists_connectiveBelow?_eq_some_par_of_structural
             (noPar storedLeft storedRight conclusion
               linkEquation).elim
 
+private theorem exists_connectiveBelow?_eq_some_tensor_of_structural
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {vertex linkIndex storedLeft storedRight conclusion : Vertex}
+    {side : TensorPremiseSide}
+    (linkEquation :
+      certificate.links[linkIndex]? =
+        some (.tensor storedLeft storedRight conclusion))
+    (premiseEquation :
+      vertex = side.premise storedLeft storedRight) :
+    ∃ consumer : ConnectiveBelow certificate vertex,
+      certificate.connectiveBelow? vertex = some consumer ∧
+      consumer.kind = .tensor ∧
+      consumer.side = side ∧
+      consumer.linkIndex = linkIndex ∧
+      consumer.storedLeft = storedLeft ∧
+      consumer.storedRight = storedRight ∧
+      consumer.conclusion = conclusion ∧
+      consumer.mate = side.mate storedLeft storedRight := by
+  have linkBound : linkIndex < certificate.links.length :=
+    (List.getElem?_eq_some_iff.mp linkEquation).1
+  have linkMembership :
+      .tensor storedLeft storedRight conclusion ∈ certificate.links := by
+    have stored := List.getElem_mem (l := certificate.links) linkBound
+    simpa [(List.getElem?_eq_some_iff.mp linkEquation).2] using stored
+  have wellFormed :
+      certificate.LinkWellFormed
+        (.tensor storedLeft storedRight conclusion) :=
+    structural.2.2.2.2.1 _ linkMembership
+  cases side with
+  | storedLeft =>
+      simp [TensorPremiseSide.premise] at premiseEquation
+      subst vertex
+      have unique :
+          certificate.consumerIndex.uniqueConsumer? storedLeft =
+            some linkIndex := by
+        apply ConsumerIndex.build_uniqueConsumer?_eq_some
+          structural linkEquation
+        · exact wellFormed.2.2.2.1
+        · simp [Link.premises]
+      let consumer : ConnectiveBelow certificate storedLeft := {
+        linkIndex
+        kind := .tensor
+        storedLeft
+        storedRight
+        conclusion
+        side := .storedLeft
+        consumer_eq := unique
+        link_eq := by
+          simpa [SequentialConnectiveKind.asLink] using linkEquation
+        wellFormed
+        premise_eq := rfl }
+      refine ⟨consumer, ?_, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+      unfold Certificate.connectiveBelow?
+      split
+      next noConsumer =>
+        rw [unique] at noConsumer
+        simp at noConsumer
+      next actualIndex consumerLookup =>
+        have indexEquation : actualIndex = linkIndex :=
+          Option.some.inj (consumerLookup.symm.trans unique)
+        subst actualIndex
+        unfold connectiveBelowAt?
+        split
+        next left right target submitted =>
+          have impossible :
+              Link.par left right target =
+                .tensor storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases impossible
+        next left right target submitted =>
+          have same :
+              Link.tensor left right target =
+                .tensor storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases same
+          simp [(certificate.linkLocallyWellFormed_iff
+            (.tensor storedLeft storedRight conclusion)).mpr
+              wellFormed,
+            consumer]
+        next noPar noTensor =>
+          exact
+            (noTensor storedLeft storedRight conclusion
+              linkEquation).elim
+  | storedRight =>
+      simp [TensorPremiseSide.premise] at premiseEquation
+      subst vertex
+      have unique :
+          certificate.consumerIndex.uniqueConsumer? storedRight =
+            some linkIndex := by
+        apply ConsumerIndex.build_uniqueConsumer?_eq_some
+          structural linkEquation
+        · exact wellFormed.2.2.2.2.1
+        · simp [Link.premises]
+      let consumer : ConnectiveBelow certificate storedRight := {
+        linkIndex
+        kind := .tensor
+        storedLeft
+        storedRight
+        conclusion
+        side := .storedRight
+        consumer_eq := unique
+        link_eq := by
+          simpa [SequentialConnectiveKind.asLink] using linkEquation
+        wellFormed
+        premise_eq := rfl }
+      refine ⟨consumer, ?_, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+      unfold Certificate.connectiveBelow?
+      split
+      next noConsumer =>
+        rw [unique] at noConsumer
+        simp at noConsumer
+      next actualIndex consumerLookup =>
+        have indexEquation : actualIndex = linkIndex :=
+          Option.some.inj (consumerLookup.symm.trans unique)
+        subst actualIndex
+        unfold connectiveBelowAt?
+        split
+        next left right target submitted =>
+          have impossible :
+              Link.par left right target =
+                .tensor storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases impossible
+        next left right target submitted =>
+          have same :
+              Link.tensor left right target =
+                .tensor storedLeft storedRight conclusion :=
+            Option.some.inj (submitted.symm.trans linkEquation)
+          cases same
+          have rightNeLeft : storedRight ≠ storedLeft :=
+            wellFormed.1.symm
+          simp [(certificate.linkLocallyWellFormed_iff
+            (.tensor storedLeft storedRight conclusion)).mpr
+              wellFormed,
+            rightNeLeft, consumer]
+        next noPar noTensor =>
+          exact
+            (noTensor storedLeft storedRight conclusion
+              linkEquation).elim
+
 /-- On structurally valid input, the independent direct `nop` guard is
 complete for the executable rule. -/
 theorem nop?_complete_of_structural
@@ -1433,6 +1683,79 @@ def forward? (certificate : Certificate)
           else
             none
 
+/-- Execute the bounded empty-waiting-cell Figure-7 `unify` slice.
+
+After the synchronized pop/raw-mark prefix, the selected occurrence must have
+one exact submitted tensor consumer.  Its mate must have a raw age in the
+previous interval `j ≤ μ(u₂) < i`, and `W(j)` must be the initialized empty
+cell.  Only then are the two production components queued and the top two
+scheduler buckets merged.  A nonempty waiting payload is rejected rather
+than silently ignored.
+
+The final `Nodup` test is solely a fail-closed check on the deterministic list
+representation of the paper's set union.  This executable is a local
+successful-rule query, not a complete dispatcher or an applicability,
+progress, completeness, or complexity theorem. -/
+def unifyEmpty? (certificate : Certificate)
+    (before : ReservationState)
+    (_invariant : ReservationInvariant certificate before) :
+    Option ReservationState :=
+  match prepare? before with
+  | none => none
+  | some prepared =>
+      match
+          certificate.connectiveBelow?
+            prepared.stackResult.vertex with
+      | none => none
+      | some consumer =>
+          if _tensor : consumer.kind = .tensor then
+            match prepared.coreMarked.marks[consumer.mate]? with
+            | some (some mateRawAge) =>
+                match
+                    prepared.stackResult.after.sigma.dropLast.getLast? with
+                | none => none
+                | some previousBoundary =>
+                    if _lower : previousBoundary ≤ mateRawAge then
+                      if _upper :
+                          mateRawAge < prepared.stackResult.rawAge then
+                        match
+                            prepared.stackResult.after.waiting[
+                              previousBoundary]? with
+                        | some (.initialized []) =>
+                            match
+                                Certificate.queueTensor?
+                                  prepared.coreMarked
+                                  consumer.storedLeft
+                                  consumer.storedRight
+                                  consumer.conclusion with
+                            | none => none
+                            | some coreAfter =>
+                                match
+                                    prepared.stackResult.after
+                                      |>.mergeTopReadyWaiting?
+                                        previousBoundary
+                                        consumer.conclusion with
+                                | none => none
+                                | some stackAfter =>
+                                    match stackAfter.ready.getLast? with
+                                    | none => none
+                                    | some merged =>
+                                        if _readyNodup : merged.Nodup then
+                                          some {
+                                            stack := stackAfter
+                                            core := coreAfter
+                                            tags := before.tags }
+                                        else
+                                          none
+                        | _ => none
+                      else
+                        none
+                    else
+                      none
+            | _ => none
+          else
+            none
+
 private theorem queueParStep_outputToken_eq_active
     {certificate : Certificate} {before : ReservationState}
     {coreAfter : UnificationState}
@@ -1447,6 +1770,13 @@ private theorem queueParStep_outputToken_eq_active
   have preparedInvariant :
       ReservationInvariant certificate prepared.after :=
     prepared.reservationInvariant invariant
+  have stackWellShaped :
+      prepared.stackResult.after.WellShaped certificate.formulas.size := by
+    simpa [PreparedStep.after] using
+      preparedInvariant.stack_wellShaped
+  have realizesSigma :
+      RealizesSigma prepared.stackResult.after prepared.coreMarked := by
+    simpa [PreparedStep.after] using preparedInvariant.realizesSigma
   rcases SequentialStackState.popReadyMark?_exact prepared.stack_eq with
     ⟨_topEquation, sigmaTopEquation, _stackUnmarked,
       _stackMarksEquation, _stackNextAgeEquation, stackSigmaEquation,
@@ -1463,13 +1793,13 @@ private theorem queueParStep_outputToken_eq_active
   have rawAgeBound :
       prepared.stackResult.rawAge <
         prepared.stackResult.after.nextAge :=
-    preparedInvariant.stack_wellShaped.assigned_age_bound
+    stackWellShaped.assigned_age_bound
       prepared.stackResult.vertex prepared.stackResult.rawAge stackMarked
   have boundaryLookup :
       sigmaBoundary? prepared.stackResult.after.sigma
           prepared.stackResult.rawAge =
         some prepared.stackResult.rawAge :=
-    preparedInvariant.stack_wellShaped.sigma_partition
+    stackWellShaped.sigma_partition
       |>.sigmaBoundary?_eq_top afterSigmaTop
   have realizesLookup :
       sigmaBoundary? prepared.stackResult.after.sigma
@@ -1477,7 +1807,7 @@ private theorem queueParStep_outputToken_eq_active
         some
           (prepared.coreMarked.representative
             prepared.stackResult.rawAge) :=
-    preparedInvariant.realizesSigma.representative_eq_boundary rawAgeBound
+    realizesSigma.representative_eq_boundary rawAgeBound
   have rawAgeRoot :
       prepared.coreMarked.representative prepared.stackResult.rawAge =
         prepared.stackResult.rawAge :=
@@ -1507,6 +1837,166 @@ private theorem queueParStep_outputToken_eq_active
             consumer.premise_eq
         simpa [selectedEquation] using tokenGuards.2.2
   exact Option.some.inj (selectedOutput.symm.trans selectedToken)
+
+/-- Under the reservation bridge, the raw-age interval guard of the bounded
+`unify` slice fixes the two production representatives exactly.  Stored
+tensor orientation is retained: the selected premise has the active token
+and its mate has the previous-boundary token. -/
+private theorem queueTensorStep_tokens_eq_adjacent
+    {certificate : Certificate} {before : ReservationState}
+    {coreAfter : UnificationState}
+    (invariant : ReservationInvariant certificate before)
+    (prepared : PreparedStep before)
+    (consumer :
+      ConnectiveBelow certificate prepared.stackResult.vertex)
+    (mateRawAge previousBoundary : RawTokenAge)
+    (sigmaPrefix : List RawTokenAge)
+    (sigmaEquation :
+      prepared.stackResult.after.sigma =
+        sigmaPrefix ++
+          [previousBoundary, prepared.stackResult.rawAge])
+    (mateMarked :
+      prepared.coreMarked.marks[consumer.mate]? =
+        some (some mateRawAge))
+    (lower : previousBoundary ≤ mateRawAge)
+    (upper : mateRawAge < prepared.stackResult.rawAge)
+    (step :
+      Certificate.QueueTensorStep prepared.coreMarked coreAfter
+        consumer.storedLeft consumer.storedRight consumer.conclusion) :
+    (consumer.side = .storedLeft ∧
+        step.leftToken = prepared.stackResult.rawAge ∧
+        step.rightToken = previousBoundary) ∨
+      (consumer.side = .storedRight ∧
+        step.leftToken = previousBoundary ∧
+        step.rightToken = prepared.stackResult.rawAge) := by
+  have preparedInvariant :
+      ReservationInvariant certificate prepared.after :=
+    prepared.reservationInvariant invariant
+  have stackWellShaped :
+      prepared.stackResult.after.WellShaped certificate.formulas.size := by
+    simpa [PreparedStep.after] using
+      preparedInvariant.stack_wellShaped
+  have realizesSigma :
+      RealizesSigma prepared.stackResult.after prepared.coreMarked := by
+    simpa [PreparedStep.after] using preparedInvariant.realizesSigma
+  rcases SequentialStackState.popReadyMark?_exact prepared.stack_eq with
+    ⟨_topEquation, _sigmaTopEquation, _stackUnmarked,
+      _stackMarksEquation, _stackNextAgeEquation, _stackSigmaEquation,
+      _stackReadyEquation, _stackWaitingEquation, stackSelectedMarked⟩
+  rcases UnificationState.markReadyRaw?_exact prepared.core_mark_eq with
+    ⟨_coreUnmarked, _coreMarksEquation, _coreParentsEquation,
+      _coreComponentsEquation, _coreStartedEquation, _coreFiredEquation,
+      coreSelectedMarked⟩
+  have activeAgeBound :
+      prepared.stackResult.rawAge <
+        prepared.stackResult.after.nextAge :=
+    stackWellShaped.assigned_age_bound
+      prepared.stackResult.vertex prepared.stackResult.rawAge
+      stackSelectedMarked
+  have activeBoundaryLookup :
+      sigmaBoundary? prepared.stackResult.after.sigma
+          prepared.stackResult.rawAge =
+        some prepared.stackResult.rawAge :=
+    stackWellShaped.sigma_partition
+      |>.sigmaBoundary?_eq_top (by
+        rw [sigmaEquation]
+        simp)
+  have activeRealized :
+      sigmaBoundary? prepared.stackResult.after.sigma
+          prepared.stackResult.rawAge =
+        some
+          (prepared.coreMarked.representative
+            prepared.stackResult.rawAge) :=
+    realizesSigma.representative_eq_boundary
+      activeAgeBound
+  have activeRoot :
+      prepared.coreMarked.representative
+          prepared.stackResult.rawAge =
+        prepared.stackResult.rawAge :=
+    Option.some.inj (activeRealized.symm.trans activeBoundaryLookup)
+  have selectedToken :
+      prepared.coreMarked.tokenAt? prepared.stackResult.vertex =
+        some prepared.stackResult.rawAge := by
+    unfold UnificationState.tokenAt?
+    rw [coreSelectedMarked]
+    simp [activeRoot]
+  have stackMateMarked :
+      prepared.stackResult.after.marks[consumer.mate]? =
+        some (some mateRawAge) := by
+    rw [← realizesSigma.marks_eq]
+    exact mateMarked
+  have mateAgeBound :
+      mateRawAge < prepared.stackResult.after.nextAge :=
+    stackWellShaped.assigned_age_bound
+      consumer.mate mateRawAge stackMateMarked
+  have mateBoundaryLookup :
+      sigmaBoundary? prepared.stackResult.after.sigma mateRawAge =
+        some previousBoundary :=
+    stackWellShaped.sigma_partition
+      |>.sigmaBoundary?_eq_previous_of_between
+        sigmaEquation lower upper
+  have mateRealized :
+      sigmaBoundary? prepared.stackResult.after.sigma mateRawAge =
+        some (prepared.coreMarked.representative mateRawAge) :=
+    realizesSigma.representative_eq_boundary
+      mateAgeBound
+  have mateRoot :
+      prepared.coreMarked.representative mateRawAge =
+        previousBoundary :=
+    Option.some.inj (mateRealized.symm.trans mateBoundaryLookup)
+  have mateToken :
+      prepared.coreMarked.tokenAt? consumer.mate =
+        some previousBoundary := by
+    unfold UnificationState.tokenAt?
+    rw [mateMarked]
+    simp [mateRoot]
+  have tokenGuards :=
+    UnificationState.unifyTokens?_success step.token_guard
+  cases sideEquation : consumer.side with
+  | storedLeft =>
+      left
+      refine ⟨rfl, ?_, ?_⟩
+      · have selectedEquation :
+            prepared.stackResult.vertex = consumer.storedLeft := by
+          simpa [TensorPremiseSide.premise, sideEquation] using
+            consumer.premise_eq
+        have selectedStored :
+            prepared.coreMarked.tokenAt? consumer.storedLeft =
+              some prepared.stackResult.rawAge := by
+          simpa [selectedEquation] using selectedToken
+        exact Option.some.inj
+          (tokenGuards.2.1.symm.trans selectedStored)
+      · have mateEquation : consumer.mate = consumer.storedRight := by
+          simp [ConnectiveBelow.mate, TensorPremiseSide.mate,
+            sideEquation]
+        have mateStored :
+            prepared.coreMarked.tokenAt? consumer.storedRight =
+              some previousBoundary := by
+          simpa [mateEquation] using mateToken
+        exact Option.some.inj
+          (tokenGuards.2.2.1.symm.trans mateStored)
+  | storedRight =>
+      right
+      refine ⟨rfl, ?_, ?_⟩
+      · have mateEquation : consumer.mate = consumer.storedLeft := by
+          simp [ConnectiveBelow.mate, TensorPremiseSide.mate,
+            sideEquation]
+        have mateStored :
+            prepared.coreMarked.tokenAt? consumer.storedLeft =
+              some previousBoundary := by
+          simpa [mateEquation] using mateToken
+        exact Option.some.inj
+          (tokenGuards.2.1.symm.trans mateStored)
+      · have selectedEquation :
+            prepared.stackResult.vertex = consumer.storedRight := by
+          simpa [TensorPremiseSide.premise, sideEquation] using
+            consumer.premise_eq
+        have selectedStored :
+            prepared.coreMarked.tokenAt? consumer.storedRight =
+              some prepared.stackResult.rawAge := by
+          simpa [selectedEquation] using selectedToken
+        exact Option.some.inj
+          (tokenGuards.2.2.1.symm.trans selectedStored)
 
 /-- Exact proof-relevant specification of one successful `forward` rule.
 
@@ -1917,6 +2407,490 @@ theorem output_unique
   exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
 
 end ForwardStep
+
+/-- Exact proof-relevant specification of one successful bounded
+empty-waiting-cell `unify` step. -/
+structure UnifyEmptyStep (certificate : Certificate)
+    (before after : ReservationState) : Type where
+  before_invariant : ReservationInvariant certificate before
+  prepared : PreparedStep before
+  consumer :
+    ConnectiveBelow certificate prepared.stackResult.vertex
+  mateRawAge : RawTokenAge
+  previousBoundary : RawTokenAge
+  coreAfter : UnificationState
+  stackAfter : SequentialStackState
+  merged : List Vertex
+  queueStep :
+    Certificate.QueueTensorStep prepared.coreMarked coreAfter
+      consumer.storedLeft consumer.storedRight consumer.conclusion
+  mergeStep :
+    MergeTopReadyWaitingStep prepared.stackResult.after stackAfter
+      previousBoundary consumer.conclusion
+  prepare_eq : prepare? before = some prepared
+  consumer_eq :
+    certificate.connectiveBelow? prepared.stackResult.vertex =
+      some consumer
+  tensor_eq : consumer.kind = .tensor
+  mate_marked :
+    prepared.coreMarked.marks[consumer.mate]? =
+      some (some mateRawAge)
+  lower : previousBoundary ≤ mateRawAge
+  upper : mateRawAge < prepared.stackResult.rawAge
+  waiting_empty :
+    prepared.stackResult.after.waiting[previousBoundary]? =
+      some (.initialized [])
+  core_queue_eq :
+    Certificate.queueTensor? prepared.coreMarked
+        consumer.storedLeft consumer.storedRight consumer.conclusion =
+      some coreAfter
+  stack_merge_eq :
+    prepared.stackResult.after.mergeTopReadyWaiting?
+        previousBoundary consumer.conclusion =
+      some stackAfter
+  merged_eq : stackAfter.ready.getLast? = some merged
+  ready_nodup : merged.Nodup
+  tokens_eq_adjacent :
+    (consumer.side = .storedLeft ∧
+        queueStep.leftToken = prepared.stackResult.rawAge ∧
+        queueStep.rightToken = previousBoundary) ∨
+      (consumer.side = .storedRight ∧
+        queueStep.leftToken = previousBoundary ∧
+        queueStep.rightToken = prepared.stackResult.rawAge)
+  output_eq :
+    after = {
+      stack := stackAfter
+      core := coreAfter
+      tags := before.tags }
+
+/-- Executable `unifyEmpty?` success is exactly the typed bounded local-rule
+witness. -/
+theorem unifyEmpty?_some_iff
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before) :
+    unifyEmpty? certificate before invariant = some after ↔
+      Nonempty (UnifyEmptyStep certificate before after) := by
+  constructor
+  · intro equation
+    unfold unifyEmpty? at equation
+    cases prepareEquation : prepare? before with
+    | none =>
+        simp [prepareEquation] at equation
+    | some prepared =>
+        cases consumerEquation :
+            certificate.connectiveBelow?
+              prepared.stackResult.vertex with
+        | none =>
+            simp [prepareEquation, consumerEquation] at equation
+        | some consumer =>
+            by_cases tensorEquation : consumer.kind = .tensor
+            · cases mateEquation :
+                  prepared.coreMarked.marks[consumer.mate]? with
+              | none =>
+                  simp [prepareEquation, consumerEquation,
+                    tensorEquation, mateEquation] at equation
+              | some mark =>
+                  cases mark with
+                  | none =>
+                      simp [prepareEquation, consumerEquation,
+                        tensorEquation, mateEquation] at equation
+                  | some mateRawAge =>
+                      cases previousEquation :
+                          prepared.stackResult.after.sigma.dropLast.getLast? with
+                      | none =>
+                          simp [prepareEquation, consumerEquation,
+                            tensorEquation, mateEquation,
+                            previousEquation] at equation
+                      | some previousBoundary =>
+                          by_cases lowerEquation :
+                              previousBoundary ≤ mateRawAge
+                          · by_cases upperEquation :
+                                mateRawAge < prepared.stackResult.rawAge
+                            · cases waitingEquation :
+                                  prepared.stackResult.after.waiting[
+                                    previousBoundary]? with
+                              | none =>
+                                  simp [prepareEquation, consumerEquation,
+                                    tensorEquation, mateEquation,
+                                    previousEquation, lowerEquation,
+                                    upperEquation, waitingEquation] at equation
+                              | some waitingCell =>
+                                  cases waitingCell with
+                                  | undefined =>
+                                      simp [prepareEquation, consumerEquation,
+                                        tensorEquation, mateEquation,
+                                        previousEquation, lowerEquation,
+                                        upperEquation, waitingEquation]
+                                        at equation
+                                  | initialized payload =>
+                                      cases payload with
+                                      | cons payloadHead payloadTail =>
+                                          simp [prepareEquation,
+                                            consumerEquation, tensorEquation,
+                                            mateEquation, previousEquation,
+                                            lowerEquation, upperEquation,
+                                            waitingEquation] at equation
+                                      | nil =>
+                                          cases coreEquation :
+                                              Certificate.queueTensor?
+                                                prepared.coreMarked
+                                                consumer.storedLeft
+                                                consumer.storedRight
+                                                consumer.conclusion with
+                                          | none =>
+                                              simp [prepareEquation,
+                                                consumerEquation,
+                                                tensorEquation, mateEquation,
+                                                previousEquation,
+                                                lowerEquation, upperEquation,
+                                                waitingEquation, coreEquation]
+                                                at equation
+                                          | some coreAfter =>
+                                              cases stackEquation :
+                                                  prepared.stackResult.after
+                                                    |>.mergeTopReadyWaiting?
+                                                      previousBoundary
+                                                      consumer.conclusion with
+                                              | none =>
+                                                  simp [prepareEquation,
+                                                    consumerEquation,
+                                                    tensorEquation,
+                                                    mateEquation,
+                                                    previousEquation,
+                                                    lowerEquation,
+                                                    upperEquation,
+                                                    waitingEquation,
+                                                    coreEquation,
+                                                    stackEquation] at equation
+                                              | some stackAfter =>
+                                                  cases mergedEquation :
+                                                      stackAfter.ready.getLast? with
+                                                  | none =>
+                                                      simp [prepareEquation,
+                                                        consumerEquation,
+                                                        tensorEquation,
+                                                        mateEquation,
+                                                        previousEquation,
+                                                        lowerEquation,
+                                                        upperEquation,
+                                                        waitingEquation,
+                                                        coreEquation,
+                                                        stackEquation,
+                                                        mergedEquation]
+                                                        at equation
+                                                  | some merged =>
+                                                      by_cases readyNodupEquation :
+                                                          merged.Nodup
+                                                      · simp [prepareEquation,
+                                                          consumerEquation,
+                                                          tensorEquation,
+                                                          mateEquation,
+                                                          previousEquation,
+                                                          lowerEquation,
+                                                          upperEquation,
+                                                          waitingEquation,
+                                                          coreEquation,
+                                                          stackEquation,
+                                                          mergedEquation,
+                                                          readyNodupEquation]
+                                                          at equation
+                                                        subst after
+                                                        rcases
+                                                            Certificate.queueTensor?_some_iff.mp
+                                                              coreEquation with
+                                                          ⟨queueStep⟩
+                                                        rcases
+                                                            SequentialStackState.mergeTopReadyWaiting?_some_iff.mp
+                                                              stackEquation with
+                                                          ⟨mergeStep⟩
+                                                        have activeBoundaryEquation :
+                                                            mergeStep.activeBoundary =
+                                                              prepared.stackResult.rawAge := by
+                                                          have mergeTop :
+                                                              prepared.stackResult.after.sigma.getLast? =
+                                                                some mergeStep.activeBoundary := by
+                                                            rw [mergeStep.sigma_eq]
+                                                            simp
+                                                          have preparedTop :
+                                                              prepared.stackResult.after.sigma.getLast? =
+                                                                some prepared.stackResult.rawAge := by
+                                                            rcases
+                                                                SequentialStackState.popReadyMark?_exact
+                                                                  prepared.stack_eq with
+                                                              ⟨_, sigmaTop, _, _, _, sigmaAfter,
+                                                                _, _, _⟩
+                                                            rw [sigmaAfter]
+                                                            exact sigmaTop
+                                                          exact Option.some.inj
+                                                            (mergeTop.symm.trans preparedTop)
+                                                        have exactSigma :
+                                                            prepared.stackResult.after.sigma =
+                                                              mergeStep.sigmaPrefix ++
+                                                                [previousBoundary,
+                                                                  prepared.stackResult.rawAge] := by
+                                                          simpa [activeBoundaryEquation] using
+                                                            mergeStep.sigma_eq
+                                                        have tokenOrientation :=
+                                                          queueTensorStep_tokens_eq_adjacent
+                                                            invariant prepared consumer
+                                                            mateRawAge previousBoundary
+                                                            mergeStep.sigmaPrefix exactSigma
+                                                            mateEquation lowerEquation
+                                                            upperEquation queueStep
+                                                        exact ⟨{
+                                                          before_invariant := invariant
+                                                          prepared
+                                                          consumer
+                                                          mateRawAge
+                                                          previousBoundary
+                                                          coreAfter
+                                                          stackAfter
+                                                          merged
+                                                          queueStep
+                                                          mergeStep
+                                                          prepare_eq := prepareEquation
+                                                          consumer_eq := consumerEquation
+                                                          tensor_eq := tensorEquation
+                                                          mate_marked := mateEquation
+                                                          lower := lowerEquation
+                                                          upper := upperEquation
+                                                          waiting_empty := waitingEquation
+                                                          core_queue_eq := coreEquation
+                                                          stack_merge_eq := stackEquation
+                                                          merged_eq := mergedEquation
+                                                          ready_nodup := readyNodupEquation
+                                                          tokens_eq_adjacent := tokenOrientation
+                                                          output_eq := rfl }⟩
+                                                      · simp [prepareEquation,
+                                                          consumerEquation,
+                                                          tensorEquation,
+                                                          mateEquation,
+                                                          previousEquation,
+                                                          lowerEquation,
+                                                          upperEquation,
+                                                          waitingEquation,
+                                                          coreEquation,
+                                                          stackEquation,
+                                                          mergedEquation,
+                                                          readyNodupEquation]
+                                                          at equation
+                            · simp [prepareEquation, consumerEquation,
+                                tensorEquation, mateEquation,
+                                previousEquation, lowerEquation,
+                                upperEquation] at equation
+                          · simp [prepareEquation, consumerEquation,
+                              tensorEquation, mateEquation,
+                              previousEquation, lowerEquation] at equation
+            · simp [prepareEquation, consumerEquation, tensorEquation]
+                at equation
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨stepInvariant, prepared, consumer, mateRawAge,
+        previousBoundary, coreAfter, stackAfter, merged,
+        queueStep, mergeStep, prepareEquation, consumerEquation,
+        tensorEquation, mateEquation, lowerEquation, upperEquation,
+        waitingEquation, coreEquation, stackEquation,
+        mergedEquation, readyNodupEquation, tokenOrientation,
+        outputEquation⟩
+    subst after
+    have previousEquation :
+        prepared.stackResult.after.sigma.dropLast.getLast? =
+          some previousBoundary := by
+      rw [mergeStep.sigma_eq]
+      simp
+    simp [unifyEmpty?, prepareEquation, consumerEquation,
+      tensorEquation, mateEquation, previousEquation,
+      lowerEquation, upperEquation, waitingEquation,
+      coreEquation, stackEquation, mergedEquation,
+      readyNodupEquation]
+
+namespace UnifyEmptyStep
+
+/-- The generic consumer retained by the bounded witness is the exact
+submitted tensor occurrence at its original certificate index. -/
+theorem submitted_tensor
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : UnifyEmptyStep certificate before after) :
+    certificate.links[step.consumer.linkIndex]? =
+      some (.tensor step.consumer.storedLeft
+        step.consumer.storedRight step.consumer.conclusion) := by
+  simpa [step.tensor_eq, SequentialConnectiveKind.asLink] using
+    step.consumer.link_eq
+
+/-- The mate raw age tested after the prefix is its exact pre-prefix mark. -/
+theorem mate_marked_before
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : UnifyEmptyStep certificate before after) :
+    before.core.marks[step.consumer.mate]? =
+      some (some step.mateRawAge) := by
+  have markExact :=
+    UnificationState.markReadyRaw?_exact step.prepared.core_mark_eq
+  have selectedNeMate :
+      step.prepared.stackResult.vertex ≠ step.consumer.mate :=
+    step.consumer.mate_ne.symm
+  have unchanged :
+      step.prepared.coreMarked.marks[step.consumer.mate]? =
+        before.core.marks[step.consumer.mate]? := by
+    rw [markExact.2.1]
+    simp [selectedNeMate]
+  exact unchanged.symm.trans step.mate_marked
+
+/-- The equation-backed bounded witness refines the independent direct rule.
+The executable ready-bucket `Nodup` check is intentionally absent from this
+refinement. -/
+theorem toRule
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : UnifyEmptyStep certificate before after) :
+    UnifyEmptyRule certificate before after := by
+  have activeBoundaryEquation :
+      step.mergeStep.activeBoundary =
+        step.prepared.stackResult.rawAge := by
+    have mergeTop :
+        step.prepared.stackResult.after.sigma.getLast? =
+          some step.mergeStep.activeBoundary := by
+      rw [step.mergeStep.sigma_eq]
+      simp
+    have preparedTop :
+        step.prepared.stackResult.after.sigma.getLast? =
+          some step.prepared.stackResult.rawAge := by
+      rcases
+          SequentialStackState.popReadyMark?_exact
+            step.prepared.stack_eq with
+        ⟨_, sigmaTop, _, _, _, sigmaAfter, _, _, _⟩
+      rw [sigmaAfter]
+      exact sigmaTop
+    exact Option.some.inj (mergeTop.symm.trans preparedTop)
+  have payloadEquation : step.mergeStep.payload = [] := by
+    exact WaitingCell.initialized.inj
+      (Option.some.inj
+        (step.mergeStep.waiting_initialized.symm.trans
+          step.waiting_empty))
+  refine ⟨step.prepared.stackResult.vertex,
+    step.prepared.stackResult.rawAge,
+    step.consumer.linkIndex,
+    step.consumer.storedLeft,
+    step.consumer.storedRight,
+    step.consumer.conclusion,
+    step.consumer.side,
+    step.prepared.after,
+    step.mateRawAge,
+    step.previousBoundary,
+    step.queueStep.leftToken,
+    step.queueStep.rightToken,
+    step.queueStep.leftComponent,
+    step.queueStep.rightComponent,
+    step.queueStep.leftFocus,
+    step.queueStep.leftContext,
+    step.queueStep.rightFocus,
+    step.queueStep.rightContext,
+    step.mergeStep.sigmaPrefix,
+    step.mergeStep.readyPrefix,
+    step.mergeStep.previousReady,
+    step.mergeStep.activeReady,
+    RulePrefix.ofPrepared step.prepared,
+    step.submitted_tensor,
+    step.consumer.premise_eq,
+    step.mate_marked_before,
+    ?_, step.lower, step.upper, step.waiting_empty,
+    step.mergeStep.ready_eq,
+    step.queueStep.token_guard,
+    step.tokens_eq_adjacent,
+    step.queueStep.left_component,
+    step.queueStep.right_component,
+    step.queueStep.left_pick,
+    step.queueStep.right_pick,
+    ?_, ?_, ?_⟩
+  · simpa [PreparedStep.after, activeBoundaryEquation] using
+      step.mergeStep.sigma_eq
+  · calc
+      after.core = step.coreAfter :=
+        congrArg (fun state : ReservationState => state.core) step.output_eq
+      _ = {
+          step.prepared.after.core with
+          parents :=
+            step.prepared.after.core.parents.setIfInBounds
+              (max step.queueStep.leftToken step.queueStep.rightToken)
+              (min step.queueStep.leftToken step.queueStep.rightToken)
+          components :=
+            (step.prepared.after.core.components.setIfInBounds
+              (min step.queueStep.leftToken step.queueStep.rightToken)
+              (some {
+                tree :=
+                  .tensor step.queueStep.leftFocus
+                    step.queueStep.rightFocus
+                    step.queueStep.leftComponent.tree
+                    step.queueStep.rightComponent.tree
+                frontier :=
+                  step.consumer.conclusion ::
+                    (step.queueStep.leftContext ++
+                      step.queueStep.rightContext) }))
+              |>.setIfInBounds
+                (max step.queueStep.leftToken step.queueStep.rightToken)
+                none
+          firedConnectives :=
+            step.prepared.after.core.firedConnectives + 1 } :=
+        step.queueStep.after_eq
+  · calc
+      after.stack = step.stackAfter :=
+        congrArg (fun state : ReservationState => state.stack) step.output_eq
+      _ = {
+          step.prepared.after.stack with
+          sigma :=
+            step.mergeStep.sigmaPrefix ++ [step.previousBoundary]
+          ready :=
+            step.mergeStep.readyPrefix ++
+              [step.consumer.conclusion ::
+                (step.mergeStep.previousReady ++
+                  step.mergeStep.activeReady)]
+          waiting :=
+            step.prepared.after.stack.waiting.setIfInBounds
+              step.previousBoundary .undefined } := by
+        simpa [PreparedStep.after, payloadEquation] using
+          step.mergeStep.after_eq
+  · calc
+      after.tags = before.tags := by
+        simpa using
+          congrArg (fun state : ReservationState => state.tags)
+            step.output_eq
+      _ = step.prepared.after.tags := by
+        rfl
+
+/-- The proof-relevant bounded executable relation has one exact output for a
+fixed input and invariant proof. -/
+theorem output_unique
+    {certificate : Certificate}
+    {before first second : ReservationState}
+    (left : UnifyEmptyStep certificate before first)
+    (right : UnifyEmptyStep certificate before second) :
+    first = second := by
+  have invariantEquation :
+      left.before_invariant = right.before_invariant :=
+    Subsingleton.elim _ _
+  cases invariantEquation
+  have leftExecutable :
+      unifyEmpty? certificate before left.before_invariant = some first :=
+    (unifyEmpty?_some_iff left.before_invariant).mpr ⟨left⟩
+  have rightExecutable :
+      unifyEmpty? certificate before left.before_invariant = some second :=
+    (unifyEmpty?_some_iff left.before_invariant).mpr ⟨right⟩
+  exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
+
+end UnifyEmptyStep
+
+/-- Executable bounded empty-cell unification is sound for the independent
+direct relation without a global certificate-validity assumption. -/
+theorem unifyEmpty?_sound
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation : unifyEmpty? certificate before invariant = some after) :
+    UnifyEmptyRule certificate before after := by
+  rcases (unifyEmpty?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.toRule
 
 /-- Executable `forward` is sound for the independent direct relation without
 a global certificate-validity assumption. -/
@@ -2518,6 +3492,193 @@ theorem ForwardRule.output_unique_of_structural
     forward?_complete_of_structural structural invariant readyShape left
   have rightExecutable :=
     forward?_complete_of_structural structural invariant readyShape right
+  exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
+
+/-- On structurally valid input, the independent bounded empty-cell `unify`
+rule is complete for the executable local query when the separate
+list-representation freshness condition is supplied.  This is successful-rule
+correspondence only; it does not assert that the rule is applicable. -/
+theorem unifyEmpty?_complete_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (readyShape : UnifyEmptyExecutableReadyNodup certificate before)
+    (rule : UnifyEmptyRule certificate before after) :
+    unifyEmpty? certificate before invariant = some after := by
+  have directRule := rule
+  rcases rule with
+    ⟨vertex, activeRawAge, linkIndex, storedLeft, storedRight,
+      conclusion, side, middle, mateRawAge, previousBoundary,
+      leftToken, rightToken, leftComponent, rightComponent,
+      leftFocus, leftContext, rightFocus, rightContext,
+      sigmaPrefix, readyPrefix, previousReady, activeReady,
+      prefixRule, linkEquation, premiseEquation, mateMarkedBefore,
+      sigmaEquation, lower, upper, waitingEmpty, readyEquation,
+      tokenGuard, tokenOrientation, leftComponentLookup,
+      rightComponentLookup, leftPick, rightPick, coreAfterEquation,
+      stackAfterEquation, tagsAfterEquation⟩
+  rcases exists_prepared_of_rulePrefixAt prefixRule with
+    ⟨prepared, prepareEquation, middleEquation,
+      vertexEquation, rawAgeEquation⟩
+  subst middle
+  subst vertex
+  subst activeRawAge
+  rcases
+      exists_connectiveBelow?_eq_some_tensor_of_structural
+        (side := side) structural linkEquation vertexEquation with
+    ⟨consumer, consumerEquation, tensorEquation,
+      sideEquation, indexEquation, storedLeftEquation,
+      storedRightEquation, conclusionEquation, _mateEquation⟩
+  subst side
+  subst linkIndex
+  subst storedLeft
+  subst storedRight
+  subst conclusion
+  have markExact :=
+    UnificationState.markReadyRaw?_exact prepared.core_mark_eq
+  have selectedNeMate :
+      prepared.stackResult.vertex ≠ consumer.mate :=
+    consumer.mate_ne.symm
+  have mateMarkedBefore' :
+      before.core.marks[consumer.mate]? =
+        some (some mateRawAge) := by
+    simpa [ConnectiveBelow.mate] using mateMarkedBefore
+  have mateMarkedAfter :
+      prepared.coreMarked.marks[consumer.mate]? =
+        some (some mateRawAge) := by
+    rw [markExact.2.1]
+    simpa [selectedNeMate] using mateMarkedBefore'
+  let queueStep :
+      Certificate.QueueTensorStep prepared.coreMarked after.core
+        consumer.storedLeft consumer.storedRight consumer.conclusion := {
+    leftToken
+    rightToken
+    leftComponent
+    rightComponent
+    leftFocus
+    leftContext
+    rightFocus
+    rightContext
+    token_guard := by
+      simpa [PreparedStep.after] using tokenGuard
+    left_component := by
+      simpa [PreparedStep.after] using leftComponentLookup
+    right_component := by
+      simpa [PreparedStep.after] using rightComponentLookup
+    left_pick := leftPick
+    right_pick := rightPick
+    after_eq := by
+      simpa [PreparedStep.after] using coreAfterEquation }
+  have coreEquation :
+      Certificate.queueTensor? prepared.coreMarked
+          consumer.storedLeft consumer.storedRight consumer.conclusion =
+        some after.core :=
+    Certificate.queueTensor?_some_iff.mpr ⟨queueStep⟩
+  let mergeStep :
+      MergeTopReadyWaitingStep prepared.stackResult.after after.stack
+        previousBoundary consumer.conclusion := {
+    sigmaPrefix
+    activeBoundary := prepared.stackResult.rawAge
+    readyPrefix
+    previousReady
+    activeReady
+    payload := []
+    sigma_eq := by
+      simpa [PreparedStep.after] using sigmaEquation
+    ready_eq := by
+      simpa [PreparedStep.after] using readyEquation
+    waiting_initialized := by
+      simpa [PreparedStep.after] using waitingEmpty
+    after_eq := by
+      simpa [PreparedStep.after] using stackAfterEquation }
+  have stackEquation :
+      prepared.stackResult.after.mergeTopReadyWaiting?
+          previousBoundary consumer.conclusion =
+        some after.stack :=
+    SequentialStackState.mergeTopReadyWaiting?_some_iff.mpr ⟨mergeStep⟩
+  let merged : List Vertex :=
+    consumer.conclusion :: (previousReady ++ activeReady)
+  have mergedEquation : after.stack.ready.getLast? = some merged := by
+    rw [stackAfterEquation]
+    simp [merged]
+  have readyNodup : merged.Nodup :=
+    readyShape directRule mergedEquation
+  have tokenOrientation :
+      (consumer.side = .storedLeft ∧
+          queueStep.leftToken = prepared.stackResult.rawAge ∧
+          queueStep.rightToken = previousBoundary) ∨
+        (consumer.side = .storedRight ∧
+          queueStep.leftToken = previousBoundary ∧
+          queueStep.rightToken = prepared.stackResult.rawAge) := by
+    simpa [queueStep] using tokenOrientation
+  have outputEquation :
+      after = {
+        stack := after.stack
+        core := after.core
+        tags := before.tags } := by
+    cases before
+    cases after
+    simp_all [PreparedStep.after]
+  apply (unifyEmpty?_some_iff invariant).mpr
+  exact ⟨{
+    before_invariant := invariant
+    prepared
+    consumer
+    mateRawAge
+    previousBoundary
+    coreAfter := after.core
+    stackAfter := after.stack
+    merged
+    queueStep
+    mergeStep
+    prepare_eq := prepareEquation
+    consumer_eq := consumerEquation
+    tensor_eq := tensorEquation
+    mate_marked := mateMarkedAfter
+    lower
+    upper
+    waiting_empty := by
+      simpa [PreparedStep.after] using waitingEmpty
+    core_queue_eq := coreEquation
+    stack_merge_eq := stackEquation
+    merged_eq := mergedEquation
+    ready_nodup := readyNodup
+    tokens_eq_adjacent := tokenOrientation
+    output_eq := outputEquation }⟩
+
+/-- Exact executable/declarative correspondence for the bounded empty-cell
+`unify` slice.  Structural validity disambiguates the submitted tensor
+consumer; `ReservationInvariant` supplies the raw-age/representative bridge;
+the final premise is only the list-level `Nodup` refinement. -/
+theorem unifyEmpty?_some_iff_rule_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (readyShape : UnifyEmptyExecutableReadyNodup certificate before) :
+    unifyEmpty? certificate before invariant = some after ↔
+      UnifyEmptyRule certificate before after :=
+  ⟨unifyEmpty?_sound invariant,
+    unifyEmpty?_complete_of_structural structural invariant readyShape⟩
+
+/-- Under the explicit correspondence premises, the bounded direct relation
+has one exact output. -/
+theorem UnifyEmptyRule.output_unique_of_structural
+    {certificate : Certificate}
+    {before first second : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (readyShape : UnifyEmptyExecutableReadyNodup certificate before)
+    (left : UnifyEmptyRule certificate before first)
+    (right : UnifyEmptyRule certificate before second) :
+    first = second := by
+  have leftExecutable :=
+    unifyEmpty?_complete_of_structural
+      structural invariant readyShape left
+  have rightExecutable :=
+    unifyEmpty?_complete_of_structural
+      structural invariant readyShape right
   exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
 
 /-- On structurally valid input, the independent direct `wait` guard is

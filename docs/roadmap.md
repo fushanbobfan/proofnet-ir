@@ -783,24 +783,26 @@
     reservation-invariant preservation.
   - [ ] State an independent Boolean-free relation for every Figure-7 rule and
     prove executable refinement and valid-guard completeness. This is now
-    complete for the common prefix, `concl`, `nop`, local `wait`, and local
-    `forward`; their
+    complete for the common prefix, `concl`, `nop`, local `wait`, local
+    `forward`, and the bounded empty-cell `UnifyEmpty`; their
     dependent witnesses remain as exact equation-backed executable
     compatibility records. `WaitRule` states the raw-age guard in
     `before.core.marks` and uses an exact proposition-level
     `sigmaBoundary? = some boundary` equation. `ForwardRule` retains the exact
     submitted par occurrence and non-strict raw-age guard while factoring the
     executable active-ready `Nodup` refinement into a separate predicate.
-    Direct soundness, structurally valid completeness/iff/output uniqueness,
-    and scheduler-invariant completeness/iff are kernel checked. The
-    corresponding direct layers for `new` and `unify` remain open.
+    Direct soundness and structurally valid completeness/iff/output uniqueness
+    are kernel checked for Forward and bounded `UnifyEmpty`; Forward additionally
+    has scheduler-invariant completeness/iff. The corresponding direct layer
+    for `new`, nonempty-payload activation, and complete `unify` remain open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
     route-local later-call freshness, integrate the local initialized-cell
-    `wait` rule into full history, integrate the successful local `forward`,
-    implement `unify` under the operational waiting domain, and integrate the
-    already-local `concl`/`nop`/`wait`/`forward` rules into a complete
+    `wait` rule into full history, integrate the successful local `forward` and
+    bounded `UnifyEmpty`, implement complete nonempty-payload `unify` under the
+    operational waiting domain, and integrate the already-local
+    `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules into a complete
     history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
     the forest is integrated for empty/init and the common prepared prefix,
@@ -829,9 +831,17 @@
     documented structural/invariant/shape hypotheses. It does not establish
     pure worklist completeness, fallback removal, faithful `NEXTAXIOM`
     sequencing, or whole-program linearity.
-  - [ ] Preserve the strengthened invariant through complete `unify` queue
-    transitions. Prove an empty-`W(j)` unify slice first, then add a typed
-    activation fold constructing every drained waiting par and accounting for
+  - [x] Implement the bounded `W(j) = []` `UnifyEmpty` executable and independent
+    direct relation. Retain the exact submitted tensor slot/orientation, compare
+    only raw ages with `j ≤ μ(mate) < i`, derive exact adjacent representatives
+    through `RealizesSigma`, and prove soundness plus structurally valid
+    completeness/iff/output uniqueness with the ready-list `Nodup` premise
+    explicit. Lock both stored orientations, nonempty-cell rejection, and the
+    nonadjacent three-age lower-guard regression. This is local
+    successful-step correspondence and has no invariant-preservation claim.
+  - [ ] Preserve the strengthened invariant through bounded `UnifyEmpty`, then
+    complete nonempty-payload `unify` with a typed activation fold constructing
+    every drained waiting par and accounting for
     the exact `1 + |W(j)|` counter change; a direct nonempty-payload stack merge
     is insufficient for `ReadyBucketFrontierExact`. Establish the
     special union-find invariants, full-rule

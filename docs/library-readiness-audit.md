@@ -128,7 +128,8 @@ part of the engineering and proof-identity gap.
   empty/init/operational-new executions and proves tags iff recorded touch,
   whole-history submitted-slot non-reuse, and reservation-count alignment.
   The preservation record alone still does not exclude reset tags, and the
-  history result does not cover the unimplemented rules.
+  history result covers neither the implemented local non-reserving rules nor
+  the remaining unimplemented rules.
 
 ## Logical gaps blocking a mature-library claim
 
@@ -443,8 +444,14 @@ part of the engineering and proof-identity gap.
    waiting spans, pending-premise coverage, and exact fired-connective counter.
    The extra active-ready `Nodup` guard is only a fail-closed shape check. A
    typed `init → nop → forward → concl` regression exercises the path.
-   `Unify`, full-history integration of `concl`/`nop`/`wait`/`forward`,
-   applicability/totality, full-rule reachability,
+   A bounded empty-cell `UnifyEmpty` executable/direct-relation slice now
+   retains the exact submitted tensor occurrence and raw-age guard
+   `j ≤ μ(mate) < i`. Soundness assumes `ReservationInvariant`; completeness
+   and iff additionally assume structural validity plus the separate ready-list
+   `Nodup` premise. It has no invariant-preservation theorem. Complete
+   nonempty-payload `Unify`, full-history integration of
+   `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`, applicability/totality,
+   full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
    `NEXTAXIOM`/token-age sequencing, and a whole-program linear cost theorem
@@ -454,10 +461,11 @@ part of the engineering and proof-identity gap.
    checked with exact success witnesses. They leave queued conclusions
    raw-unmarked and preserve the local abstraction, component, parent, carrier,
    counter, shape, and waiting-domain invariants under explicit hypotheses.
-   They are not full rules: tensor queuing increments only the local tensor
-   count, while complete `unify` must bind representatives to scheduler
-   `j/i`, orient `parent[i] := j`, and construct or activate every par
-   component drained from `W(j)`. A direct nonempty-`W(j)` composition of
+   They are not full rules by themselves. The bounded `UnifyEmpty` wrapper now
+   binds the two representatives to scheduler `j/i`, orients
+   `parent[i] := j`, and drains only `W(j) = []`; it increments only the tensor
+   constructor. Complete nonempty-payload `unify` must construct or activate
+   every par component drained from `W(j)`. A direct nonempty-`W(j)` composition of
    `queueTensor?` and `mergeTopReadyWaiting?` is therefore insufficient:
    moved ready payloads lack constructed par components and the required
    `1 + |W(j)|` counter change. A typed activation fold remains necessary.
@@ -523,10 +531,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 280 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 289 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  87 `propext`-only, and 79 `propext`/`Quot.sound` boundaries;
+  87 `propext`-only, and 80 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -616,15 +624,17 @@ It can currently be used for:
   threaded touched-set, `σ` partition, operational inactive-boundary waiting
   domain, typed initial/later reservations, and local pop/mark/new pipeline,
   while treating search failure as inconclusive; local exact
-  `concl`/`nop`/`wait`/`forward` are now present, the current state-only invariant
+  `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` are now present, the current state-only invariant
   is preserved through the common prepared prefix plus `concl`/`nop` and every
   successful deterministic/executable `new`, `wait`, and `forward`; the exact
   occurrence-provenance forest is integrated for empty/init and each of those
   successful steps. Wait additionally preserves exact positional waiting spans
   and combined queue ownership without constructing the delayed par.
   Forward also has an independent Boolean-free direct rule and exact
-  executable correspondence. Later-state applicability and totality, `unify`,
-  and full-history rule integration remain absent. The
+  executable correspondence. Bounded `UnifyEmpty` has a direct rule and exact
+  correspondence but no invariant-preservation theorem. Later-state
+  applicability and totality, complete nonempty `unify`, and full-history rule
+  integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
   Exact init/new reachability and tag history are present, but
