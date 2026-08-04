@@ -1,4 +1,4 @@
-import ProofNetIR.SequentialFigure7UnifyPayloadInvariant
+import ProofNetIR.SequentialFigure7Dispatcher
 
 namespace ProofNetIR
 
@@ -588,6 +588,11 @@ private def payloadInvariantRun : Option ReservationState :=
     payloadInvariantBefore
     payloadInvariantBefore_schedulerInvariant.toReservationInvariant
 
+private def payloadInvariantDispatch :
+    Option SequentialFigure7.Figure7DispatchResult :=
+  SequentialFigure7.dispatch? payloadInvariantCertificate
+    payloadInvariantBefore payloadInvariantBefore_schedulerInvariant
+
 example :
     (match payloadInvariantRun with
     | none => false
@@ -614,6 +619,37 @@ example {after : ReservationState}
   exact SequentialFigure7.unifyPayload?_schedulerInvariant
     payloadInvariantBefore_schedulerInvariant
     (by simpa [payloadInvariantRun] using equation)
+
+/-- The canonical dispatcher reaches the genuine length-two arbitrary-payload
+fixture through its sole unification tag and preserves the exact final fields. -/
+example :
+    (match payloadInvariantDispatch with
+    | none => false
+    | some result =>
+        result.kind == .unifyPayload &&
+          result.after.stack.sigma == [0] &&
+          result.after.stack.ready == [[10, 11, 12]] &&
+          result.after.core.parents == #[0, 0, 0, 2] &&
+          result.after.core.firedConnectives == 5) = true := by
+  native_decide
+
+example {result : SequentialFigure7.Figure7DispatchResult}
+    (equation : payloadInvariantDispatch = some result) :
+    Nonempty
+        (SequentialFigure7.DispatchStep payloadInvariantCertificate
+          payloadInvariantBefore payloadInvariantBefore_schedulerInvariant
+          result) ∧
+      SchedulerInvariant payloadInvariantCertificate result.after := by
+  have exactEquation :
+      SequentialFigure7.dispatch? payloadInvariantCertificate
+          payloadInvariantBefore payloadInvariantBefore_schedulerInvariant =
+        some result := by
+    simpa [payloadInvariantDispatch] using equation
+  exact ⟨
+    (SequentialFigure7.dispatch?_some_iff
+      payloadInvariantBefore_schedulerInvariant).mp exactEquation,
+    SequentialFigure7.dispatch?_schedulerInvariant
+      payloadInvariantBefore_schedulerInvariant exactEquation⟩
 
 end Figure7UnifyPayloadInvariantTests
 

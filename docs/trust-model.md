@@ -273,7 +273,9 @@ ready/waiting queue, waiting spans, pending coverage, and fired counter. The
 extra active-ready `Nodup` guard is only fail-closed shape validation, not a
 paper premise. A typed `init → nop → forward → concl` regression locks the
 successful composition. This still does not prove applicability, totality,
-dispatcher/history integration, or reachability. Bounded `UnifyEmpty` now has
+or unconditional reachability. The later canonical dispatcher/history layer
+records successful branches but supplies no enabledness theorem. Bounded
+`UnifyEmpty` now has
 direct/executable correspondence for `W(j) = []` under its documented
 premises. Its successful typed/executable steps preserve the complete current
 occurrence-exact `SchedulerInvariant`, including `RealizesSigma`, the
@@ -321,6 +323,17 @@ soundness and structurally valid completeness/iff/output uniqueness are
 kernel checked; the complete `SchedulerInvariant` derives the shape premise
 and supplies its own completeness/iff. These theorems do not imply
 applicability, reachability, or progress.
+`SequentialFigure7Dispatcher.lean` adds no new logical oracle. It evaluates
+the six existing executors in a documented order and returns a tagged state
+only when one already succeeds. Its exact dependent witness includes every
+earlier branch's failure equation; invariant preservation factors through the
+existing typed-step theorems. The associated history is explicitly
+proof-carrying: constructing a later edge requires the full input invariant.
+Accordingly, `ReachableByImplementedDispatcher` means certified executable
+trace reachability, not that the invariant creates an enabled branch. The
+empty full-invariant regression returning `none` prevents that interpretation.
+The compatibility `unifyEmpty?` and `unifyOne?` functions remain outside the
+canonical branch type and contribute no duplicate trust path.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
@@ -360,7 +373,8 @@ empty/singleton successes embed one way with the same output; no function
 equality or reverse equivalence is trusted. Guerrini's rule specifies moving a
 waiting set into ready; the project's stored head-to-tail order and explicit
 derivation/provenance construction are representation refinements, not paper
-claims, and imply neither commutativity nor paper temporal order. No dispatcher,
+claims, and imply neither commutativity nor paper temporal order. A canonical
+successful-step dispatcher now exists, but no guard-applicability, exhaustive
 progress, scheduler/pure-worklist
 completeness, O(1), or whole-program linearity claim follows.
 
@@ -608,11 +622,12 @@ dedicated init/new history adds exact reachability and tag provenance for that
  strict-singleton `UnifyOne` have direct correspondence, and successful
  typed/executable steps preserve the complete occurrence-exact state-only
  invariant. The local arbitrary-payload fold and atomic `UnifyPayload`
- composition exist outside this state/history layer. Successful atomic steps
- preserve the complete occurrence-exact state-only invariant, but this does
- not add later
- applicability/totality, a full-rule
- reachability invariant, or full-history integration. No
+ composition exist outside the dedicated init/new history layer. Successful
+ atomic steps preserve the complete occurrence-exact state-only invariant, but
+ this does not add later applicability/totality or unconditional full-rule
+ reachability. A separate canonical priority dispatcher and proof-carrying
+ certified history now integrate all implemented successful branches, without
+ lifting the richer init/new route/tag/slot laws. No
 planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
@@ -734,8 +749,9 @@ Lean now also constructs the exact simultaneous complementary
   occurrence-exact state-only invariant. A local arbitrary-payload fold and
   atomic tensor/fold/drain executor are proved separately, with complete
   successful-step occurrence-exact invariant preservation from a full input
-  invariant. Later-state applicability and
-  totality, full-history integration, and the
+  invariant. A canonical successful-step dispatcher and certified history are
+  also kernel checked. Later-state applicability and totality, richer history
+  commitments, unconditional full-rule reachability, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program

@@ -245,10 +245,12 @@ input `SchedulerInvariant` preserves the complete occurrence-exact invariant:
 the input supplies pre-activation freshness and exact producer/boundary facts,
 each activation establishes ownership, and the final forest covers the whole
 payload. This is conditional preservation, not applicability or reachability.
-Integration of the now exact local
-`concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` rules into
-full reachability and dispatcher/history, later-state applicability/totality,
-progress, pure-worklist completeness, fallback removal, faithful
+The canonical successful
+`concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload` rules are now
+integrated into one priority dispatcher and proof-carrying certified history.
+Later-state applicability/totality, richer route/tag/slot commitments,
+unconditional full reachability, progress, pure-worklist completeness,
+fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, scheduler correctness, and the whole-scheduler
 linear cost model remain open.
 Future guards must compare raw assigned ages; replacing them by
@@ -451,10 +453,9 @@ The following stronger claims are intentionally absent:
   calls that thread the complete output tags, and says nothing about
   equal-valued duplicate axioms at different indices without extra structure;
 - reachable later-state selection/applicability totality, ready/waiting
-  payload ownership through complete reachable transitions, and full-history
-  integration of the exact local
-  `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` rules, the
-  complete scheduler transition system,
+  payload ownership through complete reachable transitions, lifting the richer
+  init/new route/tag/slot commitments into the canonical certified history,
+  unconditional full-rule reachability, the complete scheduler transition system,
   scheduler
   correctness, and scheduler-cost
   theorems. Initial/local search totality, initial/later reservation invariant
@@ -708,12 +709,11 @@ linearity.
    the preserved `ReservationInvariant` are already proved. Keep the immediate
    dynamic-start refinement separate from the mark-preserving delayed
    reservation wrappers.
-7. Extend the now-proved invariant-bound local Figure-7
-   `new`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` rules and exact
-   init/new execution history into a full transition system: derive later-state
-   selection and arbitrary-payload applicability/totality, preserve queue and
-   payload ownership through reachable executions, and prove full-history
-   integration of every local transition. Keep the printed
+7. Extend the now-proved invariant-bound local Figure-7 rules and canonical
+   priority dispatcher/certified history into a total transition system:
+   derive later-state selection and arbitrary-payload applicability/totality,
+   lift the richer init/new route/tag/slot commitments, and preserve queue and
+   payload ownership through unconditional reachable executions. Keep the printed
    fresh-cell helper and the project's operational inactive-boundary
    interpretation distinct; the latter is kernel checked but is not an
    author-confirmed erratum.

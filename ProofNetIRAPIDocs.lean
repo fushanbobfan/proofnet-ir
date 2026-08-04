@@ -1050,6 +1050,30 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Canonical Figure-7 dispatcher and certified history"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.Figure7RuleKind,
+      `ProofNetIR.SequentialFigure7.Figure7DispatchResult,
+      `ProofNetIR.SequentialFigure7.Figure7SuccessfulStep,
+      `ProofNetIR.SequentialFigure7.Figure7SuccessfulStep.schedulerInvariant,
+      `ProofNetIR.SequentialFigure7.dispatch?,
+      `ProofNetIR.SequentialFigure7.DispatchStep,
+      `ProofNetIR.SequentialFigure7.dispatch?_some_iff,
+      `ProofNetIR.SequentialFigure7.DispatchStep.toSuccessfulStep,
+      `ProofNetIR.SequentialFigure7.DispatchStep.schedulerInvariant,
+      `ProofNetIR.SequentialFigure7.DispatchStep.output_unique,
+      `ProofNetIR.SequentialFigure7.dispatch?_schedulerInvariant,
+      `ProofNetIR.SequentialFigure7.initializeReservation?_schedulerInvariant,
+      `ProofNetIR.SequentialFigure7.ExecutedHistory,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher,
+      `ProofNetIR.SequentialFigure7.ExecutedHistory.schedulerInvariant,
+      `ProofNetIR.SequentialFigure7.dispatcher_reachable_empty,
+      `ProofNetIR.SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant
+    ]
+  },
+  {
     title := "Serialization and untrusted input"
     declarations := [
       `ProofNetIR.ParseError,

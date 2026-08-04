@@ -144,9 +144,11 @@ hash of the unaltered original PDF.
   payload-ownership theorem. The atomic arbitrary-payload `UnifyPayload` rule
   now preserves the full occurrence-exact invariant on successful steps via a
   transient gap that establishes each payload occurrence's ownership before
-  closing the final forest. Applicability, ownership across a complete reachable
-  transition system, full-history integration, full-rule reachability,
-  later-state totality, and scheduler progress/completeness remain open.
+  closing the final forest. A canonical priority dispatcher and proof-carrying
+  certified history now record every implemented successful rule family.
+  Applicability, ownership across an unconditional complete reachable
+  transition system, the richer route/tag/slot history laws, later-state
+  totality, and scheduler progress/completeness remain open.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at
   the Figure-5 rule level but does not claim Theorem 16's linear bound.
 

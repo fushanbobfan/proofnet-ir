@@ -3,6 +3,7 @@ import ProofNetIR.SequentialComponentProvenance
 import ProofNetIR.SequentialFigure7UnifyOne
 import ProofNetIR.SequentialFigure7Unify
 import ProofNetIR.SequentialFigure7UnifyPayload
+import ProofNetIR.SequentialFigure7Dispatcher
 
 namespace ProofNetIR
 
@@ -23,6 +24,14 @@ private theorem axiomCertificate_structural :
   exact
     (Certificate.wellFormed_iff_structurallyWellFormed
       axiomCertificate).mp (by native_decide)
+
+/-- Full state-only validity is a safety condition, not dispatcher progress:
+the exact empty scheduler state is invariant-valid and has no enabled rule. -/
+example :
+    SequentialFigure7.dispatch? axiomCertificate
+        (ReservationState.empty axiomCertificate)
+        (empty_schedulerInvariant axiomCertificate_structural) = none := by
+  native_decide
 
 private def parCertificate : Certificate where
   formulas := #[
@@ -253,6 +262,58 @@ private theorem repeatedInitial_schedulerInvariant
       simpa [repeatedInitial] using equation) with
     ⟨step⟩
   exact step.schedulerInvariant repeatedOccurrenceCertificate_structural
+
+/-- The canonical dispatcher selects `new` on the first repeated-label state
+and then selects only the general `unifyPayload` branch for the empty waiting
+payload.  The legacy empty executor is deliberately not a dispatcher tag. -/
+example :
+    (match initialEquation : repeatedInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          repeatedInitial_schedulerInvariant initialEquation
+        match firstEquation :
+            SequentialFigure7.dispatch? repeatedOccurrenceCertificate initial
+              initialInvariant with
+        | none => false
+        | some first =>
+            first.kind == .new &&
+              match _secondEquation :
+                  SequentialFigure7.dispatch? repeatedOccurrenceCertificate
+                    first.after
+                    (SequentialFigure7.dispatch?_schedulerInvariant
+                      initialInvariant firstEquation) with
+              | none => false
+              | some second => second.kind == .unifyPayload) = true := by
+  native_decide
+
+/-- A successful canonical dispatch has its exact priority-aware witness,
+preserves the complete invariant, and extends the certified execution trace. -/
+example {initial : ReservationState}
+    {result : SequentialFigure7.Figure7DispatchResult}
+    (initialEquation : repeatedInitial = some initial)
+    (dispatchEquation :
+      SequentialFigure7.dispatch? repeatedOccurrenceCertificate initial
+          (repeatedInitial_schedulerInvariant initialEquation) =
+        some result) :
+    Nonempty
+        (SequentialFigure7.DispatchStep repeatedOccurrenceCertificate initial
+          (repeatedInitial_schedulerInvariant initialEquation) result) ∧
+      SchedulerInvariant repeatedOccurrenceCertificate result.after ∧
+      SequentialFigure7.ReachableByImplementedDispatcher
+        repeatedOccurrenceCertificate result.after := by
+  let invariant := repeatedInitial_schedulerInvariant initialEquation
+  have typed :=
+    (SequentialFigure7.dispatch?_some_iff invariant).mp dispatchEquation
+  have afterInvariant :=
+    SequentialFigure7.dispatch?_schedulerInvariant invariant dispatchEquation
+  have initialized :
+      SequentialFigure7.ReachableByImplementedDispatcher
+        repeatedOccurrenceCertificate initial :=
+    SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some
+      (by simpa [repeatedInitial] using initialEquation)
+  have reachable := initialized.dispatch invariant dispatchEquation
+  exact ⟨typed, afterInvariant, reachable⟩
 
 /-- A real deterministic `new` transition over repeated formula labels keeps
 the two exact submitted axiom occurrences separate.  The fresh ready pair is
@@ -1087,6 +1148,37 @@ example {initial afterNop afterForward afterConcl : ReservationState}
     forwardInvariant.component_forest_provenance,
     forwardInvariant.fired_counter_exact⟩
 
+/-- The deterministic dispatcher itself drives the complete
+`init → nop → forward → concl` fixture and exposes the expected rule tags. -/
+example :
+    (match initialEquation : parInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          parInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.dispatch? parCertificate initial initialInvariant with
+        | none => false
+        | some afterNop =>
+            afterNop.kind == .nop &&
+              let nopInvariant :=
+                SequentialFigure7.dispatch?_schedulerInvariant
+                  initialInvariant nopEquation
+              match forwardEquation :
+                  SequentialFigure7.dispatch? parCertificate afterNop.after
+                    nopInvariant with
+              | none => false
+              | some afterForward =>
+                  afterForward.kind == .forward &&
+                    let forwardInvariant :=
+                      SequentialFigure7.dispatch?_schedulerInvariant
+                        nopInvariant forwardEquation
+                    match SequentialFigure7.dispatch? parCertificate
+                        afterForward.after forwardInvariant with
+                    | none => false
+                    | some afterConcl => afterConcl.kind == .concl) = true := by
+  native_decide
+
 /-! Independent Boolean-free Figure-7 `forward` correspondence. -/
 
 /-- Equality is admitted by the paper's non-strict guard: after `nop` marks
@@ -1409,6 +1501,38 @@ example {initial afterNop afterNew afterWait : ReservationState}
         nopEquation)
       newEquation)
     waitEquation
+
+/-- Dispatcher precedence follows the genuine `nop → new → wait` execution;
+the final par step is not misclassified as `forward` or unification. -/
+example :
+    (match initialEquation : waitSchedulerInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          waitSchedulerInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.dispatch? waitSchedulerCertificate initial
+              initialInvariant with
+        | none => false
+        | some afterNop =>
+            afterNop.kind == .nop &&
+              let nopInvariant :=
+                SequentialFigure7.dispatch?_schedulerInvariant
+                  initialInvariant nopEquation
+              match newEquation :
+                  SequentialFigure7.dispatch? waitSchedulerCertificate
+                    afterNop.after nopInvariant with
+              | none => false
+              | some afterNew =>
+                  afterNew.kind == .new &&
+                    let newInvariant :=
+                      SequentialFigure7.dispatch?_schedulerInvariant
+                        nopInvariant newEquation
+                    match SequentialFigure7.dispatch? waitSchedulerCertificate
+                        afterNew.after newInvariant with
+                    | none => false
+                    | some afterWait => afterWait.kind == .wait) = true := by
+  native_decide
 
 /-! Strict singleton waiting-payload unification regression. -/
 
@@ -1946,6 +2070,15 @@ private theorem unifyOneSchedulerBefore_schedulerInvariant :
       unifyOneSchedulerBefore_pendingPremisesCoveredExceptReady
     fired_counter_exact :=
       unifyOneSchedulerBefore_firedCounterExact }
+
+/-- A genuine singleton waiting payload is represented canonically by the
+general dispatcher tag, not by a legacy `UnifyOne` history constructor. -/
+example :
+    (match SequentialFigure7.dispatch? unifyOneSchedulerCertificate
+        unifyOneSchedulerBefore unifyOneSchedulerBefore_schedulerInvariant with
+    | none => false
+    | some result => result.kind == .unifyPayload) = true := by
+  native_decide
 
 /-- Change only the inactive boundary payload of the concrete singleton
 fixture.  Reservation-layer invariants intentionally constrain the initialized

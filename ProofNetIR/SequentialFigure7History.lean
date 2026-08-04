@@ -96,10 +96,12 @@ fragment.
 empty production state by `InitialReservationStep`.  Every `later` constructor
 stores a complete operational `new`, not the reservation-only helper.  This
 type is intentionally not a generic Figure-7 rule history. The implemented
-non-reserving `concl` and `nop` rules need separate rule-step accounting. The
-local `wait` and `forward` transitions now exist outside this history and
-still need accounting here; `unify` still needs both its transition and
-accounting. -/
+non-reserving rules need separate rule-step accounting. The canonical
+dispatcher history in `SequentialFigure7Dispatcher` now accounts for exact
+successful `concl`, `nop`, `new`, `wait`, `forward`, and arbitrary-payload
+`unifyPayload` executions. Those steps are deliberately not retrofitted into this
+reservation-event history, whose route-touch, submitted-slot, and event-count
+laws remain specific to `init`/`new`. -/
 inductive InitNewHistory (certificate : Certificate) :
     ReservationState → Type
   | empty :

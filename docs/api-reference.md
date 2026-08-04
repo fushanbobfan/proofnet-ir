@@ -10779,10 +10779,12 @@ fragment.
 empty production state by `InitialReservationStep`.  Every `later` constructor
 stores a complete operational `new`, not the reservation-only helper.  This
 type is intentionally not a generic Figure-7 rule history. The implemented
-non-reserving `concl` and `nop` rules need separate rule-step accounting. The
-local `wait` and `forward` transitions now exist outside this history and
-still need accounting here; `unify` still needs both its transition and
-accounting.
+non-reserving rules need separate rule-step accounting. The canonical
+dispatcher history in `SequentialFigure7Dispatcher` now accounts for exact
+successful `concl`, `nop`, `new`, `wait`, `forward`, and arbitrary-payload
+`unifyPayload` executions. Those steps are deliberately not retrofitted into this
+reservation-event history, whose route-touch, submitted-slot, and event-count
+laws remain specific to `init`/`new`.
 
 ```lean
 ProofNetIR.SequentialFigure7.InitNewHistory : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
@@ -13771,6 +13773,284 @@ ProofNetIR.SequentialFigure7.WaitingPrependAt.output_unique : ∀ {before first 
   {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex},
   ProofNetIR.SequentialFigure7.WaitingPrependAt before first boundary conclusion →
     ProofNetIR.SequentialFigure7.WaitingPrependAt before second boundary conclusion → first = second
+```
+
+## Canonical Figure-7 dispatcher and certified history
+
+### `ProofNetIR.SequentialFigure7.Figure7RuleKind`
+
+Kind: inductive type.
+
+Canonical public tags for the implemented Figure-7 dispatcher.
+
+`unifyPayload` is the sole unification tag.  `unifyEmpty?` and `unifyOne?` are
+intentionally omitted because their successful witnesses already embed into
+the arbitrary-payload implementation.
+
+```lean
+ProofNetIR.SequentialFigure7.Figure7RuleKind : Type
+```
+
+### `ProofNetIR.SequentialFigure7.Figure7DispatchResult`
+
+Kind: inductive type.
+
+Observable output of one successful canonical dispatcher call.
+
+```lean
+ProofNetIR.SequentialFigure7.Figure7DispatchResult : Type
+```
+
+### `ProofNetIR.SequentialFigure7.Figure7SuccessfulStep`
+
+Kind: inductive type.
+
+Unprioritized proof-relevant union of all canonical successful local
+Figure-7 steps.
+
+This type is useful for invariant transport.  It does not by itself say that
+the deterministic dispatcher selected the constructor; that stronger fact is
+recorded by `DispatchStep`.
+
+```lean
+ProofNetIR.SequentialFigure7.Figure7SuccessfulStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.Figure7SuccessfulStep.schedulerInvariant`
+
+Kind: theorem.
+
+Every canonical successful-step constructor preserves the complete
+occurrence-exact state-only scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.Figure7SuccessfulStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.Figure7SuccessfulStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.dispatch?`
+
+Kind: definition.
+
+Run the canonical deterministic dispatcher over the implemented local
+Figure-7 executors.
+
+The precedence is fixed as `concl`, `nop`, `new`, `wait`, `forward`, then
+`unifyPayload`.  Failed branches do not mutate state.  The older
+`unifyEmpty?` and `unifyOne?` executors are not queried.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatch? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      Option ProofNetIR.SequentialFigure7.Figure7DispatchResult
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep`
+
+Kind: inductive type.
+
+Exact proof-relevant specification of one successful canonical dispatcher
+call.
+
+Every non-first constructor retains equations showing that all earlier
+priority branches returned `none`.  Thus this is stronger than merely knowing
+that one member of `Figure7SuccessfulStep` exists.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ProofNetIR.SequentialFigure7.Figure7DispatchResult → Type
+```
+
+### `ProofNetIR.SequentialFigure7.dispatch?_some_iff`
+
+Kind: theorem.
+
+Canonical dispatcher success is equivalent to its exact priority-aware
+dependent witness.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatch?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before)
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult},
+  ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = some result ↔
+    Nonempty (ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result)
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.toSuccessfulStep`
+
+Kind: theorem.
+
+Forget priority evidence from an exact dispatcher step while retaining a
+typed successful local-rule witness.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.toSuccessfulStep : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (step : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result),
+  Nonempty (ProofNetIR.SequentialFigure7.Figure7SuccessfulStep certificate before result.after)
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.schedulerInvariant`
+
+Kind: theorem.
+
+An exact priority-aware dispatcher step preserves the complete scheduler
+invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (step : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate result.after
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.output_unique`
+
+Kind: theorem.
+
+The canonical dispatcher has one exact tagged output for fixed input and
+invariant evidence.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {first second : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (left : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant first)
+  (right : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant second), first = second
+```
+
+### `ProofNetIR.SequentialFigure7.dispatch?_schedulerInvariant`
+
+Kind: theorem.
+
+Every successful canonical dispatcher call preserves the complete current
+scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatch?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before)
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult},
+  ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = some result →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate result.after
+```
+
+### `ProofNetIR.SequentialFigure7.initializeReservation?_schedulerInvariant`
+
+Kind: theorem.
+
+Every successful executable initialization establishes the complete
+scheduler invariant on a structurally valid certificate.
+
+```lean
+ProofNetIR.SequentialFigure7.initializeReservation?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some after →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory`
+
+Kind: inductive type.
+
+Proof-relevant certified history of exact canonical dispatcher executions.
+
+`empty` and `init` retain the same exact starting forms as `InitNewHistory`.
+Every `later` constructor stores an exact priority-aware dispatcher witness and
+the full invariant used by that executable call.  Consequently this is a
+proof-carrying execution trace, not an independent theorem that some rule is
+enabled or that the dispatcher makes progress.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher`
+
+Kind: definition.
+
+Certified reachability generated only by exact initialization and exact
+canonical dispatcher successes.  Every later edge carries the invariant
+evidence required by the executable dispatcher; no applicability is implied.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory.schedulerInvariant`
+
+Kind: theorem.
+
+Every state in an exact canonical dispatcher history satisfies the
+complete scheduler invariant when the certificate is structurally valid.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.dispatcher_reachable_empty`
+
+Kind: theorem.
+
+The exact empty scheduler state is reachable before initialization.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatcher_reachable_empty : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate
+    (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some`
+
+Kind: theorem.
+
+Every successful executable initialization creates an exact dispatcher
+history.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex},
+  ProofNetIR.SequentialSchedulerBridge.initializeReservation? certificate start = some after →
+    ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch`
+
+Kind: theorem.
+
+Certified dispatcher reachability is closed under another successful
+canonical dispatcher call.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate before →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before)
+      {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult},
+      ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = some result →
+        ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate result.after
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant`
+
+Kind: theorem.
+
+Every certified dispatcher-reachable state satisfies the complete scheduler
+invariant under structural certificate validity.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.StructurallyWellFormed → ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state
 ```
 
 ## Serialization and untrusted input

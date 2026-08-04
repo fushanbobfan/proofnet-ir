@@ -481,10 +481,16 @@ part of the engineering and proof-identity gap.
    stack gap derives pre-activation freshness and exact producer/boundary facts
    from that input, establishes ownership head by head, and closes after the
    last activation. It proves neither payload applicability nor invariance of
-   the physical tensor/fold intermediates. Full-history integration of
-   `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload`,
-   applicability/totality,
-   full-rule reachability,
+   the physical tensor/fold intermediates.
+   `SequentialFigure7Dispatcher.lean` now supplies one canonical executable
+   entry point for `concl`/`nop`/`new`/`wait`/`forward`/`unifyPayload`, exact
+   priority-aware dependent witnesses, output uniqueness, full successful-step
+   invariant transport, and a certified proof-carrying history. The specialized
+   empty/singleton unifiers are compatibility APIs, not duplicate branch tags.
+   The history requires the invariant at every later edge; it does not prove
+   branch applicability, totality, or progress. Lifting the richer
+   `InitNewHistory` tag/slot/count laws, exhaustive guard classification,
+   unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
    `NEXTAXIOM`/token-age sequencing, and a whole-program linear cost theorem
@@ -500,9 +506,10 @@ part of the engineering and proof-identity gap.
    constructor. `UnifyOne` constructs exactly the singleton drained par. The
    local arbitrary executor now constructs every stored payload par head to
    tail between the tensor and the drain and proves the required
-   `1 + |W(j)|` counter change. What remains necessary for payload length at
-   least two is applicability plus exact occurrence provenance and complete
-   scheduler-invariant preservation. Old empty/singleton success maps one way
+   `1 + |W(j)|` counter change. Complete exact occurrence provenance and
+   scheduler-invariant preservation are now proved for every successful
+   arbitrary payload; input-guard applicability remains necessary. Old
+   empty/singleton success maps one way
    to the same new output; no function equality or reverse equivalence is
    asserted.
    The stack's deterministic
@@ -567,7 +574,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 555 declarations: 331 public MLL
+- CI now parses `#print axioms` for 573 declarations: 349 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
   90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
@@ -678,12 +685,15 @@ It can currently be used for:
   correspondence and `1 + payload.length` accounting; the latter now preserves
   `ComponentForestProvenance` and the full `SchedulerInvariant` on every
   successful step from a full input invariant. Later-state applicability and
-  totality, intermediate-state invariance, and full-history rule
-  integration remain absent. The
+  totality and intermediate-state invariance remain absent. A canonical
+  priority dispatcher and proof-carrying certified history now integrate every
+  implemented successful rule family, but the richer init/new route/tag/slot
+  laws and unconditional reachability are not yet lifted. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
-  Exact init/new reachability and tag history are present, but
-  full-rule reachability and queue provenance are not, so together these are
+  Exact init/new reachability and tag history plus certified full-rule
+  successful traces are present, but unconditional full-rule reachability and
+  the required global queue/route commitments are not, so together these are
   not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.

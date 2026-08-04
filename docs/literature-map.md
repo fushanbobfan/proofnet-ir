@@ -84,10 +84,11 @@ explicit unread gate; that row is not part of the local-source count.
   ownership. Exact local `forward`, bounded empty/singleton unify, and atomic
   arbitrary-payload `UnifyPayload` are now present. Successful arbitrary-payload
   steps preserve the complete occurrence-exact invariant through a transient
-  ownership gap, without an applicability or reachability claim. Ownership
-  across complete reachable executions, full-history integration, full-rule
-  reachability, later-state totality, progress, and pure-worklist completeness
-  remain open.
+  ownership gap, without an applicability or unconditional reachability claim.
+  A canonical priority dispatcher and proof-carrying certified history now
+  integrate every implemented successful rule family. Ownership across
+  complete reachable executions, richer route/tag/slot history commitments,
+  later-state totality, progress, and pure-worklist completeness remain open.
 
 ## Reading record
 

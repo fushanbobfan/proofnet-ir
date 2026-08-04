@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- added `SequentialFigure7Dispatcher.lean`, a canonical executable dispatcher
+  for `concl`, `nop`, `new`, `wait`, `forward`, and general `unifyPayload`, in
+  that fixed precedence. Priority-aware `DispatchStep` witnesses retain exact
+  `none` equations for every earlier branch and the selected branch's exact
+  success equation; `dispatch?_some_iff`, tagged output uniqueness, and full
+  `SchedulerInvariant` preservation are kernel checked. Legacy empty and
+  singleton unifiers remain compatibility APIs and are deliberately excluded
+  as separate dispatcher/history tags because their successes already embed
+  into the general payload executor. `ExecutedHistory` and
+  `ReachableByImplementedDispatcher` add proof-carrying certified execution
+  traces for initialization plus every canonical successful dispatch. Each
+  later edge explicitly supplies the input invariant used by the executable,
+  so this is not an applicability, totality, unconditional reachability, or
+  progress theorem. Regressions exercise `nop → forward → concl`,
+  `nop → new → wait`, `new → unifyPayload`, the genuine length-two payload,
+  and an invariant-valid empty state with no enabled branch. The older
+  `InitNewHistory` remains the separate source of tag-touch, axiom-slot
+  non-reuse, and reservation-event-count theorems; those facts are not yet
+  lifted to the full certified trace. The exact axiom audit now covers 573
+  declarations: 349 full-classical, 23 axiom-free, 90 `propext`-only, and 111
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7UnifyPayloadInvariant.lean`, closing successful-step
   preservation of the complete occurrence-exact state-only
   `SchedulerInvariant` for arbitrary finite `UnifyPayload` payloads. The proof
@@ -21,11 +42,13 @@
   `UnifyPayloadStep.schedulerInvariant`, and
   `unifyPayload?_schedulerInvariant`. The physical tensor/fold intermediate
   states are deliberately not claimed to satisfy `SchedulerInvariant`.
-  This closes state preservation only: payload applicability, dispatcher and
-  full-history integration, full-rule reachability, later-state totality,
-  progress, pure-worklist completeness, recursive-fallback removal, faithful
-  `NEXTAXIOM`/token-age scheduling, O(1) execution, and whole-program linearity
-  remain open. The exact axiom audit now covers 561 declarations: 337
+  At that checkpoint this closed state preservation only: payload
+  applicability, dispatcher/full-history integration, full-rule reachability,
+  later-state totality, progress, pure-worklist completeness,
+  recursive-fallback removal, faithful `NEXTAXIOM`/token-age scheduling, O(1)
+  execution, and whole-program linearity remained open. The newer dispatcher
+  entry above closes only the successful-trace integration item. The exact
+  axiom audit at this checkpoint covered 561 declarations: 337
   full-classical, 23 axiom-free, 90 `propext`-only, and 111
   `propext`/`Quot.sound` boundaries;
 - added a 13-occurrence, two-element waiting-payload regression that constructs

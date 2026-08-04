@@ -804,15 +804,21 @@
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
-    route-local later-call freshness, integrate the local initialized-cell
-    `wait` rule into full history, integrate the successful local `forward`,
-    bounded `UnifyEmpty`, strict-singleton `UnifyOne`, and atomic
-    `UnifyPayload`, and integrate the already-local
-    `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` rules into a complete
-    history/dispatcher. A proof-only exact component/link occurrence
+    route-local later-call freshness, lift the reservation-specific tag/slot
+    laws into the general execution history, and prove exhaustive applicability
+    and progress. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
     the forest is integrated for empty/init and the common prepared prefix,
     so `concl`/`nop` preserve it.
+  - [x] Add one canonical successful-step dispatcher for
+    `concl`/`nop`/`new`/`wait`/`forward`/general `unifyPayload`, with fixed
+    precedence, earlier-branch failure equations, exact success iff, tagged
+    output uniqueness, and complete `SchedulerInvariant` preservation. Record
+    initialization and each exact dispatch in a proof-carrying certified
+    history. Keep legacy `UnifyEmpty`/`UnifyOne` as compatibility executors, not
+    duplicate history tags. This does not prove any branch enabled, and the
+    later history constructor explicitly requires the invariant used by the
+    executable call.
   - [x] Preserve the complete current occurrence-exact state-only
     `SchedulerInvariant` through every successful deterministic `NewStep` and
     successful executable `new?`, including exact fresh-axiom forest extension
@@ -887,12 +893,13 @@
     establishes ownership one head at a time, and closes at the empty suffix.
     This adds no history/reachability hypothesis and does not assign the
     ordinary invariant to physical tensor/fold intermediates.
-  - [ ] Derive arbitrary-payload applicability and integrate the rule into full
-    history/dispatch. Establish the special union-find invariants, full-rule
-    reachability, queue provenance, progress, completeness of that sequential
-    executable, and a cost theorem over every implemented operation before
-    claiming Guerrini linearity. These stack invariants are false for the flat
-    scheduler.
+  - [ ] Derive input-only arbitrary-payload applicability and then exhaustive
+    dispatcher enabledness on correct certified-reachable nonterminal states.
+    Lift route/tag/slot commitments into the canonical history, establish
+    unconditional full-rule reachability, progress, completeness of that
+    sequential executable, and a cost theorem over every implemented operation
+    before claiming Guerrini linearity. The needed stack invariants are false
+    for the flat scheduler.
   - [ ] Remove the recursive reconstruction fallback only after pure worklist
     completeness is kernel checked.
 - [x] Publish `v0.9.0`, verify release-candidate, automatic tag-push, and

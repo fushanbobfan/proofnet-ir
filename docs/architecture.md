@@ -458,6 +458,21 @@ general function equality or reverse equivalence. Stored order is an executable
 and derivation-nesting choice, not a commutativity or source temporal-order
 theorem.
 
+`SequentialFigure7Dispatcher.lean` composes the six canonical successful rule
+executors under one fixed precedence:
+`concl`, `nop`, `new`, `wait`, `forward`, then `unifyPayload`. The dependent
+`DispatchStep` specification records all preceding failed branch equations, so
+its exact iff is stronger than an unprioritized sum of rule witnesses. Every
+selected branch maps to a typed local step and transports the complete
+state-only scheduler invariant. Empty- and singleton-payload executors remain
+compatibility APIs rather than additional dispatcher constructors. The module's
+`ExecutedHistory` is deliberately certified: each later event stores the exact
+dispatcher witness and the invariant supplied to that call. It is useful for
+auditable execution composition, but it neither synthesizes a guard nor proves
+that a nonterminal state has a successor. The earlier `InitNewHistory` remains
+separate because its tag-touch, route freshness, slot non-reuse, and event-count
+laws are stronger and reservation-specific.
+
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
 component constructors and preserve raw marks so the queued conclusion is not
@@ -485,9 +500,9 @@ cannot establish the intended local construction: the stack move exposes
 delayed conclusions before the production core has built their par
 derivations. `UnifyPayload` now inserts the exact stored-order fold between
 those operations and proves the total `1 + |W(j)|` counter equation. What
-remains open for payload length at least two is semantic applicability and
-transport of occurrence-exact component/scheduler invariants, not the local
-tensor/fold/drain composition.
+remains open for payload length at least two is semantic guard applicability
+and global progress, not the local tensor/fold/drain composition or successful-
+step transport of the occurrence-exact component/scheduler invariants.
 
 `SequentialSchedulerInvariant.lean` now supplies that semantic foundation
 without defining reachability in terms of the invariant. The bundle carries
@@ -573,9 +588,9 @@ falsely count that par as already constructed.
 
 The local atomic arbitrary-payload transition and successful-step
 occurrence-exact invariant preservation are implemented. Applicability from
-reachable intended states and integration of
-`concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` into a full
-rule history/dispatcher, later-state totality, correct-state progress,
+reachable intended states, exhaustive dispatcher enabledness, lifting the
+richer init/new route/tag/slot laws into the canonical history, unconditional
+full-rule reachability, later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open. The
 atomic rule connects the head-to-tail fold to one tensor and the scheduler
@@ -854,15 +869,18 @@ active-reference walks between marked occurrences are equivalent to
   proof-relevant `InitNewHistory` now characterizes exact empty/init/new
   executions and proves tag provenance, global submitted-slot non-reuse, and
   reservation-count alignment. This fragment is not a full reachable
-  scheduler. The local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` rules now exist outside
-  this history; `wait` has exact-span/queue preservation and `forward` has
+  scheduler. The local `concl`/`nop`/`wait`/`forward` and compatibility
+  `UnifyEmpty`/`UnifyOne` rules exist outside this reservation-only history;
+  `wait` has exact-span/queue preservation and `forward` has
   exact submitted-par/forest/frontier/queue/pending/counter preservation, while
   bounded `UnifyEmpty` and strict-singleton `UnifyOne` preserve the same full
   state-only invariant. The local arbitrary waiting-payload fold and atomic
-  `UnifyPayload` composition are present outside the history, and successful
+  `UnifyPayload` composition are also outside `InitNewHistory`, and successful
   atomic steps preserve the same complete occurrence-exact state-only
-  invariant from a full input invariant. Applicability and full-history
-  integration remain open. Planarity
+  invariant from a full input invariant. The separate canonical dispatcher
+  history accounts for all six successful rule families. Applicability,
+  richer-history-law transport, and unconditional full-rule reachability
+  remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -882,11 +900,10 @@ typed/executable steps preserve the complete occurrence-exact
   `SchedulerInvariant`. The arbitrary production-core fold and atomic
   tensor/fold/drain `UnifyPayload` are present and preserve the complete
   occurrence-exact invariant on successful steps from a full input invariant;
-  later-state applicability/totality and
-full-history integration of the local
-  `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`/`UnifyPayload` rules, a full-rule
-reachable-state invariant, and
-later-state scheduler totality are not. General
+  a canonical priority dispatcher and proof-carrying certified history now
+  integrate every implemented successful rule family. Later-state
+  applicability/totality, unconditional full-rule reachability, and the richer
+  route/tag/slot history commitments are not proved. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.
