@@ -12710,6 +12710,248 @@ ProofNetIR.SequentialFigure7.unifyOne?_schedulerInvariant : ∀ {certificate : P
     ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule`
+
+Kind: inductive type.
+
+Independent Boolean-free relation for activating a stored waiting payload
+from head to tail.  Each step uses the direct one-par relation and threads the
+resulting production core into the rest of the payload.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule : ProofNetIR.Certificate → ProofNetIR.UnificationState → List ProofNetIR.Vertex → ProofNetIR.UnificationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep`
+
+Kind: inductive type.
+
+Proof-relevant executable trace for one head-to-tail waiting-payload
+activation fold.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep : ProofNetIR.Certificate → ProofNetIR.UnificationState → List ProofNetIR.Vertex → ProofNetIR.UnificationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPayload?`
+
+Kind: definition.
+
+Execute the deterministic stored-order waiting-payload activation fold.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPayload? : ProofNetIR.Certificate → ProofNetIR.UnificationState → List ProofNetIR.Vertex → Option ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPayload?_some_iff`
+
+Kind: theorem.
+
+Executable payload activation succeeds exactly when its proof-relevant
+threaded trace exists.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPayload?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {payload : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.activateWaitingPayload? certificate before payload = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.toRule`
+
+Kind: theorem.
+
+A typed fold refines the independent direct fold relation.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule certificate before payload after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.marks_eq`
+
+Kind: theorem.
+
+Waiting-payload activation preserves the raw-mark array exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.marks_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  after.marks = before.marks
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.parents_eq`
+
+Kind: theorem.
+
+Waiting-payload activation preserves the parent forest exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.parents_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  after.parents = before.parents
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.startedAxioms_eq`
+
+Kind: theorem.
+
+Waiting-payload activation does not start any new axiom component.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.startedAxioms_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  after.startedAxioms = before.startedAxioms
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.components_size_eq`
+
+Kind: theorem.
+
+Each delayed par replaces one in-bounds component cell without resizing
+the production carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.components_size_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  after.components.size = before.components.size
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.firedConnectives_eq_add_length`
+
+Kind: theorem.
+
+The project representation constructs exactly one delayed par per payload
+element, hence the local connective counter increases by the payload length.
+This is not a claim about the number of paper-level Figure-7 transitions.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.firedConnectives_eq_add_length : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  after.firedConnectives = before.firedConnectives + payload.length
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.abstractable`
+
+Kind: theorem.
+
+The threaded activation fold preserves the abstraction contract.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.abstractable : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  ProofNetIR.UnificationState.Abstractable certificate before →
+    ProofNetIR.UnificationState.Abstractable certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.orderedParents`
+
+Kind: theorem.
+
+The threaded activation fold leaves an ordered parent forest ordered.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.orderedParents : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  before.OrderedParents → after.OrderedParents
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.componentsFormulaConsistent`
+
+Kind: theorem.
+
+Exact submitted producers make every fold element formula-consistent.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.componentsFormulaConsistent : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate before →
+    ProofNetIR.UnificationState.ComponentsFormulaConsistent certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.reservationAlignment`
+
+Kind: theorem.
+
+The fold preserves component/parent and started-axiom/parent carrier
+alignment without changing either carrier's size.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.reservationAlignment : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {payload : List ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload after),
+  before.components.size = before.parents.size →
+    before.startedAxioms = before.parents.size →
+      after.components.size = after.parents.size ∧ after.startedAxioms = after.parents.size
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.output_unique`
+
+Kind: theorem.
+
+A proof-relevant fold has one exact output for fixed input and payload.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.UnificationState}
+  {payload : List ProofNetIR.Vertex}
+  (left : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload first)
+  (right : ProofNetIR.SequentialFigure7.WaitingParActivationFoldStep certificate before payload second), first = second
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPayload?_sound`
+
+Kind: theorem.
+
+Executable payload activation is sound for the independent direct fold.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPayload?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {payload : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.activateWaitingPayload? certificate before payload = some after →
+    ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule certificate before payload after
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPayload?_complete`
+
+Kind: theorem.
+
+Every direct stored-order activation fold reconstructs the executable
+fold.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPayload?_complete : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {payload : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule certificate before payload after →
+    ProofNetIR.SequentialFigure7.activateWaitingPayload? certificate before payload = some after
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPayload?_some_iff_rule`
+
+Kind: theorem.
+
+Exact executable/direct correspondence for the stored-order payload
+activation fold.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPayload?_some_iff_rule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {payload : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.activateWaitingPayload? certificate before payload = some after ↔
+    ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule certificate before payload after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule.output_unique`
+
+Kind: theorem.
+
+The independent direct payload-fold relation has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.UnificationState}
+  {payload : List ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule certificate before payload first →
+    ProofNetIR.SequentialFigure7.WaitingParActivationFoldRule certificate before payload second → first = second
+```
+
 ### `ProofNetIR.SequentialFigure7.WaitingPrependAt`
 
 Kind: definition.

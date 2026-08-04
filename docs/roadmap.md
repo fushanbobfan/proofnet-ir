@@ -794,16 +794,18 @@
     Direct soundness and structurally valid completeness/iff/output uniqueness
     are kernel checked for Forward, bounded `UnifyEmpty`, and strict-singleton
     `UnifyOne`; Forward additionally
-    has scheduler-invariant completeness/iff. The corresponding direct layer
-    for `new` and the arbitrary-payload activation fold remain open.
+    has scheduler-invariant completeness/iff. The local arbitrary-payload
+    production-core activation fold now also has independent direct/typed/
+    executable correspondence and exact output uniqueness. A direct layer for
+    `new` and an atomic arbitrary-payload scheduler `Unify` remain open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
     route-local later-call freshness, integrate the local initialized-cell
     `wait` rule into full history, integrate the successful local `forward` and
-    bounded `UnifyEmpty` and strict-singleton `UnifyOne`, implement the
-    arbitrary-payload activation fold under the
-    operational waiting domain, and integrate the already-local
+    bounded `UnifyEmpty` and strict-singleton `UnifyOne`, lift the existing
+    arbitrary-payload production-core fold through an atomic tensor/fold/drain
+    transition under the operational waiting domain, and integrate the already-local
     `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` rules into a complete
     history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
@@ -860,11 +862,18 @@
     payloads. Treat the explicit par construction as the project's
     derivation/provenance representation refinement of the paper's move of
     `W(j)` into ready, not as a claim about the paper text.
-  - [ ] Complete arbitrary-payload `unify` with a typed activation fold
-    constructing every drained waiting par and accounting for
-    the exact `1 + |W(j)|` counter change; a direct nonempty-payload stack merge
-    is insufficient for `ReadyBucketFrontierExact`. The singleton base case is
-    complete; the fold for payload length at least two remains open. Establish the
+  - [x] Add a local head-to-tail typed activation fold for every finite stored
+    payload. Its independent direct relation and executable have exact
+    correspondence and unique output; typed folds preserve the documented
+    production-core fields and add exactly `payload.length` to the project
+    connective counter. This is not scheduler applicability or general
+    `Unify`, and the stored order is not a Guerrini set order.
+  - [ ] Complete arbitrary-payload `unify` by placing the local fold inside one
+    atomic tensor/fold/drain transition and accounting for the exact
+    `1 + |W(j)|` counter change. A direct nonempty-payload stack merge is
+    insufficient for `ReadyBucketFrontierExact`; prove transient occurrence
+    provenance and complete `SchedulerInvariant` preservation. The singleton
+    atomic base case is complete; arbitrary atomic integration remains open. Establish the
     special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before

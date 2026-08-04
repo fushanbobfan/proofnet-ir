@@ -285,8 +285,14 @@ tensor union → par activation → scheduler drain. Its independent
 Boolean-free direct relations, typed/executable correspondence, unique output,
 exact `+2` counter equation, and preservation of both `ReservationInvariant`
 and the full occurrence-exact `SchedulerInvariant` are kernel checked. Empty
-and length-at-least-two payloads fail closed. Complete arbitrary-payload
-activation, correct-state progress, pure-worklist completeness, fallback removal, faithful
+and length-at-least-two payloads fail closed. A separate local
+production-core fold now activates any finite stored payload head to tail with
+independent direct/typed/executable correspondence, output uniqueness, and an
+exact project-local `+ payload.length` connective counter. It preserves only
+the documented core fields under explicit hypotheses: it has no scheduler
+stack, does not derive applicability or occurrence-forest ownership, and does
+not define atomic arbitrary-payload `Unify`. Correct-state progress,
+pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
 common prefix, `concl`, `nop`, `wait`, and `forward`. `ForwardRule` excludes
@@ -326,14 +332,16 @@ separate ready-list `Nodup` premise. A successful executable preserves the
 complete `ReservationInvariant`; under the stronger supplied
 `SchedulerInvariant`, the typed and executable preservation theorems retain
 the entire occurrence-exact state-only bundle.
-These facts plus `UnifyOne` authorize exactly the singleton payload, not the
-arbitrary-payload fold. The general case must construct or activate
-all waiting par components drained from `W(j)` and prove the exact
-`1 + |W(j)|` counter change. A direct longer-payload composition would put
-delayed conclusions in ready without all corresponding production trees, so a
-typed activation fold is still required. Guerrini's rule specifies moving the
-waiting set into ready; the project's explicit derivation/provenance
-construction is a representation refinement, not a paper claim. No dispatcher,
+These scheduler-level facts plus `UnifyOne` authorize exactly the singleton
+atomic payload, not arbitrary-payload `Unify`. The local production-core fold
+does construct all listed waiting pars and proves its own
+`+ payload.length` change. The general atomic case must establish that every
+payload item is available, transport exact occurrence/component provenance,
+combine the tensor, fold, and scheduler drain, and prove the total
+`1 + |W(j)|` counter change. A direct longer-payload stack composition remains
+insufficient. Guerrini's rule specifies moving a waiting set into ready; the
+project's stored head-to-tail order and explicit derivation/provenance
+construction are representation refinements, not paper claims. No dispatcher,
 progress, scheduler/pure-worklist
 completeness, O(1), or whole-program linearity claim follows.
 
@@ -580,8 +588,9 @@ dedicated init/new history adds exact reachability and tag provenance for that
  direct rule with executable correspondence. Bounded `UnifyEmpty` and
  strict-singleton `UnifyOne` have direct correspondence, and successful
  typed/executable steps preserve the complete occurrence-exact state-only
- invariant. It does not add later applicability/totality, an arbitrary-payload
- activation fold, a full-rule
+ invariant. The local arbitrary-payload production-core fold exists outside
+ this state/history layer. It does not add later applicability/totality, its
+ atomic scheduler integration, a full-rule
  reachability invariant, or full-history integration. No
 planarity principle is assumed.
 
@@ -701,9 +710,9 @@ Lean now also constructs the exact simultaneous complementary
   proved. Exact local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` are also proved, and
   successful deterministic/executable `new`, `wait`, `forward`, and bounded
   `UnifyEmpty` and strict-singleton `UnifyOne` preserve the complete current
-  occurrence-exact state-only invariant. Later-state applicability and
-  totality, the arbitrary-payload activation fold,
-  full-history integration, and the
+  occurrence-exact state-only invariant. A local arbitrary-payload
+  production-core fold is proved separately. Later-state applicability and
+  totality, atomic arbitrary-payload `Unify`, full-history integration, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program

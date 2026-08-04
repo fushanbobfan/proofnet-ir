@@ -1,6 +1,7 @@
 import ProofNetIR.SequentialSchedulerInvariant
 import ProofNetIR.SequentialComponentProvenance
 import ProofNetIR.SequentialFigure7UnifyOne
+import ProofNetIR.SequentialFigure7Unify
 
 namespace ProofNetIR
 
@@ -2117,6 +2118,121 @@ example :
     SequentialFigure7.unifyOne? unifyOneSchedulerCertificate
         unifyOneSchedulerDuplicateBefore
         unifyOneSchedulerDuplicateBefore_reservationInvariant =
+      none := by
+  native_decide
+
+/-! Arbitrary waiting-payload activation-fold regressions. -/
+
+/-- Minimal production core in which one exact submitted par can be activated.
+
+This fixture exercises only the local production-core fold.  It carries no
+scheduler stack and makes no claim that an arbitrary waiting payload is
+reachable or that the complete Figure-7 `unify` transition is applicable. -/
+private def waitingPayloadFoldCertificate : Certificate where
+  formulas := #[
+    .atom "p" true,
+    .atom "p" false,
+    .par (.atom "p" true) (.atom "p" false)]
+  links := [
+    .axiom 0 1,
+    .par 0 1 2]
+  conclusions := [2]
+
+private def waitingPayloadFoldBefore : UnificationState where
+  marks := #[some 0, some 0, none]
+  parents := #[0]
+  components := #[
+    some { tree := .axiom "p" true, frontier := [0, 1] }]
+  startedAxioms := 1
+  firedConnectives := 0
+
+private def waitingPayloadFoldAfter : UnificationState where
+  marks := #[some 0, some 0, none]
+  parents := #[0]
+  components := #[
+    some {
+      tree := .par 0 0 (.axiom "p" true)
+      frontier := [2] }]
+  startedAxioms := 1
+  firedConnectives := 1
+
+/-- The empty stored-order fold is the exact identity execution. -/
+example :
+    SequentialFigure7.activateWaitingPayload?
+        waitingPayloadFoldCertificate waitingPayloadFoldBefore [] =
+      some waitingPayloadFoldBefore := by
+  rfl
+
+/-- The empty execution also has both typed and independent direct witnesses. -/
+example :
+    Nonempty
+        (SequentialFigure7.WaitingParActivationFoldStep
+          waitingPayloadFoldCertificate waitingPayloadFoldBefore []
+          waitingPayloadFoldBefore) ∧
+      SequentialFigure7.WaitingParActivationFoldRule
+        waitingPayloadFoldCertificate waitingPayloadFoldBefore []
+        waitingPayloadFoldBefore := by
+  exact ⟨⟨.nil waitingPayloadFoldBefore⟩, .nil waitingPayloadFoldBefore⟩
+
+/-- A singleton payload is activated once in stored head-to-tail order. -/
+example :
+    SequentialFigure7.activateWaitingPayload?
+        waitingPayloadFoldCertificate waitingPayloadFoldBefore [2] =
+      some waitingPayloadFoldAfter := by
+  native_decide
+
+/-- Every concrete singleton success reconstructs the typed fold witness. -/
+example {after : UnificationState}
+    (equation :
+      SequentialFigure7.activateWaitingPayload?
+          waitingPayloadFoldCertificate waitingPayloadFoldBefore [2] =
+        some after) :
+    Nonempty
+      (SequentialFigure7.WaitingParActivationFoldStep
+        waitingPayloadFoldCertificate waitingPayloadFoldBefore [2] after) := by
+  exact
+    SequentialFigure7.activateWaitingPayload?_some_iff.mp equation
+
+/-- The same singleton execution refines the independent direct fold relation. -/
+example {after : UnificationState}
+    (equation :
+      SequentialFigure7.activateWaitingPayload?
+          waitingPayloadFoldCertificate waitingPayloadFoldBefore [2] =
+        some after) :
+    SequentialFigure7.WaitingParActivationFoldRule
+      waitingPayloadFoldCertificate waitingPayloadFoldBefore [2] after := by
+  exact SequentialFigure7.activateWaitingPayload?_sound equation
+
+/-- The project-local constructor counter increases by the payload length. -/
+example {after : UnificationState}
+    (equation :
+      SequentialFigure7.activateWaitingPayload?
+          waitingPayloadFoldCertificate waitingPayloadFoldBefore [2] =
+        some after) :
+    after.firedConnectives =
+      waitingPayloadFoldBefore.firedConnectives + [2].length := by
+  rcases
+      SequentialFigure7.activateWaitingPayload?_some_iff.mp equation with
+    ⟨step⟩
+  exact step.firedConnectives_eq_add_length
+
+/-- Repeating the same conclusion threads the first result into the second
+activation.  The first activation succeeds, while the second fails because
+its exact premises are no longer present in the updated component frontier. -/
+example :
+    (match SequentialFigure7.activateWaitingPar?
+        waitingPayloadFoldCertificate waitingPayloadFoldBefore 2 with
+    | none => false
+    | some once =>
+        (SequentialFigure7.activateWaitingPar?
+          waitingPayloadFoldCertificate once 2).isNone) = true := by
+  native_decide
+
+/-- Consequently the duplicate payload fails closed instead of replaying the
+first par against a stale production core. -/
+example :
+    SequentialFigure7.activateWaitingPayload?
+        waitingPayloadFoldCertificate waitingPayloadFoldBefore [2, 2] =
       none := by
   native_decide
 
