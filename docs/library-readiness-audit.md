@@ -1,6 +1,6 @@
 # Library-readiness audit
 
-Audit date: 2026-08-03
+Audit date: 2026-08-04
 Audited baseline: published v0.9.0 plus its tag-pinned downstream consumer and
 the current v0.10.0-dev scheduler checkpoint
 
@@ -453,9 +453,20 @@ part of the engineering and proof-identity gap.
    the stack pop and parent union. Given the full state-only invariant, every
    successful typed and executable bounded step also preserves the complete
    occurrence-exact `SchedulerInvariant`, including the component forest,
-   live-frontier/queue/waiting/pending fields, and fired counter. Complete
-   nonempty-payload `Unify`, full-history integration of
-   `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`, applicability/totality,
+   live-frontier/queue/waiting/pending fields, and fired counter. The
+   strict-singleton `UnifyOne` slice now accepts exactly `W(j) = [c]`, obtains
+   `c`'s exact submitted par producer slot from the singleton occurrence-source
+   bucket, and atomically performs prepare, tensor union, one par activation,
+   and scheduler drain. Its Boolean-free direct relations have exact
+   typed/executable correspondence and output uniqueness; successful steps
+   preserve both `ReservationInvariant` and the complete occurrence-exact
+   `SchedulerInvariant`, with an exact connective-counter increase of two.
+   Empty and length-at-least-two payloads fail closed. Explicitly constructing
+   the waiting par is the project's derivation/provenance representation
+   refinement of the paper's set-to-ready move, not a claim that the paper
+   specifies that construction. The arbitrary-payload fold, full-history
+   integration of `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`,
+   applicability/totality,
    full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -469,11 +480,13 @@ part of the engineering and proof-identity gap.
    They are not full rules by themselves. The bounded `UnifyEmpty` wrapper now
    binds the two representatives to scheduler `j/i`, orients
    `parent[i] := j`, and drains only `W(j) = []`; it increments only the tensor
-   constructor. Complete nonempty-payload `unify` must construct or activate
-   every par component drained from `W(j)`. A direct nonempty-`W(j)` composition of
+   constructor. `UnifyOne` constructs exactly the singleton drained par.
+   Arbitrary-payload `unify` must construct or activate every par component
+   drained from `W(j)`. A direct longer-payload composition of
    `queueTensor?` and `mergeTopReadyWaiting?` is therefore insufficient:
    moved ready payloads lack constructed par components and the required
-   `1 + |W(j)|` counter change. A typed activation fold remains necessary.
+   `1 + |W(j)|` counter change. A typed activation fold remains necessary for
+   payload length at least two.
    The stack's deterministic
    `conclusion :: (payload ++ previousReady ++ activeReady)` order refines
    paper-level sets and does not establish global ownership or linearity.
@@ -536,10 +549,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 296 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 314 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  88 `propext`-only, and 82 `propext`/`Quot.sound` boundaries;
+  90 `propext`-only, and 94 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -629,18 +642,22 @@ It can currently be used for:
   threaded touched-set, `σ` partition, operational inactive-boundary waiting
   domain, typed initial/later reservations, and local pop/mark/new pipeline,
   while treating search failure as inconclusive; local exact
-  `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` are now present, the current state-only invariant
+  `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` are now present; the
+  current state-only invariant
   is preserved through the common prepared prefix plus `concl`/`nop` and every
-  successful deterministic/executable `new`, `wait`, `forward`, and bounded
-  `UnifyEmpty`; the exact occurrence-provenance forest is integrated for
+  successful deterministic/executable `new`, `wait`, `forward`, bounded
+  `UnifyEmpty`, and strict-singleton `UnifyOne`; the exact
+  occurrence-provenance forest is integrated for
   empty/init and each of those successful steps. Wait additionally preserves
   exact positional waiting spans
   and combined queue ownership without constructing the delayed par.
   Forward also has an independent Boolean-free direct rule and exact
-  executable correspondence. Bounded `UnifyEmpty` has a direct rule and exact
-  correspondence, and successful typed/executable bounded steps preserve the
+  executable correspondence. Bounded `UnifyEmpty` and strict-singleton
+  `UnifyOne` have direct rules and exact correspondence, and successful
+  typed/executable bounded steps preserve the
   complete occurrence-exact `SchedulerInvariant`. Later-state
-  applicability and totality, complete nonempty `unify`, and full-history rule
+  applicability and totality, the arbitrary-payload activation fold, and
+  full-history rule
   integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.

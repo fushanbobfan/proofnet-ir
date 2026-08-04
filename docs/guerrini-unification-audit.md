@@ -223,10 +223,27 @@ Boolean-free `ForwardRule` correspondence are now kernel checked. The paper
 guard is the non-strict raw-age comparison; active-ready `Nodup` is isolated
 as a fail-closed list-shape refinement. Successful wait/forward steps preserve
 the complete supplied state-only scheduler invariant, but this is not a
-reachability theorem. `Unify`, integration of the now exact local
-`concl`/`nop`/`wait`/`forward` rules into full reachability, later-state
-applicability/totality, progress, pure-worklist completeness, fallback removal,
-scheduler correctness, and the whole-scheduler linear cost model remain open.
+reachability theorem.
+
+The frozen strict-singleton unification checkpoint covers exactly
+`W(j) = [c]`. It recovers `c`'s producer from the occurrence source index as a
+singleton containing the exact submitted par slot and stored orientation, then
+executes one atomic prepare → tensor construction/union → waiting-par
+activation → scheduler drain. `WaitingParActivationRule` and `UnifyOneRule`
+state independent Boolean-free relations, and Lean proves their
+typed/executable correspondence, output uniqueness, `ReservationInvariant`
+preservation, complete occurrence-exact `SchedulerInvariant` preservation,
+and the exact connective-counter increase by two. The executable rejects an
+empty cell and every payload with at least two elements. Figure 7 specifies
+moving `W(j)` into ready; explicitly constructing the par derivation before
+that move is ProofNet-IR's provenance-carrying representation refinement, not
+a claim that the paper prescribes it.
+
+The arbitrary-payload activation fold, integration of the now exact local
+`concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` rules into full
+reachability, dispatcher/history, later-state applicability/totality, progress,
+pure-worklist completeness, fallback removal, faithful `NEXTAXIOM`/token-age
+sequencing, scheduler correctness, and the whole-scheduler linear cost model remain open.
 Future guards must compare raw assigned ages; replacing them by
 representatives would change the algorithm.
 

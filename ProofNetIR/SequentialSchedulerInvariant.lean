@@ -1,5 +1,6 @@
 import ProofNetIR.SequentialFigure7Rules
 import ProofNetIR.SequentialFigure7New
+import ProofNetIR.SequentialFigure7UnifyOne
 import ProofNetIR.SequentialComponentProvenance
 
 namespace ProofNetIR
@@ -24,8 +25,11 @@ Guerrini's paper uses sets for ready and waiting buckets.  The executable
 lists retain deterministic order, but the semantic fields below use
 membership only.  The current preservation layer covers the common prepared
 prefix, `concl`, `nop`, operational `new`, successful local `forward`, and
-successful local `wait`.  It does not prove dispatcher applicability,
-full-rule reachability, `unify`, progress, or completeness.
+successful local `wait`.  It also covers bounded tensor unification when the
+drained waiting payload is empty, and strict singleton tensor-plus-par
+unification when that payload is exactly one conclusion.  It does not prove
+arbitrary nonempty/full `unify`, dispatcher applicability or totality,
+full-rule reachability, progress, or completeness.
 -/
 
 namespace CutFreeDerivation
@@ -2346,14 +2350,16 @@ private theorem premise_orientation
       constructor
       · simp [ConnectiveBelow.mate, TensorPremiseSide.mate,
           sideEquation]
-      · simpa [TensorPremiseSide.premise, sideEquation] using
+      · simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using
           step.consumer.premise_eq
   | storedRight =>
       left
       constructor
       · simp [ConnectiveBelow.mate, TensorPremiseSide.mate,
           sideEquation]
-      · simpa [TensorPremiseSide.premise, sideEquation] using
+      · simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using
           step.consumer.premise_eq
 
 private theorem conclusion_ne_selected
@@ -2365,14 +2371,16 @@ private theorem conclusion_ne_selected
   | storedLeft =>
       have selectedEq : step.prepared.stackResult.vertex =
           step.consumer.storedLeft := by
-        simpa [TensorPremiseSide.premise, sideEquation] using
+        simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using
           step.consumer.premise_eq
       intro same
       exact parWellFormed.2.1 (selectedEq.symm.trans same.symm)
   | storedRight =>
       have selectedEq : step.prepared.stackResult.vertex =
           step.consumer.storedRight := by
-        simpa [TensorPremiseSide.premise, sideEquation] using
+        simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using
           step.consumer.premise_eq
       intro same
       exact parWellFormed.2.2.1 (selectedEq.symm.trans same.symm)
@@ -2396,7 +2404,8 @@ private theorem conclusion_not_produced_before
   | storedLeft =>
       have selectedEq : step.prepared.stackResult.vertex =
           step.consumer.storedLeft := by
-        simpa [TensorPremiseSide.premise, sideEquation] using
+        simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using
           step.consumer.premise_eq
       have leftUnmarked :
           before.core.marks[step.consumer.storedLeft]? = some none :=
@@ -2407,7 +2416,8 @@ private theorem conclusion_not_produced_before
   | storedRight =>
       have selectedEq : step.prepared.stackResult.vertex =
           step.consumer.storedRight := by
-        simpa [TensorPremiseSide.premise, sideEquation] using
+        simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using
           step.consumer.premise_eq
       have rightUnmarked :
           before.core.marks[step.consumer.storedRight]? = some none :=
@@ -5751,6 +5761,2373 @@ theorem unifyEmpty?_schedulerInvariant
       (unifyEmpty?_some_iff invariant.toReservationInvariant).mp equation with
     ⟨step⟩
   exact step.schedulerInvariant invariant
+
+namespace UnifyOneStep
+
+private theorem tensor_wellFormed
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    certificate.LinkWellFormed
+      (.tensor step.consumer.storedLeft step.consumer.storedRight
+        step.consumer.conclusion) :=
+  Certificate.tensorBelow?_wellFormed step.consumer_eq
+
+private theorem selected_eq_premise
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.prepared.stackResult.vertex =
+      step.consumer.side.premise step.consumer.storedLeft
+        step.consumer.storedRight := by
+  change step.prepared.stackResult.vertex = step.consumer.premise
+  exact Certificate.tensorBelow?_premise step.consumer_eq
+
+private theorem premise_orientation
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    ((step.consumer.mate = step.consumer.storedLeft ∧
+        step.prepared.stackResult.vertex = step.consumer.storedRight) ∨
+      (step.consumer.mate = step.consumer.storedRight ∧
+        step.prepared.stackResult.vertex = step.consumer.storedLeft)) := by
+  cases sideEquation : step.consumer.side with
+  | storedLeft =>
+      right
+      constructor
+      · simp [TensorBelow.mate, TensorPremiseSide.mate, sideEquation]
+      · simpa [TensorPremiseSide.premise, sideEquation] using
+          step.selected_eq_premise
+  | storedRight =>
+      left
+      constructor
+      · simp [TensorBelow.mate, TensorPremiseSide.mate, sideEquation]
+      · simpa [TensorPremiseSide.premise, sideEquation] using
+          step.selected_eq_premise
+
+private theorem conclusion_ne_selected
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.consumer.conclusion ≠ step.prepared.stackResult.vertex := by
+  have tensorWellFormed := step.tensor_wellFormed
+  cases sideEquation : step.consumer.side with
+  | storedLeft =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedLeft := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.selected_eq_premise
+      intro same
+      exact tensorWellFormed.2.1 (selectedEq.symm.trans same.symm)
+  | storedRight =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedRight := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.selected_eq_premise
+      intro same
+      exact tensorWellFormed.2.2.1 (selectedEq.symm.trans same.symm)
+
+private theorem conclusion_not_produced_before
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ¬ Produced before step.consumer.conclusion := by
+  intro produced
+  have linkMembership :
+      (.tensor step.consumer.storedLeft step.consumer.storedRight
+        step.consumer.conclusion : Link) ∈ certificate.links :=
+    List.mem_of_getElem? step.submitted_tensor
+  rcases invariant.produced_premises_marked linkMembership produced with
+    ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
+  rcases UnificationState.markReadyRaw?_exact
+      step.prepared.core_mark_eq with
+    ⟨selectedUnmarked, _, _, _, _, _, _⟩
+  cases sideEquation : step.consumer.side with
+  | storedLeft =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedLeft := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.selected_eq_premise
+      have leftUnmarked :
+          before.core.marks[step.consumer.storedLeft]? = some none :=
+        (congrArg (fun vertex => before.core.marks[vertex]?)
+          selectedEq).symm.trans selectedUnmarked
+      rw [leftUnmarked] at leftMarked
+      simp at leftMarked
+  | storedRight =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedRight := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.selected_eq_premise
+      have rightUnmarked :
+          before.core.marks[step.consumer.storedRight]? = some none :=
+        (congrArg (fun vertex => before.core.marks[vertex]?)
+          selectedEq).symm.trans selectedUnmarked
+      rw [rightUnmarked] at rightMarked
+      simp at rightMarked
+
+private theorem conclusion_not_produced_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ¬ Produced step.prepared.after step.consumer.conclusion := by
+  intro produced
+  apply step.conclusion_not_produced_before invariant
+  rcases UnificationState.markReadyRaw?_exact
+      step.prepared.core_mark_eq with
+    ⟨_, marksEq, _, componentsEq, _, _, _⟩
+  rcases produced with ⟨age, marked⟩ | frontier
+  · left
+    refine ⟨age, ?_⟩
+    change step.prepared.coreMarked.marks[
+        step.consumer.conclusion]? = some (some age) at marked
+    rw [marksEq] at marked
+    simpa [Array.getElem?_setIfInBounds,
+      Ne.symm step.conclusion_ne_selected] using marked
+  · right
+    unfold UnificationState.liveFrontierVertices at frontier ⊢
+    change step.consumer.conclusion ∈
+      step.prepared.coreMarked.components.toList.flatMap _ at frontier
+    rw [componentsEq] at frontier
+    exact frontier
+
+private theorem conclusion_not_mem_waiting_before
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.consumer.conclusion ∉ before.stack.waitingVertices := by
+  intro conclusionWaiting
+  unfold SequentialStackState.waitingVertices at conclusionWaiting
+  rcases List.mem_flatMap.mp conclusionWaiting with
+    ⟨cell, cellMembership, conclusionInCell⟩
+  cases cell with
+  | undefined => simp [WaitingCell.vertices] at conclusionInCell
+  | initialized payload =>
+      simp only [WaitingCell.vertices] at conclusionInCell
+      rcases List.mem_iff_getElem.mp cellMembership with
+        ⟨boundary, boundaryBound, boundaryEquation⟩
+      have waitingLookup : before.stack.waiting[boundary]? =
+          some (.initialized payload) := by
+        rw [← Array.getElem?_toList]
+        rw [List.getElem?_eq_getElem boundaryBound, boundaryEquation]
+      rcases invariant.waiting_span_exact waitingLookup conclusionInCell with
+        ⟨oldLinkIndex, oldLeft, oldRight, olderPremise,
+          youngerPremise, olderAge, youngerAge, youngerBoundary,
+          oldLinkLookup, oldSourceLookup, conclusionUnmarked,
+          oldOrientation, olderMarked, youngerMarked,
+          olderBoundary, youngerBoundaryLookup, boundaryOrder⟩
+      have oldLinkMembership :
+          (.par oldLeft oldRight step.consumer.conclusion : Link) ∈
+            certificate.links :=
+        List.mem_of_getElem? oldLinkLookup
+      have currentLinkMembership :
+          (.tensor step.consumer.storedLeft step.consumer.storedRight
+            step.consumer.conclusion : Link) ∈ certificate.links :=
+        List.mem_of_getElem? step.submitted_tensor
+      have impossible :=
+        UnificationState.StructurallyWellFormed.producerLink_unique
+          invariant.structural
+          (conclusion := step.consumer.conclusion)
+          oldLinkMembership (by simp [Link.produces])
+          currentLinkMembership (by simp [Link.produces])
+      cases impossible
+
+private theorem conclusion_not_mem_waiting_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.consumer.conclusion ∉
+      step.prepared.after.stack.waitingVertices := by
+  intro waiting
+  rcases SequentialStackState.popReadyMark?_exact
+      step.prepared.stack_eq with
+    ⟨_, _, _, _, _, _, _, waitingEq, _⟩
+  apply step.conclusion_not_mem_waiting_before invariant
+  unfold SequentialStackState.waitingVertices at waiting ⊢
+  change step.consumer.conclusion ∈
+      step.prepared.stackResult.after.waiting.toList.flatMap _ at waiting
+  rw [waitingEq] at waiting
+  exact waiting
+
+private theorem conclusion_not_queued_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.consumer.conclusion ∉
+      step.prepared.after.stack.queuedVertices := by
+  intro queued
+  unfold SequentialStackState.queuedVertices at queued
+  rcases List.mem_append.mp queued with ready | waiting
+  · exact step.conclusion_not_produced_middle invariant
+      (Or.inr
+        (SchedulerInvariant.ready_mem_liveFrontier
+          (step.prepared.schedulerInvariant invariant) ready))
+  · exact step.conclusion_not_mem_waiting_middle invariant waiting
+
+private theorem activeBoundary_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.mergeStep.activeBoundary =
+      step.prepared.stackResult.rawAge := by
+  have mergeTop :
+      step.prepared.stackResult.after.sigma.getLast? =
+        some step.mergeStep.activeBoundary := by
+    rw [step.mergeStep.sigma_eq]
+    simp
+  have preparedTop :
+      step.prepared.stackResult.after.sigma.getLast? =
+        some step.prepared.stackResult.rawAge := by
+    rcases SequentialStackState.popReadyMark?_exact
+        step.prepared.stack_eq with
+      ⟨_, sigmaTop, _, _, _, sigmaAfter, _, _, _⟩
+    rw [sigmaAfter]
+    exact sigmaTop
+  exact Option.some.inj (mergeTop.symm.trans preparedTop)
+
+private theorem middle_sigma_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.prepared.stackResult.after.sigma =
+      step.mergeStep.sigmaPrefix ++
+        [step.previousBoundary, step.prepared.stackResult.rawAge] := by
+  simpa [step.activeBoundary_eq] using step.mergeStep.sigma_eq
+
+private theorem previous_lt_active
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.previousBoundary < step.prepared.stackResult.rawAge :=
+  Nat.lt_of_le_of_lt step.lower step.upper
+
+private theorem min_token_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    min step.tensorStep.leftToken step.tensorStep.rightToken =
+      step.previousBoundary := by
+  rcases step.tokens_eq_adjacent with orientation | orientation
+  · rw [orientation.2.1, orientation.2.2]
+    exact Nat.min_eq_right (Nat.le_of_lt step.previous_lt_active)
+  · rw [orientation.2.1, orientation.2.2]
+    exact Nat.min_eq_left (Nat.le_of_lt step.previous_lt_active)
+
+private theorem max_token_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    max step.tensorStep.leftToken step.tensorStep.rightToken =
+      step.prepared.stackResult.rawAge := by
+  rcases step.tokens_eq_adjacent with orientation | orientation
+  · rw [orientation.2.1, orientation.2.2]
+    exact Nat.max_eq_left (Nat.le_of_lt step.previous_lt_active)
+  · rw [orientation.2.1, orientation.2.2]
+    exact Nat.max_eq_right (Nat.le_of_lt step.previous_lt_active)
+
+private def tensorComponent
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    UnificationComponent := {
+  tree := .tensor step.tensorStep.leftFocus step.tensorStep.rightFocus
+    step.tensorStep.leftComponent.tree step.tensorStep.rightComponent.tree
+  frontier := step.consumer.conclusion ::
+    (step.tensorStep.leftContext ++ step.tensorStep.rightContext) }
+
+private def activatedComponent
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    UnificationComponent := {
+  tree := .par step.activationStep.queueStep.leftFocus
+    step.activationStep.queueStep.rightFocus
+    step.activationStep.queueStep.component.tree
+  frontier := step.activationStep.queueStep.context ++
+    [step.waitingConclusion] }
+
+private theorem payload_eq_singleton
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.mergeStep.payload = [step.waitingConclusion] := by
+  exact WaitingCell.initialized.inj
+    (Option.some.inj
+      (step.mergeStep.waiting_initialized.symm.trans step.waiting_one))
+
+private theorem after_core_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.core = step.coreAfter :=
+  congrArg (fun state : ReservationState => state.core) step.output_eq
+
+private theorem after_stack_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.stack = step.stackAfter :=
+  congrArg (fun state : ReservationState => state.stack) step.output_eq
+
+private theorem core_marks_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.core.marks = step.prepared.coreMarked.marks := by
+  calc
+    after.core.marks = step.coreAfter.marks :=
+      congrArg (fun core : UnificationState => core.marks)
+        step.after_core_eq
+    _ = step.coreTensor.marks := step.activationStep.exact.2.1
+    _ = step.prepared.coreMarked.marks := by
+      rw [step.tensorStep.after_eq]
+
+private theorem core_parents_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.core.parents =
+      step.prepared.coreMarked.parents.setIfInBounds
+        step.prepared.stackResult.rawAge step.previousBoundary := by
+  calc
+    after.core.parents = step.coreAfter.parents :=
+      congrArg (fun core : UnificationState => core.parents)
+        step.after_core_eq
+    _ = step.coreTensor.parents := step.activationStep.exact.2.2.1
+    _ = step.prepared.coreMarked.parents.setIfInBounds
+          step.prepared.stackResult.rawAge step.previousBoundary := by
+      rw [step.tensorStep.after_eq, step.max_token_eq, step.min_token_eq]
+
+private theorem tensor_components_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.coreTensor.components =
+      ((step.prepared.coreMarked.components.setIfInBounds
+          step.previousBoundary (some step.tensorComponent))
+        |>.setIfInBounds step.prepared.stackResult.rawAge none) := by
+  rw [step.tensorStep.after_eq, step.min_token_eq, step.max_token_eq]
+  rfl
+
+private theorem core_components_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.core.components =
+      step.coreTensor.components.setIfInBounds
+        step.activationStep.queueStep.outputToken
+        (some step.activatedComponent) := by
+  calc
+    after.core.components = step.coreAfter.components :=
+      congrArg (fun core : UnificationState => core.components)
+        step.after_core_eq
+    _ = step.coreTensor.components.setIfInBounds
+          step.activationStep.queueStep.outputToken
+          (some step.activatedComponent) := step.activationStep.exact.1
+
+private theorem after_sigma_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.stack.sigma =
+      step.mergeStep.sigmaPrefix ++ [step.previousBoundary] := by
+  calc
+    after.stack.sigma = step.stackAfter.sigma :=
+      congrArg (fun state : SequentialStackState => state.sigma)
+        step.after_stack_eq
+    _ = step.mergeStep.sigmaPrefix ++ [step.previousBoundary] := by
+      simpa using congrArg
+        (fun state : SequentialStackState => state.sigma)
+        step.mergeStep.after_eq
+
+private theorem after_ready_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.stack.ready =
+      step.mergeStep.readyPrefix ++
+        [step.consumer.conclusion ::
+          (step.waitingConclusion :: step.mergeStep.previousReady ++
+            step.mergeStep.activeReady)] := by
+  calc
+    after.stack.ready = step.stackAfter.ready :=
+      congrArg (fun state : SequentialStackState => state.ready)
+        step.after_stack_eq
+    _ = step.mergeStep.readyPrefix ++
+          [step.consumer.conclusion ::
+            (step.waitingConclusion :: step.mergeStep.previousReady ++
+              step.mergeStep.activeReady)] := by
+      simpa [step.payload_eq_singleton] using congrArg
+        (fun state : SequentialStackState => state.ready)
+        step.mergeStep.after_eq
+
+private theorem after_waiting_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    after.stack.waiting =
+      step.prepared.stackResult.after.waiting.setIfInBounds
+        step.previousBoundary .undefined := by
+  calc
+    after.stack.waiting = step.stackAfter.waiting :=
+      congrArg (fun state : SequentialStackState => state.waiting)
+        step.after_stack_eq
+    _ = step.prepared.stackResult.after.waiting.setIfInBounds
+          step.previousBoundary .undefined := by
+      simpa using congrArg
+        (fun state : SequentialStackState => state.waiting)
+        step.mergeStep.after_eq
+
+private theorem left_root
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.coreMarked.representative step.tensorStep.leftToken =
+      step.tensorStep.leftToken := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  exact middleInvariant.core_abstractable.tokenAt?_root
+    (UnificationState.unifyTokens?_success
+      step.tensorStep.token_guard).2.1
+
+private theorem right_root
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.coreMarked.representative step.tensorStep.rightToken =
+      step.tensorStep.rightToken := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  exact middleInvariant.core_abstractable.tokenAt?_root
+    (UnificationState.unifyTokens?_success
+      step.tensorStep.token_guard).2.2.1
+
+private theorem left_component_raw
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.coreMarked.components[step.tensorStep.leftToken]? =
+      some (some step.tensorStep.leftComponent) := by
+  have raw := UnificationState.componentAt?_some_raw
+    step.tensorStep.left_component
+  simpa [step.left_root invariant] using raw
+
+private theorem right_component_raw
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.coreMarked.components[step.tensorStep.rightToken]? =
+      some (some step.tensorStep.rightComponent) := by
+  have raw := UnificationState.componentAt?_some_raw
+    step.tensorStep.right_component
+  simpa [step.right_root invariant] using raw
+
+private theorem previous_bound
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.previousBoundary < step.prepared.coreMarked.components.size := by
+  rcases step.tokens_eq_adjacent with orientation | orientation
+  · rw [← orientation.2.2]
+    exact (Array.getElem?_eq_some_iff.mp
+      (step.right_component_raw invariant)).1
+  · rw [← orientation.2.1]
+    exact (Array.getElem?_eq_some_iff.mp
+      (step.left_component_raw invariant)).1
+
+private theorem active_bound
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.stackResult.rawAge <
+      step.prepared.coreMarked.components.size := by
+  rcases step.tokens_eq_adjacent with orientation | orientation
+  · rw [← orientation.2.1]
+    exact (Array.getElem?_eq_some_iff.mp
+      (step.left_component_raw invariant)).1
+  · rw [← orientation.2.2]
+    exact (Array.getElem?_eq_some_iff.mp
+      (step.right_component_raw invariant)).1
+
+private theorem activation_tokenAt_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) (vertex : Vertex) :
+    step.coreAfter.tokenAt? vertex = step.coreTensor.tokenAt? vertex := by
+  have exact := step.activationStep.exact
+  unfold UnificationState.tokenAt?
+  rw [exact.2.1]
+  cases step.coreTensor.marks[vertex]? with
+  | none => rfl
+  | some assigned =>
+      cases assigned with
+      | none => rfl
+      | some rawAge =>
+          change some (step.coreAfter.representative rawAge) =
+            some (step.coreTensor.representative rawAge)
+          unfold UnificationState.representative
+          rw [exact.2.2.1]
+
+private theorem waiting_premise_token_after
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before)
+    {premise : Vertex}
+    (membership : premise ∈
+      [step.activationStep.producer.storedLeft,
+        step.activationStep.producer.storedRight]) :
+    after.core.tokenAt? premise = some step.previousBoundary := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  rcases middleInvariant.waiting_span_exact
+      (boundary := step.previousBoundary)
+      (payload := [step.waitingConclusion])
+      (conclusion := step.waitingConclusion)
+      step.waiting_one (by simp) with
+    ⟨linkIndex, left, right, olderPremise, youngerPremise,
+      olderAge, youngerAge, youngerBoundary, linkLookup,
+      sourceLookup, conclusionUnmarked, orientation,
+      olderMarked, youngerMarked, olderBoundary,
+      youngerBoundaryLookup, boundaryOrder⟩
+  have incidenceEq := Option.some.inj
+    (sourceLookup.symm.trans step.activationStep.producer.source_eq)
+  have singletonEq := List.singleton_inj.mp incidenceEq
+  have linkEq := congrArg
+    SequentialUnification.SourceIncidence.link singletonEq
+  injection linkEq with leftEq rightEq
+  subst left
+  subst right
+  have markedAndLower : ∃ rawAge,
+      step.prepared.coreMarked.marks[premise]? = some (some rawAge) ∧
+        step.previousBoundary ≤ rawAge := by
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at membership
+    rcases orientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · rcases membership with rfl | rfl
+      · exact ⟨olderAge, olderMarked,
+          sigmaBoundary?_le olderBoundary⟩
+      · exact ⟨youngerAge, youngerMarked,
+          Nat.le_trans (Nat.le_of_lt boundaryOrder)
+            (sigmaBoundary?_le youngerBoundaryLookup)⟩
+    · rcases membership with rfl | rfl
+      · exact ⟨youngerAge, youngerMarked,
+          Nat.le_trans (Nat.le_of_lt boundaryOrder)
+            (sigmaBoundary?_le youngerBoundaryLookup)⟩
+      · exact ⟨olderAge, olderMarked,
+          sigmaBoundary?_le olderBoundary⟩
+  rcases markedAndLower with ⟨rawAge, marked, lower⟩
+  have finalInvariant := step.reservationInvariant
+  have finalMark : after.core.marks[premise]? = some (some rawAge) := by
+    rw [step.core_marks_eq]
+    exact marked
+  have stackMark : after.stack.marks[premise]? = some (some rawAge) := by
+    rw [← finalInvariant.realizesSigma.marks_eq]
+    exact finalMark
+  have rawBound : rawAge < after.stack.nextAge :=
+    finalInvariant.stack_wellShaped.assigned_age_bound
+      premise rawAge stackMark
+  have top : after.stack.sigma.getLast? = some step.previousBoundary := by
+    rw [step.after_sigma_eq]
+    simp
+  have boundaryLookup :
+      sigmaBoundary? after.stack.sigma rawAge =
+        some step.previousBoundary :=
+    finalInvariant.stack_wellShaped.sigma_partition
+      |>.sigmaBoundary?_eq_top_of_le top lower rawBound
+  have realized :=
+    finalInvariant.realizesSigma.representative_eq_boundary rawBound
+  unfold UnificationState.tokenAt?
+  rw [finalMark]
+  exact congrArg some (Option.some.inj (realized.symm.trans boundaryLookup))
+
+private theorem activation_output_eq_previous
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.activationStep.queueStep.outputToken =
+      step.previousBoundary := by
+  have tokenGuard :=
+    (UnificationState.forwardToken?_success
+      step.activationStep.queueStep.token_guard).2.1
+  have afterToken :
+      after.core.tokenAt? step.activationStep.producer.storedLeft =
+        some step.activationStep.queueStep.outputToken := by
+    rw [step.after_core_eq, step.activation_tokenAt_eq]
+    exact tokenGuard
+  have previousToken := step.waiting_premise_token_after invariant
+    (premise := step.activationStep.producer.storedLeft) (by simp)
+  exact Option.some.inj (afterToken.symm.trans previousToken)
+
+private theorem core_components_expanded_eq
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    after.core.components =
+      (((step.prepared.coreMarked.components.setIfInBounds
+          step.previousBoundary (some step.tensorComponent))
+        |>.setIfInBounds step.prepared.stackResult.rawAge none)
+        |>.setIfInBounds step.previousBoundary
+          (some step.activatedComponent)) := by
+  calc
+    after.core.components =
+        step.coreTensor.components.setIfInBounds
+          step.activationStep.queueStep.outputToken
+          (some step.activatedComponent) := step.core_components_eq
+    _ = step.coreTensor.components.setIfInBounds
+          step.previousBoundary (some step.activatedComponent) := by
+      rw [step.activation_output_eq_previous invariant]
+    _ =
+        (((step.prepared.coreMarked.components.setIfInBounds
+            step.previousBoundary (some step.tensorComponent))
+          |>.setIfInBounds step.prepared.stackResult.rawAge none)
+          |>.setIfInBounds step.previousBoundary
+            (some step.activatedComponent)) := by
+      rw [step.tensor_components_eq]
+
+private theorem componentDomainExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ComponentDomainExact after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have activeNotReduced :
+      step.prepared.stackResult.rawAge ∉
+        step.mergeStep.sigmaPrefix ++ [step.previousBoundary] := by
+    intro membership
+    have increasing :
+        step.prepared.stackResult.after.sigma.Pairwise (· < ·) := by
+      simpa [PreparedStep.after] using
+        middleInvariant.stack_wellShaped.sigma_partition.strictIncreasing
+    rw [step.middle_sigma_eq] at increasing
+    have normalized :
+        step.mergeStep.sigmaPrefix ++
+            [step.previousBoundary, step.prepared.stackResult.rawAge] =
+          (step.mergeStep.sigmaPrefix ++ [step.previousBoundary]) ++
+            [step.prepared.stackResult.rawAge] := by
+      simp [List.append_assoc]
+    rw [normalized] at increasing
+    have cross := (List.pairwise_append.mp increasing).2.2
+    exact Nat.lt_irrefl _
+      (cross step.prepared.stackResult.rawAge membership
+        step.prepared.stackResult.rawAge (by simp))
+  intro token
+  rw [step.core_components_expanded_eq invariant, step.after_sigma_eq]
+  by_cases previous : token = step.previousBoundary
+  · subst token
+    constructor
+    · intro _
+      simp
+    · intro _
+      refine ⟨step.activatedComponent, ?_⟩
+      rw [Array.getElem?_setIfInBounds]
+      simp [step.previous_bound invariant]
+  · by_cases active : token = step.prepared.stackResult.rawAge
+    · subst token
+      rw [Array.getElem?_setIfInBounds_ne
+        (Nat.ne_of_lt step.previous_lt_active)]
+      simp [step.active_bound invariant, activeNotReduced]
+    · have oldDomain :
+        (∃ component,
+          step.prepared.coreMarked.components[token]? =
+            some (some component)) ↔
+          token ∈ step.prepared.stackResult.after.sigma := by
+        simpa [PreparedStep.after] using
+          middleInvariant.component_domain_exact token
+      rw [step.middle_sigma_eq] at oldDomain
+      rw [Array.getElem?_setIfInBounds_ne (Ne.symm previous),
+        Array.getElem?_setIfInBounds_ne (Ne.symm active),
+        Array.getElem?_setIfInBounds_ne (Ne.symm previous)]
+      simpa [active] using oldDomain
+
+private theorem queuedVerticesNodup
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    QueuedVerticesNodup after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have targetNodup :
+      (step.consumer.conclusion ::
+        step.prepared.after.stack.queuedVertices).Nodup :=
+    List.nodup_cons.mpr
+      ⟨step.conclusion_not_queued_middle invariant,
+        middleInvariant.queued_vertices_nodup⟩
+  have stackEq : after.stack = step.stackAfter := step.after_stack_eq
+  unfold QueuedVerticesNodup
+  rw [stackEq]
+  exact step.mergeStep.queuedVertices_perm.symm.nodup targetNodup
+
+private theorem queuedVerticesUnmarked
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    QueuedVerticesUnmarked after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  intro vertex membership
+  have stackEq : after.stack = step.stackAfter := step.after_stack_eq
+  have targetMembership :=
+    step.mergeStep.queuedVertices_perm.mem_iff.mp (by
+      simpa [stackEq] using membership)
+  simp only [List.mem_cons] at targetMembership
+  rw [step.core_marks_eq]
+  rcases targetMembership with rfl | oldMembership
+  · exact (UnificationState.unifyTokens?_success
+      step.tensorStep.token_guard).1
+  · exact middleInvariant.queued_vertices_unmarked vertex oldMembership
+
+private theorem waitingConclusion_unmarked_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.coreMarked.marks[step.waitingConclusion]? = some none := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  rcases middleInvariant.waiting_span_exact
+      (boundary := step.previousBoundary)
+      (payload := [step.waitingConclusion])
+      (conclusion := step.waitingConclusion)
+      step.waiting_one (by simp) with
+    ⟨_, _, _, _, _, _, _, _, _, _, unmarked, _⟩
+  exact unmarked
+
+private theorem waitingConclusion_mem_waiting_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.waitingConclusion ∈
+      step.prepared.after.stack.waitingVertices := by
+  unfold SequentialStackState.waitingVertices
+  apply List.mem_flatMap.mpr
+  refine ⟨.initialized [step.waitingConclusion], ?_, by simp
+    [WaitingCell.vertices]⟩
+  apply List.mem_of_getElem?
+  change step.prepared.stackResult.after.waiting.toList[_]? =
+    some (WaitingCell.initialized [step.waitingConclusion])
+  rw [Array.getElem?_toList]
+  exact step.waiting_one
+
+private theorem waitingConclusion_not_mem_ready_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.waitingConclusion ∉
+      step.prepared.after.stack.ready.flatten := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have parts := List.nodup_append.mp
+    middleInvariant.queued_vertices_nodup
+  intro readyMembership
+  exact parts.2.2 step.waitingConclusion readyMembership
+    step.waitingConclusion step.waitingConclusion_mem_waiting_middle rfl
+
+private theorem waitingConclusion_not_produced_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ¬ Produced step.prepared.after step.waitingConclusion := by
+  intro produced
+  rcases produced with ⟨rawAge, marked⟩ | frontier
+  · have unmarked := step.waitingConclusion_unmarked_middle invariant
+    change step.prepared.coreMarked.marks[step.waitingConclusion]? =
+      some none at unmarked
+    change step.prepared.coreMarked.marks[step.waitingConclusion]? =
+      some (some rawAge) at marked
+    rw [unmarked] at marked
+    simp at marked
+  · have middleInvariant := step.prepared.schedulerInvariant invariant
+    have readyMembership : step.waitingConclusion ∈
+        step.prepared.after.stack.ready.flatten := by
+      unfold UnificationState.liveFrontierVertices at frontier
+      rcases List.mem_flatMap.mp frontier with
+        ⟨cell, cellMembership, vertexMembership⟩
+      cases cell with
+      | none => simp at vertexMembership
+      | some component =>
+          simp only [Option.map_some, Option.getD_some] at vertexMembership
+          rcases List.mem_iff_getElem.mp cellMembership with
+            ⟨index, indexBound, indexEquation⟩
+          have componentLookup :
+              step.prepared.after.core.components[index]? =
+                some (some component) := by
+            rw [← Array.getElem?_toList]
+            rw [List.getElem?_eq_getElem indexBound, indexEquation]
+          have boundaryMembership :
+              index ∈ step.prepared.after.stack.sigma :=
+            (middleInvariant.component_domain_exact index).mp
+              ⟨component, componentLookup⟩
+          rcases List.mem_iff_getElem.mp boundaryMembership with
+            ⟨position, positionBound, positionEquation⟩
+          have sigmaLookup :
+              step.prepared.after.stack.sigma[position]? = some index := by
+            rw [List.getElem?_eq_getElem positionBound, positionEquation]
+          have readyBound :
+              position < step.prepared.after.stack.ready.length := by
+            rw [middleInvariant.stack_wellShaped.ready_aligned]
+            exact positionBound
+          let bucket := step.prepared.after.stack.ready[position]
+          have readyLookup :
+              step.prepared.after.stack.ready[position]? = some bucket :=
+            List.getElem?_eq_getElem readyBound
+          rcases middleInvariant.ready_bucket_frontier_exact
+              sigmaLookup readyLookup with
+            ⟨actual, actualLookup, exactMembership⟩
+          have actualEq : actual = component :=
+            Option.some.inj
+              (Option.some.inj (actualLookup.symm.trans componentLookup))
+          subst actual
+          apply List.mem_flatten.mpr
+          exact ⟨bucket, List.mem_of_getElem? readyLookup,
+            (exactMembership step.waitingConclusion).mpr
+              ⟨vertexMembership,
+                step.waitingConclusion_unmarked_middle invariant⟩⟩
+    exact step.waitingConclusion_not_mem_ready_middle invariant
+      readyMembership
+
+private theorem activation_root
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.coreTensor.representative
+        step.activationStep.queueStep.outputToken =
+      step.activationStep.queueStep.outputToken := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have middleOrdered : step.prepared.coreMarked.OrderedParents := by
+    intro token parent lookup
+    exact middleInvariant.core_orderedParents lookup
+  have tensorAbstractable : step.coreTensor.Abstractable certificate :=
+    Certificate.queueTensor?_abstractable
+      middleInvariant.core_abstractable middleOrdered step.tensor_queue_eq
+  exact tensorAbstractable.tokenAt?_root
+    (UnificationState.forwardToken?_success
+      step.activationStep.queueStep.token_guard).2.1
+
+private theorem activation_component_eq_tensor
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.activationStep.queueStep.component = step.tensorComponent := by
+  have rawLookup := UnificationState.componentAt?_some_raw
+    step.activationStep.queueStep.component_lookup
+  rw [step.activation_root invariant,
+    step.activation_output_eq_previous invariant,
+    step.tensor_components_eq] at rawLookup
+  rw [Array.getElem?_setIfInBounds_ne
+    (Nat.ne_of_gt step.previous_lt_active)] at rawLookup
+  simp [step.previous_bound invariant] at rawLookup
+  exact rawLookup.symm
+
+private theorem tensor_produced_cases
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before)
+    {vertex : Vertex}
+    (produced :
+      (∃ rawAge,
+        step.coreTensor.marks[vertex]? = some (some rawAge)) ∨
+      vertex ∈ step.coreTensor.liveFrontierVertices) :
+    vertex = step.consumer.conclusion ∨
+      Produced step.prepared.after vertex := by
+  rcases produced with ⟨rawAge, marked⟩ | frontierMembership
+  · apply Or.inr
+    apply Or.inl
+    refine ⟨rawAge, ?_⟩
+    rw [step.tensorStep.after_eq] at marked
+    exact marked
+  · unfold UnificationState.liveFrontierVertices at frontierMembership
+    rcases List.mem_flatMap.mp frontierMembership with
+      ⟨cell, cellMembership, vertexFrontier⟩
+    cases cell with
+    | none => simp at vertexFrontier
+    | some component =>
+        simp only [Option.map_some, Option.getD_some] at vertexFrontier
+        rcases List.mem_iff_getElem.mp cellMembership with
+          ⟨index, indexBound, indexEquation⟩
+        have tensorLookup :
+            step.coreTensor.components[index]? = some (some component) := by
+          rw [← Array.getElem?_toList]
+          rw [List.getElem?_eq_getElem indexBound, indexEquation]
+        by_cases previous : index = step.previousBoundary
+        · subst index
+          rw [step.tensor_components_eq] at tensorLookup
+          simp [step.previous_bound invariant,
+            Nat.ne_of_gt step.previous_lt_active] at tensorLookup
+          subst component
+          simp only [tensorComponent, List.mem_cons,
+            List.mem_append] at vertexFrontier
+          rcases vertexFrontier with rfl | inLeft | inRight
+          · exact Or.inl rfl
+          · apply Or.inr
+            apply Or.inr
+            unfold UnificationState.liveFrontierVertices
+            apply List.mem_flatMap.mpr
+            refine ⟨some step.tensorStep.leftComponent, ?_, ?_⟩
+            · exact List.mem_of_getElem? (by
+                simpa [PreparedStep.after] using
+                  step.left_component_raw invariant)
+            · exact (CutFreeDerivation.pick?_perm
+                step.tensorStep.left_pick.positional).mem_iff.mpr (by
+                  simp [inLeft])
+          · apply Or.inr
+            apply Or.inr
+            unfold UnificationState.liveFrontierVertices
+            apply List.mem_flatMap.mpr
+            refine ⟨some step.tensorStep.rightComponent, ?_, ?_⟩
+            · exact List.mem_of_getElem? (by
+                simpa [PreparedStep.after] using
+                  step.right_component_raw invariant)
+            · exact (CutFreeDerivation.pick?_perm
+                step.tensorStep.right_pick.positional).mem_iff.mpr (by
+                  simp [inRight])
+        · by_cases active :
+              index = step.prepared.stackResult.rawAge
+          · subst index
+            rw [step.tensor_components_eq] at tensorLookup
+            simp [step.active_bound invariant] at tensorLookup
+          · apply Or.inr
+            apply Or.inr
+            unfold UnificationState.liveFrontierVertices
+            apply List.mem_flatMap.mpr
+            refine ⟨some component, ?_, by simpa using vertexFrontier⟩
+            have oldLookup :
+                step.prepared.coreMarked.components[index]? =
+                  some (some component) := by
+              rw [step.tensor_components_eq] at tensorLookup
+              simpa [Array.getElem?_setIfInBounds, Ne.symm previous,
+                Ne.symm active] using tensorLookup
+            exact List.mem_of_getElem? (by
+              simpa [PreparedStep.after] using oldLookup)
+
+private theorem waitingConclusion_ne_tensorConclusion
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.waitingConclusion ≠ step.consumer.conclusion := by
+  intro same
+  have parMembership :
+      (.par step.activationStep.producer.storedLeft
+        step.activationStep.producer.storedRight
+        step.waitingConclusion : Link) ∈ certificate.links :=
+    List.mem_of_getElem? step.submitted_waiting_par
+  have tensorMembership :
+      (.tensor step.consumer.storedLeft step.consumer.storedRight
+        step.consumer.conclusion : Link) ∈ certificate.links :=
+    List.mem_of_getElem? step.submitted_tensor
+  have impossible :=
+    UnificationState.StructurallyWellFormed.producerLink_unique
+      invariant.structural
+      (conclusion := step.waitingConclusion)
+      parMembership (by simp [Link.produces])
+      tensorMembership (by simp [same, Link.produces])
+  cases impossible
+
+private theorem waitingConclusion_not_produced_tensor
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ¬ ((∃ rawAge,
+        step.coreTensor.marks[step.waitingConclusion]? =
+          some (some rawAge)) ∨
+      step.waitingConclusion ∈ step.coreTensor.liveFrontierVertices) := by
+  intro produced
+  rcases step.tensor_produced_cases invariant produced with
+    same | producedMiddle
+  · exact step.waitingConclusion_ne_tensorConclusion invariant same
+  · exact step.waitingConclusion_not_produced_middle invariant
+      producedMiddle
+
+private theorem componentForestProvenance
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    certificate.ComponentForestProvenance after.core := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have tensorConclusionFresh :
+      ∀ {index component owned},
+        step.prepared.coreMarked.components[index]? =
+            some (some component) →
+        Certificate.OwnedOccurrenceAccounted
+            step.prepared.coreMarked index component owned →
+        step.consumer.conclusion ∉ owned := by
+    intro index component owned componentLookup accounted conclusionOwned
+    apply step.conclusion_not_produced_middle invariant
+    rcases accounted step.consumer.conclusion conclusionOwned with
+      ⟨rawAge, marked, _⟩ | ⟨unmarked, frontier⟩
+    · exact Or.inl ⟨rawAge, marked⟩
+    · apply Or.inr
+      unfold UnificationState.liveFrontierVertices
+      apply List.mem_flatMap.mpr
+      refine ⟨some component, ?_, ?_⟩
+      · exact List.mem_of_getElem? (by
+          simpa [PreparedStep.after] using componentLookup)
+      · exact frontier
+  have tensorForest :
+      certificate.ComponentForestProvenance step.coreTensor :=
+    middleInvariant.component_forest_provenance
+      |>.queueTensorStep_of_roots_fresh
+        middleInvariant.core_abstractable
+        middleInvariant.core_orderedParents step.tensorStep
+        step.consumer.linkIndex step.submitted_tensor tensorConclusionFresh
+  have waitingFresh :
+      ∀ {index component owned},
+        step.coreTensor.components[index]? = some (some component) →
+        Certificate.OwnedOccurrenceAccounted
+            step.coreTensor index component owned →
+        step.waitingConclusion ∉ owned := by
+    intro index component owned componentLookup accounted conclusionOwned
+    apply step.waitingConclusion_not_produced_tensor invariant
+    rcases accounted step.waitingConclusion conclusionOwned with
+      ⟨rawAge, marked, _⟩ | ⟨unmarked, frontier⟩
+    · exact Or.inl ⟨rawAge, marked⟩
+    · apply Or.inr
+      unfold UnificationState.liveFrontierVertices
+      apply List.mem_flatMap.mpr
+      exact ⟨some component, List.mem_of_getElem? (by
+          rw [Array.getElem?_toList]
+          exact componentLookup),
+        by simpa using frontier⟩
+  have finalForest := tensorForest.queueParStep_of_root_fresh
+    step.activationStep.queueStep (step.activation_root invariant)
+    step.activationStep.producer.linkIndex
+    step.submitted_waiting_par waitingFresh
+  rw [step.after_core_eq]
+  exact finalForest
+
+private theorem liveFrontiersNodup
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    LiveFrontiersNodup after := by
+  unfold LiveFrontiersNodup
+  simpa [UnificationState.liveFrontierVertices] using
+    (step.componentForestProvenance invariant).liveFrontiers_nodup
+
+private theorem tensorTopUnmarkedExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ∀ vertex,
+      vertex ∈ step.consumer.conclusion ::
+          (step.mergeStep.previousReady ++ step.mergeStep.activeReady) ↔
+        vertex ∈ step.tensorComponent.frontier ∧
+          step.coreTensor.marks[vertex]? = some none := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have prefixLengths :
+      step.mergeStep.readyPrefix.length =
+        step.mergeStep.sigmaPrefix.length := by
+    have aligned := middleInvariant.stack_wellShaped.ready_aligned
+    change step.prepared.stackResult.after.ready.length =
+      step.prepared.stackResult.after.sigma.length at aligned
+    rw [step.mergeStep.ready_eq, step.middle_sigma_eq] at aligned
+    simp at aligned
+    omega
+  have previousSigmaLookup :
+      step.prepared.after.stack.sigma[
+          step.mergeStep.readyPrefix.length]? =
+        some step.previousBoundary := by
+    change step.prepared.stackResult.after.sigma[
+        step.mergeStep.readyPrefix.length]? = _
+    rw [step.middle_sigma_eq, prefixLengths]
+    simp
+  have activeSigmaLookup :
+      step.prepared.after.stack.sigma[
+          step.mergeStep.readyPrefix.length + 1]? =
+        some step.prepared.stackResult.rawAge := by
+    change step.prepared.stackResult.after.sigma[
+        step.mergeStep.readyPrefix.length + 1]? = _
+    rw [step.middle_sigma_eq, prefixLengths]
+    simp
+  have previousReadyLookup :
+      step.prepared.after.stack.ready[
+          step.mergeStep.readyPrefix.length]? =
+        some step.mergeStep.previousReady := by
+    change step.prepared.stackResult.after.ready[
+        step.mergeStep.readyPrefix.length]? = _
+    rw [step.mergeStep.ready_eq]
+    simp
+  have activeReadyLookup :
+      step.prepared.after.stack.ready[
+          step.mergeStep.readyPrefix.length + 1]? =
+        some step.mergeStep.activeReady := by
+    change step.prepared.stackResult.after.ready[
+        step.mergeStep.readyPrefix.length + 1]? = _
+    rw [step.mergeStep.ready_eq]
+    simp
+  rcases middleInvariant.ready_bucket_frontier_exact
+      previousSigmaLookup previousReadyLookup with
+    ⟨previousComponent, previousComponentLookup, previousExact⟩
+  rcases middleInvariant.ready_bucket_frontier_exact
+      activeSigmaLookup activeReadyLookup with
+    ⟨activeComponent, activeComponentLookup, activeExact⟩
+  change step.prepared.coreMarked.components[step.previousBoundary]? =
+    some (some previousComponent) at previousComponentLookup
+  change step.prepared.coreMarked.components[
+      step.prepared.stackResult.rawAge]? =
+    some (some activeComponent) at activeComponentLookup
+  change (∀ vertex,
+      vertex ∈ step.mergeStep.previousReady ↔
+        vertex ∈ previousComponent.frontier ∧
+          step.prepared.coreMarked.marks[vertex]? = some none)
+    at previousExact
+  change (∀ vertex,
+      vertex ∈ step.mergeStep.activeReady ↔
+        vertex ∈ activeComponent.frontier ∧
+          step.prepared.coreMarked.marks[vertex]? = some none)
+    at activeExact
+  have tokenGuards :=
+    UnificationState.unifyTokens?_success step.tensorStep.token_guard
+  have left_context_of_frontier_unmarked :
+      ∀ {vertex},
+        vertex ∈ step.tensorStep.leftComponent.frontier →
+        step.prepared.coreMarked.marks[vertex]? = some none →
+        vertex ∈ step.tensorStep.leftContext := by
+    intro vertex frontier unmarked
+    have vertexNeLeft : vertex ≠ step.consumer.storedLeft := by
+      intro same
+      subst vertex
+      unfold UnificationState.tokenAt? at tokenGuards
+      rw [unmarked] at tokenGuards
+      simp at tokenGuards
+    exact Certificate.FirstOccurrencePick.mem_remaining_of_ne
+      step.tensorStep.left_pick vertexNeLeft frontier
+  have right_context_of_frontier_unmarked :
+      ∀ {vertex},
+        vertex ∈ step.tensorStep.rightComponent.frontier →
+        step.prepared.coreMarked.marks[vertex]? = some none →
+        vertex ∈ step.tensorStep.rightContext := by
+    intro vertex frontier unmarked
+    have vertexNeRight : vertex ≠ step.consumer.storedRight := by
+      intro same
+      subst vertex
+      unfold UnificationState.tokenAt? at tokenGuards
+      rw [unmarked] at tokenGuards
+      simp at tokenGuards
+    exact Certificate.FirstOccurrencePick.mem_remaining_of_ne
+      step.tensorStep.right_pick vertexNeRight frontier
+  have left_frontier_of_context :
+      ∀ {vertex}, vertex ∈ step.tensorStep.leftContext →
+        vertex ∈ step.tensorStep.leftComponent.frontier := by
+    intro vertex membership
+    exact (CutFreeDerivation.pick?_perm
+      step.tensorStep.left_pick.positional).mem_iff.mpr (by
+        simp [membership])
+  have right_frontier_of_context :
+      ∀ {vertex}, vertex ∈ step.tensorStep.rightContext →
+        vertex ∈ step.tensorStep.rightComponent.frontier := by
+    intro vertex membership
+    exact (CutFreeDerivation.pick?_perm
+      step.tensorStep.right_pick.positional).mem_iff.mpr (by
+        simp [membership])
+  intro vertex
+  rw [step.tensorStep.after_eq]
+  rcases step.tokens_eq_adjacent with orientation | orientation
+  · have rightRaw := step.right_component_raw invariant
+    have leftRaw := step.left_component_raw invariant
+    rw [orientation.2.2] at rightRaw
+    rw [orientation.2.1] at leftRaw
+    have previousComponentEq :
+        previousComponent = step.tensorStep.rightComponent :=
+      Option.some.inj
+        (Option.some.inj (previousComponentLookup.symm.trans rightRaw))
+    have activeComponentEq :
+        activeComponent = step.tensorStep.leftComponent :=
+      Option.some.inj
+        (Option.some.inj (activeComponentLookup.symm.trans leftRaw))
+    subst previousComponent
+    subst activeComponent
+    change vertex ∈ step.consumer.conclusion ::
+        (step.mergeStep.previousReady ++ step.mergeStep.activeReady) ↔
+      vertex ∈ step.consumer.conclusion ::
+          (step.tensorStep.leftContext ++ step.tensorStep.rightContext) ∧
+        step.prepared.coreMarked.marks[vertex]? = some none
+    constructor
+    · intro membership
+      simp only [List.mem_cons, List.mem_append] at membership ⊢
+      rcases membership with rfl | inPrevious | inActive
+      · exact ⟨Or.inl rfl, tokenGuards.1⟩
+      · have facts := (previousExact vertex).mp inPrevious
+        exact ⟨Or.inr (Or.inr
+          (right_context_of_frontier_unmarked facts.1 facts.2)), facts.2⟩
+      · have facts := (activeExact vertex).mp inActive
+        exact ⟨Or.inr (Or.inl
+          (left_context_of_frontier_unmarked facts.1 facts.2)), facts.2⟩
+    · rintro ⟨frontier, unmarked⟩
+      simp only [List.mem_cons, List.mem_append] at frontier ⊢
+      rcases frontier with rfl | inLeft | inRight
+      · exact Or.inl rfl
+      · exact Or.inr (Or.inr ((activeExact vertex).mpr
+          ⟨left_frontier_of_context inLeft, unmarked⟩))
+      · exact Or.inr (Or.inl ((previousExact vertex).mpr
+          ⟨right_frontier_of_context inRight, unmarked⟩))
+  · have leftRaw := step.left_component_raw invariant
+    have rightRaw := step.right_component_raw invariant
+    rw [orientation.2.1] at leftRaw
+    rw [orientation.2.2] at rightRaw
+    have previousComponentEq :
+        previousComponent = step.tensorStep.leftComponent :=
+      Option.some.inj
+        (Option.some.inj (previousComponentLookup.symm.trans leftRaw))
+    have activeComponentEq :
+        activeComponent = step.tensorStep.rightComponent :=
+      Option.some.inj
+        (Option.some.inj (activeComponentLookup.symm.trans rightRaw))
+    subst previousComponent
+    subst activeComponent
+    change vertex ∈ step.consumer.conclusion ::
+        (step.mergeStep.previousReady ++ step.mergeStep.activeReady) ↔
+      vertex ∈ step.consumer.conclusion ::
+          (step.tensorStep.leftContext ++ step.tensorStep.rightContext) ∧
+        step.prepared.coreMarked.marks[vertex]? = some none
+    constructor
+    · intro membership
+      simp only [List.mem_cons, List.mem_append] at membership ⊢
+      rcases membership with rfl | inPrevious | inActive
+      · exact ⟨Or.inl rfl, tokenGuards.1⟩
+      · have facts := (previousExact vertex).mp inPrevious
+        exact ⟨Or.inr (Or.inl
+          (left_context_of_frontier_unmarked facts.1 facts.2)), facts.2⟩
+      · have facts := (activeExact vertex).mp inActive
+        exact ⟨Or.inr (Or.inr
+          (right_context_of_frontier_unmarked facts.1 facts.2)), facts.2⟩
+    · rintro ⟨frontier, unmarked⟩
+      simp only [List.mem_cons, List.mem_append] at frontier ⊢
+      rcases frontier with rfl | inLeft | inRight
+      · exact Or.inl rfl
+      · exact Or.inr (Or.inl ((previousExact vertex).mpr
+          ⟨left_frontier_of_context inLeft, unmarked⟩))
+      · exact Or.inr (Or.inr ((activeExact vertex).mpr
+          ⟨right_frontier_of_context inRight, unmarked⟩))
+
+private theorem readyBucketFrontierExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ReadyBucketFrontierExact after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have prefixLengths :
+      step.mergeStep.readyPrefix.length =
+        step.mergeStep.sigmaPrefix.length := by
+    have aligned := middleInvariant.stack_wellShaped.ready_aligned
+    change step.prepared.stackResult.after.ready.length =
+      step.prepared.stackResult.after.sigma.length at aligned
+    rw [step.mergeStep.ready_eq, step.middle_sigma_eq] at aligned
+    simp at aligned
+    omega
+  have activationComponentEq := step.activation_component_eq_tensor invariant
+  have activationGuards :=
+    UnificationState.forwardToken?_success
+      step.activationStep.queueStep.token_guard
+  have context_of_frontier_unmarked :
+      ∀ {vertex},
+        vertex ∈ step.tensorComponent.frontier →
+        step.coreTensor.marks[vertex]? = some none →
+        vertex ∈ step.activationStep.queueStep.context := by
+    intro vertex frontier unmarked
+    have vertexNeLeft :
+        vertex ≠ step.activationStep.producer.storedLeft := by
+      intro same
+      subst vertex
+      unfold UnificationState.tokenAt? at activationGuards
+      rw [unmarked] at activationGuards
+      simp at activationGuards
+    have vertexNeRight :
+        vertex ≠ step.activationStep.producer.storedRight := by
+      intro same
+      subst vertex
+      unfold UnificationState.tokenAt? at activationGuards
+      rw [unmarked] at activationGuards
+      simp at activationGuards
+    rw [← activationComponentEq] at frontier
+    have afterLeft :=
+      Certificate.FirstOccurrencePick.mem_remaining_of_ne
+        step.activationStep.queueStep.left_pick vertexNeLeft frontier
+    exact Certificate.FirstOccurrencePick.mem_remaining_of_ne
+      step.activationStep.queueStep.right_pick vertexNeRight afterLeft
+  have frontier_of_context :
+      ∀ {vertex}, vertex ∈ step.activationStep.queueStep.context →
+        vertex ∈ step.tensorComponent.frontier := by
+    intro vertex contextMembership
+    have afterLeft :
+        vertex ∈ step.activationStep.queueStep.afterLeft :=
+      (CutFreeDerivation.pick?_perm
+        step.activationStep.queueStep.right_pick.positional).mem_iff.mpr
+          (by simp [contextMembership])
+    have oldFrontier :
+        vertex ∈ step.activationStep.queueStep.component.frontier :=
+      (CutFreeDerivation.pick?_perm
+        step.activationStep.queueStep.left_pick.positional).mem_iff.mpr
+          (by simp [afterLeft])
+    simpa [activationComponentEq] using oldFrontier
+  have finalMarksTensor : after.core.marks = step.coreTensor.marks := by
+    calc
+      after.core.marks = step.coreAfter.marks :=
+        congrArg (fun core : UnificationState => core.marks)
+          step.after_core_eq
+      _ = step.coreTensor.marks := step.activationStep.exact.2.1
+  unfold ReadyBucketFrontierExact
+  intro position boundary bucket sigmaLookup readyLookup
+  rw [step.after_sigma_eq] at sigmaLookup
+  rw [step.after_ready_eq] at readyLookup
+  have positionBound :
+      position <
+        (step.mergeStep.readyPrefix ++
+          [step.consumer.conclusion ::
+            (step.waitingConclusion :: step.mergeStep.previousReady ++
+              step.mergeStep.activeReady)]).length :=
+    (List.getElem?_eq_some_iff.mp readyLookup).1
+  by_cases inPrefix : position < step.mergeStep.readyPrefix.length
+  · have sigmaPrefixBound :
+        position < step.mergeStep.sigmaPrefix.length := by
+      simpa [prefixLengths] using inPrefix
+    have oldSigmaLookup :
+        step.prepared.after.stack.sigma[position]? = some boundary := by
+      change step.prepared.stackResult.after.sigma[position]? = some boundary
+      rw [step.middle_sigma_eq,
+        List.getElem?_append_left sigmaPrefixBound]
+      rw [List.getElem?_append_left sigmaPrefixBound] at sigmaLookup
+      exact sigmaLookup
+    have oldReadyLookup :
+        step.prepared.after.stack.ready[position]? = some bucket := by
+      change step.prepared.stackResult.after.ready[position]? = some bucket
+      rw [step.mergeStep.ready_eq,
+        List.getElem?_append_left inPrefix]
+      rw [List.getElem?_append_left inPrefix] at readyLookup
+      exact readyLookup
+    rcases middleInvariant.ready_bucket_frontier_exact
+        oldSigmaLookup oldReadyLookup with
+      ⟨component, componentLookup, exactMembership⟩
+    change step.prepared.coreMarked.components[boundary]? =
+      some (some component) at componentLookup
+    change (∀ vertex, vertex ∈ bucket ↔
+      vertex ∈ component.frontier ∧
+        step.prepared.coreMarked.marks[vertex]? = some none)
+      at exactMembership
+    have boundaryInPrefix : boundary ∈ step.mergeStep.sigmaPrefix :=
+      List.mem_of_getElem? (by
+        have lookup := oldSigmaLookup
+        change step.prepared.stackResult.after.sigma[position]? =
+          some boundary at lookup
+        rw [step.middle_sigma_eq,
+          List.getElem?_append_left sigmaPrefixBound] at lookup
+        exact lookup)
+    have increasing :
+        (step.mergeStep.sigmaPrefix ++
+          [step.previousBoundary,
+            step.prepared.stackResult.rawAge]).Pairwise (· < ·) := by
+      have oldIncreasing :=
+        middleInvariant.stack_wellShaped.sigma_partition.strictIncreasing
+      change step.prepared.stackResult.after.sigma.Pairwise (· < ·)
+        at oldIncreasing
+      rw [step.middle_sigma_eq] at oldIncreasing
+      exact oldIncreasing
+    have boundaryLtPrevious : boundary < step.previousBoundary :=
+      (List.pairwise_append.mp increasing).2.2
+        boundary boundaryInPrefix step.previousBoundary (by simp)
+    have previousNeBoundary : step.previousBoundary ≠ boundary :=
+      Nat.ne_of_gt boundaryLtPrevious
+    have activeNeBoundary :
+        step.prepared.stackResult.rawAge ≠ boundary :=
+      Nat.ne_of_gt
+        (Nat.lt_trans boundaryLtPrevious step.previous_lt_active)
+    refine ⟨component, ?_, ?_⟩
+    · rw [step.core_components_expanded_eq invariant,
+        Array.getElem?_setIfInBounds_ne previousNeBoundary,
+        Array.getElem?_setIfInBounds_ne activeNeBoundary,
+        Array.getElem?_setIfInBounds_ne previousNeBoundary]
+      exact componentLookup
+    · intro vertex
+      rw [step.core_marks_eq]
+      exact exactMembership vertex
+  · have positionTop :
+        position = step.mergeStep.readyPrefix.length := by
+      simp at positionBound
+      omega
+    subst position
+    have boundaryEq : boundary = step.previousBoundary := by
+      rw [prefixLengths] at sigmaLookup
+      simp at sigmaLookup
+      exact sigmaLookup.symm
+    have bucketEq :
+        bucket = step.consumer.conclusion ::
+          (step.waitingConclusion :: step.mergeStep.previousReady ++
+            step.mergeStep.activeReady) := by
+      simp at readyLookup
+      exact readyLookup.symm
+    subst boundary
+    subst bucket
+    refine ⟨step.activatedComponent, ?_, ?_⟩
+    · rw [step.core_components_expanded_eq invariant]
+      simp [step.previous_bound invariant]
+    · intro vertex
+      rw [finalMarksTensor]
+      constructor
+      · intro bucketMembership
+        simp only [List.mem_cons, List.mem_append] at bucketMembership
+        rcases bucketMembership with tensorConclusion | rest
+        · subst vertex
+          have tensorFacts :=
+            (step.tensorTopUnmarkedExact invariant
+              step.consumer.conclusion).mp (by simp)
+          exact ⟨by
+            simp [activatedComponent,
+              context_of_frontier_unmarked tensorFacts.1 tensorFacts.2],
+            tensorFacts.2⟩
+        · rcases rest with prior | inActive
+          · rcases prior with waitingConclusion | inPrevious
+            · subst vertex
+              refine ⟨by simp [activatedComponent], ?_⟩
+              rw [step.tensorStep.after_eq]
+              exact step.waitingConclusion_unmarked_middle invariant
+            · have tensorFacts :=
+                (step.tensorTopUnmarkedExact invariant vertex).mp
+                  (by simp [inPrevious])
+              exact ⟨by
+                simp [activatedComponent,
+                  context_of_frontier_unmarked tensorFacts.1 tensorFacts.2],
+                tensorFacts.2⟩
+          · have tensorFacts :=
+              (step.tensorTopUnmarkedExact invariant vertex).mp
+                (by simp [inActive])
+            exact ⟨by
+              simp [activatedComponent,
+                context_of_frontier_unmarked tensorFacts.1 tensorFacts.2],
+              tensorFacts.2⟩
+      · rintro ⟨newFrontier, unmarked⟩
+        rw [show step.activatedComponent.frontier =
+            step.activationStep.queueStep.context ++
+              [step.waitingConclusion] by rfl] at newFrontier
+        rw [List.mem_append] at newFrontier
+        rcases newFrontier with contextMembership | waitingMembership
+        · have tensorFacts :=
+            (step.tensorTopUnmarkedExact invariant vertex).mpr
+              ⟨frontier_of_context contextMembership, unmarked⟩
+          simp only [List.mem_cons, List.mem_append] at tensorFacts ⊢
+          rcases tensorFacts with rfl | inPrevious | inActive
+          · exact Or.inl rfl
+          · simp [inPrevious]
+          · simp [inActive]
+        · have same : vertex = step.waitingConclusion := by
+            simpa using waitingMembership
+          simp [same]
+
+private theorem tensorPremisesMarkedAfter
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    (∃ leftAge,
+      after.core.marks[step.consumer.storedLeft]? =
+        some (some leftAge)) ∧
+      ∃ rightAge,
+        after.core.marks[step.consumer.storedRight]? =
+          some (some rightAge) := by
+  have selectedMarked :
+      step.prepared.coreMarked.marks[
+          step.prepared.stackResult.vertex]? =
+        some (some step.prepared.stackResult.rawAge) :=
+    (UnificationState.markReadyRaw?_exact
+      step.prepared.core_mark_eq).2.2.2.2.2.2
+  rcases step.premise_orientation with
+    ⟨mateEq, selectedEq⟩ | ⟨mateEq, selectedEq⟩
+  · constructor
+    · exact ⟨step.mateRawAge, by
+        rw [step.core_marks_eq, ← mateEq]
+        exact step.mate_marked⟩
+    · exact ⟨step.prepared.stackResult.rawAge, by
+        rw [step.core_marks_eq, ← selectedEq]
+        exact selectedMarked⟩
+  · constructor
+    · exact ⟨step.prepared.stackResult.rawAge, by
+        rw [step.core_marks_eq, ← selectedEq]
+        exact selectedMarked⟩
+    · exact ⟨step.mateRawAge, by
+        rw [step.core_marks_eq, ← mateEq]
+        exact step.mate_marked⟩
+
+private theorem waitingPremisesMarkedAfter
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    (∃ leftAge,
+      after.core.marks[step.activationStep.producer.storedLeft]? =
+        some (some leftAge)) ∧
+      ∃ rightAge,
+        after.core.marks[step.activationStep.producer.storedRight]? =
+          some (some rightAge) := by
+  have guards := UnificationState.forwardToken?_success
+    step.activationStep.queueStep.token_guard
+  have leftToken :
+      after.core.tokenAt? step.activationStep.producer.storedLeft =
+        some step.activationStep.queueStep.outputToken := by
+    rw [step.after_core_eq, step.activation_tokenAt_eq]
+    exact guards.2.1
+  have rightToken :
+      after.core.tokenAt? step.activationStep.producer.storedRight =
+        some step.activationStep.queueStep.outputToken := by
+    rw [step.after_core_eq, step.activation_tokenAt_eq]
+    exact guards.2.2
+  rcases after.core.tokenAt?_some_witness leftToken with
+    ⟨leftAge, leftAssigned, leftRepresentative⟩
+  rcases after.core.tokenAt?_some_witness rightToken with
+    ⟨rightAge, rightAssigned, rightRepresentative⟩
+  exact ⟨⟨leftAge,
+      UnificationState.assignedToken?_some_raw leftAssigned⟩,
+    rightAge, UnificationState.assignedToken?_some_raw rightAssigned⟩
+
+private theorem produced_after_cases
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before)
+    {vertex : Vertex}
+    (produced : Produced after vertex) :
+    vertex = step.waitingConclusion ∨
+      vertex = step.consumer.conclusion ∨
+        Produced step.prepared.after vertex := by
+  rcases produced with ⟨rawAge, marked⟩ | frontierMembership
+  · apply Or.inr
+    apply Or.inr
+    apply Or.inl
+    refine ⟨rawAge, ?_⟩
+    rw [step.core_marks_eq] at marked
+    exact marked
+  · unfold UnificationState.liveFrontierVertices at frontierMembership
+    rcases List.mem_flatMap.mp frontierMembership with
+      ⟨cell, cellMembership, vertexFrontier⟩
+    cases cell with
+    | none => simp at vertexFrontier
+    | some component =>
+        simp only [Option.map_some, Option.getD_some] at vertexFrontier
+        rcases List.mem_iff_getElem.mp cellMembership with
+          ⟨index, indexBound, indexEquation⟩
+        have afterLookup :
+            after.core.components[index]? = some (some component) := by
+          rw [← Array.getElem?_toList]
+          rw [List.getElem?_eq_getElem indexBound, indexEquation]
+        by_cases previous : index = step.previousBoundary
+        · subst index
+          rw [step.core_components_expanded_eq invariant] at afterLookup
+          simp [step.previous_bound invariant] at afterLookup
+          subst component
+          simp only [activatedComponent, List.mem_append] at vertexFrontier
+          rcases vertexFrontier with contextMembership | waitingMembership
+          · apply Or.inr
+            have tensorFrontier :
+                vertex ∈ step.tensorComponent.frontier := by
+              have afterLeft :
+                  vertex ∈ step.activationStep.queueStep.afterLeft :=
+                (CutFreeDerivation.pick?_perm
+                  step.activationStep.queueStep.right_pick.positional)
+                    |>.mem_iff.mpr (by simp [contextMembership])
+              have oldFrontier :
+                  vertex ∈
+                    step.activationStep.queueStep.component.frontier :=
+                (CutFreeDerivation.pick?_perm
+                  step.activationStep.queueStep.left_pick.positional)
+                    |>.mem_iff.mpr (by simp [afterLeft])
+              simpa [step.activation_component_eq_tensor invariant] using
+                oldFrontier
+            have producedTensor :
+                (∃ age,
+                  step.coreTensor.marks[vertex]? = some (some age)) ∨
+                vertex ∈ step.coreTensor.liveFrontierVertices := by
+              apply Or.inr
+              unfold UnificationState.liveFrontierVertices
+              apply List.mem_flatMap.mpr
+              refine ⟨some step.tensorComponent, ?_, tensorFrontier⟩
+              have tensorLookup :
+                  step.coreTensor.components[step.previousBoundary]? =
+                    some (some step.tensorComponent) := by
+                rw [step.tensor_components_eq]
+                simp [step.previous_bound invariant,
+                  Nat.ne_of_gt step.previous_lt_active]
+              exact List.mem_of_getElem? (by
+                rw [Array.getElem?_toList]
+                exact tensorLookup)
+            exact step.tensor_produced_cases invariant producedTensor
+          · left
+            simpa using waitingMembership
+        · by_cases active :
+              index = step.prepared.stackResult.rawAge
+          · subst index
+            rw [step.core_components_expanded_eq invariant] at afterLookup
+            rw [Array.getElem?_setIfInBounds_ne
+              (Nat.ne_of_lt step.previous_lt_active)] at afterLookup
+            simp [step.active_bound invariant] at afterLookup
+          · apply Or.inr
+            have tensorLookup :
+                step.coreTensor.components[index]? =
+                  some (some component) := by
+              rw [step.tensor_components_eq]
+              have previousNe : step.previousBoundary ≠ index :=
+                Ne.symm previous
+              have activeNe :
+                  step.prepared.stackResult.rawAge ≠ index :=
+                Ne.symm active
+              rw [Array.getElem?_setIfInBounds_ne activeNe,
+                Array.getElem?_setIfInBounds_ne previousNe]
+              rw [step.core_components_expanded_eq invariant] at afterLookup
+              rw [Array.getElem?_setIfInBounds_ne previousNe,
+                Array.getElem?_setIfInBounds_ne activeNe,
+                Array.getElem?_setIfInBounds_ne previousNe] at afterLookup
+              exact afterLookup
+            have producedTensor :
+                (∃ age,
+                  step.coreTensor.marks[vertex]? = some (some age)) ∨
+                vertex ∈ step.coreTensor.liveFrontierVertices := by
+              apply Or.inr
+              unfold UnificationState.liveFrontierVertices
+              apply List.mem_flatMap.mpr
+              exact ⟨some component, List.mem_of_getElem? (by
+                  rw [Array.getElem?_toList]
+                  exact tensorLookup), by simpa using vertexFrontier⟩
+            exact step.tensor_produced_cases invariant producedTensor
+
+private theorem producedPremisesMarked
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ProducedPremisesMarked certificate after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  intro link linkMembership
+  cases link with
+  | «axiom» left right => trivial
+  | «par» left right conclusion
+  | tensor left right conclusion =>
+      intro producedAfter
+      rcases step.produced_after_cases invariant producedAfter with
+        waitingEq | tensorEq | producedMiddle
+      · subst conclusion
+        have currentMembership :
+            (.par step.activationStep.producer.storedLeft
+              step.activationStep.producer.storedRight
+              step.waitingConclusion : Link) ∈ certificate.links :=
+          List.mem_of_getElem? step.submitted_waiting_par
+        have producerEq :=
+          UnificationState.StructurallyWellFormed.producerLink_unique
+            invariant.structural
+            (conclusion := step.waitingConclusion)
+            linkMembership (by simp [Link.produces])
+            currentMembership (by simp [Link.produces])
+        cases producerEq <;>
+          exact step.waitingPremisesMarkedAfter
+      · subst conclusion
+        have currentMembership :
+            (.tensor step.consumer.storedLeft step.consumer.storedRight
+              step.consumer.conclusion : Link) ∈ certificate.links :=
+          List.mem_of_getElem? step.submitted_tensor
+        have producerEq :=
+          UnificationState.StructurallyWellFormed.producerLink_unique
+            invariant.structural
+            (conclusion := step.consumer.conclusion)
+            linkMembership (by simp [Link.produces])
+            currentMembership (by simp [Link.produces])
+        cases producerEq <;>
+          exact step.tensorPremisesMarkedAfter
+      · rcases middleInvariant.produced_premises_marked
+            linkMembership producedMiddle with
+          ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
+        refine ⟨⟨leftAge, ?_⟩, rightAge, ?_⟩
+        · rw [step.core_marks_eq]
+          exact leftMarked
+        · rw [step.core_marks_eq]
+          exact rightMarked
+
+private theorem waitingSpanExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    WaitingSpanExact certificate after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have middlePartition :=
+    middleInvariant.stack_wellShaped.sigma_partition
+  have activeTop :
+      step.prepared.stackResult.after.sigma.getLast? =
+        some step.prepared.stackResult.rawAge := by
+    rw [step.middle_sigma_eq]
+    simp
+  intro boundary payload conclusion waitingLookup conclusionMembership
+  have boundaryNePrevious : boundary ≠ step.previousBoundary := by
+    intro same
+    subst boundary
+    have previousWaitingBound :
+        step.previousBoundary <
+          step.prepared.stackResult.after.waiting.size :=
+      (Array.getElem?_eq_some_iff.mp step.waiting_one).1
+    rw [step.after_waiting_eq] at waitingLookup
+    simp [previousWaitingBound] at waitingLookup
+  have middleWaitingLookup :
+      step.prepared.stackResult.after.waiting[boundary]? =
+        some (.initialized payload) := by
+    rw [step.after_waiting_eq,
+      Array.getElem?_setIfInBounds_ne (Ne.symm boundaryNePrevious)]
+      at waitingLookup
+    exact waitingLookup
+  rcases middleInvariant.waiting_span_exact
+      (by simpa [PreparedStep.after] using middleWaitingLookup)
+      conclusionMembership with
+    ⟨linkIndex, left, right, olderPremise, youngerPremise,
+      olderAge, youngerAge, youngerBoundary, linkLookup,
+      sourceLookup, conclusionUnmarked, orientation,
+      olderMarked, youngerMarked, olderBoundary,
+      youngerBoundaryLookup, boundaryOrder⟩
+  have boundaryMembership :
+      boundary ∈ step.prepared.stackResult.after.sigma :=
+    sigmaBoundary?_mem (by
+      simpa [PreparedStep.after] using olderBoundary)
+  have boundaryBound :
+      boundary < step.prepared.stackResult.after.nextAge :=
+    middlePartition.boundary_lt boundary boundaryMembership
+  have boundaryLtPrevious : boundary < step.previousBoundary :=
+    middleInvariant.stack_operationalWaitingDomain
+      |>.payload_boundary_lt_previous_of_ne middlePartition
+        step.middle_sigma_eq boundaryBound middleWaitingLookup
+        conclusionMembership boundaryNePrevious
+  have stackOlderMarked :
+      step.prepared.stackResult.after.marks[olderPremise]? =
+        some (some olderAge) := by
+    change step.prepared.after.stack.marks[olderPremise]? =
+      some (some olderAge)
+    rw [← middleInvariant.realizesSigma.marks_eq]
+    exact olderMarked
+  have olderAgeBound :
+      olderAge < step.prepared.stackResult.after.nextAge :=
+    middleInvariant.stack_wellShaped.assigned_age_bound
+      olderPremise olderAge (by
+        simpa [PreparedStep.after] using stackOlderMarked)
+  have olderAgeLtActive :
+      olderAge < step.prepared.stackResult.rawAge := by
+    by_cases isLt : olderAge < step.prepared.stackResult.rawAge
+    · exact isLt
+    · have activeLe : step.prepared.stackResult.rawAge ≤ olderAge :=
+        Nat.le_of_not_gt isLt
+      have activeLookup :=
+        middlePartition.sigmaBoundary?_eq_top_of_le
+          activeTop activeLe olderAgeBound
+      have activeLookup' :
+          sigmaBoundary? step.prepared.stackResult.after.sigma olderAge =
+            some step.prepared.stackResult.rawAge := by
+        simpa [PreparedStep.after] using activeLookup
+      have oldLookup :
+          sigmaBoundary? step.prepared.stackResult.after.sigma olderAge =
+            some boundary := by
+        simpa [PreparedStep.after] using olderBoundary
+      rw [oldLookup] at activeLookup'
+      have same := Option.some.inj activeLookup'
+      exact False.elim ((Nat.ne_of_gt
+        (Nat.lt_trans boundaryLtPrevious step.previous_lt_active)) same.symm)
+  have olderBoundaryAfter :
+      sigmaBoundary? after.stack.sigma olderAge = some boundary := by
+    rw [step.after_sigma_eq]
+    calc
+      sigmaBoundary?
+          (step.mergeStep.sigmaPrefix ++ [step.previousBoundary])
+          olderAge =
+          sigmaBoundary? step.prepared.stackResult.after.sigma olderAge :=
+        sigmaBoundary?_popActive_of_lt step.middle_sigma_eq olderAgeLtActive
+      _ = some boundary := by
+        simpa [PreparedStep.after] using olderBoundary
+  have stackYoungerMarked :
+      step.prepared.stackResult.after.marks[youngerPremise]? =
+        some (some youngerAge) := by
+    change step.prepared.after.stack.marks[youngerPremise]? =
+      some (some youngerAge)
+    rw [← middleInvariant.realizesSigma.marks_eq]
+    exact youngerMarked
+  have youngerAgeBound :
+      youngerAge < step.prepared.stackResult.after.nextAge :=
+    middleInvariant.stack_wellShaped.assigned_age_bound
+      youngerPremise youngerAge (by
+        simpa [PreparedStep.after] using stackYoungerMarked)
+  by_cases activeLe :
+      step.prepared.stackResult.rawAge ≤ youngerAge
+  · refine ⟨linkIndex, left, right, olderPremise, youngerPremise,
+      olderAge, youngerAge, step.previousBoundary, linkLookup,
+      sourceLookup, ?_, orientation, ?_, ?_, olderBoundaryAfter, ?_,
+      boundaryLtPrevious⟩
+    · rw [step.core_marks_eq]
+      exact conclusionUnmarked
+    · rw [step.core_marks_eq]
+      exact olderMarked
+    · rw [step.core_marks_eq]
+      exact youngerMarked
+    · rw [step.after_sigma_eq]
+      exact middlePartition
+        |>.sigmaBoundary?_popActive_eq_previous_of_active_le
+          step.middle_sigma_eq activeLe youngerAgeBound
+  · have youngerAgeLtActive :
+        youngerAge < step.prepared.stackResult.rawAge :=
+      Nat.lt_of_not_ge activeLe
+    refine ⟨linkIndex, left, right, olderPremise, youngerPremise,
+      olderAge, youngerAge, youngerBoundary, linkLookup,
+      sourceLookup, ?_, orientation, ?_, ?_, olderBoundaryAfter, ?_,
+      boundaryOrder⟩
+    · rw [step.core_marks_eq]
+      exact conclusionUnmarked
+    · rw [step.core_marks_eq]
+      exact olderMarked
+    · rw [step.core_marks_eq]
+      exact youngerMarked
+    · rw [step.after_sigma_eq]
+      calc
+        sigmaBoundary?
+            (step.mergeStep.sigmaPrefix ++ [step.previousBoundary])
+            youngerAge =
+            sigmaBoundary? step.prepared.stackResult.after.sigma
+              youngerAge :=
+          sigmaBoundary?_popActive_of_lt step.middle_sigma_eq
+            youngerAgeLtActive
+        _ = some youngerBoundary := by
+          simpa [PreparedStep.after] using youngerBoundaryLookup
+
+private theorem representative_after
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before)
+    {rawAge : RawTokenAge}
+    (rawBound : rawAge < step.prepared.coreMarked.parents.size) :
+    after.core.representative rawAge =
+      if step.prepared.coreMarked.representative rawAge =
+          step.prepared.stackResult.rawAge then
+        step.previousBoundary
+      else
+        step.prepared.coreMarked.representative rawAge := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have previousParentBound :
+      step.previousBoundary < step.prepared.coreMarked.parents.size := by
+    have aligned : step.prepared.coreMarked.components.size =
+        step.prepared.coreMarked.parents.size := by
+      simpa [PreparedStep.after] using
+        middleInvariant.core_carriers_aligned
+    rw [← aligned]
+    exact step.previous_bound invariant
+  have activeParentBound :
+      step.prepared.stackResult.rawAge <
+        step.prepared.coreMarked.parents.size := by
+    have aligned : step.prepared.coreMarked.components.size =
+        step.prepared.coreMarked.parents.size := by
+      simpa [PreparedStep.after] using
+        middleInvariant.core_carriers_aligned
+    rw [← aligned]
+    exact step.active_bound invariant
+  have previousRoot :
+      step.prepared.coreMarked.representative step.previousBoundary =
+        step.previousBoundary := by
+    rcases step.tokens_eq_adjacent with orientation | orientation
+    · rw [← orientation.2.2]
+      exact step.right_root invariant
+    · rw [← orientation.2.1]
+      exact step.left_root invariant
+  have activeRoot :
+      step.prepared.coreMarked.representative
+          step.prepared.stackResult.rawAge =
+        step.prepared.stackResult.rawAge := by
+    rcases step.tokens_eq_adjacent with orientation | orientation
+    · rw [← orientation.2.1]
+      exact step.left_root invariant
+    · rw [← orientation.2.2]
+      exact step.right_root invariant
+  have middleOrdered : step.prepared.coreMarked.OrderedParents := by
+    intro token parent lookup
+    exact middleInvariant.core_orderedParents lookup
+  calc
+    after.core.representative rawAge =
+        (step.prepared.coreMarked.setParent
+          step.prepared.stackResult.rawAge
+          step.previousBoundary).representative rawAge := by
+      unfold UnificationState.representative
+      rw [step.core_parents_eq]
+      rfl
+    _ = _ :=
+      middleOrdered.setParent_representative
+        previousParentBound activeParentBound
+        step.previous_lt_active previousRoot activeRoot rawBound
+
+private theorem activated_componentAt
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    after.core.componentAt? step.previousBoundary =
+      some step.activatedComponent := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have previousParentBound :
+      step.previousBoundary < step.prepared.coreMarked.parents.size := by
+    have aligned : step.prepared.coreMarked.components.size =
+        step.prepared.coreMarked.parents.size := by
+      simpa [PreparedStep.after] using
+        middleInvariant.core_carriers_aligned
+    rw [← aligned]
+    exact step.previous_bound invariant
+  have previousRootMiddle :
+      step.prepared.coreMarked.representative step.previousBoundary =
+        step.previousBoundary := by
+    rcases step.tokens_eq_adjacent with orientation | orientation
+    · rw [← orientation.2.2]
+      exact step.right_root invariant
+    · rw [← orientation.2.1]
+      exact step.left_root invariant
+  have previousRootAfter :
+      after.core.representative step.previousBoundary =
+        step.previousBoundary := by
+    rw [step.representative_after invariant previousParentBound,
+      previousRootMiddle]
+    simp [Nat.ne_of_lt step.previous_lt_active]
+  unfold UnificationState.componentAt?
+  rw [previousRootAfter, step.core_components_expanded_eq invariant]
+  simp [step.previous_bound invariant]
+
+private theorem tensorConclusion_mem_ready_after
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.consumer.conclusion ∈ after.stack.ready.flatten := by
+  rw [step.after_ready_eq]
+  apply List.mem_flatten.mpr
+  exact ⟨step.consumer.conclusion ::
+      (step.waitingConclusion :: step.mergeStep.previousReady ++
+        step.mergeStep.activeReady), by simp, by simp⟩
+
+private theorem waitingConclusion_mem_ready_after
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after) :
+    step.waitingConclusion ∈ after.stack.ready.flatten := by
+  rw [step.after_ready_eq]
+  apply List.mem_flatten.mpr
+  exact ⟨step.consumer.conclusion ::
+      (step.waitingConclusion :: step.mergeStep.previousReady ++
+        step.mergeStep.activeReady), by simp, by simp⟩
+
+private theorem oldReady_subset_after
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    {vertex : Vertex}
+    (membership : vertex ∈ step.prepared.after.stack.ready.flatten) :
+    vertex ∈ after.stack.ready.flatten := by
+  change vertex ∈
+    step.prepared.stackResult.after.ready.flatten at membership
+  rw [step.mergeStep.ready_eq] at membership
+  rw [step.after_ready_eq]
+  simp only [List.flatten_append, List.flatten_cons,
+    List.flatten_nil, List.append_nil, List.mem_append,
+    List.mem_cons] at membership ⊢
+  rcases membership with inPrefix | inPrevious | inActive
+  · exact Or.inl inPrefix
+  · simp [inPrevious]
+  · simp [inActive]
+
+private theorem activation_context_of_tensor_frontier
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before)
+    {vertex : Vertex}
+    (neLeft : vertex ≠ step.activationStep.producer.storedLeft)
+    (neRight : vertex ≠ step.activationStep.producer.storedRight)
+    (frontier : vertex ∈ step.tensorComponent.frontier) :
+    vertex ∈ step.activationStep.queueStep.context := by
+  have frontier' :
+      vertex ∈ step.activationStep.queueStep.component.frontier := by
+    simpa [step.activation_component_eq_tensor invariant] using frontier
+  have afterLeft :=
+    Certificate.FirstOccurrencePick.mem_remaining_of_ne
+      step.activationStep.queueStep.left_pick neLeft frontier'
+  exact Certificate.FirstOccurrencePick.mem_remaining_of_ne
+    step.activationStep.queueStep.right_pick neRight afterLeft
+
+private theorem pendingPremisesCoveredExceptReady
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    PendingPremisesCoveredExceptReady certificate after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  intro link linkMembership
+  cases link with
+  | «axiom» left right => trivial
+  | tensor left right conclusion
+  | «par» left right conclusion =>
+      intro conclusionUnmarked conclusionNotReady premise token
+        premiseMembership tokenAt
+      have conclusionNeTensor :
+          conclusion ≠ step.consumer.conclusion := by
+        intro same
+        subst conclusion
+        exact conclusionNotReady step.tensorConclusion_mem_ready_after
+      have conclusionNeWaiting :
+          conclusion ≠ step.waitingConclusion := by
+        intro same
+        subst conclusion
+        exact conclusionNotReady step.waitingConclusion_mem_ready_after
+      have middleConclusionUnmarked :
+          step.prepared.after.core.marks[conclusion]? = some none := by
+        change step.prepared.coreMarked.marks[conclusion]? = some none
+        rw [← step.core_marks_eq]
+        exact conclusionUnmarked
+      have middleConclusionNotReady :
+          conclusion ∉ step.prepared.after.stack.ready.flatten := by
+        intro membership
+        exact conclusionNotReady (step.oldReady_subset_after membership)
+      rcases after.core.tokenAt?_some_witness tokenAt with
+        ⟨rawAge, assignedAfter, representativeAfter⟩
+      have assignedMiddle :
+          step.prepared.coreMarked.assignedToken? premise =
+            some rawAge := by
+        unfold UnificationState.assignedToken? at assignedAfter ⊢
+        rw [step.core_marks_eq] at assignedAfter
+        exact assignedAfter
+      let oldToken :=
+        step.prepared.coreMarked.representative rawAge
+      have middleTokenAt :
+          step.prepared.after.core.tokenAt? premise =
+            some oldToken := by
+        change step.prepared.coreMarked.tokenAt? premise = some oldToken
+        unfold UnificationState.tokenAt?
+        rw [UnificationState.assignedToken?_some_raw assignedMiddle]
+        rfl
+      have rawBound :
+          rawAge < step.prepared.coreMarked.parents.size :=
+        middleInvariant.core_abstractable.markedTokenBound assignedMiddle
+      have tokenTransport :
+          token =
+            if oldToken = step.prepared.stackResult.rawAge then
+              step.previousBoundary
+            else oldToken := by
+        have transported := step.representative_after invariant rawBound
+        rw [representativeAfter] at transported
+        exact transported
+      rcases middleInvariant.pending_premises_covered_except_ready
+          linkMembership middleConclusionUnmarked
+          middleConclusionNotReady premiseMembership middleTokenAt with
+        ⟨component, componentLookup, premiseFrontier⟩
+      change step.prepared.coreMarked.componentAt? oldToken =
+        some component at componentLookup
+      have premiseNeTensorLeft :
+          premise ≠ step.consumer.storedLeft := by
+        intro same
+        subst premise
+        have sameLink :=
+          UnificationState.StructurallyWellFormed.parentLink_unique
+            invariant.structural
+            (premise := step.consumer.storedLeft)
+            (first := .tensor step.consumer.storedLeft
+              step.consumer.storedRight step.consumer.conclusion)
+            (List.mem_of_getElem? step.submitted_tensor)
+            (by simp [Link.premises]) linkMembership
+            (by simpa [Link.premises] using premiseMembership)
+        cases sameLink <;> exact conclusionNeTensor rfl
+      have premiseNeTensorRight :
+          premise ≠ step.consumer.storedRight := by
+        intro same
+        subst premise
+        have sameLink :=
+          UnificationState.StructurallyWellFormed.parentLink_unique
+            invariant.structural
+            (premise := step.consumer.storedRight)
+            (first := .tensor step.consumer.storedLeft
+              step.consumer.storedRight step.consumer.conclusion)
+            (List.mem_of_getElem? step.submitted_tensor)
+            (by simp [Link.premises]) linkMembership
+            (by simpa [Link.premises] using premiseMembership)
+        cases sameLink <;> exact conclusionNeTensor rfl
+      have premiseNeWaitingLeft :
+          premise ≠ step.activationStep.producer.storedLeft := by
+        intro same
+        subst premise
+        have sameLink :=
+          UnificationState.StructurallyWellFormed.parentLink_unique
+            invariant.structural
+            (premise := step.activationStep.producer.storedLeft)
+            (first := .par step.activationStep.producer.storedLeft
+              step.activationStep.producer.storedRight
+              step.waitingConclusion)
+            (List.mem_of_getElem? step.submitted_waiting_par)
+            (by simp [Link.premises]) linkMembership
+            (by simpa [Link.premises] using premiseMembership)
+        cases sameLink <;> exact conclusionNeWaiting rfl
+      have premiseNeWaitingRight :
+          premise ≠ step.activationStep.producer.storedRight := by
+        intro same
+        subst premise
+        have sameLink :=
+          UnificationState.StructurallyWellFormed.parentLink_unique
+            invariant.structural
+            (premise := step.activationStep.producer.storedRight)
+            (first := .par step.activationStep.producer.storedLeft
+              step.activationStep.producer.storedRight
+              step.waitingConclusion)
+            (List.mem_of_getElem? step.submitted_waiting_par)
+            (by simp [Link.premises]) linkMembership
+            (by simpa [Link.premises] using premiseMembership)
+        cases sameLink <;> exact conclusionNeWaiting rfl
+      have oldRoot :
+          step.prepared.coreMarked.representative oldToken = oldToken :=
+        middleInvariant.core_abstractable.tokenAt?_root middleTokenAt
+      by_cases oldIsLeft : oldToken = step.tensorStep.leftToken
+      · have rawLookup :=
+          UnificationState.componentAt?_some_raw componentLookup
+        rw [oldRoot, oldIsLeft] at rawLookup
+        have componentEq : component = step.tensorStep.leftComponent :=
+          Option.some.inj (Option.some.inj
+            (rawLookup.symm.trans (step.left_component_raw invariant)))
+        subst component
+        have inTensorContext :=
+          Certificate.FirstOccurrencePick.mem_remaining_of_ne
+            step.tensorStep.left_pick premiseNeTensorLeft premiseFrontier
+        have tensorFrontier : premise ∈ step.tensorComponent.frontier := by
+          simp [tensorComponent, inTensorContext]
+        have inActivationContext :=
+          step.activation_context_of_tensor_frontier invariant
+            premiseNeWaitingLeft premiseNeWaitingRight tensorFrontier
+        have tokenPrevious : token = step.previousBoundary := by
+          rw [tokenTransport, oldIsLeft]
+          rcases step.tokens_eq_adjacent with orientation | orientation
+          · rw [orientation.2.1]
+            simp
+          · rw [orientation.2.1]
+            simp [Nat.ne_of_lt step.previous_lt_active]
+        refine ⟨step.activatedComponent, ?_, ?_⟩
+        · rw [tokenPrevious]
+          exact step.activated_componentAt invariant
+        · simp [activatedComponent, inActivationContext]
+      · by_cases oldIsRight : oldToken = step.tensorStep.rightToken
+        · have rawLookup :=
+            UnificationState.componentAt?_some_raw componentLookup
+          rw [oldRoot, oldIsRight] at rawLookup
+          have componentEq : component = step.tensorStep.rightComponent :=
+            Option.some.inj (Option.some.inj
+              (rawLookup.symm.trans (step.right_component_raw invariant)))
+          subst component
+          have inTensorContext :=
+            Certificate.FirstOccurrencePick.mem_remaining_of_ne
+              step.tensorStep.right_pick premiseNeTensorRight
+                premiseFrontier
+          have tensorFrontier : premise ∈ step.tensorComponent.frontier := by
+            simp [tensorComponent, inTensorContext]
+          have inActivationContext :=
+            step.activation_context_of_tensor_frontier invariant
+              premiseNeWaitingLeft premiseNeWaitingRight tensorFrontier
+          have tokenPrevious : token = step.previousBoundary := by
+            rw [tokenTransport, oldIsRight]
+            rcases step.tokens_eq_adjacent with orientation | orientation
+            · rw [orientation.2.2]
+              simp [Nat.ne_of_lt step.previous_lt_active]
+            · rw [orientation.2.2]
+              simp
+          refine ⟨step.activatedComponent, ?_, ?_⟩
+          · rw [tokenPrevious]
+            exact step.activated_componentAt invariant
+          · simp [activatedComponent, inActivationContext]
+        · have oldNeActive :
+              oldToken ≠ step.prepared.stackResult.rawAge := by
+            intro same
+            rcases step.tokens_eq_adjacent with orientation | orientation
+            · exact oldIsLeft (same.trans orientation.2.1.symm)
+            · exact oldIsRight (same.trans orientation.2.2.symm)
+          have oldNePrevious : oldToken ≠ step.previousBoundary := by
+            intro same
+            rcases step.tokens_eq_adjacent with orientation | orientation
+            · exact oldIsRight (same.trans orientation.2.2.symm)
+            · exact oldIsLeft (same.trans orientation.2.1.symm)
+          have tokenOld : token = oldToken := by
+            simpa [oldNeActive] using tokenTransport
+          refine ⟨component, ?_, premiseFrontier⟩
+          have oldParentBound :
+              oldToken < step.prepared.coreMarked.parents.size :=
+            middleInvariant.core_abstractable.tokenAt?_bound middleTokenAt
+          have afterOldRoot :
+              after.core.representative oldToken = oldToken := by
+            rw [step.representative_after invariant oldParentBound,
+              oldRoot]
+            simp [oldNeActive]
+          rw [tokenOld]
+          unfold UnificationState.componentAt? at componentLookup ⊢
+          rw [oldRoot] at componentLookup
+          rw [afterOldRoot, step.core_components_expanded_eq invariant]
+          rw [Array.getElem?_setIfInBounds_ne (Ne.symm oldNePrevious),
+            Array.getElem?_setIfInBounds_ne (Ne.symm oldNeActive),
+            Array.getElem?_setIfInBounds_ne (Ne.symm oldNePrevious)]
+          exact componentLookup
+
+private theorem foldl_add_weight_eq_one
+    {alpha : Type} (weight : alpha → Nat) (values : List alpha)
+    (initial : Nat) :
+    values.foldl (fun total value => total + weight value) initial =
+      initial + (values.map weight).sum := by
+  induction values generalizing initial with
+  | nil => simp
+  | cons head tail induction =>
+      simp only [List.foldl_cons, List.map_cons, List.sum_cons]
+      rw [induction]
+      omega
+
+private theorem map_sum_set_balance_one
+    {alpha : Type} {values : List alpha} {index : Nat}
+    {oldValue newValue : alpha}
+    (weight : alpha → Nat)
+    (lookup : values[index]? = some oldValue) :
+    ((values.set index newValue).map weight).sum + weight oldValue =
+      (values.map weight).sum + weight newValue := by
+  induction values generalizing index with
+  | nil => simp at lookup
+  | cons head tail induction =>
+      cases index with
+      | zero =>
+          have headEq : head = oldValue := by simpa using lookup
+          subst head
+          simp
+          omega
+      | succ prior =>
+          simp only [List.getElem?_cons_succ] at lookup
+          simp only [List.set, List.map_cons, List.sum_cons]
+          have inner := induction lookup
+          omega
+
+private theorem map_sum_set_merge_clear_one
+    {alpha : Type} {values : List alpha}
+    {survivor retired : Nat}
+    {survivorValue retiredValue mergedValue clearedValue : alpha}
+    (weight : alpha → Nat)
+    (different : survivor ≠ retired)
+    (survivorLookup : values[survivor]? = some survivorValue)
+    (retiredLookup : values[retired]? = some retiredValue)
+    (clearedWeight : weight clearedValue = 0)
+    (mergedWeight :
+      weight mergedValue =
+        weight survivorValue + weight retiredValue + 1) :
+    ((((values.set survivor mergedValue).set retired clearedValue).map
+        weight).sum) =
+      (values.map weight).sum + 1 := by
+  have retiredAfter :
+      (values.set survivor mergedValue)[retired]? =
+        some retiredValue := by
+    rw [List.getElem?_set_ne different]
+    exact retiredLookup
+  have first := map_sum_set_balance_one weight survivorLookup
+    (newValue := mergedValue)
+  have second := map_sum_set_balance_one weight retiredAfter
+    (newValue := clearedValue)
+  rw [clearedWeight] at second
+  omega
+
+private theorem map_sum_set_add_one_one
+    {alpha : Type} {values : List alpha} {index : Nat}
+    {oldValue newValue : alpha} (weight : alpha → Nat)
+    (lookup : values[index]? = some oldValue)
+    (weightEq : weight newValue = weight oldValue + 1) :
+    ((values.set index newValue).map weight).sum =
+      (values.map weight).sum + 1 := by
+  have balance := map_sum_set_balance_one weight lookup
+    (newValue := newValue)
+  rw [weightEq] at balance
+  omega
+
+private theorem firedCounterExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    FiredCounterExact after := by
+  let weight : Option UnificationComponent → Nat := fun cell =>
+    (cell.map UnificationComponent.connectiveCount).getD 0
+  let values := step.prepared.coreMarked.components.toList
+  let tensorValues :=
+    (values.set step.previousBoundary (some step.tensorComponent)).set
+      step.prepared.stackResult.rawAge none
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have leftLookup :
+      values[step.tensorStep.leftToken]? =
+        some (some step.tensorStep.leftComponent) := by
+    simpa [values] using step.left_component_raw invariant
+  have rightLookup :
+      values[step.tensorStep.rightToken]? =
+        some (some step.tensorStep.rightComponent) := by
+    simpa [values] using step.right_component_raw invariant
+  have tensorSumIncrease :
+      (tensorValues.map weight).sum =
+        (values.map weight).sum + 1 := by
+    dsimp [tensorValues]
+    rcases step.tokens_eq_adjacent with orientation | orientation
+    · rw [orientation.2.1] at leftLookup
+      rw [orientation.2.2] at rightLookup
+      apply map_sum_set_merge_clear_one weight
+        (Nat.ne_of_lt step.previous_lt_active)
+        rightLookup leftLookup
+      · simp [weight]
+      · simp [weight, tensorComponent,
+          UnificationComponent.connectiveCount,
+          CutFreeDerivation.connectiveCount]
+        omega
+    · rw [orientation.2.1] at leftLookup
+      rw [orientation.2.2] at rightLookup
+      apply map_sum_set_merge_clear_one weight
+        (Nat.ne_of_lt step.previous_lt_active)
+        leftLookup rightLookup
+      · simp [weight]
+      · simp [weight, tensorComponent,
+          UnificationComponent.connectiveCount,
+          CutFreeDerivation.connectiveCount]
+  have tensorPreviousLookup :
+      tensorValues[step.previousBoundary]? =
+        some (some step.tensorComponent) := by
+    dsimp [tensorValues]
+    rw [List.getElem?_set_ne (Nat.ne_of_gt step.previous_lt_active)]
+    apply List.getElem?_set_self
+    simpa [values] using step.previous_bound invariant
+  have activationWeightIncrease :
+      weight (some step.activatedComponent) =
+        weight (some step.tensorComponent) + 1 := by
+    rw [← step.activation_component_eq_tensor invariant]
+    simp [weight, activatedComponent,
+      UnificationComponent.connectiveCount,
+      CutFreeDerivation.connectiveCount]
+  have activationSumIncrease :
+      ((tensorValues.set step.previousBoundary
+          (some step.activatedComponent)).map weight).sum =
+        (tensorValues.map weight).sum + 1 :=
+    map_sum_set_add_one_one weight tensorPreviousLookup
+      activationWeightIncrease
+  have totalSumIncrease :
+      ((tensorValues.set step.previousBoundary
+          (some step.activatedComponent)).map weight).sum =
+        (values.map weight).sum + 2 := by
+    omega
+  have totalIncrease :
+      (tensorValues.set step.previousBoundary
+          (some step.activatedComponent)).foldl
+          (fun total cell => total + weight cell) 0 =
+        values.foldl
+          (fun total cell => total + weight cell) 0 + 2 := by
+    rw [foldl_add_weight_eq_one, foldl_add_weight_eq_one]
+    simpa using totalSumIncrease
+  have middleCounter := middleInvariant.fired_counter_exact
+  unfold FiredCounterExact UnificationState.liveConnectiveCount at middleCounter
+  change step.prepared.coreMarked.firedConnectives =
+    values.foldl (fun total cell => total + weight cell) 0
+      at middleCounter
+  have firedAfter :
+      after.core.firedConnectives =
+        step.prepared.coreMarked.firedConnectives + 2 := by
+    rw [step.after_core_eq]
+    exact step.firedConnectives_eq_add_two
+  unfold FiredCounterExact
+  rw [firedAfter]
+  unfold UnificationState.liveConnectiveCount
+  rw [step.core_components_expanded_eq invariant]
+  rw [Array.toList_setIfInBounds, Array.toList_setIfInBounds,
+    Array.toList_setIfInBounds]
+  change step.prepared.coreMarked.firedConnectives + 2 =
+    (tensorValues.set step.previousBoundary
+      (some step.activatedComponent)).foldl
+        (fun total cell => total + weight cell) 0
+  rw [totalIncrease]
+  exact congrArg (fun count => count + 2) middleCounter
+
+/-- A successful strict-singleton tensor-plus-par unification preserves every
+field of the occurrence-exact state-only scheduler invariant.  This is a
+preservation theorem for the exact singleton branch only; it does not assert
+applicability, dispatcher progress, arbitrary nonempty-payload iteration, or
+full unification totality. -/
+theorem schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (step : UnifyOneStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    SchedulerInvariant certificate after := by
+  exact {
+    toReservationInvariant := step.reservationInvariant
+    structural := invariant.structural
+    component_domain_exact := step.componentDomainExact invariant
+    component_forest_provenance :=
+      step.componentForestProvenance invariant
+    live_frontiers_nodup := step.liveFrontiersNodup invariant
+    ready_bucket_frontier_exact :=
+      step.readyBucketFrontierExact invariant
+    queued_vertices_nodup := step.queuedVerticesNodup invariant
+    queued_vertices_unmarked := step.queuedVerticesUnmarked invariant
+    produced_premises_marked :=
+      step.producedPremisesMarked invariant
+    waiting_span_exact := step.waitingSpanExact invariant
+    pending_premises_covered_except_ready :=
+      step.pendingPremisesCoveredExceptReady invariant
+    fired_counter_exact := step.firedCounterExact invariant }
+
+end UnifyOneStep
+
+/-- Executable strict-singleton `unifyOne?` success preserves the complete
+current scheduler invariant.  The theorem covers exactly one waiting par
+conclusion and makes no arbitrary-payload or dispatcher-totality claim. -/
+theorem unifyOne?_schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (equation :
+      unifyOne? certificate before invariant.toReservationInvariant =
+        some after) :
+    SchedulerInvariant certificate after := by
+  rcases
+      (unifyOne?_some_iff invariant.toReservationInvariant).mp equation with
+    ⟨step⟩
+  exact step.schedulerInvariant invariant
+
 
 /-- Executable `wait?` success preserves the complete current scheduler
 invariant.  Applicability, totality, and dispatcher progress remain separate

@@ -1,5 +1,6 @@
 import ProofNetIR.SequentialSchedulerInvariant
 import ProofNetIR.SequentialComponentProvenance
+import ProofNetIR.SequentialFigure7UnifyOne
 
 namespace ProofNetIR
 
@@ -1406,6 +1407,718 @@ example {initial afterNop afterNew afterWait : ReservationState}
         nopEquation)
       newEquation)
     waitEquation
+
+/-! Strict singleton waiting-payload unification regression. -/
+
+/-- The two axiom classes first leave one exact par conclusion waiting at
+boundary `0`.  The active occurrence `2` then meets the marked older
+occurrence `1` at the tensor.  Strict singleton unification must construct
+both the tensor and the waiting par before draining the two scheduler levels.
+-/
+private def unifyOneSchedulerCertificate : Certificate where
+  formulas := #[
+    .atom "p" true,
+    .atom "p" false,
+    .atom "q" true,
+    .atom "q" false,
+    .par (.atom "q" false) (.atom "p" true),
+    .tensor (.atom "p" false) (.atom "q" true)]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .par 3 0 4,
+    .tensor 1 2 5]
+  conclusions := [4, 5]
+
+private theorem unifyOneSchedulerCertificate_structural :
+    unifyOneSchedulerCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      unifyOneSchedulerCertificate).mp (by native_decide)
+
+private def unifyOneSchedulerBefore : ReservationState where
+  stack := {
+    marks := #[some 0, some 0, none, some 1, none, none]
+    nextAge := 2
+    sigma := [0, 1]
+    ready := [[], [2]]
+    waiting := #[
+      .initialized [4], .undefined, .undefined,
+      .undefined, .undefined, .undefined] }
+  core := {
+    marks := #[some 0, some 0, none, some 1, none, none]
+    parents := #[0, 1]
+    components := #[
+      some { tree := .axiom "p" true, frontier := [0, 1] },
+      some { tree := .axiom "q" true, frontier := [2, 3] }]
+    startedAxioms := 2
+    firedConnectives := 0 }
+  tags := Array.replicate 6 false
+
+private theorem nat_cases_lt_two {value : Nat} (bound : value < 2) :
+    value = 0 ∨ value = 1 := by
+  cases value with
+  | zero => exact Or.inl rfl
+  | succ value =>
+      cases value with
+      | zero => exact Or.inr rfl
+      | succ value => omega
+
+private theorem nat_cases_lt_six {value : Nat} (bound : value < 6) :
+    value = 0 ∨ value = 1 ∨ value = 2 ∨
+      value = 3 ∨ value = 4 ∨ value = 5 := by
+  cases value with
+  | zero => exact Or.inl rfl
+  | succ value =>
+      right
+      cases value with
+      | zero => exact Or.inl rfl
+      | succ value =>
+          right
+          cases value with
+          | zero => exact Or.inl rfl
+          | succ value =>
+              right
+              cases value with
+              | zero => exact Or.inl rfl
+              | succ value =>
+                  right
+                  cases value with
+                  | zero => exact Or.inl rfl
+                  | succ value =>
+                      right
+                      cases value with
+                      | zero => rfl
+                      | succ value => omega
+
+private theorem unifyOneSchedulerBefore_reservationInvariant :
+    ReservationInvariant unifyOneSchedulerCertificate
+      unifyOneSchedulerBefore := by
+  exact {
+    stack_wellShaped := {
+      marks_size := rfl
+      waiting_size := by native_decide
+      assigned_age_bound := by
+        intro vertex age assigned
+        have vertexBound : vertex < 6 := by
+          simpa [unifyOneSchedulerBefore] using
+            (Array.getElem?_eq_some_iff.mp assigned).1
+        change vertex < 6 at vertexBound
+        have cases :
+            vertex = 0 ∨ vertex = 1 ∨ vertex = 2 ∨
+              vertex = 3 ∨ vertex = 4 ∨ vertex = 5 :=
+          nat_cases_lt_six vertexBound
+        rcases cases with rfl | rfl | rfl | rfl | rfl | rfl
+        · have ageEquation : age = 0 := by
+            simpa [unifyOneSchedulerBefore] using assigned.symm
+          subst age
+          decide
+        · have ageEquation : age = 0 := by
+            simpa [unifyOneSchedulerBefore] using assigned.symm
+          subst age
+          decide
+        · simp [unifyOneSchedulerBefore] at assigned
+        · have ageEquation : age = 1 := by
+            simpa [unifyOneSchedulerBefore] using assigned.symm
+          subst age
+          decide
+        · simp [unifyOneSchedulerBefore] at assigned
+        · simp [unifyOneSchedulerBefore] at assigned
+      sigma_partition := {
+        empty_iff := by simp [unifyOneSchedulerBefore]
+        head_zero := by simp [unifyOneSchedulerBefore]
+        strictIncreasing := by simp [unifyOneSchedulerBefore]
+        boundary_lt := by
+          intro boundary membership
+          simp [unifyOneSchedulerBefore] at membership
+          rcases membership with rfl | rfl <;> decide }
+      ready_aligned := rfl
+      ready_nodup := by
+        intro bucket membership
+        simp [unifyOneSchedulerBefore] at membership
+        rcases membership with rfl | rfl <;> simp
+      ready_in_bounds := by
+        intro bucket membership vertex vertexMembership
+        simp [unifyOneSchedulerBefore] at membership
+        rcases membership with rfl | rfl
+        · simp at vertexMembership
+        · have vertexEquation : vertex = 2 := by
+            simpa using vertexMembership
+          subst vertex
+          decide
+      nextAge_le_waiting := by native_decide }
+    stack_operationalWaitingDomain := {
+      initialized_iff_inactive := by
+        intro age ageBound
+        change age < 2 at ageBound
+        have cases : age = 0 ∨ age = 1 := nat_cases_lt_two ageBound
+        rcases cases with rfl | rfl <;>
+          simp [SequentialStackState.WaitingInitializedAt,
+            unifyOneSchedulerBefore] }
+    realizesSigma := {
+      marks_eq := rfl
+      horizon_eq := rfl
+      representative_eq_boundary := by
+        intro age ageBound
+        change age < 2 at ageBound
+        have cases : age = 0 ∨ age = 1 := nat_cases_lt_two ageBound
+        rcases cases with rfl | rfl <;> native_decide }
+    core_orderedParents := by
+      intro token parent lookup
+      have tokenBound : token < 2 := by
+        simpa [unifyOneSchedulerBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have cases : token = 0 ∨ token = 1 := by omega
+      rcases cases with rfl | rfl <;>
+        simp [unifyOneSchedulerBefore] at lookup ⊢ <;> omega
+    core_abstractable := {
+      markArraySize := rfl
+      markedVertexBound := by
+        intro vertex token assigned
+        simpa [unifyOneSchedulerCertificate,
+          unifyOneSchedulerBefore] using
+          (Array.getElem?_eq_some_iff.mp
+            (UnificationState.assignedToken?_some_raw assigned)).1
+      markedTokenBound := by
+        intro vertex token assigned
+        have raw := UnificationState.assignedToken?_some_raw assigned
+        have vertexBound : vertex < 6 := by
+          simpa [unifyOneSchedulerBefore] using
+            (Array.getElem?_eq_some_iff.mp raw).1
+        change vertex < 6 at vertexBound
+        have cases :
+            vertex = 0 ∨ vertex = 1 ∨ vertex = 2 ∨
+              vertex = 3 ∨ vertex = 4 ∨ vertex = 5 :=
+          nat_cases_lt_six vertexBound
+        rcases cases with rfl | rfl | rfl | rfl | rfl | rfl
+        · have tokenEquation : token = 0 := by
+            simpa [unifyOneSchedulerBefore] using raw.symm
+          subst token
+          decide
+        · have tokenEquation : token = 0 := by
+            simpa [unifyOneSchedulerBefore] using raw.symm
+          subst token
+          decide
+        · simp [unifyOneSchedulerBefore] at raw
+        · have tokenEquation : token = 1 := by
+            simpa [unifyOneSchedulerBefore] using raw.symm
+          subst token
+          decide
+        · simp [unifyOneSchedulerBefore] at raw
+        · simp [unifyOneSchedulerBefore] at raw
+      representativeBound := by
+        intro token tokenBound
+        change token < 2 at tokenBound
+        have cases : token = 0 ∨ token = 1 := by omega
+        rcases cases with rfl | rfl <;> native_decide
+      representativeIdempotent := by
+        intro token tokenBound
+        change token < 2 at tokenBound
+        have cases : token = 0 ∨ token = 1 := by omega
+        rcases cases with rfl | rfl <;> native_decide }
+    core_componentsFormulaConsistent := by
+      intro index component lookup
+      have indexBound : index < 2 := by
+        simpa [unifyOneSchedulerBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have cases : index = 0 ∨ index = 1 := by omega
+      rcases cases with rfl | rfl
+      · simp [unifyOneSchedulerBefore] at lookup
+        subst component
+        exact ⟨[.atom "p" true, .atom "p" false],
+          by native_decide, by native_decide⟩
+      · simp [unifyOneSchedulerBefore] at lookup
+        subst component
+        exact ⟨[.atom "q" true, .atom "q" false],
+          by native_decide, by native_decide⟩
+    core_carriers_aligned := rfl
+    core_counter_aligned := rfl
+    tags_size := by native_decide }
+
+private theorem unifyOneSchedulerBefore_componentForestProvenance :
+    unifyOneSchedulerCertificate.ComponentForestProvenance
+      unifyOneSchedulerBefore.core := by
+  let usedAt : Nat → List Nat := fun index =>
+    if index = 0 then [0] else if index = 1 then [1] else []
+  let ownedAt : Nat → List Nat := fun index =>
+    if index = 0 then [0, 1] else if index = 1 then [2, 3] else []
+  refine ⟨usedAt, ownedAt, ?_, ?_, ?_⟩
+  · intro index component lookup
+    have indexBound : index < 2 := by
+      simpa [unifyOneSchedulerBefore] using
+        (Array.getElem?_eq_some_iff.mp lookup).1
+    rcases nat_cases_lt_two indexBound with rfl | rfl
+    · simp [unifyOneSchedulerBefore] at lookup
+      subst component
+      constructor
+      · simpa [usedAt, ownedAt] using
+          (Certificate.ComponentOccurrenceWitness.axiom_of_submitted
+            unifyOneSchedulerCertificate_structural
+            (linkIndex := 0) (left := 0) (right := 1)
+            (name := "p") (positive := true)
+            (by native_decide) (by native_decide))
+      · intro vertex membership
+        simp [ownedAt] at membership
+        rcases membership with rfl | rfl
+        · exact Or.inl ⟨0, by rfl, by native_decide⟩
+        · exact Or.inl ⟨0, by rfl, by native_decide⟩
+    · simp [unifyOneSchedulerBefore] at lookup
+      subst component
+      constructor
+      · simpa [usedAt, ownedAt] using
+          (Certificate.ComponentOccurrenceWitness.axiom_of_submitted
+            unifyOneSchedulerCertificate_structural
+            (linkIndex := 1) (left := 2) (right := 3)
+            (name := "q") (positive := true)
+            (by native_decide) (by native_decide))
+      · intro vertex membership
+        simp [ownedAt] at membership
+        rcases membership with rfl | rfl
+        · exact Or.inr ⟨by rfl, by simp⟩
+        · exact Or.inl ⟨1, by rfl, by native_decide⟩
+  · intro leftIndex rightIndex leftComponent rightComponent
+      leftLookup rightLookup different
+    have leftBound : leftIndex < 2 := by
+      simpa [unifyOneSchedulerBefore] using
+        (Array.getElem?_eq_some_iff.mp leftLookup).1
+    have rightBound : rightIndex < 2 := by
+      simpa [unifyOneSchedulerBefore] using
+        (Array.getElem?_eq_some_iff.mp rightLookup).1
+    rcases nat_cases_lt_two leftBound with rfl | rfl <;>
+      rcases nat_cases_lt_two rightBound with rfl | rfl <;>
+      simp [usedAt, ownedAt] at different ⊢
+  · intro vertex rawAge marked
+    have vertexBound : vertex < 6 := by
+      simpa [unifyOneSchedulerBefore] using
+        (Array.getElem?_eq_some_iff.mp marked).1
+    rcases nat_cases_lt_six vertexBound with
+      rfl | rfl | rfl | rfl | rfl | rfl
+    · have rawEquation : rawAge = 0 := by
+        simpa [unifyOneSchedulerBefore] using marked.symm
+      subst rawAge
+      refine ⟨0, {
+        tree := .axiom "p" true, frontier := [0, 1] }, ?_, ?_, ?_⟩
+      · native_decide
+      · rfl
+      · simp [ownedAt]
+    · have rawEquation : rawAge = 0 := by
+        simpa [unifyOneSchedulerBefore] using marked.symm
+      subst rawAge
+      refine ⟨0, {
+        tree := .axiom "p" true, frontier := [0, 1] }, ?_, ?_, ?_⟩
+      · native_decide
+      · rfl
+      · simp [ownedAt]
+    · simp [unifyOneSchedulerBefore] at marked
+    · have rawEquation : rawAge = 1 := by
+        simpa [unifyOneSchedulerBefore] using marked.symm
+      subst rawAge
+      refine ⟨1, {
+        tree := .axiom "q" true, frontier := [2, 3] }, ?_, ?_, ?_⟩
+      · native_decide
+      · rfl
+      · simp [ownedAt]
+    · simp [unifyOneSchedulerBefore] at marked
+    · simp [unifyOneSchedulerBefore] at marked
+
+private theorem unifyOneSchedulerBefore_componentDomainExact :
+    ComponentDomainExact unifyOneSchedulerBefore := by
+  intro token
+  constructor
+  · rintro ⟨component, lookup⟩
+    have tokenBound : token < 2 := by
+      simpa [unifyOneSchedulerBefore] using
+        (Array.getElem?_eq_some_iff.mp lookup).1
+    rcases nat_cases_lt_two tokenBound with rfl | rfl <;>
+      simp [unifyOneSchedulerBefore]
+  · intro membership
+    simp [unifyOneSchedulerBefore] at membership
+    rcases membership with rfl | rfl
+    · exact ⟨{ tree := .axiom "p" true, frontier := [0, 1] }, rfl⟩
+    · exact ⟨{ tree := .axiom "q" true, frontier := [2, 3] }, rfl⟩
+
+private theorem unifyOneSchedulerBefore_liveFrontiersNodup :
+    LiveFrontiersNodup unifyOneSchedulerBefore := by
+  unfold LiveFrontiersNodup UnificationState.liveFrontierVertices
+  native_decide
+
+private theorem unifyOneSchedulerBefore_readyBucketFrontierExact :
+    ReadyBucketFrontierExact unifyOneSchedulerBefore := by
+  intro position boundary bucket sigmaLookup readyLookup
+  have positionBound : position < 2 := by
+    simpa [unifyOneSchedulerBefore] using
+      (List.getElem?_eq_some_iff.mp sigmaLookup).1
+  rcases nat_cases_lt_two positionBound with rfl | rfl
+  · simp [unifyOneSchedulerBefore] at sigmaLookup readyLookup
+    subst boundary
+    subst bucket
+    refine ⟨{ tree := .axiom "p" true, frontier := [0, 1] }, rfl, ?_⟩
+    intro vertex
+    constructor
+    · simp
+    · rintro ⟨frontier, unmarked⟩
+      simp at frontier
+      rcases frontier with rfl | rfl <;>
+        simp [unifyOneSchedulerBefore] at unmarked
+  · simp [unifyOneSchedulerBefore] at sigmaLookup readyLookup
+    subst boundary
+    subst bucket
+    refine ⟨{ tree := .axiom "q" true, frontier := [2, 3] }, rfl, ?_⟩
+    intro vertex
+    constructor
+    · intro membership
+      have same : vertex = 2 := by simpa using membership
+      subst vertex
+      exact ⟨by simp, by rfl⟩
+    · rintro ⟨frontier, unmarked⟩
+      simp at frontier
+      rcases frontier with rfl | rfl
+      · simp
+      · simp [unifyOneSchedulerBefore] at unmarked
+
+private theorem unifyOneSchedulerBefore_queuedVerticesNodup :
+    QueuedVerticesNodup unifyOneSchedulerBefore := by
+  unfold QueuedVerticesNodup SequentialStackState.queuedVertices
+    SequentialStackState.waitingVertices WaitingCell.vertices
+  native_decide
+
+private theorem unifyOneSchedulerBefore_queuedVerticesUnmarked :
+    QueuedVerticesUnmarked unifyOneSchedulerBefore := by
+  intro vertex membership
+  have cases : vertex = 2 ∨ vertex = 4 := by
+    simpa [unifyOneSchedulerBefore,
+      SequentialStackState.queuedVertices,
+      SequentialStackState.waitingVertices,
+      WaitingCell.vertices] using membership
+  rcases cases with rfl | rfl <;> rfl
+
+private theorem unifyOneSchedulerBefore_notProducedFour :
+    ¬ Produced unifyOneSchedulerBefore 4 := by
+  rintro (⟨age, marked⟩ | frontier)
+  · simp [unifyOneSchedulerBefore] at marked
+  · unfold UnificationState.liveFrontierVertices at frontier
+    simp [unifyOneSchedulerBefore] at frontier
+
+private theorem unifyOneSchedulerBefore_notProducedFive :
+    ¬ Produced unifyOneSchedulerBefore 5 := by
+  rintro (⟨age, marked⟩ | frontier)
+  · simp [unifyOneSchedulerBefore] at marked
+  · unfold UnificationState.liveFrontierVertices at frontier
+    simp [unifyOneSchedulerBefore] at frontier
+
+private theorem unifyOneSchedulerBefore_producedPremisesMarked :
+    ProducedPremisesMarked unifyOneSchedulerCertificate
+      unifyOneSchedulerBefore := by
+  intro link membership
+  have cases :
+      link = .axiom 0 1 ∨ link = .axiom 2 3 ∨
+        link = .par 3 0 4 ∨ link = .tensor 1 2 5 := by
+    simpa [unifyOneSchedulerCertificate] using membership
+  rcases cases with rfl | rfl | rfl | rfl
+  · trivial
+  · trivial
+  · intro produced
+    exact False.elim (unifyOneSchedulerBefore_notProducedFour produced)
+  · intro produced
+    exact False.elim (unifyOneSchedulerBefore_notProducedFive produced)
+
+private theorem unifyOneSchedulerBefore_waitingSpanExact :
+    WaitingSpanExact unifyOneSchedulerCertificate
+      unifyOneSchedulerBefore := by
+  intro boundary payload conclusion waitingLookup conclusionMembership
+  have boundaryBound : boundary < 6 := by
+    simpa [unifyOneSchedulerBefore] using
+      (Array.getElem?_eq_some_iff.mp waitingLookup).1
+  rcases nat_cases_lt_six boundaryBound with
+    rfl | rfl | rfl | rfl | rfl | rfl
+  · simp [unifyOneSchedulerBefore] at waitingLookup
+    subst payload
+    have conclusionEquation : conclusion = 4 := by
+      simpa using conclusionMembership
+    subst conclusion
+    refine ⟨2, 3, 0, 0, 3, 0, 1, 1, ?_, ?_, ?_, ?_, ?_, ?_,
+      ?_, ?_, ?_⟩
+    · rfl
+    · native_decide
+    · rfl
+    · exact Or.inr ⟨rfl, rfl⟩
+    · rfl
+    · rfl
+    · native_decide
+    · native_decide
+    · decide
+  · simp [unifyOneSchedulerBefore] at waitingLookup
+  · simp [unifyOneSchedulerBefore] at waitingLookup
+  · simp [unifyOneSchedulerBefore] at waitingLookup
+  · simp [unifyOneSchedulerBefore] at waitingLookup
+  · simp [unifyOneSchedulerBefore] at waitingLookup
+
+private theorem unifyOneSchedulerBefore_pendingPremisesCoveredExceptReady :
+    PendingPremisesCoveredExceptReady unifyOneSchedulerCertificate
+      unifyOneSchedulerBefore := by
+  intro link membership
+  have cases :
+      link = .axiom 0 1 ∨ link = .axiom 2 3 ∨
+        link = .par 3 0 4 ∨ link = .tensor 1 2 5 := by
+    simpa [unifyOneSchedulerCertificate] using membership
+  rcases cases with rfl | rfl | rfl | rfl
+  · trivial
+  · trivial
+  · intro _conclusionUnmarked _conclusionNotReady premise token
+      premiseMembership tokenAt
+    simp only [List.mem_cons, List.not_mem_nil, or_false]
+      at premiseMembership
+    rcases premiseMembership with rfl | rfl
+    · have tokenEquation : token = 1 := by
+        change some (unifyOneSchedulerBefore.core.representative 1) =
+          some token at tokenAt
+        have representative :
+            unifyOneSchedulerBefore.core.representative 1 = 1 := by
+          native_decide
+        rw [representative] at tokenAt
+        exact (Option.some.inj tokenAt).symm
+      subst token
+      refine ⟨{ tree := .axiom "q" true, frontier := [2, 3] }, ?_, by simp⟩
+      native_decide
+    · have tokenEquation : token = 0 := by
+        change some (unifyOneSchedulerBefore.core.representative 0) =
+          some token at tokenAt
+        have representative :
+            unifyOneSchedulerBefore.core.representative 0 = 0 := by
+          native_decide
+        rw [representative] at tokenAt
+        exact (Option.some.inj tokenAt).symm
+      subst token
+      refine ⟨{ tree := .axiom "p" true, frontier := [0, 1] }, ?_, by simp⟩
+      native_decide
+  · intro _conclusionUnmarked _conclusionNotReady premise token
+      premiseMembership tokenAt
+    simp only [List.mem_cons, List.not_mem_nil, or_false]
+      at premiseMembership
+    rcases premiseMembership with rfl | rfl
+    · have tokenEquation : token = 0 := by
+        change some (unifyOneSchedulerBefore.core.representative 0) =
+          some token at tokenAt
+        have representative :
+            unifyOneSchedulerBefore.core.representative 0 = 0 := by
+          native_decide
+        rw [representative] at tokenAt
+        exact (Option.some.inj tokenAt).symm
+      subst token
+      refine ⟨{ tree := .axiom "p" true, frontier := [0, 1] }, ?_, by simp⟩
+      native_decide
+    · simp [unifyOneSchedulerBefore, UnificationState.tokenAt?] at tokenAt
+
+private theorem unifyOneSchedulerBefore_firedCounterExact :
+    FiredCounterExact unifyOneSchedulerBefore := by
+  unfold FiredCounterExact UnificationState.liveConnectiveCount
+  rfl
+
+/-- The exact strict-singleton pre-state satisfies the full occurrence-exact
+state-only scheduler invariant.  This finite-state check is deliberately not
+a claim that the current partial dispatcher can reach this state. -/
+private theorem unifyOneSchedulerBefore_schedulerInvariant :
+    SchedulerInvariant unifyOneSchedulerCertificate
+      unifyOneSchedulerBefore := by
+  exact {
+    toReservationInvariant :=
+      unifyOneSchedulerBefore_reservationInvariant
+    structural := unifyOneSchedulerCertificate_structural
+    component_domain_exact :=
+      unifyOneSchedulerBefore_componentDomainExact
+    component_forest_provenance :=
+      unifyOneSchedulerBefore_componentForestProvenance
+    live_frontiers_nodup :=
+      unifyOneSchedulerBefore_liveFrontiersNodup
+    ready_bucket_frontier_exact :=
+      unifyOneSchedulerBefore_readyBucketFrontierExact
+    queued_vertices_nodup :=
+      unifyOneSchedulerBefore_queuedVerticesNodup
+    queued_vertices_unmarked :=
+      unifyOneSchedulerBefore_queuedVerticesUnmarked
+    produced_premises_marked :=
+      unifyOneSchedulerBefore_producedPremisesMarked
+    waiting_span_exact :=
+      unifyOneSchedulerBefore_waitingSpanExact
+    pending_premises_covered_except_ready :=
+      unifyOneSchedulerBefore_pendingPremisesCoveredExceptReady
+    fired_counter_exact :=
+      unifyOneSchedulerBefore_firedCounterExact }
+
+/-- Change only the inactive boundary payload of the concrete singleton
+fixture.  Reservation-layer invariants intentionally constrain the initialized
+waiting domain, not the payload cardinality or its occurrence semantics. -/
+private def unifyOneSchedulerBeforeWithPayload
+    (payload : List Vertex) : ReservationState :=
+  { unifyOneSchedulerBefore with
+    stack := {
+      unifyOneSchedulerBefore.stack with
+      waiting :=
+        #[.initialized payload, .undefined, .undefined,
+          .undefined, .undefined, .undefined] } }
+
+private theorem unifyOneSchedulerBeforeWithPayload_reservationInvariant
+    (payload : List Vertex) :
+    ReservationInvariant unifyOneSchedulerCertificate
+      (unifyOneSchedulerBeforeWithPayload payload) := by
+  have base := unifyOneSchedulerBefore_reservationInvariant
+  exact {
+    stack_wellShaped := {
+      marks_size := base.stack_wellShaped.marks_size
+      waiting_size := rfl
+      assigned_age_bound := base.stack_wellShaped.assigned_age_bound
+      sigma_partition := base.stack_wellShaped.sigma_partition
+      ready_aligned := base.stack_wellShaped.ready_aligned
+      ready_nodup := base.stack_wellShaped.ready_nodup
+      ready_in_bounds := base.stack_wellShaped.ready_in_bounds
+      nextAge_le_waiting := by
+        change 2 ≤ 6
+        decide }
+    stack_operationalWaitingDomain := {
+      initialized_iff_inactive := by
+        intro age ageBound
+        change age < 2 at ageBound
+        have cases : age = 0 ∨ age = 1 := nat_cases_lt_two ageBound
+        rcases cases with rfl | rfl <;>
+          simp [SequentialStackState.WaitingInitializedAt,
+            unifyOneSchedulerBeforeWithPayload,
+            unifyOneSchedulerBefore] }
+    realizesSigma := {
+      marks_eq := base.realizesSigma.marks_eq
+      horizon_eq := base.realizesSigma.horizon_eq
+      representative_eq_boundary :=
+        base.realizesSigma.representative_eq_boundary }
+    core_orderedParents := base.core_orderedParents
+    core_abstractable := base.core_abstractable
+    core_componentsFormulaConsistent :=
+      base.core_componentsFormulaConsistent
+    core_carriers_aligned := base.core_carriers_aligned
+    core_counter_aligned := base.core_counter_aligned
+    tags_size := base.tags_size }
+
+private def unifyOneSchedulerRun : Option ReservationState :=
+  SequentialFigure7.unifyOne? unifyOneSchedulerCertificate
+    unifyOneSchedulerBefore
+    unifyOneSchedulerBefore_reservationInvariant
+
+/-- From the exact two-level reservation state, `unifyOne` drains exactly
+`[4]`, constructs the tensor and that par, merges the two raw-age classes, and
+leaves the live ready frontier `[5, 4]`.  This fixture tests the local rule;
+it does not claim a full-rule reachability theorem. -/
+example :
+    (match unifyOneSchedulerRun with
+    | none => false
+    | some afterUnify =>
+                        afterUnify.stack.sigma == [0] &&
+                        afterUnify.stack.ready == [[5, 4]] &&
+                        afterUnify.stack.waiting[0]? == some .undefined &&
+                        afterUnify.stack.waiting[1]? == some .undefined &&
+                        afterUnify.stack.marks ==
+                          #[some 0, some 0, some 1, some 1, none, none] &&
+                        afterUnify.core.marks == afterUnify.stack.marks &&
+                        afterUnify.core.parents == #[0, 0] &&
+                        afterUnify.core.startedAxioms == 2 &&
+                        afterUnify.core.firedConnectives == 2 &&
+                        match afterUnify.core.components[0]? with
+                        | some (some component) =>
+                            component.frontier == [5, 4] &&
+                              component.tree ==
+                                (.par 2 1
+                                  (.tensor 1 0
+                                    (.axiom "p" true)
+                                    (.axiom "q" true))) &&
+                              afterUnify.core.components[1]? == some none
+                        | _ => false) = true := by
+  native_decide
+
+/-- The same concrete success carries the proof-relevant typed witness and
+therefore is not merely an unchecked state equality. -/
+example {after : ReservationState}
+    (equation : unifyOneSchedulerRun = some after) :
+    Nonempty
+      (SequentialFigure7.UnifyOneStep unifyOneSchedulerCertificate
+        unifyOneSchedulerBefore after) := by
+  exact
+    (SequentialFigure7.unifyOne?_some_iff
+      unifyOneSchedulerBefore_reservationInvariant).mp (by
+        simpa [unifyOneSchedulerRun] using equation)
+
+/-- The proof-relevant singleton witness itself exercises
+`UnifyOneStep.schedulerInvariant` on the concrete full-invariant pre-state. -/
+example {after : ReservationState}
+    (equation : unifyOneSchedulerRun = some after) :
+    SchedulerInvariant unifyOneSchedulerCertificate after := by
+  rcases
+      (SequentialFigure7.unifyOne?_some_iff
+        unifyOneSchedulerBefore_schedulerInvariant.toReservationInvariant).mp
+        (by simpa [unifyOneSchedulerRun] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant
+    unifyOneSchedulerBefore_schedulerInvariant
+
+/-- The executable singleton result refines the independent Boolean-free
+relation. -/
+example {after : ReservationState}
+    (equation : unifyOneSchedulerRun = some after) :
+    SequentialFigure7.UnifyOneRule unifyOneSchedulerCertificate
+      unifyOneSchedulerBefore after := by
+  exact SequentialFigure7.unifyOne?_sound
+    unifyOneSchedulerBefore_reservationInvariant (by
+      simpa [unifyOneSchedulerRun] using equation)
+
+/-- The tensor-plus-waiting-par step preserves every reservation-layer field,
+including exact sigma realization and both production counter alignments. -/
+example {after : ReservationState}
+    (equation : unifyOneSchedulerRun = some after) :
+    ReservationInvariant unifyOneSchedulerCertificate after := by
+  exact SequentialFigure7.unifyOne?_reservationInvariant
+    unifyOneSchedulerBefore_reservationInvariant (by
+      simpa [unifyOneSchedulerRun] using equation)
+
+/-- The same concrete singleton execution exercises the full state-only
+scheduler preservation theorem, not only the reservation-layer projection. -/
+example {after : ReservationState}
+    (equation : unifyOneSchedulerRun = some after) :
+    SchedulerInvariant unifyOneSchedulerCertificate after := by
+  exact SequentialFigure7.unifyOne?_schedulerInvariant
+    unifyOneSchedulerBefore_schedulerInvariant (by
+      simpa [unifyOneSchedulerRun] using equation)
+
+private def unifyOneSchedulerEmptyBefore : ReservationState :=
+  unifyOneSchedulerBeforeWithPayload []
+
+private theorem unifyOneSchedulerEmptyBefore_reservationInvariant :
+    ReservationInvariant unifyOneSchedulerCertificate
+      unifyOneSchedulerEmptyBefore := by
+  exact unifyOneSchedulerBeforeWithPayload_reservationInvariant []
+
+/-- An initialized but empty inactive waiting cell is a valid reservation
+state, but it is outside strict singleton `unifyOne`; the executable rule must
+fail closed instead of silently acting like `unifyEmpty`. -/
+example :
+    SequentialFigure7.unifyOne? unifyOneSchedulerCertificate
+        unifyOneSchedulerEmptyBefore
+        unifyOneSchedulerEmptyBefore_reservationInvariant =
+      none := by
+  native_decide
+
+private def unifyOneSchedulerDuplicateBefore : ReservationState :=
+  unifyOneSchedulerBeforeWithPayload [4, 4]
+
+private theorem unifyOneSchedulerDuplicateBefore_reservationInvariant :
+    ReservationInvariant unifyOneSchedulerCertificate
+      unifyOneSchedulerDuplicateBefore := by
+  exact unifyOneSchedulerBeforeWithPayload_reservationInvariant [4, 4]
+
+/-- A two-element inactive payload remains a valid reservation-layer state,
+including the deliberately adversarial duplicate `[4, 4]`, but strict
+singleton `unifyOne` rejects it before constructing either connective. -/
+example :
+    SequentialFigure7.unifyOne? unifyOneSchedulerCertificate
+        unifyOneSchedulerDuplicateBefore
+        unifyOneSchedulerDuplicateBefore_reservationInvariant =
+      none := by
+  native_decide
 
 /-- Counter accounting counts logical connective constructors in live trees;
 exchange is bookkeeping rather than a firing. -/

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added the strict-singleton Figure-7 `UnifyOne` slice for exactly
+  `W(j) = [c]`. The occurrence source index recovers `c`'s unique exact
+  submitted par producer slot and stored orientation. The executable performs
+  one atomic prepare → tensor construction/union → waiting-par activation →
+  scheduler-drain transition; its exact state equation increments the
+  connective counter by two. Independent Boolean-free
+  `WaitingParActivationRule` and `UnifyOneRule` relations have typed/executable
+  soundness, completeness, iff, and output-uniqueness theorems under their
+  documented structural, invariant, and list-shape hypotheses. Successful
+  typed and executable steps preserve both `ReservationInvariant` and the
+  complete occurrence-exact `SchedulerInvariant`. Empty and length-at-least-two
+  payloads fail closed. Guerrini specifies moving `W(j)` into ready; explicitly
+  constructing the waiting par first is this project's derivation/provenance
+  representation refinement, not a claim about the paper's implementation.
+  Arbitrary-payload activation, the full fold, dispatcher/history/reachability,
+  applicability/totality, progress, pure-worklist completeness, fallback
+  removal, faithful `NEXTAXIOM`/token-age sequencing, and whole-program
+  linearity remain open;
 - added the deliberately bounded Figure-7 `UnifyEmpty` slice. The executable
   accepts only an initialized empty previous waiting cell, retains the exact
   submitted tensor slot and stored premise orientation, and checks the literal
@@ -23,13 +41,11 @@
   executable bounded steps additionally preserve the complete occurrence-exact
   invariant: exact tensor-derived component ownership, the surviving/retired
   forest update, live frontiers, queue/waiting/pending facts, and the fired
-  counter. Nonempty waiting-par activation, complete `Unify`, later-state
+  counter. Strict-singleton waiting-par activation is now covered separately
+  by `UnifyOne`; arbitrary payloads of length at least two, later-state
   `forward?` applicability/totality, dispatcher/history integration, full-rule
   reachability, correct-state progress, pure-worklist completeness,
-  recursive-fallback removal, and whole-program linearity remain open.
-  The exact trust audit now
-  covers 296 full-classical, 23 axiom-free, 88 `propext`-only, and 82
-  `propext`/`Quot.sound` public theorems;
+  recursive-fallback removal, and whole-program linearity remain open;
 - added `SequentialSchedulerInvariant.lean`, the first non-circular semantic
   Figure-7 state bundle. It carries `StructurallyWellFormed` explicitly.
   `ComponentDomainExact` equates live raw component slots with `sigma`
@@ -124,7 +140,9 @@
   gives completeness, iff, and output uniqueness. The full
   `SchedulerInvariant` derives the shape condition and therefore supplies a
   higher-level completeness/iff theorem. This correspondence is not an
-  applicability, totality, or progress theorem. Complete nonempty `Unify`,
+  applicability, totality, or progress theorem. The strict-singleton
+  `UnifyOne` executable/direct correspondence is now complete under its
+  documented structural, invariant, and ready-`Nodup` hypotheses; the arbitrary-payload fold,
   pure-worklist completeness,
   recursive-fallback removal, faithful
   `NEXTAXIOM`/token-age scheduling, and whole-program linearity remain open;
@@ -149,10 +167,10 @@
   connective count, merges generic representatives by `min`/`max`, and proves
   those slots distinct from its token guard. The bounded `UnifyEmpty` wrapper
   now proves that the representatives are exactly the scheduler boundaries
-  `j/i`, binds `parent[i] := j`, and drains only `W(j) = []`. Complete
-  nonempty-payload `unify` must still construct/activate every waiting par
-  component (or use a proved producer-aware deferred representation), with
-  the corresponding additional counter increments;
+  `j/i`, binds `parent[i] := j`, and drains only `W(j) = []`. `UnifyOne` now
+  constructs the exact par for `W(j) = [c]`; payload length at least two still
+  needs the typed activation fold and corresponding additional counter
+  increments;
 - added `prependReadyTop?` and `mergeTopReadyWaiting?` to the delayed stack.
   The latter fixes the deterministic list refinement
   `conclusion :: (payload ++ previousReady ++ activeReady)`, resets the
@@ -198,7 +216,8 @@
   `ForwardRule` correspondence are now present as described above. The bounded
   empty-cell executable/direct `UnifyEmpty` correspondence is also present;
   successful typed and executable steps preserve the full occurrence-exact
-  `SchedulerInvariant`, while nonempty-payload activation, complete `unify`, a
+  `SchedulerInvariant`. Strict-singleton `UnifyOne` now has the same direct
+  correspondence and invariant preservation; the arbitrary-payload fold, a
   full-rule history/dispatcher, applicability/totality, reachability, progress,
   and completeness remain open;
 - added `SequentialFigure7History.lean`, a proof-relevant execution history
@@ -213,8 +232,8 @@
   introduced, `forward` and `unify` were unimplemented and `wait` remained
   outside the history. The newer executable `forward` and local `wait` still
   remain outside this deliberately init/new-only history. The newer bounded
-  `UnifyEmpty` also remains outside it; nonempty-payload activation and complete
-  `unify` remain unimplemented.
+  `UnifyEmpty` and strict-singleton `UnifyOne` also remain outside it; the
+  arbitrary-payload fold remains unimplemented.
   Equation-backed bounded and production-wrapper theorems prove
   exact true-tag origin without changing the public `NextAxiomResult` record,
   so existing manual record constructors remain source compatible. The
@@ -239,8 +258,8 @@
   uniqueness. The newer local `wait` transition proves one initialized-cell
   transfer. The newer bounded `UnifyEmpty` handles only an initialized empty
   previous cell and preserves the complete occurrence-exact
-  `SchedulerInvariant` on successful typed/executable steps; nonempty-payload
-  activation and complete `unify` remain absent;
+  `SchedulerInvariant` on successful typed/executable steps. Strict-singleton
+  activation is now implemented by `UnifyOne`; the arbitrary fold remains absent;
 - added the invariant-bound operational local Figure-7 `new` pipeline. It
   performs synchronized pop/raw-mark, uses the fixed sound-and-complete
   consumer index for orientation-aware tensor-mate lookup, runs `NEXTAXIOM`
@@ -250,7 +269,8 @@
   the independent direct `ForwardRule` and exact correspondence are now
   proved. The bounded `UnifyEmpty` direct/executable correspondence is also
   proved, and successful typed/executable steps preserve the complete
-  occurrence-exact `SchedulerInvariant`, while complete nonempty `unify`,
+  occurrence-exact `SchedulerInvariant`. Strict-singleton `UnifyOne` is now
+  proved with the same invariant preservation; the arbitrary-payload fold,
   later-state applicability/totality,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
@@ -297,12 +317,11 @@
   separate operational local `new` module now supplies pop-before-mark,
   binary-mate handling, raw-age marking, and post-mark search; the local
   `wait` transition is implemented separately. Full-scheduler reachability,
-  ready/waiting payload ownership through complete `unify`, full-history
-  integration of local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`, later totality,
+  ready/waiting payload ownership through the arbitrary `unify` fold,
+  full-history integration of local
+  `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne`, later totality,
   correct-state progress, pure-worklist completeness, fallback
-  removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 296 full-classical, 23 axiom-free, 88 `propext`-only, and
-  82 `propext`/`Quot.sound` theorems;
+  removal, and whole-program linearity remain open;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
   production unifier. `RawTokenAge` records discovery order and is explicitly

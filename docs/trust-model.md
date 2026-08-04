@@ -278,8 +278,15 @@ direct/executable correspondence for `W(j) = []` under its documented
 premises. Its successful typed/executable steps preserve the complete current
 occurrence-exact `SchedulerInvariant`, including `RealizesSigma`, the
 survivor/retired component-forest update, queue/waiting/pending facts, and the
-fired counter after the active-level pop and parent union. Complete nonempty
-`Unify`, correct-state progress, pure-worklist completeness, fallback removal, faithful
+fired counter after the active-level pop and parent union. Strict-singleton
+`UnifyOne` now additionally accepts exactly `W(j) = [c]`, resolves `c` to its
+unique exact submitted par producer slot, and performs one atomic prepare →
+tensor union → par activation → scheduler drain. Its independent
+Boolean-free direct relations, typed/executable correspondence, unique output,
+exact `+2` counter equation, and preservation of both `ReservationInvariant`
+and the full occurrence-exact `SchedulerInvariant` are kernel checked. Empty
+and length-at-least-two payloads fail closed. Complete arbitrary-payload
+activation, correct-state progress, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
 common prefix, `concl`, `nop`, `wait`, and `forward`. `ForwardRule` excludes
@@ -319,12 +326,15 @@ separate ready-list `Nodup` premise. A successful executable preserves the
 complete `ReservationInvariant`; under the stronger supplied
 `SchedulerInvariant`, the typed and executable preservation theorems retain
 the entire occurrence-exact state-only bundle.
-These facts still do not authorize a full nonempty-payload `unify`, which must
-construct or activate all waiting par components drained from `W(j)` (with
-their extra counter increments). A direct nonempty-payload composition would
-put delayed conclusions in ready without the corresponding production trees
-and would increment the counter only once, so a typed activation fold is a
-required proof layer. No dispatcher, progress, scheduler/pure-worklist
+These facts plus `UnifyOne` authorize exactly the singleton payload, not the
+arbitrary-payload fold. The general case must construct or activate
+all waiting par components drained from `W(j)` and prove the exact
+`1 + |W(j)|` counter change. A direct longer-payload composition would put
+delayed conclusions in ready without all corresponding production trees, so a
+typed activation fold is still required. Guerrini's rule specifies moving the
+waiting set into ready; the project's explicit derivation/provenance
+construction is a representation refinement, not a paper claim. No dispatcher,
+progress, scheduler/pure-worklist
 completeness, O(1), or whole-program linearity claim follows.
 
 `unificationDerivationCandidateWithStats` and
@@ -565,12 +575,13 @@ bundled invariant preserved across both stages. The invariant-bound local
 `new` layer now adds pop-before-mark, binary-mate lookup, raw-age marking,
 post-mark search, and the operational old-boundary/fresh-top reservation. The
 dedicated init/new history adds exact reachability and tag provenance for that
- fragment. Local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` exist outside it; successful
+ fragment. Local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` exist outside it; successful
  Forward has complete state-only invariant preservation and an independent
- direct rule with executable correspondence. Bounded `UnifyEmpty` has direct
- correspondence, and successful typed/executable steps preserve the complete
- occurrence-exact state-only invariant. It does not add later
- applicability/totality, complete nonempty `unify`, a full-rule
+ direct rule with executable correspondence. Bounded `UnifyEmpty` and
+ strict-singleton `UnifyOne` have direct correspondence, and successful
+ typed/executable steps preserve the complete occurrence-exact state-only
+ invariant. It does not add later applicability/totality, an arbitrary-payload
+ activation fold, a full-rule
  reachability invariant, or full-history integration. No
 planarity principle is assumed.
 
@@ -687,10 +698,11 @@ Lean now also constructs the exact simultaneous complementary
   per-call trace/tag invariants, exact oriented routes, initial/local
   rank-scoped totality, and strictly threaded touched-set disjointness;
   the operational waiting-cell domain and exact init/new history are also
-  proved. Exact local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` are also proved, and
+  proved. Exact local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` are also proved, and
   successful deterministic/executable `new`, `wait`, `forward`, and bounded
-  `UnifyEmpty` preserve the complete current occurrence-exact state-only
-  invariant. Later-state applicability and totality, complete nonempty `unify`,
+  `UnifyEmpty` and strict-singleton `UnifyOne` preserve the complete current
+  occurrence-exact state-only invariant. Later-state applicability and
+  totality, the arbitrary-payload activation fold,
   full-history integration, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,

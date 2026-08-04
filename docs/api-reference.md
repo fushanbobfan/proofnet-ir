@@ -8059,6 +8059,36 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_e
                     after.marks = before.marks ∧ after.nextAge = before.nextAge
 ```
 
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.MergeTopReadyWaitingStep.queuedVertices_perm`
+
+Kind: theorem.
+
+A two-level merge drains an arbitrary waiting payload without losing or
+duplicating queued occurrences: the output queue is exactly the input queue
+plus the newly queued conclusion, up to permutation.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.MergeTopReadyWaitingStep.queuedVertices_perm : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {previousBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  (step : before.MergeTopReadyWaitingStep after previousBoundary conclusion),
+  after.queuedVertices.Perm (conclusion :: before.queuedVertices)
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.MergeTopReadyWaitingStep.mem_queuedVertices_iff`
+
+Kind: theorem.
+
+Membership transport for an arbitrary-payload two-level merge: an
+occurrence is queued afterwards exactly when it is the new conclusion or was
+already queued before the merge.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.MergeTopReadyWaitingStep.mem_queuedVertices_iff : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {previousBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion vertex : ProofNetIR.Vertex}
+  (step : before.MergeTopReadyWaitingStep after previousBoundary conclusion),
+  vertex ∈ after.queuedVertices ↔ vertex = conclusion ∨ vertex ∈ before.queuedVertices
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.mergeTopReadyWaiting?_wellShaped`
 
 Kind: theorem.
@@ -8151,6 +8181,28 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomai
       ∀ {active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
         state.sigma.getLast? = some active →
           state.waiting[active]? = some ProofNetIR.SequentialSchedulerState.WaitingCell.undefined
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.payload_boundary_lt_previous_of_ne`
+
+Kind: theorem.
+
+In a two-level scheduler state, an allocated initialized boundary whose
+payload contains an occurrence lies strictly before the previous boundary,
+provided it is not that previous boundary itself.  No restriction is placed
+on the payload stored at the previous boundary.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.payload_boundary_lt_previous_of_ne : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState},
+  state.OperationalWaitingDomain →
+    ProofNetIR.SequentialSchedulerState.SigmaAgePartition state.nextAge state.sigma →
+      ∀ {sigmaPrefix : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+        {previous active boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {payload : List ProofNetIR.Vertex}
+        {conclusion : ProofNetIR.Vertex},
+        state.sigma = sigmaPrefix ++ [previous, active] →
+          boundary < state.nextAge →
+            state.waiting[boundary]? = some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) →
+              conclusion ∈ payload → boundary ≠ previous → boundary < previous
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.payload_boundary_lt_previous`
@@ -10912,7 +10964,7 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new : ∀ {certificat
         ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate after
 ```
 
-## Executable Figure-7 concl, nop, forward, bounded unify-empty, and wait rules
+## Executable Figure-7 concl, nop, forward, bounded unify, and wait rules
 
 ### `ProofNetIR.SequentialConnectiveKind`
 
@@ -12091,6 +12143,570 @@ payload branch represented by `UnifyEmptyStep`.
 ProofNetIR.SequentialFigure7.unifyEmpty?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
   (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
   ProofNetIR.SequentialFigure7.unifyEmpty? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParProducer`
+
+Kind: inductive type.
+
+Exact submitted par producer retained for one waiting conclusion.
+
+The source bucket is required to be the singleton containing the exact link
+position and value.  The submitted link lookup and local well-formedness are
+stored separately so clients never have to replace occurrence identity with a
+formula-label equality.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParProducer : ProofNetIR.Certificate → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialFigure7.waitingParProducer?`
+
+Kind: definition.
+
+Look up the unique exact submitted par producer of a waiting conclusion.
+
+Zero-source, multiple-source, non-par, position-mismatched, and malformed
+producer cases all fail closed.
+
+```lean
+ProofNetIR.SequentialFigure7.waitingParProducer? : (certificate : ProofNetIR.Certificate) →
+  (conclusion : ProofNetIR.Vertex) → Option (ProofNetIR.SequentialFigure7.WaitingParProducer certificate conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.waitingParProducer?_eq_some`
+
+Kind: theorem.
+
+Every proof-relevant exact producer witness is the canonical executable
+lookup result.  Proof irrelevance identifies the stored evidence fields.
+
+```lean
+ProofNetIR.SequentialFigure7.waitingParProducer?_eq_some : ∀ {certificate : ProofNetIR.Certificate} {conclusion : ProofNetIR.Vertex}
+  (producer : ProofNetIR.SequentialFigure7.WaitingParProducer certificate conclusion),
+  ProofNetIR.SequentialFigure7.waitingParProducer? certificate conclusion = some producer
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationRule`
+
+Kind: definition.
+
+Independent direct production-state relation for activating one waiting
+par conclusion.
+
+The relation uses the read-only source index, token query, component query,
+and exact first-occurrence selections, but does not mention
+`activateWaitingPar?` or `queuePar?`.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationRule : ProofNetIR.Certificate → ProofNetIR.UnificationState → ProofNetIR.UnificationState → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPar?`
+
+Kind: definition.
+
+Execute one exact waiting-par activation in the production state.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPar? : ProofNetIR.Certificate → ProofNetIR.UnificationState → ProofNetIR.Vertex → Option ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationStep`
+
+Kind: inductive type.
+
+Exact proof-relevant witness for one waiting-par activation.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationStep : ProofNetIR.Certificate → ProofNetIR.UnificationState → ProofNetIR.UnificationState → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPar?_some_iff`
+
+Kind: theorem.
+
+Waiting-par activation succeeds exactly when the typed activation witness
+exists.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPar?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.activateWaitingPar? certificate before conclusion = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.WaitingParActivationStep certificate before after conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationStep.submitted_par`
+
+Kind: theorem.
+
+The typed activation witness retains the exact submitted par slot and
+stored orientation.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationStep.submitted_par : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationStep certificate before after conclusion),
+  certificate.links[step.producer.linkIndex]? =
+    some (ProofNetIR.Link.par step.producer.storedLeft step.producer.storedRight conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationStep.toRule`
+
+Kind: theorem.
+
+A typed executable activation refines the independent direct relation.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationStep certificate before after conclusion),
+  ProofNetIR.SequentialFigure7.WaitingParActivationRule certificate before after conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationStep.exact`
+
+Kind: theorem.
+
+A typed activation changes only the selected component slot and increments
+the connective counter once.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationStep.exact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialFigure7.WaitingParActivationStep certificate before after conclusion),
+  after.components =
+      before.components.setIfInBounds step.queueStep.outputToken
+        (some
+          {
+            tree :=
+              ProofNetIR.CutFreeDerivation.par step.queueStep.leftFocus step.queueStep.rightFocus
+                step.queueStep.component.tree,
+            frontier := step.queueStep.context ++ [conclusion] }) ∧
+    after.marks = before.marks ∧
+      after.parents = before.parents ∧
+        after.startedAxioms = before.startedAxioms ∧ after.firedConnectives = before.firedConnectives + 1
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationStep.output_unique`
+
+Kind: theorem.
+
+The proof-relevant executable activation has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationStep.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.UnificationState}
+  {conclusion : ProofNetIR.Vertex}
+  (left : ProofNetIR.SequentialFigure7.WaitingParActivationStep certificate before first conclusion)
+  (right : ProofNetIR.SequentialFigure7.WaitingParActivationStep certificate before second conclusion), first = second
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPar?_sound`
+
+Kind: theorem.
+
+Executable activation is sound for the independent direct relation.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPar?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.activateWaitingPar? certificate before conclusion = some after →
+    ProofNetIR.SequentialFigure7.WaitingParActivationRule certificate before after conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPar?_complete`
+
+Kind: theorem.
+
+Every direct activation witness reconstructs the executable activation.
+
+The direct relation already records the exact singleton source bucket, so this
+stronger theorem does not need structural validity.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPar?_complete : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.WaitingParActivationRule certificate before after conclusion →
+    ProofNetIR.SequentialFigure7.activateWaitingPar? certificate before conclusion = some after
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPar?_complete_of_structural`
+
+Kind: theorem.
+
+Structural-validity-specialized completeness API for downstream scheduler
+proofs.  Structural validity is stronger than this local exact relation needs.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPar?_complete_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.WaitingParActivationRule certificate before after conclusion →
+      ProofNetIR.SequentialFigure7.activateWaitingPar? certificate before conclusion = some after
+```
+
+### `ProofNetIR.SequentialFigure7.activateWaitingPar?_some_iff_rule`
+
+Kind: theorem.
+
+Exact executable/direct correspondence for one waiting-par activation.
+
+```lean
+ProofNetIR.SequentialFigure7.activateWaitingPar?_some_iff_rule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState} {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.activateWaitingPar? certificate before conclusion = some after ↔
+    ProofNetIR.SequentialFigure7.WaitingParActivationRule certificate before after conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.WaitingParActivationRule.output_unique`
+
+Kind: theorem.
+
+The independent direct activation relation has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitingParActivationRule.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.UnificationState}
+  {conclusion : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.WaitingParActivationRule certificate before first conclusion →
+    ProofNetIR.SequentialFigure7.WaitingParActivationRule certificate before second conclusion → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneRule`
+
+Kind: definition.
+
+Independent Boolean-free Figure-7 `unify` relation for exactly one
+waiting par conclusion.
+
+The relation does not mention `unifyOne?`, `prepare?`, `queueTensor?`,
+`activateWaitingPar?`, or `mergeTopReadyWaiting?`.  It first states the tensor
+mutation propositionally, then applies the independent waiting-par activation
+relation to that tensor state, and finally states the exact singleton drain.
+The stored tensor orientation and exact submitted tensor position are retained.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneRule : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneExecutableReadyNodup`
+
+Kind: definition.
+
+Representation-only duplicate-freedom required by the deterministic list
+refinement of singleton `unify`.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneExecutableReadyNodup : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.unifyOne?`
+
+Kind: definition.
+
+Execute the strict singleton waiting-payload unification slice.
+
+The mutation order is definitionally tensor, then one par activation, then
+the scheduler merge.  The waiting-cell pattern accepts exactly one element;
+empty and two-or-more payloads fall through to `none`.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyOne? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep`
+
+Kind: inductive type.
+
+Exact proof-relevant witness for one successful strict singleton
+unification.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.unifyOne?_some_iff`
+
+Kind: theorem.
+
+Strict singleton unification succeeds exactly when its typed witness
+exists.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyOne?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyOne? certificate before invariant = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.submitted_tensor`
+
+Kind: theorem.
+
+The selected tensor consumer is the exact submitted tensor occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.submitted_tensor : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  certificate.links[step.consumer.linkIndex]? =
+    some (ProofNetIR.Link.tensor step.consumer.storedLeft step.consumer.storedRight step.consumer.conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.submitted_waiting_par`
+
+Kind: theorem.
+
+The activated waiting conclusion retains its exact submitted par
+position and stored orientation.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.submitted_waiting_par : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  certificate.links[step.activationStep.producer.linkIndex]? =
+    some
+      (ProofNetIR.Link.par step.activationStep.producer.storedLeft step.activationStep.producer.storedRight
+        step.waitingConclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.mate_marked_before`
+
+Kind: theorem.
+
+The mate raw age tested after the prefix is its exact pre-prefix mark.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.mate_marked_before : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  before.core.marks[step.consumer.mate]? = some (some step.mateRawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.toRule`
+
+Kind: theorem.
+
+The equation-backed singleton witness refines the independent direct
+relation.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  ProofNetIR.SequentialFigure7.UnifyOneRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.realizesSigma`
+
+Kind: theorem.
+
+The waiting par activation leaves marks and parents unchanged, so the
+tensor/stack realization transports to the final core.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.realizesSigma : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.RealizesSigma step.stackAfter step.coreAfter
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.reservationInvariant`
+
+Kind: theorem.
+
+Strict singleton tensor-plus-par unification preserves the complete
+reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.firedConnectives_eq_add_two`
+
+Kind: theorem.
+
+The executable core performs exactly two connective constructions: one
+tensor followed by one par activation.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.firedConnectives_eq_add_two : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  step.coreAfter.firedConnectives = step.prepared.coreMarked.firedConnectives + 2
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.tensor_then_par_components`
+
+Kind: theorem.
+
+The successful composite contains both concrete component-tree writes in
+the required order: the tensor state is constructed first, and the final core
+is obtained by wrapping one component with the exact waiting par.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.tensor_then_par_components : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  step.coreTensor.components =
+      (step.prepared.coreMarked.components.setIfInBounds (min step.tensorStep.leftToken step.tensorStep.rightToken)
+            (some
+              {
+                tree :=
+                  ProofNetIR.CutFreeDerivation.tensor step.tensorStep.leftFocus step.tensorStep.rightFocus
+                    step.tensorStep.leftComponent.tree step.tensorStep.rightComponent.tree,
+                frontier :=
+                  step.consumer.conclusion ::
+                    (step.tensorStep.leftContext ++ step.tensorStep.rightContext) })).setIfInBounds
+        (max step.tensorStep.leftToken step.tensorStep.rightToken) none ∧
+    step.coreAfter.components =
+      step.coreTensor.components.setIfInBounds step.activationStep.queueStep.outputToken
+        (some
+          {
+            tree :=
+              ProofNetIR.CutFreeDerivation.par step.activationStep.queueStep.leftFocus
+                step.activationStep.queueStep.rightFocus step.activationStep.queueStep.component.tree,
+            frontier := step.activationStep.queueStep.context ++ [step.waitingConclusion] })
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.exact`
+
+Kind: theorem.
+
+Exact scheduler fields, total counter delta, and stored tensor orientation
+of one successful singleton witness.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.exact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  step.stackAfter.sigma = step.mergeStep.sigmaPrefix ++ [step.previousBoundary] ∧
+    step.stackAfter.ready =
+        step.mergeStep.readyPrefix ++
+          [step.consumer.conclusion ::
+              (step.waitingConclusion :: step.mergeStep.previousReady ++ step.mergeStep.activeReady)] ∧
+      step.stackAfter.waiting =
+          step.prepared.stackResult.after.waiting.setIfInBounds step.previousBoundary
+            ProofNetIR.SequentialSchedulerState.WaitingCell.undefined ∧
+        step.coreAfter.firedConnectives = before.core.firedConnectives + 2 ∧
+          (step.consumer.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+              step.tensorStep.leftToken = step.prepared.stackResult.rawAge ∧
+                step.tensorStep.rightToken = step.previousBoundary ∨
+            step.consumer.side = ProofNetIR.TensorPremiseSide.storedRight ∧
+              step.tensorStep.leftToken = step.previousBoundary ∧
+                step.tensorStep.rightToken = step.prepared.stackResult.rawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.output_unique`
+
+Kind: theorem.
+
+The typed singleton witness has one exact output for fixed input and
+invariant proof.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (left : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before first)
+  (right : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before second), first = second
+```
+
+### `ProofNetIR.SequentialFigure7.unifyOne?_sound`
+
+Kind: theorem.
+
+Executable strict singleton unification is sound for the independent
+direct relation.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyOne?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyOne? certificate before invariant = some after →
+    ProofNetIR.SequentialFigure7.UnifyOneRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyOne?_reservationInvariant`
+
+Kind: theorem.
+
+Executable strict singleton tensor-plus-par unification preserves the
+complete reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyOne?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyOne? certificate before invariant = some after →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyOne?_complete_of_structural`
+
+Kind: theorem.
+
+On structurally valid input, the independent strict singleton relation is
+complete for the executable query when the separate deterministic-list
+duplicate-freedom condition is supplied.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyOne?_complete_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.UnifyOneExecutableReadyNodup certificate before →
+        ProofNetIR.SequentialFigure7.UnifyOneRule certificate before after →
+          ProofNetIR.SequentialFigure7.unifyOne? certificate before invariant = some after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyOne?_some_iff_rule_of_structural`
+
+Kind: theorem.
+
+Exact executable/declarative correspondence for strict singleton
+unification.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyOne?_some_iff_rule_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.UnifyOneExecutableReadyNodup certificate before →
+        (ProofNetIR.SequentialFigure7.unifyOne? certificate before invariant = some after ↔
+          ProofNetIR.SequentialFigure7.UnifyOneRule certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneRule.output_unique_of_structural`
+
+Kind: theorem.
+
+Under the explicit correspondence premises, the independent strict
+singleton relation has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneRule.output_unique_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      ProofNetIR.SequentialFigure7.UnifyOneExecutableReadyNodup certificate before →
+        ProofNetIR.SequentialFigure7.UnifyOneRule certificate before first →
+          ProofNetIR.SequentialFigure7.UnifyOneRule certificate before second → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyOneStep.schedulerInvariant`
+
+Kind: theorem.
+
+A successful strict-singleton tensor-plus-par unification preserves every
+field of the occurrence-exact state-only scheduler invariant.  This is a
+preservation theorem for the exact singleton branch only; it does not assert
+applicability, dispatcher progress, arbitrary nonempty-payload iteration, or
+full unification totality.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyOneStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyOneStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyOne?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable strict-singleton `unifyOne?` success preserves the complete
+current scheduler invariant.  The theorem covers exactly one waiting par
+conclusion and makes no arbitrary-payload or dispatcher-totality claim.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyOne?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyOne? certificate before ⋯ = some after →
     ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 

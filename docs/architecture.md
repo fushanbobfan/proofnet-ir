@@ -399,8 +399,24 @@ execution preserves `ReservationInvariant`: the proof transports
 `parent[i] := j` union. The stronger successful-step theorem additionally
 transports the exact tensor-derived component witness through the
 survivor/retired forest merge and preserves every remaining state-only
-`SchedulerInvariant` field. This is still only a local bounded result and does
-not activate a nonempty waiting payload.
+`SchedulerInvariant` field. This remains the empty-payload branch.
+
+`SequentialFigure7UnifyOne.lean` adds the next deliberately bounded branch:
+`unifyOne?` accepts exactly `W(j) = [c]`. `waitingParProducer?` resolves `c`
+through the occurrence source index to a singleton bucket containing its exact
+submitted par slot and stored orientation; missing, ambiguous, position-mismatched,
+non-par, and malformed sources fail closed. One successful transition is
+atomic in the order prepare, tensor construction/union, activation of that one
+waiting par, then the two-level scheduler drain. Independent Boolean-free
+`WaitingParActivationRule` and `UnifyOneRule` relations do not call the rule
+executables or mutation wrappers. Lean proves typed/executable correspondence,
+output uniqueness, `ReservationInvariant` preservation, complete
+occurrence-exact `SchedulerInvariant` preservation, and an exact connective
+counter increase of two. Empty and length-at-least-two waiting payloads are
+rejected by this executable. The paper's `unify` presentation moves `W(j)`
+into ready; constructing the corresponding par derivation before that move is
+the project's provenance-carrying representation refinement, not an assertion
+that Guerrini states that extra construction.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
@@ -425,12 +441,12 @@ The successful local `forward?` now composes `queuePar?` with the active-ready
 prepend. The primitives remain independently useful lower-level mutations and
 do not by themselves state a complete rule.
 Directly composing `queueTensor?` with `mergeTopReadyWaiting?` for a nonempty
-old waiting cell cannot yet establish the semantic invariant: the stack move
-exposes delayed conclusions in ready before the production core has built the
-corresponding par derivations, and the core counter has increased by only one
-instead of `1 + |W(j)|`. The bounded empty-waiting-cell composition is now
-implemented as `UnifyEmpty`; the general nonempty `unify` wrapper still needs a
-typed waiting-payload activation fold.
+old waiting cell cannot by itself establish the semantic invariant: the stack
+move exposes delayed conclusions in ready before the production core has built
+the corresponding par derivations, and the core counter has increased by only
+one instead of `1 + |W(j)|`. `UnifyOne` closes exactly the singleton case with
+one producer-exact par activation and a `+2` counter result. Arbitrary payloads
+of length at least two still require a typed waiting-payload activation fold.
 
 `SequentialSchedulerInvariant.lean` now supplies that semantic foundation
 without defining reachability in terms of the invariant. The bundle carries
@@ -501,24 +517,24 @@ construction, live-frontier replacement, active-ready insertion, unchanged
 waiting spans, pending-premise transport, and exact counter increment. Its
 extra ready-list `Nodup` guard is only fail-closed shape validation. Independent
 Boolean-free `ForwardRule` semantics and successful-step correspondence are now
-present. The bounded Boolean-free `UnifyEmptyRule` and executable
-correspondence are also present; every successful typed/executable bounded
-step preserves this stronger state-only invariant. Forward
-applicability/totality, complete nonempty `unify`, dispatcher progress, and
+present. The bounded Boolean-free `UnifyEmptyRule` and strict-singleton
+`UnifyOneRule` executable correspondences are also present; every successful
+typed/executable bounded step preserves this stronger state-only invariant.
+Forward/UnifyOne applicability and totality, arbitrary-payload activation,
+dispatcher progress, and
 scheduler/pure-worklist completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
-Complete nonempty `Unify` and reachability of global waiting-payload ownership
-through that rule remain open, as does integration of
-`concl`/`nop`/`wait`/`forward`/`UnifyEmpty` into a full
+The full arbitrary-payload `Unify` fold and reachability of global
+waiting-payload ownership through it remain open, as does integration of
+`concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` into a full
 rule history/dispatcher, later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open. Full
-`unify` must additionally construct or activate the par components drained
-from nonempty `W(j)` with their additional counter increments; the exact
-representative-to-`j/i` bridge and parent orientation are proved only for the
-bounded empty-cell slice. Future guards must continue to compare
+the arbitrary fold must construct or activate every par component drained
+from `W(j)` and prove `1 + |W(j)|` counter accounting; the singleton instance
+is now proved, but no induction over longer payloads is claimed. Future guards must continue to compare
 raw assigned ages, not union-find representatives. The current global
 ready/waiting absence check scans stored lists and is not a linearity result.
 The separate event-driven worklist tier described next is already implemented.
@@ -781,7 +797,7 @@ active-reference walks between marked occurrences are equivalent to
   waiting update. Every successful typed/executable `new` now preserves the
   complete current occurrence-exact state-only `SchedulerInvariant`; the
   same is now true for every successful typed/executable `wait`, `forward`, and
-  bounded `UnifyEmpty`.
+  bounded `UnifyEmpty` and strict-singleton `UnifyOne`.
   None of these theorems supplies applicability, success, reachability, or
   totality. Reset
   tags can replay low-level
@@ -791,12 +807,12 @@ active-reference walks between marked occurrences are equivalent to
   proof-relevant `InitNewHistory` now characterizes exact empty/init/new
   executions and proves tag provenance, global submitted-slot non-reuse, and
   reservation-count alignment. This fragment is not a full reachable
-  scheduler. The local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules now exist outside
+  scheduler. The local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` rules now exist outside
   this history; `wait` has exact-span/queue preservation and `forward` has
   exact submitted-par/forest/frontier/queue/pending/counter preservation, while
-  bounded `UnifyEmpty` preserves the same full state-only invariant. Full-history
-  integration, complete `unify`, and activation of drained waiting payloads
-  remain open. Planarity
+  bounded `UnifyEmpty` and strict-singleton `UnifyOne` preserve the same full
+  state-only invariant. Full-history integration and the arbitrary waiting-
+  payload activation fold remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -810,11 +826,12 @@ invariant-bound operational local `new` transition in the delayed
 separate display-only helper. Exact init/new execution history is integrated;
 successful `new`, `wait`, and `forward` preserve the full current state-only
 invariant, and Forward additionally has an independent Boolean-free direct
-  relation with exact executable correspondence. Bounded `UnifyEmpty` has its own
-  direct correspondence, and its successful typed/executable steps preserve the
-  complete occurrence-exact `SchedulerInvariant`. Later-state
-applicability/totality, complete nonempty `unify`, full-history integration of
-the local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules, a full-rule
+  relation with exact executable correspondence. Bounded `UnifyEmpty` and
+  strict-singleton `UnifyOne` have direct correspondences, and their successful
+  typed/executable steps preserve the complete occurrence-exact
+  `SchedulerInvariant`. Later-state applicability/totality, the arbitrary
+payload fold, full-history integration of the local
+`concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` rules, a full-rule
 reachable-state invariant, and
 later-state scheduler totality are not. General
 checker-accepted sequentialization remains complete through the recursive

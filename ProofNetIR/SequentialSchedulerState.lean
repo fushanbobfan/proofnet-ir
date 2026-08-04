@@ -876,6 +876,136 @@ theorem mergeTopReadyWaiting?_exact
     sigmaEquation, readyEquation, waitingInitialized,
     rfl, rfl, rfl, by simp [boundaryBound], rfl, rfl⟩
 
+/-- Replacing one known list element by a value with empty mapped payload
+removes exactly the old mapped payload, up to permutation. -/
+private theorem flatMap_set_erased_payload_perm
+    {α β : Type} {values : List α} {index : Nat}
+    {before after : α} {mapping : α → List β}
+    (lookup : values[index]? = some before)
+    (erased : mapping after = []) :
+    ((values.set index after).flatMap mapping ++ mapping before).Perm
+      (values.flatMap mapping) := by
+  induction values generalizing index with
+  | nil => simp at lookup
+  | cons head tail induction =>
+      cases index with
+      | zero =>
+          simp at lookup
+          subst before
+          simpa [erased] using
+            (List.perm_append_comm :
+              (tail.flatMap mapping ++ mapping head).Perm
+                (mapping head ++ tail.flatMap mapping))
+      | succ prior =>
+          simp only [List.getElem?_cons_succ] at lookup
+          simp only [List.set, List.flatMap_cons]
+          simpa [List.append_assoc] using
+            (induction lookup).append_left (mapping head)
+
+/-- Making one known initialized waiting cell undefined removes exactly that
+cell's complete payload from the flattened waiting table, up to permutation. -/
+private theorem waiting_set_undefined_erases_payload_perm
+    {waiting : Array WaitingCell} {boundary : RawTokenAge}
+    {payload : List Vertex}
+    (lookup : waiting[boundary]? = some (.initialized payload)) :
+    (((waiting.setIfInBounds boundary .undefined).toList.flatMap
+          WaitingCell.vertices) ++ payload).Perm
+      (waiting.toList.flatMap WaitingCell.vertices) := by
+  rw [Array.toList_setIfInBounds]
+  apply flatMap_set_erased_payload_perm
+      (values := waiting.toList) (index := boundary)
+      (before := .initialized payload) (after := .undefined)
+      (mapping := WaitingCell.vertices)
+  · simpa using lookup
+  · rfl
+
+/-- Moving one element behind an arbitrary prefix to the front preserves the
+remaining prefix and suffix as an exact permutation. -/
+private theorem perm_insert_after
+    {α : Type} (initial suffix : List α) (inserted : α) :
+    (initial ++ inserted :: suffix).Perm
+      (inserted :: (initial ++ suffix)) := by
+  induction initial with
+  | nil => simp
+  | cons head tail induction =>
+      simp only [List.cons_append]
+      exact (List.Perm.cons head induction).trans
+        (List.Perm.swap inserted head (tail ++ suffix))
+
+/-- A two-level merge drains an arbitrary waiting payload without losing or
+duplicating queued occurrences: the output queue is exactly the input queue
+plus the newly queued conclusion, up to permutation. -/
+theorem MergeTopReadyWaitingStep.queuedVertices_perm
+    {before after : SequentialStackState}
+    {previousBoundary : RawTokenAge} {conclusion : Vertex}
+    (step : MergeTopReadyWaitingStep before after
+      previousBoundary conclusion) :
+    after.queuedVertices.Perm
+      (conclusion :: before.queuedVertices) := by
+  rcases step with
+    ⟨sigmaPrefix, activeBoundary, readyPrefix,
+      previousReady, activeReady, payload,
+      sigmaEquation, readyEquation, waitingInitialized, rfl⟩
+  have waitingPermutation :=
+    waiting_set_undefined_erases_payload_perm waitingInitialized
+  have payloadRotation :
+      (payload ++ previousReady ++ activeReady ++
+          (before.waiting.setIfInBounds previousBoundary .undefined).toList.flatMap
+            WaitingCell.vertices).Perm
+        (previousReady ++ activeReady ++
+          ((before.waiting.setIfInBounds previousBoundary .undefined).toList.flatMap
+            WaitingCell.vertices ++ payload)) := by
+    simpa [List.append_assoc] using
+      (List.perm_append_comm :
+        (payload ++
+          (previousReady ++ activeReady ++
+            (before.waiting.setIfInBounds previousBoundary .undefined).toList.flatMap
+              WaitingCell.vertices)).Perm
+          ((previousReady ++ activeReady ++
+            (before.waiting.setIfInBounds previousBoundary .undefined).toList.flatMap
+              WaitingCell.vertices) ++ payload))
+  have waitingWithReady :
+      (previousReady ++ activeReady ++
+          ((before.waiting.setIfInBounds previousBoundary .undefined).toList.flatMap
+            WaitingCell.vertices ++ payload)).Perm
+        (previousReady ++ activeReady ++
+          before.waiting.toList.flatMap WaitingCell.vertices) := by
+    simpa [List.append_assoc] using
+      waitingPermutation.append_left (previousReady ++ activeReady)
+  have tailPermutation :
+      (readyPrefix.flatten ++
+          (payload ++ previousReady ++ activeReady ++
+            (before.waiting.setIfInBounds previousBoundary .undefined).toList.flatMap
+              WaitingCell.vertices)).Perm
+        (readyPrefix.flatten ++
+          (previousReady ++ activeReady ++
+            before.waiting.toList.flatMap WaitingCell.vertices)) :=
+    (payloadRotation.trans waitingWithReady).append_left readyPrefix.flatten
+  unfold queuedVertices waitingVertices
+  rw [readyEquation]
+  simp only [List.flatten_append, List.flatten_cons, List.flatten_nil,
+    List.append_nil, List.append_assoc, List.cons_append]
+  simpa only [List.append_assoc] using
+    (perm_insert_after readyPrefix.flatten
+      (payload ++ previousReady ++ activeReady ++
+        (before.waiting.setIfInBounds previousBoundary .undefined).toList.flatMap
+          WaitingCell.vertices)
+      conclusion).trans
+      (tailPermutation.cons conclusion)
+
+/-- Membership transport for an arbitrary-payload two-level merge: an
+occurrence is queued afterwards exactly when it is the new conclusion or was
+already queued before the merge. -/
+theorem MergeTopReadyWaitingStep.mem_queuedVertices_iff
+    {before after : SequentialStackState}
+    {previousBoundary : RawTokenAge} {conclusion vertex : Vertex}
+    (step : MergeTopReadyWaitingStep before after
+      previousBoundary conclusion) :
+    vertex ∈ after.queuedVertices ↔
+      vertex = conclusion ∨ vertex ∈ before.queuedVertices := by
+  rw [step.queuedVertices_perm.mem_iff]
+  simp
+
 /-- Empty fixed-carrier scheduler storage. -/
 def empty (carrierSize : Nat) : SequentialStackState where
   marks := Array.replicate carrierSize none
@@ -929,6 +1059,43 @@ structure OperationalWaitingDomain
   initialized_iff_inactive :
     ∀ {age : RawTokenAge}, age < state.nextAge →
       (state.WaitingInitializedAt age ↔ age ∈ state.sigma.dropLast)
+
+/-- In a two-level scheduler state, an allocated initialized boundary whose
+payload contains an occurrence lies strictly before the previous boundary,
+provided it is not that previous boundary itself.  No restriction is placed
+on the payload stored at the previous boundary. -/
+theorem OperationalWaitingDomain.payload_boundary_lt_previous_of_ne
+    {state : SequentialStackState}
+    (domain : state.OperationalWaitingDomain)
+    (partition : SigmaAgePartition state.nextAge state.sigma)
+    {sigmaPrefix : List RawTokenAge}
+    {previous active boundary : RawTokenAge}
+    {payload : List Vertex} {conclusion : Vertex}
+    (sigmaEquation :
+      state.sigma = sigmaPrefix ++ [previous, active])
+    (boundaryBound : boundary < state.nextAge)
+    (waitingLookup :
+      state.waiting[boundary]? = some (.initialized payload))
+    (_conclusionMembership : conclusion ∈ payload)
+    (boundaryNePrevious : boundary ≠ previous) :
+    boundary < previous := by
+  have inactiveMembership :
+      boundary ∈ state.sigma.dropLast :=
+    (domain.initialized_iff_inactive boundaryBound).mp
+      ⟨payload, waitingLookup⟩
+  have reducedMembership :
+      boundary ∈ sigmaPrefix ++ [previous] := by
+    rw [sigmaEquation] at inactiveMembership
+    simpa [List.append_assoc] using inactiveMembership
+  have increasing := partition.strictIncreasing
+  rw [sigmaEquation] at increasing
+  have prefixBeforeSuffix :=
+    (List.pairwise_append.mp increasing).2.2
+  simp only [List.mem_append, List.mem_singleton]
+    at reducedMembership
+  rcases reducedMembership with inPrefix | equal
+  · exact prefixBeforeSuffix boundary inPrefix previous (by simp)
+  · exact (boundaryNePrevious equal).elim
 
 /-- In a two-level scheduler state, any allocated waiting cell that actually
 contains an occurrence lies strictly before the previous boundary when that

@@ -792,17 +792,19 @@
     submitted par occurrence and non-strict raw-age guard while factoring the
     executable active-ready `Nodup` refinement into a separate predicate.
     Direct soundness and structurally valid completeness/iff/output uniqueness
-    are kernel checked for Forward and bounded `UnifyEmpty`; Forward additionally
+    are kernel checked for Forward, bounded `UnifyEmpty`, and strict-singleton
+    `UnifyOne`; Forward additionally
     has scheduler-invariant completeness/iff. The corresponding direct layer
-    for `new`, nonempty-payload activation, and complete `unify` remain open.
+    for `new` and the arbitrary-payload activation fold remain open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
     route-local later-call freshness, integrate the local initialized-cell
     `wait` rule into full history, integrate the successful local `forward` and
-    bounded `UnifyEmpty`, implement complete nonempty-payload `unify` under the
+    bounded `UnifyEmpty` and strict-singleton `UnifyOne`, implement the
+    arbitrary-payload activation fold under the
     operational waiting domain, and integrate the already-local
-    `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules into a complete
+    `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`/`UnifyOne` rules into a complete
     history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
     the forest is integrated for empty/init and the common prepared prefix,
@@ -848,10 +850,21 @@
     forest ownership, and transport live-frontier, queue/waiting/pending, and
     fired-counter fields. This remains local successful-step preservation, not
     applicability, dispatcher progress, history, or reachability.
-  - [ ] Complete nonempty-payload `unify` with a typed activation fold
+  - [x] Implement strict-singleton `W(j) = [c]` `UnifyOne`. Recover `c`'s
+    exact submitted par producer/source slot, perform the atomic
+    prepare → tensor union → one waiting-par activation → scheduler drain,
+    and prove the independent Boolean-free direct relations,
+    typed/executable correspondence, output uniqueness, exact `+2` counter
+    equation, `ReservationInvariant`, and complete occurrence-exact
+    `SchedulerInvariant` preservation. Reject empty and length-at-least-two
+    payloads. Treat the explicit par construction as the project's
+    derivation/provenance representation refinement of the paper's move of
+    `W(j)` into ready, not as a claim about the paper text.
+  - [ ] Complete arbitrary-payload `unify` with a typed activation fold
     constructing every drained waiting par and accounting for
     the exact `1 + |W(j)|` counter change; a direct nonempty-payload stack merge
-    is insufficient for `ReadyBucketFrontierExact`. Establish the
+    is insufficient for `ReadyBucketFrontierExact`. The singleton base case is
+    complete; the fold for payload length at least two remains open. Establish the
     special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before
