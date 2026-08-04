@@ -73,17 +73,32 @@
   queue `Nodup`, and adds exactly the strict older/younger `WaitingSpanExact`
   witness without incrementing the production counter. A six-occurrence
   init/`nop`/`new`/`wait` regression exercises this full-invariant path.
-  These are conditional successful-step theorems, not dispatcher
-  applicability, full-rule reachability, or progress. Complete
-  `forward`/`unify`, dispatcher/history integration, later-state totality,
-  pure-worklist completeness, recursive-fallback removal, faithful
-  `NEXTAXIOM`/token-age scheduling, and whole-program linearity remain open;
+  Successful typed `ForwardStep` and executable `forward?` now compose the
+  common prepared prefix with the exact submitted par occurrence, the paper's
+  non-strict raw-age guard `selectedRawAge ≤ mateRawAge`, production par
+  queuing, and insertion of the new conclusion into the active ready bucket.
+  A locked theorem regression proves `sigmaBoundary? [0] 1 = some 0`, covering
+  the distinct-age boundary case used by this guard. The
+  additional active-ready `Nodup` test is only a fail-closed list-shape check;
+  it is not part of the paper guard. `ForwardStep.schedulerInvariant` and
+  `forward?_schedulerInvariant` preserve the complete occurrence-exact bundle,
+  including the submitted par position, component forest and live frontier,
+  ready/waiting queue facts, waiting spans, pending-premise coverage, and the
+  exact fired-connective count. A typed `init → nop → forward → concl`
+  regression exercises that path. These remain conditional successful-step
+  theorems, not applicability, totality, dispatcher, history, reachability, or
+  progress. An independent Boolean-free `ForwardRule` and its direct
+  completeness/equivalence layer, `unify`, pure-worklist completeness,
+  recursive-fallback removal, faithful `NEXTAXIOM`/token-age scheduling, and
+  whole-program linearity remain open;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
   `positional`, `mem_remaining_of_ne`, and `two_of_mem` wrappers for future
   deterministic waiting-payload activation while retaining the recursive
   executable picker as a private implementation detail;
-- added four bounded production-core primitives needed by later Figure-7
-  `forward`/`unify`, without claiming either complete rule.
+- added four bounded production-core primitives. The par/ready primitives now
+  support the successful local executable/typed Figure-7 `forward`; the tensor
+  and two-level merge primitives remain building blocks for later `unify`.
+  The primitives by themselves do not state either complete rule.
   `Certificate.queuePar?` and `Certificate.queueTensor?` reuse the production
   first-occurrence picker and formula-consistent component constructors while
   deliberately leaving each connective conclusion raw-unmarked for a later
@@ -141,8 +156,11 @@
   `ConclStep`/`NopStep`/`WaitStep` records remain exact
   equation-backed executable witnesses for compatibility. The pure query
   rebuilds the consumer table and is not a whole-program linearity claim.
-  `forward`, `unify`, a full-rule history/dispatcher, payload
-  ownership, progress, and completeness remain open;
+  Executable/typed successful-step `forward` is now present as described above,
+  but an independent Boolean-free `ForwardRule` and direct
+  completeness/equivalence theorem are not. `unify`, a full-rule
+  history/dispatcher, applicability/totality, reachability, progress, and
+  completeness remain open;
 - added `SequentialFigure7History.lean`, a proof-relevant execution history
   restricted to the exact empty/init/operational-new reservation fragment.
   Kernel-checked theorems prove output tags are true exactly at vertices
@@ -151,8 +169,11 @@
   delayed raw-age horizon and the production started-axiom counter. This is
   deliberately not a generic Figure-7 history: the executable non-reserving
   `concl`, `nop`, and local `wait` rules require separate rule-step and
-  reservation-count accounting, while `forward` and `unify` remain
-  unimplemented and `wait` remains outside this history.
+  reservation-count accounting. At the point this history fragment was
+  introduced, `forward` and `unify` were unimplemented and `wait` remained
+  outside the history. The newer executable `forward` and local `wait` still
+  remain outside this deliberately init/new-only history, while `unify` remains
+  unimplemented.
   Equation-backed bounded and production-wrapper theorems prove
   exact true-tag origin without changing the public `NextAxiomResult` record,
   so existing manual record constructors remain source compatible. The
@@ -180,10 +201,11 @@
   performs synchronized pop/raw-mark, uses the fixed sound-and-complete
   consumer index for orientation-aware tensor-mate lookup, runs `NEXTAXIOM`
   in the post-mark state, and finishes with the operational later reservation.
-  This proves a local transition only. The local `concl`, `nop`, and `wait`
-  rules are now implemented separately; `forward`, `unify`, later-state
-  totality, correct-state progress, pure-worklist completeness, fallback
-  removal, and whole-program linearity remain open;
+  This proves a local transition only. The local `concl`, `nop`, `wait`, and
+  successful executable/typed `forward` rules are now implemented separately;
+  an independent direct `ForwardRule`, `unify`, later-state totality,
+  correct-state progress, pure-worklist completeness, fallback removal, and
+  whole-program linearity remain open;
 - extended `ProofNetIR/SequentialSchedulerBridge.lean` from the first carrier
   bridge to a typed initial/later reservation checkpoint. `ReservationState`
   keeps delayed stack, production core, and the complete search-tag array
@@ -227,12 +249,12 @@
   separate operational local `new` module now supplies pop-before-mark,
   binary-mate handling, raw-age marking, and post-mark search; the local
   `wait` transition is implemented separately. Full-scheduler reachability,
-  ready/waiting payload ownership, `forward`/`unify`, full-history integration
-  of local `concl`/`nop`/`wait`, later totality,
+  ready/waiting payload ownership through `unify`, full-history integration of
+  local `concl`/`nop`/`wait`/`forward`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 259 full-classical, 23 axiom-free, 87 `propext`-only, and
-  78 `propext`/`Quot.sound` theorems;
+  audit covers 272 full-classical, 23 axiom-free, 87 `propext`-only, and
+  79 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
   production unifier. `RawTokenAge` records discovery order and is explicitly
@@ -255,10 +277,12 @@
   wrappers, complete-tag axiom-link-index replay exclusion for composable
   calls, later `RealizesSigma` preservation, and the bundled
   `ReservationInvariant`.
-  Later `NEXTAXIOM` totality, the complete Figure-7 transition system,
-  ready/waiting payload ownership, `forward`/`unify`, full-history
-  integration of local `concl`/`nop`/`wait`, progress,
-  completeness, fallback removal, and whole-program linearity remain open;
+  At that state-layer checkpoint, later `NEXTAXIOM` totality, the complete
+  Figure-7 transition system, ready/waiting payload ownership,
+  `forward`/`unify`, full-history integration of local `concl`/`nop`/`wait`,
+  progress, completeness, fallback removal, and whole-program linearity
+  remained open. The newer successful local `forward` checkpoint is described
+  above;
 - added `ProofNetIR/SequentialUnification.lean` as the first bounded
   Figures 7–8 checkpoint without claiming the full scheduler. A reusable
   occurrence-source index is built once, and Lean proves every stored
@@ -299,13 +323,14 @@
   rank budget, a depth-two exact boundary where rank fuel fails and
   `rank + 1` succeeds, and dynamic token allocation. The separate reservation
   wrapper now threads complete tags and preserves its initial/later invariant,
-  including `OperationalWaitingDomain`; the separate local `new` layer now
-  supplies pop-before-mark, binary-mate lookup, raw-age marking, and post-mark
-  search. Later-state start totality, ready/waiting payload ownership,
-  full-history integration of the newer local `wait`, the `forward`/`unify`
-  payload rules, the remaining scheduler transitions, full
+  including `OperationalWaitingDomain`; the separate local `new` layer then
+  supplied pop-before-mark, binary-mate lookup, raw-age marking, and post-mark
+  search. At that checkpoint, later-state start totality, ready/waiting payload
+  ownership, full-history integration of the newer local `wait`, the
+  `forward`/`unify` payload rules, the remaining scheduler transitions, full
   scheduler correctness and cost, correct-state progress, pure-worklist
-  completeness, fallback removal, and whole-program linearity remain open;
+  completeness, fallback removal, and whole-program linearity remained open.
+  The newer successful local `forward` checkpoint is described above;
 - narrowed the flat-scheduler confluence route. Exact concrete-state
   confluence is refuted by a derivation-generated correct certificate, while
   structural-only confluence is refuted by a structurally well-formed

@@ -326,9 +326,9 @@ rule steps from axiom-reservation events.
 `SequentialFigure7Rules.lean` adds a generic proof-carrying binary-consumer
 view over the canonical consumer index, an explicit-conclusion view requiring
 declared membership, local `NodeWellFormed` ownership, and an exactly empty
-bucket, plus the synchronized `prepare?` prefix. `concl?`, `nop?`, and
-`wait?` have
-dependent executable specifications and preserve the reservation invariant.
+bucket, plus the synchronized `prepare?` prefix. `concl?`, `nop?`, `wait?`, and
+`forward?` have dependent executable specifications and preserve the
+reservation invariant.
 `concl` and `nop` return only the prefix state; `wait` then updates one exact
 initialized waiting bucket. The ownership and empty-bucket guards
 in `concl` reject out-of-range or unproduced declared boundaries;
@@ -356,7 +356,22 @@ par to `WaitingSpanExact`; the component forest and logical firing counter stay
 unchanged. This is still a determinized list-level successful-step theorem,
 not a complete dispatcher, applicability, or reachability result.
 
-`Unification.lean` now contains the narrower production-core
+`forward?` composes the same prepared prefix with the exact submitted par
+occurrence, requires the mate's raw mark and the paper's non-strict guard
+`selectedRawAge ≤ mateRawAge`, queues that par in the production component,
+and prepends its conclusion to the active ready bucket. A separate theorem
+regression covers the distinct-age boundary case
+`sigmaBoundary? [0] 1 = some 0`. The additional active-ready `Nodup` guard is
+only a fail-closed shape check, not part of the paper rule. Every successful
+typed `ForwardStep` and executable `forward?` preserves the complete
+occurrence-exact `SchedulerInvariant`: the submitted par position,
+component-occurrence forest, live frontier, ready/waiting queue, waiting spans,
+pending-premise coverage, and fired-connective counter all transport exactly.
+A typed `init → nop → forward → concl` regression checks this composition.
+There is not yet an independent Boolean-free `ForwardRule` or its direct
+soundness/completeness correspondence.
+
+`Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
 component constructors and preserve raw marks so the queued conclusion is not
 prematurely assigned. Separate theorems preserve formula consistency only
@@ -375,6 +390,9 @@ choice. Component-frontier derivation/exchange order is not scheduler-ready
 list order; the eventual wrapper must relate them by membership/permutation,
 not definitional list equality. Shape preservation requires explicit merged
 `Nodup` and payload-bound proofs and performs no global queue scan.
+The successful local `forward?` now composes `queuePar?` with the active-ready
+prepend. The primitives remain independently useful lower-level mutations and
+do not by themselves state a complete rule.
 Directly composing `queueTensor?` with `mergeTopReadyWaiting?` for a nonempty
 old waiting cell cannot yet establish the semantic invariant: the stack move
 exposes delayed conclusions in ready before the production core has built the
@@ -446,17 +464,22 @@ for every intended later state and do not establish reachability. Successful
 typed/executable `wait` now preserves the same complete state-only invariant:
 the prepared state supplies the existing live owner, exact submitted-par
 source lookup fixes positional identity, and the waiting-cell cons preserves
-the global queue while adding one strict waiting span. Complete
-`forward`/`unify`, dispatcher progress, and completeness remain open.
+the global queue while adding one strict waiting span. Successful
+typed/executable `forward` preserves that invariant through exact submitted-par
+construction, live-frontier replacement, active-ready insertion, unchanged
+waiting spans, pending-premise transport, and exact counter increment. Its
+extra ready-list `Nodup` guard is only fail-closed shape validation. Independent
+Boolean-free Forward semantics, `unify`, dispatcher progress, and completeness
+remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
-The complete `forward`/`unify` payload rules, preservation and reachability of
-global waiting-payload ownership through those rules, integration of
-`concl`/`nop`/`wait` into a full rule history/dispatcher, later-state totality,
-correct-state progress,
-pure-worklist completeness, fallback removal, and whole-program linearity
-remain open. Full `unify` must additionally bind the tensor representatives
+`Unify`, preservation and reachability of global waiting-payload ownership
+through that rule, integration of `concl`/`nop`/`wait`/`forward` into a full
+rule history/dispatcher, later-state totality, correct-state progress,
+pure-worklist completeness, fallback removal, faithful
+`NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open. Full
+`unify` must additionally bind the tensor representatives
 to exact scheduler `j/i`, orient `parent[i] := j`, and construct or activate
 the par components drained from `W(j)` with their additional counter
 increments. Future guards must continue to compare
@@ -721,8 +744,9 @@ active-reference walks between marked occurrences are equivalent to
   post-mark search, and later reservation with the old-boundary/fresh-top
   waiting update. Every successful typed/executable `new` now preserves the
   complete current occurrence-exact state-only `SchedulerInvariant`; the
-  same is now true for every successful typed/executable `wait`. Neither
-  theorem supplies applicability, success, reachability, or totality. Reset
+  same is now true for every successful typed/executable `wait` and `forward`.
+  None of these theorems supplies applicability, success, reachability, or
+  totality. Reset
   tags can replay low-level
   search, but the operational
   stack guard rejects endpoints already stored in ready or waiting payloads;
@@ -730,9 +754,10 @@ active-reference walks between marked occurrences are equivalent to
   proof-relevant `InitNewHistory` now characterizes exact empty/init/new
   executions and proves tag provenance, global submitted-slot non-reuse, and
   reservation-count alignment. This fragment is not a full reachable
-  scheduler. The local `concl`/`nop`/`wait` rules now exist outside this
-  history; `wait` has state-only exact-span/queue preservation, but full-history
-  integration, `forward`/`unify`, and activation of drained waiting payloads
+  scheduler. The local `concl`/`nop`/`wait`/`forward` rules now exist outside
+  this history; `wait` has exact-span/queue preservation and `forward` has
+  exact submitted-par/forest/frontier/queue/pending/counter preservation, but
+  full-history integration, `unify`, and activation of drained waiting payloads
   remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
@@ -745,11 +770,11 @@ eagerly and uses flat waiting requeues. The separate bounded/tagged
 invariant-bound operational local `new` transition in the delayed
 `SequentialSchedulerState`. The literal printed fresh-cell update remains a
 separate display-only helper. Exact init/new execution history is integrated;
-successful `new` and `wait` preserve the full current state-only invariant, but
-later-state `new?` success/totality, ready/waiting payload ownership across the
-remaining rules, `forward`/`unify`, full-history
-integration of the local `concl`/`nop`/`wait` rules, a full-rule reachable-state
-invariant, and later-state scheduler totality are not. General
+successful `new`, `wait`, and `forward` preserve the full current state-only
+invariant, but later-state applicability/totality, `unify`, an independent
+Boolean-free `ForwardRule`, full-history integration of the local
+`concl`/`nop`/`wait`/`forward` rules, a full-rule reachable-state invariant, and
+later-state scheduler totality are not. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

@@ -787,15 +787,17 @@
     dependent witnesses remain as exact equation-backed executable
     compatibility records. `WaitRule` states the raw-age guard in
     `before.core.marks` and uses an exact proposition-level
-    `sigmaBoundary? = some boundary` equation. The relation and equivalence
-    layer for `forward`, `new`, and `unify` remains open.
+    `sigmaBoundary? = some boundary` equation. An independent Boolean-free
+    `ForwardRule` and its direct executable completeness/equivalence layer
+    remain open, as do the corresponding direct layers for `new` and `unify`.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
     route-local later-call freshness, integrate the local initialized-cell
-    `wait` rule into full history, implement `forward` and `unify` under the operational waiting
-    domain, and integrate the already-local `concl`/`nop`/`wait` rules into a
-    complete history/dispatcher. A proof-only exact component/link occurrence
+    `wait` rule into full history, integrate the successful local `forward`,
+    implement `unify` under the operational waiting domain, and integrate the
+    already-local `concl`/`nop`/`wait`/`forward` rules into a complete
+    history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
     the forest is integrated for empty/init and the common prepared prefix,
     so `concl`/`nop` preserve it.
@@ -809,8 +811,21 @@
     slot, global queue uniqueness/raw-unmarkedness, and strict waiting span
     without constructing or counting the delayed par. This remains
     successful-step preservation, not applicability, reachability, or progress.
-  - [ ] Preserve the strengthened invariant through complete `forward`/`unify`
-    queue transitions. Prove an empty-`W(j)` unify slice first, then add a typed
+  - [x] Implement successful typed `ForwardStep` and executable `forward?` with
+    the exact submitted par occurrence and the paper guard
+    `selectedRawAge ≤ mateRawAge`. Preserve the complete occurrence-exact
+    `SchedulerInvariant`, including the component forest/live frontier,
+    ready/waiting queue, waiting spans, pending coverage, and fired counter.
+    Keep the extra active-ready `Nodup` guard explicitly as a fail-closed shape
+    check, not a paper guard. Lock the non-equality boundary case and a typed
+    `init → nop → forward → concl` regression. This remains
+    successful-step preservation, not applicability, totality, dispatcher,
+    history, reachability, or progress; a Boolean-free `ForwardRule` and direct
+    completeness/equivalence theorem remain open. It does not establish pure
+    worklist completeness, fallback removal, faithful `NEXTAXIOM` sequencing,
+    or whole-program linearity.
+  - [ ] Preserve the strengthened invariant through complete `unify` queue
+    transitions. Prove an empty-`W(j)` unify slice first, then add a typed
     activation fold constructing every drained waiting par and accounting for
     the exact `1 + |W(j)|` counter change; a direct nonempty-payload stack merge
     is insufficient for `ReadyBucketFrontierExact`. Establish the

@@ -535,6 +535,93 @@ theorem frontier_subset_owned
           reorderEquation).mem_iff.mpr membership
       exact induction vertex oldMembership
 
+/-- Exact occurrence picks preserve local frontier linearity.  Unlike the
+value-level `frontier_subset_owned` lemma, this proof follows each positional
+pick (and each exchange permutation), so duplicate frontier occurrences cannot
+be hidden by ordinary membership. -/
+theorem frontier_nodup_of_owned_nodup
+    {certificate : Certificate}
+    {tree : CutFreeDerivation} {frontier usedLinks owned : List Nat}
+    (witness :
+      OccurrenceDerivation certificate tree frontier usedLinks owned)
+    (ownedNodup : owned.Nodup) :
+    frontier.Nodup := by
+  induction witness with
+  | «axiom» linkIndex left right name positive linkLookup leftFormula =>
+      simpa using ownedNodup
+  | par premiseWitness linkIndex left right conclusion leftFocus
+      rightFocus afterLeft context linkLookup leftPick rightPick induction =>
+      have ownedParts := List.nodup_cons.mp ownedNodup
+      have premiseNodup := induction ownedParts.2
+      have afterLeftWithPickNodup : (left :: afterLeft).Nodup :=
+        (CutFreeDerivation.pick?_perm leftPick.positional).nodup_iff.mp
+          premiseNodup
+      have afterLeftNodup :=
+        (List.nodup_cons.mp afterLeftWithPickNodup).2
+      have contextWithPickNodup : (right :: context).Nodup :=
+        (CutFreeDerivation.pick?_perm rightPick.positional).nodup_iff.mp
+          afterLeftNodup
+      apply List.nodup_append.mpr
+      refine ⟨(List.nodup_cons.mp contextWithPickNodup).2, by simp, ?_⟩
+      intro vertex contextMembership candidate candidateMembership
+      have candidateEq : candidate = conclusion := by
+        simpa using candidateMembership
+      subst candidate
+      intro same
+      subst vertex
+      apply ownedParts.1
+      apply premiseWitness.frontier_subset_owned conclusion
+      apply (CutFreeDerivation.pick?_perm leftPick.positional).mem_iff.mpr
+      apply List.mem_cons_of_mem left
+      apply (CutFreeDerivation.pick?_perm rightPick.positional).mem_iff.mpr
+      exact List.mem_cons_of_mem right contextMembership
+  | tensor leftWitness rightWitness linkIndex left right conclusion
+      leftFocus rightFocus leftContext rightContext linkLookup
+      leftPick rightPick leftInduction rightInduction =>
+      have ownedParts := List.nodup_cons.mp ownedNodup
+      have splitOwned := List.nodup_append.mp ownedParts.2
+      have leftFrontierNodup := leftInduction splitOwned.1
+      have rightFrontierNodup := rightInduction splitOwned.2.1
+      have leftPickedNodup : (left :: leftContext).Nodup :=
+        (CutFreeDerivation.pick?_perm leftPick.positional).nodup_iff.mp
+          leftFrontierNodup
+      have rightPickedNodup : (right :: rightContext).Nodup :=
+        (CutFreeDerivation.pick?_perm rightPick.positional).nodup_iff.mp
+          rightFrontierNodup
+      have leftContextNodup := (List.nodup_cons.mp leftPickedNodup).2
+      have rightContextNodup := (List.nodup_cons.mp rightPickedNodup).2
+      apply List.nodup_cons.mpr
+      constructor
+      · intro conclusionMembership
+        simp only [List.mem_append] at conclusionMembership
+        rcases conclusionMembership with leftMembership | rightMembership
+        · apply ownedParts.1
+          exact List.mem_append_left _
+            (leftWitness.frontier_subset_owned conclusion
+              ((CutFreeDerivation.pick?_perm leftPick.positional).mem_iff.mpr
+                (List.mem_cons_of_mem left leftMembership)))
+        · apply ownedParts.1
+          exact List.mem_append_right _
+            (rightWitness.frontier_subset_owned conclusion
+              ((CutFreeDerivation.pick?_perm rightPick.positional).mem_iff.mpr
+                (List.mem_cons_of_mem right rightMembership)))
+      · apply List.nodup_append.mpr
+        refine ⟨leftContextNodup, rightContextNodup, ?_⟩
+        intro leftVertex leftMembership rightVertex rightMembership same
+        have leftOwnedMembership :=
+          leftWitness.frontier_subset_owned leftVertex
+            ((CutFreeDerivation.pick?_perm leftPick.positional).mem_iff.mpr
+              (List.mem_cons_of_mem left leftMembership))
+        have rightOwnedMembership :=
+          rightWitness.frontier_subset_owned rightVertex
+            ((CutFreeDerivation.pick?_perm rightPick.positional).mem_iff.mpr
+              (List.mem_cons_of_mem right rightMembership))
+        exact splitOwned.2.2 leftVertex leftOwnedMembership rightVertex
+          rightOwnedMembership same
+  | exchange premiseWitness order reordered reorderEquation induction =>
+      exact (CutFreeDerivation.reorder?_perm reorderEquation).nodup_iff.mp
+        (induction ownedNodup)
+
 /-- Under certificate structural well-formedness, every owned formula
 occurrence is an in-bounds input vertex. -/
 theorem owned_inBounds
@@ -769,6 +856,17 @@ end OccurrenceDerivation
 
 namespace ComponentOccurrenceWitness
 
+/-- A locally linear occurrence witness has a duplicate-free exposed
+frontier.  The proof uses the derivation's exact positional picks, rather than
+merely the value-level inclusion of the frontier in `owned`. -/
+theorem frontier_nodup
+    {certificate : Certificate} {component : UnificationComponent}
+    {usedLinks owned : List Nat}
+    (witness :
+      ComponentOccurrenceWitness certificate component usedLinks owned) :
+    component.frontier.Nodup :=
+  witness.derivation.frontier_nodup_of_owned_nodup witness.owned_nodup
+
 /-- Exact locally linear witness for one submitted, well-formed axiom in its
 stored endpoint orientation. -/
 theorem axiom_of_submitted
@@ -828,6 +926,97 @@ theorem reserveAxiomAt?_componentOccurrenceWitness
       structural linkLookup leftFormula
 
 namespace ComponentForestProvenance
+
+private theorem flatMap_nodup_of_getElem?_local_disjoint
+    {α β : Type} [DecidableEq β]
+    (values : List α) (mapping : α → List β)
+    (locallyNodup : ∀ {index : Nat} {value : α},
+      values[index]? = some value →
+      (mapping value).Nodup)
+    (disjoint : ∀ {leftIndex rightIndex : Nat}
+        {leftValue rightValue : α},
+      values[leftIndex]? = some leftValue →
+      values[rightIndex]? = some rightValue →
+      leftIndex ≠ rightIndex →
+      ∀ candidate ∈ mapping leftValue,
+        candidate ∉ mapping rightValue) :
+    (values.flatMap mapping).Nodup := by
+  induction values with
+  | nil => simp
+  | cons head tail induction =>
+      rw [List.flatMap_cons, List.nodup_append]
+      refine ⟨locallyNodup (index := 0) (by simp), ?_, ?_⟩
+      · apply induction
+        · intro index value lookup
+          apply locallyNodup (index := index + 1)
+          simpa [Nat.add_comm] using lookup
+        · intro leftIndex rightIndex leftValue rightValue
+            leftLookup rightLookup different
+          apply disjoint (leftIndex := leftIndex + 1)
+            (rightIndex := rightIndex + 1)
+          · simpa [Nat.add_comm] using leftLookup
+          · simpa [Nat.add_comm] using rightLookup
+          · intro same
+            exact different (Nat.add_right_cancel same)
+      · intro leftVertex leftMembership rightVertex rightMembership same
+        subst rightVertex
+        rcases List.mem_flatMap.mp rightMembership with
+          ⟨rightValue, valueMembership, rightMembership⟩
+        rcases List.mem_iff_getElem?.mp valueMembership with
+          ⟨rightIndex, rightLookup⟩
+        exact (disjoint (leftIndex := 0)
+          (rightIndex := rightIndex + 1) (by simp)
+          (by simpa [Nat.add_comm] using rightLookup)
+          (Nat.zero_ne_add_one rightIndex) leftVertex leftMembership)
+            rightMembership
+
+/-- Occurrence-exact forest provenance already implies global duplicate
+freedom of all live component frontiers.  The statement is written against the
+component carrier directly so this upstream module does not import the
+downstream scheduler definition `UnificationState.liveFrontierVertices`. -/
+theorem liveFrontiers_nodup
+    {certificate : Certificate} {state : UnificationState}
+    (forest : certificate.ComponentForestProvenance state) :
+    (state.components.toList.flatMap fun cell =>
+      (cell.map UnificationComponent.frontier).getD []).Nodup := by
+  rcases forest with ⟨usedAt, ownedAt, live, separated, covered⟩
+  apply flatMap_nodup_of_getElem?_local_disjoint
+  · intro index cell cellLookup
+    cases cell with
+    | none => simp
+    | some component =>
+        have componentLookup :
+            state.components[index]? = some (some component) := by
+          rw [← Array.getElem?_toList]
+          exact cellLookup
+        simpa using (live componentLookup).1.frontier_nodup
+  · intro leftIndex rightIndex leftCell rightCell
+      leftLookup rightLookup different
+    cases leftCell with
+    | none => simp
+    | some leftComponent =>
+        cases rightCell with
+        | none => simp
+        | some rightComponent =>
+            have leftComponentLookup :
+                state.components[leftIndex]? =
+                  some (some leftComponent) := by
+              rw [← Array.getElem?_toList]
+              exact leftLookup
+            have rightComponentLookup :
+                state.components[rightIndex]? =
+                  some (some rightComponent) := by
+              rw [← Array.getElem?_toList]
+              exact rightLookup
+            have ownerSeparation :=
+              (separated leftComponentLookup rightComponentLookup
+                different).2
+            intro vertex leftFrontier rightFrontier
+            apply ownerSeparation vertex
+              ((live leftComponentLookup).1.derivation.frontier_subset_owned
+                vertex leftFrontier)
+            exact (live rightComponentLookup).1.derivation.frontier_subset_owned
+              vertex rightFrontier
 
 /-- Marking one occurrence preserves the complete component forest when the
 selected occurrence lies on the live frontier at the raw age's current
@@ -954,6 +1143,314 @@ theorem markReadyRaw?_of_root_frontier
     rw [root]
     exact componentLookup
   · exact equation
+
+/-- Replacing one exact live component by a submitted delayed-par extension
+preserves the complete occurrence-exact forest.
+
+The caller supplies the exact active component slot and proves that the new
+conclusion occurrence is absent from every old live owner.  This occurrence
+freshness also forces the submitted `linkIndex` to be absent from every old
+`usedAt` list: otherwise `usedConnectiveConclusion_owned` would put the same
+exact conclusion in that old owner.  No formula-label equality is used.
+
+The theorem updates only the active proof witnesses, from `usedAt`/`ownedAt`
+to `linkIndex :: usedAt` and `conclusion :: ownedAt`; every other witness is
+retained verbatim. -/
+theorem queueParStep_of_active_fresh
+    {certificate : Certificate}
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (forest : certificate.ComponentForestProvenance before)
+    (step : QueueParStep before after left right conclusion)
+    (linkIndex : Nat)
+    (linkLookup :
+      certificate.links[linkIndex]? =
+        some (.par left right conclusion))
+    (activeLookup :
+      before.components[step.outputToken]? =
+        some (some step.component))
+    (conclusionFresh :
+      ∀ {index component owned},
+        before.components[index]? = some (some component) →
+        OwnedOccurrenceAccounted before index component owned →
+        conclusion ∉ owned) :
+    certificate.ComponentForestProvenance after := by
+  rcases forest with ⟨usedAt, ownedAt, live, disjoint, covered⟩
+  let nextComponent : UnificationComponent := {
+    tree := .par step.leftFocus step.rightFocus step.component.tree
+    frontier := step.context ++ [conclusion] }
+  let newUsedAt : Nat → List Nat := fun index =>
+    if index = step.outputToken then
+      linkIndex :: usedAt index
+    else
+      usedAt index
+  let newOwnedAt : Nat → List Vertex := fun index =>
+    if index = step.outputToken then
+      conclusion :: ownedAt index
+    else
+      ownedAt index
+  have activeFacts := live activeLookup
+  have activeConclusionFresh :
+      conclusion ∉ ownedAt step.outputToken :=
+    conclusionFresh activeLookup activeFacts.2
+  have oldLinkFresh : ∀ {index component},
+      before.components[index]? = some (some component) →
+        linkIndex ∉ usedAt index := by
+    intro index component componentLookup linkUsed
+    have conclusionOwned : conclusion ∈ ownedAt index :=
+      (live componentLookup).1.derivation.usedConnectiveConclusion_owned
+        linkUsed (.inr linkLookup)
+    exact (conclusionFresh componentLookup (live componentLookup).2)
+      conclusionOwned
+  have nextWitness :
+      ComponentOccurrenceWitness certificate nextComponent
+        (linkIndex :: usedAt step.outputToken)
+        (conclusion :: ownedAt step.outputToken) := {
+    derivation := by
+      simpa [nextComponent] using
+        OccurrenceDerivation.ofQueueParStep step
+          activeFacts.1.derivation linkIndex linkLookup
+    usedLinks_nodup :=
+      List.nodup_cons.mpr ⟨oldLinkFresh activeLookup,
+        activeFacts.1.usedLinks_nodup⟩
+    owned_nodup :=
+      List.nodup_cons.mpr ⟨activeConclusionFresh,
+        activeFacts.1.owned_nodup⟩ }
+  have outputBound : step.outputToken < before.components.size :=
+    (Array.getElem?_eq_some_iff.mp activeLookup).1
+  have afterComponents :
+      after.components =
+        before.components.setIfInBounds step.outputToken
+          (some nextComponent) := by
+    simpa [nextComponent] using
+      congrArg (fun state : UnificationState => state.components)
+        step.after_eq
+  have afterMarks : after.marks = before.marks := by
+    simpa using
+      congrArg (fun state : UnificationState => state.marks)
+        step.after_eq
+  have afterParents : after.parents = before.parents := by
+    simpa using
+      congrArg (fun state : UnificationState => state.parents)
+        step.after_eq
+  have representativeUnchanged : ∀ token,
+      after.representative token = before.representative token := by
+    intro token
+    unfold UnificationState.representative
+    rw [afterParents]
+  have forwardGuards :=
+    UnificationState.forwardToken?_success step.token_guard
+  have leftMarked : ∃ rawAge,
+      before.marks[left]? = some (some rawAge) := by
+    rcases before.tokenAt?_some_witness forwardGuards.2.1 with
+      ⟨rawAge, assigned, _representative⟩
+    exact ⟨rawAge, UnificationState.assignedToken?_some_raw assigned⟩
+  have rightMarked : ∃ rawAge,
+      before.marks[right]? = some (some rawAge) := by
+    rcases before.tokenAt?_some_witness forwardGuards.2.2 with
+      ⟨rawAge, assigned, _representative⟩
+    exact ⟨rawAge, UnificationState.assignedToken?_some_raw assigned⟩
+  refine ⟨newUsedAt, newOwnedAt, ?_, ?_, ?_⟩
+  · intro index component afterLookup
+    by_cases isActive : index = step.outputToken
+    · subst index
+      rw [afterComponents] at afterLookup
+      simp [outputBound] at afterLookup
+      subst component
+      refine ⟨?_, ?_⟩
+      · simpa [newUsedAt, newOwnedAt] using nextWitness
+      · intro vertex vertexOwned
+        simp only [newOwnedAt, if_pos, List.mem_cons] at vertexOwned
+        rcases vertexOwned with rfl | oldOwned
+        · apply Or.inr
+          refine ⟨?_, ?_⟩
+          · rw [afterMarks]
+            exact forwardGuards.1
+          · simp [nextComponent]
+        · rcases activeFacts.2 vertex oldOwned with
+            ⟨rawAge, marked, representative⟩ |
+              ⟨unmarked, frontierMembership⟩
+          · apply Or.inl
+            refine ⟨rawAge, ?_, ?_⟩
+            · rw [afterMarks]
+              exact marked
+            · rw [representativeUnchanged]
+              exact representative
+          · have vertexNeLeft : vertex ≠ left := by
+              intro same
+              subst vertex
+              rcases leftMarked with ⟨rawAge, marked⟩
+              rw [unmarked] at marked
+              simp at marked
+            have vertexNeRight : vertex ≠ right := by
+              intro same
+              subst vertex
+              rcases rightMarked with ⟨rawAge, marked⟩
+              rw [unmarked] at marked
+              simp at marked
+            have afterLeftMembership : vertex ∈ step.afterLeft := by
+              have membership : vertex ∈ left :: step.afterLeft :=
+                (CutFreeDerivation.pick?_perm
+                  (FirstOccurrencePick.positional step.left_pick)).mem_iff.mp
+                    frontierMembership
+              simpa [vertexNeLeft] using membership
+            have contextMembership : vertex ∈ step.context := by
+              have membership : vertex ∈ right :: step.context :=
+                (CutFreeDerivation.pick?_perm
+                  (FirstOccurrencePick.positional step.right_pick)).mem_iff.mp
+                    afterLeftMembership
+              simpa [vertexNeRight] using membership
+            apply Or.inr
+            refine ⟨?_, ?_⟩
+            · rw [afterMarks]
+              exact unmarked
+            · simp [nextComponent, contextMembership]
+    · have oldLookup :
+          before.components[index]? = some (some component) := by
+        rw [afterComponents] at afterLookup
+        simpa [Array.getElem?_setIfInBounds, Ne.symm isActive] using
+          afterLookup
+      rcases live oldLookup with ⟨oldWitness, oldAccounted⟩
+      refine ⟨?_, ?_⟩
+      · simpa [newUsedAt, newOwnedAt, isActive] using oldWitness
+      · intro vertex vertexOwned
+        have oldOwned : vertex ∈ ownedAt index := by
+          simpa [newOwnedAt, isActive] using vertexOwned
+        rcases oldAccounted vertex oldOwned with
+          ⟨rawAge, marked, representative⟩ |
+            ⟨unmarked, frontierMembership⟩
+        · apply Or.inl
+          refine ⟨rawAge, ?_, ?_⟩
+          · rw [afterMarks]
+            exact marked
+          · rw [representativeUnchanged]
+            exact representative
+        · apply Or.inr
+          refine ⟨?_, frontierMembership⟩
+          rw [afterMarks]
+          exact unmarked
+  · intro leftIndex rightIndex leftComponent rightComponent
+      leftLookup rightLookup different
+    by_cases leftActive : leftIndex = step.outputToken
+    · subst leftIndex
+      by_cases rightActive : rightIndex = step.outputToken
+      · exact False.elim (different rightActive.symm)
+      · have rightOld :
+            before.components[rightIndex]? = some (some rightComponent) := by
+          rw [afterComponents] at rightLookup
+          simpa [Array.getElem?_setIfInBounds, Ne.symm rightActive] using
+            rightLookup
+        have oldSeparation := disjoint activeLookup rightOld different
+        constructor
+        · intro candidate candidateLeft candidateRight
+          have rightOldMembership : candidate ∈ usedAt rightIndex := by
+            simpa [newUsedAt, rightActive] using candidateRight
+          have leftMembership :
+              candidate = linkIndex ∨
+                candidate ∈ usedAt step.outputToken := by
+            simpa [newUsedAt] using candidateLeft
+          rcases leftMembership with rfl | oldMembership
+          · exact (oldLinkFresh rightOld) rightOldMembership
+          · exact oldSeparation.1 candidate oldMembership rightOldMembership
+        · intro vertex vertexLeft vertexRight
+          have rightOldMembership : vertex ∈ ownedAt rightIndex := by
+            simpa [newOwnedAt, rightActive] using vertexRight
+          have leftMembership :
+              vertex = conclusion ∨
+                vertex ∈ ownedAt step.outputToken := by
+            simpa [newOwnedAt] using vertexLeft
+          rcases leftMembership with rfl | oldMembership
+          · exact (conclusionFresh rightOld (live rightOld).2)
+              rightOldMembership
+          · exact oldSeparation.2 vertex oldMembership rightOldMembership
+    · have leftOld :
+          before.components[leftIndex]? = some (some leftComponent) := by
+        rw [afterComponents] at leftLookup
+        simpa [Array.getElem?_setIfInBounds, Ne.symm leftActive] using
+          leftLookup
+      by_cases rightActive : rightIndex = step.outputToken
+      · subst rightIndex
+        have oldSeparation := disjoint leftOld activeLookup different
+        constructor
+        · intro candidate candidateLeft candidateRight
+          have leftOldMembership : candidate ∈ usedAt leftIndex := by
+            simpa [newUsedAt, leftActive] using candidateLeft
+          have rightMembership :
+              candidate = linkIndex ∨
+                candidate ∈ usedAt step.outputToken := by
+            simpa [newUsedAt] using candidateRight
+          rcases rightMembership with rfl | oldMembership
+          · exact (oldLinkFresh leftOld) leftOldMembership
+          · exact oldSeparation.1 candidate leftOldMembership oldMembership
+        · intro vertex vertexLeft vertexRight
+          have leftOldMembership : vertex ∈ ownedAt leftIndex := by
+            simpa [newOwnedAt, leftActive] using vertexLeft
+          have rightMembership :
+              vertex = conclusion ∨
+                vertex ∈ ownedAt step.outputToken := by
+            simpa [newOwnedAt] using vertexRight
+          rcases rightMembership with rfl | oldMembership
+          · exact (conclusionFresh leftOld (live leftOld).2)
+              leftOldMembership
+          · exact oldSeparation.2 vertex leftOldMembership oldMembership
+      · have rightOld :
+            before.components[rightIndex]? = some (some rightComponent) := by
+          rw [afterComponents] at rightLookup
+          simpa [Array.getElem?_setIfInBounds, Ne.symm rightActive] using
+            rightLookup
+        have oldSeparation := disjoint leftOld rightOld different
+        simpa [newUsedAt, newOwnedAt, leftActive, rightActive] using
+          oldSeparation
+  · intro vertex rawAge afterMarked
+    have beforeMarked :
+        before.marks[vertex]? = some (some rawAge) := by
+      rw [afterMarks] at afterMarked
+      exact afterMarked
+    rcases covered beforeMarked with
+      ⟨index, component, representative, componentLookup, vertexOwned⟩
+    by_cases isActive : index = step.outputToken
+    · have vertexOwnedActive : vertex ∈ ownedAt step.outputToken := by
+        simpa [isActive] using vertexOwned
+      refine ⟨step.outputToken, nextComponent, ?_, ?_, ?_⟩
+      · rw [representativeUnchanged]
+        exact representative.trans isActive
+      · rw [afterComponents]
+        simp [outputBound]
+      · simp [newOwnedAt, vertexOwnedActive]
+    · refine ⟨index, component, ?_, ?_, ?_⟩
+      · rw [representativeUnchanged]
+        exact representative
+      · rw [afterComponents]
+        simpa [Array.getElem?_setIfInBounds, Ne.symm isActive] using
+          componentLookup
+      · simpa [newOwnedAt, isActive] using vertexOwned
+
+/-- Root-form wrapper for a scheduler caller whose delayed-par output token is
+already known to be the active representative.  The retained `QueueParStep`
+then supplies the exact component lookup needed by
+`queueParStep_of_active_fresh`. -/
+theorem queueParStep_of_root_fresh
+    {certificate : Certificate}
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (forest : certificate.ComponentForestProvenance before)
+    (step : QueueParStep before after left right conclusion)
+    (root : before.representative step.outputToken = step.outputToken)
+    (linkIndex : Nat)
+    (linkLookup :
+      certificate.links[linkIndex]? =
+        some (.par left right conclusion))
+    (conclusionFresh :
+      ∀ {index component owned},
+        before.components[index]? = some (some component) →
+        OwnedOccurrenceAccounted before index component owned →
+        conclusion ∉ owned) :
+    certificate.ComponentForestProvenance after := by
+  apply forest.queueParStep_of_active_fresh step linkIndex linkLookup
+  · have rawLookup :=
+      UnificationState.componentAt?_some_raw step.component_lookup
+    simpa [root] using rawLookup
+  · exact conclusionFresh
 
 /-- Appending a fresh submitted axiom preserves the occurrence-exact live
 component forest when both exact endpoints are absent from every old owner. -/

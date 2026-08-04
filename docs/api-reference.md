@@ -5374,6 +5374,22 @@ of the older executable `Produced` relation.
 ProofNetIR.Certificate.ComponentForestProvenance : ProofNetIR.Certificate → ProofNetIR.UnificationState → Prop
 ```
 
+### `ProofNetIR.Certificate.ComponentForestProvenance.liveFrontiers_nodup`
+
+Kind: theorem.
+
+Occurrence-exact forest provenance already implies global duplicate
+freedom of all live component frontiers.  The statement is written against the
+component carrier directly so this upstream module does not import the
+downstream scheduler definition `UnificationState.liveFrontierVertices`.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance.liveFrontiers_nodup : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState},
+  certificate.ComponentForestProvenance state →
+    (List.flatMap (fun cell => (Option.map ProofNetIR.UnificationComponent.frontier cell).getD [])
+        state.components.toList).Nodup
+```
+
 ### `ProofNetIR.Certificate.ComponentForestProvenance.markReadyRaw?_of_representative_frontier`
 
 Kind: theorem.
@@ -5404,6 +5420,59 @@ ProofNetIR.Certificate.ComponentForestProvenance.markReadyRaw?_of_root_frontier 
     before.representative rawAge = rawAge →
       (∃ component, before.components[rawAge]? = some (some component) ∧ selected ∈ component.frontier) →
         before.markReadyRaw? selected rawAge = Except.ok after → certificate.ComponentForestProvenance after
+```
+
+### `ProofNetIR.Certificate.ComponentForestProvenance.queueParStep_of_active_fresh`
+
+Kind: theorem.
+
+Replacing one exact live component by a submitted delayed-par extension
+preserves the complete occurrence-exact forest.
+
+The caller supplies the exact active component slot and proves that the new
+conclusion occurrence is absent from every old live owner.  This occurrence
+freshness also forces the submitted `linkIndex` to be absent from every old
+`usedAt` list: otherwise `usedConnectiveConclusion_owned` would put the same
+exact conclusion in that old owner.  No formula-label equality is used.
+
+The theorem updates only the active proof witnesses, from `usedAt`/`ownedAt`
+to `linkIndex :: usedAt` and `conclusion :: ownedAt`; every other witness is
+retained verbatim.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance.queueParStep_of_active_fresh : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {left right conclusion : ProofNetIR.Vertex},
+  certificate.ComponentForestProvenance before →
+    ∀ (step : ProofNetIR.Certificate.QueueParStep before after left right conclusion) (linkIndex : Nat),
+      certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+        before.components[step.outputToken]? = some (some step.component) →
+          (∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex},
+              before.components[index]? = some (some component) →
+                ProofNetIR.Certificate.OwnedOccurrenceAccounted before index component owned → ¬conclusion ∈ owned) →
+            certificate.ComponentForestProvenance after
+```
+
+### `ProofNetIR.Certificate.ComponentForestProvenance.queueParStep_of_root_fresh`
+
+Kind: theorem.
+
+Root-form wrapper for a scheduler caller whose delayed-par output token is
+already known to be the active representative.  The retained `QueueParStep`
+then supplies the exact component lookup needed by
+`queueParStep_of_active_fresh`.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance.queueParStep_of_root_fresh : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {left right conclusion : ProofNetIR.Vertex},
+  certificate.ComponentForestProvenance before →
+    ∀ (step : ProofNetIR.Certificate.QueueParStep before after left right conclusion),
+      before.representative step.outputToken = step.outputToken →
+        ∀ (linkIndex : Nat),
+          certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+            (∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex},
+                before.components[index]? = some (some component) →
+                  ProofNetIR.Certificate.OwnedOccurrenceAccounted before index component owned → ¬conclusion ∈ owned) →
+              certificate.ComponentForestProvenance after
 ```
 
 ### `ProofNetIR.Certificate.ComponentForestProvenance.reserveAxiomAt?_of_fresh`
@@ -5535,6 +5604,20 @@ ProofNetIR.Certificate.OccurrenceDerivation.frontier_subset_owned : ∀ {certifi
   certificate.OccurrenceDerivation tree frontier usedLinks owned → ∀ (vertex : Nat), vertex ∈ frontier → vertex ∈ owned
 ```
 
+### `ProofNetIR.Certificate.OccurrenceDerivation.frontier_nodup_of_owned_nodup`
+
+Kind: theorem.
+
+Exact occurrence picks preserve local frontier linearity.  Unlike the
+value-level `frontier_subset_owned` lemma, this proof follows each positional
+pick (and each exchange permutation), so duplicate frontier occurrences cannot
+be hidden by ordinary membership.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.frontier_nodup_of_owned_nodup : ∀ {certificate : ProofNetIR.Certificate} {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+  certificate.OccurrenceDerivation tree frontier usedLinks owned → owned.Nodup → frontier.Nodup
+```
+
 ### `ProofNetIR.Certificate.OccurrenceDerivation.owned_inBounds`
 
 Kind: theorem.
@@ -5607,6 +5690,19 @@ ProofNetIR.Certificate.OccurrenceDerivation.ofQueueTensorStep : ∀ {certificate
               step.rightComponent.tree)
             (conclusion :: (step.leftContext ++ step.rightContext)) (linkIndex :: (leftUsed ++ rightUsed))
             (conclusion :: (leftOwned ++ rightOwned))
+```
+
+### `ProofNetIR.Certificate.ComponentOccurrenceWitness.frontier_nodup`
+
+Kind: theorem.
+
+A locally linear occurrence witness has a duplicate-free exposed
+frontier.  The proof uses the derivation's exact positional picks, rather than
+merely the value-level inclusion of the frontier in `owned`.
+
+```lean
+ProofNetIR.Certificate.ComponentOccurrenceWitness.frontier_nodup : ∀ {certificate : ProofNetIR.Certificate} {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+  certificate.ComponentOccurrenceWitness component usedLinks owned → component.frontier.Nodup
 ```
 
 ### `ProofNetIR.Certificate.ComponentOccurrenceWitness.axiom_of_submitted`
@@ -7437,6 +7533,24 @@ ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top : �
   ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
     ∀ {active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
       sigma.getLast? = some active → ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma active = some active
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top_of_le`
+
+Kind: theorem.
+
+Every allocated raw age at or above the active (last) boundary resolves
+to that active boundary.  This is the exact interval fact used by Figure-7
+`forward`: a mate may have a younger raw age than the boundary itself while
+still belonging to the active scheduler component.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top_of_le : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma : List ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    ∀ {active age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      sigma.getLast? = some active →
+        active ≤ age → age < nextAge → ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some active
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem`
@@ -10646,7 +10760,7 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new : ∀ {certificat
         ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate after
 ```
 
-## Executable Figure-7 concl, nop, and wait rules
+## Executable Figure-7 concl, nop, forward, and wait rules
 
 ### `ProofNetIR.SequentialConnectiveKind`
 
@@ -11207,6 +11321,168 @@ The independent `nop` relation has a unique output.
 ProofNetIR.SequentialFigure7.NopRule.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
   ProofNetIR.SequentialFigure7.NopRule certificate before first →
     ProofNetIR.SequentialFigure7.NopRule certificate before second → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.forward?`
+
+Kind: definition.
+
+Execute Figure-7 `forward` after the synchronized common prefix.
+
+The paper guard is the raw-age comparison `i ≤ μ(u₂)`: the selected premise
+is assigned the active raw age `i`, while the mate already carries the same or
+a newer raw age.  The production update constructs the exact submitted par in
+the active component, and the delayed update prepends its raw-unmarked
+conclusion to the top ready bucket.
+
+The final `Nodup` guard is a local fail-closed shape check required by the
+current reservation invariant.  It neither replaces nor weakens the paper's
+raw-age guard.
+
+```lean
+ProofNetIR.SequentialFigure7.forward? : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      Option ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep`
+
+Kind: inductive type.
+
+Exact proof-relevant specification of one successful `forward` rule.
+
+Both the production par construction and ready-top prepend start from the
+same prepared middle state.  The retained `QueueParStep` additionally records
+that its output token is exactly the active scheduler boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_some_iff`
+
+Kind: theorem.
+
+Executable `forward` success is exactly the typed local-rule witness.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_some_iff : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.forward? certificate before invariant = some after ↔
+    Nonempty (ProofNetIR.SequentialFigure7.ForwardStep certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.middle`
+
+Kind: definition.
+
+The shared middle state is exactly the synchronized prepared prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.middle : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.ForwardStep certificate before after →
+      ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.submitted_par`
+
+Kind: theorem.
+
+The generic consumer retained by a `forward` witness is the exact
+submitted par link.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.submitted_par : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  certificate.links[step.consumer.linkIndex]? =
+    some (ProofNetIR.Link.par step.consumer.storedLeft step.consumer.storedRight step.consumer.conclusion)
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.mate_marked_before`
+
+Kind: theorem.
+
+The mate raw age tested after the prefix is its exact pre-prefix mark.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.mate_marked_before : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  before.core.marks[step.consumer.mate]? = some (some step.mateRawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.reservationInvariant`
+
+Kind: theorem.
+
+A successful `forward` preserves the complete reservation invariant.
+
+The proof composes the two local preservation APIs over the same prepared
+middle.  `queuePar?` leaves marks and parents unchanged; `prependReadyTop?`
+leaves marks, `sigma`, and the raw-age horizon unchanged.  Hence the existing
+`RealizesSigma` correspondence transports exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.output_unique`
+
+Kind: theorem.
+
+The proof-relevant executable `forward` relation has one exact output for
+a fixed input.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.output_unique : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (left : ProofNetIR.SequentialFigure7.ForwardStep certificate before first)
+  (right : ProofNetIR.SequentialFigure7.ForwardStep certificate before second), first = second
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_reservationInvariant`
+
+Kind: theorem.
+
+Executable `forward` success preserves the reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.forward? certificate before invariant = some after →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.schedulerInvariant`
+
+Kind: theorem.
+
+A successful local Figure-7 `forward` step preserves every field of the
+current occurrence-exact, state-only scheduler invariant.  This theorem is a
+preservation result only; it does not assert applicability or progress.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable `forward?` success preserves the complete current scheduler
+invariant.  Dispatcher totality and progress remain separate obligations.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
 ### `ProofNetIR.SequentialFigure7.WaitingPrependAt`

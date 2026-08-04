@@ -458,6 +458,120 @@ example {before after : ReservationState}
   exact SequentialFigure7.nop?_schedulerInvariant
     (parInitial_schedulerInvariant initialEquation) nopEquation
 
+/-! Successful executable Figure-7 `forward` on one active component. -/
+
+/-- The active boundary may be strictly below the mate's raw age and still be
+the mate's exact `sigmaBoundary?`.  This is the non-equality interval case
+used by the paper's `forward` guard. -/
+example : sigmaBoundary? [0] 1 = some 0 := by
+  have partition : SigmaAgePartition 2 [0] := by
+    exact {
+      empty_iff := by simp
+      head_zero := by simp
+      strictIncreasing := by simp
+      boundary_lt := by simp }
+  exact partition.sigmaBoundary?_eq_top_of_le
+    (active := 0) (age := 1) rfl (by decide) (by decide)
+
+/-- The concrete `init → nop → forward → concl` execution constructs the
+submitted par in the active production component, exposes its conclusion on
+the top ready bucket, and then raw-marks that conclusion without changing the
+logical firing count. -/
+example :
+    (match initialEquation : parInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          parInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.nop? parCertificate initial
+              initialInvariant.toReservationInvariant with
+        | none => false
+        | some afterNop =>
+            let nopInvariant :=
+              SequentialFigure7.nop?_schedulerInvariant
+                initialInvariant nopEquation
+            match forwardEquation :
+                SequentialFigure7.forward? parCertificate afterNop
+                  nopInvariant.toReservationInvariant with
+            | none => false
+            | some afterForward =>
+                let forwardInvariant :=
+                  SequentialFigure7.forward?_reservationInvariant
+                    nopInvariant.toReservationInvariant forwardEquation
+                let forwardComponent :=
+                  match afterForward.core.components[0]? with
+                  | some (some component) =>
+                      component.frontier == [2] &&
+                        component.tree ==
+                          (.par 0 0 (.axiom "p" true))
+                  | _ => false
+                afterForward.stack.sigma == [0] &&
+                  afterForward.stack.ready == [[2]] &&
+                  afterForward.stack.marks ==
+                    #[some 0, some 0, none] &&
+                  afterForward.core.marks ==
+                    #[some 0, some 0, none] &&
+                  afterForward.core.startedAxioms == 1 &&
+                  afterForward.core.firedConnectives == 1 &&
+                  forwardComponent &&
+                  match _conclEquation :
+                      SequentialFigure7.concl? parCertificate afterForward
+                        forwardInvariant with
+                  | none => false
+                  | some afterConcl =>
+                      afterConcl.stack.ready == [[]] &&
+                        afterConcl.stack.marks[2]? == some (some 0) &&
+                        afterConcl.core.marks[2]? == some (some 0) &&
+                        afterConcl.core.firedConnectives == 1) = true := by
+  native_decide
+
+/-- The same successful `init → nop → forward` prefix transports the full
+state-based invariant.  The exact ready/component correspondence,
+occurrence-level forest provenance, and connective-counter equality remain
+available through their public invariant fields. -/
+example {initial afterNop afterForward afterConcl : ReservationState}
+    (initialEquation : parInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate initial
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some afterNop)
+    (forwardEquation :
+      SequentialFigure7.forward? parCertificate afterNop
+          (SequentialFigure7.nop?_schedulerInvariant
+            (parInitial_schedulerInvariant initialEquation)
+            nopEquation |>.toReservationInvariant) =
+        some afterForward)
+    (conclEquation :
+      SequentialFigure7.concl? parCertificate afterForward
+          (SequentialFigure7.forward?_schedulerInvariant
+            (SequentialFigure7.nop?_schedulerInvariant
+              (parInitial_schedulerInvariant initialEquation)
+              nopEquation)
+            forwardEquation |>.toReservationInvariant) =
+        some afterConcl) :
+    SchedulerInvariant parCertificate afterConcl ∧
+      SchedulerInvariant parCertificate afterForward ∧
+      ReadyBucketFrontierExact afterForward ∧
+      parCertificate.ComponentForestProvenance afterForward.core ∧
+      FiredCounterExact afterForward := by
+  have initialInvariant :=
+    parInitial_schedulerInvariant initialEquation
+  have nopInvariant :=
+    SequentialFigure7.nop?_schedulerInvariant
+      initialInvariant nopEquation
+  have forwardInvariant :=
+    SequentialFigure7.forward?_schedulerInvariant
+      nopInvariant forwardEquation
+  have conclInvariant :=
+    SequentialFigure7.concl?_schedulerInvariant
+      forwardInvariant conclEquation
+  exact ⟨conclInvariant, forwardInvariant,
+    forwardInvariant.ready_bucket_frontier_exact,
+    forwardInvariant.component_forest_provenance,
+    forwardInvariant.fired_counter_exact⟩
+
 /-! Successful executable Figure-7 `wait` under the full scheduler invariant. -/
 
 /-- Two axiom components are connected so the executable path first records

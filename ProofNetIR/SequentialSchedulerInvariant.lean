@@ -23,9 +23,9 @@ derivation trees, not from ready/waiting list membership.
 Guerrini's paper uses sets for ready and waiting buckets.  The executable
 lists retain deterministic order, but the semantic fields below use
 membership only.  The current preservation layer covers the common prepared
-prefix, `concl`, `nop`, operational `new`, and successful local `wait`.
-It does not prove dispatcher applicability, full-rule reachability,
-`forward`/`unify`, progress, or completeness.
+prefix, `concl`, `nop`, operational `new`, successful local `forward`, and
+successful local `wait`.  It does not prove dispatcher applicability,
+full-rule reachability, `unify`, progress, or completeness.
 -/
 
 namespace CutFreeDerivation
@@ -2245,6 +2245,1229 @@ theorem new?_schedulerInvariant
       new? certificate before invariant.toReservationInvariant = some after) :
     SchedulerInvariant certificate after := by
   rcases (new?_some_iff invariant.toReservationInvariant).mp equation with
+    ⟨step⟩
+  exact step.schedulerInvariant invariant
+
+namespace ForwardStep
+
+private theorem par_wellFormed
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    certificate.LinkWellFormed
+      (.par step.consumer.storedLeft step.consumer.storedRight
+        step.consumer.conclusion) := by
+  simpa [step.par_eq, SequentialConnectiveKind.asLink] using
+    step.consumer.wellFormed
+
+private theorem premise_orientation
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    ((step.consumer.mate = step.consumer.storedLeft ∧
+        step.prepared.stackResult.vertex = step.consumer.storedRight) ∨
+      (step.consumer.mate = step.consumer.storedRight ∧
+        step.prepared.stackResult.vertex = step.consumer.storedLeft)) := by
+  cases sideEquation : step.consumer.side with
+  | storedLeft =>
+      right
+      constructor
+      · simp [ConnectiveBelow.mate, TensorPremiseSide.mate,
+          sideEquation]
+      · simpa [TensorPremiseSide.premise, sideEquation] using
+          step.consumer.premise_eq
+  | storedRight =>
+      left
+      constructor
+      · simp [ConnectiveBelow.mate, TensorPremiseSide.mate,
+          sideEquation]
+      · simpa [TensorPremiseSide.premise, sideEquation] using
+          step.consumer.premise_eq
+
+private theorem conclusion_ne_selected
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    step.consumer.conclusion ≠ step.prepared.stackResult.vertex := by
+  have parWellFormed := step.par_wellFormed
+  cases sideEquation : step.consumer.side with
+  | storedLeft =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedLeft := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.consumer.premise_eq
+      intro same
+      exact parWellFormed.2.1 (selectedEq.symm.trans same.symm)
+  | storedRight =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedRight := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.consumer.premise_eq
+      intro same
+      exact parWellFormed.2.2.1 (selectedEq.symm.trans same.symm)
+
+private theorem conclusion_not_produced_before
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ¬ Produced before step.consumer.conclusion := by
+  intro produced
+  have linkMembership :
+      (.par step.consumer.storedLeft step.consumer.storedRight
+        step.consumer.conclusion : Link) ∈ certificate.links :=
+    List.mem_of_getElem? step.submitted_par
+  rcases invariant.produced_premises_marked linkMembership produced with
+    ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
+  rcases UnificationState.markReadyRaw?_exact
+      step.prepared.core_mark_eq with
+    ⟨selectedUnmarked, _, _, _, _, _, _⟩
+  cases sideEquation : step.consumer.side with
+  | storedLeft =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedLeft := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.consumer.premise_eq
+      have leftUnmarked :
+          before.core.marks[step.consumer.storedLeft]? = some none :=
+        (congrArg (fun vertex => before.core.marks[vertex]?)
+          selectedEq).symm.trans selectedUnmarked
+      rw [leftUnmarked] at leftMarked
+      simp at leftMarked
+  | storedRight =>
+      have selectedEq : step.prepared.stackResult.vertex =
+          step.consumer.storedRight := by
+        simpa [TensorPremiseSide.premise, sideEquation] using
+          step.consumer.premise_eq
+      have rightUnmarked :
+          before.core.marks[step.consumer.storedRight]? = some none :=
+        (congrArg (fun vertex => before.core.marks[vertex]?)
+          selectedEq).symm.trans selectedUnmarked
+      rw [rightUnmarked] at rightMarked
+      simp at rightMarked
+
+private theorem conclusion_not_produced_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ¬ Produced step.prepared.after step.consumer.conclusion := by
+  intro produced
+  apply step.conclusion_not_produced_before invariant
+  rcases UnificationState.markReadyRaw?_exact
+      step.prepared.core_mark_eq with
+    ⟨_, marksEq, _, componentsEq, _, _, _⟩
+  rcases produced with ⟨age, marked⟩ | frontier
+  · left
+    refine ⟨age, ?_⟩
+    change step.prepared.coreMarked.marks[
+        step.consumer.conclusion]? = some (some age) at marked
+    rw [marksEq] at marked
+    simpa [Array.getElem?_setIfInBounds,
+      Ne.symm step.conclusion_ne_selected] using marked
+  · right
+    unfold UnificationState.liveFrontierVertices at frontier ⊢
+    change step.consumer.conclusion ∈
+      step.prepared.coreMarked.components.toList.flatMap _ at frontier
+    rw [componentsEq] at frontier
+    exact frontier
+
+private theorem conclusion_not_mem_waiting_before
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.consumer.conclusion ∉ before.stack.waitingVertices := by
+  intro conclusionWaiting
+  unfold SequentialStackState.waitingVertices at conclusionWaiting
+  rcases List.mem_flatMap.mp conclusionWaiting with
+    ⟨cell, cellMembership, conclusionInCell⟩
+  cases cell with
+  | undefined => simp [WaitingCell.vertices] at conclusionInCell
+  | initialized payload =>
+      simp only [WaitingCell.vertices] at conclusionInCell
+      rcases List.mem_iff_getElem.mp cellMembership with
+        ⟨boundary, boundaryBound, boundaryEquation⟩
+      have waitingLookup : before.stack.waiting[boundary]? =
+          some (.initialized payload) := by
+        rw [← Array.getElem?_toList]
+        rw [List.getElem?_eq_getElem boundaryBound, boundaryEquation]
+      rcases invariant.waiting_span_exact
+          waitingLookup conclusionInCell with
+        ⟨oldLinkIndex, oldLeft, oldRight, olderPremise,
+          youngerPremise, olderAge, youngerAge, youngerBoundary,
+          oldLinkLookup, oldSourceLookup, conclusionUnmarked,
+          oldOrientation, olderMarked, youngerMarked,
+          olderBoundary, youngerBoundaryLookup, boundaryOrder⟩
+      have oldLinkMembership :
+          (.par oldLeft oldRight step.consumer.conclusion : Link) ∈
+            certificate.links :=
+        List.mem_of_getElem? oldLinkLookup
+      have currentLinkMembership :
+          (.par step.consumer.storedLeft step.consumer.storedRight
+            step.consumer.conclusion : Link) ∈ certificate.links :=
+        List.mem_of_getElem? step.submitted_par
+      have linkEq := invariant.structural.par_producer_unique
+        oldLinkMembership currentLinkMembership
+      injection linkEq with leftEq rightEq
+      subst oldLeft
+      subst oldRight
+      rcases UnificationState.markReadyRaw?_exact
+          step.prepared.core_mark_eq with
+        ⟨selectedUnmarked, _, _, _, _, _, _⟩
+      cases sideEquation : step.consumer.side with
+      | storedLeft =>
+          have selectedEq : step.prepared.stackResult.vertex =
+              step.consumer.storedLeft := by
+            simpa [TensorPremiseSide.premise, sideEquation] using
+              step.consumer.premise_eq
+          have selectedMarked :
+              before.core.marks[step.prepared.stackResult.vertex]? =
+                some (some olderAge) ∨
+              before.core.marks[step.prepared.stackResult.vertex]? =
+                some (some youngerAge) := by
+            rcases oldOrientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+            · exact Or.inl (by simpa [selectedEq] using olderMarked)
+            · exact Or.inr (by simpa [selectedEq] using youngerMarked)
+          rcases selectedMarked with marked | marked <;>
+            rw [selectedUnmarked] at marked <;> simp at marked
+      | storedRight =>
+          have selectedEq : step.prepared.stackResult.vertex =
+              step.consumer.storedRight := by
+            simpa [TensorPremiseSide.premise, sideEquation] using
+              step.consumer.premise_eq
+          have selectedMarked :
+              before.core.marks[step.prepared.stackResult.vertex]? =
+                some (some olderAge) ∨
+              before.core.marks[step.prepared.stackResult.vertex]? =
+                some (some youngerAge) := by
+            rcases oldOrientation with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+            · exact Or.inr (by simpa [selectedEq] using youngerMarked)
+            · exact Or.inl (by simpa [selectedEq] using olderMarked)
+          rcases selectedMarked with marked | marked <;>
+            rw [selectedUnmarked] at marked <;> simp at marked
+
+private theorem conclusion_not_mem_waiting_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.consumer.conclusion ∉
+      step.prepared.after.stack.waitingVertices := by
+  intro waiting
+  rcases SequentialStackState.popReadyMark?_exact
+      step.prepared.stack_eq with
+    ⟨_, _, _, _, _, _, _, waitingEq, _⟩
+  apply step.conclusion_not_mem_waiting_before invariant
+  unfold SequentialStackState.waitingVertices at waiting ⊢
+  change step.consumer.conclusion ∈
+      step.prepared.stackResult.after.waiting.toList.flatMap _ at waiting
+  rw [waitingEq] at waiting
+  exact waiting
+
+private theorem conclusion_not_queued_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.consumer.conclusion ∉
+      step.prepared.after.stack.queuedVertices := by
+  intro queued
+  unfold SequentialStackState.queuedVertices at queued
+  rcases List.mem_append.mp queued with ready | waiting
+  · exact step.conclusion_not_produced_middle invariant
+      (Or.inr
+        (SchedulerInvariant.ready_mem_liveFrontier
+          (step.prepared.schedulerInvariant invariant) ready))
+  · exact step.conclusion_not_mem_waiting_middle invariant waiting
+
+private theorem active_root
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.coreMarked.representative step.queueStep.outputToken =
+      step.queueStep.outputToken := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  rcases SequentialStackState.popReadyMark?_exact
+      step.prepared.stack_eq with
+    ⟨_, sigmaTopEquation, _, _, _, stackSigmaEq, _, _, selectedMarked⟩
+  have middleSigmaTop :
+      step.prepared.after.stack.sigma.getLast? =
+        some step.prepared.stackResult.rawAge := by
+    change step.prepared.stackResult.after.sigma.getLast? = _
+    rw [stackSigmaEq]
+    exact sigmaTopEquation
+  have ageBound :
+      step.prepared.stackResult.rawAge <
+        step.prepared.after.stack.nextAge :=
+    middleInvariant.stack_wellShaped.assigned_age_bound
+      step.prepared.stackResult.vertex
+      step.prepared.stackResult.rawAge selectedMarked
+  have boundaryLookup :
+      sigmaBoundary? step.prepared.after.stack.sigma
+          step.prepared.stackResult.rawAge =
+        some step.prepared.stackResult.rawAge :=
+    middleInvariant.stack_wellShaped.sigma_partition
+      |>.sigmaBoundary?_eq_top middleSigmaTop
+  have representativeLookup :=
+    middleInvariant.realizesSigma.representative_eq_boundary ageBound
+  have root :
+      step.prepared.coreMarked.representative
+          step.prepared.stackResult.rawAge =
+        step.prepared.stackResult.rawAge :=
+    Option.some.inj (representativeLookup.symm.trans boundaryLookup)
+  simpa [step.output_token_eq_active] using root
+
+private theorem active_component_lookup
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    step.prepared.coreMarked.components[step.queueStep.outputToken]? =
+      some (some step.queueStep.component) := by
+  have rawLookup :=
+    UnificationState.componentAt?_some_raw
+      step.queueStep.component_lookup
+  simpa [step.active_root invariant] using rawLookup
+
+private theorem componentForestProvenance
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    certificate.ComponentForestProvenance after.core := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have conclusionFresh :
+      ∀ {index component owned},
+        step.prepared.coreMarked.components[index]? =
+            some (some component) →
+        Certificate.OwnedOccurrenceAccounted
+            step.prepared.coreMarked index component owned →
+        step.consumer.conclusion ∉ owned := by
+    intro index component owned componentLookup accounted conclusionOwned
+    apply step.conclusion_not_produced_middle invariant
+    rcases accounted step.consumer.conclusion conclusionOwned with
+      ⟨rawAge, marked, _⟩ | ⟨unmarked, frontier⟩
+    · exact Or.inl ⟨rawAge, marked⟩
+    · apply Or.inr
+      change step.prepared.after.core.components[index]? =
+        some (some component) at componentLookup
+      change step.consumer.conclusion ∈
+        step.prepared.after.core.liveFrontierVertices
+      unfold UnificationState.liveFrontierVertices
+      apply List.mem_flatMap.mpr
+      refine ⟨some component, ?_, ?_⟩
+      · exact List.mem_of_getElem? (by simpa using componentLookup)
+      · simpa using frontier
+  have forestAfterCore :=
+    middleInvariant.component_forest_provenance
+      |>.queueParStep_of_root_fresh step.queueStep
+        (step.active_root invariant)
+        step.consumer.linkIndex step.submitted_par conclusionFresh
+  have coreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  rw [coreEq]
+  exact forestAfterCore
+
+private theorem perm_insert_after
+    {α : Type} (initial suffix : List α) (inserted : α) :
+    (initial ++ inserted :: suffix).Perm
+      (inserted :: (initial ++ suffix)) := by
+  induction initial with
+  | nil => simp
+  | cons head tail induction =>
+      simp only [List.cons_append]
+      exact (List.Perm.cons head induction).trans
+        (List.Perm.swap inserted head (tail ++ suffix))
+
+private theorem queuedVertices_perm
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    after.stack.queuedVertices.Perm
+      (step.consumer.conclusion ::
+        step.prepared.after.stack.queuedVertices) := by
+  have afterStackEq : after.stack = step.stackAfter :=
+    congrArg (fun state : ReservationState => state.stack) step.output_eq
+  rw [afterStackEq, step.prependStep.after_eq]
+  unfold SequentialStackState.queuedVertices
+    SequentialStackState.waitingVertices
+  change
+    ((step.prependStep.readyPrefix ++
+          [step.consumer.conclusion :: step.prependStep.activeReady]).flatten ++
+        step.prepared.stackResult.after.waiting.toList.flatMap
+          WaitingCell.vertices).Perm
+      (step.consumer.conclusion ::
+        (step.prepared.stackResult.after.ready.flatten ++
+          step.prepared.stackResult.after.waiting.toList.flatMap
+            WaitingCell.vertices))
+  rw [step.prependStep.ready_eq]
+  simp only [List.flatten_append, List.flatten_cons, List.flatten_nil,
+    List.append_nil]
+  simp only [List.append_assoc, List.cons_append]
+  exact
+    perm_insert_after step.prependStep.readyPrefix.flatten
+      (step.prependStep.activeReady ++
+        step.prepared.stackResult.after.waiting.toList.flatMap
+          WaitingCell.vertices)
+      step.consumer.conclusion
+
+private theorem queuedVerticesNodup
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    QueuedVerticesNodup after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have targetNodup :
+      (step.consumer.conclusion ::
+        step.prepared.after.stack.queuedVertices).Nodup :=
+    List.nodup_cons.mpr
+      ⟨step.conclusion_not_queued_middle invariant,
+        middleInvariant.queued_vertices_nodup⟩
+  exact step.queuedVertices_perm.symm.nodup targetNodup
+
+private theorem queuedVerticesUnmarked
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    QueuedVerticesUnmarked after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have marksEq : after.core.marks =
+      step.prepared.after.core.marks := by
+    have afterCoreEq : after.core = step.coreAfter :=
+      congrArg (fun state : ReservationState => state.core) step.output_eq
+    rw [afterCoreEq, step.queueStep.after_eq]
+    rfl
+  intro vertex membership
+  have targetMembership := step.queuedVertices_perm.mem_iff.mp membership
+  simp only [List.mem_cons] at targetMembership
+  rcases targetMembership with rfl | oldMembership
+  · rw [marksEq]
+    exact (UnificationState.forwardToken?_success
+      step.queueStep.token_guard).1
+  · rw [marksEq]
+    exact middleInvariant.queued_vertices_unmarked vertex oldMembership
+
+private theorem componentDomainExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ComponentDomainExact after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have activeLookup := step.active_component_lookup invariant
+  have activeBound :
+      step.queueStep.outputToken <
+        step.prepared.coreMarked.components.size :=
+    (Array.getElem?_eq_some_iff.mp activeLookup).1
+  have activeInSigma :
+      step.queueStep.outputToken ∈ step.prepared.after.stack.sigma :=
+    (middleInvariant.component_domain_exact
+      step.queueStep.outputToken).mp
+        ⟨step.queueStep.component, by
+          change step.prepared.after.core.components[
+              step.queueStep.outputToken]? = _
+          exact activeLookup⟩
+  intro token
+  have afterCoreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  have afterStackEq : after.stack = step.stackAfter :=
+    congrArg (fun state : ReservationState => state.stack) step.output_eq
+  rw [afterCoreEq, step.queueStep.after_eq,
+    afterStackEq, step.prependStep.after_eq]
+  change
+    (∃ component,
+      (step.prepared.coreMarked.components.setIfInBounds
+        step.queueStep.outputToken
+        (some {
+          tree := .par step.queueStep.leftFocus
+            step.queueStep.rightFocus step.queueStep.component.tree
+          frontier := step.queueStep.context ++
+            [step.consumer.conclusion] }))[token]? =
+        some (some component)) ↔
+      token ∈ step.prepared.after.stack.sigma
+  by_cases same : token = step.queueStep.outputToken
+  · subst token
+    constructor
+    · intro _
+      exact activeInSigma
+    · intro _
+      refine ⟨{
+        tree := .par step.queueStep.leftFocus
+          step.queueStep.rightFocus step.queueStep.component.tree
+        frontier := step.queueStep.context ++
+          [step.consumer.conclusion] }, ?_⟩
+      simp [activeBound]
+  · have oldDomain := middleInvariant.component_domain_exact token
+    change
+      (∃ component,
+        step.prepared.coreMarked.components[token]? =
+          some (some component)) ↔
+        token ∈ step.prepared.after.stack.sigma at oldDomain
+    rw [Array.getElem?_setIfInBounds_ne (Ne.symm same)]
+    exact oldDomain
+
+private theorem mate_boundary_middle
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    sigmaBoundary? step.prepared.after.stack.sigma step.mateRawAge =
+      some step.prepared.stackResult.rawAge := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  rcases SequentialStackState.popReadyMark?_exact
+      step.prepared.stack_eq with
+    ⟨_, sigmaTopEquation, _, _, _, stackSigmaEq, _, _, _⟩
+  have middleSigmaTop :
+      step.prepared.after.stack.sigma.getLast? =
+        some step.prepared.stackResult.rawAge := by
+    change step.prepared.stackResult.after.sigma.getLast? = _
+    rw [stackSigmaEq]
+    exact sigmaTopEquation
+  have stackMateMarked :
+      step.prepared.after.stack.marks[step.consumer.mate]? =
+        some (some step.mateRawAge) := by
+    rw [← middleInvariant.realizesSigma.marks_eq]
+    exact step.mate_marked
+  have mateAgeBound :
+      step.mateRawAge < step.prepared.after.stack.nextAge :=
+    middleInvariant.stack_wellShaped.assigned_age_bound
+      step.consumer.mate step.mateRawAge stackMateMarked
+  exact middleInvariant.stack_wellShaped.sigma_partition
+    |>.sigmaBoundary?_eq_top_of_le middleSigmaTop
+      step.not_older mateAgeBound
+
+private theorem readyBucketFrontierExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ReadyBucketFrontierExact after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  rcases SequentialStackState.popReadyMark?_exact
+      step.prepared.stack_eq with
+    ⟨_, sigmaTopEquation, _, _, _, stackSigmaEq,
+      preparedReadyEq, _, _⟩
+  have middleSigmaTop :
+      step.prepared.after.stack.sigma.getLast? =
+        some step.queueStep.outputToken := by
+    change step.prepared.stackResult.after.sigma.getLast? = _
+    rw [stackSigmaEq]
+    simpa [step.output_token_eq_active] using sigmaTopEquation
+  rcases List.getLast?_eq_some_iff.mp middleSigmaTop with
+    ⟨sigmaPrefix, sigmaDecomposition⟩
+  change step.prepared.stackResult.after.sigma =
+    sigmaPrefix ++ [step.queueStep.outputToken] at sigmaDecomposition
+  have prefixLengths :
+      step.prependStep.readyPrefix.length = sigmaPrefix.length := by
+    have aligned := middleInvariant.stack_wellShaped.ready_aligned
+    change step.prepared.stackResult.after.ready.length =
+      step.prepared.stackResult.after.sigma.length at aligned
+    rw [step.prependStep.ready_eq, sigmaDecomposition] at aligned
+    simp at aligned
+    omega
+  have topSigmaLookup :
+      step.prepared.after.stack.sigma[
+          step.prependStep.readyPrefix.length]? =
+        some step.queueStep.outputToken := by
+    change step.prepared.stackResult.after.sigma[
+        step.prependStep.readyPrefix.length]? = _
+    rw [sigmaDecomposition, prefixLengths]
+    simp
+  have topReadyLookup :
+      step.prepared.after.stack.ready[
+          step.prependStep.readyPrefix.length]? =
+        some step.prependStep.activeReady := by
+    change step.prepared.stackResult.after.ready[
+        step.prependStep.readyPrefix.length]? = _
+    rw [step.prependStep.ready_eq]
+    simp
+  rcases middleInvariant.ready_bucket_frontier_exact
+      topSigmaLookup topReadyLookup with
+    ⟨topComponent, topComponentLookup, topExact⟩
+  change step.prepared.coreMarked.components[
+      step.queueStep.outputToken]? = some (some topComponent) at topComponentLookup
+  change (∀ vertex,
+      vertex ∈ step.prependStep.activeReady ↔
+        vertex ∈ topComponent.frontier ∧
+          step.prepared.coreMarked.marks[vertex]? = some none) at topExact
+  have topComponentEq : topComponent = step.queueStep.component := by
+    have activeLookup := step.active_component_lookup invariant
+    change step.prepared.after.core.components[
+        step.queueStep.outputToken]? =
+      some (some step.queueStep.component) at activeLookup
+    exact Option.some.inj
+      (Option.some.inj (topComponentLookup.symm.trans activeLookup))
+  subst topComponent
+  have activeBound :
+      step.queueStep.outputToken <
+        step.prepared.coreMarked.components.size :=
+    (Array.getElem?_eq_some_iff.mp
+      (step.active_component_lookup invariant)).1
+  have tokenGuards :=
+    UnificationState.forwardToken?_success step.queueStep.token_guard
+  have context_of_frontier_unmarked :
+      ∀ {vertex},
+        vertex ∈ step.queueStep.component.frontier →
+        step.prepared.coreMarked.marks[vertex]? = some none →
+        vertex ∈ step.queueStep.context := by
+    intro vertex frontier unmarked
+    have vertexNeLeft : vertex ≠ step.consumer.storedLeft := by
+      intro same
+      subst vertex
+      unfold UnificationState.tokenAt? at tokenGuards
+      rw [unmarked] at tokenGuards
+      simp at tokenGuards
+    have vertexNeRight : vertex ≠ step.consumer.storedRight := by
+      intro same
+      subst vertex
+      unfold UnificationState.tokenAt? at tokenGuards
+      rw [unmarked] at tokenGuards
+      simp at tokenGuards
+    have inAfterLeft :=
+      Certificate.FirstOccurrencePick.mem_remaining_of_ne
+        step.queueStep.left_pick vertexNeLeft frontier
+    exact Certificate.FirstOccurrencePick.mem_remaining_of_ne
+      step.queueStep.right_pick vertexNeRight inAfterLeft
+  have frontier_of_context :
+      ∀ {vertex}, vertex ∈ step.queueStep.context →
+        vertex ∈ step.queueStep.component.frontier := by
+    intro vertex contextMembership
+    have inAfterLeft : vertex ∈ step.queueStep.afterLeft :=
+      (CutFreeDerivation.pick?_perm
+        step.queueStep.right_pick.positional).mem_iff.mpr (by
+          simp [contextMembership])
+    exact
+      (CutFreeDerivation.pick?_perm
+        step.queueStep.left_pick.positional).mem_iff.mpr (by
+          simp [inAfterLeft])
+  have afterCoreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  have afterStackEq : after.stack = step.stackAfter :=
+    congrArg (fun state : ReservationState => state.stack) step.output_eq
+  have afterMarks : after.core.marks =
+      step.prepared.coreMarked.marks := by
+    rw [afterCoreEq, step.queueStep.after_eq]
+  have coreComponentsEq :
+      after.core.components =
+        step.prepared.coreMarked.components.setIfInBounds
+          step.queueStep.outputToken
+          (some {
+            tree := .par step.queueStep.leftFocus
+              step.queueStep.rightFocus step.queueStep.component.tree
+            frontier := step.queueStep.context ++
+              [step.consumer.conclusion] }) := by
+    exact (congrArg (fun core : UnificationState => core.components)
+      afterCoreEq).trans
+      (congrArg (fun core : UnificationState => core.components)
+        step.queueStep.after_eq)
+  unfold ReadyBucketFrontierExact
+  intro position boundary bucket sigmaLookup readyLookup
+  rw [afterStackEq, step.prependStep.after_eq] at sigmaLookup readyLookup
+  change step.prepared.after.stack.sigma[position]? =
+    some boundary at sigmaLookup
+  change
+    (step.prependStep.readyPrefix ++
+      [step.consumer.conclusion ::
+        step.prependStep.activeReady])[position]? =
+      some bucket at readyLookup
+  have positionBound :
+      position <
+        (step.prependStep.readyPrefix ++
+          [step.consumer.conclusion ::
+            step.prependStep.activeReady]).length :=
+    (List.getElem?_eq_some_iff.mp readyLookup).1
+  by_cases inPrefix : position < step.prependStep.readyPrefix.length
+  · have oldReadyLookup :
+        step.prepared.after.stack.ready[position]? = some bucket := by
+      change step.prepared.stackResult.after.ready[position]? = some bucket
+      rw [step.prependStep.ready_eq,
+        List.getElem?_append_left inPrefix]
+      rw [List.getElem?_append_left inPrefix] at readyLookup
+      exact readyLookup
+    rcases middleInvariant.ready_bucket_frontier_exact
+        sigmaLookup oldReadyLookup with
+      ⟨component, componentLookup, exactMembership⟩
+    change step.prepared.coreMarked.components[boundary]? =
+      some (some component) at componentLookup
+    change (∀ vertex,
+      vertex ∈ bucket ↔
+        vertex ∈ component.frontier ∧
+          step.prepared.coreMarked.marks[vertex]? = some none) at exactMembership
+    have boundaryInPrefix : boundary ∈ sigmaPrefix := by
+      have sigmaPrefixLookup : sigmaPrefix[position]? = some boundary := by
+        have lookup := sigmaLookup
+        change step.prepared.stackResult.after.sigma[position]? =
+          some boundary at lookup
+        rw [sigmaDecomposition,
+          List.getElem?_append_left (by simpa [prefixLengths] using inPrefix)]
+          at lookup
+        exact lookup
+      exact List.mem_of_getElem? sigmaPrefixLookup
+    have increasing :
+        (sigmaPrefix ++ [step.queueStep.outputToken]).Pairwise
+          (· < ·) := by
+      have oldIncreasing :=
+        middleInvariant.stack_wellShaped.sigma_partition.strictIncreasing
+      change step.prepared.stackResult.after.sigma.Pairwise
+        (· < ·) at oldIncreasing
+      rw [sigmaDecomposition] at oldIncreasing
+      exact oldIncreasing
+    have boundaryLtActive : boundary < step.queueStep.outputToken :=
+      (List.pairwise_append.mp increasing).2.2
+        boundary boundaryInPrefix step.queueStep.outputToken (by simp)
+    have boundaryNeActive :
+        step.queueStep.outputToken ≠ boundary :=
+      Nat.ne_of_gt boundaryLtActive
+    refine ⟨component, ?_, ?_⟩
+    · rw [coreComponentsEq]
+      simpa [Array.getElem?_setIfInBounds, boundaryNeActive] using
+        componentLookup
+    · intro vertex
+      rw [afterMarks]
+      exact exactMembership vertex
+  · have positionTop :
+        position = step.prependStep.readyPrefix.length := by
+      simp at positionBound
+      omega
+    subst position
+    have boundaryEq : boundary = step.queueStep.outputToken := by
+      rw [topSigmaLookup] at sigmaLookup
+      exact Option.some.inj sigmaLookup.symm
+    have bucketEq :
+        bucket = step.consumer.conclusion ::
+          step.prependStep.activeReady := by
+      simp at readyLookup
+      exact readyLookup.symm
+    subst boundary
+    subst bucket
+    refine ⟨{
+      tree := .par step.queueStep.leftFocus
+        step.queueStep.rightFocus step.queueStep.component.tree
+      frontier := step.queueStep.context ++
+        [step.consumer.conclusion] }, ?_, ?_⟩
+    · rw [coreComponentsEq]
+      simp [activeBound]
+    · intro vertex
+      rw [afterMarks]
+      constructor
+      · intro bucketMembership
+        simp only [List.mem_cons] at bucketMembership
+        rcases bucketMembership with rfl | oldReady
+        · exact ⟨by simp, tokenGuards.1⟩
+        · have oldFacts := (topExact vertex).mp oldReady
+          exact ⟨by
+            simp [context_of_frontier_unmarked oldFacts.1 oldFacts.2],
+            oldFacts.2⟩
+      · rintro ⟨newFrontier, unmarked⟩
+        rw [List.mem_append] at newFrontier
+        rcases newFrontier with contextMembership | conclusionMembership
+        · simp only [List.mem_cons]
+          exact Or.inr ((topExact vertex).mpr
+            ⟨frontier_of_context contextMembership, unmarked⟩)
+        · have same : vertex = step.consumer.conclusion := by
+            simpa using conclusionMembership
+          simp [same]
+
+private theorem waitingSpanExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    WaitingSpanExact certificate after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have marksEq : after.core.marks =
+      step.prepared.after.core.marks := by
+    have afterCoreEq : after.core = step.coreAfter :=
+      congrArg (fun state : ReservationState => state.core) step.output_eq
+    rw [afterCoreEq, step.queueStep.after_eq]
+    rfl
+  have sigmaEq : after.stack.sigma =
+      step.prepared.after.stack.sigma := by
+    have afterStackEq : after.stack = step.stackAfter :=
+      congrArg (fun state : ReservationState => state.stack) step.output_eq
+    rw [afterStackEq, step.prependStep.after_eq]
+    rfl
+  have waitingEq : after.stack.waiting =
+      step.prepared.after.stack.waiting := by
+    have afterStackEq : after.stack = step.stackAfter :=
+      congrArg (fun state : ReservationState => state.stack) step.output_eq
+    rw [afterStackEq, step.prependStep.after_eq]
+    rfl
+  intro boundary payload conclusion waitingLookup conclusionMembership
+  rw [waitingEq] at waitingLookup
+  rcases middleInvariant.waiting_span_exact
+      waitingLookup conclusionMembership with
+    ⟨linkIndex, left, right, olderPremise, youngerPremise,
+      olderAge, youngerAge, youngerBoundary, linkLookup,
+      sourceLookup, conclusionUnmarked, orientation,
+      olderMarked, youngerMarked, olderBoundary,
+      youngerBoundaryLookup, boundaryOrder⟩
+  refine ⟨linkIndex, left, right, olderPremise, youngerPremise,
+    olderAge, youngerAge, youngerBoundary, linkLookup,
+    sourceLookup, ?_, orientation, ?_, ?_, ?_, ?_, boundaryOrder⟩
+  · rw [marksEq]
+    exact conclusionUnmarked
+  · rw [marksEq]
+    exact olderMarked
+  · rw [marksEq]
+    exact youngerMarked
+  · rw [sigmaEq]
+    exact olderBoundary
+  · rw [sigmaEq]
+    exact youngerBoundaryLookup
+
+private theorem produced_after_cases
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before)
+    {vertex : Vertex}
+    (produced : Produced after vertex) :
+    vertex = step.consumer.conclusion ∨
+      Produced step.prepared.after vertex := by
+  have afterCoreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  have marksEq : after.core.marks =
+      step.prepared.coreMarked.marks := by
+    rw [afterCoreEq, step.queueStep.after_eq]
+  have componentsEq :
+      after.core.components =
+        step.prepared.coreMarked.components.setIfInBounds
+          step.queueStep.outputToken
+          (some {
+            tree := .par step.queueStep.leftFocus
+              step.queueStep.rightFocus step.queueStep.component.tree
+            frontier := step.queueStep.context ++
+              [step.consumer.conclusion] }) := by
+    exact (congrArg (fun core : UnificationState => core.components)
+      afterCoreEq).trans
+        (congrArg (fun core : UnificationState => core.components)
+          step.queueStep.after_eq)
+  rcases produced with ⟨rawAge, marked⟩ | frontierMembership
+  · apply Or.inr
+    apply Or.inl
+    refine ⟨rawAge, ?_⟩
+    rw [marksEq] at marked
+    exact marked
+  · unfold UnificationState.liveFrontierVertices at frontierMembership
+    rcases List.mem_flatMap.mp frontierMembership with
+      ⟨cell, cellMembership, vertexFrontier⟩
+    cases cell with
+    | none => simp at vertexFrontier
+    | some component =>
+        simp only [Option.map_some, Option.getD_some] at vertexFrontier
+        rcases List.mem_iff_getElem.mp cellMembership with
+          ⟨index, indexBound, indexEquation⟩
+        have afterLookup :
+            after.core.components[index]? = some (some component) := by
+          rw [← Array.getElem?_toList]
+          rw [List.getElem?_eq_getElem indexBound, indexEquation]
+        by_cases active : index = step.queueStep.outputToken
+        · subst index
+          have activeBound :
+              step.queueStep.outputToken <
+                step.prepared.coreMarked.components.size :=
+            (Array.getElem?_eq_some_iff.mp
+              (step.active_component_lookup invariant)).1
+          rw [componentsEq] at afterLookup
+          simp [activeBound] at afterLookup
+          subst component
+          rw [List.mem_append] at vertexFrontier
+          rcases vertexFrontier with contextMembership | conclusionMembership
+          · apply Or.inr
+            apply Or.inr
+            unfold UnificationState.liveFrontierVertices
+            apply List.mem_flatMap.mpr
+            refine ⟨some step.queueStep.component, ?_, ?_⟩
+            · have rawLookup := step.active_component_lookup invariant
+              change step.prepared.after.core.components[
+                  step.queueStep.outputToken]? =
+                some (some step.queueStep.component) at rawLookup
+              exact List.mem_of_getElem? (by simpa using rawLookup)
+            · have inAfterLeft :
+                  vertex ∈ step.queueStep.afterLeft :=
+                (CutFreeDerivation.pick?_perm
+                  step.queueStep.right_pick.positional).mem_iff.mpr (by
+                    simp [contextMembership])
+              exact
+                (CutFreeDerivation.pick?_perm
+                  step.queueStep.left_pick.positional).mem_iff.mpr (by
+                    simp [inAfterLeft])
+          · left
+            simpa using conclusionMembership
+        · apply Or.inr
+          apply Or.inr
+          unfold UnificationState.liveFrontierVertices
+          apply List.mem_flatMap.mpr
+          refine ⟨some component, ?_, ?_⟩
+          · have oldLookup :
+                step.prepared.coreMarked.components[index]? =
+                  some (some component) := by
+              rw [componentsEq] at afterLookup
+              simpa [Array.getElem?_setIfInBounds, Ne.symm active] using
+                afterLookup
+            exact List.mem_of_getElem? (by
+              have lookup := oldLookup
+              change step.prepared.after.core.components[index]? =
+                some (some component) at lookup
+              simpa using lookup)
+          · simpa using vertexFrontier
+
+private theorem submittedPremisesMarkedAfter
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    (∃ leftAge,
+      after.core.marks[step.consumer.storedLeft]? =
+        some (some leftAge)) ∧
+      ∃ rightAge,
+        after.core.marks[step.consumer.storedRight]? =
+          some (some rightAge) := by
+  have afterCoreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  have marksEq : after.core.marks =
+      step.prepared.coreMarked.marks := by
+    rw [afterCoreEq, step.queueStep.after_eq]
+  have selectedMarked :
+      step.prepared.coreMarked.marks[
+          step.prepared.stackResult.vertex]? =
+        some (some step.prepared.stackResult.rawAge) :=
+    (UnificationState.markReadyRaw?_exact
+      step.prepared.core_mark_eq).2.2.2.2.2.2
+  rcases step.premise_orientation with
+    ⟨mateEq, selectedEq⟩ | ⟨mateEq, selectedEq⟩
+  · constructor
+    · exact ⟨step.mateRawAge, by
+        rw [marksEq, ← mateEq]
+        exact step.mate_marked⟩
+    · exact ⟨step.prepared.stackResult.rawAge, by
+        rw [marksEq, ← selectedEq]
+        exact selectedMarked⟩
+  · constructor
+    · exact ⟨step.prepared.stackResult.rawAge, by
+        rw [marksEq, ← selectedEq]
+        exact selectedMarked⟩
+    · exact ⟨step.mateRawAge, by
+        rw [marksEq, ← mateEq]
+        exact step.mate_marked⟩
+
+private theorem producedPremisesMarked
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    ProducedPremisesMarked certificate after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have afterCoreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  have marksEq : after.core.marks =
+      step.prepared.after.core.marks := by
+    rw [afterCoreEq, step.queueStep.after_eq]
+    rfl
+  intro link linkMembership
+  cases link with
+  | «axiom» left right => trivial
+  | tensor left right conclusion
+  | «par» left right conclusion =>
+      intro producedAfter
+      rcases step.produced_after_cases invariant producedAfter with
+        conclusionEq | producedMiddle
+      · subst conclusion
+        have currentMembership :
+            (.par step.consumer.storedLeft step.consumer.storedRight
+              step.consumer.conclusion : Link) ∈ certificate.links :=
+          List.mem_of_getElem? step.submitted_par
+        have producerEq :=
+          UnificationState.StructurallyWellFormed.producerLink_unique
+            invariant.structural
+            (conclusion := step.consumer.conclusion)
+            linkMembership (by simp [Link.produces])
+            currentMembership (by simp [Link.produces])
+        cases producerEq <;>
+          exact step.submittedPremisesMarkedAfter
+      · rcases middleInvariant.produced_premises_marked
+            linkMembership producedMiddle with
+          ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
+        refine ⟨⟨leftAge, ?_⟩, rightAge, ?_⟩
+        · rw [marksEq]
+          exact leftMarked
+        · rw [marksEq]
+          exact rightMarked
+
+private theorem conclusion_mem_ready_after
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    step.consumer.conclusion ∈ after.stack.ready.flatten := by
+  have afterStackEq : after.stack = step.stackAfter :=
+    congrArg (fun state : ReservationState => state.stack) step.output_eq
+  rw [afterStackEq, step.prependStep.after_eq]
+  apply List.mem_flatten.mpr
+  exact ⟨step.consumer.conclusion :: step.prependStep.activeReady,
+    by simp, by simp⟩
+
+private theorem pendingPremisesCoveredExceptReady
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    PendingPremisesCoveredExceptReady certificate after := by
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have afterCoreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  have afterStackEq : after.stack = step.stackAfter :=
+    congrArg (fun state : ReservationState => state.stack) step.output_eq
+  have marksEq : after.core.marks =
+      step.prepared.coreMarked.marks := by
+    rw [afterCoreEq, step.queueStep.after_eq]
+  have parentsEq : after.core.parents =
+      step.prepared.coreMarked.parents := by
+    rw [afterCoreEq, step.queueStep.after_eq]
+  have componentsEq :
+      after.core.components =
+        step.prepared.coreMarked.components.setIfInBounds
+          step.queueStep.outputToken
+          (some {
+            tree := .par step.queueStep.leftFocus
+              step.queueStep.rightFocus step.queueStep.component.tree
+            frontier := step.queueStep.context ++
+              [step.consumer.conclusion] }) := by
+    exact (congrArg (fun core : UnificationState => core.components)
+      afterCoreEq).trans
+        (congrArg (fun core : UnificationState => core.components)
+          step.queueStep.after_eq)
+  have representativeEq : ∀ token,
+      after.core.representative token =
+        step.prepared.coreMarked.representative token := by
+    intro token
+    unfold UnificationState.representative
+    rw [parentsEq]
+  have activeLookup := step.active_component_lookup invariant
+  have activeBound :
+      step.queueStep.outputToken <
+        step.prepared.coreMarked.components.size :=
+    (Array.getElem?_eq_some_iff.mp activeLookup).1
+  have oldReady_subset_after :
+      ∀ {vertex},
+        vertex ∈ step.prepared.after.stack.ready.flatten →
+          vertex ∈ after.stack.ready.flatten := by
+    intro vertex membership
+    change vertex ∈
+      step.prepared.stackResult.after.ready.flatten at membership
+    rw [step.prependStep.ready_eq] at membership
+    rw [afterStackEq, step.prependStep.after_eq]
+    simp only [List.flatten_append, List.flatten_cons, List.flatten_nil,
+      List.append_nil, List.mem_append, List.mem_cons] at membership ⊢
+    rcases membership with inPrefix | inActive
+    · exact Or.inl inPrefix
+    · exact Or.inr (Or.inr inActive)
+  intro link linkMembership
+  cases link with
+  | «axiom» left right => trivial
+  | tensor left right conclusion
+  | «par» left right conclusion =>
+      intro conclusionUnmarked conclusionNotReady premise token
+        premiseMembership tokenAt
+      have conclusionNeNew :
+          conclusion ≠ step.consumer.conclusion := by
+        intro same
+        subst conclusion
+        exact conclusionNotReady step.conclusion_mem_ready_after
+      have middleConclusionUnmarked :
+          step.prepared.after.core.marks[conclusion]? = some none := by
+        change step.prepared.coreMarked.marks[conclusion]? = some none
+        rw [← marksEq]
+        exact conclusionUnmarked
+      have middleConclusionNotReady :
+          conclusion ∉ step.prepared.after.stack.ready.flatten := by
+        intro membership
+        exact conclusionNotReady (oldReady_subset_after membership)
+      have middleTokenAt :
+          step.prepared.after.core.tokenAt? premise = some token := by
+        change step.prepared.coreMarked.tokenAt? premise = some token
+        unfold UnificationState.tokenAt? at tokenAt ⊢
+        rw [marksEq] at tokenAt
+        simpa [representativeEq] using tokenAt
+      rcases middleInvariant.pending_premises_covered_except_ready
+          linkMembership middleConclusionUnmarked middleConclusionNotReady
+          premiseMembership middleTokenAt with
+        ⟨component, componentLookup, premiseFrontier⟩
+      change step.prepared.coreMarked.componentAt? token =
+        some component at componentLookup
+      have premiseNeLeft : premise ≠ step.consumer.storedLeft := by
+        intro same
+        subst premise
+        have sameLink :=
+          UnificationState.StructurallyWellFormed.parentLink_unique
+            invariant.structural
+            (premise := step.consumer.storedLeft)
+            (first := .par step.consumer.storedLeft
+              step.consumer.storedRight step.consumer.conclusion)
+            (List.mem_of_getElem? step.submitted_par)
+            (by simp [Link.premises]) linkMembership
+            (by simpa [Link.premises] using premiseMembership)
+        have impossible : False := by
+          cases sameLink <;> exact conclusionNeNew rfl
+        exact impossible.elim
+      have premiseNeRight : premise ≠ step.consumer.storedRight := by
+        intro same
+        subst premise
+        have sameLink :=
+          UnificationState.StructurallyWellFormed.parentLink_unique
+            invariant.structural
+            (premise := step.consumer.storedRight)
+            (first := .par step.consumer.storedLeft
+              step.consumer.storedRight step.consumer.conclusion)
+            (List.mem_of_getElem? step.submitted_par)
+            (by simp [Link.premises]) linkMembership
+            (by simpa [Link.premises] using premiseMembership)
+        have impossible : False := by
+          cases sameLink <;> exact conclusionNeNew rfl
+        exact impossible.elim
+      by_cases activeRepresentative :
+          step.prepared.coreMarked.representative token =
+            step.queueStep.outputToken
+      · have rawLookup :=
+          UnificationState.componentAt?_some_raw componentLookup
+        rw [activeRepresentative] at rawLookup
+        have componentEq : component = step.queueStep.component :=
+          Option.some.inj
+            (Option.some.inj (rawLookup.symm.trans activeLookup))
+        subst component
+        have inAfterLeft :=
+          Certificate.FirstOccurrencePick.mem_remaining_of_ne
+            step.queueStep.left_pick premiseNeLeft premiseFrontier
+        have inContext :=
+          Certificate.FirstOccurrencePick.mem_remaining_of_ne
+            step.queueStep.right_pick premiseNeRight inAfterLeft
+        refine ⟨{
+          tree := .par step.queueStep.leftFocus
+            step.queueStep.rightFocus step.queueStep.component.tree
+          frontier := step.queueStep.context ++
+            [step.consumer.conclusion] }, ?_, by simp [inContext]⟩
+        unfold UnificationState.componentAt?
+        rw [representativeEq, activeRepresentative, componentsEq]
+        simp [activeBound]
+      · refine ⟨component, ?_, premiseFrontier⟩
+        unfold UnificationState.componentAt? at componentLookup ⊢
+        rw [representativeEq, componentsEq]
+        simpa [Array.getElem?_setIfInBounds,
+          Ne.symm activeRepresentative] using componentLookup
+
+/-- The occurrence-exact component forest already supplies the global live
+frontier duplicate-freedom required by the scheduler invariant. -/
+private theorem liveFrontiersNodup
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    LiveFrontiersNodup after := by
+  unfold LiveFrontiersNodup
+  simpa [UnificationState.liveFrontierVertices] using
+    (step.componentForestProvenance invariant).liveFrontiers_nodup
+
+private theorem foldl_add_weight_eq
+    {alpha : Type} (weight : alpha → Nat) (values : List alpha)
+    (initial : Nat) :
+    values.foldl (fun total value => total + weight value) initial =
+      initial + (values.map weight).sum := by
+  induction values generalizing initial with
+  | nil => simp
+  | cons head tail induction =>
+      simp only [List.foldl_cons, List.map_cons, List.sum_cons]
+      rw [induction]
+      omega
+
+private theorem map_sum_set_add_one
+    {alpha : Type} {values : List alpha} {index : Nat}
+    {oldValue newValue : alpha} (weight : alpha → Nat)
+    (lookup : values[index]? = some oldValue)
+    (weight_eq : weight newValue = weight oldValue + 1) :
+    ((values.set index newValue).map weight).sum =
+      (values.map weight).sum + 1 := by
+  induction values generalizing index with
+  | nil => simp at lookup
+  | cons head tail induction =>
+      cases index with
+      | zero =>
+          have head_eq : head = oldValue := by simpa using lookup
+          subst head
+          simp only [List.set, List.map_cons, List.sum_cons]
+          omega
+      | succ prior =>
+          simp only [List.getElem?_cons_succ] at lookup
+          simp only [List.set, List.map_cons, List.sum_cons]
+          rw [induction lookup]
+          omega
+
+/-- A successful forward par construction adds exactly one connective to the
+active component and increments the production counter exactly once. -/
+private theorem firedCounterExact
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    FiredCounterExact after := by
+  let weight : Option UnificationComponent → Nat := fun cell =>
+    (cell.map UnificationComponent.connectiveCount).getD 0
+  let nextComponent : UnificationComponent := {
+    tree := .par step.queueStep.leftFocus step.queueStep.rightFocus
+      step.queueStep.component.tree
+    frontier := step.queueStep.context ++ [step.consumer.conclusion] }
+  have middleInvariant := step.prepared.schedulerInvariant invariant
+  have activeLookup := step.active_component_lookup invariant
+  have activeListLookup :
+      step.prepared.coreMarked.components.toList[
+          step.queueStep.outputToken]? =
+        some (some step.queueStep.component) := by
+    simpa using activeLookup
+  have weightIncrease :
+      weight (some nextComponent) =
+        weight (some step.queueStep.component) + 1 := by
+    simp [weight, nextComponent, UnificationComponent.connectiveCount,
+      CutFreeDerivation.connectiveCount]
+  have sumIncrease :=
+    map_sum_set_add_one weight activeListLookup weightIncrease
+  have totalIncrease :
+      (step.prepared.coreMarked.components.toList.set
+          step.queueStep.outputToken (some nextComponent)).foldl
+          (fun total cell => total + weight cell) 0 =
+        step.prepared.coreMarked.components.toList.foldl
+            (fun total cell => total + weight cell) 0 + 1 := by
+    rw [foldl_add_weight_eq, foldl_add_weight_eq]
+    simpa using sumIncrease
+  have middleCounter := middleInvariant.fired_counter_exact
+  unfold FiredCounterExact UnificationState.liveConnectiveCount at middleCounter
+  have afterCoreEq : after.core = step.coreAfter :=
+    congrArg (fun state : ReservationState => state.core) step.output_eq
+  unfold FiredCounterExact
+  rw [afterCoreEq, step.queueStep.after_eq]
+  unfold UnificationState.liveConnectiveCount
+  rw [Array.toList_setIfInBounds]
+  change
+    step.prepared.coreMarked.firedConnectives + 1 =
+      (step.prepared.coreMarked.components.toList.set
+        step.queueStep.outputToken (some nextComponent)).foldl
+          (fun total cell => total + weight cell) 0
+  rw [totalIncrease]
+  exact congrArg (fun count => count + 1) middleCounter
+
+/-- A successful local Figure-7 `forward` step preserves every field of the
+current occurrence-exact, state-only scheduler invariant.  This theorem is a
+preservation result only; it does not assert applicability or progress. -/
+theorem schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (step : ForwardStep certificate before after)
+    (invariant : SchedulerInvariant certificate before) :
+    SchedulerInvariant certificate after := by
+  exact {
+    toReservationInvariant := step.reservationInvariant
+    structural := invariant.structural
+    component_domain_exact := step.componentDomainExact invariant
+    component_forest_provenance :=
+      step.componentForestProvenance invariant
+    live_frontiers_nodup := step.liveFrontiersNodup invariant
+    ready_bucket_frontier_exact :=
+      step.readyBucketFrontierExact invariant
+    queued_vertices_nodup := step.queuedVerticesNodup invariant
+    queued_vertices_unmarked := step.queuedVerticesUnmarked invariant
+    produced_premises_marked := step.producedPremisesMarked invariant
+    waiting_span_exact := step.waitingSpanExact invariant
+    pending_premises_covered_except_ready :=
+      step.pendingPremisesCoveredExceptReady invariant
+    fired_counter_exact := step.firedCounterExact invariant }
+
+end ForwardStep
+
+/-- Executable `forward?` success preserves the complete current scheduler
+invariant.  Dispatcher totality and progress remain separate obligations. -/
+theorem forward?_schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (equation :
+      forward? certificate before invariant.toReservationInvariant =
+        some after) :
+    SchedulerInvariant certificate after := by
+  rcases (forward?_some_iff invariant.toReservationInvariant).mp equation with
     ⟨step⟩
   exact step.schedulerInvariant invariant
 

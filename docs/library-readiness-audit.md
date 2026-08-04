@@ -1,6 +1,6 @@
 # Library-readiness audit
 
-Audit date: 2026-07-28
+Audit date: 2026-08-03
 Audited baseline: published v0.9.0 plus its tag-pinned downstream consumer and
 the current v0.10.0-dev scheduler checkpoint
 
@@ -387,14 +387,16 @@ part of the engineering and proof-identity gap.
    pop/mark/mate-search/new pipeline are kernel checked under the supplied
    invariant. Exact init/new execution history, tag provenance, global
    submitted-slot non-reuse, and reservation-count alignment are also kernel
-   checked. Exact local `concl`, `nop`, and `wait` rules now preserve the reservation
-   invariant, with conclusion lookup requiring local `NodeWellFormed`
-   ownership and distinguishing an empty bucket from ambiguous
-   singleton-query failure. Their independent Boolean-free direct relations,
-   executable soundness, structurally valid completeness, and output
-   uniqueness are kernel checked (`wait` uniqueness under structural
-   validity and the supplied invariant); this does not establish dispatcher
-   reachability or progress.
+   checked. Exact local `concl`, `nop`, `wait`, and successful `forward` rules
+   now preserve the reservation invariant, with conclusion lookup requiring
+   local `NodeWellFormed` ownership and distinguishing an empty bucket from
+   ambiguous singleton-query failure. Independent Boolean-free direct
+   relations, executable soundness, structurally valid completeness, and output
+   uniqueness are kernel checked for the common prefix, `concl`, `nop`, and
+   `wait` (`wait` uniqueness under structural validity and the supplied
+   invariant). There is not yet a Boolean-free `ForwardRule` or direct Forward
+   completeness/equivalence theorem; none of these local results establishes
+   dispatcher reachability or progress.
    The stronger current state-only `SchedulerInvariant` is now preserved by
    the synchronized prepared pop/raw-mark prefix and therefore by exact and
    executable `concl`/`nop`. This includes extensional active ready/frontier
@@ -428,12 +430,22 @@ part of the engineering and proof-identity gap.
    The local `wait` destination is exactly
    `sigmaBoundary? stack.sigma mateRawAge`, and its initialized-cell cons
    update has those state-only ownership guarantees only under the supplied
-   `SchedulerInvariant`. Complete executable `forward`/`unify`,
-   full-history integration of
-   `concl`/`nop`/`wait`, full-rule reachability, later-state selection totality,
+   `SchedulerInvariant`. Successful typed `ForwardStep` and executable
+   `forward?` now require the paper guard
+   `selectedRawAge ≤ mateRawAge`; a separate theorem regression proves the
+   distinct-age boundary case `sigmaBoundary? [0] 1 = some 0`. It queues the
+   exact submitted par and preserves the complete
+   occurrence-exact `SchedulerInvariant`. The proof retains the exact submitted
+   par position, component forest and live frontier, ready/waiting queue facts,
+   waiting spans, pending-premise coverage, and exact fired-connective counter.
+   The extra active-ready `Nodup` guard is only a fail-closed shape check. A
+   typed `init → nop → forward → concl` regression exercises the path.
+   `Unify`, full-history integration of `concl`/`nop`/`wait`/`forward`,
+   applicability/totality, full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
-   progress, pure worklist completeness, recursive fallback removal, and a
-   whole-program linear cost theorem remain open.
+   progress, pure worklist completeness, recursive fallback removal, faithful
+   `NEXTAXIOM`/token-age sequencing, and a whole-program linear cost theorem
+   remain open.
    The narrower production-core `queuePar?`/`queueTensor?` and delayed-stack
    `prependReadyTop?`/`mergeTopReadyWaiting?` primitives are now kernel
    checked with exact success witnesses. They leave queued conclusions
@@ -508,10 +520,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 259 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 272 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  87 `propext`-only, and 78 `propext`/`Quot.sound` boundaries;
+  87 `propext`-only, and 79 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -601,15 +613,14 @@ It can currently be used for:
   threaded touched-set, `σ` partition, operational inactive-boundary waiting
   domain, typed initial/later reservations, and local pop/mark/new pipeline,
   while treating search failure as inconclusive; local exact
-  `concl`/`nop`/`wait` are now present, the current state-only invariant is
-  preserved through the common prepared prefix plus `concl`/`nop` and every
-  successful deterministic/executable `new` and `wait`; the exact
+  `concl`/`nop`/`wait`/`forward` are now present, the current state-only invariant
+  is preserved through the common prepared prefix plus `concl`/`nop` and every
+  successful deterministic/executable `new`, `wait`, and `forward`; the exact
   occurrence-provenance forest is integrated for empty/init and each of those
   successful steps. Wait additionally preserves exact positional waiting spans
   and combined queue ownership without constructing the delayed par.
-  Later-state `new?`/`wait?` applicability and totality, payload ownership
-  through complete executable
-  `forward`/`unify`, and full-history rule integration remain absent. The
+  Later-state applicability and totality, `unify`, an independent Boolean-free
+  `ForwardRule`, and full-history rule integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
   Exact init/new reachability and tag history are present, but

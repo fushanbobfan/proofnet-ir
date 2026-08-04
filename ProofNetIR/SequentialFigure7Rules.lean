@@ -16,7 +16,7 @@ It deliberately keeps three distinctions executable:
 
 The common prefix pops one occurrence from the top ready bucket and raw-marks
 it at the old active `sigma` boundary in both delayed and production views.
-The first three complete local rules built from that prefix are:
+The first four complete local rules built from that prefix are:
 
 * `concl`: the selected occurrence is an explicit conclusion with no consumer;
 * `nop`: the selected occurrence is a par premise whose mate is still raw
@@ -24,10 +24,15 @@ The first three complete local rules built from that prefix are:
 * `wait`: the selected occurrence is a par premise whose mate carries a
   strictly older raw age, and the par conclusion is prepended to the
   initialized waiting bucket selected by `sigmaBoundary?`.
+* `forward`: the selected occurrence is a par premise whose mate carries the
+  same or a newer raw age, the exact submitted par is built in the active
+  production component, and its conclusion is prepended to the top ready
+  bucket.
 
 `concl` and `nop` perform only the common prefix; `wait` additionally performs
-one exact waiting cons update. Par forwarding, tensor unification, global
-payload ownership, full-rule reachability, and progress remain separate.
+one exact waiting cons update. `forward` composes the existing delayed par and
+ready-top primitives. Tensor unification, global payload ownership, full-rule
+reachability, and progress remain separate.
 -/
 
 /-- The submitted binary connective constructor retained by a generic
@@ -1306,6 +1311,485 @@ theorem NopRule.output_unique
   · rcases right with
       ⟨vertex, rawAge, _, _, _, _, _, prefixRule, _⟩
     exact ⟨vertex, rawAge, prefixRule⟩
+
+/-- Execute Figure-7 `forward` after the synchronized common prefix.
+
+The paper guard is the raw-age comparison `i ≤ μ(u₂)`: the selected premise
+is assigned the active raw age `i`, while the mate already carries the same or
+a newer raw age.  The production update constructs the exact submitted par in
+the active component, and the delayed update prepends its raw-unmarked
+conclusion to the top ready bucket.
+
+The final `Nodup` guard is a local fail-closed shape check required by the
+current reservation invariant.  It neither replaces nor weakens the paper's
+raw-age guard. -/
+def forward? (certificate : Certificate)
+    (before : ReservationState)
+    (_invariant : ReservationInvariant certificate before) :
+    Option ReservationState :=
+  match prepare? before with
+  | none => none
+  | some prepared =>
+      match
+          certificate.connectiveBelow?
+            prepared.stackResult.vertex with
+      | none => none
+      | some consumer =>
+          if _par : consumer.kind = .par then
+            match prepared.coreMarked.marks[consumer.mate]? with
+            | some (some mateRawAge) =>
+                if _notOlder :
+                    prepared.stackResult.rawAge ≤ mateRawAge then
+                  if _readyNodup :
+                      (consumer.conclusion ::
+                        prepared.stackResult.remainingTop).Nodup then
+                    match
+                        Certificate.queuePar? prepared.coreMarked
+                          consumer.storedLeft consumer.storedRight
+                          consumer.conclusion with
+                    | none => none
+                    | some coreAfter =>
+                        match
+                            prepared.stackResult.after.prependReadyTop?
+                              consumer.conclusion with
+                        | none => none
+                        | some stackAfter =>
+                            some {
+                              stack := stackAfter
+                              core := coreAfter
+                              tags := before.tags }
+                  else
+                    none
+                else
+                  none
+            | _ => none
+          else
+            none
+
+private theorem queueParStep_outputToken_eq_active
+    {certificate : Certificate} {before : ReservationState}
+    {coreAfter : UnificationState}
+    (invariant : ReservationInvariant certificate before)
+    (prepared : PreparedStep before)
+    (consumer :
+      ConnectiveBelow certificate prepared.stackResult.vertex)
+    (step :
+      Certificate.QueueParStep prepared.coreMarked coreAfter
+        consumer.storedLeft consumer.storedRight consumer.conclusion) :
+    step.outputToken = prepared.stackResult.rawAge := by
+  have preparedInvariant :
+      ReservationInvariant certificate prepared.after :=
+    prepared.reservationInvariant invariant
+  rcases SequentialStackState.popReadyMark?_exact prepared.stack_eq with
+    ⟨_topEquation, sigmaTopEquation, _stackUnmarked,
+      _stackMarksEquation, _stackNextAgeEquation, stackSigmaEquation,
+      _stackReadyEquation, _stackWaitingEquation, stackMarked⟩
+  rcases UnificationState.markReadyRaw?_exact prepared.core_mark_eq with
+    ⟨_coreUnmarked, _coreMarksEquation, _coreParentsEquation,
+      _coreComponentsEquation, _coreStartedEquation, _coreFiredEquation,
+      coreMarked⟩
+  have afterSigmaTop :
+      prepared.stackResult.after.sigma.getLast? =
+        some prepared.stackResult.rawAge := by
+    rw [stackSigmaEquation]
+    exact sigmaTopEquation
+  have rawAgeBound :
+      prepared.stackResult.rawAge <
+        prepared.stackResult.after.nextAge :=
+    preparedInvariant.stack_wellShaped.assigned_age_bound
+      prepared.stackResult.vertex prepared.stackResult.rawAge stackMarked
+  have boundaryLookup :
+      sigmaBoundary? prepared.stackResult.after.sigma
+          prepared.stackResult.rawAge =
+        some prepared.stackResult.rawAge :=
+    preparedInvariant.stack_wellShaped.sigma_partition
+      |>.sigmaBoundary?_eq_top afterSigmaTop
+  have realizesLookup :
+      sigmaBoundary? prepared.stackResult.after.sigma
+          prepared.stackResult.rawAge =
+        some
+          (prepared.coreMarked.representative
+            prepared.stackResult.rawAge) :=
+    preparedInvariant.realizesSigma.representative_eq_boundary rawAgeBound
+  have rawAgeRoot :
+      prepared.coreMarked.representative prepared.stackResult.rawAge =
+        prepared.stackResult.rawAge :=
+    Option.some.inj (realizesLookup.symm.trans boundaryLookup)
+  have selectedToken :
+      prepared.coreMarked.tokenAt? prepared.stackResult.vertex =
+        some prepared.stackResult.rawAge := by
+    unfold UnificationState.tokenAt?
+    rw [coreMarked]
+    simp [rawAgeRoot]
+  have tokenGuards :=
+    UnificationState.forwardToken?_success step.token_guard
+  have selectedOutput :
+      prepared.coreMarked.tokenAt? prepared.stackResult.vertex =
+        some step.outputToken := by
+    cases sideEquation : consumer.side with
+    | storedLeft =>
+        have selectedEquation :
+            prepared.stackResult.vertex = consumer.storedLeft := by
+          simpa [TensorPremiseSide.premise, sideEquation] using
+            consumer.premise_eq
+        simpa [selectedEquation] using tokenGuards.2.1
+    | storedRight =>
+        have selectedEquation :
+            prepared.stackResult.vertex = consumer.storedRight := by
+          simpa [TensorPremiseSide.premise, sideEquation] using
+            consumer.premise_eq
+        simpa [selectedEquation] using tokenGuards.2.2
+  exact Option.some.inj (selectedOutput.symm.trans selectedToken)
+
+/-- Exact proof-relevant specification of one successful `forward` rule.
+
+Both the production par construction and ready-top prepend start from the
+same prepared middle state.  The retained `QueueParStep` additionally records
+that its output token is exactly the active scheduler boundary. -/
+structure ForwardStep (certificate : Certificate)
+    (before after : ReservationState) : Type where
+  before_invariant : ReservationInvariant certificate before
+  prepared : PreparedStep before
+  consumer :
+    ConnectiveBelow certificate prepared.stackResult.vertex
+  mateRawAge : RawTokenAge
+  coreAfter : UnificationState
+  stackAfter : SequentialStackState
+  queueStep :
+    Certificate.QueueParStep prepared.coreMarked coreAfter
+      consumer.storedLeft consumer.storedRight consumer.conclusion
+  prependStep :
+    PrependReadyTopStep prepared.stackResult.after stackAfter
+      consumer.conclusion
+  prepare_eq : prepare? before = some prepared
+  consumer_eq :
+    certificate.connectiveBelow? prepared.stackResult.vertex =
+      some consumer
+  par_eq : consumer.kind = .par
+  mate_marked :
+    prepared.coreMarked.marks[consumer.mate]? =
+      some (some mateRawAge)
+  not_older : prepared.stackResult.rawAge ≤ mateRawAge
+  ready_nodup :
+    (consumer.conclusion :: prepared.stackResult.remainingTop).Nodup
+  core_queue_eq :
+    Certificate.queuePar? prepared.coreMarked
+        consumer.storedLeft consumer.storedRight consumer.conclusion =
+      some coreAfter
+  stack_prepend_eq :
+    prepared.stackResult.after.prependReadyTop? consumer.conclusion =
+      some stackAfter
+  output_token_eq_active :
+    queueStep.outputToken = prepared.stackResult.rawAge
+  output_eq :
+    after = {
+      stack := stackAfter
+      core := coreAfter
+      tags := before.tags }
+
+/-- Executable `forward` success is exactly the typed local-rule witness. -/
+theorem forward?_some_iff
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before) :
+    forward? certificate before invariant = some after ↔
+      Nonempty (ForwardStep certificate before after) := by
+  constructor
+  · intro equation
+    unfold forward? at equation
+    cases prepareEquation : prepare? before with
+    | none =>
+        simp [prepareEquation] at equation
+    | some prepared =>
+        cases consumerEquation :
+            certificate.connectiveBelow?
+              prepared.stackResult.vertex with
+        | none =>
+            simp [prepareEquation, consumerEquation] at equation
+        | some consumer =>
+            by_cases parEquation : consumer.kind = .par
+            · cases mateEquation :
+                  prepared.coreMarked.marks[consumer.mate]? with
+              | none =>
+                  simp [prepareEquation, consumerEquation,
+                    parEquation, mateEquation] at equation
+              | some mark =>
+                  cases mark with
+                  | none =>
+                      simp [prepareEquation, consumerEquation,
+                        parEquation, mateEquation] at equation
+                  | some mateRawAge =>
+                      by_cases notOlderEquation :
+                          prepared.stackResult.rawAge ≤ mateRawAge
+                      · by_cases readyNodupEquation :
+                            (consumer.conclusion ::
+                              prepared.stackResult.remainingTop).Nodup
+                        · cases coreEquation :
+                              Certificate.queuePar? prepared.coreMarked
+                                consumer.storedLeft consumer.storedRight
+                                consumer.conclusion with
+                          | none =>
+                              simp [prepareEquation, consumerEquation,
+                                parEquation, mateEquation,
+                                notOlderEquation, readyNodupEquation,
+                                coreEquation] at equation
+                          | some coreAfter =>
+                              cases stackEquation :
+                                  prepared.stackResult.after.prependReadyTop?
+                                    consumer.conclusion with
+                              | none =>
+                                  simp [prepareEquation, consumerEquation,
+                                    parEquation, mateEquation,
+                                    notOlderEquation, readyNodupEquation,
+                                    coreEquation, stackEquation] at equation
+                              | some stackAfter =>
+                                  simp [prepareEquation, consumerEquation,
+                                    parEquation, mateEquation,
+                                    notOlderEquation, readyNodupEquation,
+                                    coreEquation, stackEquation] at equation
+                                  subst after
+                                  rcases Certificate.queuePar?_some_iff.mp
+                                      coreEquation with
+                                    ⟨queueStep⟩
+                                  rcases
+                                      SequentialStackState.prependReadyTop?_some_iff.mp
+                                        stackEquation with
+                                    ⟨prependStep⟩
+                                  have outputTokenEquation :=
+                                    queueParStep_outputToken_eq_active
+                                      invariant prepared consumer queueStep
+                                  exact ⟨{
+                                    before_invariant := invariant
+                                    prepared
+                                    consumer
+                                    mateRawAge
+                                    coreAfter
+                                    stackAfter
+                                    queueStep
+                                    prependStep
+                                    prepare_eq := prepareEquation
+                                    consumer_eq := consumerEquation
+                                    par_eq := parEquation
+                                    mate_marked := mateEquation
+                                    not_older := notOlderEquation
+                                    ready_nodup := readyNodupEquation
+                                    core_queue_eq := coreEquation
+                                    stack_prepend_eq := stackEquation
+                                    output_token_eq_active :=
+                                      outputTokenEquation
+                                    output_eq := rfl }⟩
+                        · simp [prepareEquation, consumerEquation,
+                            parEquation, mateEquation, notOlderEquation,
+                            readyNodupEquation] at equation
+                      · simp [prepareEquation, consumerEquation,
+                          parEquation, mateEquation, notOlderEquation]
+                          at equation
+            · simp [prepareEquation, consumerEquation, parEquation]
+                at equation
+  · rintro ⟨step⟩
+    rcases step with
+      ⟨stepInvariant, prepared, consumer, mateRawAge, coreAfter,
+        stackAfter, queueStep, prependStep, prepareEquation,
+        consumerEquation, parEquation, mateEquation,
+        notOlderEquation, readyNodupEquation, coreEquation,
+        stackEquation, outputTokenEquation, outputEquation⟩
+    subst after
+    simp [forward?, prepareEquation, consumerEquation, parEquation,
+      mateEquation, notOlderEquation, readyNodupEquation,
+      coreEquation, stackEquation]
+
+namespace ForwardStep
+
+/-- The shared middle state is exactly the synchronized prepared prefix. -/
+def middle {certificate : Certificate}
+    {before after : ReservationState}
+    (step : ForwardStep certificate before after) : ReservationState :=
+  step.prepared.after
+
+/-- The generic consumer retained by a `forward` witness is the exact
+submitted par link. -/
+theorem submitted_par
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    certificate.links[step.consumer.linkIndex]? =
+      some (.par step.consumer.storedLeft
+        step.consumer.storedRight step.consumer.conclusion) := by
+  simpa [step.par_eq, SequentialConnectiveKind.asLink] using
+    step.consumer.link_eq
+
+/-- The mate raw age tested after the prefix is its exact pre-prefix mark. -/
+theorem mate_marked_before
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    before.core.marks[step.consumer.mate]? =
+      some (some step.mateRawAge) := by
+  have markExact :=
+    UnificationState.markReadyRaw?_exact step.prepared.core_mark_eq
+  have selectedNeMate :
+      step.prepared.stackResult.vertex ≠ step.consumer.mate :=
+    step.consumer.mate_ne.symm
+  have unchanged :
+      step.prepared.coreMarked.marks[step.consumer.mate]? =
+        before.core.marks[step.consumer.mate]? := by
+    rw [markExact.2.1]
+    simp [selectedNeMate]
+  exact unchanged.symm.trans step.mate_marked
+
+/-- A successful `forward` preserves the complete reservation invariant.
+
+The proof composes the two local preservation APIs over the same prepared
+middle.  `queuePar?` leaves marks and parents unchanged; `prependReadyTop?`
+leaves marks, `sigma`, and the raw-age horizon unchanged.  Hence the existing
+`RealizesSigma` correspondence transports exactly. -/
+theorem reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    ReservationInvariant certificate after := by
+  have preparedInvariant :
+      ReservationInvariant certificate step.prepared.after :=
+    step.prepared.reservationInvariant step.before_invariant
+  have parWellFormed :
+      certificate.LinkWellFormed
+        (.par step.consumer.storedLeft step.consumer.storedRight
+          step.consumer.conclusion) := by
+    simpa [step.par_eq, SequentialConnectiveKind.asLink] using
+      step.consumer.wellFormed
+  have conclusionBound :
+      step.consumer.conclusion < certificate.formulas.size :=
+    parWellFormed.2.2.2.2.2.1
+  rcases
+      SequentialStackState.popReadyMark?_exact
+        step.prepared.stack_eq with
+    ⟨_topEquation, _sigmaTopEquation, _stackUnmarked,
+      _stackMarksEquation, _stackNextAgeEquation,
+      _stackSigmaEquation, preparedReadyEquation,
+      _stackWaitingEquation, _stackMarked⟩
+  have activeLookup :
+      step.prepared.stackResult.after.ready.getLast? =
+        some step.prepared.stackResult.remainingTop := by
+    rw [preparedReadyEquation]
+    simp
+  have mergedNodup :
+      ∀ {activeReady},
+        step.prepared.stackResult.after.ready.getLast? =
+            some activeReady →
+          (step.consumer.conclusion :: activeReady).Nodup := by
+    intro activeReady lookup
+    have activeEquation :
+        activeReady = step.prepared.stackResult.remainingTop :=
+      Option.some.inj (lookup.symm.trans activeLookup)
+    subst activeReady
+    exact step.ready_nodup
+  have stackWellShaped :
+      step.stackAfter.WellShaped certificate.formulas.size :=
+    SequentialStackState.prependReadyTop?_wellShaped
+      preparedInvariant.stack_wellShaped step.stack_prepend_eq
+      conclusionBound mergedNodup
+  have stackDomain :
+      step.stackAfter.OperationalWaitingDomain :=
+    SequentialStackState.prependReadyTop?_operationalWaitingDomain
+      preparedInvariant.stack_operationalWaitingDomain
+      step.stack_prepend_eq
+  have alignment :=
+    Certificate.queuePar?_reservationAlignment
+      preparedInvariant.core_carriers_aligned
+      preparedInvariant.core_counter_aligned step.core_queue_eq
+  have coreOrdered : step.coreAfter.OrderedParents :=
+    Certificate.queuePar?_orderedParents
+      preparedInvariant.core_orderedParents step.core_queue_eq
+  have coreAbstractable :
+      step.coreAfter.Abstractable certificate :=
+    Certificate.queuePar?_abstractable
+      preparedInvariant.core_abstractable step.core_queue_eq
+  have coreConsistent :
+      step.coreAfter.ComponentsFormulaConsistent certificate :=
+    Certificate.queuePar?_componentsFormulaConsistent
+      preparedInvariant.core_componentsFormulaConsistent
+      parWellFormed step.core_queue_eq
+  rcases Certificate.queuePar?_exact step.core_queue_eq with
+    ⟨_outputToken, _component, _leftFocus, _afterLeft,
+      _rightFocus, _context, _tokenGuard, _componentLookup,
+      _leftPick, _rightPick, _componentsEquation,
+      coreMarksEquation, coreParentsEquation,
+      _coreStartedEquation, _coreFiredEquation⟩
+  rcases
+      SequentialStackState.prependReadyTop?_exact
+        step.stack_prepend_eq with
+    ⟨_readyPrefix, _activeReady, _readyEquation,
+      _afterReadyEquation, stackMarksEquation,
+      stackNextAgeEquation, stackSigmaEquation,
+      _stackWaitingEquation⟩
+  have realization :
+      RealizesSigma step.stackAfter step.coreAfter := by
+    exact {
+      marks_eq := by
+        rw [coreMarksEquation, stackMarksEquation]
+        exact preparedInvariant.realizesSigma.marks_eq
+      horizon_eq := by
+        rw [coreParentsEquation, stackNextAgeEquation]
+        exact preparedInvariant.realizesSigma.horizon_eq
+      representative_eq_boundary := by
+        intro age ageBound
+        have oldAgeBound :
+            age < step.prepared.stackResult.after.nextAge := by
+          simpa [stackNextAgeEquation] using ageBound
+        calc
+          sigmaBoundary? step.stackAfter.sigma age =
+              sigmaBoundary?
+                step.prepared.stackResult.after.sigma age := by
+            rw [stackSigmaEquation]
+          _ = some (step.prepared.coreMarked.representative age) :=
+            preparedInvariant.realizesSigma
+              |>.representative_eq_boundary oldAgeBound
+          _ = some (step.coreAfter.representative age) := by
+            unfold UnificationState.representative
+            rw [coreParentsEquation] }
+  rw [step.output_eq]
+  exact {
+    stack_wellShaped := stackWellShaped
+    stack_operationalWaitingDomain := stackDomain
+    realizesSigma := realization
+    core_orderedParents := coreOrdered
+    core_abstractable := coreAbstractable
+    core_componentsFormulaConsistent := coreConsistent
+    core_carriers_aligned := alignment.1
+    core_counter_aligned := alignment.2
+    tags_size := step.before_invariant.tags_size }
+
+/-- The proof-relevant executable `forward` relation has one exact output for
+a fixed input. -/
+theorem output_unique
+    {certificate : Certificate}
+    {before first second : ReservationState}
+    (left : ForwardStep certificate before first)
+    (right : ForwardStep certificate before second) :
+    first = second := by
+  have invariantEquation :
+      left.before_invariant = right.before_invariant :=
+    Subsingleton.elim _ _
+  cases invariantEquation
+  have leftExecutable :
+      forward? certificate before left.before_invariant = some first :=
+    (forward?_some_iff left.before_invariant).mpr ⟨left⟩
+  have rightExecutable :
+      forward? certificate before left.before_invariant = some second :=
+    (forward?_some_iff left.before_invariant).mpr ⟨right⟩
+  exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
+
+end ForwardStep
+
+/-- Executable `forward` success preserves the reservation invariant. -/
+theorem forward?_reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation : forward? certificate before invariant = some after) :
+    ReservationInvariant certificate after := by
+  rcases (forward?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.reservationInvariant
 
 /-- Execute Figure-7 `wait` after the synchronized common prefix.
 

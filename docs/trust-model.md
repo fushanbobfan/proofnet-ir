@@ -228,8 +228,9 @@ callers cannot inject a partial consumer table. A separate proof-relevant
 `InitNewHistory` now characterizes exact empty/init/new executions and proves
 tag iff recorded touch, global submitted-slot non-reuse, and
 reservation-count alignment. It is still not a full reachable Figure-7
-scheduler. Exact local `concl`/`nop`/`wait` now require a proof-carrying
-canonical consumer/conclusion view and preserve the reservation invariant.
+scheduler. Exact local `concl`/`nop`/`wait` and successful `forward` now require
+a proof-carrying canonical consumer/conclusion view and preserve the
+reservation invariant.
 The common prepared pop/raw-mark prefix is also proved to preserve every
 current state-only field of `SchedulerInvariant`; exact and executable
 `concl`/`nop` inherit that theorem because they return `prepared.after`.
@@ -261,23 +262,33 @@ the new conclusion fresh and raw-unmarked in the combined queue, and extends
 unchanged. It still performs only one initialized-cell cons and no global queue
 scan; the global facts are proofs from the input invariant, not runtime scans.
 This is conditional successful-step preservation, not applicability or
-reachability. `forward`/`unify`, full-history rule integration,
-later-state totality,
-correct-state progress, pure-worklist
-completeness, fallback removal, and whole-program linearity remain
-unimplemented. Their current dependent step records exactly characterize the
-program equations. Independent Boolean-free direct relations now exist for
-the common prefix, `concl`, `nop`, and `wait`; executable soundness and
-completeness are proved only under `StructurallyWellFormed` and the supplied
-`ReservationInvariant`, and do not imply reachability or progress.
+reachability. Successful typed `ForwardStep` and executable `forward?` now
+compose the exact submitted par occurrence with the paper's non-strict raw-age
+guard `selectedRawAge ≤ mateRawAge`; a separate theorem regression covers the
+distinct-age boundary case `sigmaBoundary? [0] 1 = some 0`. They queue that
+exact par, prepend its
+conclusion to the active ready bucket, and preserve the complete
+occurrence-exact `SchedulerInvariant`: component forest, live frontier,
+ready/waiting queue, waiting spans, pending coverage, and fired counter. The
+extra active-ready `Nodup` guard is only fail-closed shape validation, not a
+paper premise. A typed `init → nop → forward → concl` regression locks the
+successful composition. This still does not prove applicability, totality,
+dispatcher/history integration, or reachability. `Unify`, correct-state
+progress, pure-worklist completeness, fallback removal, faithful
+`NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
+unimplemented. Independent Boolean-free direct relations now exist only for
+the common prefix, `concl`, `nop`, and `wait`; no independent `ForwardRule` or
+direct Forward completeness/equivalence theorem is claimed. Their executable
+soundness and completeness are proved only under `StructurallyWellFormed` and
+the supplied `ReservationInvariant`, and do not imply reachability or progress.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
 dispatcher entry point. Future guards must use raw
 assigned ages—not representatives.
 
-Four lower-level mutations are now in the kernel-checked API without being
-promoted to complete Figure-7 rules. `queuePar?` and `queueTensor?` construct
+Four lower-level mutations are now in the kernel-checked API. `queuePar?` and
+`queueTensor?` construct
 the production components and increment the local connective count while
 leaving the conclusion raw-unmarked; their theorems preserve component
 formula consistency only from a prior consistency invariant plus explicit
@@ -288,7 +299,9 @@ two-level stack merge deterministically chooses
 `conclusion :: (payload ++ previousReady ++ activeReady)` although the source
 algorithm uses sets, and its shape theorem requires explicit `Nodup` and
 payload-bound evidence rather than deriving ownership from a queue scan.
-These facts do not authorize a full `unify`: it must still identify the
+The successful local `forward?` now composes the par and active-ready
+primitives, but those primitives do not state a rule by themselves. These facts
+still do not authorize a full `unify`: it must identify the
 generic tensor roots with exact scheduler `j/i`, orient `parent[i] := j`, and
 construct or activate all waiting par components drained from `W(j)` (with
 their extra counter increments). A direct nonempty-payload composition would
@@ -535,10 +548,10 @@ bundled invariant preserved across both stages. The invariant-bound local
 `new` layer now adds pop-before-mark, binary-mate lookup, raw-age marking,
 post-mark search, and the operational old-boundary/fresh-top reservation. The
 dedicated init/new history adds exact reachability and tag provenance for that
- fragment. Local `concl`/`nop`/`wait` exist outside it. It does not add later
- totality,
- ready/waiting payload ownership, a full-rule reachability invariant,
- full-history integration, or `forward`/`unify`. No
+ fragment. Local `concl`/`nop`/`wait`/`forward` exist outside it; successful
+ Forward has complete state-only invariant preservation. It does not add later
+ applicability/totality, an independent `ForwardRule`, `unify`, a full-rule
+ reachability invariant, or full-history integration. No
 planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary
@@ -654,12 +667,11 @@ Lean now also constructs the exact simultaneous complementary
   per-call trace/tag invariants, exact oriented routes, initial/local
   rank-scoped totality, and strictly threaded touched-set disjointness;
   the operational waiting-cell domain and exact init/new history are also
-  proved. Exact local `concl`/`nop`/`wait` are also proved, and successful
-  deterministic/executable `new` and `wait` preserve the complete current
-  occurrence-exact state-only invariant. Later-state `new?`/`wait?`
-  applicability and totality, ready/waiting payload ownership through
-  `forward`/`unify`, their
-  full-history integration, and the remaining
+  proved. Exact local `concl`/`nop`/`wait`/`forward` are also proved, and
+  successful deterministic/executable `new`, `wait`, and `forward` preserve the
+  complete current occurrence-exact state-only invariant. Later-state
+  applicability and totality, `unify`, an independent Boolean-free
+  `ForwardRule`, full-history integration, and the remaining
   `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program

@@ -347,6 +347,46 @@ theorem SigmaAgePartition.boundary_exists
   | some boundary =>
       exact ⟨boundary, by simp [sigmaBoundary?, tailLookup]⟩
 
+/-- Every allocated raw age at or above the active (last) boundary resolves
+to that active boundary.  This is the exact interval fact used by Figure-7
+`forward`: a mate may have a younger raw age than the boundary itself while
+still belonging to the active scheduler component. -/
+theorem SigmaAgePartition.sigmaBoundary?_eq_top_of_le
+    {nextAge : RawTokenAge} {sigma : List RawTokenAge}
+    (partition : SigmaAgePartition nextAge sigma)
+    {active age : RawTokenAge}
+    (activeEquation : sigma.getLast? = some active)
+    (activeLe : active ≤ age)
+    (ageBound : age < nextAge) :
+    sigmaBoundary? sigma age = some active := by
+  rcases partition.boundary_exists ageBound with
+    ⟨boundary, boundaryLookup⟩
+  rcases List.getLast?_eq_some_iff.mp activeEquation with
+    ⟨sigmaPrefix, sigmaEquation⟩
+  have activeMembership : active ∈ sigma := by
+    rw [sigmaEquation]
+    simp
+  have activeLeBoundary : active ≤ boundary :=
+    sigmaBoundary?_greatest partition.strictIncreasing
+      boundaryLookup active activeMembership activeLe
+  have boundaryMembership : boundary ∈ sigma :=
+    sigmaBoundary?_mem boundaryLookup
+  have increasing :
+      (sigmaPrefix ++ [active]).Pairwise (· < ·) := by
+    simpa [sigmaEquation] using partition.strictIncreasing
+  have boundaryLeActive : boundary ≤ active := by
+    rw [sigmaEquation] at boundaryMembership
+    simp only [List.mem_append, List.mem_singleton]
+      at boundaryMembership
+    rcases boundaryMembership with inPrefix | rfl
+    · exact Nat.le_of_lt
+        ((List.pairwise_append.mp increasing).2.2
+          boundary inPrefix active (by simp))
+    · exact Nat.le_refl _
+  have boundaryEquation : boundary = active :=
+    Nat.le_antisymm boundaryLeActive activeLeBoundary
+  simpa [boundaryEquation] using boundaryLookup
+
 /-- The greatest eligible boundary is mathematically unique. -/
 theorem sigmaBoundary_unique_of_greatest
     {sigma : List RawTokenAge} {age first second : RawTokenAge}
