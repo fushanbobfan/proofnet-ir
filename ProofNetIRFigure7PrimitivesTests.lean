@@ -3,6 +3,7 @@ import ProofNetIR.SequentialComponentProvenance
 import ProofNetIR.SequentialFigure7UnifyOne
 import ProofNetIR.SequentialFigure7Unify
 import ProofNetIR.SequentialFigure7UnifyPayload
+import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.SequentialFigure7TagHistory
 
@@ -3026,6 +3027,511 @@ example :
         UnificationState).markReadyRaw? 0 0 =
       .error (.alreadyMarked 0 0) := by
   rfl
+
+/-! Input-only applicability for the stable Figure-7 rules. -/
+
+private def axiomStableState : ReservationState :=
+  match axiomInitial with
+  | some state => state
+  | none => ReservationState.empty axiomCertificate
+
+private theorem axiomStableState_eq :
+    axiomInitial = some axiomStableState := by
+  native_decide
+
+private theorem axiomStableState_invariant :
+    SchedulerInvariant axiomCertificate axiomStableState :=
+  axiomInitial_schedulerInvariant axiomStableState_eq
+
+private def axiomStableHead :
+    SequentialFigure7.ReadyHeadInput axiomStableState where
+  vertex := 0
+  readyTail := [1]
+  rawAge := 0
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private theorem axiom_concl_enabled :
+    SequentialFigure7.ConclEnabled axiomCertificate axiomStableState := by
+  exact ⟨{
+    head := axiomStableHead
+    boundary := by native_decide }⟩
+
+/-- A genuine initialized state satisfies full `SchedulerInvariant`; its
+input-only conclusion witness executes and preserves that complete invariant. -/
+example :
+    ∃ next,
+      SequentialFigure7.concl? axiomCertificate axiomStableState
+          axiomStableState_invariant.toReservationInvariant = some next ∧
+        SchedulerInvariant axiomCertificate next :=
+  SequentialFigure7.concl?_exists_schedulerInvariant_of_enabled
+    axiomStableState_invariant axiom_concl_enabled
+
+/-- The exact empty full-invariant state has no ready head, so none of the
+four stable input-only predicates is enabled.  This is not a progress claim. -/
+example :
+    let state := ReservationState.empty axiomCertificate
+    SchedulerInvariant axiomCertificate state ∧
+      ¬ SequentialFigure7.ConclEnabled axiomCertificate state ∧
+      ¬ SequentialFigure7.NopEnabled axiomCertificate state ∧
+      ¬ SequentialFigure7.WaitEnabled axiomCertificate state ∧
+      ¬ SequentialFigure7.ForwardEnabled axiomCertificate state := by
+  let state := ReservationState.empty axiomCertificate
+  have noHead :
+      ¬ Nonempty (SequentialFigure7.ReadyHeadInput state) := by
+    rintro ⟨head⟩
+    simpa [state, ReservationState.empty, SequentialStackState.empty] using
+      head.top_ready
+  refine ⟨empty_schedulerInvariant axiomCertificate_structural,
+    ?_, ?_, ?_, ?_⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+
+private def parNopStableState : ReservationState :=
+  match parInitial with
+  | some state => state
+  | none => ReservationState.empty parCertificate
+
+private theorem parNopStableState_eq :
+    parInitial = some parNopStableState := by
+  native_decide
+
+private theorem parNopStableState_invariant :
+    SchedulerInvariant parCertificate parNopStableState :=
+  parInitial_schedulerInvariant parNopStableState_eq
+
+private def parNopStableHead :
+    SequentialFigure7.ReadyHeadInput parNopStableState where
+  vertex := 0
+  readyTail := [1]
+  rawAge := 0
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private def parNopSubmitted :
+    SequentialFigure7.SubmittedParInput parCertificate
+      parNopStableHead.vertex where
+  linkIndex := 1
+  storedLeft := 0
+  storedRight := 1
+  conclusion := 2
+  side := .storedLeft
+  link_eq := by native_decide
+  premise_eq := rfl
+
+private theorem par_nop_enabled :
+    SequentialFigure7.NopEnabled parCertificate parNopStableState := by
+  exact ⟨{
+    head := parNopStableHead
+    par := parNopSubmitted
+    mate_unmarked := by native_decide }⟩
+
+/-- The initialized par fixture is a genuine full-invariant positive `nop`
+case and a genuine negative `forward` case because the mate is unmarked. -/
+example :
+    (∃ next,
+      SequentialFigure7.nop? parCertificate parNopStableState
+          parNopStableState_invariant.toReservationInvariant = some next ∧
+        SchedulerInvariant parCertificate next) ∧
+      ¬ SequentialFigure7.ForwardEnabled
+        parCertificate parNopStableState := by
+  constructor
+  · exact SequentialFigure7.nop?_exists_schedulerInvariant_of_enabled
+      parNopStableState_invariant par_nop_enabled
+  · intro enabled
+    rcases SequentialFigure7.forward?_exists_of_enabled
+        parNopStableState_invariant enabled with
+      ⟨next, equation⟩
+    have failure :
+        SequentialFigure7.forward? parCertificate parNopStableState
+            parNopStableState_invariant.toReservationInvariant = none := by
+      native_decide
+    rw [failure] at equation
+    simp at equation
+
+private def parForwardStableState : ReservationState :=
+  match SequentialFigure7.nop? parCertificate parNopStableState
+      parNopStableState_invariant.toReservationInvariant with
+  | some state => state
+  | none => ReservationState.empty parCertificate
+
+private theorem parForwardStableState_eq :
+    SequentialFigure7.nop? parCertificate parNopStableState
+        parNopStableState_invariant.toReservationInvariant =
+      some parForwardStableState := by
+  native_decide
+
+private theorem parForwardStableState_invariant :
+    SchedulerInvariant parCertificate parForwardStableState :=
+  SequentialFigure7.nop?_schedulerInvariant
+    parNopStableState_invariant parForwardStableState_eq
+
+private def parForwardStableHead :
+    SequentialFigure7.ReadyHeadInput parForwardStableState where
+  vertex := 1
+  readyTail := []
+  rawAge := 0
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private def parForwardSubmitted :
+    SequentialFigure7.SubmittedParInput parCertificate
+      parForwardStableHead.vertex where
+  linkIndex := 1
+  storedLeft := 0
+  storedRight := 1
+  conclusion := 2
+  side := .storedRight
+  link_eq := by native_decide
+  premise_eq := rfl
+
+private theorem par_forward_enabled :
+    SequentialFigure7.ForwardEnabled
+      parCertificate parForwardStableState := by
+  exact ⟨{
+    head := parForwardStableHead
+    par := parForwardSubmitted
+    mateRawAge := 0
+    mate_marked := by native_decide
+    not_older := by decide }⟩
+
+/-- After the real `nop` step, the same full-invariant fixture becomes a
+positive `forward` case and a negative `nop` case. -/
+example :
+    (∃ next,
+      SequentialFigure7.forward? parCertificate parForwardStableState
+          parForwardStableState_invariant.toReservationInvariant = some next ∧
+        SchedulerInvariant parCertificate next) ∧
+      ¬ SequentialFigure7.NopEnabled
+        parCertificate parForwardStableState := by
+  constructor
+  · exact SequentialFigure7.forward?_exists_schedulerInvariant_of_enabled
+      parForwardStableState_invariant par_forward_enabled
+  · intro enabled
+    rcases SequentialFigure7.nop?_exists_of_enabled
+        parForwardStableState_invariant enabled with
+      ⟨next, equation⟩
+    have failure :
+        SequentialFigure7.nop? parCertificate parForwardStableState
+            parForwardStableState_invariant.toReservationInvariant = none := by
+      native_decide
+    rw [failure] at equation
+    simp at equation
+
+private def waitStableInitialState : ReservationState :=
+  match waitSchedulerInitial with
+  | some state => state
+  | none => ReservationState.empty waitSchedulerCertificate
+
+private theorem waitStableInitialState_eq :
+    waitSchedulerInitial = some waitStableInitialState := by
+  native_decide
+
+private theorem waitStableInitialState_invariant :
+    SchedulerInvariant waitSchedulerCertificate waitStableInitialState :=
+  waitSchedulerInitial_schedulerInvariant waitStableInitialState_eq
+
+private def waitStableAfterNop : ReservationState :=
+  match SequentialFigure7.nop? waitSchedulerCertificate
+      waitStableInitialState
+      waitStableInitialState_invariant.toReservationInvariant with
+  | some state => state
+  | none => ReservationState.empty waitSchedulerCertificate
+
+private theorem waitStableAfterNop_eq :
+    SequentialFigure7.nop? waitSchedulerCertificate waitStableInitialState
+        waitStableInitialState_invariant.toReservationInvariant =
+      some waitStableAfterNop := by
+  native_decide
+
+private theorem waitStableAfterNop_invariant :
+    SchedulerInvariant waitSchedulerCertificate waitStableAfterNop :=
+  SequentialFigure7.nop?_schedulerInvariant
+    waitStableInitialState_invariant waitStableAfterNop_eq
+
+private def waitStableReadyState : ReservationState :=
+  match SequentialFigure7.new? waitSchedulerCertificate waitStableAfterNop
+      waitStableAfterNop_invariant.toReservationInvariant with
+  | some state => state
+  | none => ReservationState.empty waitSchedulerCertificate
+
+private theorem waitStableReadyState_eq :
+    SequentialFigure7.new? waitSchedulerCertificate waitStableAfterNop
+        waitStableAfterNop_invariant.toReservationInvariant =
+      some waitStableReadyState := by
+  native_decide
+
+private theorem waitStableReadyState_invariant :
+    SchedulerInvariant waitSchedulerCertificate waitStableReadyState :=
+  SequentialFigure7.new?_schedulerInvariant
+    waitStableAfterNop_invariant waitStableReadyState_eq
+
+private def waitStableHead :
+    SequentialFigure7.ReadyHeadInput waitStableReadyState where
+  vertex := 2
+  readyTail := [3]
+  rawAge := 1
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private def waitStableSubmitted :
+    SequentialFigure7.SubmittedParInput waitSchedulerCertificate
+      waitStableHead.vertex where
+  linkIndex := 2
+  storedLeft := 2
+  storedRight := 0
+  conclusion := 4
+  side := .storedLeft
+  link_eq := by native_decide
+  premise_eq := rfl
+
+private theorem wait_enabled :
+    SequentialFigure7.WaitEnabled
+      waitSchedulerCertificate waitStableReadyState := by
+  exact ⟨{
+    head := waitStableHead
+    par := waitStableSubmitted
+    mateRawAge := 0
+    mate_marked := by native_decide
+    younger := by decide }⟩
+
+/-- The real `init → nop → new` state is a full-invariant positive
+`wait` case.  The enabled witness stores neither its derived boundary `0` nor
+the initialized empty payload; the invariant supplies both. -/
+example :
+    (∃ next,
+      SequentialFigure7.wait? waitSchedulerCertificate waitStableReadyState
+          waitStableReadyState_invariant.toReservationInvariant = some next ∧
+        SchedulerInvariant waitSchedulerCertificate next) ∧
+      ¬ SequentialFigure7.ForwardEnabled
+        waitSchedulerCertificate waitStableReadyState := by
+  constructor
+  · exact SequentialFigure7.wait?_exists_schedulerInvariant_of_enabled
+      waitStableReadyState_invariant wait_enabled
+  · intro enabled
+    rcases SequentialFigure7.forward?_exists_of_enabled
+        waitStableReadyState_invariant enabled with
+      ⟨next, equation⟩
+    have failure :
+        SequentialFigure7.forward? waitSchedulerCertificate
+            waitStableReadyState
+            waitStableReadyState_invariant.toReservationInvariant = none := by
+      native_decide
+    rw [failure] at equation
+    simp at equation
+
+/-- The scoped exact-par classification is available on the same genuine
+wait fixture without asserting anything about non-par scheduler states. -/
+example :
+    SequentialFigure7.NopEnabled
+        waitSchedulerCertificate waitStableReadyState ∨
+      SequentialFigure7.WaitEnabled
+          waitSchedulerCertificate waitStableReadyState ∨
+        SequentialFigure7.ForwardEnabled
+          waitSchedulerCertificate waitStableReadyState :=
+  SequentialFigure7.submittedParInput_enabled_cases
+    waitStableReadyState_invariant waitStableHead waitStableSubmitted
+
+private def parAfterForwardStableState : ReservationState :=
+  match SequentialFigure7.forward? parCertificate parForwardStableState
+      parForwardStableState_invariant.toReservationInvariant with
+  | some state => state
+  | none => ReservationState.empty parCertificate
+
+private theorem parAfterForwardStableState_eq :
+    SequentialFigure7.forward? parCertificate parForwardStableState
+        parForwardStableState_invariant.toReservationInvariant =
+      some parAfterForwardStableState := by
+  native_decide
+
+private theorem parAfterForwardStableState_invariant :
+    SchedulerInvariant parCertificate parAfterForwardStableState :=
+  SequentialFigure7.forward?_schedulerInvariant
+    parForwardStableState_invariant parAfterForwardStableState_eq
+
+private def parCompletedStableState : ReservationState :=
+  match SequentialFigure7.concl? parCertificate parAfterForwardStableState
+      parAfterForwardStableState_invariant.toReservationInvariant with
+  | some state => state
+  | none => ReservationState.empty parCertificate
+
+private theorem parCompletedStableState_eq :
+    SequentialFigure7.concl? parCertificate parAfterForwardStableState
+        parAfterForwardStableState_invariant.toReservationInvariant =
+      some parCompletedStableState := by
+  native_decide
+
+private theorem parCompletedStableState_invariant :
+    SchedulerInvariant parCertificate parCompletedStableState :=
+  SequentialFigure7.concl?_schedulerInvariant
+    parAfterForwardStableState_invariant parCompletedStableState_eq
+
+/-- The completed reachable par state retains the aligned empty ready bucket
+`[[]]`.  It satisfies full `SchedulerInvariant` but has no nonempty ready head
+and therefore enables none of the four stable predicates. -/
+example :
+    parCompletedStableState.stack.ready = [[]] ∧
+      SchedulerInvariant parCertificate parCompletedStableState ∧
+      ¬ SequentialFigure7.ConclEnabled
+        parCertificate parCompletedStableState ∧
+      ¬ SequentialFigure7.NopEnabled
+        parCertificate parCompletedStableState ∧
+      ¬ SequentialFigure7.WaitEnabled
+        parCertificate parCompletedStableState ∧
+      ¬ SequentialFigure7.ForwardEnabled
+        parCertificate parCompletedStableState := by
+  have readyEquation : parCompletedStableState.stack.ready = [[]] := by
+    native_decide
+  have noHead :
+      ¬ Nonempty
+        (SequentialFigure7.ReadyHeadInput parCompletedStableState) := by
+    rintro ⟨head⟩
+    have emptyTop :
+        parCompletedStableState.stack.ready.getLast? = some [] := by
+      rw [readyEquation]
+      rfl
+    have topEquation := head.top_ready
+    rw [emptyTop] at topEquation
+    simp at topEquation
+  refine ⟨readyEquation, parCompletedStableState_invariant,
+    ?_, ?_, ?_, ?_⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+  · rintro ⟨input⟩
+    exact noHead ⟨input.head⟩
+
+private def repeatedStableState : ReservationState :=
+  match repeatedInitial with
+  | some state => state
+  | none => ReservationState.empty repeatedOccurrenceCertificate
+
+private theorem repeatedStableState_eq :
+    repeatedInitial = some repeatedStableState := by
+  native_decide
+
+private theorem repeatedStableState_invariant :
+    SchedulerInvariant repeatedOccurrenceCertificate repeatedStableState :=
+  repeatedInitial_schedulerInvariant repeatedStableState_eq
+
+private def repeatedAfterNewStableState : ReservationState :=
+  match SequentialFigure7.new? repeatedOccurrenceCertificate
+      repeatedStableState
+      repeatedStableState_invariant.toReservationInvariant with
+  | some state => state
+  | none => ReservationState.empty repeatedOccurrenceCertificate
+
+private theorem repeatedAfterNewStableState_eq :
+    SequentialFigure7.new? repeatedOccurrenceCertificate repeatedStableState
+        repeatedStableState_invariant.toReservationInvariant =
+      some repeatedAfterNewStableState := by
+  native_decide
+
+private theorem repeatedAfterNewStableState_invariant :
+    SchedulerInvariant repeatedOccurrenceCertificate
+      repeatedAfterNewStableState :=
+  SequentialFigure7.new?_schedulerInvariant
+    repeatedStableState_invariant repeatedAfterNewStableState_eq
+
+private def repeatedAfterUnifyStableState : ReservationState :=
+  match SequentialFigure7.unifyPayload? repeatedOccurrenceCertificate
+      repeatedAfterNewStableState
+      repeatedAfterNewStableState_invariant.toReservationInvariant with
+  | some state => state
+  | none => ReservationState.empty repeatedOccurrenceCertificate
+
+private theorem repeatedAfterUnifyStableState_eq :
+    SequentialFigure7.unifyPayload? repeatedOccurrenceCertificate
+        repeatedAfterNewStableState
+        repeatedAfterNewStableState_invariant.toReservationInvariant =
+      some repeatedAfterUnifyStableState := by
+  native_decide
+
+/-- Full scheduler validity does not make the stable-par/conclusion family
+exhaustive.  This genuine tensor state enables none of the four predicates;
+the implemented `new` executor succeeds, and the resulting state then executes
+the general `unifyPayload` rule outside this stable classification. -/
+example :
+    SchedulerInvariant repeatedOccurrenceCertificate repeatedStableState ∧
+      ¬ SequentialFigure7.ConclEnabled
+        repeatedOccurrenceCertificate repeatedStableState ∧
+      ¬ SequentialFigure7.NopEnabled
+        repeatedOccurrenceCertificate repeatedStableState ∧
+      ¬ SequentialFigure7.WaitEnabled
+        repeatedOccurrenceCertificate repeatedStableState ∧
+      ¬ SequentialFigure7.ForwardEnabled
+        repeatedOccurrenceCertificate repeatedStableState ∧
+      SequentialFigure7.new? repeatedOccurrenceCertificate repeatedStableState
+          repeatedStableState_invariant.toReservationInvariant =
+        some repeatedAfterNewStableState ∧
+      SequentialFigure7.unifyPayload? repeatedOccurrenceCertificate
+          repeatedAfterNewStableState
+          repeatedAfterNewStableState_invariant.toReservationInvariant =
+        some repeatedAfterUnifyStableState := by
+  have rejectConcl :
+      ¬ SequentialFigure7.ConclEnabled
+        repeatedOccurrenceCertificate repeatedStableState := by
+    intro enabled
+    rcases SequentialFigure7.concl?_exists_of_enabled
+        repeatedStableState_invariant enabled with ⟨next, equation⟩
+    have failure :
+        SequentialFigure7.concl? repeatedOccurrenceCertificate
+            repeatedStableState
+            repeatedStableState_invariant.toReservationInvariant = none := by
+      native_decide
+    rw [failure] at equation
+    simp at equation
+  have rejectNop :
+      ¬ SequentialFigure7.NopEnabled
+        repeatedOccurrenceCertificate repeatedStableState := by
+    intro enabled
+    rcases SequentialFigure7.nop?_exists_of_enabled
+        repeatedStableState_invariant enabled with ⟨next, equation⟩
+    have failure :
+        SequentialFigure7.nop? repeatedOccurrenceCertificate
+            repeatedStableState
+            repeatedStableState_invariant.toReservationInvariant = none := by
+      native_decide
+    rw [failure] at equation
+    simp at equation
+  have rejectWait :
+      ¬ SequentialFigure7.WaitEnabled
+        repeatedOccurrenceCertificate repeatedStableState := by
+    intro enabled
+    rcases SequentialFigure7.wait?_exists_of_enabled
+        repeatedStableState_invariant enabled with ⟨next, equation⟩
+    have failure :
+        SequentialFigure7.wait? repeatedOccurrenceCertificate
+            repeatedStableState
+            repeatedStableState_invariant.toReservationInvariant = none := by
+      native_decide
+    rw [failure] at equation
+    simp at equation
+  have rejectForward :
+      ¬ SequentialFigure7.ForwardEnabled
+        repeatedOccurrenceCertificate repeatedStableState := by
+    intro enabled
+    rcases SequentialFigure7.forward?_exists_of_enabled
+        repeatedStableState_invariant enabled with ⟨next, equation⟩
+    have failure :
+        SequentialFigure7.forward? repeatedOccurrenceCertificate
+            repeatedStableState
+            repeatedStableState_invariant.toReservationInvariant = none := by
+      native_decide
+    rw [failure] at equation
+    simp at equation
+  exact ⟨repeatedStableState_invariant, rejectConcl, rejectNop,
+    rejectWait, rejectForward, repeatedAfterNewStableState_eq,
+    repeatedAfterUnifyStableState_eq⟩
 
 end Figure7PrimitivesTests
 

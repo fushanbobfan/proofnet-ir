@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- added `SequentialFigure7StableEnabled.lean`, an input-only applicability
+  layer for the stable `concl`, `nop`, `wait`, and `forward` rules. The shared
+  `ReadyHeadInput` stores only the selected ready head, tail, raw age, and exact
+  top/sigma equations; `SubmittedParInput` stores only an exact submitted par
+  slot and premise orientation. `ConclInput`, `NopInput`, `WaitInput`, and
+  `ForwardInput` add only their paper-side input guards: in particular, wait
+  stores the marked mate age and strict older-age comparison, while forward
+  stores the marked mate age and non-older comparison. None stores a post-state,
+  derived waiting destination/payload, component pick, representation `Nodup`,
+  or executor-success equation. From each enabled predicate plus the complete
+  `SchedulerInvariant`, Lean derives every hidden executable guard, proves
+  success, and returns a result preserving the full invariant. For an already
+  supplied ready head and exact submitted par, the invariant also yields the
+  scoped `NopEnabled ∨ WaitEnabled ∨ ForwardEnabled` classification. Genuine
+  reachable regressions cover initialized `concl`, initialized `nop`,
+  `nop → forward`, `init → nop → new → wait`, the completed aligned ready state
+  `[[]]`, and a tensor state where none of these four predicates applies while
+  `new` succeeds and later unification remains outside this classification.
+  This is not dispatcher-priority selection, a global rule partition,
+  unconditional reachability, progress, pure-worklist completeness, fallback
+  removal, or a complexity theorem. The exact axiom audit now covers 607
+  declarations: 383 full-classical, 23 axiom-free, 90 `propext`-only, and 111
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7TagHistory.lean`, the minimal proof-carrying tag
   augmentation of the canonical six-rule dispatcher history. Branch-indexed
   `DispatchTagEvidence` recovers the exact typed rule selected by an existing

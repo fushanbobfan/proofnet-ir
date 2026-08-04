@@ -564,6 +564,16 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.touched_disjoint_next
 #print axioms SequentialFigure7.CanonicalTagHistory.mem_linkIndices_witness
 #print axioms SequentialFigure7.CanonicalTagHistory.linkIndices_nodup
+#print axioms SequentialFigure7.ReadyHeadInput.rulePrefix
+#print axioms SequentialFigure7.concl?_exists_of_enabled
+#print axioms SequentialFigure7.concl?_exists_schedulerInvariant_of_enabled
+#print axioms SequentialFigure7.nop?_exists_of_enabled
+#print axioms SequentialFigure7.nop?_exists_schedulerInvariant_of_enabled
+#print axioms SequentialFigure7.wait?_exists_of_enabled
+#print axioms SequentialFigure7.wait?_exists_schedulerInvariant_of_enabled
+#print axioms SequentialFigure7.forward?_exists_of_enabled
+#print axioms SequentialFigure7.forward?_exists_schedulerInvariant_of_enabled
+#print axioms SequentialFigure7.submittedParInput_enabled_cases
 #print axioms SequentialFigure7.dispatcher_reachable_empty
 #print axioms SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.dispatch

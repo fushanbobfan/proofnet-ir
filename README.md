@@ -187,6 +187,22 @@ not claimed to satisfy `SchedulerInvariant`. Existing
 new executor, without a general executor equality or reverse equivalence.
 Stored order fixes execution and derivation nesting only; no commutativity,
 paper temporal order, O(1), or linearity claim follows.
+`SequentialFigure7StableEnabled.lean` supplies the matching input-only layer
+for the four stable rules. `ReadyHeadInput` records just the top ready
+occurrence, its tail and raw age, and the exact top/sigma equations;
+`SubmittedParInput` records an exact submitted par slot and premise
+orientation. `ConclInput`, `NopInput`, `WaitInput`, and `ForwardInput` then add
+only their rule-side input guards. In particular, wait does not store its
+derived sigma destination or waiting payload, and forward does not store its
+derived active token, component picks, or representation `Nodup`. No enabled
+witness stores a post-state or executor-success equation. From each predicate
+plus the complete `SchedulerInvariant`, Lean derives the hidden guards, proves
+the corresponding executor succeeds, and returns a result preserving that
+invariant. For a supplied ready head and exact submitted par, the invariant
+also proves the scoped `NopEnabled ∨ WaitEnabled ∨ ForwardEnabled`
+classification. This does not classify conclusions, tensors, `new`,
+unification, empty/completed ready buckets, dispatcher priority, or arbitrary
+invariant-valid work, and it proves no unconditional reachability or progress.
 `SequentialFigure7Dispatcher.lean` now gives the six implemented canonical
 rules one deterministic entry point, with precedence
 `concl → nop → new → wait → forward → unifyPayload`. Its dependent
@@ -1507,7 +1523,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 597 declarations: 373 public MLL logical-boundary theorems
+ separately audits 607 declarations: 383 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 23
  axiom-free, 90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1659,6 +1675,7 @@ ProofNetIR/SequentialFigure7Unify.lean arbitrary stored-payload production-core 
 ProofNetIR/SequentialFigure7UnifyPayload.lean atomic tensor/fold/drain payload unify
 ProofNetIR/SequentialFigure7UnifyPayloadInvariant.lean arbitrary-payload full-invariant transport
 ProofNetIR/SequentialFigure7UnifyPayloadEnabled.lean input-only conditional payload applicability
+ProofNetIR/SequentialFigure7StableEnabled.lean input-only stable-rule applicability
 ProofNetIR/SequentialFigure7Dispatcher.lean canonical six-rule dispatcher and certified history
 ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
 ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant

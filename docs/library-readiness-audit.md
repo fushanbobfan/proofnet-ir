@@ -484,6 +484,15 @@ part of the engineering and proof-identity gap.
    executable applicability and invariant-preserving output from that predicate
    plus the full invariant; the invariant alone does not imply enabledness, and
    physical tensor/fold intermediates are not assigned the invariant.
+   `SequentialFigure7StableEnabled.lean` now provides the corresponding pure
+   input predicates for `concl`, `nop`, `wait`, and `forward`. Their field
+   inventory contains no result state or executor equation; the full invariant
+   derives the prepare state, wait destination/payload, and forward
+   token/component/pick/`Nodup` obligations. Each predicate yields executor
+   success and a full-invariant output. An already supplied ready head and exact
+   submitted par is classified as `nop`, `wait`, or `forward`, but this scoped
+   theorem excludes conclusion, tensor/`new`, unification, completed buckets,
+   priority, and global scheduler enabledness.
    `SequentialFigure7Dispatcher.lean` now supplies one canonical executable
    entry point for `concl`/`nop`/`new`/`wait`/`forward`/`unifyPayload`, exact
    priority-aware dependent witnesses, output uniqueness, full successful-step
@@ -520,8 +529,9 @@ part of the engineering and proof-identity gap.
    `1 + |W(j)|` counter change. Complete exact occurrence provenance and
    scheduler-invariant preservation are now proved for every successful
    arbitrary payload. The full invariant discharges all hidden guards once the
-   explicit pure-input `UnifyPayloadEnabled` predicate is supplied; deriving
-   that predicate exhaustively for the chosen reachable branch remains open. Old
+   explicit pure-input enabled predicate is supplied for the relevant stable or
+   payload rule. Deriving the correct predicate exhaustively for every chosen
+   reachable branch remains open. Old
    empty/singleton success maps one way
    to the same new output; no function equality or reverse equivalence is
    asserted.
@@ -587,7 +597,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 597 declarations: 373 public MLL
+- CI now parses `#print axioms` for 607 declarations: 383 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
   90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
@@ -698,9 +708,12 @@ It can currently be used for:
   correspondence and `1 + payload.length` accounting; the latter now preserves
   `ComponentForestProvenance` and the full `SchedulerInvariant` on every
   successful step from a full input invariant. Conditional applicability under
-  `UnifyPayloadEnabled` is also proved, while exhaustive reachable-branch
-  enabledness, later-state totality, and intermediate-state invariance remain
-  absent. A canonical
+  `UnifyPayloadEnabled` is also proved. Pure input-only `ConclEnabled`,
+  `NopEnabled`, `WaitEnabled`, and `ForwardEnabled` now similarly imply
+  executor success plus full-invariant preservation; their submitted-par
+  trichotomy is deliberately local and not a scheduler partition. Exhaustive
+  reachable-branch enabledness, later-state totality, and intermediate-state
+  invariance remain absent. A canonical
   priority dispatcher and proof-carrying certified history now integrate every
   implemented successful rule family. Its canonical tag augmentation lifts
   exact init/`new` touch provenance and global submitted-slot non-reuse through

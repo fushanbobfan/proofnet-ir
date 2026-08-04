@@ -463,6 +463,23 @@ general function equality or reverse equivalence. Stored order is an executable
 and derivation-nesting choice, not a commutativity or source temporal-order
 theorem.
 
+`SequentialFigure7StableEnabled.lean` provides an independent input-only
+applicability layer for `concl`, `nop`, `wait`, and `forward`; it imports the
+state invariant rather than the dispatcher or tag-history modules. A shared
+`ReadyHeadInput` fixes only the top ready occurrence/tail/raw age and exact
+top/sigma equations. `SubmittedParInput` fixes only the exact submitted par
+slot and selected premise orientation. The four rule inputs contain no
+post-state or success equation. Wait stores only a marked mate age and the
+strict older-age guard, so the invariant must derive the active/inactive sigma
+boundary and initialized waiting payload. Forward stores only a marked mate
+age and the non-older guard, so the invariant must derive the active token,
+shared component, exact occurrence picks, and final ready `Nodup`. Each enabled
+predicate plus the full invariant therefore yields executable success and a
+full-invariant output. The local submitted-par theorem classifies only an
+already supplied ready head and exact submitted par as `nop`, `wait`, or
+`forward`; it is not a global scheduler partition and says nothing about
+conclusions, tensors, `new`, unification, dispatcher priority, or progress.
+
 `SequentialFigure7Dispatcher.lean` composes the six canonical successful rule
 executors under one fixed precedence:
 `concl`, `nop`, `new`, `wait`, `forward`, then `unifyPayload`. The dependent

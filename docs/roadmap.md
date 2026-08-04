@@ -909,8 +909,16 @@
     `UnifyPayloadEnabled` predicate plus full `SchedulerInvariant` implies
     executor success and an invariant-preserving result, while the invariant
     alone is explicitly insufficient.
-  - [ ] Derive `UnifyPayloadEnabled` for the selected branch and then exhaustive
-    dispatcher enabledness on correct certified-reachable nonterminal states.
+  - [x] Derive input-only conditional applicability for the stable `concl`,
+    `nop`, `wait`, and `forward` rules. The full invariant supplies every hidden
+    prepare/wait/forward guard, and each enabled predicate yields success plus
+    full-invariant preservation. Classify an already supplied ready head and
+    exact submitted par as `nop`, `wait`, or `forward`, without extending that
+    local trichotomy to conclusions, tensors/`new`, unification, completed
+    buckets, dispatcher priority, or arbitrary scheduler work.
+  - [ ] Derive the correct enabled predicate for every selected branch and then
+    exhaustive dispatcher enabledness on correct certified-reachable
+    nonterminal states.
     Generalize the remaining reservation-count/oriented-route commitments,
     establish unconditional full-rule reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation

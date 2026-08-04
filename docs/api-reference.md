@@ -11859,6 +11859,315 @@ ProofNetIR.SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant : ∀ 
     ProofNetIR.SequentialFigure7.ForwardRule certificate before after
 ```
 
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput`
+
+Kind: inductive type.
+
+Shared read-only selection of the active ready occurrence and raw age.
+
+The witness fixes only queries of the input scheduler state.  In particular,
+it contains no prepared state, post-state, executor result, or executor success
+equation.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput : ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.markedCore`
+
+Kind: definition.
+
+Production state obtained by the deterministic raw-mark update described
+by a ready-head input.  This is a pure expression, not a stored result.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.markedCore : {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+  ProofNetIR.SequentialFigure7.ReadyHeadInput before → ProofNetIR.UnificationState
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.markedStack`
+
+Kind: definition.
+
+Scheduler stack obtained by the deterministic pop/raw-mark update
+described by a ready-head input.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.markedStack : {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+  ProofNetIR.SequentialFigure7.ReadyHeadInput before → ProofNetIR.SequentialSchedulerState.SequentialStackState
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.middle`
+
+Kind: definition.
+
+Pure synchronized middle state determined by the input state and selected
+ready head.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.middle : {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+  ProofNetIR.SequentialFigure7.ReadyHeadInput before → ProofNetIR.SequentialSchedulerBridge.ReservationState
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.rulePrefix`
+
+Kind: theorem.
+
+The shared input realizes the direct synchronized prefix once the complete
+scheduler invariant supplies the two input-mark facts.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.rulePrefix : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.RulePrefixAt before input.middle input.vertex input.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.ConclInput`
+
+Kind: inductive type.
+
+Read-only applicability data for the stable `concl` rule.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ConclEnabled`
+
+Kind: definition.
+
+Input-only applicability predicate for `concl`.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclEnabled : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_exists_of_enabled`
+
+Kind: theorem.
+
+Complete scheduler validity turns `ConclEnabled` into executable success.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_exists_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.ConclEnabled certificate before →
+    ∃ next, ProofNetIR.SequentialFigure7.concl? certificate before ⋯ = some next
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_exists_schedulerInvariant_of_enabled`
+
+Kind: theorem.
+
+`concl` enabledness yields an executor output carrying the complete
+scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_exists_schedulerInvariant_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.ConclEnabled certificate before →
+    ∃ next,
+      ProofNetIR.SequentialFigure7.concl? certificate before ⋯ = some next ∧
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate next
+```
+
+### `ProofNetIR.SequentialFigure7.SubmittedParInput`
+
+Kind: inductive type.
+
+Exact submitted par slot and stored premise orientation selected by one
+ready occurrence.  The witness is entirely about the input certificate.
+
+```lean
+ProofNetIR.SequentialFigure7.SubmittedParInput : ProofNetIR.Certificate → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialFigure7.SubmittedParInput.mate`
+
+Kind: definition.
+
+Opposite submitted premise selected by an exact par input.
+
+```lean
+ProofNetIR.SequentialFigure7.SubmittedParInput.mate : {certificate : ProofNetIR.Certificate} →
+  {vertex : ProofNetIR.Vertex} → ProofNetIR.SequentialFigure7.SubmittedParInput certificate vertex → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NopInput`
+
+Kind: inductive type.
+
+Read-only applicability data for the stable `nop` rule.
+
+```lean
+ProofNetIR.SequentialFigure7.NopInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.NopEnabled`
+
+Kind: definition.
+
+Input-only applicability predicate for `nop`.
+
+```lean
+ProofNetIR.SequentialFigure7.NopEnabled : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_exists_of_enabled`
+
+Kind: theorem.
+
+Complete scheduler validity turns `NopEnabled` into executable success.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_exists_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.NopEnabled certificate before →
+    ∃ next, ProofNetIR.SequentialFigure7.nop? certificate before ⋯ = some next
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_exists_schedulerInvariant_of_enabled`
+
+Kind: theorem.
+
+`nop` enabledness yields an executor output carrying the complete
+scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_exists_schedulerInvariant_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.NopEnabled certificate before →
+    ∃ next,
+      ProofNetIR.SequentialFigure7.nop? certificate before ⋯ = some next ∧
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate next
+```
+
+### `ProofNetIR.SequentialFigure7.WaitInput`
+
+Kind: inductive type.
+
+Read-only applicability data for the stable `wait` rule.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.WaitEnabled`
+
+Kind: definition.
+
+Input-only applicability predicate for `wait`.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitEnabled : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_exists_of_enabled`
+
+Kind: theorem.
+
+Complete scheduler validity turns `WaitEnabled` into executable success.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_exists_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.WaitEnabled certificate before →
+    ∃ next, ProofNetIR.SequentialFigure7.wait? certificate before ⋯ = some next
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_exists_schedulerInvariant_of_enabled`
+
+Kind: theorem.
+
+`wait` enabledness yields an executor output carrying the complete
+scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_exists_schedulerInvariant_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.WaitEnabled certificate before →
+    ∃ next,
+      ProofNetIR.SequentialFigure7.wait? certificate before ⋯ = some next ∧
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate next
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardInput`
+
+Kind: inductive type.
+
+Read-only applicability data for the stable `forward` rule.
+
+The witness states only the exact submitted par choice, its pre-state mate
+mark, and the paper's non-strict raw-age guard.  Token synchronization,
+component ownership, first-occurrence picks, and ready-list freshness are all
+derived from the complete scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardEnabled`
+
+Kind: definition.
+
+Input-only applicability predicate for `forward`.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardEnabled : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_exists_of_enabled`
+
+Kind: theorem.
+
+Complete scheduler validity turns `ForwardEnabled` into executable
+success.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_exists_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.ForwardEnabled certificate before →
+    ∃ next, ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some next
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_exists_schedulerInvariant_of_enabled`
+
+Kind: theorem.
+
+`forward` enabledness yields an executor output carrying the complete
+scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_exists_schedulerInvariant_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.ForwardEnabled certificate before →
+    ∃ next,
+      ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some next ∧
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate next
+```
+
+### `ProofNetIR.SequentialFigure7.submittedParInput_enabled_cases`
+
+Kind: theorem.
+
+A selected exact submitted par in a complete invariant state falls into
+one of the three raw-mark cases used by `nop`, `wait`, and `forward`.
+
+This is deliberately scoped to an already supplied ready head and submitted
+par.  It says nothing about conclusions, tensors, `new`, unification,
+dispatcher priority, or whether an arbitrary invariant state has ready work.
+
+```lean
+ProofNetIR.SequentialFigure7.submittedParInput_enabled_cases : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (head : ProofNetIR.SequentialFigure7.ReadyHeadInput before)
+      (par : ProofNetIR.SequentialFigure7.SubmittedParInput certificate head.vertex),
+      ProofNetIR.SequentialFigure7.NopEnabled certificate before ∨
+        ProofNetIR.SequentialFigure7.WaitEnabled certificate before ∨
+          ProofNetIR.SequentialFigure7.ForwardEnabled certificate before
+```
+
 ### `ProofNetIR.SequentialFigure7.UnifyEmptyRule`
 
 Kind: definition.

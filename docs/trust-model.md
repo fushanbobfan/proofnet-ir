@@ -316,7 +316,17 @@ by itself derive applicability. The separate audited boundaries
 `unifyPayload?_exists_schedulerInvariant_of_enabled` prove conditional
 applicability from pure input-only `UnifyPayloadEnabled` plus the full
 invariant. They do not claim the invariant alone implies enabledness or select
-the correct dispatcher branch. Correct-state progress,
+the correct dispatcher branch. The separate
+`SequentialFigure7StableEnabled.lean` boundary applies the same discipline to
+`concl`, `nop`, `wait`, and `forward`. Its audited public inputs contain only
+the ready-head equations, exact submitted-par slot/orientation where relevant,
+and the paper-side age/mark guards; they contain no result, executor equation,
+wait destination/payload, component pick, or representation `Nodup` witness.
+The full invariant derives those hidden facts. Each `*_exists_of_enabled`
+theorem proves execution, and each companion theorem proves the complete output
+invariant. `submittedParInput_enabled_cases` is only a trichotomy for an already
+supplied ready head and exact submitted par; it is not priority-aware or
+globally exhaustive. Correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
@@ -350,7 +360,7 @@ duplicate-free, and show touched history-independence for a fixed state.
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
 separate nonreachability proof for that forged state. The exact trust audit now
-covers 597 declarations: 373 use exactly
+covers 607 declarations: 383 use exactly
 `[propext, Classical.choice, Quot.sound]`, 23 are axiom-free, 90 use exactly
 `[propext]`, and 111 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -646,7 +656,10 @@ dedicated init/new history adds exact reachability and tag provenance for that
  composition exist outside the dedicated init/new history layer. Successful
  atomic steps preserve the complete occurrence-exact state-only invariant. The
  input-only `UnifyPayloadEnabled` theorem adds conditional applicability and an
- invariant-preserving result, but not exhaustive later branch enabledness,
+ invariant-preserving result. The stable input-only predicates provide the same
+ conditional result for `concl`, `nop`, `wait`, and `forward`, with only a
+ submitted-par-local `nop`/`wait`/`forward` trichotomy. Neither layer proves
+ exhaustive later branch enabledness,
  totality, or unconditional full-rule reachability. A separate canonical
  priority dispatcher and proof-carrying
  certified history now integrates all implemented successful branches, and its
