@@ -2370,6 +2370,650 @@ example
   unfold SequentialFigure7.wait?
   native_decide
 
+/-! Figure-7 `forward` paper guards and executable fail-closed refinements. -/
+
+private theorem eq_zero_or_one_or_two_of_lt_three
+    {value : Nat} (bound : value < 3) :
+    value = 0 ∨ value = 1 ∨ value = 2 := by
+  cases value with
+  | zero => exact Or.inl rfl
+  | succ value =>
+      cases value with
+      | zero => exact Or.inr (Or.inl rfl)
+      | succ value =>
+          cases value with
+          | zero => exact Or.inr (Or.inr rfl)
+          | succ value => omega
+
+private theorem eq_zero_or_one_of_lt_two
+    {value : Nat} (bound : value < 2) :
+    value = 0 ∨ value = 1 := by
+  cases value with
+  | zero => exact Or.inl rfl
+  | succ value =>
+      cases value with
+      | zero => exact Or.inr rfl
+      | succ value => omega
+
+private theorem eq_zero_of_lt_one
+    {value : Nat} (bound : value < 1) : value = 0 := by
+  cases value with
+  | zero => rfl
+  | succ value => simp at bound
+
+/-- A compact submitted par certificate used to distinguish the active raw
+age from a newer mate age in one union-find component. -/
+def forwardIntervalCertificate : Certificate where
+  formulas := #[p, pDual, .par p pDual]
+  links := [.axiom 0 1, .par 0 1 2]
+  conclusions := [2]
+
+theorem forwardIntervalCertificate_structural :
+    forwardIntervalCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      forwardIntervalCertificate).mp (by native_decide)
+
+/-- The active scheduler boundary is `0`, while the already marked mate has
+raw age `1`; both ages resolve to representative and sigma boundary `0`. -/
+def forwardIntervalBefore : ReservationState where
+  stack := {
+    marks := #[none, some 1, none]
+    nextAge := 2
+    sigma := [0]
+    ready := [[0]]
+    waiting := Array.replicate 3 .undefined }
+  core := {
+    marks := #[none, some 1, none]
+    parents := #[0, 0]
+    components := #[
+      some { tree := .axiom "p" true, frontier := [0, 1] },
+      none]
+    startedAxioms := 2
+    firedConnectives := 0 }
+  tags := Array.replicate 3 false
+
+theorem forwardIntervalBefore_invariant :
+    ReservationInvariant forwardIntervalCertificate forwardIntervalBefore := by
+  exact {
+    stack_wellShaped := {
+      marks_size := rfl
+      waiting_size := by native_decide
+      assigned_age_bound := by
+        intro vertex age assigned
+        have vertexBound : vertex < 3 := by
+          simpa [forwardIntervalBefore] using
+            (Array.getElem?_eq_some_iff.mp assigned).1
+        have cases := eq_zero_or_one_or_two_of_lt_three vertexBound
+        rcases cases with rfl | rfl | rfl
+        · simp [forwardIntervalBefore] at assigned
+        · have ageEquation : age = 1 := by
+            simpa [forwardIntervalBefore] using assigned.symm
+          subst age
+          decide
+        · simp [forwardIntervalBefore] at assigned
+      sigma_partition := {
+        empty_iff := by simp [forwardIntervalBefore]
+        head_zero := by simp [forwardIntervalBefore]
+        strictIncreasing := by simp [forwardIntervalBefore]
+        boundary_lt := by
+          intro boundary membership
+          simp [forwardIntervalBefore] at membership
+          subst boundary
+          decide }
+      ready_aligned := rfl
+      ready_nodup := by
+        intro bucket membership
+        simp [forwardIntervalBefore] at membership
+        subst bucket
+        simp
+      ready_in_bounds := by
+        intro bucket membership vertex vertexMembership
+        simp [forwardIntervalBefore] at membership
+        subst bucket
+        have vertexEquation : vertex = 0 := by simpa using vertexMembership
+        subst vertex
+        decide
+      nextAge_le_waiting := by native_decide }
+    stack_operationalWaitingDomain := {
+      initialized_iff_inactive := by
+        intro age ageBound
+        change age < 2 at ageBound
+        have cases := eq_zero_or_one_of_lt_two ageBound
+        rcases cases with rfl | rfl <;>
+          simp [SequentialStackState.WaitingInitializedAt,
+            forwardIntervalBefore] }
+    realizesSigma := {
+      marks_eq := rfl
+      horizon_eq := rfl
+      representative_eq_boundary := by
+        intro age ageBound
+        change age < 2 at ageBound
+        have cases := eq_zero_or_one_of_lt_two ageBound
+        rcases cases with rfl | rfl <;> native_decide }
+    core_orderedParents := by
+      intro token parent lookup
+      have tokenBound : token < 2 := by
+        simpa [forwardIntervalBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have cases := eq_zero_or_one_of_lt_two tokenBound
+      rcases cases with rfl | rfl <;>
+        simp [forwardIntervalBefore] at lookup ⊢ <;> omega
+    core_abstractable := {
+      markArraySize := rfl
+      markedVertexBound := by
+        intro vertex token assigned
+        exact by
+          simpa [forwardIntervalCertificate, forwardIntervalBefore] using
+            (Array.getElem?_eq_some_iff.mp
+              (UnificationState.assignedToken?_some_raw assigned)).1
+      markedTokenBound := by
+        intro vertex token assigned
+        have raw := UnificationState.assignedToken?_some_raw assigned
+        have vertexBound : vertex < 3 := by
+          simpa [forwardIntervalBefore] using
+            (Array.getElem?_eq_some_iff.mp raw).1
+        have cases := eq_zero_or_one_or_two_of_lt_three vertexBound
+        rcases cases with rfl | rfl | rfl
+        · simp [forwardIntervalBefore] at raw
+        · have tokenEquation : token = 1 := by
+            simpa [forwardIntervalBefore] using raw.symm
+          subst token
+          decide
+        · simp [forwardIntervalBefore] at raw
+      representativeBound := by
+        intro token tokenBound
+        have tokenBound' : token < 2 := by
+          simpa [forwardIntervalBefore] using tokenBound
+        have cases := eq_zero_or_one_of_lt_two tokenBound'
+        rcases cases with rfl | rfl <;> native_decide
+      representativeIdempotent := by
+        intro token tokenBound
+        change token < 2 at tokenBound
+        have cases := eq_zero_or_one_of_lt_two tokenBound
+        rcases cases with rfl | rfl <;> native_decide }
+    core_componentsFormulaConsistent := by
+      intro index component lookup
+      have indexBound : index < 2 := by
+        simpa [forwardIntervalBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have cases := eq_zero_or_one_of_lt_two indexBound
+      rcases cases with rfl | rfl
+      · simp [forwardIntervalBefore] at lookup
+        subst component
+        exact ⟨[p, pDual], by native_decide, by native_decide⟩
+      · simp [forwardIntervalBefore] at lookup
+    core_carriers_aligned := rfl
+    core_counter_aligned := rfl
+    tags_size := by native_decide }
+
+/-- This is an actual non-equality `forward` execution, not merely a sigma
+lookup lemma: selected age `0` and mate age `1` satisfy the non-strict guard. -/
+example :
+    (match SequentialFigure7.forward? forwardIntervalCertificate
+        forwardIntervalBefore forwardIntervalBefore_invariant with
+    | none => false
+    | some after =>
+        after.stack.marks == #[some 0, some 1, none] &&
+          after.stack.sigma == [0] &&
+          after.stack.ready == [[2]] &&
+          after.core.marks == #[some 0, some 1, none] &&
+          after.core.parents == #[0, 0] &&
+          after.core.firedConnectives == 1 &&
+          after.tags == forwardIntervalBefore.tags &&
+          match after.core.components[0]?, after.core.components[1]? with
+          | some (some active), some none =>
+              active.frontier == [2] &&
+                active.tree == (.par 0 0 (.axiom "p" true))
+          | _, _ => false) = true := by
+  native_decide
+
+/-- Soundness exposes an exact occurrence-aware direct rule for the same
+strictly separated raw ages. -/
+example {after : ReservationState}
+    (equation :
+      SequentialFigure7.forward? forwardIntervalCertificate
+          forwardIntervalBefore forwardIntervalBefore_invariant =
+        some after) :
+    SequentialFigure7.ForwardRule forwardIntervalCertificate
+      forwardIntervalBefore after :=
+  SequentialFigure7.forward?_sound forwardIntervalBefore_invariant equation
+
+/-- Marking the submitted par conclusion makes the production update fail
+closed even though the selected premise is still raw and its mate is marked. -/
+def forwardMarkedConclusionBefore : ReservationState where
+  stack := {
+    marks := #[none, some 0, some 0]
+    nextAge := 1
+    sigma := [0]
+    ready := [[0]]
+    waiting := Array.replicate 3 .undefined }
+  core := {
+    marks := #[none, some 0, some 0]
+    parents := #[0]
+    components := #[some {
+      tree := .axiom "p" true
+      frontier := [0, 1] }]
+    startedAxioms := 1
+    firedConnectives := 0 }
+  tags := Array.replicate 3 false
+
+theorem forwardMarkedConclusionBefore_invariant :
+    ReservationInvariant forwardIntervalCertificate
+      forwardMarkedConclusionBefore := by
+  exact {
+    stack_wellShaped := {
+      marks_size := rfl
+      waiting_size := by native_decide
+      assigned_age_bound := by
+        intro vertex age assigned
+        have vertexBound : vertex < 3 := by
+          simpa [forwardMarkedConclusionBefore] using
+            (Array.getElem?_eq_some_iff.mp assigned).1
+        have cases := eq_zero_or_one_or_two_of_lt_three vertexBound
+        rcases cases with rfl | rfl | rfl
+        · simp [forwardMarkedConclusionBefore] at assigned
+        · have ageEquation : age = 0 := by
+            simpa [forwardMarkedConclusionBefore] using assigned.symm
+          subst age
+          decide
+        · have ageEquation : age = 0 := by
+            simpa [forwardMarkedConclusionBefore] using assigned.symm
+          subst age
+          decide
+      sigma_partition := {
+        empty_iff := by simp [forwardMarkedConclusionBefore]
+        head_zero := by simp [forwardMarkedConclusionBefore]
+        strictIncreasing := by simp [forwardMarkedConclusionBefore]
+        boundary_lt := by
+          intro boundary membership
+          simp [forwardMarkedConclusionBefore] at membership
+          subst boundary
+          decide }
+      ready_aligned := rfl
+      ready_nodup := by
+        intro bucket membership
+        simp [forwardMarkedConclusionBefore] at membership
+        subst bucket
+        simp
+      ready_in_bounds := by
+        intro bucket membership vertex vertexMembership
+        simp [forwardMarkedConclusionBefore] at membership
+        subst bucket
+        have vertexEquation : vertex = 0 := by simpa using vertexMembership
+        subst vertex
+        decide
+      nextAge_le_waiting := by native_decide }
+    stack_operationalWaitingDomain := {
+      initialized_iff_inactive := by
+        intro age ageBound
+        change age < 1 at ageBound
+        have ageEquation := eq_zero_of_lt_one ageBound
+        subst age
+        simp [SequentialStackState.WaitingInitializedAt,
+          forwardMarkedConclusionBefore] }
+    realizesSigma := {
+      marks_eq := rfl
+      horizon_eq := rfl
+      representative_eq_boundary := by
+        intro age ageBound
+        change age < 1 at ageBound
+        have ageEquation := eq_zero_of_lt_one ageBound
+        subst age
+        native_decide }
+    core_orderedParents := by
+      intro token parent lookup
+      have tokenBound : token < 1 := by
+        simpa [forwardMarkedConclusionBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have tokenEquation := eq_zero_of_lt_one tokenBound
+      subst token
+      simp [forwardMarkedConclusionBefore] at lookup ⊢ <;> omega
+    core_abstractable := {
+      markArraySize := rfl
+      markedVertexBound := by
+        intro vertex token assigned
+        simpa [forwardIntervalCertificate, forwardMarkedConclusionBefore] using
+          (Array.getElem?_eq_some_iff.mp
+            (UnificationState.assignedToken?_some_raw assigned)).1
+      markedTokenBound := by
+        intro vertex token assigned
+        have raw := UnificationState.assignedToken?_some_raw assigned
+        have vertexBound : vertex < 3 := by
+          simpa [forwardMarkedConclusionBefore] using
+            (Array.getElem?_eq_some_iff.mp raw).1
+        have cases := eq_zero_or_one_or_two_of_lt_three vertexBound
+        rcases cases with rfl | rfl | rfl
+        · simp [forwardMarkedConclusionBefore] at raw
+        · have tokenEquation : token = 0 := by
+            simpa [forwardMarkedConclusionBefore] using raw.symm
+          subst token
+          decide
+        · have tokenEquation : token = 0 := by
+            simpa [forwardMarkedConclusionBefore] using raw.symm
+          subst token
+          decide
+      representativeBound := by
+        intro token tokenBound
+        change token < 1 at tokenBound
+        have tokenEquation := eq_zero_of_lt_one tokenBound
+        subst token
+        native_decide
+      representativeIdempotent := by
+        intro token tokenBound
+        change token < 1 at tokenBound
+        have tokenEquation := eq_zero_of_lt_one tokenBound
+        subst token
+        native_decide }
+    core_componentsFormulaConsistent := by
+      intro index component lookup
+      have indexBound : index < 1 := by
+        simpa [forwardMarkedConclusionBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have indexEquation := eq_zero_of_lt_one indexBound
+      subst index
+      simp [forwardMarkedConclusionBefore] at lookup
+      subst component
+      exact ⟨[p, pDual], by native_decide, by native_decide⟩
+    core_carriers_aligned := rfl
+    core_counter_aligned := rfl
+    tags_size := by native_decide }
+
+example :
+    SequentialFigure7.forward? forwardIntervalCertificate
+        forwardMarkedConclusionBefore
+        forwardMarkedConclusionBefore_invariant = none := by
+  native_decide
+
+/-- The direct paper rule does not contain a list-representation guard.  If
+the conclusion already occurs in the active ready tail, executable `forward?`
+rejects the duplicate-producing prepend while the pre-state remains a valid
+reservation-layer state. -/
+def forwardDuplicateReadyBefore : ReservationState where
+  stack := {
+    marks := #[none, some 0, none]
+    nextAge := 1
+    sigma := [0]
+    ready := [[0, 2]]
+    waiting := Array.replicate 3 .undefined }
+  core := {
+    marks := #[none, some 0, none]
+    parents := #[0]
+    components := #[some {
+      tree := .axiom "p" true
+      frontier := [0, 1] }]
+    startedAxioms := 1
+    firedConnectives := 0 }
+  tags := Array.replicate 3 false
+
+theorem forwardDuplicateReadyBefore_invariant :
+    ReservationInvariant forwardIntervalCertificate
+      forwardDuplicateReadyBefore := by
+  exact {
+    stack_wellShaped := {
+      marks_size := rfl
+      waiting_size := by native_decide
+      assigned_age_bound := by
+        intro vertex age assigned
+        have vertexBound : vertex < 3 := by
+          simpa [forwardDuplicateReadyBefore] using
+            (Array.getElem?_eq_some_iff.mp assigned).1
+        have cases := eq_zero_or_one_or_two_of_lt_three vertexBound
+        rcases cases with rfl | rfl | rfl
+        · simp [forwardDuplicateReadyBefore] at assigned
+        · have ageEquation : age = 0 := by
+            simpa [forwardDuplicateReadyBefore] using assigned.symm
+          subst age
+          decide
+        · simp [forwardDuplicateReadyBefore] at assigned
+      sigma_partition := {
+        empty_iff := by simp [forwardDuplicateReadyBefore]
+        head_zero := by simp [forwardDuplicateReadyBefore]
+        strictIncreasing := by simp [forwardDuplicateReadyBefore]
+        boundary_lt := by
+          intro boundary membership
+          simp [forwardDuplicateReadyBefore] at membership
+          subst boundary
+          decide }
+      ready_aligned := rfl
+      ready_nodup := by
+        intro bucket membership
+        simp [forwardDuplicateReadyBefore] at membership
+        subst bucket
+        simp
+      ready_in_bounds := by
+        intro bucket membership vertex vertexMembership
+        simp [forwardDuplicateReadyBefore] at membership
+        subst bucket
+        simp at vertexMembership
+        rcases vertexMembership with rfl | rfl <;> decide
+      nextAge_le_waiting := by native_decide }
+    stack_operationalWaitingDomain := {
+      initialized_iff_inactive := by
+        intro age ageBound
+        change age < 1 at ageBound
+        have ageEquation := eq_zero_of_lt_one ageBound
+        subst age
+        simp [SequentialStackState.WaitingInitializedAt,
+          forwardDuplicateReadyBefore] }
+    realizesSigma := {
+      marks_eq := rfl
+      horizon_eq := rfl
+      representative_eq_boundary := by
+        intro age ageBound
+        change age < 1 at ageBound
+        have ageEquation := eq_zero_of_lt_one ageBound
+        subst age
+        native_decide }
+    core_orderedParents := by
+      intro token parent lookup
+      have tokenBound : token < 1 := by
+        simpa [forwardDuplicateReadyBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have tokenEquation := eq_zero_of_lt_one tokenBound
+      subst token
+      simp [forwardDuplicateReadyBefore] at lookup ⊢ <;> omega
+    core_abstractable := {
+      markArraySize := rfl
+      markedVertexBound := by
+        intro vertex token assigned
+        simpa [forwardIntervalCertificate, forwardDuplicateReadyBefore] using
+          (Array.getElem?_eq_some_iff.mp
+            (UnificationState.assignedToken?_some_raw assigned)).1
+      markedTokenBound := by
+        intro vertex token assigned
+        have raw := UnificationState.assignedToken?_some_raw assigned
+        have vertexBound : vertex < 3 := by
+          simpa [forwardDuplicateReadyBefore] using
+            (Array.getElem?_eq_some_iff.mp raw).1
+        have cases := eq_zero_or_one_or_two_of_lt_three vertexBound
+        rcases cases with rfl | rfl | rfl
+        · simp [forwardDuplicateReadyBefore] at raw
+        · have tokenEquation : token = 0 := by
+            simpa [forwardDuplicateReadyBefore] using raw.symm
+          subst token
+          decide
+        · simp [forwardDuplicateReadyBefore] at raw
+      representativeBound := by
+        intro token tokenBound
+        change token < 1 at tokenBound
+        have tokenEquation := eq_zero_of_lt_one tokenBound
+        subst token
+        native_decide
+      representativeIdempotent := by
+        intro token tokenBound
+        change token < 1 at tokenBound
+        have tokenEquation := eq_zero_of_lt_one tokenBound
+        subst token
+        native_decide }
+    core_componentsFormulaConsistent := by
+      intro index component lookup
+      have indexBound : index < 1 := by
+        simpa [forwardDuplicateReadyBefore] using
+          (Array.getElem?_eq_some_iff.mp lookup).1
+      have indexEquation := eq_zero_of_lt_one indexBound
+      subst index
+      simp [forwardDuplicateReadyBefore] at lookup
+      subst component
+      exact ⟨[p, pDual], by native_decide, by native_decide⟩
+    core_carriers_aligned := rfl
+    core_counter_aligned := rfl
+    tags_size := by native_decide }
+
+example :
+    SequentialFigure7.forward? forwardIntervalCertificate
+        forwardDuplicateReadyBefore
+        forwardDuplicateReadyBefore_invariant = none := by
+  native_decide
+
+/-- A deliberately malformed duplicate consumer can still satisfy one
+paper-level direct `ForwardRule` witness, but the executable unique-consumer
+query rejects it.  This locks the structural hypothesis on completeness. -/
+def malformedForwardCertificate : Certificate where
+  formulas := forwardIntervalCertificate.formulas
+  links := [.axiom 0 1, .par 0 1 2, .par 0 1 2]
+  conclusions := [2]
+
+def malformedForwardBefore : ReservationState where
+  stack := {
+    marks := #[none, some 0, none]
+    nextAge := 1
+    sigma := [0]
+    ready := [[0]]
+    waiting := Array.replicate 3 .undefined }
+  core := {
+    marks := #[none, some 0, none]
+    parents := #[0]
+    components := #[some {
+      tree := .axiom "p" true
+      frontier := [0, 1] }]
+    startedAxioms := 1
+    firedConnectives := 0 }
+  tags := Array.replicate 3 false
+
+def malformedForwardMiddle : ReservationState where
+  stack := {
+    malformedForwardBefore.stack with
+    marks := #[some 0, some 0, none]
+    ready := [[]] }
+  core := {
+    malformedForwardBefore.core with
+    marks := #[some 0, some 0, none] }
+  tags := malformedForwardBefore.tags
+
+def malformedForwardAfter : ReservationState where
+  stack := {
+    malformedForwardMiddle.stack with
+    ready := [[2]] }
+  core := {
+    malformedForwardMiddle.core with
+    components := #[some {
+      tree := .par 0 0 (.axiom "p" true)
+      frontier := [2] }]
+    firedConnectives := 1 }
+  tags := malformedForwardMiddle.tags
+
+theorem malformedForwardPrefix :
+    SequentialFigure7.RulePrefixAt malformedForwardBefore
+      malformedForwardMiddle 0 0 := by
+  refine ⟨[], [], [], ?_⟩
+  native_decide
+
+example :
+    SequentialFigure7.ForwardRule malformedForwardCertificate
+      malformedForwardBefore malformedForwardAfter := by
+  refine ⟨0, 0, 1, 0, 1, 2, .storedLeft, malformedForwardMiddle,
+    0, 0, { tree := .axiom "p" true, frontier := [0, 1] },
+    0, [1], 0, [], [], [], malformedForwardPrefix, ?_⟩
+  exact ⟨rfl, rfl, rfl, by decide, by native_decide,
+    by native_decide, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+example :
+    (malformedForwardCertificate.connectiveBelow? 0).isNone = true ∧
+      malformedForwardCertificate.wellFormed = false := by
+  native_decide
+
+example :
+    ¬ malformedForwardCertificate.StructurallyWellFormed := by
+  intro structural
+  have accepted : malformedForwardCertificate.wellFormed = true :=
+    malformedForwardCertificate.wellFormed_iff_structurallyWellFormed.mpr
+      structural
+  have rejected : malformedForwardCertificate.wellFormed = false := by
+    native_decide
+  rw [rejected] at accepted
+  contradiction
+
+/-- The reachable older-mate state selects raw age `1` over mate age `0`.
+`forward?` rejects the reversed inequality and the strict `wait?` branch is
+the executable alternative. -/
+example :
+    (match equation : canonicalWaitBefore with
+    | none => false
+    | some before =>
+        let invariant := canonicalWaitBefore_invariant equation
+        (SequentialFigure7.forward? canonical before invariant).isNone &&
+          (SequentialFigure7.wait? canonical before invariant).isSome) = true := by
+  native_decide
+
+/-- Repeated formula labels do not alias occurrence identity: the submitted
+par uses exact vertices `0` and `1`, leaving equal-labelled vertices `2` and
+`3` untouched. -/
+def repeatedLabelForwardCertificate : Certificate where
+  formulas := #[p, pDual, p, pDual, .par p pDual]
+  links := [.axiom 0 1, .axiom 2 3, .par 0 1 4]
+  conclusions := [4, 2, 3]
+
+theorem repeatedLabelForwardCertificate_structural :
+    repeatedLabelForwardCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      repeatedLabelForwardCertificate).mp (by native_decide)
+
+def repeatedLabelForwardInitial : Option ReservationState :=
+  initializeReservation? repeatedLabelForwardCertificate 0
+
+theorem repeatedLabelForwardInitial_schedulerInvariant
+    {before : ReservationState}
+    (equation : repeatedLabelForwardInitial = some before) :
+    SchedulerInvariant repeatedLabelForwardCertificate before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [repeatedLabelForwardInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant repeatedLabelForwardCertificate_structural
+
+example :
+    (match initialEquation : repeatedLabelForwardInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          repeatedLabelForwardInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.nop? repeatedLabelForwardCertificate initial
+              initialInvariant.toReservationInvariant with
+        | none => false
+        | some before =>
+            let nopInvariant :=
+              SequentialFigure7.nop?_schedulerInvariant
+                initialInvariant nopEquation
+            match SequentialFigure7.forward? repeatedLabelForwardCertificate
+                before nopInvariant.toReservationInvariant with
+            | none => false
+            | some after =>
+                after.stack.marks ==
+                    #[some 0, some 0, none, none, none] &&
+                  after.stack.ready == [[4]] &&
+                  after.core.marks[2]? == some none &&
+                  after.core.marks[3]? == some none &&
+                  after.core.firedConnectives == 1 &&
+                  match after.core.components[0]? with
+                  | some (some component) =>
+                      component.frontier == [4] &&
+                        component.tree ==
+                          (.par 0 0 (.axiom "p" true))
+                  | _ => false) = true := by
+  native_decide
+
 example {before after : ReservationState}
     (initialEquation :
       canonicalInitialReservation = some before)

@@ -10576,8 +10576,8 @@ empty production state by `InitialReservationStep`.  Every `later` constructor
 stores a complete operational `new`, not the reservation-only helper.  This
 type is intentionally not a generic Figure-7 rule history. The implemented
 non-reserving `concl` and `nop` rules need separate rule-step accounting. The
-local `wait` transition now exists outside this history and still needs
-accounting here; `forward` and `unify` still need both transitions and
+local `wait` and `forward` transitions now exist outside this history and
+still need accounting here; `unify` still needs both its transition and
 accounting.
 
 ```lean
@@ -11323,6 +11323,43 @@ ProofNetIR.SequentialFigure7.NopRule.output_unique : ∀ {certificate : ProofNet
     ProofNetIR.SequentialFigure7.NopRule certificate before second → first = second
 ```
 
+### `ProofNetIR.SequentialFigure7.ForwardRule`
+
+Kind: definition.
+
+Independent Boolean-free local Figure-7 `forward` relation.
+
+The common prefix selects and raw-marks one submitted par premise.  The mate
+already has raw age `mateRawAge`, and the paper guard is stated exactly as
+`rawAge ≤ mateRawAge`.  The remaining fields directly expose the active
+component update and ready-top prepend.  In particular, this relation does
+not use any executable Figure-7 dispatcher or either local mutation wrapper.
+
+The executable list representation additionally needs the inserted
+conclusion to be fresh in the active ready bucket.  That representation-only
+condition is deliberately factored into `ForwardExecutableReadyNodup` rather
+than included in this mathematical rule.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardRule : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardExecutableReadyNodup`
+
+Kind: definition.
+
+Representation-only freshness needed by executable `forward?`.
+
+For every direct submitted-par choice refining the common prefix, inserting
+its conclusion into the active ready tail must preserve `List.Nodup`.  This
+is not a Figure-7 paper guard and is intentionally separate from
+`ForwardRule`.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardExecutableReadyNodup : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
 ### `ProofNetIR.SequentialFigure7.forward?`
 
 Kind: definition.
@@ -11443,6 +11480,86 @@ ProofNetIR.SequentialFigure7.ForwardStep.output_unique : ∀ {certificate : Proo
   (right : ProofNetIR.SequentialFigure7.ForwardStep certificate before second), first = second
 ```
 
+### `ProofNetIR.SequentialFigure7.ForwardStep.toRule`
+
+Kind: theorem.
+
+The equation-backed executable witness refines the independent direct
+`forward` relation.  The executable ready-bucket `Nodup` guard is not used in
+this refinement because it is intentionally absent from `ForwardRule`.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialFigure7.ForwardRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_sound`
+
+Kind: theorem.
+
+Executable `forward` is sound for the independent direct relation without
+a global certificate-validity assumption.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_sound : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.forward? certificate before invariant = some after →
+    ProofNetIR.SequentialFigure7.ForwardRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_complete_of_structural`
+
+Kind: theorem.
+
+On structurally valid input, the independent direct `forward` rule is
+complete for the executable local rule when the separate ready-list shape
+condition is supplied.  This is successful-rule correspondence only; it does
+not assert that `forward` is applicable in every scheduler state.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_complete_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.ForwardExecutableReadyNodup certificate before →
+        ProofNetIR.SequentialFigure7.ForwardRule certificate before after →
+          ProofNetIR.SequentialFigure7.forward? certificate before invariant = some after
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_some_iff_rule_of_structural`
+
+Kind: theorem.
+
+Exact executable/declarative correspondence for `forward` under
+structural validity, the reservation invariant, and the separate executable
+ready-list shape condition.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_some_iff_rule_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+      ProofNetIR.SequentialFigure7.ForwardExecutableReadyNodup certificate before →
+        (ProofNetIR.SequentialFigure7.forward? certificate before invariant = some after ↔
+          ProofNetIR.SequentialFigure7.ForwardRule certificate before after)
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardRule.output_unique_of_structural`
+
+Kind: theorem.
+
+Under structural validity, the supplied reservation invariant, and the
+separate executable ready-list shape condition, the independent `forward`
+relation has one exact output.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardRule.output_unique_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before first second : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
+      ProofNetIR.SequentialFigure7.ForwardExecutableReadyNodup certificate before →
+        ProofNetIR.SequentialFigure7.ForwardRule certificate before first →
+          ProofNetIR.SequentialFigure7.ForwardRule certificate before second → first = second
+```
+
 ### `ProofNetIR.SequentialFigure7.forward?_reservationInvariant`
 
 Kind: theorem.
@@ -11454,6 +11571,26 @@ ProofNetIR.SequentialFigure7.forward?_reservationInvariant : ∀ {certificate : 
   (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
   ProofNetIR.SequentialFigure7.forward? certificate before invariant = some after →
     ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.SchedulerInvariant.forwardExecutableReadyNodup`
+
+Kind: theorem.
+
+The complete scheduler invariant derives the representation-only
+`forward?` ready-list freshness condition.
+
+The essential contradiction is semantic rather than a global duplicate scan:
+if the submitted par conclusion were already in the active ready tail, exact
+ready/frontier correspondence would make it `Produced`; then
+`ProducedPremisesMarked` would mark both submitted premises, contradicting
+the common prefix's exact pre-state fact that the selected premise is raw
+unmarked.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariant.forwardExecutableReadyNodup : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.ForwardExecutableReadyNodup certificate before
 ```
 
 ### `ProofNetIR.SequentialFigure7.ForwardStep.schedulerInvariant`
@@ -11483,6 +11620,37 @@ ProofNetIR.SequentialFigure7.forward?_schedulerInvariant : ∀ {certificate : Pr
   (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
   ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some after →
     ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_complete_of_schedulerInvariant`
+
+Kind: theorem.
+
+A direct `ForwardRule` witness is executable in a state satisfying the
+complete scheduler invariant.  The invariant supplies both structural
+validity and the separately proved ready-list freshness condition.  This is
+rule-witness completeness, not an applicability or progress theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_complete_of_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.ForwardRule certificate before after →
+    ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some after
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant`
+
+Kind: theorem.
+
+Exact executable/direct correspondence for `forward` in a state carrying
+the complete scheduler invariant.  No branch existence or dispatcher
+totality is asserted.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some after ↔
+    ProofNetIR.SequentialFigure7.ForwardRule certificate before after
 ```
 
 ### `ProofNetIR.SequentialFigure7.WaitingPrependAt`

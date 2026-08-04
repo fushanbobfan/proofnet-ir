@@ -342,14 +342,18 @@ and query equations. `wait?` compares the mate's raw mark with the selected
 raw age, resolves `sigmaBoundary? stack.sigma mateRawAge`, and performs one
 initialized-cell cons update without scanning `queuedVertices`. A separate
 direct `RulePrefixAt`/`ConclRule`/`NopRule`/`WaitRule` layer is Boolean-free
-and independent of those functions. Executable
-soundness and completeness relative to that layer are kernel checked under
-whole-certificate `StructurallyWellFormed` and the supplied
-`ReservationInvariant`; direct outputs are unique (for `wait`, under
-structural validity and the supplied invariant). `WaitRule` uses a
+and independent of those functions. Executable soundness is kernel checked
+from the supplied `ReservationInvariant`; completeness relative to that layer
+uses whole-certificate `StructurallyWellFormed` as well. Direct outputs are
+unique under their documented hypotheses. `WaitRule` uses a
 proposition-level exact
 `sigmaBoundary? = some boundary` equation and states the paper guard in
-`before.core.marks`. Under the stronger state-only `SchedulerInvariant`, every
+`before.core.marks`. `ForwardRule` now supplies the corresponding independent
+direct relation for Forward without referencing a Figure-7 executable or
+mutation wrapper. Its paper guard is exactly
+`selectedRawAge ≤ mateRawAge`; the separate
+`ForwardExecutableReadyNodup` predicate records only the executable list-shape
+requirement. Under the stronger state-only `SchedulerInvariant`, every
 successful `WaitStep` and executable `wait?` additionally preserves global
 queue uniqueness and raw-unmarkedness and adds the exact positional submitted
 par to `WaitingSpanExact`; the component forest and logical firing counter stay
@@ -368,8 +372,12 @@ occurrence-exact `SchedulerInvariant`: the submitted par position,
 component-occurrence forest, live frontier, ready/waiting queue, waiting spans,
 pending-premise coverage, and fired-connective counter all transport exactly.
 A typed `init → nop → forward → concl` regression checks this composition.
-There is not yet an independent Boolean-free `ForwardRule` or its direct
-soundness/completeness correspondence.
+`ForwardStep.toRule` and `forward?_sound` refine executable success to the
+direct rule. Structural validity, the reservation invariant, and the separate
+ready-list shape predicate yield completeness, iff, and output uniqueness;
+the complete scheduler invariant derives the shape predicate and yields the
+corresponding higher-level completeness/iff. None of these results proves
+Forward applicability or scheduler progress.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
@@ -469,8 +477,9 @@ typed/executable `forward` preserves that invariant through exact submitted-par
 construction, live-frontier replacement, active-ready insertion, unchanged
 waiting spans, pending-premise transport, and exact counter increment. Its
 extra ready-list `Nodup` guard is only fail-closed shape validation. Independent
-Boolean-free Forward semantics, `unify`, dispatcher progress, and completeness
-remain open.
+Boolean-free `ForwardRule` semantics and successful-step correspondence are now
+present; forward applicability/totality, `unify`, dispatcher progress, and
+completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
@@ -771,8 +780,9 @@ invariant-bound operational local `new` transition in the delayed
 `SequentialSchedulerState`. The literal printed fresh-cell update remains a
 separate display-only helper. Exact init/new execution history is integrated;
 successful `new`, `wait`, and `forward` preserve the full current state-only
-invariant, but later-state applicability/totality, `unify`, an independent
-Boolean-free `ForwardRule`, full-history integration of the local
+invariant, and Forward additionally has an independent Boolean-free direct
+relation with exact executable correspondence. Later-state
+applicability/totality, `unify`, full-history integration of the local
 `concl`/`nop`/`wait`/`forward` rules, a full-rule reachable-state invariant, and
 later-state scheduler totality are not. General
 checker-accepted sequentialization remains complete through the recursive

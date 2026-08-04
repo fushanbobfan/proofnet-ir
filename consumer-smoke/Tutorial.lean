@@ -107,6 +107,19 @@ theorem figure7ParInitial_invariant
     ⟨step⟩
   exact step.reservationInvariant
 
+theorem figure7ParInitial_schedulerInvariant
+    {before : SequentialSchedulerBridge.ReservationState}
+    (equation : figure7ParInitial = some before) :
+    SequentialSchedulerBridge.SchedulerInvariant
+      figure7ParCertificate before := by
+  rcases
+      SequentialSchedulerBridge.initializeReservation?_some_iff.mp
+        (by simpa [figure7ParInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant
+    (figure7ParCertificate.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+
 def figure7NopTransition :
     Option SequentialSchedulerBridge.ReservationState :=
   match equation : figure7ParInitial with
@@ -128,6 +141,116 @@ example
     (figure7ParCertificate.wellFormed_iff_structurallyWellFormed.mp
       (by native_decide))
     (figure7ParInitial_invariant initialEquation)
+
+/- The downstream package also exercises the independent Boolean-free
+`ForwardRule` on a minimal submitted par. -/
+
+def figure7ForwardCertificate : Certificate where
+  formulas := #[p, pDual, .par p pDual]
+  links := [.axiom 0 1, .par 0 1 2]
+  conclusions := [2]
+
+def figure7ForwardInitial :=
+  SequentialSchedulerBridge.initializeReservation?
+    figure7ForwardCertificate 0
+
+theorem figure7ForwardInitial_schedulerInvariant
+    {before : SequentialSchedulerBridge.ReservationState}
+    (equation : figure7ForwardInitial = some before) :
+    SequentialSchedulerBridge.SchedulerInvariant
+      figure7ForwardCertificate before := by
+  rcases
+      SequentialSchedulerBridge.initializeReservation?_some_iff.mp
+        (by simpa [figure7ForwardInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant
+    (figure7ForwardCertificate.wellFormed_iff_structurallyWellFormed.mp
+      (by native_decide))
+
+example :
+    (match initialEquation : figure7ForwardInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          figure7ForwardInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.nop? figure7ForwardCertificate initial
+              initialInvariant.toReservationInvariant with
+        | none => false
+        | some before =>
+            let nopInvariant :=
+              SequentialFigure7.nop?_schedulerInvariant
+                initialInvariant nopEquation
+            match SequentialFigure7.forward? figure7ForwardCertificate before
+                nopInvariant.toReservationInvariant with
+            | none => false
+            | some after =>
+                after.stack.ready == [[2]] &&
+                  after.core.firedConnectives == 1 &&
+                  match after.core.components[0]? with
+                  | some (some component) =>
+                      component.frontier == [2]
+                  | _ => false) = true := by
+  native_decide
+
+example
+    {initial before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7ForwardInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? figure7ForwardCertificate initial
+          (figure7ForwardInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (forwardEquation :
+      SequentialFigure7.forward? figure7ForwardCertificate before
+          (SequentialFigure7.nop?_schedulerInvariant
+            (figure7ForwardInitial_schedulerInvariant initialEquation)
+            nopEquation |>.toReservationInvariant) =
+        some after) :
+    SequentialFigure7.ForwardRule figure7ForwardCertificate before after :=
+  SequentialFigure7.forward?_sound
+    (SequentialFigure7.nop?_schedulerInvariant
+      (figure7ForwardInitial_schedulerInvariant initialEquation) nopEquation
+      |>.toReservationInvariant)
+    forwardEquation
+
+example
+    {initial before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7ForwardInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? figure7ForwardCertificate initial
+          (figure7ForwardInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before) :
+    SequentialFigure7.forward? figure7ForwardCertificate before
+          (SequentialFigure7.nop?_schedulerInvariant
+            (figure7ForwardInitial_schedulerInvariant initialEquation)
+            nopEquation |>.toReservationInvariant) =
+        some after ↔
+      SequentialFigure7.ForwardRule figure7ForwardCertificate before after :=
+  SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant
+    (SequentialFigure7.nop?_schedulerInvariant
+      (figure7ForwardInitial_schedulerInvariant initialEquation) nopEquation)
+
+example
+    {initial before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7ForwardInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? figure7ForwardCertificate initial
+          (figure7ForwardInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (rule : SequentialFigure7.ForwardRule
+      figure7ForwardCertificate before after) :
+    SequentialFigure7.forward? figure7ForwardCertificate before
+        (SequentialFigure7.nop?_schedulerInvariant
+          (figure7ForwardInitial_schedulerInvariant initialEquation)
+          nopEquation |>.toReservationInvariant) =
+      some after :=
+  SequentialFigure7.forward?_complete_of_schedulerInvariant
+    (SequentialFigure7.nop?_schedulerInvariant
+      (figure7ForwardInitial_schedulerInvariant initialEquation) nopEquation)
+    rule
 
 def figure7WaitBefore :
     Option SequentialSchedulerBridge.ReservationState :=

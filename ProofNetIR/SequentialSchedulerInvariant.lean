@@ -1487,6 +1487,80 @@ private theorem SchedulerInvariant.ready_mem_liveFrontier
   · exact List.mem_of_getElem? (by simpa using componentLookup)
   · simpa using frontierMembership
 
+/-- The complete scheduler invariant derives the representation-only
+`forward?` ready-list freshness condition.
+
+The essential contradiction is semantic rather than a global duplicate scan:
+if the submitted par conclusion were already in the active ready tail, exact
+ready/frontier correspondence would make it `Produced`; then
+`ProducedPremisesMarked` would mark both submitted premises, contradicting
+the common prefix's exact pre-state fact that the selected premise is raw
+unmarked. -/
+theorem SchedulerInvariant.forwardExecutableReadyNodup
+    {certificate : Certificate} {before : ReservationState}
+    (invariant : SchedulerInvariant certificate before) :
+    ForwardExecutableReadyNodup certificate before := by
+  intro vertex rawAge linkIndex storedLeft storedRight conclusion
+    side middle activeReady prefixRule linkEquation premiseEquation
+    middleLast
+  rcases prefixRule with
+    ⟨readyPrefix, readyTail, _sigmaPrefix, readyBeforeEquation,
+      _sigmaEquation, _stackUnmarked, coreUnmarked,
+      middleStackEquation, _middleCoreEquation, _middleTagsEquation⟩
+  have exactMiddleLast :
+      middle.stack.ready.getLast? = some readyTail := by
+    rw [middleStackEquation]
+    simp
+  have activeReadyEquation : activeReady = readyTail :=
+    Option.some.inj (middleLast.symm.trans exactMiddleLast)
+  subst activeReady
+  have topMembership :
+      vertex :: readyTail ∈ before.stack.ready := by
+    rw [readyBeforeEquation]
+    simp
+  have topNodup : (vertex :: readyTail).Nodup :=
+    invariant.stack_wellShaped.ready_nodup
+      (vertex :: readyTail) topMembership
+  apply List.nodup_cons.mpr
+  constructor
+  · intro conclusionInTail
+    have conclusionInReady :
+        conclusion ∈ before.stack.ready.flatten := by
+      apply List.mem_flatten.mpr
+      exact ⟨vertex :: readyTail, topMembership,
+        by simp [conclusionInTail]⟩
+    have conclusionInFrontier :
+        conclusion ∈ before.core.liveFrontierVertices :=
+      SchedulerInvariant.ready_mem_liveFrontier
+        invariant conclusionInReady
+    have conclusionProduced : Produced before conclusion :=
+      Or.inr conclusionInFrontier
+    have linkMembership :
+        (.par storedLeft storedRight conclusion : Link) ∈
+          certificate.links :=
+      List.mem_of_getElem? linkEquation
+    rcases invariant.produced_premises_marked
+        linkMembership conclusionProduced with
+      ⟨⟨leftAge, leftMarked⟩, rightAge, rightMarked⟩
+    cases side with
+    | storedLeft =>
+        have selectedEquation : vertex = storedLeft := by
+          simpa [TensorPremiseSide.premise] using premiseEquation
+        have selectedMarked :
+            before.core.marks[vertex]? = some (some leftAge) := by
+          simpa [selectedEquation] using leftMarked
+        rw [coreUnmarked] at selectedMarked
+        simp at selectedMarked
+    | storedRight =>
+        have selectedEquation : vertex = storedRight := by
+          simpa [TensorPremiseSide.premise] using premiseEquation
+        have selectedMarked :
+            before.core.marks[vertex]? = some (some rightAge) := by
+          simpa [selectedEquation] using rightMarked
+        rw [coreUnmarked] at selectedMarked
+        simp at selectedMarked
+  · exact topNodup.tail
+
 private theorem flatMap_set_eq_of_getElem?_eq
     {α β : Type} {values : List α} {index : Nat}
     {before after : α} {mapping : α → List β}
@@ -3470,6 +3544,35 @@ theorem forward?_schedulerInvariant
   rcases (forward?_some_iff invariant.toReservationInvariant).mp equation with
     ⟨step⟩
   exact step.schedulerInvariant invariant
+
+/-- A direct `ForwardRule` witness is executable in a state satisfying the
+complete scheduler invariant.  The invariant supplies both structural
+validity and the separately proved ready-list freshness condition.  This is
+rule-witness completeness, not an applicability or progress theorem. -/
+theorem forward?_complete_of_schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (rule : ForwardRule certificate before after) :
+    forward? certificate before invariant.toReservationInvariant =
+      some after :=
+  forward?_complete_of_structural invariant.structural
+    invariant.toReservationInvariant
+    (ProofNetIR.SequentialFigure7.SchedulerInvariant.forwardExecutableReadyNodup
+      invariant) rule
+
+/-- Exact executable/direct correspondence for `forward` in a state carrying
+the complete scheduler invariant.  No branch existence or dispatcher
+totality is asserted. -/
+theorem forward?_some_iff_rule_of_schedulerInvariant
+    {certificate : Certificate} {before after : ReservationState}
+    (invariant : SchedulerInvariant certificate before) :
+    forward? certificate before invariant.toReservationInvariant =
+        some after ↔
+      ForwardRule certificate before after :=
+  forward?_some_iff_rule_of_structural invariant.structural
+    invariant.toReservationInvariant
+    (ProofNetIR.SequentialFigure7.SchedulerInvariant.forwardExecutableReadyNodup
+      invariant)
 
 namespace WaitStep
 

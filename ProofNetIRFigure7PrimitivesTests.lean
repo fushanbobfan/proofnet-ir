@@ -572,6 +572,213 @@ example {initial afterNop afterForward afterConcl : ReservationState}
     forwardInvariant.component_forest_provenance,
     forwardInvariant.fired_counter_exact⟩
 
+/-! Independent Boolean-free Figure-7 `forward` correspondence. -/
+
+/-- Equality is admitted by the paper's non-strict guard: after `nop` marks
+stored-left premise `0` at raw age `0`, the selected stored-right premise `1`
+is also assigned active age `0` and `forward?` succeeds. -/
+example :
+    (match initialEquation : parInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          parInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.nop? parCertificate initial
+              initialInvariant.toReservationInvariant with
+        | none => false
+        | some before =>
+            let nopInvariant :=
+              SequentialFigure7.nop?_schedulerInvariant
+                initialInvariant nopEquation
+            before.stack.marks == #[some 0, none, none] &&
+              match SequentialFigure7.forward? parCertificate before
+                  nopInvariant.toReservationInvariant with
+              | none => false
+              | some after =>
+                  after.stack.marks == #[some 0, some 0, none]) = true := by
+  native_decide
+
+/-- The canonical executable stored-right `forward` refines the direct rule. -/
+example {initial before after : ReservationState}
+    (initialEquation : parInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate initial
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (forwardEquation :
+      SequentialFigure7.forward? parCertificate before
+          (SequentialFigure7.nop?_schedulerInvariant
+            (parInitial_schedulerInvariant initialEquation)
+            nopEquation |>.toReservationInvariant) =
+        some after) :
+    SequentialFigure7.ForwardRule parCertificate before after := by
+  exact SequentialFigure7.forward?_sound
+    (SequentialFigure7.nop?_schedulerInvariant
+      (parInitial_schedulerInvariant initialEquation) nopEquation
+      |>.toReservationInvariant)
+    forwardEquation
+
+/-- A direct stored-right `ForwardRule` witness reconstructs the exact
+executable output from the complete scheduler invariant. -/
+example {initial before after : ReservationState}
+    (initialEquation : parInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate initial
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (rule : SequentialFigure7.ForwardRule parCertificate before after) :
+    SequentialFigure7.forward? parCertificate before
+        (SequentialFigure7.nop?_schedulerInvariant
+          (parInitial_schedulerInvariant initialEquation)
+          nopEquation |>.toReservationInvariant) =
+      some after := by
+  exact SequentialFigure7.forward?_complete_of_schedulerInvariant
+    (SequentialFigure7.nop?_schedulerInvariant
+      (parInitial_schedulerInvariant initialEquation) nopEquation)
+    rule
+
+/-- The executable and independent direct stored-right `forward` relations
+are exactly equivalent; this remains a successful-rule theorem, not progress. -/
+example {initial before after : ReservationState}
+    (initialEquation : parInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate initial
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before) :
+    SequentialFigure7.forward? parCertificate before
+          (SequentialFigure7.nop?_schedulerInvariant
+            (parInitial_schedulerInvariant initialEquation)
+            nopEquation |>.toReservationInvariant) =
+        some after ↔
+      SequentialFigure7.ForwardRule parCertificate before after := by
+  exact SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant
+    (SequentialFigure7.nop?_schedulerInvariant
+      (parInitial_schedulerInvariant initialEquation) nopEquation)
+
+/-- The reachable full scheduler invariant discharges the separately stated
+ready-list representation condition used by executable completeness. -/
+example {initial before : ReservationState}
+    (initialEquation : parInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate initial
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before) :
+    SequentialFigure7.ForwardExecutableReadyNodup
+      parCertificate before := by
+  exact SequentialFigure7.SchedulerInvariant.forwardExecutableReadyNodup
+    (SequentialFigure7.nop?_schedulerInvariant
+      (parInitial_schedulerInvariant initialEquation) nopEquation)
+
+/-- On the invariant-carrying stored-right fixture, two direct rule witnesses
+have the same complete output state. -/
+example {initial before first second : ReservationState}
+    (initialEquation : parInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate initial
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (left : SequentialFigure7.ForwardRule parCertificate before first)
+    (right : SequentialFigure7.ForwardRule parCertificate before second) :
+    first = second := by
+  have invariant := SequentialFigure7.nop?_schedulerInvariant
+    (parInitial_schedulerInvariant initialEquation) nopEquation
+  exact SequentialFigure7.ForwardRule.output_unique_of_structural
+    invariant.structural invariant.toReservationInvariant
+    (SequentialFigure7.SchedulerInvariant.forwardExecutableReadyNodup
+      invariant) left right
+
+/-- Starting from the submitted right axiom endpoint reverses scheduler
+orientation.  After `nop` selects stored-right premise `1`, `forward` selects
+stored-left premise `0`, while the production frontier remains submitted. -/
+private def parStoredRightInitial : Option ReservationState :=
+  initializeReservation? parCertificate 1
+
+private theorem parStoredRightInitial_schedulerInvariant
+    {before : ReservationState}
+    (equation : parStoredRightInitial = some before) :
+    SchedulerInvariant parCertificate before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [parStoredRightInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant parCertificate_structural
+
+example :
+    (match initialEquation : parStoredRightInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          parStoredRightInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.nop? parCertificate initial
+              initialInvariant.toReservationInvariant with
+        | none => false
+        | some before =>
+            let nopInvariant :=
+              SequentialFigure7.nop?_schedulerInvariant
+                initialInvariant nopEquation
+            before.stack.ready == [[0]] &&
+              before.stack.marks == #[none, some 0, none] &&
+              match SequentialFigure7.forward? parCertificate before
+                  nopInvariant.toReservationInvariant with
+              | none => false
+              | some after =>
+                  after.stack.ready == [[2]] &&
+                    after.stack.marks == #[some 0, some 0, none] &&
+                    after.core.firedConnectives == 1 &&
+                    match after.core.components[0]? with
+                    | some (some component) =>
+                        component.frontier == [2] &&
+                          component.tree ==
+                            (.par 0 0 (.axiom "p" true))
+                    | _ => false) = true := by
+  native_decide
+
+/-- The stored-left orientation uses the same direct/executable theorem. -/
+example {initial before after : ReservationState}
+    (initialEquation : parStoredRightInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? parCertificate initial
+          (parStoredRightInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before) :
+    SequentialFigure7.forward? parCertificate before
+          (SequentialFigure7.nop?_schedulerInvariant
+            (parStoredRightInitial_schedulerInvariant initialEquation)
+            nopEquation |>.toReservationInvariant) =
+        some after ↔
+      SequentialFigure7.ForwardRule parCertificate before after := by
+  exact SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant
+    (SequentialFigure7.nop?_schedulerInvariant
+      (parStoredRightInitial_schedulerInvariant initialEquation) nopEquation)
+
+/-- Before either premise has been marked, `forward?` rejects the unmarked
+mate and leaves the same state to the `nop?` branch. -/
+example :
+    (match initialEquation : parInitial with
+    | none => false
+    | some before =>
+        (SequentialFigure7.forward? parCertificate before
+          (parInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant)).isNone) = true := by
+  native_decide
+
+/-- A tensor consumer is not silently accepted by the par-only `forward?`
+branch, even when the selected occurrence has a full scheduler invariant. -/
+example :
+    (match initialEquation : repeatedInitial with
+    | none => false
+    | some before =>
+        (SequentialFigure7.forward? repeatedOccurrenceCertificate before
+          (repeatedInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant)).isNone) = true := by
+  native_decide
+
 /-! Successful executable Figure-7 `wait` under the full scheduler invariant. -/
 
 /-- Two axiom components are connected so the executable path first records

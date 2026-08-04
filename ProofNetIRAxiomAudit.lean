@@ -411,9 +411,17 @@ expansion.
 #print axioms SequentialFigure7.ForwardStep.mate_marked_before
 #print axioms SequentialFigure7.ForwardStep.reservationInvariant
 #print axioms SequentialFigure7.ForwardStep.output_unique
+#print axioms SequentialFigure7.ForwardStep.toRule
+#print axioms SequentialFigure7.forward?_sound
+#print axioms SequentialFigure7.forward?_complete_of_structural
+#print axioms SequentialFigure7.forward?_some_iff_rule_of_structural
+#print axioms SequentialFigure7.ForwardRule.output_unique_of_structural
 #print axioms SequentialFigure7.forward?_reservationInvariant
+#print axioms SequentialFigure7.SchedulerInvariant.forwardExecutableReadyNodup
 #print axioms SequentialFigure7.ForwardStep.schedulerInvariant
 #print axioms SequentialFigure7.forward?_schedulerInvariant
+#print axioms SequentialFigure7.forward?_complete_of_schedulerInvariant
+#print axioms SequentialFigure7.forward?_some_iff_rule_of_schedulerInvariant
 #print axioms SequentialFigure7.wait?_some_iff
 #print axioms SequentialFigure7.WaitStep.submitted_par
 #print axioms SequentialFigure7.WaitStep.mate_marked_before

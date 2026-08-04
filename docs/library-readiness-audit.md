@@ -391,12 +391,15 @@ part of the engineering and proof-identity gap.
    now preserve the reservation invariant, with conclusion lookup requiring
    local `NodeWellFormed` ownership and distinguishing an empty bucket from
    ambiguous singleton-query failure. Independent Boolean-free direct
-   relations, executable soundness, structurally valid completeness, and output
-   uniqueness are kernel checked for the common prefix, `concl`, `nop`, and
-   `wait` (`wait` uniqueness under structural validity and the supplied
-   invariant). There is not yet a Boolean-free `ForwardRule` or direct Forward
-   completeness/equivalence theorem; none of these local results establishes
-   dispatcher reachability or progress.
+   relations, executable soundness, structurally valid completeness, and
+   output uniqueness are kernel checked for the common prefix, `concl`, `nop`,
+   `wait`, and `forward` under their documented hypotheses. `ForwardRule`
+   states the exact non-strict raw-age paper guard and excludes every Figure-7
+   executable/mutation wrapper; `ForwardExecutableReadyNodup` separately
+   states the fail-closed list-shape refinement. The complete
+   `SchedulerInvariant` derives that shape condition, giving a second direct
+   executable iff. None of these local results establishes applicability,
+   dispatcher reachability, or progress.
    The stronger current state-only `SchedulerInvariant` is now preserved by
    the synchronized prepared pop/raw-mark prefix and therefore by exact and
    executable `concl`/`nop`. This includes extensional active ready/frontier
@@ -520,7 +523,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 272 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 280 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
   87 `propext`-only, and 79 `propext`/`Quot.sound` boundaries;
@@ -619,8 +622,9 @@ It can currently be used for:
   occurrence-provenance forest is integrated for empty/init and each of those
   successful steps. Wait additionally preserves exact positional waiting spans
   and combined queue ownership without constructing the delayed par.
-  Later-state applicability and totality, `unify`, an independent Boolean-free
-  `ForwardRule`, and full-history rule integration remain absent. The
+  Forward also has an independent Boolean-free direct rule and exact
+  executable correspondence. Later-state applicability and totality, `unify`,
+  and full-history rule integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
   Exact init/new reachability and tag history are present, but
@@ -661,3 +665,6 @@ positive or negative. Both controlled runs are now complete; the broader-
 logic/corpus, hard checking/sequentialization performance, adversarial
 large-key qualification, and broader Lean/tactic integration remain open. The
 v0.9 release and exact-tag consumer gates are closed.
+No external adoption or independent research validation is currently verified;
+the v0.10 development branch therefore remains a qualified research library,
+not a mature broad proof-net library.

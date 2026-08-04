@@ -276,11 +276,15 @@ successful composition. This still does not prove applicability, totality,
 dispatcher/history integration, or reachability. `Unify`, correct-state
 progress, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
-unimplemented. Independent Boolean-free direct relations now exist only for
-the common prefix, `concl`, `nop`, and `wait`; no independent `ForwardRule` or
-direct Forward completeness/equivalence theorem is claimed. Their executable
-soundness and completeness are proved only under `StructurallyWellFormed` and
-the supplied `ReservationInvariant`, and do not imply reachability or progress.
+unimplemented. Independent Boolean-free direct relations now exist for the
+common prefix, `concl`, `nop`, `wait`, and `forward`. `ForwardRule` excludes
+Figure-7 executables and mutation wrappers and retains the exact non-strict
+raw-age guard. Its separate `ForwardExecutableReadyNodup` premise is a
+fail-closed list representation condition, not a paper guard. Executable
+soundness and structurally valid completeness/iff/output uniqueness are
+kernel checked; the complete `SchedulerInvariant` derives the shape premise
+and supplies its own completeness/iff. These theorems do not imply
+applicability, reachability, or progress.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
@@ -549,8 +553,9 @@ bundled invariant preserved across both stages. The invariant-bound local
 post-mark search, and the operational old-boundary/fresh-top reservation. The
 dedicated init/new history adds exact reachability and tag provenance for that
  fragment. Local `concl`/`nop`/`wait`/`forward` exist outside it; successful
- Forward has complete state-only invariant preservation. It does not add later
- applicability/totality, an independent `ForwardRule`, `unify`, a full-rule
+ Forward has complete state-only invariant preservation and an independent
+ direct rule with executable correspondence. It does not add later
+ applicability/totality, `unify`, a full-rule
  reachability invariant, or full-history integration. No
 planarity principle is assumed.
 
@@ -670,9 +675,8 @@ Lean now also constructs the exact simultaneous complementary
   proved. Exact local `concl`/`nop`/`wait`/`forward` are also proved, and
   successful deterministic/executable `new`, `wait`, and `forward` preserve the
   complete current occurrence-exact state-only invariant. Later-state
-  applicability and totality, `unify`, an independent Boolean-free
-  `ForwardRule`, full-history integration, and the remaining
-  `NEXTAXIOM`/token-age scheduler remain required for linearity.
+  applicability and totality, `unify`, full-history integration, and the
+  remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
   linearity remain open.

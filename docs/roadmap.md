@@ -783,13 +783,17 @@
     reservation-invariant preservation.
   - [ ] State an independent Boolean-free relation for every Figure-7 rule and
     prove executable refinement and valid-guard completeness. This is now
-    complete for the common prefix, `concl`, `nop`, and local `wait`; their
+    complete for the common prefix, `concl`, `nop`, local `wait`, and local
+    `forward`; their
     dependent witnesses remain as exact equation-backed executable
     compatibility records. `WaitRule` states the raw-age guard in
     `before.core.marks` and uses an exact proposition-level
-    `sigmaBoundary? = some boundary` equation. An independent Boolean-free
-    `ForwardRule` and its direct executable completeness/equivalence layer
-    remain open, as do the corresponding direct layers for `new` and `unify`.
+    `sigmaBoundary? = some boundary` equation. `ForwardRule` retains the exact
+    submitted par occurrence and non-strict raw-age guard while factoring the
+    executable active-ready `Nodup` refinement into a separate predicate.
+    Direct soundness, structurally valid completeness/iff/output uniqueness,
+    and scheduler-invariant completeness/iff are kernel checked. The
+    corresponding direct layers for `new` and `unify` remain open.
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
@@ -820,10 +824,11 @@
     check, not a paper guard. Lock the non-equality boundary case and a typed
     `init → nop → forward → concl` regression. This remains
     successful-step preservation, not applicability, totality, dispatcher,
-    history, reachability, or progress; a Boolean-free `ForwardRule` and direct
-    completeness/equivalence theorem remain open. It does not establish pure
-    worklist completeness, fallback removal, faithful `NEXTAXIOM` sequencing,
-    or whole-program linearity.
+    history, reachability, or progress. Its Boolean-free `ForwardRule`,
+    executable correspondence, and output uniqueness are complete under the
+    documented structural/invariant/shape hypotheses. It does not establish
+    pure worklist completeness, fallback removal, faithful `NEXTAXIOM`
+    sequencing, or whole-program linearity.
   - [ ] Preserve the strengthened invariant through complete `unify` queue
     transitions. Prove an empty-`W(j)` unify slice first, then add a typed
     activation fold constructing every drained waiting par and accounting for

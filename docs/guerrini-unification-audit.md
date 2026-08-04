@@ -218,9 +218,14 @@ both raw-age and production counters. This does not define ready/waiting
 payload ownership or the full scheduler invariant. A separate exact local
 `wait` transition now compares raw marks, resolves the destination with
 `sigmaBoundary?`, and prepends to one initialized bucket, without claiming
-global ownership. Global queue ownership, `forward` and `unify`, integration of
-the now exact local `concl`/`nop`/`wait` rules into full reachability,
-later-state totality, progress, pure-worklist completeness, fallback removal,
+global ownership. The exact local `forward` transition and its independent
+Boolean-free `ForwardRule` correspondence are now kernel checked. The paper
+guard is the non-strict raw-age comparison; active-ready `Nodup` is isolated
+as a fail-closed list-shape refinement. Successful wait/forward steps preserve
+the complete supplied state-only scheduler invariant, but this is not a
+reachability theorem. `Unify`, integration of the now exact local
+`concl`/`nop`/`wait`/`forward` rules into full reachability, later-state
+applicability/totality, progress, pure-worklist completeness, fallback removal,
 scheduler correctness, and the whole-scheduler linear cost model remain open.
 Future guards must compare raw assigned ages; replacing them by
 representatives would change the algorithm.
@@ -421,9 +426,10 @@ The following stronger claims are intentionally absent:
   low-level reservation. The proved result covers only composable typed wrapper
   calls that thread the complete output tags, and says nothing about
   equal-valued duplicate axioms at different indices without extra structure;
-- reachable later-state selection totality, ready/waiting payload ownership,
-  `forward` and `unify`, full-history integration of the exact local
-  `concl`/`nop`/`wait` rules, the complete scheduler transition system,
+- reachable later-state selection/applicability totality, ready/waiting
+  payload ownership through complete transitions, `unify`, full-history
+  integration of the exact local `concl`/`nop`/`wait`/`forward` rules, the
+  complete scheduler transition system,
   scheduler
   correctness, and scheduler-cost
   theorems. Initial/local search totality, initial/later reservation invariant
@@ -677,11 +683,11 @@ linearity.
    the preserved `ReservationInvariant` are already proved. Keep the immediate
    dynamic-start refinement separate from the mark-preserving delayed
    reservation wrappers.
-7. Extend the now-proved invariant-bound local Figure-7 `new`/`wait` and exact
-   init/new execution history into a full transition system: prove global
-   ready/waiting payload ownership/disjointness, later-state selection
-   totality, `forward`/`unify`, and full-history integration of the
-   already-local `concl`/`nop`/`wait` transitions. Keep the printed
+7. Extend the now-proved invariant-bound local Figure-7 `new`/`wait`/`forward`
+   and exact init/new execution history into a full transition system: prove
+   global ready/waiting payload ownership/disjointness, later-state selection
+   applicability/totality, `unify`, and full-history integration of the
+   already-local `concl`/`nop`/`wait`/`forward` transitions. Keep the printed
    fresh-cell helper and the project's operational inactive-boundary
    interpretation distinct; the latter is kernel checked but is not an
    author-confirmed erratum.

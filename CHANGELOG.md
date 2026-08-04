@@ -87,10 +87,18 @@
   exact fired-connective count. A typed `init → nop → forward → concl`
   regression exercises that path. These remain conditional successful-step
   theorems, not applicability, totality, dispatcher, history, reachability, or
-  progress. An independent Boolean-free `ForwardRule` and its direct
-  completeness/equivalence layer, `unify`, pure-worklist completeness,
-  recursive-fallback removal, faithful `NEXTAXIOM`/token-age scheduling, and
-  whole-program linearity remain open;
+  progress. Added the independent Boolean-free `ForwardRule`, which retains
+  the exact submitted par occurrence, raw-age guard, occurrence picks, and
+  output equations without referencing a Figure-7 executable or mutation
+  wrapper. `ForwardExecutableReadyNodup` separately carries the fail-closed
+  ready-list shape condition. Executable Forward is sound for the direct rule;
+  structural validity plus `ReservationInvariant` and that shape condition
+  gives completeness, iff, and output uniqueness. The full
+  `SchedulerInvariant` derives the shape condition and therefore supplies a
+  higher-level completeness/iff theorem. This correspondence is not an
+  applicability, totality, or progress theorem. `Unify`, pure-worklist
+  completeness, recursive-fallback removal, faithful
+  `NEXTAXIOM`/token-age scheduling, and whole-program linearity remain open;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
   `positional`, `mem_remaining_of_ne`, and `two_of_mem` wrappers for future
   deterministic waiting-payload activation while retaining the recursive
@@ -156,11 +164,10 @@
   `ConclStep`/`NopStep`/`WaitStep` records remain exact
   equation-backed executable witnesses for compatibility. The pure query
   rebuilds the consumer table and is not a whole-program linearity claim.
-  Executable/typed successful-step `forward` is now present as described above,
-  but an independent Boolean-free `ForwardRule` and direct
-  completeness/equivalence theorem are not. `unify`, a full-rule
-  history/dispatcher, applicability/totality, reachability, progress, and
-  completeness remain open;
+  Executable/typed successful-step `forward` and its independent Boolean-free
+  `ForwardRule` correspondence are now present as described above. `unify`, a
+  full-rule history/dispatcher, applicability/totality, reachability, progress,
+  and completeness remain open;
 - added `SequentialFigure7History.lean`, a proof-relevant execution history
   restricted to the exact empty/init/operational-new reservation fragment.
   Kernel-checked theorems prove output tags are true exactly at vertices
@@ -203,7 +210,8 @@
   in the post-mark state, and finishes with the operational later reservation.
   This proves a local transition only. The local `concl`, `nop`, `wait`, and
   successful executable/typed `forward` rules are now implemented separately;
-  an independent direct `ForwardRule`, `unify`, later-state totality,
+  the independent direct `ForwardRule` and exact correspondence are now
+  proved, while `unify`, later-state applicability/totality,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - extended `ProofNetIR/SequentialSchedulerBridge.lean` from the first carrier
@@ -253,7 +261,7 @@
   local `concl`/`nop`/`wait`/`forward`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 272 full-classical, 23 axiom-free, 87 `propext`-only, and
+  audit covers 280 full-classical, 23 axiom-free, 87 `propext`-only, and
   79 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the

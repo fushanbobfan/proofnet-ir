@@ -103,11 +103,16 @@ preservation. This is not presented as an author-confirmed erratum.
 The invariant does not by itself establish payload ownership or reachability.
 The exact empty/init/operational-new execution history separately proves tag
 provenance, global submitted-slot non-reuse, and reservation-count alignment
-for that fragment. Exact local `concl`/`nop`/`wait` are now executable with
+for that fragment. Exact local `concl`/`nop`/`wait`/`forward` are now
+executable with
 proof-carrying canonical consumer/conclusion views; local `wait` resolves the
 mate raw age through `sigmaBoundary?` and prepends only to an initialized
-cell. Global payload ownership, `forward`/`unify`, full-history integration,
-full-rule reachability, progress, and pure-worklist completeness remain open.
+cell. Forward now also has an independent Boolean-free direct rule and exact
+executable correspondence; its `Nodup` condition is explicitly a fail-closed
+list shape rather than the paper's non-strict raw-age guard. Conditional
+state-only queue ownership is preserved under the supplied invariant. Global
+reachable payload ownership, `unify`, full-history integration, full-rule
+reachability, progress, and pure-worklist completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,
 [*A linear algorithm for MLL proof net correctness and

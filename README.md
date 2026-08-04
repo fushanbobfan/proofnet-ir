@@ -170,19 +170,24 @@ boundary lookup, and the overall transitions have no O(1) or linearity claim.
 `NopStep.mate_unmarked_before` proves that this post-prefix executable guard
 is the paper's pre-state `μ(u₂)=⊥` guard, because the locally well-formed mate
 is distinct from the only occurrence written by the prefix.
-`RulePrefixAt`, `ConclRule`, `NopRule`, and `WaitRule` now give a separate
-Boolean-free
-direct state relation: they mention neither `prepare?` nor either canonical
-query or rule executable. `WaitRule` uses a proposition-level exact
+`RulePrefixAt`, `ConclRule`, `NopRule`, `WaitRule`, and `ForwardRule` now give
+separate Boolean-free direct state relations. The first four mention neither
+`prepare?` nor either canonical query or rule executable; `ForwardRule`
+likewise avoids every Figure-7 executable and mutation wrapper while retaining
+the exact submitted par position, occurrence picks, component update, and
+ready-stack result. `WaitRule` uses a proposition-level exact
 `sigmaBoundary? = some boundary` equation, not Boolean/Option control flow,
 and states its paper guard directly through `before.core.marks`. The old
-`ConclStep`/`NopStep`/`WaitStep` records remain as
-compatible equation-backed executable witnesses. Lean proves both executable
-soundness and valid-guard completeness for the direct relations under
-`StructurallyWellFormed` plus the supplied `ReservationInvariant`, and proves
-each relation has a unique output (for `wait`, under structural validity and
-the supplied invariant). There is not yet an independent Boolean-free
-`ForwardRule` or a direct Forward soundness/completeness equivalence theorem.
+`ConclStep`/`NopStep`/`WaitStep`/`ForwardStep` records remain as
+compatible equation-backed executable witnesses. Lean proves executable
+soundness from the supplied `ReservationInvariant`; valid-guard completeness
+uses `StructurallyWellFormed` plus that invariant. Each relation has a unique
+output under its documented hypotheses. Forward completeness additionally
+takes the separate
+`ForwardExecutableReadyNodup` representation condition. The complete
+`SchedulerInvariant` derives that condition semantically from exact
+ready/frontier correspondence and `ProducedPremisesMarked`, yielding a
+second direct executable iff without adding `Nodup` to the paper rule.
 `NopRule` states the paper-level `μ` guard
 directly as `before.core.marks`. Separately, the supplied invariant's
 `RealizesSigma.marks_eq` justifies identifying that
@@ -430,11 +435,12 @@ the live component, updating the active ready bucket, preserving the combined
 queue and all waiting spans, maintaining pending-premise coverage, and
 incrementing the exact fired-connective count. These theorems do not prove that
 `new?`, `wait?`, or `forward?` succeeds in every intended later state and are
-not applicability, reachability, or progress theorems. An independent
-Boolean-free `ForwardRule`, direct Forward completeness, `unify`,
-dispatcher/history integration, later-state totality, pure-worklist
-completeness, fallback removal, faithful `NEXTAXIOM`/token-age sequencing, and
-whole-program linearity remain open.
+not applicability, reachability, or progress theorems. The independent
+Boolean-free `ForwardRule` and both structural and scheduler-invariant
+executable correspondence layers are now kernel checked. `Unify`,
+dispatcher/history integration, later-state applicability/totality,
+pure-worklist completeness, fallback removal, faithful
+`NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
 fresh-boundary lemma and the production old/fresh representative lemmas align
@@ -833,7 +839,8 @@ waiting-span/queue ownership fields. Successful local executable/typed
 `forward` now preserves the same complete invariant through exact submitted-par
 construction, live-frontier replacement, active-ready insertion, queue and
 waiting transport, pending coverage, and fired-counter increment. Independent
-Boolean-free Forward semantics, `unify`, integration of local
+Boolean-free Forward semantics and its executable correspondence are now
+kernel checked; `unify`, integration of local
 `concl`/`nop`/`wait`/`forward` into full-rule history, and a total later-state
 transition system remain open.
 Closing-par
@@ -1067,9 +1074,11 @@ The repository currently contains:
   the full scheduler: successful local `wait` also preserves the complete
   state-only invariant, and successful executable/typed `forward` preserves it
   while constructing the exact submitted par and incrementing the exact
-  connective count. An independent Boolean-free `ForwardRule`, `unify`,
-  full-history integration of the local `concl`/`nop`/`wait`/`forward` rules,
-  and later totality remain open. Closing-par
+  connective count. Its independent Boolean-free `ForwardRule`, separate
+  executable-list shape predicate, direct soundness/completeness/iff, and
+  scheduler-invariant iff are now kernel checked. `Unify`, full-history
+  integration of the local `concl`/`nop`/`wait`/`forward` rules, and later
+  applicability/totality remain open. Closing-par
   exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
@@ -1110,8 +1119,10 @@ The repository currently contains:
   preserves the complete state-only invariant on every successful result.
   Successful executable/typed `forward` now likewise preserves that invariant,
   with the exact submitted par, forest/frontier/queue/waiting/pending fields,
-  and fired counter accounted. Reachable later-state totality, `unify`, an
-  independent Boolean-free `ForwardRule`, full-history integration of the local
+  and fired counter accounted. The independent `ForwardRule` and exact
+  executable correspondence are also proved, with active-ready `Nodup`
+  isolated as a fail-closed representation condition. Reachable later-state
+  applicability/totality, `unify`, full-history integration of the local
   `concl`/`nop`/`wait`/`forward` rules, full scheduler correctness, and a
   whole-program cost proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
@@ -1288,7 +1299,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 272 public MLL logical-boundary theorems against the exact
+separately audits 280 public MLL logical-boundary theorems against the exact
 axiom set `[propext, Classical.choice, Quot.sound]`, plus 23 axiom-free,
 87 `propext`-only, and 79 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,

@@ -556,6 +556,73 @@ def WaitRule (certificate : Certificate)
       some boundary ∧
     WaitingPrependAt middle after boundary conclusion
 
+/-- Independent Boolean-free local Figure-7 `forward` relation.
+
+The common prefix selects and raw-marks one submitted par premise.  The mate
+already has raw age `mateRawAge`, and the paper guard is stated exactly as
+`rawAge ≤ mateRawAge`.  The remaining fields directly expose the active
+component update and ready-top prepend.  In particular, this relation does
+not use any executable Figure-7 dispatcher or either local mutation wrapper.
+
+The executable list representation additionally needs the inserted
+conclusion to be fresh in the active ready bucket.  That representation-only
+condition is deliberately factored into `ForwardExecutableReadyNodup` rather
+than included in this mathematical rule. -/
+def ForwardRule (certificate : Certificate)
+    (before after : ReservationState) : Prop :=
+  ∃ (vertex rawAge linkIndex storedLeft storedRight conclusion : Nat),
+    ∃ (side : TensorPremiseSide) (middle : ReservationState)
+      (mateRawAge outputToken : RawTokenAge)
+      (component : UnificationComponent)
+      (leftFocus : Nat) (afterLeft : List Vertex)
+      (rightFocus : Nat) (context : List Vertex)
+      (readyPrefix : List (List Vertex)) (activeReady : List Vertex),
+    RulePrefixAt before middle vertex rawAge ∧
+    certificate.links[linkIndex]? =
+      some (.par storedLeft storedRight conclusion) ∧
+    vertex = side.premise storedLeft storedRight ∧
+    before.core.marks[side.mate storedLeft storedRight]? =
+      some (some mateRawAge) ∧
+    rawAge ≤ mateRawAge ∧
+    middle.core.forwardToken? storedLeft storedRight conclusion =
+      some outputToken ∧
+    middle.core.componentAt? outputToken = some component ∧
+    outputToken = rawAge ∧
+    Certificate.FirstOccurrencePick component.frontier storedLeft
+      leftFocus afterLeft ∧
+    Certificate.FirstOccurrencePick afterLeft storedRight rightFocus context ∧
+    middle.stack.ready = readyPrefix ++ [activeReady] ∧
+    after.core = {
+      middle.core with
+      components :=
+        middle.core.components.setIfInBounds outputToken
+          (some {
+            tree := .par leftFocus rightFocus component.tree
+            frontier := context ++ [conclusion] })
+      firedConnectives := middle.core.firedConnectives + 1 } ∧
+    after.stack = {
+      middle.stack with
+      ready := readyPrefix ++ [conclusion :: activeReady] } ∧
+    after.tags = middle.tags
+
+/-- Representation-only freshness needed by executable `forward?`.
+
+For every direct submitted-par choice refining the common prefix, inserting
+its conclusion into the active ready tail must preserve `List.Nodup`.  This
+is not a Figure-7 paper guard and is intentionally separate from
+`ForwardRule`. -/
+def ForwardExecutableReadyNodup (certificate : Certificate)
+    (before : ReservationState) : Prop :=
+  ∀ {vertex rawAge linkIndex storedLeft storedRight conclusion : Nat}
+      {side : TensorPremiseSide} {middle : ReservationState}
+      {activeReady : List Vertex},
+    RulePrefixAt before middle vertex rawAge →
+    certificate.links[linkIndex]? =
+      some (.par storedLeft storedRight conclusion) →
+    vertex = side.premise storedLeft storedRight →
+    middle.stack.ready.getLast? = some activeReady →
+    (conclusion :: activeReady).Nodup
+
 /-- Execute Figure-7 `concl`: perform the common prefix only when the selected
 occurrence is a locally ownership-well-formed declared conclusion with an
 exactly empty consumer bucket. -/
@@ -1637,6 +1704,76 @@ theorem mate_marked_before
     simp [selectedNeMate]
   exact unchanged.symm.trans step.mate_marked
 
+/-- The equation-backed executable witness refines the independent direct
+`forward` relation.  The executable ready-bucket `Nodup` guard is not used in
+this refinement because it is intentionally absent from `ForwardRule`. -/
+theorem toRule
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : ForwardStep certificate before after) :
+    ForwardRule certificate before after := by
+  refine ⟨step.prepared.stackResult.vertex,
+    step.prepared.stackResult.rawAge,
+    step.consumer.linkIndex,
+    step.consumer.storedLeft,
+    step.consumer.storedRight,
+    step.consumer.conclusion,
+    step.consumer.side,
+    step.prepared.after,
+    step.mateRawAge,
+    step.queueStep.outputToken,
+    step.queueStep.component,
+    step.queueStep.leftFocus,
+    step.queueStep.afterLeft,
+    step.queueStep.rightFocus,
+    step.queueStep.context,
+    step.prependStep.readyPrefix,
+    step.prependStep.activeReady,
+    RulePrefix.ofPrepared step.prepared,
+    step.submitted_par,
+    step.consumer.premise_eq,
+    step.mate_marked_before,
+    step.not_older,
+    ?_, ?_, step.output_token_eq_active,
+    step.queueStep.left_pick,
+    step.queueStep.right_pick,
+    ?_, ?_, ?_, ?_⟩
+  · exact step.queueStep.token_guard
+  · exact step.queueStep.component_lookup
+  · exact step.prependStep.ready_eq
+  · calc
+      after.core = step.coreAfter :=
+        congrArg (fun state : ReservationState => state.core) step.output_eq
+      _ = {
+          step.prepared.after.core with
+          components :=
+            step.prepared.after.core.components.setIfInBounds
+              step.queueStep.outputToken
+              (some {
+                tree :=
+                  .par step.queueStep.leftFocus
+                    step.queueStep.rightFocus step.queueStep.component.tree
+                frontier :=
+                  step.queueStep.context ++ [step.consumer.conclusion] })
+          firedConnectives :=
+            step.prepared.after.core.firedConnectives + 1 } :=
+        step.queueStep.after_eq
+  · calc
+      after.stack = step.stackAfter :=
+        congrArg (fun state : ReservationState => state.stack) step.output_eq
+      _ = {
+          step.prepared.after.stack with
+          ready :=
+            step.prependStep.readyPrefix ++
+              [step.consumer.conclusion :: step.prependStep.activeReady] } :=
+        step.prependStep.after_eq
+  · calc
+      after.tags = before.tags := by
+        simpa using
+          congrArg (fun state : ReservationState => state.tags) step.output_eq
+      _ = step.prepared.after.tags := by
+        rfl
+
 /-- A successful `forward` preserves the complete reservation invariant.
 
 The proof composes the two local preservation APIs over the same prepared
@@ -1780,6 +1917,17 @@ theorem output_unique
   exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
 
 end ForwardStep
+
+/-- Executable `forward` is sound for the independent direct relation without
+a global certificate-validity assumption. -/
+theorem forward?_sound
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation : forward? certificate before invariant = some after) :
+    ForwardRule certificate before after := by
+  rcases (forward?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.toRule
 
 /-- Executable `forward` success preserves the reservation invariant. -/
 theorem forward?_reservationInvariant
@@ -2150,6 +2298,227 @@ private theorem exists_prepared_of_rulePrefixAt
     Option.some.inj (preparedSigmaTop.symm.trans directSigmaTop)
   exact ⟨prepared, prepareEquation, outputEquation,
     vertexEquation, rawAgeEquation⟩
+
+/-- On structurally valid input, the independent direct `forward` rule is
+complete for the executable local rule when the separate ready-list shape
+condition is supplied.  This is successful-rule correspondence only; it does
+not assert that `forward` is applicable in every scheduler state. -/
+theorem forward?_complete_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (readyShape : ForwardExecutableReadyNodup certificate before)
+    (rule : ForwardRule certificate before after) :
+    forward? certificate before invariant = some after := by
+  rcases rule with
+    ⟨vertex, rawAge, linkIndex, storedLeft, storedRight,
+      conclusion, side, middle, mateRawAge, outputToken,
+      component, leftFocus, afterLeft, rightFocus, context,
+      readyPrefix, activeReady, prefixRule, linkEquation,
+      premiseEquation, mateMarkedBefore, notOlder,
+      tokenGuard, componentLookup, outputTokenEquation,
+      leftPick, rightPick, readyEquation, coreAfterEquation,
+      stackAfterEquation, tagsAfterEquation⟩
+  rcases exists_prepared_of_rulePrefixAt prefixRule with
+    ⟨prepared, prepareEquation, middleEquation,
+      vertexEquation, rawAgeEquation⟩
+  have preparedPremise :
+      prepared.stackResult.vertex =
+        side.premise storedLeft storedRight :=
+    vertexEquation.trans premiseEquation
+  rcases
+      exists_connectiveBelow?_eq_some_par_of_structural
+        structural linkEquation preparedPremise with
+    ⟨consumer, consumerEquation, parEquation,
+      sideEquation, conclusionEquation, mateEquation⟩
+  have submittedConsumer :
+      certificate.links[consumer.linkIndex]? =
+        some (.par consumer.storedLeft consumer.storedRight
+          consumer.conclusion) := by
+    simpa [parEquation, SequentialConnectiveKind.asLink] using
+      consumer.link_eq
+  have directMembership :
+      (.par storedLeft storedRight conclusion : Link) ∈ certificate.links :=
+    List.mem_of_getElem? linkEquation
+  have consumerMembership :
+      (.par consumer.storedLeft consumer.storedRight conclusion : Link) ∈
+        certificate.links := by
+    have membership := List.mem_of_getElem? submittedConsumer
+    simpa [conclusionEquation] using membership
+  have submittedSame := structural.par_producer_unique
+    directMembership consumerMembership
+  injection submittedSame with storedLeftEquation storedRightEquation
+  subst storedLeft
+  subst storedRight
+  have mateMarkedBefore' :
+      before.core.marks[consumer.mate]? =
+        some (some mateRawAge) := by
+    rw [mateEquation]
+    exact mateMarkedBefore
+  have markExact :=
+    UnificationState.markReadyRaw?_exact prepared.core_mark_eq
+  have selectedNeMate :
+      prepared.stackResult.vertex ≠ consumer.mate :=
+    consumer.mate_ne.symm
+  have mateMarkedAfter :
+      prepared.coreMarked.marks[consumer.mate]? =
+        some (some mateRawAge) := by
+    rw [markExact.2.1]
+    simpa [selectedNeMate] using mateMarkedBefore'
+  have notOlderPrepared :
+      prepared.stackResult.rawAge ≤ mateRawAge := by
+    simpa [rawAgeEquation] using notOlder
+  have middleCoreEquation : prepared.coreMarked = middle.core := by
+    have equation :=
+      congrArg (fun state : ReservationState => state.core) middleEquation
+    simpa [PreparedStep.after] using equation
+  have middleStackEquation :
+      prepared.stackResult.after = middle.stack := by
+    have equation :=
+      congrArg (fun state : ReservationState => state.stack) middleEquation
+    simpa [PreparedStep.after] using equation
+  have tokenGuardPrepared :
+      prepared.coreMarked.forwardToken?
+          consumer.storedLeft consumer.storedRight consumer.conclusion =
+        some outputToken := by
+    rw [middleCoreEquation, conclusionEquation]
+    exact tokenGuard
+  have componentLookupPrepared :
+      prepared.coreMarked.componentAt? outputToken = some component := by
+    rw [middleCoreEquation]
+    exact componentLookup
+  have queueStep :
+      Certificate.QueueParStep prepared.coreMarked after.core
+        consumer.storedLeft consumer.storedRight consumer.conclusion := by
+    exact {
+      outputToken
+      component
+      leftFocus
+      afterLeft
+      rightFocus
+      context
+      token_guard := tokenGuardPrepared
+      component_lookup := componentLookupPrepared
+      left_pick := leftPick
+      right_pick := rightPick
+      after_eq := by
+        rw [coreAfterEquation, middleCoreEquation, conclusionEquation] }
+  have coreEquation :
+      Certificate.queuePar? prepared.coreMarked
+          consumer.storedLeft consumer.storedRight consumer.conclusion =
+        some after.core :=
+    Certificate.queuePar?_some_iff.mpr ⟨queueStep⟩
+  have prependStep :
+      PrependReadyTopStep prepared.stackResult.after after.stack
+        consumer.conclusion := by
+    exact {
+      readyPrefix
+      activeReady
+      ready_eq := by
+        rw [middleStackEquation]
+        exact readyEquation
+      after_eq := by
+        rw [stackAfterEquation, middleStackEquation, conclusionEquation] }
+  have stackEquation :
+      prepared.stackResult.after.prependReadyTop? consumer.conclusion =
+        some after.stack :=
+    SequentialStackState.prependReadyTop?_some_iff.mpr ⟨prependStep⟩
+  have middleLast : middle.stack.ready.getLast? = some activeReady := by
+    rw [readyEquation]
+    simp
+  have executableNodup : (conclusion :: activeReady).Nodup :=
+    readyShape prefixRule linkEquation premiseEquation middleLast
+  rcases SequentialStackState.popReadyMark?_exact prepared.stack_eq with
+    ⟨_, _, _, _, _, _, preparedReadyEquation, _, _⟩
+  have preparedLast :
+      prepared.stackResult.after.ready.getLast? =
+        some prepared.stackResult.remainingTop := by
+    rw [preparedReadyEquation]
+    simp
+  have activeReadyEquation :
+      activeReady = prepared.stackResult.remainingTop := by
+    apply Option.some.inj
+    calc
+      some activeReady = middle.stack.ready.getLast? := middleLast.symm
+      _ = prepared.stackResult.after.ready.getLast? := by
+        rw [middleStackEquation]
+      _ = some prepared.stackResult.remainingTop := preparedLast
+  have readyNodup :
+      (consumer.conclusion :: prepared.stackResult.remainingTop).Nodup := by
+    simpa [conclusionEquation, activeReadyEquation] using executableNodup
+  have queueStepOutputToken : queueStep.outputToken = outputToken := by
+    exact Option.some.inj
+      (queueStep.token_guard.symm.trans tokenGuardPrepared)
+  have outputTokenActive :
+      queueStep.outputToken = prepared.stackResult.rawAge := by
+    exact queueStepOutputToken.trans
+      (outputTokenEquation.trans rawAgeEquation.symm)
+  have middleTagsEquation : middle.tags = before.tags := by
+    rcases prefixRule with
+      ⟨_, _, _, _, _, _, _, _, _, tagsEquation⟩
+    exact tagsEquation
+  have outputEquation :
+      after = {
+        stack := after.stack
+        core := after.core
+        tags := before.tags } := by
+    cases before
+    cases middle
+    cases after
+    simp_all
+  apply (forward?_some_iff invariant).mpr
+  exact ⟨{
+    before_invariant := invariant
+    prepared
+    consumer
+    mateRawAge
+    coreAfter := after.core
+    stackAfter := after.stack
+    queueStep
+    prependStep
+    prepare_eq := prepareEquation
+    consumer_eq := consumerEquation
+    par_eq := parEquation
+    mate_marked := mateMarkedAfter
+    not_older := notOlderPrepared
+    ready_nodup := readyNodup
+    core_queue_eq := coreEquation
+    stack_prepend_eq := stackEquation
+    output_token_eq_active := outputTokenActive
+    output_eq := outputEquation }⟩
+
+/-- Exact executable/declarative correspondence for `forward` under
+structural validity, the reservation invariant, and the separate executable
+ready-list shape condition. -/
+theorem forward?_some_iff_rule_of_structural
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (readyShape : ForwardExecutableReadyNodup certificate before) :
+    forward? certificate before invariant = some after ↔
+      ForwardRule certificate before after :=
+  ⟨forward?_sound invariant,
+    forward?_complete_of_structural structural invariant readyShape⟩
+
+/-- Under structural validity, the supplied reservation invariant, and the
+separate executable ready-list shape condition, the independent `forward`
+relation has one exact output. -/
+theorem ForwardRule.output_unique_of_structural
+    {certificate : Certificate}
+    {before first second : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (invariant : ReservationInvariant certificate before)
+    (readyShape : ForwardExecutableReadyNodup certificate before)
+    (left : ForwardRule certificate before first)
+    (right : ForwardRule certificate before second) :
+    first = second := by
+  have leftExecutable :=
+    forward?_complete_of_structural structural invariant readyShape left
+  have rightExecutable :=
+    forward?_complete_of_structural structural invariant readyShape right
+  exact Option.some.inj (leftExecutable.symm.trans rightExecutable)
 
 /-- On structurally valid input, the independent direct `wait` guard is
 complete for the executable local rule. -/
