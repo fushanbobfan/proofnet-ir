@@ -448,7 +448,10 @@ part of the engineering and proof-identity gap.
    retains the exact submitted tensor occurrence and raw-age guard
    `j ≤ μ(mate) < i`. Soundness assumes `ReservationInvariant`; completeness
    and iff additionally assume structural validity plus the separate ready-list
-   `Nodup` premise. It has no invariant-preservation theorem. Complete
+   `Nodup` premise. Every successful execution preserves
+   `ReservationInvariant`, including exact `RealizesSigma` transport through
+   the stack pop and parent union. It does not yet preserve
+   `ComponentForestProvenance` or the complete `SchedulerInvariant`. Complete
    nonempty-payload `Unify`, full-history integration of
    `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`, applicability/totality,
    full-rule reachability,
@@ -632,7 +635,8 @@ It can currently be used for:
   and combined queue ownership without constructing the delayed par.
   Forward also has an independent Boolean-free direct rule and exact
   executable correspondence. Bounded `UnifyEmpty` has a direct rule and exact
-  correspondence but no invariant-preservation theorem. Later-state
+  correspondence and preserves `ReservationInvariant`, but not the
+  occurrence-provenance forest or complete `SchedulerInvariant`. Later-state
   applicability and totality, complete nonempty `unify`, and full-history rule
   integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied

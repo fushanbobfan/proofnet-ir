@@ -426,9 +426,12 @@ expansion.
 #print axioms SequentialFigure7.unifyEmpty?_some_iff
 #print axioms SequentialFigure7.UnifyEmptyStep.submitted_tensor
 #print axioms SequentialFigure7.UnifyEmptyStep.mate_marked_before
+#print axioms SequentialFigure7.UnifyEmptyStep.realizesSigma
 #print axioms SequentialFigure7.UnifyEmptyStep.toRule
+#print axioms SequentialFigure7.UnifyEmptyStep.reservationInvariant
 #print axioms SequentialFigure7.UnifyEmptyStep.output_unique
 #print axioms SequentialFigure7.unifyEmpty?_sound
+#print axioms SequentialFigure7.unifyEmpty?_reservationInvariant
 #print axioms SequentialFigure7.unifyEmpty?_complete_of_structural
 #print axioms SequentialFigure7.unifyEmpty?_some_iff_rule_of_structural
 #print axioms SequentialFigure7.UnifyEmptyRule.output_unique_of_structural

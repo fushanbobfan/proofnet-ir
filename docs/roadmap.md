@@ -836,10 +836,15 @@
     only raw ages with `j ≤ μ(mate) < i`, derive exact adjacent representatives
     through `RealizesSigma`, and prove soundness plus structurally valid
     completeness/iff/output uniqueness with the ready-list `Nodup` premise
-    explicit. Lock both stored orientations, nonempty-cell rejection, and the
-    nonadjacent three-age lower-guard regression. This is local
-    successful-step correspondence and has no invariant-preservation claim.
-  - [ ] Preserve the strengthened invariant through bounded `UnifyEmpty`, then
+    explicit. Cover both stored orientations, nonempty-cell rejection, the
+    nonadjacent three-age lower-guard regression, and the same-active-age
+    strict-upper-guard regression. Every successful bounded
+    execution preserves `ReservationInvariant`, including the exact
+    `RealizesSigma` transport through the active-boundary pop and
+    `parent[i] := j`. This is still local successful-step preservation, not an
+    occurrence-forest or full-scheduler theorem.
+  - [ ] Preserve `ComponentForestProvenance` and the complete strengthened
+    `SchedulerInvariant` through bounded `UnifyEmpty`, then
     complete nonempty-payload `unify` with a typed activation fold constructing
     every drained waiting par and accounting for
     the exact `1 + |W(j)|` counter change; a direct nonempty-payload stack merge

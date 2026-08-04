@@ -2707,6 +2707,274 @@ theorem unifyEmpty?_some_iff
 
 namespace UnifyEmptyStep
 
+private theorem activeBoundary_eq
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : UnifyEmptyStep certificate before after) :
+    step.mergeStep.activeBoundary =
+      step.prepared.stackResult.rawAge := by
+  have mergeTop :
+      step.prepared.stackResult.after.sigma.getLast? =
+        some step.mergeStep.activeBoundary := by
+    rw [step.mergeStep.sigma_eq]
+    simp
+  have preparedTop :
+      step.prepared.stackResult.after.sigma.getLast? =
+        some step.prepared.stackResult.rawAge := by
+    rcases
+        SequentialStackState.popReadyMark?_exact
+          step.prepared.stack_eq with
+      ⟨_, sigmaTop, _, _, _, sigmaAfter, _, _, _⟩
+    rw [sigmaAfter]
+    exact sigmaTop
+  exact Option.some.inj (mergeTop.symm.trans preparedTop)
+
+/-- The empty-waiting-cell tensor merge preserves the exact correspondence
+between scheduler boundaries and production representatives. -/
+theorem realizesSigma
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : UnifyEmptyStep certificate before after) :
+    RealizesSigma step.stackAfter step.coreAfter := by
+  have middleInvariant :
+      ReservationInvariant certificate step.prepared.after :=
+    step.prepared.reservationInvariant step.before_invariant
+  have middleWellShaped :
+      step.prepared.stackResult.after.WellShaped
+        certificate.formulas.size := by
+    simpa [PreparedStep.after] using
+      middleInvariant.stack_wellShaped
+  have middleRealizes :
+      RealizesSigma step.prepared.stackResult.after
+        step.prepared.coreMarked := by
+    simpa [PreparedStep.after] using middleInvariant.realizesSigma
+  have middleOrdered : step.prepared.coreMarked.OrderedParents := by
+    intro token parent lookup
+    exact middleInvariant.core_orderedParents lookup
+  have sigmaEquation :
+      step.prepared.stackResult.after.sigma =
+        step.mergeStep.sigmaPrefix ++
+          [step.previousBoundary,
+            step.prepared.stackResult.rawAge] := by
+    simpa [activeBoundary_eq step] using step.mergeStep.sigma_eq
+  have previousLtActive :
+      step.previousBoundary < step.prepared.stackResult.rawAge := by
+    have increasing := middleWellShaped.sigma_partition.strictIncreasing
+    rw [sigmaEquation] at increasing
+    have tailIncreasing :
+        [step.previousBoundary,
+          step.prepared.stackResult.rawAge].Pairwise (· < ·) :=
+      (List.pairwise_append.mp increasing).2.1
+    simpa using tailIncreasing
+  have maxTokenEquation :
+      max step.queueStep.leftToken step.queueStep.rightToken =
+        step.prepared.stackResult.rawAge := by
+    rcases step.tokens_eq_adjacent with orientation | orientation
+    · rw [orientation.2.1, orientation.2.2]
+      exact Nat.max_eq_left (Nat.le_of_lt previousLtActive)
+    · rw [orientation.2.1, orientation.2.2]
+      exact Nat.max_eq_right (Nat.le_of_lt previousLtActive)
+  have minTokenEquation :
+      min step.queueStep.leftToken step.queueStep.rightToken =
+        step.previousBoundary := by
+    rcases step.tokens_eq_adjacent with orientation | orientation
+    · rw [orientation.2.1, orientation.2.2]
+      exact Nat.min_eq_right (Nat.le_of_lt previousLtActive)
+    · rw [orientation.2.1, orientation.2.2]
+      exact Nat.min_eq_left (Nat.le_of_lt previousLtActive)
+  have stackMarksEquation :
+      step.stackAfter.marks =
+        step.prepared.stackResult.after.marks := by
+    rw [step.mergeStep.after_eq]
+  have stackNextAgeEquation :
+      step.stackAfter.nextAge =
+        step.prepared.stackResult.after.nextAge := by
+    rw [step.mergeStep.after_eq]
+  have stackSigmaEquation :
+      step.stackAfter.sigma =
+        step.mergeStep.sigmaPrefix ++ [step.previousBoundary] := by
+    simpa using congrArg
+      (fun state : SequentialStackState => state.sigma)
+      step.mergeStep.after_eq
+  have coreMarksEquation :
+      step.coreAfter.marks = step.prepared.coreMarked.marks := by
+    rw [step.queueStep.after_eq]
+  have coreParentsEquation :
+      step.coreAfter.parents =
+        step.prepared.coreMarked.parents.setIfInBounds
+          step.prepared.stackResult.rawAge step.previousBoundary := by
+    rw [step.queueStep.after_eq, maxTokenEquation, minTokenEquation]
+  have coreRepresentativeEquation (age : RawTokenAge) :
+      step.coreAfter.representative age =
+        (step.prepared.coreMarked.setParent
+          step.prepared.stackResult.rawAge
+          step.previousBoundary).representative age := by
+    unfold UnificationState.representative
+    rw [coreParentsEquation]
+    rfl
+  have activeTop :
+      step.prepared.stackResult.after.sigma.getLast? =
+        some step.prepared.stackResult.rawAge := by
+    rw [sigmaEquation]
+    simp
+  have activeMembership :
+      step.prepared.stackResult.rawAge ∈
+        step.prepared.stackResult.after.sigma := by
+    rw [sigmaEquation]
+    simp
+  have activeStackBound :
+      step.prepared.stackResult.rawAge <
+        step.prepared.stackResult.after.nextAge :=
+    middleWellShaped.sigma_partition.boundary_lt
+      step.prepared.stackResult.rawAge activeMembership
+  have previousStackBound :
+      step.previousBoundary <
+        step.prepared.stackResult.after.nextAge :=
+    Nat.lt_trans previousLtActive activeStackBound
+  have activeCoreBound :
+      step.prepared.stackResult.rawAge <
+        step.prepared.coreMarked.parents.size := by
+    rw [middleRealizes.horizon_eq]
+    exact activeStackBound
+  have previousCoreBound :
+      step.previousBoundary <
+        step.prepared.coreMarked.parents.size := by
+    rw [middleRealizes.horizon_eq]
+    exact previousStackBound
+  have activeBoundaryLookup :
+      sigmaBoundary? step.prepared.stackResult.after.sigma
+          step.prepared.stackResult.rawAge =
+        some step.prepared.stackResult.rawAge :=
+    middleWellShaped.sigma_partition.sigmaBoundary?_eq_top activeTop
+  have activeRealized :
+      sigmaBoundary? step.prepared.stackResult.after.sigma
+          step.prepared.stackResult.rawAge =
+        some (step.prepared.coreMarked.representative
+          step.prepared.stackResult.rawAge) :=
+    middleRealizes.representative_eq_boundary activeStackBound
+  have activeRoot :
+      step.prepared.coreMarked.representative
+          step.prepared.stackResult.rawAge =
+        step.prepared.stackResult.rawAge :=
+    Option.some.inj
+      (activeRealized.symm.trans activeBoundaryLookup)
+  have previousBoundaryLookup :
+      sigmaBoundary? step.prepared.stackResult.after.sigma
+          step.previousBoundary =
+        some step.previousBoundary :=
+    middleWellShaped.sigma_partition
+      |>.sigmaBoundary?_eq_previous_of_between sigmaEquation
+        (Nat.le_refl _) previousLtActive
+  have previousRealized :
+      sigmaBoundary? step.prepared.stackResult.after.sigma
+          step.previousBoundary =
+        some (step.prepared.coreMarked.representative
+          step.previousBoundary) :=
+    middleRealizes.representative_eq_boundary previousStackBound
+  have previousRoot :
+      step.prepared.coreMarked.representative step.previousBoundary =
+        step.previousBoundary :=
+    Option.some.inj
+      (previousRealized.symm.trans previousBoundaryLookup)
+  exact {
+    marks_eq := by
+      rw [coreMarksEquation, stackMarksEquation]
+      exact middleRealizes.marks_eq
+    horizon_eq := by
+      rw [coreParentsEquation, stackNextAgeEquation]
+      simpa using middleRealizes.horizon_eq
+    representative_eq_boundary := by
+      intro age ageBound
+      have oldAgeBound :
+          age < step.prepared.stackResult.after.nextAge := by
+        simpa [stackNextAgeEquation] using ageBound
+      have ageCoreBound :
+          age < step.prepared.coreMarked.parents.size := by
+        rw [middleRealizes.horizon_eq]
+        exact oldAgeBound
+      have updatedRepresentative :=
+        middleOrdered.setParent_representative
+          (survivor := step.previousBoundary)
+          (retired := step.prepared.stackResult.rawAge)
+          previousCoreBound activeCoreBound previousLtActive
+          previousRoot activeRoot ageCoreBound
+      by_cases activeLe :
+          step.prepared.stackResult.rawAge ≤ age
+      · have oldBoundaryLookup :
+            sigmaBoundary? step.prepared.stackResult.after.sigma age =
+              some step.prepared.stackResult.rawAge :=
+          middleWellShaped.sigma_partition
+            |>.sigmaBoundary?_eq_top_of_le activeTop activeLe oldAgeBound
+        have oldRealizedAtAge :
+            sigmaBoundary? step.prepared.stackResult.after.sigma age =
+              some (step.prepared.coreMarked.representative age) :=
+          middleRealizes.representative_eq_boundary oldAgeBound
+        have oldRepresentativeEquation :
+            step.prepared.coreMarked.representative age =
+              step.prepared.stackResult.rawAge :=
+          Option.some.inj
+            (oldRealizedAtAge.symm.trans oldBoundaryLookup)
+        have reducedPartition :
+            SigmaAgePartition
+              step.prepared.stackResult.after.nextAge
+              (step.mergeStep.sigmaPrefix ++
+                [step.previousBoundary]) :=
+          middleWellShaped.sigma_partition.popActive sigmaEquation
+        have reducedLookup :
+            sigmaBoundary?
+                (step.mergeStep.sigmaPrefix ++
+                  [step.previousBoundary]) age =
+              some step.previousBoundary :=
+          reducedPartition.sigmaBoundary?_eq_top_of_le
+            (by simp)
+            (Nat.le_trans (Nat.le_of_lt previousLtActive) activeLe)
+            oldAgeBound
+        calc
+          sigmaBoundary? step.stackAfter.sigma age =
+              some step.previousBoundary := by
+            rw [stackSigmaEquation]
+            exact reducedLookup
+          _ = some (step.coreAfter.representative age) := by
+            rw [coreRepresentativeEquation, updatedRepresentative,
+              if_pos oldRepresentativeEquation]
+      · have ageLtActive :
+            age < step.prepared.stackResult.rawAge := by
+          exact Nat.lt_of_not_ge activeLe
+        have unchangedBoundary :
+            sigmaBoundary? step.stackAfter.sigma age =
+              sigmaBoundary?
+                step.prepared.stackResult.after.sigma age := by
+          rw [stackSigmaEquation, sigmaEquation]
+          rw [show step.mergeStep.sigmaPrefix ++
+                [step.previousBoundary,
+                  step.prepared.stackResult.rawAge] =
+              (step.mergeStep.sigmaPrefix ++
+                [step.previousBoundary]) ++
+                  [step.prepared.stackResult.rawAge] by
+            simp [List.append_assoc]]
+          rw [sigmaBoundary?_append_fresh_old ageLtActive]
+        have oldRealizedAtAge :
+            sigmaBoundary? step.prepared.stackResult.after.sigma age =
+              some (step.prepared.coreMarked.representative age) :=
+          middleRealizes.representative_eq_boundary oldAgeBound
+        have oldRepresentativeNe :
+            step.prepared.coreMarked.representative age ≠
+              step.prepared.stackResult.rawAge := by
+          intro same
+          rw [same] at oldRealizedAtAge
+          have boundaryLe := sigmaBoundary?_le oldRealizedAtAge
+          exact (Nat.not_le_of_lt ageLtActive) boundaryLe
+        calc
+          sigmaBoundary? step.stackAfter.sigma age =
+              sigmaBoundary?
+                step.prepared.stackResult.after.sigma age :=
+            unchangedBoundary
+          _ = some (step.prepared.coreMarked.representative age) :=
+            middleRealizes.representative_eq_boundary oldAgeBound
+          _ = some (step.coreAfter.representative age) := by
+            rw [coreRepresentativeEquation, updatedRepresentative,
+              if_neg oldRepresentativeNe] }
+
 /-- The generic consumer retained by the bounded witness is the exact
 submitted tensor occurrence at its original certificate index. -/
 theorem submitted_tensor
@@ -2859,6 +3127,165 @@ theorem toRule
       _ = step.prepared.after.tags := by
         rfl
 
+/-- A successful empty-waiting-cell tensor merge preserves the complete
+reservation invariant. -/
+theorem reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (step : UnifyEmptyStep certificate before after) :
+    ReservationInvariant certificate after := by
+  have middleInvariant :
+      ReservationInvariant certificate step.prepared.after :=
+    step.prepared.reservationInvariant step.before_invariant
+  have tensorWellFormed :
+      certificate.LinkWellFormed
+        (.tensor step.consumer.storedLeft
+          step.consumer.storedRight step.consumer.conclusion) := by
+    simpa [step.tensor_eq, SequentialConnectiveKind.asLink] using
+      step.consumer.wellFormed
+  have conclusionBound :
+      step.consumer.conclusion < certificate.formulas.size :=
+    tensorWellFormed.2.2.2.2.2.1
+  have payloadInBounds :
+      ∀ {payload},
+        step.prepared.stackResult.after.waiting[
+            step.previousBoundary]? = some (.initialized payload) →
+          ∀ vertex ∈ payload,
+            vertex < certificate.formulas.size := by
+    intro payload lookup vertex membership
+    have payloadEquation : payload = [] :=
+      WaitingCell.initialized.inj
+        (Option.some.inj (lookup.symm.trans step.waiting_empty))
+    subst payload
+    simp at membership
+  have previousReadyLookup :
+      step.prepared.stackResult.after.ready.dropLast.getLast? =
+        some step.mergeStep.previousReady := by
+    rw [step.mergeStep.ready_eq]
+    simp
+  have activeReadyLookup :
+      step.prepared.stackResult.after.ready.getLast? =
+        some step.mergeStep.activeReady := by
+    rw [step.mergeStep.ready_eq]
+    simp
+  have mergedLookup :
+      step.stackAfter.ready.getLast? =
+        some (step.consumer.conclusion ::
+          (step.mergeStep.payload ++ step.mergeStep.previousReady ++
+            step.mergeStep.activeReady)) := by
+    have readyEquation :
+        step.stackAfter.ready =
+          step.mergeStep.readyPrefix ++
+            [step.consumer.conclusion ::
+              (step.mergeStep.payload ++
+                step.mergeStep.previousReady ++
+                step.mergeStep.activeReady)] := by
+      simpa using congrArg
+        (fun state : SequentialStackState => state.ready)
+        step.mergeStep.after_eq
+    rw [readyEquation]
+    simp
+  have exactMerged :
+      step.merged =
+        step.consumer.conclusion ::
+          (step.mergeStep.payload ++ step.mergeStep.previousReady ++
+            step.mergeStep.activeReady) :=
+    Option.some.inj (step.merged_eq.symm.trans mergedLookup)
+  have mergedNodup :
+      ∀ {previousReady activeReady payload},
+        step.prepared.stackResult.after.ready.dropLast.getLast? =
+            some previousReady →
+        step.prepared.stackResult.after.ready.getLast? =
+            some activeReady →
+        step.prepared.stackResult.after.waiting[
+            step.previousBoundary]? = some (.initialized payload) →
+          (step.consumer.conclusion ::
+            (payload ++ previousReady ++ activeReady)).Nodup := by
+    intro previousReady activeReady payload
+      previousLookup activeLookup waitingLookup
+    have previousEquation :
+        previousReady = step.mergeStep.previousReady :=
+      Option.some.inj (previousLookup.symm.trans previousReadyLookup)
+    have activeEquation : activeReady = step.mergeStep.activeReady :=
+      Option.some.inj (activeLookup.symm.trans activeReadyLookup)
+    have payloadEquation : payload = step.mergeStep.payload :=
+      WaitingCell.initialized.inj
+        (Option.some.inj
+          (waitingLookup.symm.trans step.mergeStep.waiting_initialized))
+    subst previousReady
+    subst activeReady
+    subst payload
+    rw [← exactMerged]
+    exact step.ready_nodup
+  have stackWellShaped :
+      step.stackAfter.WellShaped certificate.formulas.size :=
+    SequentialStackState.mergeTopReadyWaiting?_wellShaped
+      (by
+        simpa [PreparedStep.after] using
+          middleInvariant.stack_wellShaped)
+      step.stack_merge_eq conclusionBound payloadInBounds mergedNodup
+  have middleWellShapedSelf :
+      step.prepared.stackResult.after.WellShaped
+        step.prepared.stackResult.after.marks.size := by
+    have marksSize :
+        step.prepared.stackResult.after.marks.size =
+          certificate.formulas.size := by
+      simpa [PreparedStep.after] using
+        middleInvariant.stack_wellShaped.marks_size
+    rw [marksSize]
+    simpa [PreparedStep.after] using middleInvariant.stack_wellShaped
+  have stackDomain : step.stackAfter.OperationalWaitingDomain :=
+    SequentialStackState.mergeTopReadyWaiting?_operationalWaitingDomain
+      middleWellShapedSelf
+      (by
+        simpa [PreparedStep.after] using
+          middleInvariant.stack_operationalWaitingDomain)
+      step.stack_merge_eq
+  have middleOrdered : step.prepared.coreMarked.OrderedParents := by
+    intro token parent lookup
+    exact middleInvariant.core_orderedParents lookup
+  have middleAbstractable :
+      step.prepared.coreMarked.Abstractable certificate := by
+    have abstractable :
+        step.prepared.after.core.Abstractable certificate :=
+      middleInvariant.core_abstractable
+    change step.prepared.coreMarked.Abstractable certificate at abstractable
+    exact abstractable
+  have middleConsistent :
+      step.prepared.coreMarked.ComponentsFormulaConsistent certificate := by
+    intro index component lookup
+    exact middleInvariant.core_componentsFormulaConsistent lookup
+  have alignment :=
+    Certificate.queueTensor?_reservationAlignment
+      middleInvariant.core_carriers_aligned
+      middleInvariant.core_counter_aligned step.core_queue_eq
+  have coreOrdered : step.coreAfter.OrderedParents :=
+    Certificate.queueTensor?_orderedParents
+      middleOrdered
+      step.core_queue_eq
+  have coreAbstractable :
+      step.coreAfter.Abstractable certificate :=
+    Certificate.queueTensor?_abstractable
+      middleAbstractable
+      middleOrdered
+      step.core_queue_eq
+  have coreConsistent :
+      step.coreAfter.ComponentsFormulaConsistent certificate :=
+    Certificate.queueTensor?_componentsFormulaConsistent
+      middleConsistent
+      tensorWellFormed step.core_queue_eq
+  rw [step.output_eq]
+  exact {
+    stack_wellShaped := stackWellShaped
+    stack_operationalWaitingDomain := stackDomain
+    realizesSigma := step.realizesSigma
+    core_orderedParents := coreOrdered
+    core_abstractable := coreAbstractable
+    core_componentsFormulaConsistent := coreConsistent
+    core_carriers_aligned := alignment.1
+    core_counter_aligned := alignment.2
+    tags_size := step.before_invariant.tags_size }
+
 /-- The proof-relevant bounded executable relation has one exact output for a
 fixed input and invariant proof. -/
 theorem output_unique
@@ -2891,6 +3318,18 @@ theorem unifyEmpty?_sound
     UnifyEmptyRule certificate before after := by
   rcases (unifyEmpty?_some_iff invariant).mp equation with ⟨step⟩
   exact step.toRule
+
+/-- Executable empty-waiting-cell tensor unification preserves the complete
+reservation invariant. -/
+theorem unifyEmpty?_reservationInvariant
+    {certificate : Certificate}
+    {before after : ReservationState}
+    (invariant : ReservationInvariant certificate before)
+    (equation :
+      unifyEmpty? certificate before invariant = some after) :
+    ReservationInvariant certificate after := by
+  rcases (unifyEmpty?_some_iff invariant).mp equation with ⟨step⟩
+  exact step.reservationInvariant
 
 /-- Executable `forward` is sound for the independent direct relation without
 a global certificate-validity assumption. -/

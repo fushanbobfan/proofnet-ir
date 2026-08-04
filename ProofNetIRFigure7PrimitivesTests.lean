@@ -477,6 +477,88 @@ private def nonadjacentMateGuardRegression : Bool :=
 example : nonadjacentMateGuardRegression = true := by
   native_decide
 
+/-- The strict upper raw-age guard is independently observable.  Two axiom
+components are reserved at ages `0` and `1`; one endpoint of the second axiom
+is then prepared and marked at the active age `1`.  Preparing its tensor mate
+therefore exposes `μ(mate) = i = 1`: the lower guard `0 ≤ 1` holds, but the
+paper's strict upper guard `1 < 1` fails.  The state carries a genuine
+`ReservationInvariant`, although this direct reservation fixture is not
+claimed to be a full-rule `SchedulerInvariant` history. -/
+private def sameAgeMateCertificate : Certificate where
+  formulas := #[
+    .atom "p" true,
+    .atom "p" false,
+    .atom "q" true,
+    .atom "q" false,
+    .tensor (.atom "q" true) (.atom "q" false)]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .tensor 2 3 4]
+  conclusions := [0, 1, 4]
+
+private def sameAgeMateUpperGuardRegression : Bool :=
+  match initialEquation :
+      initializeReservation? sameAgeMateCertificate 0 with
+  | none => false
+  | some initial =>
+      let initialInvariant :
+          ReservationInvariant sameAgeMateCertificate initial := by
+        rcases initializeReservation?_some_iff.mp initialEquation with
+          ⟨step⟩
+        exact step.reservationInvariant
+      match prepareEquation : SequentialFigure7.prepare? initial with
+      | none => false
+      | some preparedInitial =>
+          let preparedInvariant :=
+            preparedInitial.reservationInvariant initialInvariant
+          match reserveEquation :
+              reserveNewAxiom? sameAgeMateCertificate
+                preparedInitial.after 2 with
+          | none => false
+          | some before =>
+              let beforeInvariant :
+                  ReservationInvariant sameAgeMateCertificate before := by
+                rcases reserveNewAxiom?_some_iff.mp reserveEquation with
+                  ⟨step⟩
+                exact step.reservationInvariant preparedInvariant
+              match mateEquation : SequentialFigure7.prepare? before with
+              | none => false
+              | some markedMate =>
+                  let markedInvariant :=
+                    markedMate.reservationInvariant beforeInvariant
+                  match SequentialFigure7.prepare? markedMate.after with
+                  | none => false
+                  | some selected =>
+                      match
+                          sameAgeMateCertificate.connectiveBelow?
+                            selected.stackResult.vertex with
+                      | none => false
+                      | some consumer =>
+                          before.stack.sigma == [0, 1] &&
+                            markedMate.stackResult.vertex == 2 &&
+                            markedMate.stackResult.rawAge == 1 &&
+                            selected.stackResult.vertex == 3 &&
+                            selected.stackResult.rawAge == 1 &&
+                            consumer.kind == .tensor &&
+                            consumer.linkIndex == 2 &&
+                            consumer.storedLeft == 2 &&
+                            consumer.storedRight == 3 &&
+                            consumer.conclusion == 4 &&
+                            consumer.mate == 2 &&
+                            markedMate.after.core.marks[2]? ==
+                              some (some 1) &&
+                            (markedMate.after.stack.sigma.dropLast.getLast? ==
+                              some 0) &&
+                            decide ((0 : Nat) ≤ 1) &&
+                            !(decide ((1 : Nat) < 1)) &&
+                            (SequentialFigure7.unifyEmpty?
+                              sameAgeMateCertificate markedMate.after
+                              markedInvariant).isNone
+
+example : sameAgeMateUpperGuardRegression = true := by
+  native_decide
+
 /-- Executable success exposes the exact submitted tensor index/orientation
 and the literal raw-age guard `j ≤ μ(u₂) < i`; neither fact is reconstructed
 from erased formula labels. -/
@@ -509,6 +591,28 @@ example {initial before after : ReservationState}
         unifyEquation with
     ⟨step⟩
   exact ⟨step, step.submitted_tensor, step.lower, step.upper⟩
+
+/-- The same bounded executable success preserves the complete reservation
+bundle, including the synchronized sigma-boundary/union-find realization. -/
+example {initial before after : ReservationState}
+    (initialEquation : repeatedInitial = some initial)
+    (newEquation :
+      SequentialFigure7.new? repeatedOccurrenceCertificate initial
+          (repeatedInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (unifyEquation :
+      SequentialFigure7.unifyEmpty? repeatedOccurrenceCertificate before
+          (SequentialFigure7.new?_schedulerInvariant
+            (repeatedInitial_schedulerInvariant initialEquation)
+            newEquation |>.toReservationInvariant) =
+        some after) :
+    ReservationInvariant repeatedOccurrenceCertificate after :=
+  SequentialFigure7.unifyEmpty?_reservationInvariant
+    (SequentialFigure7.new?_schedulerInvariant
+      (repeatedInitial_schedulerInvariant initialEquation)
+      newEquation |>.toReservationInvariant)
+    unifyEquation
 
 /-- A nonempty `W(j)` is rejected fail-closed.  The payload is installed by
 the existing `ReservationInvariant`-preserving waiting primitive, so this

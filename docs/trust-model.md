@@ -275,7 +275,9 @@ paper premise. A typed `init → nop → forward → concl` regression locks the
 successful composition. This still does not prove applicability, totality,
 dispatcher/history integration, or reachability. Bounded `UnifyEmpty` now has
 direct/executable correspondence for `W(j) = []` under its documented
-premises, but no invariant-preservation theorem. Complete nonempty `Unify`, correct-state
+premises and preserves `ReservationInvariant`, including `RealizesSigma` after
+the active-level pop and parent union. It does not preserve the occurrence
+forest or complete `SchedulerInvariant`. Complete nonempty `Unify`, correct-state
 progress, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
@@ -312,7 +314,9 @@ now support a bounded `UnifyEmpty` executable/direct correspondence when
 the generic tensor roots with exact scheduler `j/i`, orients
 `parent[i] := j`, and drains the empty previous cell. Soundness needs that
 invariant; completeness/iff additionally require structural validity and the
-separate ready-list `Nodup` premise. No invariant-preservation theorem follows.
+separate ready-list `Nodup` premise. A successful executable does preserve the
+complete `ReservationInvariant`; no occurrence-forest or full
+`SchedulerInvariant` preservation theorem follows.
 These facts still do not authorize a full nonempty-payload `unify`, which must
 construct or activate all waiting par components drained from `W(j)` (with
 their extra counter increments). A direct nonempty-payload composition would
@@ -562,7 +566,8 @@ dedicated init/new history adds exact reachability and tag provenance for that
  fragment. Local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` exist outside it; successful
  Forward has complete state-only invariant preservation and an independent
  direct rule with executable correspondence. Bounded `UnifyEmpty` has direct
- correspondence but no invariant-preservation theorem. It does not add later
+ correspondence and `ReservationInvariant` preservation, but no occurrence-
+ forest or full-scheduler preservation theorem. It does not add later
  applicability/totality, complete nonempty `unify`, a full-rule
  reachability invariant, or full-history integration. No
 planarity principle is assumed.
@@ -682,9 +687,10 @@ Lean now also constructs the exact simultaneous complementary
   the operational waiting-cell domain and exact init/new history are also
   proved. Exact local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` are also proved, and
   successful deterministic/executable `new`, `wait`, and `forward` preserve the
-  complete current occurrence-exact state-only invariant. Later-state
-  applicability and totality, invariant preservation for bounded `UnifyEmpty`,
-  complete nonempty `unify`, full-history integration, and the
+  complete current occurrence-exact state-only invariant; bounded
+  `UnifyEmpty` separately preserves `ReservationInvariant`. Later-state
+  applicability and totality, occurrence-forest/full-scheduler preservation
+  for bounded `UnifyEmpty`, complete nonempty `unify`, full-history integration, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program

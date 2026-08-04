@@ -398,6 +398,28 @@ example
           (figure7UnifyInitial_schedulerInvariant initialEquation
             |>.toReservationInvariant) =
         some before)
+    (unifyEquation :
+      SequentialFigure7.unifyEmpty? figure7UnifyCertificate before
+          (SequentialFigure7.new?_schedulerInvariant
+            (figure7UnifyInitial_schedulerInvariant initialEquation)
+            newEquation |>.toReservationInvariant) =
+        some after) :
+    SequentialSchedulerBridge.ReservationInvariant
+      figure7UnifyCertificate after :=
+  SequentialFigure7.unifyEmpty?_reservationInvariant
+    (SequentialFigure7.new?_schedulerInvariant
+      (figure7UnifyInitial_schedulerInvariant initialEquation)
+      newEquation |>.toReservationInvariant)
+    unifyEquation
+
+example
+    {initial before after : SequentialSchedulerBridge.ReservationState}
+    (initialEquation : figure7UnifyInitial = some initial)
+    (newEquation :
+      SequentialFigure7.new? figure7UnifyCertificate initial
+          (figure7UnifyInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
     (readyShape :
       SequentialFigure7.UnifyEmptyExecutableReadyNodup
         figure7UnifyCertificate before)

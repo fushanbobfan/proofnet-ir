@@ -11799,6 +11799,19 @@ ProofNetIR.SequentialFigure7.UnifyEmptyStep.mate_marked_before : ∀ {certificat
   before.core.marks[step.consumer.mate]? = some (some step.mateRawAge)
 ```
 
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.realizesSigma`
+
+Kind: theorem.
+
+The empty-waiting-cell tensor merge preserves the exact correspondence
+between scheduler boundaries and production representatives.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep.realizesSigma : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.RealizesSigma step.stackAfter step.coreAfter
+```
+
 ### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.toRule`
 
 Kind: theorem.
@@ -11811,6 +11824,19 @@ refinement.
 ProofNetIR.SequentialFigure7.UnifyEmptyStep.toRule : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
   (step : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after),
   ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.reservationInvariant`
+
+Kind: theorem.
+
+A successful empty-waiting-cell tensor merge preserves the complete
+reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep.reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
 ```
 
 ### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.output_unique`
@@ -11838,6 +11864,20 @@ ProofNetIR.SequentialFigure7.unifyEmpty?_sound : ∀ {certificate : ProofNetIR.C
   (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
   ProofNetIR.SequentialFigure7.unifyEmpty? certificate before invariant = some after →
     ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyEmpty?_reservationInvariant`
+
+Kind: theorem.
+
+Executable empty-waiting-cell tensor unification preserves the complete
+reservation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyEmpty?_reservationInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyEmpty? certificate before invariant = some after →
+    ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
 ```
 
 ### `ProofNetIR.SequentialFigure7.unifyEmpty?_complete_of_structural`

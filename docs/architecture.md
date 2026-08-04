@@ -329,7 +329,9 @@ declared membership, local `NodeWellFormed` ownership, and an exactly empty
 bucket, plus the synchronized `prepare?` prefix. `concl?`, `nop?`, `wait?`, and
 `forward?` have dependent executable specifications and preserve the
 reservation invariant. The bounded `unifyEmpty?` has a dependent executable
-specification and direct correspondence, but no invariant-preservation theorem.
+specification, direct correspondence, and `ReservationInvariant` preservation,
+but not `ComponentForestProvenance` or complete `SchedulerInvariant`
+preservation.
 `concl` and `nop` return only the prefix state; `wait` then updates one exact
 initialized waiting bucket. The ownership and empty-bucket guards
 in `concl` reject out-of-range or unproduced declared boundaries;
@@ -391,9 +393,12 @@ and installs `conclusion :: (previousReady ++ activeReady)`. Independent
 wrappers, although they explicitly reuse the low-level read-only
 `unifyTokens?` and `componentAt?` observations. Soundness assumes
 `ReservationInvariant`; completeness/iff additionally require structural
-validity and the separate final-ready-list `Nodup` premise. This is only local
-successful-step correspondence: it proves neither invariant preservation nor
-nonempty waiting-payload activation.
+validity and the separate final-ready-list `Nodup` premise. Successful
+execution preserves `ReservationInvariant`: the proof transports
+`RealizesSigma` through both the active-boundary pop and the exact
+`parent[i] := j` union. This is still only a local successful-step result; it
+does not preserve `ComponentForestProvenance` or the complete
+`SchedulerInvariant`, nor activate a nonempty waiting payload.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
@@ -495,15 +500,16 @@ waiting spans, pending-premise transport, and exact counter increment. Its
 extra ready-list `Nodup` guard is only fail-closed shape validation. Independent
 Boolean-free `ForwardRule` semantics and successful-step correspondence are now
 present. The bounded Boolean-free `UnifyEmptyRule` and executable
-correspondence are also present, but do not preserve this invariant. Forward
+correspondence are also present and preserve `ReservationInvariant`, but do
+not preserve this stronger state-only invariant. Forward
 applicability/totality, complete nonempty `unify`, dispatcher progress, and
 scheduler/pure-worklist completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
 
-Invariant preservation through bounded `UnifyEmpty`, complete nonempty
-`Unify`, and reachability of global waiting-payload ownership through that
-rule remain open, as does integration of
+Occurrence-forest and complete `SchedulerInvariant` preservation through
+bounded `UnifyEmpty`, complete nonempty `Unify`, and reachability of global
+waiting-payload ownership through that rule remain open, as does integration of
 `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` into a full
 rule history/dispatcher, later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, faithful
@@ -786,8 +792,9 @@ active-reference walks between marked occurrences are equivalent to
   scheduler. The local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules now exist outside
   this history; `wait` has exact-span/queue preservation and `forward` has
   exact submitted-par/forest/frontier/queue/pending/counter preservation, but
-  full-history integration, invariant preservation for `UnifyEmpty`, complete
-  `unify`, and activation of drained waiting payloads remain open. Planarity
+  full-history integration, occurrence-forest/full-scheduler preservation for
+  `UnifyEmpty`, complete `unify`, and activation of drained waiting payloads
+  remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -802,7 +809,8 @@ separate display-only helper. Exact init/new execution history is integrated;
 successful `new`, `wait`, and `forward` preserve the full current state-only
 invariant, and Forward additionally has an independent Boolean-free direct
 relation with exact executable correspondence. Bounded `UnifyEmpty` has its own
-direct correspondence but no invariant-preservation theorem. Later-state
+direct correspondence and preserves `ReservationInvariant`, but not the
+occurrence forest or complete `SchedulerInvariant`. Later-state
 applicability/totality, complete nonempty `unify`, full-history integration of
 the local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules, a full-rule
 reachable-state invariant, and

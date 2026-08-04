@@ -120,7 +120,10 @@ stronger supplied `SchedulerInvariant`. A bounded `UnifyEmpty` query now
 covers exactly the `W(j) = empty` successful-rule slice under the supplied
 `ReservationInvariant`: soundness needs that invariant, while completeness and
 the direct iff additionally require structural validity and the separate
-ready-list `Nodup` premise. Nonempty waiting-payload activation, invariant
+ready-list `Nodup` premise. Every successful bounded execution now preserves
+the complete `ReservationInvariant`, including `RealizesSigma` across the
+simultaneous active-`sigma` pop and union-find parent update. Nonempty
+waiting-payload activation, `ComponentForestProvenance`/`SchedulerInvariant`
 preservation, and complete `unify` remain absent.
 `SequentialFigure7History.lean` now separately
 defines proof-relevant reachability for exactly the empty/init/operational-new
@@ -162,10 +165,11 @@ prepends its conclusion to the active ready bucket. Its additional
 `(conclusion :: remainingTop).Nodup` guard is only a fail-closed list-shape
 check, not part of the paper rule.
 
-The original four `concl`/`nop`/`wait`/`forward` rules have dependent
-success-iff witnesses, typed unique outputs, and preserve
-`ReservationInvariant`; the fifth bounded `UnifyEmpty` slice has the witness
-and uniqueness/correspondence layer but not an invariant-preservation theorem.
+All five bounded `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules have
+dependent success-iff witnesses, typed unique outputs, and preserve
+`ReservationInvariant`. The bounded `UnifyEmpty` proof transports
+`RealizesSigma` through `parent[i] := j`; it does not yet preserve the stronger
+occurrence forest or full `SchedulerInvariant`.
 A successful `WaitStep` or `ForwardStep`, and
 hence a successful executable `wait?` or `forward?`, also preserves the full
 current `SchedulerInvariant`. Forward preservation retains the exact submitted
@@ -380,7 +384,8 @@ characterizes initialized cells, not ownership or correctness of their
   payloads. The local `wait` rule below proves one exact initialized-cell
   transfer, but the invariant still does not establish its global ownership.
   The bounded `UnifyEmpty` slice handles only an initialized empty previous
-  waiting cell; nonempty payload activation, invariant preservation, and
+  waiting cell and preserves this reservation bundle. Nonempty payload
+  activation, occurrence-forest/full-scheduler-invariant preservation, and
   complete `unify` remain absent.
 `SequentialSchedulerInvariant.lean` adds a stronger, still state-only
 foundation without conflating invariance with reachability:
@@ -451,8 +456,10 @@ incrementing the exact fired-connective count. These theorems do not prove that
 not applicability, reachability, or progress theorems. The independent
 Boolean-free `ForwardRule` and both structural and scheduler-invariant
 executable correspondence layers are now kernel checked. Bounded `UnifyEmpty`
-also has exact executable/direct correspondence for `W(j) = []`, but no
-invariant-preservation theorem. Complete nonempty `Unify`, dispatcher/history
+also has exact executable/direct correspondence for `W(j) = []` and preserves
+`ReservationInvariant`, including its exact scheduler-boundary/representative
+correspondence. It does not yet preserve `ComponentForestProvenance` or the
+complete `SchedulerInvariant`. Complete nonempty `Unify`, dispatcher/history
 integration, later-state applicability/totality,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
@@ -482,8 +489,10 @@ and now preserves them through successful `wait` and `forward`. The bounded
 `UnifyEmpty` local query has direct executable/declarative correspondence for
 `W(j) = empty`: soundness assumes `ReservationInvariant`, and completeness/iff
 also assume structural validity plus the separate ready-list `Nodup` premise.
-Its invariant preservation, nonempty-payload activation, complete `unify`,
-later-state totality, and complete transition semantics remain open. The exact
+Successful execution preserves `ReservationInvariant`; occurrence-forest and
+complete `SchedulerInvariant` preservation, nonempty-payload activation,
+complete `unify`, later-state totality, and complete transition semantics
+remain open. The exact
 local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules are not yet integrated
 into a full reachable history or dispatcher. The separate
 `InitNewHistory` proves exact tag history, whole-history submitted-slot
@@ -860,8 +869,9 @@ construction, live-frontier replacement, active-ready insertion, queue and
 waiting transport, pending coverage, and fired-counter increment. Independent
 Boolean-free Forward semantics and its executable correspondence are now
 kernel checked. Bounded `UnifyEmpty` has the same direct correspondence under
-its documented structural/invariant/list-shape premises, but no invariant
-preservation. Complete nonempty `unify`, integration of local
+its documented structural/invariant/list-shape premises and preserves
+`ReservationInvariant`, but not the occurrence forest or full
+`SchedulerInvariant`. Complete nonempty `unify`, integration of local
 `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` into full-rule history, and a total
 later-state transition system remain open.
 Closing-par
@@ -1101,7 +1111,9 @@ The repository currently contains:
   executable/direct-relation slice is also kernel checked for exactly an empty
   previous waiting payload: soundness assumes `ReservationInvariant`, while
   completeness/iff additionally assume structural validity and the separate
-  ready-list `Nodup` premise. It has no invariant-preservation theorem.
+  ready-list `Nodup` premise. Successful execution preserves
+  `ReservationInvariant`, including `RealizesSigma`; occurrence-forest and
+  complete `SchedulerInvariant` preservation remain open.
   Complete `Unify` (including nonempty waiting-payload activation), full-history
   integration of the local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules,
   and later applicability/totality remain open. Closing-par
@@ -1149,8 +1161,9 @@ The repository currently contains:
   executable correspondence are also proved, with active-ready `Nodup`
   isolated as a fail-closed representation condition. Bounded `UnifyEmpty`
   now has exact direct/executable correspondence for an empty previous waiting
-  cell, without an invariant-preservation theorem. Reachable later-state
-  applicability/totality, complete nonempty `unify`, full-history integration
+  cell and preserves `ReservationInvariant`, but not
+  `ComponentForestProvenance` or the complete `SchedulerInvariant`. Reachable
+  later-state applicability/totality, complete nonempty `unify`, full-history integration
   of the local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` rules, full scheduler
   correctness, and a
   whole-program cost proof remain open;
