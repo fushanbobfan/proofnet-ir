@@ -935,11 +935,20 @@
     counterexamples to shallow-guard sufficiency. The projection omits
     recursive per-step tag-update equations, terminal-partner exclusion from
     the intermediate trace, and the later operational enqueue guard.
-  - [ ] Replace the remaining operational `NewExecutableEnabled` with a
-    genuinely sufficient input-only `NewEnabled` criterion if the intended
-    Figure-7 model supports one; do not promote `NewInputNecessary` to that
-    role without the missing route conditions and a checked success converse.
-    Then derive exhaustive dispatcher enabledness on correct
+  - [x] Add an exact proof-relevant `FreshSourceLeftRun` that mirrors all four
+    `nextAxiomWithFuel?` branches and prove exact execution correspondence in
+    both directions. Combine `NewGuard`, a formula-bound exact run, and the
+    exact selected-age enqueue guard as the genuinely input-only local
+    `NewEnabled`; prove existential `new?` success iff `NewEnabled` under
+    `SchedulerInvariant`, plus invariant-preserving output. Preserve
+    raw-marked-intermediate, terminal-partner-pretagged, and queued-partner
+    regressions. Do not infer later-call totality or reachable-state progress.
+  - [ ] Replace the remaining `NewExecutableEnabled` field inside
+    `PriorityEnabled` with the now-proved input-only `NewEnabled` through a
+    dedicated lower-layer/import-DAG split, while preserving the public
+    compatibility theorem and fixed dispatcher priority. This API migration
+    is not completed by the local iff alone. Then derive exhaustive dispatcher
+    enabledness on correct
     certified-reachable nonterminal states.
     Generalize the remaining reservation-count/oriented-route commitments,
     establish unconditional full-rule reachability, progress, completeness of that

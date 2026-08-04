@@ -508,6 +508,8 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.NextAxiomResult.threaded_linkIndex_ne,
       `ProofNetIR.SequentialUnification.NextAxiomResult.orientedEndpoints?,
       `ProofNetIR.SequentialUnification.SearchClearThrough,
+      `ProofNetIR.SequentialUnification.nextAxiomSetTag,
+      `ProofNetIR.SequentialUnification.nextAxiomSetTag_eq,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?,
       `ProofNetIR.SequentialUnification.nextAxiom?,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_sound,
@@ -530,6 +532,35 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.DynamicStartResult,
       `ProofNetIR.SequentialUnification.dynamicStartWithFuel?,
       `ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart
+    ]
+  },
+  {
+    title := "Exact proof-relevant fresh source-left runs"
+    declarations := [
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceNonempty,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.partnerFresh,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.partner_not_mem_trace,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.terminalAxiom,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.exactAxiom,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.reachedReady,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.partnerReady,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom.exists_reserveAxiomAt,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.FreshSourceLeftExecution,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.execution,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.ofExecution,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.execution_iff_nonempty,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceNodup,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceLast,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceLength,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceHead,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftChain,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftReachable,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceFresh,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceReady,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute,
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute_nonempty
     ]
   },
   {
@@ -1090,8 +1121,14 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.startFresh,
       `ProofNetIR.SequentialFigure7.NewInput,
       `ProofNetIR.SequentialFigure7.NewInputNecessary,
+      `ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult,
+      `ProofNetIR.SequentialFigure7.ReadyHeadInput.stack_pop_eq,
+      `ProofNetIR.SequentialFigure7.ReadyHeadInput.core_mark_eq,
+      `ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after,
+      `ProofNetIR.SequentialFigure7.ReadyHeadInput.markedCore_carriers_aligned,
       `ProofNetIR.SequentialFigure7.NewStep.readyHeadInput,
       `ProofNetIR.SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput,
+      `ProofNetIR.SequentialFigure7.NewStep.stackAfter_eq_readyHeadInput,
       `ProofNetIR.SequentialFigure7.NewStep.mate_unmarked_before,
       `ProofNetIR.SequentialFigure7.NewStep.guard,
       `ProofNetIR.SequentialFigure7.NewStep.freshSourceLeftRoute,
@@ -1099,6 +1136,22 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.new?_success_implies_inputNecessary,
       `ProofNetIR.SequentialFigure7.NewExecutableEnabled.inputNecessary,
       `ProofNetIR.SequentialFigure7.PriorityEnabled.newInputNecessary
+    ]
+  },
+  {
+    title := "Input-only local applicability for Figure-7 new"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.NewEnabledInput,
+      `ProofNetIR.SequentialFigure7.NewEnabled,
+      `ProofNetIR.SequentialFigure7.NewEnabledInput.inputNecessary,
+      `ProofNetIR.SequentialFigure7.NewEnabled.inputNecessary,
+      `ProofNetIR.SequentialFigure7.operationalNewEnqueue?_exists_of_ready,
+      `ProofNetIR.SequentialFigure7.NewStep.newEnabled,
+      `ProofNetIR.SequentialFigure7.new?_success_implies_enabled,
+      `ProofNetIR.SequentialFigure7.new?_exists_of_enabled,
+      `ProofNetIR.SequentialFigure7.new?_success_iff_enabled,
+      `ProofNetIR.SequentialFigure7.NewExecutableEnabled.iff_newEnabled,
+      `ProofNetIR.SequentialFigure7.new?_exists_schedulerInvariant_of_enabled
     ]
   },
   {

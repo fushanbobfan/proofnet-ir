@@ -6,7 +6,7 @@ import ProofNetIR.SequentialFigure7UnifyPayload
 import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.SequentialFigure7PriorityEnabled
-import ProofNetIR.SequentialFigure7NewInputNecessary
+import ProofNetIR.SequentialFigure7NewEnabled
 import ProofNetIR.SequentialFigure7TagHistory
 
 namespace ProofNetIR
@@ -3461,6 +3461,43 @@ example :
   exact ⟨step,
     SequentialUnification.nextAxiom?_traceReady step.search_eq⟩
 
+/-- The repeated-label fixture carries an exact proof-relevant production
+run, including the submitted terminal slot and search-oriented endpoints.
+Its terminal partner is excluded from the intermediate trace. -/
+example :
+    ∃ step :
+        SequentialFigure7.NewStep repeatedOccurrenceCertificate
+          repeatedStableState repeatedAfterNewStableState,
+      Nonempty
+        (SequentialUnification.FreshSourceLeftRun
+          repeatedOccurrenceCertificate step.coreMarked
+          repeatedOccurrenceCertificate.formulas.size
+          repeatedStableState.tags step.tensor.mate step.search.trace
+          step.reached step.partner step.search.linkIndex) ∧
+        step.partner ∉ step.search.trace ∧
+        step.search.trace.Nodup ∧
+        step.search.trace.getLast? = some step.reached := by
+  rcases
+      (SequentialFigure7.new?_some_iff
+        repeatedStableState_invariant.toReservationInvariant).mp
+          repeatedAfterNewStableState_eq with
+    ⟨step⟩
+  have execution :
+      SequentialUnification.FreshSourceLeftRun.FreshSourceLeftExecution
+        repeatedOccurrenceCertificate step.coreMarked
+        repeatedOccurrenceCertificate.formulas.size
+        repeatedStableState.tags step.tensor.mate step.search.trace
+        step.reached step.partner step.search.linkIndex :=
+    ⟨step.search, by
+      simpa [SequentialUnification.nextAxiom?] using step.search_eq,
+      rfl, rfl, step.oriented_eq⟩
+  rcases
+      (SequentialUnification.FreshSourceLeftRun.execution_iff_nonempty).mp
+        execution with
+    ⟨run⟩
+  exact ⟨step, ⟨run⟩, run.partner_not_mem_trace, run.traceNodup,
+    run.traceLast⟩
+
 private def repeatedAfterUnifyStableState : ReservationState :=
   match SequentialFigure7.unifyPayload? repeatedOccurrenceCertificate
       repeatedAfterNewStableState
@@ -3692,6 +3729,22 @@ example :
   rw [trueAt] at freshAllTrue
   simp at freshAllTrue
 
+/-- The shallow all-true fixture is not input-only `new` enabled. -/
+example :
+    ¬ SequentialFigure7.NewEnabled repeatedOccurrenceCertificate
+      repeatedAllTrueStableState := by
+  intro enabled
+  rcases SequentialFigure7.new?_exists_of_enabled
+      repeatedAllTrueStableState_invariant enabled with
+    ⟨after, equation⟩
+  have failure :
+      SequentialFigure7.new? repeatedOccurrenceCertificate
+          repeatedAllTrueStableState
+          repeatedAllTrueStableState_invariant.toReservationInvariant = none := by
+    native_decide
+  rw [failure] at equation
+  simp at equation
+
 private def repeatedPartnerTaggedState : ReservationState :=
   { repeatedStableState with
     tags := repeatedStableState.tags.setIfInBounds 3 true }
@@ -3735,6 +3788,104 @@ example :
           repeatedPartnerTaggedState
           repeatedPartnerTaggedState_invariant.toReservationInvariant = none := by
   exact ⟨⟨repeatedPartnerTaggedGuard⟩, by native_decide⟩
+
+/-- The terminal-partner-pretagged fixture is not input-only `new` enabled. -/
+example :
+    ¬ SequentialFigure7.NewEnabled repeatedOccurrenceCertificate
+      repeatedPartnerTaggedState := by
+  intro enabled
+  rcases SequentialFigure7.new?_exists_of_enabled
+      repeatedPartnerTaggedState_invariant enabled with
+    ⟨after, equation⟩
+  have failure :
+      SequentialFigure7.new? repeatedOccurrenceCertificate
+          repeatedPartnerTaggedState
+          repeatedPartnerTaggedState_invariant.toReservationInvariant = none := by
+    native_decide
+  rw [failure] at equation
+  simp at equation
+
+private def repeatedQueuedPartnerState : ReservationState :=
+  { repeatedStableState with
+    stack := {
+      repeatedStableState.stack with
+      ready := repeatedStableState.stack.ready.dropLast ++ [[0, 3, 1]] } }
+
+private def repeatedQueuedPartnerHead :
+    SequentialFigure7.ReadyHeadInput repeatedQueuedPartnerState where
+  vertex := 0
+  readyTail := [3, 1]
+  rawAge := 0
+  top_ready := by native_decide
+  sigma_top := by native_decide
+
+private def repeatedQueuedPartnerGuard :
+    SequentialFigure7.NewGuard repeatedOccurrenceCertificate
+      repeatedQueuedPartnerState where
+  head := repeatedQueuedPartnerHead
+  tensor := repeatedNewTensor
+  tensor_valid :=
+    Certificate.tensorBelow?_eq_some_iff.mp (by native_decide)
+  mate_unmarked := by native_decide
+
+/-- The dynamic source-left run succeeds at the exact repeated-label axiom
+slot `1`, but endpoint `3` remains in the post-pop queue.  Therefore the
+operational enqueue guard fails: `NewGuard + run` is strictly weaker than
+`NewEnabledInput`. -/
+example :
+    Nonempty
+        (SequentialUnification.FreshSourceLeftRun
+          repeatedOccurrenceCertificate
+          repeatedQueuedPartnerGuard.head.markedCore
+          repeatedOccurrenceCertificate.formulas.size
+          repeatedQueuedPartnerState.tags repeatedNewTensor.mate
+          [2] 2 3 1) ∧
+      3 ∈ repeatedQueuedPartnerGuard.head.markedStack.queuedVertices ∧
+      ¬ OperationalNewReadyAt
+        repeatedQueuedPartnerGuard.head.markedStack
+        repeatedQueuedPartnerGuard.head.rawAge 2 3 := by
+  let source : SequentialUnification.SourceIncidence := {
+    linkIndex := 1
+    link := .axiom 2 3 }
+  have run :
+      SequentialUnification.FreshSourceLeftRun
+        repeatedOccurrenceCertificate
+        repeatedQueuedPartnerGuard.head.markedCore
+        repeatedOccurrenceCertificate.formulas.size
+        repeatedQueuedPartnerState.tags repeatedNewTensor.mate
+        [2] 2 3 1 := by
+    exact .axiomLeft source (by native_decide) rfl rfl
+      (by native_decide) (by decide) (by native_decide)
+      (by native_decide) (by native_decide) (by native_decide)
+  exact ⟨⟨run⟩, by native_decide, by native_decide⟩
+
+/-- Pretagging the terminal partner makes the exact proof-relevant run
+uninhabited, not merely the enclosing `new?` call unsuccessful. -/
+example :
+    ¬ ∃ trace reached partner linkIndex,
+      Nonempty
+        (SequentialUnification.FreshSourceLeftRun
+          repeatedOccurrenceCertificate
+          repeatedPartnerTaggedHead.markedCore
+          repeatedOccurrenceCertificate.formulas.size
+          repeatedPartnerTaggedState.tags repeatedNewTensor.mate
+          trace reached partner linkIndex) := by
+  have failure :
+      SequentialUnification.nextAxiomWithFuel?
+          repeatedOccurrenceCertificate
+          repeatedPartnerTaggedHead.markedCore
+          (SequentialUnification.sourceIndex repeatedOccurrenceCertificate)
+          (SequentialUnification.sourceIndex_sound
+            repeatedOccurrenceCertificate)
+          repeatedOccurrenceCertificate.formulas.size
+          repeatedPartnerTaggedState.tags repeatedNewTensor.mate = none := by
+    native_decide
+  rintro ⟨trace, reached, partner, linkIndex, ⟨run⟩⟩
+  rcases run.execution with
+    ⟨result, equation, traceEquation, resultLinkEquation,
+      orientedEquation⟩
+  rw [failure] at equation
+  simp at equation
 
 /-- The exact pre-initialization state has no ready head, hence neither a
 shallow `NewGuard` nor the stronger input-only `NewInputNecessary`. -/

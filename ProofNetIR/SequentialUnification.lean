@@ -766,9 +766,22 @@ def SearchClearThrough (certificate : Certificate)
         tags[vertex]? = some false ∧
           state.assignedToken? vertex = none
 
-private def setTag (tags : Array Bool) (vertex : Vertex) :
+/-- Exact tag-carrier update used by the production `NEXTAXIOM` executor.
+
+This narrowly named helper is public so proof-relevant input witnesses can
+share the executor's dependent recursive carrier without exposing a generic
+array-update API. -/
+def nextAxiomSetTag (tags : Array Bool) (vertex : Vertex) :
     Array Bool :=
   tags.setIfInBounds vertex true
+
+/-- The internal recursive `NEXTAXIOM` tag update is exactly the public array
+operation used by input-only execution witnesses. -/
+@[simp] theorem nextAxiomSetTag_eq (tags : Array Bool) (vertex : Vertex) :
+    nextAxiomSetTag tags vertex = tags.setIfInBounds vertex true :=
+  rfl
+
+private abbrev setTag := nextAxiomSetTag
 
 @[simp] private theorem setTag_size
     (tags : Array Bool) (vertex : Vertex) :
@@ -874,7 +887,8 @@ def nextAxiomWithFuel? (certificate : Certificate)
                                 left
                                 right
                                 tags :=
-                                  setTag (setTag tags left) right
+                                  nextAxiomSetTag
+                                    (nextAxiomSetTag tags left) right
                                 trace := [vertex]
                                 exactLink := by
                                   simpa [linkEquation] using sourceOrigin.1
@@ -923,7 +937,7 @@ def nextAxiomWithFuel? (certificate : Certificate)
               | .par left _right conclusion =>
                   if produced : conclusion = vertex then
                     match nextAxiomWithFuel? certificate state index
-                        indexSound fuel (setTag tags vertex) left with
+                        indexSound fuel (nextAxiomSetTag tags vertex) left with
                     | none => none
                     | some result =>
                         some {

@@ -352,8 +352,8 @@ canonical branch type and contribute no duplicate trust path.
 `SequentialFigure7PriorityEnabled.lean` adds no new oracle either. For five
 branches it reconstructs the already audited input-only witnesses from exact
 typed-step fields and uses the existing invariant-backed applicability
-theorems in the reverse direction. The remaining `NewExecutableEnabled` name
-is definitionally operational existential `new?` success; it is not a hidden
+theorems in the reverse direction. Its `NewExecutableEnabled` field is
+definitionally operational existential `new?` success; it is not a hidden
 paper-level assumption. `PriorityEnabled` adds only earlier-branch negations
 and is exactly interconvertible with the existing `DispatchStep`. Its
 selected-kind iff, `none` iff no kind, and kind-uniqueness theorems therefore
@@ -372,6 +372,25 @@ all-true and
 terminal-partner-pretagged inputs demonstrate that `NewGuard` alone is not an
 oracle for success. `PriorityEnabled` therefore continues to store operational
 `NewExecutableEnabled` for its `new` branch.
+`SequentialFreshSourceLeftRun.lean` and
+`SequentialFigure7NewEnabled.lean` add no oracle or unchecked existence
+principle. The proof-relevant run is constructed directly from a named
+`nextAxiomWithFuel?` equation and replays directly to that equation; its four
+constructors retain exact source-bucket and link-slot equalities, evolving tag
+facts, fixed raw-mark readiness, and terminal orientation. The reservation
+bridge explicitly requires structural well-formedness and carrier alignment.
+`NewEnabled` adds the shallow guard and exact operational enqueue predicate but
+stores no executor equation/result, output, history, or reachability witness.
+Under `SchedulerInvariant`, Lean proves it equivalent to existential `new?`
+success and derives an invariant-preserving result. Negative fixtures cover a
+raw-marked intermediate occurrence, a pretagged terminal partner, and a queued
+terminal partner; the last keeps a valid guard and run but invalidates enqueue.
+The older `NewInputNecessary` remains strictly weaker. The priority field has
+not yet been migrated to `NewEnabled` because that requires a dependency split;
+the compatibility iff does not silently change the dispatcher definition.
+None of these local proofs establishes later-call totality, reachable-state
+exhaustiveness, progress, pure-worklist completeness, fallback removal, or
+linearity.
 `SequentialFigure7TagHistory.lean` also adds no oracle. It pattern-matches only
 the exact typed branch recovered from an existing `DispatchStep` and augments
 the already-certified `ExecutedHistory`. The five stable branches prove array
@@ -383,9 +402,9 @@ duplicate-free, and show touched history-independence for a fixed state.
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
 separate nonreachability proof for that forged state. The exact trust audit now
-covers 634 declarations: 404 use exactly
-`[propext, Classical.choice, Quot.sound]`, 23 are axiom-free, 94 use exactly
-`[propext]`, and 113 use exactly `[propext, Quot.sound]`.
+covers 667 declarations: 423 use exactly
+`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 104 use exactly
+`[propext]`, and 115 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted

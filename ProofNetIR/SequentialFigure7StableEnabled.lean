@@ -88,7 +88,8 @@ private theorem stack_vertex_unmarked
   rw [← invariant.realizesSigma.marks_eq]
   exact input.core_vertex_unmarked invariant
 
-private def stackResult
+/-- Canonical executable pop result determined by a read-only head input. -/
+def stackResult
     {before : ReservationState} (input : ReadyHeadInput before) :
     PopReadyMarkResult where
   vertex := input.vertex
@@ -96,7 +97,9 @@ private def stackResult
   remainingTop := input.readyTail
   after := input.markedStack
 
-private theorem stack_pop_eq
+/-- Under the complete scheduler invariant, the executable stack prefix
+returns the canonical result determined by this input. -/
+theorem stack_pop_eq
     {certificate : Certificate} {before : ReservationState}
     (input : ReadyHeadInput before)
     (invariant : SchedulerInvariant certificate before) :
@@ -105,7 +108,9 @@ private theorem stack_pop_eq
     input.sigma_top, input.stack_vertex_unmarked invariant,
     stackResult, markedStack]
 
-private theorem core_mark_eq
+/-- Under the complete scheduler invariant, the executable production-mark
+prefix returns the pure marked-core expression determined by this input. -/
+theorem core_mark_eq
     {certificate : Certificate} {before : ReservationState}
     (input : ReadyHeadInput before)
     (invariant : SchedulerInvariant certificate before) :
@@ -114,6 +119,21 @@ private theorem core_mark_eq
   unfold UnificationState.markReadyRaw?
   rw [input.core_vertex_unmarked invariant]
   rfl
+
+/-- The canonical pop result stores exactly the input's pure marked stack. -/
+@[simp] theorem stackResult_after
+    {before : ReservationState} (input : ReadyHeadInput before) :
+    input.stackResult.after = input.markedStack :=
+  rfl
+
+/-- Raw marking changes neither production carrier, so parent/component
+alignment transports directly to the input's pure marked core. -/
+theorem markedCore_carriers_aligned
+    {certificate : Certificate} {before : ReservationState}
+    (input : ReadyHeadInput before)
+    (invariant : SchedulerInvariant certificate before) :
+    input.markedCore.components.size = input.markedCore.parents.size := by
+  simpa [markedCore] using invariant.core_carriers_aligned
 
 private def prepared
     {certificate : Certificate} {before : ReservationState}

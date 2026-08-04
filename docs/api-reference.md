@@ -6537,6 +6537,32 @@ intentionally rank-scoped: all in-bounds occurrences no more complex than
 ProofNetIR.SequentialUnification.SearchClearThrough : ProofNetIR.Certificate → ProofNetIR.UnificationState → Array Bool → Nat → Prop
 ```
 
+### `ProofNetIR.SequentialUnification.nextAxiomSetTag`
+
+Kind: definition.
+
+Exact tag-carrier update used by the production `NEXTAXIOM` executor.
+
+This narrowly named helper is public so proof-relevant input witnesses can
+share the executor's dependent recursive carrier without exposing a generic
+array-update API.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomSetTag : Array Bool → ProofNetIR.Vertex → Array Bool
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiomSetTag_eq`
+
+Kind: theorem.
+
+The internal recursive `NEXTAXIOM` tag update is exactly the public array
+operation used by input-only execution witnesses.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomSetTag_eq : ∀ (tags : Array Bool) (vertex : ProofNetIR.Vertex),
+  ProofNetIR.SequentialUnification.nextAxiomSetTag tags vertex = tags.setIfInBounds vertex true
+```
+
 ### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?`
 
 Kind: definition.
@@ -6914,6 +6940,395 @@ ProofNetIR.SequentialUnification.DynamicStartResult.refinesStart : ∀ {certific
     ∃ afterAbstractable,
       ProofNetIR.UnificationStep certificate (before.toMarking certificate abstractable)
         (result.after.toMarking certificate afterAbstractable)
+```
+
+## Exact proof-relevant fresh source-left runs
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun`
+
+Kind: inductive type.
+
+One exact proof-relevant execution path through the production source
+index. Source-bucket and submitted-link equations retain exact occurrence and
+link-slot identity. Structural well-formedness is deliberately not an index:
+the executable is defined for every certificate, while scheduler guards carry
+well-formedness separately where it is semantically required.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun : ProofNetIR.Certificate →
+  ProofNetIR.UnificationState →
+    Nat → Array Bool → ProofNetIR.Vertex → List ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Nat → Type
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceNonempty`
+
+Kind: theorem.
+
+Every exact run records a nonempty recursive trace.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceNonempty : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  trace ≠ []
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.partnerFresh`
+
+Kind: theorem.
+
+The terminal partner is false in the original input tag carrier.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.partnerFresh : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  tags[partner]? = some false
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.partner_not_mem_trace`
+
+Kind: theorem.
+
+The terminal partner never appears among the recursively visited
+occurrences.  In recursive cases the current occurrence has already been set
+to `true`, while the tail still requires the partner to be `false`.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.partner_not_mem_trace : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  ¬partner ∈ trace
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom`
+
+Kind: inductive type.
+
+Exact submitted storage orientation and production readiness of the
+terminal axiom reached by a run.  This is intentionally proof-relevant so a
+later reservation bridge can select the corresponding executable branch
+without re-inducting over the recursive source-left run.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom : ProofNetIR.Certificate → ProofNetIR.UnificationState → ProofNetIR.Vertex → ProofNetIR.Vertex → Nat → Type
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.terminalAxiom`
+
+Kind: definition.
+
+A run exposes its exact terminal submitted axiom, storage orientation,
+distinct endpoints, and both endpoint readiness facts.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.terminalAxiom : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.UnificationState} →
+    {fuel : Nat} →
+      {tags : Array Bool} →
+        {start reached partner : ProofNetIR.Vertex} →
+          {trace : List ProofNetIR.Vertex} →
+            {linkIndex : Nat} →
+              ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached
+                  partner linkIndex →
+                ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom certificate state reached partner
+                  linkIndex
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.exactAxiom`
+
+Kind: theorem.
+
+The terminal submitted axiom has the run's reached/partner orientation,
+up to its exact stored left/right orientation.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.exactAxiom : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom reached partner) ∨
+    certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom partner reached)
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.reachedReady`
+
+Kind: theorem.
+
+The reached endpoint is unmarked in the run's fixed production state.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.reachedReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  state.marks[reached]? = some none
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.partnerReady`
+
+Kind: theorem.
+
+The partner endpoint is unmarked in the run's fixed production state.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.partnerReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  state.marks[partner]? = some none
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom.exists_reserveAxiomAt`
+
+Kind: theorem.
+
+Exact terminal data plus structural local well-formedness and production
+carrier alignment suffice to reserve the submitted axiom slot.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom.exists_reserveAxiomAt : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {reached partner : ProofNetIR.Vertex}
+  {linkIndex : Nat}
+  (terminal :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun.TerminalAxiom certificate state reached partner linkIndex),
+  certificate.StructurallyWellFormed →
+    state.components.size = state.parents.size → ∃ after, certificate.reserveAxiomAt? state linkIndex = some after
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.FreshSourceLeftExecution`
+
+Kind: definition.
+
+Exact executable success data for a named trace, oriented terminal pair,
+and submitted axiom-link slot.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.FreshSourceLeftExecution : ProofNetIR.Certificate →
+  ProofNetIR.UnificationState →
+    Nat → Array Bool → ProofNetIR.Vertex → List ProofNetIR.Vertex → ProofNetIR.Vertex → ProofNetIR.Vertex → Nat → Prop
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.execution`
+
+Kind: theorem.
+
+Every exact input-only run replays as the production executable search.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.execution : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  ProofNetIR.SequentialUnification.FreshSourceLeftRun.FreshSourceLeftExecution certificate state fuel tags start trace
+    reached partner linkIndex
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.ofExecution`
+
+Kind: theorem.
+
+Exact production execution reconstructs the corresponding proof-relevant
+run by structural recursion on the supplied fuel.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.ofExecution : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat},
+  ProofNetIR.SequentialUnification.FreshSourceLeftRun.FreshSourceLeftExecution certificate state fuel tags start trace
+      reached partner linkIndex →
+    Nonempty
+      (ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+        linkIndex)
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.execution_iff_nonempty`
+
+Kind: theorem.
+
+The production executable equation and the exact input-only run are
+logically equivalent, including the exact recursive trace, reached/partner
+orientation, and submitted terminal axiom-link position.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.execution_iff_nonempty : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat},
+  ProofNetIR.SequentialUnification.FreshSourceLeftRun.FreshSourceLeftExecution certificate state fuel tags start trace
+      reached partner linkIndex ↔
+    Nonempty
+      (ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+        linkIndex)
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceNodup`
+
+Kind: theorem.
+
+The exact trace carried by a run has no repeated occurrence.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceNodup : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  trace.Nodup
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceLast`
+
+Kind: theorem.
+
+The named reached endpoint is exactly the last recursively visited
+occurrence.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceLast : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  trace.getLast? = some reached
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceLength`
+
+Kind: theorem.
+
+The exact trace length is bounded by the supplied executable fuel.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceLength : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  trace.length ≤ fuel
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceHead`
+
+Kind: theorem.
+
+The exact trace begins at the indexed run input occurrence.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceHead : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  trace.head? = some start
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftChain`
+
+Kind: theorem.
+
+The run's submitted producer slots form the exact stored source-left
+chain represented by its trace.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftChain : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  ProofNetIR.SequentialUnification.SourceLeftChain certificate trace
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftReachable`
+
+Kind: theorem.
+
+The run reaches its named terminal occurrence along exact submitted
+source-left steps.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftReachable : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  ProofNetIR.SequentialUnification.SourceLeftReachable certificate start reached
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceFresh`
+
+Kind: theorem.
+
+Every visited occurrence was false in the original input tag carrier.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceFresh : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  {vertex : ProofNetIR.Vertex}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  vertex ∈ trace → tags[vertex]? = some false
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceReady`
+
+Kind: theorem.
+
+Every visited occurrence is unmarked in the fixed production state.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  {vertex : ProofNetIR.Vertex}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  vertex ∈ trace → state.marks[vertex]? = some none
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute`
+
+Kind: definition.
+
+An exact run projects directly to the older result-free input route
+whenever its fuel fits within the certificate carrier budget.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.UnificationState} →
+    {fuel : Nat} →
+      {tags : Array Bool} →
+        {start reached partner : ProofNetIR.Vertex} →
+          {trace : List ProofNetIR.Vertex} →
+            {linkIndex : Nat} →
+              ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached
+                  partner linkIndex →
+                fuel ≤ certificate.formulas.size →
+                  ProofNetIR.SequentialFigure7.FreshSourceLeftRoute certificate state tags start
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute_nonempty`
+
+Kind: theorem.
+
+Proposition-level compatibility wrapper for callers that only need
+existence of the older route.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute_nonempty : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex),
+  fuel ≤ certificate.formulas.size →
+    Nonempty (ProofNetIR.SequentialFigure7.FreshSourceLeftRoute certificate state tags start)
 ```
 
 ## Shared sequential consumer index
@@ -14294,6 +14709,71 @@ The name deliberately avoids `Enabled`: unlike the established Figure-7
 ProofNetIR.SequentialFigure7.NewInputNecessary : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
 ```
 
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult`
+
+Kind: definition.
+
+Canonical executable pop result determined by a read-only head input.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult : {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+  ProofNetIR.SequentialFigure7.ReadyHeadInput before →
+    ProofNetIR.SequentialSchedulerState.SequentialStackState.PopReadyMarkResult
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.stack_pop_eq`
+
+Kind: theorem.
+
+Under the complete scheduler invariant, the executable stack prefix
+returns the canonical result determined by this input.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.stack_pop_eq : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    before.stack.popReadyMark? = Except.ok input.stackResult
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.core_mark_eq`
+
+Kind: theorem.
+
+Under the complete scheduler invariant, the executable production-mark
+prefix returns the pure marked-core expression determined by this input.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.core_mark_eq : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    before.core.markReadyRaw? input.vertex input.rawAge = Except.ok input.markedCore
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after`
+
+Kind: theorem.
+
+The canonical pop result stores exactly the input's pure marked stack.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after : ∀ {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before), input.stackResult.after = input.markedStack
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.markedCore_carriers_aligned`
+
+Kind: theorem.
+
+Raw marking changes neither production carrier, so parent/component
+alignment transports directly to the input's pure marked core.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.markedCore_carriers_aligned : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    input.markedCore.components.size = input.markedCore.parents.size
+```
+
 ### `ProofNetIR.SequentialFigure7.NewStep.readyHeadInput`
 
 Kind: definition.
@@ -14318,6 +14798,19 @@ the pure marked-core expression attached to its input-only ready head.
 ProofNetIR.SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
   (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
   step.coreMarked = step.readyHeadInput.markedCore
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.stackAfter_eq_readyHeadInput`
+
+Kind: theorem.
+
+The stack output of the typed pop prefix is exactly the pure marked-stack
+expression attached to its recovered read-only head.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.stackAfter_eq_readyHeadInput : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  step.stackResult.after = step.readyHeadInput.markedStack
 ```
 
 ### `ProofNetIR.SequentialFigure7.NewStep.mate_unmarked_before`
@@ -14415,6 +14908,156 @@ ProofNetIR.SequentialFigure7.PriorityEnabled.newInputNecessary : ∀ {certificat
   ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant
       ProofNetIR.SequentialFigure7.Figure7RuleKind.new →
     ProofNetIR.SequentialFigure7.NewInputNecessary certificate before
+```
+
+## Input-only local applicability for Figure-7 new
+
+### `ProofNetIR.SequentialFigure7.NewEnabledInput`
+
+Kind: inductive type.
+
+Complete input-only data for the currently implemented Figure-7 `new`
+rule.  The enqueue age is fixed to `guard.head.rawAge`; there is no redundant
+existential active-age witness.
+
+```lean
+ProofNetIR.SequentialFigure7.NewEnabledInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.NewEnabled`
+
+Kind: definition.
+
+Input-only applicability predicate for the current local Figure-7 `new`
+executor.
+
+```lean
+ProofNetIR.SequentialFigure7.NewEnabled : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.NewEnabledInput.inputNecessary`
+
+Kind: definition.
+
+The complete input-only witness directly contains the older one-way
+necessary predicate.
+
+```lean
+ProofNetIR.SequentialFigure7.NewEnabledInput.inputNecessary : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewEnabledInput certificate before →
+      ProofNetIR.SequentialFigure7.NewInput certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.NewEnabled.inputNecessary`
+
+Kind: theorem.
+
+Proposition-level input-only enabledness implies the older necessary
+predicate without choosing any executor output.
+
+```lean
+ProofNetIR.SequentialFigure7.NewEnabled.inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.NewEnabled certificate before →
+    ProofNetIR.SequentialFigure7.NewInputNecessary certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.operationalNewEnqueue?_exists_of_ready`
+
+Kind: theorem.
+
+A satisfied operational enqueue guard produces one exact stack output.
+
+```lean
+ProofNetIR.SequentialFigure7.operationalNewEnqueue?_exists_of_ready : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {active : ProofNetIR.SequentialSchedulerState.RawTokenAge} {reached partner : ProofNetIR.Vertex},
+  state.OperationalNewReadyAt active reached partner →
+    ∃ after, state.operationalNewEnqueue? reached partner = some after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.newEnabled`
+
+Kind: theorem.
+
+A typed executable `new` success reconstructs the exact proof-relevant
+input-only enabled witness.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.newEnabled : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.new?_success_implies_enabled`
+
+Kind: theorem.
+
+Executable success implies input-only local enabledness.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_success_implies_enabled : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.new? certificate before ⋯ = some after →
+    ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.new?_exists_of_enabled`
+
+Kind: theorem.
+
+Complete input-only local enabledness supplies an exact executable output
+under the full state-only scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_exists_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.NewEnabled certificate before →
+    ∃ after, ProofNetIR.SequentialFigure7.new? certificate before ⋯ = some after
+```
+
+### `ProofNetIR.SequentialFigure7.new?_success_iff_enabled`
+
+Kind: theorem.
+
+Under the complete state-only scheduler invariant, the input-only
+predicate is exactly existential success of the current `new?` executor.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_success_iff_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  (∃ after, ProofNetIR.SequentialFigure7.new? certificate before ⋯ = some after) ↔
+    ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.NewExecutableEnabled.iff_newEnabled`
+
+Kind: theorem.
+
+Compatibility: the older operational enabledness proposition is exactly
+the new input-only predicate, while remaining the canonical priority field in
+this checkpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.NewExecutableEnabled.iff_newEnabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before},
+  ProofNetIR.SequentialFigure7.NewExecutableEnabled certificate before invariant ↔
+    ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.new?_exists_schedulerInvariant_of_enabled`
+
+Kind: theorem.
+
+Every input-only enabled state has an invariant-preserving executable
+output.
+
+```lean
+ProofNetIR.SequentialFigure7.new?_exists_schedulerInvariant_of_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.NewEnabled certificate before →
+    ∃ after,
+      ProofNetIR.SequentialFigure7.new? certificate before ⋯ = some after ∧
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
 ## Priority-aware Figure-7 applicability

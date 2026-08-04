@@ -1,5 +1,6 @@
 import ProofNetIR
 import ProofNetIR.SequentialFigure7History
+import ProofNetIR.SequentialFreshSourceLeftRun
 
 example {certificate : ProofNetIR.Certificate}
     {state next : ProofNetIR.UnificationMarking certificate}
@@ -957,6 +958,12 @@ def nestedRankBudgetEmpty : UnificationState where
   startedAxioms := 0
   firedConnectives := 0
 
+/-- The intermediate occurrence `6` is raw-marked before the depth-two
+source-left search reaches it. -/
+def nestedRankBudgetIntermediateMarked : UnificationState :=
+  { nestedRankBudgetEmpty with
+    marks := nestedRankBudgetEmpty.marks.setIfInBounds 6 (some 0) }
+
 theorem nestedRankBudgetEmpty_assignedToken?_eq_none
     (vertex : Vertex) :
     nestedRankBudgetEmpty.assignedToken? vertex = none := by
@@ -1042,6 +1049,40 @@ example :
       3 (Array.replicate nestedRankBudget.formulas.size false) 7).isSome =
         true := by
   native_decide
+
+/-- A raw-marked intermediate occurrence rejects the executable and makes
+the exact proof-relevant dynamic run uninhabited. -/
+example :
+    SequentialUnification.nextAxiomWithFuel? nestedRankBudget
+        nestedRankBudgetIntermediateMarked nestedRankBudgetSourceIndex
+        (SequentialUnification.sourceIndex_sound nestedRankBudget)
+        3 (Array.replicate nestedRankBudget.formulas.size false) 7 = none ∧
+      ¬ ∃ trace reached partner linkIndex,
+        Nonempty
+          (SequentialUnification.FreshSourceLeftRun nestedRankBudget
+            nestedRankBudgetIntermediateMarked 3
+            (Array.replicate nestedRankBudget.formulas.size false) 7
+            trace reached partner linkIndex) := by
+  have failure :
+      SequentialUnification.nextAxiomWithFuel? nestedRankBudget
+          nestedRankBudgetIntermediateMarked nestedRankBudgetSourceIndex
+          (SequentialUnification.sourceIndex_sound nestedRankBudget)
+          3 (Array.replicate nestedRankBudget.formulas.size false) 7 = none := by
+    native_decide
+  refine ⟨failure, ?_⟩
+  rintro ⟨trace, reached, partner, linkIndex, ⟨run⟩⟩
+  rcases run.execution with
+    ⟨result, equation, traceEquation, resultLinkEquation,
+      orientedEquation⟩
+  have productionFailure :
+      SequentialUnification.nextAxiomWithFuel? nestedRankBudget
+          nestedRankBudgetIntermediateMarked
+          (SequentialUnification.sourceIndex nestedRankBudget)
+          (SequentialUnification.sourceIndex_sound nestedRankBudget)
+          3 (Array.replicate nestedRankBudget.formulas.size false) 7 = none := by
+    simpa [nestedRankBudgetSourceIndex] using failure
+  rw [productionFailure] at equation
+  simp at equation
 
 def canonicalNextAxiom :=
   SequentialUnification.nextAxiom? canonical canonicalSequentialEmpty

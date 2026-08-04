@@ -1,4 +1,5 @@
 import ProofNetIR.SequentialFigure7PriorityEnabled
+import ProofNetIR.SequentialFreshSourceLeftRun
 
 namespace ProofNetIR
 
@@ -127,6 +128,61 @@ theorem startFresh
 
 end FreshSourceLeftRoute
 
+end SequentialFigure7
+
+namespace SequentialUnification.FreshSourceLeftRun
+
+/-- An exact run projects directly to the older result-free input route
+whenever its fuel fits within the certificate carrier budget. -/
+def toFreshSourceLeftRoute
+    {certificate : Certificate}
+    {state : UnificationState} {fuel : Nat} {tags : Array Bool}
+    {start reached partner : Vertex} {trace : List Vertex}
+    {linkIndex : Nat}
+    (run : FreshSourceLeftRun certificate state fuel tags start
+      trace reached partner linkIndex)
+    (fuelBound : fuel ≤ certificate.formulas.size) :
+    SequentialFigure7.FreshSourceLeftRoute certificate state tags start where
+    trace := trace
+    reached := reached
+    partner := partner
+    linkIndex := linkIndex
+    traceNonempty := run.traceNonempty
+    traceHead := run.traceHead
+    traceLast := run.traceLast
+    chain := run.sourceLeftChain
+    reachable := run.sourceLeftReachable
+    exactAxiom := run.exactAxiom
+    traceLength := Nat.le_trans run.traceLength fuelBound
+    traceNodup := run.traceNodup
+    traceFresh := run.traceFresh
+    traceReady := run.traceReady
+    reachedReady := run.reachedReady
+    partnerReady := run.partnerReady
+    partnerFresh := run.partnerFresh
+
+/-- Proposition-level compatibility wrapper for callers that only need
+existence of the older route. -/
+theorem toFreshSourceLeftRoute_nonempty
+    {certificate : Certificate}
+    {state : UnificationState} {fuel : Nat} {tags : Array Bool}
+    {start reached partner : Vertex} {trace : List Vertex}
+    {linkIndex : Nat}
+    (run : FreshSourceLeftRun certificate state fuel tags start
+      trace reached partner linkIndex)
+    (fuelBound : fuel ≤ certificate.formulas.size) :
+    Nonempty
+      (SequentialFigure7.FreshSourceLeftRoute certificate state tags start) :=
+  ⟨run.toFreshSourceLeftRoute fuelBound⟩
+
+end SequentialUnification.FreshSourceLeftRun
+
+namespace SequentialFigure7
+
+open SequentialSchedulerState
+open SequentialSchedulerState.SequentialStackState
+open SequentialSchedulerBridge
+
 /-- Read-only data for the input-only necessary Figure-7 `new` predicate.
 
 `guard.head.markedCore` is a pure expression over the input state; it is not an
@@ -172,6 +228,16 @@ theorem coreMarked_eq_readyHeadInput
   rcases UnificationState.markReadyRaw?_ok_iff.mp step.core_mark_eq with
     ⟨marked⟩
   simpa [readyHeadInput, ReadyHeadInput.markedCore] using marked.after_eq
+
+/-- The stack output of the typed pop prefix is exactly the pure marked-stack
+expression attached to its recovered read-only head. -/
+theorem stackAfter_eq_readyHeadInput
+    {certificate : Certificate} {before after : ReservationState}
+    (step : NewStep certificate before after) :
+    step.stackResult.after = step.readyHeadInput.markedStack := by
+  rcases SequentialStackState.popReadyMark?_ok_iff.mp step.stack_eq with
+    ⟨marked⟩
+  simpa [readyHeadInput, ReadyHeadInput.markedStack] using marked.after_eq
 
 /-- The opposite tensor premise was already unmarked in the original input
 state, before the selected ready occurrence was raw-marked. -/

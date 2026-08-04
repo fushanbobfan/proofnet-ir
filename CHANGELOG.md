@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+- added `SequentialFreshSourceLeftRun.lean`, a fuel-indexed, proof-relevant,
+  input-only account of the production `NEXTAXIOM` search. Its two terminal
+  axiom constructors and two stored-left connective constructors retain exact
+  source-bucket, submitted-link-slot, orientation, tag-update, and raw-mark
+  evidence. Lean proves exact correspondence with
+  `nextAxiomWithFuel?` execution in both directions, trace freshness and
+  `Nodup`, exclusion of the terminal partner from the visited trace, and an
+  exact terminal reservation bridge under structural well-formedness and
+  carrier alignment. Added `SequentialFigure7NewEnabled.lean`, whose
+  result-free `NewEnabledInput` combines `NewGuard`, one such exact run at the
+  production fuel bound, and the exact operational enqueue guard at the
+  selected raw age. Under `SchedulerInvariant`, `NewEnabled` is equivalent to
+  existential `new?` success and supplies an invariant-preserving output. It
+  stores no executor result/equation, post-state, history, or reachability
+  witness. Regressions reject a raw-marked intermediate route and a pretagged
+  terminal partner, and exhibit a guard-plus-run state whose queued partner
+  makes the enqueue guard fail. `NewInputNecessary` remains the intentionally
+  weaker one-way projection. `PriorityEnabled` still stores the compatible
+  operational `NewExecutableEnabled` field; migrating that field through the
+  current import DAG is deferred and is not marked complete. This local
+  applicability equivalence adds no reachable-state exhaustiveness,
+  later-call totality, dispatcher progress, pure-worklist completeness,
+  fallback removal, or whole-program linearity claim. The exact axiom audit
+  now covers 667 declarations: 423 full-classical, 25 axiom-free, 104
+  `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7NewInputNecessary.lean`, an honest input-only
   necessary projection of operational Figure-7 `new` success. `NewGuard`
   records a ready head, its exact valid tensor-below witness, and an unmarked

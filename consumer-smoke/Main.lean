@@ -206,6 +206,31 @@ example :
       consumedCertificate.canonicalString).isOk = true := by
   native_decide
 
+#check SequentialUnification.FreshSourceLeftRun
+#check SequentialUnification.FreshSourceLeftRun.execution_iff_nonempty
+#check SequentialUnification.FreshSourceLeftRun.TerminalAxiom
+#check SequentialUnification.FreshSourceLeftRun.TerminalAxiom.exists_reserveAxiomAt
+#check SequentialFigure7.NewEnabledInput
+#check SequentialFigure7.NewEnabled
+
+example {certificate : Certificate}
+    {before : SequentialSchedulerBridge.ReservationState}
+    {invariant : SequentialSchedulerBridge.SchedulerInvariant certificate before} :
+    SequentialFigure7.NewExecutableEnabled certificate before invariant ↔
+      SequentialFigure7.NewEnabled certificate before :=
+  SequentialFigure7.NewExecutableEnabled.iff_newEnabled
+
+example {certificate : Certificate}
+    {before : SequentialSchedulerBridge.ReservationState}
+    (invariant : SequentialSchedulerBridge.SchedulerInvariant certificate before)
+    (enabled : SequentialFigure7.NewEnabled certificate before) :
+    ∃ after,
+      SequentialFigure7.new? certificate before
+          invariant.toReservationInvariant = some after ∧
+        SequentialSchedulerBridge.SchedulerInvariant certificate after :=
+  SequentialFigure7.new?_exists_schedulerInvariant_of_enabled
+    invariant enabled
+
 def main : IO Unit := do
   if consumedTreeGraph.isTree &&
       consumedCertificate.check && consumedCertificate.compactCheck &&

@@ -503,15 +503,31 @@ part of the engineering and proof-identity gap.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence. The five stable/payload typed
    steps reconstruct pure input-only enabled witnesses, and their executors
-   have existential-success iff results under the complete invariant. `new`
-   remains explicitly operational through `NewExecutableEnabled`.
+   have existential-success iff results under the complete invariant. Its
+   `new` field remains explicitly operational through the compatibility
+   proposition `NewExecutableEnabled`.
    `SequentialFigure7NewInputNecessary.lean` adds only a pure necessary
    projection: its shallow guard plus exact fresh route, including whole-trace
    production readiness, is reconstructed from success, but it omits recursive
    per-step tag-update equations, terminal-partner exclusion from the
    intermediate trace, and the later operational enqueue guard. It therefore
    supplies no converse and is deliberately
-   not named `NewEnabled`. `PriorityEnabled` records the selected
+   not named `NewEnabled`.
+   `SequentialFreshSourceLeftRun.lean` now supplies a separate exact
+   proof-relevant source-left execution relation. It mirrors every executor
+   branch and is equivalent in both directions to a named
+   `nextAxiomWithFuel?` success, while retaining exact source buckets,
+   submitted slots, recursive tag updates, fixed-state readiness, and terminal
+   orientation. `SequentialFigure7NewEnabled.lean` combines that run with the
+   shallow guard and exact enqueue guard. The resulting `NewEnabled` contains
+   no executor equation/result, output, history, or reachability field and is
+   equivalent to existential `new?` success under `SchedulerInvariant`, with
+   an invariant-preserving output theorem. A queued-partner fixture confirms
+   that the enqueue guard is essential. This is a local applicability theorem,
+   not later-state totality or progress. Migrating the priority field from its
+   operational compatibility proposition to `NewEnabled` remains deferred
+   until the import dependency is split.
+   `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
    failure, and has a unique selected kind. A completed reachable `[[]]`
@@ -615,10 +631,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 634 declarations: 404 public MLL
+- CI now parses `#print axioms` for 667 declarations: 423 public MLL
   logical-boundary theorems must retain exactly `propext`,
-  `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  94 `propext`-only, and 113 `propext`/`Quot.sound` boundaries;
+  `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
+  104 `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

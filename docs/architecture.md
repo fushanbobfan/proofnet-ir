@@ -506,9 +506,9 @@ the dispatcher, stable enabled predicates, and payload-enabled predicate. It
 does not change an executor. Successful typed steps for `concl`, `nop`,
 `wait`, `forward`, and `unifyPayload` reconstruct their existing input-only
 enabled witnesses; conversely, those witnesses plus `SchedulerInvariant`
-produce existential executor success. `new` remains operational in this
-interface: `NewExecutableEnabled` explicitly abbreviates existential `new?`
-success. Indexed `PriorityEnabled` adds exactly the negative predicates needed
+produce existential executor success. The `new` field remains operational in
+this priority interface: `NewExecutableEnabled` explicitly abbreviates
+existential `new?` success. Indexed `PriorityEnabled` adds exactly the negative predicates needed
 by the fixed dispatcher order. It is equivalent to the matching `DispatchStep`,
 classifies an exact selected dispatcher kind, characterizes dispatcher `none`,
 and makes the selected priority kind unique. The characterization is relative
@@ -529,6 +529,25 @@ exclusion from the intermediate trace, and the later operational enqueue
 guard. It is therefore a necessary observation, not an
 `*Enabled` predicate or progress premise; the canonical dispatcher continues
 to use `NewExecutableEnabled`.
+
+`SequentialFreshSourceLeftRun.lean` is the exact proof-relevant input layer
+below the newer local criterion. Its four constructors mirror the two terminal
+axiom orientations and the stored-left tensor/par recursion of
+`nextAxiomWithFuel?`; source-bucket and submitted-slot equations retain exact
+occurrence identity, while the fixed production state and evolving tag array
+record raw readiness and each recursive tag update. The relation is defined
+for arbitrary certificates and is equivalent to an exact named executor
+execution. Structural well-formedness enters only at the terminal reservation
+bridge. `SequentialFigure7NewEnabled.lean` combines `NewGuard`, one exact run at
+the certificate fuel bound, and `OperationalNewReadyAt` at the selected head's
+raw age. The resulting `NewEnabled` is input-only—there is no result,
+equation, output, history, or reachability field—and, under the complete
+`SchedulerInvariant`, is equivalent to existential `new?` success. The
+priority module still imports the lower operational layer, so replacing its
+`NewExecutableEnabled` field with `NewEnabled` is deferred to a dedicated
+dependency split. This layering fact does not weaken the local equivalence and
+does not establish reachable-state exhaustiveness, totality, progress,
+completeness, fallback removal, or a cost theorem.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
