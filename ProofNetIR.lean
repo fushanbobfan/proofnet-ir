@@ -40,6 +40,7 @@ import ProofNetIR.SequentialFigure7UnifyPayload
 import ProofNetIR.SequentialFigure7UnifyPayloadInvariant
 import ProofNetIR.SequentialFigure7UnifyPayloadEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
+import ProofNetIR.SequentialFigure7TagHistory
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

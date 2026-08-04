@@ -339,6 +339,20 @@ trace reachability, not that the invariant creates an enabled branch. The
 empty full-invariant regression returning `none` prevents that interpretation.
 The compatibility `unifyEmpty?` and `unifyOne?` functions remain outside the
 canonical branch type and contribute no duplicate trust path.
+`SequentialFigure7TagHistory.lean` also adds no oracle. It pattern-matches only
+the exact typed branch recovered from an existing `DispatchStep` and augments
+the already-certified `ExecutedHistory`. The five stable branches prove array
+equality; `new` retains the exact `NEXTAXIOM` result. The resulting theorems
+characterize true tags by recorded touches, separate new touches from the
+entire prior history, make submitted axiom-link positions globally
+duplicate-free, and show touched history-independence for a fixed state.
+`ReachableByImplementedDispatcher` supplies such an augmented history, but
+`SchedulerInvariant` alone does not: its tag field remains only a size check.
+The all-true regression demonstrates that distinction without claiming a
+separate nonreachability proof for that forged state. The exact trust audit now
+covers 597 declarations: 373 use exactly
+`[propext, Classical.choice, Quot.sound]`, 23 are axiom-free, 90 use exactly
+`[propext]`, and 111 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
@@ -635,8 +649,10 @@ dedicated init/new history adds exact reachability and tag provenance for that
  invariant-preserving result, but not exhaustive later branch enabledness,
  totality, or unconditional full-rule reachability. A separate canonical
  priority dispatcher and proof-carrying
- certified history now integrate all implemented successful branches, without
- lifting the richer init/new route/tag/slot laws. No
+ certified history now integrates all implemented successful branches, and its
+ tag augmentation proves exact touch provenance and global submitted-slot
+ non-reuse. Reservation-event counting and a public whole-history oriented-route
+ theorem remain separate. No
 planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary

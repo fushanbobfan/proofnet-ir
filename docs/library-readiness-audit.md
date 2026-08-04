@@ -490,8 +490,17 @@ part of the engineering and proof-identity gap.
    invariant transport, and a certified proof-carrying history. The specialized
    empty/singleton unifiers are compatibility APIs, not duplicate branch tags.
    The history requires the invariant at every later edge; it does not prove
-   exhaustive branch applicability, totality, or progress. Lifting the richer
-   `InitNewHistory` tag/slot/count laws, exhaustive guard classification,
+   exhaustive branch applicability, totality, or progress.
+   `SequentialFigure7TagHistory.lean` now derives a branch-aligned augmentation
+   from that exact history and from certified dispatcher reachability. It proves
+   exact current-tag provenance, stable tags for all five non-`new` branches,
+   strict fresh growth for `new`, touched-set separation, touched-history
+   independence at a common concrete state, and history-wide submitted-slot
+   `Nodup`. The state-only invariant still admits same-sized forged tag arrays;
+   this checkpoint requires proof-carrying history evidence and does not
+   separately prove the concrete all-true replacement unreachable.
+   Reservation-event-count and whole-history oriented-route generalization,
+   exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -578,7 +587,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 575 declarations: 351 public MLL
+- CI now parses `#print axioms` for 597 declarations: 373 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
   90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
@@ -693,8 +702,10 @@ It can currently be used for:
   enabledness, later-state totality, and intermediate-state invariance remain
   absent. A canonical
   priority dispatcher and proof-carrying certified history now integrate every
-  implemented successful rule family, but the richer init/new route/tag/slot
-  laws and unconditional reachability are not yet lifted. The
+  implemented successful rule family. Its canonical tag augmentation lifts
+  exact init/`new` touch provenance and global submitted-slot non-reuse through
+  stable branches; reservation counting, a public whole-history oriented route,
+  and unconditional reachability are not yet lifted. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
   Exact init/new reachability and tag history plus certified full-rule

@@ -4,6 +4,7 @@ import ProofNetIR.SequentialFigure7UnifyOne
 import ProofNetIR.SequentialFigure7Unify
 import ProofNetIR.SequentialFigure7UnifyPayload
 import ProofNetIR.SequentialFigure7Dispatcher
+import ProofNetIR.SequentialFigure7TagHistory
 
 namespace ProofNetIR
 
@@ -263,6 +264,40 @@ private theorem repeatedInitial_schedulerInvariant
     ⟨step⟩
   exact step.schedulerInvariant repeatedOccurrenceCertificate_structural
 
+private def repeatedAllTrueTags (state : ReservationState) :
+    ReservationState :=
+  { state with
+    tags := Array.replicate
+      repeatedOccurrenceCertificate.formulas.size true }
+
+/-- The state-only scheduler invariant deliberately constrains only the tag
+carrier size.  Replacing an initialized carrier by same-sized all-true tags
+therefore still satisfies it; exact tag provenance requires the separate
+proof-carrying canonical history. -/
+example {initial : ReservationState}
+    (initialEquation : repeatedInitial = some initial) :
+    SchedulerInvariant repeatedOccurrenceCertificate
+      (repeatedAllTrueTags initial) := by
+  let invariant := repeatedInitial_schedulerInvariant initialEquation
+  exact {
+    invariant with
+    toReservationInvariant := {
+      invariant.toReservationInvariant with
+      tags_size := by simp [repeatedAllTrueTags] } }
+
+/-- This slice does not claim that the concrete forged state is unreachable.
+It does prove the necessary provenance obligation: if an exact canonical
+history ended there, every in-bounds all-true tag, including occurrence `4`,
+would need a recorded initialization or `new` touch. -/
+example {initial : ReservationState}
+    {history : SequentialFigure7.ExecutedHistory
+      repeatedOccurrenceCertificate (repeatedAllTrueTags initial)}
+    (tagHistory : SequentialFigure7.CanonicalTagHistory
+      repeatedOccurrenceCertificate history) :
+    tagHistory.Touched 4 := by
+  apply tagHistory.true_tag_has_touch
+  simp [repeatedAllTrueTags, repeatedOccurrenceCertificate]
+
 /-- The canonical dispatcher selects `new` on the first repeated-label state
 and then selects only the general `unifyPayload` branch for the empty waiting
 payload.  The legacy empty executor is deliberately not a dispatcher tag. -/
@@ -278,13 +313,16 @@ example :
         | none => false
         | some first =>
             first.kind == .new &&
+              first.after.tags != initial.tags &&
               match _secondEquation :
                   SequentialFigure7.dispatch? repeatedOccurrenceCertificate
                     first.after
                     (SequentialFigure7.dispatch?_schedulerInvariant
                       initialInvariant firstEquation) with
               | none => false
-              | some second => second.kind == .unifyPayload) = true := by
+              | some second =>
+                  second.kind == .unifyPayload &&
+                    second.after.tags == first.after.tags) = true := by
   native_decide
 
 /-- A successful canonical dispatch has its exact priority-aware witness,
@@ -314,6 +352,61 @@ example {initial : ReservationState}
       (by simpa [repeatedInitial] using initialEquation)
   have reachable := initialized.dispatch invariant dispatchEquation
   exact ⟨typed, afterInvariant, reachable⟩
+
+/-- Every exact canonical dispatcher success has branch-aligned tag evidence
+and pointwise extends the input tag carrier. -/
+example {initial : ReservationState}
+    {result : SequentialFigure7.Figure7DispatchResult}
+    (initialEquation : repeatedInitial = some initial)
+    (dispatchEquation :
+      SequentialFigure7.dispatch? repeatedOccurrenceCertificate initial
+          (repeatedInitial_schedulerInvariant initialEquation) =
+        some result) :
+    Nonempty
+        (SequentialFigure7.DispatchTagEvidence
+          repeatedOccurrenceCertificate initial result) ∧
+      SequentialFigure7.TagsExtend initial.tags result.after.tags := by
+  let invariant := repeatedInitial_schedulerInvariant initialEquation
+  rcases (SequentialFigure7.dispatch?_some_iff invariant).mp
+      dispatchEquation with
+    ⟨dispatchStep⟩
+  rcases dispatchStep.tagEvidence with ⟨evidence⟩
+  exact ⟨⟨evidence⟩, evidence.tagsExtend⟩
+
+/-- The exact initialized/dispatcher history admits canonical tag facts:
+current true tags are precisely recorded touches and submitted axiom slots do
+not repeat. -/
+example {initial : ReservationState}
+    {result : SequentialFigure7.Figure7DispatchResult}
+    (initialEquation : repeatedInitial = some initial)
+    (dispatchEquation :
+      SequentialFigure7.dispatch? repeatedOccurrenceCertificate initial
+          (repeatedInitial_schedulerInvariant initialEquation) =
+        some result) :
+    ∃ (history :
+        SequentialFigure7.ExecutedHistory repeatedOccurrenceCertificate
+          result.after)
+      (tagHistory :
+        SequentialFigure7.CanonicalTagHistory repeatedOccurrenceCertificate
+          history),
+      tagHistory.linkIndices.Nodup ∧
+        ∀ vertex,
+          result.after.tags[vertex]? = some true ↔
+            tagHistory.Touched vertex := by
+  let invariant := repeatedInitial_schedulerInvariant initialEquation
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [repeatedInitial] using initialEquation) with
+    ⟨initialStep⟩
+  rcases (SequentialFigure7.dispatch?_some_iff invariant).mp
+      dispatchEquation with
+    ⟨dispatchStep⟩
+  let history :=
+    SequentialFigure7.ExecutedHistory.later
+      (SequentialFigure7.ExecutedHistory.init initialStep)
+      invariant dispatchStep
+  rcases history.hasCanonicalTagHistory with ⟨tagHistory⟩
+  exact ⟨history, tagHistory, tagHistory.linkIndices_nodup,
+    fun _vertex ↦ tagHistory.tagged_iff_touched⟩
 
 /-- A real deterministic `new` transition over repeated formula labels keeps
 the two exact submitted axiom occurrences separate.  The fresh ready pair is
@@ -1161,6 +1254,7 @@ example :
         | none => false
         | some afterNop =>
             afterNop.kind == .nop &&
+              afterNop.after.tags == initial.tags &&
               let nopInvariant :=
                 SequentialFigure7.dispatch?_schedulerInvariant
                   initialInvariant nopEquation
@@ -1170,13 +1264,17 @@ example :
               | none => false
               | some afterForward =>
                   afterForward.kind == .forward &&
+                    afterForward.after.tags == afterNop.after.tags &&
                     let forwardInvariant :=
                       SequentialFigure7.dispatch?_schedulerInvariant
                         nopInvariant forwardEquation
                     match SequentialFigure7.dispatch? parCertificate
                         afterForward.after forwardInvariant with
                     | none => false
-                    | some afterConcl => afterConcl.kind == .concl) = true := by
+                    | some afterConcl =>
+                        afterConcl.kind == .concl &&
+                          afterConcl.after.tags ==
+                            afterForward.after.tags) = true := by
   native_decide
 
 /-! Independent Boolean-free Figure-7 `forward` correspondence. -/
@@ -1516,6 +1614,7 @@ example :
         | none => false
         | some afterNop =>
             afterNop.kind == .nop &&
+              afterNop.after.tags == initial.tags &&
               let nopInvariant :=
                 SequentialFigure7.dispatch?_schedulerInvariant
                   initialInvariant nopEquation
@@ -1525,14 +1624,104 @@ example :
               | none => false
               | some afterNew =>
                   afterNew.kind == .new &&
+                    afterNew.after.tags != afterNop.after.tags &&
                     let newInvariant :=
                       SequentialFigure7.dispatch?_schedulerInvariant
                         nopInvariant newEquation
                     match SequentialFigure7.dispatch? waitSchedulerCertificate
                         afterNew.after newInvariant with
                     | none => false
-                    | some afterWait => afterWait.kind == .wait) = true := by
+                    | some afterWait =>
+                        afterWait.kind == .wait &&
+                          afterWait.after.tags == afterNew.after.tags) = true := by
   native_decide
+
+/-- The concrete dispatcher `nop → new → wait` chain also exercises the
+proof-carrying tag layer: stable branches preserve tags exactly, `new`
+strictly grows them and records one axiom slot, and the complete history keeps
+all recorded submitted slots duplicate-free. -/
+example {initial : ReservationState}
+    {afterNop afterNew afterWait :
+      SequentialFigure7.Figure7DispatchResult}
+    (initialEquation : waitSchedulerInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.dispatch? waitSchedulerCertificate initial
+          (waitSchedulerInitial_schedulerInvariant initialEquation) =
+        some afterNop)
+    (nopKind : afterNop.kind = .nop)
+    (newEquation :
+      SequentialFigure7.dispatch? waitSchedulerCertificate afterNop.after
+          (SequentialFigure7.dispatch?_schedulerInvariant
+            (waitSchedulerInitial_schedulerInvariant initialEquation)
+            nopEquation) =
+        some afterNew)
+    (newKind : afterNew.kind = .new)
+    (waitEquation :
+      SequentialFigure7.dispatch? waitSchedulerCertificate afterNew.after
+          (SequentialFigure7.dispatch?_schedulerInvariant
+            (SequentialFigure7.dispatch?_schedulerInvariant
+              (waitSchedulerInitial_schedulerInvariant initialEquation)
+              nopEquation)
+            newEquation) =
+        some afterWait)
+    (waitKind : afterWait.kind = .wait) :
+    ∃ (newEvidence : SequentialFigure7.DispatchTagEvidence
+        waitSchedulerCertificate afterNop.after afterNew)
+      (history : SequentialFigure7.ExecutedHistory
+        waitSchedulerCertificate afterWait.after)
+      (tagHistory : SequentialFigure7.CanonicalTagHistory
+        waitSchedulerCertificate history),
+      afterNop.after.tags = initial.tags ∧
+        (∃ vertex linkIndex,
+          newEvidence.Touched vertex ∧
+            afterNop.after.tags[vertex]? = some false ∧
+            afterNew.after.tags[vertex]? = some true ∧
+            newEvidence.linkIndices = [linkIndex]) ∧
+        afterWait.after.tags = afterNew.after.tags ∧
+        tagHistory.linkIndices.Nodup := by
+  let initialInvariant :=
+    waitSchedulerInitial_schedulerInvariant initialEquation
+  let nopInvariant :=
+    SequentialFigure7.dispatch?_schedulerInvariant
+      initialInvariant nopEquation
+  let newInvariant :=
+    SequentialFigure7.dispatch?_schedulerInvariant
+      nopInvariant newEquation
+  rcases (SequentialFigure7.dispatch?_some_iff initialInvariant).mp
+      nopEquation with
+    ⟨nopStep⟩
+  rcases (SequentialFigure7.dispatch?_some_iff nopInvariant).mp
+      newEquation with
+    ⟨newStep⟩
+  rcases (SequentialFigure7.dispatch?_some_iff newInvariant).mp
+      waitEquation with
+    ⟨waitStep⟩
+  rcases nopStep.tagEvidence with ⟨nopEvidence⟩
+  rcases newStep.tagEvidence with ⟨newEvidence⟩
+  rcases waitStep.tagEvidence with ⟨waitEvidence⟩
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [waitSchedulerInitial] using initialEquation) with
+    ⟨initialStep⟩
+  let history :=
+    SequentialFigure7.ExecutedHistory.later
+      (SequentialFigure7.ExecutedHistory.later
+        (SequentialFigure7.ExecutedHistory.later
+          (SequentialFigure7.ExecutedHistory.init initialStep)
+          initialInvariant nopStep)
+        nopInvariant newStep)
+      newInvariant waitStep
+  rcases history.hasCanonicalTagHistory with ⟨tagHistory⟩
+  have nopNotNew : afterNop.kind ≠ .new := by
+    rw [nopKind]
+    decide
+  have waitNotNew : afterWait.kind ≠ .new := by
+    rw [waitKind]
+    decide
+  exact ⟨newEvidence, history, tagHistory,
+    nopEvidence.output_tags_eq_of_kind_ne_new nopNotNew,
+    newEvidence.new_growth_and_singleton_link newKind,
+    waitEvidence.output_tags_eq_of_kind_ne_new waitNotNew,
+    tagHistory.linkIndices_nodup⟩
 
 /-! Strict singleton waiting-payload unification regression. -/
 

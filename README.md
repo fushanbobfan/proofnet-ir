@@ -202,6 +202,17 @@ the call. They are therefore proof-carrying traces, not applicability,
 unconditional reachability, totality, or progress theorems. A regression locks
 the distinction by showing that an invariant-valid empty scheduler state has
 `dispatch? = none`.
+`SequentialFigure7TagHistory.lean` augments exactly those existing traces with
+branch-aligned tag evidence. The five non-`new` branches preserve the complete
+tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
+slot. Every certified reachable state therefore has a canonical tag history,
+and Lean proves current true tags iff recorded initialization/`new` touches,
+history-wide touch separation, monotone growth, and submitted-slot `Nodup`.
+The touched predicate is history-independent for two exact histories ending at
+the same state. This does not make `SchedulerInvariant` a history predicate:
+same-sized forged tag arrays can still satisfy that state-only invariant, and
+this checkpoint does not separately prove the concrete all-true regression
+state unreachable.
 `SequentialFigure7History.lean` now separately
 defines proof-relevant reachability for exactly the empty/init/operational-new
 fragment. For every such execution, Lean proves current tags are true exactly
@@ -212,9 +223,10 @@ not a generic Figure-7 history: the executable non-reserving `concl`, `nop`,
 `wait`, `forward`, bounded `UnifyEmpty`, strict-singleton `UnifyOne`, and
 arbitrary-payload `UnifyPayload` rules need rule-step accounting distinct from
 reservation-event counting and remain outside that richer reservation-only
-history. The canonical dispatcher history does integrate successful executions
-of all six rule families, but it does not inherit `InitNewHistory`'s route-touch,
-axiom-slot non-reuse, or reservation-event count theorems. Guard applicability,
+history. The canonical dispatcher tag augmentation now lifts exact touch
+provenance and axiom-slot non-reuse across all six rule families, but it does
+not lift the reservation-event count theorem or publish a whole-history
+oriented-route theorem. Guard applicability,
 exhaustive branch classification, correct-state progress, pure-worklist
 completeness, fallback removal, and linearity remain open.
 
@@ -341,8 +353,8 @@ the complete occurrence-exact `SchedulerInvariant`; the transient-gap proof
 establishes each payload occurrence's exact ownership before the final forest
 covers the whole payload. Conditional applicability is proved from explicit
 `UnifyPayloadEnabled`; deriving that predicate for intended reachable states,
-exhaustive dispatcher enabledness, lifting route/tag/slot laws into the
-canonical history, unconditional full-rule reachability and later-state
+exhaustive dispatcher enabledness, generalizing reservation-count and
+whole-history oriented-route laws, unconditional full-rule reachability and later-state
 totality, progress, scheduler/pure-worklist completeness, fallback removal, and
 whole-program linearity remain
 open. Tail-based list operations also carry no O(1) claim.
@@ -616,7 +628,9 @@ compatibility APIs represented by the general branch. This integration does
 not prove applicability, totality, or unconditional reachability. The separate
 `InitNewHistory` proves exact tag history, whole-history submitted-slot
 non-reuse, and event-counter alignment only for genuine empty/init/new
-executions; those richer laws are not yet lifted to the canonical history.
+executions. The canonical tag augmentation now lifts touch provenance and
+submitted-slot non-reuse through every stable dispatcher branch; event-counter
+alignment and a public whole-history oriented-route theorem are not yet lifted.
 Correct-state progress, pure-worklist completeness, fallback removal, and
 whole-program linearity therefore remain open.
 
@@ -1002,9 +1016,10 @@ an invariant-preserving result; it neither derives that predicate from the
 invariant alone nor assigns the invariant to physical intermediate tensor/fold
 states. Integration of successful local
 `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload` into a canonical
-certified history is complete. Lifting the reservation-specific route/tag/slot
-laws into that history, proving exhaustive guard applicability, and obtaining a
-total later-state transition system remain open.
+certified history is complete, including exact tag-touch provenance and global
+submitted-slot non-reuse. Generalizing reservation-event counting and the
+whole-history oriented-route API, proving exhaustive guard applicability, and
+obtaining a total later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -1260,8 +1275,8 @@ The repository currently contains:
   canonical priority
   dispatcher and proof-carrying certified successful history now cover
   `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload`; later-state
-  totality, unconditional reachability, and richer route/tag/slot history laws
-  remain open. Closing-par exclusion,
+  totality, unconditional reachability, reservation-count transport, and a
+  whole-history oriented-route theorem remain open. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -1492,7 +1507,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 575 declarations: 351 public MLL logical-boundary theorems
+ separately audits 597 declarations: 373 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 23
  axiom-free, 90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1645,6 +1660,7 @@ ProofNetIR/SequentialFigure7UnifyPayload.lean atomic tensor/fold/drain payload u
 ProofNetIR/SequentialFigure7UnifyPayloadInvariant.lean arbitrary-payload full-invariant transport
 ProofNetIR/SequentialFigure7UnifyPayloadEnabled.lean input-only conditional payload applicability
 ProofNetIR/SequentialFigure7Dispatcher.lean canonical six-rule dispatcher and certified history
+ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
 ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant
 ProofNetIR/SequentialComponentProvenance.lean exact proof-only component identity
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form

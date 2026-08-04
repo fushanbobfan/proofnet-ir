@@ -475,8 +475,14 @@ compatibility APIs rather than additional dispatcher constructors. The module's
 dispatcher witness and the invariant supplied to that call. It is useful for
 auditable execution composition, but it neither synthesizes a guard nor proves
 that a nonterminal state has a successor. The earlier `InitNewHistory` remains
-separate because its tag-touch, route freshness, slot non-reuse, and event-count
-laws are stronger and reservation-specific.
+separate because its event-count and explicit reservation-only shape laws are
+stronger and reservation-specific. `SequentialFigure7TagHistory.lean` recovers
+the selected typed branch from every exact `DispatchStep` and augments the
+existing history without widening reachability. Stable branches preserve tags
+exactly; `new` retains its search touch and submitted slot. The full augmented
+trace proves tag-touch equivalence, touch separation, history independence,
+and submitted-slot `Nodup`, but no applicability, totality, progress, or
+concrete forged-state nonreachability.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
@@ -598,8 +604,8 @@ falsely count that par as already constructed.
 The local atomic arbitrary-payload transition, conditional input-only
 applicability, and successful-step occurrence-exact invariant preservation are
 implemented. Derivation of `UnifyPayloadEnabled` from reachable intended branch
-states, exhaustive dispatcher enabledness, lifting the
-richer init/new route/tag/slot laws into the canonical history, unconditional
+states, exhaustive dispatcher enabledness, generalizing reservation-count and
+whole-history oriented-route laws, unconditional
 full-rule reachability, later-state totality, correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open. The
@@ -890,9 +896,17 @@ active-reference walks between marked occurrences are equivalent to
   invariant from a full input invariant. Pure input-only
   `UnifyPayloadEnabled` plus that invariant now implies executable success;
   the invariant alone does not imply the predicate. The separate canonical
-  dispatcher history accounts for all six successful rule families. Exhaustive
-  branch enabledness, richer-history-law transport, and unconditional full-rule
-  reachability remain open. Planarity
+  dispatcher history accounts for all six successful rule families.
+  `SequentialFigure7TagHistory.lean` adds a branch-indexed augmentation of that
+  exact history: only `new` records a `NEXTAXIOM` event, the other five branches
+  preserve tags exactly, and current true tags are equivalent to recorded
+  initialization/`new` touches. Touched sets are separated across the complete
+  trace and submitted axiom-link positions are globally duplicate-free. The
+  augmentation is derived from `ExecutedHistory`/certified reachability; it
+  does not turn `SchedulerInvariant.tags_size` into tag provenance, and it does
+  not prove the concrete same-sized all-true replacement unreachable.
+  Exhaustive branch enabledness, reservation-count/oriented-route
+  generalization, and unconditional full-rule reachability remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -914,10 +928,12 @@ typed/executable steps preserve the complete occurrence-exact
   occurrence-exact invariant on successful steps from a full input invariant;
   input-only `UnifyPayloadEnabled` plus that invariant proves conditional
   arbitrary-payload success. A canonical priority dispatcher and proof-carrying
-  certified history now integrate every implemented successful rule family.
+  certified history now integrate every implemented successful rule family;
+  its canonical tag augmentation proves exact touch provenance and global
+  submitted-slot non-reuse through stable and `new` branches alike.
   Exhaustive later-state branch enabledness/totality, unconditional full-rule
-  reachability, and the richer route/tag/slot history commitments are not
-  proved. General
+  reachability, reservation-count transport, and a public whole-history
+  oriented-route theorem are not proved. General
 checker-accepted sequentialization remains complete through the recursive
 tier; recursive fallback removal and whole-program linearity remain separate
 open gates.

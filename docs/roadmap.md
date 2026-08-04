@@ -807,9 +807,9 @@
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
-    route-local later-call freshness, lift the reservation-specific tag/slot
-    laws into the general execution history, and prove exhaustive applicability
-    and progress. A proof-only exact component/link occurrence
+    route-local later-call freshness, generalize reservation-event counting and
+    the whole-history oriented-route API, and prove exhaustive applicability and
+    progress. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
     the forest is integrated for empty/init and the common prepared prefix,
     so `concl`/`nop` preserve it.
@@ -822,6 +822,15 @@
     duplicate history tags. This does not prove any branch enabled, and the
     later history constructor explicitly requires the invariant used by the
     executable call.
+  - [x] Add a branch-indexed canonical tag augmentation of that exact
+    dispatcher history. Recover each selected typed step from `DispatchStep`,
+    prove exact tag stability for the five non-`new` rules, retain the exact
+    `NEXTAXIOM` touch/submitted slot for `new`, and derive current-tag iff
+    recorded touch, global touched-set separation, monotone growth,
+    touched-history independence, and submitted-slot `Nodup`. Expose the bridge
+    from `ReachableByImplementedDispatcher`. Keep same-sized forged tags outside
+    this proof-carrying history contract; do not infer applicability, totality,
+    progress, or the concrete all-true fixture's nonreachability.
   - [x] Preserve the complete current occurrence-exact state-only
     `SchedulerInvariant` through every successful deterministic `NewStep` and
     successful executable `new?`, including exact fresh-axiom forest extension
@@ -902,8 +911,8 @@
     alone is explicitly insufficient.
   - [ ] Derive `UnifyPayloadEnabled` for the selected branch and then exhaustive
     dispatcher enabledness on correct certified-reachable nonterminal states.
-    Lift route/tag/slot commitments into the canonical history, establish
-    unconditional full-rule reachability, progress, completeness of that
+    Generalize the remaining reservation-count/oriented-route commitments,
+    establish unconditional full-rule reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation
     before claiming Guerrini linearity. The needed stack invariants are false
     for the flat scheduler.

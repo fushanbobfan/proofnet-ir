@@ -14061,6 +14061,387 @@ ProofNetIR.SequentialFigure7.ExecutedHistory.schedulerInvariant : ∀ {certifica
   certificate.StructurallyWellFormed → ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state
 ```
 
+### `ProofNetIR.SequentialFigure7.ConclStep.output_tags_eq`
+
+Kind: theorem.
+
+A successful conclusion step preserves the tag carrier exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.output_tags_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after), after.tags = before.tags
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.output_tags_eq`
+
+Kind: theorem.
+
+A successful par no-op preserves the tag carrier exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.output_tags_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after), after.tags = before.tags
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.output_tags_eq`
+
+Kind: theorem.
+
+A successful waiting enqueue preserves the tag carrier exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.output_tags_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after), after.tags = before.tags
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.output_tags_eq`
+
+Kind: theorem.
+
+A successful forward step preserves the tag carrier exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.output_tags_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after), after.tags = before.tags
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.output_tags_eq`
+
+Kind: theorem.
+
+A successful arbitrary-payload unification preserves the tag carrier
+exactly.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.output_tags_eq : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after), after.tags = before.tags
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence`
+
+Kind: inductive type.
+
+Branch-aligned proof evidence for the tag effect of one exact dispatcher
+result.
+
+The result tag indexes the constructor, so a stable dispatcher branch cannot
+be paired with an unrelated `new` search witness.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.SequentialFigure7.Figure7DispatchResult → Type
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.tagEvidence`
+
+Kind: theorem.
+
+Every exact dispatcher step admits branch-aligned tag evidence.  This is
+an extraction from a successful equation, not a future-success theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.tagEvidence : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (step : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result),
+  Nonempty (ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result)
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.Touched`
+
+Kind: definition.
+
+Vertices touched by the one possible `NEXTAXIOM` event in a dispatcher
+step.  The five stable branches touch no search tag.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.Touched : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult} →
+      ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.linkIndices`
+
+Kind: definition.
+
+Submitted axiom-link positions reserved by one dispatcher step.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.linkIndices : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult} →
+      ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result → List Nat
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.tagged_iff_input_or_touched`
+
+Kind: theorem.
+
+Exact tag effect of every successful dispatcher branch.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.tagged_iff_input_or_touched : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result) {vertex : ProofNetIR.Vertex},
+  result.after.tags[vertex]? = some true ↔ before.tags[vertex]? = some true ∨ evidence.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.tagsExtend`
+
+Kind: theorem.
+
+Every dispatcher step pointwise extends its input tag carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.tagsExtend : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  ProofNetIR.SequentialFigure7.TagsExtend before.tags result.after.tags
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.touched_input_false`
+
+Kind: theorem.
+
+Every vertex attributed to the current search was false on input.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.touched_input_false : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result) {vertex : ProofNetIR.Vertex},
+  evidence.Touched vertex → before.tags[vertex]? = some false
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.mem_linkIndices_witness`
+
+Kind: theorem.
+
+Membership in one dispatch event's reservation list carries the exact
+submitted axiom and a touched endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.mem_linkIndices_witness : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result) {index : Nat},
+  index ∈ evidence.linkIndices →
+    ∃ left right, certificate.links[index]? = some (ProofNetIR.Link.axiom left right) ∧ evidence.Touched left
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.linkIndices_nodup`
+
+Kind: theorem.
+
+One dispatcher event never records a duplicate reservation slot.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.linkIndices_nodup : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result), evidence.linkIndices.Nodup
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.output_tags_eq_of_kind_ne_new`
+
+Kind: theorem.
+
+Every non-`new` dispatcher branch preserves the complete tag array, not
+only the pointwise truth implication exposed by `TagsExtend`.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.output_tags_eq_of_kind_ne_new : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  result.kind ≠ ProofNetIR.SequentialFigure7.Figure7RuleKind.new → result.after.tags = before.tags
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.new_growth_and_singleton_link`
+
+Kind: theorem.
+
+A dispatcher event tagged `new` has a genuinely fresh touched vertex and
+records exactly one submitted axiom-link position.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.new_growth_and_singleton_link : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  result.kind = ProofNetIR.SequentialFigure7.Figure7RuleKind.new →
+    ∃ vertex linkIndex,
+      evidence.Touched vertex ∧
+        before.tags[vertex]? = some false ∧ result.after.tags[vertex]? = some true ∧ evidence.linkIndices = [linkIndex]
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory`
+
+Kind: inductive type.
+
+The minimal proof-carrying tag augmentation of one exact canonical
+dispatcher history.
+
+This type is indexed by the already-recorded `ExecutedHistory`; it neither
+widens reachability nor assumes that another dispatcher call will succeed.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory : (certificate : ProofNetIR.Certificate) →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.ExecutedHistory certificate state → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory.hasCanonicalTagHistory`
+
+Kind: theorem.
+
+Every exact dispatcher history admits its minimal branch-aligned tag
+augmentation.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory.hasCanonicalTagHistory : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state),
+  Nonempty (ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.hasCanonicalTagHistory`
+
+Kind: theorem.
+
+Every state already certified reachable by the canonical dispatcher has
+an exact execution history together with its canonical tag augmentation.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.hasCanonicalTagHistory : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    ∃ history, Nonempty (ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.Touched`
+
+Kind: definition.
+
+Vertices touched by initialization or any later canonical `new` search.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.Touched : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices`
+
+Kind: definition.
+
+Submitted axiom-link positions, newest dispatcher event first.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → List Nat
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.tagged_iff_touched`
+
+Kind: theorem.
+
+Exact global provenance: a current true tag exists exactly when an
+initialization or canonical `new` search touched that vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.tagged_iff_touched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history) {vertex : ProofNetIR.Vertex},
+  state.tags[vertex]? = some true ↔ tagHistory.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_history_independent`
+
+Kind: theorem.
+
+The touched predicate is independent of which exact execution-history
+witness reaches the same concrete state.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_history_independent : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {firstHistory secondHistory : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (first : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate firstHistory)
+  (second : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate secondHistory) {vertex : ProofNetIR.Vertex},
+  first.Touched vertex ↔ second.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.true_tag_has_touch`
+
+Kind: theorem.
+
+A true tag in a canonically recorded state always has an exact recorded
+initialization or `new` touch.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.true_tag_has_touch : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history) {vertex : ProofNetIR.Vertex},
+  state.tags[vertex]? = some true → tagHistory.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_persists_next`
+
+Kind: theorem.
+
+Every previously touched vertex remains tagged after one more canonical
+dispatcher step.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_persists_next : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result) {vertex : ProofNetIR.Vertex},
+  tagHistory.Touched vertex → result.after.tags[vertex]? = some true
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_disjoint_next`
+
+Kind: theorem.
+
+A new dispatch event cannot touch a vertex touched anywhere earlier in
+the same exact history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_disjoint_next : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result) {vertex : ProofNetIR.Vertex},
+  tagHistory.Touched vertex → evidence.Touched vertex → False
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.mem_linkIndices_witness`
+
+Kind: theorem.
+
+Membership in the global submitted-slot list carries an exact axiom
+lookup and an endpoint touched by that history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.mem_linkIndices_witness : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history) {index : Nat},
+  index ∈ tagHistory.linkIndices →
+    ∃ left right, certificate.links[index]? = some (ProofNetIR.Link.axiom left right) ∧ tagHistory.Touched left
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices_nodup`
+
+Kind: theorem.
+
+No submitted axiom-link position occurs twice in a canonical dispatcher
+history.  Equal-valued links in distinct submitted positions remain distinct.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices_nodup : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history), tagHistory.linkIndices.Nodup
+```
+
 ### `ProofNetIR.SequentialFigure7.dispatcher_reachable_empty`
 
 Kind: theorem.

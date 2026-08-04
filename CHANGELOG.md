@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+- added `SequentialFigure7TagHistory.lean`, the minimal proof-carrying tag
+  augmentation of the canonical six-rule dispatcher history. Branch-indexed
+  `DispatchTagEvidence` recovers the exact typed rule selected by an existing
+  `DispatchStep`: `new` retains its exact `NEXTAXIOM` search/touch/submitted-slot
+  witness, while `concl`, `nop`, `wait`, `forward`, and `unifyPayload` prove
+  exact tag-array stability. `CanonicalTagHistory` is indexed by the existing
+  `ExecutedHistory`, so it neither creates reachability nor assumes another
+  step succeeds. Lean proves true-tag iff recorded initialization/`new` touch,
+  monotone tag growth, separation of every later touch from all earlier
+  touches, global submitted axiom-link-slot `Nodup`, a public
+  `ReachableByImplementedDispatcher` bridge, and touched-history independence
+  for two histories ending at the same concrete state. Regressions cover
+  stable tags on `nop → forward → concl`, strict `new` growth followed by
+  stable `unifyPayload`, and stable/growing/stable tags plus global slot
+  `Nodup` on `nop → new → wait`. A same-sized all-true replacement still
+  satisfies the state-only `SchedulerInvariant`, demonstrating why the
+  proof-carrying history is necessary; this checkpoint does not separately
+  prove that concrete forged state unreachable. No applicability, totality,
+  progress, pure-worklist completeness, fallback-removal, or complexity claim
+  is added. The exact axiom audit now covers 597 declarations: 373
+  full-classical, 23 axiom-free, 90 `propext`-only, and 111
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7UnifyPayloadEnabled.lean`, an input-only conditional
   applicability layer for arbitrary finite waiting payloads.
   `UnifyPayloadInput` records only the selected top-ready occurrence, an exact
