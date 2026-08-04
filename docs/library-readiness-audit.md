@@ -534,6 +534,19 @@ part of the engineering and proof-identity gap.
    regression proves that the full invariant need not enable any branch, so
    these theorems do not establish intended-state exhaustiveness,
    nonterminality, global progress, or worklist completeness.
+   `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
+   specific reachable-state gap around `NewGuard`: it considers only states
+   reached by successful initialization and the canonical dispatcher and hard
+   fails on an exact guarded `new? = none` witness. The default CI corpus is
+   seed 0 at depths 0 through 4, every formula start, and six labelled ordering
+   variants (30 certificate cases, 23,184 reachable states, 6,198 guarded
+   successes); the opt-in depth-5 extension reaches 96,444 states and 26,658
+   guarded successes. Both observed zero guarded failures, inverse guard
+   mismatches, cycles, and fuel truncations. Deep acceptance uses
+   `unificationCheck` and the kernel theorem `unificationCheck_eq_check`, while
+   the 18 cases at depths 0 through 2 also run the direct all-switchings
+   checker. This finite receipt does not close input-only `new` sufficiency,
+   intended-state exhaustiveness, progress, totality, or completeness.
    `SequentialFigure7TagHistory.lean` now derives a branch-aligned augmentation
    from that exact history and from certified dispatcher reachability. It proves
    exact current-tag provenance, stable tags for all five non-`new` branches,

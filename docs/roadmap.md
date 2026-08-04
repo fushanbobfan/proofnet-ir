@@ -943,6 +943,17 @@
     `SchedulerInvariant`, plus invariant-preserving output. Preserve
     raw-marked-intermediate, terminal-partner-pretagged, and queued-partner
     regressions. Do not infer later-call totality or reachable-state progress.
+  - [x] Add a deterministic finite search for an actually reachable
+    `NewGuard` state where the real `new?` fails. The default CI gate follows
+    successful initialization and the canonical dispatcher from every formula
+    start for seed 0, depths 0 through 4, and six labelled ordering variants;
+    it covered 23,184 reachable states and 6,198 guarded successes with zero
+    misses, inverse guard mismatches, cycles, or fuel truncations. The opt-in
+    depth-5 extension covered 96,444 total reachable states and 26,658 guarded
+    successes. Acceptance is transported from `unificationCheck` through its
+    kernel equality with `check`, with 18 shallow direct-check sentinels. Keep
+    this explicitly finite: it is a counterexample search, not a universal
+    `NewGuard`-sufficiency, progress, totality, or completeness theorem.
   - [ ] Replace the remaining `NewExecutableEnabled` field inside
     `PriorityEnabled` with the now-proved input-only `NewEnabled` through a
     dedicated lower-layer/import-DAG split, while preserving the public

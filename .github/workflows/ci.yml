@@ -39,6 +39,8 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_consumer_index_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_primitives_tests
           ~/.elan/bin/lake exe proofnet_ir_figure7_unify_payload_invariant_tests
+      - name: Search reachable Figure-7 new guards for executor misses
+        run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
       - name: Validate generated LeanProp template corpus
         run: ~/.elan/bin/lake exe proofnet_ir_leanprop_corpus
       - name: Verify Lean-emitted LeanProp corpus manifest

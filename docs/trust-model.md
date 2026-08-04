@@ -391,6 +391,19 @@ the compatibility iff does not silently change the dispatcher definition.
 None of these local proofs establishes later-call totality, reachable-state
 exhaustiveness, progress, pure-worklist completeness, fallback removal, or
 linearity.
+The separate `ProofNetIRNewProgressAudit.lean` executable introduces no new
+axiom and does not manufacture invariant-shaped states. Each inspected state
+comes with `ReachableByImplementedDispatcher`, built from an exact successful
+initialization and exact dispatcher equations. A counterexample must retain
+the accepted certificate, complete state, start, replayed rule kinds,
+proof-relevant `NewGuard`, and the actual `new? = none` equation. Generated
+certificate acceptance is obtained from `unificationCheck = true` and
+transported to `check = true` by the kernel theorem
+`unificationCheck_eq_check`; the 18 depth-0-through-2 cases additionally run
+the direct all-switchings checker. The default and extended finite receipts
+found no witness, but absence in 30 or 36 labelled cases is not an oracle,
+universal `NewGuard`-sufficiency theorem, reachability characterization, or
+progress result.
 `SequentialFigure7TagHistory.lean` also adds no oracle. It pattern-matches only
 the exact typed branch recovered from an existing `DispatchStep` and augments
 the already-certified `ExecutedHistory`. The five stable branches prove array

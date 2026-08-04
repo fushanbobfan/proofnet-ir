@@ -27,6 +27,24 @@
   fallback removal, or whole-program linearity claim. The exact axiom audit
   now covers 667 declarations: 423 full-classical, 25 axiom-free, 104
   `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
+- added `ProofNetIRNewProgressAudit.lean`, a deterministic finite
+  counterexample search over states reached only by successful
+  `initializeReservation?` followed by the canonical `dispatch?`. The default
+  CI gate checks seed 0 at generated depths 0 through 4, all formula starts,
+  and six labelled link/boundary-order variants: 30 certificate cases, 594
+  successful initializations, 23,184 reachable states, and 6,198 reconstructed
+  `NewGuard` states. Every guarded state had actual `new?` success; there were
+  zero guarded failures, inverse `new?`-without-guard mismatches, replay cycles,
+  or fuel truncations. The opt-in `--extended` gate includes depth 5 and covered
+  36 labelled cases, 96,444 reachable states, and 26,658 guarded successes.
+  Acceptance uses `unificationCheck` and transports its result to the original
+  checker through the kernel theorem `unificationCheck_eq_check`; 18 shallow
+  cases also execute the direct checker as a differential sentinel. A witness
+  is a hard failure carrying the exact certificate, start, state, dispatcher
+  history, `new? = none` equation, and first failing executor stage. These finite
+  receipts are regression evidence only: they do not prove `NewGuard`
+  sufficient, dispatcher progress, later-state totality, pure-worklist
+  completeness, fallback removal, or whole-program linearity;
 - added `SequentialFigure7NewInputNecessary.lean`, an honest input-only
   necessary projection of operational Figure-7 `new` success. `NewGuard`
   records a ready head, its exact valid tensor-below witness, and an unmarked

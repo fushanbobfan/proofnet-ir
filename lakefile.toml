@@ -65,6 +65,10 @@ name = "proofnet_ir_unification_completeness_search"
 root = "ProofNetIRUnificationCompletenessSearch"
 
 [[lean_exe]]
+name = "proofnet_ir_new_progress_audit"
+root = "ProofNetIRNewProgressAudit"
+
+[[lean_exe]]
 name = "proofnet_ir_api_docs"
 root = "ProofNetIRAPIDocs"
 supportInterpreter = true

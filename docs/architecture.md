@@ -548,6 +548,19 @@ priority module still imports the lower operational layer, so replacing its
 dependency split. This layering fact does not weaken the local equivalence and
 does not establish reachable-state exhaustiveness, totality, progress,
 completeness, fallback removal, or a cost theorem.
+The root executable `ProofNetIRNewProgressAudit.lean` is a bounded
+falsification layer over that boundary. It never inserts arbitrary states:
+each path begins with `initializeReservation?` and recursively applies the
+canonical `dispatch?`, carrying `ReachableByImplementedDispatcher` and deriving
+`SchedulerInvariant` from the actual history. At each state it independently
+reconstructs `NewGuard`, calls the actual `new?`, and hard fails with a complete
+replayable witness on a mismatch. The default CI corpus is finite at seed 0,
+depths 0 through 4, every formula start, and six labelled order variants;
+`--extended` adds depth 5. Candidate acceptance uses `unificationCheck` and the
+kernel equality `unificationCheck_eq_check`; a direct all-switchings sentinel
+remains at depths 0 through 2. This executable architecture supplies regression
+evidence and diagnostics, not a `NewGuard` success converse or a scheduler
+progress theorem.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and

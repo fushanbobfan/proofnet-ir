@@ -126,6 +126,33 @@ This widens the counterexample search substantially, but remains finite
 empirical evidence. Its executable name does not mean that universal
 fast-path completeness has been proved.
 
+`proofnet_ir_new_progress_audit` separately replays only actually initialized
+and canonically dispatched Figure-7 states and searches for a reconstructed
+`NewGuard` whose real `new?` call fails. Candidate acceptance uses
+`unificationCheck`; `unificationCheck_eq_check` transports that Boolean result
+to the original checker proposition in the kernel. Depths zero through two
+also execute the direct all-switchings checker for 18 differential sentinels.
+This distinction matters at depth five: the generated seed-0 certificate has
+15 par choices, so the direct checker takes the exponential switching path,
+whereas the theorem-equivalent unification check takes milliseconds. The first
+complete extended receipt was:
+
+```text
+new-progress-audit-ok mode=extended depths=[0, 1, 2, 3, 4, 5]
+seeds_per_depth=1 variants_per_certificate=6 base_derivations=6
+labelled_certificates=36 direct_check_sentinels=18
+initialization_attempts=1254 initialization_successes=1254
+initialization_failures=0 reachable_states=96444 new_guard_states=26658
+new_success_states=26658 new_failure_states=0
+new_success_without_guard=0 dispatch_steps=95190 terminal_runs=1254
+max_replay_steps=110 cycles=0 truncations=0 checksum=5588478
+replay_fuel=16*(formulas+links+1) elapsed_ms=5425 budget_ms=1800000
+```
+
+The default CI mode stops at depth four and is a 30-labelled-case finite gate;
+`--extended` is opt-in. Neither timing nor zero observed misses proves
+input-only `new` sufficiency, dispatcher progress, or whole-program linearity.
+
 A separate `proofnet_ir_reconstruction_stress` executable exercises 18
 accepted identity nets with a single repeated internal atom. It crosses
 right-skewed tensor, balanced tensor, balanced par, and alternating shapes;

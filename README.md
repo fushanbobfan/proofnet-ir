@@ -266,6 +266,21 @@ migrated from its compatible operational field because that requires a
 dedicated dependency split. It proves no reachable nonterminal exhaustiveness,
 later-call totality, dispatcher progress, pure-worklist completeness, fallback
 removal, or whole-program linearity.
+`ProofNetIRNewProgressAudit.lean` complements those forged-state regressions
+with a finite reachable-state search. It starts only from successful
+`initializeReservation?` calls and follows only the canonical `dispatch?`,
+carrying a proof of `ReachableByImplementedDispatcher` at every inspected
+state. The default CI mode covers seed 0, depths 0 through 4, all formula
+starts, and six labelled link/boundary-order variants: 30 certificate cases,
+23,184 reachable states, and 6,198 `NewGuard` states, with zero `new?` misses,
+inverse guard mismatches, cycles, or fuel truncations. `--extended` includes
+depth 5 and covers 36 labelled cases, 96,444 reachable states, and 26,658
+guarded successes. Acceptance is transported from `unificationCheck` to the
+original checker by `unificationCheck_eq_check`; 18 shallow cases also execute
+the direct checker. Equal labelled variants are still counted as labelled
+cases, not unique certificates. This is deterministic finite regression
+evidence, not a theorem that `NewGuard` is sufficient on every reachable
+state and not a progress, totality, completeness, or complexity result.
 `SequentialFigure7TagHistory.lean` augments exactly those existing traces with
 branch-aligned tag evidence. The five non-`new` branches preserve the complete
 tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
@@ -1653,6 +1668,8 @@ lake build
 lake exe proofnet_ir_tests
 lake exe proofnet_ir_consumer_index_tests
 lake exe proofnet_ir_figure7_primitives_tests
+lake exe proofnet_ir_new_progress_audit
+lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check
 python scripts/audit_v03_canonical.py
 lake exe proofnet_ir_api_docs --check
@@ -1737,6 +1754,7 @@ ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRConsumerIndexTests.lean orientation and fail-closed consumer tests
 ProofNetIRFigure7PrimitivesTests.lean typed Figure-7 transition regressions
 ProofNetIRFigure7UnifyPayloadInvariantTests.lean full-SI length-two payload regression
+ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget
