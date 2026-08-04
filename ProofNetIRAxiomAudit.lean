@@ -163,6 +163,8 @@ expansion.
 #print axioms SequentialUnification.DynamicStartResult.refinesStart
 #print axioms SequentialUnification.nextAxiomWithFuel?_startReady
 #print axioms SequentialUnification.nextAxiom?_startReady
+#print axioms SequentialUnification.nextAxiomWithFuel?_traceReady
+#print axioms SequentialUnification.nextAxiom?_traceReady
 #print axioms ConsumerIndex.build_size
 #print axioms ConsumerIndex.build_origin
 #print axioms ConsumerIndex.build_complete

@@ -54,6 +54,75 @@ theorem nextAxiomWithFuel?_startReady
         · simp [nextAxiomWithFuel?, tagReady, markReady] at equation
       · simp [nextAxiomWithFuel?, tagReady] at equation
 
+/-- Every occurrence on the recursive trace of a successful bounded
+`NEXTAXIOM` call was unmarked in the exact input production state.
+
+The search never changes `state`; recursive calls only extend the tag array.
+Consequently the result's trace is not merely tag-fresh: every recorded route
+occurrence passed the same production-mark guard as the initial occurrence.
+The execution equation is essential because `NextAxiomResult` is a public
+proof-relevant record whose fields alone do not retain internal mark
+readiness. -/
+theorem nextAxiomWithFuel?_traceReady
+    {certificate : Certificate} {state : UnificationState}
+    {index : SourceIndex} {fuel : Nat} {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {start : Vertex}
+    {result : NextAxiomResult certificate state fuel tags}
+    (equation :
+      nextAxiomWithFuel? certificate state index indexSound
+          fuel tags start =
+        some result) :
+    ∀ {vertex : Vertex}, vertex ∈ result.trace →
+      state.marks[vertex]? = some none := by
+  induction fuel generalizing tags start with
+  | zero =>
+      simp [nextAxiomWithFuel?] at equation
+  | succ fuel induction =>
+      simp only [nextAxiomWithFuel?] at equation
+      repeat
+        first
+        | split at equation
+        | contradiction
+      all_goals simp at equation
+      case h_1.isTrue.isTrue.isTrue.isTrue.isTrue.isTrue =>
+        rename_i vertexTag vertexReady source sourceLookup left right
+          linkEquation different atEndpoint leftTag rightTag leftReady
+          rightReady
+        subst result
+        intro vertex membership
+        simp only [List.mem_singleton] at membership
+        subst vertex
+        exact vertexReady
+      case h_2 =>
+        rename_i vertexTag vertexReady source sourceLookup left right
+          conclusion linkEquation
+        rcases equation with ⟨produced, equation⟩
+        split at equation
+        · simp at equation
+        · rename_i recursiveResult recursiveEquation
+          simp at equation
+          subst result
+          intro vertex membership
+          simp only [List.mem_cons] at membership
+          rcases membership with rfl | membership
+          · exact vertexReady
+          · exact induction recursiveEquation membership
+      case h_3 =>
+        rename_i vertexTag vertexReady source sourceLookup left right
+          conclusion linkEquation
+        rcases equation with ⟨produced, equation⟩
+        split at equation
+        · simp at equation
+        · rename_i recursiveResult recursiveEquation
+          simp at equation
+          subst result
+          intro vertex membership
+          simp only [List.mem_cons] at membership
+          rcases membership with rfl | membership
+          · exact vertexReady
+          · exact induction recursiveEquation membership
+
 /-- Production-wrapper form of `nextAxiomWithFuel?_startReady`. -/
 theorem nextAxiom?_startReady
     {certificate : Certificate} {state : UnificationState}
@@ -67,6 +136,22 @@ theorem nextAxiom?_startReady
         some result) :
     state.marks[start]? = some none := by
   exact nextAxiomWithFuel?_startReady (by
+    simpa [nextAxiom?] using equation)
+
+/-- Production-wrapper form of `nextAxiomWithFuel?_traceReady`. -/
+theorem nextAxiom?_traceReady
+    {certificate : Certificate} {state : UnificationState}
+    {index : SourceIndex} {tags : Array Bool}
+    {indexSound : SourceIndex.Sound certificate index}
+    {start : Vertex}
+    {result :
+      NextAxiomResult certificate state certificate.formulas.size tags}
+    (equation :
+      nextAxiom? certificate state index indexSound tags start =
+        some result) :
+    ∀ {vertex : Vertex}, vertex ∈ result.trace →
+      state.marks[vertex]? = some none := by
+  exact nextAxiomWithFuel?_traceReady (by
     simpa [nextAxiom?] using equation)
 
 end SequentialUnification

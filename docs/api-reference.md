@@ -10325,6 +10325,44 @@ ProofNetIR.SequentialUnification.nextAxiom?_startReady : ∀ {certificate : Proo
     state.marks[start]? = some none
 ```
 
+### `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_traceReady`
+
+Kind: theorem.
+
+Every occurrence on the recursive trace of a successful bounded
+`NEXTAXIOM` call was unmarked in the exact input production state.
+
+The search never changes `state`; recursive calls only extend the tag array.
+Consequently the result's trace is not merely tag-fresh: every recorded route
+occurrence passed the same production-mark guard as the initial occurrence.
+The execution equation is essential because `NextAxiomResult` is a public
+proof-relevant record whose fields alone do not retain internal mark
+readiness.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiomWithFuel?_traceReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {fuel : Nat} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel tags},
+  ProofNetIR.SequentialUnification.nextAxiomWithFuel? certificate state index ⋯ fuel tags start = some result →
+    ∀ {vertex : ProofNetIR.Vertex}, vertex ∈ result.trace → state.marks[vertex]? = some none
+```
+
+### `ProofNetIR.SequentialUnification.nextAxiom?_traceReady`
+
+Kind: theorem.
+
+Production-wrapper form of `nextAxiomWithFuel?_traceReady`.
+
+```lean
+ProofNetIR.SequentialUnification.nextAxiom?_traceReady : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState}
+  {index : ProofNetIR.SequentialUnification.SourceIndex} {tags : Array Bool}
+  {indexSound : ProofNetIR.SequentialUnification.SourceIndex.Sound certificate index} {start : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state certificate.formulas.size tags},
+  ProofNetIR.SequentialUnification.nextAxiom? certificate state index ⋯ tags start = some result →
+    ∀ {vertex : ProofNetIR.Vertex}, vertex ∈ result.trace → state.marks[vertex]? = some none
+```
+
 ### `ProofNetIR.SequentialFigure7.new?`
 
 Kind: definition.

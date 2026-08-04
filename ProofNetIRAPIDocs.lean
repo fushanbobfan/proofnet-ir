@@ -796,6 +796,8 @@ def sections : List Section := [
     declarations := [
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_startReady,
       `ProofNetIR.SequentialUnification.nextAxiom?_startReady,
+      `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_traceReady,
+      `ProofNetIR.SequentialUnification.nextAxiom?_traceReady,
       `ProofNetIR.SequentialFigure7.new?,
       `ProofNetIR.SequentialFigure7.NewStep,
       `ProofNetIR.SequentialFigure7.new?_some_iff,

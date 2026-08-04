@@ -474,6 +474,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialUnification.nextAxiom?_route",
     "ProofNetIR.SequentialUnification.nextAxiomWithFuel?_startReady",
     "ProofNetIR.SequentialUnification.nextAxiom?_startReady",
+    "ProofNetIR.SequentialUnification.nextAxiomWithFuel?_traceReady",
+    "ProofNetIR.SequentialUnification.nextAxiom?_traceReady",
     "ProofNetIR.ConsumerIndex.build_size",
     "ProofNetIR.ConsumerIndex.Sound.origin",
     "ProofNetIR.Certificate.UnificationComponent.axiom?_success",

@@ -3444,6 +3444,23 @@ private theorem repeatedAfterNewStableState_invariant :
   SequentialFigure7.new?_schedulerInvariant
     repeatedStableState_invariant repeatedAfterNewStableState_eq
 
+/-- The genuine repeated-occurrence `new` fixture exposes a complete
+`NEXTAXIOM` trace whose every occurrence was unmarked in the exact post-pop,
+post-selected-mark input core. -/
+example :
+    ∃ step :
+        SequentialFigure7.NewStep repeatedOccurrenceCertificate
+          repeatedStableState repeatedAfterNewStableState,
+      ∀ {vertex : Vertex}, vertex ∈ step.search.trace →
+        step.coreMarked.marks[vertex]? = some none := by
+  rcases
+      (SequentialFigure7.new?_some_iff
+        repeatedStableState_invariant.toReservationInvariant).mp
+          repeatedAfterNewStableState_eq with
+    ⟨step⟩
+  exact ⟨step,
+    SequentialUnification.nextAxiom?_traceReady step.search_eq⟩
+
 private def repeatedAfterUnifyStableState : ReservationState :=
   match SequentialFigure7.unifyPayload? repeatedOccurrenceCertificate
       repeatedAfterNewStableState
