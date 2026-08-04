@@ -107,6 +107,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.UnificationState.startMarking_toMarking_mark_ordered",
     "ProofNetIR.UnificationState.startMarking_startStep_ordered",
     "ProofNetIR.SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_singleton",
+    "ProofNetIR.SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par",
     "ProofNetIR.SequentialUnification.mem_sourceIndex_origin",
     "ProofNetIR.SequentialUnification.sourceIndex_sound",
     "ProofNetIR.SequentialUnification.nextAxiomWithFuel?_exists_of_structural_clearThrough",
@@ -245,6 +246,11 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.WaitStep.mate_marked_before",
     "ProofNetIR.SequentialFigure7.WaitStep.reservationInvariant",
     "ProofNetIR.SequentialFigure7.wait?_reservationInvariant",
+    "ProofNetIR.SequentialFigure7.WaitStep.queuedVerticesNodup",
+    "ProofNetIR.SequentialFigure7.WaitStep.queuedVerticesUnmarked",
+    "ProofNetIR.SequentialFigure7.WaitStep.waitingSpanExact",
+    "ProofNetIR.SequentialFigure7.WaitStep.schedulerInvariant",
+    "ProofNetIR.SequentialFigure7.wait?_schedulerInvariant",
     "ProofNetIR.SequentialFigure7.WaitStep.toRule",
     "ProofNetIR.SequentialFigure7.wait?_sound",
     "ProofNetIR.SequentialFigure7.wait?_complete_of_structural",
@@ -381,6 +387,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialUnification.sourceIndex_par_mem",
     "ProofNetIR.Graph.EdgeSimplePath.exists_traversed_first_boundary_of_start_true",
     "ProofNetIR.Graph.EdgeSimplePath.prefixBefore",
     "ProofNetIR.Graph.EdgeSimplePath.suffixAfter",

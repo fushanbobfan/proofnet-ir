@@ -458,6 +458,122 @@ example {before after : ReservationState}
   exact SequentialFigure7.nop?_schedulerInvariant
     (parInitial_schedulerInvariant initialEquation) nopEquation
 
+/-! Successful executable Figure-7 `wait` under the full scheduler invariant. -/
+
+/-- Two axiom components are connected so the executable path first records
+one par premise with `nop`, then reaches the other component through `new`,
+and finally queues the par conclusion at the older raw-age boundary with
+`wait`. -/
+private def waitSchedulerCertificate : Certificate where
+  formulas := #[
+    .atom "p" true,
+    .atom "p" false,
+    .atom "q" true,
+    .atom "q" false,
+    .par (.atom "q" true) (.atom "p" true),
+    .tensor (.atom "p" false)
+      (.par (.atom "q" true) (.atom "p" true))]
+  links := [
+    .axiom 0 1,
+    .axiom 2 3,
+    .par 2 0 4,
+    .tensor 1 4 5]
+  conclusions := [3, 5]
+
+private theorem waitSchedulerCertificate_structural :
+    waitSchedulerCertificate.StructurallyWellFormed := by
+  exact
+    (Certificate.wellFormed_iff_structurallyWellFormed
+      waitSchedulerCertificate).mp (by native_decide)
+
+private def waitSchedulerInitial : Option ReservationState :=
+  initializeReservation? waitSchedulerCertificate 0
+
+private theorem waitSchedulerInitial_schedulerInvariant
+    {before : ReservationState}
+    (equation : waitSchedulerInitial = some before) :
+    SchedulerInvariant waitSchedulerCertificate before := by
+  rcases initializeReservation?_some_iff.mp (by
+      simpa [waitSchedulerInitial] using equation) with
+    ⟨step⟩
+  exact step.schedulerInvariant waitSchedulerCertificate_structural
+
+/-- The concrete `init → nop → new → wait` execution places conclusion
+`4` in the initialized boundary-`0` waiting cell while leaving the fresh
+boundary undefined and the second axiom's partner ready. -/
+example :
+    (match initialEquation : waitSchedulerInitial with
+    | none => false
+    | some initial =>
+        let initialInvariant :=
+          waitSchedulerInitial_schedulerInvariant initialEquation
+        match nopEquation :
+            SequentialFigure7.nop? waitSchedulerCertificate initial
+              initialInvariant.toReservationInvariant with
+        | none => false
+        | some afterNop =>
+            let nopInvariant :=
+              SequentialFigure7.nop?_schedulerInvariant
+                initialInvariant nopEquation
+            match newEquation :
+                SequentialFigure7.new? waitSchedulerCertificate afterNop
+                  nopInvariant.toReservationInvariant with
+            | none => false
+            | some afterNew =>
+                let newInvariant :=
+                  SequentialFigure7.new?_schedulerInvariant
+                    nopInvariant newEquation
+                match _waitEquation :
+                    SequentialFigure7.wait? waitSchedulerCertificate afterNew
+                      newInvariant.toReservationInvariant with
+                | none => false
+                | some afterWait =>
+                    afterWait.stack.sigma == [0, 1] &&
+                    afterWait.stack.ready == [[], [3]] &&
+                    afterWait.stack.waiting[0]? ==
+                      some (.initialized [4]) &&
+                    afterWait.stack.waiting[1]? == some .undefined &&
+                    afterWait.stack.marks ==
+                      #[some 0, some 0, some 1, none, none, none] &&
+                    afterWait.core.marks == afterWait.stack.marks &&
+                    afterWait.core.parents == #[0, 1] &&
+                    afterWait.core.startedAxioms == 2 &&
+                    afterWait.core.firedConnectives == 0) = true := by
+  native_decide
+
+/-- The same successful executable chain transports the complete
+occurrence-exact `SchedulerInvariant`, not only `ReservationInvariant`, across
+the final `wait`. -/
+example {initial afterNop afterNew afterWait : ReservationState}
+    (initialEquation : waitSchedulerInitial = some initial)
+    (nopEquation :
+      SequentialFigure7.nop? waitSchedulerCertificate initial
+          (waitSchedulerInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some afterNop)
+    (newEquation :
+      SequentialFigure7.new? waitSchedulerCertificate afterNop
+          (SequentialFigure7.nop?_schedulerInvariant
+            (waitSchedulerInitial_schedulerInvariant initialEquation)
+            nopEquation |>.toReservationInvariant) =
+        some afterNew)
+    (waitEquation :
+      SequentialFigure7.wait? waitSchedulerCertificate afterNew
+          (SequentialFigure7.new?_schedulerInvariant
+            (SequentialFigure7.nop?_schedulerInvariant
+              (waitSchedulerInitial_schedulerInvariant initialEquation)
+              nopEquation)
+            newEquation |>.toReservationInvariant) =
+        some afterWait) :
+    SchedulerInvariant waitSchedulerCertificate afterWait := by
+  exact SequentialFigure7.wait?_schedulerInvariant
+    (SequentialFigure7.new?_schedulerInvariant
+      (SequentialFigure7.nop?_schedulerInvariant
+        (waitSchedulerInitial_schedulerInvariant initialEquation)
+        nopEquation)
+      newEquation)
+    waitEquation
+
 /-- Counter accounting counts logical connective constructors in live trees;
 exchange is bookkeeping rather than a firing. -/
 example :

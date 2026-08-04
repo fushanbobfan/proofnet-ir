@@ -793,7 +793,7 @@
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
     route-local later-call freshness, integrate the local initialized-cell
-    `wait` rule, implement `forward` and `unify` under the operational waiting
+    `wait` rule into full history, implement `forward` and `unify` under the operational waiting
     domain, and integrate the already-local `concl`/`nop`/`wait` rules into a
     complete history/dispatcher. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
@@ -804,8 +804,16 @@
     successful executable `new?`, including exact fresh-axiom forest extension
     and all ready/queue, causal, waiting-span, pending-premise, and counter
     fields. This does not prove later-state `new?` success or totality.
-  - [ ] Preserve the strengthened invariant through local `wait` and complete
-    `forward`/`unify` queue transitions. Establish the
+  - [x] Preserve the complete strengthened invariant through every successful
+    local `WaitStep` and executable `wait?`: retain the exact submitted par
+    slot, global queue uniqueness/raw-unmarkedness, and strict waiting span
+    without constructing or counting the delayed par. This remains
+    successful-step preservation, not applicability, reachability, or progress.
+  - [ ] Preserve the strengthened invariant through complete `forward`/`unify`
+    queue transitions. Prove an empty-`W(j)` unify slice first, then add a typed
+    activation fold constructing every drained waiting par and accounting for
+    the exact `1 + |W(j)|` counter change; a direct nonempty-payload stack merge
+    is insufficient for `ReadyBucketFrontierExact`. Establish the
     special union-find invariants, full-rule
     reachability, queue provenance, progress, completeness of that sequential
     executable, and a cost theorem over every implemented operation before

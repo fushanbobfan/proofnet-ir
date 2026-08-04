@@ -132,7 +132,10 @@ entry in its reusable source-incidence index. `SourceIndex.Sound` is only a
 provenance property: it does not establish lookup existence or uniqueness, and
 both endpoints of a malformed self-axiom are intentionally inserted into one
 bucket. Structural well-formedness now proves singleton lookup for every
-in-bounds occurrence. A successful bounded/tagged `NEXTAXIOM` result carries
+in-bounds occurrence. Given an exact submitted par lookup, the stronger
+positional theorem identifies that singleton with the same submitted link
+index and link value; repeated labels or equal-valued links in another slot
+cannot replace it. A successful bounded/tagged `NEXTAXIOM` result carries
 the exact submitted axiom index/endpoints, final tags, and trace; its proof
 fields establish tag-array size preservation, monotonicity of old true tags,
 trace `Nodup`, input-false/output-true tagging of every trace occurrence and
@@ -249,11 +252,16 @@ fresh submitted-axiom occurrence ownership against the old forest and
 transports every current queue, causal, waiting, pending, and counter field.
 The theorem assumes an existing invariant and a successful step/equation; it
 does not establish later-state `new?` success, totality, or dispatcher
-reachability, and it still does not cover `wait`.
-The local `wait` uses the mate's raw mark and the exact `sigmaBoundary?`
-destination, then performs one initialized-cell cons without a global queue
-scan or ownership claim. Global queue uniqueness and ownership, state-only
-`wait` preservation, `forward`/`unify`, full-history rule integration,
+reachability. `wait` requires the separate theorem below.
+Successful deterministic/executable `wait` now preserves that same complete
+state-only invariant. It uses the mate's raw mark and exact `sigmaBoundary?`
+destination, identifies the submitted par by its source-index position, proves
+the new conclusion fresh and raw-unmarked in the combined queue, and extends
+`WaitingSpanExact` while leaving the occurrence forest and logical counter
+unchanged. It still performs only one initialized-cell cons and no global queue
+scan; the global facts are proofs from the input invariant, not runtime scans.
+This is conditional successful-step preservation, not applicability or
+reachability. `forward`/`unify`, full-history rule integration,
 later-state totality,
 correct-state progress, pure-worklist
 completeness, fallback removal, and whole-program linearity remain
@@ -283,7 +291,10 @@ payload-bound evidence rather than deriving ownership from a queue scan.
 These facts do not authorize a full `unify`: it must still identify the
 generic tensor roots with exact scheduler `j/i`, orient `parent[i] := j`, and
 construct or activate all waiting par components drained from `W(j)` (with
-their extra counter increments). No dispatcher, progress, completeness, O(1),
+their extra counter increments). A direct nonempty-payload composition would
+put delayed conclusions in ready without the corresponding production trees
+and would increment the counter only once, so a typed activation fold is a
+required proof layer. No dispatcher, progress, completeness, O(1),
 or whole-program linearity claim follows.
 
 `unificationDerivationCandidateWithStats` and
@@ -644,9 +655,9 @@ Lean now also constructs the exact simultaneous complementary
   rank-scoped totality, and strictly threaded touched-set disjointness;
   the operational waiting-cell domain and exact init/new history are also
   proved. Exact local `concl`/`nop`/`wait` are also proved, and successful
-  deterministic/executable `new` preserves the complete current
-  occurrence-exact state-only invariant. Later-state `new?` success/totality,
-  state-only `wait` preservation, ready/waiting payload ownership,
+  deterministic/executable `new` and `wait` preserve the complete current
+  occurrence-exact state-only invariant. Later-state `new?`/`wait?`
+  applicability and totality, ready/waiting payload ownership through
   `forward`/`unify`, their
   full-history integration, and the remaining
   `NEXTAXIOM`/token-age scheduler remain required for linearity.

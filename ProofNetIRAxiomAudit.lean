@@ -141,6 +141,8 @@ expansion.
 #print axioms UnificationState.unifyTokens?_refines
 #print axioms SequentialUnification.sourceIndex_size
 #print axioms SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_singleton
+#print axioms SequentialUnification.sourceIndex_par_mem
+#print axioms SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par
 #print axioms SequentialUnification.mem_sourceIndex_origin
 #print axioms SequentialUnification.sourceIndex_sound
 #print axioms SequentialUnification.nextAxiomWithFuel?_sound
@@ -403,6 +405,11 @@ expansion.
 #print axioms SequentialFigure7.WaitStep.mate_marked_before
 #print axioms SequentialFigure7.WaitStep.reservationInvariant
 #print axioms SequentialFigure7.wait?_reservationInvariant
+#print axioms SequentialFigure7.WaitStep.queuedVerticesNodup
+#print axioms SequentialFigure7.WaitStep.queuedVerticesUnmarked
+#print axioms SequentialFigure7.WaitStep.waitingSpanExact
+#print axioms SequentialFigure7.WaitStep.schedulerInvariant
+#print axioms SequentialFigure7.wait?_schedulerInvariant
 #print axioms SequentialFigure7.WaitDestinationStep.toWaitingPrependAt
 #print axioms SequentialFigure7.WaitStep.toRule
 #print axioms SequentialFigure7.wait?_sound

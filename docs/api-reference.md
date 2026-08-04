@@ -6152,7 +6152,10 @@ Per-occurrence source incidences.  `nextAxiomWithFuel?` accepts only a
 singleton bucket and rejects zero or multiple source entries.
 `StructurallyWellFormed.sourceIndex_lookup_eq_singleton` proves that every
 in-bounds production bucket is a singleton on the structural theorem
-domain.
+domain.  For a submitted par lookup,
+`StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par` identifies that
+singleton with the exact submitted link position and value, rather than only
+with an equal formula label.
 
 ```lean
 ProofNetIR.SequentialUnification.SourceIndex : Type
@@ -6196,6 +6199,39 @@ ProofNetIR.SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_si
     ∀ {vertex : ProofNetIR.Vertex},
       vertex < certificate.formulas.size →
         ∃ source, (ProofNetIR.SequentialUnification.sourceIndex certificate)[vertex]? = some [source]
+```
+
+### `ProofNetIR.SequentialUnification.sourceIndex_par_mem`
+
+Kind: theorem.
+
+An exact submitted par producer occurs at its exact submitted-link position
+in the reusable source-incidence table.  This theorem preserves positional
+identity even when distinct submitted slots contain equal-valued links.
+
+```lean
+ProofNetIR.SequentialUnification.sourceIndex_par_mem : ∀ {certificate : ProofNetIR.Certificate} {linkIndex : Nat} {left right conclusion : ProofNetIR.Vertex},
+  certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+    conclusion < certificate.formulas.size →
+      { linkIndex := linkIndex, link := ProofNetIR.Link.par left right conclusion } ∈
+        (ProofNetIR.SequentialUnification.sourceIndex certificate)[conclusion]?.getD []
+```
+
+### `ProofNetIR.SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par`
+
+Kind: theorem.
+
+A structurally well-formed certificate maps an exact submitted par
+producer to that same exact submitted-link position in its singleton source
+bucket.  The positional conclusion is stronger than bare source uniqueness.
+
+```lean
+ProofNetIR.SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {linkIndex : Nat} {left right conclusion : ProofNetIR.Vertex},
+      certificate.links[linkIndex]? = some (ProofNetIR.Link.par left right conclusion) →
+        (ProofNetIR.SequentialUnification.sourceIndex certificate)[conclusion]? =
+          some [{ linkIndex := linkIndex, link := ProofNetIR.Link.par left right conclusion }]
 ```
 
 ### `ProofNetIR.SequentialUnification.mem_sourceIndex_origin`
@@ -11296,6 +11332,79 @@ ProofNetIR.SequentialFigure7.wait?_reservationInvariant : ∀ {certificate : Pro
   (invariant : ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before),
   ProofNetIR.SequentialFigure7.wait? certificate before invariant = some after →
     ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.queuedVerticesNodup`
+
+Kind: theorem.
+
+Prepending the fresh delayed conclusion preserves global queue
+uniqueness.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.queuedVerticesNodup : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesNodup after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.queuedVerticesUnmarked`
+
+Kind: theorem.
+
+The new waiting conclusion is raw-unmarked, and every pre-existing queued
+occurrence retains its raw-unmarked status.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.queuedVerticesUnmarked : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.QueuedVerticesUnmarked after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.waitingSpanExact`
+
+Kind: theorem.
+
+A successful wait adds exactly its submitted par promise at the computed
+older boundary and preserves every pre-existing exact waiting span.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.waitingSpanExact : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.WaitingSpanExact certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.schedulerInvariant`
+
+Kind: theorem.
+
+An exact successful `wait` preserves every field of the current
+state-based scheduler invariant.  This is a successful-step theorem, not a
+claim that `wait` is the applicable rule or that the dispatcher makes
+progress.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable `wait?` success preserves the complete current scheduler
+invariant.  Applicability, totality, and dispatcher progress remain separate
+obligations.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.wait? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
 ### `ProofNetIR.SequentialFigure7.WaitDestinationStep.toWaitingPrependAt`

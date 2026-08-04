@@ -65,10 +65,19 @@
   pending-premise, and counter field. This is a conditional successful-step
   theorem: it does not prove that `new?` succeeds on every intended later
   state, later-state selection totality, or scheduler reachability. State-only
-  `wait` preservation, complete `forward`/`unify`, dispatcher/history
-  integration, progress, pure-worklist completeness, recursive-fallback
-  removal, faithful `NEXTAXIOM`/token-age scheduling, and whole-program
-  linearity remain open;
+  `wait` preservation is now also kernel checked for every successful
+  `WaitStep` and executable `wait?` result under a supplied
+  `SchedulerInvariant`. The proof preserves the unchanged occurrence forest,
+  derives exact positional ownership of the submitted par from the source
+  index, prepends a fresh raw-unmarked conclusion while preserving global
+  queue `Nodup`, and adds exactly the strict older/younger `WaitingSpanExact`
+  witness without incrementing the production counter. A six-occurrence
+  init/`nop`/`new`/`wait` regression exercises this full-invariant path.
+  These are conditional successful-step theorems, not dispatcher
+  applicability, full-rule reachability, or progress. Complete
+  `forward`/`unify`, dispatcher/history integration, later-state totality,
+  pure-worklist completeness, recursive-fallback removal, faithful
+  `NEXTAXIOM`/token-age scheduling, and whole-program linearity remain open;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
   `positional`, `mem_remaining_of_ne`, and `two_of_mem` wrappers for future
   deterministic waiting-payload activation while retaining the recursive
@@ -222,8 +231,8 @@
   of local `concl`/`nop`/`wait`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 253 full-classical, 23 axiom-free, 87 `propext`-only, and
-  77 `propext`/`Quot.sound` theorems;
+  audit covers 259 full-classical, 23 axiom-free, 87 `propext`-only, and
+  78 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
   production unifier. `RawTokenAge` records discovery order and is explicitly

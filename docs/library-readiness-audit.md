@@ -420,12 +420,15 @@ part of the engineering and proof-identity gap.
    forest extension, global queued-occurrence uniqueness/unmarkedness, causal
    production, waiting-span, pending-premise, and counter fields. This is
    preservation conditional on a successful step, not proof of later `new?`
-   success, totality, or reachability. It is not yet preserved through local
-   `wait` or complete queue transitions.
+   success, totality, or reachability. Successful deterministic/executable
+   `wait` now preserves the same complete state-only invariant. The proof locks
+   the exact submitted par position in the source index, preserves combined
+   queue `Nodup` and raw-unmarkedness, and adds one strict older/younger waiting
+   span while leaving the component forest and firing counter unchanged.
    The local `wait` destination is exactly
    `sigmaBoundary? stack.sigma mateRawAge`, and its initialized-cell cons
-   update does not claim global ownership. Ready/waiting payload ownership,
-   state-only `wait` preservation, complete executable `forward`/`unify`,
+   update has those state-only ownership guarantees only under the supplied
+   `SchedulerInvariant`. Complete executable `forward`/`unify`,
    full-history integration of
    `concl`/`nop`/`wait`, full-rule reachability, later-state selection totality,
    closing-par scheduler-order exclusion, correct-state
@@ -439,7 +442,11 @@ part of the engineering and proof-identity gap.
    They are not full rules: tensor queuing increments only the local tensor
    count, while complete `unify` must bind representatives to scheduler
    `j/i`, orient `parent[i] := j`, and construct or activate every par
-   component drained from `W(j)`. The stack's deterministic
+   component drained from `W(j)`. A direct nonempty-`W(j)` composition of
+   `queueTensor?` and `mergeTopReadyWaiting?` is therefore insufficient:
+   moved ready payloads lack constructed par components and the required
+   `1 + |W(j)|` counter change. A typed activation fold remains necessary.
+   The stack's deterministic
    `conclusion :: (payload ++ previousReady ++ activeReady)` order refines
    paper-level sets and does not establish global ownership or linearity.
    For callers that require fail-closed resource handling,
@@ -501,10 +508,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 253 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 259 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  87 `propext`-only, and 77 `propext`/`Quot.sound` boundaries;
+  87 `propext`-only, and 78 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -596,12 +603,15 @@ It can currently be used for:
   while treating search failure as inconclusive; local exact
   `concl`/`nop`/`wait` are now present, the current state-only invariant is
   preserved through the common prepared prefix plus `concl`/`nop` and every
-  successful deterministic/executable `new`; the exact occurrence-provenance
-  forest is integrated for empty/init and each of those successful steps.
-  Later-state `new?` success/totality, state-only `wait` preservation,
-  ready/waiting payload ownership, executable
+  successful deterministic/executable `new` and `wait`; the exact
+  occurrence-provenance forest is integrated for empty/init and each of those
+  successful steps. Wait additionally preserves exact positional waiting spans
+  and combined queue ownership without constructing the delayed par.
+  Later-state `new?`/`wait?` applicability and totality, payload ownership
+  through complete executable
   `forward`/`unify`, and full-history rule integration remain absent. The
-  local `wait` cons update is not an ownership theorem.
+  local `wait` cons has a state-only ownership theorem only from a supplied
+  `SchedulerInvariant`.
   Exact init/new reachability and tag history are present, but
   full-rule reachability and queue provenance are not, so together these are
   not a complete scheduler API;

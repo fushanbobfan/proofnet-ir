@@ -35,7 +35,10 @@ structure SourceIncidence where
 singleton bucket and rejects zero or multiple source entries.
 `StructurallyWellFormed.sourceIndex_lookup_eq_singleton` proves that every
 in-bounds production bucket is a singleton on the structural theorem
-domain. -/
+domain.  For a submitted par lookup,
+`StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par` identifies that
+singleton with the exact submitted link position and value, rather than only
+with an equal formula label. -/
 abbrev SourceIndex := Array (List SourceIncidence)
 
 private def pushSource (index : SourceIndex) (vertex : Vertex)
@@ -357,6 +360,144 @@ theorem StructurallyWellFormed.sourceIndex_lookup_eq_singleton
     simpa [lookup] using bucketLength
   rcases List.length_eq_one_iff.mp length with ⟨source, rfl⟩
   exact ⟨source, lookup⟩
+
+private theorem pushSource_mem_of_mem
+    {index : SourceIndex} {inserted vertex : Vertex}
+    {source candidate : SourceIncidence}
+    (membership : candidate ∈ ((index[vertex]?).getD [])) :
+    candidate ∈
+      (((pushSource index inserted source)[vertex]?).getD []) := by
+  by_cases insertedBound : inserted < index.size
+  · by_cases same : inserted = vertex
+    · subst inserted
+      simpa [pushSource, insertedBound] using Or.inr membership
+    · simp [pushSource, insertedBound, same]
+      exact membership
+  · have lookupNone : index[inserted]? = none :=
+      Array.getElem?_eq_none (Nat.le_of_not_gt insertedBound)
+    simpa [pushSource, lookupNone] using membership
+
+private theorem addSourceIncidences_mem_of_mem
+    {index : SourceIndex} {entry : Link × Nat}
+    {vertex : Vertex} {candidate : SourceIncidence}
+    (membership : candidate ∈ ((index[vertex]?).getD [])) :
+    candidate ∈
+      (((addSourceIncidences index entry)[vertex]?).getD []) := by
+  rcases entry with ⟨link, linkIndex⟩
+  cases link with
+  | «axiom» left right =>
+      exact pushSource_mem_of_mem (pushSource_mem_of_mem membership)
+  | tensor left right conclusion =>
+      exact pushSource_mem_of_mem membership
+  | «par» left right conclusion =>
+      exact pushSource_mem_of_mem membership
+
+private theorem foldl_addSourceIncidences_mem_of_mem
+    (entries : List (Link × Nat))
+    {index : SourceIndex} {vertex : Vertex}
+    {candidate : SourceIncidence}
+    (membership : candidate ∈ ((index[vertex]?).getD [])) :
+    candidate ∈
+      (((entries.foldl addSourceIncidences index)[vertex]?).getD []) := by
+  induction entries generalizing index with
+  | nil => exact membership
+  | cons head tail induction =>
+      simp only [List.foldl_cons]
+      exact induction (addSourceIncidences_mem_of_mem membership)
+
+private theorem addSourceIncidences_par_mem
+    {index : SourceIndex} {linkIndex : Nat}
+    {left right conclusion : Vertex}
+    (conclusionBound : conclusion < index.size) :
+    ({
+      linkIndex := linkIndex
+      link := .par left right conclusion } : SourceIncidence) ∈
+      (((addSourceIncidences index
+        (.par left right conclusion, linkIndex))[conclusion]?).getD []) := by
+  simp [addSourceIncidences, pushSource, conclusionBound]
+
+private theorem foldl_addSourceIncidences_par_mem
+    (entries : List (Link × Nat))
+    {index : SourceIndex} {linkIndex : Nat}
+    {left right conclusion : Vertex}
+    (entryMembership :
+      ((.par left right conclusion : Link), linkIndex) ∈ entries)
+    (conclusionBound : conclusion < index.size) :
+    ({
+      linkIndex := linkIndex
+      link := .par left right conclusion } : SourceIncidence) ∈
+      (((entries.foldl addSourceIncidences index)[conclusion]?).getD []) := by
+  induction entries generalizing index with
+  | nil => simp at entryMembership
+  | cons head tail induction =>
+      simp only [List.mem_cons] at entryMembership
+      rcases entryMembership with rfl | inTail
+      · simp only [List.foldl_cons]
+        exact foldl_addSourceIncidences_mem_of_mem tail
+          (addSourceIncidences_par_mem conclusionBound)
+      · simp only [List.foldl_cons]
+        exact induction inTail (by
+          simpa only [addSourceIncidences_size] using conclusionBound)
+
+/-- An exact submitted par producer occurs at its exact submitted-link position
+in the reusable source-incidence table.  This theorem preserves positional
+identity even when distinct submitted slots contain equal-valued links. -/
+theorem sourceIndex_par_mem
+    {certificate : Certificate} {linkIndex : Nat}
+    {left right conclusion : Vertex}
+    (linkLookup : certificate.links[linkIndex]? =
+      some (.par left right conclusion))
+    (conclusionBound : conclusion < certificate.formulas.size) :
+    ({
+      linkIndex := linkIndex
+      link := .par left right conclusion } : SourceIncidence) ∈
+      (((sourceIndex certificate)[conclusion]?).getD []) := by
+  unfold sourceIndex
+  apply foldl_addSourceIncidences_par_mem
+  · exact List.mk_mem_zipIdx_iff_getElem?.2 linkLookup
+  · simpa using conclusionBound
+
+private theorem lookup_eq_singleton_of_mem_length_one
+    {α : Type} {values : Array (List α)} {index : Nat}
+    {candidate : α}
+    (membership : candidate ∈ ((values[index]?).getD []))
+    (length : ((values[index]?).getD []).length = 1) :
+    values[index]? = some [candidate] := by
+  cases lookup : values[index]? with
+  | none => simp [lookup] at length
+  | some bucket =>
+      have bucketLength : bucket.length = 1 := by
+        simpa [lookup] using length
+      rcases List.length_eq_one_iff.mp bucketLength with ⟨only, rfl⟩
+      have same : candidate = only := by
+        simpa [lookup] using membership
+      subst only
+      rfl
+
+/-- A structurally well-formed certificate maps an exact submitted par
+producer to that same exact submitted-link position in its singleton source
+bucket.  The positional conclusion is stronger than bare source uniqueness. -/
+theorem StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {linkIndex : Nat} {left right conclusion : Vertex}
+    (linkLookup : certificate.links[linkIndex]? =
+      some (.par left right conclusion)) :
+    (sourceIndex certificate)[conclusion]? =
+      some [{
+        linkIndex := linkIndex
+        link := .par left right conclusion }] := by
+  have linkMembership :
+      Link.par left right conclusion ∈ certificate.links :=
+    List.mem_of_getElem? linkLookup
+  have linkWellFormed :
+      certificate.LinkWellFormed (.par left right conclusion) :=
+    structural.2.2.2.2.1 _ linkMembership
+  have conclusionBound : conclusion < certificate.formulas.size :=
+    linkWellFormed.2.2.2.2.2.1
+  apply lookup_eq_singleton_of_mem_length_one
+  · exact sourceIndex_par_mem linkLookup conclusionBound
+  · exact sourceIndex_bucket_length_eq_one structural conclusionBound
 
 private theorem mem_pushSource_origin
     {index : SourceIndex} {vertex insertedVertex : Vertex}

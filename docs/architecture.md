@@ -349,8 +349,12 @@ whole-certificate `StructurallyWellFormed` and the supplied
 structural validity and the supplied invariant). `WaitRule` uses a
 proposition-level exact
 `sigmaBoundary? = some boundary` equation and states the paper guard in
-`before.core.marks`. This is still a determinized list-level local relation,
-not a complete dispatcher.
+`before.core.marks`. Under the stronger state-only `SchedulerInvariant`, every
+successful `WaitStep` and executable `wait?` additionally preserves global
+queue uniqueness and raw-unmarkedness and adds the exact positional submitted
+par to `WaitingSpanExact`; the component forest and logical firing counter stay
+unchanged. This is still a determinized list-level successful-step theorem,
+not a complete dispatcher, applicability, or reachability result.
 
 `Unification.lean` now contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
@@ -371,6 +375,13 @@ choice. Component-frontier derivation/exchange order is not scheduler-ready
 list order; the eventual wrapper must relate them by membership/permutation,
 not definitional list equality. Shape preservation requires explicit merged
 `Nodup` and payload-bound proofs and performs no global queue scan.
+Directly composing `queueTensor?` with `mergeTopReadyWaiting?` for a nonempty
+old waiting cell cannot yet establish the semantic invariant: the stack move
+exposes delayed conclusions in ready before the production core has built the
+corresponding par derivations, and the core counter has increased by only one
+instead of `1 + |W(j)|`. The general `unify` wrapper therefore needs a typed
+waiting-payload activation fold; an empty-waiting-cell slice is the safe first
+composition target.
 
 `SequentialSchedulerInvariant.lean` now supplies that semantic foundation
 without defining reachability in terms of the invariant. The bundle carries
@@ -431,8 +442,11 @@ frontier, and the exact fresh axiom witness extends the forest. The same proof
 transports all other current state-only fields, so
 `NewStep.schedulerInvariant` and `new?_schedulerInvariant` cover every
 successful typed/executable `new`. They do not show that `new?` returns `some`
-for every intended later state and do not establish reachability. State-only
-`wait` preservation and the complete queue transitions remain open. Complete
+for every intended later state and do not establish reachability. Successful
+typed/executable `wait` now preserves the same complete state-only invariant:
+the prepared state supplies the existing live owner, exact submitted-par
+source lookup fixes positional identity, and the waiting-cell cons preserves
+the global queue while adding one strict waiting span. Complete
 `forward`/`unify`, dispatcher progress, and completeness remain open.
 In particular, the local `wait?` only records a waiting promise; it does not
 falsely count that par as already constructed.
@@ -707,7 +721,9 @@ active-reference walks between marked occurrences are equivalent to
   post-mark search, and later reservation with the old-boundary/fresh-top
   waiting update. Every successful typed/executable `new` now preserves the
   complete current occurrence-exact state-only `SchedulerInvariant`; the
-  theorem does not supply success or totality. Reset tags can replay low-level
+  same is now true for every successful typed/executable `wait`. Neither
+  theorem supplies applicability, success, reachability, or totality. Reset
+  tags can replay low-level
   search, but the operational
   stack guard rejects endpoints already stored in ready or waiting payloads;
   the low-level reservation primitive itself remains replayable. The
@@ -715,8 +731,9 @@ active-reference walks between marked occurrences are equivalent to
   executions and proves tag provenance, global submitted-slot non-reuse, and
   reservation-count alignment. This fragment is not a full reachable
   scheduler. The local `concl`/`nop`/`wait` rules now exist outside this
-  history; waiting payload ownership, their full-history integration, and
-  `forward`/`unify` remain open. Planarity
+  history; `wait` has state-only exact-span/queue preservation, but full-history
+  integration, `forward`/`unify`, and activation of drained waiting payloads
+  remain open. Planarity
   is not assumed for
   commutative MLL. Closing-par exclusion, progress, and pure-worklist
   completeness remain open.
@@ -728,7 +745,7 @@ eagerly and uses flat waiting requeues. The separate bounded/tagged
 invariant-bound operational local `new` transition in the delayed
 `SequentialSchedulerState`. The literal printed fresh-cell update remains a
 separate display-only helper. Exact init/new execution history is integrated;
-successful `new` preserves the full current state-only invariant, but
+successful `new` and `wait` preserve the full current state-only invariant, but
 later-state `new?` success/totality, ready/waiting payload ownership across the
 remaining rules, `forward`/`unify`, full-history
 integration of the local `concl`/`nop`/`wait` rules, a full-rule reachable-state

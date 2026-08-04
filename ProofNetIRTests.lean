@@ -882,6 +882,20 @@ example (vertex : Vertex) (vertexBound : vertex < canonical.formulas.size) :
     SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_singleton
       structural vertexBound
 
+/-- The canonical par conclusion resolves to the exact submitted slot, not
+merely to an equal-valued producer. -/
+example :
+    canonicalSourceIndex[5]? =
+      some [{
+        linkIndex := 3
+        link := .par 1 3 5 }] := by
+  simpa [canonicalSourceIndex] using
+    (SequentialUnification.StructurallyWellFormed.sourceIndex_lookup_eq_submitted_par
+      (certificate := canonical)
+      (canonical.wellFormed_iff_structurallyWellFormed.mp (by native_decide))
+      (linkIndex := 3) (left := 1) (right := 3) (conclusion := 5)
+      (by native_decide))
+
 /-- With the entire initial carrier untagged and unassigned, every in-bounds
 canonical occurrence has a kernel-proved successful rank-budget search.  This
 is the initial/local theorem, not a Figure-7 `new`-state result. -/
@@ -2233,6 +2247,16 @@ example {before after : ReservationState}
     ReservationInvariant canonical after :=
   SequentialFigure7.wait?_reservationInvariant
     (canonicalWaitBefore_invariant beforeEquation) waitEquation
+
+/-- The public executable-preservation API transports the complete scheduler
+invariant across any successful `wait?` call. -/
+example {before after : ReservationState}
+    (invariant : SchedulerInvariant canonical before)
+    (waitEquation :
+      SequentialFigure7.wait? canonical before invariant.toReservationInvariant =
+        some after) :
+    SchedulerInvariant canonical after :=
+  SequentialFigure7.wait?_schedulerInvariant invariant waitEquation
 
 example {before after : ReservationState}
     (beforeEquation : canonicalWaitBefore = some before)
