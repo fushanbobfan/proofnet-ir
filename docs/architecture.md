@@ -501,6 +501,22 @@ trace proves tag-touch equivalence, touch separation, history independence,
 and submitted-slot `Nodup`, but no applicability, totality, progress, or
 concrete forged-state nonreachability.
 
+`SequentialFigure7PriorityEnabled.lean` is a one-way downstream bridge from
+the dispatcher, stable enabled predicates, and payload-enabled predicate. It
+does not change an executor. Successful typed steps for `concl`, `nop`,
+`wait`, `forward`, and `unifyPayload` reconstruct their existing input-only
+enabled witnesses; conversely, those witnesses plus `SchedulerInvariant`
+produce existential executor success. `new` has no corresponding pure guard in
+this slice: `NewExecutableEnabled` explicitly abbreviates existential `new?`
+success. Indexed `PriorityEnabled` adds exactly the negative predicates needed
+by the fixed dispatcher order. It is equivalent to the matching `DispatchStep`,
+classifies an exact selected dispatcher kind, characterizes dispatcher `none`,
+and makes the selected priority kind unique. The characterization is relative
+to the current executor order. In particular, a completed reachable stack
+`[[]]` can satisfy `SchedulerInvariant` while every priority kind is disabled;
+no intended-state exhaustiveness, nonterminality, progress, or completeness
+theorem follows.
+
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
 component constructors and preserve raw marks so the queued conclusion is not

@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+- added `SequentialFigure7PriorityEnabled.lean`, an exact priority-aware
+  applicability interface for the existing canonical dispatcher. Successful
+  typed `ConclStep`, `NopStep`, `WaitStep`, `ForwardStep`, and
+  `UnifyPayloadStep` witnesses reconstruct the corresponding pure input-only
+  enabled witnesses, and each executor has an existential-success iff under
+  the complete `SchedulerInvariant`. `new` is deliberately kept separate:
+  `NewExecutableEnabled` explicitly means operational existential executor
+  success and is not presented as an input-only paper guard. Indexed
+  `PriorityEnabled` follows the fixed
+  `concl → nop → new → wait → forward → unifyPayload` precedence by storing
+  only the selected branch's enabled witness and proofs that every earlier
+  predicate is false. Lean proves exact conversion to and from `DispatchStep`,
+  selected-kind success iff, dispatcher failure iff every indexed branch is
+  disabled, and uniqueness of the enabled priority kind. Full-invariant
+  regressions cover an initialized `concl`, a tensor-selected operational
+  `new`, and a completed reachable ready stack `[[]]` where the dispatcher
+  returns `none` and no priority kind is enabled. These are exact
+  dispatcher-classification results, not intended-state exhaustiveness,
+  nonterminality, global progress, pure-worklist completeness, fallback
+  removal, faithful token-age scheduling, or a complexity theorem. The exact
+  axiom audit now covers 622 declarations: 398 full-classical, 23 axiom-free,
+  90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7StableEnabled.lean`, an input-only applicability
   layer for the stable `concl`, `nop`, `wait`, and `forward` rules. The shared
   `ReadyHeadInput` stores only the selected ready head, tail, raw age, and exact

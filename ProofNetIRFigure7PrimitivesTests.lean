@@ -5,6 +5,7 @@ import ProofNetIR.SequentialFigure7Unify
 import ProofNetIR.SequentialFigure7UnifyPayload
 import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
+import ProofNetIR.SequentialFigure7PriorityEnabled
 import ProofNetIR.SequentialFigure7TagHistory
 
 namespace ProofNetIR
@@ -3532,6 +3533,73 @@ example :
   exact ⟨repeatedStableState_invariant, rejectConcl, rejectNop,
     rejectWait, rejectForward, repeatedAfterNewStableState_eq,
     repeatedAfterUnifyStableState_eq⟩
+
+/-! Exact fixed-precedence applicability for the canonical dispatcher. -/
+
+/-- On a genuine initialized full-invariant state, existential conclusion
+execution is exactly the pure input-only conclusion predicate, and the
+canonical dispatcher selects that first-priority branch. -/
+example :
+    ((∃ after,
+        SequentialFigure7.concl? axiomCertificate axiomStableState
+            axiomStableState_invariant.toReservationInvariant = some after) ↔
+      SequentialFigure7.ConclEnabled axiomCertificate axiomStableState) ∧
+      SequentialFigure7.PriorityEnabled axiomCertificate axiomStableState
+        axiomStableState_invariant .concl ∧
+      ∃ after,
+        SequentialFigure7.dispatch? axiomCertificate axiomStableState
+            axiomStableState_invariant = some ⟨.concl, after⟩ := by
+  refine ⟨SequentialFigure7.concl?_success_iff_enabled
+      axiomStableState_invariant, ?_, ?_⟩
+  · exact SequentialFigure7.PriorityEnabled.concl axiom_concl_enabled
+  · exact
+      (SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled
+        axiomStableState_invariant .concl).mpr
+        (SequentialFigure7.PriorityEnabled.concl axiom_concl_enabled)
+
+/-- The real tensor fixture is selected as the operational `new` branch.
+This checks the mixed input-only/operational priority boundary without calling
+it an input-only `new` predicate. -/
+example :
+    SequentialFigure7.NewExecutableEnabled repeatedOccurrenceCertificate
+        repeatedStableState repeatedStableState_invariant ∧
+      SequentialFigure7.PriorityEnabled repeatedOccurrenceCertificate
+        repeatedStableState repeatedStableState_invariant .new ∧
+      ∃ after,
+        SequentialFigure7.dispatch? repeatedOccurrenceCertificate
+            repeatedStableState repeatedStableState_invariant =
+          some ⟨.new, after⟩ := by
+  have selected :
+      ∃ after,
+        SequentialFigure7.dispatch? repeatedOccurrenceCertificate
+            repeatedStableState repeatedStableState_invariant =
+          some ⟨.new, after⟩ := by
+    exact ⟨repeatedAfterNewStableState, by native_decide⟩
+  have priority :=
+    (SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled
+      repeatedStableState_invariant .new).mp selected
+  exact ⟨⟨repeatedAfterNewStableState, repeatedAfterNewStableState_eq⟩,
+    priority, selected⟩
+
+/-- A completed full-invariant state obtained by the existing rule chain can
+have the aligned empty ready bucket and no selected rule.  This refutes only
+invariant-implies-branch; it is not a counterexample to terminal-qualified
+progress. -/
+example :
+    parCompletedStableState.stack.ready = [[]] ∧
+      SchedulerInvariant parCertificate parCompletedStableState ∧
+      SequentialFigure7.dispatch? parCertificate parCompletedStableState
+          parCompletedStableState_invariant = none ∧
+      ∀ kind,
+        ¬ SequentialFigure7.PriorityEnabled parCertificate
+          parCompletedStableState parCompletedStableState_invariant kind := by
+  have dispatchNone :
+      SequentialFigure7.dispatch? parCertificate parCompletedStableState
+          parCompletedStableState_invariant = none := by
+    native_decide
+  exact ⟨by native_decide, parCompletedStableState_invariant, dispatchNone,
+    (SequentialFigure7.dispatch?_eq_none_iff_forall_not_priorityEnabled
+      parCompletedStableState_invariant).mp dispatchNone⟩
 
 end Figure7PrimitivesTests
 

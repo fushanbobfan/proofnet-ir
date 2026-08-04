@@ -349,6 +349,17 @@ trace reachability, not that the invariant creates an enabled branch. The
 empty full-invariant regression returning `none` prevents that interpretation.
 The compatibility `unifyEmpty?` and `unifyOne?` functions remain outside the
 canonical branch type and contribute no duplicate trust path.
+`SequentialFigure7PriorityEnabled.lean` adds no new oracle either. For five
+branches it reconstructs the already audited input-only witnesses from exact
+typed-step fields and uses the existing invariant-backed applicability
+theorems in the reverse direction. The remaining `NewExecutableEnabled` name
+is definitionally operational existential `new?` success; it is not a hidden
+paper-level assumption. `PriorityEnabled` adds only earlier-branch negations
+and is exactly interconvertible with the existing `DispatchStep`. Its
+selected-kind iff, `none` iff no kind, and kind-uniqueness theorems therefore
+classify current executable behavior without asserting that an intended state
+must be executable. The real completed `[[]]` regression remains an explicit
+full-invariant no-branch case.
 `SequentialFigure7TagHistory.lean` also adds no oracle. It pattern-matches only
 the exact typed branch recovered from an existing `DispatchStep` and augments
 the already-certified `ExecutedHistory`. The five stable branches prove array
@@ -360,7 +371,7 @@ duplicate-free, and show touched history-independence for a fixed state.
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
 separate nonreachability proof for that forged state. The exact trust audit now
-covers 607 declarations: 383 use exactly
+covers 622 declarations: 398 use exactly
 `[propext, Classical.choice, Quot.sound]`, 23 are axiom-free, 90 use exactly
 `[propext]`, and 111 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s

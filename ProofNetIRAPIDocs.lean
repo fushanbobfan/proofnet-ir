@@ -1078,6 +1078,29 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Priority-aware Figure-7 applicability"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.PreparedStep.readyHeadInput,
+      `ProofNetIR.SequentialFigure7.ConclStep.enabled,
+      `ProofNetIR.SequentialFigure7.NopStep.enabled,
+      `ProofNetIR.SequentialFigure7.WaitStep.enabled,
+      `ProofNetIR.SequentialFigure7.ForwardStep.enabled,
+      `ProofNetIR.SequentialFigure7.UnifyPayloadStep.enabled,
+      `ProofNetIR.SequentialFigure7.concl?_success_iff_enabled,
+      `ProofNetIR.SequentialFigure7.nop?_success_iff_enabled,
+      `ProofNetIR.SequentialFigure7.wait?_success_iff_enabled,
+      `ProofNetIR.SequentialFigure7.forward?_success_iff_enabled,
+      `ProofNetIR.SequentialFigure7.unifyPayload?_success_iff_enabled,
+      `ProofNetIR.SequentialFigure7.NewExecutableEnabled,
+      `ProofNetIR.SequentialFigure7.PriorityEnabled,
+      `ProofNetIR.SequentialFigure7.DispatchStep.priorityEnabled,
+      `ProofNetIR.SequentialFigure7.PriorityEnabled.exists_dispatchStep,
+      `ProofNetIR.SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled,
+      `ProofNetIR.SequentialFigure7.dispatch?_eq_none_iff_forall_not_priorityEnabled,
+      `ProofNetIR.SequentialFigure7.PriorityEnabled.kind_unique
+    ]
+  },
+  {
     title := "Canonical Figure-7 dispatcher and certified history"
     declarations := [
       `ProofNetIR.SequentialFigure7.Figure7RuleKind,

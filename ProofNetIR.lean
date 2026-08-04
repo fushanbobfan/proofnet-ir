@@ -41,6 +41,7 @@ import ProofNetIR.SequentialFigure7UnifyPayloadInvariant
 import ProofNetIR.SequentialFigure7UnifyPayloadEnabled
 import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
+import ProofNetIR.SequentialFigure7PriorityEnabled
 import ProofNetIR.SequentialFigure7TagHistory
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization

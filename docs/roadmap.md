@@ -822,6 +822,15 @@
     duplicate history tags. This does not prove any branch enabled, and the
     later history constructor explicitly requires the invariant used by the
     executable call.
+  - [x] Add an exact branch-indexed applicability interface for that fixed
+    dispatcher. Reconstruct the pure input-only enabled witnesses from typed
+    `concl`/`nop`/`wait`/`forward`/`unifyPayload` steps, prove executor
+    existential-success iff under the full invariant, keep `new` explicitly
+    operational as `NewExecutableEnabled`, and prove priority-enabled
+    correspondence, exact selected-kind success/failure, and unique priority
+    kind. Preserve the completed reachable `[[]]` counterexample: the full
+    invariant alone does not enable a branch, so this item is not an
+    intended-state exhaustiveness or progress theorem.
   - [x] Add a branch-indexed canonical tag augmentation of that exact
     dispatcher history. Recover each selected typed step from `DispatchStep`,
     prove exact tag stability for the five non-`new` rules, retain the exact
@@ -916,9 +925,10 @@
     exact submitted par as `nop`, `wait`, or `forward`, without extending that
     local trichotomy to conclusions, tensors/`new`, unification, completed
     buckets, dispatcher priority, or arbitrary scheduler work.
-  - [ ] Derive the correct enabled predicate for every selected branch and then
-    exhaustive dispatcher enabledness on correct certified-reachable
-    nonterminal states.
+  - [ ] Replace the remaining operational `NewExecutableEnabled` with a
+    justified input-only criterion if the intended Figure-7 model supports
+    one, and derive exhaustive dispatcher enabledness on correct
+    certified-reachable nonterminal states.
     Generalize the remaining reservation-count/oriented-route commitments,
     establish unconditional full-rule reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation

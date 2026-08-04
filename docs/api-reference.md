@@ -14147,6 +14147,264 @@ ProofNetIR.SequentialFigure7.WaitingPrependAt.output_unique : ∀ {before first 
     ProofNetIR.SequentialFigure7.WaitingPrependAt before second boundary conclusion → first = second
 ```
 
+## Priority-aware Figure-7 applicability
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.readyHeadInput`
+
+Kind: definition.
+
+Recover the shared input-only ready-head data from a typed common-prefix
+success.  Only queries of the original state are retained.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.readyHeadInput : {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+  ProofNetIR.SequentialFigure7.PreparedStep before → ProofNetIR.SequentialFigure7.ReadyHeadInput before
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.enabled`
+
+Kind: theorem.
+
+A typed executable `concl` success reconstructs the pure input-only
+applicability witness.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.enabled : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  ProofNetIR.SequentialFigure7.ConclEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.enabled`
+
+Kind: theorem.
+
+A typed executable `nop` success reconstructs the pure input-only
+applicability witness.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.enabled : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialFigure7.NopEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.enabled`
+
+Kind: theorem.
+
+A typed executable `wait` success reconstructs the pure input-only
+applicability witness.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.enabled : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialFigure7.WaitEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.enabled`
+
+Kind: theorem.
+
+A typed executable `forward` success reconstructs the pure input-only
+applicability witness.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.enabled : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialFigure7.ForwardEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.enabled`
+
+Kind: theorem.
+
+A typed executable arbitrary-payload unification reconstructs its pure
+input-only applicability witness.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.enabled : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialFigure7.UnifyPayloadEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.concl?_success_iff_enabled`
+
+Kind: theorem.
+
+Existential `concl` executor success is exactly input-only
+`ConclEnabled`, under the complete scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.concl?_success_iff_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  (∃ after, ProofNetIR.SequentialFigure7.concl? certificate before ⋯ = some after) ↔
+    ProofNetIR.SequentialFigure7.ConclEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.nop?_success_iff_enabled`
+
+Kind: theorem.
+
+Existential `nop` executor success is exactly input-only `NopEnabled`,
+under the complete scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.nop?_success_iff_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  (∃ after, ProofNetIR.SequentialFigure7.nop? certificate before ⋯ = some after) ↔
+    ProofNetIR.SequentialFigure7.NopEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.wait?_success_iff_enabled`
+
+Kind: theorem.
+
+Existential `wait` executor success is exactly input-only `WaitEnabled`,
+under the complete scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.wait?_success_iff_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  (∃ after, ProofNetIR.SequentialFigure7.wait? certificate before ⋯ = some after) ↔
+    ProofNetIR.SequentialFigure7.WaitEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.forward?_success_iff_enabled`
+
+Kind: theorem.
+
+Existential `forward` executor success is exactly input-only
+`ForwardEnabled`, under the complete scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.forward?_success_iff_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  (∃ after, ProofNetIR.SequentialFigure7.forward? certificate before ⋯ = some after) ↔
+    ProofNetIR.SequentialFigure7.ForwardEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.unifyPayload?_success_iff_enabled`
+
+Kind: theorem.
+
+Existential arbitrary-payload unification executor success is exactly
+input-only `UnifyPayloadEnabled`, under the complete scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyPayload?_success_iff_enabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  (∃ after, ProofNetIR.SequentialFigure7.unifyPayload? certificate before ⋯ = some after) ↔
+    ProofNetIR.SequentialFigure7.UnifyPayloadEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.NewExecutableEnabled`
+
+Kind: definition.
+
+Deliberately operational enabledness for `new`.
+
+Unlike the other five predicates in this module, this definition is
+existential executor success and is not input-only.
+
+```lean
+ProofNetIR.SequentialFigure7.NewExecutableEnabled : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.PriorityEnabled`
+
+Kind: inductive type.
+
+Exact fixed-precedence applicability classification for the canonical
+dispatcher.  Later constructors retain negations of every earlier branch.
+
+The `new` field is explicitly operational; the other positive fields are
+input-only enabledness predicates.
+
+```lean
+ProofNetIR.SequentialFigure7.PriorityEnabled : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ProofNetIR.SequentialFigure7.Figure7RuleKind → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchStep.priorityEnabled`
+
+Kind: theorem.
+
+An exact dispatcher-selected branch satisfies its corresponding
+fixed-precedence applicability proposition.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchStep.priorityEnabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (step : ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant result),
+  ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant result.kind
+```
+
+### `ProofNetIR.SequentialFigure7.PriorityEnabled.exists_dispatchStep`
+
+Kind: theorem.
+
+Fixed-precedence applicability produces one exact typed dispatcher branch
+of the indexed rule kind.
+
+```lean
+ProofNetIR.SequentialFigure7.PriorityEnabled.exists_dispatchStep : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {kind : ProofNetIR.SequentialFigure7.Figure7RuleKind},
+  ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant kind →
+    ∃ after,
+      Nonempty (ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant { kind := kind, after := after })
+```
+
+### `ProofNetIR.SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled`
+
+Kind: theorem.
+
+The canonical dispatcher selects an exact rule kind iff that kind's
+fixed-precedence applicability proposition holds.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before)
+  (kind : ProofNetIR.SequentialFigure7.Figure7RuleKind),
+  (∃ after,
+      ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = some { kind := kind, after := after }) ↔
+    ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant kind
+```
+
+### `ProofNetIR.SequentialFigure7.dispatch?_eq_none_iff_forall_not_priorityEnabled`
+
+Kind: theorem.
+
+Dispatcher failure is exactly the absence of every fixed-precedence
+branch.  This classifies the existing dispatcher only; it is not progress.
+
+```lean
+ProofNetIR.SequentialFigure7.dispatch?_eq_none_iff_forall_not_priorityEnabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = none ↔
+    ∀ (kind : ProofNetIR.SequentialFigure7.Figure7RuleKind),
+      ¬ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant kind
+```
+
+### `ProofNetIR.SequentialFigure7.PriorityEnabled.kind_unique`
+
+Kind: theorem.
+
+At most one rule kind satisfies the fixed-precedence applicability
+classification for a fixed input and invariant witness.
+
+```lean
+ProofNetIR.SequentialFigure7.PriorityEnabled.kind_unique : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {first second : ProofNetIR.SequentialFigure7.Figure7RuleKind},
+  ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant first →
+    ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant second → first = second
+```
+
 ## Canonical Figure-7 dispatcher and certified history
 
 ### `ProofNetIR.SequentialFigure7.Figure7RuleKind`

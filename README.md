@@ -218,6 +218,21 @@ the call. They are therefore proof-carrying traces, not applicability,
 unconditional reachability, totality, or progress theorems. A regression locks
 the distinction by showing that an invariant-valid empty scheduler state has
 `dispatch? = none`.
+`SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
+dispatcher order with branch-indexed applicability. For `concl`, `nop`,
+`wait`, `forward`, and `unifyPayload`, a successful typed step reconstructs the
+existing pure input-only enabled witness, and the corresponding executor has
+existential success exactly when that witness exists under the full
+`SchedulerInvariant`. `NewExecutableEnabled` is intentionally operational: it
+names existential `new?` success rather than claiming an input-only `new`
+guard. `PriorityEnabled` combines one selected enabled witness with the
+negations of all earlier predicates, giving exact conversion to `DispatchStep`,
+exact selected-kind success iff, dispatcher failure iff no indexed kind is
+enabled, and uniqueness of the priority kind. A real completed ready state
+`[[]]` satisfies the invariant while no priority kind applies. Thus this is an
+exact interface to current dispatcher behavior, not a proof that every
+intended nonterminal state has a branch, nor progress, pure-worklist
+completeness, fallback removal, or whole-program linearity.
 `SequentialFigure7TagHistory.lean` augments exactly those existing traces with
 branch-aligned tag evidence. The five non-`new` branches preserve the complete
 tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
@@ -1523,7 +1538,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 607 declarations: 383 public MLL logical-boundary theorems
+ separately audits 622 declarations: 398 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 23
  axiom-free, 90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1677,6 +1692,7 @@ ProofNetIR/SequentialFigure7UnifyPayloadInvariant.lean arbitrary-payload full-in
 ProofNetIR/SequentialFigure7UnifyPayloadEnabled.lean input-only conditional payload applicability
 ProofNetIR/SequentialFigure7StableEnabled.lean input-only stable-rule applicability
 ProofNetIR/SequentialFigure7Dispatcher.lean canonical six-rule dispatcher and certified history
+ProofNetIR/SequentialFigure7PriorityEnabled.lean exact priority-aware applicability correspondence
 ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
 ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant
 ProofNetIR/SequentialComponentProvenance.lean exact proof-only component identity

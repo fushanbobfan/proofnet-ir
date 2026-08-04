@@ -500,6 +500,18 @@ part of the engineering and proof-identity gap.
    empty/singleton unifiers are compatibility APIs, not duplicate branch tags.
    The history requires the invariant at every later edge; it does not prove
    exhaustive branch applicability, totality, or progress.
+   `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
+   branch-indexed applicability correspondence. The five stable/payload typed
+   steps reconstruct pure input-only enabled witnesses, and their executors
+   have existential-success iff results under the complete invariant. `new`
+   remains explicitly operational through `NewExecutableEnabled`; no pure
+   input criterion is claimed for it. `PriorityEnabled` records the selected
+   witness and all earlier negatives, is equivalent to the matching
+   `DispatchStep`, characterizes exact selected-kind success and dispatcher
+   failure, and has a unique selected kind. A completed reachable `[[]]`
+   regression proves that the full invariant need not enable any branch, so
+   these theorems do not establish intended-state exhaustiveness,
+   nonterminality, global progress, or worklist completeness.
    `SequentialFigure7TagHistory.lean` now derives a branch-aligned augmentation
    from that exact history and from certified dispatcher reachability. It proves
    exact current-tag provenance, stable tags for all five non-`new` branches,
@@ -597,7 +609,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 607 declarations: 383 public MLL
+- CI now parses `#print axioms` for 622 declarations: 398 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
   90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
