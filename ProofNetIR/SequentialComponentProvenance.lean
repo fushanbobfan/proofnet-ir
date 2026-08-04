@@ -892,6 +892,75 @@ theorem axiom_of_submitted
     usedLinks_nodup := by simp
     owned_nodup := by simp [wellFormed.1] }
 
+/-- Merge two locally linear occurrence witnesses through one exact submitted
+tensor queue.
+
+The runtime survivor slot is deliberately absent from this statement: the
+derivation follows the submitted left/right premise orientation retained by
+`QueueTensorStep`, while a later forest theorem may store the resulting
+component at either raw root.  Every separation hypothesis is occurrence- or
+submitted-index-exact; formula labels play no role. -/
+theorem ofQueueTensorStep
+    {certificate : Certificate}
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (step : QueueTensorStep before after left right conclusion)
+    {leftUsed rightUsed : List Nat}
+    {leftOwned rightOwned : List Vertex}
+    (leftWitness :
+      ComponentOccurrenceWitness certificate step.leftComponent
+        leftUsed leftOwned)
+    (rightWitness :
+      ComponentOccurrenceWitness certificate step.rightComponent
+        rightUsed rightOwned)
+    (linkIndex : Nat)
+    (linkLookup :
+      certificate.links[linkIndex]? =
+        some (.tensor left right conclusion))
+    (linkFreshLeft : linkIndex ∉ leftUsed)
+    (linkFreshRight : linkIndex ∉ rightUsed)
+    (conclusionFreshLeft : conclusion ∉ leftOwned)
+    (conclusionFreshRight : conclusion ∉ rightOwned)
+    (usedDisjoint :
+      ∀ candidate ∈ leftUsed, candidate ∉ rightUsed)
+    (ownedDisjoint :
+      ∀ vertex ∈ leftOwned, vertex ∉ rightOwned) :
+    ComponentOccurrenceWitness certificate
+      { tree :=
+          .tensor step.leftFocus step.rightFocus
+            step.leftComponent.tree step.rightComponent.tree
+        frontier :=
+          conclusion :: (step.leftContext ++ step.rightContext) }
+      (linkIndex :: (leftUsed ++ rightUsed))
+      (conclusion :: (leftOwned ++ rightOwned)) := by
+  refine {
+    derivation :=
+      OccurrenceDerivation.ofQueueTensorStep step
+        leftWitness.derivation rightWitness.derivation
+        linkIndex linkLookup
+    usedLinks_nodup := ?_
+    owned_nodup := ?_ }
+  · apply List.nodup_cons.mpr
+    constructor
+    · simpa [List.mem_append] using
+        And.intro linkFreshLeft linkFreshRight
+    · apply List.nodup_append.mpr
+      refine ⟨leftWitness.usedLinks_nodup,
+        rightWitness.usedLinks_nodup, ?_⟩
+      intro leftLink leftMembership rightLink rightMembership same
+      subst rightLink
+      exact usedDisjoint leftLink leftMembership rightMembership
+  · apply List.nodup_cons.mpr
+    constructor
+    · simpa [List.mem_append] using
+        And.intro conclusionFreshLeft conclusionFreshRight
+    · apply List.nodup_append.mpr
+      refine ⟨leftWitness.owned_nodup,
+        rightWitness.owned_nodup, ?_⟩
+      intro leftVertex leftMembership rightVertex rightMembership same
+      subst rightVertex
+      exact ownedDisjoint leftVertex leftMembership rightMembership
+
 end ComponentOccurrenceWitness
 
 /-- Reserving a submitted axiom installs an exact occurrence-provenance
@@ -1451,6 +1520,520 @@ theorem queueParStep_of_root_fresh
       UnificationState.componentAt?_some_raw step.component_lookup
     simpa [root] using rawLookup
   · exact conclusionFresh
+
+/-- Merge two distinct raw-root live components through one exact submitted
+tensor queue while preserving the complete occurrence-exact forest.
+
+The successful token guard and `Abstractable` prove that the two runtime tokens
+are allocated roots.  The smaller root survives and the larger root is retired,
+but the new derivation itself retains the submitted left/right orientation from
+`QueueTensorStep`.  Thus neither component storage order nor formula-label
+equality participates in the proof.
+
+The explicit occurrence-freshness premise is essential.  Raw-unmarkedness of
+the conclusion alone does not exclude a malformed old forest from already
+owning that unmarked internal occurrence. -/
+theorem queueTensorStep_of_roots_fresh
+    {certificate : Certificate}
+    {before after : UnificationState}
+    {left right conclusion : Vertex}
+    (abstractable : before.Abstractable certificate)
+    (ordered : before.OrderedParents)
+    (forest : certificate.ComponentForestProvenance before)
+    (step : QueueTensorStep before after left right conclusion)
+    (linkIndex : Nat)
+    (linkLookup :
+      certificate.links[linkIndex]? =
+        some (.tensor left right conclusion))
+    (conclusionFresh :
+      ∀ {index component owned},
+        before.components[index]? = some (some component) →
+        OwnedOccurrenceAccounted before index component owned →
+        conclusion ∉ owned) :
+    certificate.ComponentForestProvenance after := by
+  rcases forest with ⟨usedAt, ownedAt, live, disjoint, covered⟩
+  have guards := UnificationState.unifyTokens?_success step.token_guard
+  have leftBound : step.leftToken < before.parents.size :=
+    abstractable.tokenAt?_bound guards.2.1
+  have rightBound : step.rightToken < before.parents.size :=
+    abstractable.tokenAt?_bound guards.2.2.1
+  have leftRoot :
+      before.representative step.leftToken = step.leftToken :=
+    abstractable.tokenAt?_root guards.2.1
+  have rightRoot :
+      before.representative step.rightToken = step.rightToken :=
+    abstractable.tokenAt?_root guards.2.2.1
+  have tokensDifferent : step.leftToken ≠ step.rightToken :=
+    guards.2.2.2
+  let survivor := min step.leftToken step.rightToken
+  let retired := max step.leftToken step.rightToken
+  let nextComponent : UnificationComponent := {
+    tree :=
+      .tensor step.leftFocus step.rightFocus
+        step.leftComponent.tree step.rightComponent.tree
+    frontier := conclusion :: (step.leftContext ++ step.rightContext) }
+  have survivorLt : survivor < retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with leftLt | rightLt
+    · simpa [survivor, retired, Nat.min_eq_left (Nat.le_of_lt leftLt),
+        Nat.max_eq_right (Nat.le_of_lt leftLt)] using leftLt
+    · simpa [survivor, retired, Nat.min_eq_right (Nat.le_of_lt rightLt),
+        Nat.max_eq_left (Nat.le_of_lt rightLt)] using rightLt
+  have survivorNeRetired : survivor ≠ retired := Nat.ne_of_lt survivorLt
+  have retiredNeSurvivor : retired ≠ survivor := Ne.symm survivorNeRetired
+  have survivorBound : survivor < before.parents.size := by
+    rcases Nat.le_total step.leftToken step.rightToken with order | order
+    · simpa [survivor, Nat.min_eq_left order] using leftBound
+    · simpa [survivor, Nat.min_eq_right order] using rightBound
+  have retiredBound : retired < before.parents.size := by
+    rcases Nat.le_total step.leftToken step.rightToken with order | order
+    · simpa [retired, Nat.max_eq_right order] using rightBound
+    · simpa [retired, Nat.max_eq_left order] using leftBound
+  have survivorRoot : before.representative survivor = survivor := by
+    rcases Nat.le_total step.leftToken step.rightToken with order | order
+    · simpa [survivor, Nat.min_eq_left order] using leftRoot
+    · simpa [survivor, Nat.min_eq_right order] using rightRoot
+  have retiredRoot : before.representative retired = retired := by
+    rcases Nat.le_total step.leftToken step.rightToken with order | order
+    · simpa [retired, Nat.max_eq_right order] using rightRoot
+    · simpa [retired, Nat.max_eq_left order] using leftRoot
+  have leftLookup :
+      before.components[step.leftToken]? =
+        some (some step.leftComponent) := by
+    have raw :=
+      UnificationState.componentAt?_some_raw step.left_component
+    simpa [leftRoot] using raw
+  have rightLookup :
+      before.components[step.rightToken]? =
+        some (some step.rightComponent) := by
+    have raw :=
+      UnificationState.componentAt?_some_raw step.right_component
+    simpa [rightRoot] using raw
+  have leftComponentBound :
+      step.leftToken < before.components.size :=
+    (Array.getElem?_eq_some_iff.mp leftLookup).1
+  have rightComponentBound :
+      step.rightToken < before.components.size :=
+    (Array.getElem?_eq_some_iff.mp rightLookup).1
+  have survivorComponentBound : survivor < before.components.size := by
+    rcases Nat.le_total step.leftToken step.rightToken with order | order
+    · simpa [survivor, Nat.min_eq_left order] using leftComponentBound
+    · simpa [survivor, Nat.min_eq_right order] using rightComponentBound
+  have retiredComponentBound : retired < before.components.size := by
+    rcases Nat.le_total step.leftToken step.rightToken with order | order
+    · simpa [retired, Nat.max_eq_right order] using rightComponentBound
+    · simpa [retired, Nat.max_eq_left order] using leftComponentBound
+  have leftFacts := live leftLookup
+  have rightFacts := live rightLookup
+  have leftRightSeparation :=
+    disjoint leftLookup rightLookup tokensDifferent
+  have conclusionFreshAt : ∀ {index component},
+      before.components[index]? = some (some component) →
+      conclusion ∉ ownedAt index := by
+    intro index component componentLookup
+    exact conclusionFresh componentLookup (live componentLookup).2
+  have oldLinkFreshAt : ∀ {index component},
+      before.components[index]? = some (some component) →
+      linkIndex ∉ usedAt index := by
+    intro index component componentLookup linkUsed
+    have conclusionOwned : conclusion ∈ ownedAt index :=
+      (live componentLookup).1.derivation.usedConnectiveConclusion_owned
+        linkUsed (.inl linkLookup)
+    exact (conclusionFreshAt componentLookup) conclusionOwned
+  have nextWitness :
+      ComponentOccurrenceWitness certificate nextComponent
+        (linkIndex ::
+          (usedAt step.leftToken ++ usedAt step.rightToken))
+        (conclusion ::
+          (ownedAt step.leftToken ++ ownedAt step.rightToken)) := by
+    simpa [nextComponent] using
+      ComponentOccurrenceWitness.ofQueueTensorStep step
+        leftFacts.1 rightFacts.1 linkIndex linkLookup
+        (oldLinkFreshAt leftLookup) (oldLinkFreshAt rightLookup)
+        (conclusionFreshAt leftLookup) (conclusionFreshAt rightLookup)
+        leftRightSeparation.1 leftRightSeparation.2
+  let newUsedAt : Nat → List Nat := fun index =>
+    if index = survivor then
+      linkIndex :: (usedAt step.leftToken ++ usedAt step.rightToken)
+    else
+      usedAt index
+  let newOwnedAt : Nat → List Vertex := fun index =>
+    if index = survivor then
+      conclusion :: (ownedAt step.leftToken ++ ownedAt step.rightToken)
+    else
+      ownedAt index
+  have afterComponents :
+      after.components =
+        Array.setIfInBounds
+          (before.components.setIfInBounds survivor (some nextComponent))
+          retired none := by
+    simpa [survivor, retired, nextComponent] using
+      congrArg (fun state : UnificationState => state.components)
+        step.after_eq
+  have afterParents :
+      after.parents =
+        before.parents.setIfInBounds retired survivor := by
+    simpa [survivor, retired] using
+      congrArg (fun state : UnificationState => state.parents)
+        step.after_eq
+  have afterMarks : after.marks = before.marks := by
+    simpa using
+      congrArg (fun state : UnificationState => state.marks)
+        step.after_eq
+  have afterRepresentative : ∀ rawAge,
+      rawAge < before.parents.size →
+      after.representative rawAge =
+        if before.representative rawAge = retired then
+          survivor
+        else
+          before.representative rawAge := by
+    intro rawAge rawBound
+    calc
+      after.representative rawAge =
+          (before.setParent retired survivor).representative rawAge := by
+        unfold UnificationState.representative
+        simp [UnificationState.setParent, afterParents]
+      _ = if before.representative rawAge = retired then
+            survivor
+          else
+            before.representative rawAge :=
+        ordered.setParent_representative survivorBound retiredBound
+          survivorLt survivorRoot retiredRoot rawBound
+  have leftMergesToSurvivor :
+      (if step.leftToken = retired then survivor else step.leftToken) =
+        survivor := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with leftLt | rightLt
+    · simp [survivor, retired, Nat.min_eq_left (Nat.le_of_lt leftLt),
+        Nat.max_eq_right (Nat.le_of_lt leftLt)]
+    · simp [survivor, retired, Nat.min_eq_right (Nat.le_of_lt rightLt),
+        Nat.max_eq_left (Nat.le_of_lt rightLt)]
+  have rightMergesToSurvivor :
+      (if step.rightToken = retired then survivor else step.rightToken) =
+        survivor := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with leftLt | rightLt
+    · simp [survivor, retired, Nat.min_eq_left (Nat.le_of_lt leftLt),
+        Nat.max_eq_right (Nat.le_of_lt leftLt)]
+    · simp [survivor, retired, Nat.min_eq_right (Nat.le_of_lt rightLt),
+        Nat.max_eq_left (Nat.le_of_lt rightLt)]
+  have leftAtEdge :
+      step.leftToken = survivor ∨ step.leftToken = retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with leftLt | rightLt
+    · exact Or.inl (by simp [survivor,
+        Nat.min_eq_left (Nat.le_of_lt leftLt)])
+    · exact Or.inr (by simp [retired,
+        Nat.max_eq_left (Nat.le_of_lt rightLt)])
+  have rightAtEdge :
+      step.rightToken = survivor ∨ step.rightToken = retired := by
+    rcases Nat.lt_or_gt_of_ne tokensDifferent with leftLt | rightLt
+    · exact Or.inr (by simp [retired,
+        Nat.max_eq_right (Nat.le_of_lt leftLt)])
+    · exact Or.inl (by simp [survivor,
+        Nat.min_eq_right (Nat.le_of_lt rightLt)])
+  have afterSurvivorLookup :
+      after.components[survivor]? = some (some nextComponent) := by
+    rw [afterComponents]
+    simp [survivorComponentBound, retiredNeSurvivor]
+  have oldOfAfter : ∀ {index component},
+      after.components[index]? = some (some component) →
+      index ≠ survivor →
+      index ≠ retired ∧
+        before.components[index]? = some (some component) := by
+    intro index component componentLookup indexNeSurvivor
+    have indexNeRetired : index ≠ retired := by
+      intro same
+      subst index
+      rw [afterComponents] at componentLookup
+      simp [retiredComponentBound] at componentLookup
+    constructor
+    · exact indexNeRetired
+    · rw [afterComponents] at componentLookup
+      simpa [Array.getElem?_setIfInBounds,
+        Ne.symm indexNeSurvivor, Ne.symm indexNeRetired] using
+          componentLookup
+  have leftMarked : ∃ rawAge,
+      before.marks[left]? = some (some rawAge) := by
+    rcases before.tokenAt?_some_witness guards.2.1 with
+      ⟨rawAge, assigned, _⟩
+    exact ⟨rawAge, UnificationState.assignedToken?_some_raw assigned⟩
+  have rightMarked : ∃ rawAge,
+      before.marks[right]? = some (some rawAge) := by
+    rcases before.tokenAt?_some_witness guards.2.2.1 with
+      ⟨rawAge, assigned, _⟩
+    exact ⟨rawAge, UnificationState.assignedToken?_some_raw assigned⟩
+  refine ⟨newUsedAt, newOwnedAt, ?_, ?_, ?_⟩
+  · intro index component componentLookup
+    by_cases isSurvivor : index = survivor
+    · subst index
+      have componentEq : component = nextComponent := by
+        rw [afterSurvivorLookup] at componentLookup
+        exact Option.some.inj (Option.some.inj componentLookup.symm)
+      subst component
+      refine ⟨?_, ?_⟩
+      · simpa [newUsedAt, newOwnedAt] using nextWitness
+      · intro vertex vertexOwned
+        simp only [newOwnedAt, if_pos, List.mem_cons,
+          List.mem_append] at vertexOwned
+        rcases vertexOwned with rfl | leftOwned | rightOwned
+        · apply Or.inr
+          refine ⟨?_, by simp [nextComponent]⟩
+          rw [afterMarks]
+          exact guards.1
+        · rcases leftFacts.2 vertex leftOwned with
+            ⟨rawAge, marked, representative⟩ |
+              ⟨unmarked, frontierMembership⟩
+          · apply Or.inl
+            refine ⟨rawAge, ?_, ?_⟩
+            · rw [afterMarks]
+              exact marked
+            · have rawBound : rawAge < before.parents.size := by
+                apply abstractable.markedTokenBound
+                unfold UnificationState.assignedToken?
+                rw [marked]
+                rfl
+              rw [afterRepresentative rawAge rawBound, representative]
+              exact leftMergesToSurvivor
+          · have vertexNeLeft : vertex ≠ left := by
+              intro same
+              subst vertex
+              rcases leftMarked with ⟨rawAge, marked⟩
+              rw [unmarked] at marked
+              simp at marked
+            have contextMembership : vertex ∈ step.leftContext := by
+              have membership : vertex ∈ left :: step.leftContext :=
+                (CutFreeDerivation.pick?_perm
+                  (FirstOccurrencePick.positional step.left_pick)).mem_iff.mp
+                    frontierMembership
+              simpa [vertexNeLeft] using membership
+            apply Or.inr
+            refine ⟨?_, by simp [nextComponent, contextMembership]⟩
+            rw [afterMarks]
+            exact unmarked
+        · rcases rightFacts.2 vertex rightOwned with
+            ⟨rawAge, marked, representative⟩ |
+              ⟨unmarked, frontierMembership⟩
+          · apply Or.inl
+            refine ⟨rawAge, ?_, ?_⟩
+            · rw [afterMarks]
+              exact marked
+            · have rawBound : rawAge < before.parents.size := by
+                apply abstractable.markedTokenBound
+                unfold UnificationState.assignedToken?
+                rw [marked]
+                rfl
+              rw [afterRepresentative rawAge rawBound, representative]
+              exact rightMergesToSurvivor
+          · have vertexNeRight : vertex ≠ right := by
+              intro same
+              subst vertex
+              rcases rightMarked with ⟨rawAge, marked⟩
+              rw [unmarked] at marked
+              simp at marked
+            have contextMembership : vertex ∈ step.rightContext := by
+              have membership : vertex ∈ right :: step.rightContext :=
+                (CutFreeDerivation.pick?_perm
+                  (FirstOccurrencePick.positional step.right_pick)).mem_iff.mp
+                    frontierMembership
+              simpa [vertexNeRight] using membership
+            apply Or.inr
+            refine ⟨?_, by simp [nextComponent, contextMembership]⟩
+            rw [afterMarks]
+            exact unmarked
+    · rcases oldOfAfter componentLookup isSurvivor with
+        ⟨isRetired, oldLookup⟩
+      rcases live oldLookup with ⟨oldWitness, oldAccounted⟩
+      refine ⟨?_, ?_⟩
+      · simpa [newUsedAt, newOwnedAt, isSurvivor] using oldWitness
+      · intro vertex vertexOwned
+        have oldOwned : vertex ∈ ownedAt index := by
+          simpa [newOwnedAt, isSurvivor] using vertexOwned
+        rcases oldAccounted vertex oldOwned with
+          ⟨rawAge, marked, representative⟩ |
+            ⟨unmarked, frontierMembership⟩
+        · apply Or.inl
+          refine ⟨rawAge, ?_, ?_⟩
+          · rw [afterMarks]
+            exact marked
+          · have rawBound : rawAge < before.parents.size := by
+              apply abstractable.markedTokenBound
+              unfold UnificationState.assignedToken?
+              rw [marked]
+              rfl
+            rw [afterRepresentative rawAge rawBound, representative]
+            simp [isRetired]
+        · apply Or.inr
+          refine ⟨?_, frontierMembership⟩
+          rw [afterMarks]
+          exact unmarked
+  · intro leftIndex rightIndex leftComponent rightComponent
+      leftAfter rightAfter indexesDifferent
+    by_cases leftSurvivor : leftIndex = survivor
+    · subst leftIndex
+      have leftComponentEq : leftComponent = nextComponent := by
+        rw [afterSurvivorLookup] at leftAfter
+        exact Option.some.inj (Option.some.inj leftAfter.symm)
+      subst leftComponent
+      by_cases rightSurvivor : rightIndex = survivor
+      · exact False.elim (indexesDifferent rightSurvivor.symm)
+      · rcases oldOfAfter rightAfter rightSurvivor with
+          ⟨rightRetired, rightOld⟩
+        have rightNeLeftToken : rightIndex ≠ step.leftToken := by
+          intro same
+          subst rightIndex
+          rcases leftAtEdge with atSurvivor | atRetired
+          · exact rightSurvivor atSurvivor
+          · exact rightRetired atRetired
+        have rightNeRightToken : rightIndex ≠ step.rightToken := by
+          intro same
+          subst rightIndex
+          rcases rightAtEdge with atSurvivor | atRetired
+          · exact rightSurvivor atSurvivor
+          · exact rightRetired atRetired
+        have leftSep := disjoint leftLookup rightOld (Ne.symm rightNeLeftToken)
+        have rightSep := disjoint rightLookup rightOld (Ne.symm rightNeRightToken)
+        constructor
+        · intro candidate candidateLeft candidateRight
+          have rightOldMembership : candidate ∈ usedAt rightIndex := by
+            simpa [newUsedAt, rightSurvivor] using candidateRight
+          have nextMembership :
+              candidate = linkIndex ∨
+                candidate ∈ usedAt step.leftToken ∨
+                candidate ∈ usedAt step.rightToken := by
+            simpa [newUsedAt, List.mem_append] using candidateLeft
+          rcases nextMembership with rfl | leftMembership | rightMembership
+          · exact (oldLinkFreshAt rightOld) rightOldMembership
+          · exact leftSep.1 candidate leftMembership rightOldMembership
+          · exact rightSep.1 candidate rightMembership rightOldMembership
+        · intro vertex vertexLeft vertexRight
+          have rightOldMembership : vertex ∈ ownedAt rightIndex := by
+            simpa [newOwnedAt, rightSurvivor] using vertexRight
+          have nextMembership :
+              vertex = conclusion ∨
+                vertex ∈ ownedAt step.leftToken ∨
+                vertex ∈ ownedAt step.rightToken := by
+            simpa [newOwnedAt, List.mem_append] using vertexLeft
+          rcases nextMembership with rfl | leftMembership | rightMembership
+          · exact (conclusionFreshAt rightOld) rightOldMembership
+          · exact leftSep.2 vertex leftMembership rightOldMembership
+          · exact rightSep.2 vertex rightMembership rightOldMembership
+    · rcases oldOfAfter leftAfter leftSurvivor with
+        ⟨leftRetired, leftOld⟩
+      by_cases rightSurvivor : rightIndex = survivor
+      · subst rightIndex
+        have rightComponentEq : rightComponent = nextComponent := by
+          rw [afterSurvivorLookup] at rightAfter
+          exact Option.some.inj (Option.some.inj rightAfter.symm)
+        subst rightComponent
+        have leftNeLeftToken : leftIndex ≠ step.leftToken := by
+          intro same
+          subst leftIndex
+          rcases leftAtEdge with atSurvivor | atRetired
+          · exact leftSurvivor atSurvivor
+          · exact leftRetired atRetired
+        have leftNeRightToken : leftIndex ≠ step.rightToken := by
+          intro same
+          subst leftIndex
+          rcases rightAtEdge with atSurvivor | atRetired
+          · exact leftSurvivor atSurvivor
+          · exact leftRetired atRetired
+        have leftSep := disjoint leftOld leftLookup leftNeLeftToken
+        have rightSep := disjoint leftOld rightLookup leftNeRightToken
+        constructor
+        · intro candidate candidateLeft candidateRight
+          have leftOldMembership : candidate ∈ usedAt leftIndex := by
+            simpa [newUsedAt, leftSurvivor] using candidateLeft
+          have nextMembership :
+              candidate = linkIndex ∨
+                candidate ∈ usedAt step.leftToken ∨
+                candidate ∈ usedAt step.rightToken := by
+            simpa [newUsedAt, List.mem_append] using candidateRight
+          rcases nextMembership with rfl | leftMembership | rightMembership
+          · exact (oldLinkFreshAt leftOld) leftOldMembership
+          · exact leftSep.1 candidate leftOldMembership leftMembership
+          · exact rightSep.1 candidate leftOldMembership rightMembership
+        · intro vertex vertexLeft vertexRight
+          have leftOldMembership : vertex ∈ ownedAt leftIndex := by
+            simpa [newOwnedAt, leftSurvivor] using vertexLeft
+          have nextMembership :
+              vertex = conclusion ∨
+                vertex ∈ ownedAt step.leftToken ∨
+                vertex ∈ ownedAt step.rightToken := by
+            simpa [newOwnedAt, List.mem_append] using vertexRight
+          rcases nextMembership with rfl | leftMembership | rightMembership
+          · exact (conclusionFreshAt leftOld) leftOldMembership
+          · exact leftSep.2 vertex leftOldMembership leftMembership
+          · exact rightSep.2 vertex leftOldMembership rightMembership
+      · rcases oldOfAfter rightAfter rightSurvivor with
+          ⟨rightRetired, rightOld⟩
+        have oldSeparation := disjoint leftOld rightOld indexesDifferent
+        simpa [newUsedAt, newOwnedAt, leftSurvivor, rightSurvivor] using
+          oldSeparation
+  · intro vertex rawAge afterMarked
+    have beforeMarked :
+        before.marks[vertex]? = some (some rawAge) := by
+      rw [afterMarks] at afterMarked
+      exact afterMarked
+    have rawBound : rawAge < before.parents.size := by
+      apply abstractable.markedTokenBound
+      unfold UnificationState.assignedToken?
+      rw [beforeMarked]
+      rfl
+    rcases covered beforeMarked with
+      ⟨index, component, representative, oldLookup, vertexOwned⟩
+    by_cases indexSurvivor : index = survivor
+    · have afterRep : after.representative rawAge = survivor := by
+        rw [afterRepresentative rawAge rawBound, representative,
+          indexSurvivor]
+        simp [survivorNeRetired]
+      refine ⟨survivor, nextComponent, afterRep,
+        afterSurvivorLookup, ?_⟩
+      rcases leftAtEdge with leftIsSurvivor | leftIsRetired
+      · have rightIsRetired : step.rightToken = retired := by
+          rcases rightAtEdge with rightIsSurvivor | rightIsRetired
+          · exact False.elim
+              (tokensDifferent (leftIsSurvivor.trans rightIsSurvivor.symm))
+          · exact rightIsRetired
+        simpa [newOwnedAt, leftIsSurvivor, rightIsRetired,
+          indexSurvivor, List.mem_append] using
+            Or.inr (Or.inl vertexOwned)
+      · have rightIsSurvivor : step.rightToken = survivor := by
+          rcases rightAtEdge with rightIsSurvivor | rightIsRetired
+          · exact rightIsSurvivor
+          · exact False.elim
+              (tokensDifferent (leftIsRetired.trans rightIsRetired.symm))
+        simpa [newOwnedAt, leftIsRetired, rightIsSurvivor,
+          indexSurvivor, List.mem_append] using
+            Or.inr (Or.inr vertexOwned)
+    · by_cases indexRetired : index = retired
+      · have afterRep : after.representative rawAge = survivor := by
+          rw [afterRepresentative rawAge rawBound, representative,
+            indexRetired]
+          simp
+        refine ⟨survivor, nextComponent, afterRep,
+          afterSurvivorLookup, ?_⟩
+        rcases leftAtEdge with leftIsSurvivor | leftIsRetired
+        · have rightIsRetired : step.rightToken = retired := by
+            rcases rightAtEdge with rightIsSurvivor | rightIsRetired
+            · exact False.elim
+                (tokensDifferent (leftIsSurvivor.trans rightIsSurvivor.symm))
+            · exact rightIsRetired
+          simpa [newOwnedAt, leftIsSurvivor, rightIsRetired,
+            indexRetired, List.mem_append] using
+              Or.inr (Or.inr vertexOwned)
+        · have rightIsSurvivor : step.rightToken = survivor := by
+            rcases rightAtEdge with rightIsSurvivor | rightIsRetired
+            · exact rightIsSurvivor
+            · exact False.elim
+                (tokensDifferent (leftIsRetired.trans rightIsRetired.symm))
+          simpa [newOwnedAt, leftIsRetired, rightIsSurvivor,
+            indexRetired, List.mem_append] using
+              Or.inr (Or.inl vertexOwned)
+      · have afterRep : after.representative rawAge = index := by
+          rw [afterRepresentative rawAge rawBound, representative]
+          simp [indexRetired]
+        refine ⟨index, component, afterRep, ?_, ?_⟩
+        · rw [afterComponents]
+          simpa [Array.getElem?_setIfInBounds,
+            Ne.symm indexSurvivor, Ne.symm indexRetired] using oldLookup
+        · simpa [newOwnedAt, indexSurvivor] using vertexOwned
 
 /-- Appending a fresh submitted axiom preserves the occurrence-exact live
 component forest when both exact endpoints are absent from every old owner. -/

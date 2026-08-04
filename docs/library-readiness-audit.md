@@ -450,8 +450,10 @@ part of the engineering and proof-identity gap.
    and iff additionally assume structural validity plus the separate ready-list
    `Nodup` premise. Every successful execution preserves
    `ReservationInvariant`, including exact `RealizesSigma` transport through
-   the stack pop and parent union. It does not yet preserve
-   `ComponentForestProvenance` or the complete `SchedulerInvariant`. Complete
+   the stack pop and parent union. Given the full state-only invariant, every
+   successful typed and executable bounded step also preserves the complete
+   occurrence-exact `SchedulerInvariant`, including the component forest,
+   live-frontier/queue/waiting/pending fields, and fired counter. Complete
    nonempty-payload `Unify`, full-history integration of
    `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`, applicability/totality,
    full-rule reachability,
@@ -534,10 +536,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 289 public MLL logical-boundary theorems and
+- CI now parses `#print axioms` for 296 public MLL logical-boundary theorems and
   fails if their exact dependency set changes from `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 23 axiom-free,
-  87 `propext`-only, and 80 `propext`/`Quot.sound` boundaries;
+  88 `propext`-only, and 82 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -629,14 +631,15 @@ It can currently be used for:
   while treating search failure as inconclusive; local exact
   `concl`/`nop`/`wait`/`forward`/`UnifyEmpty` are now present, the current state-only invariant
   is preserved through the common prepared prefix plus `concl`/`nop` and every
-  successful deterministic/executable `new`, `wait`, and `forward`; the exact
-  occurrence-provenance forest is integrated for empty/init and each of those
-  successful steps. Wait additionally preserves exact positional waiting spans
+  successful deterministic/executable `new`, `wait`, `forward`, and bounded
+  `UnifyEmpty`; the exact occurrence-provenance forest is integrated for
+  empty/init and each of those successful steps. Wait additionally preserves
+  exact positional waiting spans
   and combined queue ownership without constructing the delayed par.
   Forward also has an independent Boolean-free direct rule and exact
   executable correspondence. Bounded `UnifyEmpty` has a direct rule and exact
-  correspondence and preserves `ReservationInvariant`, but not the
-  occurrence-provenance forest or complete `SchedulerInvariant`. Later-state
+  correspondence, and successful typed/executable bounded steps preserve the
+  complete occurrence-exact `SchedulerInvariant`. Later-state
   applicability and totality, complete nonempty `unify`, and full-history rule
   integration remain absent. The
   local `wait` cons has a state-only ownership theorem only from a supplied

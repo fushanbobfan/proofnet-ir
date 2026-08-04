@@ -320,12 +320,17 @@ example :
     | none => false
     | some after =>
         after.stack.sigma == [0] &&
+          after.stack.nextAge == 2 &&
           after.stack.ready == [[4, 1, 3]] &&
           after.stack.waiting[0]? == some .undefined &&
+          after.stack.waiting[1]? == some .undefined &&
           after.stack.marks ==
             #[some 0, none, some 1, none, none] &&
           after.core.marks == after.stack.marks &&
           after.core.parents == #[0, 0] &&
+          after.core.representative 0 == 0 &&
+          after.core.representative 1 == 0 &&
+          after.core.startedAxioms == 2 &&
           after.core.firedConnectives == 1 &&
           match after.core.components[0]?, after.core.components[1]? with
           | some (some component), some none =>
@@ -371,13 +376,163 @@ example :
     | none => false
     | some after =>
         after.stack.sigma == [0] &&
+          after.stack.nextAge == 2 &&
           after.stack.ready == [[4, 3, 1]] &&
+          after.stack.waiting[0]? == some .undefined &&
+          after.stack.waiting[1]? == some .undefined &&
           after.core.parents == #[0, 0] &&
+          after.core.representative 0 == 0 &&
+          after.core.representative 1 == 0 &&
+          after.core.startedAxioms == 2 &&
           after.core.firedConnectives == 1 &&
           match after.core.components[0]?, after.core.components[1]? with
           | some (some component), some none =>
               component.frontier == [4, 1, 3]
           | _, _ => false) = true := by
+  native_decide
+
+/-- The stored-left execution reaches the complete scheduler invariant through
+the empty-only executable preservation theorem. -/
+example {initial before after : ReservationState}
+    (initialEquation : repeatedStoredLeftInitial = some initial)
+    (newEquation :
+      SequentialFigure7.new? repeatedOccurrenceCertificate initial
+          (repeatedStoredLeftInitial_schedulerInvariant initialEquation
+            |>.toReservationInvariant) =
+        some before)
+    (unifyEquation :
+      SequentialFigure7.unifyEmpty? repeatedOccurrenceCertificate before
+          (SequentialFigure7.new?_schedulerInvariant
+            (repeatedStoredLeftInitial_schedulerInvariant initialEquation)
+            newEquation |>.toReservationInvariant) =
+        some after) :
+    SchedulerInvariant repeatedOccurrenceCertificate after :=
+  SequentialFigure7.unifyEmpty?_schedulerInvariant
+    (SequentialFigure7.new?_schedulerInvariant
+      (repeatedStoredLeftInitial_schedulerInvariant initialEquation)
+      newEquation)
+    unifyEquation
+
+/-- The stored-right regression observes the exact executable orientation
+before the empty-only merge, then checks the merged frontier, representative
+collapse, scheduler queues, waiting cells, and both counters. -/
+private def repeatedStoredRightOrientationRegression : Bool :=
+  match initialEquation : repeatedInitial with
+  | none => false
+  | some initial =>
+      let initialInvariant :=
+        repeatedInitial_schedulerInvariant initialEquation
+      match newEquation :
+          SequentialFigure7.new? repeatedOccurrenceCertificate initial
+            initialInvariant.toReservationInvariant with
+      | none => false
+      | some before =>
+          let beforeInvariant :=
+            SequentialFigure7.new?_schedulerInvariant
+              initialInvariant newEquation
+          match SequentialFigure7.prepare? before with
+          | none => false
+          | some prepared =>
+              match repeatedOccurrenceCertificate.connectiveBelow?
+                  prepared.stackResult.vertex with
+              | none => false
+              | some consumer =>
+                  match prepared.coreMarked.unifyTokens?
+                      consumer.storedLeft consumer.storedRight
+                      consumer.conclusion with
+                  | none => false
+                  | some (leftToken, rightToken) =>
+                      match SequentialFigure7.unifyEmpty?
+                          repeatedOccurrenceCertificate before
+                          beforeInvariant.toReservationInvariant with
+                      | none => false
+                      | some after =>
+                          consumer.side == .storedRight &&
+                            consumer.linkIndex == 2 &&
+                            consumer.storedLeft == 0 &&
+                            consumer.storedRight == 2 &&
+                            consumer.conclusion == 4 &&
+                            prepared.stackResult.rawAge == 1 &&
+                            leftToken == 0 &&
+                            rightToken == 1 &&
+                            prepared.stackResult.after.waiting[0]? ==
+                              some (.initialized []) &&
+                            after.stack.sigma == [0] &&
+                            after.stack.ready == [[4, 1, 3]] &&
+                            after.stack.waiting[0]? == some .undefined &&
+                            after.stack.waiting[1]? == some .undefined &&
+                            after.core.representative 0 == 0 &&
+                            after.core.representative 1 == 0 &&
+                            after.core.startedAxioms == 2 &&
+                            after.core.firedConnectives == 1 &&
+                            match after.core.components[0]?,
+                                after.core.components[1]? with
+                            | some (some component), some none =>
+                                component.frontier == [4, 1, 3]
+                            | _, _ => false
+
+example : repeatedStoredRightOrientationRegression = true := by
+  native_decide
+
+/-- Reversing the initial axiom selects the stored-left tensor premise.  The
+production frontier remains in submitted left/right order even though the
+scheduler merge keeps previous-ready before active-ready. -/
+private def repeatedStoredLeftOrientationRegression : Bool :=
+  match initialEquation : repeatedStoredLeftInitial with
+  | none => false
+  | some initial =>
+      let initialInvariant :=
+        repeatedStoredLeftInitial_schedulerInvariant initialEquation
+      match newEquation :
+          SequentialFigure7.new? repeatedOccurrenceCertificate initial
+            initialInvariant.toReservationInvariant with
+      | none => false
+      | some before =>
+          let beforeInvariant :=
+            SequentialFigure7.new?_schedulerInvariant
+              initialInvariant newEquation
+          match SequentialFigure7.prepare? before with
+          | none => false
+          | some prepared =>
+              match repeatedOccurrenceCertificate.connectiveBelow?
+                  prepared.stackResult.vertex with
+              | none => false
+              | some consumer =>
+                  match prepared.coreMarked.unifyTokens?
+                      consumer.storedLeft consumer.storedRight
+                      consumer.conclusion with
+                  | none => false
+                  | some (leftToken, rightToken) =>
+                      match SequentialFigure7.unifyEmpty?
+                          repeatedOccurrenceCertificate before
+                          beforeInvariant.toReservationInvariant with
+                      | none => false
+                      | some after =>
+                          consumer.side == .storedLeft &&
+                            consumer.linkIndex == 2 &&
+                            consumer.storedLeft == 0 &&
+                            consumer.storedRight == 2 &&
+                            consumer.conclusion == 4 &&
+                            prepared.stackResult.rawAge == 1 &&
+                            leftToken == 1 &&
+                            rightToken == 0 &&
+                            prepared.stackResult.after.waiting[0]? ==
+                              some (.initialized []) &&
+                            after.stack.sigma == [0] &&
+                            after.stack.ready == [[4, 3, 1]] &&
+                            after.stack.waiting[0]? == some .undefined &&
+                            after.stack.waiting[1]? == some .undefined &&
+                            after.core.representative 0 == 0 &&
+                            after.core.representative 1 == 0 &&
+                            after.core.startedAxioms == 2 &&
+                            after.core.firedConnectives == 1 &&
+                            match after.core.components[0]?,
+                                after.core.components[1]? with
+                            | some (some component), some none =>
+                                component.frontier == [4, 1, 3]
+                            | _, _ => false
+
+example : repeatedStoredLeftOrientationRegression = true := by
   native_decide
 
 /-- Three independently reserved axiom components expose why the lower raw
@@ -592,8 +747,8 @@ example {initial before after : ReservationState}
     ⟨step⟩
   exact ⟨step, step.submitted_tensor, step.lower, step.upper⟩
 
-/-- The same bounded executable success preserves the complete reservation
-bundle, including the synchronized sigma-boundary/union-find realization. -/
+/-- The stored-right bounded executable success preserves the complete
+occurrence-exact scheduler invariant, not only its reservation sub-bundle. -/
 example {initial before after : ReservationState}
     (initialEquation : repeatedInitial = some initial)
     (newEquation :
@@ -607,11 +762,10 @@ example {initial before after : ReservationState}
             (repeatedInitial_schedulerInvariant initialEquation)
             newEquation |>.toReservationInvariant) =
         some after) :
-    ReservationInvariant repeatedOccurrenceCertificate after :=
-  SequentialFigure7.unifyEmpty?_reservationInvariant
+    SchedulerInvariant repeatedOccurrenceCertificate after :=
+  SequentialFigure7.unifyEmpty?_schedulerInvariant
     (SequentialFigure7.new?_schedulerInvariant
-      (repeatedInitial_schedulerInvariant initialEquation)
-      newEquation |>.toReservationInvariant)
+      (repeatedInitial_schedulerInvariant initialEquation) newEquation)
     unifyEquation
 
 /-- A nonempty `W(j)` is rejected fail-closed.  The payload is installed by

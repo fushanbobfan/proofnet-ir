@@ -194,9 +194,11 @@ expansion.
 #print axioms SequentialSchedulerState.SigmaAgePartition.reserveInitial
 #print axioms SequentialSchedulerState.SigmaAgePartition.appendFresh
 #print axioms SequentialSchedulerState.sigmaBoundary?_append_fresh_old
+#print axioms SequentialSchedulerState.sigmaBoundary?_popActive_of_lt
 #print axioms SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_append_fresh_self
 #print axioms SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top
 #print axioms SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top_of_le
+#print axioms SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_popActive_eq_previous_of_active_le
 #print axioms SequentialSchedulerState.sigmaBoundary?_mem
 #print axioms SequentialSchedulerState.sigmaBoundary?_le
 #print axioms SequentialSchedulerState.sigmaBoundary?_greatest
@@ -219,6 +221,7 @@ expansion.
 #print axioms SequentialSchedulerState.SequentialStackState.newEnqueue?_endpoint_unmarked
 #print axioms SequentialSchedulerState.SequentialStackState.newEnqueue?_wellShaped
 #print axioms SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.active_undefined
+#print axioms SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.payload_boundary_lt_previous
 #print axioms SequentialSchedulerState.SequentialStackState.empty_operationalWaitingDomain
 #print axioms SequentialSchedulerState.SequentialStackState.initEnqueue?_operationalWaitingDomain
 #print axioms SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_some_iff
@@ -389,6 +392,8 @@ expansion.
 #print axioms Certificate.OccurrenceDerivation.ofQueueTensorStep
 #print axioms Certificate.ComponentOccurrenceWitness.frontier_nodup
 #print axioms Certificate.ComponentOccurrenceWitness.axiom_of_submitted
+#print axioms Certificate.ComponentOccurrenceWitness.ofQueueTensorStep
+#print axioms Certificate.ComponentForestProvenance.queueTensorStep_of_roots_fresh
 #print axioms Certificate.reserveAxiomAt?_componentOccurrenceWitness
 #print axioms Certificate.ExactOccurrencePick.rejects_same_formula_alias
 #print axioms Certificate.ComponentForestProvenance.markReadyRaw?_of_representative_frontier
@@ -435,6 +440,8 @@ expansion.
 #print axioms SequentialFigure7.unifyEmpty?_complete_of_structural
 #print axioms SequentialFigure7.unifyEmpty?_some_iff_rule_of_structural
 #print axioms SequentialFigure7.UnifyEmptyRule.output_unique_of_structural
+#print axioms SequentialFigure7.UnifyEmptyStep.schedulerInvariant
+#print axioms SequentialFigure7.unifyEmpty?_schedulerInvariant
 #print axioms SequentialFigure7.wait?_some_iff
 #print axioms SequentialFigure7.WaitStep.submitted_par
 #print axioms SequentialFigure7.WaitStep.mate_marked_before

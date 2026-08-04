@@ -387,6 +387,50 @@ theorem SigmaAgePartition.sigmaBoundary?_eq_top_of_le
     Nat.le_antisymm boundaryLeActive activeLeBoundary
   simpa [boundaryEquation] using boundaryLookup
 
+/-- Popping the active boundary preserves every lookup strictly below it.
+The exact two-boundary suffix keeps this transport tied to the scheduler's
+raw-age stack rather than to an abstract representative. -/
+theorem sigmaBoundary?_popActive_of_lt
+    {sigma sigmaPrefix : List RawTokenAge}
+    {previous active age : RawTokenAge}
+    (sigmaEquation :
+      sigma = sigmaPrefix ++ [previous, active])
+    (ageLtActive : age < active) :
+    sigmaBoundary? (sigmaPrefix ++ [previous]) age =
+      sigmaBoundary? sigma age := by
+  rw [sigmaEquation]
+  rw [show sigmaPrefix ++ [previous, active] =
+      (sigmaPrefix ++ [previous]) ++ [active] by
+        simp [List.append_assoc]]
+  exact (sigmaBoundary?_append_fresh_old ageLtActive).symm
+
+/-- After popping the active boundary, every allocated raw age at or above
+that removed boundary resolves to the previous boundary.  The allocation
+horizon is unchanged by the pop, so `ageBound` still ranges over the old
+allocated carrier. -/
+theorem SigmaAgePartition.sigmaBoundary?_popActive_eq_previous_of_active_le
+    {nextAge : RawTokenAge}
+    {sigma sigmaPrefix : List RawTokenAge}
+    {previous active age : RawTokenAge}
+    (partition : SigmaAgePartition nextAge sigma)
+    (sigmaEquation :
+      sigma = sigmaPrefix ++ [previous, active])
+    (activeLe : active ≤ age)
+    (ageBound : age < nextAge) :
+    sigmaBoundary? (sigmaPrefix ++ [previous]) age =
+      some previous := by
+  have previousLtActive : previous < active := by
+    have increasing := partition.strictIncreasing
+    rw [sigmaEquation] at increasing
+    simpa using (List.pairwise_append.mp increasing).2.1
+  have reduced :
+      SigmaAgePartition nextAge (sigmaPrefix ++ [previous]) :=
+    partition.popActive sigmaEquation
+  exact reduced.sigmaBoundary?_eq_top_of_le
+    (by simp)
+    (Nat.le_trans (Nat.le_of_lt previousLtActive) activeLe)
+    ageBound
+
 /-- A raw age between the two top adjacent scheduler boundaries resolves to
 the previous boundary.  This is the exact interval fact needed by Figure-7
 `unify`: if `sigma = prefix ++ [j, i]` and `j ≤ age < i`, then `age`
@@ -885,6 +929,50 @@ structure OperationalWaitingDomain
   initialized_iff_inactive :
     ∀ {age : RawTokenAge}, age < state.nextAge →
       (state.WaitingInitializedAt age ↔ age ∈ state.sigma.dropLast)
+
+/-- In a two-level scheduler state, any allocated waiting cell that actually
+contains an occurrence lies strictly before the previous boundary when that
+previous boundary is initialized empty.  The explicit allocation bound is
+necessary because `OperationalWaitingDomain` intentionally constrains only
+raw ages below `nextAge`; arbitrary fixed-capacity cells beyond that horizon
+are outside its contract. -/
+theorem OperationalWaitingDomain.payload_boundary_lt_previous
+    {state : SequentialStackState}
+    (domain : state.OperationalWaitingDomain)
+    (partition : SigmaAgePartition state.nextAge state.sigma)
+    {sigmaPrefix : List RawTokenAge}
+    {previous active boundary : RawTokenAge}
+    {payload : List Vertex} {conclusion : Vertex}
+    (sigmaEquation :
+      state.sigma = sigmaPrefix ++ [previous, active])
+    (previousEmpty :
+      state.waiting[previous]? = some (.initialized []))
+    (boundaryBound : boundary < state.nextAge)
+    (waitingLookup :
+      state.waiting[boundary]? = some (.initialized payload))
+    (conclusionMembership : conclusion ∈ payload) :
+    boundary < previous := by
+  have inactiveMembership :
+      boundary ∈ state.sigma.dropLast :=
+    (domain.initialized_iff_inactive boundaryBound).mp
+      ⟨payload, waitingLookup⟩
+  have reducedMembership :
+      boundary ∈ sigmaPrefix ++ [previous] := by
+    rw [sigmaEquation] at inactiveMembership
+    simpa [List.append_assoc] using inactiveMembership
+  have increasing := partition.strictIncreasing
+  rw [sigmaEquation] at increasing
+  have prefixBeforeSuffix :=
+    (List.pairwise_append.mp increasing).2.2
+  simp only [List.mem_append, List.mem_singleton]
+    at reducedMembership
+  rcases reducedMembership with inPrefix | rfl
+  · exact prefixBeforeSuffix boundary inPrefix previous (by simp)
+  · have payloadEquation : payload = [] := by
+      exact WaitingCell.initialized.inj
+        (Option.some.inj (waitingLookup.symm.trans previousEmpty))
+    subst payload
+    simp at conclusionMembership
 
 /-- Every reserved raw age addresses an actual waiting cell.  Thus an array
 lookup returning `none` is an out-of-bounds fact and cannot be confused with

@@ -841,12 +841,15 @@
     strict-upper-guard regression. Every successful bounded
     execution preserves `ReservationInvariant`, including the exact
     `RealizesSigma` transport through the active-boundary pop and
-    `parent[i] := j`. This is still local successful-step preservation, not an
-    occurrence-forest or full-scheduler theorem.
-  - [ ] Preserve `ComponentForestProvenance` and the complete strengthened
-    `SchedulerInvariant` through bounded `UnifyEmpty`, then
-    complete nonempty-payload `unify` with a typed activation fold constructing
-    every drained waiting par and accounting for
+    `parent[i] := j`.
+  - [x] Preserve `ComponentForestProvenance` and the complete strengthened
+    `SchedulerInvariant` through every successful typed/executable bounded
+    `UnifyEmpty`: derive the exact tensor component, merge survivor/retired
+    forest ownership, and transport live-frontier, queue/waiting/pending, and
+    fired-counter fields. This remains local successful-step preservation, not
+    applicability, dispatcher progress, history, or reachability.
+  - [ ] Complete nonempty-payload `unify` with a typed activation fold
+    constructing every drained waiting par and accounting for
     the exact `1 + |W(j)|` counter change; a direct nonempty-payload stack merge
     is insufficient for `ReadyBucketFrontierExact`. Establish the
     special union-find invariants, full-rule

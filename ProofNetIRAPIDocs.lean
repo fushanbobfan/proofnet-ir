@@ -443,6 +443,8 @@ def sections : List Section := [
       `ProofNetIR.Certificate.OccurrenceDerivation.ofQueueTensorStep,
       `ProofNetIR.Certificate.ComponentOccurrenceWitness.frontier_nodup,
       `ProofNetIR.Certificate.ComponentOccurrenceWitness.axiom_of_submitted,
+      `ProofNetIR.Certificate.ComponentOccurrenceWitness.ofQueueTensorStep,
+      `ProofNetIR.Certificate.ComponentForestProvenance.queueTensorStep_of_roots_fresh,
       `ProofNetIR.Certificate.reserveAxiomAt?_componentOccurrenceWitness,
       `ProofNetIR.Certificate.ExactOccurrencePick.rejects_same_formula_alias,
       `ProofNetIR.UnificationScanStats,
@@ -591,9 +593,11 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.popActive,
       `ProofNetIR.SequentialSchedulerState.sigmaBoundary?,
       `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_append_fresh_old,
+      `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_popActive_of_lt,
       `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_append_fresh_self,
       `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top,
       `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top_of_le,
+      `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_popActive_eq_previous_of_active_le,
       `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_previous_of_between,
       `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_mem,
       `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_le,
@@ -626,6 +630,7 @@ def sections : List Section := [
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WaitingInitializedAt,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.active_undefined,
+      `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.payload_boundary_lt_previous,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped,
       `ProofNetIR.SequentialSchedulerState.SequentialStackState.WellShaped.waiting_lookup_exists,
@@ -842,7 +847,7 @@ def sections : List Section := [
     ]
   },
   {
-    title := "Executable Figure-7 concl, nop, forward, and wait rules"
+    title := "Executable Figure-7 concl, nop, forward, bounded unify-empty, and wait rules"
     declarations := [
       `ProofNetIR.SequentialConnectiveKind,
       `ProofNetIR.SequentialConnectiveKind.asLink,
@@ -924,6 +929,8 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.unifyEmpty?_complete_of_structural,
       `ProofNetIR.SequentialFigure7.unifyEmpty?_some_iff_rule_of_structural,
       `ProofNetIR.SequentialFigure7.UnifyEmptyRule.output_unique_of_structural,
+      `ProofNetIR.SequentialFigure7.UnifyEmptyStep.schedulerInvariant,
+      `ProofNetIR.SequentialFigure7.unifyEmpty?_schedulerInvariant,
       `ProofNetIR.SequentialFigure7.WaitingPrependAt,
       `ProofNetIR.SequentialFigure7.WaitRule,
       `ProofNetIR.SequentialFigure7.wait?,

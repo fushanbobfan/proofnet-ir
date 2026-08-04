@@ -19,13 +19,16 @@
   strict-upper-guard negative explicitly exercise the intended boundary.
   Successful execution now preserves `ReservationInvariant`, including the
   exact `RealizesSigma` transport across the active-boundary pop and
-  `parent[i] := j`. This checkpoint does not prove
-  `ComponentForestProvenance` or complete `SchedulerInvariant` preservation,
-  nonempty waiting-par activation, complete `Unify`, dispatcher/history
-  integration, applicability, reachability, progress, scheduler/pure-worklist
-  completeness, or linearity.
+  `parent[i] := j`. With a full input `SchedulerInvariant`, successful typed and
+  executable bounded steps additionally preserve the complete occurrence-exact
+  invariant: exact tensor-derived component ownership, the surviving/retired
+  forest update, live frontiers, queue/waiting/pending facts, and the fired
+  counter. Nonempty waiting-par activation, complete `Unify`, later-state
+  `forward?` applicability/totality, dispatcher/history integration, full-rule
+  reachability, correct-state progress, pure-worklist completeness,
+  recursive-fallback removal, and whole-program linearity remain open.
   The exact trust audit now
-  covers 292 full-classical, 23 axiom-free, 87 `propext`-only, and 80
+  covers 296 full-classical, 23 axiom-free, 88 `propext`-only, and 82
   `propext`/`Quot.sound` public theorems;
 - added `SequentialSchedulerInvariant.lean`, the first non-circular semantic
   Figure-7 state bundle. It carries `StructurallyWellFormed` explicitly.
@@ -121,9 +124,8 @@
   gives completeness, iff, and output uniqueness. The full
   `SchedulerInvariant` derives the shape condition and therefore supplies a
   higher-level completeness/iff theorem. This correspondence is not an
-  applicability, totality, or progress theorem. Complete `Unify`, occurrence-
-  forest and `SchedulerInvariant` preservation for the bounded `UnifyEmpty`
-  slice, pure-worklist completeness,
+  applicability, totality, or progress theorem. Complete nonempty `Unify`,
+  pure-worklist completeness,
   recursive-fallback removal, faithful
   `NEXTAXIOM`/token-age scheduling, and whole-program linearity remain open;
 - exposed proposition-level `FirstOccurrencePick.exists_of_mem`,
@@ -195,8 +197,8 @@
   Executable/typed successful-step `forward` and its independent Boolean-free
   `ForwardRule` correspondence are now present as described above. The bounded
   empty-cell executable/direct `UnifyEmpty` correspondence is also present;
-  it preserves `ReservationInvariant`, while occurrence-forest/full-scheduler
-  invariant preservation, nonempty-payload activation, complete `unify`, a
+  successful typed and executable steps preserve the full occurrence-exact
+  `SchedulerInvariant`, while nonempty-payload activation, complete `unify`, a
   full-rule history/dispatcher, applicability/totality, reachability, progress,
   and completeness remain open;
 - added `SequentialFigure7History.lean`, a proof-relevant execution history
@@ -236,8 +238,9 @@
   full-scheduler reachability, ready/waiting payload ownership, or global queue
   uniqueness. The newer local `wait` transition proves one initialized-cell
   transfer. The newer bounded `UnifyEmpty` handles only an initialized empty
-  previous cell and preserves `ReservationInvariant`; occurrence-forest/full-
-  scheduler preservation and complete `unify` remain absent;
+  previous cell and preserves the complete occurrence-exact
+  `SchedulerInvariant` on successful typed/executable steps; nonempty-payload
+  activation and complete `unify` remain absent;
 - added the invariant-bound operational local Figure-7 `new` pipeline. It
   performs synchronized pop/raw-mark, uses the fixed sound-and-complete
   consumer index for orientation-aware tensor-mate lookup, runs `NEXTAXIOM`
@@ -246,9 +249,9 @@
   successful executable/typed `forward` rules are now implemented separately;
   the independent direct `ForwardRule` and exact correspondence are now
   proved. The bounded `UnifyEmpty` direct/executable correspondence is also
-  proved and preserves `ReservationInvariant`, while its occurrence-forest/
-  full-scheduler preservation, complete nonempty `unify`, later-state
-  applicability/totality,
+  proved, and successful typed/executable steps preserve the complete
+  occurrence-exact `SchedulerInvariant`, while complete nonempty `unify`,
+  later-state applicability/totality,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - extended `ProofNetIR/SequentialSchedulerBridge.lean` from the first carrier
@@ -298,8 +301,8 @@
   integration of local `concl`/`nop`/`wait`/`forward`/`UnifyEmpty`, later totality,
   correct-state progress, pure-worklist completeness, fallback
   removal, and whole-program linearity remain open. The expanded exact trust
-  audit covers 292 full-classical, 23 axiom-free, 87 `propext`-only, and
-  80 `propext`/`Quot.sound` theorems;
+  audit covers 296 full-classical, 23 axiom-free, 88 `propext`-only, and
+  82 `propext`/`Quot.sound` theorems;
 - added `ProofNetIR/SequentialSchedulerState.lean` as the first independent
   delayed Figures 7–8 state layer. It was initially separate from the
   production unifier. `RawTokenAge` records discovery order and is explicitly

@@ -5723,6 +5723,74 @@ ProofNetIR.Certificate.ComponentOccurrenceWitness.axiom_of_submitted : ∀ {cert
             [left, right]
 ```
 
+### `ProofNetIR.Certificate.ComponentOccurrenceWitness.ofQueueTensorStep`
+
+Kind: theorem.
+
+Merge two locally linear occurrence witnesses through one exact submitted
+tensor queue.
+
+The runtime survivor slot is deliberately absent from this statement: the
+derivation follows the submitted left/right premise orientation retained by
+`QueueTensorStep`, while a later forest theorem may store the resulting
+component at either raw root.  Every separation hypothesis is occurrence- or
+submitted-index-exact; formula labels play no role.
+
+```lean
+ProofNetIR.Certificate.ComponentOccurrenceWitness.ofQueueTensorStep : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {left right conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.Certificate.QueueTensorStep before after left right conclusion) {leftUsed rightUsed : List Nat}
+  {leftOwned rightOwned : List ProofNetIR.Vertex},
+  certificate.ComponentOccurrenceWitness step.leftComponent leftUsed leftOwned →
+    certificate.ComponentOccurrenceWitness step.rightComponent rightUsed rightOwned →
+      ∀ (linkIndex : Nat),
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) →
+          ¬linkIndex ∈ leftUsed →
+            ¬linkIndex ∈ rightUsed →
+              ¬conclusion ∈ leftOwned →
+                ¬conclusion ∈ rightOwned →
+                  (∀ (candidate : Nat), candidate ∈ leftUsed → ¬candidate ∈ rightUsed) →
+                    (∀ (vertex : ProofNetIR.Vertex), vertex ∈ leftOwned → ¬vertex ∈ rightOwned) →
+                      certificate.ComponentOccurrenceWitness
+                        {
+                          tree :=
+                            ProofNetIR.CutFreeDerivation.tensor step.leftFocus step.rightFocus step.leftComponent.tree
+                              step.rightComponent.tree,
+                          frontier := conclusion :: (step.leftContext ++ step.rightContext) }
+                        (linkIndex :: (leftUsed ++ rightUsed)) (conclusion :: (leftOwned ++ rightOwned))
+```
+
+### `ProofNetIR.Certificate.ComponentForestProvenance.queueTensorStep_of_roots_fresh`
+
+Kind: theorem.
+
+Merge two distinct raw-root live components through one exact submitted
+tensor queue while preserving the complete occurrence-exact forest.
+
+The successful token guard and `Abstractable` prove that the two runtime tokens
+are allocated roots.  The smaller root survives and the larger root is retired,
+but the new derivation itself retains the submitted left/right orientation from
+`QueueTensorStep`.  Thus neither component storage order nor formula-label
+equality participates in the proof.
+
+The explicit occurrence-freshness premise is essential.  Raw-unmarkedness of
+the conclusion alone does not exclude a malformed old forest from already
+owning that unmarked internal occurrence.
+
+```lean
+ProofNetIR.Certificate.ComponentForestProvenance.queueTensorStep_of_roots_fresh : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.UnificationState}
+  {left right conclusion : ProofNetIR.Vertex},
+  ProofNetIR.UnificationState.Abstractable certificate before →
+    before.OrderedParents →
+      certificate.ComponentForestProvenance before →
+        ∀ (step : ProofNetIR.Certificate.QueueTensorStep before after left right conclusion) (linkIndex : Nat),
+          certificate.links[linkIndex]? = some (ProofNetIR.Link.tensor left right conclusion) →
+            (∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex},
+                before.components[index]? = some (some component) →
+                  ProofNetIR.Certificate.OwnedOccurrenceAccounted before index component owned → ¬conclusion ∈ owned) →
+              certificate.ComponentForestProvenance after
+```
+
 ### `ProofNetIR.Certificate.reserveAxiomAt?_componentOccurrenceWitness`
 
 Kind: theorem.
@@ -7506,6 +7574,23 @@ ProofNetIR.SequentialSchedulerState.sigmaBoundary?_append_fresh_old : ∀ {sigma
       ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age
 ```
 
+### `ProofNetIR.SequentialSchedulerState.sigmaBoundary?_popActive_of_lt`
+
+Kind: theorem.
+
+Popping the active boundary preserves every lookup strictly below it.
+The exact two-boundary suffix keeps this transport tied to the scheduler's
+raw-age stack rather than to an abstract representative.
+
+```lean
+ProofNetIR.SequentialSchedulerState.sigmaBoundary?_popActive_of_lt : ∀ {sigma sigmaPrefix : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {previous active age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  sigma = sigmaPrefix ++ [previous, active] →
+    age < active →
+      ProofNetIR.SequentialSchedulerState.sigmaBoundary? (sigmaPrefix ++ [previous]) age =
+        ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_append_fresh_self`
 
 Kind: theorem.
@@ -7551,6 +7636,26 @@ ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_top_of_l
     ∀ {active age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
       sigma.getLast? = some active →
         active ≤ age → age < nextAge → ProofNetIR.SequentialSchedulerState.sigmaBoundary? sigma age = some active
+```
+
+### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_popActive_eq_previous_of_active_le`
+
+Kind: theorem.
+
+After popping the active boundary, every allocated raw age at or above
+that removed boundary resolves to the previous boundary.  The allocation
+horizon is unchanged by the pop, so `ageBound` still ranges over the old
+allocated carrier.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_popActive_eq_previous_of_active_le : ∀ {nextAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {sigma sigmaPrefix : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {previous active age : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  ProofNetIR.SequentialSchedulerState.SigmaAgePartition nextAge sigma →
+    sigma = sigmaPrefix ++ [previous, active] →
+      active ≤ age →
+        age < nextAge →
+          ProofNetIR.SequentialSchedulerState.sigmaBoundary? (sigmaPrefix ++ [previous]) age = some previous
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.SigmaAgePartition.sigmaBoundary?_eq_previous_of_between`
@@ -8046,6 +8151,31 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomai
       ∀ {active : ProofNetIR.SequentialSchedulerState.RawTokenAge},
         state.sigma.getLast? = some active →
           state.waiting[active]? = some ProofNetIR.SequentialSchedulerState.WaitingCell.undefined
+```
+
+### `ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.payload_boundary_lt_previous`
+
+Kind: theorem.
+
+In a two-level scheduler state, any allocated waiting cell that actually
+contains an occurrence lies strictly before the previous boundary when that
+previous boundary is initialized empty.  The explicit allocation bound is
+necessary because `OperationalWaitingDomain` intentionally constrains only
+raw ages below `nextAge`; arbitrary fixed-capacity cells beyond that horizon
+are outside its contract.
+
+```lean
+ProofNetIR.SequentialSchedulerState.SequentialStackState.OperationalWaitingDomain.payload_boundary_lt_previous : ∀ {state : ProofNetIR.SequentialSchedulerState.SequentialStackState},
+  state.OperationalWaitingDomain →
+    ProofNetIR.SequentialSchedulerState.SigmaAgePartition state.nextAge state.sigma →
+      ∀ {sigmaPrefix : List ProofNetIR.SequentialSchedulerState.RawTokenAge}
+        {previous active boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {payload : List ProofNetIR.Vertex}
+        {conclusion : ProofNetIR.Vertex},
+        state.sigma = sigmaPrefix ++ [previous, active] →
+          state.waiting[previous]? = some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized []) →
+            boundary < state.nextAge →
+              state.waiting[boundary]? = some (ProofNetIR.SequentialSchedulerState.WaitingCell.initialized payload) →
+                conclusion ∈ payload → boundary < previous
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.empty`
@@ -10782,7 +10912,7 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew.new : ∀ {certificat
         ProofNetIR.SequentialFigure7.ReachableByImplementedInitNew certificate after
 ```
 
-## Executable Figure-7 concl, nop, forward, and wait rules
+## Executable Figure-7 concl, nop, forward, bounded unify-empty, and wait rules
 
 ### `ProofNetIR.SequentialConnectiveKind`
 
@@ -11930,6 +12060,38 @@ ProofNetIR.SequentialFigure7.UnifyEmptyRule.output_unique_of_structural : ∀ {c
       ProofNetIR.SequentialFigure7.UnifyEmptyExecutableReadyNodup certificate before →
         ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before first →
           ProofNetIR.SequentialFigure7.UnifyEmptyRule certificate before second → first = second
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyEmptyStep.schedulerInvariant`
+
+Kind: theorem.
+
+A successful bounded empty-waiting-cell tensor merge preserves every
+field of the occurrence-exact state-only scheduler invariant.  This is a
+preservation theorem for the local `unify` rule; it does not assert that the
+rule is applicable, that the dispatcher progresses, or that nonempty waiting
+payloads are handled.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyEmptyStep.schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyEmptyStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.unifyEmpty?_schedulerInvariant`
+
+Kind: theorem.
+
+Executable bounded `unifyEmpty?` success preserves the complete current
+scheduler invariant.  The theorem deliberately covers only the empty waiting
+payload branch represented by `UnifyEmptyStep`.
+
+```lean
+ProofNetIR.SequentialFigure7.unifyEmpty?_schedulerInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before),
+  ProofNetIR.SequentialFigure7.unifyEmpty? certificate before ⋯ = some after →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate after
 ```
 
 ### `ProofNetIR.SequentialFigure7.WaitingPrependAt`
