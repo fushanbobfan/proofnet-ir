@@ -501,13 +501,14 @@ part of the engineering and proof-identity gap.
    The history requires the invariant at every later edge; it does not prove
    exhaustive branch applicability, totality, or progress.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
-   branch-indexed applicability correspondence. The five stable/payload typed
-   steps reconstruct pure input-only enabled witnesses, and their executors
-   have existential-success iff results under the complete invariant. Its
-   `new` field remains explicitly operational through the compatibility
-   proposition `NewExecutableEnabled`.
-   `SequentialFigure7NewInputNecessary.lean` adds only a pure necessary
-   projection: its shallow guard plus exact fresh route, including whole-trace
+   branch-indexed applicability correspondence whose six positive fields and
+   stored earlier-branch negations are input-only. Each executor has an
+   existential-success iff result under the complete invariant. The `new`
+   field stores `NewEnabled`; operational `NewExecutableEnabled` remains only
+   as an exact compatibility API.
+   `SequentialFigure7NewInputCore.lean` adds the pure necessary projection,
+   while `SequentialFigure7NewInputNecessary.lean` retains its historical
+   import facade: the shallow guard plus exact fresh route, including whole-trace
    production readiness, is reconstructed from success, but it omits recursive
    per-step tag-update equations, terminal-partner exclusion from the
    intermediate trace, and the later operational enqueue guard. It therefore
@@ -523,10 +524,10 @@ part of the engineering and proof-identity gap.
    no executor equation/result, output, history, or reachability field and is
    equivalent to existential `new?` success under `SchedulerInvariant`, with
    an invariant-preserving output theorem. A queued-partner fixture confirms
-   that the enqueue guard is essential. This is a local applicability theorem,
-   not later-state totality or progress. Migrating the priority field from its
-   operational compatibility proposition to `NewEnabled` remains deferred
-   until the import dependency is split.
+   that the enqueue guard is essential. The lower-layer dependency split now
+   lets the priority field use `NewEnabled` directly without changing the
+   dispatcher. This is a local applicability/classification theorem, not
+   later-state totality or progress.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -644,7 +645,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 667 declarations: 423 public MLL
+- CI now parses `#print axioms` for 669 declarations: 425 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   104 `propext`-only, and 115 `propext`/`Quot.sound` boundaries;

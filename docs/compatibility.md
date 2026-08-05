@@ -17,6 +17,57 @@ constructors remain source compatible. The same checkpoint tightens the
 experimental operational-`new` guard: an endpoint already stored in either a
 ready bucket or a waiting payload is rejected.
 
+The later unreleased v0.10 priority migration is a real pre-1.0 Lean source
+break. `PriorityEnabled.new` now stores `NewEnabled certificate before` rather
+than `NewExecutableEnabled certificate before invariant`, and the
+`new_disabled` fields of `PriorityEnabled.wait`, `.forward`, and
+`.unifyPayload` now store `¬ NewEnabled certificate before`. Direct
+constructor calls and pattern matches that relied on the former field types
+must be updated. The exact logical equivalence is a migration aid; it is not a
+claim of source or binary compatibility.
+
+For a positive direct constructor, use the compatibility constructor when the
+caller still has the historical operational witness:
+
+```lean
+-- Before:
+exact PriorityEnabled.new concl_disabled nop_disabled executable_new
+
+-- After, with
+-- executable_new : NewExecutableEnabled certificate before invariant:
+exact PriorityEnabled.new_of_executable
+  concl_disabled nop_disabled executable_new
+```
+
+For a later branch, convert a historical negative hypothesis explicitly before
+calling the new constructor:
+
+```lean
+have new_disabled_input : ¬ NewEnabled certificate before :=
+  fun enabled_input =>
+    new_disabled_executable
+      (NewExecutableEnabled.iff_newEnabled.mpr enabled_input)
+exact PriorityEnabled.wait
+  concl_disabled nop_disabled new_disabled_input wait_enabled
+```
+
+Conversely, a pattern match on the migrated `.wait`, `.forward`, or
+`.unifyPayload` constructor receives `new_disabled : ¬ NewEnabled certificate
+before`. If downstream code still needs the historical operational negation,
+convert it manually inside the branch:
+
+```lean
+example {certificate : Certificate} {before : ReservationState}
+    {invariant : SchedulerInvariant certificate before}
+    (priority : PriorityEnabled certificate before invariant .wait) :
+    ¬ NewExecutableEnabled certificate before invariant := by
+  cases priority with
+  | wait _ _ new_disabled _ =>
+      exact fun executable_new =>
+        new_disabled
+          (NewExecutableEnabled.iff_newEnabled.mp executable_new)
+```
+
 ## Wire API
 
 Wire versions are independent, explicit contracts. Existing version markers

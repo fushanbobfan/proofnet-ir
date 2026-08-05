@@ -19,13 +19,17 @@
   witness. Regressions reject a raw-marked intermediate route and a pretagged
   terminal partner, and exhibit a guard-plus-run state whose queued partner
   makes the enqueue guard fail. `NewInputNecessary` remains the intentionally
-  weaker one-way projection. `PriorityEnabled` still stores the compatible
-  operational `NewExecutableEnabled` field; migrating that field through the
-  current import DAG is deferred and is not marked complete. This local
+  weaker one-way projection. Added the lower-layer
+  `SequentialFigure7NewInputCore.lean` split and migrated every positive and
+  negative `new` field of `PriorityEnabled` to input-only `NewEnabled` while
+  preserving fixed dispatcher order. `NewExecutableEnabled`, its exact iff,
+  and an operational compatibility constructor remain public migration APIs;
+  the historical `SequentialFigure7NewInputNecessary.lean` import is retained
+  as a facade. This local
   applicability equivalence adds no reachable-state exhaustiveness,
   later-call totality, dispatcher progress, pure-worklist completeness,
   fallback removal, or whole-program linearity claim. The exact axiom audit
-  now covers 667 declarations: 423 full-classical, 25 axiom-free, 104
+  now covers 669 declarations: 425 full-classical, 25 axiom-free, 104
   `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
 - added `ProofNetIRNewProgressAudit.lean`, a deterministic finite
   counterexample search over states reached only by successful

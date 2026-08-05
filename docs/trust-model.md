@@ -349,19 +349,21 @@ trace reachability, not that the invariant creates an enabled branch. The
 empty full-invariant regression returning `none` prevents that interpretation.
 The compatibility `unifyEmpty?` and `unifyOne?` functions remain outside the
 canonical branch type and contribute no duplicate trust path.
-`SequentialFigure7PriorityEnabled.lean` adds no new oracle either. For five
+`SequentialFigure7PriorityEnabled.lean` adds no new oracle either. For all six
 branches it reconstructs the already audited input-only witnesses from exact
 typed-step fields and uses the existing invariant-backed applicability
-theorems in the reverse direction. Its `NewExecutableEnabled` field is
-definitionally operational existential `new?` success; it is not a hidden
-paper-level assumption. `PriorityEnabled` adds only earlier-branch negations
-and is exactly interconvertible with the existing `DispatchStep`. Its
+theorems in the reverse direction. Its `new` field stores `NewEnabled`; the
+historical `NewExecutableEnabled` remains definitionally operational
+existential `new?` success only as an exact compatibility API, not a hidden
+paper-level assumption. `PriorityEnabled` adds only earlier-branch input
+negations and is exactly interconvertible with the existing `DispatchStep`. Its
 selected-kind iff, `none` iff no kind, and kind-uniqueness theorems therefore
 classify current executable behavior without asserting that an intended state
 must be executable. The real completed `[[]]` regression remains an explicit
 full-invariant no-branch case.
-`SequentialFigure7NewInputNecessary.lean` likewise adds no oracle or
-applicability axiom. It erases executor equations, results, and post-states from
+`SequentialFigure7NewInputCore.lean` likewise adds no oracle or applicability
+axiom; `SequentialFigure7NewInputNecessary.lean` is its historical compatibility
+facade. The core erases executor equations, results, and post-states from
 a successful `NewStep`, retaining only a shallow ready/tensor/mate guard and a
 bounded exact source-left route with input tag freshness, whole-trace
 production readiness, and ready axiom endpoints. The checked direction is
@@ -370,8 +372,8 @@ omits recursive per-step tag-update equations, terminal-partner exclusion from
 the intermediate trace, and the later operational enqueue guard. Forged
 all-true and
 terminal-partner-pretagged inputs demonstrate that `NewGuard` alone is not an
-oracle for success. `PriorityEnabled` therefore continues to store operational
-`NewExecutableEnabled` for its `new` branch.
+oracle for success. `PriorityEnabled` therefore stores the stronger input-only
+`NewEnabled`, never the shallow necessary projection.
 `SequentialFreshSourceLeftRun.lean` and
 `SequentialFigure7NewEnabled.lean` add no oracle or unchecked existence
 principle. The proof-relevant run is constructed directly from a named
@@ -385,9 +387,9 @@ Under `SchedulerInvariant`, Lean proves it equivalent to existential `new?`
 success and derives an invariant-preserving result. Negative fixtures cover a
 raw-marked intermediate occurrence, a pretagged terminal partner, and a queued
 terminal partner; the last keeps a valid guard and run but invalidates enqueue.
-The older `NewInputNecessary` remains strictly weaker. The priority field has
-not yet been migrated to `NewEnabled` because that requires a dependency split;
-the compatibility iff does not silently change the dispatcher definition.
+The older `NewInputNecessary` remains strictly weaker. A dedicated lower-layer
+split permits the priority field to store `NewEnabled`; the compatibility iff
+and constructor do not change the dispatcher definition or order.
 None of these local proofs establishes later-call totality, reachable-state
 exhaustiveness, progress, pure-worklist completeness, fallback removal, or
 linearity.
@@ -415,7 +417,7 @@ duplicate-free, and show touched history-independence for a fixed state.
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
 separate nonreachability proof for that forged state. The exact trust audit now
-covers 667 declarations: 423 use exactly
+covers 669 declarations: 425 use exactly
 `[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 104 use exactly
 `[propext]`, and 115 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s

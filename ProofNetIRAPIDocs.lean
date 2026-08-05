@@ -1150,6 +1150,7 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.new?_success_implies_enabled,
       `ProofNetIR.SequentialFigure7.new?_exists_of_enabled,
       `ProofNetIR.SequentialFigure7.new?_success_iff_enabled,
+      `ProofNetIR.SequentialFigure7.NewExecutableEnabled,
       `ProofNetIR.SequentialFigure7.NewExecutableEnabled.iff_newEnabled,
       `ProofNetIR.SequentialFigure7.new?_exists_schedulerInvariant_of_enabled
     ]
@@ -1168,8 +1169,9 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.wait?_success_iff_enabled,
       `ProofNetIR.SequentialFigure7.forward?_success_iff_enabled,
       `ProofNetIR.SequentialFigure7.unifyPayload?_success_iff_enabled,
-      `ProofNetIR.SequentialFigure7.NewExecutableEnabled,
       `ProofNetIR.SequentialFigure7.PriorityEnabled,
+      `ProofNetIR.SequentialFigure7.PriorityEnabled.newEnabled,
+      `ProofNetIR.SequentialFigure7.PriorityEnabled.new_of_executable,
       `ProofNetIR.SequentialFigure7.DispatchStep.priorityEnabled,
       `ProofNetIR.SequentialFigure7.PriorityEnabled.exists_dispatchStep,
       `ProofNetIR.SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled,

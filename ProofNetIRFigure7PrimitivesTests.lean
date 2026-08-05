@@ -3612,11 +3612,13 @@ example :
         axiomStableState_invariant .concl).mpr
         (SequentialFigure7.PriorityEnabled.concl axiom_concl_enabled)
 
-/-- The real tensor fixture is selected as the operational `new` branch.
-This checks the mixed input-only/operational priority boundary without calling
-it an input-only `new` predicate. -/
+/-- The real tensor fixture is input-only `new` enabled and selected as the
+input-only priority branch.  The historical operational proposition remains
+equivalent compatibility data rather than a stored priority field. -/
 example :
-    SequentialFigure7.NewExecutableEnabled repeatedOccurrenceCertificate
+    SequentialFigure7.NewEnabled repeatedOccurrenceCertificate
+        repeatedStableState ∧
+      SequentialFigure7.NewExecutableEnabled repeatedOccurrenceCertificate
         repeatedStableState repeatedStableState_invariant ∧
       SequentialFigure7.PriorityEnabled repeatedOccurrenceCertificate
         repeatedStableState repeatedStableState_invariant .new ∧
@@ -3633,8 +3635,13 @@ example :
   have priority :=
     (SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled
       repeatedStableState_invariant .new).mp selected
-  exact ⟨⟨repeatedAfterNewStableState, repeatedAfterNewStableState_eq⟩,
-    priority, selected⟩
+  have inputEnabled := priority.newEnabled
+  have executable :
+      SequentialFigure7.NewExecutableEnabled repeatedOccurrenceCertificate
+        repeatedStableState repeatedStableState_invariant :=
+    (SequentialFigure7.NewExecutableEnabled.iff_newEnabled
+      (invariant := repeatedStableState_invariant)).mpr inputEnabled
+  exact ⟨inputEnabled, executable, priority, selected⟩
 
 /-! Input-state necessary conditions for Figure-7 `new`. -/
 

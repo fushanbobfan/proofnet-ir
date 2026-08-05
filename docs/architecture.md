@@ -502,14 +502,14 @@ and submitted-slot `Nodup`, but no applicability, totality, progress, or
 concrete forged-state nonreachability.
 
 `SequentialFigure7PriorityEnabled.lean` is a one-way downstream bridge from
-the dispatcher, stable enabled predicates, and payload-enabled predicate. It
-does not change an executor. Successful typed steps for `concl`, `nop`,
-`wait`, `forward`, and `unifyPayload` reconstruct their existing input-only
-enabled witnesses; conversely, those witnesses plus `SchedulerInvariant`
-produce existential executor success. The `new` field remains operational in
-this priority interface: `NewExecutableEnabled` explicitly abbreviates
-existential `new?` success. Indexed `PriorityEnabled` adds exactly the negative predicates needed
-by the fixed dispatcher order. It is equivalent to the matching `DispatchStep`,
+the dispatcher and all six input-only enabled predicates. It does not change
+an executor. Successful typed steps reconstruct their input-only enabled
+witnesses; conversely, those witnesses plus `SchedulerInvariant` produce
+existential executor success. The `new` field and all stored `new` negations
+now use `NewEnabled`. `NewExecutableEnabled` remains only as an operational
+compatibility proposition with an exact iff and compatibility constructor.
+Indexed `PriorityEnabled` adds exactly the negative predicates needed by the
+fixed dispatcher order. It is equivalent to the matching `DispatchStep`,
 classifies an exact selected dispatcher kind, characterizes dispatcher `none`,
 and makes the selected priority kind unique. The characterization is relative
 to the current executor order. In particular, a completed reachable stack
@@ -517,8 +517,10 @@ to the current executor order. In particular, a completed reachable stack
 no intended-state exhaustiveness, nonterminality, progress, or completeness
 theorem follows.
 
-`SequentialFigure7NewInputNecessary.lean` adds a separate read-only projection
-without changing that priority interface. `NewGuard` contains the ready head,
+`SequentialFigure7NewInputCore.lean` supplies the lower-layer read-only
+projection used below both `NewEnabled` and the priority interface;
+`SequentialFigure7NewInputNecessary.lean` retains the historical facade.
+`NewGuard` contains the ready head,
 exact valid tensor-below witness, and input-unmarked mate;
 `FreshSourceLeftRoute` contains a bounded exact source-left trace, input tag
 freshness, whole-trace production readiness, and ready terminal axiom
@@ -526,9 +528,9 @@ endpoints. Successful typed/executable
 `new` steps reconstruct `NewInputNecessary`, but no converse is exposed. The
 witness omits recursive per-step tag-update equations, terminal-partner
 exclusion from the intermediate trace, and the later operational enqueue
-guard. It is therefore a necessary observation, not an
-`*Enabled` predicate or progress premise; the canonical dispatcher continues
-to use `NewExecutableEnabled`.
+guard. It is therefore a necessary observation, not an `*Enabled` predicate or
+progress premise; the canonical priority layer uses the stronger
+`NewEnabled`.
 
 `SequentialFreshSourceLeftRun.lean` is the exact proof-relevant input layer
 below the newer local criterion. Its four constructors mirror the two terminal
@@ -543,11 +545,11 @@ the certificate fuel bound, and `OperationalNewReadyAt` at the selected head's
 raw age. The resulting `NewEnabled` is input-only—there is no result,
 equation, output, history, or reachability field—and, under the complete
 `SchedulerInvariant`, is equivalent to existential `new?` success. The
-priority module still imports the lower operational layer, so replacing its
-`NewExecutableEnabled` field with `NewEnabled` is deferred to a dedicated
-dependency split. This layering fact does not weaken the local equivalence and
-does not establish reachable-state exhaustiveness, totality, progress,
-completeness, fallback removal, or a cost theorem.
+dedicated lower-layer split lets the priority module import this predicate
+without a cycle and store it directly, while the dispatcher executable and
+precedence remain unchanged. This layering fact does not establish
+reachable-state exhaustiveness, totality, progress, completeness, fallback
+removal, or a cost theorem.
 The root executable `ProofNetIRNewProgressAudit.lean` is a bounded
 falsification layer over that boundary. It never inserts arbitrary states:
 each path begins with `initializeReservation?` and recursively applies the

@@ -14885,8 +14885,8 @@ ProofNetIR.SequentialFigure7.new?_success_implies_inputNecessary : ∀ {certific
 
 Kind: theorem.
 
-The operational priority-layer `new` proposition implies the declarative
-input-only necessary predicate.  This implication is intentionally one-way.
+The historical operational compatibility proposition implies the weaker
+input-only necessary projection.
 
 ```lean
 ProofNetIR.SequentialFigure7.NewExecutableEnabled.inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
@@ -14899,8 +14899,9 @@ ProofNetIR.SequentialFigure7.NewExecutableEnabled.inputNecessary : ∀ {certific
 
 Kind: theorem.
 
-A priority-selected `new` branch has the input-only necessary witness while
-the priority classifier itself remains tied to operational executor success.
+A priority-selected `new` branch contains the complete input-only
+enabledness witness, and therefore also the deliberately weaker necessary
+input projection.
 
 ```lean
 ProofNetIR.SequentialFigure7.PriorityEnabled.newInputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
@@ -15029,13 +15030,28 @@ ProofNetIR.SequentialFigure7.new?_success_iff_enabled : ∀ {certificate : Proof
     ProofNetIR.SequentialFigure7.NewEnabled certificate before
 ```
 
+### `ProofNetIR.SequentialFigure7.NewExecutableEnabled`
+
+Kind: definition.
+
+Historical operational compatibility proposition for Figure-7 `new`.
+
+The priority classifier no longer stores this existential executor-success
+view; it remains public so downstream callers can migrate through the exact
+`iff_newEnabled` theorem below.
+
+```lean
+ProofNetIR.SequentialFigure7.NewExecutableEnabled : (certificate : ProofNetIR.Certificate) →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before → Prop
+```
+
 ### `ProofNetIR.SequentialFigure7.NewExecutableEnabled.iff_newEnabled`
 
 Kind: theorem.
 
 Compatibility: the older operational enabledness proposition is exactly
-the new input-only predicate, while remaining the canonical priority field in
-this checkpoint.
+the input-only predicate.  The priority classifier itself stores the latter.
 
 ```lean
 ProofNetIR.SequentialFigure7.NewExecutableEnabled.iff_newEnabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
@@ -15209,21 +15225,6 @@ ProofNetIR.SequentialFigure7.unifyPayload?_success_iff_enabled : ∀ {certificat
     ProofNetIR.SequentialFigure7.UnifyPayloadEnabled certificate before
 ```
 
-### `ProofNetIR.SequentialFigure7.NewExecutableEnabled`
-
-Kind: definition.
-
-Deliberately operational enabledness for `new`.
-
-Unlike the other five predicates in this module, this definition is
-existential executor success and is not input-only.
-
-```lean
-ProofNetIR.SequentialFigure7.NewExecutableEnabled : (certificate : ProofNetIR.Certificate) →
-  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
-    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before → Prop
-```
-
 ### `ProofNetIR.SequentialFigure7.PriorityEnabled`
 
 Kind: inductive type.
@@ -15231,14 +15232,45 @@ Kind: inductive type.
 Exact fixed-precedence applicability classification for the canonical
 dispatcher.  Later constructors retain negations of every earlier branch.
 
-The `new` field is explicitly operational; the other positive fields are
-input-only enabledness predicates.
+Every positive field and every stored earlier-branch negation is input-only.
 
 ```lean
 ProofNetIR.SequentialFigure7.PriorityEnabled : (certificate : ProofNetIR.Certificate) →
   (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
     ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
       ProofNetIR.SequentialFigure7.Figure7RuleKind → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.PriorityEnabled.newEnabled`
+
+Kind: theorem.
+
+A priority-selected `new` branch exposes its complete input-only
+applicability witness directly.
+
+```lean
+ProofNetIR.SequentialFigure7.PriorityEnabled.newEnabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before},
+  ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant
+      ProofNetIR.SequentialFigure7.Figure7RuleKind.new →
+    ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.PriorityEnabled.new_of_executable`
+
+Kind: theorem.
+
+Compatibility constructor for callers that still hold the historical
+operational enabledness proposition.
+
+```lean
+ProofNetIR.SequentialFigure7.PriorityEnabled.new_of_executable : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before},
+  ¬ProofNetIR.SequentialFigure7.ConclEnabled certificate before →
+    ¬ProofNetIR.SequentialFigure7.NopEnabled certificate before →
+      ProofNetIR.SequentialFigure7.NewExecutableEnabled certificate before invariant →
+        ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant
+          ProofNetIR.SequentialFigure7.Figure7RuleKind.new
 ```
 
 ### `ProofNetIR.SequentialFigure7.DispatchStep.priorityEnabled`

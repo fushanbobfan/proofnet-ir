@@ -629,6 +629,8 @@ expansion.
 #print axioms SequentialFigure7.new?_success_iff_enabled
 #print axioms SequentialFigure7.NewExecutableEnabled.iff_newEnabled
 #print axioms SequentialFigure7.new?_exists_schedulerInvariant_of_enabled
+#print axioms SequentialFigure7.PriorityEnabled.newEnabled
+#print axioms SequentialFigure7.PriorityEnabled.new_of_executable
 #print axioms SequentialFigure7.DispatchStep.priorityEnabled
 #print axioms SequentialFigure7.PriorityEnabled.exists_dispatchStep
 #print axioms SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled

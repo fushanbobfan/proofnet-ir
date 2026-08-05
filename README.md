@@ -219,22 +219,24 @@ unconditional reachability, totality, or progress theorems. A regression locks
 the distinction by showing that an invariant-valid empty scheduler state has
 `dispatch? = none`.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
-dispatcher order with branch-indexed applicability. For `concl`, `nop`,
-`wait`, `forward`, and `unifyPayload`, a successful typed step reconstructs the
-existing pure input-only enabled witness, and the corresponding executor has
-existential success exactly when that witness exists under the full
-`SchedulerInvariant`. The `new` field in this priority layer remains the
-operational compatibility proposition `NewExecutableEnabled`, naming
-existential `new?` success. `PriorityEnabled` combines one selected enabled witness with the
-negations of all earlier predicates, giving exact conversion to `DispatchStep`,
+dispatcher order with branch-indexed, input-only applicability for all six
+rules. A successful typed step reconstructs the corresponding pure enabled
+witness, and each executor has existential success exactly when that witness
+exists under the full `SchedulerInvariant`. The `new` branch stores
+`NewEnabled`; the older operational `NewExecutableEnabled` remains a public
+compatibility proposition with an exact iff and compatibility constructor.
+`PriorityEnabled` combines one selected enabled witness with the negations of
+all earlier input predicates, giving exact conversion to `DispatchStep`,
 exact selected-kind success iff, dispatcher failure iff no indexed kind is
 enabled, and uniqueness of the priority kind. A real completed ready state
 `[[]]` satisfies the invariant while no priority kind applies. Thus this is an
 exact interface to current dispatcher behavior, not a proof that every
 intended nonterminal state has a branch, nor progress, pure-worklist
 completeness, fallback removal, or whole-program linearity.
-`SequentialFigure7NewInputNecessary.lean` now exposes a separate, deliberately
-one-way input projection for `new`. `NewGuard` records the ready head, exact
+`SequentialFigure7NewInputCore.lean` defines the separate, deliberately
+one-way input projection for `new`; `SequentialFigure7NewInputNecessary.lean`
+retains the historical import surface as a compatibility facade. `NewGuard`
+records the ready head, exact
 valid tensor-below consumer, and input-unmarked mate;
 `FreshSourceLeftRoute` adds a bounded exact source-left route with input tag
 freshness, whole-trace production readiness, and ready axiom endpoints. A
@@ -243,10 +245,9 @@ success, `NewExecutableEnabled`, or a priority-selected `new` branch implies
 `NewInputNecessary`. There is no converse: the witness does not record
 recursive per-step tag-update equations, exclusion of the terminal partner
 from the intermediate trace, or the later operational enqueue guard. All-true
-and terminal-partner-pretagged regressions keep
-the shallow guard while `new?` fails. Consequently dispatcher priority still
-uses operational `NewExecutableEnabled`; this module proves neither input-only
-enabledness nor later-call `NEXTAXIOM` totality.
+and terminal-partner-pretagged regressions keep the shallow guard while `new?`
+fails. Consequently this weaker projection is not used as dispatcher
+enabledness and proves no later-call `NEXTAXIOM` totality.
 `SequentialFreshSourceLeftRun.lean` supplies the missing exact route layer: a
 fuel-indexed inductive witness mirrors both terminal-axiom orientations and
 the stored-left tensor/par recursion of `nextAxiomWithFuel?`, including each
@@ -261,11 +262,11 @@ executor result/equation, output, history, or reachability field. Under
 `SchedulerInvariant`, it is equivalent to existential `new?` success and
 yields an invariant-preserving output. A queued-partner regression shows that
 `NewGuard` plus the exact run is still insufficient without the enqueue guard.
-This closes only local `new` applicability; `PriorityEnabled` has not yet been
-migrated from its compatible operational field because that requires a
-dedicated dependency split. It proves no reachable nonterminal exhaustiveness,
-later-call totality, dispatcher progress, pure-worklist completeness, fallback
-removal, or whole-program linearity.
+The lower-layer import split lets `PriorityEnabled` store this input-only
+predicate directly without changing `dispatch?` or its fixed precedence. This
+closes only local applicability and priority classification; it proves no
+reachable nonterminal exhaustiveness, later-call totality, dispatcher progress,
+pure-worklist completeness, fallback removal, or whole-program linearity.
 `ProofNetIRNewProgressAudit.lean` complements those forged-state regressions
 with a finite reachable-state search. It starts only from successful
 `initializeReservation?` calls and follows only the canonical `dispatch?`,
@@ -1586,7 +1587,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 667 declarations: 423 public MLL logical-boundary theorems
+ separately audits 669 declarations: 425 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
  axiom-free, 104 `propext`-only, and 115 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1742,10 +1743,11 @@ ProofNetIR/SequentialFigure7UnifyPayloadInvariant.lean arbitrary-payload full-in
 ProofNetIR/SequentialFigure7UnifyPayloadEnabled.lean input-only conditional payload applicability
 ProofNetIR/SequentialFigure7StableEnabled.lean input-only stable-rule applicability
 ProofNetIR/SequentialFigure7Dispatcher.lean canonical six-rule dispatcher and certified history
-ProofNetIR/SequentialFigure7PriorityEnabled.lean exact priority-aware applicability correspondence
-ProofNetIR/SequentialFigure7NewInputNecessary.lean one-way input-only necessary projection for new
 ProofNetIR/SequentialFreshSourceLeftRun.lean exact proof-relevant production NEXTAXIOM runs
+ProofNetIR/SequentialFigure7NewInputCore.lean lower-layer one-way input conditions for new
 ProofNetIR/SequentialFigure7NewEnabled.lean input-only local new applicability iff execution
+ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
+ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
 ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
 ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant
 ProofNetIR/SequentialComponentProvenance.lean exact proof-only component identity

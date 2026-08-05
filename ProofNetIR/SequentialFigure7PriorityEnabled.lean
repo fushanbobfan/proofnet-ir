@@ -1,24 +1,23 @@
 import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7UnifyPayloadEnabled
+import ProofNetIR.SequentialFigure7NewEnabled
 
 namespace ProofNetIR
 
 /-!
 # Priority-aware applicability for the canonical Figure-7 dispatcher
 
-This module connects the input-only applicability predicates for `concl`,
-`nop`, `wait`, `forward`, and `unifyPayload` to their executors, then records
-the canonical dispatcher's fixed precedence.  Reverse applicability is
-reconstructed from typed successful steps; no input-only predicate stores an
-executor equation or post-state.
+This module connects all six input-only applicability predicates to their
+executors, then records the canonical dispatcher's fixed precedence.  Reverse
+applicability is reconstructed from typed successful steps; no positive or
+negative priority field stores an executor equation or post-state.
 
-The `new` branch has no input-only applicability predicate.  Its deliberately
-operational `NewExecutableEnabled` name exposes that it means existential
-executor success.  Consequently `PriorityEnabled` is an exact classification
-of the existing dispatcher, not a proof that every invariant state has a
-branch.  No progress, reachability, completeness, termination, scheduling, or
-complexity theorem is claimed here.
+The `new` branch now stores `NewEnabled`, whose exact correspondence with
+executor success requires the supplied `SchedulerInvariant`. Consequently
+`PriorityEnabled` remains an exact classification of the existing dispatcher,
+not a proof that every invariant state has a branch. No progress, reachability,
+completeness, termination, scheduling, or complexity theorem is claimed here.
 -/
 
 namespace SequentialFigure7
@@ -275,16 +274,6 @@ theorem unifyPayload?_success_iff_enabled
     exact step.enabled
   · exact unifyPayload?_exists_of_enabled invariant
 
-/-- Deliberately operational enabledness for `new`.
-
-Unlike the other five predicates in this module, this definition is
-existential executor success and is not input-only. -/
-def NewExecutableEnabled (certificate : Certificate)
-    (before : ReservationState)
-    (invariant : SchedulerInvariant certificate before) : Prop :=
-  ∃ after,
-    new? certificate before invariant.toReservationInvariant = some after
-
 private theorem executor_none_of_not_success
     {executor : Option α}
     (failure : ¬ ∃ output, executor = some output) : executor = none := by
@@ -295,8 +284,7 @@ private theorem executor_none_of_not_success
 /-- Exact fixed-precedence applicability classification for the canonical
 dispatcher.  Later constructors retain negations of every earlier branch.
 
-The `new` field is explicitly operational; the other positive fields are
-input-only enabledness predicates. -/
+Every positive field and every stored earlier-branch negation is input-only. -/
 inductive PriorityEnabled (certificate : Certificate)
     (before : ReservationState)
     (invariant : SchedulerInvariant certificate before) :
@@ -310,29 +298,51 @@ inductive PriorityEnabled (certificate : Certificate)
   | new
       (concl_disabled : ¬ ConclEnabled certificate before)
       (nop_disabled : ¬ NopEnabled certificate before)
-      (enabled : NewExecutableEnabled certificate before invariant) :
+      (enabled : NewEnabled certificate before) :
       PriorityEnabled certificate before invariant .new
   | wait
       (concl_disabled : ¬ ConclEnabled certificate before)
       (nop_disabled : ¬ NopEnabled certificate before)
-      (new_disabled : ¬ NewExecutableEnabled certificate before invariant)
+      (new_disabled : ¬ NewEnabled certificate before)
       (enabled : WaitEnabled certificate before) :
       PriorityEnabled certificate before invariant .wait
   | forward
       (concl_disabled : ¬ ConclEnabled certificate before)
       (nop_disabled : ¬ NopEnabled certificate before)
-      (new_disabled : ¬ NewExecutableEnabled certificate before invariant)
+      (new_disabled : ¬ NewEnabled certificate before)
       (wait_disabled : ¬ WaitEnabled certificate before)
       (enabled : ForwardEnabled certificate before) :
       PriorityEnabled certificate before invariant .forward
   | unifyPayload
       (concl_disabled : ¬ ConclEnabled certificate before)
       (nop_disabled : ¬ NopEnabled certificate before)
-      (new_disabled : ¬ NewExecutableEnabled certificate before invariant)
+      (new_disabled : ¬ NewEnabled certificate before)
       (wait_disabled : ¬ WaitEnabled certificate before)
       (forward_disabled : ¬ ForwardEnabled certificate before)
       (enabled : UnifyPayloadEnabled certificate before) :
       PriorityEnabled certificate before invariant .unifyPayload
+
+/-- A priority-selected `new` branch exposes its complete input-only
+applicability witness directly. -/
+theorem PriorityEnabled.newEnabled
+    {certificate : Certificate} {before : ReservationState}
+    {invariant : SchedulerInvariant certificate before}
+    (enabled : PriorityEnabled certificate before invariant .new) :
+    NewEnabled certificate before := by
+  cases enabled with
+  | new _ _ input => exact input
+
+/-- Compatibility constructor for callers that still hold the historical
+operational enabledness proposition. -/
+theorem PriorityEnabled.new_of_executable
+    {certificate : Certificate} {before : ReservationState}
+    {invariant : SchedulerInvariant certificate before}
+    (concl_disabled : ¬ ConclEnabled certificate before)
+    (nop_disabled : ¬ NopEnabled certificate before)
+    (enabled : NewExecutableEnabled certificate before invariant) :
+    PriorityEnabled certificate before invariant .new :=
+  PriorityEnabled.new concl_disabled nop_disabled
+    (NewExecutableEnabled.iff_newEnabled.mp enabled)
 
 /-- An exact dispatcher-selected branch satisfies its corresponding
 fixed-precedence applicability proposition. -/
@@ -366,7 +376,7 @@ theorem DispatchStep.priorityEnabled
           ⟨after, success⟩
         rw [nopNone] at success
         simp at success
-      · exact ⟨_, equation⟩
+      · exact (new?_success_iff_enabled invariant).mp ⟨_, equation⟩
   | wait conclNone nopNone newNone equation =>
       apply PriorityEnabled.wait
       · intro enabled
@@ -379,7 +389,9 @@ theorem DispatchStep.priorityEnabled
           ⟨after, success⟩
         rw [nopNone] at success
         simp at success
-      · rintro ⟨after, success⟩
+      · intro enabled
+        rcases new?_exists_of_enabled invariant enabled with
+          ⟨after, success⟩
         rw [newNone] at success
         simp at success
       · exact (wait?_success_iff_enabled invariant).mp ⟨_, equation⟩
@@ -395,7 +407,9 @@ theorem DispatchStep.priorityEnabled
           ⟨after, success⟩
         rw [nopNone] at success
         simp at success
-      · rintro ⟨after, success⟩
+      · intro enabled
+        rcases new?_exists_of_enabled invariant enabled with
+          ⟨after, success⟩
         rw [newNone] at success
         simp at success
       · intro enabled
@@ -417,7 +431,9 @@ theorem DispatchStep.priorityEnabled
           ⟨after, success⟩
         rw [nopNone] at success
         simp at success
-      · rintro ⟨after, success⟩
+      · intro enabled
+        rcases new?_exists_of_enabled invariant enabled with
+          ⟨after, success⟩
         rw [newNone] at success
         simp at success
       · intro enabled
@@ -462,7 +478,8 @@ theorem PriorityEnabled.exists_dispatchStep
       have nopNone := executor_none_of_not_success
         (fun success => nopDisabled
           ((nop?_success_iff_enabled invariant).mp success))
-      rcases enabled with ⟨after, equation⟩
+      rcases new?_exists_of_enabled invariant enabled with
+        ⟨after, equation⟩
       exact ⟨after, ⟨DispatchStep.new conclNone nopNone equation⟩⟩
   | wait conclDisabled nopDisabled newDisabled enabled =>
       have conclNone := executor_none_of_not_success
@@ -471,7 +488,9 @@ theorem PriorityEnabled.exists_dispatchStep
       have nopNone := executor_none_of_not_success
         (fun success => nopDisabled
           ((nop?_success_iff_enabled invariant).mp success))
-      have newNone := executor_none_of_not_success newDisabled
+      have newNone := executor_none_of_not_success
+        (fun success => newDisabled
+          ((new?_success_iff_enabled invariant).mp success))
       rcases wait?_exists_of_enabled invariant enabled with
         ⟨after, equation⟩
       exact ⟨after,
@@ -483,7 +502,9 @@ theorem PriorityEnabled.exists_dispatchStep
       have nopNone := executor_none_of_not_success
         (fun success => nopDisabled
           ((nop?_success_iff_enabled invariant).mp success))
-      have newNone := executor_none_of_not_success newDisabled
+      have newNone := executor_none_of_not_success
+        (fun success => newDisabled
+          ((new?_success_iff_enabled invariant).mp success))
       have waitNone := executor_none_of_not_success
         (fun success => waitDisabled
           ((wait?_success_iff_enabled invariant).mp success))
@@ -499,7 +520,9 @@ theorem PriorityEnabled.exists_dispatchStep
       have nopNone := executor_none_of_not_success
         (fun success => nopDisabled
           ((nop?_success_iff_enabled invariant).mp success))
-      have newNone := executor_none_of_not_success newDisabled
+      have newNone := executor_none_of_not_success
+        (fun success => newDisabled
+          ((new?_success_iff_enabled invariant).mp success))
       have waitNone := executor_none_of_not_success
         (fun success => waitDisabled
           ((wait?_success_iff_enabled invariant).mp success))

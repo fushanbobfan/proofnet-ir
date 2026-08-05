@@ -1,4 +1,4 @@
-import ProofNetIR.SequentialFigure7NewInputNecessary
+import ProofNetIR.SequentialFigure7NewInputCore
 
 namespace ProofNetIR
 
@@ -16,6 +16,9 @@ is equivalent to existential `new?` success.  The theorem is only a local rule
 correspondence.  It does not say that every reachable nonterminal state enables
 `new`, prove later-call totality, dispatcher progress, pure-worklist
 completeness, fallback removal, or whole-program linearity.
+
+The historical operational proposition `NewExecutableEnabled` remains here as
+a compatibility API.  It is no longer stored by `PriorityEnabled`.
 -/
 
 namespace SequentialFigure7
@@ -47,6 +50,17 @@ executor. -/
 def NewEnabled (certificate : Certificate)
     (before : ReservationState) : Prop :=
   Nonempty (NewEnabledInput certificate before)
+
+/-- Historical operational compatibility proposition for Figure-7 `new`.
+
+The priority classifier no longer stores this existential executor-success
+view; it remains public so downstream callers can migrate through the exact
+`iff_newEnabled` theorem below. -/
+def NewExecutableEnabled (certificate : Certificate)
+    (before : ReservationState)
+    (invariant : SchedulerInvariant certificate before) : Prop :=
+  ∃ after,
+    new? certificate before invariant.toReservationInvariant = some after
 
 namespace NewEnabledInput
 
@@ -229,14 +243,23 @@ theorem new?_success_iff_enabled
   · exact new?_exists_of_enabled invariant
 
 /-- Compatibility: the older operational enabledness proposition is exactly
-the new input-only predicate, while remaining the canonical priority field in
-this checkpoint. -/
+the input-only predicate.  The priority classifier itself stores the latter. -/
 theorem NewExecutableEnabled.iff_newEnabled
     {certificate : Certificate} {before : ReservationState}
     {invariant : SchedulerInvariant certificate before} :
     NewExecutableEnabled certificate before invariant ↔
       NewEnabled certificate before :=
   new?_success_iff_enabled invariant
+
+/-- The historical operational compatibility proposition implies the weaker
+input-only necessary projection. -/
+theorem NewExecutableEnabled.inputNecessary
+    {certificate : Certificate} {before : ReservationState}
+    {invariant : SchedulerInvariant certificate before}
+    (enabled : NewExecutableEnabled certificate before invariant) :
+    NewInputNecessary certificate before :=
+  NewEnabled.inputNecessary
+    (NewExecutableEnabled.iff_newEnabled.mp enabled)
 
 /-- Every input-only enabled state has an invariant-preserving executable
 output. -/

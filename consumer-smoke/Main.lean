@@ -212,6 +212,17 @@ example :
 #check SequentialUnification.FreshSourceLeftRun.TerminalAxiom.exists_reserveAxiomAt
 #check SequentialFigure7.NewEnabledInput
 #check SequentialFigure7.NewEnabled
+#check SequentialFigure7.PriorityEnabled.newEnabled
+#check SequentialFigure7.PriorityEnabled.new_of_executable
+
+example {certificate : Certificate}
+    {before : SequentialSchedulerBridge.ReservationState}
+    {invariant : SequentialSchedulerBridge.SchedulerInvariant certificate before}
+    (conclDisabled : ¬ SequentialFigure7.ConclEnabled certificate before)
+    (nopDisabled : ¬ SequentialFigure7.NopEnabled certificate before)
+    (enabled : SequentialFigure7.NewEnabled certificate before) :
+    SequentialFigure7.PriorityEnabled certificate before invariant .new :=
+  SequentialFigure7.PriorityEnabled.new conclDisabled nopDisabled enabled
 
 example {certificate : Certificate}
     {before : SequentialSchedulerBridge.ReservationState}

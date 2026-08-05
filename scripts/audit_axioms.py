@@ -410,6 +410,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.new?_success_iff_enabled",
     "ProofNetIR.SequentialFigure7.NewExecutableEnabled.iff_newEnabled",
     "ProofNetIR.SequentialFigure7.new?_exists_schedulerInvariant_of_enabled",
+    "ProofNetIR.SequentialFigure7.PriorityEnabled.newEnabled",
+    "ProofNetIR.SequentialFigure7.PriorityEnabled.new_of_executable",
     "ProofNetIR.SequentialFigure7.DispatchStep.priorityEnabled",
     "ProofNetIR.SequentialFigure7.PriorityEnabled.exists_dispatchStep",
     "ProofNetIR.SequentialFigure7.dispatch?_kind_success_iff_priorityEnabled",

@@ -822,15 +822,16 @@
     duplicate history tags. This does not prove any branch enabled, and the
     later history constructor explicitly requires the invariant used by the
     executable call.
-  - [x] Add an exact branch-indexed applicability interface for that fixed
-    dispatcher. Reconstruct the pure input-only enabled witnesses from typed
-    `concl`/`nop`/`wait`/`forward`/`unifyPayload` steps, prove executor
-    existential-success iff under the full invariant, keep `new` explicitly
-    operational as `NewExecutableEnabled`, and prove priority-enabled
-    correspondence, exact selected-kind success/failure, and unique priority
-    kind. Preserve the completed reachable `[[]]` counterexample: the full
-    invariant alone does not enable a branch, so this item is not an
-    intended-state exhaustiveness or progress theorem.
+  - [x] **Historical checkpoint, superseded by the later input-only priority
+    migration below:** added an exact branch-indexed applicability interface
+    for that fixed dispatcher. Reconstructed the pure input-only enabled
+    witnesses from typed `concl`/`nop`/`wait`/`forward`/`unifyPayload` steps,
+    proved executor existential-success iff under the full invariant, kept
+    `new` explicitly operational as `NewExecutableEnabled`, and proved
+    priority-enabled correspondence, exact selected-kind success/failure, and
+    unique priority kind. The completed reachable `[[]]` counterexample remains
+    valid: the full invariant alone does not enable a branch, so this item is
+    not an intended-state exhaustiveness or progress theorem.
   - [x] Add a branch-indexed canonical tag augmentation of that exact
     dispatcher history. Recover each selected typed step from `DispatchStep`,
     prove exact tag stability for the five non-`new` rules, retain the exact
@@ -954,12 +955,15 @@
     kernel equality with `check`, with 18 shallow direct-check sentinels. Keep
     this explicitly finite: it is a counterexample search, not a universal
     `NewGuard`-sufficiency, progress, totality, or completeness theorem.
-  - [ ] Replace the remaining `NewExecutableEnabled` field inside
-    `PriorityEnabled` with the now-proved input-only `NewEnabled` through a
-    dedicated lower-layer/import-DAG split, while preserving the public
-    compatibility theorem and fixed dispatcher priority. This API migration
-    is not completed by the local iff alone. Then derive exhaustive dispatcher
-    enabledness on correct
+  - [x] Replace the remaining `NewExecutableEnabled` field inside
+    `PriorityEnabled` with the proved input-only `NewEnabled` through the
+    dedicated `SequentialFigure7NewInputCore` import-DAG split. Preserve
+    `NewExecutableEnabled`, its exact iff, an operational compatibility
+    constructor, the historical necessary-input facade, and fixed dispatcher
+    priority. Both positive `new` and all stored negative `new` fields are now
+    input-only. This is an API/classification migration only; it proves no
+    progress, totality, completeness, or fallback removal. Next derive
+    exhaustive dispatcher enabledness on correct
     certified-reachable nonterminal states.
     Generalize the remaining reservation-count/oriented-route commitments,
     establish unconditional full-rule reachability, progress, completeness of that
