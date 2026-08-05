@@ -11503,6 +11503,18 @@ ProofNetIR.ConnectiveBelow.mate_ne : ∀ {certificate : ProofNetIR.Certificate} 
   (result : ProofNetIR.ConnectiveBelow certificate vertex), result.mate ≠ vertex
 ```
 
+### `ProofNetIR.ConnectiveBelow.mate_bound`
+
+Kind: theorem.
+
+The opposite premise retained by an exact submitted connective view is an
+in-bounds formula occurrence.
+
+```lean
+ProofNetIR.ConnectiveBelow.mate_bound : ∀ {certificate : ProofNetIR.Certificate} {vertex : ProofNetIR.Vertex}
+  (result : ProofNetIR.ConnectiveBelow certificate vertex), result.mate < certificate.formulas.size
+```
+
 ### `ProofNetIR.Certificate.connectiveBelow?`
 
 Kind: definition.
@@ -11558,6 +11570,29 @@ consumer bucket.
 ```lean
 ProofNetIR.Certificate.conclusionBelow? : (certificate : ProofNetIR.Certificate) →
   (vertex : ProofNetIR.Vertex) → Option (ProofNetIR.ConclusionBelow certificate vertex)
+```
+
+### `ProofNetIR.SequentialFigure7.structural_conclusion_or_submittedConsumer_of_structural`
+
+Kind: theorem.
+
+Every in-bounds occurrence of a structurally well-formed certificate falls
+into one of the following covered cases: an exact conclusion boundary, an exact
+submitted par consumer, or an exact submitted tensor consumer.  This theorem
+does not assert that the three propositions are pairwise disjoint.
+
+The result contains only read-only certificate evidence.  In particular it
+stores no Figure-7 post-state and no equation asserting that a rule executor
+succeeds.
+
+```lean
+ProofNetIR.SequentialFigure7.structural_conclusion_or_submittedConsumer_of_structural : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex},
+      vertex < certificate.formulas.size →
+        Nonempty (ProofNetIR.ConclusionBelow certificate vertex) ∨
+          (∃ consumer, consumer.kind = ProofNetIR.SequentialConnectiveKind.par) ∨
+            ∃ consumer, consumer.kind = ProofNetIR.SequentialConnectiveKind.tensor
 ```
 
 ### `ProofNetIR.SequentialFigure7.PreparedStep`
@@ -12619,6 +12654,52 @@ ProofNetIR.SequentialFigure7.submittedParInput_enabled_cases : ∀ {certificate 
       ProofNetIR.SequentialFigure7.NopEnabled certificate before ∨
         ProofNetIR.SequentialFigure7.WaitEnabled certificate before ∨
           ProofNetIR.SequentialFigure7.ForwardEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.readyHead_structural_cases`
+
+Kind: theorem.
+
+A selected ready head in a complete scheduler-invariant state falls into
+one of three covered certificate-level structural shapes: an exact conclusion
+boundary, an exact submitted par consumer, or an exact submitted tensor
+consumer.  No pairwise-disjointness theorem is claimed here.
+
+Every returned witness is input-only.  None stores a Figure-7 post-state or an
+equation asserting success of a rule executor.
+
+```lean
+ProofNetIR.SequentialFigure7.readyHead_structural_cases : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (head : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+      Nonempty (ProofNetIR.ConclusionBelow certificate head.vertex) ∨
+        (∃ consumer, consumer.kind = ProofNetIR.SequentialConnectiveKind.par) ∨
+          ∃ consumer, consumer.kind = ProofNetIR.SequentialConnectiveKind.tensor
+```
+
+### `ProofNetIR.SequentialFigure7.readyHead_enabled_or_tensor_mark_cases`
+
+Kind: theorem.
+
+Ready-head structural classification projected through the already proved
+stable-rule trichotomy.  The only remaining cases are an exact submitted
+tensor whose opposite premise is respectively unmarked or marked in the input
+state.
+
+```lean
+ProofNetIR.SequentialFigure7.readyHead_enabled_or_tensor_mark_cases : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (head : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+      ProofNetIR.SequentialFigure7.ConclEnabled certificate before ∨
+        ProofNetIR.SequentialFigure7.NopEnabled certificate before ∨
+          ProofNetIR.SequentialFigure7.WaitEnabled certificate before ∨
+            ProofNetIR.SequentialFigure7.ForwardEnabled certificate before ∨
+              (∃ consumer,
+                  consumer.kind = ProofNetIR.SequentialConnectiveKind.tensor ∧
+                    before.core.marks[consumer.mate]? = some none) ∨
+                ∃ consumer mateRawAge,
+                  consumer.kind = ProofNetIR.SequentialConnectiveKind.tensor ∧
+                    before.core.marks[consumer.mate]? = some (some mateRawAge)
 ```
 
 ### `ProofNetIR.SequentialFigure7.UnifyEmptyRule`

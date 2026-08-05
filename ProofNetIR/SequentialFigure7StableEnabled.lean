@@ -981,6 +981,86 @@ theorem submittedParInput_enabled_cases
               mate_marked := mateLookup
               not_older := Nat.le_of_not_gt younger }⟩)
 
+/-- A selected ready head in a complete scheduler-invariant state falls into
+one of three covered certificate-level structural shapes: an exact conclusion
+boundary, an exact submitted par consumer, or an exact submitted tensor
+consumer.  No pairwise-disjointness theorem is claimed here.
+
+Every returned witness is input-only.  None stores a Figure-7 post-state or an
+equation asserting success of a rule executor. -/
+theorem readyHead_structural_cases
+    {certificate : Certificate} {before : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (head : ReadyHeadInput before) :
+    Nonempty (ConclusionBelow certificate head.vertex) ∨
+      (∃ consumer : ConnectiveBelow certificate head.vertex,
+        consumer.kind = .par) ∨
+      (∃ consumer : ConnectiveBelow certificate head.vertex,
+        consumer.kind = .tensor) := by
+  have vertexBound : head.vertex < certificate.formulas.size := by
+    have markBound :=
+      (Array.getElem?_eq_some_iff.mp
+        (head.core_vertex_unmarked invariant)).1
+    simpa [invariant.core_abstractable.markArraySize] using markBound
+  exact structural_conclusion_or_submittedConsumer_of_structural
+    invariant.structural vertexBound
+
+/-- Ready-head structural classification projected through the already proved
+stable-rule trichotomy.  The only remaining cases are an exact submitted
+tensor whose opposite premise is respectively unmarked or marked in the input
+state. -/
+theorem readyHead_enabled_or_tensor_mark_cases
+    {certificate : Certificate} {before : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (head : ReadyHeadInput before) :
+    ConclEnabled certificate before ∨
+      NopEnabled certificate before ∨
+      WaitEnabled certificate before ∨
+      ForwardEnabled certificate before ∨
+      (∃ consumer : ConnectiveBelow certificate head.vertex,
+        consumer.kind = .tensor ∧
+          before.core.marks[consumer.mate]? = some none) ∨
+      (∃ consumer : ConnectiveBelow certificate head.vertex,
+        ∃ mateRawAge : RawTokenAge,
+          consumer.kind = .tensor ∧
+            before.core.marks[consumer.mate]? =
+              some (some mateRawAge)) := by
+  rcases readyHead_structural_cases invariant head with
+      conclusion | parCase | tensorCase
+  · rcases conclusion with ⟨boundary⟩
+    exact Or.inl ⟨⟨head, boundary.boundary⟩⟩
+  · rcases parCase with ⟨consumer, kind⟩
+    let par : SubmittedParInput certificate head.vertex := {
+      linkIndex := consumer.linkIndex
+      storedLeft := consumer.storedLeft
+      storedRight := consumer.storedRight
+      conclusion := consumer.conclusion
+      side := consumer.side
+      link_eq := by
+        simpa [SequentialConnectiveKind.asLink, kind] using consumer.link_eq
+      premise_eq := consumer.premise_eq }
+    rcases submittedParInput_enabled_cases invariant head par with
+      nop | wait | forward
+    · exact Or.inr (Or.inl nop)
+    · exact Or.inr (Or.inr (Or.inl wait))
+    · exact Or.inr (Or.inr (Or.inr (Or.inl forward)))
+  · rcases tensorCase with ⟨consumer, kind⟩
+    have mateBound : consumer.mate < before.core.marks.size := by
+      rw [invariant.core_abstractable.markArraySize]
+      exact consumer.mate_bound
+    cases mateLookup : before.core.marks[consumer.mate]? with
+    | none =>
+        rw [Array.getElem?_eq_getElem mateBound] at mateLookup
+        simp at mateLookup
+    | some mark =>
+        cases mark with
+        | none =>
+            exact Or.inr (Or.inr (Or.inr (Or.inr
+              (Or.inl ⟨consumer, kind, mateLookup⟩))))
+        | some mateRawAge =>
+            exact Or.inr (Or.inr (Or.inr (Or.inr
+              (Or.inr ⟨consumer, mateRawAge, kind, mateLookup⟩))))
+
 end SequentialFigure7
 
 end ProofNetIR

@@ -326,7 +326,16 @@ The full invariant derives those hidden facts. Each `*_exists_of_enabled`
 theorem proves execution, and each companion theorem proves the complete output
 invariant. `submittedParInput_enabled_cases` is only a trichotomy for an already
 supplied ready head and exact submitted par; it is not priority-aware or
-globally exhaustive. Correct-state progress,
+globally exhaustive. The additional audited boundaries
+`ConnectiveBelow.mate_bound`,
+`structural_conclusion_or_submittedConsumer_of_structural`,
+`readyHead_structural_cases`, and
+`readyHead_enabled_or_tensor_mark_cases` provide exhaustive occurrence-level
+coverage for a supplied ready head. Their evidence is read-only: no executor
+result, success equation, post-state, history, or reachability witness is
+stored. The nested alternatives are not trusted as pairwise disjoint, and the
+unmarked/marked tensor cases do not establish `NewEnabled` or
+`UnifyPayloadEnabled`. Correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the

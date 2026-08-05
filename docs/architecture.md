@@ -479,6 +479,16 @@ full-invariant output. The local submitted-par theorem classifies only an
 already supplied ready head and exact submitted par as `nop`, `wait`, or
 `forward`; it is not a global scheduler partition and says nothing about
 conclusions, tensors, `new`, unification, dispatcher priority, or progress.
+The same module now exposes occurrence-exact coverage one layer below rule
+selection. From structural well-formedness, every in-bounds occurrence falls
+into a conclusion, exact submitted-par-consumer, or exact
+submitted-tensor-consumer case; `SchedulerInvariant` supplies the bound for an
+already selected ready head. Combining this with the stable par classification
+and exact mate lookup gives four stable enabled alternatives plus unmarked and
+marked tensor alternatives. The nested disjunction proves coverage only, not
+pairwise exclusivity or a unique selected case. The tensor alternatives remain
+input shapes: the unmarked case is not yet promoted to `NewEnabled`, and the
+marked case is not yet promoted to `UnifyPayloadEnabled`.
 
 `SequentialFigure7Dispatcher.lean` composes the six canonical successful rule
 executors under one fixed precedence:

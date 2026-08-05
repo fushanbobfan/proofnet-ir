@@ -3340,6 +3340,65 @@ example :
   SequentialFigure7.submittedParInput_enabled_cases
     waitStableReadyState_invariant waitStableHead waitStableSubmitted
 
+/-- The public bound theorem is usable without unfolding the submitted
+connective view. -/
+example {certificate : Certificate} {vertex : Vertex}
+    (consumer : ConnectiveBelow certificate vertex) :
+    consumer.mate < certificate.formulas.size :=
+  consumer.mate_bound
+
+/-- The public structural theorem exposes exhaustive occurrence-level coverage
+without asserting that its three propositions are mutually exclusive. -/
+example {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {vertex : Vertex} (vertexBound : vertex < certificate.formulas.size) :
+    Nonempty (ConclusionBelow certificate vertex) ∨
+      (∃ consumer : ConnectiveBelow certificate vertex,
+        consumer.kind = .par) ∨
+      (∃ consumer : ConnectiveBelow certificate vertex,
+        consumer.kind = .tensor) :=
+  SequentialFigure7.structural_conclusion_or_submittedConsumer_of_structural
+    structural vertexBound
+
+/-- The current genuine ready-head fixture compiles against the public
+structural coverage theorem. -/
+example :
+    Nonempty
+        (ConclusionBelow waitSchedulerCertificate waitStableHead.vertex) ∨
+      (∃ consumer :
+          ConnectiveBelow waitSchedulerCertificate waitStableHead.vertex,
+        consumer.kind = .par) ∨
+      (∃ consumer :
+          ConnectiveBelow waitSchedulerCertificate waitStableHead.vertex,
+        consumer.kind = .tensor) :=
+  SequentialFigure7.readyHead_structural_cases
+    waitStableReadyState_invariant waitStableHead
+
+/-- The same fixture compiles against the refined enabled-or-tensor-mark
+coverage theorem.  Its two tensor alternatives remain structural input cases,
+not proved `new` or unification applicability. -/
+example :
+    SequentialFigure7.ConclEnabled
+        waitSchedulerCertificate waitStableReadyState ∨
+      SequentialFigure7.NopEnabled
+          waitSchedulerCertificate waitStableReadyState ∨
+      SequentialFigure7.WaitEnabled
+          waitSchedulerCertificate waitStableReadyState ∨
+      SequentialFigure7.ForwardEnabled
+          waitSchedulerCertificate waitStableReadyState ∨
+      (∃ consumer :
+          ConnectiveBelow waitSchedulerCertificate waitStableHead.vertex,
+        consumer.kind = .tensor ∧
+          waitStableReadyState.core.marks[consumer.mate]? = some none) ∨
+      (∃ consumer :
+          ConnectiveBelow waitSchedulerCertificate waitStableHead.vertex,
+        ∃ mateRawAge : RawTokenAge,
+          consumer.kind = .tensor ∧
+            waitStableReadyState.core.marks[consumer.mate]? =
+              some (some mateRawAge)) :=
+  SequentialFigure7.readyHead_enabled_or_tensor_mark_cases
+    waitStableReadyState_invariant waitStableHead
+
 private def parAfterForwardStableState : ReservationState :=
   match SequentialFigure7.forward? parCertificate parForwardStableState
       parForwardStableState_invariant.toReservationInvariant with

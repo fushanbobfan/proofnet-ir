@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- added occurrence-exact ready-head case coverage. The structural theorem
+  `structural_conclusion_or_submittedConsumer_of_structural` places every
+  in-bounds occurrence of a structurally well-formed certificate in a
+  conclusion, submitted-par-consumer, or submitted-tensor-consumer case;
+  `readyHead_structural_cases` transports that coverage to a supplied
+  `ReadyHeadInput` under `SchedulerInvariant`.
+  `readyHead_enabled_or_tensor_mark_cases` then combines the existing stable
+  par classification with exact mate lookup, yielding the four stable enabled
+  alternatives or one of the unmarked/marked submitted-tensor alternatives.
+  These are inclusive coverage theorems: no pairwise exclusivity or unique-case
+  theorem is claimed. Every witness is input-only, and a current Figure-7
+  fixture compile-uses all four new public declarations. Deriving `NewEnabled`
+  from the unmarked tensor case and `UnifyPayloadEnabled` from the marked tensor
+  case remains open, as do dispatcher exhaustiveness, progress, pure-worklist
+  completeness, fallback removal, and whole-program linearity. The exact axiom
+  audit now covers 671 declarations: 426 full-classical, 25 axiom-free, 105
+  `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
 - added `SequentialFreshSourceLeftRun.lean`, a fuel-indexed, proof-relevant,
   input-only account of the production `NEXTAXIOM` search. Its two terminal
   axiom constructors and two stored-left connective constructors retain exact

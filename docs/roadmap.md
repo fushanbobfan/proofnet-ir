@@ -926,6 +926,14 @@
     exact submitted par as `nop`, `wait`, or `forward`, without extending that
     local trichotomy to conclusions, tensors/`new`, unification, completed
     buckets, dispatcher priority, or arbitrary scheduler work.
+  - [x] Cover every supplied ready-head occurrence exactly at the certificate
+    level: conclusion, submitted par consumer, or submitted tensor consumer;
+    then combine the par trichotomy with exact tensor-mate lookup to obtain the
+    four stable enabled alternatives or an unmarked/marked tensor alternative.
+    This is inclusive occurrence-exact case coverage, not a pairwise-disjoint
+    partition or unique-case theorem. Keep both tensor-to-rule obligations
+    open: unmarked tensor does not yet imply `NewEnabled`, and marked tensor
+    does not yet imply `UnifyPayloadEnabled`.
   - [x] Extract an honest input-only necessary projection for `new` without
     changing dispatcher priority. `NewGuard` records the ready head, exact
     tensor-below witness, and input-unmarked mate; `FreshSourceLeftRoute`

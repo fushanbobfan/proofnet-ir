@@ -135,6 +135,35 @@ theorem mate_ne {certificate : Certificate} {vertex : Vertex}
         TensorPremiseSide.premise, sideEquation] at input ⊢
       exact fun same => different (same.trans input)
 
+/-- The opposite premise retained by an exact submitted connective view is an
+in-bounds formula occurrence. -/
+theorem mate_bound {certificate : Certificate} {vertex : Vertex}
+    (result : ConnectiveBelow certificate vertex) :
+    result.mate < certificate.formulas.size := by
+  cases kindEquation : result.kind with
+  | par =>
+      have wellFormed :
+          certificate.LinkWellFormed
+            (.par result.storedLeft result.storedRight result.conclusion) := by
+        simpa [SequentialConnectiveKind.asLink, kindEquation] using
+          result.wellFormed
+      cases sideEquation : result.side
+      · simpa [mate, TensorPremiseSide.mate, sideEquation] using
+          wellFormed.2.2.2.2.1
+      · simpa [mate, TensorPremiseSide.mate, sideEquation] using
+          wellFormed.2.2.2.1
+  | tensor =>
+      have wellFormed :
+          certificate.LinkWellFormed
+            (.tensor result.storedLeft result.storedRight result.conclusion) := by
+        simpa [SequentialConnectiveKind.asLink, kindEquation] using
+          result.wellFormed
+      cases sideEquation : result.side
+      · simpa [mate, TensorPremiseSide.mate, sideEquation] using
+          wellFormed.2.2.2.2.1
+      · simpa [mate, TensorPremiseSide.mate, sideEquation] using
+          wellFormed.2.2.2.1
+
 end ConnectiveBelow
 
 private def connectiveBelowAt? (certificate : Certificate)
@@ -1485,6 +1514,81 @@ private theorem exists_connectiveBelow?_eq_some_tensor_of_structural
           exact
             (noTensor storedLeft storedRight conclusion
               linkEquation).elim
+
+/-- Every in-bounds occurrence of a structurally well-formed certificate falls
+into one of the following covered cases: an exact conclusion boundary, an exact
+submitted par consumer, or an exact submitted tensor consumer.  This theorem
+does not assert that the three propositions are pairwise disjoint.
+
+The result contains only read-only certificate evidence.  In particular it
+stores no Figure-7 post-state and no equation asserting that a rule executor
+succeeds. -/
+theorem structural_conclusion_or_submittedConsumer_of_structural
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {vertex : Vertex}
+    (vertexBound : vertex < certificate.formulas.size) :
+    Nonempty (ConclusionBelow certificate vertex) ∨
+      (∃ consumer : ConnectiveBelow certificate vertex,
+        consumer.kind = .par) ∨
+      (∃ consumer : ConnectiveBelow certificate vertex,
+        consumer.kind = .tensor) := by
+  by_cases boundary : vertex ∈ certificate.conclusions
+  · left
+    rcases exists_conclusionBelow?_eq_some_of_structural
+        structural boundary with ⟨view, _query⟩
+    exact ⟨view⟩
+  · have node := structural.2.2.2.2.2 vertex vertexBound
+    have parentCount : certificate.parentUseCount vertex = 1 := by
+      simpa [Certificate.NodeWellFormed, boundary] using node.2
+    unfold Certificate.parentUseCount at parentCount
+    rcases List.length_eq_one_iff.mp parentCount with
+      ⟨parentLink, parentFilter⟩
+    have filtered :
+        parentLink ∈ certificate.links.filter (·.usesAsPremise vertex) := by
+      rw [parentFilter]
+      simp
+    rcases List.mem_filter.mp filtered with
+      ⟨parentMembership, parentUses⟩
+    have premiseMembership : vertex ∈ parentLink.premises := by
+      simpa [Link.usesAsPremise] using parentUses
+    rcases List.getElem?_of_mem parentMembership with
+      ⟨linkIndex, linkEquation⟩
+    cases parentLink with
+    | «axiom» left right =>
+        simp [Link.premises] at premiseMembership
+    | par left right conclusion =>
+        simp [Link.premises] at premiseMembership
+        rcases premiseMembership with storedLeft | storedRight
+        · rcases exists_connectiveBelow?_eq_some_par_of_structural
+              structural linkEquation
+              (side := .storedLeft)
+              (by simpa [TensorPremiseSide.premise] using storedLeft) with
+            ⟨consumer, _query, kind, _side, _conclusion, _mate⟩
+          exact Or.inr (Or.inl ⟨consumer, kind⟩)
+        · rcases exists_connectiveBelow?_eq_some_par_of_structural
+              structural linkEquation
+              (side := .storedRight)
+              (by simpa [TensorPremiseSide.premise] using storedRight) with
+            ⟨consumer, _query, kind, _side, _conclusion, _mate⟩
+          exact Or.inr (Or.inl ⟨consumer, kind⟩)
+    | tensor left right conclusion =>
+        simp [Link.premises] at premiseMembership
+        rcases premiseMembership with storedLeft | storedRight
+        · rcases exists_connectiveBelow?_eq_some_tensor_of_structural
+              structural linkEquation
+              (side := .storedLeft)
+              (by simpa [TensorPremiseSide.premise] using storedLeft) with
+            ⟨consumer, _query, kind, _side, _index, _left, _right,
+              _conclusion, _mate⟩
+          exact Or.inr (Or.inr ⟨consumer, kind⟩)
+        · rcases exists_connectiveBelow?_eq_some_tensor_of_structural
+              structural linkEquation
+              (side := .storedRight)
+              (by simpa [TensorPremiseSide.premise] using storedRight) with
+            ⟨consumer, _query, kind, _side, _index, _left, _right,
+              _conclusion, _mate⟩
+          exact Or.inr (Or.inr ⟨consumer, kind⟩)
 
 /-- On structurally valid input, the independent direct `nop` guard is
 complete for the executable rule. -/

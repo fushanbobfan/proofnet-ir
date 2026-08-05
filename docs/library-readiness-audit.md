@@ -492,7 +492,15 @@ part of the engineering and proof-identity gap.
    success and a full-invariant output. An already supplied ready head and exact
    submitted par is classified as `nop`, `wait`, or `forward`, but this scoped
    theorem excludes conclusion, tensor/`new`, unification, completed buckets,
-   priority, and global scheduler enabledness.
+   priority, and global scheduler enabledness. The new occurrence-exact
+   coverage theorems close only that structural gap for an already supplied
+   ready head: the head falls into a conclusion, submitted-par-consumer, or
+   submitted-tensor-consumer case, and the refined theorem returns one of four
+   stable enabled alternatives or an exact unmarked/marked tensor alternative.
+   This is inclusive exhaustive coverage, not pairwise disjointness or unique
+   branch selection. The two tensor alternatives remain open as applicability
+   obligations: neither `NewEnabled` nor `UnifyPayloadEnabled` follows from
+   this checkpoint.
    `SequentialFigure7Dispatcher.lean` now supplies one canonical executable
    entry point for `concl`/`nop`/`new`/`wait`/`forward`/`unifyPayload`, exact
    priority-aware dependent witnesses, output uniqueness, full successful-step

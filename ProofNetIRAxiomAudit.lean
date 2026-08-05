@@ -365,6 +365,8 @@ expansion.
 #print axioms SequentialFigure7.nop?_some_iff
 #print axioms SequentialFigure7.NopStep.submitted_par
 #print axioms ConnectiveBelow.mate_ne
+#print axioms ConnectiveBelow.mate_bound
+#print axioms SequentialFigure7.structural_conclusion_or_submittedConsumer_of_structural
 #print axioms SequentialFigure7.NopStep.mate_unmarked_before
 #print axioms SequentialFigure7.NopStep.reservationInvariant
 #print axioms SequentialFigure7.nop?_reservationInvariant
@@ -600,6 +602,8 @@ expansion.
 #print axioms SequentialFigure7.forward?_exists_of_enabled
 #print axioms SequentialFigure7.forward?_exists_schedulerInvariant_of_enabled
 #print axioms SequentialFigure7.submittedParInput_enabled_cases
+#print axioms SequentialFigure7.readyHead_structural_cases
+#print axioms SequentialFigure7.readyHead_enabled_or_tensor_mark_cases
 #print axioms SequentialFigure7.ConclStep.enabled
 #print axioms SequentialFigure7.NopStep.enabled
 #print axioms SequentialFigure7.WaitStep.enabled
