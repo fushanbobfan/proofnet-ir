@@ -17,7 +17,7 @@
   from the unmarked tensor case and `UnifyPayloadEnabled` from the marked tensor
   case remains open, as do dispatcher exhaustiveness, progress, pure-worklist
   completeness, fallback removal, and whole-program linearity. The exact axiom
-  audit now covers 671 declarations: 426 full-classical, 25 axiom-free, 105
+  audit now covers 673 declarations: 428 full-classical, 25 axiom-free, 105
   `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
 - added `SequentialFreshSourceLeftRun.lean`, a fuel-indexed, proof-relevant,
   input-only account of the production `NEXTAXIOM` search. Its two terminal
@@ -45,9 +45,10 @@
   as a facade. This local
   applicability equivalence adds no reachable-state exhaustiveness,
   later-call totality, dispatcher progress, pure-worklist completeness,
-  fallback removal, or whole-program linearity claim. The exact axiom audit
-  now covers 669 declarations: 425 full-classical, 25 axiom-free, 104
-  `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
+  fallback removal, or whole-program linearity claim. At that intermediate
+  priority-migration checkpoint, the exact axiom audit covered 669 declarations:
+  425 full-classical, 25 axiom-free, 104 `propext`-only, and 115
+  `propext`/`Quot.sound` boundaries;
 - added `ProofNetIRNewProgressAudit.lean`, a deterministic finite
   counterexample search over states reached only by successful
   `initializeReservation?` followed by the canonical `dispatch?`. The default
@@ -77,37 +78,40 @@
   established `*Enabled` naming: it omits recursive per-step tag-update
   equations, exclusion of the terminal partner from the intermediate trace,
   and the later operational enqueue guard, so no success converse is claimed.
-  Lean reconstructs the witness from every typed `NewStep` and proves
-  `new?` success, `NewExecutableEnabled`, and priority-selected `new` imply it,
-  while dispatcher priority remains operational. Regressions cover genuine
+  At that historical checkpoint, Lean reconstructed the witness from every
+  typed `NewStep` and proved `new?` success, `NewExecutableEnabled`, and
+  priority-selected `new` implied it, while dispatcher priority remained
+  operational. Regressions covered genuine
   success, pre-initialization, completed `[[]]`, and forged all-true or
   terminal-partner-pretagged states where the shallow guard holds but `new?`
-  fails. This adds no later-call `NEXTAXIOM` totality, enabledness, progress,
-  completeness, fallback-removal, or complexity claim. The exact axiom audit
-  now covers 634 declarations: 404 full-classical, 23 axiom-free, 94
+  failed. This added no later-call `NEXTAXIOM` totality, enabledness, progress,
+  completeness, fallback-removal, or complexity claim. At that historical
+  checkpoint, the exact axiom audit covered 634 declarations: 404
+  full-classical, 23 axiom-free, 94
   `propext`-only, and 113 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7PriorityEnabled.lean`, an exact priority-aware
-  applicability interface for the existing canonical dispatcher. Successful
-  typed `ConclStep`, `NopStep`, `WaitStep`, `ForwardStep`, and
-  `UnifyPayloadStep` witnesses reconstruct the corresponding pure input-only
-  enabled witnesses, and each executor has an existential-success iff under
-  the complete `SchedulerInvariant`. `new` is deliberately kept separate:
-  `NewExecutableEnabled` explicitly means operational existential executor
-  success and is not presented as an input-only paper guard. Indexed
-  `PriorityEnabled` follows the fixed
+  applicability interface for the existing canonical dispatcher. At that
+  historical checkpoint, successful typed `ConclStep`, `NopStep`, `WaitStep`,
+  `ForwardStep`, and `UnifyPayloadStep` witnesses reconstructed the
+  corresponding pure input-only enabled witnesses, and each executor had an
+  existential-success iff under the complete `SchedulerInvariant`. `new` was
+  deliberately kept separate: `NewExecutableEnabled` explicitly meant
+  operational existential executor success and was not presented as an
+  input-only paper guard. Indexed `PriorityEnabled` followed the fixed
   `concl → nop → new → wait → forward → unifyPayload` precedence by storing
   only the selected branch's enabled witness and proofs that every earlier
-  predicate is false. Lean proves exact conversion to and from `DispatchStep`,
-  selected-kind success iff, dispatcher failure iff every indexed branch is
+  predicate was false. Lean proved exact conversion to and from `DispatchStep`,
+  selected-kind success iff, dispatcher failure iff every indexed branch was
   disabled, and uniqueness of the enabled priority kind. Full-invariant
-  regressions cover an initialized `concl`, a tensor-selected operational
+  regressions covered an initialized `concl`, a tensor-selected operational
   `new`, and a completed reachable ready stack `[[]]` where the dispatcher
-  returns `none` and no priority kind is enabled. These are exact
+  returned `none` and no priority kind was enabled. These were exact
   dispatcher-classification results, not intended-state exhaustiveness,
   nonterminality, global progress, pure-worklist completeness, fallback
-  removal, faithful token-age scheduling, or a complexity theorem. The exact
-  axiom audit now covers 622 declarations: 398 full-classical, 23 axiom-free,
-  90 `propext`-only, and 111 `propext`/`Quot.sound` boundaries;
+  removal, faithful token-age scheduling, or a complexity theorem. At that
+  historical checkpoint, the exact axiom audit covered 622 declarations: 398
+  full-classical, 23 axiom-free, 90 `propext`-only, and 111
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7StableEnabled.lean`, an input-only applicability
   layer for the stable `concl`, `nop`, `wait`, and `forward` rules. The shared
   `ReadyHeadInput` stores only the selected ready head, tail, raw age, and exact

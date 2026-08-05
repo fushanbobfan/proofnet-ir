@@ -426,8 +426,8 @@ duplicate-free, and show touched history-independence for a fixed state.
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
 separate nonreachability proof for that forged state. The exact trust audit now
-covers 669 declarations: 425 use exactly
-`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 104 use exactly
+covers 673 declarations: 428 use exactly
+`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 105 use exactly
 `[propext]`, and 115 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
