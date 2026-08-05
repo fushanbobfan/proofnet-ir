@@ -1,7 +1,7 @@
 import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7UnifyPayloadEnabled
-import ProofNetIR.SequentialFigure7NewEnabled
+import ProofNetIR.SequentialFigure7NewEnabledCore
 
 namespace ProofNetIR
 

@@ -43,9 +43,10 @@ import ProofNetIR.SequentialFigure7StableEnabled
 import ProofNetIR.SequentialFigure7Dispatcher
 import ProofNetIR.SequentialFreshSourceLeftRun
 import ProofNetIR.SequentialFigure7NewInputCore
-import ProofNetIR.SequentialFigure7NewEnabled
+import ProofNetIR.SequentialFigure7NewEnabledCore
 import ProofNetIR.SequentialFigure7PriorityEnabled
 import ProofNetIR.SequentialFigure7NewInputNecessary
+import ProofNetIR.SequentialFigure7NewEnabled
 import ProofNetIR.SequentialFigure7TagHistory
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization

@@ -254,7 +254,7 @@ the stored-left tensor/par recursion of `nextAxiomWithFuel?`, including each
 recursive tag update and raw-mark readiness fact. Lean proves exact execution
 correspondence in both directions, trace `Nodup` and freshness,
 terminal-partner exclusion, and exact terminal reservation under structural
-well-formedness and carrier alignment. `SequentialFigure7NewEnabled.lean`
+well-formedness and carrier alignment. `SequentialFigure7NewEnabledCore.lean`
 then defines the genuine input-only local predicate `NewEnabled` from
 `NewGuard`, one exact run at the certificate fuel bound, and the exact
 operational enqueue guard at the selected raw age. The witness contains no
@@ -263,7 +263,10 @@ executor result/equation, output, history, or reachability field. Under
 yields an invariant-preserving output. A queued-partner regression shows that
 `NewGuard` plus the exact run is still insufficient without the enqueue guard.
 The lower-layer import split lets `PriorityEnabled` store this input-only
-predicate directly without changing `dispatch?` or its fixed precedence. This
+predicate directly without changing `dispatch?` or its fixed precedence.
+`SequentialFigure7NewEnabled.lean` remains the historical facade and
+re-exports the prior direct-import priority surface; two compile-only default
+targets lock the facade and narrow-priority import surfaces. This
 closes only local applicability and priority classification; it proves no
 reachable nonterminal exhaustiveness, later-call totality, dispatcher progress,
 pure-worklist completeness, fallback removal, or whole-program linearity.
@@ -1745,7 +1748,8 @@ ProofNetIR/SequentialFigure7StableEnabled.lean input-only stable-rule applicabil
 ProofNetIR/SequentialFigure7Dispatcher.lean canonical six-rule dispatcher and certified history
 ProofNetIR/SequentialFreshSourceLeftRun.lean exact proof-relevant production NEXTAXIOM runs
 ProofNetIR/SequentialFigure7NewInputCore.lean lower-layer one-way input conditions for new
-ProofNetIR/SequentialFigure7NewEnabled.lean input-only local new applicability iff execution
+ProofNetIR/SequentialFigure7NewEnabledCore.lean acyclic input-only new applicability iff execution
+ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
 ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
@@ -1755,6 +1759,8 @@ ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRConsumerIndexTests.lean orientation and fail-closed consumer tests
 ProofNetIRFigure7PrimitivesTests.lean typed Figure-7 transition regressions
+ProofNetIRNewEnabledImportTests.lean direct-import compatibility sentinel
+ProofNetIRPriorityEnabledImportTests.lean narrow priority-import compatibility sentinel
 ProofNetIRFigure7UnifyPayloadInvariantTests.lean full-SI length-two payload regression
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter

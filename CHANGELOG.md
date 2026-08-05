@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- restored and compile-locked the historical direct-import surface of
+  `ProofNetIR.SequentialFigure7NewEnabled`. The implementation now lives in
+  the acyclic `SequentialFigure7NewEnabledCore.lean` layer, which
+  `SequentialFigure7PriorityEnabled.lean` imports directly; the historical
+  module is a facade that also re-exports `PriorityEnabled` and
+  `PriorityEnabled.newInputNecessary`. Two new default-build sentinels import
+  only the facade or only the narrow priority module and compile-check both
+  historical surfaces. This changes no declaration,
+  enabledness predicate, executor, priority order, or mathematical claim;
 - added occurrence-exact ready-head case coverage. The structural theorem
   `structural_conclusion_or_submittedConsumer_of_structural` places every
   in-bounds occurrence of a structurally well-formed certificate in a

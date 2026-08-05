@@ -384,7 +384,7 @@ terminal-partner-pretagged inputs demonstrate that `NewGuard` alone is not an
 oracle for success. `PriorityEnabled` therefore stores the stronger input-only
 `NewEnabled`, never the shallow necessary projection.
 `SequentialFreshSourceLeftRun.lean` and
-`SequentialFigure7NewEnabled.lean` add no oracle or unchecked existence
+`SequentialFigure7NewEnabledCore.lean` adds no oracle or unchecked existence
 principle. The proof-relevant run is constructed directly from a named
 `nextAxiomWithFuel?` equation and replays directly to that equation; its four
 constructors retain exact source-bucket and link-slot equalities, evolving tag
@@ -398,7 +398,10 @@ raw-marked intermediate occurrence, a pretagged terminal partner, and a queued
 terminal partner; the last keeps a valid guard and run but invalidates enqueue.
 The older `NewInputNecessary` remains strictly weaker. A dedicated lower-layer
 split permits the priority field to store `NewEnabled`; the compatibility iff
-and constructor do not change the dispatcher definition or order.
+and constructor do not change the dispatcher definition or order. The
+historical `SequentialFigure7NewEnabled.lean` file is only an import facade;
+the two direct-import sentinels change neither the trusted declarations nor
+their axioms.
 None of these local proofs establishes later-call totality, reachable-state
 exhaustiveness, progress, pure-worklist completeness, fallback removal, or
 linearity.

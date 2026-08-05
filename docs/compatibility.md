@@ -26,6 +26,15 @@ constructor calls and pattern matches that relied on the former field types
 must be updated. The exact logical equivalence is a migration aid; it is not a
 claim of source or binary compatibility.
 
+That field-type break does not remove the historical module import surface.
+Code that imports only `ProofNetIR.SequentialFigure7NewEnabled` can still name
+`NewEnabled`, `NewExecutableEnabled`, `PriorityEnabled`, and
+`PriorityEnabled.newInputNecessary`. The implementation declarations live in
+the acyclic `SequentialFigure7NewEnabledCore` layer used by the priority
+module; `SequentialFigure7NewEnabled` is the compatibility facade. Separate
+default-build sentinels for the facade and the narrow priority import prevent
+either historical surface from being dropped accidentally.
+
 For a positive direct constructor, use the compatibility constructor when the
 caller still has the historical operational witness:
 

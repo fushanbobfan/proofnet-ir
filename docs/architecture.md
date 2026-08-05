@@ -550,14 +550,17 @@ occurrence identity, while the fixed production state and evolving tag array
 record raw readiness and each recursive tag update. The relation is defined
 for arbitrary certificates and is equivalent to an exact named executor
 execution. Structural well-formedness enters only at the terminal reservation
-bridge. `SequentialFigure7NewEnabled.lean` combines `NewGuard`, one exact run at
+bridge. `SequentialFigure7NewEnabledCore.lean` combines `NewGuard`, one exact run at
 the certificate fuel bound, and `OperationalNewReadyAt` at the selected head's
 raw age. The resulting `NewEnabled` is input-only—there is no result,
 equation, output, history, or reachability field—and, under the complete
 `SchedulerInvariant`, is equivalent to existential `new?` success. The
 dedicated lower-layer split lets the priority module import this predicate
 without a cycle and store it directly, while the dispatcher executable and
-precedence remain unchanged. This layering fact does not establish
+precedence remain unchanged. `SequentialFigure7NewEnabled.lean` is the
+historical compatibility facade: importing it still exposes the priority
+classifier and `PriorityEnabled.newInputNecessary`; default-build facade and
+narrow-priority sentinels protect both import surfaces. This layering fact does not establish
 reachable-state exhaustiveness, totality, progress, completeness, fallback
 removal, or a cost theorem.
 The root executable `ProofNetIRNewProgressAudit.lean` is a bounded

@@ -527,14 +527,17 @@ part of the engineering and proof-identity gap.
    branch and is equivalent in both directions to a named
    `nextAxiomWithFuel?` success, while retaining exact source buckets,
    submitted slots, recursive tag updates, fixed-state readiness, and terminal
-   orientation. `SequentialFigure7NewEnabled.lean` combines that run with the
+   orientation. `SequentialFigure7NewEnabledCore.lean` combines that run with the
    shallow guard and exact enqueue guard. The resulting `NewEnabled` contains
    no executor equation/result, output, history, or reachability field and is
    equivalent to existential `new?` success under `SchedulerInvariant`, with
    an invariant-preserving output theorem. A queued-partner fixture confirms
    that the enqueue guard is essential. The lower-layer dependency split now
    lets the priority field use `NewEnabled` directly without changing the
-   dispatcher. This is a local applicability/classification theorem, not
+   dispatcher. The historical `SequentialFigure7NewEnabled.lean` facade still
+   re-exports the old direct-import priority surface, protected together with
+   the narrow priority import by two default-build sentinels. This is a
+   local applicability/classification theorem, not
    later-state totality or progress.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
