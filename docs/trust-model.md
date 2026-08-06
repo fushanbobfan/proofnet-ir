@@ -385,9 +385,9 @@ facade. The core erases executor equations, results, and post-states from
 a successful `NewStep`, retaining only a shallow ready/tensor/mate guard and a
 bounded exact source-left route with input tag freshness, whole-trace
 production readiness, and ready axiom endpoints. The checked direction is
-success to `NewInputNecessary`. No reverse direction exists because the record
-itself omits recursive per-step tag-update equations and the later operational
-enqueue guard. The structural source-region layer now reconstructs the exact
+success to `NewInputNecessary`. At this lower layer no unconditional reverse
+direction exists because the record itself omits recursive per-step tag-update
+equations and the later operational enqueue guard. The structural source-region layer now reconstructs the exact
 run and derives terminal-partner exclusion, but does not manufacture the
 enqueue region. Forged
 all-true and
@@ -421,6 +421,18 @@ current state invariant. With `SchedulerInvariant` and
 `FutureWaitingUndefined`, it derives the existing audited enqueue guard and
 `NewEnabled`. It assumes neither executor success nor reachability,
 correctness, progress, or totality.
+`SequentialFigure7FreshCapacity.lean` adds no unchecked counting premise. It
+derives the strict capacity field from one exact current-tag run, structural
+link/formula capacity, exact canonical reservation counting, and submitted-slot
+`Nodup`. `SequentialFigure7QueueHistory.lean` likewise reasons only over exact
+typed dispatcher evidence. It classifies queued endpoints of one exact axiom,
+not arbitrary queued occurrences: stable rules can enqueue an untagged
+connective conclusion. Canonical tag provenance turns endpoint queue membership
+into a true current tag, contradicting the run's false-tag freshness. Hence
+canonical history plus the complete invariant proves the history-indexed
+`NewEnabled ↔ NewInputNecessary`, and certified reachability packages the same
+result. The exact route remains part of `NewInputNecessary`; no oracle supplies
+it from `NewGuard`.
 None of these local proofs establishes later-call totality, reachable-state
 exhaustiveness, progress, pure-worklist completeness, fallback removal, or
 linearity.
@@ -455,9 +467,9 @@ same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
 evidence, not public three-axiom theorems. The exact trust audit now
-covers 695 declarations: 447 use exactly
-`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 107 use exactly
-`[propext]`, and 116 use exactly `[propext, Quot.sound]`.
+covers 712 declarations: 458 use exactly
+`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 108 use exactly
+`[propext]`, and 121 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted

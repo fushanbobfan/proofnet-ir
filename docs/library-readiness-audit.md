@@ -499,8 +499,10 @@ part of the engineering and proof-identity gap.
    stable enabled alternatives or an exact unmarked/marked tensor alternative.
    This is inclusive exhaustive coverage, not pairwise disjointness or unique
    branch selection. The bare unmarked tensor alternative still does not imply
-   `NewEnabled`; the source-region bridge additionally requires an exact route,
-   endpoint queue separation, and strict fresh capacity. The marked alternative
+   `NewEnabled`; the local source-region record additionally names an exact
+   route, endpoint queue separation, and strict fresh capacity. Canonical
+   history now derives the latter two categories once the exact run is supplied.
+   The marked alternative
    now implies `UnifyPayloadEnabled` only
    when the separate input-only sigma-predecessor/boundary witness is supplied;
    the occurrence-level case theorem alone does not derive that witness. A
@@ -525,10 +527,13 @@ part of the engineering and proof-identity gap.
    native-computed forged-future-cell regression retains the full state
    invariant, an exact unmarked tensor guard, and `FreshSourceLeftRun` while
    `NewEnabled` fails; it is explicitly not a reachable-state theorem. This
-   closes the storage-preservation sub-obligation. The new source-region bridge
+   closes the storage-preservation sub-obligation. The source-region bridge
    identifies exactly two endpoint queue-absence obligations and strict fresh
-   capacity beyond the exact run; deriving them from correct certified
-   reachability, tensor branch enabledness, progress, and completeness remains
+   capacity beyond the exact run. The new fresh-capacity and endpoint-specific
+   queue-history theorems derive all three from structural well-formedness,
+   canonical history, the complete invariant, and that exact run. Deriving the
+   run/route from every correct certified-reachable shallow `NewGuard`, then
+   proving tensor-branch exhaustiveness, progress, and completeness, remains
    open.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
@@ -542,9 +547,11 @@ part of the engineering and proof-identity gap.
    production readiness, is reconstructed from success, but the record itself
    omits recursive per-step tag-update equations and the later operational
    enqueue guard. Structural route reconstruction now recovers the exact run
-   and terminal-partner exclusion. The projection therefore
-   supplies no converse and is deliberately
-   not named `NewEnabled`.
+   and terminal-partner exclusion. The projection therefore supplies no
+   unconditional converse and is deliberately not named `NewEnabled`.
+   Canonical queue/tag history supplies the missing region condition only in
+   the stronger history-indexed setting, where Lean proves
+   `NewEnabled ↔ NewInputNecessary` under the complete invariant.
    `SequentialFreshSourceLeftRun.lean` now supplies a separate exact
    proof-relevant source-left execution relation. It mirrors every executor
    branch and is equivalent in both directions to a named
@@ -566,7 +573,13 @@ part of the engineering and proof-identity gap.
    `NewSourceRegionInput` adds only two post-pop endpoint queue-absence facts
    and strict fresh waiting capacity; with `SchedulerInvariant` and
    `FutureWaitingUndefined`, it derives the enqueue guard and `NewEnabled`.
-   Correct certified reachability is not assumed or concluded.
+   `SequentialFigure7FreshCapacity.lean` derives capacity from a current-tag
+   run and canonical reservation history. `SequentialFigure7QueueHistory.lean`
+   tracks only exact axiom endpoints—never arbitrary queued conclusions—and
+   derives both endpoint absences from canonical tag history. Certified
+   dispatcher reachability therefore packages
+   `NewEnabled ↔ NewInputNecessary` under structural well-formedness, while the
+   exact route remains assumed.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -684,10 +697,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 695 declarations: 447 public MLL
+- CI now parses `#print axioms` for 712 declarations: 458 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
-  107 `propext`-only, and 116 `propext`/`Quot.sound` boundaries;
+  108 `propext`-only, and 121 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

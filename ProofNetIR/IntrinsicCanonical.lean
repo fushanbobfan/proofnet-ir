@@ -1250,6 +1250,22 @@ theorem StructurallyWellFormed.intrinsicOrderedLinks_perm
   · intro link
     exact structural.mem_intrinsicOrderedLinks_iff link
 
+/-- A structurally well-formed certificate cannot submit more links than
+formula occurrences.  Intrinsic owner emission assigns every submitted link
+to one occurrence, and `filterMap` cannot increase the traversal length. -/
+theorem StructurallyWellFormed.links_length_le_formulas_size
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed) :
+    certificate.links.length ≤ certificate.formulas.size := by
+  calc
+    certificate.links.length =
+        certificate.intrinsicOrderedLinks.length :=
+      structural.intrinsicOrderedLinks_perm.length_eq.symm
+    _ ≤ certificate.intrinsicTraversalVertices.length := by
+      exact List.length_filterMap_le _ _
+    _ = certificate.formulas.size :=
+      structural.intrinsicTraversalComplete.length_eq
+
 @[simp] theorem intrinsicOrderedLinks_reindex (certificate : Certificate)
     (r : VertexRenaming certificate.formulas.size) :
     (certificate.reindex r).intrinsicOrderedLinks =

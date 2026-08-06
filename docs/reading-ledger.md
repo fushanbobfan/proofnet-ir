@@ -13,13 +13,15 @@ homework, rendered page images, temporary text extractions, and the DOCX/HTML/
 PDF renderings of the same Chinese `paper1` guide are not counted as additional
 sources.
 
-A bounded live rescan on 2026-07-28 found the same 16 PDFs: seven coursework
-artifacts, one derived guide rendering, seven original project sources, and the
-supplemental Guerrini primary source. No research source was added, removed, or
-changed. All eight included-PDF SHA-256 values still match the frozen entries
-below, and the short Rowling brief remains unchanged. The 39 Markdown
-candidates are literature-audit artifacts or project documentation rather than
-untracked original papers or textbooks; the DOCX/HTML guide and temporary text
+A bounded PDF/chat live rescan on 2026-08-06 found the same 16 PDFs: seven
+coursework artifacts, one derived guide rendering, seven original project
+sources, and the supplemental Guerrini primary source. No research source was
+added, removed, or changed. All eight included-PDF SHA-256 values still match
+the frozen entries below, and the short Rowling brief remains unchanged at
+SHA-256 `07ac7a0fb1c7a8758edcb806b85b49708f76243dac356777f9af1cc14cc48db1`.
+The broader 2026-07-28 scan classified all 39 Markdown candidates as
+literature-audit artifacts or project documentation rather than untracked
+original papers or textbooks; the DOCX/HTML guide and temporary text
 extractions remain duplicate formats, not additional sources.
 
 All original PDFs were extracted to searchable text without modifying the
@@ -148,13 +150,18 @@ hash of the unaltered original PDF.
   certified history now record every implemented successful rule family, with
   exact canonical reservation-event count equal to final `nextAge`. The
   structural source-region bridge now reconstructs the exact run from a
-  declarative route and reduces the remaining unmarked-tensor enqueue gap to
-  two endpoint queue-absence facts plus strict fresh waiting capacity. It does
-  not derive those facts from correctness or reachability. The separate pure
+  declarative route. Canonical reservation history plus that exact current-tag
+  run proves strict fresh capacity, and an endpoint-specific queue-history
+  induction proves both terminal axiom endpoints absent from the post-pop
+  queue. Thus canonical/certified histories upgrade exact-route
+  `NewInputNecessary` to `NewEnabled`; arbitrary queued connective conclusions
+  are not claimed tagged. The remaining gap is to derive the exact route/run,
+  or exclude a precise tag/raw-mark blocker, from every correct reachable
+  shallow `NewGuard`. The separate pure
   `UnifyPayloadEnabled` predicate plus the full invariant proves
   conditional arbitrary-payload applicability. Deriving that predicate for the
   selected reachable branch, ownership across an unconditional complete
-  transition system, the richer route/tag/slot history laws, later-state
+  transition system, the remaining source-region safety law, later-state
   totality, and scheduler progress/completeness remain open.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at
   the Figure-5 rule level but does not claim Theorem 16's linear bound.

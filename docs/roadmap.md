@@ -985,9 +985,21 @@
     `new` source region as the exact run, two post-pop endpoint queue-absence
     facts, and strict fresh waiting capacity. Under `SchedulerInvariant` plus
     `FutureWaitingUndefined`, derive `OperationalNewReadyAt` and `NewEnabled`
-    without executor success, reachability, correctness, or progress. Next
-    derive those three region facts for every correct certified-reachable
-    unmarked-tensor branch.
+    without executor success, reachability, correctness, or progress.
+  - [x] Derive strict fresh allocation capacity from structural
+    link/formula capacity, canonical reservation counting, and an exact
+    current-tag run. Track exact submitted-axiom endpoints through every
+    dispatcher branch, prove that current queue membership implies a canonical
+    touch, and exclude both fresh-run endpoints from the post-pop queue.
+    Consequently prove history-indexed and certified-reachable
+    `NewEnabled ↔ NewInputNecessary`. Keep the endpoint restriction explicit:
+    stable rules may enqueue untagged connective conclusions, and the exact
+    route remains an input premise.
+  - [ ] Define a structural source-left region and an exact blocker witness;
+    prove `FreshSourceLeftRun` or a tag/raw-mark blocker at adequate fuel, then
+    exclude every blocker using declarative correctness plus canonical history.
+    This is the next route from shallow reachable `NewGuard` to
+    `NewInputNecessary`; do not fold progress into the state invariant.
   - [x] Add a deterministic finite search for an actually reachable
     `NewGuard` state where the real `new?` fails. The default CI gate follows
     successful initialization and the canonical dispatcher from every formula

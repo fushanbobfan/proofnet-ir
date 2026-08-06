@@ -1456,6 +1456,23 @@ ProofNetIR.Certificate.StructurallyWellFormed.parTarget_producerCount : ∀ {cer
       certificate.fullEdgeParTargets[index]? = some (some conclusion) → certificate.producerCount conclusion = 1
 ```
 
+### `ProofNetIR.Certificate.StructurallyWellFormed.axiomEndpoint_ne_connectiveConclusion`
+
+Kind: theorem.
+
+An atomic axiom endpoint cannot simultaneously be the compound
+conclusion produced by a connective link.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.axiomEndpoint_ne_connectiveConclusion : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {axiomLeft axiomRight : ProofNetIR.Vertex} {connective : ProofNetIR.Link},
+      ProofNetIR.Link.axiom axiomLeft axiomRight ∈ certificate.links →
+        ∀ {endpoint : ProofNetIR.Vertex},
+          endpoint = axiomLeft ∨ endpoint = axiomRight →
+            connective ∈ certificate.links → ProofNetIR.Link.produces endpoint connective = true → False
+```
+
 ### `ProofNetIR.Certificate.FullSwitchingSelection.kept_parTarget_index_unique_of_structural`
 
 Kind: theorem.
@@ -2901,6 +2918,19 @@ exactly a permutation of the submitted link multiset.
 ```lean
 ProofNetIR.Certificate.StructurallyWellFormed.intrinsicOrderedLinks_perm : ∀ {certificate : ProofNetIR.Certificate},
   certificate.StructurallyWellFormed → certificate.intrinsicOrderedLinks.Perm certificate.links
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.links_length_le_formulas_size`
+
+Kind: theorem.
+
+A structurally well-formed certificate cannot submit more links than
+formula occurrences.  Intrinsic owner emission assigns every submitted link
+to one occurrence, and `filterMap` cannot increase the traversal length.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.links_length_le_formulas_size : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed → certificate.links.length ≤ certificate.formulas.size
 ```
 
 ### `ProofNetIR.Certificate.intrinsicCanonicalize`
@@ -8246,6 +8276,20 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.PrependWaitingStep : Pr
     ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Type
 ```
 
+### `ProofNetIR.SequentialFigure7.PrependWaitingStep.mem_queuedVertices_iff`
+
+Kind: theorem.
+
+Prepending one waiting promise adds exactly that conclusion to the global
+queued-occurrence membership relation.
+
+```lean
+ProofNetIR.SequentialFigure7.PrependWaitingStep.mem_queuedVertices_iff : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState}
+  {boundary : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion vertex : ProofNetIR.Vertex}
+  (step : before.PrependWaitingStep after boundary conclusion),
+  vertex ∈ after.queuedVertices ↔ vertex = conclusion ∨ vertex ∈ before.queuedVertices
+```
+
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependWaiting?_some_iff`
 
 Kind: theorem.
@@ -8343,6 +8387,19 @@ Proof-relevant exact specification of one successful ready-top prepend.
 ```lean
 ProofNetIR.SequentialSchedulerState.SequentialStackState.PrependReadyTopStep : ProofNetIR.SequentialSchedulerState.SequentialStackState →
   ProofNetIR.SequentialSchedulerState.SequentialStackState → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialFigure7.PrependReadyTopStep.mem_queuedVertices_iff`
+
+Kind: theorem.
+
+Prepending one active-ready promise adds exactly that conclusion to the
+global queued-occurrence membership relation.
+
+```lean
+ProofNetIR.SequentialFigure7.PrependReadyTopStep.mem_queuedVertices_iff : ∀ {before after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {conclusion vertex : ProofNetIR.Vertex}
+  (step : before.PrependReadyTopStep after conclusion),
+  vertex ∈ after.queuedVertices ↔ vertex = conclusion ∨ vertex ∈ before.queuedVertices
 ```
 
 ### `ProofNetIR.SequentialSchedulerState.SequentialStackState.prependReadyTop?_some_iff`
@@ -9194,6 +9251,19 @@ ProofNetIR.SequentialSchedulerState.SequentialStackState.operationalNewEnqueue?_
   state.OperationalWaitingDomain →
     state.WellShaped carrierSize →
       state.operationalNewEnqueue? reached partner = some after → after.OperationalWaitingDomain
+```
+
+### `ProofNetIR.SequentialFigure7.operationalNewEnqueue?_queuedVertices_eq`
+
+Kind: theorem.
+
+`new` inserts its reached/partner pair between the old ready flattening
+and the unchanged waiting payloads.
+
+```lean
+ProofNetIR.SequentialFigure7.operationalNewEnqueue?_queuedVertices_eq : ∀ {state after : ProofNetIR.SequentialSchedulerState.SequentialStackState} {reached partner : ProofNetIR.Vertex},
+  state.operationalNewEnqueue? reached partner = some after →
+    after.queuedVertices = state.ready.flatten ++ [reached, partner] ++ state.waitingVertices
 ```
 
 ## Delayed scheduler / production bridge
@@ -10119,6 +10189,20 @@ ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.liveFrontiersNodup :
   {start : ProofNetIR.Vertex}
   (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
   ProofNetIR.SequentialSchedulerBridge.LiveFrontiersNodup after
+```
+
+### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.mem_queuedVertices_iff`
+
+Kind: theorem.
+
+Exact queue membership after initialization is the search-oriented axiom
+endpoint pair.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.mem_queuedVertices_iff : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start vertex : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  vertex ∈ after.stack.queuedVertices ↔ vertex = step.reached ∨ vertex = step.partner
 ```
 
 ### `ProofNetIR.SequentialSchedulerBridge.InitialReservationStep.queuedVerticesNodup`
@@ -11628,6 +11712,19 @@ ProofNetIR.SequentialFigure7.PreparedStep.reservationInvariant : ∀ {certificat
   (step : ProofNetIR.SequentialFigure7.PreparedStep before),
   ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate before →
     ProofNetIR.SequentialSchedulerBridge.ReservationInvariant certificate step.after
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.after_queued_subset_before`
+
+Kind: theorem.
+
+Removing and raw-marking the selected ready head cannot introduce a new
+queued occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.after_queued_subset_before : ∀ {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before) {vertex : ProofNetIR.Vertex},
+  vertex ∈ step.after.stack.queuedVertices → vertex ∈ before.stack.queuedVertices
 ```
 
 ### `ProofNetIR.SequentialFigure7.prepare?`
@@ -14914,6 +15011,19 @@ ProofNetIR.SequentialFigure7.ReadyHeadInput.markedCore_carriers_aligned : ∀ {c
     input.markedCore.components.size = input.markedCore.parents.size
 ```
 
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.markedStack_queued_subset_before`
+
+Kind: theorem.
+
+The pure pop/raw-mark stack expression removes only the selected ready
+head, so every occurrence still queued afterwards was queued before.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.markedStack_queued_subset_before : ∀ {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before) {vertex : ProofNetIR.Vertex},
+  vertex ∈ input.markedStack.queuedVertices → vertex ∈ before.stack.queuedVertices
+```
+
 ### `ProofNetIR.SequentialFigure7.NewStep.readyHeadInput`
 
 Kind: definition.
@@ -15910,6 +16020,29 @@ ProofNetIR.SequentialFigure7.DispatchTagEvidence.linkIndices_nodup : ∀ {certif
   (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result), evidence.linkIndices.Nodup
 ```
 
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.queued_axiom_endpoint_old_or_touched`
+
+Kind: theorem.
+
+One dispatcher event can retain an exact axiom endpoint from the old
+queue or touch it in the event's unique `NEXTAXIOM` call.
+
+The restriction to an endpoint of the supplied exact axiom is essential:
+`wait`, `forward`, and `unifyPayload` may enqueue an untagged connective
+conclusion.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.queued_axiom_endpoint_old_or_touched : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  certificate.StructurallyWellFormed →
+    ∀ {axiomIndex : Nat} {left right endpoint : ProofNetIR.Vertex},
+      certificate.links[axiomIndex]? = some (ProofNetIR.Link.axiom left right) →
+        endpoint = left ∨ endpoint = right →
+          endpoint ∈ result.after.stack.queuedVertices →
+            endpoint ∈ before.stack.queuedVertices ∨ evidence.Touched endpoint
+```
+
 ### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.output_tags_eq_of_kind_ne_new`
 
 Kind: theorem.
@@ -16128,6 +16261,76 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices_length_eq_nextAge :
   {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
   (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
   tagHistory.linkIndices.length = state.stack.nextAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.fresh_terminal_capacity`
+
+Kind: theorem.
+
+A fresh exact terminal axiom leaves room for one more raw-age allocation.
+
+The run is indexed by the current state's exact tag carrier.  Its terminal
+slot cannot occur in the canonical history: a recorded slot has a touched
+stored-left endpoint tagged `true`, while the same exact axiom would make that
+endpoint either the run's reached occurrence or partner, both tagged `false`
+on input.  Adding this fresh valid slot to the history's duplicate-free slot
+list and using its exact length/`nextAge` equation yields the strict bound.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.fresh_terminal_capacity : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed →
+    ∀ {runState : ProofNetIR.UnificationState} {fuel : Nat} {start reached partner : ProofNetIR.Vertex}
+      {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+      (run :
+        ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate runState fuel state.tags start trace reached
+          partner linkIndex),
+      state.stack.nextAge < certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.queued_axiom_endpoint_touched`
+
+Kind: theorem.
+
+In a canonical dispatcher history, any currently queued endpoint of one
+exact submitted axiom was touched by initialization or a recorded `new`.
+
+This theorem is deliberately endpoint-specific and does not classify arbitrary
+queued connective conclusions as tagged.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.queued_axiom_endpoint_touched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed →
+    ∀ {axiomIndex : Nat} {left right endpoint : ProofNetIR.Vertex},
+      certificate.links[axiomIndex]? = some (ProofNetIR.Link.axiom left right) →
+        endpoint = left ∨ endpoint = right → endpoint ∈ state.stack.queuedVertices → tagHistory.Touched endpoint
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.fresh_run_endpoints_not_markedStack_queued`
+
+Kind: theorem.
+
+The reached and partner endpoints of a current exact source-left run are
+absent from the pure marked-stack queue determined by any selected ready head.
+
+If either endpoint were still queued, the endpoint-specific history theorem
+would make its current input tag true, contradicting the run's exact freshness
+field.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.fresh_run_endpoints_not_markedStack_queued : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed →
+    ∀ (head : ProofNetIR.SequentialFigure7.ReadyHeadInput state) {runState : ProofNetIR.UnificationState} {fuel : Nat}
+      {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+      (run :
+        ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate runState fuel state.tags start trace reached
+          partner linkIndex),
+      ¬reached ∈ head.markedStack.queuedVertices ∧ ¬partner ∈ head.markedStack.queuedVertices
 ```
 
 ### `ProofNetIR.SequentialFigure7.dispatcher_reachable_empty`
@@ -16431,6 +16634,47 @@ executor result, transition equation, history, or reachability witness.
 ProofNetIR.SequentialFigure7.NewSourceRegionInput : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newSourceRegionInputOfRun`
+
+Kind: definition.
+
+Canonical tag/queue history, the complete state invariant, and one exact
+source-left run package the local source-region obligations for `new`.
+
+This construction assumes the exact run.  It does not derive that run from
+`NewGuard`, assert that another executor call succeeds, or prove progress.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.newSourceRegionInputOfRun : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+          (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) →
+            {trace : List ProofNetIR.Vertex} →
+              {reached partner : ProofNetIR.Vertex} →
+                {linkIndex : Nat} →
+                  ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate guard.head.markedCore
+                      certificate.formulas.size before.tags guard.tensor.mate trace reached partner linkIndex →
+                    ProofNetIR.SequentialFigure7.NewSourceRegionInput certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newSourceRegionInput_of_newInput`
+
+Kind: theorem.
+
+A canonical history upgrades the exact route in `NewInput` to the complete
+local source-region package.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.newSourceRegionInput_of_newInput : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (input : ProofNetIR.SequentialFigure7.NewInput certificate before),
+      Nonempty (ProofNetIR.SequentialFigure7.NewSourceRegionInput certificate before)
+```
+
 ### `ProofNetIR.SequentialFigure7.NewSourceRegionInput.operationalNewReadyAt`
 
 Kind: theorem.
@@ -16478,6 +16722,80 @@ ProofNetIR.SequentialFigure7.NewSourceRegionInput.newEnabled : ∀ {certificate 
   ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
     ProofNetIR.SequentialFigure7.FutureWaitingUndefined before →
       ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_inputNecessary`
+
+Kind: theorem.
+
+In a canonical history, the existing exact-route necessary input entails
+local input-only `new` enabledness.  The indexed execution history supplies
+the already-proved future-waiting invariant.
+
+The exact route remains an explicit premise through `NewInputNecessary`; this
+is not a `NewGuard`-sufficiency, reachability, progress, or totality theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.NewInputNecessary certificate before →
+      ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_iff_inputNecessary`
+
+Kind: theorem.
+
+On a state equipped with its exact canonical history and complete scheduler
+invariant, the current input-only `new` criterion is exactly the older
+exact-route necessary input.  This equivalence is history-indexed; it does not
+make `NewGuard` sufficient.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_iff_inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    (ProofNetIR.SequentialFigure7.NewEnabled certificate before ↔
+      ProofNetIR.SequentialFigure7.NewInputNecessary certificate before)
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_of_inputNecessary`
+
+Kind: theorem.
+
+A certified dispatcher-reachable state whose exact-route necessary `new`
+input holds is locally `NewEnabled`.
+
+Reachability supplies only the already-proved canonical history, state
+invariant, and future-cell invariant.  The theorem still assumes
+`NewInputNecessary` and therefore proves neither exhaustive enabledness nor
+dispatcher progress or totality.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_of_inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.StructurallyWellFormed →
+      ProofNetIR.SequentialFigure7.NewInputNecessary certificate state →
+        ProofNetIR.SequentialFigure7.NewEnabled certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_iff_inputNecessary`
+
+Kind: theorem.
+
+On a certified dispatcher-reachable state, `NewEnabled` is equivalent to
+the exact-route necessary input.  The theorem does not characterize
+`NewGuard`, dispatcher progress, or dispatcher totality.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_iff_inputNecessary : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    certificate.StructurallyWellFormed →
+      (ProofNetIR.SequentialFigure7.NewEnabled certificate state ↔
+        ProofNetIR.SequentialFigure7.NewInputNecessary certificate state)
 ```
 
 ## Serialization and untrusted input

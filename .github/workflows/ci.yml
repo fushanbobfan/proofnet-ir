@@ -42,6 +42,8 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_tensor_adjacency_tests
           ~/.elan/bin/lake exe proofnet_ir_progress_invariant_tests
           ~/.elan/bin/lake exe proofnet_ir_tag_history_count_tests
+          ~/.elan/bin/lake exe proofnet_ir_fresh_capacity_tests
+          ~/.elan/bin/lake exe proofnet_ir_queue_history_tests
           ~/.elan/bin/lake exe proofnet_ir_new_region_tests
       - name: Search reachable Figure-7 new guards for executor misses
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit

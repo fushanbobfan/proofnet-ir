@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- added `Certificate.StructurallyWellFormed.links_length_le_formulas_size` and
+  the history-indexed `CanonicalTagHistory.fresh_terminal_capacity`. An exact
+  current-tag `FreshSourceLeftRun` supplies one submitted terminal axiom slot
+  not already recorded in the canonical duplicate-free slot history; exact
+  reservation counting and the structural link/formula bound yield
+  `nextAge < formulas.size`. This is conditional capacity only: it does not
+  construct the run or prove `NewGuard` sufficiency, progress, totality,
+  completeness, or complexity;
+- added `SequentialFigure7QueueHistory.lean`. A branch-complete induction shows
+  that a currently queued endpoint of one exact submitted axiom is either
+  retained from the prior queue or touched by that event's `NEXTAXIOM`; stable
+  rule conclusions are excluded structurally. The restriction to exact axiom
+  endpoints is essential because stable rules may enqueue untagged connective
+  conclusions. Canonical history therefore excludes both fresh-run endpoints
+  from the post-pop queue and, together with fresh capacity and the preserved
+  future-cell invariant, upgrades `NewInputNecessary` to `NewEnabled`.
+  Consequently `NewEnabled ↔ NewInputNecessary` holds for canonical-history
+  states with the complete invariant and for certified dispatcher-reachable
+  states under structural well-formedness. The exact route remains an explicit
+  premise; no theorem makes shallow `NewGuard` sufficient or proves dispatcher
+  progress, totality, pure-worklist completeness, fallback removal, or
+  linearity. The exact public axiom audit now covers 712 declarations: 458
+  full-classical, 25 axiom-free, 108 `propext`-only, and 121
+  `propext`/`Quot.sound` boundaries;
 - added the separate `FutureWaitingUndefined` storage invariant. It states that
   every in-bounds waiting cell at or beyond the allocated raw-age horizon is
   still `undefined`, and is proved for the exact empty/initialized states and
@@ -14,7 +38,8 @@
   `FreshSourceLeftRun` while `OperationalNewReadyAt` and `NewEnabled` fail. The
   forged state is not claimed reachable, and the regression's
   `native_decide` fixture is outside the public three-axiom theorem boundary.
-  The exact public axiom audit now covers 695 declarations: 447 full-classical,
+  At that checkpoint the exact public axiom audit covered 695 declarations:
+  447 full-classical,
   25 axiom-free, 107 `propext`-only, and 116
   `propext`/`Quot.sound` boundaries;
 - added exact structural reconstruction from `FreshSourceLeftRoute` to the
@@ -28,8 +53,10 @@
   `SchedulerInvariant` and `FutureWaitingUndefined`, it constructs
   `OperationalNewReadyAt`, `NewEnabledInput`, and `NewEnabled`. No executor
   success, reachability, correctness, progress, totality, or completeness is
-  assumed; deriving those three region obligations for every correct certified
-  reachable unmarked-tensor branch remains open;
+  assumed. The later fresh-capacity and exact axiom-endpoint queue-history
+  layer discharges those three region obligations once the exact run/route is
+  supplied; deriving that route from every correct certified-reachable shallow
+  `NewGuard` remains open;
 - generalized reservation-event counting from the old init/`new`-only history
   to the canonical six-rule dispatcher history. Each successful event proves
   that its recorded submitted-slot count plus the input `nextAge` equals the

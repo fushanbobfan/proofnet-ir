@@ -241,10 +241,16 @@ test forges only `waiting[nextAge]` in an otherwise full-invariant tensor-ready
 state; the exact `NewGuard` and `FreshSourceLeftRun` remain, but the enqueue
 guard and `NewEnabled` fail. That state is not claimed reachable, and the
 fixture is outside the public three-axiom audit. Thus certified reachability
-supplies the storage fact. The new source-region bridge below isolates the
-remaining endpoint-queue separation and strict fresh-capacity obligations;
-deriving those for every correct reachable branch and proving progress remain
-separate mathematical obligations.
+supplies the storage fact. The source-region bridge below initially isolates
+endpoint-queue separation and strict fresh-capacity obligations.
+`SequentialFigure7FreshCapacity.lean` now derives the capacity bound from
+structural well-formedness, canonical history, and an exact current-tag run.
+`SequentialFigure7QueueHistory.lean` derives both endpoint-queue facts from
+that same history. The latter theorem is deliberately restricted to endpoints
+of the exact terminal axiom: stable rules may enqueue untagged connective
+conclusions. The remaining global obligation is to derive the exact
+source-left route/run, or exclude a precise blocker, from every correct
+certified-reachable shallow `NewGuard`; progress remains separate.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -270,13 +276,15 @@ freshness, whole-trace production readiness, and ready axiom endpoints. A
 typed `NewStep`, executable `new?`
 success, `NewExecutableEnabled`, or a priority-selected `new` branch implies
 `NewInputNecessary`. The route record itself does not store recursive
-per-step tag-update equations or the later operational enqueue guard. The new
+per-step tag-update equations or the later operational enqueue guard. The
 structural reconstruction theorem below recovers the exact recursive run and
-terminal-partner exclusion, but the enqueue guard remains absent, so there is
-still no converse to `NewEnabled`. All-true and terminal-partner-pretagged
-regressions keep the shallow guard while `new?` fails. Consequently this
-weaker projection is not used as dispatcher enabledness and proves no
-later-call `NEXTAXIOM` totality.
+terminal-partner exclusion. Thus there is no unconditional converse to
+`NewEnabled`; however, the canonical queue-history theorem now supplies the
+missing enqueue region and proves the history-indexed equivalence
+`NewEnabled ↔ NewInputNecessary` under the complete state invariant. All-true
+and terminal-partner-pretagged regressions keep the shallow guard while `new?`
+fails. Consequently the weaker projection is still not dispatcher enabledness
+by itself and proves no later-call `NEXTAXIOM` totality.
 `SequentialFreshSourceLeftRun.lean` supplies the missing exact route layer: a
 fuel-indexed inductive witness mirrors both terminal-axiom orientations and
 the stored-left tensor/par recursion of `nextAxiomWithFuel?`, including each
@@ -302,9 +310,16 @@ additional facts: both terminal endpoints are absent from the post-pop queue,
 and the fresh raw age is strictly within waiting storage. Under
 `SchedulerInvariant` and `FutureWaitingUndefined`, those facts construct the
 full `OperationalNewReadyAt` guard and hence `NewEnabled`. This local bridge
-assumes no executor success, reachability, correctness, progress, or totality;
-the open global theorem is to derive its three source-region obligations from
-correct certified reachability.
+assumes no executor success, reachability, correctness, progress, or totality.
+`SequentialFigure7FreshCapacity.lean` proves its strict capacity field from an
+exact current-tag run plus canonical history. The endpoint-specific induction
+in `SequentialFigure7QueueHistory.lean` proves that a currently queued endpoint
+of one exact submitted axiom was previously touched; run freshness therefore
+excludes both endpoints from the post-pop queue. It follows that canonical
+history plus `SchedulerInvariant` upgrades `NewInputNecessary` to `NewEnabled`,
+and certified dispatcher reachability gives the same equivalence under
+structural well-formedness. These results still assume the exact route in
+`NewInputNecessary`; they do not make `NewGuard` sufficient or prove progress.
 `SequentialFigure7NewEnabled.lean` remains the historical facade and
 re-exports the prior direct-import priority surface; two compile-only default
 targets lock the facade and narrow-priority import surfaces. This
@@ -1635,9 +1650,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 695 declarations: 447 public MLL logical-boundary theorems
+ separately audits 712 declarations: 458 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
- axiom-free, 107 `propext`-only, and 116 `propext`/`Quot.sound` boundaries. LeanProp
+ axiom-free, 108 `propext`-only, and 121 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1721,6 +1736,8 @@ lake exe proofnet_ir_tensor_adjacency_tests
 lake exe proofnet_ir_progress_invariant_tests
 lake exe proofnet_ir_tag_history_count_tests
 lake exe proofnet_ir_new_region_tests
+lake exe proofnet_ir_fresh_capacity_tests
+lake exe proofnet_ir_queue_history_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check
@@ -1801,6 +1818,8 @@ ProofNetIR/SequentialFreshSourceLeftRun.lean exact proof-relevant production NEX
 ProofNetIR/SequentialFigure7NewInputCore.lean lower-layer one-way input conditions for new
 ProofNetIR/SequentialFigure7NewEnabledCore.lean acyclic input-only new applicability iff execution
 ProofNetIR/SequentialFigure7NewRegion.lean structural route reconstruction and source-region new bridge
+ProofNetIR/SequentialFigure7FreshCapacity.lean history-indexed fresh terminal allocation capacity
+ProofNetIR/SequentialFigure7QueueHistory.lean exact axiom-endpoint queue history and route-input equivalence
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1818,6 +1837,8 @@ ProofNetIRTensorAdjacencyTests.lean marked-tensor adjacency boundary regression
 ProofNetIRProgressInvariantTests.lean future waiting-storage and unmarked-tensor boundary regressions
 ProofNetIRTagHistoryCountTests.lean canonical reservation-event count consumer fixture
 ProofNetIRNewRegionTests.lean structural route/run and source-region bridge regressions
+ProofNetIRFreshCapacityTests.lean fresh terminal capacity consumer fixture
+ProofNetIRQueueHistoryTests.lean exact axiom-endpoint queue and history-indexed enabledness fixtures
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

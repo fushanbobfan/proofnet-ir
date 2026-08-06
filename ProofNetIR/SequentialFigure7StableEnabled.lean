@@ -60,6 +60,31 @@ def middle {before : ReservationState}
   core := input.markedCore
   tags := before.tags
 
+/-- The pure pop/raw-mark stack expression removes only the selected ready
+head, so every occurrence still queued afterwards was queued before. -/
+theorem markedStack_queued_subset_before
+    {before : ReservationState} (input : ReadyHeadInput before) :
+    ∀ {vertex}, vertex ∈ input.markedStack.queuedVertices →
+      vertex ∈ before.stack.queuedVertices := by
+  rcases List.getLast?_eq_some_iff.mp input.top_ready with
+    ⟨readyPrefix, readyDecomposition⟩
+  have afterReady : input.markedStack.ready =
+      readyPrefix ++ [input.readyTail] := by
+    simp [markedStack, readyDecomposition]
+  have afterWaiting :
+      input.markedStack.waiting = before.stack.waiting := rfl
+  intro vertex membership
+  unfold SequentialStackState.queuedVertices
+    SequentialStackState.waitingVertices at membership ⊢
+  rw [afterReady, afterWaiting] at membership
+  rw [readyDecomposition]
+  simp only [List.flatten_append, List.flatten_cons, List.flatten_nil,
+    List.append_nil, List.mem_append, List.mem_cons] at membership ⊢
+  rcases membership with (inPrefix | inRemaining) | inWaiting
+  · exact Or.inl (Or.inl inPrefix)
+  · exact Or.inl (Or.inr (Or.inr inRemaining))
+  · exact Or.inr inWaiting
+
 private theorem vertex_mem_ready
     {before : ReservationState} (input : ReadyHeadInput before) :
     input.vertex ∈ before.stack.ready.flatten := by

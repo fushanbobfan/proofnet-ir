@@ -51,6 +51,8 @@ import ProofNetIR.SequentialFigure7PriorityEnabled
 import ProofNetIR.SequentialFigure7NewInputNecessary
 import ProofNetIR.SequentialFigure7NewEnabled
 import ProofNetIR.SequentialFigure7TagHistory
+import ProofNetIR.SequentialFigure7FreshCapacity
+import ProofNetIR.SequentialFigure7QueueHistory
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

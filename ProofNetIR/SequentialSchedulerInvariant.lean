@@ -582,6 +582,27 @@ theorem InitialReservationStep.liveFrontiersNodup
   simp [ReservationState.empty,
     Certificate.initialUnificationState, frontier, different]
 
+/-- Exact queue membership after initialization is the search-oriented axiom
+endpoint pair. -/
+theorem InitialReservationStep.mem_queuedVertices_iff
+    {certificate : Certificate} {after : ReservationState}
+    {start vertex : Vertex}
+    (step : InitialReservationStep certificate after start) :
+    vertex ∈ after.stack.queuedVertices ↔
+      vertex = step.reached ∨ vertex = step.partner := by
+  have stackExact :=
+    SequentialStackState.initEnqueue?_exact step.stack_eq
+  have afterStackEq : after.stack = step.stackAfter :=
+    congrArg (fun state : ReservationState ↦ state.stack) step.output_eq
+  rw [show after.stack.queuedVertices =
+      step.stackAfter.queuedVertices from congrArg
+        SequentialStackState.queuedVertices afterStackEq]
+  simp [SequentialStackState.queuedVertices,
+    SequentialStackState.waitingVertices,
+    stackExact.2.2.2.1, stackExact.2.2.2.2.1,
+    ReservationState.empty, SequentialStackState.empty,
+    flatMap_replicate_waitingUndefined]
+
 /-- The initial ready pair is globally duplicate-free; the waiting table is
 still empty. -/
 theorem InitialReservationStep.queuedVerticesNodup
@@ -1433,7 +1454,9 @@ theorem owned_unmarked_mem_after_queued
 
 end PreparedStep
 
-private theorem PreparedStep.after_queued_subset_before
+/-- Removing and raw-marking the selected ready head cannot introduce a new
+queued occurrence. -/
+theorem PreparedStep.after_queued_subset_before
     {before : ReservationState} (step : PreparedStep before) :
     ∀ {vertex}, vertex ∈ step.after.stack.queuedVertices →
       vertex ∈ before.stack.queuedVertices := by
@@ -1622,6 +1645,60 @@ private theorem mem_flatMap_set_cons_iff
             · exact Or.inl inHead
             · exact Or.inr (Or.inr inTail)
 
+/-- Prepending one waiting promise adds exactly that conclusion to the global
+queued-occurrence membership relation. -/
+theorem PrependWaitingStep.mem_queuedVertices_iff
+    {before after : SequentialStackState}
+    {boundary : RawTokenAge} {conclusion vertex : Vertex}
+    (step : PrependWaitingStep before after boundary conclusion) :
+    vertex ∈ after.queuedVertices ↔
+      vertex = conclusion ∨ vertex ∈ before.queuedVertices := by
+  rcases step with ⟨payload, initialized, rfl⟩
+  have initializedList :
+      before.waiting.toList[boundary]? = some (.initialized payload) := by
+    rw [Array.getElem?_toList]
+    exact initialized
+  unfold SequentialStackState.queuedVertices
+    SequentialStackState.waitingVertices
+  rw [Array.toList_setIfInBounds]
+  simp only [List.mem_append]
+  rw [mem_flatMap_set_cons_iff initializedList (by rfl)]
+  constructor
+  · rintro (inReady | same | inWaiting)
+    · exact Or.inr (Or.inl inReady)
+    · exact Or.inl same
+    · exact Or.inr (Or.inr inWaiting)
+  · rintro (same | inReady | inWaiting)
+    · exact Or.inr (Or.inl same)
+    · exact Or.inl inReady
+    · exact Or.inr (Or.inr inWaiting)
+
+/-- Prepending one active-ready promise adds exactly that conclusion to the
+global queued-occurrence membership relation. -/
+theorem PrependReadyTopStep.mem_queuedVertices_iff
+    {before after : SequentialStackState} {conclusion vertex : Vertex}
+    (step : PrependReadyTopStep before after conclusion) :
+    vertex ∈ after.queuedVertices ↔
+      vertex = conclusion ∨ vertex ∈ before.queuedVertices := by
+  rcases step with
+    ⟨readyPrefix, activeReady, readyEquation, rfl⟩
+  unfold SequentialStackState.queuedVertices
+    SequentialStackState.waitingVertices
+  rw [readyEquation]
+  simp only [List.flatten_append, List.flatten_cons, List.flatten_nil,
+    List.append_nil, List.mem_append, List.mem_cons]
+  constructor
+  · rintro ((inPrefix | same | inActive) | inWaiting)
+    · exact Or.inr (Or.inl (Or.inl inPrefix))
+    · exact Or.inl same
+    · exact Or.inr (Or.inl (Or.inr inActive))
+    · exact Or.inr (Or.inr inWaiting)
+  · rintro (same | (inPrefix | inActive) | inWaiting)
+    · exact Or.inl (Or.inr (Or.inl same))
+    · exact Or.inl (Or.inl inPrefix)
+    · exact Or.inl (Or.inr (Or.inr inActive))
+    · exact Or.inr inWaiting
+
 private theorem flatMap_set_cons_nodup
     {α β : Type} {values : List α} {index : Nat}
     {before after : α} {mapping : α → List β} {inserted : β}
@@ -1660,7 +1737,7 @@ private theorem flatMap_set_cons_nodup
 
 /-- `new` inserts its reached/partner pair between the old ready flattening
 and the unchanged waiting payloads. -/
-private theorem operationalNewEnqueue?_queuedVertices_eq
+theorem operationalNewEnqueue?_queuedVertices_eq
     {state after : SequentialStackState} {reached partner : Vertex}
     (equation : state.operationalNewEnqueue? reached partner = some after) :
     after.queuedVertices = state.ready.flatten ++ [reached, partner] ++

@@ -9,6 +9,8 @@ defaultTargets = [
   "proofnet_ir_tensor_adjacency_tests",
   "proofnet_ir_progress_invariant_tests",
   "proofnet_ir_tag_history_count_tests",
+  "proofnet_ir_fresh_capacity_tests",
+  "proofnet_ir_queue_history_tests",
   "proofnet_ir_new_region_tests",
   "proofnet_ir_new_enabled_import_tests",
   "proofnet_ir_priority_enabled_import_tests"
@@ -45,6 +47,14 @@ root = "ProofNetIRProgressInvariantTests"
 [[lean_exe]]
 name = "proofnet_ir_tag_history_count_tests"
 root = "ProofNetIRTagHistoryCountTests"
+
+[[lean_exe]]
+name = "proofnet_ir_fresh_capacity_tests"
+root = "ProofNetIRFreshCapacityTests"
+
+[[lean_exe]]
+name = "proofnet_ir_queue_history_tests"
+root = "ProofNetIRQueueHistoryTests"
 
 [[lean_exe]]
 name = "proofnet_ir_new_region_tests"

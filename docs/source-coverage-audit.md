@@ -1,6 +1,6 @@
 # Local source coverage audit
 
-Audit date: 2026-07-22; live inventory and hashes refreshed 2026-07-28
+Audit date: 2026-07-22; live PDF/chat inventory and hashes refreshed 2026-08-06
 
 ## Review question
 
@@ -66,14 +66,16 @@ For each source:
 6. recheck every code-level mathematical claim against the resulting matrix.
 
 The linked page matrices are the evidence behind the completion claim. A live
-2026-07-28 rescan again found the same 16 PDFs, with no new, removed, or
-changed research source. Its SHA-256 refresh matched every original-source
-prefix recorded in `reading-ledger.md` and the full Guerrini digest below.
-The same bounded scan classified all 39 Markdown candidates as ten
+2026-08-06 PDF/chat rescan again found the same 16 PDFs, with no new, removed,
+or changed research source. Its SHA-256 refresh matched every original-source
+prefix recorded in `reading-ledger.md` and the full Guerrini digest below; the
+Rowling chat matched the full digest recorded there. The broader 2026-07-28
+bounded scan classified all 39 Markdown candidates as ten
 ledger/map/page-matrix/Guerrini-audit artifacts and 29 project
 design/release/architecture documents, not new external papers or books. The
 DOCX/HTML Chinese guide remains a duplicate-format derivative, temporary text
-files remain extractions, and the Rowling brief is unchanged. This ledger does
+files remain extractions, and the Rowling brief was unchanged in the current
+rescan. This ledger does
 not turn adjacent sources into proof-net authorities and does not replace
 kernel checking of the implementation.
 
@@ -121,9 +123,13 @@ A canonical priority dispatcher and proof-carrying certified history now
 integrate every implemented successful rule family and prove exact canonical
 reservation-event counting against final `nextAge`. Structural route
 reconstruction now recovers the exact proof-relevant
-source-left run and terminal-partner exclusion. The remaining unmarked-tensor
-source region consists of two endpoint queue-absence facts and strict fresh
-waiting capacity; no correctness-to-region theorem is claimed. Ownership
+source-left run and terminal-partner exclusion. Canonical reservation counting
+derives strict fresh capacity for that exact run; an exact axiom-endpoint
+queue-history theorem derives both post-pop endpoint absences without claiming
+that arbitrary queued connective conclusions are tagged. Hence canonical and
+certified histories prove `NewEnabled ↔ NewInputNecessary` while retaining the
+exact route as an explicit premise. A correctness-to-route/blocker-exclusion
+theorem is still open. Ownership
 through a complete reachable transition
 system, richer route/tag/slot history commitments, later-state totality,
 progress, and pure-worklist completeness remain open.

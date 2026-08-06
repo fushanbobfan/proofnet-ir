@@ -539,10 +539,16 @@ full-invariant tensor-ready state and retains `NewGuard` plus an exact
 `FreshSourceLeftRun`, while the enqueue guard and `NewEnabled` fail. The forged
 state is not reachable evidence. The result isolates storage cleanliness as a
 history-preserved prerequisite. `SequentialFigure7NewRegion.lean` combines it
-with exact route reconstruction and three explicit region facts; deriving the
-two endpoint queue-absence facts and strict fresh capacity from correct
-certified reachability remains part of the future correctness-to-progress
-proof.
+with exact route reconstruction and three explicit region facts.
+`SequentialFigure7FreshCapacity.lean` now discharges strict fresh formula
+capacity conditionally from structural well-formedness, a canonical history,
+and an exact current-tag `FreshSourceLeftRun`; it does not produce that run.
+`SequentialFigure7QueueHistory.lean` now discharges both endpoint queue-absence
+facts from the same canonical history. Its induction is intentionally limited
+to endpoints of one exact submitted axiom, because stable rules may enqueue
+untagged connective conclusions. Deriving the run or an exact route from the
+weaker correct-certified-reachable unmarked-tensor branch, and then proving
+global progress, remain separate obligations.
 
 `SequentialFigure7PriorityEnabled.lean` is a one-way downstream bridge from
 the dispatcher and all six input-only enabled predicates. It does not change
@@ -568,12 +574,16 @@ exact valid tensor-below witness, and input-unmarked mate;
 `FreshSourceLeftRoute` contains a bounded exact source-left trace, input tag
 freshness, whole-trace production readiness, and ready terminal axiom
 endpoints. Successful typed/executable
-`new` steps reconstruct `NewInputNecessary`, but no converse is exposed. The
+`new` steps reconstruct `NewInputNecessary`, but no unconditional converse is
+exposed. The
 witness omits recursive per-step tag-update equations and the later operational
 enqueue guard. Structural reconstruction now recovers the exact run and proves
-terminal-partner exclusion; the missing enqueue region remains why this is a
-necessary observation, not an `*Enabled` predicate or progress premise. The
-canonical priority layer uses the stronger `NewEnabled`.
+terminal-partner exclusion. Canonical queue/tag history now reconstructs the
+remaining enqueue region and proves a history-indexed
+`NewEnabled ↔ NewInputNecessary` under the complete state invariant. Without
+that history, this remains only a necessary observation, not an `*Enabled`
+predicate or progress premise. The canonical priority layer uses the stronger
+`NewEnabled`.
 
 `SequentialFreshSourceLeftRun.lean` is the exact proof-relevant input layer
 below the newer local criterion. Its four constructors mirror the two terminal
@@ -607,8 +617,15 @@ formula-bounded `FreshSourceLeftRun` with no executor or reachability premise.
 queue-absence facts and strict capacity at the fresh raw age. Together with
 `SchedulerInvariant` and `FutureWaitingUndefined`, these facts derive
 `OperationalNewReadyAt` and `NewEnabled`. This bridge is local and conditional;
-it does not show that a correct reachable unmarked-tensor branch supplies the
-region facts, nor progress or totality.
+it does not itself show that a correct reachable unmarked-tensor branch supplies
+the exact route, nor progress or totality. The separate fresh-capacity theorem
+derives strict capacity from structural well-formedness, canonical history, and
+the exact run. The exact axiom-endpoint queue-history induction proves that any
+currently queued run endpoint must be a recorded touch and therefore have a
+true current tag, contradicting run freshness. It derives both post-pop
+queue-absence fields and upgrades `NewInputNecessary` to `NewEnabled` on a
+canonical history; certified dispatcher reachability packages the same
+equivalence. Arbitrary queued occurrences are not classified as tagged.
 The root executable `ProofNetIRNewProgressAudit.lean` is a bounded
 falsification layer over that boundary. It never inserts arbitrary states:
 each path begins with `initializeReservation?` and recursively applies the

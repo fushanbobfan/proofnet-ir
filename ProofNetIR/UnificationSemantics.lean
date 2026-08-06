@@ -1145,7 +1145,7 @@ private theorem connective_eq_of_shared_conclusion
 
 /-- An atomic axiom endpoint cannot simultaneously be the compound
 conclusion produced by a connective link. -/
-private theorem axiomEndpoint_ne_connectiveConclusion
+theorem Certificate.StructurallyWellFormed.axiomEndpoint_ne_connectiveConclusion
     {certificate : Certificate}
     (structural : certificate.StructurallyWellFormed)
     {axiomLeft axiomRight : Vertex} {connective : Link}
@@ -1596,13 +1596,13 @@ theorem markingCausallyClosed
           have conclusionNotLeft : candidateConclusion ≠ left := by
             intro same
             subst candidateConclusion
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               linkMembership (Or.inl rfl) candidateMembership
                 (by simp [Link.produces])
           have conclusionNotRight : candidateConclusion ≠ right := by
             intro same
             subst candidateConclusion
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               linkMembership (Or.inr rfl) candidateMembership
                 (by simp [Link.produces])
           have oldConclusion :
@@ -1620,13 +1620,13 @@ theorem markingCausallyClosed
           have conclusionNotLeft : candidateConclusion ≠ left := by
             intro same
             subst candidateConclusion
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               linkMembership (Or.inl rfl) candidateMembership
                 (by simp [Link.produces])
           have conclusionNotRight : candidateConclusion ≠ right := by
             intro same
             subst candidateConclusion
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               linkMembership (Or.inr rfl) candidateMembership
                 (by simp [Link.produces])
           have oldConclusion :
@@ -1865,13 +1865,13 @@ theorem referenceLinksThreaded
           have conclusionNotLeft : candidateConclusion ≠ left := by
             intro same
             subst candidateConclusion
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               linkMembership (Or.inl rfl) candidateMembership
                 (by simp [Link.produces])
           have conclusionNotRight : candidateConclusion ≠ right := by
             intro same
             subst candidateConclusion
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               linkMembership (Or.inr rfl) candidateMembership
                 (by simp [Link.produces])
           have oldConclusion :
@@ -1898,13 +1898,13 @@ theorem referenceLinksThreaded
             have conclusionNotLeft : candidateConclusion ≠ left := by
               intro same
               subst candidateConclusion
-              exact axiomEndpoint_ne_connectiveConclusion structural
+              exact structural.axiomEndpoint_ne_connectiveConclusion
                 linkMembership (Or.inl rfl) candidateMembership
                   (by simp [Link.produces])
             have conclusionNotRight : candidateConclusion ≠ right := by
               intro same
               subst candidateConclusion
-              exact axiomEndpoint_ne_connectiveConclusion structural
+              exact structural.axiomEndpoint_ne_connectiveConclusion
                 linkMembership (Or.inr rfl) candidateMembership
                   (by simp [Link.produces])
             have oldConclusion :
@@ -1929,13 +1929,13 @@ theorem referenceLinksThreaded
             have conclusionNotLeft : candidateConclusion ≠ left := by
               intro same
               subst candidateConclusion
-              exact axiomEndpoint_ne_connectiveConclusion structural
+              exact structural.axiomEndpoint_ne_connectiveConclusion
                 linkMembership (Or.inl rfl) candidateMembership
                   (by simp [Link.produces])
             have conclusionNotRight : candidateConclusion ≠ right := by
               intro same
               subst candidateConclusion
-              exact axiomEndpoint_ne_connectiveConclusion structural
+              exact structural.axiomEndpoint_ne_connectiveConclusion
                 linkMembership (Or.inr rfl) candidateMembership
                   (by simp [Link.produces])
             have oldConclusion :
@@ -1966,13 +1966,13 @@ theorem referenceLinksThreaded
           have leftNotConclusion : candidateLeft ≠ conclusion := by
             intro same
             subst candidateLeft
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               candidateMembership (Or.inl rfl) linkMembership
                 (by simp [Link.produces])
           have rightNotConclusion : candidateRight ≠ conclusion := by
             intro same
             subst candidateRight
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               candidateMembership (Or.inr rfl) linkMembership
                 (by simp [Link.produces])
           have oldLeft :
@@ -2107,13 +2107,13 @@ theorem referenceLinksThreaded
           have leftNotConclusion : candidateLeft ≠ conclusion := by
             intro same
             subst candidateLeft
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               candidateMembership (Or.inl rfl) linkMembership
                 (by simp [Link.produces])
           have rightNotConclusion : candidateRight ≠ conclusion := by
             intro same
             subst candidateRight
-            exact axiomEndpoint_ne_connectiveConclusion structural
+            exact structural.axiomEndpoint_ne_connectiveConclusion
               candidateMembership (Or.inr rfl) linkMembership
                 (by simp [Link.produces])
           have oldLeft :
