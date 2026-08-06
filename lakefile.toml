@@ -6,6 +6,10 @@ defaultTargets = [
   "proofnet_ir_consumer_index_tests",
   "proofnet_ir_figure7_primitives_tests",
   "proofnet_ir_figure7_unify_payload_invariant_tests",
+  "proofnet_ir_tensor_adjacency_tests",
+  "proofnet_ir_progress_invariant_tests",
+  "proofnet_ir_tag_history_count_tests",
+  "proofnet_ir_new_region_tests",
   "proofnet_ir_new_enabled_import_tests",
   "proofnet_ir_priority_enabled_import_tests"
 ]
@@ -29,6 +33,22 @@ root = "ProofNetIRFigure7PrimitivesTests"
 [[lean_exe]]
 name = "proofnet_ir_figure7_unify_payload_invariant_tests"
 root = "ProofNetIRFigure7UnifyPayloadInvariantTests"
+
+[[lean_exe]]
+name = "proofnet_ir_tensor_adjacency_tests"
+root = "ProofNetIRTensorAdjacencyTests"
+
+[[lean_exe]]
+name = "proofnet_ir_progress_invariant_tests"
+root = "ProofNetIRProgressInvariantTests"
+
+[[lean_exe]]
+name = "proofnet_ir_tag_history_count_tests"
+root = "ProofNetIRTagHistoryCountTests"
+
+[[lean_exe]]
+name = "proofnet_ir_new_region_tests"
+root = "ProofNetIRNewRegionTests"
 
 [[lean_exe]]
 name = "proofnet_ir_new_enabled_import_tests"

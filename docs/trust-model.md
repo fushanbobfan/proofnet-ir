@@ -334,8 +334,17 @@ globally exhaustive. The additional audited boundaries
 coverage for a supplied ready head. Their evidence is read-only: no executor
 result, success equation, post-state, history, or reachability witness is
 stored. The nested alternatives are not trusted as pairwise disjoint, and the
-unmarked/marked tensor cases do not establish `NewEnabled` or
-`UnifyPayloadEnabled`. Correct-state progress,
+bare unmarked tensor case does not establish `NewEnabled`; the source-region
+bridge additionally checks exact route reconstruction, endpoint queue
+separation, and fresh-cell capacity. A marked tensor yields
+`UnifyPayloadEnabled` only with the separately checked input-only sigma
+predecessor/boundary witness; the bare marked alternative does not supply it.
+A checker-rejected one-axiom/one-tensor fixture proves this remains true even
+with the complete state-only `SchedulerInvariant`: after exact initialization
+and the common prepare prefix, singleton sigma, a ready tensor premise, and a
+marked mate coexist with failed `UnifyPayloadEnabled`. This fixture is not
+evidence about correct certificates or canonical dispatcher reachability.
+Correct-state progress,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain
 unimplemented. Independent Boolean-free direct relations now exist for the
@@ -376,9 +385,11 @@ facade. The core erases executor equations, results, and post-states from
 a successful `NewStep`, retaining only a shallow ready/tensor/mate guard and a
 bounded exact source-left route with input tag freshness, whole-trace
 production readiness, and ready axiom endpoints. The checked direction is
-success to `NewInputNecessary`. No reverse direction exists because the witness
-omits recursive per-step tag-update equations, terminal-partner exclusion from
-the intermediate trace, and the later operational enqueue guard. Forged
+success to `NewInputNecessary`. No reverse direction exists because the record
+itself omits recursive per-step tag-update equations and the later operational
+enqueue guard. The structural source-region layer now reconstructs the exact
+run and derives terminal-partner exclusion, but does not manufacture the
+enqueue region. Forged
 all-true and
 terminal-partner-pretagged inputs demonstrate that `NewGuard` alone is not an
 oracle for success. `PriorityEnabled` therefore stores the stronger input-only
@@ -402,6 +413,14 @@ and constructor do not change the dispatcher definition or order. The
 historical `SequentialFigure7NewEnabled.lean` file is only an import facade;
 the two direct-import sentinels change neither the trusted declarations nor
 their axioms.
+`SequentialFigure7NewRegion.lean` uses no new oracle: structural source-bucket
+singletonhood reconstructs the exact formula-bounded run from the declarative
+route, and `NewSourceRegionInput` explicitly carries the two endpoint
+queue-absence facts and strict fresh capacity that are not derivable from the
+current state invariant. With `SchedulerInvariant` and
+`FutureWaitingUndefined`, it derives the existing audited enqueue guard and
+`NewEnabled`. It assumes neither executor success nor reachability,
+correctness, progress, or totality.
 None of these local proofs establishes later-call totality, reachable-state
 exhaustiveness, progress, pure-worklist completeness, fallback removal, or
 linearity.
@@ -424,14 +443,21 @@ the already-certified `ExecutedHistory`. The five stable branches prove array
 equality; `new` retains the exact `NEXTAXIOM` result. The resulting theorems
 characterize true tags by recorded touches, separate new touches from the
 entire prior history, make submitted axiom-link positions globally
-duplicate-free, and show touched history-independence for a fixed state.
+duplicate-free, show touched history-independence for a fixed state, and prove
+recorded reservation-slot length equals final `nextAge`.
 `ReachableByImplementedDispatcher` supplies such an augmented history, but
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
-separate nonreachability proof for that forged state. The exact trust audit now
-covers 673 declarations: 428 use exactly
-`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 105 use exactly
-`[propext]`, and 115 use exactly `[propext, Quot.sound]`.
+separate nonreachability proof for that forged state.
+`SequentialFigure7ProgressInvariant.lean` adds the public
+`FutureWaitingUndefined` preservation family; those theorems remain within the
+same audited standard boundary. The fixed tensor-adjacency, forged-future, and
+route-orientation counterexamples live only in test executables and use
+`native_decide` for closed certificate facts. They are explicitly executable regression
+evidence, not public three-axiom theorems. The exact trust audit now
+covers 695 declarations: 447 use exactly
+`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 107 use exactly
+`[propext]`, and 116 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
@@ -732,9 +758,9 @@ dedicated init/new history adds exact reachability and tag provenance for that
  totality, or unconditional full-rule reachability. A separate canonical
  priority dispatcher and proof-carrying
  certified history now integrates all implemented successful branches, and its
- tag augmentation proves exact touch provenance and global submitted-slot
- non-reuse. Reservation-event counting and a public whole-history oriented-route
- theorem remain separate. No
+ tag augmentation proves exact touch provenance, global submitted-slot
+ non-reuse, and exact reservation-event counting against final `nextAge`. A
+ public whole-history oriented-route theorem remains separate. No
 planarity principle is assumed.
 
 Lean now also constructs the exact simultaneous complementary

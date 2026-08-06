@@ -977,6 +977,9 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.submittedParInput_enabled_cases,
       `ProofNetIR.SequentialFigure7.readyHead_structural_cases,
       `ProofNetIR.SequentialFigure7.readyHead_enabled_or_tensor_mark_cases,
+      `ProofNetIR.SequentialFigure7.SigmaPredecessorInput,
+      `ProofNetIR.SequentialFigure7.SigmaPredecessorInput.sigma_two_levels,
+      `ProofNetIR.SequentialFigure7.markedTensor_unifyPayloadEnabled,
       `ProofNetIR.SequentialFigure7.UnifyEmptyRule,
       `ProofNetIR.SequentialFigure7.UnifyEmptyExecutableReadyNodup,
       `ProofNetIR.SequentialFigure7.unifyEmpty?,
@@ -1210,6 +1213,7 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.DispatchStep.tagEvidence,
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.Touched,
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.linkIndices,
+      `ProofNetIR.SequentialFigure7.DispatchTagEvidence.linkIndices_length_add_nextAge,
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.tagged_iff_input_or_touched,
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.tagsExtend,
       `ProofNetIR.SequentialFigure7.DispatchTagEvidence.touched_input_false,
@@ -1229,10 +1233,37 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_disjoint_next,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.mem_linkIndices_witness,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices_nodup,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices_length_eq_nextAge,
       `ProofNetIR.SequentialFigure7.dispatcher_reachable_empty,
       `ProofNetIR.SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant
+    ]
+  },
+  {
+    title := "Figure-7 progress invariants and source-region bridges"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.FutureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.empty_futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.InitialReservationStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.PreparedStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.ConclStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.NopStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.NewStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.WaitStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.ForwardStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.UnifyPayloadStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.Figure7SuccessfulStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.DispatchStep.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.ExecutedHistory.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.futureWaitingUndefined,
+      `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.partner_not_mem_trace_of_structural,
+      `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.toFreshSourceLeftRun_of_partnerOutside,
+      `ProofNetIR.SequentialFigure7.FreshSourceLeftRoute.toFreshSourceLeftRun,
+      `ProofNetIR.SequentialFigure7.NewSourceRegionInput,
+      `ProofNetIR.SequentialFigure7.NewSourceRegionInput.operationalNewReadyAt,
+      `ProofNetIR.SequentialFigure7.NewSourceRegionInput.toNewEnabledInput,
+      `ProofNetIR.SequentialFigure7.NewSourceRegionInput.newEnabled
     ]
   },
   {

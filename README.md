@@ -180,9 +180,21 @@ plus the complete `SchedulerInvariant`, Lean derives every hidden mutation
 guard and proves that `unifyPayload?` returns a result satisfying the same
 invariant. The predicate contains no post-state or success equation. The full
 invariant alone does not imply it, as exact empty and initialized axiom-only
-counterexamples demonstrate. Exhaustive derivation of this predicate for the
-selected dispatcher branch remains open. Intermediate tensor/fold states are
-not claimed to satisfy `SchedulerInvariant`. Existing
+counterexamples demonstrate. The separate
+`SequentialFigure7TensorAdjacency.lean` bridge now derives this predicate from
+an exact marked tensor when an input-only witness supplies both an actual
+predecessor of the active sigma boundary and exact mate-age resolution to that
+predecessor. A checker-rejected one-axiom/one-tensor regression constructs a
+genuine full-`SchedulerInvariant` singleton-sigma state with an exact tensor
+consumer and marked mate, so even the bare full-invariant implication is
+false without predecessor evidence. The fixed initialization in this private
+test uses `native_decide`; it is executable regression evidence outside the
+public three-axiom theorem boundary, not an additional public kernel theorem.
+This does not establish correct-certificate or canonical-dispatcher
+reachability. Exhaustive derivation of the predecessor witness for intended
+reachable marked-tensor branches remains open.
+Intermediate tensor/fold states are not claimed to satisfy
+`SchedulerInvariant`. Existing
 `UnifyEmpty`/`UnifyOne` successes map one way to the same exact output of the
 new executor, without a general executor equality or reverse equivalence.
 Stored order fixes execution and derivation nesting only; no commutativity,
@@ -218,6 +230,21 @@ the call. They are therefore proof-carrying traces, not applicability,
 unconditional reachability, totality, or progress theorems. A regression locks
 the distinction by showing that an invariant-valid empty scheduler state has
 `dispatch? = none`.
+`SequentialFigure7ProgressInvariant.lean` adds a separate storage fact rather
+than strengthening that state invariant: `FutureWaitingUndefined` says every
+in-bounds waiting cell at or beyond `nextAge` is still `undefined`. Lean proves
+it for the exact empty and initialized states and preserves it through the
+common prepare prefix, all six successful rules, dispatcher steps, certified
+histories, and `ReachableByImplementedDispatcher`. It says nothing about
+allocated cells or whether another rule is enabled. A private native-computed
+test forges only `waiting[nextAge]` in an otherwise full-invariant tensor-ready
+state; the exact `NewGuard` and `FreshSourceLeftRun` remain, but the enqueue
+guard and `NewEnabled` fail. That state is not claimed reachable, and the
+fixture is outside the public three-axiom audit. Thus certified reachability
+supplies the storage fact. The new source-region bridge below isolates the
+remaining endpoint-queue separation and strict fresh-capacity obligations;
+deriving those for every correct reachable branch and proving progress remain
+separate mathematical obligations.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -242,12 +269,14 @@ valid tensor-below consumer, and input-unmarked mate;
 freshness, whole-trace production readiness, and ready axiom endpoints. A
 typed `NewStep`, executable `new?`
 success, `NewExecutableEnabled`, or a priority-selected `new` branch implies
-`NewInputNecessary`. There is no converse: the witness does not record
-recursive per-step tag-update equations, exclusion of the terminal partner
-from the intermediate trace, or the later operational enqueue guard. All-true
-and terminal-partner-pretagged regressions keep the shallow guard while `new?`
-fails. Consequently this weaker projection is not used as dispatcher
-enabledness and proves no later-call `NEXTAXIOM` totality.
+`NewInputNecessary`. The route record itself does not store recursive
+per-step tag-update equations or the later operational enqueue guard. The new
+structural reconstruction theorem below recovers the exact recursive run and
+terminal-partner exclusion, but the enqueue guard remains absent, so there is
+still no converse to `NewEnabled`. All-true and terminal-partner-pretagged
+regressions keep the shallow guard while `new?` fails. Consequently this
+weaker projection is not used as dispatcher enabledness and proves no
+later-call `NEXTAXIOM` totality.
 `SequentialFreshSourceLeftRun.lean` supplies the missing exact route layer: a
 fuel-indexed inductive witness mirrors both terminal-axiom orientations and
 the stored-left tensor/par recursion of `nextAxiomWithFuel?`, including each
@@ -264,6 +293,18 @@ yields an invariant-preserving output. A queued-partner regression shows that
 `NewGuard` plus the exact run is still insufficient without the enqueue guard.
 The lower-layer import split lets `PriorityEnabled` store this input-only
 predicate directly without changing `dispatch?` or its fixed precedence.
+`SequentialFigure7NewRegion.lean` now proves that any structurally well-formed
+`FreshSourceLeftRoute` reconstructs the exact formula-bounded
+`FreshSourceLeftRun`; structural source-incidence uniqueness also derives that
+the terminal axiom partner is absent from the complete route. Its separate
+input-only `NewSourceRegionInput` packages such a run with exactly three
+additional facts: both terminal endpoints are absent from the post-pop queue,
+and the fresh raw age is strictly within waiting storage. Under
+`SchedulerInvariant` and `FutureWaitingUndefined`, those facts construct the
+full `OperationalNewReadyAt` guard and hence `NewEnabled`. This local bridge
+assumes no executor success, reachability, correctness, progress, or totality;
+the open global theorem is to derive its three source-region obligations from
+correct certified reachability.
 `SequentialFigure7NewEnabled.lean` remains the historical facade and
 re-exports the prior direct-import priority surface; two compile-only default
 targets lock the facade and narrow-priority import surfaces. This
@@ -290,7 +331,8 @@ branch-aligned tag evidence. The five non-`new` branches preserve the complete
 tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
 slot. Every certified reachable state therefore has a canonical tag history,
 and Lean proves current true tags iff recorded initialization/`new` touches,
-history-wide touch separation, monotone growth, and submitted-slot `Nodup`.
+history-wide touch separation, monotone growth, submitted-slot `Nodup`, and
+exact reservation-event count equal to the final scheduler `nextAge`.
 The touched predicate is history-independent for two exact histories ending at
 the same state. This does not make `SchedulerInvariant` a history predicate:
 same-sized forged tag arrays can still satisfy that state-only invariant, and
@@ -307,9 +349,11 @@ not a generic Figure-7 history: the executable non-reserving `concl`, `nop`,
 arbitrary-payload `UnifyPayload` rules need rule-step accounting distinct from
 reservation-event counting and remain outside that richer reservation-only
 history. The canonical dispatcher tag augmentation now lifts exact touch
-provenance and axiom-slot non-reuse across all six rule families, but it does
-not lift the reservation-event count theorem or publish a whole-history
-oriented-route theorem. Guard applicability,
+provenance, axiom-slot non-reuse, and reservation-event counting across all six
+rule families: recorded initialization/`new` slots have length exactly the
+final `nextAge`; every stable branch contributes zero slots and every `new`
+contributes one. It still does not publish a whole-history oriented-route
+theorem. Guard applicability,
 exhaustive branch classification, correct-state progress, pure-worklist
 completeness, fallback removal, and linearity remain open.
 
@@ -436,8 +480,8 @@ the complete occurrence-exact `SchedulerInvariant`; the transient-gap proof
 establishes each payload occurrence's exact ownership before the final forest
 covers the whole payload. Conditional applicability is proved from explicit
 `UnifyPayloadEnabled`; deriving that predicate for intended reachable states,
-exhaustive dispatcher enabledness, generalizing reservation-count and
-whole-history oriented-route laws, unconditional full-rule reachability and later-state
+exhaustive dispatcher enabledness, generalizing whole-history oriented-route
+laws, unconditional full-rule reachability and later-state
 totality, progress, scheduler/pure-worklist completeness, fallback removal, and
 whole-program linearity remain
 open. Tail-based list operations also carry no O(1) claim.
@@ -1099,9 +1143,10 @@ an invariant-preserving result; it neither derives that predicate from the
 invariant alone nor assigns the invariant to physical intermediate tensor/fold
 states. Integration of successful local
 `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload` into a canonical
-certified history is complete, including exact tag-touch provenance and global
-submitted-slot non-reuse. Generalizing reservation-event counting and the
-whole-history oriented-route API, proving exhaustive guard applicability, and
+certified history is complete, including exact tag-touch provenance, global
+submitted-slot non-reuse, and exact reservation-event counting against final
+`nextAge`. Generalizing the whole-history oriented-route API, proving
+exhaustive guard applicability, and
 obtaining a total later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
@@ -1358,8 +1403,8 @@ The repository currently contains:
   canonical priority
   dispatcher and proof-carrying certified successful history now cover
   `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload`; later-state
-  totality, unconditional reachability, reservation-count transport, and a
-  whole-history oriented-route theorem remain open. Closing-par exclusion,
+  totality, unconditional reachability, and a whole-history oriented-route
+  theorem remain open. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -1590,9 +1635,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 673 declarations: 428 public MLL logical-boundary theorems
+ separately audits 695 declarations: 447 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
- axiom-free, 105 `propext`-only, and 115 `propext`/`Quot.sound` boundaries. LeanProp
+ axiom-free, 107 `propext`-only, and 116 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1672,6 +1717,10 @@ lake build
 lake exe proofnet_ir_tests
 lake exe proofnet_ir_consumer_index_tests
 lake exe proofnet_ir_figure7_primitives_tests
+lake exe proofnet_ir_tensor_adjacency_tests
+lake exe proofnet_ir_progress_invariant_tests
+lake exe proofnet_ir_tag_history_count_tests
+lake exe proofnet_ir_new_region_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check
@@ -1745,10 +1794,13 @@ ProofNetIR/SequentialFigure7UnifyPayload.lean atomic tensor/fold/drain payload u
 ProofNetIR/SequentialFigure7UnifyPayloadInvariant.lean arbitrary-payload full-invariant transport
 ProofNetIR/SequentialFigure7UnifyPayloadEnabled.lean input-only conditional payload applicability
 ProofNetIR/SequentialFigure7StableEnabled.lean input-only stable-rule applicability
+ProofNetIR/SequentialFigure7TensorAdjacency.lean marked-tensor sigma-adjacency applicability bridge
 ProofNetIR/SequentialFigure7Dispatcher.lean canonical six-rule dispatcher and certified history
+ProofNetIR/SequentialFigure7ProgressInvariant.lean future waiting-storage history invariant
 ProofNetIR/SequentialFreshSourceLeftRun.lean exact proof-relevant production NEXTAXIOM runs
 ProofNetIR/SequentialFigure7NewInputCore.lean lower-layer one-way input conditions for new
 ProofNetIR/SequentialFigure7NewEnabledCore.lean acyclic input-only new applicability iff execution
+ProofNetIR/SequentialFigure7NewRegion.lean structural route reconstruction and source-region new bridge
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1762,6 +1814,10 @@ ProofNetIRFigure7PrimitivesTests.lean typed Figure-7 transition regressions
 ProofNetIRNewEnabledImportTests.lean direct-import compatibility sentinel
 ProofNetIRPriorityEnabledImportTests.lean narrow priority-import compatibility sentinel
 ProofNetIRFigure7UnifyPayloadInvariantTests.lean full-SI length-two payload regression
+ProofNetIRTensorAdjacencyTests.lean marked-tensor adjacency boundary regression
+ProofNetIRProgressInvariantTests.lean future waiting-storage and unmarked-tensor boundary regressions
+ProofNetIRTagHistoryCountTests.lean canonical reservation-event count consumer fixture
+ProofNetIRNewRegionTests.lean structural route/run and source-region bridge regressions
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

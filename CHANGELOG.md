@@ -2,6 +2,58 @@
 
 ## Unreleased
 
+- added the separate `FutureWaitingUndefined` storage invariant. It states that
+  every in-bounds waiting cell at or beyond the allocated raw-age horizon is
+  still `undefined`, and is proved for the exact empty/initialized states and
+  preserved through Prepared, all six successful Figure-7 rules, the canonical
+  dispatcher, `ExecutedHistory`, and certified dispatcher reachability. It is
+  deliberately not folded into `SchedulerInvariant` and proves no rule
+  enabledness or progress. A private native-computed regression starts from a
+  genuine initialized tensor state, forges only `waiting[nextAge]`, and retains
+  the full state invariant, exact unmarked tensor guard, and
+  `FreshSourceLeftRun` while `OperationalNewReadyAt` and `NewEnabled` fail. The
+  forged state is not claimed reachable, and the regression's
+  `native_decide` fixture is outside the public three-axiom theorem boundary.
+  The exact public axiom audit now covers 695 declarations: 447 full-classical,
+  25 axiom-free, 107 `propext`-only, and 116
+  `propext`/`Quot.sound` boundaries;
+- added exact structural reconstruction from `FreshSourceLeftRoute` to the
+  formula-bounded proof-relevant `FreshSourceLeftRun`. Structural source-index
+  singletonhood proves every nonterminal connective conclusion differs from
+  the terminal axiom partner, while axiom local well-formedness separates the
+  terminal endpoints, so the public bridge needs only the route and
+  `StructurallyWellFormed`. Added input-only `NewSourceRegionInput`, whose only
+  obligations beyond the exact run are post-pop queue absence for both terminal
+  endpoints and strict capacity for the fresh waiting cell. Under the complete
+  `SchedulerInvariant` and `FutureWaitingUndefined`, it constructs
+  `OperationalNewReadyAt`, `NewEnabledInput`, and `NewEnabled`. No executor
+  success, reachability, correctness, progress, totality, or completeness is
+  assumed; deriving those three region obligations for every correct certified
+  reachable unmarked-tensor branch remains open;
+- generalized reservation-event counting from the old init/`new`-only history
+  to the canonical six-rule dispatcher history. Each successful event proves
+  that its recorded submitted-slot count plus the input `nextAge` equals the
+  output `nextAge`; induction gives
+  `CanonicalTagHistory.linkIndices.length = state.stack.nextAge`. Stable rules
+  contribute zero slots and preserve the horizon, while `new` contributes one
+  and increments it once. This is accounting for an already-successful
+  certified history, not enabledness, reachability, totality, or progress;
+- added the input-only marked-tensor adjacency bridge. The indexed
+  `SigmaPredecessorInput` records the exact active top, its actual predecessor,
+  and resolution of the marked mate's raw age to that predecessor.
+  Under the complete `SchedulerInvariant`, an exact ready head, submitted
+  tensor consumer, mate mark, and this adjacency witness now construct
+  `UnifyPayloadEnabled`. A checker-rejected one-axiom/one-tensor certificate
+  supplies a genuine full-`SchedulerInvariant` state after initialization and
+  the common prepare prefix; its singleton sigma, exact tensor consumer, and
+  marked mate refute the corresponding bare full-invariant implication in a
+  private native-computed regression. The production bridge itself remains in
+  the public three-axiom theorem boundary; the fixture does not.
+  This is local conditional applicability only: no correct-certificate or
+  canonical-dispatcher reachability is inferred, and deriving predecessor
+  evidence for all intended reachable marked-tensor branches, dispatcher
+  exhaustiveness, progress, completeness, fallback removal, and linearity
+  remain open;
 - restored and compile-locked the historical direct-import surface of
   `ProofNetIR.SequentialFigure7NewEnabled`. The implementation now lives in
   the acyclic `SequentialFigure7NewEnabledCore.lean` layer, which
@@ -23,11 +75,13 @@
   These are inclusive coverage theorems: no pairwise exclusivity or unique-case
   theorem is claimed. Every witness is input-only, and a current Figure-7
   fixture compile-uses all four new public declarations. Deriving `NewEnabled`
-  from the unmarked tensor case and `UnifyPayloadEnabled` from the marked tensor
-  case remains open, as do dispatcher exhaustiveness, progress, pure-worklist
-  completeness, fallback removal, and whole-program linearity. The exact axiom
-  audit now covers 673 declarations: 428 full-classical, 25 axiom-free, 105
-  `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
+  from the unmarked tensor case and deriving the predecessor evidence needed
+  by the marked-tensor bridge remain open, as do dispatcher exhaustiveness,
+  progress, pure-worklist completeness, fallback removal, and whole-program
+  linearity. The exact axiom
+  audit at that intermediate checkpoint covered 675 declarations: 429
+  full-classical, 25 axiom-free, 105
+  `propext`-only, and 116 `propext`/`Quot.sound` boundaries;
 - added `SequentialFreshSourceLeftRun.lean`, a fuel-indexed, proof-relevant,
   input-only account of the production `NEXTAXIOM` search. Its two terminal
   axiom constructors and two stored-left connective constructors retain exact

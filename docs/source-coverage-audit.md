@@ -117,9 +117,14 @@ invariant yields pre-activation freshness/provenance, each stored par activation
 establishes exact ownership, and the final forest covers the payload. A
 separate input-only predicate proves conditional applicability under the full
 invariant, but not invariant-alone enabledness or unconditional reachability.
-A canonical priority
-dispatcher and proof-carrying certified history now integrate every implemented
-successful rule family. Ownership through a complete reachable transition
+A canonical priority dispatcher and proof-carrying certified history now
+integrate every implemented successful rule family and prove exact canonical
+reservation-event counting against final `nextAge`. Structural route
+reconstruction now recovers the exact proof-relevant
+source-left run and terminal-partner exclusion. The remaining unmarked-tensor
+source region consists of two endpoint queue-absence facts and strict fresh
+waiting capacity; no correctness-to-region theorem is claimed. Ownership
+through a complete reachable transition
 system, richer route/tag/slot history commitments, later-state totality,
 progress, and pure-worklist completeness remain open.
 

@@ -498,9 +498,19 @@ part of the engineering and proof-identity gap.
    submitted-tensor-consumer case, and the refined theorem returns one of four
    stable enabled alternatives or an exact unmarked/marked tensor alternative.
    This is inclusive exhaustive coverage, not pairwise disjointness or unique
-   branch selection. The two tensor alternatives remain open as applicability
-   obligations: neither `NewEnabled` nor `UnifyPayloadEnabled` follows from
-   this checkpoint.
+   branch selection. The bare unmarked tensor alternative still does not imply
+   `NewEnabled`; the source-region bridge additionally requires an exact route,
+   endpoint queue separation, and strict fresh capacity. The marked alternative
+   now implies `UnifyPayloadEnabled` only
+   when the separate input-only sigma-predecessor/boundary witness is supplied;
+   the occurrence-level case theorem alone does not derive that witness. A
+   checker-rejected one-axiom/one-tensor fixture compile-locks the stronger
+   boundary: full state-only `SchedulerInvariant`, singleton sigma, an exact
+   ready tensor, and a marked mate can coexist while
+   `UnifyPayloadEnabled` is false. This is not a correct-certificate or
+   canonical-dispatcher reachability counterexample. The fixed initialization
+   uses `native_decide`, so the private fixture is executable regression
+   evidence outside the audited public theorem boundary.
    `SequentialFigure7Dispatcher.lean` now supplies one canonical executable
    entry point for `concl`/`nop`/`new`/`wait`/`forward`/`unifyPayload`, exact
    priority-aware dependent witnesses, output uniqueness, full successful-step
@@ -508,6 +518,18 @@ part of the engineering and proof-identity gap.
    empty/singleton unifiers are compatibility APIs, not duplicate branch tags.
    The history requires the invariant at every later edge; it does not prove
    exhaustive branch applicability, totality, or progress.
+   `SequentialFigure7ProgressInvariant.lean` separately proves
+   `FutureWaitingUndefined` for exact empty/initial states and preserves it
+   through every successful rule, dispatch, certified history, and dispatcher
+   reachability. It constrains only unused in-bounds waiting storage. A private
+   native-computed forged-future-cell regression retains the full state
+   invariant, an exact unmarked tensor guard, and `FreshSourceLeftRun` while
+   `NewEnabled` fails; it is explicitly not a reachable-state theorem. This
+   closes the storage-preservation sub-obligation. The new source-region bridge
+   identifies exactly two endpoint queue-absence obligations and strict fresh
+   capacity beyond the exact run; deriving them from correct certified
+   reachability, tensor branch enabledness, progress, and completeness remains
+   open.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -517,9 +539,10 @@ part of the engineering and proof-identity gap.
    `SequentialFigure7NewInputCore.lean` adds the pure necessary projection,
    while `SequentialFigure7NewInputNecessary.lean` retains its historical
    import facade: the shallow guard plus exact fresh route, including whole-trace
-   production readiness, is reconstructed from success, but it omits recursive
-   per-step tag-update equations, terminal-partner exclusion from the
-   intermediate trace, and the later operational enqueue guard. It therefore
+   production readiness, is reconstructed from success, but the record itself
+   omits recursive per-step tag-update equations and the later operational
+   enqueue guard. Structural route reconstruction now recovers the exact run
+   and terminal-partner exclusion. The projection therefore
    supplies no converse and is deliberately
    not named `NewEnabled`.
    `SequentialFreshSourceLeftRun.lean` now supplies a separate exact
@@ -537,8 +560,13 @@ part of the engineering and proof-identity gap.
    dispatcher. The historical `SequentialFigure7NewEnabled.lean` facade still
    re-exports the old direct-import priority surface, protected together with
    the narrow priority import by two default-build sentinels. This is a
-   local applicability/classification theorem, not
-   later-state totality or progress.
+   local applicability/classification theorem, not later-state totality or
+   progress. `SequentialFigure7NewRegion.lean` further proves that every
+   structurally well-formed route reconstructs the exact formula-bounded run.
+   `NewSourceRegionInput` adds only two post-pop endpoint queue-absence facts
+   and strict fresh waiting capacity; with `SchedulerInvariant` and
+   `FutureWaitingUndefined`, it derives the enqueue guard and `NewEnabled`.
+   Correct certified reachability is not assumed or concluded.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -656,10 +684,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 673 declarations: 428 public MLL
+- CI now parses `#print axioms` for 695 declarations: 447 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
-  105 `propext`-only, and 115 `propext`/`Quot.sound` boundaries;
+  107 `propext`-only, and 116 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
@@ -775,9 +803,10 @@ It can currently be used for:
   invariance remain absent. A canonical
   priority dispatcher and proof-carrying certified history now integrate every
   implemented successful rule family. Its canonical tag augmentation lifts
-  exact init/`new` touch provenance and global submitted-slot non-reuse through
-  stable branches; reservation counting, a public whole-history oriented route,
-  and unconditional reachability are not yet lifted. The
+  exact init/`new` touch provenance, global submitted-slot non-reuse, and exact
+  reservation-event counting through stable branches: recorded slots have
+  length equal to final `nextAge`. A public whole-history oriented route and
+  unconditional reachability are not yet lifted. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
   Exact init/new reachability and tag history plus certified full-rule

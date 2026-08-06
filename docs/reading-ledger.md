@@ -145,8 +145,13 @@ hash of the unaltered original PDF.
   now preserves the full occurrence-exact invariant on successful steps via a
   transient gap that establishes each payload occurrence's ownership before
   closing the final forest. A canonical priority dispatcher and proof-carrying
-  certified history now record every implemented successful rule family. The
-  separate pure `UnifyPayloadEnabled` predicate plus the full invariant proves
+  certified history now record every implemented successful rule family, with
+  exact canonical reservation-event count equal to final `nextAge`. The
+  structural source-region bridge now reconstructs the exact run from a
+  declarative route and reduces the remaining unmarked-tensor enqueue gap to
+  two endpoint queue-absence facts plus strict fresh waiting capacity. It does
+  not derive those facts from correctness or reachability. The separate pure
+  `UnifyPayloadEnabled` predicate plus the full invariant proves
   conditional arbitrary-payload applicability. Deriving that predicate for the
   selected reachable branch, ownership across an unconditional complete
   transition system, the richer route/tag/slot history laws, later-state

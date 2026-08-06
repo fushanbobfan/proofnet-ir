@@ -88,7 +88,11 @@ explicit unread gate; that row is not part of the local-source count.
   applicability from the full invariant; it does not derive enabledness for an
   arbitrary state or prove unconditional reachability.
   A canonical priority dispatcher and proof-carrying certified history now
-  integrate every implemented successful rule family. Ownership across
+  integrate every implemented successful rule family, including exact
+  reservation-event counting against final `nextAge`. Structural
+  well-formedness now reconstructs the proof-relevant source-left run from the
+  declarative route; the remaining unmarked-tensor source region is exactly
+  endpoint queue separation plus strict fresh waiting capacity. Ownership across
   complete reachable executions, richer route/tag/slot history commitments,
   later-state totality, progress, and pure-worklist completeness remain open.
 

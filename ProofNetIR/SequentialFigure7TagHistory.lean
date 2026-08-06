@@ -23,6 +23,8 @@ dispatcher is total.
 
 namespace SequentialFigure7
 
+open SequentialSchedulerState
+open SequentialSchedulerState.SequentialStackState
 open SequentialSchedulerBridge
 
 namespace ConclStep
@@ -181,6 +183,119 @@ def linkIndices
     DispatchTagEvidence certificate before result → List Nat
   | .new step => [step.search.linkIndex]
   | _ => []
+
+/-- The reservation slots recorded by one successful dispatcher event account
+exactly for that event's change to the raw-age allocation horizon.
+
+The five stable branches record no slot and preserve `nextAge`; `new` records
+one slot and increments `nextAge` once.  This is a fact about an
+already-successful typed event, not an enabledness or progress theorem. -/
+theorem linkIndices_length_add_nextAge
+    {certificate : Certificate} {before : ReservationState}
+    {result : Figure7DispatchResult}
+    (evidence : DispatchTagEvidence certificate before result) :
+    evidence.linkIndices.length + before.stack.nextAge =
+      result.after.stack.nextAge := by
+  cases evidence with
+  | concl step =>
+      rcases
+          SequentialStackState.popReadyMark?_exact
+            step.prepared.stack_eq with
+        ⟨_top, _sigmaTop, _unmarked, _marks, nextAge, _sigma, _ready,
+          _waiting, _marked⟩
+      have outputNextAge :=
+        congrArg (fun state : ReservationState ↦ state.stack.nextAge)
+          step.output_eq
+      simp only [linkIndices, List.length_nil, Nat.zero_add]
+      calc
+        before.stack.nextAge = step.prepared.stackResult.after.nextAge :=
+          nextAge.symm
+        _ = _ := outputNextAge.symm
+  | nop step =>
+      rcases
+          SequentialStackState.popReadyMark?_exact
+            step.prepared.stack_eq with
+        ⟨_top, _sigmaTop, _unmarked, _marks, nextAge, _sigma, _ready,
+          _waiting, _marked⟩
+      have outputNextAge :=
+        congrArg (fun state : ReservationState ↦ state.stack.nextAge)
+          step.output_eq
+      simp only [linkIndices, List.length_nil, Nat.zero_add]
+      calc
+        before.stack.nextAge = step.prepared.stackResult.after.nextAge :=
+          nextAge.symm
+        _ = _ := outputNextAge.symm
+  | new step =>
+      rcases
+          SequentialStackState.popReadyMark?_exact step.stack_eq with
+        ⟨_top, _sigmaTop, _unmarked, _marks, popNextAge, _sigma, _ready,
+          _waiting, _marked⟩
+      rcases
+          SequentialStackState.operationalNewEnqueue?_exact
+            step.stack_enqueue_eq with
+        ⟨_active, _activeEquation, _activeLt, _marks, enqueueNextAge,
+          _sigma, _ready, _waiting, _activeInitialized, _freshUndefined⟩
+      have outputNextAge :=
+        congrArg (fun state : ReservationState ↦ state.stack.nextAge)
+          step.output_eq
+      simp only [linkIndices, List.length_cons, List.length_nil]
+      calc
+        1 + before.stack.nextAge =
+            step.stackResult.after.nextAge + 1 := by
+          rw [popNextAge, Nat.add_comm]
+        _ = step.stackAfter.nextAge := enqueueNextAge.symm
+        _ = _ := outputNextAge.symm
+  | wait step =>
+      rcases
+          SequentialStackState.popReadyMark?_exact
+            step.prepared.stack_eq with
+        ⟨_top, _sigmaTop, _unmarked, _marks, popNextAge, _sigma, _ready,
+          _waiting, _marked⟩
+      rcases step.destination.exact with
+        ⟨_payload, _initialized, _updated, _marks, destinationNextAge,
+          _sigma, _ready, _core, _tags⟩
+      simp only [linkIndices, List.length_nil, Nat.zero_add]
+      calc
+        before.stack.nextAge = step.prepared.stackResult.after.nextAge :=
+          popNextAge.symm
+        _ = step.prepared.after.stack.nextAge := rfl
+        _ = _ := destinationNextAge.symm
+  | forward step =>
+      rcases
+          SequentialStackState.popReadyMark?_exact
+            step.prepared.stack_eq with
+        ⟨_top, _sigmaTop, _unmarked, _marks, popNextAge, _sigma, _ready,
+          _waiting, _marked⟩
+      have prependNextAge :=
+        congrArg (fun state : SequentialStackState ↦ state.nextAge)
+          step.prependStep.after_eq
+      have outputNextAge :=
+        congrArg (fun state : ReservationState ↦ state.stack.nextAge)
+          step.output_eq
+      simp only [linkIndices, List.length_nil, Nat.zero_add]
+      calc
+        before.stack.nextAge = step.prepared.stackResult.after.nextAge :=
+          popNextAge.symm
+        _ = step.stackAfter.nextAge := prependNextAge.symm
+        _ = _ := outputNextAge.symm
+  | unifyPayload step =>
+      rcases
+          SequentialStackState.popReadyMark?_exact
+            step.prepared.stack_eq with
+        ⟨_top, _sigmaTop, _unmarked, _marks, popNextAge, _sigma, _ready,
+          _waiting, _marked⟩
+      have mergeNextAge :=
+        congrArg (fun state : SequentialStackState ↦ state.nextAge)
+          step.mergeStep.after_eq
+      have outputNextAge :=
+        congrArg (fun state : ReservationState ↦ state.stack.nextAge)
+          step.output_eq
+      simp only [linkIndices, List.length_nil, Nat.zero_add]
+      calc
+        before.stack.nextAge = step.prepared.stackResult.after.nextAge :=
+          popNextAge.symm
+        _ = step.stackAfter.nextAge := mergeNextAge.symm
+        _ = _ := outputNextAge.symm
 
 /-- Exact tag effect of every successful dispatcher branch. -/
 theorem tagged_iff_input_or_touched
@@ -506,6 +621,35 @@ theorem linkIndices_nodup
         injection sameAxiom
       subst oldLeft
       exact prior.touched_disjoint_next evidence oldTouched currentTouched
+
+/-- The number of canonical initialization/`new` reservation events agrees
+exactly with the final raw-age allocation horizon.
+
+This theorem is proved by induction over the supplied already-successful
+canonical history.  It does not assert that a next event exists or that the
+dispatcher is total. -/
+theorem linkIndices_length_eq_nextAge
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (tagHistory : CanonicalTagHistory certificate history) :
+    tagHistory.linkIndices.length = state.stack.nextAge := by
+  induction tagHistory with
+  | empty =>
+      simp [linkIndices, ReservationState.empty,
+        SequentialStackState.empty]
+  | init step =>
+      rcases SequentialStackState.initEnqueue?_exact step.stack_eq with
+        ⟨_marks, nextAge, _sigma, _ready, _waiting, _activeUndefined⟩
+      have outputNextAge :=
+        congrArg (fun state : ReservationState ↦ state.stack.nextAge)
+          step.output_eq
+      calc
+        (CanonicalTagHistory.init step).linkIndices.length = 1 := rfl
+        _ = step.stackAfter.nextAge := nextAge.symm
+        _ = _ := outputNextAge.symm
+  | later prior evidence induction =>
+      rw [linkIndices, List.length_append, induction]
+      exact evidence.linkIndices_length_add_nextAge
 
 end CanonicalTagHistory
 

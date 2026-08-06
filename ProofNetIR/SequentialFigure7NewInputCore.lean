@@ -63,10 +63,12 @@ The witness records only certificate structure, the input production marking,
 the input tag carrier, and a finite list of visited vertices. `traceFresh`
 means input tag freshness; `traceReady` records production readiness for every
 visited occurrence, while endpoint readiness is recorded explicitly. This is
-a necessary semantic projection of successful `NEXTAXIOM`, not a complete
-executable success criterion: it does not store recursive per-step tag-update
-equations, terminal-partner exclusion from the intermediate trace, or the
-later operational enqueue guard. -/
+a necessary semantic projection of successful `NEXTAXIOM`, not by itself a
+complete executable success criterion: it does not store recursive per-step
+tag-update equations or the later operational enqueue guard. Under structural
+well-formedness, `SequentialFigure7NewRegion` reconstructs the exact recursive
+run and derives terminal-partner exclusion from this route; the enqueue guard
+remains separate. -/
 structure FreshSourceLeftRoute (certificate : Certificate)
     (state : UnificationState) (tags : Array Bool)
     (start : Vertex) : Type where

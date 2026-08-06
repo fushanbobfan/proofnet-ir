@@ -807,8 +807,8 @@
   - [ ] Replace the prototype's eager axiom starts and flat waiting requeues
     with the complete Figures 7--8 state and transitions. Align the paper-level
     `R` stack with `σ`, prove ready/waiting payload ownership, state
-    route-local later-call freshness, generalize reservation-event counting and
-    the whole-history oriented-route API, and prove exhaustive applicability and
+    route-local later-call freshness, generalize the whole-history
+    oriented-route API, and prove exhaustive applicability and
     progress. A proof-only exact component/link occurrence
     relation and bidirectional raw-mark ownership predicate are now present;
     the forest is integrated for empty/init and the common prepared prefix,
@@ -837,7 +837,8 @@
     prove exact tag stability for the five non-`new` rules, retain the exact
     `NEXTAXIOM` touch/submitted slot for `new`, and derive current-tag iff
     recorded touch, global touched-set separation, monotone growth,
-    touched-history independence, and submitted-slot `Nodup`. Expose the bridge
+    touched-history independence, submitted-slot `Nodup`, and exact recorded
+    reservation-slot length equal to final `nextAge`. Expose the bridge
     from `ReachableByImplementedDispatcher`. Keep same-sized forged tags outside
     this proof-carrying history contract; do not infer applicability, totality,
     progress, or the concrete all-true fixture's nonreachability.
@@ -931,9 +932,34 @@
     then combine the par trichotomy with exact tensor-mate lookup to obtain the
     four stable enabled alternatives or an unmarked/marked tensor alternative.
     This is inclusive occurrence-exact case coverage, not a pairwise-disjoint
-    partition or unique-case theorem. Keep both tensor-to-rule obligations
-    open: unmarked tensor does not yet imply `NewEnabled`, and marked tensor
-    does not yet imply `UnifyPayloadEnabled`.
+    partition or unique-case theorem. The bare alternatives alone remain
+    insufficient: unmarked tensor does not yet imply `NewEnabled`, and a mate
+    mark alone does not imply `UnifyPayloadEnabled`.
+  - [x] Refine the marked-tensor alternative under an explicit input-only
+    sigma-adjacency witness. `SigmaPredecessorInput` records the exact active
+    top, an actual predecessor of that active boundary, and exact
+    `sigmaBoundary?` resolution of the mate age to that predecessor; with the
+    complete invariant this
+    yields `UnifyPayloadEnabled`. Preserve a checker-rejected
+    one-axiom/one-tensor regression whose initialized-and-prepared state
+    genuinely satisfies the full state-only `SchedulerInvariant` while
+    singleton sigma, an exact ready tensor, and a marked mate coexist with
+    failed `UnifyPayloadEnabled`; this private native-computed regression
+    refutes the bare full-invariant implication but is outside the public
+    three-axiom theorem audit. Do not infer correct-certificate or
+    canonical-dispatcher
+    reachability, exhaustive availability of the predecessor witness,
+    progress, completeness, or linearity.
+  - [x] Isolate unused waiting storage as the history-preserved predicate
+    `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
+    through Prepared, all six successful rules, dispatcher steps,
+    `ExecutedHistory`, and certified reachability. Preserve a private
+    native-computed counterexample in which the complete state invariant,
+    unmarked tensor guard, and exact source-left run coexist with a forged
+    initialized future cell and failed `NewEnabled`; do not claim the forged
+    state reachable or place the fixture inside the public three-axiom boundary.
+    Next derive source-region separation from declarative correctness plus
+    canonical history rather than adding progress as an invariant field.
   - [x] Extract an honest input-only necessary projection for `new` without
     changing dispatcher priority. `NewGuard` records the ready head, exact
     tensor-below witness, and input-unmarked mate; `FreshSourceLeftRoute`
@@ -941,9 +967,10 @@
     readiness, and ready axiom endpoints. Prove only
     success-to-`NewInputNecessary`, including operational
     and priority bridges. Preserve all-true and terminal-partner-pretagged
-    counterexamples to shallow-guard sufficiency. The projection omits
-    recursive per-step tag-update equations, terminal-partner exclusion from
-    the intermediate trace, and the later operational enqueue guard.
+    counterexamples to shallow-guard sufficiency. The projection itself omits
+    recursive per-step tag-update equations and the later operational enqueue
+    guard; the later structural route bridge now reconstructs the exact run
+    and terminal-partner exclusion.
   - [x] Add an exact proof-relevant `FreshSourceLeftRun` that mirrors all four
     `nextAxiomWithFuel?` branches and prove exact execution correspondence in
     both directions. Combine `NewGuard`, a formula-bound exact run, and the
@@ -952,6 +979,15 @@
     `SchedulerInvariant`, plus invariant-preserving output. Preserve
     raw-marked-intermediate, terminal-partner-pretagged, and queued-partner
     regressions. Do not infer later-call totality or reachable-state progress.
+  - [x] Reconstruct a formula-bounded exact `FreshSourceLeftRun` from every
+    `FreshSourceLeftRoute` under `StructurallyWellFormed`, including structural
+    derivation of terminal-partner exclusion. Package the remaining input-only
+    `new` source region as the exact run, two post-pop endpoint queue-absence
+    facts, and strict fresh waiting capacity. Under `SchedulerInvariant` plus
+    `FutureWaitingUndefined`, derive `OperationalNewReadyAt` and `NewEnabled`
+    without executor success, reachability, correctness, or progress. Next
+    derive those three region facts for every correct certified-reachable
+    unmarked-tensor branch.
   - [x] Add a deterministic finite search for an actually reachable
     `NewGuard` state where the real `new?` fails. The default CI gate follows
     successful initialization and the canonical dispatcher from every formula
@@ -973,8 +1009,9 @@
     progress, totality, completeness, or fallback removal. Next derive
     exhaustive dispatcher enabledness on correct
     certified-reachable nonterminal states.
-    Generalize the remaining reservation-count/oriented-route commitments,
-    establish unconditional full-rule reachability, progress, completeness of that
+    The canonical-history reservation-count commitment is complete. Generalize
+    the remaining whole-history oriented-route commitment, establish
+    unconditional full-rule reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation
     before claiming Guerrini linearity. The needed stack invariants are false
     for the flat scheduler.

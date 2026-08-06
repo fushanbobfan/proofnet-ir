@@ -579,6 +579,7 @@ expansion.
 #print axioms SequentialFigure7.DispatchTagEvidence.linkIndices_nodup
 #print axioms SequentialFigure7.DispatchTagEvidence.output_tags_eq_of_kind_ne_new
 #print axioms SequentialFigure7.DispatchTagEvidence.new_growth_and_singleton_link
+#print axioms SequentialFigure7.DispatchTagEvidence.linkIndices_length_add_nextAge
 #print axioms SequentialFigure7.ExecutedHistory.hasCanonicalTagHistory
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.hasCanonicalTagHistory
 #print axioms SequentialFigure7.CanonicalTagHistory.tagged_iff_touched
@@ -588,6 +589,7 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.touched_disjoint_next
 #print axioms SequentialFigure7.CanonicalTagHistory.mem_linkIndices_witness
 #print axioms SequentialFigure7.CanonicalTagHistory.linkIndices_nodup
+#print axioms SequentialFigure7.CanonicalTagHistory.linkIndices_length_eq_nextAge
 #print axioms SequentialFigure7.ReadyHeadInput.rulePrefix
 #print axioms SequentialFigure7.ReadyHeadInput.stack_pop_eq
 #print axioms SequentialFigure7.ReadyHeadInput.core_mark_eq
@@ -604,6 +606,8 @@ expansion.
 #print axioms SequentialFigure7.submittedParInput_enabled_cases
 #print axioms SequentialFigure7.readyHead_structural_cases
 #print axioms SequentialFigure7.readyHead_enabled_or_tensor_mark_cases
+#print axioms SequentialFigure7.SigmaPredecessorInput.sigma_two_levels
+#print axioms SequentialFigure7.markedTensor_unifyPayloadEnabled
 #print axioms SequentialFigure7.ConclStep.enabled
 #print axioms SequentialFigure7.NopStep.enabled
 #print axioms SequentialFigure7.WaitStep.enabled
@@ -618,6 +622,11 @@ expansion.
 #print axioms SequentialFigure7.NewGuard.mate_ne
 #print axioms SequentialFigure7.FreshSourceLeftRoute.start_mem
 #print axioms SequentialFigure7.FreshSourceLeftRoute.startFresh
+#print axioms SequentialFigure7.FreshSourceLeftRoute.partner_not_mem_trace_of_structural
+#print axioms SequentialFigure7.FreshSourceLeftRoute.toFreshSourceLeftRun_of_partnerOutside
+#print axioms SequentialFigure7.FreshSourceLeftRoute.toFreshSourceLeftRun
+#print axioms SequentialFigure7.NewSourceRegionInput.operationalNewReadyAt
+#print axioms SequentialFigure7.NewSourceRegionInput.newEnabled
 #print axioms SequentialFigure7.NewStep.coreMarked_eq_readyHeadInput
 #print axioms SequentialFigure7.NewStep.stackAfter_eq_readyHeadInput
 #print axioms SequentialFigure7.NewStep.mate_unmarked_before
@@ -644,6 +653,19 @@ expansion.
 #print axioms SequentialFigure7.dispatcher_reachable_of_initializeReservation?_eq_some
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.dispatch
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.schedulerInvariant
+#print axioms SequentialFigure7.empty_futureWaitingUndefined
+#print axioms SequentialFigure7.InitialReservationStep.futureWaitingUndefined
+#print axioms SequentialFigure7.PreparedStep.futureWaitingUndefined
+#print axioms SequentialFigure7.ConclStep.futureWaitingUndefined
+#print axioms SequentialFigure7.NopStep.futureWaitingUndefined
+#print axioms SequentialFigure7.NewStep.futureWaitingUndefined
+#print axioms SequentialFigure7.WaitStep.futureWaitingUndefined
+#print axioms SequentialFigure7.ForwardStep.futureWaitingUndefined
+#print axioms SequentialFigure7.UnifyPayloadStep.futureWaitingUndefined
+#print axioms SequentialFigure7.Figure7SuccessfulStep.futureWaitingUndefined
+#print axioms SequentialFigure7.DispatchStep.futureWaitingUndefined
+#print axioms SequentialFigure7.ExecutedHistory.futureWaitingUndefined
+#print axioms SequentialFigure7.ReachableByImplementedDispatcher.futureWaitingUndefined
 #print axioms Certificate.unificationReconstruct_accepted
 #print axioms Certificate.unificationReconstruct?_sound
 #print axioms Certificate.unificationReconstruct?_accepted
