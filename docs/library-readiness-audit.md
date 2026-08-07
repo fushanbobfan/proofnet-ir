@@ -597,14 +597,16 @@ part of the engineering and proof-identity gap.
    invariant, and `NewGuard`, the base classifier gives a prior exact touch, the
    selected ready-head update, or an old raw-marked occurrence with an
    occurrence-exact live-component owner. Those three
-   `CanonicalSourceLeftObstruction` alternatives may overlap before correctness
-   geometry is supplied. The terminal geometry below now eliminates the
-   selected-head alternative throughout the complete region under declarative
-   correctness. A universal premise excluding the two remaining prior-touch
-   and old-owner intersections yields the exact run, `NewInputNecessary`, and
-   `NewEnabled`; that premise itself remains unproved. Library readiness
-   therefore still requires the history/component theorem excluding those two
-   forms before any shallow-guard sufficiency or progress claim. This checkpoint adds
+   `CanonicalSourceLeftObstruction` alternatives may overlap, including in
+   authentic correct canonical states; correctness does not make the
+   prior-touch and old-owner classes globally disjoint. The terminal geometry
+   below eliminates the selected-head alternative throughout the complete
+   region under declarative correctness. A universal premise excluding the two
+   remaining blocker forms from the particular current source-left carrier
+   yields the exact run, `NewInputNecessary`, and `NewEnabled`; that premise
+   itself remains unproved. Library readiness therefore still requires a local
+   history/component intersection theorem before any shallow-guard sufficiency
+   or progress claim. This checkpoint adds
    no totality, pure-worklist completeness, fallback-removal, or complexity
    guarantee and records no new literature reading.
    The first obstruction-elimination slice is now proved. Exact source-left
@@ -619,8 +621,16 @@ part of the engineering and proof-identity gap.
    declarative correctness, eliminates that final selected-head branch in both
    tensor orientations. A structurally well-formed switching-incorrect triangle
    remains the negative boundary showing the extra assumption is necessary.
-   The two prior-touch/old-owner history-component intersections remain the
-   library-readiness gates; terminal-head separation no longer is one.
+   Prior-touch and old-owner blockers on the candidate current route remain the
+   library-readiness gate; terminal-head separation no longer is one. They are
+   not two globally disjoint state regions: one real correct canonical fixture
+   has a vertex satisfying both, while an initialization fixture has touched
+   vertices that remain unmarked and unowned by a marked-owner witness.
+   `SequentialFigure7RegionBoundaries.lean` proves the exact conditional
+   boundary instead: the carrier of an already supplied run is disjoint from
+   prior touches, and the carrier of an already supplied marked-core run is
+   disjoint from old exact marked owners. Because those statements take the run
+   as input, they do not close the forward run-construction gate.
    `SequentialFigure7TouchOrigin.lean` now resolves the provenance shape of
    the first gate: every prior touch comes from one exact recorded init/new
    search and exposes its submitted axiom slot, oriented route, and complete
@@ -630,11 +640,18 @@ part of the engineering and proof-identity gap.
    chronological link slots reverse the legacy newest-first list, and every
    touch reaches an event that itself touched the vertex. It also proves the
    selected old active age is strictly below a `new` event's fresh age. The
-   remaining gate is no longer event indexing; it is transporting a historical
-   reservation into the appropriate final component/ownership witness and
-   proving the old reservation region disjoint from the current source region.
-   Raw age is not a representative, and historical event membership is not
-   current ownership.
+   reservation/final-component transport is now complete in
+   `SequentialFigure7ReservationRealization.lean`: under explicit certificate
+   structural well-formedness, every event's exact axiom link survives all six
+   dispatcher branches at its raw age's current
+   representative, the event-owned list aligns with the final invariant forest,
+   and both exact endpoints are accounted there. A checker-accepted real union
+   merges raw ages zero and one into one final component while retaining both
+   distinct event links. The remaining gate is now only the finer
+   route/intersection geometry needed to construct the current run. Raw age is
+   not a representative, reserved axiom endpoints are not the whole historical
+   touch region, and historical event membership is not blanket current
+   ownership.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -752,10 +769,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 726 declarations: 468 public MLL
+- CI now parses `#print axioms` for 762 declarations: 495 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
-  111 `propext`-only, and 122 `propext`/`Quot.sound` boundaries;
+  117 `propext`-only, and 125 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

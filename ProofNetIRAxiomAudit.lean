@@ -226,6 +226,15 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices
 #print axioms SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event
 #print axioms SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event
+#print axioms CutFreeDerivation.pick?_source_unique
+#print axioms CutFreeDerivation.reorder?_source_unique
+#print axioms Certificate.OccurrenceDerivation.owned_unique
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_realized
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_finalComponent
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoints_accounted
+#print axioms SequentialFigure7.carrierFresh
+#print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched
+#print axioms SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner
 #print axioms ConsumerIndex.build_size
 #print axioms ConsumerIndex.build_origin
 #print axioms ConsumerIndex.build_complete

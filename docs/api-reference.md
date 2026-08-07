@@ -8324,6 +8324,227 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event
   tagHistory.Touched vertex → ∃ event, event ∈ tagHistory.reservationLedger ∧ event.Touched vertex
 ```
 
+## Chronological reservation realization
+
+### `ProofNetIR.CutFreeDerivation.pick?_source_unique`
+
+Kind: theorem.
+
+Removing the same occurrence at the same position with the same remainder
+determines the original list, including when values are duplicated.
+
+```lean
+ProofNetIR.CutFreeDerivation.pick?_source_unique : ∀ {α : Type u_1} {first second remaining : List α} {index : Nat} {selected : α},
+  ProofNetIR.CutFreeDerivation.pick? first index = some (selected, remaining) →
+    ProofNetIR.CutFreeDerivation.pick? second index = some (selected, remaining) → first = second
+```
+
+### `ProofNetIR.CutFreeDerivation.reorder?_source_unique`
+
+Kind: theorem.
+
+A successful explicit occurrence permutation is injective in its source
+when the order and result are fixed.
+
+```lean
+ProofNetIR.CutFreeDerivation.reorder?_source_unique : ∀ {α : Type u_1} [inst : DecidableEq α] {first second reordered : List α} {order : List Nat},
+  ProofNetIR.CutFreeDerivation.reorder? first order = some reordered →
+    ProofNetIR.CutFreeDerivation.reorder? second order = some reordered → first = second
+```
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.owned_unique`
+
+Kind: theorem.
+
+Under structural resource ownership, the exact owned-occurrence list is
+determined by a component's derivation tree and exact frontier.  Submitted
+link lists need not be identified.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.owned_unique : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks₁ owned₁ usedLinks₂ owned₂ : List Nat},
+      certificate.OccurrenceDerivation tree frontier usedLinks₁ owned₁ →
+        certificate.OccurrenceDerivation tree frontier usedLinks₂ owned₂ → owned₁ = owned₂
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.RealizedIn`
+
+Kind: definition.
+
+A chronological reservation is realized in a later scheduler state when
+its exact submitted axiom slot occurs in an occurrence derivation for the
+live component at the reservation's current union-find representative.
+
+The derivation is event-specific proof data.  It deliberately carries no
+local-linearity or cross-component forest witness; those are recovered from
+the final `SchedulerInvariant` and aligned by `OccurrenceDerivation.owned_unique`.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.RealizedIn : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialFigure7.ReservationEvent certificate →
+    ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_realized`
+
+Kind: theorem.
+
+Every chronological ledger event is realized in the final live component
+at its current representative.  Multiple raw ages may therefore select the
+same final component after tensor unions.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_realized : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed →
+    ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger → event.RealizedIn state
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_finalComponent`
+
+Kind: theorem.
+
+Final forest alignment for one chronological reservation.
+
+The event-specific derivation may use a different submitted-link list from
+the invariant's chosen witness, but structural validity makes their exact
+owned-occurrence lists equal.  Thus the event is attached to the current
+accounted owner without duplicating a forest in every ledger entry.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_finalComponent : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed →
+    ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger →
+        ∃ component eventUsed forestUsed owned,
+          state.core.components[state.core.representative event.rawAge]? = some (some component) ∧
+            certificate.OccurrenceDerivation component.tree component.frontier eventUsed owned ∧
+              event.linkIndex ∈ eventUsed ∧
+                certificate.ComponentOccurrenceWitness component forestUsed owned ∧
+                  ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core (state.core.representative event.rawAge)
+                    component owned
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoints_accounted`
+
+Kind: theorem.
+
+Both exact endpoints of a ledger event's submitted axiom occur in the
+same final owned list certified by the invariant forest and accounted at the
+event raw age's current representative.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoints_accounted : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed →
+    ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger →
+        ∃ component eventUsed forestUsed owned,
+          state.core.components[state.core.representative event.rawAge]? = some (some component) ∧
+            certificate.OccurrenceDerivation component.tree component.frontier eventUsed owned ∧
+              event.linkIndex ∈ eventUsed ∧
+                certificate.ComponentOccurrenceWitness component forestUsed owned ∧
+                  ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core (state.core.representative event.rawAge)
+                      component owned ∧
+                    event.search.result.left ∈ owned ∧ event.search.result.right ∈ owned
+```
+
+## Exact-run-local region boundaries
+
+### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`
+
+Kind: definition.
+
+The exact carrier inspected by one successful source-left run: every
+visited trace occurrence together with the terminal axiom partner.
+
+This is deliberately run-indexed rather than the larger structural
+`SourceLeftRegionVertex` relation.
+
+```lean
+ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.UnificationState} →
+    {fuel : Nat} →
+      {tags : Array Bool} →
+        {start reached partner : ProofNetIR.Vertex} →
+          {trace : List ProofNetIR.Vertex} →
+            {linkIndex : Nat} →
+              ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached
+                  partner linkIndex →
+                ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.carrierFresh`
+
+Kind: theorem.
+
+Every occurrence in an exact run carrier is false-tagged in that run's
+input tag array.
+
+```lean
+ProofNetIR.SequentialFigure7.carrierFresh : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+      linkIndex)
+  {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier run vertex → tags[vertex]? = some false
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched`
+
+Kind: theorem.
+
+An exact run over the current canonical tag carrier cannot inspect a
+vertex touched by any prior reservation event in that history.
+
+The explicit `run` premise is essential: this theorem consumes a successful
+run and does not derive one from a shallow `NewGuard`.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  {runState : ProofNetIR.UnificationState} {fuel : Nat} {start reached partner : ProofNetIR.Vertex}
+  {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+  (run :
+    ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate runState fuel state.tags start trace reached partner
+      linkIndex)
+  {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier run vertex → ¬tagHistory.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner`
+
+Kind: theorem.
+
+An exact run in the selected head's marked core cannot inspect an
+occurrence that was already raw-marked and owned by a live component in the
+input production core.
+
+The selected ready head is handled separately because `markedCore` introduces
+its one new raw mark.  Again, the exact `run` is a premise, not an output of
+`NewGuard`; this theorem alone cannot establish run existence.
+
+```lean
+ProofNetIR.SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {fuel : Nat}
+      {reached partner : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat}
+      (run :
+        ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate guard.head.markedCore fuel before.tags
+          guard.tensor.mate trace reached partner linkIndex)
+      {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier run vertex →
+        ¬ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
 ## Shared sequential consumer index
 
 ### `ProofNetIR.ConsumerIndex`

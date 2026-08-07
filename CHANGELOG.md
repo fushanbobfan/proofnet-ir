@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ReservationRealization.lean`, which, under explicit
+  certificate structural well-formedness, transports every authentic
+  chronological reservation through every canonical Figure-7 branch. Each
+  event retains an event-specific occurrence derivation for the
+  live component at its raw age's current union-find representative, and that
+  derivation still contains the event's exact submitted axiom-link position.
+  A structural uniqueness theorem aligns its owned-occurrence list with the
+  final `ComponentForestProvenance` witness, yielding one accounted final owner
+  containing both exact endpoints of the event axiom. A checker-accepted
+  init-to-new-to-general-unify regression allocates raw ages zero and one,
+  merges both to representative zero, preserves distinct axiom slots, and
+  proves both events share the same final accounted owner. This does not make
+  historical search traces component-owned, preserve separate live components
+  after union, exclude a current-route intersection, prove progress, or remove
+  the fallback. Together with the exact-run region boundary layer below, the
+  current public axiom audit covers 762 declarations: 495 full-classical, 25
+  axiom-free, 117 `propext`-only, and 125 `propext`/`Quot.sound` boundaries;
+- added `SequentialFigure7RegionBoundaries.lean`, which isolates the two
+  disjointness facts that are actually valid for one already supplied
+  `FreshSourceLeftRun`. Its exact carrier is the stored trace together with the
+  terminal partner; Lean proves that this carrier cannot be a prior canonical
+  touch and, for the selected head's marked-core run, cannot be an old
+  `ExactMarkedOccurrenceOwner`. Both theorems deliberately take the exact run
+  as a premise, so they cannot be reversed to prove `NewGuard` sufficiency or
+  progress. The dedicated consumer also freezes two checker-accepted canonical
+  counterexamples: prior touch can overlap current ownership, and an authentic
+  event touch can remain raw-unmarked and outside the event's final-component
+  owned list. No global touch/owner disjointness or blanket historical-touch
+  absorption is claimed;
 - added `SequentialFigure7ReservationLedger.lean`, which records every
   successful initialization or canonical `new` as an unforgeable event and
   orders those events chronologically by immutable raw allocation age. Lean

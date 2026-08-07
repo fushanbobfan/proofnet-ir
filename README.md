@@ -286,8 +286,12 @@ complete source-left region. The structurally well-formed but
 switching-incorrect axiom/tensor triangle remains the boundary showing why
 scheduler history alone cannot prove this result. Under correctness, every
 dynamic blocker is now either a prior canonical touch or an exact old
-live-component owner. Excluding those two intersections in authentic
-certified histories remains the global obligation; progress remains separate.
+live-component owner. These are inclusive provenance classes, not disjoint
+global regions: authentic canonical states can contain a vertex that is both
+historically touched and currently owned, while other touched vertices remain
+raw-unmarked. The remaining obligation is therefore a local theorem excluding
+either blocker from the carrier of the particular current source-left run
+being constructed; progress remains separate.
 `SequentialFigure7TouchOrigin.lean` now makes the first remaining alternative
 proof-relevant rather than merely propositional. Every global canonical touch
 recovers one exact initialization or `new` event, its submitted axiom slot,
@@ -307,8 +311,35 @@ the selected active raw age is proved strictly smaller. Every canonical touch
 therefore reaches an authentic ledger event that itself touched the vertex.
 This historical index does not identify raw age with a union-find
 representative, make an old touch a current owner, prove distinct events remain
-distinct live components, exclude old/current region intersection, or imply
-dispatcher progress or completeness.
+distinct live components, or imply dispatcher progress or completeness. In
+particular, blanket old/current region disjointness is not an invariant; only
+the exact carrier of an already supplied current run has the needed
+tag/raw-mark separation.
+`SequentialFigure7ReservationRealization.lean` closes the narrower historical
+reservation/final-component bridge. Under explicit certificate structural
+well-formedness, every ledger event's immutable raw age is followed through all
+six canonical dispatcher branches to its current union-find representative.
+An event-specific `OccurrenceDerivation` for that
+live component still contains the event's exact submitted axiom-link slot;
+structural uniqueness of the derivation's owned occurrences aligns it with the
+final invariant forest, so both exact axiom endpoints lie in the same accounted
+owned list. A checker-accepted canonical init → new → general-unify fixture
+allocates raw ages 0 and 1, merges both to representative 0, and verifies that
+the two distinct axiom events share one final accounted component without
+claiming that they remain distinct live components. This bridge covers the
+reserved axiom and endpoints, not every vertex touched by the historical
+search, and proves no current-route exclusion or progress theorem.
+`SequentialFigure7RegionBoundaries.lean` kernel-checks that narrow converse
+boundary.  For a supplied `FreshSourceLeftRun`, every trace occurrence and the
+terminal partner is false-tagged on input, so it is not a prior canonical
+touch.  When the same run is over the selected head's marked core, that carrier
+is also disjoint from every pre-existing `ExactMarkedOccurrenceOwner`; the
+freshly marked selected head is handled separately.  Both theorems consume the
+exact run and therefore cannot be reversed to manufacture one from
+`NewGuard`.  Dedicated correct canonical fixtures freeze the two rejected
+global shortcuts: prior touch can overlap current ownership, and an authentic
+event touch can remain raw-unmarked and outside that event's final component
+owned list.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1711,9 +1742,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 726 declarations: 468 public MLL logical-boundary theorems
+ separately audits 762 declarations: 495 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
- axiom-free, 111 `propext`-only, and 122 `propext`/`Quot.sound` boundaries. LeanProp
+ axiom-free, 117 `propext`-only, and 125 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1803,6 +1834,8 @@ lake exe proofnet_ir_fresh_source_blocker_tests
 lake exe proofnet_ir_blocker_history_tests
 lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_reservation_ledger_tests
+lake exe proofnet_ir_reservation_realization_tests
+lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check
@@ -1890,6 +1923,8 @@ ProofNetIR/SequentialFigure7BlockerHistory.lean canonical-history blocker proven
 ProofNetIR/SequentialFigure7TerminalPartnerGeometry.lean correctness-based terminal-head exclusion
 ProofNetIR/SequentialFigure7TouchOrigin.lean exact historical touch-event provenance
 ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reservation history
+ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
+ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1913,6 +1948,8 @@ ProofNetIRFreshSourceBlockerTests.lean source-region blocker and public dichotom
 ProofNetIRBlockerHistoryTests.lean canonical blocker-provenance and conditional enabledness consumers
 ProofNetIRTouchOriginTests.lean exact canonical touch-origin consumer fixtures
 ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger consumers
+ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
+ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

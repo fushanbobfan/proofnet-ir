@@ -40,6 +40,13 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices",
     "ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event",
+    "ProofNetIR.CutFreeDerivation.reorder?_source_unique",
+    "ProofNetIR.Certificate.OccurrenceDerivation.owned_unique",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_realized",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_finalComponent",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoints_accounted",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched",
+    "ProofNetIR.SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner",
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",
     "ProofNetIR.Graph.IsTree.acyclic",
     "ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount",
@@ -529,6 +536,8 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.CutFreeDerivation.pick?_source_unique",
+    "ProofNetIR.SequentialFigure7.carrierFresh",
     "ProofNetIR.SequentialFigure7.ReservationSearchEvent.touched_sourceLeftRegion",
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_mem",
     "ProofNetIR.SequentialUnification.NextAxiomRoute.touched_sourceLeftRegion",

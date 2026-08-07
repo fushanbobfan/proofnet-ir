@@ -645,6 +645,27 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Chronological reservation realization"
+    declarations := [
+      `ProofNetIR.CutFreeDerivation.pick?_source_unique,
+      `ProofNetIR.CutFreeDerivation.reorder?_source_unique,
+      `ProofNetIR.Certificate.OccurrenceDerivation.owned_unique,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.RealizedIn,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_realized,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_finalComponent,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoints_accounted
+    ]
+  },
+  {
+    title := "Exact-run-local region boundaries"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,
+      `ProofNetIR.SequentialFigure7.carrierFresh,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched,
+      `ProofNetIR.SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner
+    ]
+  },
+  {
     title := "Shared sequential consumer index"
     declarations := [
       `ProofNetIR.ConsumerIndex,

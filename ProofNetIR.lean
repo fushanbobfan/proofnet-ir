@@ -58,6 +58,8 @@ import ProofNetIR.SequentialFigure7BlockerHistory
 import ProofNetIR.SequentialFigure7TerminalPartnerGeometry
 import ProofNetIR.SequentialFigure7TouchOrigin
 import ProofNetIR.SequentialFigure7ReservationLedger
+import ProofNetIR.SequentialFigure7RegionBoundaries
+import ProofNetIR.SequentialFigure7ReservationRealization
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

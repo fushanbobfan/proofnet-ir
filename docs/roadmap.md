@@ -1015,11 +1015,12 @@
   - [ ] Derive that universal no-obstruction premise for the relevant correct
     canonical/certified histories. Structural descent and reference-switching
     acyclicity now exclude return to the selected ready head throughout both
-    visited and terminal-partner regions. Separately exclude the two remaining
-    intersections: source region with prior touches, and source region with
-    existing live-component occurrence ownership. Only then bridge shallow
-    reachable `NewGuard` to `NewInputNecessary`. This is a geometric
-    history/correctness
+    visited and terminal-partner regions. Do not postulate blanket disjointness
+    between prior touches and existing ownership: real correct canonical
+    states refute it, and historical touches are not uniformly absorbed by the
+    reserving component. Instead exclude each blocker locally from the exact
+    candidate current route. Only then bridge shallow reachable `NewGuard` to
+    `NewInputNecessary`. This is a geometric history/correctness
     theorem, not a state-invariant field or an already-proved `NewGuard`
     sufficiency, progress, totality, or completeness result.
     Exact prior-touch provenance is now available: every touched vertex
@@ -1027,9 +1028,16 @@
     and historical source-left region. The chronological reservation ledger
     now indexes authentic events by every immutable raw age, reverses the
     legacy newest-first submitted-slot list, and maps each touch to an event
-    that really touched it. Next prove historical-reservation/final-component
-    realization and use it for the two remaining disjointness arguments;
-    ledger membership alone is not current ownership.
+    that really touched it. Historical-reservation/final-component realization
+    is now complete for the exact reserved axiom and both endpoints through
+    every dispatcher branch, including arbitrary-payload tensor union. Use this
+    anchor in the next finer route-intersection argument. Do not identify the
+    reserved endpoints with every vertex touched by the historical search;
+    ledger membership alone is not blanket current ownership.
+    The converse exact-run boundary is complete:
+    `SequentialFigure7RegionBoundaries.lean` proves that a supplied run carrier
+    is free of prior touches and old marked owners. This cannot be inverted to
+    establish the run needed by its premise.
   - [x] Add a deterministic finite search for an actually reachable
     `NewGuard` state where the real `new?` fails. The default CI gate follows
     successful initialization and the canonical dispatcher from every formula
@@ -1057,8 +1065,9 @@
     equal to the selected head: an exact source-to-partner path bypassing the
     tensor conclusion would close a cycle with the tensor's two fixed edges.
     Thus declarative correctness reduces the complete blocker classification
-    to prior-touch or old-component-owner alternatives. Those two
-    intersections remain open as separate history/geometry obligations.
+    to prior-touch or old-component-owner alternatives. Those alternatives may
+    overlap globally; their exclusion from a prospective current source-left
+    run remains the open history/geometry obligation.
     The canonical-history reservation-count commitment is complete. Generalize
     the remaining whole-history oriented-route commitment, establish
     unconditional full-rule reachability, progress, completeness of that

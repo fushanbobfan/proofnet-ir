@@ -676,8 +676,12 @@ reference path, excludes the selected tensor conclusion from that path by
 complexity, and closes a forbidden occurrence-aware cycle with the tensor's
 two fixed edges if the partner is the head. `DeclarativelyCorrect` packages
 the required acyclicity. The resulting full-region classifiers retain only
-prior canonical touch or old exact live-component ownership. They do not
-exclude either remaining historical intersection.
+prior canonical touch or old exact live-component ownership. Those alternatives
+are intentionally inclusive. A canonical reachable vertex may satisfy both,
+and a historical touch need not be owned by the component created by that
+touch's reservation. The next theorem must therefore reason about intersection
+with the exact current run carrier, not assert global disjointness or
+absorption between the two provenance classes.
 
 `SequentialFigure7TouchOrigin.lean` opens the prior-touch alternative without
 weakening its provenance. `SourceLeftChain.reachable_of_head_mem` and
@@ -700,19 +704,42 @@ the legacy newest-first `linkIndices`, and every `CanonicalTouchOrigin` maps to
 a ledger member that really touched the vertex. A local bridge also separates
 the old selected active age from the fresh reservation age by a strict
 inequality. This ledger is historical: it neither realizes an old reservation
-as a final live component nor turns event membership into current ownership or
-old/current region disjointness.
+as a final live component nor turns an arbitrary touched route vertex into
+current ownership. Raw event age, final representative, reserved axiom
+endpoints, and all vertices touched by the historical search remain four
+distinct notions.
+
+`SequentialFigure7ReservationRealization.lean` supplies the second missing
+piece for the reserved axiom itself.  Under explicit certificate structural
+well-formedness, an event-specific
+`OccurrenceDerivation` is transported across unchanged prefixes, fresh axiom
+append, par extension, tensor union, arbitrary waiting-par activation folds,
+and the complete canonical dispatcher.  It retains the event's exact submitted
+axiom slot at the live component indexed by the event raw age's current
+representative.  `OccurrenceDerivation.owned_unique` then aligns that
+event-specific derivation with the final invariant forest, so both exact axiom
+endpoints are in the same accounted owned list.  Different event raw ages may
+resolve to one final component, as the checker-accepted two-axiom tensor union
+consumer demonstrates.  This does not make all historical trace vertices
+owned, preserve one component per event, or solve current-route intersection.
 
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under
 correctness, the structural dichotomy yields a
 formula-budget `FreshSourceLeftRun`; existing route, queue-history, and capacity
-bridges then yield `NewInputNecessary` and input-only `NewEnabled`. The module
-does not derive this universal clear premise from declarative correctness or
-certified reachability. In particular, it does not prove shallow `NewGuard`
-sufficiency, dispatcher progress or totality, pure-worklist completeness,
-fallback removal, or a complexity bound.
+bridges then yield `NewInputNecessary` and input-only `NewEnabled`. Conversely,
+once an exact run is already supplied, its own input-false tags and
+raw-unmarked carrier separate it from prior touches and old marked owners.
+`SequentialFigure7RegionBoundaries.lean` exposes these two run-indexed
+theorems over `trace ∪ {partner}` and no larger structural region. That
+converse separation does not construct the run from shallow `NewGuard`, so it
+cannot be used circularly as the missing clear-premise proof. The companion
+consumer freezes both a correct canonical touch/owner overlap and a deeper
+correct initialization touch that remains unmarked and outside its event's
+final-component owned list. No
+dispatcher progress or totality, pure-worklist completeness, fallback removal,
+or complexity bound follows here.
 
 The root executable `ProofNetIRNewProgressAudit.lean` is a bounded
 falsification layer over that boundary. It never inserts arbitrary states:

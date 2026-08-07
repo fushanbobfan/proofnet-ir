@@ -473,7 +473,9 @@ not from scheduler history or an executable test. The structurally valid but
 switching-cyclic triangle therefore remains a meaningful negative boundary.
 Under this explicit acyclicity assumption, the complete-region blocker
 classifier contains only prior canonical touch or old exact live-component
-ownership; neither of those is trusted away.
+ownership; neither of those is trusted away. They are not assumed mutually
+exclusive: a private native-computed canonical fixture records their overlap
+as executable regression evidence, not as a public three-axiom theorem.
 `SequentialFigure7TouchOrigin.lean` adds no oracle to the prior-touch branch.
 It inducts only over the already proof-carrying `CanonicalTagHistory` and its
 stored initialization/dispatcher evidence. The recovered route and submitted
@@ -487,13 +489,28 @@ its raw-age, length, lookup, and submitted-slot equations are derived from the
 stored step equations. The `new` event uses the fresh pre-step `nextAge`, not
 the popped active age, and a separate theorem proves the latter strictly
 smaller. The touch bridge retains an event-membership and event-local `Touched`
-witness. It does not infer that raw age is a representative, that the event is
-a current component owner, or that historical regions are disjoint.
+witness. It does not infer that raw age is a representative, that every vertex
+touched by the event belongs to the reserved axiom component, or that
+historical provenance classes are disjoint.
+`SequentialFigure7ReservationRealization.lean` introduces no component oracle.
+Under the public theorems' explicit certificate structural-well-formedness
+premise, it inducts over the same proof-carrying canonical history and
+transports an event's exact submitted axiom membership through the typed
+production updates.
+For tensor union it obtains the other side from the already supplied
+`ComponentForestProvenance`; structural `OccurrenceDerivation.owned_unique`
+aligns the event-specific owned list with that final forest. The resulting
+endpoint-accounting theorem does not classify every historical trace vertex as
+owned and does not assume distinct events remain distinct components.
 An explicit universally quantified proof that the structural region contains
-neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`, then
-`NewInputNecessary`, and then `NewEnabled` through already-audited bridges. No
-theorem in this checkpoint manufactures that clear premise or derives it from
-correctness. Thus it adds no `NewGuard` sufficiency, reachable-state
+neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`,
+then `NewInputNecessary`, and then `NewEnabled` through already-audited
+bridges. Once a run is supplied, its input tag/raw-mark equations do separate
+its carrier from prior touches and old marked owners;
+`SequentialFigure7RegionBoundaries.lean` proves exactly those two facts over
+the run's trace plus terminal partner. That conditional fact does not
+manufacture the run or derive the clear premise from correctness.
+Thus it adds no `NewGuard` sufficiency, reachable-state
 exhaustiveness, progress, totality, pure-worklist completeness, fallback
 removal, or linearity claim.
 None of these local proofs establishes later-call totality, reachable-state
@@ -530,9 +547,9 @@ same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
 evidence, not public three-axiom theorems. The exact trust audit now
-covers 726 declarations: 468 use exactly
-`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 111 use exactly
-`[propext]`, and 122 use exactly `[propext, Quot.sound]`.
+covers 762 declarations: 495 use exactly
+`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 117 use exactly
+`[propext]`, and 125 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
