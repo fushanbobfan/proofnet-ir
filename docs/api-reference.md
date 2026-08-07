@@ -7551,6 +7551,44 @@ ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head : ∀ {c
       ¬ProofNetIR.SequentialUnification.SourceLeftReachable certificate guard.tensor.mate guard.head.vertex
 ```
 
+### `ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head`
+
+Kind: theorem.
+
+A terminal source-left axiom partner cannot be the currently selected ready
+head on a structurally well-formed proof net whose deterministic reference
+switching is acyclic.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    certificate.referenceSwitchingGraph.Acyclic →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {reached partner : ProofNetIR.Vertex}
+        {linkIndex : Nat},
+        ProofNetIR.SequentialUnification.SourceLeftReachable certificate guard.tensor.mate reached →
+          certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom reached partner) ∨
+              certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom partner reached) →
+            partner ≠ guard.head.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCorrect`
+
+Kind: theorem.
+
+Declarative proof-net correctness supplies the reference-switching
+acyclicity needed by `terminalPartner_ne_head`.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCorrect : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {reached partner : ProofNetIR.Vertex}
+      {linkIndex : Nat},
+      ProofNetIR.SequentialUnification.SourceLeftReachable certificate guard.tensor.mate reached →
+        certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom reached partner) ∨
+            certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom partner reached) →
+          partner ≠ guard.head.vertex
+```
+
 ## Canonical-history source-left obstructions
 
 ### `ProofNetIR.SequentialFigure7.NewGuard.mate_bound`
@@ -7714,6 +7752,89 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker : �
         ProofNetIR.SequentialUnification.FreshSourceBlocker certificate guard.head.markedCore before.tags
           guard.tensor.mate),
       ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction tagHistory guard blocker.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker_of_referenceAcyclic`
+
+Kind: theorem.
+
+Under reference-switching acyclicity, a raw-mark failure anywhere in the
+complete source-left region has an exact old live-component owner.  Structural
+descent handles recursively visited vertices; the switching-cycle argument
+handles the terminal axiom partner.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker_of_referenceAcyclic : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    certificate.referenceSwitchingGraph.Acyclic →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+        ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+          guard.head.markedCore.marks[vertex]? ≠ some none →
+            ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshBlocker_of_referenceAcyclic`
+
+Kind: theorem.
+
+With reference-switching acyclicity, every dynamic source-region failure
+is either an exact prior canonical touch or an exact old live-component owner;
+the selected-head alternative has been eliminated for both region forms.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshBlocker_of_referenceAcyclic : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    certificate.referenceSwitchingGraph.Acyclic →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+        ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+          before.tags[vertex]? ≠ some false ∨ guard.head.markedCore.marks[vertex]? ≠ some none →
+            tagHistory.Touched vertex ∨
+              ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker_of_referenceAcyclic`
+
+Kind: theorem.
+
+A complete fresh-source blocker on an acyclic reference switching has
+only historical tag-touch or exact old-component ownership provenance.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker_of_referenceAcyclic : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    certificate.referenceSwitchingGraph.Acyclic →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before)
+        (blocker :
+          ProofNetIR.SequentialUnification.FreshSourceBlocker certificate guard.head.markedCore before.tags
+            guard.tensor.mate),
+        tagHistory.Touched blocker.vertex ∨
+          ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core blocker.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker_of_declarativelyCorrect`
+
+Kind: theorem.
+
+Declarative correctness removes the selected-head branch from every
+complete source-left blocker classification.  Prior-touch and old-owner
+obstructions remain explicit and are not discharged here.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker_of_declarativelyCorrect : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before)
+        (blocker :
+          ProofNetIR.SequentialUnification.FreshSourceBlocker certificate guard.head.markedCore before.tags
+            guard.tensor.mate),
+        tagHistory.Touched blocker.vertex ∨
+          ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core blocker.vertex
 ```
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction`

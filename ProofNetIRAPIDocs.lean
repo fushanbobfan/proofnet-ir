@@ -578,7 +578,9 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.FreshSourceBlocker.prepend,
       `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker,
       `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable,
-      `ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head
+      `ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head,
+      `ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head,
+      `ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCorrect
     ]
   },
   {
@@ -593,6 +595,10 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshBlocker,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker_of_referenceAcyclic,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshBlocker_of_referenceAcyclic,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker_of_referenceAcyclic,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker_of_declarativelyCorrect,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction,

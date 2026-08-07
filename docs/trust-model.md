@@ -462,12 +462,20 @@ The selected-head visited-case refinement also adds no oracle. Its source-left
 rank and last-step lemmas are structural consequences of link typing, and the
 head-separation proof compares the exact last consumer with the selected
 tensor's unique consumer. It removes the selected-head alternative only for a
-recursive `visited` witness. The terminal axiom partner is not silently folded
-into that proof: structurally valid but switching-cyclic input can make it the
-head, so a later theorem must supply reference-switching acyclicity or
-declarative correctness.
+recursive `visited` witness.
+`SequentialFigure7TerminalPartnerGeometry.lean` supplies the deliberately
+separate proof for the terminal axiom partner. Its private helpers are ordinary
+kernel-checked constructions of exact directed occurrences, simple paths, and
+an `EdgeSimpleCycle`; its public theorem takes
+`referenceSwitchingGraph.Acyclic` explicitly. The declarative-correctness
+wrapper obtains that fact from `DeclarativelyCorrect.referenceSwitchingTree`,
+not from scheduler history or an executable test. The structurally valid but
+switching-cyclic triangle therefore remains a meaningful negative boundary.
+Under this explicit acyclicity assumption, the complete-region blocker
+classifier contains only prior canonical touch or old exact live-component
+ownership; neither of those is trusted away.
 An explicit universally quantified proof that the structural region contains
-none of those obstructions is sufficient to recover `FreshSourceLeftRun`, then
+neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`, then
 `NewInputNecessary`, and then `NewEnabled` through already-audited bridges. No
 theorem in this checkpoint manufactures that clear premise or derives it from
 correctness. Thus it adds no `NewGuard` sufficiency, reachable-state

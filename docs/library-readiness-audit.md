@@ -594,15 +594,17 @@ part of the engineering and proof-identity gap.
    fallback-removal, or complexity guarantee follows.
    `SequentialFigure7BlockerHistory.lean` now makes the history side of that
    boundary exact. Given authentic canonical tag history, the complete
-   invariant, and `NewGuard`, every tag blocker is a prior exact touch and every
-   raw blocker is either the selected ready-head update or an old raw-marked
-   occurrence with an occurrence-exact live-component owner. These three
-   `CanonicalSourceLeftObstruction` alternatives may overlap. A universal
-   premise excluding them throughout the source region yields the exact run,
-   `NewInputNecessary`, and `NewEnabled`; the premise itself remains unproved.
-   Library readiness therefore still requires the correctness/history theorem
-   that excludes all three forms (with the terminal partner handled explicitly)
-   before any shallow-guard sufficiency or progress claim. This checkpoint adds
+   invariant, and `NewGuard`, the base classifier gives a prior exact touch, the
+   selected ready-head update, or an old raw-marked occurrence with an
+   occurrence-exact live-component owner. Those three
+   `CanonicalSourceLeftObstruction` alternatives may overlap before correctness
+   geometry is supplied. The terminal geometry below now eliminates the
+   selected-head alternative throughout the complete region under declarative
+   correctness. A universal premise excluding the two remaining prior-touch
+   and old-owner intersections yields the exact run, `NewInputNecessary`, and
+   `NewEnabled`; that premise itself remains unproved. Library readiness
+   therefore still requires the history/component theorem excluding those two
+   forms before any shallow-guard sufficiency or progress claim. This checkpoint adds
    no totality, pure-worklist completeness, fallback-removal, or complexity
    guarantee and records no new literature reading.
    The first obstruction-elimination slice is now proved. Exact source-left
@@ -610,12 +612,15 @@ part of the engineering and proof-identity gap.
    visited route from the tensor mate cannot return to the selected ready head;
    the visited blocker classifier therefore contains only prior-touch or old
    exact-owner alternatives. The theorem is structural and non-circular, but
-   it does not apply to the terminal axiom partner. A structurally well-formed
-   switching-incorrect triangle shows that scheduler history and the invariant
-   alone cannot exclude `terminalPartner = head`; reference-switching
-   acyclicity or declarative correctness is genuinely necessary. The two
-   history/component intersections and that terminal case remain library
-   readiness gates.
+   it does not by itself apply to the terminal axiom partner. The new terminal
+   geometry layer now constructs the exact all-left reference path and proves
+   that `terminalPartner = head` would close an occurrence-aware cycle with
+   the selected tensor's fixed edges. Reference-switching acyclicity, and hence
+   declarative correctness, eliminates that final selected-head branch in both
+   tensor orientations. A structurally well-formed switching-incorrect triangle
+   remains the negative boundary showing the extra assumption is necessary.
+   The two prior-touch/old-owner history-component intersections remain the
+   library-readiness gates; terminal-head separation no longer is one.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher

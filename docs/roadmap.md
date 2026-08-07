@@ -1013,11 +1013,13 @@
     explicit universal no-obstruction premise yields the exact run, then
     `NewInputNecessary`, then `NewEnabled`, without assuming executor success.
   - [ ] Derive that universal no-obstruction premise for the relevant correct
-    canonical/certified histories. Separately exclude intersection of the
-    source region with prior touches, return to the selected ready head, and
-    intersection with existing live-component occurrence ownership; handle the
-    terminal axiom partner explicitly. Only then bridge shallow reachable
-    `NewGuard` to `NewInputNecessary`. This is a geometric history/correctness
+    canonical/certified histories. Structural descent and reference-switching
+    acyclicity now exclude return to the selected ready head throughout both
+    visited and terminal-partner regions. Separately exclude the two remaining
+    intersections: source region with prior touches, and source region with
+    existing live-component occurrence ownership. Only then bridge shallow
+    reachable `NewGuard` to `NewInputNecessary`. This is a geometric
+    history/correctness
     theorem, not a state-invariant field or an already-proved `NewGuard`
     sufficiency, progress, totality, or completeness result.
   - [x] Add a deterministic finite search for an actually reachable
@@ -1043,10 +1045,12 @@
     certified-reachable nonterminal states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
-    The selected-head blocker branch remains only for the terminal axiom
-    partner, whose exclusion must use reference-switching acyclicity or
-    declarative correctness. Prior-touch and old-component-owner intersections
-    remain open as separate history/geometry obligations.
+    Reference-switching geometry now also excludes a terminal axiom partner
+    equal to the selected head: an exact source-to-partner path bypassing the
+    tensor conclusion would close a cycle with the tensor's two fixed edges.
+    Thus declarative correctness reduces the complete blocker classification
+    to prior-touch or old-component-owner alternatives. Those two
+    intersections remain open as separate history/geometry obligations.
     The canonical-history reservation-count commitment is complete. Generalize
     the remaining whole-history oriented-route commitment, establish
     unconditional full-rule reachability, progress, completeness of that

@@ -275,14 +275,19 @@ last-step decomposition, and structural unique-consumer provenance proves that
 the recursive route from the selected tensor's mate cannot return to the
 selected ready head. Consequently a blocker at a recursively `visited`
 occurrence is now only a prior canonical touch or an exact old live-component
-owner. This does not eliminate the selected-head alternative for the terminal
-axiom partner: a structurally well-formed axiom/tensor triangle demonstrates
-that the partner may equal the head when switching correctness fails. The
-terminal case must therefore use reference-switching acyclicity or
-`DeclarativelyCorrect`, rather than scheduler history alone. The remaining
-global obligation is to exclude that terminal geometry, prior touches, and old
-live-component ownership from correct authentic certified histories. Progress
-remains separate.
+owner. `SequentialFigure7TerminalPartnerGeometry.lean` now handles the
+separate terminal-axiom case under the necessary proof-net assumption. It
+lifts the source-left route and terminal axiom to an exact simple path in the
+all-left reference switching; if the partner were the selected head, that
+path and the selected tensor's two fixed occurrences would form an
+occurrence-aware cycle. Thus reference-switching acyclicity—and therefore
+`DeclarativelyCorrect`—eliminates the selected-head alternative throughout the
+complete source-left region. The structurally well-formed but
+switching-incorrect axiom/tensor triangle remains the boundary showing why
+scheduler history alone cannot prove this result. Under correctness, every
+dynamic blocker is now either a prior canonical touch or an exact old
+live-component owner. Excluding those two intersections in authentic
+certified histories remains the global obligation; progress remains separate.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled

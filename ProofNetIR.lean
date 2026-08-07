@@ -55,6 +55,7 @@ import ProofNetIR.SequentialFigure7FreshCapacity
 import ProofNetIR.SequentialFigure7QueueHistory
 import ProofNetIR.SequentialFreshSourceBlocker
 import ProofNetIR.SequentialFigure7BlockerHistory
+import ProofNetIR.SequentialFigure7TerminalPartnerGeometry
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

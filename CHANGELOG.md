@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- added `SequentialFigure7TerminalPartnerGeometry.lean`, which closes the
+  remaining selected-head branch for the complete source-left region under
+  the exact proof-net assumption it needs. Lean lifts every stored-left step
+  and the terminal axiom to occurrence-exact directed edges in the all-left
+  reference switching, constructs a vertex-simple source-to-partner path that
+  avoids the selected tensor conclusion by formula-complexity descent, and
+  proves that any sibling-to-sibling bypass would close a simple multigraph
+  cycle with the tensor's two fixed occurrences. Consequently
+  `NewGuard.terminalPartner_ne_head` holds under reference-switching
+  acyclicity, with a `DeclarativelyCorrect` wrapper, in both stored tensor
+  orientations. The canonical blocker classifiers now reduce every dynamic
+  source-region failure—not only `visited` failures—to either a prior exact
+  canonical touch or an exact old live-component owner. Those two historical
+  intersections remain open. A compile-checked structurally well-formed but
+  switching-cyclic axiom/tensor triangle realizes `terminalPartner = head`,
+  confirming that acyclicity is necessary. This checkpoint proves no `NewGuard`
+  sufficiency, progress, totality, pure-worklist completeness, fallback
+  removal, or linearity and claims no new literature reading. The exact
+  public axiom audit now covers 738 declarations: 476 full-classical, 25
+  axiom-free, 112 `propext`-only, and 125 `propext`/`Quot.sound` boundaries;
 - added exact source-left descent and endpoint geometry for the selected ready
   head. `SourceLeftStep.formulaComplexity_lt` and
   `SourceLeftReachable.formulaComplexity_le` expose the structural rank
@@ -15,9 +35,9 @@
   not cover `SourceLeftRegionVertex.terminalPartner`; that partner can equal
   the head on structurally well-formed but switching-incorrect input, so its
   exclusion genuinely requires reference-switching acyclicity or declarative
-  correctness. Prior-touch and old-owner exclusion, terminal geometry,
-  progress, totality, pure-worklist completeness, fallback removal, and
-  linearity remain open. No new literature reading is claimed. The exact
+  correctness. At that checkpoint, prior-touch and old-owner exclusion,
+  terminal geometry, progress, totality, pure-worklist completeness, fallback
+  removal, and linearity remained open. No new literature reading is claimed. The exact
   public axiom audit now covers 732 declarations: 471 full-classical, 25
   axiom-free, 112 `propext`-only, and 124 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7BlockerHistory.lean`, which classifies every dynamic

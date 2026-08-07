@@ -669,14 +669,20 @@ tensor's opposite premise cannot revisit the selected ready head. The
 history-level `classifyVisitedFreshRawBlocker` and
 `classifyVisitedFreshBlocker` therefore remove the selected-head alternative
 on `visited` occurrences without assuming correctness or another search.
-They deliberately do not cover `terminalPartner`. A terminal partner can equal
-the head on structurally well-formed but switching-cyclic input, so that final
-case must be discharged by reference-switching acyclicity or declarative
-correctness.
+`SequentialFigure7TerminalPartnerGeometry.lean` discharges the distinct
+`terminalPartner` case once reference-switching acyclicity is supplied. It
+embeds exact source-left and terminal-axiom occurrences into a simple all-left
+reference path, excludes the selected tensor conclusion from that path by
+complexity, and closes a forbidden occurrence-aware cycle with the tensor's
+two fixed edges if the partner is the head. `DeclarativelyCorrect` packages
+the required acyclicity. The resulting full-region classifiers retain only
+prior canonical touch or old exact live-component ownership. They do not
+exclude either remaining historical intersection.
 
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
-proved free of all three obstruction forms, the structural dichotomy yields a
+proved free of the two remaining historical obstruction forms under
+correctness, the structural dichotomy yields a
 formula-budget `FreshSourceLeftRun`; existing route, queue-history, and capacity
 bridges then yield `NewInputNecessary` and input-only `NewEnabled`. The module
 does not derive this universal clear premise from declarative correctness or
