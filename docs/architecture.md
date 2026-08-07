@@ -689,6 +689,20 @@ one stored event witness carried by that tag augmentation, and
 reachability, and region membership. This does not relate that old event to a
 current component or raw age; those are separate ledger/realization layers.
 
+`SequentialFigure7ReservationLedger.lean` supplies the history layer's first
+of those two missing pieces. `ReservationEvent` is inductive over exact
+initialization and `NewStep` evidence, so callers cannot forge an event from a
+raw state or choose an unrelated search result. Folding those events through
+`CanonicalTagHistory` produces an oldest-first ledger whose raw-age projection
+is exactly `List.range final.stack.nextAge`; an allocated raw age therefore has
+an exact event lookup. Its chronological submitted slots are the reverse of
+the legacy newest-first `linkIndices`, and every `CanonicalTouchOrigin` maps to
+a ledger member that really touched the vertex. A local bridge also separates
+the old selected active age from the fresh reservation age by a strict
+inequality. This ledger is historical: it neither realizes an old reservation
+as a final live component nor turns event membership into current ownership or
+old/current region disjointness.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under

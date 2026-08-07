@@ -624,11 +624,17 @@ part of the engineering and proof-identity gap.
    `SequentialFigure7TouchOrigin.lean` now resolves the provenance shape of
    the first gate: every prior touch comes from one exact recorded init/new
    search and exposes its submitted axiom slot, oriented route, and complete
-   historical source-left region. It does not yet show that this old region is
-   disjoint from the current one, assign the event its immutable raw age, or
-   transport the historical reservation into a final live-component witness.
-   Those realization/disjointness facts, rather than touch provenance itself,
-   remain open.
+   historical source-left region. `SequentialFigure7ReservationLedger.lean`
+   now assigns those authentic events their exact chronological raw-age index:
+   the ledger projects to `List.range final.stack.nextAge`, exact age lookup succeeds,
+   chronological link slots reverse the legacy newest-first list, and every
+   touch reaches an event that itself touched the vertex. It also proves the
+   selected old active age is strictly below a `new` event's fresh age. The
+   remaining gate is no longer event indexing; it is transporting a historical
+   reservation into the appropriate final component/ownership witness and
+   proving the old reservation region disjoint from the current source region.
+   Raw age is not a representative, and historical event membership is not
+   current ownership.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher

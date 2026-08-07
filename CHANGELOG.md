@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ReservationLedger.lean`, which records every
+  successful initialization or canonical `new` as an unforgeable event and
+  orders those events chronologically by immutable raw allocation age. Lean
+  proves that the age projection is exactly the range of the final stack's
+  `nextAge`, every
+  in-bounds age indexes an event of that same age, and the event link slots are
+  exactly the reverse of the legacy newest-first `linkIndices`. A separate
+  theorem proves that a `new` step's popped active age is strictly older than
+  its fresh event age. Global canonical touches now select an exact ledger
+  event whose own search touched the vertex. This remains historical
+  provenance: it does not identify ages with later representatives, infer a
+  current owner, preserve distinct components across unions, establish final
+  reservation realization, exclude old/current region intersections, prove
+  progress, or remove the recursive fallback. A dedicated consumer is in the
+  default build and CI runtime matrix. The exact public axiom audit now covers
+  753 declarations: 488 full-classical, 25 axiom-free, 115 `propext`-only,
+  and 125 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7TouchOrigin.lean`, which reifies every global
   `CanonicalTagHistory.Touched` witness as one exact historical initialization
   or canonical `new` search. Lean recovers the submitted axiom-link position,
@@ -11,7 +28,7 @@
   does not infer a current live-component owner, attach raw token ages to
   events, exclude overlap with the current search region, prove progress, or
   remove the recursive fallback. A dedicated downstream consumer is part of
-  the default build and CI runtime matrix. The exact public axiom audit now
+  the default build and CI runtime matrix. At that checkpoint, the exact audit
   covers 742 declarations: 478 full-classical, 25 axiom-free, 114
   `propext`-only, and 125 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7TerminalPartnerGeometry.lean`, which closes the

@@ -1024,9 +1024,12 @@
     sufficiency, progress, totality, or completeness result.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
-    and historical source-left region. Next index those reservation events by
-    immutable raw age and prove the historical-reservation/final-component
-    realization needed for the two remaining disjointness arguments.
+    and historical source-left region. The chronological reservation ledger
+    now indexes authentic events by every immutable raw age, reverses the
+    legacy newest-first submitted-slot list, and maps each touch to an event
+    that really touched it. Next prove historical-reservation/final-component
+    realization and use it for the two remaining disjointness arguments;
+    ledger membership alone is not current ownership.
   - [x] Add a deterministic finite search for an actually reachable
     `NewGuard` state where the real `new?` fails. The default CI gate follows
     successful initialization and the canonical dispatcher from every formula

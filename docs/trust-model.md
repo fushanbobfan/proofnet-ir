@@ -480,6 +480,15 @@ stored initialization/dispatcher evidence. The recovered route and submitted
 slot are fields of those exact typed steps, while source-region membership is
 derived structurally from the stored route. No executable replay, unchecked
 choice of event, current-owner inference, or raw-age assumption is introduced.
+`SequentialFigure7ReservationLedger.lean` adds no event oracle. Its only event
+constructors store an exact `InitialReservationStep` or `NewStep`; its
+oldest-first chronology is an inductive fold over `CanonicalTagHistory`, and
+its raw-age, length, lookup, and submitted-slot equations are derived from the
+stored step equations. The `new` event uses the fresh pre-step `nextAge`, not
+the popped active age, and a separate theorem proves the latter strictly
+smaller. The touch bridge retains an event-membership and event-local `Touched`
+witness. It does not infer that raw age is a representative, that the event is
+a current component owner, or that historical regions are disjoint.
 An explicit universally quantified proof that the structural region contains
 neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`, then
 `NewInputNecessary`, and then `NewEnabled` through already-audited bridges. No

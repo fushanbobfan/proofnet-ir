@@ -8008,6 +8008,322 @@ ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationRegion : ∀ {certi
             certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom partner reached))
 ```
 
+## Chronological raw-age reservation ledger
+
+### `ProofNetIR.SequentialFigure7.ReservationSearchEvent`
+
+Kind: inductive type.
+
+Uniform proof-relevant view of one successful reservation search.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationSearchEvent : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationSearchEvent.linkIndex`
+
+Kind: definition.
+
+The submitted axiom-link position of this exact search.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationSearchEvent.linkIndex : {certificate : ProofNetIR.Certificate} → ProofNetIR.SequentialFigure7.ReservationSearchEvent certificate → Nat
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationSearchEvent.Touched`
+
+Kind: definition.
+
+Vertices touched by this exact search.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationSearchEvent.Touched : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialFigure7.ReservationSearchEvent certificate → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationSearchEvent.ofInitial`
+
+Kind: definition.
+
+The exact initial reservation witness as a uniform search event.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationSearchEvent.ofInitial : {certificate : ProofNetIR.Certificate} →
+  {after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {start : ProofNetIR.Vertex} →
+      ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start →
+        ProofNetIR.SequentialFigure7.ReservationSearchEvent certificate
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationSearchEvent.ofNew`
+
+Kind: definition.
+
+The exact search inside a successful operational `new` event.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationSearchEvent.ofNew : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewStep certificate before after →
+      ProofNetIR.SequentialFigure7.ReservationSearchEvent certificate
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationSearchEvent.touched_sourceLeftRegion`
+
+Kind: theorem.
+
+Every touched vertex lies in this event's complete historical source-left
+region, including the returned terminal partner.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationSearchEvent.touched_sourceLeftRegion : ∀ {certificate : ProofNetIR.Certificate} (event : ProofNetIR.SequentialFigure7.ReservationSearchEvent certificate)
+  {vertex : ProofNetIR.Vertex},
+  event.Touched vertex → ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate event.start vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent`
+
+Kind: inductive type.
+
+One exact successful raw-age allocation event.
+
+The constructors retain the complete operational witness, preventing the
+raw age, source, route, or submitted slot from being detached from the event
+that actually allocated it.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent : ProofNetIR.Certificate → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.rawAge`
+
+Kind: definition.
+
+Immutable raw age assigned when this event reserved its token.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.rawAge : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialFigure7.ReservationEvent certificate → ProofNetIR.SequentialSchedulerState.RawTokenAge
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.activeRawAge_lt_reservationRawAge`
+
+Kind: theorem.
+
+The ready occurrence consumed by a successful `new` carries a strictly
+older active raw age than the fresh reservation event allocated by that
+step.  This compares immutable allocation ages, not union-find
+representatives.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.activeRawAge_lt_reservationRawAge : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  step.stackResult.rawAge < (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.search`
+
+Kind: definition.
+
+Exact dependent search retained by this reservation event.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.search : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialFigure7.ReservationEvent certificate →
+    ProofNetIR.SequentialFigure7.ReservationSearchEvent certificate
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.start`
+
+Kind: definition.
+
+Source occurrence from which this event ran `NEXTAXIOM`.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.start : {certificate : ProofNetIR.Certificate} → ProofNetIR.SequentialFigure7.ReservationEvent certificate → ProofNetIR.Vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.linkIndex`
+
+Kind: definition.
+
+Submitted axiom-link position reserved by this event.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.linkIndex : {certificate : ProofNetIR.Certificate} → ProofNetIR.SequentialFigure7.ReservationEvent certificate → Nat
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.Touched`
+
+Kind: definition.
+
+Vertices touched by this exact historical event.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.Touched : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialFigure7.ReservationEvent certificate → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.touched_sourceLeftRegion`
+
+Kind: theorem.
+
+An event touch retains its exact historical source-left region.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.touched_sourceLeftRegion : ∀ {certificate : ProofNetIR.Certificate} (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate)
+  {vertex : ProofNetIR.Vertex},
+  event.Touched vertex → ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate event.start vertex
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.reservationEvents`
+
+Kind: definition.
+
+The chronological reservation events contributed by one dispatcher
+step.  Only the `new` branch contributes an event.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.reservationEvents : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult} →
+      ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result →
+        List (ProofNetIR.SequentialFigure7.ReservationEvent certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.range_append_reservationEvents`
+
+Kind: theorem.
+
+Appending one dispatch event's allocations to the prior raw-age prefix
+produces exactly the result state's allocation prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.range_append_reservationEvents : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  List.range before.stack.nextAge ++
+      List.map ProofNetIR.SequentialFigure7.ReservationEvent.rawAge evidence.reservationEvents =
+    List.range result.after.stack.nextAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger`
+
+Kind: definition.
+
+All initialization and `new` reservation events, oldest first.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        List (ProofNetIR.SequentialFigure7.ReservationEvent certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_rawAges`
+
+Kind: theorem.
+
+The ledger's raw ages are exactly `0, ..., nextAge - 1` in chronological
+order.  This is an allocation-history fact, not a representative invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_rawAges : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  List.map ProofNetIR.SequentialFigure7.ReservationEvent.rawAge tagHistory.reservationLedger =
+    List.range state.stack.nextAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_length`
+
+Kind: theorem.
+
+Ledger length agrees exactly with the final raw-age horizon.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_length : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  tagHistory.reservationLedger.length = state.stack.nextAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_getElem?_rawAge`
+
+Kind: theorem.
+
+Looking up an allocated raw age returns an event carrying exactly that
+allocation-time age.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_getElem?_rawAge : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+  rawAge < state.stack.nextAge →
+    Option.map ProofNetIR.SequentialFigure7.ReservationEvent.rawAge tagHistory.reservationLedger[rawAge]? = some rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_eventAtRawAge`
+
+Kind: theorem.
+
+Every allocated raw age selects a concrete event at that chronological
+ledger position.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_eventAtRawAge : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  (rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+  rawAge < state.stack.nextAge → ∃ event, tagHistory.reservationLedger[rawAge]? = some event ∧ event.rawAge = rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices`
+
+Kind: theorem.
+
+Chronological ledger slots are the reverse of the legacy newest-first
+submitted-slot history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  List.map ProofNetIR.SequentialFigure7.ReservationEvent.linkIndex tagHistory.reservationLedger =
+    tagHistory.linkIndices.reverse
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event`
+
+Kind: theorem.
+
+An exact touch origin selects a concrete chronological ledger event whose
+own search touched the vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history} {vertex : ProofNetIR.Vertex}
+  (origin : ProofNetIR.SequentialFigure7.CanonicalTouchOrigin certificate tagHistory vertex),
+  ∃ event, event ∈ tagHistory.reservationLedger ∧ event.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event`
+
+Kind: theorem.
+
+Every global canonical touch is carried by a concrete event in the
+chronological reservation ledger.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history) {vertex : ProofNetIR.Vertex},
+  tagHistory.Touched vertex → ∃ event, event ∈ tagHistory.reservationLedger ∧ event.Touched vertex
+```
+
 ## Shared sequential consumer index
 
 ### `ProofNetIR.ConsumerIndex`

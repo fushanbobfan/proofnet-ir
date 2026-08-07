@@ -296,6 +296,19 @@ vertex in that event's complete region. This is historical search provenance:
 it does not assign the event a raw token age, identify the touched vertex with
 a current live-component owner, or prove that the old region is disjoint from
 the current search.
+`SequentialFigure7ReservationLedger.lean` now adds the missing chronological
+index without weakening that provenance. Its `ReservationEvent` constructors
+accept only authentic `InitialReservationStep` and `NewStep` witnesses; the
+resulting oldest-first ledger has raw ages exactly
+`List.range state.stack.nextAge`, supports exact lookup at every allocated raw
+age, and has submitted link indices equal to the older newest-first history
+list reversed. For `new`, the event age is the fresh pre-step `nextAge`, while
+the selected active raw age is proved strictly smaller. Every canonical touch
+therefore reaches an authentic ledger event that itself touched the vertex.
+This historical index does not identify raw age with a union-find
+representative, make an old touch a current owner, prove distinct events remain
+distinct live components, exclude old/current region intersection, or imply
+dispatcher progress or completeness.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1789,6 +1802,7 @@ lake exe proofnet_ir_queue_history_tests
 lake exe proofnet_ir_fresh_source_blocker_tests
 lake exe proofnet_ir_blocker_history_tests
 lake exe proofnet_ir_touch_origin_tests
+lake exe proofnet_ir_reservation_ledger_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check
@@ -1873,6 +1887,9 @@ ProofNetIR/SequentialFigure7FreshCapacity.lean history-indexed fresh terminal al
 ProofNetIR/SequentialFigure7QueueHistory.lean exact axiom-endpoint queue history and route-input equivalence
 ProofNetIR/SequentialFreshSourceBlocker.lean structural run-or-dynamic-blocker classification
 ProofNetIR/SequentialFigure7BlockerHistory.lean canonical-history blocker provenance and conditional elimination
+ProofNetIR/SequentialFigure7TerminalPartnerGeometry.lean correctness-based terminal-head exclusion
+ProofNetIR/SequentialFigure7TouchOrigin.lean exact historical touch-event provenance
+ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reservation history
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1894,6 +1911,8 @@ ProofNetIRFreshCapacityTests.lean fresh terminal capacity consumer fixture
 ProofNetIRQueueHistoryTests.lean exact axiom-endpoint queue and history-indexed enabledness fixtures
 ProofNetIRFreshSourceBlockerTests.lean source-region blocker and public dichotomy fixtures
 ProofNetIRBlockerHistoryTests.lean canonical blocker-provenance and conditional enabledness consumers
+ProofNetIRTouchOriginTests.lean exact canonical touch-origin consumer fixtures
+ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger consumers
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

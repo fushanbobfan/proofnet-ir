@@ -47,6 +47,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_fresh_source_blocker_tests
           ~/.elan/bin/lake exe proofnet_ir_blocker_history_tests
           ~/.elan/bin/lake exe proofnet_ir_touch_origin_tests
+          ~/.elan/bin/lake exe proofnet_ir_reservation_ledger_tests
           ~/.elan/bin/lake exe proofnet_ir_new_region_tests
       - name: Search reachable Figure-7 new guards for executor misses
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit

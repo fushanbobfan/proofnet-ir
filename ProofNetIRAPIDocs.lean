@@ -616,6 +616,35 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Chronological raw-age reservation ledger"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ReservationSearchEvent,
+      `ProofNetIR.SequentialFigure7.ReservationSearchEvent.linkIndex,
+      `ProofNetIR.SequentialFigure7.ReservationSearchEvent.Touched,
+      `ProofNetIR.SequentialFigure7.ReservationSearchEvent.ofInitial,
+      `ProofNetIR.SequentialFigure7.ReservationSearchEvent.ofNew,
+      `ProofNetIR.SequentialFigure7.ReservationSearchEvent.touched_sourceLeftRegion,
+      `ProofNetIR.SequentialFigure7.ReservationEvent,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.rawAge,
+      `ProofNetIR.SequentialFigure7.NewStep.activeRawAge_lt_reservationRawAge,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.search,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.start,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.linkIndex,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.Touched,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.touched_sourceLeftRegion,
+      `ProofNetIR.SequentialFigure7.DispatchTagEvidence.reservationEvents,
+      `ProofNetIR.SequentialFigure7.DispatchTagEvidence.range_append_reservationEvents,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_rawAges,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_length,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_getElem?_rawAge,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_eventAtRawAge,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices,
+      `ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event
+    ]
+  },
+  {
     title := "Shared sequential consumer index"
     declarations := [
       `ProofNetIR.ConsumerIndex,

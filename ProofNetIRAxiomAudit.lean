@@ -215,6 +215,17 @@ expansion.
 #print axioms SequentialUnification.NextAxiomRoute.touched_sourceLeftRegion
 #print axioms SequentialFigure7.CanonicalTagHistory.touched_nonempty_origin
 #print axioms SequentialFigure7.CanonicalTouchOrigin.reservationRegion
+#print axioms SequentialFigure7.ReservationSearchEvent.touched_sourceLeftRegion
+#print axioms SequentialFigure7.ReservationEvent.touched_sourceLeftRegion
+#print axioms SequentialFigure7.NewStep.activeRawAge_lt_reservationRawAge
+#print axioms SequentialFigure7.DispatchTagEvidence.range_append_reservationEvents
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_rawAges
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_length
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_getElem?_rawAge
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_eventAtRawAge
+#print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices
+#print axioms SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event
+#print axioms SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event
 #print axioms ConsumerIndex.build_size
 #print axioms ConsumerIndex.build_origin
 #print axioms ConsumerIndex.build_complete
