@@ -208,6 +208,15 @@ expansion.
 #print axioms SequentialFigure7.NewGuard.tensorConclusion_not_owned
 #print axioms SequentialFigure7.ReadyHeadInput.activeComponent
 #print axioms SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active
+#print axioms SequentialFigure7.FutureWorkAt.mem_queued
+#print axioms SequentialFigure7.FutureWorkAt.rawAge_mem_sigma
+#print axioms SequentialFigure7.FutureWorkAt.rawAge_lt_nextAge
+#print axioms SequentialFigure7.FutureWorkAt.representative_eq_rawAge
+#print axioms SequentialFigure7.ReadyHeadInput.futureWorkAt
+#print axioms SequentialFigure7.SourceLeftRegionsDisjoint.symm
+#print axioms SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt
+#print axioms SequentialFigure7.empty_olderSourceRegionSeparated
+#print axioms SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker

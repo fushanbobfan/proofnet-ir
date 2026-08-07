@@ -20,6 +20,13 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_owned",
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.activeComponent",
     "ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active",
+    "ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_mem_sigma",
+    "ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_nextAge",
+    "ProofNetIR.SequentialFigure7.FutureWorkAt.representative_eq_rawAge",
+    "ProofNetIR.SequentialFigure7.ReadyHeadInput.futureWorkAt",
+    "ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt",
+    "ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated",
+    "ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker",
@@ -541,6 +548,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.symm",
     "ProofNetIR.CutFreeDerivation.pick?_source_unique",
     "ProofNetIR.SequentialFigure7.carrierFresh",
     "ProofNetIR.SequentialFigure7.ReservationSearchEvent.touched_sourceLeftRegion",
@@ -660,6 +668,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.FutureWorkAt.mem_queued",
     "ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head",
     "ProofNetIR.SequentialUnification.SourceLeftStep.formulaComplexity_lt",
     "ProofNetIR.SequentialUnification.SourceLeftReachable.formulaComplexity_le",

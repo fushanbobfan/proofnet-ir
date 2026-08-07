@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CrossRepresentativeInvariant.lean`. The new
+  `FutureWorkAt` relation retains either an exact common `sigma`/`ready`
+  position or an exact initialized waiting cell, and the complete scheduler
+  invariant proves that every such boundary is live, allocated, and a root of
+  the current ordered union-find. `FutureNewCandidateAt` adds the exact tensor
+  consumer and currently raw-unmarked mate. The history-indexed
+  `OlderSourceRegionSeparated` compares a chronological reservation event with
+  a future candidate only under strict order of their *current*
+  representatives; it deliberately contains neither immutable raw-age order
+  nor a symmetric representative-inequality condition. Lean establishes the
+  predicate for the exact empty history and every successful initialization,
+  and an event-local touch is immediately excluded from a strictly newer
+  candidate region. A dedicated consumer and CI target cover the public API.
+  This is the invariant foundation, not yet its six-rule preservation:
+  `concl`, `nop`, `new`, `wait`, `forward`, arbitrary-payload `unify`,
+  same-representative tag-only touch exclusion, exhaustive enabledness,
+  progress, pure-worklist completeness, recursive fallback removal, faithful
+  token-age scheduling, and whole-program complexity remain open. The exact
+  public axiom audit now covers 782 declarations: 507 full-classical, 25
+  axiom-free, 118 `propext`-only, and 132 `propext`/`Quot.sound` boundaries;
 - added `SequentialComponentReferenceGeometry.lean` and
   `SequentialFigure7SameRepresentativeGeometry.lean`. Exact occurrence
   derivations now connect any two component-owned vertices inside the
@@ -20,7 +40,8 @@
   touches, cross-representative separation and its six-rule preservation,
   exhaustive enabledness, progress, pure-worklist completeness, recursive
   fallback removal, faithful token-age scheduling, and whole-program
-  complexity remain open. The exact public axiom audit now covers 773
+  complexity remain open. At that checkpoint the exact public axiom audit
+  covered 773
   declarations: 500 full-classical, 25 axiom-free, 117 `propext`-only, and 131
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ReservationRealization.lean`, which, under explicit

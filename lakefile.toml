@@ -17,6 +17,7 @@ defaultTargets = [
   "proofnet_ir_reservation_ledger_tests",
   "proofnet_ir_region_boundaries_tests",
   "proofnet_ir_same_representative_geometry_tests",
+  "proofnet_ir_cross_representative_invariant_tests",
   "proofnet_ir_reservation_realization_tests",
   "proofnet_ir_new_region_tests",
   "proofnet_ir_new_enabled_import_tests",
@@ -86,6 +87,10 @@ root = "ProofNetIRRegionBoundariesTests"
 [[lean_exe]]
 name = "proofnet_ir_same_representative_geometry_tests"
 root = "ProofNetIRSameRepresentativeGeometryTests"
+
+[[lean_exe]]
+name = "proofnet_ir_cross_representative_invariant_tests"
+root = "ProofNetIRCrossRepresentativeInvariantTests"
 
 [[lean_exe]]
 name = "proofnet_ir_reservation_realization_tests"

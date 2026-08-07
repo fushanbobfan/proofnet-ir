@@ -62,6 +62,7 @@ import ProofNetIR.SequentialFigure7ReservationLedger
 import ProofNetIR.SequentialFigure7RegionBoundaries
 import ProofNetIR.SequentialFigure7ReservationRealization
 import ProofNetIR.SequentialFigure7SameRepresentativeGeometry
+import ProofNetIR.SequentialFigure7CrossRepresentativeInvariant
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

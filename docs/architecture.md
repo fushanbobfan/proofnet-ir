@@ -709,6 +709,29 @@ current ownership. Raw event age, final representative, reserved axiom
 endpoints, and all vertices touched by the historical search remain four
 distinct notions.
 
+`SequentialFigure7CrossRepresentativeInvariant.lean` defines the exact
+future-work side of the next history invariant. A ready occurrence retains the
+same list position in `sigma` and `ready`; a waiting occurrence retains the
+exact initialized waiting cell. `WaitingSpanExact` prevents an arbitrary
+initialized but semantically dead cell from entering the live boundary set.
+Consequently every `FutureWorkAt` boundary belongs to `sigma`, is below the
+allocation horizon, and is a current union-find root. A
+`FutureNewCandidateAt` additionally retains its exact tensor-below witness and
+the opposite premise's raw-unmarked lookup.
+
+The history-indexed `OlderSourceRegionSeparated` quantifies over exact members
+of the chronological reservation ledger. Its antecedent is
+`representative event.rawAge < representative candidate.rawAge` in the
+*current* production state. It neither compares immutable allocation ages nor
+requires disjointness for a candidate below an event in current component
+order. The consequent separates the two complete structural source-left
+regions, including terminal partners. Empty history is vacuous; after exact
+initialization every candidate boundary and the only event occupy the same
+representative, so the strict antecedent is impossible. This foundation does
+not yet prove preservation by later Figure-7 transitions. In particular, new
+ready/waiting conclusions created by `new`, `wait`, `forward`, and `unify`
+require genuine region-disjointness arguments, not merely field transport.
+
 `SequentialFigure7ReservationRealization.lean` supplies the second missing
 piece for the reserved axiom itself.  Under explicit certificate structural
 well-formedness, an event-specific

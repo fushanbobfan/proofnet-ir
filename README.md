@@ -355,9 +355,25 @@ representative. The proof uses `SchedulerInvariant`, exact component
 provenance, `NewGuard`, and declarative reference-switching acyclicity; it does
 not use an exact-run premise or its converse. This closes the
 same-representative raw-mark obstruction only. Tag-only historical touches,
-strictly older/different representatives, preservation of the planned
-cross-representative region invariant, exhaustive enabledness, progress,
-pure-worklist completeness, fallback removal, and complexity remain open.
+strictly older representatives, preservation of the cross-representative
+region invariant, exhaustive enabledness, progress, pure-worklist
+completeness, fallback removal, and complexity remain open.
+`SequentialFigure7CrossRepresentativeInvariant.lean` now fixes the next
+invariant's exact domain without treating flattened queue membership as a
+boundary witness. `FutureWorkAt` covers every position-indexed ready bucket and
+every semantically live initialized waiting payload; under
+`SchedulerInvariant`, its boundary belongs to `sigma`, lies below `nextAge`,
+and is a root of the current ordered union-find. `FutureNewCandidateAt` adds an
+exact tensor consumer and input-unmarked mate. The history-indexed
+`OlderSourceRegionSeparated` requires an old reservation event's complete
+source-left region to be disjoint from a candidate region only when the
+event's *current representative* is strictly below the candidate boundary's
+current representative. It contains no immutable raw-age ordering and no
+symmetric different-component claim. Lean proves the invariant for the exact
+empty history and every exact initialization, and exposes the direct
+older-event-touch elimination lemma. Preservation through `concl`, `nop`,
+`new`, `wait`, `forward`, and arbitrary-payload `unify`, same-representative
+tag-only touch exclusion, exhaustive enabledness, and progress remain open.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1944,6 +1960,7 @@ ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reserva
 ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
+ProofNetIR/SequentialFigure7CrossRepresentativeInvariant.lean future-work and strictly older representative source-region invariant
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1971,6 +1988,7 @@ ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
+ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

@@ -18180,6 +18180,215 @@ ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_
             before.core.representative rawAge ≠ before.core.representative guard.head.rawAge
 ```
 
+## Cross-representative source-left invariant
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt`
+
+Kind: inductive type.
+
+One occurrence currently stored as future scheduler work at an exact
+raw-age boundary.
+
+The ready constructor keeps the common positional index into `sigma` and
+`ready`; the waiting constructor keeps the exact initialized waiting cell.
+This avoids recovering a boundary from flattened queue membership.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.mem_queued`
+
+Kind: theorem.
+
+Every precisely indexed future-work occurrence belongs to the flattened
+executable queue.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.mem_queued : ∀ {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt state rawAge vertex → vertex ∈ state.stack.queuedVertices
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_mem_sigma`
+
+Kind: theorem.
+
+Under the complete scheduler invariant, every future-work boundary is a
+current `sigma` boundary.  Waiting work uses its exact semantic span rather
+than treating an arbitrary initialized storage cell as live work.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_mem_sigma : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt state rawAge vertex →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state → rawAge ∈ state.stack.sigma
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_nextAge`
+
+Kind: theorem.
+
+Every future-work boundary lies below the allocated raw-age horizon.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_nextAge : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt state rawAge vertex →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state → rawAge < state.stack.nextAge
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.representative_eq_rawAge`
+
+Kind: theorem.
+
+A live scheduler boundary is a root of the current ordered union-find.
+
+This is a current-state representative fact.  It does not identify the
+boundary with every immutable raw age in its interval.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.representative_eq_rawAge : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt state rawAge vertex →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      state.core.representative rawAge = rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.futureWorkAt`
+
+Kind: theorem.
+
+The currently selected ready head is one precisely indexed future-work
+occurrence at the active boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.futureWorkAt : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.FutureWorkAt before input.rawAge input.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.FutureNewCandidateAt`
+
+Kind: inductive type.
+
+A currently queued occurrence whose exact tensor consumer could select a
+future Figure-7 `new` once that occurrence becomes the active ready head.
+
+This record stores no executor result, exact source-left run, output state,
+history, or reachability witness.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureNewCandidateAt : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Type
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.futureNewCandidateAt`
+
+Kind: definition.
+
+A shallow `NewGuard` is the active instance of the broader future-new
+candidate view.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.futureNewCandidateAt : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewGuard certificate before →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint`
+
+Kind: definition.
+
+The complete structural source-left regions rooted at two starts share no
+occurrence, including either region's terminal axiom partner.
+
+```lean
+ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.symm`
+
+Kind: theorem.
+
+Structural source-region disjointness is symmetric.
+
+```lean
+ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.symm : ∀ {certificate : ProofNetIR.Certificate} {firstStart secondStart : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint certificate firstStart secondStart →
+    ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint certificate secondStart firstStart
+```
+
+### `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated`
+
+Kind: inductive type.
+
+Every historical reservation region whose current representative is
+strictly older than a future candidate's current representative is disjoint
+from that candidate's complete source-left region.
+
+The strict order is exclusively a current union-find order.  No immutable
+raw-age comparison is part of this invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt`
+
+Kind: theorem.
+
+A touch of a strictly older reservation event cannot occur in the
+candidate's source-left region.  This is the direct tag-only use of the
+history-indexed separation invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated tagHistory →
+    ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger →
+        ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state),
+          state.core.representative event.rawAge < state.core.representative candidate.rawAge →
+            ∀ {vertex : ProofNetIR.Vertex},
+              event.Touched vertex →
+                ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate candidate.tensor.mate vertex → False
+```
+
+### `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated`
+
+Kind: theorem.
+
+The exact empty canonical history has no reservation event and therefore
+satisfies cross-representative separation vacuously.
+
+```lean
+ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated ProofNetIR.SequentialFigure7.CanonicalTagHistory.empty
+```
+
+### `ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated`
+
+Kind: theorem.
+
+One exact initialization has a singleton reservation ledger and a single
+live boundary, so the strict current-representative premise is impossible.
+
+```lean
+ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated (ProofNetIR.SequentialFigure7.CanonicalTagHistory.init step)
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

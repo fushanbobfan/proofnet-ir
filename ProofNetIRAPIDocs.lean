@@ -1401,6 +1401,25 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Cross-representative source-left invariant"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.FutureWorkAt,
+      `ProofNetIR.SequentialFigure7.FutureWorkAt.mem_queued,
+      `ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_mem_sigma,
+      `ProofNetIR.SequentialFigure7.FutureWorkAt.rawAge_lt_nextAge,
+      `ProofNetIR.SequentialFigure7.FutureWorkAt.representative_eq_rawAge,
+      `ProofNetIR.SequentialFigure7.ReadyHeadInput.futureWorkAt,
+      `ProofNetIR.SequentialFigure7.FutureNewCandidateAt,
+      `ProofNetIR.SequentialFigure7.NewGuard.futureNewCandidateAt,
+      `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint,
+      `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.symm,
+      `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt,
+      `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated
+    ]
+  },
+  {
     title := "Serialization and untrusted input"
     declarations := [
       `ProofNetIR.ParseError,
