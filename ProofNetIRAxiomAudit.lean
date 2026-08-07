@@ -185,6 +185,11 @@ expansion.
 #print axioms SequentialUnification.FreshSourceLeftRun.traceFresh
 #print axioms SequentialUnification.FreshSourceLeftRun.traceReady
 #print axioms SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute_nonempty
+#print axioms SequentialUnification.SourceLeftRegionVertex.prepend
+#print axioms SequentialUnification.SourceLeftRegionVertex.inBounds
+#print axioms SequentialUnification.FreshSourceBlocker.prepend
+#print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker
+#print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable
 #print axioms ConsumerIndex.build_size
 #print axioms ConsumerIndex.build_origin
 #print axioms ConsumerIndex.build_complete

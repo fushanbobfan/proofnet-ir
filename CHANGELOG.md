@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFreshSourceBlocker.lean`, which makes the source-left
+  obstruction boundary exact. For every structurally well-formed certificate
+  and in-bounds start, Lean now produces either a formula-budget
+  `FreshSourceLeftRun` or a nonempty `FreshSourceBlocker`. Its
+  `SourceLeftRegionVertex` covers every recursively visited stored-left source
+  occurrence and the other endpoint of the terminal submitted axiom. The only
+  blockers are dynamic input failures: the selected occurrence's tag lookup is
+  not `some false`, or its raw-mark lookup is not `some none`. Missing or
+  non-singleton source incidence, malformed link shape, and fuel exhaustion are
+  discharged from `StructurallyWellFormed` rather than admitted as blockers.
+  `SourceLeftRegionVertex.inBounds` keeps every blocker inside the formula
+  carrier, and `freshSourceLeftRun_of_regionAvailable` exposes the exact next
+  proof interface: uniform tag/raw-mark availability on that region eliminates
+  the blocker branch and yields a run.
+  This local structural classification assumes no scheduler history or
+  correctness and proves no blocker exclusion, queue separation, fresh
+  capacity, enabledness, reachability, progress, totality, worklist
+  completeness, fallback removal, or whole-program complexity;
 - added `Certificate.StructurallyWellFormed.links_length_le_formulas_size` and
   the history-indexed `CanonicalTagHistory.fresh_terminal_capacity`. An exact
   current-tag `FreshSourceLeftRun` supplies one submitted terminal axiom slot
@@ -23,8 +41,8 @@
   states under structural well-formedness. The exact route remains an explicit
   premise; no theorem makes shallow `NewGuard` sufficient or proves dispatcher
   progress, totality, pure-worklist completeness, fallback removal, or
-  linearity. The exact public axiom audit now covers 712 declarations: 458
-  full-classical, 25 axiom-free, 108 `propext`-only, and 121
+  linearity. The exact public axiom audit now covers 717 declarations: 460
+  full-classical, 25 axiom-free, 110 `propext`-only, and 122
   `propext`/`Quot.sound` boundaries;
 - added the separate `FutureWaitingUndefined` storage invariant. It states that
   every in-bounds waiting cell at or beyond the allocated raw-age horizon is

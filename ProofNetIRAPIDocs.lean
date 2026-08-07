@@ -566,6 +566,18 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Structural fresh source-left blockers"
+    declarations := [
+      `ProofNetIR.SequentialUnification.SourceLeftRegionVertex,
+      `ProofNetIR.SequentialUnification.SourceLeftRegionVertex.prepend,
+      `ProofNetIR.SequentialUnification.SourceLeftRegionVertex.inBounds,
+      `ProofNetIR.SequentialUnification.FreshSourceBlocker,
+      `ProofNetIR.SequentialUnification.FreshSourceBlocker.prepend,
+      `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker,
+      `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable
+    ]
+  },
+  {
     title := "Shared sequential consumer index"
     declarations := [
       `ProofNetIR.ConsumerIndex,

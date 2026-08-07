@@ -128,8 +128,15 @@ derives strict fresh capacity for that exact run; an exact axiom-endpoint
 queue-history theorem derives both post-pop endpoint absences without claiming
 that arbitrary queued connective conclusions are tagged. Hence canonical and
 certified histories prove `NewEnabled ↔ NewInputNecessary` while retaining the
-exact route as an explicit premise. A correctness-to-route/blocker-exclusion
-theorem is still open. Ownership
+exact route as an explicit premise. The implementation now classifies every
+structurally well-formed in-bounds source-left search as either a
+formula-budget exact run or a nonempty tag/raw-mark blocker on a visited
+stored-left occurrence or the terminal axiom partner. Source shape,
+singletonhood, and fuel are discharged structurally; queue separation and
+fresh capacity remain post-run. Excluding those exact blockers from correct
+canonical histories is still open. This checkpoint is an implementation
+consequence of the already-audited source semantics and does not record a new
+literature reading. Ownership
 through a complete reachable transition
 system, richer route/tag/slot history commitments, later-state totality,
 progress, and pure-worklist completeness remain open.

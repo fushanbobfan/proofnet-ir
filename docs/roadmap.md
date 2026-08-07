@@ -995,11 +995,21 @@
     `NewEnabled ↔ NewInputNecessary`. Keep the endpoint restriction explicit:
     stable rules may enqueue untagged connective conclusions, and the exact
     route remains an input premise.
-  - [ ] Define a structural source-left region and an exact blocker witness;
-    prove `FreshSourceLeftRun` or a tag/raw-mark blocker at adequate fuel, then
-    exclude every blocker using declarative correctness plus canonical history.
-    This is the next route from shallow reachable `NewGuard` to
-    `NewInputNecessary`; do not fold progress into the state invariant.
+  - [x] Define the structural source-left region and exact blocker witness.
+    Under `StructurallyWellFormed` and an in-bounds start, prove either a
+    formula-budget `FreshSourceLeftRun` or a nonempty `FreshSourceBlocker`.
+    The region contains every recursively visited stored-left occurrence and
+    the terminal axiom partner; the blocker is exactly a tag lookup different
+    from `some false` or raw-mark lookup different from `some none`. Discharge
+    source shape/singletonhood and fuel structurally. Keep endpoint queue
+    separation and fresh capacity after the run, outside this classification.
+    Expose the exact elimination bridge from uniform region tag/raw-mark
+    availability to the positive run branch.
+  - [ ] Exclude every `FreshSourceBlocker` for the relevant correct canonical
+    histories, then use the resulting exact run to bridge shallow reachable
+    `NewGuard` to `NewInputNecessary`. This is a history/correctness theorem,
+    not a state-invariant field or an already-proved progress, totality, or
+    completeness result.
   - [x] Add a deterministic finite search for an actually reachable
     `NewGuard` state where the real `new?` fails. The default CI gate follows
     successful initialization and the canonical dispatcher from every formula

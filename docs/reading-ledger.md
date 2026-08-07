@@ -155,14 +155,21 @@ hash of the unaltered original PDF.
   induction proves both terminal axiom endpoints absent from the post-pop
   queue. Thus canonical/certified histories upgrade exact-route
   `NewInputNecessary` to `NewEnabled`; arbitrary queued connective conclusions
-  are not claimed tagged. The remaining gap is to derive the exact route/run,
-  or exclude a precise tag/raw-mark blocker, from every correct reachable
-  shallow `NewGuard`. The separate pure
+  are not claimed tagged. The implementation now sharpens the remaining gap:
+  structural well-formedness and an in-bounds start yield either a
+  formula-budget exact run or a nonempty blocker on a visited stored-left
+  occurrence or the terminal axiom partner, and that blocker is exactly a tag
+  or raw-mark availability failure. Source shape, singletonhood, and fuel are
+  therefore structural rather than dynamic obstructions. This is a code-level
+  consequence of the already-read source semantics, not a new literature
+  reading. Excluding the exact blocker from every relevant correct canonical
+  history remains open, and queue separation plus fresh capacity remain
+  downstream of the positive run. The separate pure
   `UnifyPayloadEnabled` predicate plus the full invariant proves
   conditional arbitrary-payload applicability. Deriving that predicate for the
   selected reachable branch, ownership across an unconditional complete
-  transition system, the remaining source-region safety law, later-state
-  totality, and scheduler progress/completeness remain open.
+  transition system, the exact blocker exclusion, later-state totality, and
+  scheduler progress/completeness remain open.
 - The v0.9 eager repeated-scan implementation is therefore source-faithful at
   the Figure-5 rule level but does not claim Theorem 16's linear bound.
 

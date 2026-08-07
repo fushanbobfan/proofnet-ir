@@ -626,6 +626,26 @@ true current tag, contradicting run freshness. It derives both post-pop
 queue-absence fields and upgrades `NewInputNecessary` to `NewEnabled` on a
 canonical history; certified dispatcher reachability packages the same
 equivalence. Arbitrary queued occurrences are not classified as tagged.
+
+`SequentialFreshSourceBlocker.lean` sits below those history-indexed bridges.
+`SourceLeftRegionVertex` is the structurally determined carrier of one search:
+it contains every recursively visited stored-left vertex and additionally the
+other endpoint of the terminal submitted axiom. `FreshSourceBlocker` chooses
+one such occurrence and records exactly one dynamic availability failure: its
+input tag lookup is not `some false`, or its raw-mark lookup is not
+`some none`. For every structurally well-formed certificate and in-bounds
+start, `freshSourceLeftRun_or_blocker` returns either a formula-budget
+`FreshSourceLeftRun` or a nonempty blocker. Structural link shape, source-index
+singletonhood, and sufficient fuel are therefore discharged before the
+scheduler/history layer. The theorem does not inspect canonical history or
+declarative correctness, and it neither excludes the blocker nor proves queue
+absence, fresh capacity, enabledness, reachability, progress, totality, or
+completeness. Queue and capacity remain downstream obligations after the exact
+run has been obtained. The companion `freshSourceLeftRun_of_regionAvailable`
+corollary makes the remaining interface explicit: a future history theorem may
+close the gap by proving freshness and raw-unmarkedness for every region
+occurrence, without changing the structural classifier.
+
 The root executable `ProofNetIRNewProgressAudit.lean` is a bounded
 falsification layer over that boundary. It never inserts arbitrary states:
 each path begins with `initializeReservation?` and recursively applies the

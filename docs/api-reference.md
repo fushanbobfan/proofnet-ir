@@ -7361,6 +7361,129 @@ ProofNetIR.SequentialUnification.FreshSourceLeftRun.toFreshSourceLeftRoute_nonem
     Nonempty (ProofNetIR.SequentialFigure7.FreshSourceLeftRoute certificate state tags start)
 ```
 
+## Structural fresh source-left blockers
+
+### `ProofNetIR.SequentialUnification.SourceLeftRegionVertex`
+
+Kind: inductive type.
+
+One occurrence in the structurally determined source-left region.
+
+`visited` covers the recursively visited route. `terminalPartner` additionally
+includes the other endpoint of the terminal submitted axiom, which is checked
+by `NEXTAXIOM` even though it is not a trace vertex.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftRegionVertex : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftRegionVertex.prepend`
+
+Kind: theorem.
+
+Prepending one exact stored-left source step transports every region
+vertex, including a terminal partner, to the enlarged source region.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftRegionVertex.prepend : ∀ {certificate : ProofNetIR.Certificate} {source next vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate next vertex →
+    ProofNetIR.SequentialUnification.SourceLeftStep certificate source next →
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate source vertex
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftRegionVertex.inBounds`
+
+Kind: theorem.
+
+Every vertex in a structurally well-formed source-left region belongs to
+the certificate formula carrier.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftRegionVertex.inBounds : ∀ {certificate : ProofNetIR.Certificate} {start vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate start vertex →
+    certificate.StructurallyWellFormed → start < certificate.formulas.size → vertex < certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceBlocker`
+
+Kind: inductive type.
+
+An exact source-region occurrence whose input tag or raw mark prevents a
+fresh source-left run.  The disjunction is intentionally dynamic: structural
+missing-source, source multiplicity, malformed incidence, and fuel exhaustion
+are eliminated by `freshSourceLeftRun_or_blocker` rather than represented as
+blockers.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceBlocker : ProofNetIR.Certificate → ProofNetIR.UnificationState → Array Bool → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialUnification.FreshSourceBlocker.prepend`
+
+Kind: definition.
+
+A blocker in the recursive region remains a blocker after one exact
+stored-left source step is prepended.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceBlocker.prepend : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.UnificationState} →
+    {tags : Array Bool} →
+      {source next : ProofNetIR.Vertex} →
+        ProofNetIR.SequentialUnification.FreshSourceBlocker certificate state tags next →
+          ProofNetIR.SequentialUnification.SourceLeftStep certificate source next →
+            ProofNetIR.SequentialUnification.FreshSourceBlocker certificate state tags source
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker`
+
+Kind: theorem.
+
+An in-bounds source-left start is classified exactly at the dynamic
+boundary: either the formula-budget proof-relevant run exists, or an explicit
+visited/terminal-partner region occurrence fails its input tag or raw-mark
+guard.
+
+This theorem does not assert that blockers are absent in scheduler-reachable
+states, and therefore is not a progress, totality, or worklist-completeness
+theorem.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {tags : Array Bool}
+  {start : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    start < certificate.formulas.size →
+      (∃ trace reached partner linkIndex,
+          Nonempty
+            (ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state certificate.formulas.size tags start
+              trace reached partner linkIndex)) ∨
+        Nonempty (ProofNetIR.SequentialUnification.FreshSourceBlocker certificate state tags start)
+```
+
+### `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable`
+
+Kind: theorem.
+
+If every structurally determined source-region occurrence is fresh and
+raw-unmarked in the input carrier, the blocker branch is impossible and the
+formula-budget exact run exists.  Later scheduler work may use this theorem by
+proving region availability from authentic history; no such history fact is
+assumed here.
+
+```lean
+ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {tags : Array Bool}
+  {start : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    start < certificate.formulas.size →
+      (∀ {vertex : ProofNetIR.Vertex},
+          ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate start vertex →
+            tags[vertex]? = some false ∧ state.marks[vertex]? = some none) →
+        ∃ trace reached partner linkIndex,
+          Nonempty
+            (ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state certificate.formulas.size tags start
+              trace reached partner linkIndex)
+```
+
 ## Shared sequential consumer index
 
 ### `ProofNetIR.ConsumerIndex`

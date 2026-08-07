@@ -248,9 +248,18 @@ structural well-formedness, canonical history, and an exact current-tag run.
 `SequentialFigure7QueueHistory.lean` derives both endpoint-queue facts from
 that same history. The latter theorem is deliberately restricted to endpoints
 of the exact terminal axiom: stable rules may enqueue untagged connective
-conclusions. The remaining global obligation is to derive the exact
-source-left route/run, or exclude a precise blocker, from every correct
-certified-reachable shallow `NewGuard`; progress remains separate.
+conclusions. `SequentialFreshSourceBlocker.lean` now discharges the purely
+structural half of the remaining search obligation: structural well-formedness
+and an in-bounds start produce either the exact formula-budget run or a named
+source-region occurrence whose input tag is not `some false` or raw mark is
+not `some none`. The region contains every stored-left trace vertex and the
+terminal axiom partner. Source shape, singleton incidence, termination,
+`Nodup`, and fuel adequacy are therefore not classified as dynamic blockers.
+The companion region-availability corollary yields a run once a later history
+theorem supplies freshness/readiness for every region occurrence; it does not
+itself supply or assume that history theorem.
+The remaining global obligation is to exclude these exact dynamic blockers
+from every correct canonical/certified history; progress remains separate.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -319,7 +328,10 @@ excludes both endpoints from the post-pop queue. It follows that canonical
 history plus `SchedulerInvariant` upgrades `NewInputNecessary` to `NewEnabled`,
 and certified dispatcher reachability gives the same equivalence under
 structural well-formedness. These results still assume the exact route in
-`NewInputNecessary`; they do not make `NewGuard` sufficient or prove progress.
+`NewInputNecessary`. The separate structural run-or-blocker theorem removes
+source shape and fuel from that open gap, but it does not exclude a tag/raw-mark
+blocker from authentic histories, make `NewGuard` sufficient, or prove
+progress.
 `SequentialFigure7NewEnabled.lean` remains the historical facade and
 re-exports the prior direct-import priority surface; two compile-only default
 targets lock the facade and narrow-priority import surfaces. This
@@ -1650,9 +1662,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 712 declarations: 458 public MLL logical-boundary theorems
+ separately audits 717 declarations: 460 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
- axiom-free, 108 `propext`-only, and 121 `propext`/`Quot.sound` boundaries. LeanProp
+ axiom-free, 110 `propext`-only, and 122 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1738,6 +1750,7 @@ lake exe proofnet_ir_tag_history_count_tests
 lake exe proofnet_ir_new_region_tests
 lake exe proofnet_ir_fresh_capacity_tests
 lake exe proofnet_ir_queue_history_tests
+lake exe proofnet_ir_fresh_source_blocker_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check
@@ -1820,6 +1833,7 @@ ProofNetIR/SequentialFigure7NewEnabledCore.lean acyclic input-only new applicabi
 ProofNetIR/SequentialFigure7NewRegion.lean structural route reconstruction and source-region new bridge
 ProofNetIR/SequentialFigure7FreshCapacity.lean history-indexed fresh terminal allocation capacity
 ProofNetIR/SequentialFigure7QueueHistory.lean exact axiom-endpoint queue history and route-input equivalence
+ProofNetIR/SequentialFreshSourceBlocker.lean structural run-or-dynamic-blocker classification
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1839,6 +1853,7 @@ ProofNetIRTagHistoryCountTests.lean canonical reservation-event count consumer f
 ProofNetIRNewRegionTests.lean structural route/run and source-region bridge regressions
 ProofNetIRFreshCapacityTests.lean fresh terminal capacity consumer fixture
 ProofNetIRQueueHistoryTests.lean exact axiom-endpoint queue and history-indexed enabledness fixtures
+ProofNetIRFreshSourceBlockerTests.lean source-region blocker and public dichotomy fixtures
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

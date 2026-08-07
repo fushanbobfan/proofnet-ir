@@ -68,6 +68,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.Certificate.StructurallyWellFormed.intrinsicTraversalComplete",
     "ProofNetIR.Certificate.StructurallyWellFormed.intrinsicOrderedLinks_perm",
     "ProofNetIR.Certificate.StructurallyWellFormed.links_length_le_formulas_size",
+    "ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker",
+    "ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable",
     "ProofNetIR.Certificate.ProofNetEquivalent.intrinsicCanonicalize_eq",
     "ProofNetIR.Certificate.StructurallyWellFormed.intrinsicCanonicalize_proofNetEquivalent",
     "ProofNetIR.Certificate.proofNetEquivalent_iff_intrinsicCanonicalize_eq_of_check",
@@ -514,6 +516,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftChain",
     "ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceFresh",
     "ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceReady",
+    "ProofNetIR.SequentialUnification.SourceLeftRegionVertex.prepend",
+    "ProofNetIR.SequentialUnification.FreshSourceBlocker.prepend",
     "ProofNetIR.Certificate.linkLeftRetainedEdges_lookup_origin",
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
     "ProofNetIR.LeanProp.Assumptions.split_append",
@@ -609,6 +613,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialUnification.SourceLeftRegionVertex.inBounds",
     "ProofNetIR.Certificate.StructurallyWellFormed.axiomEndpoint_ne_connectiveConclusion",
     "ProofNetIR.SequentialFigure7.PreparedStep.after_queued_subset_before",
     "ProofNetIR.SequentialFigure7.PrependWaitingStep.mem_queuedVertices_iff",

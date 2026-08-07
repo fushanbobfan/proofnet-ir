@@ -53,6 +53,7 @@ import ProofNetIR.SequentialFigure7NewEnabled
 import ProofNetIR.SequentialFigure7TagHistory
 import ProofNetIR.SequentialFigure7FreshCapacity
 import ProofNetIR.SequentialFigure7QueueHistory
+import ProofNetIR.SequentialFreshSourceBlocker
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

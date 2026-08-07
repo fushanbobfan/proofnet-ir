@@ -580,6 +580,18 @@ part of the engineering and proof-identity gap.
    dispatcher reachability therefore packages
    `NewEnabled ↔ NewInputNecessary` under structural well-formedness, while the
    exact route remains assumed.
+   `SequentialFreshSourceBlocker.lean` now removes one ambiguity from that
+   remaining route obligation. Under `StructurallyWellFormed` and an in-bounds
+   start, the source-left search has either a formula-budget exact run or an
+   inhabited blocker on a recursively visited stored-left occurrence or the
+   terminal axiom partner. The blocker vocabulary is complete and deliberately
+   narrow: only tag lookup different from `some false` or raw-mark lookup
+   different from `some none`. Source shape, source singletonhood, and adequate
+   fuel are discharged structurally. This is not yet a library-level progress
+   result: no theorem excludes blockers from correct canonical histories, and
+   endpoint queue absence plus fresh capacity are still downstream of the
+   positive run. No new reachability, enabledness, totality, completeness,
+   fallback-removal, or complexity guarantee follows.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -697,10 +709,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 712 declarations: 458 public MLL
+- CI now parses `#print axioms` for 717 declarations: 460 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
-  108 `propext`-only, and 121 `propext`/`Quot.sound` boundaries;
+  110 `propext`-only, and 122 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

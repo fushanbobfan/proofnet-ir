@@ -433,6 +433,20 @@ canonical history plus the complete invariant proves the history-indexed
 `NewEnabled ↔ NewInputNecessary`, and certified reachability packages the same
 result. The exact route remains part of `NewInputNecessary`; no oracle supplies
 it from `NewGuard`.
+`SequentialFreshSourceBlocker.lean` adds no oracle or history assumption. Its
+structural dichotomy starts only from `StructurallyWellFormed` and an in-bounds
+source occurrence. The positive branch is a formula-budget
+`FreshSourceLeftRun`; the negative branch is an inhabited
+`FreshSourceBlocker` whose occurrence lies on the stored-left visited region or
+is the terminal axiom partner. The blocker records only a tag lookup different
+from `some false` or a raw-mark lookup different from `some none`. Source-link
+shape, source-index singletonhood, and fuel exhaustion are kernel-discharged
+structural obligations, not trusted failure constructors. The dichotomy does
+not use declarative correctness, scheduler history, or reachability, does not
+exclude either dynamic blocker, and does not manufacture the downstream queue
+absence or capacity evidence required by `NewEnabled`. Consequently it adds no
+progress, totality, pure-worklist completeness, fallback-removal, or complexity
+claim.
 None of these local proofs establishes later-call totality, reachable-state
 exhaustiveness, progress, pure-worklist completeness, fallback removal, or
 linearity.
@@ -467,9 +481,9 @@ same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
 evidence, not public three-axiom theorems. The exact trust audit now
-covers 712 declarations: 458 use exactly
-`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 108 use exactly
-`[propext]`, and 121 use exactly `[propext, Quot.sound]`.
+covers 717 declarations: 460 use exactly
+`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 110 use exactly
+`[propext]`, and 122 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
