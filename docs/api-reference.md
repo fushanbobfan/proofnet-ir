@@ -241,6 +241,74 @@ ProofNetIR.Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split : ∀ {gra
       ∀ (vertex : ProofNetIR.Vertex), vertex ∈ incoming.vertices → vertex ∈ outgoing.vertices → vertex = outgoing.start
 ```
 
+### `ProofNetIR.Graph.SimpleWalk.restrictWithSubset`
+
+Kind: theorem.
+
+Restrict a duplicate-free walk to a visited endpoint while retaining the
+fact that every surviving vertex came from the original visited list.
+
+```lean
+ProofNetIR.Graph.SimpleWalk.restrictWithSubset : ∀ {graph : ProofNetIR.Graph} {start finish vertex : ProofNetIR.Vertex} {steps : Nat} {visited : List ProofNetIR.Vertex},
+  graph.SimpleWalk start steps visited finish →
+    vertex ∈ visited →
+      ∃ restrictedSteps restricted,
+        graph.SimpleWalk start restrictedSteps restricted vertex ∧
+          ∀ (candidate : ProofNetIR.Vertex), candidate ∈ restricted → candidate ∈ visited
+```
+
+### `ProofNetIR.Graph.EdgeWalk.toSimpleWalkWithSubset`
+
+Kind: theorem.
+
+Loop-erase one exact edge walk while retaining that every surviving
+vertex occurred in the original exact traversal.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.toSimpleWalkWithSubset : ∀ {graph : ProofNetIR.Graph} {start finish : ProofNetIR.Vertex} {traversed : List graph.DirectedEdge},
+  graph.EdgeWalk start traversed finish →
+    ∃ steps visited,
+      graph.SimpleWalk start steps visited finish ∧
+        ∀ (vertex : ProofNetIR.Vertex),
+          vertex ∈ visited → vertex ∈ ProofNetIR.Graph.EdgeWalk.visitedVertices start traversed
+```
+
+### `ProofNetIR.Graph.EdgeWalk.toEdgeSimplePathWithVerticesSubset`
+
+Kind: theorem.
+
+Turn an exact edge walk into a simple exact path without introducing any
+new visited vertex.  Edge values are lifted back into the same graph; clients
+must not infer preservation of a particular parallel-edge index.
+
+```lean
+ProofNetIR.Graph.EdgeWalk.toEdgeSimplePathWithVerticesSubset : ∀ {graph : ProofNetIR.Graph} {start finish : ProofNetIR.Vertex} {traversed : List graph.DirectedEdge},
+  graph.EdgeWalk start traversed finish →
+    ∃ path,
+      path.start = start ∧
+        path.finish = finish ∧
+          ∀ (vertex : ProofNetIR.Vertex),
+            vertex ∈ path.vertices → vertex ∈ ProofNetIR.Graph.EdgeWalk.visitedVertices start traversed
+```
+
+### `ProofNetIR.Graph.EdgeSimplePath.connectEraseAvoiding`
+
+Kind: theorem.
+
+Connect two exact simple paths at a shared endpoint and loop-erase the
+result while preserving avoidance of one forbidden vertex.  The resulting
+path is occurrence-aware, but it need not reuse the same stored parallel-edge
+indices as the two inputs.
+
+```lean
+ProofNetIR.Graph.EdgeSimplePath.connectEraseAvoiding : ∀ {graph : ProofNetIR.Graph} (first second : graph.EdgeSimplePath),
+  first.finish = second.start →
+    ∀ {forbidden : ProofNetIR.Vertex},
+      ¬forbidden ∈ first.vertices →
+        ¬forbidden ∈ second.vertices →
+          ∃ path, path.start = first.start ∧ path.finish = second.finish ∧ ¬forbidden ∈ path.vertices
+```
+
 ### `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq`
 
 Kind: theorem.
@@ -5788,6 +5856,25 @@ ProofNetIR.Certificate.ComponentOccurrenceWitness.ofQueueTensorStep : ∀ {certi
                               step.rightComponent.tree,
                           frontier := conclusion :: (step.leftContext ++ step.rightContext) }
                         (linkIndex :: (leftUsed ++ rightUsed)) (conclusion :: (leftOwned ++ rightOwned))
+```
+
+### `ProofNetIR.Certificate.ComponentOccurrenceWitness.referencePath_within_owned`
+
+Kind: theorem.
+
+Any two exact occurrences owned by one live component are joined in the
+deterministic reference switching by a simple path whose every visited vertex
+remains owned by that component.
+
+```lean
+ProofNetIR.Certificate.ComponentOccurrenceWitness.referencePath_within_owned : ∀ {certificate : ProofNetIR.Certificate} {component : ProofNetIR.UnificationComponent} {usedLinks owned : List Nat},
+  certificate.ComponentOccurrenceWitness component usedLinks owned →
+    ∀ {first second : ProofNetIR.Vertex},
+      first ∈ owned →
+        second ∈ owned →
+          ∃ path,
+            path.start = first ∧
+              path.finish = second ∧ ∀ (vertex : ProofNetIR.Vertex), vertex ∈ path.vertices → vertex ∈ owned
 ```
 
 ### `ProofNetIR.Certificate.ComponentForestProvenance.queueTensorStep_of_roots_fresh`
@@ -17980,6 +18067,117 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_iff_inp
     certificate.StructurallyWellFormed →
       (ProofNetIR.SequentialFigure7.NewEnabled certificate state ↔
         ProofNetIR.SequentialFigure7.NewInputNecessary certificate state)
+```
+
+## Same-representative source-left geometry
+
+### `ProofNetIR.SequentialFigure7.sourceLeftRegionVertex_referencePath_avoiding`
+
+Kind: theorem.
+
+Every structurally determined source-left-region vertex is reachable in the
+reference switching by a simple path which avoids any strictly more complex,
+distinct forbidden vertex.  This packages both recursively visited vertices and
+the terminal submitted-axiom partner.
+
+```lean
+ProofNetIR.SequentialFigure7.sourceLeftRegionVertex_referencePath_avoiding : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {start vertex forbidden : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate start vertex →
+        certificate.formulaComplexityAt start < certificate.formulaComplexityAt forbidden →
+          vertex ≠ forbidden → ∃ path, path.start = start ∧ path.finish = vertex ∧ ¬forbidden ∈ path.vertices
+```
+
+### `ProofNetIR.SequentialFigure7.referenceAcyclic_no_tensorBypass`
+
+Kind: theorem.
+
+A simple sibling-to-sibling path avoiding a submitted tensor's conclusion,
+together with the two fixed tensor occurrences, contradicts reference
+switching acyclicity.
+
+```lean
+ProofNetIR.SequentialFigure7.referenceAcyclic_no_tensorBypass : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    certificate.referenceSwitchingGraph.Acyclic →
+      ∀ {left right conclusion : ProofNetIR.Vertex},
+        ProofNetIR.Link.tensor left right conclusion ∈ certificate.links →
+          ∀ (path : certificate.referenceSwitchingGraph.EdgeSimplePath),
+            path.start = left → path.finish = right → ¬conclusion ∈ path.vertices → False
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_produced`
+
+Kind: theorem.
+
+The selected tensor conclusion has not yet been observably produced.
+
+If it had, ProducedPremisesMarked would raw-mark both submitted premises,
+contradicting the input guard's exact unmarked mate.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_produced : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ¬ProofNetIR.SequentialSchedulerBridge.Produced before guard.tensor.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_owned`
+
+Kind: theorem.
+
+The selected tensor conclusion is absent from every exact owned list whose
+live component lookup and ownership accounting are supplied.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_owned : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ {index : Nat} {component : ProofNetIR.UnificationComponent} {owned : List ProofNetIR.Vertex},
+      before.core.components[index]? = some (some component) →
+        ProofNetIR.Certificate.OwnedOccurrenceAccounted before.core index component owned →
+          ¬guard.tensor.conclusion ∈ owned
+```
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadInput.activeComponent`
+
+Kind: theorem.
+
+Exact live-component provenance for the active ready head.
+
+The result packages the raw component lookup, its occurrence derivation and
+owned-occurrence accounting, ownership of the selected head, and the fact that
+the active sigma boundary is a union-find root.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadInput.activeComponent : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (input : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∃ component usedLinks owned,
+      before.core.components[input.rawAge]? = some (some component) ∧
+        certificate.ComponentOccurrenceWitness component usedLinks owned ∧
+          ProofNetIR.Certificate.OwnedOccurrenceAccounted before.core input.rawAge component owned ∧
+            input.vertex ∈ owned ∧ before.core.representative input.rawAge = input.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active`
+
+Kind: theorem.
+
+A concrete input raw mark anywhere in the selected mate's complete
+structural source-left region cannot have the active ready head's current
+representative.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex}
+        {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+        ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+          before.core.marks[vertex]? = some (some rawAge) →
+            before.core.representative rawAge ≠ before.core.representative guard.head.rawAge
 ```
 
 ## Serialization and untrusted input

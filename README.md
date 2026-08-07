@@ -340,6 +340,24 @@ exact run and therefore cannot be reversed to manufacture one from
 global shortcuts: prior touch can overlap current ownership, and an authentic
 event touch can remain raw-unmarked and outside that event's final component
 owned list.
+`SequentialComponentReferenceGeometry.lean` now supplies the complementary
+component-local geometry without assuming a current `FreshSourceLeftRun`.
+Every pair of occurrences in one exact `ComponentOccurrenceWitness` has a
+simple path in the deterministic reference switching whose visited vertices
+remain in that component's owned list. The supporting graph loop erasure
+preserves this vertex subset; it does not claim that a lifted path reuses the
+same stored parallel-edge indices as its input walk. Combined with a public
+source-region path-avoidance wrapper and the fixed tensor-edge cycle lemma,
+`SequentialFigure7SameRepresentativeGeometry.lean` proves that any concrete
+raw mark in the selected mate's complete structural source-left region has a
+current union-find representative different from the active ready head's
+representative. The proof uses `SchedulerInvariant`, exact component
+provenance, `NewGuard`, and declarative reference-switching acyclicity; it does
+not use an exact-run premise or its converse. This closes the
+same-representative raw-mark obstruction only. Tag-only historical touches,
+strictly older/different representatives, preservation of the planned
+cross-representative region invariant, exhaustive enabledness, progress,
+pure-worklist completeness, fallback removal, and complexity remain open.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1925,12 +1943,14 @@ ProofNetIR/SequentialFigure7TouchOrigin.lean exact historical touch-event proven
 ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reservation history
 ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
+ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
 ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
 ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant
 ProofNetIR/SequentialComponentProvenance.lean exact proof-only component identity
+ProofNetIR/SequentialComponentReferenceGeometry.lean component-owned reference-switching paths
 ProofNetIR/LeanPropNormalization.lean typed persistent structural normal form
 ProofNetIRTests.lean          positive/negative compile-time and smoke fixtures
 ProofNetIRConsumerIndexTests.lean orientation and fail-closed consumer tests
@@ -1950,6 +1970,7 @@ ProofNetIRTouchOriginTests.lean exact canonical touch-origin consumer fixtures
 ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger consumers
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
+ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

@@ -30,6 +30,7 @@ import ProofNetIR.SequentialRoute
 import ProofNetIR.SequentialSchedulerState
 import ProofNetIR.SequentialSchedulerBridge
 import ProofNetIR.SequentialComponentProvenance
+import ProofNetIR.SequentialComponentReferenceGeometry
 import ProofNetIR.SequentialFigure7New
 import ProofNetIR.SequentialFigure7History
 import ProofNetIR.SequentialFigure7Rules
@@ -60,6 +61,7 @@ import ProofNetIR.SequentialFigure7TouchOrigin
 import ProofNetIR.SequentialFigure7ReservationLedger
 import ProofNetIR.SequentialFigure7RegionBoundaries
 import ProofNetIR.SequentialFigure7ReservationRealization
+import ProofNetIR.SequentialFigure7SameRepresentativeGeometry
 import ProofNetIR.LeanPropBridge
 import ProofNetIR.LeanPropNormalization
 import ProofNetIR.LeanPropTemplates

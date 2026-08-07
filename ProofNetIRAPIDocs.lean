@@ -42,6 +42,10 @@ def sections : List Section := [
       `ProofNetIR.Graph.EdgeSimplePath.prefixBefore,
       `ProofNetIR.Graph.EdgeSimplePath.suffixAfter,
       `ProofNetIR.Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split,
+      `ProofNetIR.Graph.SimpleWalk.restrictWithSubset,
+      `ProofNetIR.Graph.EdgeWalk.toSimpleWalkWithSubset,
+      `ProofNetIR.Graph.EdgeWalk.toEdgeSimplePathWithVerticesSubset,
+      `ProofNetIR.Graph.EdgeSimplePath.connectEraseAvoiding,
       `ProofNetIR.Graph.EdgeSimpleCycle.eq_of_index_eq,
       `ProofNetIR.Graph.retainEdgesByMask_lookup_exists_original,
       `ProofNetIR.Graph.DirectedEdge.inflateRetained_exists,
@@ -446,6 +450,7 @@ def sections : List Section := [
       `ProofNetIR.Certificate.ComponentOccurrenceWitness.frontier_nodup,
       `ProofNetIR.Certificate.ComponentOccurrenceWitness.axiom_of_submitted,
       `ProofNetIR.Certificate.ComponentOccurrenceWitness.ofQueueTensorStep,
+      `ProofNetIR.Certificate.ComponentOccurrenceWitness.referencePath_within_owned,
       `ProofNetIR.Certificate.ComponentForestProvenance.queueTensorStep_of_roots_fresh,
       `ProofNetIR.Certificate.reserveAxiomAt?_componentOccurrenceWitness,
       `ProofNetIR.Certificate.ExactOccurrencePick.rejects_same_formula_alias,
@@ -1382,6 +1387,17 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_iff_inputNecessary,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_of_inputNecessary,
       `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_iff_inputNecessary
+    ]
+  },
+  {
+    title := "Same-representative source-left geometry"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.sourceLeftRegionVertex_referencePath_avoiding,
+      `ProofNetIR.SequentialFigure7.referenceAcyclic_no_tensorBypass,
+      `ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_produced,
+      `ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_owned,
+      `ProofNetIR.SequentialFigure7.ReadyHeadInput.activeComponent,
+      `ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active
     ]
   },
   {

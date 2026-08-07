@@ -336,10 +336,38 @@ private theorem terminalPartner_referencePath_avoiding
           simpa using inAxiomTail
         exact partnerNeForbidden same.symm
 
+/-- Every structurally determined source-left-region vertex is reachable in the
+reference switching by a simple path which avoids any strictly more complex,
+distinct forbidden vertex.  This packages both recursively visited vertices and
+the terminal submitted-axiom partner. -/
+theorem sourceLeftRegionVertex_referencePath_avoiding
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {start vertex forbidden : Vertex}
+    (region : SourceLeftRegionVertex certificate start vertex)
+    (startBelowForbidden :
+      certificate.formulaComplexityAt start <
+        certificate.formulaComplexityAt forbidden)
+    (vertexNeForbidden : vertex ≠ forbidden) :
+    ∃ path : certificate.referenceSwitchingGraph.EdgeSimplePath,
+      path.start = start ∧ path.finish = vertex ∧
+        forbidden ∉ path.vertices := by
+  cases region with
+  | visited reachable =>
+      rcases sourceLeftReachable_referencePath structural reachable with
+        ⟨path, pathStarts, pathFinishes, pathRanks, _pathReachability⟩
+      refine ⟨path, pathStarts, pathFinishes, ?_⟩
+      intro forbiddenMembership
+      have rank := pathRanks forbidden forbiddenMembership
+      omega
+  | terminalPartner reachable exactAxiom =>
+      exact terminalPartner_referencePath_avoiding structural reachable
+        exactAxiom startBelowForbidden vertexNeForbidden
+
 /-- A simple sibling-to-sibling path avoiding a submitted tensor's conclusion,
 together with the two fixed tensor occurrences, contradicts reference
 switching acyclicity. -/
-private theorem referenceAcyclic_no_tensorBypass
+theorem referenceAcyclic_no_tensorBypass
     {certificate : Certificate}
     (structural : certificate.StructurallyWellFormed)
     (acyclic : certificate.referenceSwitchingGraph.Acyclic)

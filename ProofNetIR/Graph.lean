@@ -3750,6 +3750,35 @@ theorem restrict {graph : Graph} {start finish vertex : Vertex} {steps : Nat}
         exact ⟨priorSteps + 1, priorVisited ++ [current],
           .step prior adjacency fresh⟩
 
+/-- Restrict a duplicate-free walk to a visited endpoint while retaining the
+fact that every surviving vertex came from the original visited list. -/
+theorem restrictWithSubset {graph : Graph} {start finish vertex : Vertex}
+    {steps : Nat} {visited : List Vertex}
+    (walk : graph.SimpleWalk start steps visited finish)
+    (membership : vertex ∈ visited) :
+    ∃ restrictedSteps restricted,
+      graph.SimpleWalk start restrictedSteps restricted vertex ∧
+        ∀ candidate ∈ restricted, candidate ∈ visited := by
+  induction walk with
+  | refl =>
+      simp at membership
+      subst vertex
+      exact ⟨0, [start], .refl, by simp⟩
+  | @step priorSteps priorVisited middle current prior adjacency fresh ih =>
+      simp only [List.mem_append, List.mem_singleton] at membership
+      rcases membership with earlier | same
+      · rcases ih earlier with
+          ⟨restrictedSteps, restricted, result, subset⟩
+        exact ⟨restrictedSteps, restricted, result, by
+          intro candidate candidateMembership
+          exact List.mem_append.mpr (.inl
+            (subset candidate candidateMembership))⟩
+      · subst vertex
+        exact ⟨priorSteps + 1, priorVisited ++ [current],
+          .step prior adjacency fresh, by
+            intro candidate candidateMembership
+            exact candidateMembership⟩
+
 /-- Lift a duplicate-free vertex walk through an edge-inclusion map to an
 exact occurrence-aware simple path in the ambient multigraph. The visited
 vertex list is preserved literally, and every lifted directed edge records a
@@ -3882,6 +3911,104 @@ theorem liftToEdgeSimplePath {subgraph graph : Graph}
   exact ⟨path, starts, finishes, vertices⟩
 
 end SimpleWalk
+
+namespace EdgeWalk
+
+/-- Loop-erase one exact edge walk while retaining that every surviving
+vertex occurred in the original exact traversal. -/
+theorem toSimpleWalkWithSubset {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish) :
+    ∃ steps visited,
+      graph.SimpleWalk start steps visited finish ∧
+        ∀ vertex ∈ visited,
+          vertex ∈ EdgeWalk.visitedVertices start traversed := by
+  induction walk with
+  | refl =>
+      exact ⟨0, [start], .refl, by
+        intro vertex membership
+        simpa [EdgeWalk.visitedVertices] using membership⟩
+  | @step start finish priorSteps prior directed starts finishes ih =>
+      rcases ih with ⟨steps, visited, simple, subset⟩
+      have adjacency : graph.Adjacent directed.source directed.target :=
+        directed.adjacent
+      rw [starts, finishes] at adjacency
+      by_cases repeated : finish ∈ visited
+      · rcases simple.restrictWithSubset repeated with
+          ⟨restrictedSteps, restricted, result, restrictedSubset⟩
+        refine ⟨restrictedSteps, restricted, result, ?_⟩
+        intro vertex membership
+        exact EdgeWalk.mem_visitedVertices_append
+          (subset vertex (restrictedSubset vertex membership))
+      · refine ⟨steps + 1, visited ++ [finish],
+          .step simple adjacency repeated, ?_⟩
+        intro vertex membership
+        simp only [List.mem_append, List.mem_singleton] at membership
+        rcases membership with earlier | rfl
+        · exact EdgeWalk.mem_visitedVertices_append (subset vertex earlier)
+        · simp [EdgeWalk.visitedVertices, List.map_append, finishes]
+
+/-- Turn an exact edge walk into a simple exact path without introducing any
+new visited vertex.  Edge values are lifted back into the same graph; clients
+must not infer preservation of a particular parallel-edge index. -/
+theorem toEdgeSimplePathWithVerticesSubset
+    {graph : Graph} {start finish : Vertex}
+    {traversed : List graph.DirectedEdge}
+    (walk : graph.EdgeWalk start traversed finish) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = start ∧ path.finish = finish ∧
+        ∀ vertex ∈ path.vertices,
+          vertex ∈ EdgeWalk.visitedVertices start traversed := by
+  rcases walk.toSimpleWalkWithSubset with
+    ⟨steps, visited, simple, subset⟩
+  rcases simple.liftToEdgeSimplePathWithEdges
+      (fun _ membership => membership) with
+    ⟨path, starts, finishes, vertices, _edges⟩
+  refine ⟨path, starts, finishes, ?_⟩
+  intro vertex membership
+  exact subset vertex (by simpa [vertices] using membership)
+
+end EdgeWalk
+
+namespace EdgeSimplePath
+
+/-- Connect two exact simple paths at a shared endpoint and loop-erase the
+result while preserving avoidance of one forbidden vertex.  The resulting
+path is occurrence-aware, but it need not reuse the same stored parallel-edge
+indices as the two inputs. -/
+theorem connectEraseAvoiding
+    {graph : Graph} (first second : graph.EdgeSimplePath)
+    (meeting : first.finish = second.start) {forbidden : Vertex}
+    (firstAvoids : forbidden ∉ first.vertices)
+    (secondAvoids : forbidden ∉ second.vertices) :
+    ∃ path : graph.EdgeSimplePath,
+      path.start = first.start ∧ path.finish = second.finish ∧
+        forbidden ∉ path.vertices := by
+  have secondWalk :
+      graph.EdgeWalk first.finish second.traversed second.finish := by
+    rw [meeting]
+    exact second.walk
+  have combined :
+      graph.EdgeWalk first.start
+        (first.traversed ++ second.traversed) second.finish :=
+    first.walk.trans secondWalk
+  rcases combined.toEdgeSimplePathWithVerticesSubset with
+    ⟨path, starts, finishes, subset⟩
+  refine ⟨path, starts, finishes, ?_⟩
+  intro forbiddenMembership
+  have combinedMembership := subset forbidden forbiddenMembership
+  simp only [EdgeWalk.visitedVertices, List.map_append, List.mem_cons,
+    List.mem_append] at combinedMembership
+  rcases combinedMembership with atStart | inFirstTargets | inSecondTargets
+  · apply firstAvoids
+    rw [atStart]
+    simp [EdgeSimplePath.vertices, EdgeWalk.visitedVertices]
+  · apply firstAvoids
+    simp [EdgeSimplePath.vertices, EdgeWalk.visitedVertices, inFirstTargets]
+  · apply secondAvoids
+    simp [EdgeSimplePath.vertices, EdgeWalk.visitedVertices, inSecondTargets]
+
+end EdgeSimplePath
 
 namespace Walk
 

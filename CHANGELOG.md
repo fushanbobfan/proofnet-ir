@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- added `SequentialComponentReferenceGeometry.lean` and
+  `SequentialFigure7SameRepresentativeGeometry.lean`. Exact occurrence
+  derivations now connect any two component-owned vertices inside the
+  deterministic reference switching while retaining an owned-vertex subset;
+  generic graph helpers restrict and erase walks without losing a supplied
+  forbidden-vertex exclusion. The Figure-7 layer proves that the selected
+  tensor conclusion is neither observably produced nor owned by a supplied
+  live component, recovers exact provenance for the active ready component,
+  and uses source-region plus component paths to exclude every raw-marked
+  source-left-region vertex whose current representative equals the active
+  head's representative. The proof assumes complete `SchedulerInvariant` and
+  `DeclarativelyCorrect`, but does not assume or reconstruct a
+  `FreshSourceLeftRun`; it therefore avoids reversing the exact-run-local
+  boundary theorems. A dedicated consumer and CI target cover the public API.
+  This closes only the same-representative raw-mark obstruction: tag-only
+  touches, cross-representative separation and its six-rule preservation,
+  exhaustive enabledness, progress, pure-worklist completeness, recursive
+  fallback removal, faithful token-age scheduling, and whole-program
+  complexity remain open. The exact public axiom audit now covers 773
+  declarations: 500 full-classical, 25 axiom-free, 117 `propext`-only, and 131
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ReservationRealization.lean`, which, under explicit
   certificate structural well-formedness, transports every authentic
   chronological reservation through every canonical Figure-7 branch. Each

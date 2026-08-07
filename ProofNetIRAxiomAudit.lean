@@ -102,6 +102,10 @@ expansion.
 #print axioms Graph.EdgeSimplePath.prefixBefore
 #print axioms Graph.EdgeSimplePath.suffixAfter
 #print axioms Graph.EdgeSimplePath.uniqueIntersection_of_traversal_split
+#print axioms Graph.SimpleWalk.restrictWithSubset
+#print axioms Graph.EdgeWalk.toSimpleWalkWithSubset
+#print axioms Graph.EdgeWalk.toEdgeSimplePathWithVerticesSubset
+#print axioms Graph.EdgeSimplePath.connectEraseAvoiding
 #print axioms UnificationMarking.referencePath_has_first_marked_to_unmarked_boundary
 #print axioms UnificationMarking.referencePath_has_last_unmarked_to_marked_boundary
 #print axioms UnificationMarking.referencePath_has_first_unmarked_to_marked_boundary
@@ -197,7 +201,13 @@ expansion.
 #print axioms SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head
 #print axioms SequentialFigure7.NewGuard.terminalPartner_ne_head
 #print axioms SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCorrect
+#print axioms SequentialFigure7.sourceLeftRegionVertex_referencePath_avoiding
+#print axioms SequentialFigure7.referenceAcyclic_no_tensorBypass
 #print axioms SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner
+#print axioms SequentialFigure7.NewGuard.tensorConclusion_not_produced
+#print axioms SequentialFigure7.NewGuard.tensorConclusion_not_owned
+#print axioms SequentialFigure7.ReadyHeadInput.activeComponent
+#print axioms SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker
@@ -470,6 +480,7 @@ expansion.
 #print axioms Certificate.ComponentOccurrenceWitness.frontier_nodup
 #print axioms Certificate.ComponentOccurrenceWitness.axiom_of_submitted
 #print axioms Certificate.ComponentOccurrenceWitness.ofQueueTensorStep
+#print axioms Certificate.ComponentOccurrenceWitness.referencePath_within_owned
 #print axioms Certificate.ComponentForestProvenance.queueTensorStep_of_roots_fresh
 #print axioms Certificate.reserveAxiomAt?_componentOccurrenceWitness
 #print axioms Certificate.ExactOccurrencePick.rejects_same_formula_alias
