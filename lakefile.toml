@@ -12,6 +12,7 @@ defaultTargets = [
   "proofnet_ir_fresh_capacity_tests",
   "proofnet_ir_queue_history_tests",
   "proofnet_ir_fresh_source_blocker_tests",
+  "proofnet_ir_blocker_history_tests",
   "proofnet_ir_new_region_tests",
   "proofnet_ir_new_enabled_import_tests",
   "proofnet_ir_priority_enabled_import_tests"
@@ -60,6 +61,10 @@ root = "ProofNetIRQueueHistoryTests"
 [[lean_exe]]
 name = "proofnet_ir_fresh_source_blocker_tests"
 root = "ProofNetIRFreshSourceBlockerTests"
+
+[[lean_exe]]
+name = "proofnet_ir_blocker_history_tests"
+root = "ProofNetIRBlockerHistoryTests"
 
 [[lean_exe]]
 name = "proofnet_ir_new_region_tests"

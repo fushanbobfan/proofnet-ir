@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7BlockerHistory.lean`, which classifies every dynamic
+  `FreshSourceBlocker` in an authentic canonical dispatcher history under the
+  complete `SchedulerInvariant` and a selected `NewGuard`. A tag failure is an
+  exact prior history touch; a raw-mark failure is either the current selected
+  ready-head update or an older raw-marked occurrence with occurrence-exact
+  ownership in a live component. These are three possibly-overlapping
+  provenance forms, not an exhaustive branch chosen by an unchecked oracle.
+  Pointwise tag/raw classifiers retain the source-region witness, and the
+  combined theorem sharpens the structural dichotomy to an exact run or a
+  region-indexed `CanonicalSourceLeftObstruction`. An explicit universal
+  no-obstruction premise yields `FreshSourceLeftRun`, then
+  `NewInputNecessary`, and then input-only `NewEnabled`. The module does not
+  derive that premise from declarative correctness or reachability and proves
+  no `NewGuard` sufficiency, progress, totality, worklist completeness,
+  fallback removal, or linearity. This checkpoint operationalizes the existing
+  audited source semantics and adds no new literature reading. The exact
+  public axiom audit now covers 726 declarations: 468 full-classical, 25
+  axiom-free, 111 `propext`-only, and 122 `propext`/`Quot.sound` boundaries;
 - added `SequentialFreshSourceBlocker.lean`, which makes the source-left
   obstruction boundary exact. For every structurally well-formed certificate
   and in-bounds start, Lean now produces either a formula-budget
@@ -41,7 +59,7 @@
   states under structural well-formedness. The exact route remains an explicit
   premise; no theorem makes shallow `NewGuard` sufficient or proves dispatcher
   progress, totality, pure-worklist completeness, fallback removal, or
-  linearity. The exact public axiom audit now covers 717 declarations: 460
+  linearity. At that checkpoint the exact public axiom audit covered 717 declarations: 460
   full-classical, 25 axiom-free, 110 `propext`-only, and 122
   `propext`/`Quot.sound` boundaries;
 - added the separate `FutureWaitingUndefined` storage invariant. It states that

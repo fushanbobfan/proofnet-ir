@@ -12,6 +12,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
 EXPECTED_CLASSICAL_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObstruction",
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",
     "ProofNetIR.Graph.IsTree.acyclic",
     "ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount",
@@ -518,6 +526,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialUnification.FreshSourceLeftRun.traceReady",
     "ProofNetIR.SequentialUnification.SourceLeftRegionVertex.prepend",
     "ProofNetIR.SequentialUnification.FreshSourceBlocker.prepend",
+    "ProofNetIR.SequentialFigure7.NewGuard.mate_bound",
     "ProofNetIR.Certificate.linkLeftRetainedEdges_lookup_origin",
     "ProofNetIR.LeanProp.Derivation.linearAxiomCount_eq_length",
     "ProofNetIR.LeanProp.Assumptions.split_append",

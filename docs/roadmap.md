@@ -1005,11 +1005,21 @@
     separation and fresh capacity after the run, outside this classification.
     Expose the exact elimination bridge from uniform region tag/raw-mark
     availability to the positive run branch.
-  - [ ] Exclude every `FreshSourceBlocker` for the relevant correct canonical
-    histories, then use the resulting exact run to bridge shallow reachable
-    `NewGuard` to `NewInputNecessary`. This is a history/correctness theorem,
-    not a state-invariant field or an already-proved progress, totality, or
-    completeness result.
+  - [x] Classify every dynamic blocker under authentic `CanonicalTagHistory`,
+    the complete `SchedulerInvariant`, and `NewGuard`. A tag failure is a prior
+    exact touch. A raw failure is either the selected ready-head update or an
+    exact old raw-marked occurrence owned by a live occurrence-exact component.
+    Keep the three obstruction forms possibly overlapping. Prove that an
+    explicit universal no-obstruction premise yields the exact run, then
+    `NewInputNecessary`, then `NewEnabled`, without assuming executor success.
+  - [ ] Derive that universal no-obstruction premise for the relevant correct
+    canonical/certified histories. Separately exclude intersection of the
+    source region with prior touches, return to the selected ready head, and
+    intersection with existing live-component occurrence ownership; handle the
+    terminal axiom partner explicitly. Only then bridge shallow reachable
+    `NewGuard` to `NewInputNecessary`. This is a geometric history/correctness
+    theorem, not a state-invariant field or an already-proved `NewGuard`
+    sufficiency, progress, totality, or completeness result.
   - [x] Add a deterministic finite search for an actually reachable
     `NewGuard` state where the real `new?` fails. The default CI gate follows
     successful initialization and the canonical dispatcher from every formula

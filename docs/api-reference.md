@@ -7484,6 +7484,223 @@ ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvaila
               trace reached partner linkIndex)
 ```
 
+## Canonical-history source-left obstructions
+
+### `ProofNetIR.SequentialFigure7.NewGuard.mate_bound`
+
+Kind: theorem.
+
+The opposite tensor premise selected by a shallow `NewGuard` belongs to
+the certificate formula carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.mate_bound : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before), guard.tensor.mate < certificate.formulas.size
+```
+
+### `ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner`
+
+Kind: definition.
+
+Occurrence-exact ownership of one concrete raw-marked formula occurrence
+by a current live production component.
+
+The witness retains the raw age, its current representative slot, the exact
+component lookup, the submitted-link/owned-occurrence derivation witness, and
+membership of the named occurrence in that owned list.
+
+```lean
+ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner : ProofNetIR.Certificate → ProofNetIR.UnificationState → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner`
+
+Kind: theorem.
+
+The component-forest field of the complete scheduler invariant resolves
+every concrete raw mark to an exact live-component owner.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {vertex rawAge : Nat},
+      state.core.marks[vertex]? = some (some rawAge) →
+        ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate state.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction`
+
+Kind: definition.
+
+The history-level obstruction represented by one dynamically unavailable
+source-left region occurrence.
+
+The middle alternative is intentionally an equality with the currently
+selected ready head: `ReadyHeadInput.markedCore` introduced precisely that
+one new raw mark.  The final alternative refers to the input production core,
+not the pure marked-core expression.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.NewGuard certificate before → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker`
+
+Kind: theorem.
+
+A tag failure at any in-bounds source-left region occurrence is exactly a
+prior initialization/`new` touch in the supplied canonical history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+        before.tags[vertex]? ≠ some false → tagHistory.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker`
+
+Kind: theorem.
+
+A raw-mark failure in the pure marked-core input is either the one mark
+introduced for the selected ready head, or a pre-existing occurrence-exact
+live-component owner in the input production core.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+        guard.head.markedCore.marks[vertex]? ≠ some none →
+          vertex = guard.head.vertex ∨
+            ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker`
+
+Kind: theorem.
+
+Classify one dynamic fresh-source blocker against an exact canonical
+history.
+
+Tag-domain and raw-mark-domain bounds come from the complete scheduler
+invariant.  A false-tag failure is therefore an exact prior touch.  A
+marked-core failure is either the one mark introduced for the selected ready
+head, or a pre-existing raw mark with occurrence-exact component ownership.
+No branch is ruled out here.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before)
+      (blocker :
+        ProofNetIR.SequentialUnification.FreshSourceBlocker certificate guard.head.markedCore before.tags
+          guard.tensor.mate),
+      ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction tagHistory guard blocker.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction`
+
+Kind: theorem.
+
+For a canonical dispatcher history, the structural source-left
+classification sharpens to either an exact formula-budget run or one region
+occurrence carrying an explicit history/component obstruction.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+      (∃ trace reached partner linkIndex,
+          Nonempty
+            (ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate guard.head.markedCore
+              certificate.formulas.size before.tags guard.tensor.mate trace reached partner linkIndex)) ∨
+        ∃ vertex,
+          ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex ∧
+            ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction tagHistory guard vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction`
+
+Kind: theorem.
+
+If all three canonical-history obstruction forms are excluded throughout
+the structurally determined source-left region, the exact formula-budget run
+exists.
+
+The exclusion premise is the remaining geometric/history obligation.  This
+theorem does not derive it from declarative correctness or reachability.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+      (∀ {vertex : ProofNetIR.Vertex},
+          ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+            ¬ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction tagHistory guard vertex) →
+        ∃ trace reached partner linkIndex,
+          Nonempty
+            (ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate guard.head.markedCore
+              certificate.formulas.size before.tags guard.tensor.mate trace reached partner linkIndex)
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction`
+
+Kind: theorem.
+
+Excluding the three exact canonical-history obstruction forms upgrades
+the shallow `NewGuard` to the older route-based `NewInputNecessary` predicate.
+The theorem assumes no executor equation or post-state.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+      (∀ {vertex : ProofNetIR.Vertex},
+          ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+            ¬ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction tagHistory guard vertex) →
+        ProofNetIR.SequentialFigure7.NewInputNecessary certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObstruction`
+
+Kind: theorem.
+
+Excluding the three exact canonical-history obstruction forms upgrades
+the shallow `NewGuard` all the way to the established input-only `NewEnabled`
+predicate.
+
+This remains a conditional local theorem.  Until the `clear` premise is
+derived for correct certified-reachable states, it is not `NewGuard`
+sufficiency, dispatcher progress, or totality.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObstruction : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+      (∀ {vertex : ProofNetIR.Vertex},
+          ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+            ¬ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction tagHistory guard vertex) →
+        ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
 ## Shared sequential consumer index
 
 ### `ProofNetIR.ConsumerIndex`

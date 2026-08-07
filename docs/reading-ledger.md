@@ -162,10 +162,17 @@ hash of the unaltered original PDF.
   or raw-mark availability failure. Source shape, singletonhood, and fuel are
   therefore structural rather than dynamic obstructions. This is a code-level
   consequence of the already-read source semantics, not a new literature
-  reading. Excluding the exact blocker from every relevant correct canonical
-  history remains open, and queue separation plus fresh capacity remain
-  downstream of the positive run. The separate pure
-  `UnifyPayloadEnabled` predicate plus the full invariant proves
+  reading. Canonical history plus the complete invariant now classifies every
+  such blocker into a prior exact touch, the selected ready-head update, or an
+  old raw-marked occurrence with occurrence-exact live-component ownership;
+  the three provenance forms may overlap. Supplying a universal proof that the
+  source region contains none of them yields the exact run, then
+  `NewInputNecessary`, then `NewEnabled`. This code checkpoint operationalizes
+  the already-read scheduler/tag/component semantics and adds no new paper,
+  textbook, or literature reading. Deriving that universal exclusion from
+  correctness and authentic certified history remains open, and queue
+  separation plus fresh capacity remain downstream of the positive run. The
+  separate pure `UnifyPayloadEnabled` predicate plus the full invariant proves
   conditional arbitrary-payload applicability. Deriving that predicate for the
   selected reachable branch, ownership across an unconditional complete
   transition system, the exact blocker exclusion, later-state totality, and

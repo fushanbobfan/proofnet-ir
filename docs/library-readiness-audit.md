@@ -592,6 +592,19 @@ part of the engineering and proof-identity gap.
    endpoint queue absence plus fresh capacity are still downstream of the
    positive run. No new reachability, enabledness, totality, completeness,
    fallback-removal, or complexity guarantee follows.
+   `SequentialFigure7BlockerHistory.lean` now makes the history side of that
+   boundary exact. Given authentic canonical tag history, the complete
+   invariant, and `NewGuard`, every tag blocker is a prior exact touch and every
+   raw blocker is either the selected ready-head update or an old raw-marked
+   occurrence with an occurrence-exact live-component owner. These three
+   `CanonicalSourceLeftObstruction` alternatives may overlap. A universal
+   premise excluding them throughout the source region yields the exact run,
+   `NewInputNecessary`, and `NewEnabled`; the premise itself remains unproved.
+   Library readiness therefore still requires the correctness/history theorem
+   that excludes all three forms (with the terminal partner handled explicitly)
+   before any shallow-guard sufficiency or progress claim. This checkpoint adds
+   no totality, pure-worklist completeness, fallback-removal, or complexity
+   guarantee and records no new literature reading.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -709,10 +722,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 717 declarations: 460 public MLL
+- CI now parses `#print axioms` for 726 declarations: 468 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
-  110 `propext`-only, and 122 `propext`/`Quot.sound` boundaries;
+  111 `propext`-only, and 122 `propext`/`Quot.sound` boundaries;
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;

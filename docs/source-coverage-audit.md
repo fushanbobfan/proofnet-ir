@@ -133,10 +133,16 @@ structurally well-formed in-bounds source-left search as either a
 formula-budget exact run or a nonempty tag/raw-mark blocker on a visited
 stored-left occurrence or the terminal axiom partner. Source shape,
 singletonhood, and fuel are discharged structurally; queue separation and
-fresh capacity remain post-run. Excluding those exact blockers from correct
-canonical histories is still open. This checkpoint is an implementation
-consequence of the already-audited source semantics and does not record a new
-literature reading. Ownership
+fresh capacity remain post-run. Canonical history plus the complete invariant
+now classifies each exact blocker further: a tag failure is a prior exact
+history touch, while a raw-mark failure is either the current selected-head
+update or an old raw-marked occurrence with occurrence-exact ownership in a
+live component. The three alternatives may overlap. An explicit universal
+no-obstruction premise yields the exact run and the established
+`NewInputNecessary`/`NewEnabled` bridges, but deriving that premise from
+correctness and certified history is still open. This checkpoint is an
+implementation consequence of the already-audited source semantics and does
+not record a new literature reading. Ownership
 through a complete reachable transition
 system, richer route/tag/slot history commitments, later-state totality,
 progress, and pure-worklist completeness remain open.

@@ -190,6 +190,15 @@ expansion.
 #print axioms SequentialUnification.FreshSourceBlocker.prepend
 #print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker
 #print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable
+#print axioms SequentialFigure7.NewGuard.mate_bound
+#print axioms SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner
+#print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
+#print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker
+#print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker
+#print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction
+#print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction
+#print axioms SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction
+#print axioms SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObstruction
 #print axioms ConsumerIndex.build_size
 #print axioms ConsumerIndex.build_origin
 #print axioms ConsumerIndex.build_complete

@@ -578,6 +578,22 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Canonical-history source-left obstructions"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.NewGuard.mate_bound,
+      `ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner,
+      `ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner,
+      `ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObstruction
+    ]
+  },
+  {
     title := "Shared sequential consumer index"
     declarations := [
       `ProofNetIR.ConsumerIndex,

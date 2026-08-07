@@ -258,8 +258,20 @@ terminal axiom partner. Source shape, singleton incidence, termination,
 The companion region-availability corollary yields a run once a later history
 theorem supplies freshness/readiness for every region occurrence; it does not
 itself supply or assume that history theorem.
-The remaining global obligation is to exclude these exact dynamic blockers
-from every correct canonical/certified history; progress remains separate.
+`SequentialFigure7BlockerHistory.lean` now lifts that dichotomy through an
+authentic `CanonicalTagHistory`, the complete `SchedulerInvariant`, and the
+selected `NewGuard`. A tag blocker is an exact prior initialization/`new`
+touch. A raw-mark blocker is either the mark just introduced for the selected
+ready head or an older raw mark with occurrence-exact ownership in a current
+live component. `CanonicalSourceLeftObstruction` records these three
+possibly-overlapping alternatives; the classification does not eliminate any
+of them. If a caller supplies the explicit universal premise that no such
+obstruction occurs anywhere in the source-left region, Lean derives the exact
+`FreshSourceLeftRun`, then `NewInputNecessary`, and finally the established
+input-only `NewEnabled`. The remaining global obligation is to derive that
+clear premise from correctness and authentic certified history, separately
+excluding prior touches, a return to the selected head, and old live-component
+ownership (including the terminal-partner case). Progress remains separate.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1662,9 +1674,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
- separately audits 717 declarations: 460 public MLL logical-boundary theorems
+ separately audits 726 declarations: 468 public MLL logical-boundary theorems
  against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
- axiom-free, 110 `propext`-only, and 122 `propext`/`Quot.sound` boundaries. LeanProp
+ axiom-free, 111 `propext`-only, and 122 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -1751,6 +1763,7 @@ lake exe proofnet_ir_new_region_tests
 lake exe proofnet_ir_fresh_capacity_tests
 lake exe proofnet_ir_queue_history_tests
 lake exe proofnet_ir_fresh_source_blocker_tests
+lake exe proofnet_ir_blocker_history_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check
@@ -1834,6 +1847,7 @@ ProofNetIR/SequentialFigure7NewRegion.lean structural route reconstruction and s
 ProofNetIR/SequentialFigure7FreshCapacity.lean history-indexed fresh terminal allocation capacity
 ProofNetIR/SequentialFigure7QueueHistory.lean exact axiom-endpoint queue history and route-input equivalence
 ProofNetIR/SequentialFreshSourceBlocker.lean structural run-or-dynamic-blocker classification
+ProofNetIR/SequentialFigure7BlockerHistory.lean canonical-history blocker provenance and conditional elimination
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1854,6 +1868,7 @@ ProofNetIRNewRegionTests.lean structural route/run and source-region bridge regr
 ProofNetIRFreshCapacityTests.lean fresh terminal capacity consumer fixture
 ProofNetIRQueueHistoryTests.lean exact axiom-endpoint queue and history-indexed enabledness fixtures
 ProofNetIRFreshSourceBlockerTests.lean source-region blocker and public dichotomy fixtures
+ProofNetIRBlockerHistoryTests.lean canonical blocker-provenance and conditional enabledness consumers
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

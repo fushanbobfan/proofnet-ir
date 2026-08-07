@@ -646,6 +646,29 @@ corollary makes the remaining interface explicit: a future history theorem may
 close the gap by proving freshness and raw-unmarkedness for every region
 occurrence, without changing the structural classifier.
 
+`SequentialFigure7BlockerHistory.lean` is the next history-indexed layer. Under
+an authentic `CanonicalTagHistory`, the complete `SchedulerInvariant`, and the
+selected `NewGuard`, its pointwise tag classifier turns any false-tag lookup
+failure into an exact earlier touch. Its raw classifier compares the pure
+post-pop/mark expression with the input production core: the failure is either
+the one mark introduced at the selected ready head or an old concrete raw mark.
+The component-forest field resolves the latter to an
+`ExactMarkedOccurrenceOwner`, retaining representative slot, component lookup,
+occurrence derivation, accounting, and membership. The combined
+`CanonicalSourceLeftObstruction` is the disjunction of those three
+possibly-overlapping provenance forms. It assumes neither another exact run nor
+`NewEnabled`, so it does not circularly solve the search obligation.
+
+The layer also exposes the precise conditional seam for the remaining
+geometric argument. If every vertex in the structural source-left region is
+proved free of all three obstruction forms, the structural dichotomy yields a
+formula-budget `FreshSourceLeftRun`; existing route, queue-history, and capacity
+bridges then yield `NewInputNecessary` and input-only `NewEnabled`. The module
+does not derive this universal clear premise from declarative correctness or
+certified reachability. In particular, it does not prove shallow `NewGuard`
+sufficiency, dispatcher progress or totality, pure-worklist completeness,
+fallback removal, or a complexity bound.
+
 The root executable `ProofNetIRNewProgressAudit.lean` is a bounded
 falsification layer over that boundary. It never inserts arbitrary states:
 each path begins with `initializeReservation?` and recursively applies the

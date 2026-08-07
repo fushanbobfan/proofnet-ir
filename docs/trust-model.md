@@ -447,6 +447,24 @@ exclude either dynamic blocker, and does not manufacture the downstream queue
 absence or capacity evidence required by `NewEnabled`. Consequently it adds no
 progress, totality, pure-worklist completeness, fallback-removal, or complexity
 claim.
+`SequentialFigure7BlockerHistory.lean` also adds no oracle. It consumes an
+existing proof-carrying `CanonicalTagHistory`, the complete
+`SchedulerInvariant`, and a shallow `NewGuard`. Exact tag provenance maps a tag
+failure to a recorded prior touch. The raw-mark classifier uses only the
+definitional selected-head update and the invariant's occurrence-exact
+component forest: a raw failure is the selected head itself or an old marked
+occurrence with a proof-relevant live owner. Its
+`CanonicalSourceLeftObstruction` is a possibly-overlapping disjunction of those
+three forms, not a trusted exclusive case split. The module assumes neither an
+exact run nor executor success, `NewEnabled`, declarative correctness, or
+reachability when it performs the classification.
+An explicit universally quantified proof that the structural region contains
+none of those obstructions is sufficient to recover `FreshSourceLeftRun`, then
+`NewInputNecessary`, and then `NewEnabled` through already-audited bridges. No
+theorem in this checkpoint manufactures that clear premise or derives it from
+correctness. Thus it adds no `NewGuard` sufficiency, reachable-state
+exhaustiveness, progress, totality, pure-worklist completeness, fallback
+removal, or linearity claim.
 None of these local proofs establishes later-call totality, reachable-state
 exhaustiveness, progress, pure-worklist completeness, fallback removal, or
 linearity.
@@ -481,8 +499,8 @@ same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
 evidence, not public three-axiom theorems. The exact trust audit now
-covers 717 declarations: 460 use exactly
-`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 110 use exactly
+covers 726 declarations: 468 use exactly
+`[propext, Classical.choice, Quot.sound]`, 25 are axiom-free, 111 use exactly
 `[propext]`, and 122 use exactly `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
