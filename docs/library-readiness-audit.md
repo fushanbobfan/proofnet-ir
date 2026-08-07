@@ -605,6 +605,17 @@ part of the engineering and proof-identity gap.
    before any shallow-guard sufficiency or progress claim. This checkpoint adds
    no totality, pure-worklist completeness, fallback-removal, or complexity
    guarantee and records no new literature reading.
+   The first obstruction-elimination slice is now proved. Exact source-left
+   complexity descent and final-step decomposition show that a recursively
+   visited route from the tensor mate cannot return to the selected ready head;
+   the visited blocker classifier therefore contains only prior-touch or old
+   exact-owner alternatives. The theorem is structural and non-circular, but
+   it does not apply to the terminal axiom partner. A structurally well-formed
+   switching-incorrect triangle shows that scheduler history and the invariant
+   alone cannot exclude `terminalPartner = head`; reference-switching
+   acyclicity or declarative correctness is genuinely necessary. The two
+   history/component intersections and that terminal case remain library
+   readiness gates.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher

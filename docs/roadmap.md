@@ -1041,6 +1041,12 @@
     progress, totality, completeness, or fallback removal. Next derive
     exhaustive dispatcher enabledness on correct
     certified-reachable nonterminal states.
+    Exact source-left complexity descent, last-step decomposition, and
+    recursive visited-route separation from the selected head are now proved.
+    The selected-head blocker branch remains only for the terminal axiom
+    partner, whose exclusion must use reference-switching acyclicity or
+    declarative correctness. Prior-touch and old-component-owner intersections
+    remain open as separate history/geometry obligations.
     The canonical-history reservation-count commitment is complete. Generalize
     the remaining whole-history oriented-route commitment, establish
     unconditional full-rule reachability, progress, completeness of that

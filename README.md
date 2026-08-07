@@ -268,10 +268,21 @@ possibly-overlapping alternatives; the classification does not eliminate any
 of them. If a caller supplies the explicit universal premise that no such
 obstruction occurs anywhere in the source-left region, Lean derives the exact
 `FreshSourceLeftRun`, then `NewInputNecessary`, and finally the established
-input-only `NewEnabled`. The remaining global obligation is to derive that
-clear premise from correctness and authentic certified history, separately
-excluding prior touches, a return to the selected head, and old live-component
-ownership (including the terminal-partner case). Progress remains separate.
+input-only `NewEnabled`.
+The first obstruction-elimination step is now kernel checked. Every exact
+source-left step strictly lowers formula complexity, reachability has an exact
+last-step decomposition, and structural unique-consumer provenance proves that
+the recursive route from the selected tensor's mate cannot return to the
+selected ready head. Consequently a blocker at a recursively `visited`
+occurrence is now only a prior canonical touch or an exact old live-component
+owner. This does not eliminate the selected-head alternative for the terminal
+axiom partner: a structurally well-formed axiom/tensor triangle demonstrates
+that the partner may equal the head when switching correctness fails. The
+terminal case must therefore use reference-switching acyclicity or
+`DeclarativelyCorrect`, rather than scheduler history alone. The remaining
+global obligation is to exclude that terminal geometry, prior touches, and old
+live-component ownership from correct authentic certified histories. Progress
+remains separate.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled

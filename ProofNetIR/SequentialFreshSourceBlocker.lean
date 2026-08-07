@@ -589,4 +589,108 @@ theorem Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable
     · exact False.elim (blocked fresh)
     · exact False.elim (blocked ready)
 
+namespace SequentialFigure7
+
+open SequentialSchedulerBridge
+
+namespace NewGuard
+
+/-- On a structurally well-formed certificate, the source-left route launched
+from the opposite premise of the selected tensor cannot return to the selected
+ready head.
+
+This is the `visited`-region separation fact.  It uses neither scheduler
+history nor proof-net switching correctness: unique consumer provenance and
+strict formula-complexity descent already exclude the return.  The distinct
+`terminalPartner` region case is intentionally not covered here. -/
+theorem not_sourceLeftReachable_mate_head
+    {certificate : Certificate}
+    {before : ReservationState}
+    (structural : certificate.StructurallyWellFormed)
+    (guard : NewGuard certificate before) :
+    ¬ SourceLeftReachable certificate guard.tensor.mate
+        guard.head.vertex := by
+  intro reachable
+  have tensorWellFormed := guard.tensor_valid.2.2.1
+  have premiseEquation := guard.tensor_valid.2.2.2
+  have headBound : guard.head.vertex < certificate.formulas.size := by
+    rw [premiseEquation]
+    cases sideEquation : guard.tensor.side with
+    | storedLeft =>
+        simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using tensorWellFormed.2.2.2.1
+    | storedRight =>
+        simpa [TensorBelow.premise, TensorPremiseSide.premise,
+          sideEquation] using tensorWellFormed.2.2.2.2.1
+  rcases reachable.eq_or_exists_lastStep with
+      same | ⟨previous, pathPrefix, last⟩
+  · exact guard.mate_ne same
+  · cases last with
+    | @tensor linkIndex _ right _ exactLink =>
+        have lastConsumer :
+            certificate.consumerIndex.uniqueConsumer? guard.head.vertex =
+              some linkIndex := by
+          apply ConsumerIndex.build_uniqueConsumer?_eq_some structural
+            exactLink headBound
+          simp [Link.premises]
+        have indexEquation : linkIndex = guard.tensor.linkIndex := by
+          rw [guard.tensor_valid.1] at lastConsumer
+          exact Option.some.inj lastConsumer.symm
+        have linkEquation :
+            Link.tensor guard.head.vertex right previous =
+              Link.tensor guard.tensor.storedLeft guard.tensor.storedRight
+                guard.tensor.conclusion := by
+          apply Option.some.inj
+          rw [← exactLink, indexEquation, guard.tensor_valid.2.1]
+        have fields :
+            guard.head.vertex = guard.tensor.storedLeft ∧
+            right = guard.tensor.storedRight ∧
+            previous = guard.tensor.conclusion := by
+          simpa using Link.tensor.inj linkEquation
+        cases sideEquation : guard.tensor.side with
+        | storedLeft =>
+            have mateStrict :
+                certificate.formulaComplexityAt guard.tensor.mate <
+                  certificate.formulaComplexityAt
+                    guard.tensor.conclusion := by
+              have strict :=
+                tensorWellFormed.premise_complexity_lt_conclusion
+                  (premise := guard.tensor.mate)
+                  (by
+                    simp [Link.premises, TensorBelow.mate,
+                      TensorPremiseSide.mate, sideEquation])
+              simpa [Certificate.linkConclusionComplexity] using strict
+            have pathLe :=
+              pathPrefix.formulaComplexity_le structural
+            rw [fields.2.2] at pathLe
+            omega
+        | storedRight =>
+            have headIsRight :
+                guard.head.vertex = guard.tensor.storedRight := by
+              simpa [TensorBelow.premise, TensorPremiseSide.premise,
+                sideEquation] using premiseEquation
+            exact tensorWellFormed.1
+              (fields.1.symm.trans headIsRight)
+    | @par linkIndex _ right _ exactLink =>
+        have lastConsumer :
+            certificate.consumerIndex.uniqueConsumer? guard.head.vertex =
+              some linkIndex := by
+          apply ConsumerIndex.build_uniqueConsumer?_eq_some structural
+            exactLink headBound
+          simp [Link.premises]
+        have indexEquation : linkIndex = guard.tensor.linkIndex := by
+          rw [guard.tensor_valid.1] at lastConsumer
+          exact Option.some.inj lastConsumer.symm
+        have impossible :
+            Link.par guard.head.vertex right previous =
+              Link.tensor guard.tensor.storedLeft guard.tensor.storedRight
+                guard.tensor.conclusion := by
+          apply Option.some.inj
+          rw [← exactLink, indexEquation, guard.tensor_valid.2.1]
+        cases impossible
+
+end NewGuard
+
+end SequentialFigure7
+
 end ProofNetIR

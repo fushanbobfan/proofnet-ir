@@ -59,6 +59,63 @@ inductive SourceLeftReachable (certificate : Certificate) :
       (tail : SourceLeftReachable certificate next target) :
       SourceLeftReachable certificate source target
 
+/-- Every exact source-left step strictly decreases formula complexity on a
+structurally well-formed certificate. -/
+theorem SourceLeftStep.formulaComplexity_lt
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {source next : Vertex}
+    (step : SourceLeftStep certificate source next) :
+    certificate.formulaComplexityAt next <
+      certificate.formulaComplexityAt source := by
+  cases step with
+  | tensor exactLink =>
+      have membership := List.mem_of_getElem? exactLink
+      have wellFormed := structural.2.2.2.2.1 _ membership
+      simpa [Certificate.linkConclusionComplexity] using
+        wellFormed.premise_complexity_lt_conclusion
+          (premise := _) (by simp [Link.premises])
+  | par exactLink =>
+      have membership := List.mem_of_getElem? exactLink
+      have wellFormed := structural.2.2.2.2.1 _ membership
+      simpa [Certificate.linkConclusionComplexity] using
+        wellFormed.premise_complexity_lt_conclusion
+          (premise := _) (by simp [Link.premises])
+
+/-- Source-left reachability weakly decreases formula complexity, with the
+reflexive case accounting for equality. -/
+theorem SourceLeftReachable.formulaComplexity_le
+    {certificate : Certificate}
+    (structural : certificate.StructurallyWellFormed)
+    {source target : Vertex}
+    (reachable : SourceLeftReachable certificate source target) :
+    certificate.formulaComplexityAt target ≤
+      certificate.formulaComplexityAt source := by
+  induction reachable with
+  | refl => exact Nat.le_refl _
+  | step head tail induction =>
+      exact Nat.le_trans induction
+        (Nat.le_of_lt (head.formulaComplexity_lt structural))
+
+/-- A source-left route is either reflexive or has an exact final source-left
+step after a shorter prefix.  This endpoint-oriented view avoids reversing the
+inductive route representation in downstream geometry arguments. -/
+theorem SourceLeftReachable.eq_or_exists_lastStep
+    {certificate : Certificate}
+    {source target : Vertex}
+    (reachable : SourceLeftReachable certificate source target) :
+    source = target ∨
+      ∃ previous,
+        SourceLeftReachable certificate source previous ∧
+          SourceLeftStep certificate previous target := by
+  induction reachable with
+  | refl => exact Or.inl rfl
+  | @step source next target head tail induction =>
+      rcases induction with same | ⟨previous, pathPrefix, last⟩
+      · subst target
+        exact Or.inr ⟨source, .refl source, head⟩
+      · exact Or.inr ⟨previous, .step head pathPrefix, last⟩
+
 /-- A list records precisely a (possibly empty-step) source-left route. -/
 inductive SourceLeftChain (certificate : Certificate) : List Vertex → Prop
   | singleton (vertex : Vertex) :

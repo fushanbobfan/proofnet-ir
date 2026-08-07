@@ -6809,6 +6809,21 @@ tensor or par link to that link's stored left premise.
 ProofNetIR.SequentialUnification.SourceLeftStep : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
 ```
 
+### `ProofNetIR.SequentialUnification.SourceLeftStep.formulaComplexity_lt`
+
+Kind: theorem.
+
+Every exact source-left step strictly decreases formula complexity on a
+structurally well-formed certificate.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftStep.formulaComplexity_lt : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {source next : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftStep certificate source next →
+        certificate.formulaComplexityAt next < certificate.formulaComplexityAt source
+```
+
 ### `ProofNetIR.SequentialUnification.SourceLeftReachable`
 
 Kind: inductive type.
@@ -6819,6 +6834,38 @@ endpoint.
 
 ```lean
 ProofNetIR.SequentialUnification.SourceLeftReachable : ProofNetIR.Certificate → ProofNetIR.Vertex → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftReachable.formulaComplexity_le`
+
+Kind: theorem.
+
+Source-left reachability weakly decreases formula complexity, with the
+reflexive case accounting for equality.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftReachable.formulaComplexity_le : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {source target : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftReachable certificate source target →
+        certificate.formulaComplexityAt target ≤ certificate.formulaComplexityAt source
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftReachable.eq_or_exists_lastStep`
+
+Kind: theorem.
+
+A source-left route is either reflexive or has an exact final source-left
+step after a shorter prefix.  This endpoint-oriented view avoids reversing the
+inductive route representation in downstream geometry arguments.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftReachable.eq_or_exists_lastStep : ∀ {certificate : ProofNetIR.Certificate} {source target : ProofNetIR.Vertex},
+  ProofNetIR.SequentialUnification.SourceLeftReachable certificate source target →
+    source = target ∨
+      ∃ previous,
+        ProofNetIR.SequentialUnification.SourceLeftReachable certificate source previous ∧
+          ProofNetIR.SequentialUnification.SourceLeftStep certificate previous target
 ```
 
 ### `ProofNetIR.SequentialUnification.SourceLeftChain`
@@ -7484,6 +7531,26 @@ ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvaila
               trace reached partner linkIndex)
 ```
 
+### `ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head`
+
+Kind: theorem.
+
+On a structurally well-formed certificate, the source-left route launched
+from the opposite premise of the selected tensor cannot return to the selected
+ready head.
+
+This is the `visited`-region separation fact.  It uses neither scheduler
+history nor proof-net switching correctness: unique consumer provenance and
+strict formula-complexity descent already exclude the return.  The distinct
+`terminalPartner` region case is intentionally not covered here.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+      ¬ProofNetIR.SequentialUnification.SourceLeftReachable certificate guard.tensor.mate guard.head.vertex
+```
+
 ## Canonical-history source-left obstructions
 
 ### `ProofNetIR.SequentialFigure7.NewGuard.mate_bound`
@@ -7580,6 +7647,47 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker : ∀ {
       ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
         guard.head.markedCore.marks[vertex]? ≠ some none →
           vertex = guard.head.vertex ∨
+            ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker`
+
+Kind: theorem.
+
+A raw-mark failure at a recursively visited source-left occurrence cannot
+be the selected-head update.  Structural source-left descent eliminates that
+case, leaving an exact owner in the input component forest.
+
+This theorem is intentionally restricted to `visited`; a terminal axiom
+partner can equal the selected head unless switching acyclicity is supplied.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftReachable certificate guard.tensor.mate vertex →
+        guard.head.markedCore.marks[vertex]? ≠ some none →
+          ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshBlocker`
+
+Kind: theorem.
+
+At a recursively visited source-left occurrence, every dynamic failure is
+now either an exact prior canonical tag touch or an exact old live-component
+owner.  The selected-head alternative survives only in the separate terminal
+partner geometry.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshBlocker : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftReachable certificate guard.tensor.mate vertex →
+        before.tags[vertex]? ≠ some false ∨ guard.head.markedCore.marks[vertex]? ≠ some none →
+          tagHistory.Touched vertex ∨
             ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
 ```
 

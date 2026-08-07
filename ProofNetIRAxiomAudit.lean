@@ -156,6 +156,9 @@ expansion.
 #print axioms SequentialUnification.nextAxiomWithFuel?_threaded_touched_disjoint
 #print axioms SequentialUnification.NextAxiomResult.linkIndex_ne_of_input_left_tagged
 #print axioms SequentialUnification.NextAxiomResult.threaded_linkIndex_ne
+#print axioms SequentialUnification.SourceLeftStep.formulaComplexity_lt
+#print axioms SequentialUnification.SourceLeftReachable.formulaComplexity_le
+#print axioms SequentialUnification.SourceLeftReachable.eq_or_exists_lastStep
 #print axioms SequentialUnification.SourceLeftChain.cons_of_head
 #print axioms SequentialUnification.SourceLeftChain.reachable_of_head_last
 #print axioms SequentialUnification.nextAxiomWithFuel?_route
@@ -191,9 +194,12 @@ expansion.
 #print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker
 #print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable
 #print axioms SequentialFigure7.NewGuard.mate_bound
+#print axioms SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head
 #print axioms SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker
+#print axioms SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker
+#print axioms SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction
 #print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction

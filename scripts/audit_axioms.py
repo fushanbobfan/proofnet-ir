@@ -12,9 +12,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
 EXPECTED_CLASSICAL_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction",
@@ -509,6 +512,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialUnification.SourceLeftReachable.eq_or_exists_lastStep",
     "ProofNetIR.SequentialFigure7.PrependReadyTopStep.mem_queuedVertices_iff",
     "ProofNetIR.SequentialFigure7.empty_futureWaitingUndefined",
     "ProofNetIR.SequentialFigure7.PreparedStep.futureWaitingUndefined",
@@ -622,6 +626,8 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.LeanProp.Schema.Raw.CheckedDerivation.sound",
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
+    "ProofNetIR.SequentialUnification.SourceLeftStep.formulaComplexity_lt",
+    "ProofNetIR.SequentialUnification.SourceLeftReachable.formulaComplexity_le",
     "ProofNetIR.SequentialUnification.SourceLeftRegionVertex.inBounds",
     "ProofNetIR.Certificate.StructurallyWellFormed.axiomEndpoint_ne_connectiveConclusion",
     "ProofNetIR.SequentialFigure7.PreparedStep.after_queued_subset_before",

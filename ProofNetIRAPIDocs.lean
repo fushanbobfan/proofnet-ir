@@ -523,7 +523,10 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.nextAxiom?_tagged_iff_input_or_touched,
       `ProofNetIR.SequentialUnification.nextAxiomWithFuel?_threaded_touched_disjoint,
       `ProofNetIR.SequentialUnification.SourceLeftStep,
+      `ProofNetIR.SequentialUnification.SourceLeftStep.formulaComplexity_lt,
       `ProofNetIR.SequentialUnification.SourceLeftReachable,
+      `ProofNetIR.SequentialUnification.SourceLeftReachable.formulaComplexity_le,
+      `ProofNetIR.SequentialUnification.SourceLeftReachable.eq_or_exists_lastStep,
       `ProofNetIR.SequentialUnification.SourceLeftChain,
       `ProofNetIR.SequentialUnification.SourceLeftChain.cons_of_head,
       `ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_last,
@@ -574,7 +577,8 @@ def sections : List Section := [
       `ProofNetIR.SequentialUnification.FreshSourceBlocker,
       `ProofNetIR.SequentialUnification.FreshSourceBlocker.prepend,
       `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker,
-      `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable
+      `ProofNetIR.Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable,
+      `ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head
     ]
   },
   {
@@ -586,6 +590,8 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.CanonicalSourceLeftObstruction,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshBlocker,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshSourceBlocker,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_or_obstruction,
       `ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction,

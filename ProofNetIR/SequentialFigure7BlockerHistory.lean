@@ -177,6 +177,54 @@ theorem classifyFreshRawBlocker
       simpa [ReadyHeadInput.markedCore, Ne.symm selected] using marked
     exact SchedulerInvariant.exactMarkedOccurrenceOwner invariant oldMarked
 
+/-- A raw-mark failure at a recursively visited source-left occurrence cannot
+be the selected-head update.  Structural source-left descent eliminates that
+case, leaving an exact owner in the input component forest.
+
+This theorem is intentionally restricted to `visited`; a terminal axiom
+partner can equal the selected head unless switching acyclicity is supplied. -/
+theorem classifyVisitedFreshRawBlocker
+    {certificate : Certificate} {before : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (guard : NewGuard certificate before)
+    {vertex : Vertex}
+    (reachable :
+      SourceLeftReachable certificate guard.tensor.mate vertex)
+    (markBlocked :
+      guard.head.markedCore.marks[vertex]? ≠ some none) :
+    ExactMarkedOccurrenceOwner certificate before.core vertex := by
+  rcases classifyFreshRawBlocker invariant guard (.visited reachable)
+      markBlocked with selected | owned
+  · exact False.elim
+      (guard.not_sourceLeftReachable_mate_head invariant.structural
+        (selected ▸ reachable))
+  · exact owned
+
+/-- At a recursively visited source-left occurrence, every dynamic failure is
+now either an exact prior canonical tag touch or an exact old live-component
+owner.  The selected-head alternative survives only in the separate terminal
+partner geometry. -/
+theorem classifyVisitedFreshBlocker
+    {certificate : Certificate} {before : ReservationState}
+    {history : ExecutedHistory certificate before}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (invariant : SchedulerInvariant certificate before)
+    (guard : NewGuard certificate before)
+    {vertex : Vertex}
+    (reachable :
+      SourceLeftReachable certificate guard.tensor.mate vertex)
+    (unavailable :
+      before.tags[vertex]? ≠ some false ∨
+        guard.head.markedCore.marks[vertex]? ≠ some none) :
+    tagHistory.Touched vertex ∨
+      ExactMarkedOccurrenceOwner certificate before.core vertex := by
+  rcases unavailable with tagBlocked | markBlocked
+  · exact Or.inl
+      (tagHistory.classifyFreshTagBlocker invariant guard
+        (.visited reachable) tagBlocked)
+  · exact Or.inr
+      (classifyVisitedFreshRawBlocker invariant guard reachable markBlocked)
+
 /-- Classify one dynamic fresh-source blocker against an exact canonical
 history.
 

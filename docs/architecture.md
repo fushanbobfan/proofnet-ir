@@ -659,6 +659,21 @@ occurrence derivation, accounting, and membership. The combined
 possibly-overlapping provenance forms. It assumes neither another exact run nor
 `NewEnabled`, so it does not circularly solve the search obligation.
 
+The first local elimination theorem now separates recursive-route geometry
+from terminal-axiom geometry. `SourceLeftStep.formulaComplexity_lt` makes each
+stored-left source step strictly rank-decreasing, and
+`SourceLeftReachable.eq_or_exists_lastStep` exposes the exact final consumer.
+Combining those facts with structural unique-consumer provenance proves
+`NewGuard.not_sourceLeftReachable_mate_head`: a route launched at the selected
+tensor's opposite premise cannot revisit the selected ready head. The
+history-level `classifyVisitedFreshRawBlocker` and
+`classifyVisitedFreshBlocker` therefore remove the selected-head alternative
+on `visited` occurrences without assuming correctness or another search.
+They deliberately do not cover `terminalPartner`. A terminal partner can equal
+the head on structurally well-formed but switching-cyclic input, so that final
+case must be discharged by reference-switching acyclicity or declarative
+correctness.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of all three obstruction forms, the structural dichotomy yields a

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added exact source-left descent and endpoint geometry for the selected ready
+  head. `SourceLeftStep.formulaComplexity_lt` and
+  `SourceLeftReachable.formulaComplexity_le` expose the structural rank
+  decrease, while `eq_or_exists_lastStep` gives an exact final-step
+  decomposition. Under `StructurallyWellFormed`,
+  `NewGuard.not_sourceLeftReachable_mate_head` proves that the recursive
+  stored-left route from the tensor mate cannot return to the selected head.
+  The blocker-history layer therefore removes the selected-head raw-mark
+  alternative at every `visited` region occurrence: only a prior canonical
+  touch or an exact old live-component owner remains there. This theorem does
+  not cover `SourceLeftRegionVertex.terminalPartner`; that partner can equal
+  the head on structurally well-formed but switching-incorrect input, so its
+  exclusion genuinely requires reference-switching acyclicity or declarative
+  correctness. Prior-touch and old-owner exclusion, terminal geometry,
+  progress, totality, pure-worklist completeness, fallback removal, and
+  linearity remain open. No new literature reading is claimed. The exact
+  public axiom audit now covers 732 declarations: 471 full-classical, 25
+  axiom-free, 112 `propext`-only, and 124 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7BlockerHistory.lean`, which classifies every dynamic
   `FreshSourceBlocker` in an authentic canonical dispatcher history under the
   complete `SchedulerInvariant` and a selected `NewGuard`. A tag failure is an
@@ -17,8 +35,8 @@
   derive that premise from declarative correctness or reachability and proves
   no `NewGuard` sufficiency, progress, totality, worklist completeness,
   fallback removal, or linearity. This checkpoint operationalizes the existing
-  audited source semantics and adds no new literature reading. The exact
-  public axiom audit now covers 726 declarations: 468 full-classical, 25
+  audited source semantics and adds no new literature reading. That
+  checkpoint's exact public axiom audit covered 726 declarations: 468 full-classical, 25
   axiom-free, 111 `propext`-only, and 122 `propext`/`Quot.sound` boundaries;
 - added `SequentialFreshSourceBlocker.lean`, which makes the source-left
   obstruction boundary exact. For every structurally well-formed certificate

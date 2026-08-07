@@ -458,6 +458,14 @@ occurrence with a proof-relevant live owner. Its
 three forms, not a trusted exclusive case split. The module assumes neither an
 exact run nor executor success, `NewEnabled`, declarative correctness, or
 reachability when it performs the classification.
+The selected-head visited-case refinement also adds no oracle. Its source-left
+rank and last-step lemmas are structural consequences of link typing, and the
+head-separation proof compares the exact last consumer with the selected
+tensor's unique consumer. It removes the selected-head alternative only for a
+recursive `visited` witness. The terminal axiom partner is not silently folded
+into that proof: structurally valid but switching-cyclic input can make it the
+head, so a later theorem must supply reference-switching acyclicity or
+declarative correctness.
 An explicit universally quantified proof that the structural region contains
 none of those obstructions is sufficient to recover `FreshSourceLeftRun`, then
 `NewInputNecessary`, and then `NewEnabled` through already-audited bridges. No

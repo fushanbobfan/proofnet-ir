@@ -44,6 +44,45 @@ example {certificate : Certificate} {before : ReservationState}
   CanonicalTagHistory.classifyFreshRawBlocker
     invariant guard region blocked
 
+/- Exact source-left reachability cannot return from the tensor mate to the
+selected ready head on structurally well-formed input. -/
+example {certificate : Certificate} {before : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (guard : NewGuard certificate before) :
+    ¬ SourceLeftReachable certificate guard.tensor.mate
+        guard.head.vertex :=
+  guard.not_sourceLeftReachable_mate_head invariant.structural
+
+/- Consequently the selected-head raw-mark branch disappears for recursively
+visited region occurrences, leaving exact old component ownership. -/
+example {certificate : Certificate} {before : ReservationState}
+    (invariant : SchedulerInvariant certificate before)
+    (guard : NewGuard certificate before)
+    {vertex : Vertex}
+    (reachable :
+      SourceLeftReachable certificate guard.tensor.mate vertex)
+    (blocked : guard.head.markedCore.marks[vertex]? ≠ some none) :
+    ExactMarkedOccurrenceOwner certificate before.core vertex :=
+  CanonicalTagHistory.classifyVisitedFreshRawBlocker
+    invariant guard reachable blocked
+
+/- The complete dynamic failure classification on a visited occurrence now
+has only canonical prior-touch or exact old-owner branches. -/
+example {certificate : Certificate} {before : ReservationState}
+    {history : ExecutedHistory certificate before}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (invariant : SchedulerInvariant certificate before)
+    (guard : NewGuard certificate before)
+    {vertex : Vertex}
+    (reachable :
+      SourceLeftReachable certificate guard.tensor.mate vertex)
+    (unavailable :
+      before.tags[vertex]? ≠ some false ∨
+        guard.head.markedCore.marks[vertex]? ≠ some none) :
+    tagHistory.Touched vertex ∨
+      ExactMarkedOccurrenceOwner certificate before.core vertex :=
+  tagHistory.classifyVisitedFreshBlocker invariant guard reachable unavailable
+
 /- A combined dynamic blocker classifies into the exact three-way canonical
 history obstruction without assuming another search or executor success. -/
 example {certificate : Certificate} {before : ReservationState}
