@@ -7930,6 +7930,84 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObst
         ProofNetIR.SequentialFigure7.NewEnabled certificate before
 ```
 
+## Canonical-history touch origins
+
+### `ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_mem`
+
+Kind: theorem.
+
+Every member of a named source-left chain is reachable from its head.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_mem : ∀ {certificate : ProofNetIR.Certificate} {trace : List ProofNetIR.Vertex} {source vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialUnification.SourceLeftChain certificate trace →
+    trace.head? = some source →
+      vertex ∈ trace → ProofNetIR.SequentialUnification.SourceLeftReachable certificate source vertex
+```
+
+### `ProofNetIR.SequentialUnification.NextAxiomRoute.touched_sourceLeftRegion`
+
+Kind: theorem.
+
+Every vertex touched by one exact search lies in that search's complete
+source-left region, including the terminal partner outside the trace.
+
+```lean
+ProofNetIR.SequentialUnification.NextAxiomRoute.touched_sourceLeftRegion : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {inputTags : Array Bool}
+  {start reached partner vertex : ProofNetIR.Vertex}
+  {result : ProofNetIR.SequentialUnification.NextAxiomResult certificate state fuel inputTags},
+  ProofNetIR.SequentialUnification.NextAxiomRoute start result reached partner →
+    result.Touched vertex → ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate start vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTouchOrigin`
+
+Kind: inductive type.
+
+Exact originating search event for one globally touched vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTouchOrigin : (certificate : ProofNetIR.Certificate) →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → ProofNetIR.Vertex → Type
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_nonempty_origin`
+
+Kind: theorem.
+
+Global touch membership recovers one exact initialization or `new` search
+origin.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_nonempty_origin : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history) {vertex : ProofNetIR.Vertex},
+  tagHistory.Touched vertex → Nonempty (ProofNetIR.SequentialFigure7.CanonicalTouchOrigin certificate tagHistory vertex)
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationRegion`
+
+Kind: theorem.
+
+An exact touch origin recovers the historical reservation slot, its
+oriented route, and the touched vertex's complete historical source-left
+region.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationRegion : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history} {vertex : ProofNetIR.Vertex}
+  (origin : ProofNetIR.SequentialFigure7.CanonicalTouchOrigin certificate tagHistory vertex),
+  ∃ start reached partner linkIndex,
+    linkIndex ∈ tagHistory.linkIndices ∧
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate start vertex ∧
+        ProofNetIR.SequentialUnification.SourceLeftReachable certificate start reached ∧
+          (certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom reached partner) ∨
+            certificate.links[linkIndex]? = some (ProofNetIR.Link.axiom partner reached))
+```
+
 ## Shared sequential consumer index
 
 ### `ProofNetIR.ConsumerIndex`

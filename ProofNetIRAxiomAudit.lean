@@ -211,6 +211,10 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction
 #print axioms SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction
 #print axioms SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObstruction
+#print axioms SequentialUnification.SourceLeftChain.reachable_of_head_mem
+#print axioms SequentialUnification.NextAxiomRoute.touched_sourceLeftRegion
+#print axioms SequentialFigure7.CanonicalTagHistory.touched_nonempty_origin
+#print axioms SequentialFigure7.CanonicalTouchOrigin.reservationRegion
 #print axioms ConsumerIndex.build_size
 #print axioms ConsumerIndex.build_origin
 #print axioms ConsumerIndex.build_complete

@@ -288,6 +288,14 @@ scheduler history alone cannot prove this result. Under correctness, every
 dynamic blocker is now either a prior canonical touch or an exact old
 live-component owner. Excluding those two intersections in authentic
 certified histories remains the global obligation; progress remains separate.
+`SequentialFigure7TouchOrigin.lean` now makes the first remaining alternative
+proof-relevant rather than merely propositional. Every global canonical touch
+recovers one exact initialization or `new` event, its submitted axiom slot,
+the oriented historical source-left route, and membership of the touched
+vertex in that event's complete region. This is historical search provenance:
+it does not assign the event a raw token age, identify the touched vertex with
+a current live-component owner, or prove that the old region is disjoint from
+the current search.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1780,6 +1788,7 @@ lake exe proofnet_ir_fresh_capacity_tests
 lake exe proofnet_ir_queue_history_tests
 lake exe proofnet_ir_fresh_source_blocker_tests
 lake exe proofnet_ir_blocker_history_tests
+lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 python scripts/generate_dataset.py --check

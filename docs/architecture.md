@@ -679,6 +679,16 @@ the required acyclicity. The resulting full-region classifiers retain only
 prior canonical touch or old exact live-component ownership. They do not
 exclude either remaining historical intersection.
 
+`SequentialFigure7TouchOrigin.lean` opens the prior-touch alternative without
+weakening its provenance. `SourceLeftChain.reachable_of_head_mem` and
+`NextAxiomRoute.touched_sourceLeftRegion` place every trace or terminal-endpoint
+touch in the exact historical source-left region. The indexed
+`CanonicalTouchOrigin` then follows an authentic `CanonicalTagHistory` back to
+one stored event witness carried by that tag augmentation, and
+`reservationRegion` recovers the submitted slot, oriented terminal axiom,
+reachability, and region membership. This does not relate that old event to a
+current component or raw age; those are separate ledger/realization layers.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under

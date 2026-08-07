@@ -1022,6 +1022,11 @@
     history/correctness
     theorem, not a state-invariant field or an already-proved `NewGuard`
     sufficiency, progress, totality, or completeness result.
+    Exact prior-touch provenance is now available: every touched vertex
+    recovers its authentic init/new search, submitted slot, oriented route,
+    and historical source-left region. Next index those reservation events by
+    immutable raw age and prove the historical-reservation/final-component
+    realization needed for the two remaining disjointness arguments.
   - [x] Add a deterministic finite search for an actually reachable
     `NewGuard` state where the real `new?` fails. The default CI gate follows
     successful initialization and the canonical dispatcher from every formula

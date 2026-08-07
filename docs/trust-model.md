@@ -474,6 +474,12 @@ switching-cyclic triangle therefore remains a meaningful negative boundary.
 Under this explicit acyclicity assumption, the complete-region blocker
 classifier contains only prior canonical touch or old exact live-component
 ownership; neither of those is trusted away.
+`SequentialFigure7TouchOrigin.lean` adds no oracle to the prior-touch branch.
+It inducts only over the already proof-carrying `CanonicalTagHistory` and its
+stored initialization/dispatcher evidence. The recovered route and submitted
+slot are fields of those exact typed steps, while source-region membership is
+derived structurally from the stored route. No executable replay, unchecked
+choice of event, current-owner inference, or raw-age assumption is introduced.
 An explicit universally quantified proof that the structural region contains
 neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`, then
 `NewInputNecessary`, and then `NewEnabled` through already-audited bridges. No

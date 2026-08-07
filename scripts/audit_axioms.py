@@ -28,6 +28,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_of_no_obstruction",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.newInputNecessary_of_no_sourceLeftObstruction",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.newEnabled_of_no_sourceLeftObstruction",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_nonempty_origin",
+    "ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationRegion",
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",
     "ProofNetIR.Graph.IsTree.acyclic",
     "ProofNetIR.Graph.Acyclic.edges_add_one_le_vertexCount",
@@ -517,6 +519,8 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_mem",
+    "ProofNetIR.SequentialUnification.NextAxiomRoute.touched_sourceLeftRegion",
     "ProofNetIR.SequentialUnification.SourceLeftReachable.eq_or_exists_lastStep",
     "ProofNetIR.SequentialFigure7.PrependReadyTopStep.mem_queuedVertices_iff",
     "ProofNetIR.SequentialFigure7.empty_futureWaitingUndefined",

@@ -621,6 +621,14 @@ part of the engineering and proof-identity gap.
    remains the negative boundary showing the extra assumption is necessary.
    The two prior-touch/old-owner history-component intersections remain the
    library-readiness gates; terminal-head separation no longer is one.
+   `SequentialFigure7TouchOrigin.lean` now resolves the provenance shape of
+   the first gate: every prior touch comes from one exact recorded init/new
+   search and exposes its submitted axiom slot, oriented route, and complete
+   historical source-left region. It does not yet show that this old region is
+   disjoint from the current one, assign the event its immutable raw age, or
+   transport the historical reservation into a final live-component witness.
+   Those realization/disjointness facts, rather than touch provenance itself,
+   remain open.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher

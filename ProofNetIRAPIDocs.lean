@@ -606,6 +606,16 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Canonical-history touch origins"
+    declarations := [
+      `ProofNetIR.SequentialUnification.SourceLeftChain.reachable_of_head_mem,
+      `ProofNetIR.SequentialUnification.NextAxiomRoute.touched_sourceLeftRegion,
+      `ProofNetIR.SequentialFigure7.CanonicalTouchOrigin,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_nonempty_origin,
+      `ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationRegion
+    ]
+  },
+  {
     title := "Shared sequential consumer index"
     declarations := [
       `ProofNetIR.ConsumerIndex,

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- added `SequentialFigure7TouchOrigin.lean`, which reifies every global
+  `CanonicalTagHistory.Touched` witness as one exact historical initialization
+  or canonical `new` search. Lean recovers the submitted axiom-link position,
+  oriented `NextAxiomRoute`, and membership of the touched vertex in that
+  event's complete source-left region, including a terminal partner outside
+  the stored trace. The layer is historical provenance only: it deliberately
+  does not infer a current live-component owner, attach raw token ages to
+  events, exclude overlap with the current search region, prove progress, or
+  remove the recursive fallback. A dedicated downstream consumer is part of
+  the default build and CI runtime matrix. The exact public axiom audit now
+  covers 742 declarations: 478 full-classical, 25 axiom-free, 114
+  `propext`-only, and 125 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7TerminalPartnerGeometry.lean`, which closes the
   remaining selected-head branch for the complete source-left region under
   the exact proof-net assumption it needs. Lean lifts every stored-left step
