@@ -912,6 +912,18 @@ invariant. The inserted conclusion is handled only under
 actual created candidates in the prepared state and does not refer to the
 desired output invariant. The module makes no unconditional Unify claim.
 
+`SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` performs
+the parallel raw-mark transport across the representative-changing branch. A
+strictly older output raw mark cannot belong to the retired active class:
+after the union that class represents the previous boundary, while every
+output candidate boundary is at most the previous boundary. Same-boundary
+survivors and active-to-previous moved candidates therefore reduce to the
+prepared-state raw invariant. Inserted tensor candidates use only
+`UnifyPayloadCreatedRawMarksSeparated`, measured before the union. This raw
+seam is distinct from history-side `UnifyPayloadCreatedRegionSeparated`, is
+not derived from correctness or reachability, and gives conditional
+successful-step preservation rather than unconditional Unify or progress.
+
 `SequentialFigure7ReservationRealization.lean` supplies the second missing
 piece for the reserved axiom itself.  Under explicit certificate structural
 well-formedness, an event-specific

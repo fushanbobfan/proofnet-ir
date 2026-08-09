@@ -19837,6 +19837,36 @@ ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_crea
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.unifyPayload step))
 ```
 
+### `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRawMarksSeparated`
+
+Kind: definition.
+
+Every prepared-state raw mark strictly older than a candidate created by the
+selected tensor lies outside that candidate's source-left region.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRawMarksSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+A successful typed `unifyPayload` step preserves older raw-marked region
+separation when its newly inserted tensor candidates satisfy the explicit
+transition-local separation premise.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+      ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRawMarksSeparated step →
+        ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

@@ -764,8 +764,8 @@ part of the engineering and proof-identity gap.
    Prepared. Only input-retained marks versus actual Wait-created regions remain
    in the premise. This transition-local seam is distinct from
    `WaitCreatedRegionSeparated`, requires no declarative correctness or history,
-   and is not yet supplied by canonical reachability. Unify raw-mark
-   preservation, global availability, and progress remain open.
+   and is not yet supplied by canonical reachability. This theorem alone does
+   not establish global availability or progress.
    `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` now proves
    the corresponding Forward preservation step under
    `ForwardRetainedRawMarksSeparated`. The selected mark and every inserted
@@ -775,8 +775,19 @@ part of the engineering and proof-identity gap.
    premise.
    This transition-local seam is distinct from
    `ForwardCreatedRegionSeparated`, requires no declarative correctness or
-   history, and is not yet supplied by canonical reachability. Unify raw-mark
-   preservation, global availability, and progress remain open.
+   history, and is not yet supplied by canonical reachability. This theorem
+   alone does not establish global availability or progress.
+   `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` now
+   proves the corresponding arbitrary-payload Unify preservation step under
+   `UnifyPayloadCreatedRawMarksSeparated`. Strict older-than ordering excludes
+   the retired active representative class; survivors and moved candidates
+   transport through the prepared invariant. Only prepared-state raw marks
+   versus actual inserted tensor candidate regions remain in the premise. The
+   survivor, moved, and created alternatives cover the output but need not be
+   exclusive. This raw seam differs from
+   `UnifyPayloadCreatedRegionSeparated`, requires no correctness or history,
+   and is not yet supplied by canonical reachability. It proves neither
+   unconditional Unify, global availability, nor progress.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
    specific reachable-state gap around `NewGuard`: it considers only states
    reached by successful initialization and the canonical dispatcher and hard
@@ -902,7 +913,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 843 declarations: 561 public MLL
+- CI now parses `#print axioms` for 844 declarations: 562 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

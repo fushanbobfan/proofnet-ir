@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean`.
+  For every successful typed `UnifyPayloadStep`, Lean first excludes any raw
+  mark in the retired active representative class from the strict older-than
+  case. Survivor and moved candidates then reduce to the prepared-state
+  invariant, while inserted tensor candidates use the explicit
+  `UnifyPayloadCreatedRawMarksSeparated` premise. The survivor, moved, and
+  created alternatives cover every candidate but need not be exclusive. The
+  raw-mark premise is independent of history-side
+  `UnifyPayloadCreatedRegionSeparated` and uses neither correctness nor
+  history/reachability. The theorem remains conditional and does not derive
+  its residual premise, unconditional Unify, or progress. A direct consumer
+  invokes both public APIs; facade, default target, CI, generated API, and
+  trust audit are wired. The current public axiom audit covers 844
+  declarations: 562 full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound`.
 - added `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean`. For
   every successful typed `ForwardStep`, Lean classifies each output candidate
   as retained work or as the submitted par conclusion inserted at the active
@@ -15,7 +30,7 @@
   theorem remains conditional and does not derive its residual premise,
   unconditional Forward, or progress. A direct consumer invokes all three
   public APIs; facade, default target, CI, generated API, and trust audit are
-  wired. The current public axiom audit covers 843 declarations: 561
+  wired. At that checkpoint the public axiom audit covered 843 declarations: 561
   full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean`. For every

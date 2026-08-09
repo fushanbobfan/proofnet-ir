@@ -1068,9 +1068,14 @@
     now conditionally closed as well: its selected mark and inserted candidate
     share the active raw age, while `ForwardRetainedRawMarksSeparated` names
     the sole input-retained-mark seam. That seam also remains unavailable from
-    canonical reachability, and Unify raw-mark preservation remains open.
-    Older-event separation remains the parallel history obligation; none of
-    these conditional results alone is progress.
+    canonical reachability. The typed arbitrary-payload Unify step is likewise
+    conditionally closed: strict output order excludes the retired active raw
+    class, survivor and moved candidates transport through the prepared
+    invariant, and `UnifyPayloadCreatedRawMarksSeparated` names the inserted
+    candidate seam. Its three origin alternatives need not be exclusive, and
+    canonical reachability does not yet provide this seam. Older-event
+    separation remains the parallel history obligation; none of these
+    conditional results alone is progress.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

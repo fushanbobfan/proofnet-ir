@@ -472,8 +472,8 @@ handles retained candidates. The sole residual premise,
 `NewRetainedRawMarksSeparated`, keeps input-retained marks outside created
 regions. This premise differs from the event-side
 `NewCreatedRegionSeparated`; canonical history and reachability derive neither
-one yet. Unify raw-mark preservation remains open, and no progress,
-totality, worklist-completeness, or fallback-removal claim follows.
+one yet. This New-layer result alone yields no progress, totality,
+worklist-completeness, or fallback-removal claim.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` next separates a
 successful `wait` output into retained middle-state work or the exact
 conclusion inserted at the destination boundary. Retained candidates use the
@@ -532,6 +532,18 @@ conclusion is represented by `UnifyPayloadCreatedCandidate`. The history
 theorem is deliberately conditional on the non-circular
 `UnifyPayloadCreatedRegionSeparated` premise. No unconditional
 arbitrary-payload `unify` preservation is claimed.
+`SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` handles
+the parallel raw-mark invariant without pretending that the tensor union
+preserves all representatives. A raw mark that is strictly older than an
+output future candidate cannot belong to the retired active class, because
+that class and every output candidate lie at or below the surviving previous
+boundary. Survivor and moved candidates then use the prepared-state invariant.
+Inserted tensor candidates use the explicit
+`UnifyPayloadCreatedRawMarksSeparated` premise, measured before the union. The
+three candidate alternatives cover the output but need not be exclusive. This
+raw-mark premise differs from history-side
+`UnifyPayloadCreatedRegionSeparated`, is not derived from correctness or
+canonical reachability, and yields neither unconditional Unify nor progress.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1959,7 +1971,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 843 declarations: 561 public MLL logical-boundary theorems
+separately audits 844 declarations: 562 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2066,6 +2078,7 @@ lake exe proofnet_ir_older_raw_marked_region_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_forward_preservation_tests
 lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
+lake exe proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 lake exe proofnet_ir_new_progress_audit --cross-representative-search
@@ -2181,6 +2194,8 @@ ProofNetIR/SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean
   conditional Forward preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean
   conditional arbitrary-payload Unify introduced-candidate preservation
+ProofNetIR/SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean
+  conditional arbitrary-payload Unify raw-mark preservation
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -2227,6 +2242,8 @@ ProofNetIROlderRawMarkedRegionForwardPreservationTests.lean
   conditional Forward raw-mark preservation consumers
 ProofNetIRCrossRepresentativeUnifyPayloadPreservationTests.lean
   conditional Unify preservation consumers
+ProofNetIROlderRawMarkedRegionUnifyPayloadPreservationTests.lean
+  conditional Unify raw-mark preservation consumers
 ProofNetIRNewProgressAudit.lean
   finite reachable NewGuard and New/Wait/Forward/Unify created-region audit
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter

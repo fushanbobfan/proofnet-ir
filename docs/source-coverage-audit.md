@@ -181,11 +181,15 @@ that canonical histories satisfy the seam. The Forward raw-mark branch is
 likewise conditionally transported: selected and inserted work share the same
 active raw age, and `ForwardRetainedRawMarksSeparated` names the sole
 retained-mark seam. This is a kernel-checked code consequence, not a new
-literature reading or proof that canonical histories satisfy the seam. Unify
-raw-mark preservation remains open. Ownership through a complete reachable
+literature reading or proof that canonical histories satisfy the seam. The
+UnifyPayload raw-mark branch is now conditionally transported as well: strict
+output order excludes the retired active class, and
+`UnifyPayloadCreatedRawMarksSeparated` names the inserted-candidate seam. The
+covering origin alternatives need not be exclusive. This is again a
+kernel-checked code consequence, not new literature reading or evidence that
+canonical histories satisfy the seam. Ownership through a complete reachable
 transition system, richer route/tag/slot history commitments, later-state
-totality, progress, and
-pure-worklist completeness remain open.
+totality, progress, and pure-worklist completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,
 [*A linear algorithm for MLL proof net correctness and
