@@ -674,6 +674,16 @@ the same state. This does not make `SchedulerInvariant` a history predicate:
 same-sized forged tag arrays can still satisfy that state-only invariant, and
 this checkpoint does not separately prove the concrete all-true regression
 state unreachable.
+`SequentialFigure7RawMarkHistory.lean` reuses that same branch-indexed carrier
+for the common prepared pop/raw-mark prefix. Every successful non-initial
+dispatcher branch contributes exactly its selected occurrence/raw-age pair,
+and Lean proves that a final concrete raw mark exists exactly when some
+authentic event selected that pair. Executed-history and certified-reachability
+facades recover the event without introducing a parallel history type.
+`RawMarked` is not `Touched`: stable branches can mark connective conclusions
+without executing `NEXTAXIOM`. This is raw-mark provenance only. It does not
+establish queue origin or cross-component commitment ancestry, supply any
+created-candidate separation seam, or prove progress or completeness.
 `SequentialFigure7History.lean` now separately
 defines proof-relevant reachability for exactly the empty/init/operational-new
 fragment. For every such execution, Lean proves current tags are true exactly
@@ -1971,7 +1981,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 844 declarations: 562 public MLL logical-boundary theorems
+separately audits 848 declarations: 566 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2056,6 +2066,7 @@ lake exe proofnet_ir_figure7_primitives_tests
 lake exe proofnet_ir_tensor_adjacency_tests
 lake exe proofnet_ir_progress_invariant_tests
 lake exe proofnet_ir_tag_history_count_tests
+lake exe proofnet_ir_raw_mark_history_tests
 lake exe proofnet_ir_new_region_tests
 lake exe proofnet_ir_fresh_capacity_tests
 lake exe proofnet_ir_queue_history_tests
@@ -2200,6 +2211,7 @@ ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibili
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
 ProofNetIR/SequentialFigure7TagHistory.lean exact tag/slot augmentation of certified history
+ProofNetIR/SequentialFigure7RawMarkHistory.lean exact prepared-event raw-mark provenance
 ProofNetIR/SequentialSchedulerInvariant.lean state-only Figure-7 invariant
 ProofNetIR/SequentialComponentProvenance.lean exact proof-only component identity
 ProofNetIR/SequentialComponentReferenceGeometry.lean component-owned reference-switching paths
@@ -2213,6 +2225,7 @@ ProofNetIRFigure7UnifyPayloadInvariantTests.lean full-SI length-two payload regr
 ProofNetIRTensorAdjacencyTests.lean marked-tensor adjacency boundary regression
 ProofNetIRProgressInvariantTests.lean future waiting-storage and unmarked-tensor boundary regressions
 ProofNetIRTagHistoryCountTests.lean canonical reservation-event count consumer fixture
+ProofNetIRRawMarkHistoryTests.lean canonical raw-mark event provenance consumer
 ProofNetIRNewRegionTests.lean structural route/run and source-region bridge regressions
 ProofNetIRFreshCapacityTests.lean fresh terminal capacity consumer fixture
 ProofNetIRQueueHistoryTests.lean exact axiom-endpoint queue and history-indexed enabledness fixtures

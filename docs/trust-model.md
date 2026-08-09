@@ -708,13 +708,21 @@ recorded reservation-slot length equals final `nextAge`.
 `SchedulerInvariant` alone does not: its tag field remains only a size check.
 The all-true regression demonstrates that distinction without claiming a
 separate nonreachability proof for that forged state.
+`SequentialFigure7RawMarkHistory.lean` likewise adds no execution oracle. It
+projects the already-successful typed witness retained by each
+`DispatchTagEvidence`, exposes the common prepared selection, and proves exact
+one-step and whole-history raw-mark provenance. Stable branches show why this
+relation cannot be identified with `Touched`: they raw-mark a connective
+conclusion without another `NEXTAXIOM` execution. The theorem adds neither
+queue-origin nor cross-component commitment ancestry and does not derive the
+four raw created-candidate seams, progress, or completeness.
 `SequentialFigure7ProgressInvariant.lean` adds the public
 `FutureWaitingUndefined` preservation family; those theorems remain within the
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 844
-declarations: 562 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 848
+declarations: 566 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

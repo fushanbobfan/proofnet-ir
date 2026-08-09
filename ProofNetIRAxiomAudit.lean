@@ -736,6 +736,10 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.mem_linkIndices_witness
 #print axioms SequentialFigure7.CanonicalTagHistory.linkIndices_nodup
 #print axioms SequentialFigure7.CanonicalTagHistory.linkIndices_length_eq_nextAge
+#print axioms SequentialFigure7.DispatchTagEvidence.final_rawMarked_iff_old_or_event
+#print axioms SequentialFigure7.CanonicalTagHistory.final_rawMarked_iff
+#print axioms SequentialFigure7.ExecutedHistory.final_rawMarked_has_event
+#print axioms SequentialFigure7.ReachableByImplementedDispatcher.final_rawMarked_has_event
 #print axioms Certificate.StructurallyWellFormed.axiomEndpoint_ne_connectiveConclusion
 #print axioms SequentialSchedulerBridge.InitialReservationStep.mem_queuedVertices_iff
 #print axioms SequentialFigure7.PreparedStep.after_queued_subset_before

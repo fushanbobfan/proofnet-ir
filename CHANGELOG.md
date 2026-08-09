@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7RawMarkHistory.lean`. The existing branch-indexed
+  `DispatchTagEvidence` now exposes the common prepared prefix and its exact
+  raw-mark event for all six successful non-initial dispatcher branches. Lean
+  proves that a one-step output raw mark either existed on input or is exactly
+  the current selected occurrence/raw-age pair, then characterizes every final
+  raw mark in `CanonicalTagHistory` by an authentic dispatcher event. The
+  executed-history and certified-reachability facades recover that event. This
+  `RawMarked` relation is deliberately distinct from `Touched`: stable rules
+  can mark connective conclusions without running `NEXTAXIOM`. The layer is
+  provenance only; it does not provide queue-origin or cross-component
+  commitment ancestry, derive any of the four created-candidate raw seams, or
+  prove progress or completeness. A direct consumer invokes all seven public
+  APIs; facade, default target, CI, generated API, and trust audit are wired.
+  The current public axiom audit covers 848 declarations: 566 full-classical,
+  25 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean`.
   For every successful typed `UnifyPayloadStep`, Lean first excludes any raw
   mark in the retired active representative class from the strict older-than
@@ -14,7 +29,7 @@
   history/reachability. The theorem remains conditional and does not derive
   its residual premise, unconditional Unify, or progress. A direct consumer
   invokes both public APIs; facade, default target, CI, generated API, and
-  trust audit are wired. The current public axiom audit covers 844
+  trust audit are wired. At that checkpoint the public axiom audit covered 844
   declarations: 562 full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound`.
 - added `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean`. For

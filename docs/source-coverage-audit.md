@@ -187,7 +187,14 @@ output order excludes the retired active class, and
 `UnifyPayloadCreatedRawMarksSeparated` names the inserted-candidate seam. The
 covering origin alternatives need not be exclusive. This is again a
 kernel-checked code consequence, not new literature reading or evidence that
-canonical histories satisfy the seam. Ownership through a complete reachable
+canonical histories satisfy the seam. Canonical histories now have an exact
+raw-mark event provenance layer: every final
+concrete mark is the selection of an authentic typed dispatcher branch, and
+the one-step effect is exactly old-or-current-event. This is a kernel-checked
+code consequence, not a new literature reading. It does not identify raw marks
+with `NEXTAXIOM` touches and does not supply queue origin, cross-component
+commitment ancestry, or any created-candidate seam.
+Ownership through a complete reachable
 transition system, richer route/tag/slot history commitments, later-state
 totality, progress, and pure-worklist completeness remain open.
 

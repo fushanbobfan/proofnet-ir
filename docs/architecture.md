@@ -1415,6 +1415,14 @@ active-reference walks between marked occurrences are equivalent to
   augmentation is derived from `ExecutedHistory`/certified reachability; it
   does not turn `SchedulerInvariant.tags_size` into tag provenance, and it does
   not prove the concrete same-sized all-true replacement unreachable.
+  `SequentialFigure7RawMarkHistory.lean` reuses the same typed branch evidence
+  to expose each branch's common prepared prefix. Its one-step theorem says
+  that an output raw mark is old or is exactly the current selected
+  occurrence/raw-age pair; induction then characterizes every final raw mark
+  by an authentic dispatcher event. This relation is separate from search
+  touch provenance because stable rules raw-mark connective conclusions. It
+  does not provide queue-origin or cross-component commitment ancestry and
+  therefore does not discharge any created-candidate raw seam.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

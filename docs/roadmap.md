@@ -1076,6 +1076,13 @@
     canonical reachability does not yet provide this seam. Older-event
     separation remains the parallel history obligation; none of these
     conditional results alone is progress.
+    Raw-mark event provenance is now exact across all six dispatcher branches:
+    every final concrete mark is the selected occurrence/raw-age pair of an
+    authentic prepared event, and each step has exactly the old-or-current
+    effect. This does not identify raw marks with search touches. The remaining
+    gap is a queue-origin and cross-component commitment-ancestry/order theorem
+    connecting earlier selections to each newly created candidate; without it,
+    the four transition-local raw seams remain explicit premises.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

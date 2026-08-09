@@ -822,9 +822,16 @@ part of the engineering and proof-identity gap.
    strict fresh growth for `new`, touched-set separation, touched-history
    independence at a common concrete state, and history-wide submitted-slot
    `Nodup`. The state-only invariant still admits same-sized forged tag arrays;
-   this checkpoint requires proof-carrying history evidence and does not
-   separately prove the concrete all-true replacement unreachable.
-   Reservation-event-count and whole-history oriented-route generalization,
+    this checkpoint requires proof-carrying history evidence and does not
+    separately prove the concrete all-true replacement unreachable.
+    `SequentialFigure7RawMarkHistory.lean` reuses the same branch evidence to
+    recover every successful branch's prepared selection. It proves exact
+    one-step old-or-current-event mark transport, final mark iff canonical raw
+    event, and executed-history/reachability event recovery. Raw-mark events
+    are not `NEXTAXIOM` touches: stable rules can mark connective conclusions.
+    This is provenance only, not queue-origin or cross-component commitment
+    ancestry, a proof of any created-candidate seam, or progress.
+    Reservation-event-count and whole-history oriented-route generalization,
    exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
@@ -913,7 +920,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 844 declarations: 562 public MLL
+- CI now parses `#print axioms` for 848 declarations: 566 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

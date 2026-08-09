@@ -17400,6 +17400,58 @@ ProofNetIR.SequentialFigure7.DispatchTagEvidence.new_growth_and_singleton_link :
         before.tags[vertex]? = some false ∧ result.after.tags[vertex]? = some true ∧ evidence.linkIndices = [linkIndex]
 ```
 
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.prepared`
+
+Kind: definition.
+
+The exact prepared prefix retained by one branch-aligned dispatcher
+evidence witness.
+
+Although the carrier is named for tag effects, every constructor stores the
+typed rule witness and therefore the common pop/raw-mark prefix as well.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.prepared : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult} →
+      ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result →
+        ProofNetIR.SequentialFigure7.PreparedStep before
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.RawMarked`
+
+Kind: definition.
+
+The exact occurrence/raw-age pair newly marked by one dispatcher event.
+
+This relation is not a `NEXTAXIOM` touch relation.  All six successful rule
+families contribute exactly one prepared raw-mark event.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.RawMarked : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult} →
+      ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.final_rawMarked_iff_old_or_event`
+
+Kind: theorem.
+
+One successful dispatcher step has exactly the expected raw-mark effect:
+an output mark either already existed on input or is the current prepared
+selection.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.final_rawMarked_iff_old_or_event : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  result.after.core.marks[vertex]? = some (some rawAge) ↔
+    before.core.marks[vertex]? = some (some rawAge) ∨ evidence.RawMarked rawAge vertex
+```
+
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory`
 
 Kind: inductive type.
@@ -17587,6 +17639,69 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.linkIndices_length_eq_nextAge :
   {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
   (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
   tagHistory.linkIndices.length = state.stack.nextAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarked`
+
+Kind: definition.
+
+An occurrence/raw-age pair selected by some authentic dispatcher event in
+the supplied canonical history.
+
+The relation is accumulated independently of the history's search-touch
+relation.  Initialization contributes no raw mark; every later dispatcher
+event contributes its one prepared selection.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.RawMarked : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.final_rawMarked_iff`
+
+Kind: theorem.
+
+Final concrete raw marks are characterized exactly by authentic prepared
+selection events in the canonical history.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.final_rawMarked_iff : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  state.core.marks[vertex]? = some (some rawAge) ↔ tagHistory.RawMarked rawAge vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory.final_rawMarked_has_event`
+
+Kind: theorem.
+
+Every final raw mark in an exact executed history has an authentic
+prepared-selection event in a canonical augmentation of that same history.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory.final_rawMarked_has_event : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  state.core.marks[vertex]? = some (some rawAge) → ∃ tagHistory, tagHistory.RawMarked rawAge vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.final_rawMarked_has_event`
+
+Kind: theorem.
+
+Every concrete raw mark in a certified dispatcher-reachable state is
+witnessed by an authentic prepared-selection event in an exact history ending
+at that state.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.final_rawMarked_has_event : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state →
+    ∀ {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+      state.core.marks[vertex]? = some (some rawAge) → ∃ history tagHistory, tagHistory.RawMarked rawAge vertex
 ```
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.fresh_terminal_capacity`
