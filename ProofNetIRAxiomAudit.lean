@@ -208,6 +208,10 @@ expansion.
 #print axioms SequentialFigure7.NewGuard.tensorConclusion_not_owned
 #print axioms SequentialFigure7.ReadyHeadInput.activeComponent
 #print axioms SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active
+#print axioms SequentialUnification.SourceLeftChain.reachable_to_last_of_mem
+#print axioms SequentialFigure7.ReservationEvent.leftEndpoint_sourceLeftRegion_of_touched
+#print axioms SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion
+#print axioms SequentialFigure7.CanonicalTagHistory.not_event_touch_of_sameRepresentative
 #print axioms SequentialFigure7.FutureWorkAt.mem_queued
 #print axioms SequentialFigure7.FutureWorkAt.rawAge_mem_sigma
 #print axioms SequentialFigure7.FutureWorkAt.rawAge_lt_nextAge

@@ -1390,14 +1390,24 @@ def sections : List Section := [
     ]
   },
   {
-    title := "Same-representative source-left geometry"
+    title := "Same-representative source-left and historical-touch geometry"
     declarations := [
       `ProofNetIR.SequentialFigure7.sourceLeftRegionVertex_referencePath_avoiding,
       `ProofNetIR.SequentialFigure7.referenceAcyclic_no_tensorBypass,
       `ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_produced,
       `ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_owned,
       `ProofNetIR.SequentialFigure7.ReadyHeadInput.activeComponent,
-      `ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active
+      `ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_active,
+      `ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReservationEvent
+        "leftEndpoint_sourceLeftRegion_of_touched",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewGuard
+        "sourceLeftRegion_formulaComplexity_lt_conclusion",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "not_event_touch_of_sameRepresentative"
     ]
   },
   {

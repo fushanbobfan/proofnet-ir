@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- added `SequentialFigure7SameRepresentativeEventTouch.lean`. Every vertex
+  touched by one exact reservation event has a structural source-left
+  continuation to that event's stored-left submitted-axiom endpoint. When the
+  event and selected ready head have the same current representative,
+  reservation realization places that endpoint in the active occurrence
+  component. The candidate-region path, historical continuation, and
+  component path would then form a tensor-premise bypass in the deterministic
+  reference switching, contradicting declarative correctness. The theorem is
+  non-circular: it assumes neither a `FreshSourceLeftRun`, `NewEnabled`, nor
+  success of an additional current `new?` call. It excludes only the
+  same-representative exact-event-touch case; strictly older representatives,
+  old marked owners, derivation of the
+  four created-region premises, exhaustive enabledness, progress, and
+  completeness remain open. A dedicated consumer, default target, facade,
+  generated API entry, trust audit, and CI command cover the layer. The exact
+  public axiom audit now covers 806 declarations: 525 full-classical, 25
+  axiom-free, 121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean`.
   Exact stack equations classify output future work as a survivor at its
   prepared boundary, an active-bucket item moved to the previous boundary, or
@@ -96,10 +113,11 @@
   exactly the prepared state. A dedicated public consumer and CI target cover
   the new API. This does not turn a prepared prefix into an `ExecutedHistory`
   edge and makes no preservation claim for `new`, `wait`, `forward`, or
-  arbitrary-payload `unify`. Those candidate-creating branches,
+  arbitrary-payload `unify`. At that stable-prefix checkpoint, those
+  candidate-creating branches,
   same-representative tag-only touch exclusion, exhaustive enabledness,
   progress, pure-worklist completeness, recursive fallback removal, faithful
-  token-age scheduling, and whole-program complexity remain open. The exact
+  token-age scheduling, and whole-program complexity remained open. The exact
   public axiom audit now covers 788 declarations: 510 full-classical, 25
   axiom-free, 119 `propext`-only, and 134 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CrossRepresentativeInvariant.lean`. The new

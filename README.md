@@ -354,10 +354,20 @@ current union-find representative different from the active ready head's
 representative. The proof uses `SchedulerInvariant`, exact component
 provenance, `NewGuard`, and declarative reference-switching acyclicity; it does
 not use an exact-run premise or its converse. This closes the
-same-representative raw-mark obstruction only. Tag-only historical touches,
-the full six-rule cross-representative preservation theorem, exhaustive
-enabledness, progress, pure-worklist completeness, fallback removal, and
-complexity remain open.
+same-representative raw-mark obstruction only.
+`SequentialFigure7SameRepresentativeEventTouch.lean` closes the corresponding
+same-representative obstruction for one exact historical reservation event.
+An event touch has a structural source-left continuation to that event's
+stored-left axiom endpoint; reservation realization and representative
+equality put this endpoint in the selected head's current occurrence
+component. Joining the candidate-region path, historical route, and component
+path would create a reference-switching tensor bypass, contradicting
+`DeclarativelyCorrect`. The theorem is independent of `FreshSourceLeftRun`,
+`NewEnabled`, and success of an additional current `new?` call. It does not
+exclude strictly older representatives or old marked owners, derive any
+created-region premise, make
+`NewGuard` sufficient, or prove progress. Those cases and the unconditional
+six-rule cross-representative invariant remain open.
 `SequentialFigure7CrossRepresentativeInvariant.lean` now fixes the next
 invariant's exact domain without treating flattened queue membership as a
 boundary witness. `FutureWorkAt` covers every position-indexed ready bucket and
@@ -1860,9 +1870,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 802 declarations: 523 public MLL logical-boundary theorems
+separately audits 806 declarations: 525 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
-axiom-free, 120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries. LeanProp
+axiom-free, 121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -2049,6 +2059,7 @@ ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reserva
 ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
+ProofNetIR/SequentialFigure7SameRepresentativeEventTouch.lean same-representative historical event-touch exclusion
 ProofNetIR/SequentialFigure7CrossRepresentativeInvariant.lean future-work and strictly older representative source-region invariant
 ProofNetIR/SequentialFigure7CrossRepresentativeStablePreservation.lean prepared/concl/nop cross-representative preservation
 ProofNetIR/SequentialFigure7CrossRepresentativeNewPreservation.lean
@@ -2086,6 +2097,7 @@ ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
+ProofNetIRSameRepresentativeEventTouchTests.lean same-representative historical event-touch consumers
 ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
 ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
 ProofNetIRCrossRepresentativeNewPreservationTests.lean conditional New preservation consumers

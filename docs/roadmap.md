@@ -1023,6 +1023,11 @@
     `NewInputNecessary`. This is a geometric history/correctness
     theorem, not a state-invariant field or an already-proved `NewGuard`
     sufficiency, progress, totality, or completeness result.
+    The same-current-representative prior-event-touch slice is now
+    kernel-excluded by exact reservation realization and reference-switching
+    geometry. Remaining work must cover the representative-order alternatives
+    needed for strictly older events and eliminate old exact marked owners;
+    this checkpoint alone is not the universal premise.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

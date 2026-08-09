@@ -18069,7 +18069,7 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.newEnabled_iff_inp
         ProofNetIR.SequentialFigure7.NewInputNecessary certificate state)
 ```
 
-## Same-representative source-left geometry
+## Same-representative source-left and historical-touch geometry
 
 ### `ProofNetIR.SequentialFigure7.sourceLeftRegionVertex_referencePath_avoiding`
 
@@ -18178,6 +18178,76 @@ ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_marked_representative_ne_
         ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
           before.core.marks[vertex]? = some (some rawAge) →
             before.core.representative rawAge ≠ before.core.representative guard.head.rawAge
+```
+
+### `ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem`
+
+Kind: theorem.
+
+Every member of a source-left chain reaches the chain's last vertex.
+
+```lean
+ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem : ∀ {certificate : ProofNetIR.Certificate} {trace : List ProofNetIR.Vertex} {vertex target : ProofNetIR.Vertex},
+  ProofNetIR.SequentialUnification.SourceLeftChain certificate trace →
+    vertex ∈ trace →
+      trace.getLast? = some target → ProofNetIR.SequentialUnification.SourceLeftReachable certificate vertex target
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.leftEndpoint_sourceLeftRegion_of_touched`
+
+Kind: theorem.
+
+A historical touch has a structural source-left continuation to the
+submitted axiom's stored-left endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.leftEndpoint_sourceLeftRegion_of_touched : ∀ {certificate : ProofNetIR.Certificate} (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate)
+  {vertex : ProofNetIR.Vertex},
+  event.Touched vertex →
+    ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate vertex event.search.result.left
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion`
+
+Kind: theorem.
+
+Every occurrence in the selected mate's complete source-left region is
+strictly less complex than the selected tensor conclusion.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+        certificate.formulaComplexityAt vertex < certificate.formulaComplexityAt guard.tensor.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.not_event_touch_of_sameRepresentative`
+
+Kind: theorem.
+
+A touch by one exact historical reservation event cannot lie in the
+current `new` source-left region when the event and active ready head have the
+same current representative.
+
+This excludes only the same-representative historical-touch case. It does not
+exclude strictly older events or old marked owners, construct a fresh route,
+make `NewGuard` sufficient, or establish dispatcher progress.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.not_event_touch_of_sameRepresentative : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          before.core.representative event.rawAge = before.core.representative guard.head.rawAge →
+            ∀ {vertex : ProofNetIR.Vertex},
+              event.Touched vertex →
+                ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex → False
 ```
 
 ## Cross-representative source-left invariant

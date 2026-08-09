@@ -732,6 +732,16 @@ not yet prove preservation by later Figure-7 transitions. In particular, new
 ready/waiting conclusions created by `new`, `wait`, `forward`, and `unify`
 require genuine region-disjointness arguments, not merely field transport.
 
+`SequentialFigure7SameRepresentativeEventTouch.lean` handles the equality
+case for exact historical reservation events. A touched vertex structurally
+reaches the event's stored-left axiom endpoint; exact reservation realization
+and representative equality align that endpoint with the active occurrence
+component. Source-left paths on both sides plus the component-internal path
+would bypass the selected tensor conclusion in the reference switching, which
+declarative correctness forbids. This theorem does not reconstruct a fresh
+run and does not cover a strictly older event, an old marked owner, or any
+rule-created candidate preservation premise.
+
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` discharges the
 field-transport part exactly once. `FutureWorkAt.beforePrepared` restores the
 selected head only in the old active ready bucket while preserving every

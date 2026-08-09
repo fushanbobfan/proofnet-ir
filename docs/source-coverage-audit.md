@@ -140,7 +140,10 @@ update or an old raw-marked occurrence with occurrence-exact ownership in a
 live component. The three alternatives may overlap. An explicit universal
 no-obstruction premise yields the exact run and the established
 `NewInputNecessary`/`NewEnabled` bridges, but deriving that premise from
-correctness and certified history is still open. This checkpoint is an
+correctness and certified history is still open. The exact historical-event
+touch subcase is now excluded when its current representative equals the
+active head representative; strict older-event geometry and old marked-owner
+blockers remain. This checkpoint is an
 implementation consequence of the already-audited source semantics and does
 not record a new literature reading. Ownership
 through a complete reachable transition

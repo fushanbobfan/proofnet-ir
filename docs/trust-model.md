@@ -506,6 +506,15 @@ search result, runtime test, raw-age chronology, or unproved disjointness is
 inserted. At that foundation checkpoint, no later-rule preservation was
 proved; the stable module below now covers the prepared, `concl`, and `nop`
 cases, while the candidate-creating branches remain theorem work.
+`SequentialFigure7SameRepresentativeEventTouch.lean` imports no historical
+touch or region oracle. The reservation event is an exact member of the
+proof-carrying ledger, its touched witness comes from the event's stored search
+result, and its final axiom endpoint ownership is derived from reservation
+realization under structural correctness. The contradiction uses the
+reference-switching acyclicity field of `DeclarativelyCorrect`; it does not use
+an executable audit, a reconstructed `FreshSourceLeftRun`, or the desired
+created-region invariant. Its conclusion is limited to representative
+equality and cannot be reused as a strictly-older or old-owner theorem.
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` adds no
 reachability, ordering, or region-disjointness oracle. Its prepared-prefix
 helpers are derived from the exact `popReadyMark?` and `markReadyRaw?`
@@ -617,9 +626,9 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 802
-declarations: 523 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
-axiom-free, 120 use exactly `[propext]`, and 134 use exactly
+evidence, not public three-axiom theorems. The exact trust audit now covers 806
+declarations: 525 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+axiom-free, 121 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
