@@ -730,6 +730,16 @@ part of the engineering and proof-identity gap.
    This is conditional tag freshness, not route/run construction, raw or
    endpoint readiness, queue/capacity evidence, global invariant availability,
    `NewEnabled`, or progress.
+   `SequentialFigure7ActiveRegionAvailability.lean` now composes that
+   conditional tag freshness with the complete structural run-or-blocker
+   theorem. The result is an exact dichotomy between a complete
+   `NewSourceRegionInput` and an old `ExactMarkedOccurrenceOwner` in the active
+   mate region, followed by the corresponding `NewEnabled`/owner dichotomy.
+   A pointwise no-owner premise yields `NewEnabled`. This closes the run,
+   readiness, endpoint queue-absence, fresh-capacity, and future-cell
+   obligations in the successful branch, but it does not derive the owner-clear
+   premise, global older-event separation, created-region preservation,
+   exhaustive enabledness, or progress.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
    specific reachable-state gap around `NewGuard`: it considers only states
    reached by successful initialization and the canonical dispatcher and hard
@@ -855,7 +865,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 820 declarations: 539 public MLL
+- CI now parses `#print axioms` for 823 declarations: 542 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

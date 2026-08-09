@@ -236,6 +236,10 @@ expansion.
   CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderEventTouchSeparated
 #print axioms
   CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated
+#print axioms
+  CanonicalTagHistory.active_newSourceRegionInput_or_exactMarkedOwner
+#print axioms CanonicalTagHistory.active_newEnabled_or_exactMarkedOwner
+#print axioms CanonicalTagHistory.active_newEnabled_of_no_exactMarkedOwner
 #print axioms SequentialFigure7.empty_olderSourceRegionSeparated
 #print axioms SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.FutureWorkAt.beforePrepared

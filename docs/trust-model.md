@@ -543,6 +543,15 @@ The resulting strict order is then consumed by the explicitly supplied
 lookup through canonical touch provenance to a concrete ledger event. No
 runtime audit, route/run existence, raw readiness, queue/capacity witness,
 created-region premise, or progress result enters these theorems.
+`SequentialFigure7ActiveRegionAvailability.lean` adds no search or ownership
+oracle. It case-splits the already kernel-checked structural
+`freshSourceLeftRun_or_blocker`. The run branch is packaged by existing
+canonical queue/capacity theorems; declarative blocker classification reduces
+the other branch to a canonical touch or an exact marked owner, and the prior
+tag-freshness theorem refutes only the touch. `NewEnabled` then uses the
+already-proved history-level `FutureWaitingUndefined`. The old-owner branch and
+its pointwise exclusion remain explicit hypotheses, so no progress or global
+availability fact is hidden in this layer.
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` adds no
 reachability, ordering, or region-disjointness oracle. Its prepared-prefix
 helpers are derived from the exact `popReadyMark?` and `markReadyRaw?`
@@ -654,8 +663,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 820
-declarations: 539 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 823
+declarations: 542 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 121 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

@@ -160,7 +160,12 @@ active mate region must be strictly older in representative and raw-age order,
 and a supplied older-event separation invariant therefore makes the complete
 region tag-fresh. It does not add a literature reading or provide the route,
 readiness, queue/capacity, or global-invariant witnesses still needed for
-enabledness. Ownership through a complete reachable transition system, richer
+enabledness. The availability-reduction layer now consumes the existing
+structural search and those code invariants: it proves `NewSourceRegionInput`
+or an exact old marked owner, then `NewEnabled` or that owner. This is another
+code consequence rather than a new literature reading; it leaves owner
+exclusion and global older-event separation open. Ownership through a complete
+reachable transition system, richer
 route/tag/slot history commitments, later-state totality, progress, and
 pure-worklist completeness remain open.
 

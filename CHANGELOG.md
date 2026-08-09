@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveRegionAvailability.lean`. Under declarative
+  correctness, the complete scheduler invariant, an active `NewGuard`, and
+  `OlderEventTouchSeparated`, structural source search now yields either a
+  complete `NewSourceRegionInput` or an exact old marked occurrence owner in
+  the active mate region. The next theorem yields `NewEnabled` or that same
+  owner, and an explicit pointwise no-owner premise closes the `NewEnabled`
+  branch. The successful alternative includes the exact run, raw and endpoint
+  readiness, endpoint queue absence, fresh waiting capacity, and the existing
+  history-level future-cell invariant. It does not eliminate the owner,
+  establish older-event separation for arbitrary histories, discharge the
+  four created-region preservation premises, or prove progress. A direct
+  consumer invokes all three public APIs; facade, default target, CI,
+  generated API, and trust audit are wired. The current public axiom audit
+  covers 823 declarations: 542 full-classical, 25 axiom-free, 121
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveRegionTouchOrder.lean`. Under
   `DeclarativelyCorrect`, `SchedulerInvariant`, `CanonicalTagHistory`, and
   `NewGuard`, any authentic historical event touch of the active mate region
@@ -14,7 +29,7 @@
   endpoint/queue/capacity
   obligations, `NewEnabled`, or progress. A direct consumer invokes all five
   public APIs; the facade, default target, CI, generated API, and trust audit
-  are wired. The current public axiom audit covers 820 declarations: 539
+  were wired. At that checkpoint the axiom audit covered 820 declarations: 539
   full-classical, 25 axiom-free, 121 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventTouchSeparation.lean`. The new

@@ -1048,6 +1048,13 @@
     complete active region tag-fresh. Remaining work must establish the
     separation invariant for the relevant histories and eliminate old exact
     marked owners; this checkpoint alone is not the universal premise.
+    The active-region availability layer now packages the complete structural
+    search into `NewSourceRegionInput` or an exact old marked owner, and then
+    into `NewEnabled` or that owner. Consequently route/run, raw and endpoint
+    readiness, endpoint queue absence, fresh waiting capacity, and the existing
+    future-cell invariant are closed on the successful branch. The pointwise
+    no-owner corollary is conditional; proving owner absence and globally
+    preserving older-event separation remain the next history obligations.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

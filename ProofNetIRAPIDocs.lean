@@ -1471,6 +1471,15 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
         "active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_newSourceRegionInput_or_exactMarkedOwner",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_newEnabled_or_exactMarkedOwner",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_newEnabled_of_no_exactMarkedOwner",
       `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.FutureWorkAt.beforePrepared,

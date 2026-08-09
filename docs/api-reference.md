@@ -18730,6 +18730,77 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFres
               before.tags[vertex]? = some false
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newSourceRegionInput_or_exactMarkedOwner`
+
+Kind: theorem.
+
+For an active `NewGuard`, exact source-region availability fails only at
+an occurrence with an old proof-relevant live-component owner.
+
+The left branch includes the exact run, endpoint readiness, endpoint queue
+absence, and fresh waiting capacity.  The right branch is not excluded here.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newSourceRegionInput_or_exactMarkedOwner : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+          Nonempty (ProofNetIR.SequentialFigure7.NewSourceRegionInput certificate before) ∨
+            ∃ vertex,
+              ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex ∧
+                ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled_or_exactMarkedOwner`
+
+Kind: theorem.
+
+Under the same active-region assumptions, input-only `new` enabledness
+fails only at an exact old marked occurrence owner.
+
+This theorem is a dichotomy, not an unconditional enabledness result.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled_or_exactMarkedOwner : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+          ProofNetIR.SequentialFigure7.NewEnabled certificate before ∨
+            ∃ vertex,
+              ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex ∧
+                ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled_of_no_exactMarkedOwner`
+
+Kind: theorem.
+
+If the active source-left region has no exact old marked owner, the
+history-indexed active guard is input-only `NewEnabled`.
+
+The explicit owner-clear premise is the remaining mathematical gate; this
+corollary does not derive it from touch separation or the scheduler invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled_of_no_exactMarkedOwner : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+          (∀ {vertex : ProofNetIR.Vertex},
+              ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+                ¬ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex) →
+            ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
 ### `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated`
 
 Kind: theorem.

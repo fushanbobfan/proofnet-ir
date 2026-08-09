@@ -43,6 +43,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "active_sourceLeftRegion_tagFresh_of_olderEventTouchSeparated",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_newSourceRegionInput_or_exactMarkedOwner",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_newEnabled_or_exactMarkedOwner",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_newEnabled_of_no_exactMarkedOwner",
     "ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated",

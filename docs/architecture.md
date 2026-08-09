@@ -779,6 +779,18 @@ history invariant and does not construct a route/run, establish raw readiness
 or queue capacity, prove `NewEnabled`, or discharge a created-candidate
 preservation premise.
 
+`SequentialFigure7ActiveRegionAvailability.lean` then runs the complete
+structural source-left search against that tag-fresh region. A successful run
+is upgraded by canonical queue history to `NewSourceRegionInput`, including
+endpoint queue absence and fresh waiting capacity. A failed search is
+classified, under declarative correctness, as a historical touch or an exact
+old marked occurrence owner; tag freshness eliminates the touch. The resulting
+dichotomy is therefore `NewSourceRegionInput` versus exact old owner, and then
+`NewEnabled` versus exact old owner after consuming the existing
+`FutureWaitingUndefined` history invariant. Only an explicit pointwise
+no-owner premise closes `NewEnabled`; the module does not prove that premise or
+global older-event separation.
+
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` discharges the
 field-transport part exactly once. `FutureWorkAt.beforePrepared` restores the
 selected head only in the old active ready bucket while preserving every
