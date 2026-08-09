@@ -1422,7 +1422,14 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.FutureNewCandidateAt.beforePrepared,
       `ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated,
-      `ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated
+      `ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated,
+      Name.str
+        `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep
+        "after_representative_eq_before",
+      `ProofNetIR.SequentialFigure7.FutureWorkAt.beforeWaitOrInserted,
+      `ProofNetIR.SequentialFigure7.WaitCreatedCandidate,
+      `ProofNetIR.SequentialFigure7.WaitCreatedRegionSeparated,
+      `ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created
     ]
   },
   {

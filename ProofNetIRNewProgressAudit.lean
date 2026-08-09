@@ -9,7 +9,7 @@ open ProofNetIR.SequentialFigure7
 open ProofNetIR.SequentialSchedulerState
 
 /-!
-# Finite reachable-state audit for the shallow Figure-7 `new` guard
+# Finite reachable-state audit for Figure-7 New and Wait geometry
 
 This executable searches only states produced by a successful
 `initializeReservation?` followed by zero or more successful canonical
@@ -18,12 +18,20 @@ This executable searches only states produced by a successful
 `certificate.check = true ∧ ReachableByImplementedDispatcher certificate state ∧
   Nonempty (NewGuard certificate state) ∧ new? certificate state invariant = none`.
 
-The search is deterministic and finite. Absence of a witness is regression
-evidence over the constants below, not a progress theorem or a proof that the
-shallow guard is sufficient. Labelled variants may denote equal certificates;
-the reported count is a count of labelled audit cases, not a uniqueness claim.
-Default CI covers depths zero through four; `--extended` adds depth five and
-`--profile-depth N` prints every initialization/replay phase. Candidate
+The default and extended modes search the shallow-New counterexample above.
+`--wait-search` additionally decodes every successful Wait, reconstructs the
+chronological reservation ledger, and checks every Wait-created future-New
+candidate against every strictly older representative event for intersecting
+source-left regions. Its coverage gates require a successful Wait, a created
+candidate, and at least one strict older-event pair.
+
+The search is deterministic and finite. Absence of either witness is regression
+evidence over the constants below, not a progress theorem, NewGuard sufficiency,
+or unconditional Wait preservation. Labelled variants may denote equal
+certificates; the reported count is a count of labelled audit cases, not a
+uniqueness or statistical-independence claim. Default CI covers depths zero
+through four; `--extended` adds depth five; `--wait-search` uses fixed depth five
+and seeds zero through fifteen; `--profile-depth N` prints every phase. Candidate
 acceptance uses `unificationCheck`, then the kernel theorem
 `unificationCheck_eq_check` transports that fact to the exact proposition
 stored in each witness. Depths zero through two also execute the direct
@@ -212,6 +220,39 @@ structure CheckedCandidate where
   accepted : certificate.check = true
   structural : certificate.StructurallyWellFormed
 
+/-- The executable audit needs only the chronological event root and its raw
+age.  The pair is maintained from the exact initialization start and every
+successful dispatcher `new`; it is checked against the state's raw-age
+horizon at every replay state.  This is audit data, not a replacement for the
+proof-relevant reservation ledger. -/
+structure AuditReservation where
+  rawAge : RawTokenAge
+  start : Vertex
+  deriving Repr, DecidableEq
+
+/-- A finite witness that one Wait-created candidate violated the proposed
+cross-representative separation geometry.  Every field is executable audit
+data so a failure can be frozen as a later theorem-level regression. -/
+structure WaitRegionCounterexample where
+  depth : Nat
+  seed : Nat
+  variant : String
+  initializationStart : Vertex
+  step : Nat
+  replayKinds : List Figure7RuleKind
+  certificate : Certificate
+  before : ReservationState
+  after : ReservationState
+  event : AuditReservation
+  eventRepresentative : Nat
+  boundary : RawTokenAge
+  boundaryRepresentative : Nat
+  insertedConclusion : Vertex
+  tensorMate : Vertex
+  eventRegion : List Vertex
+  candidateRegion : List Vertex
+  deriving Repr
+
 /-- A fully certified witness of the audited counterexample shape. The
 `reachable` field is definitionally `Nonempty (ExecutedHistory ...)`, so this
 cannot be populated by an arbitrary invariant-valid state. -/
@@ -247,6 +288,14 @@ structure AuditStats where
   terminalRuns : Nat := 0
   cycleRuns : Nat := 0
   truncatedRuns : Nat := 0
+  waitSteps : Nat := 0
+  waitCreatedCandidates : Nat := 0
+  waitOrderedEventPairs : Nat := 0
+  waitRegionIntersections : Nat := 0
+  waitDecodeFailures : Nat := 0
+  regionComputationFailures : Nat := 0
+  ledgerDecodeFailures : Nat := 0
+  ledgerLengthMismatches : Nat := 0
   maxReplaySteps : Nat := 0
   checksum : Nat := 0
   deriving Repr, DecidableEq
@@ -270,15 +319,33 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
   terminalRuns := left.terminalRuns + right.terminalRuns
   cycleRuns := left.cycleRuns + right.cycleRuns
   truncatedRuns := left.truncatedRuns + right.truncatedRuns
+  waitSteps := left.waitSteps + right.waitSteps
+  waitCreatedCandidates :=
+    left.waitCreatedCandidates + right.waitCreatedCandidates
+  waitOrderedEventPairs :=
+    left.waitOrderedEventPairs + right.waitOrderedEventPairs
+  waitRegionIntersections :=
+    left.waitRegionIntersections + right.waitRegionIntersections
+  waitDecodeFailures := left.waitDecodeFailures + right.waitDecodeFailures
+  regionComputationFailures :=
+    left.regionComputationFailures + right.regionComputationFailures
+  ledgerDecodeFailures :=
+    left.ledgerDecodeFailures + right.ledgerDecodeFailures
+  ledgerLengthMismatches :=
+    left.ledgerLengthMismatches + right.ledgerLengthMismatches
   maxReplaySteps := max left.maxReplaySteps right.maxReplaySteps
   checksum := left.checksum + right.checksum
 
 structure SearchResult where
   stats : AuditStats := {}
   counterexample : Option Counterexample := none
+  waitCounterexample : Option WaitRegionCounterexample := none
 
 def SearchResult.addStats (result : SearchResult) (stats : AuditStats) : SearchResult :=
   { result with stats := result.stats.add stats }
+
+def SearchResult.hasCounterexample (result : SearchResult) : Bool :=
+  result.counterexample.isSome || result.waitCounterexample.isSome
 
 def stateChecksum (state : ReservationState) : Nat :=
   state.stack.nextAge + state.stack.sigma.length +
@@ -290,6 +357,164 @@ executable gate, so this bound is observable rather than silently assumed. -/
 def replayFuel (certificate : Certificate) : Nat :=
   16 * (certificate.formulas.size + certificate.links.length + 1)
 
+/-- Compute the complete structurally determined source-left region used by
+the finite Wait audit.  The list contains every recursively visited stored-left
+source and the other endpoint of the terminal axiom.  Accepted certificates
+have singleton source buckets; every other shape fails closed. -/
+def sourceLeftRegion? (certificate : Certificate) :
+    Nat → Vertex → Option (List Vertex)
+  | 0, _ => none
+  | fuel + 1, vertex =>
+      match
+          (ProofNetIR.SequentialUnification.sourceIndex certificate)[vertex]?
+      with
+      | some [source] =>
+          match source.link with
+          | .axiom left right =>
+              if vertex = left then
+                some [vertex, right]
+              else if vertex = right then
+                some [vertex, left]
+              else
+                none
+          | .tensor left _ conclusion
+          | .par left _ conclusion =>
+              if vertex = conclusion then
+                match sourceLeftRegion? certificate fuel left with
+                | none => none
+                | some region => some (vertex :: region)
+              else
+                none
+      | _ => none
+
+def sourceRegionFuel (certificate : Certificate) : Nat :=
+  certificate.formulas.size + 1
+
+def regionsIntersect (first second : List Vertex) : Bool :=
+  first.any fun vertex ↦ second.contains vertex
+
+structure WaitInspection where
+  stats : AuditStats := {}
+  counterexample : Option WaitRegionCounterexample := none
+
+def WaitInspection.add (left right : WaitInspection) : WaitInspection where
+  stats := left.stats.add right.stats
+  counterexample :=
+    match left.counterexample with
+    | some witness => some witness
+    | none => right.counterexample
+
+def inspectWaitEvent (candidate : CheckedCandidate)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before after : ReservationState) (boundary : RawTokenAge)
+    (insertedConclusion tensorMate : Vertex)
+    (event : AuditReservation) : WaitInspection :=
+  let eventRepresentative := after.core.representative event.rawAge
+  let boundaryRepresentative := after.core.representative boundary
+  if eventRepresentative < boundaryRepresentative then
+    match
+        sourceLeftRegion? candidate.certificate
+          (sourceRegionFuel candidate.certificate) event.start,
+        sourceLeftRegion? candidate.certificate
+          (sourceRegionFuel candidate.certificate) tensorMate with
+    | some eventRegion, some candidateRegion =>
+        if regionsIntersect eventRegion candidateRegion then
+          { stats := {
+              waitOrderedEventPairs := 1
+              waitRegionIntersections := 1 }
+            counterexample := some {
+              depth := candidate.depth
+              seed := candidate.seed
+              variant := candidate.variant
+              initializationStart
+              step := replayStep
+              replayKinds
+              certificate := candidate.certificate
+              before
+              after
+              event
+              eventRepresentative
+              boundary
+              boundaryRepresentative
+              insertedConclusion
+              tensorMate
+              eventRegion
+              candidateRegion } }
+        else
+          { stats := { waitOrderedEventPairs := 1 } }
+    | _, _ =>
+        { stats := {
+            waitOrderedEventPairs := 1
+            regionComputationFailures := 1 } }
+  else
+    {}
+
+def inspectWaitEvents (candidate : CheckedCandidate)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before after : ReservationState) (boundary : RawTokenAge)
+    (insertedConclusion tensorMate : Vertex) :
+    List AuditReservation → WaitInspection
+  | [] => {}
+  | event :: rest =>
+      (inspectWaitEvent candidate initializationStart replayStep replayKinds
+        before after boundary insertedConclusion tensorMate event).add
+        (inspectWaitEvents candidate initializationStart replayStep replayKinds
+          before after boundary insertedConclusion tensorMate rest)
+
+/-- Inspect one successful dispatcher Wait.  Reconstructing the selected par,
+its older boundary, and the inserted payload from the input state must succeed;
+otherwise the audit records a fail-closed decoder drift.  Absence of a tensor
+below the inserted conclusion, or a marked tensor mate, is a valid Wait with no
+new candidate. -/
+def inspectWaitTransition (candidate : CheckedCandidate)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before after : ReservationState) (events : List AuditReservation) :
+    WaitInspection :=
+  let decodeFailure : WaitInspection :=
+    { stats := { waitSteps := 1, waitDecodeFailures := 1 } }
+  match before.stack.ready.getLast? with
+  | some (selected :: _) =>
+      match candidate.certificate.connectiveBelow? selected with
+      | some consumer =>
+          if consumer.kind == .par then
+            match before.core.marks[consumer.mate]? with
+            | some (some mateRawAge) =>
+                match sigmaBoundary? before.stack.sigma mateRawAge with
+                | some boundary =>
+                    match before.stack.waiting[boundary]?,
+                        after.stack.waiting[boundary]? with
+                    | some (.initialized oldPayload),
+                        some (.initialized afterPayload) =>
+                        if afterPayload = consumer.conclusion :: oldPayload then
+                          match
+                              candidate.certificate.tensorBelow?
+                                consumer.conclusion with
+                          | none => { stats := { waitSteps := 1 } }
+                          | some tensor =>
+                              if after.core.marks[tensor.mate]? == some none then
+                                let inspected :=
+                                  inspectWaitEvents candidate initializationStart
+                                    replayStep replayKinds before after boundary
+                                    consumer.conclusion tensor.mate events
+                                { inspected with
+                                  stats := inspected.stats.add {
+                                    waitSteps := 1
+                                    waitCreatedCandidates := 1 } }
+                              else
+                                { stats := { waitSteps := 1 } }
+                        else
+                          decodeFailure
+                    | _, _ => decodeFailure
+                | none => decodeFailure
+            | _ => decodeFailure
+          else
+            decodeFailure
+      | none => decodeFailure
+  | _ => decodeFailure
+
 def parCount (certificate : Certificate) : Nat :=
   certificate.links.foldl (fun count link ↦
     match link with
@@ -299,6 +524,7 @@ def parCount (certificate : Certificate) : Nat :=
 def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
     (state : ReservationState)
     (reachable : ReachableByImplementedDispatcher candidate.certificate state)
+    (events : List AuditReservation)
     (seen : List ReservationState) (reversedKinds : List Figure7RuleKind)
     (step : Nat) : Nat → SearchResult
   | 0 =>
@@ -309,6 +535,8 @@ def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
         let base : AuditStats := {
           reachableStates := 1
           truncatedRuns := 1
+          ledgerLengthMismatches :=
+            if events.length == state.stack.nextAge then 0 else 1
           maxReplaySteps := step
           checksum := stateChecksum state }
         match newEquation : new? candidate.certificate state
@@ -351,6 +579,8 @@ def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
         let invariant := reachable.schedulerInvariant candidate.structural
         let base : AuditStats := {
           reachableStates := 1
+          ledgerLengthMismatches :=
+            if events.length == state.stack.nextAge then 0 else 1
           maxReplaySteps := step
           checksum := stateChecksum state }
         let afterGuard : SearchResult :=
@@ -399,13 +629,41 @@ def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
             | some result =>
                 let nextReachable :=
                   reachable.dispatch invariant dispatchEquation
-                let tail :=
-                  inspectReachable candidate start result.after nextReachable
-                    (state :: seen) (result.kind :: reversedKinds) (step + 1) fuel
-                { stats := (afterGuard.addStats {
-                      dispatchSteps := 1
-                      maxReplaySteps := step }).stats.add tail.stats
-                  counterexample := tail.counterexample }
+                let waitInspection :=
+                  if result.kind == .wait then
+                    inspectWaitTransition candidate start step
+                      (result.kind :: reversedKinds).reverse state result.after
+                      events
+                  else
+                    {}
+                let nextEventsAndStats : List AuditReservation × AuditStats :=
+                  if result.kind == .new then
+                    match newGuard? candidate.certificate state with
+                    | some guard =>
+                        (events ++ [{
+                          rawAge := state.stack.nextAge
+                          start := guard.tensor.mate }], {})
+                    | none =>
+                        (events, { ledgerDecodeFailures := 1 })
+                  else
+                    (events, {})
+                let currentStats :=
+                  (afterGuard.addStats {
+                    dispatchSteps := 1
+                    maxReplaySteps := step }).stats |>.add
+                    waitInspection.stats |>.add nextEventsAndStats.2
+                match waitInspection.counterexample with
+                | some witness =>
+                    { stats := currentStats
+                      waitCounterexample := some witness }
+                | none =>
+                    let tail :=
+                      inspectReachable candidate start result.after nextReachable
+                        nextEventsAndStats.1 (state :: seen)
+                        (result.kind :: reversedKinds) (step + 1) fuel
+                    { stats := currentStats.add tail.stats
+                      counterexample := tail.counterexample
+                      waitCounterexample := tail.waitCounterexample }
 
 def inspectStarts (candidate : CheckedCandidate) : List Vertex → SearchResult
   | [] => {}
@@ -420,19 +678,21 @@ def inspectStarts (candidate : CheckedCandidate) : List Vertex → SearchResult
             dispatcher_reachable_of_initializeReservation?_eq_some
               initializationEquation
           let replay :=
-            inspectReachable candidate start initial reachable [] [] 0
+            inspectReachable candidate start initial reachable
+              [{ rawAge := 0, start }] [] [] 0
               (replayFuel candidate.certificate)
           let current : SearchResult :=
             { replay with
               stats := replay.stats.add
                 { initializationAttempts := 1
                   initializationSuccesses := 1 } }
-          match current.counterexample with
-          | some _ => current
-          | none =>
-              let tail := inspectStarts candidate rest
-              { stats := current.stats.add tail.stats
-                counterexample := tail.counterexample }
+          if current.hasCounterexample then
+            current
+          else
+            let tail := inspectStarts candidate rest
+            { stats := current.stats.add tail.stats
+              counterexample := tail.counterexample
+              waitCounterexample := tail.waitCounterexample }
 
 def inspectVariantCase (depth seed : Nat) (variant : PositiveVariant) :
     Except String SearchResult :=
@@ -461,13 +721,14 @@ def inspectVariants (depth seed : Nat) : List PositiveVariant →
   | [] => .ok {}
   | variant :: rest => do
       let current ← inspectVariantCase depth seed variant
-      match current.counterexample with
-      | some _ => return current
-      | none =>
-          let tail ← inspectVariants depth seed rest
-          return {
-            stats := current.stats.add tail.stats
-            counterexample := tail.counterexample }
+      if current.hasCounterexample then
+        return current
+      else
+        let tail ← inspectVariants depth seed rest
+        return {
+          stats := current.stats.add tail.stats
+          counterexample := tail.counterexample
+          waitCounterexample := tail.waitCounterexample }
 
 def inspectBase (depth seed : Nat) : Except String SearchResult := do
   let tree := CutFreeDerivation.generate seed depth
@@ -482,26 +743,28 @@ def inspectSeeds (depth : Nat) : List Nat → Except String SearchResult
   | [] => .ok {}
   | seed :: rest => do
       let current ← inspectBase depth seed
-      match current.counterexample with
-      | some _ => return current
-      | none =>
-          let tail ← inspectSeeds depth rest
-          return {
-            stats := current.stats.add tail.stats
-            counterexample := tail.counterexample }
+      if current.hasCounterexample then
+        return current
+      else
+        let tail ← inspectSeeds depth rest
+        return {
+          stats := current.stats.add tail.stats
+          counterexample := tail.counterexample
+          waitCounterexample := tail.waitCounterexample }
 
 def inspectDepths (seedsPerDepth : Nat) : List Nat →
     Except String SearchResult
   | [] => .ok {}
   | depth :: rest => do
       let current ← inspectSeeds depth (List.range seedsPerDepth)
-      match current.counterexample with
-      | some _ => return current
-      | none =>
-          let tail ← inspectDepths seedsPerDepth rest
-          return {
-            stats := current.stats.add tail.stats
-            counterexample := tail.counterexample }
+      if current.hasCounterexample then
+        return current
+      else
+        let tail ← inspectDepths seedsPerDepth rest
+        return {
+          stats := current.stats.add tail.stats
+          counterexample := tail.counterexample
+          waitCounterexample := tail.waitCounterexample }
 
 def variantsPerCertificate : Nat := 6
 def directCheckDepthCount : Nat := 3
@@ -512,6 +775,9 @@ structure AuditConfig where
   seedsPerDepth : Nat
   budgetMs : Nat
   requireGuardCoverage : Bool
+  requireWaitCoverage : Bool := false
+  requireWaitCreatedCoverage : Bool := false
+  requireWaitOrderedPairCoverage : Bool := false
   traceStarts : Bool
 
 def defaultConfig : AuditConfig where
@@ -528,6 +794,17 @@ def extendedConfig : AuditConfig where
   seedsPerDepth := 1
   budgetMs := 1_800_000
   requireGuardCoverage := true
+  traceStarts := false
+
+def waitSearchConfig : AuditConfig where
+  modeName := "wait-search"
+  depths := [5]
+  seedsPerDepth := 16
+  budgetMs := 1_800_000
+  requireGuardCoverage := true
+  requireWaitCoverage := true
+  requireWaitCreatedCoverage := true
+  requireWaitOrderedPairCoverage := true
   traceStarts := false
 
 def depthConfig (depth : Nat) : AuditConfig where
@@ -551,6 +828,24 @@ def renderCounterexample (counterexample : Counterexample) : String :=
     s!"certificate={repr counterexample.certificate}\n" ++
     s!"state={repr counterexample.state}"
 
+def renderWaitCounterexample
+    (counterexample : WaitRegionCounterexample) : String :=
+  s!"wait-region-counterexample depth={counterexample.depth} " ++
+    s!"seed={counterexample.seed} variant={counterexample.variant} " ++
+    s!"initialization_start={counterexample.initializationStart} " ++
+    s!"step={counterexample.step} replay={repr counterexample.replayKinds}\n" ++
+    s!"event={repr counterexample.event} " ++
+    s!"event_representative={counterexample.eventRepresentative} " ++
+    s!"boundary={counterexample.boundary} " ++
+    s!"boundary_representative={counterexample.boundaryRepresentative} " ++
+    s!"inserted_conclusion={counterexample.insertedConclusion} " ++
+    s!"tensor_mate={counterexample.tensorMate}\n" ++
+    s!"event_region={repr counterexample.eventRegion} " ++
+    s!"candidate_region={repr counterexample.candidateRegion}\n" ++
+    s!"certificate={repr counterexample.certificate}\n" ++
+    s!"before={repr counterexample.before}\n" ++
+    s!"after={repr counterexample.after}"
+
 def renderStats (stats : AuditStats) : String :=
   s!"base_derivations={stats.baseDerivations} " ++
     s!"labelled_certificates={stats.checkedCertificates} " ++
@@ -564,6 +859,14 @@ def renderStats (stats : AuditStats) : String :=
     s!"new_failure_states={stats.newFailureStates} " ++
     s!"new_success_without_guard={stats.newSuccessWithoutGuard} " ++
     s!"dispatch_steps={stats.dispatchSteps} " ++
+    s!"wait_steps={stats.waitSteps} " ++
+    s!"wait_created_candidates={stats.waitCreatedCandidates} " ++
+    s!"wait_ordered_event_pairs={stats.waitOrderedEventPairs} " ++
+    s!"wait_region_intersections={stats.waitRegionIntersections} " ++
+    s!"wait_decode_failures={stats.waitDecodeFailures} " ++
+    s!"region_computation_failures={stats.regionComputationFailures} " ++
+    s!"ledger_decode_failures={stats.ledgerDecodeFailures} " ++
+    s!"ledger_length_mismatches={stats.ledgerLengthMismatches} " ++
     s!"terminal_runs={stats.terminalRuns} " ++
     s!"max_replay_steps={stats.maxReplaySteps} " ++
     s!"cycles={stats.cycleRuns} truncations={stats.truncatedRuns} " ++
@@ -582,6 +885,16 @@ def validateReplayStats (stats : AuditStats) : Except String Unit := do
     throw s!"reachable replay cycle detected: {stats.cycleRuns}"
   if stats.truncatedRuns != 0 then
     throw s!"reachable replay fuel exhausted: {stats.truncatedRuns}"
+  if stats.waitRegionIntersections != 0 then
+    throw s!"Wait-created source-region intersections observed: {stats.waitRegionIntersections}"
+  if stats.waitDecodeFailures != 0 then
+    throw s!"successful Wait transitions failed audit decoding: {stats.waitDecodeFailures}"
+  if stats.regionComputationFailures != 0 then
+    throw s!"source-left region computations failed: {stats.regionComputationFailures}"
+  if stats.ledgerDecodeFailures != 0 then
+    throw s!"successful New transitions failed ledger decoding: {stats.ledgerDecodeFailures}"
+  if stats.ledgerLengthMismatches != 0 then
+    throw s!"audit ledger/raw-age horizon mismatches observed: {stats.ledgerLengthMismatches}"
   if stats.terminalRuns + stats.cycleRuns + stats.truncatedRuns !=
       stats.initializationSuccesses then
     throw "replay stop-reason counts do not partition successful initializations"
@@ -593,9 +906,13 @@ def requireValidStats (context : String) (stats : AuditStats) : IO Unit :=
 
 def requireNoCounterexample (result : SearchResult) : IO Unit :=
   match result.counterexample with
-  | none => pure ()
   | some counterexample =>
       throw <| IO.userError (renderCounterexample counterexample)
+  | none =>
+      match result.waitCounterexample with
+      | none => pure ()
+      | some counterexample =>
+          throw <| IO.userError (renderWaitCounterexample counterexample)
 
 def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
     IO SearchResult
@@ -623,7 +940,8 @@ def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
             dispatcher_reachable_of_initializeReservation?_eq_some
               initializationEquation
           let replay :=
-            inspectReachable candidate start initial reachable [] [] 0
+            inspectReachable candidate start initial reachable
+              [{ rawAge := 0, start }] [] [] 0
               (replayFuel candidate.certificate)
           let replayElapsed := (← IO.monoMsNow) - replayStarted
           let current : SearchResult :=
@@ -637,13 +955,14 @@ def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
               s!"initialization_ms={initializationElapsed} replay_ms={replayElapsed} " ++
               renderStats current.stats
           (← IO.getStdout).flush
-          match current.counterexample with
-          | some _ => return current
-          | none =>
-              let tail ← inspectStartsIO candidate rest
-              return {
-                stats := current.stats.add tail.stats
-                counterexample := tail.counterexample }
+          if current.hasCounterexample then
+            return current
+          else
+            let tail ← inspectStartsIO candidate rest
+            return {
+              stats := current.stats.add tail.stats
+              counterexample := tail.counterexample
+              waitCounterexample := tail.waitCounterexample }
 
 def runVariantsIO (config : AuditConfig) (depth seed : Nat) :
     List PositiveVariant →
@@ -759,6 +1078,7 @@ def parseConfig (args : List String) : Except String AuditConfig :=
   match args with
   | [] => .ok defaultConfig
   | ["--extended"] => .ok extendedConfig
+  | ["--wait-search"] => .ok waitSearchConfig
   | ["--depth", value] =>
       match value.toNat? with
       | some depth => .ok (depthConfig depth)
@@ -767,12 +1087,13 @@ def parseConfig (args : List String) : Except String AuditConfig :=
       match value.toNat? with
       | some depth => .ok (profileDepthConfig depth)
       | none => .error s!"invalid depth: {value}"
-  | _ => .error
-      "usage: proofnet_ir_new_progress_audit [--extended | --depth N | --profile-depth N]"
+  | _ => .error <|
+      "usage: proofnet_ir_new_progress_audit [--extended | --wait-search | " ++
+        "--depth N | --profile-depth N]"
 
-/-- Run the bounded audit. Any witness is treated as a hard regression and is
-printed with its complete certificate, state, initialization start, dispatcher
-rule trace, and first failing `new?` stage. -/
+/-- Run the bounded audit. Any New failure or Wait-region intersection is a
+hard regression and is printed with its complete certificate, states,
+initialization start, dispatcher rule trace, and decoded witness data. -/
 def run (config : AuditConfig) : IO Unit := do
   let started ← IO.monoMsNow
   let stats ← runDepthsIO config config.depths {}
@@ -799,6 +1120,13 @@ def run (config : AuditConfig) : IO Unit := do
     throw <| IO.userError "audit exercised no dispatcher-reachable states"
   if config.requireGuardCoverage && stats.guardStates == 0 then
     throw <| IO.userError "audit exercised no reachable NewGuard states"
+  if config.requireWaitCoverage && stats.waitSteps == 0 then
+    throw <| IO.userError "audit exercised no successful Wait transitions"
+  if config.requireWaitCreatedCoverage && stats.waitCreatedCandidates == 0 then
+    throw <| IO.userError "audit exercised no Wait-created future New candidates"
+  if config.requireWaitOrderedPairCoverage &&
+      stats.waitOrderedEventPairs == 0 then
+    throw <| IO.userError "audit exercised no strictly ordered Wait/event pairs"
   if elapsed > config.budgetMs then
     throw <| IO.userError
       s!"new-progress audit budget exceeded: {elapsed}ms > {config.budgetMs}ms"

@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CrossRepresentativeWaitPreservation.lean`. Exact
+  destination equations classify every output future-work occurrence as
+  retained prepared-middle work or the conclusion inserted at the destination
+  boundary, without claiming those alternatives are exclusive. Retained
+  candidates transport through the stable prepared-prefix theorem. The
+  standalone `WaitCreatedCandidate` stores only the introduced conclusion's
+  tensor-below data and middle-state unmarked mate; conditional history
+  preservation requires the explicit, non-circular
+  `WaitCreatedRegionSeparated` geometry premise for strictly older prior ledger
+  events. No theorem derives that premise from the current scheduler invariant,
+  so unconditional Wait preservation remains open. The extended executable
+  audit adds a fail-closed `--wait-search` mode with an exact waiting-payload
+  prepend decoder and hard Wait, created-candidate, and strict-pair coverage
+  gates. Its frozen 96-labelled-case, 1,182,816-state receipt exercised 5,682
+  Waits, 636 created candidates, and 1,068 strict older-event/candidate pairs
+  with zero source-region intersections or decoder, region, ledger, cycle, and
+  truncation failures;
+  this is finite evidence only. A dedicated consumer, default build target,
+  API manifest, trust audit, and CI command cover the new layer. The exact
+  public axiom audit now covers 791 declarations: 512 full-classical, 25
+  axiom-free, 120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CrossRepresentativeStablePreservation.lean`. Exact
   ready/sigma positions and waiting cells transport backwards through the
   synchronized pop/raw-mark prefix, every current representative is unchanged

@@ -153,6 +153,26 @@ The default CI mode stops at depth four and is a 30-labelled-case finite gate;
 `--extended` is opt-in. Neither timing nor zero observed misses proves
 input-only `new` sufficiency, dispatcher progress, or whole-program linearity.
 
+The dedicated `--wait-search` mode searches the conditional
+cross-representative Wait seam over depth 5 and seeds 0 through 15. It checks
+only canonical reachable transitions, verifies the exact waiting-payload
+prepend, and requires successful Wait, Wait-created future-New-candidate, and
+strict older-event/candidate-pair coverage. The frozen local receipt was:
+
+```text
+new-progress-audit-ok mode=wait-search depths=[5] seeds_per_depth=16
+labelled_certificates=96 initialization_successes=10608
+reachable_states=1182816 dispatch_steps=1172208 wait_steps=5682
+wait_created_candidates=636 wait_ordered_event_pairs=1068
+wait_region_intersections=0 wait_decode_failures=0
+region_computation_failures=0 ledger_decode_failures=0
+ledger_length_mismatches=0 cycles=0 truncations=0 checksum=77141346
+elapsed_ms=93583 budget_ms=1800000
+```
+
+This receipt is a bounded falsification search, not a performance guarantee or
+a proof of `WaitCreatedRegionSeparated`.
+
 A separate `proofnet_ir_reconstruction_stress` executable exercises 18
 accepted identity nets with a single repeated internal atom. It crosses
 right-skewed tensor, balanced tensor, balanced par, and alternating shapes;

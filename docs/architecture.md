@@ -746,6 +746,19 @@ history edge. Canonical `concl` and `nop` provide exactly those equalities and
 preserve the invariant. Candidate-creating branches remain separate proof
 obligations rather than consequences of this transport lemma.
 
+`SequentialFigure7CrossRepresentativeWaitPreservation.lean` isolates the
+first such branch without assuming its missing geometry. Exact waiting-cell
+equations classify every post-Wait future-work occurrence as either retained
+middle-state work or the conclusion inserted at the destination boundary.
+The retained case transports through the stable theorem. The inserted case is
+captured by `WaitCreatedCandidate`, which stores only its tensor-below witness
+and middle-state mate-unmarked lookup. Conditional preservation then consumes
+`WaitCreatedRegionSeparated`: prior ledger events with a strictly smaller
+middle-state representative must have source-left regions disjoint from that
+new tensor mate's region. This side condition is the open geometry itself, not
+a renamed output invariant, executor equation, or reachability premise. The
+module therefore proves no unconditional Wait preservation.
+
 `SequentialFigure7ReservationRealization.lean` supplies the second missing
 piece for the reserved axiom itself.  Under explicit certificate structural
 well-formedness, an event-specific
@@ -791,6 +804,21 @@ kernel equality `unificationCheck_eq_check`; a direct all-switchings sentinel
 remains at depths 0 through 2. This executable architecture supplies regression
 evidence and diagnostics, not a `NewGuard` success converse or a scheduler
 progress theorem.
+
+The same executable's `--wait-search` mode maintains a lightweight raw-age and
+source-start ledger that mirrors exact initialization and successful `new`
+allocations. It decodes only successful canonical Wait transitions, detects
+when the inserted conclusion is a genuine future-New tensor candidate, and
+checks every strictly older event pair by computing both complete structural
+source-left regions, including terminal axiom partners. Decode, ledger-horizon,
+and region-computation drift fail closed; the waiting decoder requires the
+exact old-to-new `conclusion :: oldPayload` update. The mode also requires
+nonzero Wait, created-candidate, and strict-pair coverage. The frozen depth-5,
+16-seed corpus
+covered 1,182,816 reachable states, 5,682 Wait steps, 636 created candidates,
+and 1,068 strict event/candidate pairs with zero intersections. Those numbers
+are finite falsification evidence and do not discharge
+`WaitCreatedRegionSeparated` in Lean.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and

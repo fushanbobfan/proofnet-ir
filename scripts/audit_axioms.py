@@ -30,6 +30,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated",
+    "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeWaitOrInserted",
+    "ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker",
@@ -552,6 +554,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialFigure7.PreparedStep.after_representative_eq_before",
+    "ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before",
     "ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.symm",
     "ProofNetIR.CutFreeDerivation.pick?_source_unique",
     "ProofNetIR.SequentialFigure7.carrierFresh",

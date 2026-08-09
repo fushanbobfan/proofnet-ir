@@ -384,6 +384,16 @@ prepared prefix is not itself an `ExecutedHistory` edge. Canonical `concl` and
 `OlderSourceRegionSeparated`. Preservation through `new`, `wait`, `forward`,
 and arbitrary-payload `unify`, same-representative tag-only touch exclusion,
 exhaustive enabledness, and progress remain open.
+`SequentialFigure7CrossRepresentativeWaitPreservation.lean` next separates a
+successful `wait` output into retained middle-state work or the exact
+conclusion inserted at the destination boundary. Retained candidates use the
+stable theorem. An inserted conclusion is represented by the non-circular
+`WaitCreatedCandidate`, and conditional preservation requires exactly the
+additional `WaitCreatedRegionSeparated` geometry for prior ledger events whose
+middle-state representative is strictly older. The module does not derive that
+premise from the current scheduler invariant and therefore does not claim
+unconditional `wait` preservation. Preservation through `new`, unconditional
+`wait`, `forward`, and arbitrary-payload `unify` remains open.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -477,6 +487,17 @@ the direct checker. Equal labelled variants are still counted as labelled
 cases, not unique certificates. This is deterministic finite regression
 evidence, not a theorem that `NewGuard` is sufficient on every reachable
 state and not a progress, totality, completeness, or complexity result.
+The same executable has an opt-in `--wait-search` mode for the new conditional
+Wait seam. Its frozen depth-5, seeds-0-through-15 corpus covers 96 labelled
+certificate cases, 1,182,816 reachable states, 5,682 successful Wait steps,
+636 Wait-created future-New candidates, and 1,068 strict older-event/candidate
+pairs. The mode requires all three coverage classes, checks the exact
+`afterPayload = conclusion :: oldPayload` update, and observed zero
+source-left-region intersections or decoder, region-computation, ledger,
+cycle, and truncation failures. This is a
+non-vacuous finite falsification receipt only; it neither proves
+`WaitCreatedRegionSeparated` nor upgrades the conditional Lean theorem to an
+unconditional one.
 `SequentialFigure7TagHistory.lean` augments exactly those existing traces with
 branch-aligned tag evidence. The five non-`new` branches preserve the complete
 tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
@@ -1880,8 +1901,10 @@ lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_reservation_ledger_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_region_boundaries_tests
+lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
+lake exe proofnet_ir_new_progress_audit --wait-search
 python scripts/generate_dataset.py --check
 python scripts/audit_v03_canonical.py
 lake exe proofnet_ir_api_docs --check
@@ -1972,6 +1995,8 @@ ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner se
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
 ProofNetIR/SequentialFigure7CrossRepresentativeInvariant.lean future-work and strictly older representative source-region invariant
 ProofNetIR/SequentialFigure7CrossRepresentativeStablePreservation.lean prepared/concl/nop cross-representative preservation
+ProofNetIR/SequentialFigure7CrossRepresentativeWaitPreservation.lean
+  conditional Wait introduced-candidate preservation
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -2001,7 +2026,8 @@ ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
 ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
-ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
+ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preservation consumers
+ProofNetIRNewProgressAudit.lean finite reachable NewGuard and Wait-created-region audit
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget

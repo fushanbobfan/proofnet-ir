@@ -515,6 +515,17 @@ input lookup then follows from the concrete array update equation. The generic
 history transport requires full ledger equality, while the canonical `concl`
 and `nop` corollaries derive that equality from their empty reservation-event
 lists. No claim is made for any branch that creates or moves future work.
+`SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
+source-region oracle. Its output-work classification follows only from the
+typed destination's exact waiting prepend and unchanged ready/sigma fields;
+its representative helper follows from exact core equality. The standalone
+`WaitCreatedCandidate` contains only the inserted conclusion's tensor-below
+data and middle-state unmarked-mate lookup. The final theorem is explicitly
+conditional on `WaitCreatedRegionSeparated`, which states precisely the
+remaining source-region obligation for prior ledger events. The finite
+`--wait-search` executable may falsify that premise on generated reachable
+cases, but no runtime result is imported into the theorem and zero observed
+intersections is not used as proof.
 `SequentialFigure7ReservationRealization.lean` introduces no component oracle.
 Under the public theorems' explicit certificate structural-well-formedness
 premise, it inducts over the same proof-carrying canonical history and

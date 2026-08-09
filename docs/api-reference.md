@@ -18509,6 +18509,106 @@ ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated : ∀ {certifica
       (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.nop step))
 ```
 
+### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before`
+
+Kind: theorem.
+
+A waiting destination changes no union-find parent, so every current
+representative is identical before and after the destination update.
+
+```lean
+ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before : ∀ {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {conclusion : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep before after mateRawAge conclusion)
+  (token : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+  after.core.representative token = before.core.representative token
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.beforeWaitOrInserted`
+
+Kind: theorem.
+
+Every output future-work occurrence of a successful `wait` either
+already existed in the prepared middle state or is the conclusion inserted
+at the exact destination boundary.
+
+The disjunction is intentionally not exclusive: the low-level waiting
+prepend does not itself prohibit the inserted conclusion from already being
+present in the old payload.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.beforeWaitOrInserted : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt after rawAge vertex →
+    ProofNetIR.SequentialFigure7.FutureWorkAt step.prepared.after rawAge vertex ∨
+      rawAge = step.destination.boundary ∧ vertex = step.consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.WaitCreatedCandidate`
+
+Kind: inductive type.
+
+The exact structural data of a future `new` candidate created by the
+conclusion inserted during one successful `wait`.
+
+Its raw-age boundary and head are fixed by the enclosing wait step, so this
+record stores only the tensor-below witness and its middle-state mate mark.
+It carries no claim that the created region is separated from older events.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitCreatedCandidate : (certificate : ProofNetIR.Certificate) →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.WaitStep certificate before after → Type
+```
+
+### `ProofNetIR.SequentialFigure7.WaitCreatedRegionSeparated`
+
+Kind: definition.
+
+Additional geometry required for candidates introduced by one waiting
+prepend.
+
+The comparison is made in the prepared middle state, whose union-find carrier
+is unchanged by the destination update.  Only strictly older current
+representatives are constrained.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitCreatedRegionSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.WaitStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created`
+
+Kind: theorem.
+
+A canonical `wait` history extension preserves older-source-region
+separation provided the newly inserted conclusion satisfies the explicit
+created-candidate geometry premise.
+
+Candidates inherited from the prepared middle state are discharged by the
+prior invariant and stable-prefix transport.  Candidates whose work witness
+uses the inserted conclusion are discharged only by
+`WaitCreatedRegionSeparated`.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.wait, after := after }}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated prior →
+    ProofNetIR.SequentialFigure7.WaitCreatedRegionSeparated prior step →
+      ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.wait step))
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

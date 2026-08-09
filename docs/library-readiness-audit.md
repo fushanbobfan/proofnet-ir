@@ -659,6 +659,14 @@ part of the engineering and proof-identity gap.
    regression proves that the full invariant need not enable any branch, so
    these theorems do not establish intended-state exhaustiveness,
    nonterminality, global progress, or worklist completeness.
+   `SequentialFigure7CrossRepresentativeWaitPreservation.lean` now closes the
+   exact state-transport portion of the Wait branch. Every output future-work
+   occurrence is retained middle-state work or the exact inserted conclusion;
+   only the latter needs new geometry. The exported preservation theorem is
+   deliberately conditional on `WaitCreatedRegionSeparated`, a non-circular
+   prior-ledger/source-region obligation. The current scheduler invariant does
+   not yet imply that premise, so unconditional Wait preservation remains an
+   open maturity gate.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
    specific reachable-state gap around `NewGuard`: it considers only states
    reached by successful initialization and the canonical dispatcher and hard
@@ -672,6 +680,12 @@ part of the engineering and proof-identity gap.
    the 18 cases at depths 0 through 2 also run the direct all-switchings
    checker. This finite receipt does not close input-only `new` sufficiency,
    intended-state exhaustiveness, progress, totality, or completeness.
+   Its separate `--wait-search` receipt covers 96 labelled depth-5 cases,
+   1,182,816 reachable states, 5,682 successful Waits, 636 created candidates,
+   and 1,068 strict event/candidate pairs with zero intersections or decoder,
+   region, ledger, cycle, and fuel failures. All three coverage classes are
+   hard gates, and the decoder checks the exact waiting prepend. That is finite
+   falsification evidence only, not a proof of the conditional premise.
    `SequentialFigure7TagHistory.lean` now derives a branch-aligned augmentation
    from that exact history and from certified dispatcher reachability. It proves
    exact current-tag provenance, stable tags for all five non-`new` branches,
