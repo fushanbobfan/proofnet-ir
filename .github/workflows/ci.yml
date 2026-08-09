@@ -53,12 +53,13 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_same_representative_geometry_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_invariant_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_stable_preservation_tests
+          ~/.elan/bin/lake exe proofnet_ir_cross_representative_new_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_wait_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_forward_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_new_region_tests
       - name: Search reachable Figure-7 new guards for executor misses
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
-      - name: Audit Wait/Forward-created candidate source regions
+      - name: Audit New/Wait/Forward-created candidate source regions
         run: >-
           ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
           --cross-representative-search

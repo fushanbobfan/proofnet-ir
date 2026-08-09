@@ -384,6 +384,16 @@ prepared prefix is not itself an `ExecutedHistory` edge. Canonical `concl` and
 `OlderSourceRegionSeparated`. At that stable-prefix layer, preservation through
 `new`, `wait`, `forward`, and arbitrary-payload `unify`, same-representative
 tag-only touch exclusion, exhaustive enabledness, and progress remained open.
+`SequentialFigure7CrossRepresentativeNewPreservation.lean` then splits every
+successful `new` output occurrence into retained marked-middle work or one of
+the exact reached/partner endpoints appended at the fresh raw-age boundary.
+Retained candidates transport through the stable theorem. The newly appended
+reservation event cannot be strictly older than any output candidate because
+its fresh boundary is the maximal output raw age. The remaining old-event /
+new-endpoint cases are packaged by `NewCreatedCandidate`, and the history
+theorem is deliberately conditional on the explicit, non-circular
+`NewCreatedRegionSeparated` geometry. The current scheduler invariant does not
+derive that premise, so no unconditional `new` preservation is claimed.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` next separates a
 successful `wait` output into retained middle-state work or the exact
 conclusion inserted at the destination boundary. Retained candidates use the
@@ -407,8 +417,8 @@ ledger event against such a candidate. Production queuing changes neither
 marks nor union-find parents, but the inserted conclusion had no prior
 `FutureWorkAt` witness, so the old invariant alone cannot prove this premise.
 No unconditional `forward` preservation is claimed. Preservation through
-`new`, unconditional `wait`, unconditional `forward`, and arbitrary-payload
-`unify` remains open.
+unconditional `new`, `wait`, `forward`, and arbitrary-payload `unify` remains
+open.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -503,20 +513,25 @@ cases, not unique certificates. This is deterministic finite regression
 evidence, not a theorem that `NewGuard` is sufficient on every reachable
 state and not a progress, totality, completeness, or complexity result.
 The same executable has an opt-in `--cross-representative-search` mode for the
-conditional Wait and Forward seams; `--wait-search` remains a compatibility
-alias with the same bounds and gates. Its frozen depth-5, seeds-0-through-15
-corpus covers 96 labelled certificate cases and 1,182,816 reachable states. It
-exercised 5,682 successful Wait steps, 636 Wait-created candidates, and 1,068
-strict Wait event/candidate pairs, plus 158,766 successful Forward steps,
-33,582 Forward-created candidates, and 117,324 strict Forward pairs. Six hard
-coverage gates require nonzero step, created-candidate, and strict-pair counts
-for both rules. The fail-closed decoders check the exact Wait
-`afterPayload = conclusion :: oldPayload` update and replay the complete
-Forward prepare/queue/prepend transition. The run observed zero source-region
-intersections or decoder, region-computation, ledger, cycle, and truncation
-failures. This is non-vacuous finite falsification evidence only; it proves
-neither `WaitCreatedRegionSeparated` nor `ForwardCreatedRegionSeparated` and
-does not upgrade either conditional Lean theorem to an unconditional one.
+conditional New, Wait, and Forward seams; `--wait-search` remains a
+compatibility alias with the same bounds and gates. Its frozen depth-5,
+seeds-0-through-15 corpus covers 96 labelled certificate cases and 1,182,816
+reachable states. It exercised 328,848 successful New steps, 222,246 actual
+New-created candidates (59,706 reached endpoints and 162,540 partner
+endpoints), and 3,333,924 strict prior-event/candidate pairs. Wait contributed
+5,682 steps, 636 created candidates, and 1,068 strict pairs; Forward
+contributed 158,766 steps, 33,582 created candidates, and 117,324 strict pairs.
+Independent hard gates require nonzero step, endpoint-kind, created-candidate,
+and strict-pair coverage. The New decoder replays the complete transition and
+checks fresh-representative and marked-middle-to-output transport; the Wait
+decoder checks the exact `afterPayload = conclusion :: oldPayload` update;
+the Forward decoder replays the complete prepare/queue/prepend transition.
+The run observed zero source-region intersections or decoder,
+region-computation, representative, ledger, cycle, and truncation failures.
+This is non-vacuous finite falsification evidence only; it proves none of
+`NewCreatedRegionSeparated`, `WaitCreatedRegionSeparated`, or
+`ForwardCreatedRegionSeparated` and does not upgrade any conditional Lean
+theorem to an unconditional one.
 `SequentialFigure7TagHistory.lean` augments exactly those existing traces with
 branch-aligned tag evidence. The five non-`new` branches preserve the complete
 tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
@@ -1826,7 +1841,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 794 declarations: 515 public MLL logical-boundary theorems
+separately audits 798 declarations: 519 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1920,6 +1935,7 @@ lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_reservation_ledger_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_region_boundaries_tests
+lake exe proofnet_ir_cross_representative_new_preservation_tests
 lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
 lake exe proofnet_ir_new_progress_audit
@@ -2015,6 +2031,8 @@ ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner se
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
 ProofNetIR/SequentialFigure7CrossRepresentativeInvariant.lean future-work and strictly older representative source-region invariant
 ProofNetIR/SequentialFigure7CrossRepresentativeStablePreservation.lean prepared/concl/nop cross-representative preservation
+ProofNetIR/SequentialFigure7CrossRepresentativeNewPreservation.lean
+  conditional New introduced-candidate preservation
 ProofNetIR/SequentialFigure7CrossRepresentativeWaitPreservation.lean
   conditional Wait introduced-candidate preservation
 ProofNetIR/SequentialFigure7CrossRepresentativeForwardPreservation.lean
@@ -2048,9 +2066,10 @@ ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
 ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
+ProofNetIRCrossRepresentativeNewPreservationTests.lean conditional New preservation consumers
 ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preservation consumers
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers
-ProofNetIRNewProgressAudit.lean finite reachable NewGuard and created-region audit
+ProofNetIRNewProgressAudit.lean finite reachable NewGuard and New/Wait/Forward created-region audit
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget

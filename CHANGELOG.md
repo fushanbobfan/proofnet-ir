@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CrossRepresentativeNewPreservation.lean`. Exact
+  operational-enqueue equations classify every output future-work occurrence
+  as retained marked-middle work or one of the reached/partner endpoints at the
+  fresh boundary. The new reservation event remains a fresh self-root and is
+  not strictly older than any output candidate. Retained candidates transport
+  through the stable-prefix theorem; the only remaining old-event/new-endpoint
+  geometry is stated by the explicit, non-circular
+  `NewCreatedRegionSeparated` premise. The history theorem is conditional on
+  that premise and makes no unconditional New, progress, or completeness
+  claim. A dedicated consumer, default target, API manifest, trust audit, and
+  CI command cover the layer. The combined finite cross-representative search
+  replays 328,848 successful New steps and checks 222,246 actual endpoint
+  candidates (59,706 reached and 162,540 partner) against 3,333,924 strict
+  prior-event pairs, with zero intersections or decode, region,
+  representative, and ledger failures. These deterministic depth-5 results do
+  not derive `NewCreatedRegionSeparated` or upgrade the conditional theorem.
+  The exact public axiom audit now covers 798 declarations: 519
+  full-classical, 25 axiom-free, 120 `propext`-only, and 134
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CrossRepresentativeForwardPreservation.lean`.
   Exact ready, sigma, and waiting equations classify every output future-work
   occurrence as retained prepared-middle work or the submitted par conclusion

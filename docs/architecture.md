@@ -746,6 +746,18 @@ history edge. Canonical `concl` and `nop` provide exactly those equalities and
 preserve the invariant. Candidate-creating branches remain separate proof
 obligations rather than consequences of this transport lemma.
 
+`SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
+branch's two genuinely new effects. Every output work occurrence is either
+retained marked-middle work or one of the reached/partner endpoints appended
+at the fresh boundary. The new reservation event itself is a fresh maximal
+root and therefore cannot satisfy the strict-older antecedent against any
+output candidate. `NewCreatedCandidate` records only an appended endpoint's
+actual tensor-below witness and marked-middle unmarked mate. Conditional
+preservation consumes `NewCreatedRegionSeparated` for prior ledger events
+whose marked-middle representative is strictly smaller than the fresh root.
+That side condition is not derived from the scheduler invariant, so the module
+makes no unconditional New claim.
+
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` isolates the
 first such branch without assuming its missing geometry. Exact waiting-cell
 equations classify every post-Wait future-work occurrence as either retained
@@ -821,22 +833,26 @@ progress theorem.
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization
 and successful `new` allocations. The legacy `--wait-search` spelling selects
-the same bounds and hard gates. It decodes successful canonical Wait and
-Forward transitions, detects when either inserted conclusion is a genuine
-future-New tensor candidate, and checks every strictly older event pair by
-computing both complete structural source-left regions, including terminal
-axiom partners. Decode, ledger-horizon, and region-computation drift fail
-closed. The Wait decoder requires the exact old-to-new
+the same bounds and hard gates. It decodes successful canonical New, Wait, and
+Forward transitions, detects when an appended endpoint or inserted conclusion
+is a genuine future-New tensor candidate, and checks every strictly older
+prior-event pair by computing both complete structural source-left regions,
+including terminal axiom partners. Decode, ledger-horizon, and
+region-computation drift fail closed. The New decoder independently replays
+the full reservation transition and checks fresh-root and old-representative
+transport. The Wait decoder requires the exact old-to-new
 `conclusion :: oldPayload` update; the Forward decoder independently replays
 prepare, submitted-par lookup, paper guards, par queueing, active-ready
-prepend, and the complete output state. Six hard gates require nonzero step,
-created-candidate, and strict-pair coverage for both rules. The frozen depth-5,
-16-seed corpus covered 1,182,816 reachable states. Wait contributed 5,682
-steps, 636 created candidates, and 1,068 strict pairs; Forward contributed
-158,766 steps, 33,582 created candidates, and 117,324 strict pairs. Both had
-zero intersections and zero decoder or region failures. Those numbers are
-finite falsification evidence and discharge neither
-`WaitCreatedRegionSeparated` nor `ForwardCreatedRegionSeparated` in Lean.
+prepend, and the complete output state. Separate hard gates require nonzero
+step, endpoint-kind, created-candidate, and strict-pair coverage. The frozen
+depth-5, 16-seed corpus covered 1,182,816 reachable states. New contributed
+328,848 steps, 222,246 created candidates (59,706 reached and 162,540 partner),
+and 3,333,924 strict pairs. Wait contributed 5,682 steps, 636 candidates, and
+1,068 pairs; Forward contributed 158,766 steps, 33,582 candidates, and 117,324
+pairs. All three had zero intersections and zero decoder or region failures.
+Those numbers are finite falsification evidence and discharge none of
+`NewCreatedRegionSeparated`, `WaitCreatedRegionSeparated`, or
+`ForwardCreatedRegionSeparated` in Lean.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and

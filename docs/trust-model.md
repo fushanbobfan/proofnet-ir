@@ -526,6 +526,16 @@ remaining source-region obligation for prior ledger events. The finite
 cross-representative executable may falsify that premise on generated
 reachable cases, but no runtime result is imported into the theorem and zero
 observed intersections is not used as proof.
+`SequentialFigure7CrossRepresentativeNewPreservation.lean` adds no hidden
+source-region oracle. Its exact stack equations classify output work as
+retained marked-middle work or a reached/partner endpoint at the fresh
+boundary. Reservation appending preserves old representatives and makes the
+new event a fresh self-root; output work bounds then prove that event cannot
+be strictly older than any candidate. `NewCreatedCandidate` contains only an
+actual endpoint's tensor-below data and marked-middle unmarked-mate lookup.
+The final theorem is explicitly conditional on `NewCreatedRegionSeparated`
+for prior events against those created candidates. No executable result is
+imported into the proof.
 `SequentialFigure7CrossRepresentativeForwardPreservation.lean` likewise adds
 no hidden source-region oracle. Its output-work classification follows from
 the exact active-ready prepend plus unchanged sigma and waiting fields.
@@ -536,9 +546,10 @@ data and prepared-middle mate-unmarked lookup. The final theorem is explicitly
 conditional on `ForwardCreatedRegionSeparated`, the remaining source-region
 obligation for strictly older prior ledger events. The preferred
 `--cross-representative-search` mode and its `--wait-search` compatibility
-alias use exact fail-closed Wait and Forward decoders plus six nonzero coverage
-gates. No finite audit result is imported into either theorem, and no
-unconditional Wait or Forward preservation follows.
+alias use exact New/Forward transition replay, exact Wait payload decoding,
+and independent nonzero coverage gates, including both New endpoints. No
+finite audit result is imported into any theorem, and no unconditional New,
+Wait, or Forward preservation follows.
 `SequentialFigure7ReservationRealization.lean` introduces no component oracle.
 Under the public theorems' explicit certificate structural-well-formedness
 premise, it inducts over the same proof-carrying canonical history and
@@ -593,8 +604,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 794
-declarations: 515 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 798
+declarations: 519 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 120 use exactly `[propext]`, and 134 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

@@ -1423,6 +1423,28 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.NewStep.preparedPrefix,
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "markedMiddle_nextAge_eq_event_rawAge",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "after_nextAge_eq_event_rawAge_add_one",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "after_representative_eq_markedMiddle",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "after_marks_eq_markedMiddle",
+      `ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted,
+      `ProofNetIR.SequentialFigure7.NewCreatedCandidate,
+      `ProofNetIR.SequentialFigure7.NewCreatedRegionSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "freshEvent_not_strictly_older",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "olderSourceRegionSeparated_of_created",
       Name.str
         `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep
         "after_representative_eq_before",

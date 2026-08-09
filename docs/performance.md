@@ -134,8 +134,9 @@ to the original checker proposition in the kernel. Depths zero through two
 also execute the direct all-switchings checker for 18 differential sentinels.
 This distinction matters at depth five: the generated seed-0 certificate has
 15 par choices, so the direct checker takes the exponential switching path,
-whereas the theorem-equivalent unification check takes milliseconds. The first
-complete extended receipt was:
+whereas the theorem-equivalent unification check takes milliseconds. The
+current extended receipt, which also performs the New-created-candidate
+geometry checks without making them a hard coverage gate, was:
 
 ```text
 new-progress-audit-ok mode=extended depths=[0, 1, 2, 3, 4, 5]
@@ -144,9 +145,21 @@ labelled_certificates=36 direct_check_sentinels=18
 initialization_attempts=1254 initialization_successes=1254
 initialization_failures=0 reachable_states=96444 new_guard_states=26658
 new_success_states=26658 new_failure_states=0
-new_success_without_guard=0 dispatch_steps=95190 terminal_runs=1254
-max_replay_steps=110 cycles=0 truncations=0 checksum=5588478
-replay_fuel=16*(formulas+links+1) elapsed_ms=5425 budget_ms=1800000
+new_success_without_guard=0 dispatch_steps=95190 new_steps=26658
+new_created_candidates=18822 new_created_reached_candidates=5760
+new_created_partner_candidates=13062 new_ordered_event_pairs=243576
+new_region_intersections=0 new_decode_failures=0
+new_representative_failures=0 new_ledger_failures=0
+new_region_computation_failures=0 wait_steps=612
+wait_created_candidates=0 wait_ordered_event_pairs=0
+wait_region_intersections=0 wait_decode_failures=0
+region_computation_failures=0 forward_steps=12096
+forward_created_candidates=1800 forward_ordered_event_pairs=4404
+forward_region_intersections=0 forward_decode_failures=0
+forward_region_computation_failures=0 ledger_decode_failures=0
+ledger_length_mismatches=0 terminal_runs=1254 max_replay_steps=110
+cycles=0 truncations=0 checksum=5588478
+replay_fuel=16*(formulas+links+1) elapsed_ms=6504 budget_ms=1800000
 ```
 
 The default CI mode stops at depth four and is a 30-labelled-case finite gate;
@@ -154,29 +167,49 @@ The default CI mode stops at depth four and is a 30-labelled-case finite gate;
 input-only `new` sufficiency, dispatcher progress, or whole-program linearity.
 
 The dedicated `--cross-representative-search` mode searches the conditional
-cross-representative Wait and Forward seams over depth 5 and seeds 0 through
-15. It checks only canonical reachable transitions, verifies the exact Wait
-waiting-payload prepend and complete Forward transition, and requires nonzero
-step, created-candidate, and strict older-event/candidate-pair coverage for
-both rules. `--wait-search` is a compatibility alias with the same bounds and
-gates. The frozen local receipt was:
+cross-representative New, Wait, and Forward seams over depth 5 and seeds 0
+through 15. It checks only canonical reachable transitions. New is replayed
+through its complete pop, raw mark, tensor lookup, `NEXTAXIOM`, orientation,
+enqueue, and reservation sequence; Wait must perform the exact waiting-payload
+prepend; Forward must replay its complete transition. The hard gates require
+nonzero New steps, created candidates at both `reached` and `partner`, and
+strict prior-event/candidate pairs, as well as nonzero step, created-candidate,
+and strict-pair coverage for Wait and Forward. Every checked intersection and
+decode, representative, ledger, and region-computation failure count must be
+zero. `--wait-search` is a compatibility alias with the same bounds and gates.
+The frozen local receipt was:
 
 ```text
-new-progress-audit-ok mode=cross-representative-search depths=[5] seeds_per_depth=16
-labelled_certificates=96 initialization_successes=10608
-reachable_states=1182816 dispatch_steps=1172208 wait_steps=5682
+new-progress-audit-ok mode=cross-representative-search depths=[5]
+seeds_per_depth=16 variants_per_certificate=6 base_derivations=16
+labelled_certificates=96 direct_check_sentinels=0
+initialization_attempts=10608 initialization_successes=10608
+initialization_failures=0 reachable_states=1182816
+new_guard_states=328848 new_success_states=328848 new_failure_states=0
+new_success_without_guard=0 dispatch_steps=1172208 new_steps=328848
+new_created_candidates=222246 new_created_reached_candidates=59706
+new_created_partner_candidates=162540 new_ordered_event_pairs=3333924
+new_region_intersections=0 new_decode_failures=0
+new_representative_failures=0 new_ledger_failures=0
+new_region_computation_failures=0 wait_steps=5682
 wait_created_candidates=636 wait_ordered_event_pairs=1068
 wait_region_intersections=0 wait_decode_failures=0
 region_computation_failures=0 forward_steps=158766
 forward_created_candidates=33582 forward_ordered_event_pairs=117324
 forward_region_intersections=0 forward_decode_failures=0
 forward_region_computation_failures=0 ledger_decode_failures=0
-ledger_length_mismatches=0 cycles=0 truncations=0 checksum=77141346
-elapsed_ms=105024 budget_ms=1800000
+ledger_length_mismatches=0 terminal_runs=10608 max_replay_steps=111
+cycles=0 truncations=0 checksum=77141346
+replay_fuel=16*(formulas+links+1) elapsed_ms=112794 budget_ms=1800000
 ```
 
-This receipt is a bounded falsification search, not a performance guarantee or
-a proof of `WaitCreatedRegionSeparated` or `ForwardCreatedRegionSeparated`.
+The cache used by this run memoizes the same complete structural source-left
+region result once per certificate and vertex; it does not reduce the seeds,
+variants, transitions, candidates, or event/candidate comparisons. The receipt
+is a bounded deterministic falsification search, not a performance guarantee,
+probabilistic confidence statement, or proof of `NewCreatedRegionSeparated`,
+`WaitCreatedRegionSeparated`, or `ForwardCreatedRegionSeparated`. Labelled
+variants may denote equal certificates and are not independent samples.
 
 A separate `proofnet_ir_reconstruction_stress` executable exercises 18
 accepted identity nets with a single repeated internal atom. It crosses

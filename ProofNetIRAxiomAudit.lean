@@ -223,6 +223,10 @@ expansion.
 #print axioms SequentialFigure7.PreparedStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.ConclStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.NopStep.olderSourceRegionSeparated
+#print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
+#print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
+#print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older
+#print axioms SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created
 #print axioms SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before
 #print axioms SequentialFigure7.FutureWorkAt.beforeWaitOrInserted
 #print axioms SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created

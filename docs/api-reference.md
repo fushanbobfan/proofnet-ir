@@ -18509,6 +18509,152 @@ ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated : ∀ {certifica
       (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.nop step))
 ```
 
+### `ProofNetIR.SequentialFigure7.NewStep.preparedPrefix`
+
+Kind: definition.
+
+The synchronized prefix of a successful `new`, exposed for transport to
+the stable-prefix preservation layer.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.preparedPrefix : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewStep certificate before after → ProofNetIR.SequentialFigure7.PreparedStep before
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.markedMiddle_nextAge_eq_event_rawAge`
+
+Kind: theorem.
+
+The marked middle state's horizon is exactly the fresh event's raw age.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.markedMiddle_nextAge_eq_event_rawAge : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  step.markedMiddle.stack.nextAge = (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.after_nextAge_eq_event_rawAge_add_one`
+
+Kind: theorem.
+
+The output horizon is one more than the fresh event's raw age.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.after_nextAge_eq_event_rawAge_add_one : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  after.stack.nextAge = (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge + 1
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle`
+
+Kind: theorem.
+
+Reserving the fresh axiom preserves every representative observable from
+the marked middle state.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after)
+  (token : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+  after.core.representative token = step.markedMiddle.core.representative token
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.after_marks_eq_markedMiddle`
+
+Kind: theorem.
+
+Reserving the fresh axiom leaves the marked middle state's marks intact.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.after_marks_eq_markedMiddle : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  after.core.marks = step.markedMiddle.core.marks
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted`
+
+Kind: theorem.
+
+Every output future-work occurrence of `new` either existed in the marked
+middle state or is one of the two endpoints appended at the fresh raw age.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt after rawAge vertex →
+    ProofNetIR.SequentialFigure7.FutureWorkAt step.markedMiddle rawAge vertex ∨
+      rawAge = (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge ∧
+        (vertex = step.reached ∨ vertex = step.partner)
+```
+
+### `ProofNetIR.SequentialFigure7.NewCreatedCandidate`
+
+Kind: inductive type.
+
+One actual future-`new` candidate whose head is an endpoint appended by
+the successful enclosing `new` step.
+
+```lean
+ProofNetIR.SequentialFigure7.NewCreatedCandidate : (certificate : ProofNetIR.Certificate) →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewStep certificate before after → Type
+```
+
+### `ProofNetIR.SequentialFigure7.NewCreatedRegionSeparated`
+
+Kind: definition.
+
+Geometry required only for actual candidates created at the two appended
+endpoints.  Representatives are compared in the prepared marked-middle state.
+
+```lean
+ProofNetIR.SequentialFigure7.NewCreatedRegionSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.NewStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older`
+
+Kind: theorem.
+
+The freshly appended reservation event is not strictly older than any
+future candidate in the output state.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate after),
+      ¬after.core.representative (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge <
+          after.core.representative candidate.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created`
+
+Kind: theorem.
+
+A canonical `new` history extension preserves older-source-region
+separation under the explicit geometry premise for newly appended endpoints.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.new, after := after }}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated prior →
+    ProofNetIR.SequentialFigure7.NewCreatedRegionSeparated prior step →
+      ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.new step))
+```
+
 ### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before`
 
 Kind: theorem.

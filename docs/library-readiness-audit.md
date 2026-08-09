@@ -667,6 +667,14 @@ part of the engineering and proof-identity gap.
    prior-ledger/source-region obligation. The current scheduler invariant does
    not yet imply that premise, so unconditional Wait preservation remains an
    open maturity gate.
+   `SequentialFigure7CrossRepresentativeNewPreservation.lean` now closes the
+   exact state-transport and fresh-event portions of the New branch. Every
+   output occurrence is retained marked-middle work or one of the exact
+   reached/partner endpoints at the fresh boundary. The fresh reservation
+   event is not strictly older than any output candidate. The exported history
+   theorem remains conditional on `NewCreatedRegionSeparated` for prior events
+   against actual endpoint candidates; the current invariant does not derive
+   that geometry, so unconditional New preservation remains open.
    `SequentialFigure7CrossRepresentativeForwardPreservation.lean` now closes
    the exact state-transport portion of the Forward branch. Old ready and
    waiting occurrences retain their exact prepared-middle boundary, while the
@@ -690,15 +698,17 @@ part of the engineering and proof-identity gap.
    checker. This finite receipt does not close input-only `new` sufficiency,
    intended-state exhaustiveness, progress, totality, or completeness.
    Its separate `--cross-representative-search` receipt covers 96 labelled
-   depth-5 cases and 1,182,816 reachable states. Wait contributes 5,682
-   successful steps, 636 created candidates, and 1,068 strict pairs; Forward
-   contributes 158,766 steps, 33,582 created candidates, and 117,324 strict
-   pairs. Step, created-candidate, and ordered-pair counts are six independent
-   nonzero hard gates. The exact Wait prepend and complete Forward transition
-   are decoded fail closed, with zero intersections or decoder, region, ledger,
-   cycle, and fuel failures. `--wait-search` is a compatibility alias for the
-   same audit. This is finite falsification evidence only, not a proof of
-   either conditional premise.
+   depth-5 cases and 1,182,816 reachable states. New contributes 328,848
+   successful steps, 222,246 actual endpoint candidates (59,706 reached and
+   162,540 partner), and 3,333,924 strict prior-event pairs. Wait contributes
+   5,682 steps, 636 candidates, and 1,068 pairs; Forward contributes 158,766
+   steps, 33,582 candidates, and 117,324 pairs. Independent nonzero gates cover
+   every rule and both New endpoint kinds. The complete New and Forward
+   transitions and exact Wait prepend are decoded fail closed, with zero
+   intersections or decoder, region, representative, ledger, cycle, and fuel
+   failures. `--wait-search` is a compatibility alias for the same audit. This
+   is finite falsification evidence only, not a proof of any conditional
+   premise.
    `SequentialFigure7TagHistory.lean` now derives a branch-aligned augmentation
    from that exact history and from certified dispatcher reachability. It proves
    exact current-tag provenance, stable tags for all five non-`new` branches,
@@ -796,7 +806,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 794 declarations: 515 public MLL
+- CI now parses `#print axioms` for 798 declarations: 519 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries;

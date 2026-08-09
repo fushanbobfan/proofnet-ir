@@ -19,17 +19,17 @@ This executable searches only states produced by a successful
   Nonempty (NewGuard certificate state) ∧ new? certificate state invariant = none`.
 
 The default and extended modes search the shallow-New counterexample above.
-`--cross-representative-search` additionally decodes every successful Wait and
-Forward in the same replay, reconstructs the chronological reservation ledger,
-and checks every rule-created future-New candidate against every strictly older
-representative event for intersecting source-left regions. Its coverage gates
-require successful Wait and Forward steps, a candidate created by each rule,
-and at least one strict older-event pair for each rule. `--wait-search` remains
-as a compatibility spelling for the same combined finite search.
+`--cross-representative-search` additionally decodes every successful New,
+Wait, and Forward in the same replay, reconstructs the chronological
+reservation ledger, and checks every rule-created future-New candidate against
+every strictly older representative event for intersecting source-left
+regions. Its coverage gates require successful steps, created candidates, and
+strict older-event pairs. `--wait-search` remains a compatibility spelling for
+the same combined finite search.
 
 The search is deterministic and finite. Absence of either witness is regression
 evidence over the constants below, not a progress theorem, NewGuard sufficiency,
-or an unconditional Wait/Forward preservation theorem. Labelled variants may denote equal
+or an unconditional New/Wait/Forward preservation theorem. Labelled variants may denote equal
 certificates; the reported count is a count of labelled audit cases, not a
 uniqueness or statistical-independence claim. Default CI covers depths zero
 through four; `--extended` adds depth five; both cross-representative spellings
@@ -224,9 +224,9 @@ structure CheckedCandidate where
   structural : certificate.StructurallyWellFormed
 
 /-- The executable audit needs only the chronological event root and its raw
-age.  The pair is maintained from the exact initialization start and every
+age. The pair is maintained from the exact initialization start and every
 successful dispatcher `new`; it is checked against the state's raw-age
-horizon at every replay state.  This is audit data, not a replacement for the
+horizon at every replay state. This is audit data, not a replacement for the
 proof-relevant reservation ledger. -/
 structure AuditReservation where
   rawAge : RawTokenAge
@@ -279,6 +279,29 @@ structure ForwardRegionCounterexample where
   candidateRegion : List Vertex
   deriving Repr
 
+/-- A finite witness that one endpoint appended by New created a candidate
+whose complete source-left region intersects a strictly older prior event. -/
+structure NewRegionCounterexample where
+  depth : Nat
+  seed : Nat
+  variant : String
+  initializationStart : Vertex
+  step : Nat
+  replayKinds : List Figure7RuleKind
+  certificate : Certificate
+  before : ReservationState
+  after : ReservationState
+  event : AuditReservation
+  eventRepresentative : Nat
+  freshRawAge : RawTokenAge
+  freshRepresentative : Nat
+  createdAtReached : Bool
+  insertedEndpoint : Vertex
+  tensorMate : Vertex
+  eventRegion : List Vertex
+  candidateRegion : List Vertex
+  deriving Repr
+
 /-- A fully certified witness of the audited counterexample shape. The
 `reachable` field is definitionally `Nonempty (ExecutedHistory ...)`, so this
 cannot be populated by an arbitrary invariant-valid state. -/
@@ -314,6 +337,16 @@ structure AuditStats where
   terminalRuns : Nat := 0
   cycleRuns : Nat := 0
   truncatedRuns : Nat := 0
+  newSteps : Nat := 0
+  newCreatedCandidates : Nat := 0
+  newCreatedReachedCandidates : Nat := 0
+  newCreatedPartnerCandidates : Nat := 0
+  newOrderedEventPairs : Nat := 0
+  newRegionIntersections : Nat := 0
+  newDecodeFailures : Nat := 0
+  newRepresentativeFailures : Nat := 0
+  newLedgerFailures : Nat := 0
+  newRegionComputationFailures : Nat := 0
   waitSteps : Nat := 0
   waitCreatedCandidates : Nat := 0
   waitOrderedEventPairs : Nat := 0
@@ -351,6 +384,24 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
   terminalRuns := left.terminalRuns + right.terminalRuns
   cycleRuns := left.cycleRuns + right.cycleRuns
   truncatedRuns := left.truncatedRuns + right.truncatedRuns
+  newSteps := left.newSteps + right.newSteps
+  newCreatedCandidates :=
+    left.newCreatedCandidates + right.newCreatedCandidates
+  newCreatedReachedCandidates :=
+    left.newCreatedReachedCandidates + right.newCreatedReachedCandidates
+  newCreatedPartnerCandidates :=
+    left.newCreatedPartnerCandidates + right.newCreatedPartnerCandidates
+  newOrderedEventPairs :=
+    left.newOrderedEventPairs + right.newOrderedEventPairs
+  newRegionIntersections :=
+    left.newRegionIntersections + right.newRegionIntersections
+  newDecodeFailures := left.newDecodeFailures + right.newDecodeFailures
+  newRepresentativeFailures :=
+    left.newRepresentativeFailures + right.newRepresentativeFailures
+  newLedgerFailures :=
+    left.newLedgerFailures + right.newLedgerFailures
+  newRegionComputationFailures :=
+    left.newRegionComputationFailures + right.newRegionComputationFailures
   waitSteps := left.waitSteps + right.waitSteps
   waitCreatedCandidates :=
     left.waitCreatedCandidates + right.waitCreatedCandidates
@@ -383,6 +434,7 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
 structure SearchResult where
   stats : AuditStats := {}
   counterexample : Option Counterexample := none
+  newRegionCounterexample : Option NewRegionCounterexample := none
   waitCounterexample : Option WaitRegionCounterexample := none
   forwardCounterexample : Option ForwardRegionCounterexample := none
 
@@ -390,8 +442,8 @@ def SearchResult.addStats (result : SearchResult) (stats : AuditStats) : SearchR
   { result with stats := result.stats.add stats }
 
 def SearchResult.hasCounterexample (result : SearchResult) : Bool :=
-  result.counterexample.isSome || result.waitCounterexample.isSome ||
-    result.forwardCounterexample.isSome
+  result.counterexample.isSome || result.newRegionCounterexample.isSome ||
+    result.waitCounterexample.isSome || result.forwardCounterexample.isSome
 
 def stateChecksum (state : ReservationState) : Nat :=
   state.stack.nextAge + state.stack.sigma.length +
@@ -404,8 +456,8 @@ def replayFuel (certificate : Certificate) : Nat :=
   16 * (certificate.formulas.size + certificate.links.length + 1)
 
 /-- Compute the complete structurally determined source-left region used by
-the finite Wait/Forward audit. The list contains every recursively visited stored-left
-source and the other endpoint of the terminal axiom.  Accepted certificates
+the finite New/Wait/Forward audit. The list contains every recursively visited
+stored-left source and the other endpoint of the terminal axiom. Accepted certificates
 have singleton source buckets; every other shape fails closed. -/
 def sourceLeftRegion? (certificate : Certificate) :
     Nat → Vertex → Option (List Vertex)
@@ -436,8 +488,261 @@ def sourceLeftRegion? (certificate : Certificate) :
 def sourceRegionFuel (certificate : Certificate) : Nat :=
   certificate.formulas.size + 1
 
+abbrev SourceRegionCache := Array (Option (List Vertex))
+
+/-- Cache the exact complete source-left computation once per certificate and
+vertex. An outer lookup miss and a cached inner `none` both remain fail-closed
+at each audited ordered pair. -/
+def sourceRegionCache (certificate : Certificate) : SourceRegionCache :=
+  (List.range certificate.formulas.size |>.map fun vertex ↦
+    sourceLeftRegion? certificate (sourceRegionFuel certificate) vertex).toArray
+
 def regionsIntersect (first second : List Vertex) : Bool :=
   first.any fun vertex ↦ second.contains vertex
+
+structure NewCandidateInspection where
+  stats : AuditStats := {}
+  counterexample : Option NewRegionCounterexample := none
+
+def NewCandidateInspection.add
+    (left right : NewCandidateInspection) : NewCandidateInspection where
+  stats := left.stats.add right.stats
+  counterexample :=
+    match left.counterexample with
+    | some witness => some witness
+    | none => right.counterexample
+
+structure NewInspection where
+  stats : AuditStats := {}
+  counterexample : Option NewRegionCounterexample := none
+  reservation : Option AuditReservation := none
+
+def inspectNewEvent (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before markedMiddle after : ReservationState)
+    (freshRawAge : RawTokenAge) (createdAtReached : Bool)
+    (insertedEndpoint tensorMate : Vertex)
+    (event : AuditReservation) : NewCandidateInspection :=
+  let eventBeforeRepresentative :=
+    before.core.representative event.rawAge
+  let eventMiddleRepresentative :=
+    markedMiddle.core.representative event.rawAge
+  let eventAfterRepresentative :=
+    after.core.representative event.rawAge
+  let freshMiddleRepresentative :=
+    markedMiddle.core.representative freshRawAge
+  let freshAfterRepresentative := after.core.representative freshRawAge
+  if eventBeforeRepresentative != eventMiddleRepresentative then
+    { stats := { newRepresentativeFailures := 1 } }
+  else if eventAfterRepresentative != eventMiddleRepresentative then
+    { stats := { newRepresentativeFailures := 1 } }
+  else if freshAfterRepresentative != freshMiddleRepresentative then
+    { stats := { newRepresentativeFailures := 1 } }
+  else if eventMiddleRepresentative < freshMiddleRepresentative then
+    if eventAfterRepresentative < freshAfterRepresentative then
+      match regionCache[event.start]?, regionCache[tensorMate]? with
+      | some (some eventRegion), some (some candidateRegion) =>
+          if regionsIntersect eventRegion candidateRegion then
+            { stats := {
+                newOrderedEventPairs := 1
+                newRegionIntersections := 1 }
+              counterexample := some {
+                depth := candidate.depth
+                seed := candidate.seed
+                variant := candidate.variant
+                initializationStart
+                step := replayStep
+                replayKinds
+                certificate := candidate.certificate
+                before
+                after
+                event
+                eventRepresentative := eventMiddleRepresentative
+                freshRawAge
+                freshRepresentative := freshMiddleRepresentative
+                createdAtReached
+                insertedEndpoint
+                tensorMate
+                eventRegion
+                candidateRegion } }
+          else
+            { stats := { newOrderedEventPairs := 1 } }
+      | _, _ =>
+          { stats := {
+              newOrderedEventPairs := 1
+              newRegionComputationFailures := 1 } }
+    else
+      { stats := { newRepresentativeFailures := 1 } }
+  else if eventAfterRepresentative < freshAfterRepresentative then
+    { stats := { newRepresentativeFailures := 1 } }
+  else
+    {}
+
+def inspectNewEvents (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before markedMiddle after : ReservationState)
+    (freshRawAge : RawTokenAge) (createdAtReached : Bool)
+    (insertedEndpoint tensorMate : Vertex) :
+    List AuditReservation → NewCandidateInspection
+  | [] => {}
+  | event :: rest =>
+      (inspectNewEvent candidate regionCache initializationStart replayStep
+        replayKinds before markedMiddle after freshRawAge createdAtReached
+        insertedEndpoint tensorMate event).add
+        (inspectNewEvents candidate regionCache initializationStart replayStep
+          replayKinds before markedMiddle after freshRawAge createdAtReached
+          insertedEndpoint tensorMate rest)
+
+def inspectNewCreatedEndpoint (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before markedMiddle after : ReservationState)
+    (freshRawAge : RawTokenAge) (createdAtReached : Bool)
+    (insertedEndpoint : Vertex) (events : List AuditReservation) :
+    NewCandidateInspection :=
+  match candidate.certificate.tensorBelow? insertedEndpoint with
+  | none => {}
+  | some tensor =>
+      if markedMiddle.core.marks[tensor.mate]? == some none &&
+          after.core.marks[tensor.mate]? == some none then
+        let inspected :=
+          inspectNewEvents candidate regionCache initializationStart replayStep
+            replayKinds before markedMiddle after freshRawAge createdAtReached
+            insertedEndpoint tensor.mate events
+        let createdStats : AuditStats :=
+          if createdAtReached then
+            { newCreatedCandidates := 1
+              newCreatedReachedCandidates := 1 }
+          else
+            { newCreatedCandidates := 1
+              newCreatedPartnerCandidates := 1 }
+        { inspected with stats := inspected.stats.add createdStats }
+      else
+        {}
+
+/-- Fail-closed replay of one successful dispatcher New. The event is exposed
+only after every operational stage reproduces the exact dispatcher output. -/
+def inspectNewTransition (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before after : ReservationState) (events : List AuditReservation) :
+    NewInspection :=
+  let decodeFailure : NewInspection :=
+    { stats := { newSteps := 1, newDecodeFailures := 1 } }
+  match before.stack.popReadyMark? with
+  | .error _ => decodeFailure
+  | .ok stackResult =>
+      match
+          before.core.markReadyRaw?
+            stackResult.vertex stackResult.rawAge with
+      | .error _ => decodeFailure
+      | .ok coreMarked =>
+          match candidate.certificate.tensorBelow? stackResult.vertex with
+          | none => decodeFailure
+          | some tensor =>
+              match
+                  SequentialUnification.nextAxiom? candidate.certificate
+                    coreMarked
+                    (SequentialUnification.sourceIndex candidate.certificate)
+                    (SequentialUnification.sourceIndex_sound
+                      candidate.certificate)
+                    before.tags tensor.mate with
+              | none => decodeFailure
+              | some search =>
+                  match search.orientedEndpoints? with
+                  | none => decodeFailure
+                  | some (reached, partner) =>
+                      match
+                          stackResult.after.operationalNewEnqueue?
+                            reached partner with
+                      | none => decodeFailure
+                      | some stackAfter =>
+                          match
+                              candidate.certificate.reserveAxiomAt?
+                                coreMarked search.linkIndex with
+                          | none => decodeFailure
+                          | some coreAfter =>
+                              let decodedAfter : ReservationState := {
+                                stack := stackAfter
+                                core := coreAfter
+                                tags := search.tags }
+                              if after = decodedAfter then
+                                let markedMiddle : ReservationState := {
+                                  stack := stackResult.after
+                                  core := coreMarked
+                                  tags := before.tags }
+                                let freshRawAge := before.stack.nextAge
+                                let reservation : AuditReservation := {
+                                  rawAge := freshRawAge
+                                  start := tensor.mate }
+                                let appendedEvents := events ++ [reservation]
+                                let priorRawAges :=
+                                  events.map AuditReservation.rawAge
+                                let appendedRawAges :=
+                                  appendedEvents.map AuditReservation.rawAge
+                                let ledgerOk :=
+                                  events.length == freshRawAge &&
+                                  priorRawAges == List.range freshRawAge &&
+                                  appendedEvents.length ==
+                                    after.stack.nextAge &&
+                                  appendedRawAges ==
+                                    List.range after.stack.nextAge &&
+                                  after.stack.nextAge == freshRawAge + 1 &&
+                                  !(events.any fun event ↦
+                                    event.rawAge == freshRawAge)
+                                let oldMiddleStable :=
+                                  events.all fun event ↦
+                                    before.core.representative event.rawAge ==
+                                      markedMiddle.core.representative
+                                        event.rawAge
+                                let oldAfterStable :=
+                                  events.all fun event ↦
+                                    after.core.representative event.rawAge ==
+                                      markedMiddle.core.representative
+                                        event.rawAge
+                                let freshMiddleRepresentative :=
+                                  markedMiddle.core.representative freshRawAge
+                                let freshAfterRepresentative :=
+                                  after.core.representative freshRawAge
+                                let representativesOk :=
+                                  oldMiddleStable && oldAfterStable &&
+                                  coreMarked.parents == before.core.parents &&
+                                  freshMiddleRepresentative == freshRawAge &&
+                                  freshAfterRepresentative == freshRawAge &&
+                                  decide (freshRawAge < after.stack.nextAge) &&
+                                  !(decide (freshAfterRepresentative <
+                                    freshAfterRepresentative))
+                                let reachedInspection :=
+                                  inspectNewCreatedEndpoint candidate regionCache
+                                    initializationStart replayStep replayKinds
+                                    before markedMiddle after freshRawAge true
+                                    reached events
+                                let partnerInspection :=
+                                  inspectNewCreatedEndpoint candidate regionCache
+                                    initializationStart replayStep replayKinds
+                                    before markedMiddle after freshRawAge false
+                                    partner events
+                                let createdInspection :=
+                                  reachedInspection.add partnerInspection
+                                let baseStats : AuditStats := {
+                                  newSteps := 1
+                                  newLedgerFailures :=
+                                    if ledgerOk then 0 else 1
+                                  newRepresentativeFailures :=
+                                    if representativesOk then 0 else 1 }
+                                { stats :=
+                                    baseStats.add createdInspection.stats
+                                  counterexample :=
+                                    createdInspection.counterexample
+                                  reservation := some reservation }
+                              else
+                                decodeFailure
 
 structure WaitInspection where
   stats : AuditStats := {}
@@ -451,6 +756,7 @@ def WaitInspection.add (left right : WaitInspection) : WaitInspection where
     | none => right.counterexample
 
 def inspectWaitEvent (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
     (initializationStart replayStep : Nat)
     (replayKinds : List Figure7RuleKind)
     (before after : ReservationState) (boundary : RawTokenAge)
@@ -459,12 +765,8 @@ def inspectWaitEvent (candidate : CheckedCandidate)
   let eventRepresentative := after.core.representative event.rawAge
   let boundaryRepresentative := after.core.representative boundary
   if eventRepresentative < boundaryRepresentative then
-    match
-        sourceLeftRegion? candidate.certificate
-          (sourceRegionFuel candidate.certificate) event.start,
-        sourceLeftRegion? candidate.certificate
-          (sourceRegionFuel candidate.certificate) tensorMate with
-    | some eventRegion, some candidateRegion =>
+    match regionCache[event.start]?, regionCache[tensorMate]? with
+    | some (some eventRegion), some (some candidateRegion) =>
         if regionsIntersect eventRegion candidateRegion then
           { stats := {
               waitOrderedEventPairs := 1
@@ -497,6 +799,7 @@ def inspectWaitEvent (candidate : CheckedCandidate)
     {}
 
 def inspectWaitEvents (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
     (initializationStart replayStep : Nat)
     (replayKinds : List Figure7RuleKind)
     (before after : ReservationState) (boundary : RawTokenAge)
@@ -504,10 +807,11 @@ def inspectWaitEvents (candidate : CheckedCandidate)
     List AuditReservation → WaitInspection
   | [] => {}
   | event :: rest =>
-      (inspectWaitEvent candidate initializationStart replayStep replayKinds
-        before after boundary insertedConclusion tensorMate event).add
-        (inspectWaitEvents candidate initializationStart replayStep replayKinds
-          before after boundary insertedConclusion tensorMate rest)
+      (inspectWaitEvent candidate regionCache initializationStart replayStep
+        replayKinds before after boundary insertedConclusion tensorMate
+        event).add
+        (inspectWaitEvents candidate regionCache initializationStart replayStep
+          replayKinds before after boundary insertedConclusion tensorMate rest)
 
 /-- Inspect one successful dispatcher Wait.  Reconstructing the selected par,
 its older boundary, and the inserted payload from the input state must succeed;
@@ -515,6 +819,7 @@ otherwise the audit records a fail-closed decoder drift.  Absence of a tensor
 below the inserted conclusion, or a marked tensor mate, is a valid Wait with no
 new candidate. -/
 def inspectWaitTransition (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
     (initializationStart replayStep : Nat)
     (replayKinds : List Figure7RuleKind)
     (before after : ReservationState) (events : List AuditReservation) :
@@ -542,9 +847,10 @@ def inspectWaitTransition (candidate : CheckedCandidate)
                           | some tensor =>
                               if after.core.marks[tensor.mate]? == some none then
                                 let inspected :=
-                                  inspectWaitEvents candidate initializationStart
-                                    replayStep replayKinds before after boundary
-                                    consumer.conclusion tensor.mate events
+                                  inspectWaitEvents candidate regionCache
+                                    initializationStart replayStep replayKinds
+                                    before after boundary consumer.conclusion
+                                    tensor.mate events
                                 { inspected with
                                   stats := inspected.stats.add {
                                     waitSteps := 1
@@ -573,6 +879,7 @@ def ForwardInspection.add (left right : ForwardInspection) : ForwardInspection w
     | none => right.counterexample
 
 def inspectForwardEvent (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
     (initializationStart replayStep : Nat)
     (replayKinds : List Figure7RuleKind)
     (before after : ReservationState) (boundary : RawTokenAge)
@@ -581,12 +888,8 @@ def inspectForwardEvent (candidate : CheckedCandidate)
   let eventRepresentative := after.core.representative event.rawAge
   let boundaryRepresentative := after.core.representative boundary
   if eventRepresentative < boundaryRepresentative then
-    match
-        sourceLeftRegion? candidate.certificate
-          (sourceRegionFuel candidate.certificate) event.start,
-        sourceLeftRegion? candidate.certificate
-          (sourceRegionFuel candidate.certificate) tensorMate with
-    | some eventRegion, some candidateRegion =>
+    match regionCache[event.start]?, regionCache[tensorMate]? with
+    | some (some eventRegion), some (some candidateRegion) =>
         if regionsIntersect eventRegion candidateRegion then
           { stats := {
               forwardOrderedEventPairs := 1
@@ -619,6 +922,7 @@ def inspectForwardEvent (candidate : CheckedCandidate)
     {}
 
 def inspectForwardEvents (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
     (initializationStart replayStep : Nat)
     (replayKinds : List Figure7RuleKind)
     (before after : ReservationState) (boundary : RawTokenAge)
@@ -626,10 +930,12 @@ def inspectForwardEvents (candidate : CheckedCandidate)
     List AuditReservation → ForwardInspection
   | [] => {}
   | event :: rest =>
-      (inspectForwardEvent candidate initializationStart replayStep replayKinds
-        before after boundary insertedConclusion tensorMate event).add
-        (inspectForwardEvents candidate initializationStart replayStep replayKinds
-          before after boundary insertedConclusion tensorMate rest)
+      (inspectForwardEvent candidate regionCache initializationStart replayStep
+        replayKinds before after boundary insertedConclusion tensorMate
+        event).add
+        (inspectForwardEvents candidate regionCache initializationStart
+          replayStep replayKinds before after boundary insertedConclusion
+          tensorMate rest)
 
 /-- Inspect one successful dispatcher Forward. The decoder independently
 replays the exact common preparation, submitted par lookup, paper guards,
@@ -637,6 +943,7 @@ production queue, and ready prepend, and requires their complete output to equal
 Absence of a tensor below the prepended conclusion, or a marked tensor mate, is
 a valid Forward with no created candidate. Every decoder mismatch fails closed. -/
 def inspectForwardTransition (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache)
     (initializationStart replayStep : Nat)
     (replayKinds : List Figure7RuleKind)
     (before after : ReservationState) (events : List AuditReservation) :
@@ -680,9 +987,10 @@ def inspectForwardTransition (candidate : CheckedCandidate)
                               | some tensor =>
                                   if after.core.marks[tensor.mate]? == some none then
                                     let inspected :=
-                                      inspectForwardEvents candidate
-                                        initializationStart replayStep replayKinds
-                                        before after prepared.stackResult.rawAge
+                                      inspectForwardEvents candidate regionCache
+                                        initializationStart replayStep
+                                        replayKinds before after
+                                        prepared.stackResult.rawAge
                                         consumer.conclusion tensor.mate events
                                     { inspected with
                                       stats := inspected.stats.add {
@@ -706,7 +1014,8 @@ def parCount (certificate : Certificate) : Nat :=
     | .par _ _ _ => count + 1
     | _ => count) 0
 
-def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
+def inspectReachable (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache) (start : Vertex)
     (state : ReservationState)
     (reachable : ReachableByImplementedDispatcher candidate.certificate state)
     (events : List AuditReservation)
@@ -814,27 +1123,32 @@ def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
             | some result =>
                 let nextReachable :=
                   reachable.dispatch invariant dispatchEquation
+                let newInspection :=
+                  if result.kind == .new then
+                    inspectNewTransition candidate regionCache start step
+                      (result.kind :: reversedKinds).reverse state result.after
+                      events
+                  else
+                    {}
                 let waitInspection :=
                   if result.kind == .wait then
-                    inspectWaitTransition candidate start step
+                    inspectWaitTransition candidate regionCache start step
                       (result.kind :: reversedKinds).reverse state result.after
                       events
                   else
                     {}
                 let forwardInspection :=
                   if result.kind == .forward then
-                    inspectForwardTransition candidate start step
+                    inspectForwardTransition candidate regionCache start step
                       (result.kind :: reversedKinds).reverse state result.after
                       events
                   else
                     {}
                 let nextEventsAndStats : List AuditReservation × AuditStats :=
                   if result.kind == .new then
-                    match newGuard? candidate.certificate state with
-                    | some guard =>
-                        (events ++ [{
-                          rawAge := state.stack.nextAge
-                          start := guard.tensor.mate }], {})
+                    match newInspection.reservation with
+                    | some reservation =>
+                        (events ++ [reservation], {})
                     | none =>
                         (events, { ledgerDecodeFailures := 1 })
                   else
@@ -843,41 +1157,52 @@ def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
                   (afterGuard.addStats {
                     dispatchSteps := 1
                     maxReplaySteps := step }).stats |>.add
-                    waitInspection.stats |>.add forwardInspection.stats |>.add
-                    nextEventsAndStats.2
-                match waitInspection.counterexample with
+                    newInspection.stats |>.add waitInspection.stats |>.add
+                    forwardInspection.stats |>.add nextEventsAndStats.2
+                match newInspection.counterexample with
                 | some witness =>
                     { stats := currentStats
-                      waitCounterexample := some witness }
+                      newRegionCounterexample := some witness }
                 | none =>
-                    match forwardInspection.counterexample with
+                    match waitInspection.counterexample with
                     | some witness =>
                         { stats := currentStats
-                          forwardCounterexample := some witness }
+                          waitCounterexample := some witness }
                     | none =>
-                        let tail :=
-                          inspectReachable candidate start result.after nextReachable
-                            nextEventsAndStats.1 (state :: seen)
-                            (result.kind :: reversedKinds) (step + 1) fuel
-                        { stats := currentStats.add tail.stats
-                          counterexample := tail.counterexample
-                          waitCounterexample := tail.waitCounterexample
-                          forwardCounterexample := tail.forwardCounterexample }
+                        match forwardInspection.counterexample with
+                        | some witness =>
+                            { stats := currentStats
+                              forwardCounterexample := some witness }
+                        | none =>
+                            let tail :=
+                              inspectReachable candidate regionCache start
+                                result.after
+                                nextReachable nextEventsAndStats.1
+                                (state :: seen)
+                                (result.kind :: reversedKinds) (step + 1) fuel
+                            { stats := currentStats.add tail.stats
+                              counterexample := tail.counterexample
+                              newRegionCounterexample :=
+                                tail.newRegionCounterexample
+                              waitCounterexample := tail.waitCounterexample
+                              forwardCounterexample :=
+                                tail.forwardCounterexample }
 
-def inspectStarts (candidate : CheckedCandidate) : List Vertex → SearchResult
+def inspectStarts (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache) : List Vertex → SearchResult
   | [] => {}
   | start :: rest =>
       let attempt : AuditStats := { initializationAttempts := 1 }
       match initializationEquation :
           initializeReservation? candidate.certificate start with
       | none =>
-          (inspectStarts candidate rest).addStats attempt
+          (inspectStarts candidate regionCache rest).addStats attempt
       | some initial =>
           let reachable :=
             dispatcher_reachable_of_initializeReservation?_eq_some
               initializationEquation
           let replay :=
-            inspectReachable candidate start initial reachable
+            inspectReachable candidate regionCache start initial reachable
               [{ rawAge := 0, start }] [] [] 0
               (replayFuel candidate.certificate)
           let current : SearchResult :=
@@ -888,9 +1213,10 @@ def inspectStarts (candidate : CheckedCandidate) : List Vertex → SearchResult
           if current.hasCounterexample then
             current
           else
-            let tail := inspectStarts candidate rest
+            let tail := inspectStarts candidate regionCache rest
             { stats := current.stats.add tail.stats
               counterexample := tail.counterexample
+              newRegionCounterexample := tail.newRegionCounterexample
               waitCounterexample := tail.waitCounterexample
               forwardCounterexample := tail.forwardCounterexample }
 
@@ -908,8 +1234,9 @@ def inspectVariantCase (depth seed : Nat) (variant : PositiveVariant) :
       accepted
       structural :=
         (variant.certificate.check_iff_declarativelyCorrect.mp accepted).1 }
+    let regionCache := sourceRegionCache candidate.certificate
     .ok <|
-      (inspectStarts candidate
+      (inspectStarts candidate regionCache
         (List.range variant.certificate.formulas.size)).addStats
           { checkedCertificates := 1 }
   else
@@ -928,6 +1255,7 @@ def inspectVariants (depth seed : Nat) : List PositiveVariant →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          newRegionCounterexample := tail.newRegionCounterexample
           waitCounterexample := tail.waitCounterexample
           forwardCounterexample := tail.forwardCounterexample }
 
@@ -951,6 +1279,7 @@ def inspectSeeds (depth : Nat) : List Nat → Except String SearchResult
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          newRegionCounterexample := tail.newRegionCounterexample
           waitCounterexample := tail.waitCounterexample
           forwardCounterexample := tail.forwardCounterexample }
 
@@ -966,6 +1295,7 @@ def inspectDepths (seedsPerDepth : Nat) : List Nat →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          newRegionCounterexample := tail.newRegionCounterexample
           waitCounterexample := tail.waitCounterexample
           forwardCounterexample := tail.forwardCounterexample }
 
@@ -978,6 +1308,11 @@ structure AuditConfig where
   seedsPerDepth : Nat
   budgetMs : Nat
   requireGuardCoverage : Bool
+  requireNewCoverage : Bool := false
+  requireNewCreatedCoverage : Bool := false
+  requireNewReachedCreatedCoverage : Bool := false
+  requireNewPartnerCreatedCoverage : Bool := false
+  requireNewOrderedPairCoverage : Bool := false
   requireWaitCoverage : Bool := false
   requireWaitCreatedCoverage : Bool := false
   requireWaitOrderedPairCoverage : Bool := false
@@ -1008,6 +1343,11 @@ def waitSearchConfig : AuditConfig where
   seedsPerDepth := 16
   budgetMs := 1_800_000
   requireGuardCoverage := true
+  requireNewCoverage := true
+  requireNewCreatedCoverage := true
+  requireNewReachedCreatedCoverage := true
+  requireNewPartnerCreatedCoverage := true
+  requireNewOrderedPairCoverage := true
   requireWaitCoverage := true
   requireWaitCreatedCoverage := true
   requireWaitOrderedPairCoverage := true
@@ -1016,7 +1356,7 @@ def waitSearchConfig : AuditConfig where
   requireForwardOrderedPairCoverage := true
   traceStarts := false
 
-/-- Preferred name for the combined Wait/Forward cross-representative search.
+/-- Preferred name for the combined New/Wait/Forward cross-representative search.
 `waitSearchConfig` remains the legacy-compatible spelling with identical bounds
 and hard coverage gates. -/
 def crossRepresentativeSearchConfig : AuditConfig :=
@@ -1079,6 +1419,25 @@ def renderForwardCounterexample
     s!"before={repr counterexample.before}\n" ++
     s!"after={repr counterexample.after}"
 
+def renderNewRegionCounterexample
+    (counterexample : NewRegionCounterexample) : String :=
+  s!"new-region-counterexample depth={counterexample.depth} " ++
+    s!"seed={counterexample.seed} variant={counterexample.variant} " ++
+    s!"initialization_start={counterexample.initializationStart} " ++
+    s!"step={counterexample.step} replay={repr counterexample.replayKinds}\n" ++
+    s!"event={repr counterexample.event} " ++
+    s!"event_representative={counterexample.eventRepresentative} " ++
+    s!"fresh_raw_age={counterexample.freshRawAge} " ++
+    s!"fresh_representative={counterexample.freshRepresentative} " ++
+    s!"created_at_reached={counterexample.createdAtReached} " ++
+    s!"inserted_endpoint={counterexample.insertedEndpoint} " ++
+    s!"tensor_mate={counterexample.tensorMate}\n" ++
+    s!"event_region={repr counterexample.eventRegion} " ++
+    s!"candidate_region={repr counterexample.candidateRegion}\n" ++
+    s!"certificate={repr counterexample.certificate}\n" ++
+    s!"before={repr counterexample.before}\n" ++
+    s!"after={repr counterexample.after}"
+
 def renderStats (stats : AuditStats) : String :=
   s!"base_derivations={stats.baseDerivations} " ++
     s!"labelled_certificates={stats.checkedCertificates} " ++
@@ -1092,6 +1451,19 @@ def renderStats (stats : AuditStats) : String :=
     s!"new_failure_states={stats.newFailureStates} " ++
     s!"new_success_without_guard={stats.newSuccessWithoutGuard} " ++
     s!"dispatch_steps={stats.dispatchSteps} " ++
+    s!"new_steps={stats.newSteps} " ++
+    s!"new_created_candidates={stats.newCreatedCandidates} " ++
+    s!"new_created_reached_candidates=" ++
+    s!"{stats.newCreatedReachedCandidates} " ++
+    s!"new_created_partner_candidates=" ++
+    s!"{stats.newCreatedPartnerCandidates} " ++
+    s!"new_ordered_event_pairs={stats.newOrderedEventPairs} " ++
+    s!"new_region_intersections={stats.newRegionIntersections} " ++
+    s!"new_decode_failures={stats.newDecodeFailures} " ++
+    s!"new_representative_failures={stats.newRepresentativeFailures} " ++
+    s!"new_ledger_failures={stats.newLedgerFailures} " ++
+    s!"new_region_computation_failures=" ++
+    s!"{stats.newRegionComputationFailures} " ++
     s!"wait_steps={stats.waitSteps} " ++
     s!"wait_created_candidates={stats.waitCreatedCandidates} " ++
     s!"wait_ordered_event_pairs={stats.waitOrderedEventPairs} " ++
@@ -1113,6 +1485,12 @@ def renderStats (stats : AuditStats) : String :=
     s!"checksum={stats.checksum}"
 
 def validateReplayStats (stats : AuditStats) : Except String Unit := do
+  if stats.newCreatedCandidates !=
+      stats.newCreatedReachedCandidates + stats.newCreatedPartnerCandidates then
+    throw <|
+      s!"New-created endpoint counts do not sum to the aggregate count: " ++
+        s!"{stats.newCreatedCandidates} != {stats.newCreatedReachedCandidates} + " ++
+        s!"{stats.newCreatedPartnerCandidates}"
   if stats.newFailureStates != 0 then
     throw s!"reachable NewGuard/new? failures observed: {stats.newFailureStates}"
   if stats.newSuccessWithoutGuard != 0 then
@@ -1125,6 +1503,24 @@ def validateReplayStats (stats : AuditStats) : Except String Unit := do
     throw s!"reachable replay cycle detected: {stats.cycleRuns}"
   if stats.truncatedRuns != 0 then
     throw s!"reachable replay fuel exhausted: {stats.truncatedRuns}"
+  if stats.newRegionIntersections != 0 then
+    throw <|
+      s!"New-created source-region intersections observed: " ++
+        s!"{stats.newRegionIntersections}"
+  if stats.newDecodeFailures != 0 then
+    throw <|
+      s!"successful New transitions failed full audit replay: " ++
+        s!"{stats.newDecodeFailures}"
+  if stats.newRepresentativeFailures != 0 then
+    throw <|
+      s!"New representative transport checks failed: " ++
+        s!"{stats.newRepresentativeFailures}"
+  if stats.newLedgerFailures != 0 then
+    throw s!"New ledger checks failed: {stats.newLedgerFailures}"
+  if stats.newRegionComputationFailures != 0 then
+    throw <|
+      s!"New source-left region computations failed: " ++
+        s!"{stats.newRegionComputationFailures}"
   if stats.waitRegionIntersections != 0 then
     throw s!"Wait-created source-region intersections observed: {stats.waitRegionIntersections}"
   if stats.waitDecodeFailures != 0 then
@@ -1161,17 +1557,23 @@ def requireNoCounterexample (result : SearchResult) : IO Unit :=
   | some counterexample =>
       throw <| IO.userError (renderCounterexample counterexample)
   | none =>
-      match result.waitCounterexample with
+      match result.newRegionCounterexample with
       | some counterexample =>
-          throw <| IO.userError (renderWaitCounterexample counterexample)
+          throw <| IO.userError
+            (renderNewRegionCounterexample counterexample)
       | none =>
-          match result.forwardCounterexample with
-          | none => pure ()
+          match result.waitCounterexample with
           | some counterexample =>
-              throw <| IO.userError
-                (renderForwardCounterexample counterexample)
+              throw <| IO.userError (renderWaitCounterexample counterexample)
+          | none =>
+              match result.forwardCounterexample with
+              | none => pure ()
+              | some counterexample =>
+                  throw <| IO.userError
+                    (renderForwardCounterexample counterexample)
 
-def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
+def inspectStartsIO (candidate : CheckedCandidate)
+    (regionCache : SourceRegionCache) : List Vertex →
     IO SearchResult
   | [] => pure {}
   | start :: rest => do
@@ -1187,7 +1589,7 @@ def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
           IO.println
             s!"new-progress-audit-start-ok depth={candidate.depth} seed={candidate.seed} variant={candidate.variant} start={start} initialization=none initialization_ms={initializationElapsed}"
           (← IO.getStdout).flush
-          let tail ← inspectStartsIO candidate rest
+          let tail ← inspectStartsIO candidate regionCache rest
           return tail.addStats { initializationAttempts := 1 }
       | some initial =>
           let initializationElapsed :=
@@ -1197,7 +1599,7 @@ def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
             dispatcher_reachable_of_initializeReservation?_eq_some
               initializationEquation
           let replay :=
-            inspectReachable candidate start initial reachable
+            inspectReachable candidate regionCache start initial reachable
               [{ rawAge := 0, start }] [] [] 0
               (replayFuel candidate.certificate)
           let replayElapsed := (← IO.monoMsNow) - replayStarted
@@ -1215,10 +1617,11 @@ def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
           if current.hasCounterexample then
             return current
           else
-            let tail ← inspectStartsIO candidate rest
+            let tail ← inspectStartsIO candidate regionCache rest
             return {
               stats := current.stats.add tail.stats
               counterexample := tail.counterexample
+              newRegionCounterexample := tail.newRegionCounterexample
               waitCounterexample := tail.waitCounterexample
               forwardCounterexample := tail.forwardCounterexample }
 
@@ -1262,12 +1665,13 @@ def runVariantsIO (config : AuditConfig) (depth seed : Nat) :
           accepted
           structural :=
             (variant.certificate.check_iff_declarativelyCorrect.mp accepted).1 }
+        let regionCache := sourceRegionCache candidate.certificate
         let replayStarted ← IO.monoMsNow
         let result ← if config.traceStarts then
-          inspectStartsIO candidate
+          inspectStartsIO candidate regionCache
             (List.range variant.certificate.formulas.size)
         else
-          pure <| inspectStarts candidate
+          pure <| inspectStarts candidate regionCache
             (List.range variant.certificate.formulas.size)
         let replayElapsed := (← IO.monoMsNow) - replayStarted
         IO.println
@@ -1350,7 +1754,7 @@ def parseConfig (args : List String) : Except String AuditConfig :=
       "usage: proofnet_ir_new_progress_audit [--extended | --wait-search | " ++
         "--cross-representative-search | --depth N | --profile-depth N]"
 
-/-- Run the bounded finite audit. Any New failure or Wait/Forward region
+/-- Run the bounded finite audit. Any New failure or New/Wait/Forward region
 intersection is a hard regression and is printed with its complete certificate,
 states, initialization start, dispatcher rule trace, and decoded witness data.
 Passing these labelled, potentially duplicate cases proves no unconditional
@@ -1381,6 +1785,19 @@ def run (config : AuditConfig) : IO Unit := do
     throw <| IO.userError "audit exercised no dispatcher-reachable states"
   if config.requireGuardCoverage && stats.guardStates == 0 then
     throw <| IO.userError "audit exercised no reachable NewGuard states"
+  if config.requireNewCoverage && stats.newSteps == 0 then
+    throw <| IO.userError "audit exercised no successful New transitions"
+  if config.requireNewCreatedCoverage && stats.newCreatedCandidates == 0 then
+    throw <| IO.userError "audit exercised no New-created future New candidates"
+  if config.requireNewReachedCreatedCoverage &&
+      stats.newCreatedReachedCandidates == 0 then
+    throw <| IO.userError "audit exercised no reached-side New-created candidates"
+  if config.requireNewPartnerCreatedCoverage &&
+      stats.newCreatedPartnerCandidates == 0 then
+    throw <| IO.userError "audit exercised no partner-side New-created candidates"
+  if config.requireNewOrderedPairCoverage &&
+      stats.newOrderedEventPairs == 0 then
+    throw <| IO.userError "audit exercised no strictly ordered New/event pairs"
   if config.requireWaitCoverage && stats.waitSteps == 0 then
     throw <| IO.userError "audit exercised no successful Wait transitions"
   if config.requireWaitCreatedCoverage && stats.waitCreatedCandidates == 0 then
