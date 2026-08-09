@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderRawMarkedRegionSeparation.lean`. The new
+  state-only `OlderRawMarkedRegionSeparated` invariant separates every
+  strictly older concrete raw mark from each queued future-New source-left
+  region; its underlying primitive accepts only a candidate raw age and mate,
+  so later rule-local created candidates can reuse it before they enter a
+  queue. Lean proves the invariant for the empty and exact initialized states,
+  and preserves it through the synchronized prepared prefix plus exact `concl`
+  and `nop`. Under declarative correctness and the complete scheduler
+  invariant, it excludes every raw mark, and hence every exact marked owner,
+  from the active `NewGuard` mate region. The consumer directly composes that
+  owner-clear theorem with the existing active-availability theorem to obtain
+  `NewEnabled`. No preservation theorem for `new`, `wait`, `forward`, or
+  `unifyPayload` is claimed: their created-candidate raw geometry remains an
+  explicit next obligation, so this is not global invariant availability or a
+  progress result. A direct consumer invokes the full public API; facade,
+  default target, CI, generated API, and trust audit are wired. The current
+  public axiom audit covers 832 declarations: 550 full-classical, 25
+  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveRegionAvailability.lean`. Under declarative
   correctness, the complete scheduler invariant, an active `NewGuard`, and
   `OlderEventTouchSeparated`, structural source search now yields either a
@@ -14,8 +32,8 @@
   establish older-event separation for arbitrary histories, discharge the
   four created-region preservation premises, or prove progress. A direct
   consumer invokes all three public APIs; facade, default target, CI,
-  generated API, and trust audit are wired. The current public axiom audit
-  covers 823 declarations: 542 full-classical, 25 axiom-free, 121
+  generated API, and trust audit were wired. At that checkpoint the public
+  axiom audit covered 823 declarations: 542 full-classical, 25 axiom-free, 121
   `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveRegionTouchOrder.lean`. Under
   `DeclarativelyCorrect`, `SchedulerInvariant`, `CanonicalTagHistory`, and

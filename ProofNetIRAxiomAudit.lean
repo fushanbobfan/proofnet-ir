@@ -248,6 +248,18 @@ expansion.
 #print axioms SequentialFigure7.PreparedStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.ConclStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.NopStep.olderSourceRegionSeparated
+#print axioms
+  SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner_iff_exists_rawMark
+#print axioms SequentialFigure7.empty_olderRawMarkedRegionSeparated
+#print axioms
+  SequentialFigure7.InitialReservationStep.olderRawMarkedRegionSeparated
+#print axioms SequentialFigure7.PreparedStep.olderRawMarkedRegionSeparated
+#print axioms SequentialFigure7.ConclStep.olderRawMarkedRegionSeparated
+#print axioms SequentialFigure7.NopStep.olderRawMarkedRegionSeparated
+#print axioms SequentialFigure7.NewGuard.marked_representative_le_active
+#print axioms
+  SequentialFigure7.OlderRawMarkedRegionSeparated.active_sourceLeftRegion_no_rawMark
+#print axioms SequentialFigure7.OlderRawMarkedRegionSeparated.active_clearOwner
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

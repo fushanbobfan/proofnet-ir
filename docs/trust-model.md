@@ -561,6 +561,17 @@ input lookup then follows from the concrete array update equation. The generic
 history transport requires full ledger equality, while the canonical `concl`
 and `nop` corollaries derive that equality from their empty reservation-event
 lists. No claim is made for any branch that creates or moves future work.
+`SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
+executor, or reachability oracle. Its primitive is a proposition over concrete
+raw marks, current representatives, and one structural source-left region.
+Empty/initial proofs eliminate marks directly; Prepared preservation uses the
+exact mark update, unchanged parents, exact future-work transport, and the
+sigma-top greatest-boundary laws. Active-region exclusion separately combines
+the invariant with the already proved same-representative correctness geometry
+and occurrence-exact component provenance. The resulting owner-clear theorem
+is conditional on the raw-mark invariant. No theorem in this layer manufactures
+that invariant after New/Wait/Forward/Unify, creates a future run, or proves
+progress.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
@@ -663,9 +674,9 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 823
-declarations: 542 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
-axiom-free, 121 use exactly `[propext]`, and 135 use exactly
+evidence, not public three-axiom theorems. The exact trust audit now covers 832
+declarations: 550 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a

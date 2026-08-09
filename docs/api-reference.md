@@ -18948,6 +18948,197 @@ ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated : ∀ {certifica
       (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.nop step))
 ```
 
+### `ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom`
+
+Kind: definition.
+
+Every concrete raw mark whose current representative is strictly older
+than the supplied candidate representative lies outside the supplied
+source-left region.
+
+The primitive intentionally stores no future-work, executor, history, or
+reachability witness.  This makes it usable for rule-local candidates that do
+not yet occur in the scheduler queues.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom : ProofNetIR.Certificate →
+  ProofNetIR.SequentialSchedulerBridge.ReservationState →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated`
+
+Kind: inductive type.
+
+Every queued future `new` candidate is separated from every strictly
+older concrete raw mark in the current state.
+
+This is a state predicate, not a reachability or history predicate.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated.candidate`
+
+Kind: theorem.
+
+Instantiate the generic separation primitive at one exact future
+candidate already present in the scheduler state.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated.candidate : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate state →
+    ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state),
+      ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom certificate state candidate.rawAge candidate.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner_iff_exists_rawMark`
+
+Kind: theorem.
+
+Under the complete scheduler invariant, occurrence-exact marked ownership
+is equivalent to the existence of the concrete raw mark stored at that
+occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner_iff_exists_rawMark : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate state.core vertex ↔
+        ∃ rawAge, state.core.marks[vertex]? = some (some rawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+The exact empty reservation state has no raw marks and therefore satisfies
+older raw-marked region separation.
+
+```lean
+ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate
+    (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.InitialReservationStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+A successful initial reservation preserves the empty raw-mark array, so
+its output establishes older raw-marked region separation without an extra
+side condition.
+
+```lean
+ProofNetIR.SequentialFigure7.InitialReservationStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+The synchronized pop/raw-mark prefix preserves older raw-marked region
+separation for every future candidate that survives in the prepared state.
+
+The newly selected mark cannot satisfy the strict older-representative guard;
+all other marks and representatives transport from the input state.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+      ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate step.after
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+A successful exact `concl` step preserves older raw-marked region
+separation because its output is exactly the prepared state.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+      ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+A successful exact `nop` step preserves older raw-marked region
+separation because its output is exactly the prepared state.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+      ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NewGuard.marked_representative_le_active`
+
+Kind: theorem.
+
+Every concrete raw mark in an active `NewGuard` input resolves to a
+representative at or below the active representative.
+
+```lean
+ProofNetIR.SequentialFigure7.NewGuard.marked_representative_le_active : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex}
+      {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      before.core.marks[vertex]? = some (some rawAge) →
+        before.core.representative rawAge ≤ before.core.representative guard.head.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated.active_sourceLeftRegion_no_rawMark`
+
+Kind: theorem.
+
+Under declarative correctness and the complete scheduler invariant, an
+active mate source-left region contains no concrete raw mark when older
+raw-marked regions are separated.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated.active_sourceLeftRegion_no_rawMark : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+    certificate.DeclarativelyCorrect →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+          ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+            ¬∃ rawAge, before.core.marks[vertex]? = some (some rawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated.active_clearOwner`
+
+Kind: theorem.
+
+Direct owner-clear premise for
+`CanonicalTagHistory.active_newEnabled_of_no_exactMarkedOwner`.
+
+Every exact marked owner exposes a concrete raw mark through the complete
+scheduler invariant, and the active-region raw-mark exclusion rejects it.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated.active_clearOwner : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+    certificate.DeclarativelyCorrect →
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+          ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+            ¬ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
 ### `ProofNetIR.SequentialFigure7.NewStep.preparedPrefix`
 
 Kind: definition.

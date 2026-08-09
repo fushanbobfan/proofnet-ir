@@ -1053,8 +1053,13 @@
     into `NewEnabled` or that owner. Consequently route/run, raw and endpoint
     readiness, endpoint queue absence, fresh waiting capacity, and the existing
     future-cell invariant are closed on the successful branch. The pointwise
-    no-owner corollary is conditional; proving owner absence and globally
-    preserving older-event separation remain the next history obligations.
+    no-owner corollary is conditional. The new state-only older-raw-mark
+    separation invariant now proves that corollary, and hence `NewEnabled`,
+    when supplied: empty/init and Prepared/concl/nop are kernel-closed. Global
+    preservation through New/Wait/Forward/Unify remains open because each may
+    create a new future candidate whose source-left region must be separated
+    from existing marks. Preserving older-event separation remains the parallel
+    history obligation; neither result alone is progress.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

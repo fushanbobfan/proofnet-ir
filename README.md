@@ -428,9 +428,24 @@ queue absence, fresh waiting capacity, and history-level
 does not eliminate the old owner, establish `OlderEventTouchSeparated` for
 every history, discharge any created-region preservation premise, or prove
 dispatcher progress, totality, worklist completeness, or fallback removal.
-`SequentialFigure7CrossRepresentativeStablePreservation.lean` transports that
-invariant through the synchronized prepared prefix without flattening away a
-candidate's raw-age boundary. Every remaining ready or waiting occurrence is
+`SequentialFigure7OlderRawMarkedRegionSeparation.lean` makes that old-owner
+boundary explicit as a state invariant. `OlderRawMarksSeparatedFrom` says
+that every concrete raw mark with a strictly smaller current representative
+lies outside one candidate mate's source-left region; the bundled invariant
+quantifies it over all queued future-New candidates. It holds for the exact
+empty and initialized states and is preserved unconditionally by the prepared
+prefix, `concl`, and `nop`. With declarative correctness and the complete
+scheduler invariant, every raw mark in the active mate region is excluded,
+and the occurrence-exact owner/mark equivalence supplies precisely the
+owner-clear premise above. This closes the conditional old-owner branch once
+the raw-mark invariant is supplied. It does not prove that invariant for every
+history or preserve it through candidate-creating `new`, `wait`, `forward`, or
+`unifyPayload`; those branches require separate created-raw geometry and no
+progress, totality, worklist-completeness, or fallback-removal claim follows.
+`SequentialFigure7CrossRepresentativeStablePreservation.lean` transports
+`OlderSourceRegionSeparated` through the synchronized prepared prefix without
+flattening away a candidate's raw-age boundary. Every remaining ready or
+waiting occurrence is
 recovered in the input at the same exact boundary, union-find parents and hence
 current representatives are unchanged, and an output-unmarked tensor mate
 cannot be the one ready head marked by the prefix. The generic prepared helper
@@ -1916,9 +1931,9 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 823 declarations: 542 public MLL logical-boundary theorems
+separately audits 832 declarations: 550 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
-axiom-free, 121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
+axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
 proposition-level permutation completeness, and the two
 exchange-admissibility theorems are axiom-free.
@@ -2012,6 +2027,8 @@ lake exe proofnet_ir_touch_completeness_tests
 lake exe proofnet_ir_older_event_touch_separation_tests
 lake exe proofnet_ir_active_region_touch_order_tests
 lake exe proofnet_ir_active_region_availability_tests
+lake exe proofnet_ir_cross_representative_stable_preservation_tests
+lake exe proofnet_ir_older_raw_marked_region_separation_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
@@ -2117,6 +2134,8 @@ ProofNetIR/SequentialFigure7ActiveRegionTouchOrder.lean active mate-region confl
 ProofNetIR/SequentialFigure7ActiveRegionAvailability.lean
   conditional NewEnabled or exact old-owner reduction
 ProofNetIR/SequentialFigure7CrossRepresentativeStablePreservation.lean prepared/concl/nop cross-representative preservation
+ProofNetIR/SequentialFigure7OlderRawMarkedRegionSeparation.lean
+  state-only older-raw-mark region separation and active owner exclusion
 ProofNetIR/SequentialFigure7CrossRepresentativeNewPreservation.lean
   conditional New introduced-candidate preservation
 ProofNetIR/SequentialFigure7CrossRepresentativeWaitPreservation.lean
@@ -2153,12 +2172,13 @@ ProofNetIRTouchCompletenessTests.lean reservation-event touch/region completenes
 ProofNetIROlderEventTouchSeparationTests.lean older-region/event-touch equivalence API consumers
 ProofNetIRActiveRegionTouchOrderTests.lean active-region conflict-order and tag-freshness API consumers
 ProofNetIRActiveRegionAvailabilityTests.lean active NewEnabled/old-owner dichotomy API consumers
+ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
+ProofNetIROlderRawMarkedRegionSeparationTests.lean raw-mark separation and owner-clear consumers
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRSameRepresentativeEventTouchTests.lean same-representative historical event-touch consumers
 ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
-ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
 ProofNetIRCrossRepresentativeNewPreservationTests.lean conditional New preservation consumers
 ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preservation consumers
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers

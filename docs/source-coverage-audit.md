@@ -163,9 +163,13 @@ readiness, queue/capacity, or global-invariant witnesses still needed for
 enabledness. The availability-reduction layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another
-code consequence rather than a new literature reading; it leaves owner
-exclusion and global older-event separation open. Ownership through a complete
-reachable transition system, richer
+code consequence rather than a new literature reading. The subsequent
+raw-mark separation layer turns owner exclusion into a precise state
+invariant, proves its empty/initial and Prepared/concl/nop cases, and derives
+active-region no-mark/no-owner from it. That is also a code consequence, not a
+new literature reading. Global preservation of both older-event and older-raw-
+mark separation through the candidate-creating rules remains open. Ownership
+through a complete reachable transition system, richer
 route/tag/slot history commitments, later-state totality, progress, and
 pure-worklist completeness remain open.
 

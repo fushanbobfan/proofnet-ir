@@ -805,6 +805,24 @@ history edge. Canonical `concl` and `nop` provide exactly those equalities and
 preserve the invariant. Candidate-creating branches remain separate proof
 obligations rather than consequences of this transport lemma.
 
+`SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
+state-only raw-mark invariant. Its generic primitive takes a candidate raw age
+and source-left start, so it also describes a rule-local candidate that has not
+yet entered the ready or waiting queues; the bundled form quantifies over all
+current future-New candidates. Empty and exact initialization have no raw
+marks. The prepared prefix preserves the invariant because its sole new mark
+is the active sigma top and cannot be strictly older than a surviving
+candidate; all previous marks, candidates, and representatives transport from
+the input. Exact `concl` and `nop` inherit that result. For an active
+`NewGuard`, every concrete marked representative is at most the active root,
+while same-representative correctness geometry excludes equality inside the
+mate region. The resulting strict inequality lets the invariant exclude the
+mark, and occurrence-exact component provenance converts that statement into
+the owner-clear premise used by `ActiveRegionAvailability`. This is still
+conditional: the module does not establish the raw-mark invariant for an
+arbitrary history or preserve it through candidate-creating `new`, `wait`,
+`forward`, or `unifyPayload`.
+
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
 retained marked-middle work or one of the reached/partner endpoints appended

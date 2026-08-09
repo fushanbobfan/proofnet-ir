@@ -54,6 +54,22 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated",
+    "ProofNetIR.SequentialFigure7.SchedulerInvariant."
+    "exactMarkedOccurrenceOwner_iff_exists_rawMark",
+    "ProofNetIR.SequentialFigure7.InitialReservationStep."
+    "olderRawMarkedRegionSeparated",
+    "ProofNetIR.SequentialFigure7.PreparedStep."
+    "olderRawMarkedRegionSeparated",
+    "ProofNetIR.SequentialFigure7.ConclStep."
+    "olderRawMarkedRegionSeparated",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "olderRawMarkedRegionSeparated",
+    "ProofNetIR.SequentialFigure7.NewGuard."
+    "marked_representative_le_active",
+    "ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated."
+    "active_sourceLeftRegion_no_rawMark",
+    "ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated."
+    "active_clearOwner",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
@@ -591,6 +607,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ReadyHeadInput.stackResult_after",
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
+    "ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem",
     "ProofNetIR.SequentialFigure7.PreparedStep.after_representative_eq_before",
     "ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before",

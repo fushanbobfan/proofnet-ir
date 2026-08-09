@@ -1488,6 +1488,36 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom,
+      `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated
+        "candidate",
+      Name.str
+        `ProofNetIR.SequentialFigure7.SchedulerInvariant
+        "exactMarkedOccurrenceOwner_iff_exists_rawMark",
+      `ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.InitialReservationStep
+        "olderRawMarkedRegionSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.PreparedStep
+        "olderRawMarkedRegionSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ConclStep
+        "olderRawMarkedRegionSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "olderRawMarkedRegionSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewGuard
+        "marked_representative_le_active",
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated
+        "active_sourceLeftRegion_no_rawMark",
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated
+        "active_clearOwner",
       `ProofNetIR.SequentialFigure7.NewStep.preparedPrefix,
       Name.str
         `ProofNetIR.SequentialFigure7.NewStep
