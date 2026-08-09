@@ -8411,6 +8411,61 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event
   tagHistory.Touched vertex → ∃ event, event ∈ tagHistory.reservationLedger ∧ event.Touched vertex
 ```
 
+## Reservation-event source-left touch completeness
+
+### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftRegion_touched`
+
+Kind: theorem.
+
+Structural reverse completeness for one exact fresh source-left run.
+Every vertex in the complete source-left region is either in the recursive
+trace or is the returned partner endpoint.  The reached endpoint is already
+in the trace by `run.traceLast`.  This is local to the supplied run and does
+not establish scheduler progress, totality, or worklist completeness.
+
+```lean
+ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftRegion_touched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.UnificationState} {fuel : Nat} {tags : Array Bool}
+  {start reached partner vertex : ProofNetIR.Vertex} {trace : List ProofNetIR.Vertex} {linkIndex : Nat},
+  certificate.StructurallyWellFormed →
+    ∀
+      (run :
+        ProofNetIR.SequentialUnification.FreshSourceLeftRun certificate state fuel tags start trace reached partner
+          linkIndex),
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate start vertex →
+        vertex ∈ trace ∨ vertex = partner
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.sourceLeftRegion_touched`
+
+Kind: theorem.
+
+Every vertex in a reservation event's complete source-left region was
+touched by that exact event.  The proof reconstructs the run from the
+successful initialization or `new` equation retained by `ReservationEvent`;
+it does not assume another executor call succeeds or establish scheduler
+progress, totality, or worklist completeness.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.sourceLeftRegion_touched : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate) {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate event.start vertex → event.Touched vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.touched_iff_sourceLeftRegion`
+
+Kind: theorem.
+
+On a structurally well-formed certificate, an exact reservation event
+touches precisely its complete source-left region.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.touched_iff_sourceLeftRegion : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate) {vertex : ProofNetIR.Vertex},
+      event.Touched vertex ↔ ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate event.start vertex
+```
+
 ## Chronological reservation realization
 
 ### `ProofNetIR.CutFreeDerivation.pick?_source_unique`

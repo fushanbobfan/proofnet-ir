@@ -709,6 +709,19 @@ current ownership. Raw event age, final representative, reserved axiom
 endpoints, and all vertices touched by the historical search remain four
 distinct notions.
 
+`SequentialFigure7TouchCompleteness.lean` identifies two of those historical
+notions without collapsing them into current ownership. Structural
+well-formedness makes the stored successful source-left run complete for the
+event's whole structural region: a region vertex lies in the exact trace or is
+the terminal partner. The event wrapper reconstructs that run from its
+initialization or `new` equation, yielding
+`ReservationEvent.touched_iff_sourceLeftRegion`. A bare
+`ReservationSearchEvent` is not covered by a corresponding theorem in this
+module; the current proof uses the equation retained by `ReservationEvent` and
+makes no claim about whether route-only data would suffice. The equivalence
+says nothing about current representatives, candidate regions, owners, or
+progress.
+
 `SequentialFigure7CrossRepresentativeInvariant.lean` defines the exact
 future-work side of the next history invariant. A ready occurrence retains the
 same list position in `sigma` and `ready`; a waiting occurrence retains the

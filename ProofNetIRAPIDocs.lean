@@ -650,6 +650,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Reservation-event source-left touch completeness"
+    declarations := [
+      `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftRegion_touched,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.sourceLeftRegion_touched,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.touched_iff_sourceLeftRegion
+    ]
+  },
+  {
     title := "Chronological reservation realization"
     declarations := [
       `ProofNetIR.CutFreeDerivation.pick?_source_unique,

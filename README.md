@@ -315,6 +315,16 @@ distinct live components, or imply dispatcher progress or completeness. In
 particular, blanket old/current region disjointness is not an invariant; only
 the exact carrier of an already supplied current run has the needed
 tag/raw-mark separation.
+`SequentialFigure7TouchCompleteness.lean` closes the reverse structural
+direction for an authentic reservation event. Under
+`StructurallyWellFormed`, every vertex in a supplied exact run's complete
+source-left region is in its trace or is its terminal partner, and every
+vertex in an event's region is therefore one of that event's exact touches.
+Together with the existing touch-to-region theorem, Lean exposes
+`ReservationEvent.touched_iff_sourceLeftRegion`. This equivalence reconstructs
+only the successful search already stored by `ReservationEvent`; it does not
+apply to a bare `ReservationSearchEvent`, identify current representatives or
+owners, derive a created-region premise, or prove progress.
 `SequentialFigure7ReservationRealization.lean` closes the narrower historical
 reservation/final-component bridge. Under explicit certificate structural
 well-formedness, every ledger event's immutable raw age is followed through all
@@ -1870,7 +1880,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 806 declarations: 525 public MLL logical-boundary theorems
+separately audits 809 declarations: 528 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1962,6 +1972,7 @@ lake exe proofnet_ir_fresh_source_blocker_tests
 lake exe proofnet_ir_blocker_history_tests
 lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_reservation_ledger_tests
+lake exe proofnet_ir_touch_completeness_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
@@ -2056,6 +2067,7 @@ ProofNetIR/SequentialFigure7BlockerHistory.lean canonical-history blocker proven
 ProofNetIR/SequentialFigure7TerminalPartnerGeometry.lean correctness-based terminal-head exclusion
 ProofNetIR/SequentialFigure7TouchOrigin.lean exact historical touch-event provenance
 ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reservation history
+ProofNetIR/SequentialFigure7TouchCompleteness.lean exact reservation-event touch/region equivalence
 ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
@@ -2094,6 +2106,7 @@ ProofNetIRFreshSourceBlockerTests.lean source-region blocker and public dichotom
 ProofNetIRBlockerHistoryTests.lean canonical blocker-provenance and conditional enabledness consumers
 ProofNetIRTouchOriginTests.lean exact canonical touch-origin consumer fixtures
 ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger consumers
+ProofNetIRTouchCompletenessTests.lean reservation-event touch/region completeness API consumers
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers

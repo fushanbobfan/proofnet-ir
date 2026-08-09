@@ -1012,6 +1012,16 @@
     Keep the three obstruction forms possibly overlapping. Prove that an
     explicit universal no-obstruction premise yields the exact run, then
     `NewInputNecessary`, then `NewEnabled`, without assuming executor success.
+  - [x] Prove exact reservation-event touch/source-left-region completeness.
+    Structural well-formedness makes every vertex of a supplied exact run's
+    complete structural region occur in its trace or terminal partner. The
+    successful equation stored by each authentic initialization or `new` event
+    reconstructs that run, yielding event touch iff event-region membership.
+    This is a historical semantic normalization lemma, not current ownership,
+    representative ordering, a created-region premise, enabledness, or
+    progress. This module exports no corresponding bare
+    `ReservationSearchEvent` theorem; its current proof uses the equation
+    retained by `ReservationEvent` and does not decide route-only sufficiency.
   - [ ] Derive that universal no-obstruction premise for the relevant correct
     canonical/certified histories. Structural descent and reference-switching
     acyclicity now exclude return to the selected ready head throughout both

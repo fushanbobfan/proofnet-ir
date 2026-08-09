@@ -260,6 +260,9 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTouchOrigin.reservationRegion
 #print axioms SequentialFigure7.ReservationSearchEvent.touched_sourceLeftRegion
 #print axioms SequentialFigure7.ReservationEvent.touched_sourceLeftRegion
+#print axioms SequentialUnification.FreshSourceLeftRun.sourceLeftRegion_touched
+#print axioms SequentialFigure7.ReservationEvent.sourceLeftRegion_touched
+#print axioms SequentialFigure7.ReservationEvent.touched_iff_sourceLeftRegion
 #print axioms SequentialFigure7.NewStep.activeRawAge_lt_reservationRawAge
 #print axioms SequentialFigure7.DispatchTagEvidence.range_append_reservationEvents
 #print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_rawAges

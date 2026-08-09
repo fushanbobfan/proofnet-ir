@@ -492,6 +492,17 @@ smaller. The touch bridge retains an event-membership and event-local `Touched`
 witness. It does not infer that raw age is a representative, that every vertex
 touched by the event belongs to the reserved axiom component, or that
 historical provenance classes are disjoint.
+`SequentialFigure7TouchCompleteness.lean` adds no search oracle. Its run-level
+theorem follows the supplied `FreshSourceLeftRun` by structural induction,
+using source-producer and submitted-axiom uniqueness from
+`StructurallyWellFormed`. Its event-level theorem reconstructs exactly the run
+whose successful equation is already stored by the authentic initialization
+or `new` event. The resulting touch/region equivalence needs no declarative
+correctness, scheduler invariant, additional current executor success, or
+executable audit. It does not manufacture an execution for a bare
+`ReservationSearchEvent` or infer
+current ownership, representative order, created-region separation, or
+progress.
 `SequentialFigure7CrossRepresentativeInvariant.lean` adds no scheduling or
 region-separation oracle. `FutureWorkAt` stores exact ready/sigma lookups or an
 exact initialized waiting lookup; its live-boundary and representative-root
@@ -626,8 +637,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 806
-declarations: 525 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 809
+declarations: 528 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 121 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

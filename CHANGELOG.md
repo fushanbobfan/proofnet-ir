@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7TouchCompleteness.lean`. Structural well-formedness
+  makes a supplied exact source-left run complete for its structural region:
+  every region vertex is in the run trace or is its terminal partner. Every
+  authentic initialization or `new` reservation event stores the successful
+  search equation needed to reconstruct that run, so event touch is now
+  equivalent to membership in the event's complete source-left region. The
+  three public theorems require no declarative correctness, scheduler
+  invariant, history reachability, additional current executor success, or
+  progress premise. They do not apply unchanged to a bare
+  `ReservationSearchEvent`, compare current representatives, derive any of the
+  four created-region premises, or close exhaustive enabledness. A direct
+  consumer invokes all three APIs; the facade, default target, CI, generated
+  API, and trust audit are wired. The current public axiom audit covers 809
+  declarations: 528 full-classical, 25 axiom-free, 121 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7SameRepresentativeEventTouch.lean`. Every vertex
   touched by one exact reservation event has a structural source-left
   continuation to that event's stored-left submitted-axiom endpoint. When the

@@ -652,6 +652,16 @@ part of the engineering and proof-identity gap.
    not a representative, reserved axiom endpoints are not the whole historical
    touch region, and historical event membership is not blanket current
    ownership.
+   `SequentialFigure7TouchCompleteness.lean` now proves the exact reverse
+   structural direction for every authentic reservation event. Under
+   `StructurallyWellFormed`, a vertex in the event's complete source-left region
+   belongs to its reconstructed exact trace or is its terminal partner, hence
+   is one of the event's stored touches. Combined with the existing forward
+   theorem, event touch is equivalent to event-region membership. This requires
+   the successful equation retained by `ReservationEvent`; it does not apply
+   unchanged to an erased `ReservationSearchEvent`, establish current
+   ownership or representative order, discharge a created-region premise, or
+   prove progress.
    `PriorityEnabled` records the selected
    witness and all earlier negatives, is equivalent to the matching
    `DispatchStep`, characterizes exact selected-kind success and dispatcher
@@ -828,7 +838,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 806 declarations: 525 public MLL
+- CI now parses `#print axioms` for 809 declarations: 528 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

@@ -143,7 +143,11 @@ no-obstruction premise yields the exact run and the established
 correctness and certified history is still open. The exact historical-event
 touch subcase is now excluded when its current representative equals the
 active head representative; strict older-event geometry and old marked-owner
-blockers remain. This checkpoint is an
+blockers remain. Authentic reservation-event touch is now also exactly
+equivalent to membership in that event's complete structural source-left
+region under structural well-formedness. This reverse direction reconstructs
+only the successful run stored by the event and supplies no new current-owner,
+representative-order, created-region, or progress fact. This checkpoint is an
 implementation consequence of the already-audited source semantics and does
 not record a new literature reading. Ownership
 through a complete reachable transition

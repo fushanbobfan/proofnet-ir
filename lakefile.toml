@@ -15,6 +15,7 @@ defaultTargets = [
   "proofnet_ir_blocker_history_tests",
   "proofnet_ir_touch_origin_tests",
   "proofnet_ir_reservation_ledger_tests",
+  "proofnet_ir_touch_completeness_tests",
   "proofnet_ir_region_boundaries_tests",
   "proofnet_ir_same_representative_geometry_tests",
   "proofnet_ir_same_representative_event_touch_tests",
@@ -85,6 +86,10 @@ root = "ProofNetIRTouchOriginTests"
 [[lean_exe]]
 name = "proofnet_ir_reservation_ledger_tests"
 root = "ProofNetIRReservationLedgerTests"
+
+[[lean_exe]]
+name = "proofnet_ir_touch_completeness_tests"
+root = "ProofNetIRTouchCompletenessTests"
 
 [[lean_exe]]
 name = "proofnet_ir_region_boundaries_tests"
