@@ -173,9 +173,12 @@ raw-mark branch is now conditionally transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.
 This is a kernel-checked code consequence, not a new literature reading or a
-proof that canonical histories satisfy the seam. Wait/Forward/Unify raw-mark
-preservation remains open. Ownership through a complete reachable transition
-system, richer
+proof that canonical histories satisfy the seam. The Wait raw-mark branch is
+also conditionally transported: the typed age order eliminates the selected
+mark, and `WaitRetainedRawMarksSeparated` names the retained-mark seam. This is
+again a kernel-checked code consequence, not a new literature reading or proof
+that canonical histories satisfy the seam. Forward/Unify raw-mark preservation
+remains open. Ownership through a complete reachable transition system, richer
 route/tag/slot history commitments, later-state totality, progress, and
 pure-worklist completeness remain open.
 

@@ -1061,9 +1061,12 @@
     from every created endpoint region, retained candidates transport, and the
     sole residual `NewRetainedRawMarksSeparated` premise covers input-retained
     marks versus created regions. Deriving that premise for canonical histories
-    remains open, as do Wait/Forward/Unify raw-mark preservation. Preserving
-    older-event separation remains the parallel history obligation; neither
-    result alone is progress.
+    remains open. The typed Wait step is likewise conditionally closed: exact
+    age order removes the selected-mark/created-candidate case and
+    `WaitRetainedRawMarksSeparated` names the retained-mark seam. Deriving that
+    seam from canonical reachability remains open, as do Forward/Unify raw-mark
+    preservation. Older-event separation remains the parallel history
+    obligation; neither result alone is progress.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

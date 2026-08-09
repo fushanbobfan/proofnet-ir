@@ -19514,6 +19514,66 @@ ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created : �
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.wait step))
 ```
 
+### `ProofNetIR.SequentialFigure7.WaitRetainedRawMarksSeparated`
+
+Kind: definition.
+
+Every retained input raw mark that is strictly older than a candidate created
+at the wait destination lies outside that candidate's source-left region.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitRetainedRawMarksSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.WaitStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.destination_representative_lt_selected`
+
+Kind: theorem.
+
+The representative of the wait destination boundary is strictly below the
+representative of the selected active raw age.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.destination_representative_lt_selected : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  step.prepared.after.core.representative step.destination.boundary <
+    step.prepared.after.core.representative step.prepared.stackResult.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.created_rawMarksSeparatedFrom_of_retained`
+
+Kind: theorem.
+
+The created wait candidate is separated from every strictly older raw mark in
+the prepared state: the selected mark is excluded by age, and every other mark
+is transported from the retained-mark assumption.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.created_rawMarksSeparatedFrom_of_retained : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialFigure7.WaitRetainedRawMarksSeparated step →
+    ∀ (created : ProofNetIR.SequentialFigure7.WaitCreatedCandidate certificate step),
+      ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom certificate step.prepared.after step.destination.boundary
+        created.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+A typed successful wait preserves older raw-marked region separation when its
+retained input marks satisfy the explicit created-candidate side condition.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+      ProofNetIR.SequentialFigure7.WaitRetainedRawMarksSeparated step →
+        ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
+```
+
 ### `ProofNetIR.SequentialFigure7.ForwardStep.after_representative_eq_prepared`
 
 Kind: theorem.

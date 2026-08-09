@@ -601,7 +601,16 @@ transport marks and representatives, while structural correctness and
 reference-switching acyclicity independently exclude the selected head from
 every created region. The proof does not infer the retained-mark premise from
 executable audits, canonical history, or scheduler reachability, and it does
-not preserve the invariant through Wait/Forward/Unify or prove progress.
+not preserve the invariant through Forward/Unify or prove progress.
+`SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean` adds no history,
+reachability, or correctness oracle. A typed `WaitStep` alone proves that the
+destination representative is strictly below the selected raw-age
+representative. Exact destination equations preserve the core, so retained
+candidates and marks transport through Prepared; the selected mark is excluded
+from created destination candidates by age. The final theorem is explicitly
+conditional on `WaitRetainedRawMarksSeparated` for input-retained marks. That
+premise is separate from `WaitCreatedRegionSeparated`, is not inferred from a
+finite audit or history, and yields neither unconditional Wait nor progress.
 `SequentialFigure7CrossRepresentativeForwardPreservation.lean` likewise adds
 no hidden source-region oracle. Its output-work classification follows from
 the exact active-ready prepend plus unchanged sigma and waiting fields.
@@ -683,8 +692,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 838
-declarations: 556 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 841
+declarations: 559 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

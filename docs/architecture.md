@@ -860,6 +860,18 @@ new tensor mate's region. This side condition is the open geometry itself, not
 a renamed output invariant, executor equation, or reachability premise. The
 module therefore proves no unconditional Wait preservation.
 
+`SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean` closes the
+parallel raw-mark transport under one explicit transition-local premise. The
+typed Wait inequalities give
+`rep(destination) <= destination <= mateRawAge < selectedRawAge = rep(selected)`,
+so the selected mark cannot be strictly older than a created destination
+candidate. Retained candidates use Prepared preservation. Consequently only
+input-retained marks against actual `WaitCreatedCandidate` regions remain, and
+`WaitRetainedRawMarksSeparated` states exactly that obligation. It is distinct
+from history-side `WaitCreatedRegionSeparated`, needs no declarative-correctness
+or reachability witness, and is not derived by the module. The result is
+conditional successful-step preservation, not unconditional Wait or progress.
+
 `SequentialFigure7CrossRepresentativeForwardPreservation.lean` isolates the
 same candidate-creation seam for Forward. Exact active-ready equations classify
 every output future-work occurrence as retained prepared-middle work or the

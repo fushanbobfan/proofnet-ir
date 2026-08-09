@@ -88,6 +88,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeWaitOrInserted",
     "ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created",
+    "ProofNetIR.SequentialFigure7.WaitStep.destination_representative_lt_selected",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "created_rawMarksSeparatedFrom_of_retained",
+    "ProofNetIR.SequentialFigure7.WaitStep.olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.ForwardStep.after_representative_eq_prepared",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeForwardOrInserted",
     "ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created",

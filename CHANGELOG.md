@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean`. For every
+  successful typed `WaitStep`, Lean splits output candidates into retained work
+  and the conclusion inserted at the waiting destination. The selected new mark
+  cannot be strictly older than that destination; retained candidates transport
+  through Prepared preservation. The sole residual
+  `WaitRetainedRawMarksSeparated` premise covers input-retained marks against
+  actual Wait-created candidate regions. It is independent of the history-side
+  `WaitCreatedRegionSeparated` premise and requires neither declarative
+  correctness nor history/reachability. The theorem remains conditional and
+  does not derive its residual premise, unconditional Wait, or progress. A
+  direct consumer invokes all four public APIs; facade, default target, CI,
+  generated API, and trust audit are wired. The current public axiom audit
+  covers 841 declarations: 559 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean`. For every
   successful typed `NewStep`, Lean splits output candidates into retained work
   and the exact reached/partner endpoints created at the fresh raw age. The
@@ -14,8 +28,8 @@
   created regions. It does not derive that premise from canonical history or
   reachability, preserve the invariant through Wait/Forward/Unify, or prove
   progress. A direct consumer invokes all seven public APIs; facade, default
-  target, CI, generated API, and trust audit are wired. The current public
-  axiom audit covers 838 declarations: 556 full-classical, 25 axiom-free, 122
+  target, CI, generated API, and trust audit are wired. At that checkpoint the
+  public axiom audit covered 838 declarations: 556 full-classical, 25 axiom-free, 122
   `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionSeparation.lean`. The new
   state-only `OlderRawMarkedRegionSeparated` invariant separates every
