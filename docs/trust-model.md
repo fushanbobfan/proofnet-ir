@@ -601,7 +601,8 @@ transport marks and representatives, while structural correctness and
 reference-switching acyclicity independently exclude the selected head from
 every created region. The proof does not infer the retained-mark premise from
 executable audits, canonical history, or scheduler reachability, and it does
-not preserve the invariant through Forward/Unify or prove progress.
+not widen this theorem beyond New. Separate modules handle conditional Wait and
+Forward preservation; Unify preservation and progress remain open.
 `SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean` adds no history,
 reachability, or correctness oracle. A typed `WaitStep` alone proves that the
 destination representative is strictly below the selected raw-age
@@ -626,6 +627,15 @@ decoding, and independent nonzero coverage gates, including both New endpoints
 and the Unify retired-class and moved-candidate paths. No
 finite audit result is imported into any theorem, and no unconditional New,
 Wait, Forward, or Unify preservation follows.
+`SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` adds no
+history, reachability, correctness, or source-region oracle. It is indexed by
+an already successful typed `ForwardStep`; exact prepare and queue equations
+show that the selected mark and inserted candidate have the same active raw
+age, while retained candidates and marks transport through Prepared. The final
+theorem is explicitly conditional on `ForwardRetainedRawMarksSeparated` for
+input-retained marks. That premise is separate from
+`ForwardCreatedRegionSeparated`, is not inferred from a finite audit or
+history, and yields neither unconditional Forward nor progress.
 `SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` adds no
 representative-stability or region oracle. Its exact if-map is derived from the
 typed tensor union, with the active class redirected to the previous root and
@@ -692,8 +702,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 841
-declarations: 559 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 843
+declarations: 561 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

@@ -1583,6 +1583,13 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.ForwardStep
         "olderSourceRegionSeparated_of_created",
+      `ProofNetIR.SequentialFigure7.ForwardRetainedRawMarksSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "created_rawMarksSeparatedFrom_of_retained",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "olderRawMarkedRegionSeparated",
       `ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_marks_eq_prepared,
       Name.str
         `ProofNetIR.SequentialFigure7.UnifyPayloadStep

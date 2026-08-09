@@ -95,6 +95,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ForwardStep.after_representative_eq_prepared",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeForwardOrInserted",
     "ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created",
+    "ProofNetIR.SequentialFigure7.ForwardStep."
+    "created_rawMarksSeparatedFrom_of_retained",
+    "ProofNetIR.SequentialFigure7.ForwardStep.olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_representative_eq_prepared_if",
     "ProofNetIR.SequentialFigure7.FutureNewCandidateAt.rawAge_le_previousBoundary_of_unifyPayload",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeUnifyPayloadOrMovedOrCreated",

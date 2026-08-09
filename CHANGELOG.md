@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean`. For
+  every successful typed `ForwardStep`, Lean classifies each output candidate
+  as retained work or as the submitted par conclusion inserted at the active
+  raw age; these alternatives need not be exclusive. The selected new mark
+  has exactly that candidate age, so its strict
+  older case is impossible; Prepared preservation handles retained candidates.
+  The sole residual `ForwardRetainedRawMarksSeparated` premise covers
+  input-retained marks against actual Forward-created candidate regions. It is
+  independent of the history-side `ForwardCreatedRegionSeparated` premise and
+  requires neither declarative correctness nor history/reachability. The
+  theorem remains conditional and does not derive its residual premise,
+  unconditional Forward, or progress. A direct consumer invokes all three
+  public APIs; facade, default target, CI, generated API, and trust audit are
+  wired. The current public axiom audit covers 843 declarations: 561
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean`. For every
   successful typed `WaitStep`, Lean splits output candidates into retained work
   and the conclusion inserted at the waiting destination. The selected new mark
@@ -13,8 +29,8 @@
   correctness nor history/reachability. The theorem remains conditional and
   does not derive its residual premise, unconditional Wait, or progress. A
   direct consumer invokes all four public APIs; facade, default target, CI,
-  generated API, and trust audit are wired. The current public axiom audit
-  covers 841 declarations: 559 full-classical, 25 axiom-free, 122
+  generated API, and trust audit are wired. At that checkpoint the public
+  axiom audit covered 841 declarations: 559 full-classical, 25 axiom-free, 122
   `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean`. For every
   successful typed `NewStep`, Lean splits output candidates into retained work

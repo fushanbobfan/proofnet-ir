@@ -472,7 +472,7 @@ handles retained candidates. The sole residual premise,
 `NewRetainedRawMarksSeparated`, keeps input-retained marks outside created
 regions. This premise differs from the event-side
 `NewCreatedRegionSeparated`; canonical history and reachability derive neither
-one yet. Forward/Unify raw-mark preservation remains open, and no progress,
+one yet. Unify raw-mark preservation remains open, and no progress,
 totality, worklist-completeness, or fallback-removal claim follows.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` next separates a
 successful `wait` output into retained middle-state work or the exact
@@ -507,6 +507,17 @@ marks nor union-find parents, but the inserted conclusion had no prior
 No unconditional `forward` preservation is claimed. Preservation through
 unconditional `new`, `wait`, `forward`, and arbitrary-payload `unify` remains
 open.
+`SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` handles the
+parallel raw-mark invariant. The selected mark and every inserted Forward
+candidate share the exact active raw age, so the selected/created strict-order
+case reduces to irreflexivity. Prepared preservation handles every retained
+candidate. The sole residual case is an input-retained raw mark against an
+actual `ForwardCreatedCandidate`, stated by
+`ForwardRetainedRawMarksSeparated`. This transition-local raw-mark condition
+is distinct from the history-side `ForwardCreatedRegionSeparated`; the theorem
+assumes neither declarative correctness nor history/reachability. It remains
+conditional and does not establish the residual premise, unconditional
+Forward, or progress.
 `SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` handles
 the representative-changing branch without assuming global representative
 stability. Exact stack equations classify output work as a survivor at its
@@ -1948,7 +1959,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 841 declarations: 559 public MLL logical-boundary theorems
+separately audits 843 declarations: 561 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2053,6 +2064,7 @@ lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
 lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
+lake exe proofnet_ir_older_raw_marked_region_forward_preservation_tests
 lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
@@ -2165,6 +2177,8 @@ ProofNetIR/SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean
   conditional Wait preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeForwardPreservation.lean
   conditional Forward introduced-candidate preservation
+ProofNetIR/SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean
+  conditional Forward preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean
   conditional arbitrary-payload Unify introduced-candidate preservation
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
@@ -2209,6 +2223,8 @@ ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preserv
 ProofNetIROlderRawMarkedRegionWaitPreservationTests.lean
   conditional Wait raw-mark preservation consumers
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers
+ProofNetIROlderRawMarkedRegionForwardPreservationTests.lean
+  conditional Forward raw-mark preservation consumers
 ProofNetIRCrossRepresentativeUnifyPayloadPreservationTests.lean
   conditional Unify preservation consumers
 ProofNetIRNewProgressAudit.lean

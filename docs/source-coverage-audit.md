@@ -177,9 +177,14 @@ proof that canonical histories satisfy the seam. The Wait raw-mark branch is
 also conditionally transported: the typed age order eliminates the selected
 mark, and `WaitRetainedRawMarksSeparated` names the retained-mark seam. This is
 again a kernel-checked code consequence, not a new literature reading or proof
-that canonical histories satisfy the seam. Forward/Unify raw-mark preservation
-remains open. Ownership through a complete reachable transition system, richer
-route/tag/slot history commitments, later-state totality, progress, and
+that canonical histories satisfy the seam. The Forward raw-mark branch is
+likewise conditionally transported: selected and inserted work share the same
+active raw age, and `ForwardRetainedRawMarksSeparated` names the sole
+retained-mark seam. This is a kernel-checked code consequence, not a new
+literature reading or proof that canonical histories satisfy the seam. Unify
+raw-mark preservation remains open. Ownership through a complete reachable
+transition system, richer route/tag/slot history commitments, later-state
+totality, progress, and
 pure-worklist completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,

@@ -1064,9 +1064,13 @@
     remains open. The typed Wait step is likewise conditionally closed: exact
     age order removes the selected-mark/created-candidate case and
     `WaitRetainedRawMarksSeparated` names the retained-mark seam. Deriving that
-    seam from canonical reachability remains open, as do Forward/Unify raw-mark
-    preservation. Older-event separation remains the parallel history
-    obligation; neither result alone is progress.
+    seam from canonical reachability remains open. The typed Forward step is
+    now conditionally closed as well: its selected mark and inserted candidate
+    share the active raw age, while `ForwardRetainedRawMarksSeparated` names
+    the sole input-retained-mark seam. That seam also remains unavailable from
+    canonical reachability, and Unify raw-mark preservation remains open.
+    Older-event separation remains the parallel history obligation; none of
+    these conditional results alone is progress.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

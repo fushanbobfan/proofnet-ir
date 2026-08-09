@@ -764,7 +764,18 @@ part of the engineering and proof-identity gap.
    Prepared. Only input-retained marks versus actual Wait-created regions remain
    in the premise. This transition-local seam is distinct from
    `WaitCreatedRegionSeparated`, requires no declarative correctness or history,
-   and is not yet supplied by canonical reachability. Forward/Unify raw-mark
+   and is not yet supplied by canonical reachability. Unify raw-mark
+   preservation, global availability, and progress remain open.
+   `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` now proves
+   the corresponding Forward preservation step under
+   `ForwardRetainedRawMarksSeparated`. The selected mark and every inserted
+   candidate have the same active raw age, so their strict-order case is
+   impossible; retained candidates transport through Prepared. Only
+   input-retained marks versus actual Forward-created regions remain in the
+   premise.
+   This transition-local seam is distinct from
+   `ForwardCreatedRegionSeparated`, requires no declarative correctness or
+   history, and is not yet supplied by canonical reachability. Unify raw-mark
    preservation, global availability, and progress remain open.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
    specific reachable-state gap around `NewGuard`: it considers only states
@@ -891,7 +902,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 841 declarations: 559 public MLL
+- CI now parses `#print axioms` for 843 declarations: 561 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

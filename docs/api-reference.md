@@ -19673,6 +19673,54 @@ ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created :
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.forward step))
 ```
 
+### `ProofNetIR.SequentialFigure7.ForwardRetainedRawMarksSeparated`
+
+Kind: definition.
+
+Every retained input raw mark that is strictly older than a candidate created
+at the active forward boundary lies outside that candidate's source-left
+region.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardRetainedRawMarksSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.ForwardStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.created_rawMarksSeparatedFrom_of_retained`
+
+Kind: theorem.
+
+A created forward candidate is separated from every strictly older raw mark in
+the prepared state: the selected mark has the same raw age as the created
+boundary, and every other mark transports from the retained-mark assumption.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.created_rawMarksSeparatedFrom_of_retained : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialFigure7.ForwardRetainedRawMarksSeparated step →
+    ∀ (created : ProofNetIR.SequentialFigure7.ForwardCreatedCandidate certificate step),
+      ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom certificate step.prepared.after
+        step.prepared.stackResult.rawAge created.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+A typed successful forward preserves older raw-marked region separation when
+its retained input marks satisfy the explicit created-candidate side
+condition.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+      ProofNetIR.SequentialFigure7.ForwardRetainedRawMarksSeparated step →
+        ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
+```
+
 ### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_marks_eq_prepared`
 
 Kind: theorem.

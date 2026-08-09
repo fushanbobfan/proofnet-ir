@@ -885,6 +885,18 @@ have a source-left region disjoint from the created tensor mate's region. That
 side condition is not derived from the current scheduler invariant, and the
 module makes no unconditional Forward claim.
 
+`SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` closes the
+parallel raw-mark transport under one explicit transition-local premise. The
+selected mark and the inserted Forward candidate have the same active raw age,
+so their strict representative comparison is irreflexive. Retained candidates
+use Prepared preservation. Consequently only input-retained marks against
+actual `ForwardCreatedCandidate` regions remain, and
+`ForwardRetainedRawMarksSeparated` states exactly that obligation. It is
+distinct from history-side `ForwardCreatedRegionSeparated`, needs no
+declarative-correctness or reachability witness, and is not derived by the
+module. The result is conditional successful-step preservation, not
+unconditional Forward or progress.
+
 `SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` isolates
 the representative-changing arbitrary-payload Unify branch. Exact stack
 equations cover every output future-work occurrence by a same-boundary
