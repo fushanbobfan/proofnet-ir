@@ -226,6 +226,9 @@ expansion.
 #print axioms SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before
 #print axioms SequentialFigure7.FutureWorkAt.beforeWaitOrInserted
 #print axioms SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created
+#print axioms SequentialFigure7.ForwardStep.after_representative_eq_prepared
+#print axioms SequentialFigure7.FutureWorkAt.beforeForwardOrInserted
+#print axioms SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker

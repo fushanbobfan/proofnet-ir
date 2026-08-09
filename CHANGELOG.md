@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CrossRepresentativeForwardPreservation.lean`.
+  Exact ready, sigma, and waiting equations classify every output future-work
+  occurrence as retained prepared-middle work or the submitted par conclusion
+  inserted at the active boundary, without claiming those alternatives are
+  exclusive. Production-side par queuing preserves marks and union-find
+  parents. Retained candidates therefore transport through the stable prefix
+  theorem. The standalone `ForwardCreatedCandidate` stores only the inserted
+  conclusion's tensor-below data and prepared-middle unmarked mate; conditional
+  history preservation requires the explicit, non-circular
+  `ForwardCreatedRegionSeparated` premise for strictly older prior ledger
+  events. The current scheduler invariant does not derive that premise, so no
+  unconditional Forward preservation is claimed. A dedicated consumer,
+  default build target, API manifest, trust audit, and CI command cover the new
+  layer. The combined fail-closed
+  `--cross-representative-search` audit replays both conditional seams over 96
+  labelled depth-5 cases and 1,182,816 reachable states. Forward coverage
+  includes 158,766 successful steps, 33,582 created candidates, and 117,324
+  strict older-event/candidate pairs, all nonzero hard gates, with zero
+  intersections or decode/region failures. The legacy `--wait-search` flag is
+  an exact compatibility alias. This remains finite evidence and does not
+  derive `ForwardCreatedRegionSeparated`. The exact public axiom audit now
+  covers 794 declarations: 515
+  full-classical, 25 axiom-free, 120 `propext`-only, and 134
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CrossRepresentativeWaitPreservation.lean`. Exact
   destination equations classify every output future-work occurrence as
   retained prepared-middle work or the conclusion inserted at the destination
@@ -12,17 +36,14 @@
   preservation requires the explicit, non-circular
   `WaitCreatedRegionSeparated` geometry premise for strictly older prior ledger
   events. No theorem derives that premise from the current scheduler invariant,
-  so unconditional Wait preservation remains open. The extended executable
-  audit adds a fail-closed `--wait-search` mode with an exact waiting-payload
-  prepend decoder and hard Wait, created-candidate, and strict-pair coverage
-  gates. Its frozen 96-labelled-case, 1,182,816-state receipt exercised 5,682
-  Waits, 636 created candidates, and 1,068 strict older-event/candidate pairs
-  with zero source-region intersections or decoder, region, ledger, cycle, and
-  truncation failures;
-  this is finite evidence only. A dedicated consumer, default build target,
-  API manifest, trust audit, and CI command cover the new layer. The exact
-  public axiom audit now covers 791 declarations: 512 full-classical, 25
-  axiom-free, 120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries;
+  so unconditional Wait preservation remains open. The combined executable
+  audit retains an exact waiting-payload prepend decoder and hard Wait,
+  created-candidate, and strict-pair coverage gates. Its frozen receipt
+  exercised 5,682 Waits, 636 created candidates, and 1,068 strict
+  older-event/candidate pairs with zero source-region intersections or
+  decoder, region, ledger, cycle, and truncation failures. This is finite
+  evidence only. A dedicated consumer, default build target, API manifest,
+  trust audit, and CI command cover the new layer;
 - added `SequentialFigure7CrossRepresentativeStablePreservation.lean`. Exact
   ready/sigma positions and waiting cells transport backwards through the
   synchronized pop/raw-mark prefix, every current representative is unchanged

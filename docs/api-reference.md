@@ -18609,6 +18609,105 @@ ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created : �
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.wait step))
 ```
 
+### `ProofNetIR.SequentialFigure7.ForwardStep.after_representative_eq_prepared`
+
+Kind: theorem.
+
+A forward par queue changes no union-find parent, so every representative
+is identical in the output and the prepared middle state.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.after_representative_eq_prepared : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after)
+  (token : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+  after.core.representative token = step.prepared.after.core.representative token
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.beforeForwardOrInserted`
+
+Kind: theorem.
+
+Every output future-work occurrence of a successful `forward` either
+already existed in the prepared middle state or is the par conclusion inserted
+at the active ready boundary.
+
+The disjunction is intentionally not exclusive. A typed `ForwardStep` carries
+the local active-bucket `Nodup` guard but not the complete scheduler invariant
+needed to exclude the same conclusion from every other queue location.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.beforeForwardOrInserted : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt after rawAge vertex →
+    ProofNetIR.SequentialFigure7.FutureWorkAt step.prepared.after rawAge vertex ∨
+      rawAge = step.prepared.stackResult.rawAge ∧ vertex = step.consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardCreatedCandidate`
+
+Kind: inductive type.
+
+The exact structural data of a future `new` candidate created by the par
+conclusion inserted during one successful `forward`.
+
+The active raw-age boundary and head are fixed by the enclosing forward step,
+so this record stores only the tensor-below witness and its prepared-middle
+mate mark. It contains no desired source-region separation.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardCreatedCandidate : (certificate : ProofNetIR.Certificate) →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.ForwardStep certificate before after → Type
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardCreatedRegionSeparated`
+
+Kind: definition.
+
+Additional geometry required for candidates introduced by one active-ready
+prepend during `forward`.
+
+The comparison is made in the prepared middle state. The production par queue
+preserves its union-find parents, and only strictly older current
+representatives are constrained.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardCreatedRegionSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ForwardStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created`
+
+Kind: theorem.
+
+A canonical `forward` history extension preserves older-source-region
+separation provided the newly inserted par conclusion satisfies the explicit
+created-candidate geometry premise.
+
+Candidates inherited from the prepared middle state are discharged by prior
+separation plus stable-prefix transport. Candidates whose work witness uses the
+inserted conclusion are discharged only by
+`ForwardCreatedRegionSeparated`.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.forward, after := after }}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated prior →
+    ProofNetIR.SequentialFigure7.ForwardCreatedRegionSeparated prior step →
+      ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.forward step))
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

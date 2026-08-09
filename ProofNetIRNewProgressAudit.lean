@@ -9,7 +9,7 @@ open ProofNetIR.SequentialFigure7
 open ProofNetIR.SequentialSchedulerState
 
 /-!
-# Finite reachable-state audit for Figure-7 New and Wait geometry
+# Finite reachable-state audit for Figure-7 New, Wait, and Forward geometry
 
 This executable searches only states produced by a successful
 `initializeReservation?` followed by zero or more successful canonical
@@ -19,19 +19,22 @@ This executable searches only states produced by a successful
   Nonempty (NewGuard certificate state) ∧ new? certificate state invariant = none`.
 
 The default and extended modes search the shallow-New counterexample above.
-`--wait-search` additionally decodes every successful Wait, reconstructs the
-chronological reservation ledger, and checks every Wait-created future-New
-candidate against every strictly older representative event for intersecting
-source-left regions. Its coverage gates require a successful Wait, a created
-candidate, and at least one strict older-event pair.
+`--cross-representative-search` additionally decodes every successful Wait and
+Forward in the same replay, reconstructs the chronological reservation ledger,
+and checks every rule-created future-New candidate against every strictly older
+representative event for intersecting source-left regions. Its coverage gates
+require successful Wait and Forward steps, a candidate created by each rule,
+and at least one strict older-event pair for each rule. `--wait-search` remains
+as a compatibility spelling for the same combined finite search.
 
 The search is deterministic and finite. Absence of either witness is regression
 evidence over the constants below, not a progress theorem, NewGuard sufficiency,
-or unconditional Wait preservation. Labelled variants may denote equal
+or an unconditional Wait/Forward preservation theorem. Labelled variants may denote equal
 certificates; the reported count is a count of labelled audit cases, not a
 uniqueness or statistical-independence claim. Default CI covers depths zero
-through four; `--extended` adds depth five; `--wait-search` uses fixed depth five
-and seeds zero through fifteen; `--profile-depth N` prints every phase. Candidate
+through four; `--extended` adds depth five; both cross-representative spellings
+use fixed depth five and seeds zero through fifteen; `--profile-depth N` prints
+every phase. Candidate
 acceptance uses `unificationCheck`, then the kernel theorem
 `unificationCheck_eq_check` transports that fact to the exact proposition
 stored in each witness. Depths zero through two also execute the direct
@@ -253,6 +256,29 @@ structure WaitRegionCounterexample where
   candidateRegion : List Vertex
   deriving Repr
 
+/-- A finite witness that one Forward-created candidate violated the proposed
+cross-representative separation geometry. This is executable audit data, not an
+unconditional preservation theorem. -/
+structure ForwardRegionCounterexample where
+  depth : Nat
+  seed : Nat
+  variant : String
+  initializationStart : Vertex
+  step : Nat
+  replayKinds : List Figure7RuleKind
+  certificate : Certificate
+  before : ReservationState
+  after : ReservationState
+  event : AuditReservation
+  eventRepresentative : Nat
+  boundary : RawTokenAge
+  boundaryRepresentative : Nat
+  insertedConclusion : Vertex
+  tensorMate : Vertex
+  eventRegion : List Vertex
+  candidateRegion : List Vertex
+  deriving Repr
+
 /-- A fully certified witness of the audited counterexample shape. The
 `reachable` field is definitionally `Nonempty (ExecutedHistory ...)`, so this
 cannot be populated by an arbitrary invariant-valid state. -/
@@ -294,6 +320,12 @@ structure AuditStats where
   waitRegionIntersections : Nat := 0
   waitDecodeFailures : Nat := 0
   regionComputationFailures : Nat := 0
+  forwardSteps : Nat := 0
+  forwardCreatedCandidates : Nat := 0
+  forwardOrderedEventPairs : Nat := 0
+  forwardRegionIntersections : Nat := 0
+  forwardDecodeFailures : Nat := 0
+  forwardRegionComputationFailures : Nat := 0
   ledgerDecodeFailures : Nat := 0
   ledgerLengthMismatches : Nat := 0
   maxReplaySteps : Nat := 0
@@ -329,6 +361,18 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
   waitDecodeFailures := left.waitDecodeFailures + right.waitDecodeFailures
   regionComputationFailures :=
     left.regionComputationFailures + right.regionComputationFailures
+  forwardSteps := left.forwardSteps + right.forwardSteps
+  forwardCreatedCandidates :=
+    left.forwardCreatedCandidates + right.forwardCreatedCandidates
+  forwardOrderedEventPairs :=
+    left.forwardOrderedEventPairs + right.forwardOrderedEventPairs
+  forwardRegionIntersections :=
+    left.forwardRegionIntersections + right.forwardRegionIntersections
+  forwardDecodeFailures :=
+    left.forwardDecodeFailures + right.forwardDecodeFailures
+  forwardRegionComputationFailures :=
+    left.forwardRegionComputationFailures +
+      right.forwardRegionComputationFailures
   ledgerDecodeFailures :=
     left.ledgerDecodeFailures + right.ledgerDecodeFailures
   ledgerLengthMismatches :=
@@ -340,12 +384,14 @@ structure SearchResult where
   stats : AuditStats := {}
   counterexample : Option Counterexample := none
   waitCounterexample : Option WaitRegionCounterexample := none
+  forwardCounterexample : Option ForwardRegionCounterexample := none
 
 def SearchResult.addStats (result : SearchResult) (stats : AuditStats) : SearchResult :=
   { result with stats := result.stats.add stats }
 
 def SearchResult.hasCounterexample (result : SearchResult) : Bool :=
-  result.counterexample.isSome || result.waitCounterexample.isSome
+  result.counterexample.isSome || result.waitCounterexample.isSome ||
+    result.forwardCounterexample.isSome
 
 def stateChecksum (state : ReservationState) : Nat :=
   state.stack.nextAge + state.stack.sigma.length +
@@ -358,7 +404,7 @@ def replayFuel (certificate : Certificate) : Nat :=
   16 * (certificate.formulas.size + certificate.links.length + 1)
 
 /-- Compute the complete structurally determined source-left region used by
-the finite Wait audit.  The list contains every recursively visited stored-left
+the finite Wait/Forward audit. The list contains every recursively visited stored-left
 source and the other endpoint of the terminal axiom.  Accepted certificates
 have singleton source buckets; every other shape fails closed. -/
 def sourceLeftRegion? (certificate : Certificate) :
@@ -515,6 +561,145 @@ def inspectWaitTransition (candidate : CheckedCandidate)
       | none => decodeFailure
   | _ => decodeFailure
 
+structure ForwardInspection where
+  stats : AuditStats := {}
+  counterexample : Option ForwardRegionCounterexample := none
+
+def ForwardInspection.add (left right : ForwardInspection) : ForwardInspection where
+  stats := left.stats.add right.stats
+  counterexample :=
+    match left.counterexample with
+    | some witness => some witness
+    | none => right.counterexample
+
+def inspectForwardEvent (candidate : CheckedCandidate)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before after : ReservationState) (boundary : RawTokenAge)
+    (insertedConclusion tensorMate : Vertex)
+    (event : AuditReservation) : ForwardInspection :=
+  let eventRepresentative := after.core.representative event.rawAge
+  let boundaryRepresentative := after.core.representative boundary
+  if eventRepresentative < boundaryRepresentative then
+    match
+        sourceLeftRegion? candidate.certificate
+          (sourceRegionFuel candidate.certificate) event.start,
+        sourceLeftRegion? candidate.certificate
+          (sourceRegionFuel candidate.certificate) tensorMate with
+    | some eventRegion, some candidateRegion =>
+        if regionsIntersect eventRegion candidateRegion then
+          { stats := {
+              forwardOrderedEventPairs := 1
+              forwardRegionIntersections := 1 }
+            counterexample := some {
+              depth := candidate.depth
+              seed := candidate.seed
+              variant := candidate.variant
+              initializationStart
+              step := replayStep
+              replayKinds
+              certificate := candidate.certificate
+              before
+              after
+              event
+              eventRepresentative
+              boundary
+              boundaryRepresentative
+              insertedConclusion
+              tensorMate
+              eventRegion
+              candidateRegion } }
+        else
+          { stats := { forwardOrderedEventPairs := 1 } }
+    | _, _ =>
+        { stats := {
+            forwardOrderedEventPairs := 1
+            forwardRegionComputationFailures := 1 } }
+  else
+    {}
+
+def inspectForwardEvents (candidate : CheckedCandidate)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before after : ReservationState) (boundary : RawTokenAge)
+    (insertedConclusion tensorMate : Vertex) :
+    List AuditReservation → ForwardInspection
+  | [] => {}
+  | event :: rest =>
+      (inspectForwardEvent candidate initializationStart replayStep replayKinds
+        before after boundary insertedConclusion tensorMate event).add
+        (inspectForwardEvents candidate initializationStart replayStep replayKinds
+          before after boundary insertedConclusion tensorMate rest)
+
+/-- Inspect one successful dispatcher Forward. The decoder independently
+replays the exact common preparation, submitted par lookup, paper guards,
+production queue, and ready prepend, and requires their complete output to equal `after`.
+Absence of a tensor below the prepended conclusion, or a marked tensor mate, is
+a valid Forward with no created candidate. Every decoder mismatch fails closed. -/
+def inspectForwardTransition (candidate : CheckedCandidate)
+    (initializationStart replayStep : Nat)
+    (replayKinds : List Figure7RuleKind)
+    (before after : ReservationState) (events : List AuditReservation) :
+    ForwardInspection :=
+  let decodeFailure : ForwardInspection :=
+    { stats := { forwardSteps := 1, forwardDecodeFailures := 1 } }
+  match prepare? before with
+  | none => decodeFailure
+  | some prepared =>
+      match
+          candidate.certificate.connectiveBelow?
+            prepared.stackResult.vertex with
+      | none => decodeFailure
+      | some consumer =>
+          if consumer.kind == .par then
+            match prepared.coreMarked.marks[consumer.mate]? with
+            | some (some mateRawAge) =>
+                if prepared.stackResult.rawAge ≤ mateRawAge then
+                  if (consumer.conclusion ::
+                      prepared.stackResult.remainingTop).Nodup then
+                    match
+                        Certificate.queuePar? prepared.coreMarked
+                          consumer.storedLeft consumer.storedRight
+                          consumer.conclusion with
+                    | none => decodeFailure
+                    | some coreAfter =>
+                        match
+                            prepared.stackResult.after.prependReadyTop?
+                              consumer.conclusion with
+                        | none => decodeFailure
+                        | some stackAfter =>
+                            let decodedAfter : ReservationState := {
+                              stack := stackAfter
+                              core := coreAfter
+                              tags := before.tags }
+                            if after = decodedAfter then
+                              match
+                                  candidate.certificate.tensorBelow?
+                                    consumer.conclusion with
+                              | none => { stats := { forwardSteps := 1 } }
+                              | some tensor =>
+                                  if after.core.marks[tensor.mate]? == some none then
+                                    let inspected :=
+                                      inspectForwardEvents candidate
+                                        initializationStart replayStep replayKinds
+                                        before after prepared.stackResult.rawAge
+                                        consumer.conclusion tensor.mate events
+                                    { inspected with
+                                      stats := inspected.stats.add {
+                                        forwardSteps := 1
+                                        forwardCreatedCandidates := 1 } }
+                                  else
+                                    { stats := { forwardSteps := 1 } }
+                            else
+                              decodeFailure
+                  else
+                    decodeFailure
+                else
+                  decodeFailure
+            | _ => decodeFailure
+          else
+            decodeFailure
+
 def parCount (certificate : Certificate) : Nat :=
   certificate.links.foldl (fun count link ↦
     match link with
@@ -636,6 +821,13 @@ def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
                       events
                   else
                     {}
+                let forwardInspection :=
+                  if result.kind == .forward then
+                    inspectForwardTransition candidate start step
+                      (result.kind :: reversedKinds).reverse state result.after
+                      events
+                  else
+                    {}
                 let nextEventsAndStats : List AuditReservation × AuditStats :=
                   if result.kind == .new then
                     match newGuard? candidate.certificate state with
@@ -651,19 +843,26 @@ def inspectReachable (candidate : CheckedCandidate) (start : Vertex)
                   (afterGuard.addStats {
                     dispatchSteps := 1
                     maxReplaySteps := step }).stats |>.add
-                    waitInspection.stats |>.add nextEventsAndStats.2
+                    waitInspection.stats |>.add forwardInspection.stats |>.add
+                    nextEventsAndStats.2
                 match waitInspection.counterexample with
                 | some witness =>
                     { stats := currentStats
                       waitCounterexample := some witness }
                 | none =>
-                    let tail :=
-                      inspectReachable candidate start result.after nextReachable
-                        nextEventsAndStats.1 (state :: seen)
-                        (result.kind :: reversedKinds) (step + 1) fuel
-                    { stats := currentStats.add tail.stats
-                      counterexample := tail.counterexample
-                      waitCounterexample := tail.waitCounterexample }
+                    match forwardInspection.counterexample with
+                    | some witness =>
+                        { stats := currentStats
+                          forwardCounterexample := some witness }
+                    | none =>
+                        let tail :=
+                          inspectReachable candidate start result.after nextReachable
+                            nextEventsAndStats.1 (state :: seen)
+                            (result.kind :: reversedKinds) (step + 1) fuel
+                        { stats := currentStats.add tail.stats
+                          counterexample := tail.counterexample
+                          waitCounterexample := tail.waitCounterexample
+                          forwardCounterexample := tail.forwardCounterexample }
 
 def inspectStarts (candidate : CheckedCandidate) : List Vertex → SearchResult
   | [] => {}
@@ -692,7 +891,8 @@ def inspectStarts (candidate : CheckedCandidate) : List Vertex → SearchResult
             let tail := inspectStarts candidate rest
             { stats := current.stats.add tail.stats
               counterexample := tail.counterexample
-              waitCounterexample := tail.waitCounterexample }
+              waitCounterexample := tail.waitCounterexample
+              forwardCounterexample := tail.forwardCounterexample }
 
 def inspectVariantCase (depth seed : Nat) (variant : PositiveVariant) :
     Except String SearchResult :=
@@ -728,7 +928,8 @@ def inspectVariants (depth seed : Nat) : List PositiveVariant →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
-          waitCounterexample := tail.waitCounterexample }
+          waitCounterexample := tail.waitCounterexample
+          forwardCounterexample := tail.forwardCounterexample }
 
 def inspectBase (depth seed : Nat) : Except String SearchResult := do
   let tree := CutFreeDerivation.generate seed depth
@@ -750,7 +951,8 @@ def inspectSeeds (depth : Nat) : List Nat → Except String SearchResult
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
-          waitCounterexample := tail.waitCounterexample }
+          waitCounterexample := tail.waitCounterexample
+          forwardCounterexample := tail.forwardCounterexample }
 
 def inspectDepths (seedsPerDepth : Nat) : List Nat →
     Except String SearchResult
@@ -764,7 +966,8 @@ def inspectDepths (seedsPerDepth : Nat) : List Nat →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
-          waitCounterexample := tail.waitCounterexample }
+          waitCounterexample := tail.waitCounterexample
+          forwardCounterexample := tail.forwardCounterexample }
 
 def variantsPerCertificate : Nat := 6
 def directCheckDepthCount : Nat := 3
@@ -778,6 +981,9 @@ structure AuditConfig where
   requireWaitCoverage : Bool := false
   requireWaitCreatedCoverage : Bool := false
   requireWaitOrderedPairCoverage : Bool := false
+  requireForwardCoverage : Bool := false
+  requireForwardCreatedCoverage : Bool := false
+  requireForwardOrderedPairCoverage : Bool := false
   traceStarts : Bool
 
 def defaultConfig : AuditConfig where
@@ -805,7 +1011,16 @@ def waitSearchConfig : AuditConfig where
   requireWaitCoverage := true
   requireWaitCreatedCoverage := true
   requireWaitOrderedPairCoverage := true
+  requireForwardCoverage := true
+  requireForwardCreatedCoverage := true
+  requireForwardOrderedPairCoverage := true
   traceStarts := false
+
+/-- Preferred name for the combined Wait/Forward cross-representative search.
+`waitSearchConfig` remains the legacy-compatible spelling with identical bounds
+and hard coverage gates. -/
+def crossRepresentativeSearchConfig : AuditConfig :=
+  { waitSearchConfig with modeName := "cross-representative-search" }
 
 def depthConfig (depth : Nat) : AuditConfig where
   modeName := s!"depth-{depth}"
@@ -846,6 +1061,24 @@ def renderWaitCounterexample
     s!"before={repr counterexample.before}\n" ++
     s!"after={repr counterexample.after}"
 
+def renderForwardCounterexample
+    (counterexample : ForwardRegionCounterexample) : String :=
+  s!"forward-region-counterexample depth={counterexample.depth} " ++
+    s!"seed={counterexample.seed} variant={counterexample.variant} " ++
+    s!"initialization_start={counterexample.initializationStart} " ++
+    s!"step={counterexample.step} replay={repr counterexample.replayKinds}\n" ++
+    s!"event={repr counterexample.event} " ++
+    s!"event_representative={counterexample.eventRepresentative} " ++
+    s!"boundary={counterexample.boundary} " ++
+    s!"boundary_representative={counterexample.boundaryRepresentative} " ++
+    s!"inserted_conclusion={counterexample.insertedConclusion} " ++
+    s!"tensor_mate={counterexample.tensorMate}\n" ++
+    s!"event_region={repr counterexample.eventRegion} " ++
+    s!"candidate_region={repr counterexample.candidateRegion}\n" ++
+    s!"certificate={repr counterexample.certificate}\n" ++
+    s!"before={repr counterexample.before}\n" ++
+    s!"after={repr counterexample.after}"
+
 def renderStats (stats : AuditStats) : String :=
   s!"base_derivations={stats.baseDerivations} " ++
     s!"labelled_certificates={stats.checkedCertificates} " ++
@@ -865,6 +1098,13 @@ def renderStats (stats : AuditStats) : String :=
     s!"wait_region_intersections={stats.waitRegionIntersections} " ++
     s!"wait_decode_failures={stats.waitDecodeFailures} " ++
     s!"region_computation_failures={stats.regionComputationFailures} " ++
+    s!"forward_steps={stats.forwardSteps} " ++
+    s!"forward_created_candidates={stats.forwardCreatedCandidates} " ++
+    s!"forward_ordered_event_pairs={stats.forwardOrderedEventPairs} " ++
+    s!"forward_region_intersections={stats.forwardRegionIntersections} " ++
+    s!"forward_decode_failures={stats.forwardDecodeFailures} " ++
+    s!"forward_region_computation_failures=" ++
+    s!"{stats.forwardRegionComputationFailures} " ++
     s!"ledger_decode_failures={stats.ledgerDecodeFailures} " ++
     s!"ledger_length_mismatches={stats.ledgerLengthMismatches} " ++
     s!"terminal_runs={stats.terminalRuns} " ++
@@ -890,7 +1130,19 @@ def validateReplayStats (stats : AuditStats) : Except String Unit := do
   if stats.waitDecodeFailures != 0 then
     throw s!"successful Wait transitions failed audit decoding: {stats.waitDecodeFailures}"
   if stats.regionComputationFailures != 0 then
-    throw s!"source-left region computations failed: {stats.regionComputationFailures}"
+    throw s!"Wait source-left region computations failed: {stats.regionComputationFailures}"
+  if stats.forwardRegionIntersections != 0 then
+    throw <|
+      s!"Forward-created source-region intersections observed: " ++
+        s!"{stats.forwardRegionIntersections}"
+  if stats.forwardDecodeFailures != 0 then
+    throw <|
+      s!"successful Forward transitions failed audit decoding: " ++
+        s!"{stats.forwardDecodeFailures}"
+  if stats.forwardRegionComputationFailures != 0 then
+    throw <|
+      s!"Forward source-left region computations failed: " ++
+        s!"{stats.forwardRegionComputationFailures}"
   if stats.ledgerDecodeFailures != 0 then
     throw s!"successful New transitions failed ledger decoding: {stats.ledgerDecodeFailures}"
   if stats.ledgerLengthMismatches != 0 then
@@ -910,9 +1162,14 @@ def requireNoCounterexample (result : SearchResult) : IO Unit :=
       throw <| IO.userError (renderCounterexample counterexample)
   | none =>
       match result.waitCounterexample with
-      | none => pure ()
       | some counterexample =>
           throw <| IO.userError (renderWaitCounterexample counterexample)
+      | none =>
+          match result.forwardCounterexample with
+          | none => pure ()
+          | some counterexample =>
+              throw <| IO.userError
+                (renderForwardCounterexample counterexample)
 
 def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
     IO SearchResult
@@ -962,7 +1219,8 @@ def inspectStartsIO (candidate : CheckedCandidate) : List Vertex →
             return {
               stats := current.stats.add tail.stats
               counterexample := tail.counterexample
-              waitCounterexample := tail.waitCounterexample }
+              waitCounterexample := tail.waitCounterexample
+              forwardCounterexample := tail.forwardCounterexample }
 
 def runVariantsIO (config : AuditConfig) (depth seed : Nat) :
     List PositiveVariant →
@@ -1079,6 +1337,7 @@ def parseConfig (args : List String) : Except String AuditConfig :=
   | [] => .ok defaultConfig
   | ["--extended"] => .ok extendedConfig
   | ["--wait-search"] => .ok waitSearchConfig
+  | ["--cross-representative-search"] => .ok crossRepresentativeSearchConfig
   | ["--depth", value] =>
       match value.toNat? with
       | some depth => .ok (depthConfig depth)
@@ -1089,11 +1348,13 @@ def parseConfig (args : List String) : Except String AuditConfig :=
       | none => .error s!"invalid depth: {value}"
   | _ => .error <|
       "usage: proofnet_ir_new_progress_audit [--extended | --wait-search | " ++
-        "--depth N | --profile-depth N]"
+        "--cross-representative-search | --depth N | --profile-depth N]"
 
-/-- Run the bounded audit. Any New failure or Wait-region intersection is a
-hard regression and is printed with its complete certificate, states,
-initialization start, dispatcher rule trace, and decoded witness data. -/
+/-- Run the bounded finite audit. Any New failure or Wait/Forward region
+intersection is a hard regression and is printed with its complete certificate,
+states, initialization start, dispatcher rule trace, and decoded witness data.
+Passing these labelled, potentially duplicate cases proves no unconditional
+progress or cross-representative preservation theorem. -/
 def run (config : AuditConfig) : IO Unit := do
   let started ← IO.monoMsNow
   let stats ← runDepthsIO config config.depths {}
@@ -1127,6 +1388,14 @@ def run (config : AuditConfig) : IO Unit := do
   if config.requireWaitOrderedPairCoverage &&
       stats.waitOrderedEventPairs == 0 then
     throw <| IO.userError "audit exercised no strictly ordered Wait/event pairs"
+  if config.requireForwardCoverage && stats.forwardSteps == 0 then
+    throw <| IO.userError "audit exercised no successful Forward transitions"
+  if config.requireForwardCreatedCoverage &&
+      stats.forwardCreatedCandidates == 0 then
+    throw <| IO.userError "audit exercised no Forward-created future New candidates"
+  if config.requireForwardOrderedPairCoverage &&
+      stats.forwardOrderedEventPairs == 0 then
+    throw <| IO.userError "audit exercised no strictly ordered Forward/event pairs"
   if elapsed > config.budgetMs then
     throw <| IO.userError
       s!"new-progress audit budget exceeded: {elapsed}ms > {config.budgetMs}ms"

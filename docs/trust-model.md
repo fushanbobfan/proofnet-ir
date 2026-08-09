@@ -523,9 +523,22 @@ its representative helper follows from exact core equality. The standalone
 data and middle-state unmarked-mate lookup. The final theorem is explicitly
 conditional on `WaitCreatedRegionSeparated`, which states precisely the
 remaining source-region obligation for prior ledger events. The finite
-`--wait-search` executable may falsify that premise on generated reachable
-cases, but no runtime result is imported into the theorem and zero observed
-intersections is not used as proof.
+cross-representative executable may falsify that premise on generated
+reachable cases, but no runtime result is imported into the theorem and zero
+observed intersections is not used as proof.
+`SequentialFigure7CrossRepresentativeForwardPreservation.lean` likewise adds
+no hidden source-region oracle. Its output-work classification follows from
+the exact active-ready prepend plus unchanged sigma and waiting fields.
+Production-side par queuing preserves marks and parents, so its representative
+and inherited-candidate transports are derived from concrete step equations.
+`ForwardCreatedCandidate` contains only the inserted conclusion's tensor-below
+data and prepared-middle mate-unmarked lookup. The final theorem is explicitly
+conditional on `ForwardCreatedRegionSeparated`, the remaining source-region
+obligation for strictly older prior ledger events. The preferred
+`--cross-representative-search` mode and its `--wait-search` compatibility
+alias use exact fail-closed Wait and Forward decoders plus six nonzero coverage
+gates. No finite audit result is imported into either theorem, and no
+unconditional Wait or Forward preservation follows.
 `SequentialFigure7ReservationRealization.lean` introduces no component oracle.
 Under the public theorems' explicit certificate structural-well-formedness
 premise, it inducts over the same proof-carrying canonical history and
@@ -580,9 +593,9 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 788
-declarations: 510 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
-axiom-free, 119 use exactly `[propext]`, and 134 use exactly
+evidence, not public three-axiom theorems. The exact trust audit now covers 794
+declarations: 515 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+axiom-free, 120 use exactly `[propext]`, and 134 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a

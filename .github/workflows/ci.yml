@@ -54,11 +54,14 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_invariant_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_stable_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_wait_preservation_tests
+          ~/.elan/bin/lake exe proofnet_ir_cross_representative_forward_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_new_region_tests
       - name: Search reachable Figure-7 new guards for executor misses
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
-      - name: Audit Wait-created candidate source regions
-        run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit --wait-search
+      - name: Audit Wait/Forward-created candidate source regions
+        run: >-
+          ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
+          --cross-representative-search
       - name: Validate generated LeanProp template corpus
         run: ~/.elan/bin/lake exe proofnet_ir_leanprop_corpus
       - name: Verify Lean-emitted LeanProp corpus manifest

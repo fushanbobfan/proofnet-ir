@@ -20,6 +20,7 @@ defaultTargets = [
   "proofnet_ir_cross_representative_invariant_tests",
   "proofnet_ir_cross_representative_stable_preservation_tests",
   "proofnet_ir_cross_representative_wait_preservation_tests",
+  "proofnet_ir_cross_representative_forward_preservation_tests",
   "proofnet_ir_reservation_realization_tests",
   "proofnet_ir_new_region_tests",
   "proofnet_ir_new_enabled_import_tests",
@@ -101,6 +102,10 @@ root = "ProofNetIRCrossRepresentativeStablePreservationTests"
 [[lean_exe]]
 name = "proofnet_ir_cross_representative_wait_preservation_tests"
 root = "ProofNetIRCrossRepresentativeWaitPreservationTests"
+
+[[lean_exe]]
+name = "proofnet_ir_cross_representative_forward_preservation_tests"
+root = "ProofNetIRCrossRepresentativeForwardPreservationTests"
 
 [[lean_exe]]
 name = "proofnet_ir_reservation_realization_tests"

@@ -759,6 +759,19 @@ new tensor mate's region. This side condition is the open geometry itself, not
 a renamed output invariant, executor equation, or reachability premise. The
 module therefore proves no unconditional Wait preservation.
 
+`SequentialFigure7CrossRepresentativeForwardPreservation.lean` isolates the
+same candidate-creation seam for Forward. Exact active-ready equations classify
+every output future-work occurrence as retained prepared-middle work or the
+submitted par conclusion inserted at the active boundary. Production-side par
+queuing preserves marks and union-find parents, so retained candidates use the
+stable theorem. The inserted case is represented by
+`ForwardCreatedCandidate`, which stores only the tensor-below witness and
+prepared-middle mate-unmarked lookup. Conditional preservation consumes
+`ForwardCreatedRegionSeparated`: every strictly older prior ledger event must
+have a source-left region disjoint from the created tensor mate's region. That
+side condition is not derived from the current scheduler invariant, and the
+module makes no unconditional Forward claim.
+
 `SequentialFigure7ReservationRealization.lean` supplies the second missing
 piece for the reserved axiom itself.  Under explicit certificate structural
 well-formedness, an event-specific
@@ -805,20 +818,25 @@ remains at depths 0 through 2. This executable architecture supplies regression
 evidence and diagnostics, not a `NewGuard` success converse or a scheduler
 progress theorem.
 
-The same executable's `--wait-search` mode maintains a lightweight raw-age and
-source-start ledger that mirrors exact initialization and successful `new`
-allocations. It decodes only successful canonical Wait transitions, detects
-when the inserted conclusion is a genuine future-New tensor candidate, and
-checks every strictly older event pair by computing both complete structural
-source-left regions, including terminal axiom partners. Decode, ledger-horizon,
-and region-computation drift fail closed; the waiting decoder requires the
-exact old-to-new `conclusion :: oldPayload` update. The mode also requires
-nonzero Wait, created-candidate, and strict-pair coverage. The frozen depth-5,
-16-seed corpus
-covered 1,182,816 reachable states, 5,682 Wait steps, 636 created candidates,
-and 1,068 strict event/candidate pairs with zero intersections. Those numbers
-are finite falsification evidence and do not discharge
-`WaitCreatedRegionSeparated` in Lean.
+The same executable's `--cross-representative-search` mode maintains a
+lightweight raw-age and source-start ledger that mirrors exact initialization
+and successful `new` allocations. The legacy `--wait-search` spelling selects
+the same bounds and hard gates. It decodes successful canonical Wait and
+Forward transitions, detects when either inserted conclusion is a genuine
+future-New tensor candidate, and checks every strictly older event pair by
+computing both complete structural source-left regions, including terminal
+axiom partners. Decode, ledger-horizon, and region-computation drift fail
+closed. The Wait decoder requires the exact old-to-new
+`conclusion :: oldPayload` update; the Forward decoder independently replays
+prepare, submitted-par lookup, paper guards, par queueing, active-ready
+prepend, and the complete output state. Six hard gates require nonzero step,
+created-candidate, and strict-pair coverage for both rules. The frozen depth-5,
+16-seed corpus covered 1,182,816 reachable states. Wait contributed 5,682
+steps, 636 created candidates, and 1,068 strict pairs; Forward contributed
+158,766 steps, 33,582 created candidates, and 117,324 strict pairs. Both had
+zero intersections and zero decoder or region failures. Those numbers are
+finite falsification evidence and discharge neither
+`WaitCreatedRegionSeparated` nor `ForwardCreatedRegionSeparated` in Lean.
 
 `Unification.lean` contains the narrower production-core
 `queuePar?`/`queueTensor?` mutations. They reuse the actual frontier picker and
