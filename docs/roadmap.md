@@ -1022,6 +1022,13 @@
     progress. This module exports no corresponding bare
     `ReservationSearchEvent` theorem; its current proof uses the equation
     retained by `ReservationEvent` and does not decide route-only sufficiency.
+  - [x] Normalize strictly older source-region separation into historical
+    event-touch separation. Under structural well-formedness,
+    `OlderEventTouchSeparated` is exactly equivalent to
+    `OlderSourceRegionSeparated`, with the same ledger membership, future
+    candidates, and strict current-representative ordering. This does not prove
+    global availability, created-candidate preservation premises, enabledness,
+    or progress.
   - [ ] Derive that universal no-obstruction premise for the relevant correct
     canonical/certified histories. Structural descent and reference-switching
     acyclicity now exclude return to the selected ready head throughout both

@@ -149,7 +149,11 @@ region under structural well-formedness. This reverse direction reconstructs
 only the successful run stored by the event and supplies no new current-owner,
 representative-order, created-region, or progress fact. This checkpoint is an
 implementation consequence of the already-audited source semantics and does
-not record a new literature reading. Ownership
+not record a new literature reading. The resulting event-touch predicate is
+now proved equivalent to the older-region separation invariant under the same
+structural assumption, with identical ledger/candidate/current-representative
+quantification. That is a proof-interface normalization, not a new paper claim
+or a proof that the invariant is globally available. Ownership
 through a complete reachable transition
 system, richer route/tag/slot history commitments, later-state totality,
 progress, and pure-worklist completeness remain open.

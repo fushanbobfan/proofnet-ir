@@ -18487,6 +18487,142 @@ ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt : 
                 ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate candidate.tensor.mate vertex → False
 ```
 
+### `ProofNetIR.SequentialFigure7.ReservationEvent.TouchSeparatedFrom`
+
+Kind: definition.
+
+One exact reservation event has no touched occurrence in the other
+complete source-left region.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.TouchSeparatedFrom : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialFigure7.ReservationEvent certificate → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.eventTouchSeparated`
+
+Kind: theorem.
+
+Structural source-region disjointness excludes every exact event touch
+from the other region.  This direction needs no structural assumption.
+
+```lean
+ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.eventTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate}
+  {otherStart : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint certificate event.start otherStart →
+    event.TouchSeparatedFrom otherStart
+```
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.TouchSeparatedFrom.sourceLeftRegionsDisjoint`
+
+Kind: theorem.
+
+Exact event-touch separation recovers structural region disjointness on
+a structurally well-formed certificate.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.TouchSeparatedFrom.sourceLeftRegionsDisjoint : ∀ {certificate : ProofNetIR.Certificate} {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate}
+  {otherStart : ProofNetIR.Vertex},
+  certificate.StructurallyWellFormed →
+    event.TouchSeparatedFrom otherStart →
+      ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint certificate event.start otherStart
+```
+
+### `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.iff_eventTouchSeparated`
+
+Kind: theorem.
+
+For an authentic reservation event on a structurally well-formed
+certificate, structural region disjointness is exactly touch exclusion.
+
+```lean
+ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.iff_eventTouchSeparated : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate) (otherStart : ProofNetIR.Vertex),
+      ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint certificate event.start otherStart ↔
+        event.TouchSeparatedFrom otherStart
+```
+
+### `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated`
+
+Kind: inductive type.
+
+Every strictly older ledger event is touch-separated from every future
+candidate region.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderEventTouchSeparated : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.event_candidate`
+
+Kind: theorem.
+
+A strictly older ledger event touched no occurrence in the future
+candidate's complete source-left region.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.event_candidate : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+    ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger →
+        ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state),
+          state.core.representative event.rawAge < state.core.representative candidate.rawAge →
+            event.TouchSeparatedFrom candidate.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.olderEventTouchSeparated`
+
+Kind: theorem.
+
+Structural older-region separation always implies older-event touch
+separation; this direction needs no structural well-formedness assumption.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.olderEventTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated tagHistory →
+    ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory
+```
+
+### `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.olderSourceRegionSeparated`
+
+Kind: theorem.
+
+Touch separation recovers complete structural source-region separation
+under structural well-formedness.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.olderSourceRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+      ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated tagHistory
+```
+
+### `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.iff_olderSourceRegionSeparated`
+
+Kind: theorem.
+
+On a structurally well-formed certificate, the existing structural
+invariant and the proof-friendly historical-touch invariant are equivalent.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.iff_olderSourceRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  certificate.StructurallyWellFormed →
+    (ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory ↔
+      ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated tagHistory)
+```
+
 ### `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated`
 
 Kind: theorem.

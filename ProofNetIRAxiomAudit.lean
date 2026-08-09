@@ -219,6 +219,12 @@ expansion.
 #print axioms SequentialFigure7.ReadyHeadInput.futureWorkAt
 #print axioms SequentialFigure7.SourceLeftRegionsDisjoint.symm
 #print axioms SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt
+#print axioms SequentialFigure7.SourceLeftRegionsDisjoint.eventTouchSeparated
+#print axioms SequentialFigure7.ReservationEvent.TouchSeparatedFrom.sourceLeftRegionsDisjoint
+#print axioms SequentialFigure7.SourceLeftRegionsDisjoint.iff_eventTouchSeparated
+#print axioms SequentialFigure7.OlderSourceRegionSeparated.olderEventTouchSeparated
+#print axioms SequentialFigure7.OlderEventTouchSeparated.olderSourceRegionSeparated
+#print axioms SequentialFigure7.OlderEventTouchSeparated.iff_olderSourceRegionSeparated
 #print axioms SequentialFigure7.empty_olderSourceRegionSeparated
 #print axioms SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.FutureWorkAt.beforePrepared

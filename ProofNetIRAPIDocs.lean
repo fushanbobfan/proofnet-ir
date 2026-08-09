@@ -1433,6 +1433,29 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint.symm,
       `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt,
+      `ProofNetIR.SequentialFigure7.ReservationEvent.TouchSeparatedFrom,
+      Name.str
+        `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint
+        "eventTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReservationEvent.TouchSeparatedFrom
+        "sourceLeftRegionsDisjoint",
+      Name.str
+        `ProofNetIR.SequentialFigure7.SourceLeftRegionsDisjoint
+        "iff_eventTouchSeparated",
+      `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated
+        "event_candidate",
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated
+        "olderEventTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated
+        "olderSourceRegionSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated
+        "iff_olderSourceRegionSeparated",
       `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.FutureWorkAt.beforePrepared,

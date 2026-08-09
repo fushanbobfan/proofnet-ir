@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderEventTouchSeparation.lean`. The new
+  `ReservationEvent.TouchSeparatedFrom` predicate states directly that an
+  authentic historical event touched no occurrence in another complete
+  source-left region. Existing region disjointness implies this touch form
+  without an added hypothesis; structural touch completeness supplies the
+  converse under `StructurallyWellFormed`. The history wrapper
+  `OlderEventTouchSeparated` has exactly the same ledger, future-candidate,
+  and current-representative ordering as `OlderSourceRegionSeparated`, and the
+  two invariants are kernel-proved equivalent under structural well-formedness.
+  This is a semantic normalization, not a proof that either invariant holds in
+  every history, a discharge of any created-candidate premise, or a progress
+  theorem. A direct consumer invokes every public API; the facade, default
+  target, CI, generated API, and trust audit are wired. The current public
+  axiom audit covers 815 declarations: 534 full-classical, 25 axiom-free, 121
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7TouchCompleteness.lean`. Structural well-formedness
   makes a supplied exact source-left run complete for its structural region:
   every region vertex is in the run trace or is its terminal partner. Every
@@ -14,7 +29,7 @@
   `ReservationSearchEvent`, compare current representatives, derive any of the
   four created-region premises, or close exhaustive enabledness. A direct
   consumer invokes all three APIs; the facade, default target, CI, generated
-  API, and trust audit are wired. The current public axiom audit covers 809
+  API, and trust audit are wired. At that checkpoint the public audit covered 809
   declarations: 528 full-classical, 25 axiom-free, 121 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7SameRepresentativeEventTouch.lean`. Every vertex

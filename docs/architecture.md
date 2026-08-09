@@ -745,6 +745,17 @@ not yet prove preservation by later Figure-7 transitions. In particular, new
 ready/waiting conclusions created by `new`, `wait`, `forward`, and `unify`
 require genuine region-disjointness arguments, not merely field transport.
 
+`SequentialFigure7OlderEventTouchSeparation.lean` gives that same invariant a
+proof-friendly historical form without changing its domain. An authentic
+event is `TouchSeparatedFrom` another start exactly when its complete
+source-left region is disjoint from the other region, with structural
+well-formedness needed only for the touch-to-region reverse direction. The
+history wrapper retains the exact ledger membership, future candidate, and
+strict current-representative premise of `OlderSourceRegionSeparated`; the two
+predicates are equivalent under `StructurallyWellFormed`. This module does not
+establish either predicate for all histories or discharge a rule-created
+candidate obligation.
+
 `SequentialFigure7SameRepresentativeEventTouch.lean` handles the equality
 case for exact historical reservation events. A touched vertex structurally
 reaches the event's stored-left axiom endpoint; exact reservation realization

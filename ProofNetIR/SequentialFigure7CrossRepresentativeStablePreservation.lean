@@ -1,4 +1,4 @@
-import ProofNetIR.SequentialFigure7CrossRepresentativeInvariant
+import ProofNetIR.SequentialFigure7OlderEventTouchSeparation
 
 namespace ProofNetIR
 

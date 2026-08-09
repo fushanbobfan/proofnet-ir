@@ -517,6 +517,14 @@ search result, runtime test, raw-age chronology, or unproved disjointness is
 inserted. At that foundation checkpoint, no later-rule preservation was
 proved; the stable module below now covers the prepared, `concl`, and `nop`
 cases, while the candidate-creating branches remain theorem work.
+`SequentialFigure7OlderEventTouchSeparation.lean` adds no geometric oracle.
+The forward conversion merely maps an event touch through the existing
+touch-to-region theorem before applying region disjointness. The reverse
+conversion uses the structurally proved authentic-event touch completeness.
+Its history wrapper copies the ledger, future-candidate, and strict current-
+representative quantifiers without adding a reachable-state or executor
+witness. Therefore the iff normalizes `OlderSourceRegionSeparated`; it does
+not prove that separation or any created-candidate premise.
 `SequentialFigure7SameRepresentativeEventTouch.lean` imports no historical
 touch or region oracle. The reservation event is an exact member of the
 proof-carrying ledger, its touched witness comes from the event's stored search
@@ -637,8 +645,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 809
-declarations: 528 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 815
+declarations: 534 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 121 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
