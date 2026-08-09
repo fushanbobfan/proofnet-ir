@@ -1416,7 +1416,13 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt,
       `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated,
-      `ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated
+      `ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.FutureWorkAt.beforePrepared,
+      `ProofNetIR.SequentialFigure7.PreparedStep.after_representative_eq_before,
+      `ProofNetIR.SequentialFigure7.FutureNewCandidateAt.beforePrepared,
+      `ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated
     ]
   },
   {

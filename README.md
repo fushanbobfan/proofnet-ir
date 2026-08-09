@@ -355,9 +355,9 @@ representative. The proof uses `SchedulerInvariant`, exact component
 provenance, `NewGuard`, and declarative reference-switching acyclicity; it does
 not use an exact-run premise or its converse. This closes the
 same-representative raw-mark obstruction only. Tag-only historical touches,
-strictly older representatives, preservation of the cross-representative
-region invariant, exhaustive enabledness, progress, pure-worklist
-completeness, fallback removal, and complexity remain open.
+the full six-rule cross-representative preservation theorem, exhaustive
+enabledness, progress, pure-worklist completeness, fallback removal, and
+complexity remain open.
 `SequentialFigure7CrossRepresentativeInvariant.lean` now fixes the next
 invariant's exact domain without treating flattened queue membership as a
 boundary witness. `FutureWorkAt` covers every position-indexed ready bucket and
@@ -371,9 +371,19 @@ event's *current representative* is strictly below the candidate boundary's
 current representative. It contains no immutable raw-age ordering and no
 symmetric different-component claim. Lean proves the invariant for the exact
 empty history and every exact initialization, and exposes the direct
-older-event-touch elimination lemma. Preservation through `concl`, `nop`,
-`new`, `wait`, `forward`, and arbitrary-payload `unify`, same-representative
-tag-only touch exclusion, exhaustive enabledness, and progress remain open.
+older-event-touch elimination lemma.
+`SequentialFigure7CrossRepresentativeStablePreservation.lean` transports that
+invariant through the synchronized prepared prefix without flattening away a
+candidate's raw-age boundary. Every remaining ready or waiting occurrence is
+recovered in the input at the same exact boundary, union-find parents and hence
+current representatives are unchanged, and an output-unmarked tensor mate
+cannot be the one ready head marked by the prefix. The generic prepared helper
+requires an explicit output equation and reservation-ledger equality because a
+prepared prefix is not itself an `ExecutedHistory` edge. Canonical `concl` and
+`nop` history extensions satisfy those conditions and therefore preserve
+`OlderSourceRegionSeparated`. Preservation through `new`, `wait`, `forward`,
+and arbitrary-payload `unify`, same-representative tag-only touch exclusion,
+exhaustive enabledness, and progress remain open.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1961,6 +1971,7 @@ ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reserva
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
 ProofNetIR/SequentialFigure7CrossRepresentativeInvariant.lean future-work and strictly older representative source-region invariant
+ProofNetIR/SequentialFigure7CrossRepresentativeStablePreservation.lean prepared/concl/nop cross-representative preservation
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -1989,6 +2000,7 @@ ProofNetIRReservationRealizationTests.lean checker-accepted union and final acco
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
+ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
 ProofNetIRNewProgressAudit.lean finite reachable-state NewGuard/new? miss search
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing

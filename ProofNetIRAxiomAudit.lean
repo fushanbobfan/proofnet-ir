@@ -217,6 +217,12 @@ expansion.
 #print axioms SequentialFigure7.OlderSourceRegionSeparated.not_event_touch_of_lt
 #print axioms SequentialFigure7.empty_olderSourceRegionSeparated
 #print axioms SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated
+#print axioms SequentialFigure7.FutureWorkAt.beforePrepared
+#print axioms SequentialFigure7.PreparedStep.after_representative_eq_before
+#print axioms SequentialFigure7.FutureNewCandidateAt.beforePrepared
+#print axioms SequentialFigure7.PreparedStep.olderSourceRegionSeparated
+#print axioms SequentialFigure7.ConclStep.olderSourceRegionSeparated
+#print axioms SequentialFigure7.NopStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker

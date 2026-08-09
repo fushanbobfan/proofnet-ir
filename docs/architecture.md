@@ -732,6 +732,20 @@ not yet prove preservation by later Figure-7 transitions. In particular, new
 ready/waiting conclusions created by `new`, `wait`, `forward`, and `unify`
 require genuine region-disjointness arguments, not merely field transport.
 
+`SequentialFigure7CrossRepresentativeStablePreservation.lean` discharges the
+field-transport part exactly once. `FutureWorkAt.beforePrepared` restores the
+selected head only in the old active ready bucket while preserving every
+surviving occurrence's common `sigma`/`ready` position; waiting storage is
+unchanged. The prepared core changes only the selected raw mark, so all
+union-find representatives are identical before and after. A future tensor
+candidate whose mate remains unmarked cannot use that selected head and is
+therefore already a valid input candidate. The generic preservation theorem
+still requires a concrete output equality and equality of complete
+reservation ledgers, since the prepared middle state has no independent
+history edge. Canonical `concl` and `nop` provide exactly those equalities and
+preserve the invariant. Candidate-creating branches remain separate proof
+obligations rather than consequences of this transport lemma.
+
 `SequentialFigure7ReservationRealization.lean` supplies the second missing
 piece for the reserved axiom itself.  Under explicit certificate structural
 well-formedness, an event-specific

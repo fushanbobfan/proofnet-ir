@@ -18389,6 +18389,126 @@ ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated :
     ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated (ProofNetIR.SequentialFigure7.CanonicalTagHistory.init step)
 ```
 
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.beforePrepared`
+
+Kind: theorem.
+
+Every exact future-work occurrence remaining after the synchronized
+prefix already existed at the same raw-age boundary before the prefix.
+
+For the active ready bucket, the old witness uses the original bucket with
+the selected head restored; waiting cells and all other ready buckets are
+unchanged.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.beforePrepared : ∀ {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before) {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt step.after rawAge vertex →
+    ProofNetIR.SequentialFigure7.FutureWorkAt before rawAge vertex
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.after_representative_eq_before`
+
+Kind: theorem.
+
+The synchronized prefix changes no union-find parent, hence every token
+has the same current representative before and after the prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.after_representative_eq_before : ∀ {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before) (token : ProofNetIR.SequentialSchedulerState.RawTokenAge),
+  step.after.core.representative token = before.core.representative token
+```
+
+### `ProofNetIR.SequentialFigure7.FutureNewCandidateAt.beforePrepared`
+
+Kind: definition.
+
+A future `new` candidate surviving the synchronized prefix was already a
+candidate before it, at the same exact boundary and tensor occurrence.
+
+The only new raw mark belongs to the consumed ready head.  Since the
+post-prefix candidate mate is unmarked, it is distinct from that head and its
+pre-prefix mark was also empty.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureNewCandidateAt.beforePrepared : {certificate : ProofNetIR.Certificate} →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    (step : ProofNetIR.SequentialFigure7.PreparedStep before) →
+      ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate step.after →
+        ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate before
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated`
+
+Kind: theorem.
+
+Cross-representative source-region separation transports through a
+synchronized prefix whenever the output history records the same reservation
+ledger.
+
+The explicit output equation and ledger equality are essential: a
+`PreparedStep` alone is not an `ExecutedHistory` edge and cannot manufacture a
+canonical history for its middle state.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  after = step.after →
+    ∀ {beforeHistory : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+      (beforeTags : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate beforeHistory),
+      ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated beforeTags →
+        ∀ {afterHistory : ProofNetIR.SequentialFigure7.ExecutedHistory certificate after}
+          (afterTags : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate afterHistory),
+          afterTags.reservationLedger = beforeTags.reservationLedger →
+            ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated afterTags
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated`
+
+Kind: theorem.
+
+A canonical `concl` history extension preserves
+`OlderSourceRegionSeparated`.  It contributes no reservation event and its
+output is exactly the prepared middle state.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.concl, after := after }}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated prior →
+    ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated
+      (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.concl step))
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated`
+
+Kind: theorem.
+
+A canonical `nop` history extension preserves
+`OlderSourceRegionSeparated`.  Like `concl`, it contributes no reservation
+event and its output is exactly the prepared middle state.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.nop, after := after }}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated prior →
+    ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated
+      (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.nop step))
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

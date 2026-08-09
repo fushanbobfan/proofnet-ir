@@ -503,8 +503,18 @@ preserved, not an assumed field of `SchedulerInvariant`: its only order premise
 uses the current ordered union-find representative. The exact empty proof is
 vacuous and the initialization proof reduces strict order to `r < r`; no
 search result, runtime test, raw-age chronology, or unproved disjointness is
-inserted. Preservation after initialization and the new region obligations of
-the later rules remain theorem work.
+inserted. At that foundation checkpoint, no later-rule preservation was
+proved; the stable module below now covers the prepared, `concl`, and `nop`
+cases, while the candidate-creating branches remain theorem work.
+`SequentialFigure7CrossRepresentativeStablePreservation.lean` adds no
+reachability, ordering, or region-disjointness oracle. Its prepared-prefix
+helpers are derived from the exact `popReadyMark?` and `markReadyRaw?`
+equations. The only candidate-specific argument excludes equality between the
+post-state unmarked tensor mate and the uniquely newly marked ready head; the
+input lookup then follows from the concrete array update equation. The generic
+history transport requires full ledger equality, while the canonical `concl`
+and `nop` corollaries derive that equality from their empty reservation-event
+lists. No claim is made for any branch that creates or moves future work.
 `SequentialFigure7ReservationRealization.lean` introduces no component oracle.
 Under the public theorems' explicit certificate structural-well-formedness
 premise, it inducts over the same proof-carrying canonical history and
@@ -559,9 +569,9 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 782
-declarations: 507 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
-axiom-free, 118 use exactly `[propext]`, and 132 use exactly
+evidence, not public three-axiom theorems. The exact trust audit now covers 788
+declarations: 510 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+axiom-free, 119 use exactly `[propext]`, and 134 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a

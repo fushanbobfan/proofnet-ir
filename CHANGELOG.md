@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CrossRepresentativeStablePreservation.lean`. Exact
+  ready/sigma positions and waiting cells transport backwards through the
+  synchronized pop/raw-mark prefix, every current representative is unchanged
+  because the prefix preserves union-find parents, and a post-prefix unmarked
+  tensor mate is proved distinct from the newly marked ready head and therefore
+  was unmarked before the prefix. A generic prepared-prefix theorem transports
+  `OlderSourceRegionSeparated` only under an explicit output equation and
+  reservation-ledger equality; the canonical `concl` and `nop` history
+  extensions instantiate it because they add no reservation event and return
+  exactly the prepared state. A dedicated public consumer and CI target cover
+  the new API. This does not turn a prepared prefix into an `ExecutedHistory`
+  edge and makes no preservation claim for `new`, `wait`, `forward`, or
+  arbitrary-payload `unify`. Those candidate-creating branches,
+  same-representative tag-only touch exclusion, exhaustive enabledness,
+  progress, pure-worklist completeness, recursive fallback removal, faithful
+  token-age scheduling, and whole-program complexity remain open. The exact
+  public axiom audit now covers 788 declarations: 510 full-classical, 25
+  axiom-free, 119 `propext`-only, and 134 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CrossRepresentativeInvariant.lean`. The new
   `FutureWorkAt` relation retains either an exact common `sigma`/`ready`
   position or an exact initialized waiting cell, and the complete scheduler
@@ -15,12 +33,13 @@
   predicate for the exact empty history and every successful initialization,
   and an event-local touch is immediately excluded from a strictly newer
   candidate region. A dedicated consumer and CI target cover the public API.
-  This is the invariant foundation, not yet its six-rule preservation:
+  At that checkpoint this was the invariant foundation without later-rule
+  preservation:
   `concl`, `nop`, `new`, `wait`, `forward`, arbitrary-payload `unify`,
   same-representative tag-only touch exclusion, exhaustive enabledness,
   progress, pure-worklist completeness, recursive fallback removal, faithful
-  token-age scheduling, and whole-program complexity remain open. The exact
-  public axiom audit now covers 782 declarations: 507 full-classical, 25
+  token-age scheduling, and whole-program complexity remained open. The exact
+  public axiom audit at that checkpoint covered 782 declarations: 507 full-classical, 25
   axiom-free, 118 `propext`-only, and 132 `propext`/`Quot.sound` boundaries;
 - added `SequentialComponentReferenceGeometry.lean` and
   `SequentialFigure7SameRepresentativeGeometry.lean`. Exact occurrence
