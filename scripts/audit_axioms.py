@@ -74,6 +74,18 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
     "ProofNetIR.SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created",
+    "ProofNetIR.SequentialFigure7.NewStep."
+    "created_sourceRegion_not_selected_of_structural_acyclic",
+    "ProofNetIR.SequentialFigure7.NewStep."
+    "created_sourceRegion_not_selected",
+    "ProofNetIR.SequentialFigure7.NewStep."
+    "no_middle_futureWork_at_fresh",
+    "ProofNetIR.SequentialFigure7.NewStep."
+    "retained_mark_strictly_older_than_fresh",
+    "ProofNetIR.SequentialFigure7.NewStep."
+    "created_rawMarksSeparatedFrom_of_retained",
+    "ProofNetIR.SequentialFigure7.NewStep."
+    "olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeWaitOrInserted",
     "ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created",
     "ProofNetIR.SequentialFigure7.ForwardStep.after_representative_eq_prepared",

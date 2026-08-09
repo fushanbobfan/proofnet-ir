@@ -168,8 +168,14 @@ raw-mark separation layer turns owner exclusion into a precise state
 invariant, proves its empty/initial and Prepared/concl/nop cases, and derives
 active-region no-mark/no-owner from it. That is also a code consequence, not a
 new literature reading. Global preservation of both older-event and older-raw-
-mark separation through the candidate-creating rules remains open. Ownership
-through a complete reachable transition system, richer
+mark separation through the candidate-creating rules remains open. The New
+raw-mark branch is now conditionally transported: switching acyclicity removes
+the selected-mark/created-candidate case, and
+`NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.
+This is a kernel-checked code consequence, not a new literature reading or a
+proof that canonical histories satisfy the seam. Wait/Forward/Unify raw-mark
+preservation remains open. Ownership through a complete reachable transition
+system, richer
 route/tag/slot history commitments, later-state totality, progress, and
 pure-worklist completeness remain open.
 

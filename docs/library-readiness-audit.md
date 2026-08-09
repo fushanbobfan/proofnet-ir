@@ -747,8 +747,17 @@ part of the engineering and proof-identity gap.
    complete scheduler invariant exclude every concrete raw mark and every
    exact marked owner from the active mate region, so the existing
    availability theorem yields `NewEnabled`. This is not global availability:
-   preservation through New/Wait/Forward/Unify still needs rule-specific
-   created-candidate raw geometry, and progress remains open.
+   rule-specific created-candidate raw geometry and progress remain open.
+   `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
+   New preservation step under the exact residual
+   `NewRetainedRawMarksSeparated` condition. The selected mark versus created
+   candidate case is discharged from reference-switching acyclicity; retained
+   candidates transport through Prepared, leaving only input-retained marks
+   versus created regions in the premise. The fresh candidate cannot be
+   represented by middle-state `FutureWorkAt`, so this is a genuine
+   transition-local seam. Canonical history/reachability does not yet supply
+   the seam, Wait/Forward/Unify preservation is still open, and this is not
+   global availability or progress.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
    specific reachable-state gap around `NewGuard`: it considers only states
    reached by successful initialization and the canonical dispatcher and hard
@@ -874,7 +883,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 832 declarations: 550 public MLL
+- CI now parses `#print axioms` for 838 declarations: 556 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

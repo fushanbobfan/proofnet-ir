@@ -1056,10 +1056,14 @@
     no-owner corollary is conditional. The new state-only older-raw-mark
     separation invariant now proves that corollary, and hence `NewEnabled`,
     when supplied: empty/init and Prepared/concl/nop are kernel-closed. Global
-    preservation through New/Wait/Forward/Unify remains open because each may
-    create a new future candidate whose source-left region must be separated
-    from existing marks. Preserving older-event separation remains the parallel
-    history obligation; neither result alone is progress.
+    preservation still requires created-candidate geometry. The typed New step
+    is now conditionally closed: its selected mark is structurally excluded
+    from every created endpoint region, retained candidates transport, and the
+    sole residual `NewRetainedRawMarksSeparated` premise covers input-retained
+    marks versus created regions. Deriving that premise for canonical histories
+    remains open, as do Wait/Forward/Unify raw-mark preservation. Preserving
+    older-event separation remains the parallel history obligation; neither
+    result alone is progress.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

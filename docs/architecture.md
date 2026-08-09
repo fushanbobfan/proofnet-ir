@@ -835,6 +835,18 @@ whose marked-middle representative is strictly smaller than the fresh root.
 That side condition is not derived from the scheduler invariant, so the module
 makes no unconditional New claim.
 
+`SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` uses that exact New
+candidate decomposition to close the parallel raw-mark transport once its
+transition-local residual premise is supplied. Retained work uses prepared
+preservation. For a created endpoint, reference-switching acyclicity excludes
+the selected head from its source-left region in both tensor-complexity orders.
+Thus only marks already present in the input remain to be separated from
+created regions; `NewRetainedRawMarksSeparated` states precisely that
+obligation. The fresh age is the marked-middle horizon, so no middle-state
+future candidate can express this case through the old bundled invariant. The
+module does not derive the residual premise from history or reachability and
+adds no Wait, Forward, UnifyPayload, or progress theorem.
+
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` isolates the
 first such branch without assuming its missing geometry. Exact waiting-cell
 equations classify every post-Wait future-work occurrence as either retained

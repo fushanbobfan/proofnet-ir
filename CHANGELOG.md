@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean`. For every
+  successful typed `NewStep`, Lean splits output candidates into retained work
+  and the exact reached/partner endpoints created at the fresh raw age. The
+  selected ready head is outside every created candidate source-left region by
+  structural reference-switching acyclicity; retained marks are strictly older
+  than the fresh root, and the fresh age cannot already index middle-state
+  future work. The resulting theorem preserves
+  `OlderRawMarkedRegionSeparated` under the sole residual
+  `NewRetainedRawMarksSeparated` premise for input-retained marks against
+  created regions. It does not derive that premise from canonical history or
+  reachability, preserve the invariant through Wait/Forward/Unify, or prove
+  progress. A direct consumer invokes all seven public APIs; facade, default
+  target, CI, generated API, and trust audit are wired. The current public
+  axiom audit covers 838 declarations: 556 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionSeparation.lean`. The new
   state-only `OlderRawMarkedRegionSeparated` invariant separates every
   strictly older concrete raw mark from each queued future-New source-left
@@ -17,8 +32,9 @@
   `unifyPayload` is claimed: their created-candidate raw geometry remains an
   explicit next obligation, so this is not global invariant availability or a
   progress result. A direct consumer invokes the full public API; facade,
-  default target, CI, generated API, and trust audit are wired. The current
-  public axiom audit covers 832 declarations: 550 full-classical, 25
+  default target, CI, generated API, and trust audit are wired. At that
+  checkpoint the public axiom audit covered 832 declarations: 550
+  full-classical, 25
   axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveRegionAvailability.lean`. Under declarative
   correctness, the complete scheduler invariant, an active `NewGuard`, and

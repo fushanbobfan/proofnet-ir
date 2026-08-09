@@ -19285,6 +19285,135 @@ ProofNetIR.SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created : ∀
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.new step))
 ```
 
+### `ProofNetIR.SequentialFigure7.NewRetainedRawMarksSeparated`
+
+Kind: definition.
+
+The new raw-mark geometry required from the caller of `new` preservation:
+every raw mark retained from the input state and strictly older than the fresh
+raw age lies outside every source-left region created by this step.
+
+The predicate contains no history or reachability witness and no additional
+executor result or equation beyond the supplied typed `NewStep`.
+
+```lean
+ProofNetIR.SequentialFigure7.NewRetainedRawMarksSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.created_sourceRegion_not_selected_of_structural_acyclic`
+
+Kind: theorem.
+
+Under structural well-formedness and reference-switching acyclicity, the
+selected head of a successful `new` lies outside every source-left region of
+a candidate created by that step.
+
+This theorem is independent of scheduler invariants, tag history, and raw-age
+ordering.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.created_sourceRegion_not_selected_of_structural_acyclic : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    certificate.referenceSwitchingGraph.Acyclic →
+      ∀ (step : ProofNetIR.SequentialFigure7.NewStep certificate before after)
+        (created : ProofNetIR.SequentialFigure7.NewCreatedCandidate certificate step),
+        ¬ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate created.tensor.mate step.stackResult.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.created_sourceRegion_not_selected`
+
+Kind: theorem.
+
+Declarative correctness supplies the structural and reference-switching
+acyclicity assumptions needed to exclude the selected head from every source
+region created by a successful `new`.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.created_sourceRegion_not_selected : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.NewStep certificate before after)
+      (created : ProofNetIR.SequentialFigure7.NewCreatedCandidate certificate step),
+      ¬ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate created.tensor.mate step.stackResult.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.no_middle_futureWork_at_fresh`
+
+Kind: theorem.
+
+The fresh raw age is exactly the marked-middle horizon, so no future work
+in the marked middle state can occur at that age.  Consequently the existing
+state invariant cannot be instantiated directly at a created candidate.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.no_middle_futureWork_at_fresh : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ {vertex : ProofNetIR.Vertex},
+      ¬ProofNetIR.SequentialFigure7.FutureWorkAt step.markedMiddle
+          (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.retained_mark_strictly_older_than_fresh`
+
+Kind: theorem.
+
+Every concrete raw mark retained from the input state is strictly older
+than the fresh raw age when representatives are measured in the marked middle
+state.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.retained_mark_strictly_older_than_fresh : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+      before.core.marks[vertex]? = some (some rawAge) →
+        step.markedMiddle.core.representative rawAge <
+          step.markedMiddle.core.representative (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.created_rawMarksSeparatedFrom_of_retained`
+
+Kind: theorem.
+
+The retained-mark side condition, together with the order-free
+selected-head exclusion under declarative correctness, establishes the full
+raw-mark separation primitive for each candidate created by the successful
+`new`.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.created_rawMarksSeparatedFrom_of_retained : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+      ProofNetIR.SequentialFigure7.NewRetainedRawMarksSeparated step →
+        ∀ (created : ProofNetIR.SequentialFigure7.NewCreatedCandidate certificate step),
+          ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom certificate step.markedMiddle
+            (ProofNetIR.SequentialFigure7.ReservationEvent.new step).rawAge created.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.olderRawMarkedRegionSeparated`
+
+Kind: theorem.
+
+A successful `new` preserves older raw-marked region separation provided
+the caller supplies exactly the retained-input-mark versus created-candidate
+side condition.  Retained candidates use prepared-prefix preservation, while
+created candidates use `created_rawMarksSeparatedFrom_of_retained`.
+
+No reachability or canonical-history assumption is silently strengthened into
+the retained-mark side condition.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.olderRawMarkedRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+      ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+        ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate before →
+          ProofNetIR.SequentialFigure7.NewRetainedRawMarksSeparated step →
+            ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
+```
+
 ### `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before`
 
 Kind: theorem.

@@ -593,6 +593,15 @@ actual endpoint's tensor-below data and marked-middle unmarked-mate lookup.
 The final theorem is explicitly conditional on `NewCreatedRegionSeparated`
 for prior events against those created candidates. No executable result is
 imported into the proof.
+`SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` uses that exact
+New candidate decomposition without adding a history or reachability oracle.
+It is indexed by an already successful typed `NewStep`; the only additional
+geometric premise is `NewRetainedRawMarksSeparated`. Exact step equations
+transport marks and representatives, while structural correctness and
+reference-switching acyclicity independently exclude the selected head from
+every created region. The proof does not infer the retained-mark premise from
+executable audits, canonical history, or scheduler reachability, and it does
+not preserve the invariant through Wait/Forward/Unify or prove progress.
 `SequentialFigure7CrossRepresentativeForwardPreservation.lean` likewise adds
 no hidden source-region oracle. Its output-work classification follows from
 the exact active-ready prepend plus unchanged sigma and waiting fields.
@@ -674,8 +683,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 832
-declarations: 550 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 838
+declarations: 556 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

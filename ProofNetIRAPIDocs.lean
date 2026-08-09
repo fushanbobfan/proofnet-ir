@@ -1540,6 +1540,25 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.NewStep
         "olderSourceRegionSeparated_of_created",
+      `ProofNetIR.SequentialFigure7.NewRetainedRawMarksSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "created_sourceRegion_not_selected_of_structural_acyclic",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "created_sourceRegion_not_selected",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "no_middle_futureWork_at_fresh",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "retained_mark_strictly_older_than_fresh",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "created_rawMarksSeparatedFrom_of_retained",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "olderRawMarkedRegionSeparated",
       Name.str
         `ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep
         "after_representative_eq_before",

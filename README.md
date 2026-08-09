@@ -439,9 +439,7 @@ scheduler invariant, every raw mark in the active mate region is excluded,
 and the occurrence-exact owner/mark equivalence supplies precisely the
 owner-clear premise above. This closes the conditional old-owner branch once
 the raw-mark invariant is supplied. It does not prove that invariant for every
-history or preserve it through candidate-creating `new`, `wait`, `forward`, or
-`unifyPayload`; those branches require separate created-raw geometry and no
-progress, totality, worklist-completeness, or fallback-removal claim follows.
+history; candidate-creating rules require separate created-raw geometry.
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` transports
 `OlderSourceRegionSeparated` through the synchronized prepared prefix without
 flattening away a candidate's raw-age boundary. Every remaining ready or
@@ -465,6 +463,17 @@ new-endpoint cases are packaged by `NewCreatedCandidate`, and the history
 theorem is deliberately conditional on the explicit, non-circular
 `NewCreatedRegionSeparated` geometry. The current scheduler invariant does not
 derive that premise, so no unconditional `new` preservation is claimed.
+`SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` then handles the
+parallel raw-mark invariant. It classifies every successful `new` output
+candidate as retained work or an exact reached/partner endpoint at the fresh
+age. Structural reference-switching acyclicity excludes the newly selected
+mark from every created candidate region, while prepared-prefix preservation
+handles retained candidates. The sole residual premise,
+`NewRetainedRawMarksSeparated`, keeps input-retained marks outside created
+regions. This premise differs from the event-side
+`NewCreatedRegionSeparated`; canonical history and reachability derive neither
+one yet. Wait/Forward/Unify raw-mark preservation remains open, and no progress,
+totality, worklist-completeness, or fallback-removal claim follows.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` next separates a
 successful `wait` output into retained middle-state work or the exact
 conclusion inserted at the destination boundary. Retained candidates use the
@@ -1931,7 +1940,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 832 declarations: 550 public MLL logical-boundary theorems
+separately audits 838 declarations: 556 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2032,6 +2041,7 @@ lake exe proofnet_ir_older_raw_marked_region_separation_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
+lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
 lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
 lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
@@ -2138,6 +2148,8 @@ ProofNetIR/SequentialFigure7OlderRawMarkedRegionSeparation.lean
   state-only older-raw-mark region separation and active owner exclusion
 ProofNetIR/SequentialFigure7CrossRepresentativeNewPreservation.lean
   conditional New introduced-candidate preservation
+ProofNetIR/SequentialFigure7OlderRawMarkedRegionNewPreservation.lean
+  conditional New preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeWaitPreservation.lean
   conditional Wait introduced-candidate preservation
 ProofNetIR/SequentialFigure7CrossRepresentativeForwardPreservation.lean
@@ -2180,6 +2192,8 @@ ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and repr
 ProofNetIRSameRepresentativeEventTouchTests.lean same-representative historical event-touch consumers
 ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
 ProofNetIRCrossRepresentativeNewPreservationTests.lean conditional New preservation consumers
+ProofNetIROlderRawMarkedRegionNewPreservationTests.lean
+  conditional New raw-mark preservation consumers
 ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preservation consumers
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers
 ProofNetIRCrossRepresentativeUnifyPayloadPreservationTests.lean
