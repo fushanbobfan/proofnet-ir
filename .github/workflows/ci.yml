@@ -55,6 +55,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_same_representative_event_touch_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_invariant_tests
           ~/.elan/bin/lake exe proofnet_ir_older_event_touch_separation_tests
+          ~/.elan/bin/lake exe proofnet_ir_active_region_touch_order_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_stable_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_new_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_wait_preservation_tests

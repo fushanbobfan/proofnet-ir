@@ -141,9 +141,10 @@ live component. The three alternatives may overlap. An explicit universal
 no-obstruction premise yields the exact run and the established
 `NewInputNecessary`/`NewEnabled` bridges, but deriving that premise from
 correctness and certified history is still open. The exact historical-event
-touch subcase is now excluded when its current representative equals the
-active head representative; strict older-event geometry and old marked-owner
-blockers remain. Authentic reservation-event touch is now also exactly
+touch subcase is excluded when its current representative equals the active
+head representative, and the active-region order layer below classifies every
+remaining touch as strictly older. Global older-event separation and old
+marked-owner blockers remain. Authentic reservation-event touch is now exactly
 equivalent to membership in that event's complete structural source-left
 region under structural well-formedness. This reverse direction reconstructs
 only the successful run stored by the event and supplies no new current-owner,
@@ -153,10 +154,15 @@ not record a new literature reading. The resulting event-touch predicate is
 now proved equivalent to the older-region separation invariant under the same
 structural assumption, with identical ledger/candidate/current-representative
 quantification. That is a proof-interface normalization, not a new paper claim
-or a proof that the invariant is globally available. Ownership
-through a complete reachable transition
-system, richer route/tag/slot history commitments, later-state totality,
-progress, and pure-worklist completeness remain open.
+or a proof that the invariant is globally available. The active-region order
+layer now derives a further code consequence: an authentic event touch in the
+active mate region must be strictly older in representative and raw-age order,
+and a supplied older-event separation invariant therefore makes the complete
+region tag-fresh. It does not add a literature reading or provide the route,
+readiness, queue/capacity, or global-invariant witnesses still needed for
+enabledness. Ownership through a complete reachable transition system, richer
+route/tag/slot history commitments, later-state totality, progress, and
+pure-worklist completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,
 [*A linear algorithm for MLL proof net correctness and

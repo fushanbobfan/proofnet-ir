@@ -1,6 +1,7 @@
 import ProofNetIR
 
 open ProofNetIR
+open ProofNetIR.SequentialFigure7
 
 /-!
 This file is compiled separately by the trust audit.  Its output is parsed by
@@ -225,6 +226,16 @@ expansion.
 #print axioms SequentialFigure7.OlderSourceRegionSeparated.olderEventTouchSeparated
 #print axioms SequentialFigure7.OlderEventTouchSeparated.olderSourceRegionSeparated
 #print axioms SequentialFigure7.OlderEventTouchSeparated.iff_olderSourceRegionSeparated
+#print axioms
+  CanonicalTagHistory.event_touch_active_region_implies_representative_lt
+#print axioms
+  CanonicalTagHistory.event_touch_active_region_implies_rawAge_lt
+#print axioms
+  CanonicalTagHistory.event_touchSeparatedFrom_active_sourceLeftRegion_of_olderEventTouchSeparated
+#print axioms
+  CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderEventTouchSeparated
+#print axioms
+  CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated
 #print axioms SequentialFigure7.empty_olderSourceRegionSeparated
 #print axioms SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.FutureWorkAt.beforePrepared

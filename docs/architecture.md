@@ -766,6 +766,19 @@ declarative correctness forbids. This theorem does not reconstruct a fresh
 run and does not cover a strictly older event, an old marked owner, or any
 rule-created candidate preservation premise.
 
+`SequentialFigure7ActiveRegionTouchOrder.lean` combines those equality and
+strict-order interfaces. Ledger membership and `RealizesSigma` bound every
+historical event representative by the active sigma root; the theorem above
+excludes equality whenever the event touched the active mate region. Such an
+overlap is therefore strictly older in current-representative order, and the
+sigma-top interval law also makes its immutable raw age strictly smaller than
+the active raw age. Under `OlderEventTouchSeparated`, that strict order rules
+out every ledger-event touch in the active region and blocker provenance makes
+every region tag `some false`. This remains conditional on the supplied
+history invariant and does not construct a route/run, establish raw readiness
+or queue capacity, prove `NewEnabled`, or discharge a created-candidate
+preservation premise.
+
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` discharges the
 field-transport part exactly once. `FutureWorkAt.beforePrepared` restores the
 selected head only in the old active ready bucket while preserving every

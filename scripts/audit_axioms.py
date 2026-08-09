@@ -33,6 +33,16 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated.olderEventTouchSeparated",
     "ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.iff_olderSourceRegionSeparated",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "event_touch_active_region_implies_representative_lt",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "event_touch_active_region_implies_rawAge_lt",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "event_touchSeparatedFrom_active_sourceLeftRegion_of_olderEventTouchSeparated",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_sourceLeftRegion_tagFresh_of_olderEventTouchSeparated",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.InitialReservationStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated",

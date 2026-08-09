@@ -534,6 +534,15 @@ reference-switching acyclicity field of `DeclarativelyCorrect`; it does not use
 an executable audit, a reconstructed `FreshSourceLeftRun`, or the desired
 created-region invariant. Its conclusion is limited to representative
 equality and cannot be reused as a strictly-older or old-owner theorem.
+`SequentialFigure7ActiveRegionTouchOrder.lean` adds no geometric or execution
+oracle. Ledger chronology, sigma realization, and the active-root facts first
+give a non-strict representative bound; the preceding correctness theorem
+excludes equality only when an authentic event touch meets the active region.
+The resulting strict order is then consumed by the explicitly supplied
+`OlderEventTouchSeparated`. Tag freshness follows by mapping a failed tag
+lookup through canonical touch provenance to a concrete ledger event. No
+runtime audit, route/run existence, raw readiness, queue/capacity witness,
+created-region premise, or progress result enters these theorems.
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` adds no
 reachability, ordering, or region-disjointness oracle. Its prepared-prefix
 helpers are derived from the exact `popReadyMark?` and `markReadyRaw?`
@@ -645,8 +654,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 815
-declarations: 534 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 820
+declarations: 539 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 121 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

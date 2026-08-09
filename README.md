@@ -403,6 +403,19 @@ representative antecedent, and Lean proves the two history predicates
 equivalent. This normalization does not establish either predicate for an
 arbitrary history, discharge any New/Wait/Forward/Unify created-region premise,
 or prove enabledness or progress.
+`SequentialFigure7ActiveRegionTouchOrder.lean` combines that touch form with
+the same-representative switching theorem. Any authentic ledger-event touch of
+the active `NewGuard` mate region is strictly older than the active ready head
+in both current-representative and immutable raw-age order. Given
+`OlderEventTouchSeparated`, every ledger event is touch-separated from that
+region and every region occurrence has input tag `some false`; the structural
+invariant is accepted through a compatibility theorem. This is conditional
+conflict classification and tag freshness only. It does not construct a
+`FreshSourceLeftRoute` or `FreshSourceLeftRun`, prove raw-mark or endpoint
+readiness, queue absence or fresh waiting capacity, establish
+`OperationalNewReadyAt` or `NewEnabled`, discharge global invariant
+availability or created-candidate preservation, or prove progress, totality,
+completeness, or fallback removal.
 `SequentialFigure7CrossRepresentativeStablePreservation.lean` transports that
 invariant through the synchronized prepared prefix without flattening away a
 candidate's raw-age boundary. Every remaining ready or waiting occurrence is
@@ -1891,7 +1904,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 815 declarations: 534 public MLL logical-boundary theorems
+separately audits 820 declarations: 539 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1985,6 +1998,7 @@ lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_reservation_ledger_tests
 lake exe proofnet_ir_touch_completeness_tests
 lake exe proofnet_ir_older_event_touch_separation_tests
+lake exe proofnet_ir_active_region_touch_order_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
@@ -2086,6 +2100,7 @@ ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component sou
 ProofNetIR/SequentialFigure7SameRepresentativeEventTouch.lean same-representative historical event-touch exclusion
 ProofNetIR/SequentialFigure7CrossRepresentativeInvariant.lean future-work and strictly older representative source-region invariant
 ProofNetIR/SequentialFigure7OlderEventTouchSeparation.lean exact older-region/event-touch invariant equivalence
+ProofNetIR/SequentialFigure7ActiveRegionTouchOrder.lean active mate-region conflict order and conditional tag freshness
 ProofNetIR/SequentialFigure7CrossRepresentativeStablePreservation.lean prepared/concl/nop cross-representative preservation
 ProofNetIR/SequentialFigure7CrossRepresentativeNewPreservation.lean
   conditional New introduced-candidate preservation
@@ -2121,6 +2136,7 @@ ProofNetIRTouchOriginTests.lean exact canonical touch-origin consumer fixtures
 ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger consumers
 ProofNetIRTouchCompletenessTests.lean reservation-event touch/region completeness API consumers
 ProofNetIROlderEventTouchSeparationTests.lean older-region/event-touch equivalence API consumers
+ProofNetIRActiveRegionTouchOrderTests.lean active-region conflict-order and tag-freshness API consumers
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers

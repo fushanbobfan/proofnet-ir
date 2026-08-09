@@ -18623,6 +18623,113 @@ ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.iff_olderSourceRegionSepar
       ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated tagHistory)
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touch_active_region_implies_representative_lt`
+
+Kind: theorem.
+
+If a historical reservation event touches the active `NewGuard` source-left
+region, its current representative is strictly older than the active ready
+head's representative.
+
+This is a conflict-order theorem.  It neither excludes the conflict nor proves
+that the guarded `new` execution succeeds.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touch_active_region_implies_representative_lt : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          ∀ {vertex : ProofNetIR.Vertex},
+            event.Touched vertex →
+              ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+                before.core.representative event.rawAge < before.core.representative guard.head.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touch_active_region_implies_rawAge_lt`
+
+Kind: theorem.
+
+An active-region historical-touch conflict is also strictly ordered by the
+events' immutable raw ages.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touch_active_region_implies_rawAge_lt : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          ∀ {vertex : ProofNetIR.Vertex},
+            event.Touched vertex →
+              ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+                event.rawAge < guard.head.rawAge
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touchSeparatedFrom_active_sourceLeftRegion_of_olderEventTouchSeparated`
+
+Kind: theorem.
+
+Under older-event touch separation, every ledger event is touch-separated
+from the active `NewGuard` source-left region.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touchSeparatedFrom_active_sourceLeftRegion_of_olderEventTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+          ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+            event ∈ tagHistory.reservationLedger → event.TouchSeparatedFrom guard.tensor.mate
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderEventTouchSeparated`
+
+Kind: theorem.
+
+Older-event touch separation makes every occurrence in the active
+`NewGuard` source-left region false in the current input tag carrier.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderEventTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+          ∀ {vertex : ProofNetIR.Vertex},
+            ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+              before.tags[vertex]? = some false
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated`
+
+Kind: theorem.
+
+Compatibility form of active-region tag freshness for the existing
+structural older-source-region invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated tagHistory →
+          ∀ {vertex : ProofNetIR.Vertex},
+            ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+              before.tags[vertex]? = some false
+```
+
 ### `ProofNetIR.SequentialFigure7.empty_olderSourceRegionSeparated`
 
 Kind: theorem.

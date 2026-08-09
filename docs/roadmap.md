@@ -1042,9 +1042,12 @@
     sufficiency, progress, totality, or completeness result.
     The same-current-representative prior-event-touch slice is now
     kernel-excluded by exact reservation realization and reference-switching
-    geometry. Remaining work must cover the representative-order alternatives
-    needed for strictly older events and eliminate old exact marked owners;
-    this checkpoint alone is not the universal premise.
+    geometry. The conditional active-region order theorem now classifies any
+    remaining event touch as strictly older in representative and raw-age order;
+    with `OlderEventTouchSeparated`, it excludes that touch and proves the
+    complete active region tag-fresh. Remaining work must establish the
+    separation invariant for the relevant histories and eliminate old exact
+    marked owners; this checkpoint alone is not the universal premise.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger

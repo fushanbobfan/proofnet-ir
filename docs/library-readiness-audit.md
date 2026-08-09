@@ -721,6 +721,15 @@ part of the engineering and proof-identity gap.
    reference-switching acyclicity. It does not cover strictly older events,
    old marked owners, the four created-region premises, exhaustive
    enabledness, or progress.
+   `SequentialFigure7ActiveRegionTouchOrder.lean` now classifies the remaining
+   historical-touch order for the active `NewGuard` mate region. Every overlap
+   is strictly older than the active head in both current-representative and
+   immutable raw-age order. Supplying `OlderEventTouchSeparated` excludes all
+   ledger-event touches from that region and proves each region tag is
+   `some false`; the older structural invariant has a compatibility theorem.
+   This is conditional tag freshness, not route/run construction, raw or
+   endpoint readiness, queue/capacity evidence, global invariant availability,
+   `NewEnabled`, or progress.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
    specific reachable-state gap around `NewGuard`: it considers only states
    reached by successful initialization and the canonical dispatcher and hard
@@ -846,7 +855,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 815 declarations: 534 public MLL
+- CI now parses `#print axioms` for 820 declarations: 539 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

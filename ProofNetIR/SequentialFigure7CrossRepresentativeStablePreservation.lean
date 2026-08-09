@@ -1,4 +1,4 @@
-import ProofNetIR.SequentialFigure7OlderEventTouchSeparation
+import ProofNetIR.SequentialFigure7ActiveRegionTouchOrder
 
 namespace ProofNetIR
 

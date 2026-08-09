@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveRegionTouchOrder.lean`. Under
+  `DeclarativelyCorrect`, `SchedulerInvariant`, `CanonicalTagHistory`, and
+  `NewGuard`, any authentic historical event touch of the active mate region
+  is strictly older in both current-representative and immutable raw-age
+  order. Given `OlderEventTouchSeparated`, Lean excludes every ledger-event
+  touch from that region and proves that every region occurrence has input
+  tag `some false`; a compatibility theorem accepts
+  `OlderSourceRegionSeparated`. This closes only the conditional
+  historical-tag slice, not route/run construction, raw readiness,
+  endpoint/queue/capacity
+  obligations, `NewEnabled`, or progress. A direct consumer invokes all five
+  public APIs; the facade, default target, CI, generated API, and trust audit
+  are wired. The current public axiom audit covers 820 declarations: 539
+  full-classical, 25 axiom-free, 121 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventTouchSeparation.lean`. The new
   `ReservationEvent.TouchSeparatedFrom` predicate states directly that an
   authentic historical event touched no occurrence in another complete
@@ -14,9 +29,9 @@
   This is a semantic normalization, not a proof that either invariant holds in
   every history, a discharge of any created-candidate premise, or a progress
   theorem. A direct consumer invokes every public API; the facade, default
-  target, CI, generated API, and trust audit are wired. The current public
-  axiom audit covers 815 declarations: 534 full-classical, 25 axiom-free, 121
-  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+  target, CI, generated API, and trust audit are wired. At that checkpoint the
+  public axiom audit covered 815 declarations: 534 full-classical, 25
+  axiom-free, 121 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7TouchCompleteness.lean`. Structural well-formedness
   makes a supplied exact source-left run complete for its structural region:
   every region vertex is in the run trace or is its terminal partner. Every
