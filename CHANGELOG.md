@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean`.
+  Exact stack equations classify output future work as a survivor at its
+  prepared boundary, an active-bucket item moved to the previous boundary, or
+  the tensor conclusion inserted at that previous boundary; the alternatives
+  are a covering decomposition, not an asserted disjoint sum. The tensor union
+  redirects exactly the retired active representative class to the previous
+  boundary. Any prior event that is strictly older than an output candidate is
+  therefore outside that retired class, while moved candidates transport back
+  through the prior active boundary. The only remaining old-event/inserted-
+  conclusion geometry is the explicit, non-circular
+  `UnifyPayloadCreatedRegionSeparated` premise. The history theorem is
+  conditional on that premise and makes no unconditional Unify, progress, or
+  completeness claim. A dedicated consumer, default target, API manifest,
+  trust audit, and CI command cover the layer. The combined finite search
+  replays 328,848 successful Unify steps, including 528,204 retired-event
+  representative remaps, 163,806 moved candidates, 58,056 actual inserted-
+  conclusion candidates, and 243,570 strict prior-event comparisons, with zero
+  intersections or decoder, representative, ledger, and region failures. This
+  finite evidence does not derive `UnifyPayloadCreatedRegionSeparated`. The
+  exact public axiom audit now covers 802 declarations: 523 full-classical, 25
+  axiom-free, 120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CrossRepresentativeNewPreservation.lean`. Exact
   operational-enqueue equations classify every output future-work occurrence
   as retained marked-middle work or one of the reached/partner endpoints at the

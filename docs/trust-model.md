@@ -546,10 +546,23 @@ data and prepared-middle mate-unmarked lookup. The final theorem is explicitly
 conditional on `ForwardCreatedRegionSeparated`, the remaining source-region
 obligation for strictly older prior ledger events. The preferred
 `--cross-representative-search` mode and its `--wait-search` compatibility
-alias use exact New/Forward transition replay, exact Wait payload decoding,
-and independent nonzero coverage gates, including both New endpoints. No
+alias use exact New/Forward/Unify transition replay, exact Wait payload
+decoding, and independent nonzero coverage gates, including both New endpoints
+and the Unify retired-class and moved-candidate paths. No
 finite audit result is imported into any theorem, and no unconditional New,
-Wait, or Forward preservation follows.
+Wait, Forward, or Unify preservation follows.
+`SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` adds no
+representative-stability or region oracle. Its exact if-map is derived from the
+typed tensor union, with the active class redirected to the previous root and
+all other prepared representatives retained. Exact output stack equations
+bound every candidate at or below that previous boundary, which excludes a
+retired-class event from the strict-older antecedent. The standalone
+`UnifyPayloadCreatedCandidate` contains only the inserted conclusion's
+tensor-below data and prepared-state mate-unmarked lookup. The final theorem is
+explicitly conditional on `UnifyPayloadCreatedRegionSeparated`. The executable
+audit replays the full union, payload activation, and drain and checks the
+representative map, but no finite result is imported into the theorem and no
+unconditional Unify preservation follows.
 `SequentialFigure7ReservationRealization.lean` introduces no component oracle.
 Under the public theorems' explicit certificate structural-well-formedness
 premise, it inducts over the same proof-carrying canonical history and
@@ -604,8 +617,8 @@ separate nonreachability proof for that forged state.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 798
-declarations: 519 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 802
+declarations: 523 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 120 use exactly `[propext]`, and 134 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

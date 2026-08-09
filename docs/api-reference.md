@@ -18854,6 +18854,122 @@ ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created :
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.forward step))
 ```
 
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_marks_eq_prepared`
+
+Kind: theorem.
+
+`unifyPayload` changes no raw marks after its prepared prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_marks_eq_prepared : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  after.core.marks = step.prepared.after.core.marks
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_representative_eq_prepared_if`
+
+Kind: theorem.
+
+The output representative map is the prepared map with exactly the active
+class redirected to the previous boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_representative_eq_prepared_if : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after)
+  {token : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  token < step.prepared.after.core.parents.size →
+    after.core.representative token =
+      if step.prepared.after.core.representative token = step.prepared.stackResult.rawAge then step.previousBoundary
+      else step.prepared.after.core.representative token
+```
+
+### `ProofNetIR.SequentialFigure7.FutureNewCandidateAt.rawAge_le_previousBoundary_of_unifyPayload`
+
+Kind: theorem.
+
+Every future-`new` candidate after `unifyPayload` lies at or below the
+surviving previous boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureNewCandidateAt.rawAge_le_previousBoundary_of_unifyPayload : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate after),
+      candidate.rawAge ≤ step.previousBoundary
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.beforeUnifyPayloadOrMovedOrCreated`
+
+Kind: theorem.
+
+Every output future-work occurrence of `unifyPayload` is a survivor from
+the prepared state, an active-boundary item moved to the previous boundary, or
+the inserted tensor conclusion.  The alternatives need not be disjoint.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.beforeUnifyPayloadOrMovedOrCreated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt after rawAge vertex →
+    ProofNetIR.SequentialFigure7.FutureWorkAt step.prepared.after rawAge vertex ∨
+      rawAge = step.previousBoundary ∧
+          ProofNetIR.SequentialFigure7.FutureWorkAt step.prepared.after step.prepared.stackResult.rawAge vertex ∨
+        rawAge = step.previousBoundary ∧ vertex = step.consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedCandidate`
+
+Kind: inductive type.
+
+One actual future-`new` candidate at the tensor conclusion inserted by
+the successful enclosing `unifyPayload` step.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadCreatedCandidate : (certificate : ProofNetIR.Certificate) →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after → Type
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRegionSeparated`
+
+Kind: definition.
+
+Geometry required only for an actual candidate at the tensor conclusion
+inserted by `unifyPayload`.  Representatives are compared before the union,
+in the prepared state, so this premise does not assume the preservation result.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRegionSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created`
+
+Kind: theorem.
+
+A canonical `unifyPayload` history extension preserves
+older-source-region separation under the explicit geometry premise for its
+newly inserted tensor conclusion.  This dispatcher branch appends no
+reservation event.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.unifyPayload, after := after }}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated prior →
+    ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRegionSeparated prior step →
+      ProofNetIR.SequentialFigure7.OlderSourceRegionSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.unifyPayload step))
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

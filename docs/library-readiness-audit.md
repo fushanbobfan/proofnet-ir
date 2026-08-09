@@ -684,6 +684,15 @@ part of the engineering and proof-identity gap.
    `FutureWorkAt` witness. The current scheduler invariant does not imply this
    new-candidate geometry, so unconditional Forward preservation remains an
    open maturity gate.
+   `SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` now
+   closes the state-transport and representative-map portions of arbitrary-
+   payload Unify. Output work is a same-boundary survivor, an active-ready item
+   moved to the previous boundary, or the inserted tensor conclusion. The
+   active class alone is redirected to the previous root, and strict output
+   ordering excludes prior events in that retired class. The exported history
+   theorem remains conditional on `UnifyPayloadCreatedRegionSeparated` for the
+   inserted conclusion. The current invariant does not derive this geometry,
+   so unconditional Unify preservation remains an open maturity gate.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
    specific reachable-state gap around `NewGuard`: it considers only states
    reached by successful initialization and the canonical dispatcher and hard
@@ -702,10 +711,13 @@ part of the engineering and proof-identity gap.
    successful steps, 222,246 actual endpoint candidates (59,706 reached and
    162,540 partner), and 3,333,924 strict prior-event pairs. Wait contributes
    5,682 steps, 636 candidates, and 1,068 pairs; Forward contributes 158,766
-   steps, 33,582 candidates, and 117,324 pairs. Independent nonzero gates cover
-   every rule and both New endpoint kinds. The complete New and Forward
-   transitions and exact Wait prepend are decoded fail closed, with zero
-   intersections or decoder, region, representative, ledger, cycle, and fuel
+   steps, 33,582 candidates, and 117,324 pairs. Unify contributes 328,848
+   steps, 528,204 retired-event remaps, 163,806 moved candidates, 58,056
+   inserted-conclusion candidates, and 243,570 strict pairs. Independent
+   nonzero gates cover every rule, both New endpoint kinds, and the Unify
+   representative-changing and moved-work paths. The complete New, Forward,
+   and Unify transitions and exact Wait prepend are decoded fail closed, with
+   zero intersections or decoder, region, representative, ledger, cycle, and fuel
    failures. `--wait-search` is a compatibility alias for the same audit. This
    is finite falsification evidence only, not a proof of any conditional
    premise.
@@ -806,7 +818,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 798 declarations: 519 public MLL
+- CI now parses `#print axioms` for 802 declarations: 523 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries;

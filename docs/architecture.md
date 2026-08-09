@@ -784,6 +784,21 @@ have a source-left region disjoint from the created tensor mate's region. That
 side condition is not derived from the current scheduler invariant, and the
 module makes no unconditional Forward claim.
 
+`SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` isolates
+the representative-changing arbitrary-payload Unify branch. Exact stack
+equations cover every output future-work occurrence by a same-boundary
+survivor, an active-ready item moved to the previous boundary, or the sole
+inserted tensor conclusion. The alternatives need not be disjoint. The tensor
+union redirects exactly the prepared active representative class to the
+previous root; payload activation changes no parents. Since every output
+candidate boundary is at most the surviving previous boundary, a prior event
+that is strictly older after the step cannot have belonged to the retired
+class. Survivors and moved candidates therefore transport to the prior
+invariant. The inserted conclusion is handled only under
+`UnifyPayloadCreatedRegionSeparated`, which quantifies prior ledger events and
+actual created candidates in the prepared state and does not refer to the
+desired output invariant. The module makes no unconditional Unify claim.
+
 `SequentialFigure7ReservationRealization.lean` supplies the second missing
 piece for the reserved axiom itself.  Under explicit certificate structural
 well-formedness, an event-specific

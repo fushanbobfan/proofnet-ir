@@ -1460,6 +1460,21 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.ForwardCreatedRegionSeparated,
       Name.str
         `ProofNetIR.SequentialFigure7.ForwardStep
+        "olderSourceRegionSeparated_of_created",
+      `ProofNetIR.SequentialFigure7.UnifyPayloadStep.after_marks_eq_prepared,
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "after_representative_eq_prepared_if",
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureNewCandidateAt
+        "rawAge_le_previousBoundary_of_unifyPayload",
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAt
+        "beforeUnifyPayloadOrMovedOrCreated",
+      `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedCandidate,
+      `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRegionSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
         "olderSourceRegionSeparated_of_created"
     ]
   },

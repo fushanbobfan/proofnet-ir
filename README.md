@@ -419,6 +419,20 @@ marks nor union-find parents, but the inserted conclusion had no prior
 No unconditional `forward` preservation is claimed. Preservation through
 unconditional `new`, `wait`, `forward`, and arbitrary-payload `unify` remains
 open.
+`SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` handles
+the representative-changing branch without assuming global representative
+stability. Exact stack equations classify output work as a survivor at its
+prepared boundary, an active-bucket item moved to the previous boundary, or
+the tensor conclusion inserted at that previous boundary; these alternatives
+cover the output but are not claimed mutually exclusive. The tensor union maps
+exactly the retired active representative class to the previous root. Because
+every output candidate boundary is at most the previous boundary, a prior
+event that remains strictly older cannot belong to that retired class. Moved
+candidates recover their prepared active-boundary witness, while the inserted
+conclusion is represented by `UnifyPayloadCreatedCandidate`. The history
+theorem is deliberately conditional on the non-circular
+`UnifyPayloadCreatedRegionSeparated` premise. No unconditional
+arbitrary-payload `unify` preservation is claimed.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -513,7 +527,7 @@ cases, not unique certificates. This is deterministic finite regression
 evidence, not a theorem that `NewGuard` is sufficient on every reachable
 state and not a progress, totality, completeness, or complexity result.
 The same executable has an opt-in `--cross-representative-search` mode for the
-conditional New, Wait, and Forward seams; `--wait-search` remains a
+conditional New, Wait, Forward, and Unify seams; `--wait-search` remains a
 compatibility alias with the same bounds and gates. Its frozen depth-5,
 seeds-0-through-15 corpus covers 96 labelled certificate cases and 1,182,816
 reachable states. It exercised 328,848 successful New steps, 222,246 actual
@@ -521,17 +535,22 @@ New-created candidates (59,706 reached endpoints and 162,540 partner
 endpoints), and 3,333,924 strict prior-event/candidate pairs. Wait contributed
 5,682 steps, 636 created candidates, and 1,068 strict pairs; Forward
 contributed 158,766 steps, 33,582 created candidates, and 117,324 strict pairs.
+Unify contributed 328,848 steps, 528,204 retired-event remaps, 163,806 moved
+candidates, 58,056 inserted-conclusion candidates, and 243,570 strict pairs.
 Independent hard gates require nonzero step, endpoint-kind, created-candidate,
-and strict-pair coverage. The New decoder replays the complete transition and
+and strict-pair coverage; Unify also requires retired-event remaps and moved
+future-New candidates. The New decoder replays the complete transition and
 checks fresh-representative and marked-middle-to-output transport; the Wait
 decoder checks the exact `afterPayload = conclusion :: oldPayload` update;
-the Forward decoder replays the complete prepare/queue/prepend transition.
+the Forward decoder replays the complete prepare/queue/prepend transition; the
+Unify decoder replays prepare, tensor union, payload activation, and the
+two-level drain, then checks its exact active-to-previous representative map.
 The run observed zero source-region intersections or decoder,
 region-computation, representative, ledger, cycle, and truncation failures.
 This is non-vacuous finite falsification evidence only; it proves none of
 `NewCreatedRegionSeparated`, `WaitCreatedRegionSeparated`, or
-`ForwardCreatedRegionSeparated` and does not upgrade any conditional Lean
-theorem to an unconditional one.
+`ForwardCreatedRegionSeparated`, or `UnifyPayloadCreatedRegionSeparated` and
+does not upgrade any conditional Lean theorem to an unconditional one.
 `SequentialFigure7TagHistory.lean` augments exactly those existing traces with
 branch-aligned tag evidence. The five non-`new` branches preserve the complete
 tag array; `new` retains its exact `NEXTAXIOM` touch and submitted axiom-link
@@ -1841,7 +1860,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 798 declarations: 519 public MLL logical-boundary theorems
+separately audits 802 declarations: 523 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 120 `propext`-only, and 134 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -1938,6 +1957,7 @@ lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
 lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
+lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 lake exe proofnet_ir_new_progress_audit --cross-representative-search
@@ -2037,6 +2057,8 @@ ProofNetIR/SequentialFigure7CrossRepresentativeWaitPreservation.lean
   conditional Wait introduced-candidate preservation
 ProofNetIR/SequentialFigure7CrossRepresentativeForwardPreservation.lean
   conditional Forward introduced-candidate preservation
+ProofNetIR/SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean
+  conditional arbitrary-payload Unify introduced-candidate preservation
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -2069,7 +2091,10 @@ ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop pre
 ProofNetIRCrossRepresentativeNewPreservationTests.lean conditional New preservation consumers
 ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preservation consumers
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers
-ProofNetIRNewProgressAudit.lean finite reachable NewGuard and New/Wait/Forward created-region audit
+ProofNetIRCrossRepresentativeUnifyPayloadPreservationTests.lean
+  conditional Unify preservation consumers
+ProofNetIRNewProgressAudit.lean
+  finite reachable NewGuard and New/Wait/Forward/Unify created-region audit
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter
 ProofNetIRParserFuzz.lean     stdin driver for native malformed-input fuzzing
 ProofNetIRBenchmark.lean      checked depth-2/3/4 runtime regression budget
