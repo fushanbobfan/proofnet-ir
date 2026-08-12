@@ -296,6 +296,9 @@ expansion.
 #print axioms SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created
 #print axioms
   SequentialFigure7.WaitStep.olderEventFutureWorkTouchSeparated
+#print axioms SequentialFigure7.WaitStep.createdHeadTouchSeparated
+#print axioms
+  SequentialFigure7.WaitStep.olderEventFutureWorkTouchSeparated_of_structural
 #print axioms SequentialFigure7.WaitStep.destination_representative_lt_selected
 #print axioms
   SequentialFigure7.WaitStep.created_rawMarksSeparatedFrom_of_retained

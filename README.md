@@ -533,11 +533,10 @@ hypothesis, and is preserved through the synchronized prepared prefix plus
 canonical `concl` and `nop`. It is not derived from declarative correctness,
 the scheduler invariant, canonical history, or queue provenance. This base
 module alone does not cover a candidate-creating rule. Downstream theorems
-close `new`; conditionally preserve `wait` under its exact residual; and derive
-the `forward` and `unifyPayload` created-head residuals structurally before
-preserving from a supplied prior invariant. Global invariant availability, the
-Wait residual, the distinct same-boundary head-touch case, raw seams,
-enabledness, and progress remain open.
+close `new` and structurally derive the `wait`, `forward`, and `unifyPayload`
+created-head residuals before preserving each branch from a supplied prior
+invariant. Global invariant availability, the distinct same-boundary
+head-touch case, raw seams, enabledness, and progress remain open.
 `SequentialFigure7StrictCommitmentTargetAvoidance.lean` connects that strict
 conclusion law to the retained commitment geometry. Given the complete
 scheduler invariant and both supplied separation invariants, any adjacent
@@ -611,6 +610,17 @@ that premise is the exact transition-local residual. The module does not
 derive it from the scheduler invariant, history, or reachability and proves no
 unconditional or globally available Wait result, Forward/UnifyPayload case,
 same-boundary exclusion, raw or source-region seam, enabledness, or progress.
+`SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean` now derives
+that exact candidate-indexed residual from structural well-formedness. A
+hypothetical event touch of the inserted par conclusion continues through the
+submitted par's stored-left premise. That premise is either the selected
+occurrence or its already-marked mate, while reservation realization keeps the
+event endpoint in its strictly older live carrier. Exact component-forest
+disjointness excludes both orientations. A direct corollary therefore
+preserves the queued-head invariant for an already-successful typed Wait step
+from the supplied prior invariant, with no explicit created-head premise. This
+does not discharge `WaitCreatedRegionSeparated`, the raw seam, the final
+equal-boundary callback, global invariant availability, or progress.
 `SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean` handles the
 parallel raw-mark invariant. The selected mark is newer than the waiting
 destination in representative order, so it cannot satisfy the strict-older
@@ -1675,14 +1685,13 @@ available, and explicit adjacent callbacks now compose across any nonempty
 retained-`sigma` interval. When both strict separation invariants are supplied,
 the child-event law and callback are now derived automatically for any edge,
 or positive interval ending at a boundary, strictly older than the candidate.
-Globally establishing those invariants and the exact Wait residual, handling
-the final same-boundary edge, recovering queue
+Globally establishing those invariants, handling the final same-boundary edge,
+recovering queue
 origin, proving exhaustive guard applicability, and obtaining a
 total later-state transition system remain open. Its `new` preservation,
-conditional `wait` preservation, and structurally discharged
-`forward`/`unifyPayload` preservation are kernel checked for
-already-successful typed edges once their stated prior invariants and the Wait
-transition-local residual are supplied.
+and structurally discharged `wait`/`forward`/`unifyPayload` preservation are
+kernel checked for already-successful typed edges once their stated prior
+invariants are supplied.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -2176,7 +2185,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 873 declarations: 591 public MLL logical-boundary theorems
+separately audits 875 declarations: 593 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2292,6 +2301,7 @@ lake exe proofnet_ir_older_event_future_work_touch_new_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
 lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_wait_preservation_tests
+lake exe proofnet_ir_older_event_future_work_touch_wait_discharge_tests
 lake exe proofnet_ir_older_raw_marked_region_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_forward_preservation_tests
@@ -2426,6 +2436,8 @@ ProofNetIR/SequentialFigure7CrossRepresentativeWaitPreservation.lean
   conditional Wait introduced-candidate preservation
 ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchWaitPreservation.lean
   conditional Wait preservation for the strictly older queued-head invariant
+ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean
+  structural discharge of the Wait created-head residual and direct preservation
 ProofNetIR/SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean
   conditional Wait preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeForwardPreservation.lean
@@ -2504,6 +2516,8 @@ ProofNetIROlderRawMarkedRegionNewPreservationTests.lean
 ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preservation consumers
 ProofNetIROlderEventFutureWorkTouchWaitPreservationTests.lean
   conditional Wait queued-head separation preservation consumer
+ProofNetIROlderEventFutureWorkTouchWaitDischargeTests.lean
+  structural Wait created-head discharge and direct preservation consumer
 ProofNetIROlderRawMarkedRegionWaitPreservationTests.lean
   conditional Wait raw-mark preservation consumers
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers

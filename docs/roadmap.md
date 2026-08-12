@@ -1064,9 +1064,12 @@
     typed New step is also complete from the supplied prior invariant: retained
     work transports, old-event/created-endpoint touch contradicts history
     disjointness, and the fresh event cannot be strictly older. Wait
-    preservation is also kernel checked under the exact candidate-indexed
-    `WaitCreatedHeadTouchSeparated` residual. Forward's exact created-head
-    residual is now discharged structurally: event endpoint accounting and
+    preservation first reduces to the exact candidate-indexed
+    `WaitCreatedHeadTouchSeparated` residual. That residual is now discharged
+    structurally: the exact submitted par routes any hypothetical touched event
+    endpoint into the selected or already-marked mate carrier, where live-slot
+    disjointness closes the contradiction. Forward's exact created-head
+    residual is likewise discharged structurally: event endpoint accounting and
     source-left carrier closure force a hypothetical overlap of two distinct
     live components. Hence successful typed Forward preservation follows from
     a supplied prior invariant without an explicit created-head premise.
@@ -1074,8 +1077,8 @@
     structurally: tensor-output carrier closure and live-slot disjointness rule
     out the hypothetical old-event touch. Successful typed UnifyPayload
     preservation therefore follows from a supplied prior invariant without an
-    explicit created-head premise. Global invariant availability, the Wait
-    residual, and the same-boundary head-touch case remain open. Given
+    explicit created-head premise. Global invariant availability and the
+    same-boundary head-touch case remain open. Given
     both strict separation invariants and the complete scheduler invariant,
     Lean now derives the target-avoiding path for every adjacent edge whose
     child is strictly older than the candidate, and for every positive interval
@@ -1195,12 +1198,12 @@
     target-avoidance refinement. Explicit adjacent callbacks compose across
     arbitrary positive-length spine intervals. The strictly older queued-head
     law is now an explicit invariant with empty/structurally well-formed init,
-    stable-rule, successful New, conditional Wait, and structurally discharged
-    Forward/UnifyPayload preservation from a supplied prior instance. When it
+    stable-rule, successful New, and structurally discharged
+    Wait/Forward/UnifyPayload preservation from a supplied prior instance. When it
     and the mate-region invariant are supplied, strict
     child-event callbacks and positive intervals ending strictly before the
-    candidate now follow automatically. Derive the Wait residual and global
-    invariant availability. The strict older-event split already composes the
+    candidate now follow automatically. Derive global invariant availability.
+    The strict older-event split already composes the
     positive prefix to the candidate's immediate predecessor; next handle that
     final equal-boundary callback and queue origin.
     Establish unconditional full-rule reachability, progress, completeness of

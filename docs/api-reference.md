@@ -20215,6 +20215,45 @@ ProofNetIR.SequentialFigure7.WaitStep.olderEventFutureWorkTouchSeparated : ∀ {
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.wait step))
 ```
 
+### `ProofNetIR.SequentialFigure7.WaitStep.createdHeadTouchSeparated`
+
+Kind: theorem.
+
+Every strictly older prior ledger event leaves the par conclusion
+inserted by a successful typed `wait` step untouched.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.createdHeadTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.WaitCreatedHeadTouchSeparated prior step
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.olderEventFutureWorkTouchSeparated_of_structural`
+
+Kind: theorem.
+
+A successful typed `wait` preserves older-event future-work head
+separation from structural well-formedness and the supplied prior invariant.
+
+The implicit dispatcher is indexed by the history-derived scheduler invariant;
+no explicit scheduler-invariant or created-head premise is required.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.olderEventFutureWorkTouchSeparated_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
+    ∀ (structural : certificate.StructurallyWellFormed)
+      {dispatch :
+        ProofNetIR.SequentialFigure7.DispatchStep certificate before ⋯
+          { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.wait, after := after }},
+      ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.wait step))
+```
+
 ### `ProofNetIR.SequentialFigure7.WaitRetainedRawMarksSeparated`
 
 Kind: definition.

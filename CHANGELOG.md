@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean`.
+  For an already-successful typed `WaitStep`, structural well-formedness now
+  proves the candidate-indexed `WaitCreatedHeadTouchSeparated` residual. A
+  hypothetical old-event touch of the inserted par conclusion continues
+  through the submitted par's stored-left premise. That premise belongs to
+  either the selected occurrence's live component or the already-marked
+  mate's live component, while reservation realization keeps the event
+  endpoint in its strictly older live carrier. Exact component-forest
+  disjointness excludes both orientations. The direct corollary preserves
+  `OlderEventFutureWorkTouchSeparated` from the supplied prior invariant
+  without an explicit created-head premise. It does not discharge the
+  source-region or raw seams, the final equal-boundary callback, global
+  invariant availability, enabledness, progress, totality, completeness,
+  fallback removal, or complexity. The runnable consumer invokes both new
+  public theorems; facade, default target, CI, generated API, and trust audit
+  are wired. The current public axiom audit covers 875 declarations: 593
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added
   `SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadDischarge.lean`.
   For an already-successful typed `UnifyPayloadStep`, structural well-formedness
@@ -17,7 +35,8 @@
   callback, global invariant availability, enabledness, progress, totality,
   completeness, fallback removal, or complexity. The runnable consumer invokes
   both new public theorems; facade, default target, CI, generated API, and trust
-  audit are wired. The current public axiom audit covers 873 declarations: 591
+  audit are wired. At that checkpoint the public axiom audit covered 873
+  declarations: 591
   full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialComponentSourceLeftGeometry.lean` and

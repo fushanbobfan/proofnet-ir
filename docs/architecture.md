@@ -843,11 +843,10 @@ preservation are proved. The
 predicate is not reconstructed from correctness, the state invariant,
 canonical history, or queue provenance. This base layer alone does not cover a
 candidate-creating rule. A downstream theorem closes the successful New case.
-Wait remains conditional on its exact created-head residual. Later structural
-theorems derive the Forward and UnifyPayload residuals and then preserve the
-invariant from a supplied prior instance. Global invariant availability, the
-Wait residual, same-boundary touches and target paths, raw seams, enabledness,
-and progress remain open.
+Later structural theorems derive the Wait, Forward, and UnifyPayload residuals
+and then preserve the invariant from a supplied prior instance. Global
+invariant availability, same-boundary touches and target paths, raw seams,
+enabledness, and progress remain open.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -926,6 +925,18 @@ supplied prior canonical history and queued-head invariant, this premise is the
 exact residual. The module does not derive it from the scheduler invariant,
 history, or reachability and makes no unconditional/global Wait,
 Forward/UnifyPayload, same-boundary, raw-seam, or progress claim.
+
+`SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean` discharges that
+Wait created-head premise under structural well-formedness. A hypothetical
+old-event touch of the inserted par conclusion continues through the exact
+submitted par's stored-left premise. The premise is either the selected
+occurrence or its already-marked mate, while reservation realization places
+the event endpoint in its strictly older live carrier. Exact component-forest
+disjointness excludes both orientations. A direct corollary therefore
+preserves the queued-head invariant for an already-successful typed Wait step
+from the supplied prior invariant without an explicit created-head premise.
+It does not discharge `WaitCreatedRegionSeparated`, the raw seam, the final
+equal-boundary commitment callback, global availability, or progress.
 
 `SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean` closes the
 parallel raw-mark transport under one explicit transition-local premise. The
@@ -1620,13 +1631,12 @@ active-reference walks between marked occurrences are equivalent to
   follow automatically for any strictly older adjacent edge or positive
   interval ending at a strictly older boundary. New preservation of the
   queued-head invariant is now kernel checked from a supplied prior instance.
-  Wait preservation remains conditional on its exact candidate-indexed
-  residual; Forward and UnifyPayload now derive their created-head residuals
+  Wait, Forward, and UnifyPayload now derive their created-head residuals
   structurally and preserve from the supplied prior instance.
   A strict older event now splits at the candidate's immediate predecessor, so
   every positive prefix is composable. Global invariant availability, the
-  final same-boundary callback, queue-to-created-candidate geometry, and the
-  Wait residual remains required by the seams.
+  final same-boundary callback, and queue-to-created-candidate geometry remain
+  required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

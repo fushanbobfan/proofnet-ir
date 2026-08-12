@@ -594,10 +594,9 @@ the strict order directly; Prepared/concl/nop transport exact ledger
 membership, future work, and current
 representatives. Candidate-creating rules, same-boundary touches, and global
 availability remain explicit rather than hidden in this base proof. The
-successful New case is handled by a separate downstream theorem. Wait remains
-conditional on its exact created-head residual; separate Forward and
-UnifyPayload theorems derive their residuals structurally and then preserve from
-a supplied prior invariant.
+successful New case is handled by a separate downstream theorem. Separate
+Wait, Forward, and UnifyPayload theorems derive their residuals structurally
+and then preserve from a supplied prior invariant.
 `SequentialFigure7StrictCommitmentTargetAvoidance.lean` adds no ownership,
 touch, path, or reachability oracle. It instantiates the already audited
 one-edge target-avoidance theorem with the already audited strict conclusion
@@ -649,6 +648,17 @@ proof does not derive it from the scheduler invariant, history, or
 reachability. It establishes no unconditional/global Wait,
 Forward/UnifyPayload, same-boundary, raw/source-region seam, enabledness, or
 progress result.
+`SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean` adds no hidden
+touch, history, ownership, or reachability oracle. A hypothetical touch of the
+inserted par conclusion is decomposed through the exact submitted par to its
+stored-left premise. Typed orientation identifies that premise with the
+selected occurrence or the already-marked mate. The middle component forest
+places it in a live slot strictly newer than the reservation event's realized
+slot, so exact live-slot disjointness supplies the contradiction. The direct
+corollary still consumes an already-successful typed Wait step, structural
+well-formedness, canonical history, and the supplied prior queued-head
+invariant. It does not establish a source-region or raw seam, the final
+equal-boundary callback, global availability, enabledness, or progress.
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` adds no hidden
 source-region oracle. Its exact stack equations classify output work as
 retained marked-middle work or a reached/partner endpoint at the fresh
@@ -883,8 +893,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 873
-declarations: 591 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 875
+declarations: 593 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1322,12 +1332,12 @@ Lean now also constructs the exact simultaneous complementary
   scheduler invariant are supplied, the child-event callback follows for each
   strictly older adjacent edge and for a positive interval whose last boundary
   is strictly older. The queued-head half has empty/init, stable, successful
-  New, conditional Wait, and structurally discharged Forward/UnifyPayload
-  preservation from a supplied prior instance.
+  New and structurally discharged Wait/Forward/UnifyPayload preservation from
+  a supplied prior instance.
   Strict older events now split at the candidate's immediate predecessor and
   expose a composable positive prefix. Exhaustive later-state branch
-  enabledness and totality, global invariant availability, the Wait residual,
-  the final same-boundary callback,
+  enabledness and totality, global invariant availability, the final
+  same-boundary callback,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

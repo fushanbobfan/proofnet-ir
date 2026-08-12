@@ -185,7 +185,13 @@ Wait case is conditionally preserved under the candidate-indexed
 `WaitCreatedHeadTouchSeparated` premise. Retained candidates transport and the
 inserted conclusion is exactly the residual old-event/head obligation. This is
 also a code consequence rather than a literature result, and it does not derive
-the residual from scheduler invariants, history, or reachability. The successful
+the residual from scheduler invariants, history, or reachability. A further
+kernel-checked code consequence now derives that Wait residual structurally:
+the exact submitted par sends a hypothetical touched event endpoint through
+its stored-left premise into the selected or already-marked mate carrier, and
+strict live-slot disjointness contradicts chronological endpoint ownership.
+The direct Wait corollary still consumes the supplied prior invariant and does
+not close the source-region/raw seam or equal-boundary callback. The successful
 typed Forward case first has a conditional preservation theorem under the
 candidate-indexed `ForwardCreatedHeadTouchSeparated` residual. A further
 kernel-checked code consequence now derives that residual structurally: exact
@@ -203,8 +209,8 @@ tensor-output source-left closure and chronological endpoint accounting place
 a hypothetical touched endpoint in distinct live carriers, contradicting
 forest disjointness. The direct UnifyPayload corollary still consumes the
 supplied prior invariant and does not close the source-region/raw seam or
-equal-boundary callback. Global invariant availability, the Wait residual,
-same-boundary target paths, raw seams, and progress remain open. A further
+equal-boundary callback. Global invariant availability, same-boundary target
+paths, raw seams, and progress remain open. A further
 kernel-checked code consequence now connects the two supplied separation
 invariants to retained commitment geometry. Under the complete scheduler
 invariant, the child-event untouched callback follows automatically for an
@@ -228,11 +234,10 @@ invariant, proves its empty/initial and Prepared/concl/nop cases, and derives
 active-region no-mark/no-owner from it. That is also a code consequence, not a
 new literature reading. Global preservation of the mate-region and
 older-raw-mark separation invariants through candidate-creating rules remains
-open. The future-head-touch invariant is preserved through New, conditionally
-through Wait under its exact residual, and through Forward and UnifyPayload
-after structurally deriving their created-head residuals from a supplied prior
-instance. Global invariant availability and the Wait transition-local residual
-remain open. The New raw-mark branch is now conditionally
+open. The future-head-touch invariant is preserved through New and through
+Wait, Forward, and UnifyPayload after structurally deriving their created-head
+residuals from a supplied prior instance. Global invariant availability remains
+open. The New raw-mark branch is now conditionally
 transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.

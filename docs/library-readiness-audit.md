@@ -757,6 +757,16 @@ part of the engineering and proof-identity gap.
    reachability derives it. Unconditional/global Wait, Forward/UnifyPayload,
    same-boundary, raw/source-region seams, enabledness, and progress remain
    open.
+   `SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean` now derives
+   that candidate-indexed residual under structural well-formedness. A touch
+   of the inserted par conclusion continues through the exact submitted par's
+   stored-left premise, which is either the selected occurrence or its
+   already-marked mate. The middle forest owns that premise in a live slot
+   strictly newer than the event slot, so exact component disjointness closes
+   both orientations. The direct corollary still consumes a supplied prior
+   queued-head invariant and an already-successful typed Wait step. It does not
+   close the source-region or raw seam, the final equal-boundary callback,
+   global invariant availability, enabledness, or progress.
    `SequentialFigure7CrossRepresentativeForwardPreservation.lean` now closes
    the exact state-transport portion of the Forward branch. Old ready and
    waiting occurrences retain their exact prepared-middle boundary, while the
@@ -856,11 +866,10 @@ part of the engineering and proof-identity gap.
    it transports through Prepared/concl/nop. It is not derived from
    correctness, the scheduler invariant, canonical history, or queue
    provenance. This base layer alone does not cover a candidate-creating rule;
-   New is handled by a downstream preservation theorem, Wait remains
-   conditional on its exact created-head residual, and Forward and
-   UnifyPayload now derive their residuals structurally before preserving from
-   a supplied prior instance. Global invariant availability, the Wait residual,
-   same-boundary target paths, raw seams, enabledness, and progress remain open.
+   New is handled by a downstream preservation theorem, while Wait, Forward,
+   and UnifyPayload derive their residuals structurally before preserving from
+   a supplied prior instance. Global invariant availability, same-boundary
+   target paths, raw seams, enabledness, and progress remain open.
    `SequentialFigure7StrictCommitmentTargetAvoidance.lean` now closes the
    strictly older target-path adapter. Under the complete scheduler invariant
    and both supplied separation invariants, an adjacent retained edge whose
@@ -984,10 +993,9 @@ part of the engineering and proof-identity gap.
    both strict separation invariants and the scheduler invariant are supplied,
    the law and callback are automatic for edges, or positive intervals ending
    at boundaries, strictly older than the candidate. The queued-head invariant
-   has empty/init, stable, successful New, conditional Wait, and structurally
-   discharged Forward/UnifyPayload preservation from a supplied prior
-   instance. Global availability of that invariant and the exact Wait residual
-   remain open. Strict older events now
+   has empty/init, stable, successful New, and structurally discharged
+   Wait/Forward/UnifyPayload preservation from a supplied prior instance.
+   Global availability of that invariant remains open. Strict older events now
    split at the candidate's immediate predecessor, leaving the final
    same-boundary callback, queue origin, raw-seam discharge, exhaustive guard
    classification,
@@ -1078,7 +1086,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 873 declarations: 591 public MLL
+- CI now parses `#print axioms` for 875 declarations: 593 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1212,10 +1220,9 @@ It can currently be used for:
   invariants, and strictly older edge/interval callbacks now follow when the
   scheduler invariant is also supplied. Any strictly older ledger event now
   splits at the candidate's immediate predecessor, so its positive prefix is
-  composable. The queued-head half has empty/init,
-  stable, successful New, conditional Wait, and structurally discharged
-  Forward/UnifyPayload preservation from a supplied prior instance. Global
-  invariant availability, the Wait residual, the
+  composable. The queued-head half has empty/init, stable, successful New, and
+  structurally discharged Wait/Forward/UnifyPayload preservation from a
+  supplied prior instance. Global invariant availability, the
   final same-boundary callback, queue origin, raw-seam
   discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;

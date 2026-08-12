@@ -113,6 +113,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.WaitStep.createdHeadTouchSeparated",
+    "ProofNetIR.SequentialFigure7.WaitStep."
+    "olderEventFutureWorkTouchSeparated_of_structural",
     "ProofNetIR.SequentialFigure7.WaitStep.destination_representative_lt_selected",
     "ProofNetIR.SequentialFigure7.WaitStep."
     "created_rawMarksSeparatedFrom_of_retained",

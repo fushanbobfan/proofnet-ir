@@ -1658,6 +1658,12 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.WaitStep
         "olderEventFutureWorkTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "createdHeadTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "olderEventFutureWorkTouchSeparated_of_structural",
       `ProofNetIR.SequentialFigure7.WaitRetainedRawMarksSeparated,
       Name.str
         `ProofNetIR.SequentialFigure7.WaitStep
