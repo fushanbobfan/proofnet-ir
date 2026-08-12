@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added
+  `SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadDischarge.lean`.
+  For an already-successful typed `UnifyPayloadStep`, structural well-formedness
+  now proves the candidate-indexed `UnifyPayloadCreatedHeadTouchSeparated`
+  residual. Exact tensor queuing joins the previous and active live components;
+  a hypothetical old-event touch puts the event's stored-left axiom endpoint in
+  the tensor output carrier, while chronological reservation realization keeps
+  it in the event representative's distinct carrier. Component-forest
+  disjointness closes the contradiction in either tensor orientation. The
+  direct corollary preserves `OlderEventFutureWorkTouchSeparated` from the
+  supplied prior invariant without an explicit created-head premise. It does
+  not discharge the source-region or raw seams, the final equal-boundary
+  callback, global invariant availability, enabledness, progress, totality,
+  completeness, fallback removal, or complexity. The runnable consumer invokes
+  both new public theorems; facade, default target, CI, generated API, and trust
+  audit are wired. The current public axiom audit covers 873 declarations: 591
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialComponentSourceLeftGeometry.lean` and
   `SequentialFigure7OlderEventFutureWorkTouchForwardDischarge.lean`.
   Structurally well-formed occurrence derivations are now closed under the
@@ -16,7 +34,7 @@
   global invariant availability, enabledness, progress, totality,
   completeness, fallback removal, or complexity. Two runnable consumers use
   all three public theorems; facade, default targets, CI, generated API, and
-  trust audit are wired. The current public axiom audit covers 871
+  trust audit are wired. At that checkpoint the public axiom audit covered 871
   declarations: 589 full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7StrictOlderSigmaSplit.lean`. For any authentic

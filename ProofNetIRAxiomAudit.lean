@@ -317,6 +317,9 @@ expansion.
 #print axioms SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created
 #print axioms
   SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated
+#print axioms SequentialFigure7.UnifyPayloadStep.createdHeadTouchSeparated
+#print axioms
+  SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated_of_structural
 #print axioms SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker

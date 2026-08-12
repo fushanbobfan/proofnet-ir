@@ -533,11 +533,11 @@ hypothesis, and is preserved through the synchronized prepared prefix plus
 canonical `concl` and `nop`. It is not derived from declarative correctness,
 the scheduler invariant, canonical history, or queue provenance. This base
 module alone does not cover a candidate-creating rule. Downstream theorems
-close `new`; conditionally preserve `wait` and `unifyPayload` under their exact
-residuals; and, for `forward`, derive the created-head residual structurally
-before preserving from a supplied prior invariant. Global invariant
-availability, the Wait and UnifyPayload residuals, the distinct same-boundary
-head-touch case, raw seams, enabledness, and progress remain open.
+close `new`; conditionally preserve `wait` under its exact residual; and derive
+the `forward` and `unifyPayload` created-head residuals structurally before
+preserving from a supplied prior invariant. Global invariant availability, the
+Wait residual, the distinct same-boundary head-touch case, raw seams,
+enabledness, and progress remain open.
 `SequentialFigure7StrictCommitmentTargetAvoidance.lean` connects that strict
 conclusion law to the retained commitment geometry. Given the complete
 scheduler invariant and both supplied separation invariants, any adjacent
@@ -695,6 +695,18 @@ transition-local residual. The module does not derive it from scheduler
 invariants, history, or reachability and proves no unconditional or globally
 available UnifyPayload result, same-boundary exclusion, raw/source-region seam,
 enabledness, or progress.
+`SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadDischarge.lean` now
+proves that exact created-head residual from structural well-formedness. The
+typed tensor queue joins the previous and active live components. An authentic
+old event supplies its stored-left endpoint in the event representative's
+owned carrier; touching the inserted tensor conclusion puts the same endpoint
+in the tensor output carrier by source-left closure. Strict order makes the
+event slot distinct from both tensor-input slots, contradicting exact forest
+disjointness. A direct corollary therefore preserves the queued-head invariant
+for an already-successful typed UnifyPayload step from the supplied prior
+invariant, with no explicit created-head premise. This does not discharge
+`UnifyPayloadCreatedRegionSeparated`, the raw seam, the separate final
+equal-boundary callback, global invariant availability, or progress.
 `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` handles
 the parallel raw-mark invariant without pretending that the tensor union
 preserves all representatives. A raw mark that is strictly older than an
@@ -1663,14 +1675,14 @@ available, and explicit adjacent callbacks now compose across any nonempty
 retained-`sigma` interval. When both strict separation invariants are supplied,
 the child-event law and callback are now derived automatically for any edge,
 or positive interval ending at a boundary, strictly older than the candidate.
-Globally establishing those invariants and the exact Wait and UnifyPayload
-residuals, handling the final same-boundary edge, recovering queue
+Globally establishing those invariants and the exact Wait residual, handling
+the final same-boundary edge, recovering queue
 origin, proving exhaustive guard applicability, and obtaining a
 total later-state transition system remain open. Its `new` preservation,
-conditional `wait`/`unifyPayload` preservation, and structurally discharged
-`forward` preservation are kernel checked for already-successful typed edges
-once their stated prior invariants and remaining transition-local residuals are
-supplied.
+conditional `wait` preservation, and structurally discharged
+`forward`/`unifyPayload` preservation are kernel checked for
+already-successful typed edges once their stated prior invariants and the Wait
+transition-local residual are supplied.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -2164,7 +2176,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 871 declarations: 589 public MLL logical-boundary theorems
+separately audits 873 declarations: 591 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2287,6 +2299,7 @@ lake exe proofnet_ir_older_event_future_work_touch_forward_discharge_tests
 lake exe proofnet_ir_older_raw_marked_region_forward_preservation_tests
 lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests
+lake exe proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests
 lake exe proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
@@ -2428,6 +2441,8 @@ ProofNetIR/SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean
 ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadPreservation.lean
   conditional UnifyPayload preservation for the strictly older queued-head
   invariant
+ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadDischarge.lean
+  structural discharge of the UnifyPayload created-head residual and direct preservation
 ProofNetIR/SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean
   conditional arbitrary-payload Unify raw-mark preservation
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
@@ -2502,6 +2517,8 @@ ProofNetIRCrossRepresentativeUnifyPayloadPreservationTests.lean
   conditional Unify preservation consumers
 ProofNetIROlderEventFutureWorkTouchUnifyPayloadPreservationTests.lean
   conditional UnifyPayload queued-head separation preservation consumer
+ProofNetIROlderEventFutureWorkTouchUnifyPayloadDischargeTests.lean
+  structural UnifyPayload created-head discharge and direct preservation consumer
 ProofNetIROlderRawMarkedRegionUnifyPayloadPreservationTests.lean
   conditional Unify raw-mark preservation consumers
 ProofNetIRNewProgressAudit.lean

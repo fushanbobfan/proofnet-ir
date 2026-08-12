@@ -193,13 +193,17 @@ ledger endpoint accounting and occurrence-carrier closure place a hypothetical
 touched endpoint in two distinct live component carriers, contradicting forest
 disjointness. The direct Forward corollary still consumes the supplied prior
 invariant and does not close the source-region/raw seam or equal-boundary
-callback. The successful typed
-UnifyPayload case is conditionally preserved under the candidate-indexed
+callback. The successful typed UnifyPayload case first has a conditional
+preservation theorem under the candidate-indexed
 `UnifyPayloadCreatedHeadTouchSeparated` residual. Survivor and moved candidates
 transport through the prior invariant after strict output order excludes the
-retired active class; the inserted conclusion is the sole residual case. This
-is also a code consequence, not a literature result, and does not derive the
-residual. Global invariant availability, the Wait and UnifyPayload residuals,
+retired active class; the inserted conclusion is the sole residual case. A
+further kernel-checked code consequence now derives that residual structurally:
+tensor-output source-left closure and chronological endpoint accounting place
+a hypothetical touched endpoint in distinct live carriers, contradicting
+forest disjointness. The direct UnifyPayload corollary still consumes the
+supplied prior invariant and does not close the source-region/raw seam or
+equal-boundary callback. Global invariant availability, the Wait residual,
 same-boundary target paths, raw seams, and progress remain open. A further
 kernel-checked code consequence now connects the two supplied separation
 invariants to retained commitment geometry. Under the complete scheduler
@@ -225,10 +229,10 @@ active-region no-mark/no-owner from it. That is also a code consequence, not a
 new literature reading. Global preservation of the mate-region and
 older-raw-mark separation invariants through candidate-creating rules remains
 open. The future-head-touch invariant is preserved through New, conditionally
-through Wait and UnifyPayload under their exact residuals, and through Forward
-after structurally deriving its created-head residual from a supplied prior
-instance. Global invariant availability and the Wait and UnifyPayload
-transition-local residuals remain open. The New raw-mark branch is now conditionally
+through Wait under its exact residual, and through Forward and UnifyPayload
+after structurally deriving their created-head residuals from a supplied prior
+instance. Global invariant availability and the Wait transition-local residual
+remain open. The New raw-mark branch is now conditionally
 transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.

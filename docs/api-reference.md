@@ -20668,6 +20668,45 @@ ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.unifyPayload step))
 ```
 
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdHeadTouchSeparated`
+
+Kind: theorem.
+
+Every strictly older prior ledger event leaves the tensor conclusion
+inserted by a successful typed `unifyPayload` step untouched.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdHeadTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.UnifyPayloadCreatedHeadTouchSeparated prior step
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated_of_structural`
+
+Kind: theorem.
+
+A successful typed `unifyPayload` preserves older-event future-work head
+separation from structural well-formedness and the supplied prior invariant.
+
+The implicit dispatcher is indexed by the history-derived scheduler invariant;
+no explicit scheduler-invariant or created-head premise is required.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
+    ∀ (structural : certificate.StructurallyWellFormed)
+      {dispatch :
+        ProofNetIR.SequentialFigure7.DispatchStep certificate before ⋯
+          { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.unifyPayload, after := after }},
+      ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.unifyPayload step))
+```
+
 ### `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRawMarksSeparated`
 
 Kind: definition.

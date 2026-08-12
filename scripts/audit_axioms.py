@@ -134,6 +134,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
     "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdHeadTouchSeparated",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
+    "olderEventFutureWorkTouchSeparated_of_structural",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker",

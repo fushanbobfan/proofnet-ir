@@ -594,10 +594,10 @@ the strict order directly; Prepared/concl/nop transport exact ledger
 membership, future work, and current
 representatives. Candidate-creating rules, same-boundary touches, and global
 availability remain explicit rather than hidden in this base proof. The
-successful New case is handled by a separate downstream theorem. Wait and
-UnifyPayload remain conditional on their exact created-head residuals; a
-separate Forward theorem derives that residual structurally and then preserves
-from a supplied prior invariant.
+successful New case is handled by a separate downstream theorem. Wait remains
+conditional on its exact created-head residual; separate Forward and
+UnifyPayload theorems derive their residuals structurally and then preserve from
+a supplied prior invariant.
 `SequentialFigure7StrictCommitmentTargetAvoidance.lean` adds no ownership,
 touch, path, or reachability oracle. It instantiates the already audited
 one-edge target-avoidance theorem with the already audited strict conclusion
@@ -761,6 +761,17 @@ to the prior invariant this is the exact transition-local obligation, but the
 proof does not derive it from scheduler invariants, history, or reachability.
 It establishes no unconditional/global UnifyPayload, same-boundary,
 raw/source-region seam, enabledness, or progress result.
+`SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadDischarge.lean` adds no
+touch, ownership, scheduler, history, or reachability oracle. It derives the
+created-head premise from structural well-formedness and the already audited
+typed tensor queue, chronological reservation realization, source-left carrier
+closure, and exact live-slot disjointness. The history-derived scheduler
+invariant supplies the two live tensor-input carriers and the event carrier;
+strict order separates the event representative from both roots in either
+stored orientation. The direct corollary still takes the supplied prior
+queued-head invariant and an already-successful typed step. It establishes no
+source-region or raw seam, final equal-boundary callback, global availability,
+enabledness, or progress result.
 `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` adds no
 event-history, reachability, correctness, or representative-stability oracle.
 It uses the typed output candidate bound to exclude every strictly older raw
@@ -872,8 +883,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 871
-declarations: 589 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 873
+declarations: 591 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1311,12 +1322,12 @@ Lean now also constructs the exact simultaneous complementary
   scheduler invariant are supplied, the child-event callback follows for each
   strictly older adjacent edge and for a positive interval whose last boundary
   is strictly older. The queued-head half has empty/init, stable, successful
-  New, conditional Wait/UnifyPayload, and structurally discharged Forward
+  New, conditional Wait, and structurally discharged Forward/UnifyPayload
   preservation from a supplied prior instance.
   Strict older events now split at the candidate's immediate predecessor and
   expose a composable positive prefix. Exhaustive later-state branch
-  enabledness and totality, global invariant availability, the Wait and
-  UnifyPayload residuals, the final same-boundary callback,
+  enabledness and totality, global invariant availability, the Wait residual,
+  the final same-boundary callback,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

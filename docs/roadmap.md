@@ -1070,10 +1070,12 @@
     source-left carrier closure force a hypothetical overlap of two distinct
     live components. Hence successful typed Forward preservation follows from
     a supplied prior invariant without an explicit created-head premise.
-    UnifyPayload remains kernel checked under
-    `UnifyPayloadCreatedHeadTouchSeparated`. Global invariant availability,
-    the Wait and UnifyPayload residuals, and the same-boundary head-touch case
-    remain open. Given
+    UnifyPayload's exact created-head residual is now also discharged
+    structurally: tensor-output carrier closure and live-slot disjointness rule
+    out the hypothetical old-event touch. Successful typed UnifyPayload
+    preservation therefore follows from a supplied prior invariant without an
+    explicit created-head premise. Global invariant availability, the Wait
+    residual, and the same-boundary head-touch case remain open. Given
     both strict separation invariants and the complete scheduler invariant,
     Lean now derives the target-avoiding path for every adjacent edge whose
     child is strictly older than the candidate, and for every positive interval
@@ -1193,12 +1195,12 @@
     target-avoidance refinement. Explicit adjacent callbacks compose across
     arbitrary positive-length spine intervals. The strictly older queued-head
     law is now an explicit invariant with empty/structurally well-formed init,
-    stable-rule, successful New, conditional Wait/UnifyPayload, and
-    structurally discharged Forward preservation from a supplied prior
-    instance. When it and the mate-region invariant are supplied, strict
+    stable-rule, successful New, conditional Wait, and structurally discharged
+    Forward/UnifyPayload preservation from a supplied prior instance. When it
+    and the mate-region invariant are supplied, strict
     child-event callbacks and positive intervals ending strictly before the
-    candidate now follow automatically. Derive the Wait and UnifyPayload
-    residuals and global invariant availability. The strict older-event split already composes the
+    candidate now follow automatically. Derive the Wait residual and global
+    invariant availability. The strict older-event split already composes the
     positive prefix to the candidate's immediate predecessor; next handle that
     final equal-boundary callback and queue origin.
     Establish unconditional full-rule reachability, progress, completeness of
