@@ -8767,6 +8767,41 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_av
             tagHistory.CommitmentEdgeTargetAvoidingPath parent child candidate.tensor.conclusion
 ```
 
+## Commitment-interval target avoidance
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding`
+
+Kind: theorem.
+
+A positive retained-`sigma` interval whose supplied adjacent commitment
+paths all avoid one shared target has a loop-erased endpoint path avoiding
+that target.
+
+The callback supplies only the adjacent edges inside this interval. It may be
+instantiated with `commitmentEdge_referencePath_avoiding`, but this theorem
+does not derive its explicit `childUntouched` premise or make that callback
+globally available. The result reuses `CommitmentEdgeTargetAvoidingPath` only
+as an endpoint-path carrier; it does not say that `first` and `last` are
+adjacent. Loop erasure preserves the endpoints and target avoidance, not
+stored parallel-edge indices, individual segment decomposition, nonempty
+traversal, sigma monotonicity, raw-age uniqueness, or a complexity bound.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history) {forbidden : ProofNetIR.Vertex}
+  {position edgeCount : Nat} {first last : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+  0 < edgeCount →
+    state.stack.sigma[position]? = some first →
+      state.stack.sigma[position + edgeCount]? = some last →
+        (∀ {offset : Nat} {parent child : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+            offset < edgeCount →
+              state.stack.sigma[position + offset]? = some parent →
+                state.stack.sigma[position + offset + 1]? = some child →
+                  tagHistory.CommitmentEdgeTargetAvoidingPath parent child forbidden) →
+          tagHistory.CommitmentEdgeTargetAvoidingPath first last forbidden
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

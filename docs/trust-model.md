@@ -708,6 +708,14 @@ trace.
 Verified loop erasure then yields the avoiding canonical edge path. The law's
 global availability, arbitrary multi-edge composition, queue origin, raw-seam
 discharge, enabledness, progress, completeness, and complexity remain open.
+`SequentialFigure7CommitmentIntervalTargetAvoidance.lean` adds no path or
+avoidance oracle. It accepts an explicit avoiding witness for every adjacent
+edge in a supplied positive-length retained-`sigma` interval, identifies shared
+middle events through exact ledger lookups, and uses the already verified
+`connectEraseAvoiding` operation. The theorem does not derive or globalize that
+callback or the child-event untouched laws, cover a zero-edge interval, recover
+queue origin, discharge a raw seam, imply progress, retain segment or
+parallel-edge identity, or prove a complexity bound.
 An explicit universally quantified proof that the structural region contains
 neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`,
 then `NewInputNecessary`, and then `NewEnabled` through already-audited
@@ -762,8 +770,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 852
-declarations: 570 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 853
+declarations: 571 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1196,9 +1204,10 @@ Lean now also constructs the exact simultaneous complementary
   is kernel checked as well, concrete raw marks have local contained paths to
   both endpoints of their same-age reservation event, and one adjacent
   cross-component path has an explicit-premise target-avoidance refinement.
-  Exhaustive later-state branch enabledness and totality, derivation of the
-  child-event untouched laws, arbitrary whole-spine composition, queue origin,
-  the raw created-candidate seams, unconditional
+  Explicit adjacent callbacks compose across any supplied positive-length
+  retained interval. Exhaustive later-state branch enabledness and totality,
+  derivation and global availability of the child-event untouched laws and
+  callbacks, queue origin, the raw created-candidate seams, unconditional
   full-rule reachability, and the remaining `NEXTAXIOM`/token-age scheduler
   remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CommitmentIntervalTargetAvoidance.lean`. Any supplied
+  positive-length retained-`sigma` interval now composes explicit adjacent
+  target-avoiding commitment paths into one canonical endpoint path omitting
+  the same target. Lean matches the exact middle ledger events and applies
+  verified loop erasure at every join. The theorem does not derive the
+  per-child untouched laws or edge callback, make them globally available for
+  an actual whole spine, recover queue origin, discharge a raw seam, or prove
+  enabledness, progress, completeness, fallback removal, token-age scheduling,
+  or complexity. Loop erasure preserves endpoints and avoidance, not the input
+  segment decomposition, stored parallel-edge indices, or nonempty traversal.
+  A direct consumer derives each edge from explicit child-event laws and invokes
+  the interval theorem; facade, default target, CI, generated API, and trust
+  audit are wired. The current public axiom audit covers 853 declarations: 571
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentEdgeTargetAvoidance.lean`. For one adjacent
   pair retained in final `sigma`, a supplied `FutureNewCandidateAt` and an
   explicit law that the exact child ledger event does not touch the candidate's
@@ -14,9 +29,9 @@
   origin, discharge any global raw created-candidate seam, or establish
   enabledness, progress, completeness, fallback removal, token-age scheduling,
   or complexity. A direct consumer invokes both public APIs; facade, default
-  target, CI, generated API, and trust audit are wired. The current public
-  axiom audit covers 852 declarations: 570 full-classical, 25 axiom-free, 122
-  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+  target, CI, generated API, and trust audit are wired. At that checkpoint the
+  public axiom audit covered 852 declarations: 570 full-classical, 25
+  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentEdgeReferencePath.lean`. Every adjacent
   parent-child raw-age pair retained in final `sigma` now recovers its exact
   historical `new` step and a canonical simple reference path from the parent

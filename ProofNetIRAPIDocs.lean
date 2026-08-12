@@ -698,6 +698,12 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment-interval target avoidance"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

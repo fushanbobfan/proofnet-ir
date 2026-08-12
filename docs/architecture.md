@@ -982,6 +982,16 @@ and composes the three avoiding paths by verified loop erasure. This does not
 derive the child-event untouched law or its global availability, compose a
 whole spine, recover queue origin, discharge a raw seam, or imply progress.
 
+`SequentialFigure7CommitmentIntervalTargetAvoidance.lean` supplies the
+composition combinator for any positive-length retained-`sigma` interval. A
+callback provides one target-avoiding witness for every adjacent edge in the
+interval. Exact ledger lookups identify each shared middle event, and verified
+loop erasure joins the paths while preserving their common avoidance target.
+This closes explicit-callback interval composition only. It does not derive or
+globalize the callback or child-event untouched laws, cover the zero-edge case,
+recover queue origin, discharge a raw seam, imply progress, preserve segment or
+parallel-edge identity, or establish a complexity bound.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under
@@ -1472,7 +1482,8 @@ active-reference walks between marked occurrences are equivalent to
   mark to its event endpoints. The adjacent-edge layer now composes one exact
   retained parent-child edge, and the target-avoidance layer conditionally
   omits a future tensor conclusion under the explicit child-event untouched
-  law. Deriving those laws globally, arbitrary multi-edge composition, and
+  law. Explicit adjacent callbacks now compose across every supplied nonempty
+  retained-`sigma` interval. Deriving those laws and callbacks globally and
   queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route

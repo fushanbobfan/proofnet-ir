@@ -376,10 +376,20 @@ that the exact child ledger event does not touch that candidate's tensor
 conclusion, Lean rebuilds the parent, historical `new`, and child path segments
 while omitting that conclusion, then loop-erases them to a canonical avoiding
 path between the two stored left endpoints. The module does not derive the
-child-event untouched law or its global availability, compose arbitrary
-multi-edge paths, recover queue origin, discharge a raw created-candidate seam,
-or establish enabledness, progress, completeness, fallback removal, or
-complexity.
+child-event untouched law or its global availability. That one-edge theorem
+alone does not compose multi-edge paths, recover queue origin, discharge a raw
+created-candidate seam, or establish enabledness, progress, completeness,
+fallback removal, or complexity.
+`SequentialFigure7CommitmentIntervalTargetAvoidance.lean` composes those
+carriers across any supplied nonempty retained-`sigma` interval. Its callback
+must provide an avoiding witness for every adjacent edge in that interval;
+Lean matches their exact middle ledger events and repeatedly loop-erases the
+joined paths. The theorem does not derive the callback or any child-event
+untouched law, make either globally available for an actual whole spine,
+recover queue origin, discharge a raw seam, or establish scheduler progress or
+complexity. Loop erasure retains the interval endpoints and shared-target
+avoidance, not the individual segment decomposition, stored parallel-edge
+indices, or a nonempty traversal.
 `SequentialFigure7RegionBoundaries.lean` kernel-checks that narrow converse
 boundary.  For a supplied `FreshSourceLeftRun`, every trace occurrence and the
 terminal partner is false-tagged on input, so it is not a prior canonical
@@ -1094,9 +1104,9 @@ not assert the ordinary invariant for physical tensor/fold intermediates. It
 proves conditional payload applicability from explicit input-only
 `UnifyPayloadEnabled`; the canonical certified dispatcher history is now
 integrated, while derivation of that predicate for the selected branch,
-exhaustive enabledness, derivation of the adjacent child-event untouched laws,
-arbitrary composition of the resulting target-avoiding commitment paths, queue
-origin, the raw created-candidate seams,
+exhaustive enabledness, derivation and global availability of the adjacent
+child-event untouched laws and callbacks, queue origin, the raw
+created-candidate seams,
 later-state applicability/totality, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
@@ -1146,8 +1156,9 @@ non-reuse, and event-counter alignment only for genuine empty/init/new
 executions. The canonical tag augmentation now lifts touch provenance and
 submitted-slot non-reuse and exact reservation-event counting through every
 stable dispatcher branch. Local raw-mark-to-reservation endpoint paths are now
-available, but their cross-component whole-history composition with target
-avoidance and queue-origin geometry is not.
+available, and explicit adjacent avoiding callbacks compose over any nonempty
+retained interval. Deriving those callbacks globally and connecting them to
+queue-origin geometry and the raw seams remain open.
 Correct-state progress, pure-worklist completeness, fallback removal, and
 whole-program linearity therefore remain open.
 
@@ -1536,8 +1547,9 @@ states. Integration of successful local
 certified history is complete, including exact tag-touch provenance, global
 submitted-slot non-reuse, and exact reservation-event counting against final
 `nextAge`. Adjacent cross-component paths and conditional target avoidance are
-available; composing them into a whole-history path, deriving the child-event
-untouched laws, proving exhaustive guard applicability, and
+available, and explicit adjacent callbacks now compose across any nonempty
+retained-`sigma` interval. Deriving those callbacks and child-event untouched
+laws for an actual whole history, proving exhaustive guard applicability, and
 obtaining a total later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
@@ -1794,8 +1806,8 @@ The repository currently contains:
   canonical priority
   dispatcher and proof-carrying certified successful history now cover
   `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload`; later-state
-  totality, unconditional reachability, and cross-component whole-history path
-  composition remain open. Closing-par exclusion,
+  totality, unconditional reachability, and global availability of the
+  child-event untouched laws and interval callbacks remain open. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -1850,8 +1862,8 @@ The repository currently contains:
   intermediates are not established. Canonical successful-trace integration is now
   complete for the six dispatcher families. Reachable later-state
   applicability/totality, unconditional full-rule reachability, derivation of
-  the child-event untouched laws, arbitrary whole-spine composition of the
-  conditional target-avoiding paths, queue origin and raw-seam discharge, full
+  globally available child-event untouched laws and interval callbacks, queue
+  origin and raw-seam discharge, full
   scheduler correctness, and a whole-program cost
   proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
@@ -2028,7 +2040,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 852 declarations: 570 public MLL logical-boundary theorems
+separately audits 853 declarations: 571 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2132,6 +2144,7 @@ lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_raw_mark_reservation_anchor_tests
 lake exe proofnet_ir_commitment_edge_reference_path_tests
 lake exe proofnet_ir_commitment_edge_target_avoidance_tests
+lake exe proofnet_ir_commitment_interval_target_avoidance_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
@@ -2235,6 +2248,8 @@ ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reserva
 ProofNetIR/SequentialFigure7RawMarkReservationAnchor.lean raw marks anchored to exact reservation endpoints inside one owned component
 ProofNetIR/SequentialFigure7CommitmentEdgeReferencePath.lean adjacent retained-sigma paths
 ProofNetIR/SequentialFigure7CommitmentEdgeTargetAvoidance.lean conditional future-target avoidance for one adjacent commitment edge
+ProofNetIR/SequentialFigure7CommitmentIntervalTargetAvoidance.lean
+  conditional nonempty commitment-interval path composition
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
 ProofNetIR/SequentialFigure7SameRepresentativeEventTouch.lean same-representative historical event-touch exclusion
@@ -2299,6 +2314,8 @@ ProofNetIRReservationRealizationTests.lean checker-accepted union and final acco
 ProofNetIRRawMarkReservationAnchorTests.lean raw-mark event and owned-path anchor consumer
 ProofNetIRCommitmentEdgeReferencePathTests.lean adjacent commitment-edge path consumer
 ProofNetIRCommitmentEdgeTargetAvoidanceTests.lean conditional adjacent-edge target-avoidance consumer
+ProofNetIRCommitmentIntervalTargetAvoidanceTests.lean
+  conditional commitment-interval composition consumer
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRSameRepresentativeEventTouchTests.lean same-representative historical event-touch consumers

@@ -683,6 +683,13 @@ part of the engineering and proof-identity gap.
    an explicit input rather than a history consequence; its global availability,
    arbitrary multi-edge composition, queue origin, the raw seams, enabledness,
    progress, completeness, fallback removal, and complexity remain open.
+   `SequentialFigure7CommitmentIntervalTargetAvoidance.lean` now closes the
+   composition operation for a supplied positive-length retained-`sigma`
+   interval. Its callback must provide every adjacent avoiding witness. Exact
+   middle ledger events are matched before verified loop erasure joins the
+   paths. This does not derive or globalize the callback or child-event laws,
+   cover a zero-edge singleton, recover queue origin, discharge a raw seam, or
+   imply progress or complexity.
    `SequentialFigure7TouchCompleteness.lean` now proves the exact reverse
    structural direction for every authentic reservation event. Under
    `StructurallyWellFormed`, a vertex in the event's complete source-left region
@@ -864,9 +871,10 @@ part of the engineering and proof-identity gap.
     vertex-level commitment paths, a proof of any created-candidate seam, or
     progress. The separate commitment-spine, adjacent-path, and conditional
     target-avoidance theorems supply retained ancestry and the one-edge geometry
-    under an explicit child-event untouched law.
-   Derivation of those laws, arbitrary multi-edge whole-history composition,
-   queue-origin and raw-seam discharge, exhaustive guard classification,
+    under an explicit child-event untouched law. Explicit adjacent callbacks
+    now compose across any supplied nonempty retained-`sigma` interval.
+   Derivation and global availability of those laws and callbacks, queue-origin
+   and raw-seam discharge, exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -954,7 +962,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 852 declarations: 570 public MLL
+- CI now parses `#print axioms` for 853 declarations: 571 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1082,9 +1090,11 @@ It can currently be used for:
   Exact init/new reachability, tag history, the retained `sigma` commitment
   spine, local raw-mark-to-reservation endpoint anchors, and certified full-rule
   successful traces are present. One adjacent cross-component path and its
-  explicit-premise target-avoidance refinement are present; derivation of the
-  child-event untouched laws, arbitrary whole-spine composition, queue origin,
-  raw-seam discharge, and unconditional full-rule reachability are not, so
+  explicit-premise target-avoidance refinement are present, and supplied
+  adjacent callbacks compose across every positive-length retained interval.
+  Derivation and global availability of the child-event untouched laws and
+  callbacks, queue origin, raw-seam discharge, and unconditional full-rule
+  reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
