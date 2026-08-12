@@ -625,6 +625,18 @@ the authentic storedLeft event and adjacent trace fragment. This is inclusive:
 the witness does not prove every avoiding path absent. No invariant availability,
 queue origin, progress, totality, completeness, scheduling, or complexity claim
 is introduced.
+`SequentialFigure7CommitmentBlockerAdvance.lean` adds no touch, path, ordering,
+or maximality oracle. Under supplied declarative correctness, the complete
+scheduler invariant, canonical history, active `NewGuard`, ledger membership,
+and strict current-representative order, it derives queued-head separation by
+structural induction, locates the retained prefix through `RealizesSigma`,
+applies the verified avoiding compositor, and consumes the audited equal-
+boundary dichotomy. A failed strict callback is decomposed into head or mate
+touch; only the head case is excluded. The surviving event is strictly higher
+solely in current representative order. The result does not eliminate that
+event, make the order chronological, make the inclusive equal callback failure
+exclusive, close a created-candidate raw seam, or establish enabledness,
+progress, totality, or completeness.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -915,8 +927,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 879
-declarations: 597 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 880
+declarations: 598 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1361,7 +1373,8 @@ Lean now also constructs the exact simultaneous complementary
   expose a composable positive prefix. Exhaustive later-state branch
   enabledness and totality, global mate-region and raw-mark invariant
   availability, unconditional stored-left equal-boundary avoidance,
-  queue origin, the raw created-candidate seams, unconditional full-rule
+  elimination of the strict representative-advance branch, queue origin, the
+  raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,

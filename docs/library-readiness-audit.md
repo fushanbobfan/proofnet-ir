@@ -902,6 +902,17 @@ part of the engineering and proof-identity gap.
    child-untouched callback failed, not a proof that no avoiding path exists;
    both alternatives may hold. Mate-region/raw-mark availability, queue origin,
    progress, completeness, scheduling, and complexity remain outside it.
+   `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
+   queued-head law, strict split, and equal-boundary result. Under declarative
+   correctness and the complete scheduler invariant, for a supplied canonical
+   history, active `NewGuard`, and authentic ledger event whose current
+   representative is strictly below the active head, the theorem yields an
+   exact avoiding path, a mate-touching event with a strictly higher current
+   representative still below the head, or the exact equal stored-left callback
+   failure. The reduction is inclusive: the advance is not raw-age/ledger
+   chronology, is not maximalized or eliminated, and the callback failure does
+   not deny path existence. It derives no mate-region invariant, closes no
+   created-candidate raw seam, and proves no `NewEnabled` or progress result.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -1012,14 +1023,14 @@ part of the engineering and proof-identity gap.
    at boundaries, strictly older than the candidate. The queued-head invariant
    has empty/init, stable, successful New, and structurally discharged
    Wait/Forward/UnifyPayload preservation plus global canonical-history
-   availability under structural well-formedness. Strict older events now
-   split at the candidate's immediate predecessor. The stored-right final edge
+   availability under structural well-formedness. Events whose current
+   representatives are strictly below the candidate now split at its immediate
+   predecessor. The stored-right final edge
    is now closed and the stored-left callback-failure touch witness is exact;
-   unconditional
-   stored-left avoidance, queue origin, raw-seam discharge, exhaustive guard
-   classification,
-   unconditional full-rule reachability,
-   closing-par scheduler-order exclusion, correct-state
+   unconditional stored-left avoidance, elimination of the strict
+   representative-advance branch, queue origin, raw-seam discharge, exhaustive
+   guard classification, unconditional full-rule reachability, closing-par
+   scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
    `NEXTAXIOM`/token-age sequencing, and a whole-program linear cost theorem
    remain open.
@@ -1105,7 +1116,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 879 declarations: 597 public MLL
+- CI now parses `#print axioms` for 880 declarations: 598 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1237,13 +1248,15 @@ It can currently be used for:
   adjacent callbacks compose across every positive-length retained interval.
   The strict conclusion law is available from both explicit separation
   invariants, and strictly older edge/interval callbacks now follow when the
-  scheduler invariant is also supplied. Any strictly older ledger event now
-  splits at the candidate's immediate predecessor, so its positive prefix is
-  composable. The queued-head half has empty/init, stable, successful New, and
+  scheduler invariant is also supplied. Any ledger event whose current
+  representative is strictly below the candidate now splits at its immediate
+  predecessor, so its positive prefix is composable. The queued-head half has
+  empty/init, stable, successful New, and
   structurally discharged Wait/Forward/UnifyPayload preservation, plus global
   availability for every structurally well-formed canonical history. The
-  independent mate-region and raw-mark invariants, unconditional stored-left
-  equal-boundary avoidance, queue origin, raw-seam
+  independent mate-region and raw-mark invariants, elimination of the strict
+  representative-advance branch, unconditional stored-left equal-boundary
+  avoidance, queue origin, raw-seam
   discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and

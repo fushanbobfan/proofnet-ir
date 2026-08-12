@@ -1087,7 +1087,13 @@
     avoidance is now kernel checked, while the stored-left case yields an exact
     inclusive touch obstruction rather than unconditional avoidance. Global
     mate-region invariant availability, queue origin, and raw seams remain
-    open. Work must
+    open. Under declarative correctness and the complete scheduler invariant,
+    for a supplied canonical history, active `NewGuard`, ledger membership, and
+    strict current-representative order, a further reduction returns an exact
+    avoiding path, a mate-touching event at a strictly higher current
+    representative still below the head, or the exact equal stored-left
+    callback failure. The representative advance is neither chronology nor yet
+    maximalized/eliminated, and no created-candidate raw seam is closed. Work must
     also eliminate old exact marked owners; this layer alone is not the
     universal premise.
     The active-region availability layer now packages the complete structural
@@ -1213,7 +1219,11 @@
     remaining mate-region and raw-mark invariants. The strict older-event split
     already composes the
     positive prefix to the candidate's immediate predecessor. StoredRight closes
-    the final edge; next resolve the storedLeft obstruction and queue origin.
+    the final edge, and under the theorem's additional public inputs the complete
+    interval now reduces to a path, current-representative advance, or equal
+    callback failure. Next eliminate the advance, resolve the storedLeft
+    callback failure, recover queue origin, and close the created-candidate raw
+    seams.
     Establish unconditional full-rule reachability, progress, completeness of
     that
     sequential executable, and a cost theorem over every implemented operation

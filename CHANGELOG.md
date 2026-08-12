@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CommitmentBlockerAdvance.lean`. Under declarative
+  correctness and the complete scheduler invariant, for a supplied canonical
+  history, active `NewGuard`, and authentic ledger event whose current
+  representative is strictly below the active head, Lean now reduces the
+  commitment geometry to three inclusive alternatives: an exact reference
+  path avoiding the active tensor conclusion; a mate-touching ledger event whose
+  current representative is strictly higher than the starting representative
+  and still strictly below the active head; or the exact equal-boundary
+  stored-left callback-failure trace witness. The advance is only in current
+  representative order, not raw-age or ledger chronology. This result neither
+  maximalizes nor eliminates the advance branch, and the callback-failure
+  branch does not deny that an avoiding path may also exist. It does not prove
+  the independent mate-region invariant, close any created-candidate raw seam,
+  establish the global raw-mark invariant, derive `NewEnabled`, or prove
+  dispatcher progress, totality, completeness, fallback removal, scheduling,
+  or complexity. The runnable consumer exhausts all three branches; facade,
+  default target, CI, generated API, and trust audit are wired. The current
+  public axiom audit covers 880 declarations: 598 full-classical, 25
+  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7EqualBoundaryCommitmentTargetAvoidance.lean`. The
   final commitment edge whose child is the active ready head is now classified
   exactly. Stored-right orientation yields a canonical reference path avoiding
@@ -13,9 +32,9 @@
   mate-region or raw-mark invariant, queue origin, progress, totality,
   completeness, fallback removal, scheduling, or complexity. The runnable
   consumer invokes all three public theorems; facade, default target, CI,
-  generated API, and trust audit are wired. The current public axiom audit
-  covers 879 declarations: 597 full-classical, 25 axiom-free, 122
-  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+  generated API, and trust audit are wired. At that checkpoint the public
+  axiom audit covered 879 declarations: 597 full-classical, 25 axiom-free,
+  122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchAvailability.lean`.
   A single induction over every proof-carrying `CanonicalTagHistory` now proves
   `OlderEventFutureWorkTouchSeparated` from structural well-formedness. Empty

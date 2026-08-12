@@ -8899,6 +8899,54 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_equal_boundary_d
                         beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
 ```
 
+## Commitment blocker advance
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`
+
+Kind: theorem.
+
+Under declarative correctness, the complete scheduler invariant, a
+canonical history, and an active `NewGuard`, an authentic ledger event whose
+current representative is strictly below the active head reduces to one of
+three inclusive alternatives:
+
+* a commitment reference path avoiding the active tensor conclusion;
+* a mate-touching ledger event with a strictly higher current representative,
+  still strictly below the active head's current representative; or
+* an equal-boundary stored-left event trace witnessing failure of the generic
+  child-untouched callback through the exact conclusion-to-head step.
+
+The second alternative is an advance only in current-representative order,
+not in raw-age or ledger chronology. The third alternative does not deny that
+an avoiding path may also exist. This theorem does not derive the independent
+mate-region invariant, close any created-candidate raw seam, prove `NewEnabled`,
+or establish scheduler progress, totality, or completeness.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate state)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          state.core.representative event.rawAge < state.core.representative guard.head.rawAge →
+            tagHistory.CommitmentEdgeTargetAvoidingPath (state.core.representative event.rawAge) guard.head.rawAge
+                guard.tensor.conclusion ∨
+              (∃ higherEvent,
+                  higherEvent ∈ tagHistory.reservationLedger ∧
+                    state.core.representative event.rawAge < state.core.representative higherEvent.rawAge ∧
+                      state.core.representative higherEvent.rawAge < state.core.representative guard.head.rawAge ∧
+                        higherEvent.Touched guard.tensor.mate) ∨
+                ∃ childEvent beforeTrace afterTrace,
+                  childEvent ∈ tagHistory.reservationLedger ∧
+                    childEvent.rawAge = guard.head.rawAge ∧
+                      guard.tensor.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+                        childEvent.search.result.trace =
+                          beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

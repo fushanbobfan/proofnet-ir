@@ -224,9 +224,8 @@ strict sigma ordering extends this to a positive interval from only strict
 oldness of its final boundary. This is not a new literature result and does not
 derive mate-region or raw-mark invariant availability, give unconditional
 stored-left equal-boundary avoidance, recover queue origin, close a raw seam,
-or prove progress. Another
-kernel-checked code
-consequence locates any strictly older authentic ledger event and future-New
+or prove progress. Another kernel-checked code consequence locates any
+strictly older authentic ledger event and future-New
 candidate in retained `sigma`, returning the candidate's immediate predecessor
 and the possibly empty prefix ending there. Positive prefixes use the existing
 strict interval result. A further kernel-checked code consequence classifies
@@ -235,9 +234,16 @@ general result returns that path or an exact same-age storedLeft
 conclusion-to-head touch witness. That witness records callback failure, not
 proof that no avoiding path exists. These are code consequences, not new
 literature results. The split itself is an index/representative consequence,
-not a
-global separation theorem. The availability-reduction
-layer now consumes the existing
+not a global separation theorem. Under declarative correctness and the complete
+scheduler invariant, for a supplied canonical history, active `NewGuard`,
+ledger membership, and an event representative strictly below the active head,
+the blocker-advance layer gives another three-way code consequence: exact
+avoiding path, strictly higher-current-representative mate-touch event below the
+active head, or exact equal stored-left callback failure. This inclusive
+reduction does not make representative order into chronology, maximalize or
+eliminate the advance, deny a path in its final branch, close any created-
+candidate raw seam, or prove progress. The availability-reduction layer now
+consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another
 code consequence rather than a new literature reading. The subsequent
