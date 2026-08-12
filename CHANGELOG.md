@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added `SequentialFigure7StrictCommitmentTargetAvoidance.lean`. Supplying the
+  complete scheduler invariant plus `OlderEventTouchSeparated` and
+  `OlderEventFutureWorkTouchSeparated` now automatically discharges the exact
+  child-event untouched law for any adjacent retained commitment edge whose
+  child boundary is strictly older than a future-New candidate. A second
+  theorem lifts this to every positive retained-`sigma` interval from only an
+  exact first/final lookup and strict oldness of the final boundary; strict
+  sigma ordering transports that bound to each child before the existing
+  interval compositor joins the avoiding paths. This does not cover an equal
+  final boundary, derive either separation invariant globally, establish queue
+  origin or a raw seam, or imply enabledness, progress, completeness, fallback
+  removal, or linearity. A direct consumer invokes both theorems and projects
+  the avoiding path; facade, default target, CI, generated API, and trust audit
+  are wired. The current public axiom audit covers 867 declarations: 585
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadPreservation.lean`.
   Every already-successful typed `UnifyPayloadStep` now preserves
   `OlderEventFutureWorkTouchSeparated` from a supplied prior canonical history
@@ -17,8 +33,8 @@
   exclusion, raw or source-region seam, enabledness, progress, totality,
   completeness, fallback removal, or linearity. A direct consumer invokes the
   theorem and its projection; facade, default target, CI, generated API, and
-  trust audit are wired. The current public axiom audit covers 865 declarations:
-  583 full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  trust audit are wired. At that checkpoint the public axiom audit covered 865
+  declarations: 583 full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean`.
   Every already-successful typed `ForwardStep` now preserves

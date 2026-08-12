@@ -19463,6 +19463,63 @@ ProofNetIR.SequentialFigure7.NopStep.olderEventFutureWorkTouchSeparated : ∀ {c
       (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.nop step))
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_of_strict`
+
+Kind: theorem.
+
+An adjacent retained commitment edge has a canonical path avoiding a
+future-New tensor conclusion when its child boundary is strictly older than
+that candidate and both older-event separation invariants are supplied.
+
+This theorem derives the exact child-event untouched callback required by
+`commitmentEdge_referencePath_avoiding`. It is not an equal-boundary result
+and does not establish either input invariant or its global availability.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_of_strict : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+      ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated tagHistory →
+        ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state) {position : Nat}
+          {parent child : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+          state.stack.sigma[position]? = some parent →
+            state.stack.sigma[position + 1]? = some child →
+              state.core.representative child < state.core.representative candidate.rawAge →
+                tagHistory.CommitmentEdgeTargetAvoidingPath parent child candidate.tensor.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding_of_lastOlder`
+
+Kind: theorem.
+
+A positive retained commitment interval has a canonical path avoiding a
+future-New tensor conclusion when its final boundary is strictly older than
+that candidate and both older-event separation invariants are supplied.
+
+Strict sigma ordering and exact first/final lookups make every child inside
+the interval no newer than the final boundary, so the adjacent strict theorem
+supplies every callback required by interval composition. This does not cover
+a zero-length interval, an equal final boundary, arbitrary non-sigma paths,
+or global availability of the input invariants.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding_of_lastOlder : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+      ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated tagHistory →
+        ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state) {position edgeCount : Nat}
+          {first last : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+          0 < edgeCount →
+            state.stack.sigma[position]? = some first →
+              state.stack.sigma[position + edgeCount]? = some last →
+                state.core.representative last < state.core.representative candidate.rawAge →
+                  tagHistory.CommitmentEdgeTargetAvoidingPath first last candidate.tensor.conclusion
+```
+
 ### `ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom`
 
 Kind: definition.

@@ -830,8 +830,15 @@ part of the engineering and proof-identity gap.
    New is handled by an unconditional downstream preservation theorem, while
    Wait, Forward, and UnifyPayload are handled conditionally under their exact
    created-head residuals. Global invariant and residual availability, the
-   same-boundary head case, target paths, raw seams, enabledness, and progress
-   remain open.
+   same-boundary target paths, raw seams, enabledness, and progress remain open.
+   `SequentialFigure7StrictCommitmentTargetAvoidance.lean` now closes the
+   strictly older target-path adapter. Under the complete scheduler invariant
+   and both supplied separation invariants, an adjacent retained edge whose
+   child is strictly older than the future candidate obtains the exact
+   child-event untouched callback automatically. Strict sigma ordering extends
+   this to any positive retained interval from strict oldness of its final
+   boundary. It does not cover an equal final boundary, prove either invariant
+   globally, recover queue origin, close a raw seam, or imply progress.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -934,14 +941,15 @@ part of the engineering and proof-identity gap.
     This is provenance only; this layer alone does not provide queue-origin or
     vertex-level commitment paths, a proof of any created-candidate seam, or
     progress. The separate commitment-spine, adjacent-path, and conditional
-    target-avoidance theorems supply retained ancestry and the one-edge geometry
-    under an explicit child-event untouched law. Explicit adjacent callbacks
-    now compose across any supplied nonempty retained-`sigma` interval.
-   The strict conclusion law also follows from the two explicit separation
-   invariants, whose queued-head member has empty/init, stable, successful New,
-   and conditional Wait/Forward/UnifyPayload preservation. Global availability
-   of that invariant and the exact three residuals, the same-boundary case,
-   actual adjacent laws/callbacks, queue
+   target-avoidance theorems supply retained ancestry and the one-edge geometry
+   under an explicit child-event untouched law. Explicit adjacent callbacks
+   now compose across any supplied nonempty retained-`sigma` interval. When
+   both strict separation invariants and the scheduler invariant are supplied,
+   the law and callback are automatic for edges, or positive intervals ending
+   at boundaries, strictly older than the candidate. The queued-head invariant
+   has empty/init, stable, successful New, and conditional
+   Wait/Forward/UnifyPayload preservation. Global availability of that
+   invariant and the exact three residuals, the same-boundary callback, queue
    origin, raw-seam discharge, exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
@@ -1030,7 +1038,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 865 declarations: 583 public MLL
+- CI now parses `#print axioms` for 867 declarations: 585 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1161,10 +1169,11 @@ It can currently be used for:
   explicit-premise target-avoidance refinement are present, and supplied
   adjacent callbacks compose across every positive-length retained interval.
   The strict conclusion law is available from both explicit separation
-  invariants, with empty/init, stable, successful New, and conditional
-  Wait/Forward/UnifyPayload preservation for the queued-head half. Global
-  invariant and all three residuals' availability, the
-  same-boundary case, actual child-event laws/callbacks, queue origin, raw-seam
+  invariants, and strictly older edge/interval callbacks now follow when the
+  scheduler invariant is also supplied. The queued-head half has empty/init,
+  stable, successful New, and conditional Wait/Forward/UnifyPayload
+  preservation. Global invariant and all three residuals' availability, the
+  same-boundary callback, queue origin, raw-seam
   discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and

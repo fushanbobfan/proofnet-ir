@@ -69,6 +69,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "olderEventFutureWorkTouchSeparated",
     "ProofNetIR.SequentialFigure7.NopStep."
     "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "commitmentEdge_referencePath_avoiding_of_strict",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "commitmentInterval_referencePath_avoiding_of_lastOlder",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant."
     "exactMarkedOccurrenceOwner_iff_exists_rawMark",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."

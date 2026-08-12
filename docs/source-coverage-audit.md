@@ -190,9 +190,16 @@ UnifyPayload case is conditionally preserved under the candidate-indexed
 transport through the prior invariant after strict output order excludes the
 retired active class; the inserted conclusion is the sole residual case. This
 is also a code consequence, not a literature result, and does not derive the
-residual. Global invariant and all three residuals' availability, same-boundary
-touches, target paths, raw seams, and progress remain open. The
-availability-reduction
+residual. Global invariant and all three residuals' availability,
+same-boundary target paths, raw seams, and progress remain open. A further
+kernel-checked code consequence now connects the two supplied separation
+invariants to retained commitment geometry. Under the complete scheduler
+invariant, the child-event untouched callback follows automatically for an
+adjacent edge whose child boundary is strictly older than a future candidate;
+strict sigma ordering extends this to a positive interval from only strict
+oldness of its final boundary. This is not a new literature result and does not
+derive global invariant availability, cover the equal-boundary case, recover
+queue origin, close a raw seam, or prove progress. The availability-reduction
 layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another

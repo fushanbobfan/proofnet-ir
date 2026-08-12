@@ -837,8 +837,8 @@ canonical history, or queue provenance. This base layer alone does not cover a
 candidate-creating rule. A downstream theorem closes the successful New case,
 and separate downstream theorems conditionally close Wait, Forward, and
 UnifyPayload under their exact created-head residuals. Global residual
-availability, same-boundary touches, raw seams, target-path construction,
-enabledness, and progress remain open.
+availability, same-boundary touches and target paths, raw seams, enabledness,
+and progress remain open.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -1064,6 +1064,19 @@ This closes explicit-callback interval composition only. It does not derive or
 globalize the callback or child-event untouched laws, cover the zero-edge case,
 recover queue origin, discharge a raw seam, imply progress, preserve segment or
 parallel-edge identity, or establish a complexity bound.
+
+`SequentialFigure7StrictCommitmentTargetAvoidance.lean` discharges those
+callbacks for the strictly older slice. The complete scheduler invariant makes
+every retained sigma boundary a current union-find root; strict sigma ordering
+then transports strict oldness of an interval's final boundary to every child
+inside it. `OlderEventTouchSeparated` and
+`OlderEventFutureWorkTouchSeparated` exclude the corresponding child event
+from the future tensor conclusion, so the one-edge theorem and positive
+interval compositor yield canonical avoiding paths without a separate
+`childUntouched` argument. The theorem still requires both supplied separation
+invariants and exact sigma lookups. It does not cover an equal final boundary,
+derive global availability, recover queue origin, discharge a raw seam, or
+imply progress or complexity.
 
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
@@ -1555,14 +1568,15 @@ active-reference walks between marked occurrences are equivalent to
   mark to its event endpoints. The adjacent-edge layer now composes one exact
   retained parent-child edge, and the target-avoidance layer conditionally
   omits a future tensor conclusion under the explicit child-event untouched
-  law. Explicit adjacent callbacks now compose across every supplied nonempty
-  retained-`sigma` interval. The pointwise strict conclusion law now follows
-  when both explicit separation invariants and structural well-formedness are
-  supplied. New preservation of the queued-head invariant is now kernel
+  law. Explicit adjacent callbacks compose across every supplied nonempty
+  retained-`sigma` interval. When both separation invariants and the complete
+  scheduler invariant are supplied, the child-event law and callback now
+  follow automatically for any strictly older adjacent edge or positive
+  interval ending at a strictly older boundary. New preservation of the
+  queued-head invariant is now kernel
   checked from a supplied prior instance, while Wait, Forward, and UnifyPayload
   preservation are checked under their exact candidate-indexed residuals.
-  Global invariant and residual availability, the same-boundary case, actual
-  adjacent callbacks, and
+  Global invariant and residual availability, the same-boundary callback, and
   queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route

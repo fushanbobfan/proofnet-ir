@@ -1063,8 +1063,14 @@
     kernel checked under `ForwardCreatedHeadTouchSeparated`; UnifyPayload is
     kernel checked under `UnifyPayloadCreatedHeadTouchSeparated`. Global
     invariant and all three residuals' availability, and the same-boundary
-    head-touch case remain open. Work must also eliminate
-    old exact marked owners; this layer alone is not the universal premise.
+    head-touch case remain open. Given
+    both strict separation invariants and the complete scheduler invariant,
+    Lean now derives the target-avoiding path for every adjacent edge whose
+    child is strictly older than the candidate, and for every positive interval
+    whose final boundary is strictly older. Equal-boundary edges, global
+    invariant availability, queue origin, and raw seams remain open. Work must
+    also eliminate old exact marked owners; this layer alone is not the
+    universal premise.
     The active-region availability layer now packages the complete structural
     search into `NewSourceRegionInput` or an exact old marked owner, and then
     into `NewEnabled` or that owner. Consequently route/run, raw and endpoint
@@ -1171,9 +1177,11 @@
     arbitrary positive-length spine intervals. The strictly older queued-head
     law is now an explicit invariant with empty/structurally well-formed init,
     stable-rule, successful New, and conditional Wait/Forward/UnifyPayload
-    preservation. Derive all three residuals and global invariant availability,
-    then derive and globalize the child-event untouched laws and callbacks
-    together with queue origin.
+    preservation. When it and the mate-region invariant are supplied, strict
+    child-event callbacks and positive intervals ending strictly before the
+    candidate now follow automatically. Derive all three residuals and global
+    invariant availability, then handle the equal-boundary callback and queue
+    origin.
     Establish unconditional full-rule reachability, progress, completeness of
     that
     sequential executable, and a cost theorem over every implemented operation
