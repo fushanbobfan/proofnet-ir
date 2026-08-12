@@ -553,6 +553,14 @@ The resulting strict order is then consumed by the explicitly supplied
 lookup through canonical touch provenance to a concrete ledger event. No
 runtime audit, route/run existence, raw readiness, queue/capacity witness,
 created-region premise, or progress result enters these theorems.
+`SequentialFigure7ActiveConclusionTouch.lean` adds no touch or path oracle.
+Structural touch completeness extends an authentic event's source-left route
+through the supplied future tensor's stored-left premise and then uses the
+stored orientation to classify the reached premise as mate or head. In the
+active theorem, existing tag provenance and conditional mate-region freshness
+refute only the mate branch. The surviving head touch remains explicit, so no
+conclusion-untouched fact, raw-mark exclusion, target-avoiding path, created
+seam, enabledness, or progress theorem is hidden in this layer.
 `SequentialFigure7ActiveRegionAvailability.lean` adds no search or ownership
 oracle. It case-splits the already kernel-checked structural
 `freshSourceLeftRun_or_blocker`. The run branch is packaged by existing
@@ -770,8 +778,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 853
-declarations: 571 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 855
+declarations: 573 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

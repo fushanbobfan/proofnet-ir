@@ -789,6 +789,16 @@ history invariant and does not construct a route/run, establish raw readiness
 or queue capacity, prove `NewEnabled`, or discharge a created-candidate
 preservation premise.
 
+`SequentialFigure7ActiveConclusionTouch.lean` decomposes a reservation-event
+touch of any future candidate tensor conclusion through the tensor's
+stored-left premise. Depending on tensor orientation, the event must touch the
+candidate mate or queued head. For the active candidate, the preceding
+tag-freshness theorem eliminates the mate alternative, including when the
+event has the active boundary itself, so an active conclusion touch implies an
+active head touch. The head alternative remains: this layer does not prove the
+conclusion untouched, exclude raw marks, construct a target-avoiding path,
+discharge a created-candidate seam, or establish scheduler progress.
+
 `SequentialFigure7ActiveRegionAvailability.lean` then runs the complete
 structural source-left search against that tag-fresh region. A successful run
 is upgraded by canonical queue history to `NewSourceRegionInput`, including

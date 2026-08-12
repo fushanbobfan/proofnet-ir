@@ -160,7 +160,12 @@ active mate region must be strictly older in representative and raw-age order,
 and a supplied older-event separation invariant therefore makes the complete
 region tag-fresh. It does not add a literature reading or provide the route,
 readiness, queue/capacity, or global-invariant witnesses still needed for
-enabledness. The availability-reduction layer now consumes the existing
+enabledness. A further kernel-checked code consequence decomposes a historical
+touch of any future tensor conclusion into a mate touch or queued-head touch;
+for the active candidate the conditional tag-freshness theorem eliminates the
+mate branch. This is not a new literature reading, does not prove the
+conclusion untouched, and leaves the head-touch/raw-mark obstruction open. The
+availability-reduction layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another
 code consequence rather than a new literature reading. The subsequent

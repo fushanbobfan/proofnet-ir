@@ -236,6 +236,9 @@ expansion.
   CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderEventTouchSeparated
 #print axioms
   CanonicalTagHistory.active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated
+#print axioms SequentialFigure7.ReservationEvent.touched_candidateConclusion_cases
+#print axioms
+  CanonicalTagHistory.active_conclusion_touch_implies_head_touch
 #print axioms
   CanonicalTagHistory.active_newSourceRegionInput_or_exactMarkedOwner
 #print axioms CanonicalTagHistory.active_newEnabled_or_exactMarkedOwner

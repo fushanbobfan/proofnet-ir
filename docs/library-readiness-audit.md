@@ -768,6 +768,14 @@ part of the engineering and proof-identity gap.
    This is conditional tag freshness, not route/run construction, raw or
    endpoint readiness, queue/capacity evidence, global invariant availability,
    `NewEnabled`, or progress.
+   `SequentialFigure7ActiveConclusionTouch.lean` now proves the exact
+   structural split for a historical event touching any future candidate
+   tensor conclusion: the event also touches the mate or queued head. For the
+   active candidate, conditional mate-region tag freshness removes the mate
+   branch, even for a same-boundary event, leaving an active-head touch. This
+   is not a conclusion-untouched theorem and does not eliminate that head
+   touch, exclude raw marks, build a target-avoiding path, close a created
+   seam, or prove enabledness or progress.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -962,7 +970,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 853 declarations: 571 public MLL
+- CI now parses `#print axioms` for 855 declarations: 573 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveConclusionTouch.lean`. Under structural
+  well-formedness, any authentic reservation-event touch of a future-New tensor
+  conclusion reaches either the candidate mate or its queued head according to
+  stored tensor orientation. For the active `NewGuard` candidate, declarative
+  correctness, the complete scheduler invariant, and
+  `OlderEventTouchSeparated` make the mate region tag-fresh, so every ledger
+  event touching the active tensor conclusion also touches the active head,
+  including the same-boundary case. This does not prove the conclusion
+  untouched, exclude the remaining head touch or a raw mark, construct a
+  target-avoiding path, discharge a created-candidate seam, or prove
+  enabledness or progress. A direct consumer invokes both public theorems;
+  facade, default target, CI, generated API, and trust audit are wired. The
+  current public axiom audit covers 855 declarations: 573 full-classical, 25
+  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentIntervalTargetAvoidance.lean`. Any supplied
   positive-length retained-`sigma` interval now composes explicit adjacent
   target-avoiding commitment paths into one canonical endpoint path omitting
@@ -14,7 +28,8 @@
   segment decomposition, stored parallel-edge indices, or nonempty traversal.
   A direct consumer derives each edge from explicit child-event laws and invokes
   the interval theorem; facade, default target, CI, generated API, and trust
-  audit are wired. The current public axiom audit covers 853 declarations: 571
+  audit are wired. At that checkpoint the public axiom audit covered 853
+  declarations: 571
   full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentEdgeTargetAvoidance.lean`. For one adjacent

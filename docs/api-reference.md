@@ -19050,6 +19050,45 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFres
               before.tags[vertex]? = some false
 ```
 
+### `ProofNetIR.SequentialFigure7.ReservationEvent.touched_candidateConclusion_cases`
+
+Kind: theorem.
+
+Touching a future candidate's tensor conclusion forces a touch of either
+the candidate mate or its queued head, according to stored orientation.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.touched_candidateConclusion_cases : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.StructurallyWellFormed →
+    ∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate)
+      (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state),
+      event.Touched candidate.tensor.conclusion → event.Touched candidate.tensor.mate ∨ event.Touched candidate.head
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_conclusion_touch_implies_head_touch`
+
+Kind: theorem.
+
+For the active candidate, every chronological ledger-event touch of the
+tensor conclusion also touches the queued head.  The mate alternative is
+excluded by active source-left-region tag freshness, including for the
+same-boundary event not covered by a strict older-event callback.  This does
+not prove the conclusion untouched; it leaves the head-touch alternative
+explicit.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_conclusion_touch_implies_head_touch : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+          ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+            event ∈ tagHistory.reservationLedger →
+              event.Touched guard.tensor.conclusion → event.Touched guard.head.vertex
+```
+
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newSourceRegionInput_or_exactMarkedOwner`
 
 Kind: theorem.

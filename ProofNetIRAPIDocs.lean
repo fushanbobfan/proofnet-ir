@@ -1513,6 +1513,12 @@ def sections : List Section := [
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
         "active_sourceLeftRegion_tagFresh_of_olderSourceRegionSeparated",
       Name.str
+        `ProofNetIR.SequentialFigure7.ReservationEvent
+        "touched_candidateConclusion_cases",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_conclusion_touch_implies_head_touch",
+      Name.str
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
         "active_newSourceRegionInput_or_exactMarkedOwner",
       Name.str

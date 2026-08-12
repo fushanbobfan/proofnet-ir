@@ -467,6 +467,16 @@ readiness, queue absence or fresh waiting capacity, establish
 `OperationalNewReadyAt` or `NewEnabled`, discharge global invariant
 availability or created-candidate preservation, or prove progress, totality,
 completeness, or fallback removal.
+`SequentialFigure7ActiveConclusionTouch.lean` isolates the next structural
+split. Any authentic reservation event touching a future candidate's tensor
+conclusion also touches either its mate or its queued head, according to stored
+tensor orientation. For the active candidate, declarative correctness, the
+complete scheduler invariant, and `OlderEventTouchSeparated` make the mate
+region tag-fresh, so every ledger-event conclusion touch must also touch the
+active head, including for a same-boundary event. The theorem does not prove
+the conclusion untouched or eliminate the remaining head-touch alternative;
+it also does not exclude a raw mark, construct a target-avoiding path,
+discharge a created-candidate seam, or establish enabledness or progress.
 `SequentialFigure7ActiveRegionAvailability.lean` composes the structural
 run-or-blocker theorem with declarative blocker classification and the active
 tag-freshness result. It proves that the active source-left region supplies a
@@ -2040,7 +2050,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 853 declarations: 571 public MLL logical-boundary theorems
+separately audits 855 declarations: 573 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2137,6 +2147,7 @@ lake exe proofnet_ir_commitment_spine_tests
 lake exe proofnet_ir_touch_completeness_tests
 lake exe proofnet_ir_older_event_touch_separation_tests
 lake exe proofnet_ir_active_region_touch_order_tests
+lake exe proofnet_ir_active_conclusion_touch_tests
 lake exe proofnet_ir_active_region_availability_tests
 lake exe proofnet_ir_cross_representative_stable_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_separation_tests
@@ -2256,6 +2267,7 @@ ProofNetIR/SequentialFigure7SameRepresentativeEventTouch.lean same-representativ
 ProofNetIR/SequentialFigure7CrossRepresentativeInvariant.lean future-work and strictly older representative source-region invariant
 ProofNetIR/SequentialFigure7OlderEventTouchSeparation.lean exact older-region/event-touch invariant equivalence
 ProofNetIR/SequentialFigure7ActiveRegionTouchOrder.lean active mate-region conflict order and conditional tag freshness
+ProofNetIR/SequentialFigure7ActiveConclusionTouch.lean active tensor-conclusion touch decomposition
 ProofNetIR/SequentialFigure7ActiveRegionAvailability.lean
   conditional NewEnabled or exact old-owner reduction
 ProofNetIR/SequentialFigure7CrossRepresentativeStablePreservation.lean prepared/concl/nop cross-representative preservation
@@ -2307,6 +2319,7 @@ ProofNetIRCommitmentSpineTests.lean retained sigma commitment-spine consumer
 ProofNetIRTouchCompletenessTests.lean reservation-event touch/region completeness API consumers
 ProofNetIROlderEventTouchSeparationTests.lean older-region/event-touch equivalence API consumers
 ProofNetIRActiveRegionTouchOrderTests.lean active-region conflict-order and tag-freshness API consumers
+ProofNetIRActiveConclusionTouchTests.lean active tensor-conclusion touch decomposition API consumer
 ProofNetIRActiveRegionAvailabilityTests.lean active NewEnabled/old-owner dichotomy API consumers
 ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
 ProofNetIROlderRawMarkedRegionSeparationTests.lean raw-mark separation and owner-clear consumers

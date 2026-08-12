@@ -1045,7 +1045,12 @@
     geometry. The conditional active-region order theorem now classifies any
     remaining event touch as strictly older in representative and raw-age order;
     with `OlderEventTouchSeparated`, it excludes that touch and proves the
-    complete active region tag-fresh. Remaining work must establish the
+    complete active region tag-fresh. Reservation-event touch of any future
+    tensor conclusion now decomposes into a mate touch or queued-head touch;
+    for the active candidate the tag-fresh mate branch is impossible, so even
+    a same-boundary conclusion touch implies an active-head touch. This does
+    not make the conclusion untouched or eliminate that head touch. Remaining
+    work must establish the
     separation invariant for the relevant histories and eliminate old exact
     marked owners; this checkpoint alone is not the universal premise.
     The active-region availability layer now packages the complete structural
