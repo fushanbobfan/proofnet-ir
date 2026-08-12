@@ -523,11 +523,12 @@ therefore excludes a strictly older event from the candidate tensor conclusion
 under structural well-formedness. The invariant is vacuous for the empty
 history, holds for exact initialized histories under the same structural
 hypothesis, and is preserved through the synchronized prepared prefix plus
-canonical `concl` and `nop`. It is not derived from declarative correctness, the scheduler
-invariant, canonical history, or queue provenance. Preservation through
-`new`, `wait`, `forward`, and `unifyPayload`, global availability, the
-same-boundary head-touch case, target-path construction, raw seams,
-enabledness, and progress remain open.
+canonical `concl` and `nop`. It is not derived from declarative correctness,
+the scheduler invariant, canonical history, or queue provenance. This base
+module alone does not cover a candidate-creating rule. The downstream theorem
+below closes `new` for an already successful typed edge; `wait`, `forward`,
+`unifyPayload`, global availability, the same-boundary head-touch case,
+target-path construction, raw seams, enabledness, and progress remain open.
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` then splits every
 successful `new` output occurrence into retained marked-middle work or one of
 the exact reached/partner endpoints appended at the fresh raw-age boundary.
@@ -537,7 +538,18 @@ its fresh boundary is the maximal output raw age. The remaining old-event /
 new-endpoint cases are packaged by `NewCreatedCandidate`, and the history
 theorem is deliberately conditional on the explicit, non-circular
 `NewCreatedRegionSeparated` geometry. The current scheduler invariant does not
-derive that premise, so no unconditional `new` preservation is claimed.
+derive that premise, so no unconditional `OlderSourceRegionSeparated`
+preservation through `new` is claimed.
+`SequentialFigure7OlderEventFutureWorkTouchNewPreservation.lean` separately
+closes the successful `new` case for the queued-head invariant. Given a prior
+canonical tag history and `OlderEventFutureWorkTouchSeparated`, every retained
+candidate transports through the prepared prefix, an old event touching a
+created reached/partner endpoint contradicts canonical cross-event touch
+disjointness, and the fresh event cannot be strictly older than any output
+candidate. No `NewCreatedRegionSeparated` premise is needed. This is
+preservation for an already successful typed `NewStep`, not a derivation of
+the prior invariant, global availability, a same-boundary result, another
+candidate-creating rule, a raw seam, enabledness, or progress.
 `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` then handles the
 parallel raw-mark invariant. It classifies every successful `new` output
 candidate as retained work or an exact reached/partner endpoint at the fresh
@@ -579,9 +591,9 @@ prepared-middle unmarked mate. The history theorem therefore preserves
 ledger event against such a candidate. Production queuing changes neither
 marks nor union-find parents, but the inserted conclusion had no prior
 `FutureWorkAt` witness, so the old invariant alone cannot prove this premise.
-No unconditional `forward` preservation is claimed. Preservation through
-unconditional `new`, `wait`, `forward`, and arbitrary-payload `unify` remains
-open.
+No unconditional `forward` source-region preservation is claimed. For the
+queued-head invariant, `new` is preserved by the dedicated downstream theorem,
+while `wait`, `forward`, and arbitrary-payload `unify` remain open.
 `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` handles the
 parallel raw-mark invariant. The selected mark and every inserted Forward
 candidate share the exact active raw age, so the selected/created strict-order
@@ -1574,9 +1586,10 @@ submitted-slot non-reuse, and exact reservation-event counting against final
 available, and explicit adjacent callbacks now compose across any nonempty
 retained-`sigma` interval. Deriving those callbacks and child-event untouched
 laws for an actual whole history, establishing the strict queued-head invariant
-through candidate-creating rules, handling the same-boundary case, proving
-exhaustive guard applicability, and obtaining a total later-state transition
-system remain open.
+through `wait`, `forward`, and `unifyPayload`, handling the same-boundary case,
+proving exhaustive guard applicability, and obtaining a total later-state
+transition system remain open. Its `new` preservation is kernel checked for an
+already successful typed edge once the prior invariant is supplied.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -2068,7 +2081,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 861 declarations: 579 public MLL logical-boundary theorems
+separately audits 862 declarations: 580 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2177,6 +2190,7 @@ lake exe proofnet_ir_commitment_edge_target_avoidance_tests
 lake exe proofnet_ir_commitment_interval_target_avoidance_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
+lake exe proofnet_ir_older_event_future_work_touch_new_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
 lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_wait_preservation_tests
@@ -2296,6 +2310,8 @@ ProofNetIR/SequentialFigure7OlderRawMarkedRegionSeparation.lean
   state-only older-raw-mark region separation and active owner exclusion
 ProofNetIR/SequentialFigure7CrossRepresentativeNewPreservation.lean
   conditional New introduced-candidate preservation
+ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchNewPreservation.lean
+  successful New preservation for the strictly older queued-head invariant
 ProofNetIR/SequentialFigure7OlderRawMarkedRegionNewPreservation.lean
   conditional New preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeWaitPreservation.lean
@@ -2357,6 +2373,8 @@ ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and repr
 ProofNetIRSameRepresentativeEventTouchTests.lean same-representative historical event-touch consumers
 ProofNetIRCrossRepresentativeInvariantTests.lean future-work, singleton-ledger, and strict representative-order consumers
 ProofNetIRCrossRepresentativeNewPreservationTests.lean conditional New preservation consumers
+ProofNetIROlderEventFutureWorkTouchNewPreservationTests.lean
+  successful New queued-head separation preservation consumer
 ProofNetIROlderRawMarkedRegionNewPreservationTests.lean
   conditional New raw-mark preservation consumers
 ProofNetIRCrossRepresentativeWaitPreservationTests.lean conditional Wait preservation consumers

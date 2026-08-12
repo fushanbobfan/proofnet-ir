@@ -276,6 +276,7 @@ expansion.
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older
 #print axioms SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created
+#print axioms SequentialFigure7.NewStep.olderEventFutureWorkTouchSeparated
 #print axioms
   SequentialFigure7.NewStep.created_sourceRegion_not_selected_of_structural_acyclic
 #print axioms SequentialFigure7.NewStep.created_sourceRegion_not_selected

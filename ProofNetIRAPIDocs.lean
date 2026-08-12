@@ -1607,6 +1607,9 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.NewStep
         "olderSourceRegionSeparated_of_created",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "olderEventFutureWorkTouchSeparated",
       `ProofNetIR.SequentialFigure7.NewRetainedRawMarksSeparated,
       Name.str
         `ProofNetIR.SequentialFigure7.NewStep

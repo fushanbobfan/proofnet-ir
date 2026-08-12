@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderEventFutureWorkTouchNewPreservation.lean`.
+  Every already-successful typed `NewStep` now preserves
+  `OlderEventFutureWorkTouchSeparated` from a supplied prior canonical history,
+  without a created-region side condition. Retained candidates transport
+  through the prepared prefix; an old event touching a created reached/partner
+  endpoint contradicts canonical cross-event touch disjointness; and the fresh
+  event cannot be strictly older than any output candidate. This does not
+  derive the prior invariant or its global availability, handle same-boundary
+  touches or Wait/Forward/UnifyPayload, discharge a raw seam, or prove
+  enabledness, progress, totality, completeness, fallback removal, or
+  linearity. A direct consumer invokes the theorem and its projection; facade,
+  default target, CI, generated API, and trust audit are wired. The current
+  public axiom audit covers 862 declarations: 580 full-classical, 25
+  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchSeparation.lean`.
   `OlderEventFutureWorkTouchSeparated` names the exact queued-head residue left
   by tensor-conclusion touch decomposition: every strictly older authentic
@@ -16,7 +30,8 @@
   same-boundary head-touch case, target-path construction, raw seams,
   enabledness, and progress remain open. A direct consumer invokes all public
   APIs; facade, default target, CI, generated API, and trust audit are wired.
-  The current public axiom audit covers 861 declarations: 579 full-classical,
+  At that checkpoint the public axiom audit covered 861 declarations: 579
+  full-classical,
   25 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveConclusionTouch.lean`. Under structural
   well-formedness, any authentic reservation-event touch of a future-New tensor

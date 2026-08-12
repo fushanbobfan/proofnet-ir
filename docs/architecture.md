@@ -833,9 +833,10 @@ mate-or-head decomposition excludes the same event from the candidate tensor
 conclusion. Empty, structurally well-formed init, and Prepared/concl/nop
 preservation are proved. The
 predicate is not reconstructed from correctness, the state invariant,
-canonical history, or queue provenance, and this layer does not cover
-candidate-creating rules, same-boundary touches, global availability, raw
-seams, target-path construction, enabledness, or progress.
+canonical history, or queue provenance. This base layer alone does not cover a
+candidate-creating rule. A downstream theorem closes the successful New case;
+Wait, Forward, UnifyPayload, same-boundary touches, global availability, raw
+seams, target-path construction, enabledness, and progress remain open.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -866,6 +867,17 @@ preservation consumes `NewCreatedRegionSeparated` for prior ledger events
 whose marked-middle representative is strictly smaller than the fresh root.
 That side condition is not derived from the scheduler invariant, so the module
 makes no unconditional New claim.
+
+`SequentialFigure7OlderEventFutureWorkTouchNewPreservation.lean` closes the
+orthogonal queued-head invariant through an already-successful typed New step.
+Retained candidates are transported through the prepared prefix. For a created
+reached/partner endpoint, an old ledger-event touch would be both a prior
+history touch and the current New search touch, contradicting canonical
+cross-event disjointness. The fresh event is excluded by maximal raw-age order.
+The theorem requires the prior canonical history and its supplied
+`OlderEventFutureWorkTouchSeparated`; it does not derive global availability,
+cover the same-boundary case or another candidate-creating rule, discharge a
+raw seam, or establish progress.
 
 `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` uses that exact New
 candidate decomposition to close the parallel raw-mark transport once its
@@ -1507,9 +1519,11 @@ active-reference walks between marked occurrences are equivalent to
   law. Explicit adjacent callbacks now compose across every supplied nonempty
   retained-`sigma` interval. The pointwise strict conclusion law now follows
   when both explicit separation invariants and structural well-formedness are
-  supplied. Candidate-creating preservation and global availability of the
-  queued-head invariant, the same-boundary case, actual adjacent callbacks,
-  and queue-to-created-candidate geometry remain required by the seams.
+  supplied. New preservation of the queued-head invariant is now kernel
+  checked from a supplied prior instance. Preservation through Wait, Forward,
+  and UnifyPayload, global availability, the same-boundary case, actual
+  adjacent callbacks, and queue-to-created-candidate geometry remain required
+  by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

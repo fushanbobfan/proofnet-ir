@@ -90,6 +90,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
     "ProofNetIR.SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created",
     "ProofNetIR.SequentialFigure7.NewStep."
+    "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.NewStep."
     "created_sourceRegion_not_selected_of_structural_acyclic",
     "ProofNetIR.SequentialFigure7.NewStep."
     "created_sourceRegion_not_selected",

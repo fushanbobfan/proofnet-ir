@@ -19800,6 +19800,34 @@ ProofNetIR.SequentialFigure7.NewStep.olderSourceRegionSeparated_of_created : ∀
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.new step))
 ```
 
+### `ProofNetIR.SequentialFigure7.NewStep.olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+A canonical `new` extension preserves strictly older ledger-event
+separation from every output future-work head.
+
+No created-region premise is needed: the only new heads are the current
+search's reached and partner endpoints, whose current touches are disjoint
+from every touch already recorded by the prior canonical history. This is
+successful-step preservation, not a same-boundary or global-availability
+result. It does not derive the prior invariant, handle Wait/Forward/UnifyPayload,
+discharge a raw seam, or establish enabledness or progress.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.olderEventFutureWorkTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.new, after := after }}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
+    ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+      (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.new step))
+```
+
 ### `ProofNetIR.SequentialFigure7.NewRetainedRawMarksSeparated`
 
 Kind: definition.

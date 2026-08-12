@@ -1054,10 +1054,13 @@
     `OlderEventFutureWorkTouchSeparated`; with the independent mate-region law
     and structural well-formedness, it excludes a strictly older conclusion
     touch. Empty, structurally well-formed init, and Prepared/concl/nop
-    preservation are complete. Candidate-creating
-    preservation, global availability, and the same-boundary head-touch case
-    remain open. Work must also eliminate old exact marked owners; this
-    checkpoint alone is not the universal premise.
+    preservation are complete. Preservation through an already-successful
+    typed New step is also complete from the supplied prior invariant: retained
+    work transports, old-event/created-endpoint touch contradicts history
+    disjointness, and the fresh event cannot be strictly older. Wait, Forward,
+    UnifyPayload, global availability, and the same-boundary head-touch case
+    remain open. Work must also eliminate old exact marked owners; this layer
+    alone is not the universal premise.
     The active-region availability layer now packages the complete structural
     search into `NewSourceRegionInput` or an exact old marked owner, and then
     into `NewEnabled` or that owner. Consequently route/run, raw and endpoint
@@ -1162,10 +1165,11 @@
     every retained adjacent edge has an exact canonical path plus a conditional
     target-avoidance refinement. Explicit adjacent callbacks compose across
     arbitrary positive-length spine intervals. The strictly older queued-head
-    law is now an explicit invariant with empty/structurally well-formed init and stable-rule
-    preservation; derive its candidate-creating preservation and global
-    availability, then derive and globalize the child-event untouched laws and
-    callbacks together with queue origin. Establish unconditional full-rule
+    law is now an explicit invariant with empty/structurally well-formed init,
+    stable-rule, and successful New preservation. Derive its Wait, Forward, and
+    UnifyPayload preservation and global availability, then derive and
+    globalize the child-event untouched laws and callbacks together with queue
+    origin. Establish unconditional full-rule
     reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation
     before claiming Guerrini linearity. The needed stack invariants are false

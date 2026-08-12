@@ -171,19 +171,25 @@ law and structural well-formedness it yields strict candidate-conclusion
 non-touch. Empty, structurally well-formed init, and Prepared/concl/nop
 preservation are proved. This is another kernel-checked code
 consequence, not a new literature reading or evidence that canonical histories
-satisfy the new invariant. Candidate-creating preservation, same-boundary
-touches, global availability, target paths, raw seams, and progress remain
-open. The availability-reduction layer now consumes the existing
+satisfy the new invariant. Wait, Forward, and UnifyPayload preservation,
+same-boundary touches, global availability, target paths, raw seams, and
+progress remain open. The successful typed New case is now a further
+kernel-checked code consequence: retained candidates transport, old-event
+touch of a created endpoint contradicts canonical history disjointness, and
+the fresh event cannot be strictly older. It requires the supplied prior
+invariant and is not evidence of global availability. The availability-reduction
+layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another
 code consequence rather than a new literature reading. The subsequent
 raw-mark separation layer turns owner exclusion into a precise state
 invariant, proves its empty/initial and Prepared/concl/nop cases, and derives
 active-region no-mark/no-owner from it. That is also a code consequence, not a
-new literature reading. Global preservation of the mate-region,
-future-head-touch, and older-raw-mark separation invariants through the
-candidate-creating rules remains open. The New
-raw-mark branch is now conditionally transported: switching acyclicity removes
+new literature reading. Global preservation of the mate-region and
+older-raw-mark separation invariants through candidate-creating rules remains
+open. The future-head-touch invariant is preserved through New but not yet
+through Wait, Forward, or UnifyPayload. The New raw-mark branch is now
+conditionally transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.
 This is a kernel-checked code consequence, not a new literature reading or a
