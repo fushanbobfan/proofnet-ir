@@ -588,8 +588,9 @@ the strict order directly; Prepared/concl/nop transport exact ledger
 membership, future work, and current
 representatives. Candidate-creating rules, same-boundary touches, and global
 availability remain explicit rather than hidden in this base proof. The
-successful New case is handled by a separate downstream theorem; Wait,
-Forward, and UnifyPayload remain outside this layer.
+successful New case is handled by a separate downstream theorem, and Wait is
+handled conditionally by another downstream theorem under its exact
+created-head residual. Forward and UnifyPayload remain outside this layer.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -612,6 +613,18 @@ remaining source-region obligation for prior ledger events. The finite
 cross-representative executable may falsify that premise on generated
 reachable cases, but no runtime result is imported into the theorem and zero
 observed intersections is not used as proof.
+`SequentialFigure7OlderEventFutureWorkTouchWaitPreservation.lean` adds no
+touch, queue, geometry, history, or reachability oracle. It is indexed by an
+already-successful typed `WaitStep`, a prior canonical history, its supplied
+queued-head invariant, and the candidate-indexed
+`WaitCreatedHeadTouchSeparated` premise. Exact destination and prepared-prefix
+equations transport retained candidates. An actual inserted candidate is sent
+directly to that residual; Wait contributes no new reservation event. Relative
+to the prior invariant this is the exact transition-local obligation, but the
+proof does not derive it from the scheduler invariant, history, or
+reachability. It establishes no unconditional/global Wait,
+Forward/UnifyPayload, same-boundary, raw/source-region seam, enabledness, or
+progress result.
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` adds no hidden
 source-region oracle. Its exact stack equations classify output work as
 retained marked-middle work or a reached/partner endpoint at the fresh
@@ -799,8 +812,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 862
-declarations: 580 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 863
+declarations: 581 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1235,10 +1248,11 @@ Lean now also constructs the exact simultaneous complementary
   cross-component path has an explicit-premise target-avoidance refinement.
   Explicit adjacent callbacks compose across any supplied positive-length
   retained interval. The strict conclusion law follows from the two explicit
-  separation invariants, and the queued-head half has empty/init, stable, and
-  successful New preservation. Exhaustive later-state branch enabledness and
-  totality, Wait/Forward/UnifyPayload preservation and global availability of
-  the invariants, the same-boundary case, actual child-event laws/callbacks,
+  separation invariants, and the queued-head half has empty/init, stable,
+  successful New, and conditional Wait preservation. Exhaustive later-state
+  branch enabledness and totality, Forward/UnifyPayload preservation, global
+  invariant and Wait-residual availability, the same-boundary case, actual
+  child-event laws/callbacks,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

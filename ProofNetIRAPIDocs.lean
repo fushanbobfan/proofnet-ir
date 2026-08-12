@@ -1636,6 +1636,10 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.WaitCreatedCandidate,
       `ProofNetIR.SequentialFigure7.WaitCreatedRegionSeparated,
       `ProofNetIR.SequentialFigure7.WaitStep.olderSourceRegionSeparated_of_created,
+      `ProofNetIR.SequentialFigure7.WaitCreatedHeadTouchSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "olderEventFutureWorkTouchSeparated",
       `ProofNetIR.SequentialFigure7.WaitRetainedRawMarksSeparated,
       Name.str
         `ProofNetIR.SequentialFigure7.WaitStep

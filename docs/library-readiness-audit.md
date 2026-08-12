@@ -740,6 +740,17 @@ part of the engineering and proof-identity gap.
    premise is required. This does not establish global invariant availability,
    the same-boundary case, another candidate-creating rule, raw seams,
    enabledness, or progress.
+   `SequentialFigure7OlderEventFutureWorkTouchWaitPreservation.lean`
+   conditionally closes the corresponding Wait branch. Retained candidates
+   transport through the exact destination and prepared-prefix equations. For
+   an actual inserted future-New candidate, the candidate-indexed
+   `WaitCreatedHeadTouchSeparated` premise is precisely the remaining
+   old-event/conclusion obligation, and Wait appends no current ledger event.
+   Relative to the supplied prior invariant this is the exact transition-local
+   residual, but neither the scheduler invariant nor canonical history or
+   reachability derives it. Unconditional/global Wait, Forward/UnifyPayload,
+   same-boundary, raw/source-region seams, enabledness, and progress remain
+   open.
    `SequentialFigure7CrossRepresentativeForwardPreservation.lean` now closes
    the exact state-transport portion of the Forward branch. Old ready and
    waiting occurrences retain their exact prepared-middle boundary, while the
@@ -793,9 +804,11 @@ part of the engineering and proof-identity gap.
    it transports through Prepared/concl/nop. It is not derived from
    correctness, the scheduler invariant, canonical history, or queue
    provenance. This base layer alone does not cover a candidate-creating rule;
-   New is handled by the downstream preservation theorem. Wait, Forward,
-   UnifyPayload, the same-boundary head case, global availability, target paths,
-   raw seams, enabledness, and progress remain open.
+   New is handled by an unconditional downstream preservation theorem and Wait
+   by a conditional downstream theorem under its exact created-head residual.
+   Forward, UnifyPayload, global invariant and residual availability, the
+   same-boundary head case, target paths, raw seams, enabledness, and progress
+   remain open.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -902,10 +915,11 @@ part of the engineering and proof-identity gap.
     under an explicit child-event untouched law. Explicit adjacent callbacks
     now compose across any supplied nonempty retained-`sigma` interval.
    The strict conclusion law also follows from the two explicit separation
-   invariants, whose queued-head member has empty/init, stable, and successful
-   New preservation. Preservation through Wait, Forward, and UnifyPayload and
-   global availability of that invariant, the same-boundary case, actual
-   adjacent laws/callbacks, queue origin, raw-seam discharge, exhaustive guard
+   invariants, whose queued-head member has empty/init, stable, successful New,
+   and conditional Wait preservation. Forward and UnifyPayload preservation,
+   global availability of that invariant and the exact Wait residual, the
+   same-boundary case, actual adjacent laws/callbacks, queue origin, raw-seam
+   discharge, exhaustive guard
    classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
@@ -994,7 +1008,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 862 declarations: 580 public MLL
+- CI now parses `#print axioms` for 863 declarations: 581 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1125,9 +1139,10 @@ It can currently be used for:
   explicit-premise target-avoidance refinement are present, and supplied
   adjacent callbacks compose across every positive-length retained interval.
   The strict conclusion law is available from both explicit separation
-  invariants, with empty/init, stable, and successful New preservation for the
-  queued-head half. Preservation through Wait, Forward, and UnifyPayload,
-  global availability, the same-boundary case, actual child-event
+  invariants, with empty/init, stable, successful New, and conditional Wait
+  preservation for the queued-head half. Forward and UnifyPayload preservation,
+  global invariant and Wait-residual availability, the same-boundary case,
+  actual child-event
   laws/callbacks, queue origin, raw-seam discharge, and unconditional full-rule
   reachability are not, so
   together these are not a complete scheduler API;
