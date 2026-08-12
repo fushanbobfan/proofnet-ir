@@ -8411,6 +8411,48 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event
   tagHistory.Touched vertex → ∃ event, event ∈ tagHistory.reservationLedger ∧ event.Touched vertex
 ```
 
+## Canonical retained commitment spine
+
+### `ProofNetIR.SequentialFigure7.ReservationEvent.Commits`
+
+Kind: inductive type.
+
+One historical `new` event commits the then-active boundary to the fresh
+raw age allocated by that exact dependent step.
+
+```lean
+ProofNetIR.SequentialFigure7.ReservationEvent.Commits : {certificate : ProofNetIR.Certificate} →
+  ProofNetIR.SequentialFigure7.ReservationEvent certificate →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentSpine`
+
+Kind: definition.
+
+Every adjacent pair of retained `sigma` boundaries is justified by the
+exact `new` event stored at the child's chronological raw-age slot.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentSpine : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentSpine`
+
+Kind: theorem.
+
+Every canonical dispatcher tag history carries the exact commitment
+spine for its final retained `sigma` stack.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentSpine : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history), tagHistory.CommitmentSpine
+```
+
 ## Reservation-event source-left touch completeness
 
 ### `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftRegion_touched`

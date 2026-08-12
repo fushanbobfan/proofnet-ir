@@ -640,6 +640,12 @@ part of the engineering and proof-identity gap.
    chronological link slots reverse the legacy newest-first list, and every
    touch reaches an event that itself touched the vertex. It also proves the
    selected old active age is strictly below a `new` event's fresh age. The
+   new `SequentialFigure7CommitmentSpine.lean` layer proves that every adjacent
+   pair retained in final `sigma` is backed by the exact `new` event at the
+   child raw-age ledger slot. Stable branches preserve this ancestry, New
+   appends one edge, and UnifyPayload removes only the active top edge. This
+   does not construct a vertex-level reference path, prove target avoidance or
+   queue origin, or discharge any raw created-candidate seam. The
    reservation/final-component transport is now complete in
    `SequentialFigure7ReservationRealization.lean`: under explicit certificate
    structural well-formedness, every event's exact axiom link survives all six
@@ -829,10 +835,12 @@ part of the engineering and proof-identity gap.
     one-step old-or-current-event mark transport, final mark iff canonical raw
     event, and executed-history/reachability event recovery. Raw-mark events
     are not `NEXTAXIOM` touches: stable rules can mark connective conclusions.
-    This is provenance only, not queue-origin or cross-component commitment
-    ancestry, a proof of any created-candidate seam, or progress.
-    Reservation-event-count and whole-history oriented-route generalization,
-   exhaustive guard classification,
+    This is provenance only; this layer alone does not provide queue-origin or
+    vertex-level commitment paths, a proof of any created-candidate seam, or
+    progress. The separate commitment-spine theorem supplies exact retained
+    `sigma` ancestry but not that missing path geometry.
+    Vertex-level whole-history oriented-route generalization, queue-origin and
+   raw-seam discharge, exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -920,7 +928,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 848 declarations: 566 public MLL
+- CI now parses `#print axioms` for 849 declarations: 567 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1045,10 +1053,11 @@ It can currently be used for:
   unconditional reachability are not yet lifted. The
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
-  Exact init/new reachability and tag history plus certified full-rule
-  successful traces are present, but unconditional full-rule reachability and
-  the required global queue/route commitments are not, so together these are
-  not a complete scheduler API;
+  Exact init/new reachability, tag history, the retained `sigma` commitment
+  spine, and certified full-rule successful traces are present. Vertex-level
+  commitment paths with target avoidance, queue origin, raw-seam discharge,
+  and unconditional full-rule reachability are not, so together these are not
+  a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
 - auditing the frozen 180-task model experiment, amendment, raw responses,

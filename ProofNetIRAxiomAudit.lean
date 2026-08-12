@@ -321,6 +321,7 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices
 #print axioms SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event
 #print axioms SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event
+#print axioms SequentialFigure7.CanonicalTagHistory.commitmentSpine
 #print axioms CutFreeDerivation.pick?_source_unique
 #print axioms CutFreeDerivation.reorder?_source_unique
 #print axioms Certificate.OccurrenceDerivation.owned_unique

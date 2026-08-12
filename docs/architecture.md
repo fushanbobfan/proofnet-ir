@@ -709,6 +709,16 @@ current ownership. Raw event age, final representative, reserved axiom
 endpoints, and all vertices touched by the historical search remain four
 distinct notions.
 
+`SequentialFigure7CommitmentSpine.lean` records the exact allocation ancestry
+still visible in the final `sigma` stack. For every adjacent parent/child raw
+age, the child ledger slot contains the authentic `new` event that selected
+the parent and allocated the child. Concl, Nop, Wait, and Forward preserve the
+stack; New appends the final edge; UnifyPayload pops only the active top edge.
+This is a retained-boundary theorem, not a vertex-level path, target-avoidance,
+queue-origin, raw-seam, enabledness, progress, completeness, or complexity
+theorem. Boundaries removed by UnifyPayload are deliberately outside its final
+state statement.
+
 `SequentialFigure7TouchCompleteness.lean` identifies two of those historical
 notions without collapsing them into current ownership. Structural
 well-formedness makes the stored successful source-left run complete for the
@@ -1421,8 +1431,10 @@ active-reference walks between marked occurrences are equivalent to
   occurrence/raw-age pair; induction then characterizes every final raw mark
   by an authentic dispatcher event. This relation is separate from search
   touch provenance because stable rules raw-mark connective conclusions. It
-  does not provide queue-origin or cross-component commitment ancestry and
-  therefore does not discharge any created-candidate raw seam.
+  does not by itself provide queue-origin or vertex-level commitment paths and
+  therefore does not discharge any created-candidate raw seam. The separate
+  commitment-spine layer now records exact retained `sigma` ancestry, but not
+  the path or target-avoidance geometry required by those seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

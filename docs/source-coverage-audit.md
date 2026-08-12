@@ -192,10 +192,14 @@ raw-mark event provenance layer: every final
 concrete mark is the selection of an authentic typed dispatcher branch, and
 the one-step effect is exactly old-or-current-event. This is a kernel-checked
 code consequence, not a new literature reading. It does not identify raw marks
-with `NEXTAXIOM` touches and does not supply queue origin, cross-component
-commitment ancestry, or any created-candidate seam.
-Ownership through a complete reachable
-transition system, richer route/tag/slot history commitments, later-state
+with `NEXTAXIOM` touches and does not by itself supply queue origin,
+vertex-level commitment paths, target avoidance, or any created-candidate
+seam. An independent kernel-checked commitment-spine layer now proves that
+every adjacent pair in the final retained `sigma` is backed by the exact
+historical `new` event stored at the child raw-age ledger slot. This closes
+allocation ancestry only and is not a new literature reading. Ownership
+through a complete reachable transition system, vertex-level route and
+target-avoidance geometry, queue origin, the four raw seams, later-state
 totality, progress, and pure-worklist completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,

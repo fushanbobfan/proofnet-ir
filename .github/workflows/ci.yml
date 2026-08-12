@@ -49,6 +49,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_blocker_history_tests
           ~/.elan/bin/lake exe proofnet_ir_touch_origin_tests
           ~/.elan/bin/lake exe proofnet_ir_reservation_ledger_tests
+          ~/.elan/bin/lake exe proofnet_ir_commitment_spine_tests
           ~/.elan/bin/lake exe proofnet_ir_touch_completeness_tests
           ~/.elan/bin/lake exe proofnet_ir_reservation_realization_tests
           ~/.elan/bin/lake exe proofnet_ir_region_boundaries_tests

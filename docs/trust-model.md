@@ -492,6 +492,16 @@ smaller. The touch bridge retains an event-membership and event-local `Touched`
 witness. It does not infer that raw age is a representative, that every vertex
 touched by the event belongs to the reserved axiom component, or that
 historical provenance classes are disjoint.
+`SequentialFigure7CommitmentSpine.lean` adds no commitment or scheduling
+oracle. Its public theorem is an induction over the existing
+`CanonicalTagHistory`; stable branches preserve `sigma` and the reservation
+ledger, `new` appends its exact fresh child and authentic reservation event,
+and `unifyPayload` removes only the final active boundary. It therefore proves
+allocation ancestry for adjacent pairs in the final retained `sigma`, with
+the child raw age indexing the exact ledger event. It does not retain popped
+boundaries, construct a vertex-level reference path, prove target avoidance or
+queue origin, discharge any raw created-candidate seam, or establish
+enabledness, progress, completeness, fallback removal, or complexity.
 `SequentialFigure7TouchCompleteness.lean` adds no search oracle. Its run-level
 theorem follows the supplied `FreshSourceLeftRun` by structural induction,
 using source-producer and submitted-axiom uniqueness from
@@ -714,15 +724,17 @@ projects the already-successful typed witness retained by each
 one-step and whole-history raw-mark provenance. Stable branches show why this
 relation cannot be identified with `Touched`: they raw-mark a connective
 conclusion without another `NEXTAXIOM` execution. The theorem adds neither
-queue-origin nor cross-component commitment ancestry and does not derive the
-four raw created-candidate seams, progress, or completeness.
+queue origin nor vertex-level commitment paths or target avoidance and does
+not derive the four raw created-candidate seams, progress, or completeness.
+The separate commitment-spine theorem establishes only final retained `sigma`
+allocation ancestry and does not strengthen this raw-mark provenance claim.
 `SequentialFigure7ProgressInvariant.lean` adds the public
 `FutureWaitingUndefined` preservation family; those theorems remain within the
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 848
-declarations: 566 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 849
+declarations: 567 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1151,9 +1163,10 @@ Lean now also constructs the exact simultaneous complementary
   successful-step occurrence-exact invariant preservation from a full input
   invariant. Conditional input-only applicability under `UnifyPayloadEnabled`
   is also kernel checked. A canonical successful-step dispatcher and certified
-  history are also kernel checked. Exhaustive later-state branch enabledness
-  and totality, richer history
-  commitments, unconditional full-rule reachability, and the
+  history are also kernel checked. Final retained-`sigma` allocation ancestry
+  is kernel checked as well. Exhaustive later-state branch enabledness and
+  totality, vertex-level commitment paths and target avoidance, queue origin,
+  the raw created-candidate seams, unconditional full-rule reachability, and the
   remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program

@@ -131,6 +131,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_linkIndices",
     "ProofNetIR.SequentialFigure7.CanonicalTouchOrigin.reservationLedger_event",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.touched_reservationLedger_event",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentSpine",
     "ProofNetIR.CutFreeDerivation.reorder?_source_unique",
     "ProofNetIR.Certificate.OccurrenceDerivation.owned_unique",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_realized",

@@ -315,6 +315,15 @@ distinct live components, or imply dispatcher progress or completeness. In
 particular, blanket old/current region disjointness is not an invariant; only
 the exact carrier of an already supplied current run has the needed
 tag/raw-mark separation.
+`SequentialFigure7CommitmentSpine.lean` now isolates the allocation ancestry
+retained by the current `sigma` stack. For every adjacent parent/child pair,
+Lean recovers the exact historical `new` reservation event stored at the
+child raw age's chronological ledger slot. Stable branches preserve those
+pairs, `new` appends exactly one pair, and `unifyPayload` removes only the
+active top boundary. This is final retained commitment ancestry only: it does
+not construct a vertex-level reference path, prove target avoidance or queue
+origin, discharge any raw-mark created-candidate seam, or establish
+enabledness, progress, completeness, fallback removal, or a complexity bound.
 `SequentialFigure7TouchCompleteness.lean` closes the reverse structural
 direction for an authentic reservation event. Under
 `StructurallyWellFormed`, every vertex in a supplied exact run's complete
@@ -682,7 +691,7 @@ authentic event selected that pair. Executed-history and certified-reachability
 facades recover the event without introducing a parallel history type.
 `RawMarked` is not `Touched`: stable branches can mark connective conclusions
 without executing `NEXTAXIOM`. This is raw-mark provenance only. It does not
-establish queue origin or cross-component commitment ancestry, supply any
+by itself establish queue origin or vertex-level commitment paths, supply any
 created-candidate separation seam, or prove progress or completeness.
 `SequentialFigure7History.lean` now separately
 defines proof-relevant reachability for exactly the empty/init/operational-new
@@ -1053,8 +1062,9 @@ not assert the ordinary invariant for physical tensor/fold intermediates. It
 proves conditional payload applicability from explicit input-only
 `UnifyPayloadEnabled`; the canonical certified dispatcher history is now
 integrated, while derivation of that predicate for the selected branch,
-exhaustive enabledness, richer history laws,
-and later-state applicability/totality,
+exhaustive enabledness, vertex-level commitment paths and target avoidance,
+queue origin, the raw created-candidate seams, and later-state
+applicability/totality,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
@@ -1102,8 +1112,9 @@ not prove applicability, totality, or unconditional reachability. The separate
 `InitNewHistory` proves exact tag history, whole-history submitted-slot
 non-reuse, and event-counter alignment only for genuine empty/init/new
 executions. The canonical tag augmentation now lifts touch provenance and
-submitted-slot non-reuse through every stable dispatcher branch; event-counter
-alignment and a public whole-history oriented-route theorem are not yet lifted.
+submitted-slot non-reuse and exact reservation-event counting through every
+stable dispatcher branch. A vertex-level public whole-history oriented-route
+theorem is not yet lifted.
 Correct-state progress, pure-worklist completeness, fallback removal, and
 whole-program linearity therefore remain open.
 
@@ -1804,9 +1815,10 @@ The repository currently contains:
   reachable dispatcher states and invariance of physical tensor/fold
   intermediates are not established. Canonical successful-trace integration is now
   complete for the six dispatcher families. Reachable later-state
-  applicability/totality, unconditional full-rule reachability, richer history
-  commitments, full scheduler correctness, and a
-  whole-program cost proof remain open;
+  applicability/totality, unconditional full-rule reachability, vertex-level
+  commitment paths with target avoidance, queue-origin and raw-seam
+  discharge, full scheduler correctness, and a whole-program cost proof
+  remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -1981,7 +1993,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 848 declarations: 566 public MLL logical-boundary theorems
+separately audits 849 declarations: 567 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2074,6 +2086,7 @@ lake exe proofnet_ir_fresh_source_blocker_tests
 lake exe proofnet_ir_blocker_history_tests
 lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_reservation_ledger_tests
+lake exe proofnet_ir_commitment_spine_tests
 lake exe proofnet_ir_touch_completeness_tests
 lake exe proofnet_ir_older_event_touch_separation_tests
 lake exe proofnet_ir_active_region_touch_order_tests
@@ -2178,6 +2191,7 @@ ProofNetIR/SequentialFigure7BlockerHistory.lean canonical-history blocker proven
 ProofNetIR/SequentialFigure7TerminalPartnerGeometry.lean correctness-based terminal-head exclusion
 ProofNetIR/SequentialFigure7TouchOrigin.lean exact historical touch-event provenance
 ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reservation history
+ProofNetIR/SequentialFigure7CommitmentSpine.lean retained sigma allocation ancestry
 ProofNetIR/SequentialFigure7TouchCompleteness.lean exact reservation-event touch/region equivalence
 ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
@@ -2233,6 +2247,7 @@ ProofNetIRFreshSourceBlockerTests.lean source-region blocker and public dichotom
 ProofNetIRBlockerHistoryTests.lean canonical blocker-provenance and conditional enabledness consumers
 ProofNetIRTouchOriginTests.lean exact canonical touch-origin consumer fixtures
 ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger consumers
+ProofNetIRCommitmentSpineTests.lean retained sigma commitment-spine consumer
 ProofNetIRTouchCompletenessTests.lean reservation-event touch/region completeness API consumers
 ProofNetIROlderEventTouchSeparationTests.lean older-region/event-touch equivalence API consumers
 ProofNetIRActiveRegionTouchOrderTests.lean active-region conflict-order and tag-freshness API consumers

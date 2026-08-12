@@ -650,6 +650,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Canonical retained commitment spine"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ReservationEvent.Commits,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentSpine,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentSpine
+    ]
+  },
+  {
     title := "Reservation-event source-left touch completeness"
     declarations := [
       `ProofNetIR.SequentialUnification.FreshSourceLeftRun.sourceLeftRegion_touched,

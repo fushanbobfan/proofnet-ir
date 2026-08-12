@@ -1080,16 +1080,20 @@
     every final concrete mark is the selected occurrence/raw-age pair of an
     authentic prepared event, and each step has exactly the old-or-current
     effect. This does not identify raw marks with search touches. The remaining
-    gap is a queue-origin and cross-component commitment-ancestry/order theorem
-    connecting earlier selections to each newly created candidate; without it,
-    the four transition-local raw seams remain explicit premises.
+    gap is no longer the raw allocation ancestry itself: the retained `sigma`
+    commitment spine is exact. What remains is a vertex-level reference path
+    with target avoidance and queue-origin geometry connecting earlier
+    selections to each newly created candidate; without it, the four
+    transition-local raw seams remain explicit premises.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger
     now indexes authentic events by every immutable raw age, reverses the
     legacy newest-first submitted-slot list, and maps each touch to an event
-    that really touched it. Historical-reservation/final-component realization
-    is now complete for the exact reserved axiom and both endpoints through
+    that really touched it. Every adjacent pair retained in final `sigma` is
+    now backed by the exact historical `new` event stored at the child age's
+    ledger slot. Historical-reservation/final-component realization is now
+    complete for the exact reserved axiom and both endpoints through
     every dispatcher branch, including arbitrary-payload tensor union. Use this
     anchor in the next finer route-intersection argument. Do not identify the
     reserved endpoints with every vertex touched by the historical search;
@@ -1128,8 +1132,9 @@
     to prior-touch or old-component-owner alternatives. Those alternatives may
     overlap globally; their exclusion from a prospective current source-left
     run remains the open history/geometry obligation.
-    The canonical-history reservation-count commitment is complete. Generalize
-    the remaining whole-history oriented-route commitment, establish
+    The canonical-history reservation count and retained allocation spine are
+    complete. Generalize the remaining vertex-level whole-history
+    oriented-route commitment, establish
     unconditional full-rule reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation
     before claiming Guerrini linearity. The needed stack invariants are false

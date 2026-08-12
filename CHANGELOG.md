@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CommitmentSpine.lean`. Every adjacent pair in the
+  final retained `sigma` stack is now backed by the exact historical `new`
+  reservation event stored at the child raw age's chronological ledger slot.
+  The proof follows all six canonical dispatcher branches: stable rules leave
+  the spine unchanged, `new` appends one exact parent-child commitment, and
+  `unifyPayload` removes only the active top boundary. This is allocation
+  ancestry only. It does not provide a vertex-level reference path, target
+  avoidance, queue origin, any of the four raw-mark created-candidate seams,
+  branch applicability, progress, pure-worklist completeness, fallback
+  removal, faithful token-age scheduling, or whole-program linearity. A direct
+  consumer invokes the complete three-item public surface; facade, default
+  target, CI, generated API, and trust audit are wired. The current public
+  axiom audit covers 849 declarations: 567 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7RawMarkHistory.lean`. The existing branch-indexed
   `DispatchTagEvidence` now exposes the common prepared prefix and its exact
   raw-mark event for all six successful non-initial dispatcher branches. Lean
@@ -11,12 +25,13 @@
   executed-history and certified-reachability facades recover that event. This
   `RawMarked` relation is deliberately distinct from `Touched`: stable rules
   can mark connective conclusions without running `NEXTAXIOM`. The layer is
-  provenance only; it does not provide queue-origin or cross-component
-  commitment ancestry, derive any of the four created-candidate raw seams, or
-  prove progress or completeness. A direct consumer invokes all seven public
-  APIs; facade, default target, CI, generated API, and trust audit are wired.
-  The current public axiom audit covers 848 declarations: 566 full-classical,
-  25 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+  provenance only; this layer alone does not provide queue-origin or
+  vertex-level commitment paths, derive any of the four created-candidate raw
+  seams, or prove progress or completeness. A direct consumer invokes all
+  seven public APIs; facade, default target, CI, generated API, and trust audit
+  are wired. At that checkpoint the public axiom audit covered 848
+  declarations: 566 full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean`.
   For every successful typed `UnifyPayloadStep`, Lean first excludes any raw
   mark in the retired active representative class from the strict older-than
