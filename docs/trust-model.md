@@ -782,6 +782,16 @@ stored orientation. The direct corollary still takes the supplied prior
 queued-head invariant and an already-successful typed step. It establishes no
 source-region or raw seam, final equal-boundary callback, global availability,
 enabledness, or progress result.
+`SequentialFigure7OlderEventFutureWorkTouchAvailability.lean` adds no
+reachability, history-existence, branch-enabledness, touch, ownership, or
+separation oracle. It performs structural induction on the supplied
+proof-carrying canonical history and composes the audited empty,
+initialization, and six rule-preservation theorems. The result therefore makes
+the queued-head invariant available for every structurally well-formed
+canonical history without assuming another execution. It does not derive the
+independent mate-region or raw-mark invariants, cover equal representative
+boundaries, or prove progress, totality, completeness, fallback removal,
+scheduling, or complexity.
 `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` adds no
 event-history, reachability, correctness, or representative-stability oracle.
 It uses the typed output candidate bound to exclude every strictly older raw
@@ -893,8 +903,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 875
-declarations: 593 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 876
+declarations: 594 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1332,12 +1342,13 @@ Lean now also constructs the exact simultaneous complementary
   scheduler invariant are supplied, the child-event callback follows for each
   strictly older adjacent edge and for a positive interval whose last boundary
   is strictly older. The queued-head half has empty/init, stable, successful
-  New and structurally discharged Wait/Forward/UnifyPayload preservation from
-  a supplied prior instance.
+  New and structurally discharged Wait/Forward/UnifyPayload preservation, and
+  canonical-history induction makes it globally available under structural
+  well-formedness.
   Strict older events now split at the candidate's immediate predecessor and
   expose a composable positive prefix. Exhaustive later-state branch
-  enabledness and totality, global invariant availability, the final
-  same-boundary callback,
+  enabledness and totality, global mate-region and raw-mark invariant
+  availability, the final same-boundary callback,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

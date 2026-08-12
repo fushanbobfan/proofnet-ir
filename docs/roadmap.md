@@ -1077,8 +1077,10 @@
     structurally: tensor-output carrier closure and live-slot disjointness rule
     out the hypothetical old-event touch. Successful typed UnifyPayload
     preservation therefore follows from a supplied prior invariant without an
-    explicit created-head premise. Global invariant availability and the
-    same-boundary head-touch case remain open. Given
+    explicit created-head premise. A final induction over canonical histories
+    now derives the queued-head invariant globally from structural
+    well-formedness. The independent mate-region invariant and the same-boundary
+    head-touch case remain open. Given
     both strict separation invariants and the complete scheduler invariant,
     Lean now derives the target-avoiding path for every adjacent edge whose
     child is strictly older than the candidate, and for every positive interval
@@ -1199,11 +1201,13 @@
     arbitrary positive-length spine intervals. The strictly older queued-head
     law is now an explicit invariant with empty/structurally well-formed init,
     stable-rule, successful New, and structurally discharged
-    Wait/Forward/UnifyPayload preservation from a supplied prior instance. When it
-    and the mate-region invariant are supplied, strict
+    Wait/Forward/UnifyPayload preservation. Canonical-history induction now
+    establishes it globally from structural well-formedness. When the
+    mate-region invariant is supplied, strict
     child-event callbacks and positive intervals ending strictly before the
-    candidate now follow automatically. Derive global invariant availability.
-    The strict older-event split already composes the
+    candidate now follow automatically. Derive global availability of the
+    remaining mate-region and raw-mark invariants. The strict older-event split
+    already composes the
     positive prefix to the candidate's immediate predecessor; next handle that
     final equal-boundary callback and queue origin.
     Establish unconditional full-rule reachability, progress, completeness of

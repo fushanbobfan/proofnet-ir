@@ -534,9 +534,11 @@ canonical `concl` and `nop`. It is not derived from declarative correctness,
 the scheduler invariant, canonical history, or queue provenance. This base
 module alone does not cover a candidate-creating rule. Downstream theorems
 close `new` and structurally derive the `wait`, `forward`, and `unifyPayload`
-created-head residuals before preserving each branch from a supplied prior
-invariant. Global invariant availability, the distinct same-boundary
-head-touch case, raw seams, enabledness, and progress remain open.
+created-head residuals before preserving each branch. A final history induction
+now makes this queued-head invariant available for every structurally
+well-formed canonical history. The independent mate-region and raw-mark
+invariants, the distinct same-boundary head-touch case, enabledness, and
+progress remain open.
 `SequentialFigure7StrictCommitmentTargetAvoidance.lean` connects that strict
 conclusion law to the retained commitment geometry. Given the complete
 scheduler invariant and both supplied separation invariants, any adjacent
@@ -729,6 +731,16 @@ three candidate alternatives cover the output but need not be exclusive. This
 raw-mark premise differs from history-side
 `UnifyPayloadCreatedRegionSeparated`, is not derived from correctness or
 canonical reachability, and yields neither unconditional Unify nor progress.
+`SequentialFigure7OlderEventFutureWorkTouchAvailability.lean` closes the
+queued-head history obligation. A direct induction over the proof-carrying
+canonical history uses the empty and structurally well-formed initialization
+theorems, then the six branch-preservation results. Thus every supplied
+canonical history over a structurally well-formed certificate satisfies
+`OlderEventFutureWorkTouchSeparated`; callers no longer provide it separately.
+This theorem does not construct a history, enlarge dispatcher reachability,
+derive the independent mate-region or raw-mark invariants, cover an equal
+representative boundary, or prove enabledness, progress, totality,
+completeness, fallback removal, scheduling, or complexity.
 `SequentialFigure7PriorityEnabled.lean` now characterizes that same fixed
 dispatcher order with branch-indexed, input-only applicability for all six
 rules. A successful typed step reconstructs the corresponding pure enabled
@@ -1682,16 +1694,17 @@ certified history is complete, including exact tag-touch provenance, global
 submitted-slot non-reuse, and exact reservation-event counting against final
 `nextAge`. Adjacent cross-component paths and conditional target avoidance are
 available, and explicit adjacent callbacks now compose across any nonempty
-retained-`sigma` interval. When both strict separation invariants are supplied,
+retained-`sigma` interval. The queued-head strict separation invariant is now
+available for every structurally well-formed canonical history. When the
+independent mate-region invariant is also supplied,
 the child-event law and callback are now derived automatically for any edge,
 or positive interval ending at a boundary, strictly older than the candidate.
-Globally establishing those invariants, handling the final same-boundary edge,
-recovering queue
-origin, proving exhaustive guard applicability, and obtaining a
+Globally establishing the mate-region and raw-mark invariants, handling the
+final same-boundary edge, recovering queue origin, proving exhaustive guard
+applicability, and obtaining a
 total later-state transition system remain open. Its `new` preservation,
-and structurally discharged `wait`/`forward`/`unifyPayload` preservation are
-kernel checked for already-successful typed edges once their stated prior
-invariants are supplied.
+structurally discharged `wait`/`forward`/`unifyPayload` preservation, and the
+complete canonical-history induction are kernel checked.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -2185,7 +2198,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 875 declarations: 593 public MLL logical-boundary theorems
+separately audits 876 declarations: 594 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2311,6 +2324,7 @@ lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests
 lake exe proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests
+lake exe proofnet_ir_older_event_future_work_touch_availability_tests
 lake exe proofnet_ir_new_progress_audit
 lake exe proofnet_ir_new_progress_audit --extended
 lake exe proofnet_ir_new_progress_audit --cross-representative-search
@@ -2457,6 +2471,8 @@ ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadDischarge.lean
   structural discharge of the UnifyPayload created-head residual and direct preservation
 ProofNetIR/SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean
   conditional arbitrary-payload Unify raw-mark preservation
+ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchAvailability.lean
+  global queued-head separation for structurally well-formed canonical histories
 ProofNetIR/SequentialFigure7NewEnabled.lean historical direct-import compatibility facade
 ProofNetIR/SequentialFigure7PriorityEnabled.lean exact all-input-only priority correspondence
 ProofNetIR/SequentialFigure7NewInputNecessary.lean historical compatibility facade for new input projections
@@ -2535,6 +2551,8 @@ ProofNetIROlderEventFutureWorkTouchUnifyPayloadDischargeTests.lean
   structural UnifyPayload created-head discharge and direct preservation consumer
 ProofNetIROlderRawMarkedRegionUnifyPayloadPreservationTests.lean
   conditional Unify raw-mark preservation consumers
+ProofNetIROlderEventFutureWorkTouchAvailabilityTests.lean
+  global canonical-history queued-head separation consumer
 ProofNetIRNewProgressAudit.lean
   finite reachable NewGuard and New/Wait/Forward/Unify created-region audit
 ProofNetIRDataset.lean        deterministic 1,000-record dataset emitter

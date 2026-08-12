@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderEventFutureWorkTouchAvailability.lean`.
+  A single induction over every proof-carrying `CanonicalTagHistory` now proves
+  `OlderEventFutureWorkTouchSeparated` from structural well-formedness. Empty
+  and initialization supply the base cases; `concl`, `nop`, and `new` reuse
+  their existing preservation theorems; and the structurally discharged
+  `wait`, `forward`, and `unifyPayload` branches close the remaining cases.
+  The result classifies already-certified histories and does not enlarge
+  reachability, prove branch enabledness, supply the independent mate-region or
+  raw-mark invariants, cover equal boundaries, or imply progress, totality,
+  completeness, fallback removal, scheduling, or complexity. The runnable
+  consumer invokes the theorem and its `event_candidate` projection. Facade,
+  default target, CI, generated API, and trust audit are wired. The current
+  public axiom audit covers 876 declarations: 594 full-classical, 25
+  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean`.
   For an already-successful typed `WaitStep`, structural well-formedness now
   proves the candidate-indexed `WaitCreatedHeadTouchSeparated` residual. A
@@ -17,8 +31,8 @@
   invariant availability, enabledness, progress, totality, completeness,
   fallback removal, or complexity. The runnable consumer invokes both new
   public theorems; facade, default target, CI, generated API, and trust audit
-  are wired. The current public axiom audit covers 875 declarations: 593
-  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  are wired. At that checkpoint the public axiom audit covered 875
+  declarations: 593 full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added
   `SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadDischarge.lean`.

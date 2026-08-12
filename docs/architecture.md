@@ -844,9 +844,10 @@ predicate is not reconstructed from correctness, the state invariant,
 canonical history, or queue provenance. This base layer alone does not cover a
 candidate-creating rule. A downstream theorem closes the successful New case.
 Later structural theorems derive the Wait, Forward, and UnifyPayload residuals
-and then preserve the invariant from a supplied prior instance. Global
-invariant availability, same-boundary touches and target paths, raw seams,
-enabledness, and progress remain open.
+and then preserve the invariant. A capstone induction now establishes the
+queued-head invariant for every structurally well-formed canonical history.
+The separate mate-region and raw-mark invariants, same-boundary touches and
+target paths, enabledness, and progress remain open.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -1051,6 +1052,16 @@ prepared-state raw invariant. Inserted tensor candidates use only
 seam is distinct from history-side `UnifyPayloadCreatedRegionSeparated`, is
 not derived from correctness or reachability, and gives conditional
 successful-step preservation rather than unconditional Unify or progress.
+
+`SequentialFigure7OlderEventFutureWorkTouchAvailability.lean` is the capstone
+for the queued-head preservation family. It inducts over the proof-carrying
+canonical history, using exact empty/initialization and all six successful-rule
+theorems, and therefore derives `OlderEventFutureWorkTouchSeparated` from
+structural well-formedness alone for any supplied canonical history. It does
+not construct such a history, enlarge reachability, derive mate-region or
+raw-mark separation, cover equal representative boundaries, or prove
+enabledness, progress, totality, completeness, fallback removal, scheduling,
+or complexity.
 
 `SequentialFigure7ReservationRealization.lean` supplies the second missing
 piece for the reserved axiom itself.  Under explicit certificate structural
@@ -1630,13 +1641,15 @@ active-reference walks between marked occurrences are equivalent to
   scheduler invariant are supplied, the child-event law and callback now
   follow automatically for any strictly older adjacent edge or positive
   interval ending at a strictly older boundary. New preservation of the
-  queued-head invariant is now kernel checked from a supplied prior instance.
+  queued-head invariant is kernel checked as one branch of the global result.
   Wait, Forward, and UnifyPayload now derive their created-head residuals
-  structurally and preserve from the supplied prior instance.
+  structurally, and a complete canonical-history induction now establishes the
+  queued-head invariant globally over every supplied structurally well-formed
+  history.
   A strict older event now splits at the candidate's immediate predecessor, so
-  every positive prefix is composable. Global invariant availability, the
-  final same-boundary callback, and queue-to-created-candidate geometry remain
-  required by the seams.
+  every positive prefix is composable. Global availability of the independent
+  mate-region and raw-mark invariants, the final same-boundary callback, and
+  queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

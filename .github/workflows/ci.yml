@@ -87,6 +87,8 @@ jobs:
           ~/.elan/bin/lake exe \
             proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests
           ~/.elan/bin/lake exe proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests
+          ~/.elan/bin/lake exe \
+            proofnet_ir_older_event_future_work_touch_availability_tests
           ~/.elan/bin/lake exe proofnet_ir_new_region_tests
       - name: Search reachable Figure-7 new guards for executor misses
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit

@@ -47,6 +47,7 @@ defaultTargets = [
   "proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests",
   "proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests",
   "proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests",
+  "proofnet_ir_older_event_future_work_touch_availability_tests",
   "proofnet_ir_reservation_realization_tests",
   "proofnet_ir_raw_mark_reservation_anchor_tests",
   "proofnet_ir_commitment_edge_reference_path_tests",
@@ -240,6 +241,10 @@ root = "ProofNetIROlderEventFutureWorkTouchUnifyPayloadDischargeTests"
 [[lean_exe]]
 name = "proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests"
 root = "ProofNetIROlderRawMarkedRegionUnifyPayloadPreservationTests"
+
+[[lean_exe]]
+name = "proofnet_ir_older_event_future_work_touch_availability_tests"
+root = "ProofNetIROlderEventFutureWorkTouchAvailabilityTests"
 
 [[lean_exe]]
 name = "proofnet_ir_reservation_realization_tests"

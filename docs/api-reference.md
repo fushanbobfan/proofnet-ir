@@ -20776,6 +20776,26 @@ ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated : �
         ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated certificate after
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+Strict older-event future-work head-touch separation is available for
+every canonical history over a structurally well-formed certificate.
+
+This theorem classifies an already-supplied history. It does not enlarge
+reachability, prove another branch enabled, provide mate/source-region or
+raw-mark separation, cover equal-representative boundaries, or establish
+progress, totality, completeness, fallback removal, token-age scheduling, or
+complexity.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.olderEventFutureWorkTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated tagHistory
+```
+
 ## Serialization and untrusted input
 
 ### `ProofNetIR.ParseError`

@@ -324,6 +324,8 @@ expansion.
 #print axioms
   SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated_of_structural
 #print axioms SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.olderEventFutureWorkTouchSeparated
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyVisitedFreshRawBlocker

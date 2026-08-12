@@ -831,6 +831,13 @@ part of the engineering and proof-identity gap.
    UnifyPayload step. It does not close the source-region or raw seam, the final
    equal-boundary callback, global invariant availability, enabledness, or
    progress.
+   `SequentialFigure7OlderEventFutureWorkTouchAvailability.lean` now closes
+   that queued-head global-availability gap. A direct induction over every
+   supplied `CanonicalTagHistory` uses empty, structurally well-formed init,
+   and the six successful-rule preservation theorems to derive
+   `OlderEventFutureWorkTouchSeparated`. It does not construct a history,
+   broaden reachability, provide the distinct mate-region or raw-mark
+   invariants, cover equal boundaries, or prove enabledness or progress.
    `SequentialFigure7SameRepresentativeEventTouch.lean` now rules out one
    remaining obstruction without assuming a fresh run or success of an
    additional current `new?` call: an exact historical reservation-event touch
@@ -867,8 +874,9 @@ part of the engineering and proof-identity gap.
    correctness, the scheduler invariant, canonical history, or queue
    provenance. This base layer alone does not cover a candidate-creating rule;
    New is handled by a downstream preservation theorem, while Wait, Forward,
-   and UnifyPayload derive their residuals structurally before preserving from
-   a supplied prior instance. Global invariant availability, same-boundary
+   and UnifyPayload derive their residuals structurally. A downstream induction
+   now makes the queued-head invariant available for every structurally
+   well-formed canonical history. Mate-region availability, same-boundary
    target paths, raw seams, enabledness, and progress remain open.
    `SequentialFigure7StrictCommitmentTargetAvoidance.lean` now closes the
    strictly older target-path adapter. Under the complete scheduler invariant
@@ -994,8 +1002,8 @@ part of the engineering and proof-identity gap.
    the law and callback are automatic for edges, or positive intervals ending
    at boundaries, strictly older than the candidate. The queued-head invariant
    has empty/init, stable, successful New, and structurally discharged
-   Wait/Forward/UnifyPayload preservation from a supplied prior instance.
-   Global availability of that invariant remains open. Strict older events now
+   Wait/Forward/UnifyPayload preservation plus global canonical-history
+   availability under structural well-formedness. Strict older events now
    split at the candidate's immediate predecessor, leaving the final
    same-boundary callback, queue origin, raw-seam discharge, exhaustive guard
    classification,
@@ -1086,7 +1094,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 875 declarations: 593 public MLL
+- CI now parses `#print axioms` for 876 declarations: 594 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1221,9 +1229,10 @@ It can currently be used for:
   scheduler invariant is also supplied. Any strictly older ledger event now
   splits at the candidate's immediate predecessor, so its positive prefix is
   composable. The queued-head half has empty/init, stable, successful New, and
-  structurally discharged Wait/Forward/UnifyPayload preservation from a
-  supplied prior instance. Global invariant availability, the
-  final same-boundary callback, queue origin, raw-seam
+  structurally discharged Wait/Forward/UnifyPayload preservation, plus global
+  availability for every structurally well-formed canonical history. The
+  independent mate-region and raw-mark invariants, the final same-boundary
+  callback, queue origin, raw-seam
   discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and

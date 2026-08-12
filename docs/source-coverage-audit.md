@@ -209,16 +209,21 @@ tensor-output source-left closure and chronological endpoint accounting place
 a hypothetical touched endpoint in distinct live carriers, contradicting
 forest disjointness. The direct UnifyPayload corollary still consumes the
 supplied prior invariant and does not close the source-region/raw seam or
-equal-boundary callback. Global invariant availability, same-boundary target
-paths, raw seams, and progress remain open. A further
+equal-boundary callback. A downstream kernel-checked code consequence now
+inducts over every supplied canonical history and derives the queued-head
+invariant from structural well-formedness. This closes queued-head global
+availability without a new literature claim. It does not derive the distinct
+mate-region or raw-mark invariants, construct a history, cover equal boundaries,
+or prove enabledness or progress. A further
 kernel-checked code consequence now connects the two supplied separation
 invariants to retained commitment geometry. Under the complete scheduler
 invariant, the child-event untouched callback follows automatically for an
 adjacent edge whose child boundary is strictly older than a future candidate;
 strict sigma ordering extends this to a positive interval from only strict
 oldness of its final boundary. This is not a new literature result and does not
-derive global invariant availability, cover the equal-boundary case, recover
-queue origin, close a raw seam, or prove progress. Another kernel-checked code
+derive mate-region or raw-mark invariant availability, cover the equal-boundary
+case, recover queue origin, close a raw seam, or prove progress. Another
+kernel-checked code
 consequence locates any strictly older authentic ledger event and future-New
 candidate in retained `sigma`, returning the candidate's immediate predecessor
 and the possibly empty prefix ending there. Positive prefixes use the existing
@@ -236,8 +241,9 @@ new literature reading. Global preservation of the mate-region and
 older-raw-mark separation invariants through candidate-creating rules remains
 open. The future-head-touch invariant is preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head
-residuals from a supplied prior instance. Global invariant availability remains
-open. The New raw-mark branch is now conditionally
+residuals, and canonical-history induction now makes it globally available
+under structural well-formedness. Global availability of the mate-region and
+raw-mark invariants remains open. The New raw-mark branch is now conditionally
 transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.
