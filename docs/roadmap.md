@@ -1079,13 +1079,15 @@
     preservation therefore follows from a supplied prior invariant without an
     explicit created-head premise. A final induction over canonical histories
     now derives the queued-head invariant globally from structural
-    well-formedness. The independent mate-region invariant and the same-boundary
-    head-touch case remain open. Given
+    well-formedness. The independent mate-region invariant remains open. Given
     both strict separation invariants and the complete scheduler invariant,
     Lean now derives the target-avoiding path for every adjacent edge whose
     child is strictly older than the candidate, and for every positive interval
-    whose final boundary is strictly older. Equal-boundary edges, global
-    invariant availability, queue origin, and raw seams remain open. Work must
+    whose final boundary is strictly older. Stored-right equal-boundary
+    avoidance is now kernel checked, while the stored-left case yields an exact
+    inclusive touch obstruction rather than unconditional avoidance. Global
+    mate-region invariant availability, queue origin, and raw seams remain
+    open. Work must
     also eliminate old exact marked owners; this layer alone is not the
     universal premise.
     The active-region availability layer now packages the complete structural
@@ -1133,8 +1135,10 @@
     candidate in retained `sigma`: the new split returns the candidate's exact
     predecessor and the possibly empty prefix from the event representative.
     Every positive prefix therefore uses the strict interval theorem directly,
-    while the final predecessor-to-candidate edge remains the precise unresolved
-    equal-boundary edge. This locator does not supply either separation
+    while the final predecessor-to-candidate edge is now classified: storedRight
+    avoids the target, and storedLeft exposes an exact conclusion-to-head touch
+    obstruction without excluding every avoiding path. This locator does not
+    supply either separation
     invariant or a queue/raw seam.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
@@ -1208,8 +1212,8 @@
     candidate now follow automatically. Derive global availability of the
     remaining mate-region and raw-mark invariants. The strict older-event split
     already composes the
-    positive prefix to the candidate's immediate predecessor; next handle that
-    final equal-boundary callback and queue origin.
+    positive prefix to the candidate's immediate predecessor. StoredRight closes
+    the final edge; next resolve the storedLeft obstruction and queue origin.
     Establish unconditional full-rule reachability, progress, completeness of
     that
     sequential executable, and a cost theorem over every implemented operation

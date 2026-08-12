@@ -604,8 +604,9 @@ law. Its private boundary-root lemma follows from exact sigma membership,
 `RealizesSigma`, and the strict partition invariant; the interval corollary
 uses only list-index ordering and the existing verified path compositor. Both
 public theorems keep the scheduler invariant and both separation predicates as
-explicit inputs. Equal-boundary edges, global availability, queue origin, raw
-seams, progress, and complexity remain outside the claim.
+explicit inputs. Unconditional stored-left equal-boundary avoidance, global
+availability, queue origin, raw seams, progress, and complexity remain outside
+the claim.
 `SequentialFigure7StrictOlderSigmaSplit.lean` adds no path, touch, ownership,
 queue, or reachability oracle. It recovers the authentic event's raw-age bound
 from the chronological ledger, locates its current representative through
@@ -614,6 +615,16 @@ witness, and uses strict `sigma` ordering to return the candidate's immediate
 predecessor. The possibly empty prefix can feed the previously audited positive
 interval theorem, but this module does not discharge the final edge or derive
 either separation invariant, queue origin, a raw seam, progress, or complexity.
+`SequentialFigure7EqualBoundaryCommitmentTargetAvoidance.lean` adds no path or
+touch oracle. Its same-representative decomposition is derived from authentic
+ledger membership, structural producer uniqueness, reservation realization,
+and the existing active mate exclusion. StoredRight then contradicts the only
+possible touching orientation. The general theorem classically splits the
+exact child-untouched callback and returns either the existing verified path or
+the authentic storedLeft event and adjacent trace fragment. This is inclusive:
+the witness does not prove every avoiding path absent. No invariant availability,
+queue origin, progress, totality, completeness, scheduling, or complexity claim
+is introduced.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -789,8 +800,9 @@ proof-carrying canonical history and composes the audited empty,
 initialization, and six rule-preservation theorems. The result therefore makes
 the queued-head invariant available for every structurally well-formed
 canonical history without assuming another execution. It does not derive the
-independent mate-region or raw-mark invariants, cover equal representative
-boundaries, or prove progress, totality, completeness, fallback removal,
+independent mate-region or raw-mark invariants, supply unconditional
+stored-left equal-boundary avoidance, or prove progress, totality, completeness,
+fallback removal,
 scheduling, or complexity.
 `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` adds no
 event-history, reachability, correctness, or representative-stability oracle.
@@ -903,8 +915,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 876
-declarations: 594 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 879
+declarations: 597 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1348,7 +1360,7 @@ Lean now also constructs the exact simultaneous complementary
   Strict older events now split at the candidate's immediate predecessor and
   expose a composable positive prefix. Exhaustive later-state branch
   enabledness and totality, global mate-region and raw-mark invariant
-  availability, the final same-boundary callback,
+  availability, unconditional stored-left equal-boundary avoidance,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

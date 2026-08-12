@@ -837,7 +837,8 @@ part of the engineering and proof-identity gap.
    and the six successful-rule preservation theorems to derive
    `OlderEventFutureWorkTouchSeparated`. It does not construct a history,
    broaden reachability, provide the distinct mate-region or raw-mark
-   invariants, cover equal boundaries, or prove enabledness or progress.
+   invariants, supply unconditional stored-left equal-boundary avoidance, or
+   prove enabledness or progress.
    `SequentialFigure7SameRepresentativeEventTouch.lean` now rules out one
    remaining obstruction without assuming a fresh run or success of an
    additional current `new?` call: an exact historical reservation-event touch
@@ -876,8 +877,8 @@ part of the engineering and proof-identity gap.
    New is handled by a downstream preservation theorem, while Wait, Forward,
    and UnifyPayload derive their residuals structurally. A downstream induction
    now makes the queued-head invariant available for every structurally
-   well-formed canonical history. Mate-region availability, same-boundary
-   target paths, raw seams, enabledness, and progress remain open.
+   well-formed canonical history. Mate-region availability, unconditional
+   equal-boundary avoidance, raw seams, enabledness, and progress remain open.
    `SequentialFigure7StrictCommitmentTargetAvoidance.lean` now closes the
    strictly older target-path adapter. Under the complete scheduler invariant
    and both supplied separation invariants, an adjacent retained edge whose
@@ -893,6 +894,14 @@ part of the engineering and proof-identity gap.
    positive prefix and treats zero explicitly. It does not discharge the final
    predecessor-to-candidate edge or establish separation availability, queue
    origin, a created-head/raw seam, progress, totality, or completeness.
+   `SequentialFigure7EqualBoundaryCommitmentTargetAvoidance.lean` now
+   classifies that final edge. Stored-right orientation yields an exact
+   target-avoiding path. In general the inclusive result returns that path or
+   an authentic same-age stored-left child event whose trace contains the
+   exact conclusion-to-head step. The latter is a witness that the generic
+   child-untouched callback failed, not a proof that no avoiding path exists;
+   both alternatives may hold. Mate-region/raw-mark availability, queue origin,
+   progress, completeness, scheduling, and complexity remain outside it.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -1004,8 +1013,10 @@ part of the engineering and proof-identity gap.
    has empty/init, stable, successful New, and structurally discharged
    Wait/Forward/UnifyPayload preservation plus global canonical-history
    availability under structural well-formedness. Strict older events now
-   split at the candidate's immediate predecessor, leaving the final
-   same-boundary callback, queue origin, raw-seam discharge, exhaustive guard
+   split at the candidate's immediate predecessor. The stored-right final edge
+   is now closed and the stored-left callback-failure touch witness is exact;
+   unconditional
+   stored-left avoidance, queue origin, raw-seam discharge, exhaustive guard
    classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
@@ -1094,7 +1105,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 876 declarations: 594 public MLL
+- CI now parses `#print axioms` for 879 declarations: 597 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1231,8 +1242,8 @@ It can currently be used for:
   composable. The queued-head half has empty/init, stable, successful New, and
   structurally discharged Wait/Forward/UnifyPayload preservation, plus global
   availability for every structurally well-formed canonical history. The
-  independent mate-region and raw-mark invariants, the final same-boundary
-  callback, queue origin, raw-seam
+  independent mate-region and raw-mark invariants, unconditional stored-left
+  equal-boundary avoidance, queue origin, raw-seam
   discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and

@@ -8821,6 +8821,84 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePat
           tagHistory.CommitmentEdgeTargetAvoidingPath first last forbidden
 ```
 
+## Equal-boundary commitment target avoidance
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.sameRepresentative_conclusionTouch_decomposition`
+
+Kind: theorem.
+
+If an event in the active boundary's current representative touches the
+active tensor conclusion, then the tensor is stored-left selected and the
+event trace contains the exact conclusion-to-head step.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.sameRepresentative_conclusionTouch_decomposition : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          before.core.representative event.rawAge = before.core.representative guard.head.rawAge →
+            event.Touched guard.tensor.conclusion →
+              guard.tensor.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+                ∃ beforeTrace afterTrace,
+                  event.search.result.trace = beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_of_equal_storedRight`
+
+Kind: theorem.
+
+The equal-boundary final commitment edge avoids the active tensor
+conclusion in the stored-right orientation. The stored-left orientation is
+deliberately excluded because an authentic child event may touch it.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_of_equal_storedRight : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate state) {position : Nat}
+        {parent : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+        state.stack.sigma[position]? = some parent →
+          state.stack.sigma[position + 1]? = some guard.head.rawAge →
+            guard.tensor.side = ProofNetIR.TensorPremiseSide.storedRight →
+              tagHistory.CommitmentEdgeTargetAvoidingPath parent guard.head.rawAge guard.tensor.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_equal_boundary_dichotomy`
+
+Kind: theorem.
+
+An equal-boundary final commitment edge satisfies an inclusive case split:
+either an exact target-avoiding path is available, or one child event witnesses
+failure of the generic child-untouched callback by crossing the active
+stored-left tensor conclusion immediately into its queued head. The right
+branch does not assert that every target-avoiding path is absent; both branches
+may hold.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_equal_boundary_dichotomy : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate state) {position : Nat}
+        {parent : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+        state.stack.sigma[position]? = some parent →
+          state.stack.sigma[position + 1]? = some guard.head.rawAge →
+            tagHistory.CommitmentEdgeTargetAvoidingPath parent guard.head.rawAge guard.tensor.conclusion ∨
+              ∃ event beforeTrace afterTrace,
+                event ∈ tagHistory.reservationLedger ∧
+                  event.rawAge = guard.head.rawAge ∧
+                    guard.tensor.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+                      event.search.result.trace =
+                        beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

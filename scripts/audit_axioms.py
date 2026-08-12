@@ -75,6 +75,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "commitmentInterval_referencePath_avoiding_of_lastOlder",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlderSigmaSplit",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "sameRepresentative_conclusionTouch_decomposition",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "commitmentEdge_referencePath_avoiding_of_equal_storedRight",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "commitmentEdge_equal_boundary_dichotomy",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant."
     "exactMarkedOccurrenceOwner_iff_exists_rawMark",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."

@@ -712,6 +712,20 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Equal-boundary commitment target avoidance"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "sameRepresentative_conclusionTouch_decomposition",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "commitmentEdge_referencePath_avoiding_of_equal_storedRight",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "commitmentEdge_equal_boundary_dichotomy"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

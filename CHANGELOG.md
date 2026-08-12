@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7EqualBoundaryCommitmentTargetAvoidance.lean`. The
+  final commitment edge whose child is the active ready head is now classified
+  exactly. Stored-right orientation yields a canonical reference path avoiding
+  the active tensor conclusion. In general an inclusive dichotomy returns that
+  path or an authentic same-age child event with stored-left orientation and an
+  exact adjacent conclusion-to-head trace fragment. The right branch witnesses
+  failure of the generic child-untouched callback; it does not say that every
+  avoiding path is absent, and both branches may hold. This does not derive the
+  mate-region or raw-mark invariant, queue origin, progress, totality,
+  completeness, fallback removal, scheduling, or complexity. The runnable
+  consumer invokes all three public theorems; facade, default target, CI,
+  generated API, and trust audit are wired. The current public axiom audit
+  covers 879 declarations: 597 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchAvailability.lean`.
   A single induction over every proof-carrying `CanonicalTagHistory` now proves
   `OlderEventFutureWorkTouchSeparated` from structural well-formedness. Empty
@@ -10,12 +24,14 @@
   `wait`, `forward`, and `unifyPayload` branches close the remaining cases.
   The result classifies already-certified histories and does not enlarge
   reachability, prove branch enabledness, supply the independent mate-region or
-  raw-mark invariants, cover equal boundaries, or imply progress, totality,
+  raw-mark invariants, supply unconditional stored-left equal-boundary
+  avoidance, or imply progress, totality,
   completeness, fallback removal, scheduling, or complexity. The runnable
   consumer invokes the theorem and its `event_candidate` projection. Facade,
-  default target, CI, generated API, and trust audit are wired. The current
-  public axiom audit covers 876 declarations: 594 full-classical, 25
-  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+  default target, CI, generated API, and trust audit are wired. At that
+  checkpoint the public axiom audit covered 876 declarations: 594
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchWaitDischarge.lean`.
   For an already-successful typed `WaitStep`, structural well-formedness now
   proves the candidate-indexed `WaitCreatedHeadTouchSeparated` residual. A

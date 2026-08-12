@@ -213,22 +213,29 @@ equal-boundary callback. A downstream kernel-checked code consequence now
 inducts over every supplied canonical history and derives the queued-head
 invariant from structural well-formedness. This closes queued-head global
 availability without a new literature claim. It does not derive the distinct
-mate-region or raw-mark invariants, construct a history, cover equal boundaries,
-or prove enabledness or progress. A further
+mate-region or raw-mark invariants, construct a history, give unconditional
+stored-left equal-boundary avoidance, or prove enabledness or progress. A
+further
 kernel-checked code consequence now connects the two supplied separation
 invariants to retained commitment geometry. Under the complete scheduler
 invariant, the child-event untouched callback follows automatically for an
 adjacent edge whose child boundary is strictly older than a future candidate;
 strict sigma ordering extends this to a positive interval from only strict
 oldness of its final boundary. This is not a new literature result and does not
-derive mate-region or raw-mark invariant availability, cover the equal-boundary
-case, recover queue origin, close a raw seam, or prove progress. Another
+derive mate-region or raw-mark invariant availability, give unconditional
+stored-left equal-boundary avoidance, recover queue origin, close a raw seam,
+or prove progress. Another
 kernel-checked code
 consequence locates any strictly older authentic ledger event and future-New
 candidate in retained `sigma`, returning the candidate's immediate predecessor
 and the possibly empty prefix ending there. Positive prefixes use the existing
-strict interval result; the final predecessor-to-candidate edge remains open.
-This is an index/representative consequence, not a new literature result or a
+strict interval result. A further kernel-checked code consequence classifies
+the final edge: storedRight yields target avoidance, while the inclusive
+general result returns that path or an exact same-age storedLeft
+conclusion-to-head touch witness. That witness records callback failure, not
+proof that no avoiding path exists. These are code consequences, not new
+literature results. The split itself is an index/representative consequence,
+not a
 global separation theorem. The availability-reduction
 layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`

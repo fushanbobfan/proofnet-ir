@@ -846,8 +846,8 @@ candidate-creating rule. A downstream theorem closes the successful New case.
 Later structural theorems derive the Wait, Forward, and UnifyPayload residuals
 and then preserve the invariant. A capstone induction now establishes the
 queued-head invariant for every structurally well-formed canonical history.
-The separate mate-region and raw-mark invariants, same-boundary touches and
-target paths, enabledness, and progress remain open.
+The separate mate-region and raw-mark invariants, unconditional stored-left
+equal-boundary avoidance, enabledness, and progress remain open.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -1059,7 +1059,8 @@ canonical history, using exact empty/initialization and all six successful-rule
 theorems, and therefore derives `OlderEventFutureWorkTouchSeparated` from
 structural well-formedness alone for any supplied canonical history. It does
 not construct such a history, enlarge reachability, derive mate-region or
-raw-mark separation, cover equal representative boundaries, or prove
+raw-mark separation, supply unconditional stored-left equal-boundary
+avoidance, or prove
 enabledness, progress, totality, completeness, fallback removal, scheduling,
 or complexity.
 
@@ -1145,6 +1146,16 @@ representative. A positive prefix can use the strict interval theorem; a zero
 prefix needs no edge composition. The final predecessor-to-candidate edge is
 not discharged, and no global invariant, queue-origin, raw-seam, progress, or
 complexity claim is added.
+
+`SequentialFigure7EqualBoundaryCommitmentTargetAvoidance.lean` classifies the
+remaining final edge. Stored-right orientation yields the canonical path
+avoiding the active tensor conclusion. The general theorem is an inclusive
+dichotomy: either such a path exists, or an authentic child event has the
+active raw age, stored-left orientation, and an exact adjacent
+conclusion-to-head trace fragment. The second branch records failure of the
+generic child-untouched callback; it neither excludes every avoiding path nor
+makes the two branches disjoint. No mate-region/raw-mark invariant, queue
+origin, reachability, progress, or complexity result is added.
 
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
@@ -1648,7 +1659,8 @@ active-reference walks between marked occurrences are equivalent to
   history.
   A strict older event now splits at the candidate's immediate predecessor, so
   every positive prefix is composable. Global availability of the independent
-  mate-region and raw-mark invariants, the final same-boundary callback, and
+  mate-region and raw-mark invariants, the remaining stored-left
+  callback-failure touch branch, and
   queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
