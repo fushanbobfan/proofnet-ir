@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CommitmentEdgeTargetAvoidance.lean`. For one adjacent
+  pair retained in final `sigma`, a supplied `FutureNewCandidateAt` and an
+  explicit law that the exact child ledger event does not touch the candidate's
+  tensor conclusion now yield a canonical parent-left-to-child-left reference
+  path omitting that conclusion. Lean derives avoidance of the parent and child
+  owned anchors, excludes collision with the historical tensor conclusion, and
+  rebuilds the selected-head tensor/NEXTAXIOM middle segment before verified
+  loop erasure. The module does not derive the child-event untouched law or its
+  global availability, compose arbitrary multi-edge paths, recover queue
+  origin, discharge any global raw created-candidate seam, or establish
+  enabledness, progress, completeness, fallback removal, token-age scheduling,
+  or complexity. A direct consumer invokes both public APIs; facade, default
+  target, CI, generated API, and trust audit are wired. The current public
+  axiom audit covers 852 declarations: 570 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentEdgeReferencePath.lean`. Every adjacent
   parent-child raw-age pair retained in final `sigma` now recovers its exact
   historical `new` step and a canonical simple reference path from the parent
@@ -14,7 +29,7 @@
   discharge a raw seam, or establish enabledness, progress, completeness,
   fallback removal, or complexity. A direct consumer destructures both public
   APIs; facade, default target, CI, generated API, and trust audit are wired.
-  The current public axiom audit covers 851 declarations: 569 full-classical,
+  At that checkpoint the public axiom audit covered 851 declarations: 569 full-classical,
   25 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7RawMarkReservationAnchor.lean`. From a concrete raw
   mark, `CanonicalTagHistory` and the complete `SchedulerInvariant` now recover

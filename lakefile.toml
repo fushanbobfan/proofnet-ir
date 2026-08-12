@@ -38,6 +38,7 @@ defaultTargets = [
   "proofnet_ir_reservation_realization_tests",
   "proofnet_ir_raw_mark_reservation_anchor_tests",
   "proofnet_ir_commitment_edge_reference_path_tests",
+  "proofnet_ir_commitment_edge_target_avoidance_tests",
   "proofnet_ir_new_region_tests",
   "proofnet_ir_new_enabled_import_tests",
   "proofnet_ir_priority_enabled_import_tests"
@@ -190,6 +191,10 @@ root = "ProofNetIRRawMarkReservationAnchorTests"
 [[lean_exe]]
 name = "proofnet_ir_commitment_edge_reference_path_tests"
 root = "ProofNetIRCommitmentEdgeReferencePathTests"
+
+[[lean_exe]]
+name = "proofnet_ir_commitment_edge_target_avoidance_tests"
+root = "ProofNetIRCommitmentEdgeTargetAvoidanceTests"
 
 [[lean_exe]]
 name = "proofnet_ir_new_region_tests"

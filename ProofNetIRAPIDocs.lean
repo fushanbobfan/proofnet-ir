@@ -691,6 +691,13 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Adjacent commitment-edge target avoidance"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeTargetAvoidingPath,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

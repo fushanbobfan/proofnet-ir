@@ -8720,6 +8720,53 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath : 
         state.stack.sigma[position + 1]? = some child → tagHistory.CommitmentEdgeReferencePath parent child
 ```
 
+## Adjacent commitment-edge target avoidance
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeTargetAvoidingPath`
+
+Kind: definition.
+
+One exact reference-switching path from the parent reservation's stored
+left endpoint to the child reservation's stored left endpoint that omits the
+specified target vertex.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeTargetAvoidingPath : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge →
+          ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding`
+
+Kind: theorem.
+
+An adjacent retained sigma commitment admits a reference-switching path
+that avoids the conclusion of any supplied future `new` candidate, provided
+the exact child ledger event does not touch that conclusion.
+
+The `childUntouched` ledger-child law is an explicit input.  This module does
+not derive that law or its global availability from history invariants. This
+is one adjacent-edge result, not arbitrary whole-spine composition, a global
+raw-seam discharge, or scheduler progress.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state)
+      {position parent child : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      state.stack.sigma[position]? = some parent →
+        state.stack.sigma[position + 1]? = some child →
+          (∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+              event ∈ tagHistory.reservationLedger →
+                event.rawAge = child → ¬event.Touched candidate.tensor.conclusion) →
+            tagHistory.CommitmentEdgeTargetAvoidingPath parent child candidate.tensor.conclusion
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

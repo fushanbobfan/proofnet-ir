@@ -1082,10 +1082,12 @@
     effect. This does not identify raw marks with search touches. Raw allocation
     ancestry and the same-component endpoint anchor are now exact. Every single
     adjacent retained `sigma` edge now also has an exact canonical parent-left
-    to child-left reference path. What remains is arbitrary composition of those
-    edges with future-tensor target avoidance and queue-origin/candidate
-    geometry; without it, the four transition-local raw seams remain explicit
-    premises.
+    to child-left reference path. Under an explicit child-event untouched law,
+    that one edge can also be rebuilt while avoiding a supplied future tensor
+    conclusion. What remains is to derive those laws globally and compose the
+    avoiding edges across arbitrary intervals, together with queue-origin and
+    candidate geometry; without that work the four transition-local raw seams
+    remain explicit premises.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger
@@ -1105,8 +1107,10 @@
     to each endpoint. This closes the same-component endpoint anchor without
     using declarative correctness. One adjacent commitment edge is now composed
     exactly through its historical selected-head tensor/NEXTAXIOM segment and
-    child anchor. Arbitrary whole-spine composition, future-tensor target
-    avoidance, queue origin, and the four raw seams remain open.
+    child anchor, and an explicit child-event untouched law conditionally makes
+    it avoid a future tensor conclusion. Global untouched-law availability,
+    arbitrary whole-spine composition, queue origin, and the four raw seams
+    remain open.
     The converse exact-run boundary is complete:
     `SequentialFigure7RegionBoundaries.lean` proves that a supplied run carrier
     is free of prior touches and old marked owners. This cannot be inverted to
@@ -1143,9 +1147,10 @@
     run remains the open history/geometry obligation.
     The canonical-history reservation count, retained allocation spine, and
     same-component raw-mark-to-reservation endpoint anchors are complete, and
-    every retained adjacent edge has an exact canonical path. Compose those
-    edges across arbitrary spine intervals with target avoidance and queue
-    origin, establish
+    every retained adjacent edge has an exact canonical path plus a conditional
+    target-avoidance refinement. Derive the child-event untouched laws and
+    compose those paths across arbitrary spine intervals with queue origin,
+    establish
     unconditional full-rule reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation
     before claiming Guerrini linearity. The needed stack invariants are false

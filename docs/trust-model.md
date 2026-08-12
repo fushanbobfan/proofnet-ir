@@ -698,6 +698,16 @@ child-left simple path. No declarative correctness or acyclicity premise is
 needed, and the theorem does not claim target avoidance, arbitrary multi-edge
 composition, queue origin, a raw seam, enabledness, progress, completeness,
 fallback removal, or complexity.
+`SequentialFigure7CommitmentEdgeTargetAvoidance.lean` adds no avoidance oracle.
+It consumes an explicit law saying that the exact child ledger event does not
+touch a supplied future candidate's tensor conclusion. Existing ownership
+accounting excludes that conclusion from the endpoint anchors; structural
+producer uniqueness and the final mark equations exclude the historical tensor
+collision; the explicit untouched law keeps it out of the historical source
+trace.
+Verified loop erasure then yields the avoiding canonical edge path. The law's
+global availability, arbitrary multi-edge composition, queue origin, raw-seam
+discharge, enabledness, progress, completeness, and complexity remain open.
 An explicit universally quantified proof that the structural region contains
 neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`,
 then `NewInputNecessary`, and then `NewEnabled` through already-audited
@@ -752,8 +762,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 851
-declarations: 569 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 852
+declarations: 570 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1183,10 +1193,12 @@ Lean now also constructs the exact simultaneous complementary
   invariant. Conditional input-only applicability under `UnifyPayloadEnabled`
   is also kernel checked. A canonical successful-step dispatcher and certified
   history are also kernel checked. Final retained-`sigma` allocation ancestry
-  is kernel checked as well, and concrete raw marks have local contained paths
-  to both endpoints of their same-age reservation event. Exhaustive later-state
-  branch enabledness and totality, cross-component commitment paths and target
-  avoidance, queue origin, the raw created-candidate seams, unconditional
+  is kernel checked as well, concrete raw marks have local contained paths to
+  both endpoints of their same-age reservation event, and one adjacent
+  cross-component path has an explicit-premise target-avoidance refinement.
+  Exhaustive later-state branch enabledness and totality, derivation of the
+  child-event untouched laws, arbitrary whole-spine composition, queue origin,
+  the raw created-candidate seams, unconditional
   full-rule reachability, and the remaining `NEXTAXIOM`/token-age scheduler
   remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,

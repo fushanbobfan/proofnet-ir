@@ -139,6 +139,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoints_accounted",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_referenceAnchors",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched",
     "ProofNetIR.SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner",
     "ProofNetIR.Certificate.check_iff_declarativelyCorrect",

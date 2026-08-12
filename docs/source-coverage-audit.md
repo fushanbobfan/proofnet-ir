@@ -206,9 +206,12 @@ not a new literature reading. A further kernel-checked code consequence now
 composes one exact adjacent retained commitment edge from the parent event's
 left endpoint to the child event's left endpoint, retaining the historical
 `new` step and both owned anchors. This too is not a new literature reading.
-Arbitrary whole-spine composition, future-target avoidance, queue origin, the
-four raw seams, later-state totality, progress, and pure-worklist completeness
-remain open.
+A further kernel-checked code consequence conditionally makes that single edge
+avoid a supplied future tensor conclusion when the exact child ledger event is
+explicitly known not to touch it. This is not a new literature reading and does
+not derive the untouched law. Its global availability, arbitrary whole-spine
+composition, queue origin, the four raw seams, later-state totality, progress,
+and pure-worklist completeness remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,
 [*A linear algorithm for MLL proof net correctness and

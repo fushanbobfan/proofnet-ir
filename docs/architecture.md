@@ -972,6 +972,16 @@ theorem: arbitrary chain composition, queue origin, created-candidate raw seams,
 enabledness, progress, completeness, fallback removal, and complexity remain
 outside this layer.
 
+`SequentialFigure7CommitmentEdgeTargetAvoidance.lean` refines that one-edge
+path under one explicit semantic law. For a supplied `FutureNewCandidateAt`,
+the exact child ledger event must not touch the future tensor conclusion. The
+proof derives that the conclusion is absent from both endpoint owned carriers,
+excludes equality with the historical tensor conclusion using producer
+uniqueness and final mark equations, reconstructs an avoiding middle segment,
+and composes the three avoiding paths by verified loop erasure. This does not
+derive the child-event untouched law or its global availability, compose a
+whole spine, recover queue origin, discharge a raw seam, or imply progress.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under
@@ -1460,9 +1470,10 @@ active-reference walks between marked occurrences are equivalent to
   commitment-spine layer now records exact retained `sigma` ancestry, and the
   raw-mark reservation-anchor layer supplies the same-component path from a
   mark to its event endpoints. The adjacent-edge layer now composes one exact
-  retained parent-child edge. Arbitrary multi-edge composition, target
-  avoidance, and queue-to-created-candidate geometry remain required by the
-  seams.
+  retained parent-child edge, and the target-avoidance layer conditionally
+  omits a future tensor conclusion under the explicit child-event untouched
+  law. Deriving those laws globally, arbitrary multi-edge composition, and
+  queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity
