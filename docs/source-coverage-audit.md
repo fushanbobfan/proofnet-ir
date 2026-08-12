@@ -202,9 +202,13 @@ through a complete reachable transition system remains open, but a new
 kernel-checked code consequence now gives the local raw-mark reservation
 anchor: each concrete mark and both endpoints of its same-age reservation event
 share one exact owned carrier, with contained paths to both endpoints. This is
-not a new literature reading. Cross-component path composition,
-target-avoidance geometry, queue origin, the four raw seams, later-state
-totality, progress, and pure-worklist completeness remain open.
+not a new literature reading. A further kernel-checked code consequence now
+composes one exact adjacent retained commitment edge from the parent event's
+left endpoint to the child event's left endpoint, retaining the historical
+`new` step and both owned anchors. This too is not a new literature reading.
+Arbitrary whole-spine composition, future-target avoidance, queue origin, the
+four raw seams, later-state totality, progress, and pure-worklist completeness
+remain open.
 
 On 2026-07-28 the official metadata and abstract were checked for Guerrini,
 [*A linear algorithm for MLL proof net correctness and

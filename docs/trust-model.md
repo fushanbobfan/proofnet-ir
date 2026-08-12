@@ -688,6 +688,16 @@ existing component reference geometry constructs both contained paths. The
 theorem needs no declarative correctness or switching acyclicity, but it also
 adds no cross-component composition, target avoidance, queue origin, raw-seam
 discharge, enabledness, or progress result.
+`SequentialFigure7CommitmentEdgeReferencePath.lean` adds one exact adjacent-edge
+composition without adding a path oracle. `CommitmentSpine` recovers the typed
+historical `NewStep`; raw-mark history retains its selected parent mark; the
+existing parent and child component witnesses construct the owned anchors; and
+the structural tensor/source-left path supplies the middle segment. Ordinary
+walk composition plus verified loop erasure yields the canonical parent-left to
+child-left simple path. No declarative correctness or acyclicity premise is
+needed, and the theorem does not claim target avoidance, arbitrary multi-edge
+composition, queue origin, a raw seam, enabledness, progress, completeness,
+fallback removal, or complexity.
 An explicit universally quantified proof that the structural region contains
 neither remaining obstruction is sufficient to recover `FreshSourceLeftRun`,
 then `NewInputNecessary`, and then `NewEnabled` through already-audited
@@ -742,8 +752,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 850
-declarations: 568 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 851
+declarations: 569 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s

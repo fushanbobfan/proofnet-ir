@@ -8680,6 +8680,46 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_refe
                                         ∀ (current : ProofNetIR.Vertex), current ∈ rightPath.vertices → current ∈ owned
 ```
 
+## Adjacent commitment-edge reference paths
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeReferencePath`
+
+Kind: definition.
+
+Proof-relevant path data for one adjacent retained `sigma` commitment.
+
+The canonical path runs from the parent reservation's stored left endpoint to
+the child reservation's stored left endpoint.  Its construction retains the
+parent anchor, the committed `new`-step path, the child anchor, and exact final
+owned-occurrence accounting for both chronological raw ages.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeReferencePath : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath`
+
+Kind: theorem.
+
+Every adjacent retained `sigma` edge has a canonical parent-left to
+child-left reference path with exact historical and final ownership evidence.
+
+This theorem does not prove target avoidance, any raw seam, or progress.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {position parent child : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      state.stack.sigma[position]? = some parent →
+        state.stack.sigma[position + 1]? = some child → tagHistory.CommitmentEdgeReferencePath parent child
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

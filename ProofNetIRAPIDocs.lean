@@ -684,6 +684,13 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Adjacent commitment-edge reference paths"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.CommitmentEdgeReferencePath,
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

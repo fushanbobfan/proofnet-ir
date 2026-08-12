@@ -667,6 +667,15 @@ part of the engineering and proof-identity gap.
    acyclicity. It does not compose paths between `sigma` components, prove
    target avoidance or queue origin, discharge a raw created-candidate seam, or
    establish progress.
+   `SequentialFigure7CommitmentEdgeReferencePath.lean` now performs one exact
+   cross-component composition for every adjacent parent-child pair retained in
+   final `sigma`. It reconstructs the historical `new` step and composes the
+   parent owned anchor, selected-head tensor/NEXTAXIOM segment, and child owned
+   anchor into a canonical left-endpoint-to-left-endpoint simple path while
+   retaining final accounting on both sides. This needs neither declarative
+   correctness nor switching acyclicity, but it does not establish arbitrary
+   target avoidance, whole-spine composition, queue origin, any raw seam,
+   enabledness, progress, completeness, fallback removal, or complexity.
    `SequentialFigure7TouchCompleteness.lean` now proves the exact reverse
    structural direction for every authentic reservation event. Under
    `StructurallyWellFormed`, a vertex in the event's complete source-left region
@@ -848,7 +857,7 @@ part of the engineering and proof-identity gap.
     vertex-level commitment paths, a proof of any created-candidate seam, or
     progress. The separate commitment-spine theorem supplies exact retained
     `sigma` ancestry but not that missing path geometry.
-   Cross-component whole-history path composition, target avoidance,
+   Arbitrary multi-edge whole-history path composition, target avoidance,
    queue-origin and raw-seam discharge, exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
@@ -937,7 +946,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 850 declarations: 568 public MLL
+- CI now parses `#print axioms` for 851 declarations: 569 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;

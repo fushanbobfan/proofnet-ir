@@ -1080,10 +1080,12 @@
     every final concrete mark is the selected occurrence/raw-age pair of an
     authentic prepared event, and each step has exactly the old-or-current
     effect. This does not identify raw marks with search touches. Raw allocation
-    ancestry and the same-component endpoint anchor are now exact. What remains
-    is cross-component path composition along the retained `sigma` spine, with
-    future-tensor target avoidance and queue-origin/candidate geometry; without
-    it, the four transition-local raw seams remain explicit premises.
+    ancestry and the same-component endpoint anchor are now exact. Every single
+    adjacent retained `sigma` edge now also has an exact canonical parent-left
+    to child-left reference path. What remains is arbitrary composition of those
+    edges with future-tensor target avoidance and queue-origin/candidate
+    geometry; without it, the four transition-local raw seams remain explicit
+    premises.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger
@@ -1101,9 +1103,10 @@
     ledger event, marked occurrence, and both submitted-axiom endpoints align
     in one final component and owned carrier, with contained paths from the mark
     to each endpoint. This closes the same-component endpoint anchor without
-    using declarative correctness. Cross-component commitment-path composition,
-    future-tensor target avoidance, queue origin, and the four raw seams remain
-    open.
+    using declarative correctness. One adjacent commitment edge is now composed
+    exactly through its historical selected-head tensor/NEXTAXIOM segment and
+    child anchor. Arbitrary whole-spine composition, future-tensor target
+    avoidance, queue origin, and the four raw seams remain open.
     The converse exact-run boundary is complete:
     `SequentialFigure7RegionBoundaries.lean` proves that a supplied run carrier
     is free of prior touches and old marked owners. This cannot be inverted to
@@ -1139,8 +1142,9 @@
     overlap globally; their exclusion from a prospective current source-left
     run remains the open history/geometry obligation.
     The canonical-history reservation count, retained allocation spine, and
-    same-component raw-mark-to-reservation endpoint anchors are complete.
-    Compose those anchors across the spine with target avoidance and queue
+    same-component raw-mark-to-reservation endpoint anchors are complete, and
+    every retained adjacent edge has an exact canonical path. Compose those
+    edges across arbitrary spine intervals with target avoidance and queue
     origin, establish
     unconditional full-rule reachability, progress, completeness of that
     sequential executable, and a cost theorem over every implemented operation

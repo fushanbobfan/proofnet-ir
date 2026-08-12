@@ -960,6 +960,18 @@ local geometry within one current component. It does not cross adjacent
 commitment-spine components, prove avoidance of a future tensor conclusion,
 recover queue origin, discharge any raw seam, or imply progress.
 
+`SequentialFigure7CommitmentEdgeReferencePath.lean` composes the exact local
+anchors for one adjacent pair retained in final `sigma`. The commitment-spine
+witness identifies the historical `NewStep`; raw-mark history keeps its selected
+head marked at the parent age; the parent anchor, the step's tensor/source-left
+path, and the child reservation anchor then loop-erase to a canonical simple
+path from the parent event's stored left endpoint to the child event's stored
+left endpoint. The result retains both final owned carriers and each segment's
+exact endpoints. It is a single-edge path theorem, not a future-target avoidance
+theorem: arbitrary chain composition, queue origin, created-candidate raw seams,
+enabledness, progress, completeness, fallback removal, and complexity remain
+outside this layer.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under
@@ -1447,7 +1459,8 @@ active-reference walks between marked occurrences are equivalent to
   therefore does not discharge any created-candidate raw seam. The separate
   commitment-spine layer now records exact retained `sigma` ancestry, and the
   raw-mark reservation-anchor layer supplies the same-component path from a
-  mark to its event endpoints. Cross-component path composition, target
+  mark to its event endpoints. The adjacent-edge layer now composes one exact
+  retained parent-child edge. Arbitrary multi-edge composition, target
   avoidance, and queue-to-created-candidate geometry remain required by the
   seams.
   Canonical-history reservation counting is now exact against final

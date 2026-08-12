@@ -53,6 +53,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_touch_completeness_tests
           ~/.elan/bin/lake exe proofnet_ir_reservation_realization_tests
           ~/.elan/bin/lake exe proofnet_ir_raw_mark_reservation_anchor_tests
+          ~/.elan/bin/lake exe proofnet_ir_commitment_edge_reference_path_tests
           ~/.elan/bin/lake exe proofnet_ir_region_boundaries_tests
           ~/.elan/bin/lake exe proofnet_ir_same_representative_geometry_tests
           ~/.elan/bin/lake exe proofnet_ir_same_representative_event_touch_tests

@@ -356,9 +356,20 @@ occurrence and both submitted-axiom endpoints in one final representative
 component and one exact owned-occurrence carrier, and constructs
 owned-contained reference-switching paths from the mark to each endpoint. This
 same-component anchor needs neither declarative correctness nor switching
-acyclicity. It does not compose those paths across commitment-spine components,
-prove target avoidance or queue origin, discharge a raw created-candidate seam,
-or establish progress.
+acyclicity. By itself it does not compose those paths across commitment-spine
+components, prove target avoidance or queue origin, discharge a raw
+created-candidate seam, or establish progress.
+`SequentialFigure7CommitmentEdgeReferencePath.lean` now closes one exact
+adjacent-edge composition step. Every adjacent parent-child pair retained in
+final `sigma` recovers its historical `new` step and a canonical simple
+reference path from the parent reservation's stored left endpoint to the child
+reservation's stored left endpoint. The witness preserves the parent owned
+anchor, the historical selected-head/tensor/NEXTAXIOM segment, the child owned
+anchor, and exact final accounting on both sides. It is orientation-independent
+and needs no declarative correctness or switching acyclicity. It does not prove
+that the middle segment avoids an arbitrary future tensor conclusion, package
+whole-spine path composition, recover queue origin, discharge a raw seam, or
+establish enabledness, progress, completeness, fallback removal, or complexity.
 `SequentialFigure7RegionBoundaries.lean` kernel-checks that narrow converse
 boundary.  For a supplied `FreshSourceLeftRun`, every trace occurrence and the
 terminal partner is false-tagged on input, so it is not a prior canonical
@@ -1073,10 +1084,9 @@ not assert the ordinary invariant for physical tensor/fold intermediates. It
 proves conditional payload applicability from explicit input-only
 `UnifyPayloadEnabled`; the canonical certified dispatcher history is now
 integrated, while derivation of that predicate for the selected branch,
-exhaustive enabledness, cross-component commitment-spine path composition and
-target avoidance, queue origin, the raw created-candidate seams, and later-state
-applicability/totality,
-pure-worklist completeness, fallback removal, faithful
+exhaustive enabledness, arbitrary multi-edge commitment-spine path composition
+with target avoidance, queue origin, the raw created-candidate seams,
+later-state applicability/totality, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
 ages: `sigmaBoundary?_append_fresh_old` preserves old boundaries, while the
@@ -1829,7 +1839,7 @@ The repository currently contains:
   intermediates are not established. Canonical successful-trace integration is now
   complete for the six dispatcher families. Reachable later-state
   applicability/totality, unconditional full-rule reachability,
-  cross-component commitment paths with target avoidance, queue origin and
+  arbitrary whole-spine commitment paths with target avoidance, queue origin and
   raw-seam discharge, full scheduler correctness, and a whole-program cost
   proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
@@ -2006,7 +2016,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 850 declarations: 568 public MLL logical-boundary theorems
+separately audits 851 declarations: 569 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2108,6 +2118,7 @@ lake exe proofnet_ir_cross_representative_stable_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_separation_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_raw_mark_reservation_anchor_tests
+lake exe proofnet_ir_commitment_edge_reference_path_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
@@ -2209,6 +2220,7 @@ ProofNetIR/SequentialFigure7CommitmentSpine.lean retained sigma allocation ances
 ProofNetIR/SequentialFigure7TouchCompleteness.lean exact reservation-event touch/region equivalence
 ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
 ProofNetIR/SequentialFigure7RawMarkReservationAnchor.lean raw marks anchored to exact reservation endpoints inside one owned component
+ProofNetIR/SequentialFigure7CommitmentEdgeReferencePath.lean adjacent retained-sigma paths
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
 ProofNetIR/SequentialFigure7SameRepresentativeEventTouch.lean same-representative historical event-touch exclusion
@@ -2271,6 +2283,7 @@ ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop pre
 ProofNetIROlderRawMarkedRegionSeparationTests.lean raw-mark separation and owner-clear consumers
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRawMarkReservationAnchorTests.lean raw-mark event and owned-path anchor consumer
+ProofNetIRCommitmentEdgeReferencePathTests.lean adjacent commitment-edge path consumer
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRSameRepresentativeEventTouchTests.lean same-representative historical event-touch consumers

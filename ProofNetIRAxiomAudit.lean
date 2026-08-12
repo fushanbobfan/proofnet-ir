@@ -329,6 +329,7 @@ expansion.
 #print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_finalComponent
 #print axioms SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoints_accounted
 #print axioms SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_referenceAnchors
+#print axioms SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath
 #print axioms SequentialFigure7.carrierFresh
 #print axioms SequentialFigure7.CanonicalTagHistory.freshSourceLeftRun_carrier_not_touched
 #print axioms SequentialFigure7.carrier_not_exactMarkedOccurrenceOwner

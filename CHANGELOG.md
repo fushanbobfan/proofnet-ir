@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CommitmentEdgeReferencePath.lean`. Every adjacent
+  parent-child raw-age pair retained in final `sigma` now recovers its exact
+  historical `new` step and a canonical simple reference path from the parent
+  reservation's stored left endpoint to the child reservation's stored left
+  endpoint. The proof retains the parent owned anchor, the selected-head tensor
+  and NEXTAXIOM segment, the child owned anchor, and exact final accounting for
+  both raw ages. It needs neither declarative correctness nor switching
+  acyclicity. This is one-edge composition only: it does not prove arbitrary
+  future-target avoidance, package a whole-spine path, recover queue origin,
+  discharge a raw seam, or establish enabledness, progress, completeness,
+  fallback removal, or complexity. A direct consumer destructures both public
+  APIs; facade, default target, CI, generated API, and trust audit are wired.
+  The current public axiom audit covers 851 declarations: 569 full-classical,
+  25 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7RawMarkReservationAnchor.lean`. From a concrete raw
   mark, `CanonicalTagHistory` and the complete `SchedulerInvariant` now recover
   the authentic reservation event at that immutable raw-age ledger slot. The
@@ -13,8 +27,8 @@
   commitment spine, prove target avoidance or queue origin, discharge a raw
   created-candidate seam, or establish progress. A direct consumer destructures
   the full witness; facade, default target, CI, generated API, and trust audit
-  are wired. The current public axiom audit covers 850 declarations: 568
-  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  are wired. At that checkpoint the public axiom audit covered 850
+  declarations: 568 full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentSpine.lean`. Every adjacent pair in the
   final retained `sigma` stack is now backed by the exact historical `new`
