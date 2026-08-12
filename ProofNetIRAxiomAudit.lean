@@ -252,6 +252,15 @@ expansion.
 #print axioms SequentialFigure7.ConclStep.olderSourceRegionSeparated
 #print axioms SequentialFigure7.NopStep.olderSourceRegionSeparated
 #print axioms
+  SequentialFigure7.OlderEventTouchSeparated.strict_candidateConclusion_untouched
+#print axioms SequentialFigure7.empty_olderEventFutureWorkTouchSeparated
+#print axioms
+  SequentialFigure7.InitialReservationStep.olderEventFutureWorkTouchSeparated
+#print axioms
+  SequentialFigure7.PreparedStep.olderEventFutureWorkTouchSeparated
+#print axioms SequentialFigure7.ConclStep.olderEventFutureWorkTouchSeparated
+#print axioms SequentialFigure7.NopStep.olderEventFutureWorkTouchSeparated
+#print axioms
   SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner_iff_exists_rawMark
 #print axioms SequentialFigure7.empty_olderRawMarkedRegionSeparated
 #print axioms

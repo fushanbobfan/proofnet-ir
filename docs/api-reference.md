@@ -19307,6 +19307,162 @@ ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated : ∀ {certifica
       (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.nop step))
 ```
 
+### `ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated`
+
+Kind: inductive type.
+
+Every strictly older ledger event leaves every future-New queued head
+untouched.
+
+This invariant covers the head alternative left open by
+`ReservationEvent.touched_candidateConclusion_cases`; it does not include the
+candidate mate region, which remains the separate `OlderEventTouchSeparated`
+obligation.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated.event_candidate`
+
+Kind: theorem.
+
+A strictly older authentic event does not touch the candidate's exact
+queued head occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated.event_candidate : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated tagHistory →
+    ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger →
+        ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state),
+          state.core.representative event.rawAge < state.core.representative candidate.rawAge →
+            ¬event.Touched candidate.head
+```
+
+### `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.strict_candidateConclusion_untouched`
+
+Kind: theorem.
+
+Mate-region separation plus queued-head separation excludes a strictly
+older event from the future candidate's tensor conclusion.
+
+This is a pointwise conditional bridge.  It does not establish either input
+invariant or provide their global history availability.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderEventTouchSeparated.strict_candidateConclusion_untouched : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  {tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history},
+  ProofNetIR.SequentialFigure7.OlderEventTouchSeparated tagHistory →
+    ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated tagHistory →
+      certificate.StructurallyWellFormed →
+        ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+          event ∈ tagHistory.reservationLedger →
+            ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state),
+              state.core.representative event.rawAge < state.core.representative candidate.rawAge →
+                ¬event.Touched candidate.tensor.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.empty_olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+The exact empty canonical history has no ledger event, so older-event
+future-work head-touch separation holds vacuously.
+
+```lean
+ProofNetIR.SequentialFigure7.empty_olderEventFutureWorkTouchSeparated : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated ProofNetIR.SequentialFigure7.CanonicalTagHistory.empty
+```
+
+### `ProofNetIR.SequentialFigure7.InitialReservationStep.olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+An exact initialized history has one representative boundary, making the
+strict older-event premise impossible for every future-work head.
+
+```lean
+ProofNetIR.SequentialFigure7.InitialReservationStep.olderEventFutureWorkTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+      (ProofNetIR.SequentialFigure7.CanonicalTagHistory.init step)
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+Queued-head touch separation transports through a synchronized prepared
+prefix whenever the output history records the same reservation ledger.
+
+The prefix changes neither representatives nor surviving future-work heads.
+The explicit output and ledger equalities prevent this state-only prefix from
+manufacturing a history edge.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.olderEventFutureWorkTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  after = step.after →
+    ∀ {beforeHistory : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+      (beforeTags : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate beforeHistory),
+      ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated beforeTags →
+        ∀ {afterHistory : ProofNetIR.SequentialFigure7.ExecutedHistory certificate after}
+          (afterTags : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate afterHistory),
+          afterTags.reservationLedger = beforeTags.reservationLedger →
+            ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated afterTags
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+A canonical stable `concl` extension preserves older-event future-work
+head-touch separation.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.olderEventFutureWorkTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.concl, after := after }}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
+    ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+      (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.concl step))
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+A canonical stable `nop` extension preserves older-event future-work
+head-touch separation.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.olderEventFutureWorkTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.nop, after := after }}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
+    ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+      (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.nop step))
+```
+
 ### `ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom`
 
 Kind: definition.

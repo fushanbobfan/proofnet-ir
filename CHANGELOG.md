@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderEventFutureWorkTouchSeparation.lean`.
+  `OlderEventFutureWorkTouchSeparated` names the exact queued-head residue left
+  by tensor-conclusion touch decomposition: every strictly older authentic
+  ledger event leaves every future-New candidate head untouched. Together with
+  `OlderEventTouchSeparated`, this excludes a strictly older event from the
+  candidate tensor conclusion under structural well-formedness. The empty
+  history satisfies the invariant, exact initialization does under that same
+  structural hypothesis, and Lean preserves it through the synchronized
+  prepared prefix plus canonical `concl` and `nop`. The predicate is not derived from
+  correctness, `SchedulerInvariant`, canonical history, or queue provenance;
+  `new`/`wait`/`forward`/`unifyPayload` preservation, global availability, the
+  same-boundary head-touch case, target-path construction, raw seams,
+  enabledness, and progress remain open. A direct consumer invokes all public
+  APIs; facade, default target, CI, generated API, and trust audit are wired.
+  The current public axiom audit covers 861 declarations: 579 full-classical,
+  25 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveConclusionTouch.lean`. Under structural
   well-formedness, any authentic reservation-event touch of a future-New tensor
   conclusion reaches either the candidate mate or its queued head according to
@@ -14,7 +30,8 @@
   target-avoiding path, discharge a created-candidate seam, or prove
   enabledness or progress. A direct consumer invokes both public theorems;
   facade, default target, CI, generated API, and trust audit are wired. The
-  current public axiom audit covers 855 declarations: 573 full-classical, 25
+  public axiom audit at that checkpoint covered 855 declarations: 573
+  full-classical, 25
   axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentIntervalTargetAvoidance.lean`. Any supplied
   positive-length retained-`sigma` interval now composes explicit adjacent

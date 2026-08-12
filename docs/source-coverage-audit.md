@@ -165,15 +165,24 @@ touch of any future tensor conclusion into a mate touch or queued-head touch;
 for the active candidate the conditional tag-freshness theorem eliminates the
 mate branch. This is not a new literature reading, does not prove the
 conclusion untouched, and leaves the head-touch/raw-mark obstruction open. The
-availability-reduction layer now consumes the existing
+strictly older queued-head residue is now packaged as
+`OlderEventFutureWorkTouchSeparated`. Together with the separate mate-region
+law and structural well-formedness it yields strict candidate-conclusion
+non-touch. Empty, structurally well-formed init, and Prepared/concl/nop
+preservation are proved. This is another kernel-checked code
+consequence, not a new literature reading or evidence that canonical histories
+satisfy the new invariant. Candidate-creating preservation, same-boundary
+touches, global availability, target paths, raw seams, and progress remain
+open. The availability-reduction layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another
 code consequence rather than a new literature reading. The subsequent
 raw-mark separation layer turns owner exclusion into a precise state
 invariant, proves its empty/initial and Prepared/concl/nop cases, and derives
 active-region no-mark/no-owner from it. That is also a code consequence, not a
-new literature reading. Global preservation of both older-event and older-raw-
-mark separation through the candidate-creating rules remains open. The New
+new literature reading. Global preservation of the mate-region,
+future-head-touch, and older-raw-mark separation invariants through the
+candidate-creating rules remains open. The New
 raw-mark branch is now conditionally transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.

@@ -579,6 +579,15 @@ input lookup then follows from the concrete array update equation. The generic
 history transport requires full ledger equality, while the canonical `concl`
 and `nop` corollaries derive that equality from their empty reservation-event
 lists. No claim is made for any branch that creates or moves future work.
+`SequentialFigure7OlderEventFutureWorkTouchSeparation.lean` adds no touch,
+queue-origin, or reachability oracle. Its proposition states the queued-head
+non-touch law explicitly. The strict conclusion theorem combines that supplied
+law with the independently supplied mate-region law and the prior structural
+mate-or-head decomposition. Empty and structurally well-formed init eliminate
+the strict order directly; Prepared/concl/nop transport exact ledger
+membership, future work, and current
+representatives. Candidate-creating rules, same-boundary touches, and global
+availability remain explicit rather than hidden in the proof.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -778,8 +787,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 855
-declarations: 573 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 861
+declarations: 579 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1213,11 +1222,13 @@ Lean now also constructs the exact simultaneous complementary
   both endpoints of their same-age reservation event, and one adjacent
   cross-component path has an explicit-premise target-avoidance refinement.
   Explicit adjacent callbacks compose across any supplied positive-length
-  retained interval. Exhaustive later-state branch enabledness and totality,
-  derivation and global availability of the child-event untouched laws and
-  callbacks, queue origin, the raw created-candidate seams, unconditional
-  full-rule reachability, and the remaining `NEXTAXIOM`/token-age scheduler
-  remain required for linearity.
+  retained interval. The strict conclusion law follows from the two explicit
+  separation invariants, and the queued-head half has empty/init and stable
+  preservation. Exhaustive later-state branch enabledness and totality,
+  candidate-creating preservation and global availability of the invariants,
+  the same-boundary case, actual child-event laws/callbacks, queue origin, the
+  raw created-candidate seams, unconditional full-rule reachability, and the
+  remaining `NEXTAXIOM`/token-age scheduler remain required for linearity.
   Closing-par scheduler-order exclusion, correct-state progress,
   pure-worklist completeness, recursive fallback removal, and whole-program
   linearity remain open.

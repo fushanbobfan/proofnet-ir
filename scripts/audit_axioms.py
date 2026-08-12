@@ -58,6 +58,17 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated",
     "ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated",
+    "ProofNetIR.SequentialFigure7.OlderEventTouchSeparated."
+    "strict_candidateConclusion_untouched",
+    "ProofNetIR.SequentialFigure7.empty_olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.InitialReservationStep."
+    "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.PreparedStep."
+    "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.ConclStep."
+    "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "olderEventFutureWorkTouchSeparated",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant."
     "exactMarkedOccurrenceOwner_iff_exists_rawMark",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."

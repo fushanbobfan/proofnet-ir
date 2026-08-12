@@ -825,6 +825,18 @@ history edge. Canonical `concl` and `nop` provide exactly those equalities and
 preserve the invariant. Candidate-creating branches remain separate proof
 obligations rather than consequences of this transport lemma.
 
+`SequentialFigure7OlderEventFutureWorkTouchSeparation.lean` packages the
+orthogonal queued-head obligation. Its history-indexed predicate excludes a
+strictly older authentic ledger event from every future candidate's exact
+queued head. Combining it with `OlderEventTouchSeparated` and the structural
+mate-or-head decomposition excludes the same event from the candidate tensor
+conclusion. Empty, structurally well-formed init, and Prepared/concl/nop
+preservation are proved. The
+predicate is not reconstructed from correctness, the state invariant,
+canonical history, or queue provenance, and this layer does not cover
+candidate-creating rules, same-boundary touches, global availability, raw
+seams, target-path construction, enabledness, or progress.
+
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
 and source-left start, so it also describes a rule-local candidate that has not
@@ -1493,8 +1505,11 @@ active-reference walks between marked occurrences are equivalent to
   retained parent-child edge, and the target-avoidance layer conditionally
   omits a future tensor conclusion under the explicit child-event untouched
   law. Explicit adjacent callbacks now compose across every supplied nonempty
-  retained-`sigma` interval. Deriving those laws and callbacks globally and
-  queue-to-created-candidate geometry remain required by the seams.
+  retained-`sigma` interval. The pointwise strict conclusion law now follows
+  when both explicit separation invariants and structural well-formedness are
+  supplied. Candidate-creating preservation and global availability of the
+  queued-head invariant, the same-boundary case, actual adjacent callbacks,
+  and queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

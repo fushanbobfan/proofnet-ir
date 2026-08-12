@@ -1535,6 +1535,26 @@ def sections : List Section := [
       `ProofNetIR.SequentialFigure7.PreparedStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.ConclStep.olderSourceRegionSeparated,
       `ProofNetIR.SequentialFigure7.NopStep.olderSourceRegionSeparated,
+      `ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+        "event_candidate",
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderEventTouchSeparated
+        "strict_candidateConclusion_untouched",
+      `ProofNetIR.SequentialFigure7.empty_olderEventFutureWorkTouchSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.InitialReservationStep
+        "olderEventFutureWorkTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.PreparedStep
+        "olderEventFutureWorkTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ConclStep
+        "olderEventFutureWorkTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "olderEventFutureWorkTouchSeparated",
       `ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom,
       `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated,
       Name.str

@@ -27,6 +27,7 @@ defaultTargets = [
   "proofnet_ir_active_conclusion_touch_tests",
   "proofnet_ir_active_region_availability_tests",
   "proofnet_ir_cross_representative_stable_preservation_tests",
+  "proofnet_ir_older_event_future_work_touch_separation_tests",
   "proofnet_ir_older_raw_marked_region_separation_tests",
   "proofnet_ir_cross_representative_new_preservation_tests",
   "proofnet_ir_older_raw_marked_region_new_preservation_tests",
@@ -149,6 +150,10 @@ root = "ProofNetIRActiveRegionAvailabilityTests"
 [[lean_exe]]
 name = "proofnet_ir_cross_representative_stable_preservation_tests"
 root = "ProofNetIRCrossRepresentativeStablePreservationTests"
+
+[[lean_exe]]
+name = "proofnet_ir_older_event_future_work_touch_separation_tests"
+root = "ProofNetIROlderEventFutureWorkTouchSeparationTests"
 
 [[lean_exe]]
 name = "proofnet_ir_older_raw_marked_region_separation_tests"
