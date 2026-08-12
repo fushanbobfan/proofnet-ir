@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7RawMarkReservationAnchor.lean`. From a concrete raw
+  mark, `CanonicalTagHistory` and the complete `SchedulerInvariant` now recover
+  the authentic reservation event at that immutable raw-age ledger slot. The
+  marked occurrence and both submitted-axiom endpoints are aligned in one
+  final representative component and one exact owned-occurrence carrier, with
+  owned-contained reference-switching paths from the mark to each endpoint.
+  This is same-component local geometry only: it assumes no declarative
+  correctness or switching acyclicity and does not compose across the retained
+  commitment spine, prove target avoidance or queue origin, discharge a raw
+  created-candidate seam, or establish progress. A direct consumer destructures
+  the full witness; facade, default target, CI, generated API, and trust audit
+  are wired. The current public axiom audit covers 850 declarations: 568
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentSpine.lean`. Every adjacent pair in the
   final retained `sigma` stack is now backed by the exact historical `new`
   reservation event stored at the child raw age's chronological ledger slot.
@@ -13,9 +27,9 @@
   branch applicability, progress, pure-worklist completeness, fallback
   removal, faithful token-age scheduling, or whole-program linearity. A direct
   consumer invokes the complete three-item public surface; facade, default
-  target, CI, generated API, and trust audit are wired. The current public
-  axiom audit covers 849 declarations: 567 full-classical, 25 axiom-free, 122
-  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+  target, CI, generated API, and trust audit are wired. At that checkpoint the
+  public axiom audit covered 849 declarations: 567 full-classical, 25
+  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7RawMarkHistory.lean`. The existing branch-indexed
   `DispatchTagEvidence` now exposes the common prepared prefix and its exact
   raw-mark event for all six successful non-initial dispatcher branches. Lean

@@ -8639,6 +8639,47 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.reservationLedger_axiomEndpoint
                     event.search.result.left ∈ owned ∧ event.search.result.right ∈ owned
 ```
 
+## Raw-mark reservation reference anchors
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_referenceAnchors`
+
+Kind: theorem.
+
+Anchor one concrete raw mark to its exact reservation event, final live
+component, and owned-contained reference paths to both submitted axiom
+endpoints.
+
+This theorem supplies only local same-component anchors.  It does not assume
+`DeclarativelyCorrect` or acyclicity, compose paths across components, prove
+target avoidance or a raw seam, or establish progress.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_referenceAnchors : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {vertex : ProofNetIR.Vertex} {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      state.core.marks[vertex]? = some (some rawAge) →
+        ∃ event component eventUsed forestUsed owned leftPath rightPath,
+          tagHistory.reservationLedger[rawAge]? = some event ∧
+            event.rawAge = rawAge ∧
+              state.core.components[state.core.representative rawAge]? = some (some component) ∧
+                certificate.OccurrenceDerivation component.tree component.frontier eventUsed owned ∧
+                  event.linkIndex ∈ eventUsed ∧
+                    certificate.ComponentOccurrenceWitness component forestUsed owned ∧
+                      ProofNetIR.Certificate.OwnedOccurrenceAccounted state.core (state.core.representative rawAge)
+                          component owned ∧
+                        vertex ∈ owned ∧
+                          event.search.result.left ∈ owned ∧
+                            event.search.result.right ∈ owned ∧
+                              leftPath.start = vertex ∧
+                                leftPath.finish = event.search.result.left ∧
+                                  (∀ (current : ProofNetIR.Vertex), current ∈ leftPath.vertices → current ∈ owned) ∧
+                                    rightPath.start = vertex ∧
+                                      rightPath.finish = event.search.result.right ∧
+                                        ∀ (current : ProofNetIR.Vertex), current ∈ rightPath.vertices → current ∈ owned
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

@@ -36,6 +36,7 @@ defaultTargets = [
   "proofnet_ir_cross_representative_unify_payload_preservation_tests",
   "proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests",
   "proofnet_ir_reservation_realization_tests",
+  "proofnet_ir_raw_mark_reservation_anchor_tests",
   "proofnet_ir_new_region_tests",
   "proofnet_ir_new_enabled_import_tests",
   "proofnet_ir_priority_enabled_import_tests"
@@ -180,6 +181,10 @@ root = "ProofNetIROlderRawMarkedRegionUnifyPayloadPreservationTests"
 [[lean_exe]]
 name = "proofnet_ir_reservation_realization_tests"
 root = "ProofNetIRReservationRealizationTests"
+
+[[lean_exe]]
+name = "proofnet_ir_raw_mark_reservation_anchor_tests"
+root = "ProofNetIRRawMarkReservationAnchorTests"
 
 [[lean_exe]]
 name = "proofnet_ir_new_region_tests"

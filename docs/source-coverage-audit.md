@@ -198,7 +198,11 @@ seam. An independent kernel-checked commitment-spine layer now proves that
 every adjacent pair in the final retained `sigma` is backed by the exact
 historical `new` event stored at the child raw-age ledger slot. This closes
 allocation ancestry only and is not a new literature reading. Ownership
-through a complete reachable transition system, vertex-level route and
+through a complete reachable transition system remains open, but a new
+kernel-checked code consequence now gives the local raw-mark reservation
+anchor: each concrete mark and both endpoints of its same-age reservation event
+share one exact owned carrier, with contained paths to both endpoints. This is
+not a new literature reading. Cross-component path composition,
 target-avoidance geometry, queue origin, the four raw seams, later-state
 totality, progress, and pure-worklist completeness remain open.
 

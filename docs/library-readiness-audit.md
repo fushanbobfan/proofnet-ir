@@ -658,6 +658,15 @@ part of the engineering and proof-identity gap.
    not a representative, reserved axiom endpoints are not the whole historical
    touch region, and historical event membership is not blanket current
    ownership.
+   `SequentialFigure7RawMarkReservationAnchor.lean` now closes the local
+   raw-mark-to-reservation anchor. From a concrete mark, canonical history and
+   the complete state invariant recover the same-age ledger event, align the
+   marked occurrence and both submitted-axiom endpoints in one final component
+   and exact owned carrier, and construct owned-contained reference paths to
+   both endpoints. This needs neither declarative correctness nor switching
+   acyclicity. It does not compose paths between `sigma` components, prove
+   target avoidance or queue origin, discharge a raw created-candidate seam, or
+   establish progress.
    `SequentialFigure7TouchCompleteness.lean` now proves the exact reverse
    structural direction for every authentic reservation event. Under
    `StructurallyWellFormed`, a vertex in the event's complete source-left region
@@ -839,8 +848,8 @@ part of the engineering and proof-identity gap.
     vertex-level commitment paths, a proof of any created-candidate seam, or
     progress. The separate commitment-spine theorem supplies exact retained
     `sigma` ancestry but not that missing path geometry.
-    Vertex-level whole-history oriented-route generalization, queue-origin and
-   raw-seam discharge, exhaustive guard classification,
+   Cross-component whole-history path composition, target avoidance,
+   queue-origin and raw-seam discharge, exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -928,7 +937,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 849 declarations: 567 public MLL
+- CI now parses `#print axioms` for 850 declarations: 568 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1054,10 +1063,10 @@ It can currently be used for:
   local `wait` cons has a state-only ownership theorem only from a supplied
   `SchedulerInvariant`.
   Exact init/new reachability, tag history, the retained `sigma` commitment
-  spine, and certified full-rule successful traces are present. Vertex-level
-  commitment paths with target avoidance, queue origin, raw-seam discharge,
-  and unconditional full-rule reachability are not, so together these are not
-  a complete scheduler API;
+  spine, local raw-mark-to-reservation endpoint anchors, and certified full-rule
+  successful traces are present. Cross-component commitment paths with target
+  avoidance, queue origin, raw-seam discharge, and unconditional full-rule
+  reachability are not, so together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.
 - auditing the frozen 180-task model experiment, amendment, raw responses,

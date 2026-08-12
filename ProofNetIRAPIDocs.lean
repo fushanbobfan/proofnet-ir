@@ -678,6 +678,12 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Raw-mark reservation reference anchors"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.CanonicalTagHistory.rawMarked_reservationEvent_referenceAnchors
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

@@ -348,6 +348,17 @@ the two distinct axiom events share one final accounted component without
 claiming that they remain distinct live components. This bridge covers the
 reserved axiom and endpoints, not every vertex touched by the historical
 search, and proves no current-route exclusion or progress theorem.
+`SequentialFigure7RawMarkReservationAnchor.lean` now joins that reservation
+realization to a concrete current raw mark. Given `CanonicalTagHistory`, the
+complete `SchedulerInvariant`, and `marks[vertex]? = some (some rawAge)`, Lean
+recovers the exact event at `reservationLedger[rawAge]?`, aligns the marked
+occurrence and both submitted-axiom endpoints in one final representative
+component and one exact owned-occurrence carrier, and constructs
+owned-contained reference-switching paths from the mark to each endpoint. This
+same-component anchor needs neither declarative correctness nor switching
+acyclicity. It does not compose those paths across commitment-spine components,
+prove target avoidance or queue origin, discharge a raw created-candidate seam,
+or establish progress.
 `SequentialFigure7RegionBoundaries.lean` kernel-checks that narrow converse
 boundary.  For a supplied `FreshSourceLeftRun`, every trace occurrence and the
 terminal partner is false-tagged on input, so it is not a prior canonical
@@ -1062,8 +1073,8 @@ not assert the ordinary invariant for physical tensor/fold intermediates. It
 proves conditional payload applicability from explicit input-only
 `UnifyPayloadEnabled`; the canonical certified dispatcher history is now
 integrated, while derivation of that predicate for the selected branch,
-exhaustive enabledness, vertex-level commitment paths and target avoidance,
-queue origin, the raw created-candidate seams, and later-state
+exhaustive enabledness, cross-component commitment-spine path composition and
+target avoidance, queue origin, the raw created-candidate seams, and later-state
 applicability/totality,
 pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
@@ -1113,8 +1124,9 @@ not prove applicability, totality, or unconditional reachability. The separate
 non-reuse, and event-counter alignment only for genuine empty/init/new
 executions. The canonical tag augmentation now lifts touch provenance and
 submitted-slot non-reuse and exact reservation-event counting through every
-stable dispatcher branch. A vertex-level public whole-history oriented-route
-theorem is not yet lifted.
+stable dispatcher branch. Local raw-mark-to-reservation endpoint paths are now
+available, but their cross-component whole-history composition with target
+avoidance and queue-origin geometry is not.
 Correct-state progress, pure-worklist completeness, fallback removal, and
 whole-program linearity therefore remain open.
 
@@ -1502,8 +1514,9 @@ states. Integration of successful local
 `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload` into a canonical
 certified history is complete, including exact tag-touch provenance, global
 submitted-slot non-reuse, and exact reservation-event counting against final
-`nextAge`. Generalizing the whole-history oriented-route API, proving
-exhaustive guard applicability, and
+`nextAge`. Composing the local reservation anchors into a cross-component
+whole-history path with target avoidance, proving exhaustive guard
+applicability, and
 obtaining a total later-state transition system remain open.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
@@ -1760,8 +1773,8 @@ The repository currently contains:
   canonical priority
   dispatcher and proof-carrying certified successful history now cover
   `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload`; later-state
-  totality, unconditional reachability, and a whole-history oriented-route
-  theorem remain open. Closing-par exclusion,
+  totality, unconditional reachability, and cross-component whole-history path
+  composition remain open. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -1815,10 +1828,10 @@ The repository currently contains:
   reachable dispatcher states and invariance of physical tensor/fold
   intermediates are not established. Canonical successful-trace integration is now
   complete for the six dispatcher families. Reachable later-state
-  applicability/totality, unconditional full-rule reachability, vertex-level
-  commitment paths with target avoidance, queue-origin and raw-seam
-  discharge, full scheduler correctness, and a whole-program cost proof
-  remain open;
+  applicability/totality, unconditional full-rule reachability,
+  cross-component commitment paths with target avoidance, queue origin and
+  raw-seam discharge, full scheduler correctness, and a whole-program cost
+  proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
 - kernel-checked loop erasure and a finite-vertex path bound, yielding full
@@ -1993,7 +2006,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 849 declarations: 567 public MLL logical-boundary theorems
+separately audits 850 declarations: 568 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2094,6 +2107,7 @@ lake exe proofnet_ir_active_region_availability_tests
 lake exe proofnet_ir_cross_representative_stable_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_separation_tests
 lake exe proofnet_ir_reservation_realization_tests
+lake exe proofnet_ir_raw_mark_reservation_anchor_tests
 lake exe proofnet_ir_region_boundaries_tests
 lake exe proofnet_ir_cross_representative_new_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
@@ -2194,6 +2208,7 @@ ProofNetIR/SequentialFigure7ReservationLedger.lean chronological raw-age reserva
 ProofNetIR/SequentialFigure7CommitmentSpine.lean retained sigma allocation ancestry
 ProofNetIR/SequentialFigure7TouchCompleteness.lean exact reservation-event touch/region equivalence
 ProofNetIR/SequentialFigure7ReservationRealization.lean historical axiom reservations realized in final representative components
+ProofNetIR/SequentialFigure7RawMarkReservationAnchor.lean raw marks anchored to exact reservation endpoints inside one owned component
 ProofNetIR/SequentialFigure7RegionBoundaries.lean exact-run-local touch/owner separation boundaries
 ProofNetIR/SequentialFigure7SameRepresentativeGeometry.lean active-component source-region raw-mark separation
 ProofNetIR/SequentialFigure7SameRepresentativeEventTouch.lean same-representative historical event-touch exclusion
@@ -2255,6 +2270,7 @@ ProofNetIRActiveRegionAvailabilityTests.lean active NewEnabled/old-owner dichoto
 ProofNetIRCrossRepresentativeStablePreservationTests.lean prepared/concl/nop preservation consumers
 ProofNetIROlderRawMarkedRegionSeparationTests.lean raw-mark separation and owner-clear consumers
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
+ProofNetIRRawMarkReservationAnchorTests.lean raw-mark event and owned-path anchor consumer
 ProofNetIRRegionBoundariesTests.lean conditional exact-run consumers and global-shortcut counterexamples
 ProofNetIRSameRepresentativeGeometryTests.lean same-component reference and representative-separation consumers
 ProofNetIRSameRepresentativeEventTouchTests.lean same-representative historical event-touch consumers

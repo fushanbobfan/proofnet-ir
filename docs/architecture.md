@@ -948,6 +948,18 @@ resolve to one final component, as the checker-accepted two-axiom tensor union
 consumer demonstrates.  This does not make all historical trace vertices
 owned, preserve one component per event, or solve current-route intersection.
 
+`SequentialFigure7RawMarkReservationAnchor.lean` connects a concrete raw mark
+to that realized reservation without identifying the mark with a historical
+search touch. `SchedulerInvariant` first accounts for the marked occurrence in
+its current representative component; the chronological ledger supplies the
+authentic event at the same immutable raw age; reservation realization accounts
+for both submitted-axiom endpoints there. Component and owned-list uniqueness
+then align all three occurrences, and component reference geometry gives paths
+from the mark to each endpoint that stay inside the common owned list. This is
+local geometry within one current component. It does not cross adjacent
+commitment-spine components, prove avoidance of a future tensor conclusion,
+recover queue origin, discharge any raw seam, or imply progress.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under
@@ -1433,8 +1445,11 @@ active-reference walks between marked occurrences are equivalent to
   touch provenance because stable rules raw-mark connective conclusions. It
   does not by itself provide queue-origin or vertex-level commitment paths and
   therefore does not discharge any created-candidate raw seam. The separate
-  commitment-spine layer now records exact retained `sigma` ancestry, but not
-  the path or target-avoidance geometry required by those seams.
+  commitment-spine layer now records exact retained `sigma` ancestry, and the
+  raw-mark reservation-anchor layer supplies the same-component path from a
+  mark to its event endpoints. Cross-component path composition, target
+  avoidance, and queue-to-created-candidate geometry remain required by the
+  seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity
