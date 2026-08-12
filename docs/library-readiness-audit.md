@@ -839,6 +839,13 @@ part of the engineering and proof-identity gap.
    this to any positive retained interval from strict oldness of its final
    boundary. It does not cover an equal final boundary, prove either invariant
    globally, recover queue origin, close a raw seam, or imply progress.
+   `SequentialFigure7StrictOlderSigmaSplit.lean` now locates that strict
+   interval for any authentic ledger event and future-New candidate satisfying
+   the representative inequality. It returns the candidate's immediate
+   predecessor plus a possibly empty prefix; the consumer composes every
+   positive prefix and treats zero explicitly. It does not discharge the final
+   predecessor-to-candidate edge or establish separation availability, queue
+   origin, a created-head/raw seam, progress, totality, or completeness.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -949,8 +956,10 @@ part of the engineering and proof-identity gap.
    at boundaries, strictly older than the candidate. The queued-head invariant
    has empty/init, stable, successful New, and conditional
    Wait/Forward/UnifyPayload preservation. Global availability of that
-   invariant and the exact three residuals, the same-boundary callback, queue
-   origin, raw-seam discharge, exhaustive guard classification,
+   invariant and the exact three residuals remain open. Strict older events now
+   split at the candidate's immediate predecessor, leaving the final
+   same-boundary callback, queue origin, raw-seam discharge, exhaustive guard
+   classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -1038,7 +1047,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 867 declarations: 585 public MLL
+- CI now parses `#print axioms` for 868 declarations: 586 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1170,10 +1179,12 @@ It can currently be used for:
   adjacent callbacks compose across every positive-length retained interval.
   The strict conclusion law is available from both explicit separation
   invariants, and strictly older edge/interval callbacks now follow when the
-  scheduler invariant is also supplied. The queued-head half has empty/init,
+  scheduler invariant is also supplied. Any strictly older ledger event now
+  splits at the candidate's immediate predecessor, so its positive prefix is
+  composable. The queued-head half has empty/init,
   stable, successful New, and conditional Wait/Forward/UnifyPayload
   preservation. Global invariant and all three residuals' availability, the
-  same-boundary callback, queue origin, raw-seam
+  final same-boundary callback, queue origin, raw-seam
   discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and

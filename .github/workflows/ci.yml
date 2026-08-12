@@ -67,6 +67,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_stable_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_older_event_future_work_touch_separation_tests
           ~/.elan/bin/lake exe proofnet_ir_strict_commitment_target_avoidance_tests
+          ~/.elan/bin/lake exe proofnet_ir_strict_older_sigma_split_tests
           ~/.elan/bin/lake exe proofnet_ir_older_raw_marked_region_separation_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_new_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_older_event_future_work_touch_new_preservation_tests

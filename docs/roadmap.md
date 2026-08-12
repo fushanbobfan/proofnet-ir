@@ -1112,6 +1112,13 @@
     globalize those laws and callbacks together with queue-origin and candidate
     geometry; without that work the four transition-local raw seams remain
     explicit premises.
+    A strict older ledger event can now be located relative to any future-New
+    candidate in retained `sigma`: the new split returns the candidate's exact
+    predecessor and the possibly empty prefix from the event representative.
+    Every positive prefix therefore uses the strict interval theorem directly,
+    while the final predecessor-to-candidate edge remains the precise unresolved
+    equal-boundary edge. This locator does not supply either separation
+    invariant or a queue/raw seam.
     Exact prior-touch provenance is now available: every touched vertex
     recovers its authentic init/new search, submitted slot, oriented route,
     and historical source-left region. The chronological reservation ledger
@@ -1180,8 +1187,9 @@
     preservation. When it and the mate-region invariant are supplied, strict
     child-event callbacks and positive intervals ending strictly before the
     candidate now follow automatically. Derive all three residuals and global
-    invariant availability, then handle the equal-boundary callback and queue
-    origin.
+    invariant availability. The strict older-event split already composes the
+    positive prefix to the candidate's immediate predecessor; next handle that
+    final equal-boundary callback and queue origin.
     Establish unconditional full-rule reachability, progress, completeness of
     that
     sequential executable, and a cost theorem over every implemented operation

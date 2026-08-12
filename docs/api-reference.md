@@ -19520,6 +19520,43 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePat
                   tagHistory.CommitmentEdgeTargetAvoidingPath first last candidate.tensor.conclusion
 ```
 
+### `ProofNetIR.SequentialFigure7.StrictOlderSigmaSplit`
+
+Kind: definition.
+
+A retained `sigma` interval from `first` reaches the immediate predecessor
+of `candidate` after `edgeCount` edges, followed by the final adjacent edge
+into `candidate`. The prefix count may be zero.
+
+```lean
+ProofNetIR.SequentialFigure7.StrictOlderSigmaSplit : ProofNetIR.SequentialSchedulerBridge.ReservationState →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlderSigmaSplit`
+
+Kind: theorem.
+
+A ledger event whose current representative is strictly older than a
+future-New candidate determines an exact `sigma` split at the candidate's
+immediate predecessor.
+
+The returned prefix may have zero edges. The theorem locates the final edge
+but makes no target-avoidance claim about it.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlderSigmaSplit : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+      event ∈ tagHistory.reservationLedger →
+        ∀ (candidate : ProofNetIR.SequentialFigure7.FutureNewCandidateAt certificate state),
+          state.core.representative event.rawAge < state.core.representative candidate.rawAge →
+            ProofNetIR.SequentialFigure7.StrictOlderSigmaSplit state (state.core.representative event.rawAge)
+              candidate.rawAge
+```
+
 ### `ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom`
 
 Kind: definition.

@@ -199,7 +199,13 @@ adjacent edge whose child boundary is strictly older than a future candidate;
 strict sigma ordering extends this to a positive interval from only strict
 oldness of its final boundary. This is not a new literature result and does not
 derive global invariant availability, cover the equal-boundary case, recover
-queue origin, close a raw seam, or prove progress. The availability-reduction
+queue origin, close a raw seam, or prove progress. Another kernel-checked code
+consequence locates any strictly older authentic ledger event and future-New
+candidate in retained `sigma`, returning the candidate's immediate predecessor
+and the possibly empty prefix ending there. Positive prefixes use the existing
+strict interval result; the final predecessor-to-candidate edge remains open.
+This is an index/representative consequence, not a new literature result or a
+global separation theorem. The availability-reduction
 layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another

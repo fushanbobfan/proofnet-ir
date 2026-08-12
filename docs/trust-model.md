@@ -600,6 +600,14 @@ uses only list-index ordering and the existing verified path compositor. Both
 public theorems keep the scheduler invariant and both separation predicates as
 explicit inputs. Equal-boundary edges, global availability, queue origin, raw
 seams, progress, and complexity remain outside the claim.
+`SequentialFigure7StrictOlderSigmaSplit.lean` adds no path, touch, ownership,
+queue, or reachability oracle. It recovers the authentic event's raw-age bound
+from the chronological ledger, locates its current representative through
+`RealizesSigma`, locates the candidate root through the existing future-work
+witness, and uses strict `sigma` ordering to return the candidate's immediate
+predecessor. The possibly empty prefix can feed the previously audited positive
+interval theorem, but this module does not discharge the final edge or derive
+either separation invariant, queue origin, a raw seam, progress, or complexity.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -846,8 +854,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 867
-declarations: 585 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 868
+declarations: 586 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1286,8 +1294,10 @@ Lean now also constructs the exact simultaneous complementary
   strictly older adjacent edge and for a positive interval whose last boundary
   is strictly older. The queued-head half has empty/init, stable,
   successful New, and conditional Wait/Forward/UnifyPayload preservation.
-  Exhaustive later-state branch enabledness and totality, global invariant and
-  all three residuals' availability, the same-boundary callback,
+  Strict older events now split at the candidate's immediate predecessor and
+  expose a composable positive prefix. Exhaustive later-state branch
+  enabledness and totality, global invariant and all three residuals'
+  availability, the final same-boundary callback,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

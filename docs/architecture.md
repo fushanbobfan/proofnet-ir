@@ -1078,6 +1078,18 @@ invariants and exact sigma lookups. It does not cover an equal final boundary,
 derive global availability, recover queue origin, discharge a raw seam, or
 imply progress or complexity.
 
+`SequentialFigure7StrictOlderSigmaSplit.lean` locates the retained interval
+needed by that compositor. Starting from an authentic ledger event and a
+future-New candidate with strict current-representative order, chronological
+ledger bounds and `RealizesSigma` locate the event representative, while the
+future-work witness locates the candidate root. Strict `sigma` ordering places
+the former before the latter. The theorem then returns the candidate's exact
+immediate predecessor and a possibly empty prefix from the event
+representative. A positive prefix can use the strict interval theorem; a zero
+prefix needs no edge composition. The final predecessor-to-candidate edge is
+not discharged, and no global invariant, queue-origin, raw-seam, progress, or
+complexity claim is added.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under
@@ -1576,8 +1588,10 @@ active-reference walks between marked occurrences are equivalent to
   queued-head invariant is now kernel
   checked from a supplied prior instance, while Wait, Forward, and UnifyPayload
   preservation are checked under their exact candidate-indexed residuals.
-  Global invariant and residual availability, the same-boundary callback, and
-  queue-to-created-candidate geometry remain required by the seams.
+  A strict older event now splits at the candidate's immediate predecessor, so
+  every positive prefix is composable. Global invariant and residual
+  availability, the final same-boundary callback, and queue-to-created-candidate
+  geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

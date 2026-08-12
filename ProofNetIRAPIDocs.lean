@@ -1561,6 +1561,10 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
         "commitmentInterval_referencePath_avoiding_of_lastOlder",
+      `ProofNetIR.SequentialFigure7.StrictOlderSigmaSplit,
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "strictOlderSigmaSplit",
       `ProofNetIR.SequentialFigure7.OlderRawMarksSeparatedFrom,
       `ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated,
       Name.str

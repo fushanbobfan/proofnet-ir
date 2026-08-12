@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- added `SequentialFigure7StrictOlderSigmaSplit.lean`. For any authentic
+  reservation-ledger event whose current representative is strictly older than
+  a supplied future-New candidate, the complete scheduler invariant now
+  locates the event representative and candidate in retained `sigma`, returns
+  the candidate's immediate predecessor, and splits off the possibly empty
+  prefix ending there. The direct consumer sends a positive prefix through the
+  existing strict target-avoidance interval theorem and handles the zero-prefix
+  case explicitly. The final predecessor-to-candidate edge remains outside the
+  theorem, as do global separation availability, queue origin, created-head and
+  raw seams, progress, totality, completeness, fallback removal, and
+  complexity. The public API adds one carrier and one theorem; facade, default
+  target, CI, generated API, and trust audit are wired. The current public
+  axiom audit covers 868 declarations: 586 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7StrictCommitmentTargetAvoidance.lean`. Supplying the
   complete scheduler invariant plus `OlderEventTouchSeparated` and
   `OlderEventFutureWorkTouchSeparated` now automatically discharges the exact
@@ -15,7 +29,8 @@
   origin or a raw seam, or imply enabledness, progress, completeness, fallback
   removal, or linearity. A direct consumer invokes both theorems and projects
   the avoiding path; facade, default target, CI, generated API, and trust audit
-  are wired. The current public axiom audit covers 867 declarations: 585
+  are wired. At that checkpoint the public axiom audit covered 867 declarations:
+  585
   full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadPreservation.lean`.

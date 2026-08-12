@@ -73,6 +73,7 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentEdge_referencePath_avoiding_of_strict",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "commitmentInterval_referencePath_avoiding_of_lastOlder",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlderSigmaSplit",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant."
     "exactMarkedOccurrenceOwner_iff_exists_rawMark",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."

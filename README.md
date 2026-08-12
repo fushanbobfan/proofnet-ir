@@ -541,6 +541,16 @@ ordering transports it to every child and the existing interval compositor
 joins the avoiding paths. This does not handle an equal final boundary, derive
 either invariant globally, recover queue origin, close a raw seam, or imply
 progress or completeness.
+`SequentialFigure7StrictOlderSigmaSplit.lean` locates the corresponding
+retained interval for an arbitrary authentic ledger event. If the event's
+current representative is strictly older than a supplied future-New candidate,
+the theorem returns the event representative's exact `sigma` position, the
+candidate's immediate predecessor, and a possibly empty prefix between them.
+The direct consumer sends every positive prefix through the existing strict
+target-avoidance interval theorem; the zero-prefix case is explicit. The final
+predecessor-to-candidate edge is deliberately left unresolved. This locator
+does not establish the two separation invariants, queue origin, a created-head
+or raw seam, progress, totality, completeness, fallback removal, or complexity.
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` then splits every
 successful `new` output occurrence into retained marked-middle work or one of
 the exact reached/partner endpoints appended at the fresh raw-age boundary.
@@ -1187,7 +1197,7 @@ proves conditional payload applicability from explicit input-only
 `UnifyPayloadEnabled`; the canonical certified dispatcher history is now
 integrated, while derivation of that predicate for the selected branch,
 exhaustive enabledness, global availability of both strict touch-separation
-invariants, the same-boundary child-event law and callback, queue origin, the
+invariants, the final same-boundary child-event law and callback, queue origin, the
 raw created-candidate seams,
 later-state applicability/totality, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
@@ -1634,7 +1644,7 @@ retained-`sigma` interval. When both strict separation invariants are supplied,
 the child-event law and callback are now derived automatically for any edge,
 or positive interval ending at a boundary, strictly older than the candidate.
 Globally establishing those invariants and the exact Wait, Forward, and
-UnifyPayload residuals, handling the same-boundary case, recovering queue
+UnifyPayload residuals, handling the final same-boundary edge, recovering queue
 origin, proving exhaustive guard applicability, and obtaining a
 total later-state transition system remain open. Its `new` preservation and
 conditional `wait`/`forward`/`unifyPayload` preservation are kernel checked for
@@ -1896,9 +1906,10 @@ The repository currently contains:
   dispatcher and proof-carrying certified successful history now cover
   `concl`/`nop`/`new`/`wait`/`forward`/general `UnifyPayload`; later-state
   totality, unconditional reachability, global availability of both strict
-  separation invariants, the same-boundary child-event law and callback, and
-  queue origin remain open. Strictly older edge and interval callbacks now
-  follow from supplied instances of the two invariants. Closing-par exclusion,
+  separation invariants, the final same-boundary child-event law and callback,
+  and queue origin remain open. Strictly older edge and interval callbacks now
+  follow from supplied instances of the two invariants, and every strict older
+  event splits at the candidate's immediate predecessor. Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
 - a separate bounded/tagged `NEXTAXIOM` checkpoint with a reusable
@@ -1953,7 +1964,7 @@ The repository currently contains:
   intermediates are not established. Canonical successful-trace integration is now
   complete for the six dispatcher families. Reachable later-state
   applicability/totality, unconditional full-rule reachability, derivation of
-  globally available strict separation invariants, the same-boundary
+  globally available strict separation invariants, the final same-boundary
   child-event law and callback, queue origin and raw-seam
   discharge, full
   scheduler correctness, and a whole-program cost
@@ -2132,7 +2143,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 867 declarations: 585 public MLL logical-boundary theorems
+separately audits 868 declarations: 586 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2234,6 +2245,7 @@ lake exe proofnet_ir_active_region_availability_tests
 lake exe proofnet_ir_cross_representative_stable_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_separation_tests
 lake exe proofnet_ir_strict_commitment_target_avoidance_tests
+lake exe proofnet_ir_strict_older_sigma_split_tests
 lake exe proofnet_ir_older_raw_marked_region_separation_tests
 lake exe proofnet_ir_reservation_realization_tests
 lake exe proofnet_ir_raw_mark_reservation_anchor_tests
@@ -2363,6 +2375,8 @@ ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchSeparation.lean
   strictly older queued-head touch separation and stable preservation
 ProofNetIR/SequentialFigure7StrictCommitmentTargetAvoidance.lean
   automatic strictly older adjacent-edge and positive-interval target avoidance
+ProofNetIR/SequentialFigure7StrictOlderSigmaSplit.lean
+  strict older-event interval split at the candidate's immediate predecessor
 ProofNetIR/SequentialFigure7OlderRawMarkedRegionSeparation.lean
   state-only older-raw-mark region separation and active owner exclusion
 ProofNetIR/SequentialFigure7CrossRepresentativeNewPreservation.lean
@@ -2427,6 +2441,8 @@ ProofNetIROlderEventFutureWorkTouchSeparationTests.lean
   older-event queued-head and conclusion-touch separation API consumer
 ProofNetIRStrictCommitmentTargetAvoidanceTests.lean
   strictly older adjacent-edge and interval target-avoidance consumer
+ProofNetIRStrictOlderSigmaSplitTests.lean
+  strict older-event sigma-split and positive-prefix composition consumer
 ProofNetIROlderRawMarkedRegionSeparationTests.lean raw-mark separation and owner-clear consumers
 ProofNetIRReservationRealizationTests.lean checker-accepted union and final accounted-owner consumers
 ProofNetIRRawMarkReservationAnchorTests.lean raw-mark event and owned-path anchor consumer

@@ -264,6 +264,7 @@ expansion.
   SequentialFigure7.CanonicalTagHistory.commitmentEdge_referencePath_avoiding_of_strict
 #print axioms
   SequentialFigure7.CanonicalTagHistory.commitmentInterval_referencePath_avoiding_of_lastOlder
+#print axioms SequentialFigure7.CanonicalTagHistory.strictOlderSigmaSplit
 #print axioms
   SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner_iff_exists_rawMark
 #print axioms SequentialFigure7.empty_olderRawMarkedRegionSeparated
