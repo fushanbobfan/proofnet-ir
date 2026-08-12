@@ -588,9 +588,9 @@ the strict order directly; Prepared/concl/nop transport exact ledger
 membership, future work, and current
 representatives. Candidate-creating rules, same-boundary touches, and global
 availability remain explicit rather than hidden in this base proof. The
-successful New case is handled by a separate downstream theorem, and Wait is
-handled conditionally by another downstream theorem under its exact
-created-head residual. Forward and UnifyPayload remain outside this layer.
+successful New case is handled by a separate downstream theorem; Wait,
+Forward, and UnifyPayload are handled conditionally by downstream theorems
+under their exact created-head residuals.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -713,6 +713,19 @@ explicitly conditional on `UnifyPayloadCreatedRegionSeparated`. The executable
 audit replays the full union, payload activation, and drain and checks the
 representative map, but no finite result is imported into the theorem and no
 unconditional Unify preservation follows.
+`SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadPreservation.lean` adds
+no touch, queue, geometry, history, reachability, or representative-stability
+oracle. It is indexed by an already-successful typed `UnifyPayloadStep`, a prior
+canonical history, its supplied queued-head invariant, and the
+candidate-indexed `UnifyPayloadCreatedHeadTouchSeparated` premise. The proof
+derives its representative transport from the exact typed union: strict output
+order excludes the retired active class, while survivors and moved candidates
+return to the prior invariant. An actual inserted candidate is sent directly
+to the residual; UnifyPayload contributes no new reservation event. Relative
+to the prior invariant this is the exact transition-local obligation, but the
+proof does not derive it from scheduler invariants, history, or reachability.
+It establishes no unconditional/global UnifyPayload, same-boundary,
+raw/source-region seam, enabledness, or progress result.
 `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` adds no
 event-history, reachability, correctness, or representative-stability oracle.
 It uses the typed output candidate bound to exclude every strictly older raw
@@ -824,8 +837,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 864
-declarations: 582 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 865
+declarations: 583 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1261,9 +1274,9 @@ Lean now also constructs the exact simultaneous complementary
   Explicit adjacent callbacks compose across any supplied positive-length
   retained interval. The strict conclusion law follows from the two explicit
   separation invariants, and the queued-head half has empty/init, stable,
-  successful New, and conditional Wait/Forward preservation. Exhaustive
-  later-state branch enabledness and totality, UnifyPayload preservation,
-  global invariant and Wait and Forward residual availability, the
+  successful New, and conditional Wait/Forward/UnifyPayload preservation.
+  Exhaustive later-state branch enabledness and totality, global invariant and
+  all three residuals' availability, the
   same-boundary case, actual child-event laws/callbacks,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain

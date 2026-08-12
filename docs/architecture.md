@@ -835,10 +835,10 @@ preservation are proved. The
 predicate is not reconstructed from correctness, the state invariant,
 canonical history, or queue provenance. This base layer alone does not cover a
 candidate-creating rule. A downstream theorem closes the successful New case,
-and a separate downstream theorem conditionally closes Wait under its exact
-created-head residual. Forward, UnifyPayload, global residual availability,
-same-boundary touches, raw seams, target-path construction, enabledness, and
-progress remain open.
+and separate downstream theorems conditionally close Wait, Forward, and
+UnifyPayload under their exact created-head residuals. Global residual
+availability, same-boundary touches, raw seams, target-path construction,
+enabledness, and progress remain open.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -981,6 +981,19 @@ invariant. The inserted conclusion is handled only under
 `UnifyPayloadCreatedRegionSeparated`, which quantifies prior ledger events and
 actual created candidates in the prepared state and does not refer to the
 desired output invariant. The module makes no unconditional Unify claim.
+
+`SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadPreservation.lean`
+closes the orthogonal UnifyPayload state transport under one exact
+transition-local head premise. Survivors reuse the prior invariant. Moved work
+is recovered at the prepared active boundary, while strict output order proves
+that an older event is outside the retired active representative class and thus
+keeps its representative across the union. For an actual inserted future-New
+candidate, `UnifyPayloadCreatedHeadTouchSeparated` states precisely that every
+strictly older prior ledger event leaves the tensor conclusion untouched.
+UnifyPayload adds no reservation event. Relative to the supplied prior history
+and invariant, this is the exact residual. The module does not derive it from
+scheduler invariants, history, or reachability and makes no unconditional or
+globally available UnifyPayload, same-boundary, raw-seam, or progress claim.
 
 `SequentialFigure7OlderRawMarkedRegionUnifyPayloadPreservation.lean` performs
 the parallel raw-mark transport across the representative-changing branch. A
@@ -1546,10 +1559,10 @@ active-reference walks between marked occurrences are equivalent to
   retained-`sigma` interval. The pointwise strict conclusion law now follows
   when both explicit separation invariants and structural well-formedness are
   supplied. New preservation of the queued-head invariant is now kernel
-  checked from a supplied prior instance, while Wait and Forward preservation
-  are checked under their exact candidate-indexed residuals. UnifyPayload
-  preservation, global invariant and Wait and Forward residual availability,
-  the same-boundary case, actual adjacent callbacks, and
+  checked from a supplied prior instance, while Wait, Forward, and UnifyPayload
+  preservation are checked under their exact candidate-indexed residuals.
+  Global invariant and residual availability, the same-boundary case, actual
+  adjacent callbacks, and
   queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route

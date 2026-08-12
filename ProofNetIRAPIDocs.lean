@@ -1683,6 +1683,10 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.UnifyPayloadStep
         "olderSourceRegionSeparated_of_created",
+      `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedHeadTouchSeparated,
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "olderEventFutureWorkTouchSeparated",
       `ProofNetIR.SequentialFigure7.UnifyPayloadCreatedRawMarksSeparated,
       Name.str
         `ProofNetIR.SequentialFigure7.UnifyPayloadStep

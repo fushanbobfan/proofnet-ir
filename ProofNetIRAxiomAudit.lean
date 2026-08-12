@@ -306,6 +306,8 @@ expansion.
 #print axioms SequentialFigure7.FutureNewCandidateAt.rawAge_le_previousBoundary_of_unifyPayload
 #print axioms SequentialFigure7.FutureWorkAt.beforeUnifyPayloadOrMovedOrCreated
 #print axioms SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created
+#print axioms
+  SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated
 #print axioms SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker
 #print axioms SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker

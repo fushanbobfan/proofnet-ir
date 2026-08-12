@@ -123,6 +123,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.FutureNewCandidateAt.rawAge_le_previousBoundary_of_unifyPayload",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeUnifyPayloadOrMovedOrCreated",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
+    "olderEventFutureWorkTouchSeparated",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshTagBlocker",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.classifyFreshRawBlocker",

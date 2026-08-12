@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadPreservation.lean`.
+  Every already-successful typed `UnifyPayloadStep` now preserves
+  `OlderEventFutureWorkTouchSeparated` from a supplied prior canonical history
+  and invariant when the candidate-indexed
+  `UnifyPayloadCreatedHeadTouchSeparated` residual holds. Survivor and moved
+  candidates transport the prior invariant; strict output order excludes the
+  retired active representative class; the inserted tensor conclusion is the
+  sole remaining old-event/head obligation; and UnifyPayload contributes no
+  new reservation event. Relative to the supplied prior invariant, this
+  premise is the exact transition-local residual, but the module does not
+  derive it from the scheduler invariant, history, or reachability. It proves
+  no unconditional or globally available UnifyPayload result, same-boundary
+  exclusion, raw or source-region seam, enabledness, progress, totality,
+  completeness, fallback removal, or linearity. A direct consumer invokes the
+  theorem and its projection; facade, default target, CI, generated API, and
+  trust audit are wired. The current public axiom audit covers 865 declarations:
+  583 full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean`.
   Every already-successful typed `ForwardStep` now preserves
   `OlderEventFutureWorkTouchSeparated` from a supplied prior canonical history
@@ -17,7 +35,7 @@
   source-region seam, enabledness, progress, totality, completeness, fallback
   removal, or linearity. A direct consumer invokes the theorem and its
   projection; facade, default target, CI, generated API, and trust audit are
-  wired. The current public axiom audit covers 864 declarations: 582
+  wired. At that checkpoint the public axiom audit covered 864 declarations: 582
   full-classical, 25 axiom-free, 122 `propext`-only, and 135
   `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchWaitPreservation.lean`.

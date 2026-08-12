@@ -184,9 +184,14 @@ the residual from scheduler invariants, history, or reachability. The successful
 typed Forward case is conditionally preserved under the candidate-indexed
 `ForwardCreatedHeadTouchSeparated` residual, with retained work transported
 through Prepared and exact Forward representative equality. It is likewise a
-code consequence and does not derive the residual. UnifyPayload preservation,
-global invariant and Wait and Forward residual availability,
-same-boundary touches, target paths, raw seams, and progress remain open. The
+code consequence and does not derive the residual. The successful typed
+UnifyPayload case is conditionally preserved under the candidate-indexed
+`UnifyPayloadCreatedHeadTouchSeparated` residual. Survivor and moved candidates
+transport through the prior invariant after strict output order excludes the
+retired active class; the inserted conclusion is the sole residual case. This
+is also a code consequence, not a literature result, and does not derive the
+residual. Global invariant and all three residuals' availability, same-boundary
+touches, target paths, raw seams, and progress remain open. The
 availability-reduction
 layer now consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
@@ -198,9 +203,9 @@ active-region no-mark/no-owner from it. That is also a code consequence, not a
 new literature reading. Global preservation of the mate-region and
 older-raw-mark separation invariants through candidate-creating rules remains
 open. The future-head-touch invariant is preserved through New and
-conditionally through Wait and Forward under their exact residuals, but not
-yet through UnifyPayload; global availability of the invariant and both
-transition-local residuals remains open. The New raw-mark branch is now conditionally
+conditionally through Wait, Forward, and UnifyPayload under their exact
+residuals; global availability of the invariant and all three transition-local
+residuals remains open. The New raw-mark branch is now conditionally
 transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.

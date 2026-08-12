@@ -1,0 +1,60 @@
+/-
+Copyright (c) 2026 ProofNet-IR contributors. All rights reserved.
+Released under MIT license as described in the file LICENSE.
+Authors: ProofNet-IR contributors
+-/
+
+import ProofNetIR.SequentialFigure7OlderEventFutureWorkTouchUnifyPayloadPreservation
+
+namespace ProofNetIR
+namespace SequentialFigure7
+
+open SequentialSchedulerBridge
+
+#check UnifyPayloadCreatedHeadTouchSeparated
+#check UnifyPayloadStep.olderEventFutureWorkTouchSeparated
+
+example
+    {certificate : Certificate} {before after : ReservationState}
+    {history : ExecutedHistory certificate before}
+    {invariant : SchedulerInvariant certificate before}
+    {dispatch :
+      DispatchStep certificate before invariant ⟨.unifyPayload, after⟩}
+    (step : UnifyPayloadStep certificate before after)
+    (prior : CanonicalTagHistory certificate history)
+    (separated : OlderEventFutureWorkTouchSeparated prior)
+    (createdSeparated :
+      UnifyPayloadCreatedHeadTouchSeparated prior step) :
+    OlderEventFutureWorkTouchSeparated
+      (CanonicalTagHistory.later (dispatch := dispatch) prior
+        (DispatchTagEvidence.unifyPayload step)) :=
+  step.olderEventFutureWorkTouchSeparated prior separated createdSeparated
+
+example
+    {certificate : Certificate} {before after : ReservationState}
+    {history : ExecutedHistory certificate before}
+    {invariant : SchedulerInvariant certificate before}
+    {dispatch :
+      DispatchStep certificate before invariant ⟨.unifyPayload, after⟩}
+    (step : UnifyPayloadStep certificate before after)
+    (prior : CanonicalTagHistory certificate history)
+    (separated : OlderEventFutureWorkTouchSeparated prior)
+    (createdSeparated :
+      UnifyPayloadCreatedHeadTouchSeparated prior step)
+    {event : ReservationEvent certificate}
+    (eventMembership :
+      event ∈ (CanonicalTagHistory.later (dispatch := dispatch) prior
+        (DispatchTagEvidence.unifyPayload step)).reservationLedger)
+    (candidate : FutureNewCandidateAt certificate after)
+    (older :
+      after.core.representative event.rawAge <
+        after.core.representative candidate.rawAge) :
+    ¬ event.Touched candidate.head :=
+  (step.olderEventFutureWorkTouchSeparated prior separated createdSeparated)
+    |>.event_candidate eventMembership candidate older
+
+end SequentialFigure7
+end ProofNetIR
+
+def main : IO Unit :=
+  IO.println "Figure-7 UnifyPayload future-work touch preservation consumer passed."
