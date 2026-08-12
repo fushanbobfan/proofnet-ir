@@ -165,6 +165,11 @@ touch of any future tensor conclusion into a mate touch or queued-head touch;
 for the active candidate the conditional tag-freshness theorem eliminates the
 mate branch. This is not a new literature reading, does not prove the
 conclusion untouched, and leaves the head-touch/raw-mark obstruction open. The
+occurrence-carrier source-left closure is now another kernel-checked code
+consequence: if a source occurrence belongs to an `OccurrenceDerivation` owned
+list, the complete stored-left region, including the terminal axiom partner,
+stays in that carrier. It is not a new literature result and supplies no
+scheduler component, chronology, reachability, or progress claim. The
 strictly older queued-head residue is now packaged as
 `OlderEventFutureWorkTouchSeparated`. Together with the separate mate-region
 law and structural well-formedness it yields strict candidate-conclusion
@@ -181,16 +186,20 @@ Wait case is conditionally preserved under the candidate-indexed
 inserted conclusion is exactly the residual old-event/head obligation. This is
 also a code consequence rather than a literature result, and it does not derive
 the residual from scheduler invariants, history, or reachability. The successful
-typed Forward case is conditionally preserved under the candidate-indexed
-`ForwardCreatedHeadTouchSeparated` residual, with retained work transported
-through Prepared and exact Forward representative equality. It is likewise a
-code consequence and does not derive the residual. The successful typed
+typed Forward case first has a conditional preservation theorem under the
+candidate-indexed `ForwardCreatedHeadTouchSeparated` residual. A further
+kernel-checked code consequence now derives that residual structurally: exact
+ledger endpoint accounting and occurrence-carrier closure place a hypothetical
+touched endpoint in two distinct live component carriers, contradicting forest
+disjointness. The direct Forward corollary still consumes the supplied prior
+invariant and does not close the source-region/raw seam or equal-boundary
+callback. The successful typed
 UnifyPayload case is conditionally preserved under the candidate-indexed
 `UnifyPayloadCreatedHeadTouchSeparated` residual. Survivor and moved candidates
 transport through the prior invariant after strict output order excludes the
 retired active class; the inserted conclusion is the sole residual case. This
 is also a code consequence, not a literature result, and does not derive the
-residual. Global invariant and all three residuals' availability,
+residual. Global invariant availability, the Wait and UnifyPayload residuals,
 same-boundary target paths, raw seams, and progress remain open. A further
 kernel-checked code consequence now connects the two supplied separation
 invariants to retained commitment geometry. Under the complete scheduler
@@ -215,10 +224,11 @@ invariant, proves its empty/initial and Prepared/concl/nop cases, and derives
 active-region no-mark/no-owner from it. That is also a code consequence, not a
 new literature reading. Global preservation of the mate-region and
 older-raw-mark separation invariants through candidate-creating rules remains
-open. The future-head-touch invariant is preserved through New and
-conditionally through Wait, Forward, and UnifyPayload under their exact
-residuals; global availability of the invariant and all three transition-local
-residuals remains open. The New raw-mark branch is now conditionally
+open. The future-head-touch invariant is preserved through New, conditionally
+through Wait and UnifyPayload under their exact residuals, and through Forward
+after structurally deriving its created-head residual from a supplied prior
+instance. Global invariant availability and the Wait and UnifyPayload
+transition-local residuals remain open. The New raw-mark branch is now conditionally
 transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.

@@ -447,6 +447,12 @@ exclude either dynamic blocker, and does not manufacture the downstream queue
 absence or capacity evidence required by `NewEnabled`. Consequently it adds no
 progress, totality, pure-worklist completeness, fallback-removal, or complexity
 claim.
+`SequentialComponentSourceLeftGeometry.lean` adds no component or history
+oracle. Its structural induction starts from an exact
+`OccurrenceDerivation` owned occurrence and proves that every recursively
+visited stored-left occurrence plus the terminal axiom partner remains in the
+same owned list. The theorem does not identify that carrier with a scheduler
+component, order events, or manufacture reachability, enabledness, or progress.
 `SequentialFigure7BlockerHistory.lean` also adds no oracle. It consumes an
 existing proof-carrying `CanonicalTagHistory`, the complete
 `SchedulerInvariant`, and a shallow `NewGuard`. Exact tag provenance maps a tag
@@ -588,9 +594,10 @@ the strict order directly; Prepared/concl/nop transport exact ledger
 membership, future work, and current
 representatives. Candidate-creating rules, same-boundary touches, and global
 availability remain explicit rather than hidden in this base proof. The
-successful New case is handled by a separate downstream theorem; Wait,
-Forward, and UnifyPayload are handled conditionally by downstream theorems
-under their exact created-head residuals.
+successful New case is handled by a separate downstream theorem. Wait and
+UnifyPayload remain conditional on their exact created-head residuals; a
+separate Forward theorem derives that residual structurally and then preserves
+from a supplied prior invariant.
 `SequentialFigure7StrictCommitmentTargetAvoidance.lean` adds no ownership,
 touch, path, or reachability oracle. It instantiates the already audited
 one-edge target-avoidance theorem with the already audited strict conclusion
@@ -709,6 +716,17 @@ transition-local obligation, but the proof does not derive it from scheduler
 invariants, history, or reachability. It establishes no unconditional/global
 Forward, UnifyPayload, same-boundary, raw/source-region seam, enabledness, or
 progress result.
+`SequentialFigure7OlderEventFutureWorkTouchForwardDischarge.lean` adds no
+touch-to-current-owner axiom. Exact reservation realization places the old
+event's stored-left endpoint in the old representative's owned carrier. A
+hypothetical touch of the inserted Forward conclusion gives a structural
+source-left-region witness, and the separately audited carrier-closure theorem
+places that endpoint in the active par carrier. Strict representative order and
+the existing live-slot disjointness theorem rule out the overlap. The direct
+corollary still consumes an already-successful typed Forward step, structural
+well-formedness, a canonical history, and its supplied prior queued-head
+invariant. It derives neither `ForwardCreatedRegionSeparated` nor a raw seam,
+equal-boundary callback, global availability, enabledness, or progress.
 `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` adds no
 history, reachability, correctness, or source-region oracle. It is indexed by
 an already successful typed `ForwardStep`; exact prepare and queue equations
@@ -854,8 +872,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 868
-declarations: 586 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 871
+declarations: 589 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1292,12 +1310,13 @@ Lean now also constructs the exact simultaneous complementary
   retained interval. When the two strict separation invariants and the
   scheduler invariant are supplied, the child-event callback follows for each
   strictly older adjacent edge and for a positive interval whose last boundary
-  is strictly older. The queued-head half has empty/init, stable,
-  successful New, and conditional Wait/Forward/UnifyPayload preservation.
+  is strictly older. The queued-head half has empty/init, stable, successful
+  New, conditional Wait/UnifyPayload, and structurally discharged Forward
+  preservation from a supplied prior instance.
   Strict older events now split at the candidate's immediate predecessor and
   expose a composable positive prefix. Exhaustive later-state branch
-  enabledness and totality, global invariant and all three residuals'
-  availability, the final same-boundary callback,
+  enabledness and totality, global invariant availability, the Wait and
+  UnifyPayload residuals, the final same-boundary callback,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

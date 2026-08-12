@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- added `SequentialComponentSourceLeftGeometry.lean` and
+  `SequentialFigure7OlderEventFutureWorkTouchForwardDischarge.lean`.
+  Structurally well-formed occurrence derivations are now closed under the
+  complete source-left region, including the terminal submitted-axiom
+  partner. For an already-successful typed `ForwardStep`, that carrier closure,
+  chronological reservation realization, and exact live-component
+  disjointness prove `ForwardCreatedHeadTouchSeparated` without an explicit
+  created-head premise. The direct Forward corollary preserves
+  `OlderEventFutureWorkTouchSeparated` from the supplied prior invariant and
+  structural well-formedness. This does not discharge the distinct
+  source-region or raw seams, the final equal-boundary commitment callback,
+  global invariant availability, enabledness, progress, totality,
+  completeness, fallback removal, or complexity. Two runnable consumers use
+  all three public theorems; facade, default targets, CI, generated API, and
+  trust audit are wired. The current public axiom audit covers 871
+  declarations: 589 full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7StrictOlderSigmaSplit.lean`. For any authentic
   reservation-ledger event whose current representative is strictly older than
   a supplied future-New candidate, the complete scheduler invariant now
@@ -13,8 +30,8 @@
   theorem, as do global separation availability, queue origin, created-head and
   raw seams, progress, totality, completeness, fallback removal, and
   complexity. The public API adds one carrier and one theorem; facade, default
-  target, CI, generated API, and trust audit are wired. The current public
-  axiom audit covers 868 declarations: 586 full-classical, 25 axiom-free, 122
+  target, CI, generated API, and trust audit are wired. At that checkpoint the
+  public axiom audit covered 868 declarations: 586 full-classical, 25 axiom-free, 122
   `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7StrictCommitmentTargetAvoidance.lean`. Supplying the
   complete scheduler invariant plus `OlderEventTouchSeparated` and

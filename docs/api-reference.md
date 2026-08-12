@@ -7676,6 +7676,25 @@ ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCo
           partner ≠ guard.head.vertex
 ```
 
+## Occurrence-carrier source-left closure
+
+### `ProofNetIR.Certificate.OccurrenceDerivation.sourceLeftRegion_owned`
+
+Kind: theorem.
+
+Every vertex in the source-left region of an owned occurrence remains in
+the same occurrence-derivation carrier.
+
+```lean
+ProofNetIR.Certificate.OccurrenceDerivation.sourceLeftRegion_owned : ∀ {certificate : ProofNetIR.Certificate},
+  certificate.StructurallyWellFormed →
+    ∀ {tree : ProofNetIR.CutFreeDerivation} {frontier usedLinks owned : List Nat},
+      certificate.OccurrenceDerivation tree frontier usedLinks owned →
+        ∀ {source vertex : ProofNetIR.Vertex},
+          source ∈ owned →
+            ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate source vertex → vertex ∈ owned
+```
+
 ## Canonical-history source-left obstructions
 
 ### `ProofNetIR.SequentialFigure7.NewGuard.mate_bound`
@@ -20396,6 +20415,45 @@ ProofNetIR.SequentialFigure7.ForwardStep.olderEventFutureWorkTouchSeparated : �
   (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
   ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
     ProofNetIR.SequentialFigure7.ForwardCreatedHeadTouchSeparated prior step →
+      ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.forward step))
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.createdHeadTouchSeparated`
+
+Kind: theorem.
+
+Every strictly older prior ledger event leaves the par conclusion inserted
+by a successful typed `forward` step untouched.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.createdHeadTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed → ProofNetIR.SequentialFigure7.ForwardCreatedHeadTouchSeparated prior step
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.olderEventFutureWorkTouchSeparated_of_structural`
+
+Kind: theorem.
+
+A successful typed `forward` preserves older-event future-work head
+separation from structural well-formedness and the supplied prior invariant.
+
+The implicit dispatcher is indexed by the history-derived scheduler invariant;
+no explicit scheduler-invariant or created-head premise is required.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.olderEventFutureWorkTouchSeparated_of_structural : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
+    ∀ (structural : certificate.StructurallyWellFormed)
+      {dispatch :
+        ProofNetIR.SequentialFigure7.DispatchStep certificate before ⋯
+          { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.forward, after := after }},
       ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.forward step))
 ```

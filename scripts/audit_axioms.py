@@ -14,6 +14,7 @@ AUDIT_FILE = ROOT / "ProofNetIRAxiomAudit.lean"
 EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head",
     "ProofNetIR.SequentialFigure7.NewGuard.terminalPartner_ne_head_of_declarativelyCorrect",
+    "ProofNetIR.Certificate.OccurrenceDerivation.sourceLeftRegion_owned",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner",
     "ProofNetIR.Certificate.ComponentOccurrenceWitness.referencePath_within_owned",
     "ProofNetIR.SequentialFigure7.NewGuard.tensorConclusion_not_produced",
@@ -121,6 +122,9 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created",
     "ProofNetIR.SequentialFigure7.ForwardStep."
     "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.ForwardStep.createdHeadTouchSeparated",
+    "ProofNetIR.SequentialFigure7.ForwardStep."
+    "olderEventFutureWorkTouchSeparated_of_structural",
     "ProofNetIR.SequentialFigure7.ForwardStep."
     "created_rawMarksSeparatedFrom_of_retained",
     "ProofNetIR.SequentialFigure7.ForwardStep.olderRawMarkedRegionSeparated",

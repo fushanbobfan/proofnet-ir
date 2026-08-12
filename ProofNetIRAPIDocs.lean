@@ -589,6 +589,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Occurrence-carrier source-left closure"
+    declarations := [
+      Name.str
+        `ProofNetIR.Certificate.OccurrenceDerivation
+        "sourceLeftRegion_owned"
+    ]
+  },
+  {
     title := "Canonical-history source-left obstructions"
     declarations := [
       `ProofNetIR.SequentialFigure7.NewGuard.mate_bound,
@@ -1671,6 +1679,12 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.ForwardStep
         "olderEventFutureWorkTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "createdHeadTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "olderEventFutureWorkTouchSeparated_of_structural",
       `ProofNetIR.SequentialFigure7.ForwardRetainedRawMarksSeparated,
       Name.str
         `ProofNetIR.SequentialFigure7.ForwardStep

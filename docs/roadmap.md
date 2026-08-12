@@ -1005,6 +1005,12 @@
     separation and fresh capacity after the run, outside this classification.
     Expose the exact elimination bridge from uniform region tag/raw-mark
     availability to the positive run branch.
+  - [x] Prove occurrence-carrier closure for the complete structural
+    source-left region. From one source occurrence owned by an exact
+    `OccurrenceDerivation`, keep every recursively visited stored-left
+    occurrence and the terminal axiom partner in the same owned list. This is
+    structural carrier geometry only, not scheduler-component identity,
+    chronological separation, reachability, or progress.
   - [x] Classify every dynamic blocker under authentic `CanonicalTagHistory`,
     the complete `SchedulerInvariant`, and `NewGuard`. A tag failure is a prior
     exact touch. A raw failure is either the selected ready-head update or an
@@ -1059,11 +1065,15 @@
     work transports, old-event/created-endpoint touch contradicts history
     disjointness, and the fresh event cannot be strictly older. Wait
     preservation is also kernel checked under the exact candidate-indexed
-    `WaitCreatedHeadTouchSeparated` residual. Forward preservation is likewise
-    kernel checked under `ForwardCreatedHeadTouchSeparated`; UnifyPayload is
-    kernel checked under `UnifyPayloadCreatedHeadTouchSeparated`. Global
-    invariant and all three residuals' availability, and the same-boundary
-    head-touch case remain open. Given
+    `WaitCreatedHeadTouchSeparated` residual. Forward's exact created-head
+    residual is now discharged structurally: event endpoint accounting and
+    source-left carrier closure force a hypothetical overlap of two distinct
+    live components. Hence successful typed Forward preservation follows from
+    a supplied prior invariant without an explicit created-head premise.
+    UnifyPayload remains kernel checked under
+    `UnifyPayloadCreatedHeadTouchSeparated`. Global invariant availability,
+    the Wait and UnifyPayload residuals, and the same-boundary head-touch case
+    remain open. Given
     both strict separation invariants and the complete scheduler invariant,
     Lean now derives the target-avoiding path for every adjacent edge whose
     child is strictly older than the candidate, and for every positive interval
@@ -1183,11 +1193,12 @@
     target-avoidance refinement. Explicit adjacent callbacks compose across
     arbitrary positive-length spine intervals. The strictly older queued-head
     law is now an explicit invariant with empty/structurally well-formed init,
-    stable-rule, successful New, and conditional Wait/Forward/UnifyPayload
-    preservation. When it and the mate-region invariant are supplied, strict
+    stable-rule, successful New, conditional Wait/UnifyPayload, and
+    structurally discharged Forward preservation from a supplied prior
+    instance. When it and the mate-region invariant are supplied, strict
     child-event callbacks and positive intervals ending strictly before the
-    candidate now follow automatically. Derive all three residuals and global
-    invariant availability. The strict older-event split already composes the
+    candidate now follow automatically. Derive the Wait and UnifyPayload
+    residuals and global invariant availability. The strict older-event split already composes the
     positive prefix to the candidate's immediate predecessor; next handle that
     final equal-boundary callback and queue origin.
     Establish unconditional full-rule reachability, progress, completeness of

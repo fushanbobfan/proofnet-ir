@@ -646,6 +646,14 @@ corollary makes the remaining interface explicit: a future history theorem may
 close the gap by proving freshness and raw-unmarkedness for every region
 occurrence, without changing the structural classifier.
 
+`SequentialComponentSourceLeftGeometry.lean` supplies the complementary
+occurrence-carrier theorem below the scheduler layer. If the source of a
+`SourceLeftRegionVertex` belongs to an exact `OccurrenceDerivation` owned
+list, every recursively visited stored-left occurrence and the terminal axiom
+partner belongs to the same owned list. This is a structural carrier-closure
+fact; it identifies no scheduler component and proves no chronological
+separation, reachability, or progress.
+
 `SequentialFigure7BlockerHistory.lean` is the next history-indexed layer. Under
 an authentic `CanonicalTagHistory`, the complete `SchedulerInvariant`, and the
 selected `NewGuard`, its pointwise tag classifier turns any false-tag lookup
@@ -834,11 +842,12 @@ conclusion. Empty, structurally well-formed init, and Prepared/concl/nop
 preservation are proved. The
 predicate is not reconstructed from correctness, the state invariant,
 canonical history, or queue provenance. This base layer alone does not cover a
-candidate-creating rule. A downstream theorem closes the successful New case,
-and separate downstream theorems conditionally close Wait, Forward, and
-UnifyPayload under their exact created-head residuals. Global residual
-availability, same-boundary touches and target paths, raw seams, enabledness,
-and progress remain open.
+candidate-creating rule. A downstream theorem closes the successful New case.
+Wait and UnifyPayload remain conditional on their exact created-head
+residuals. For Forward, a later structural theorem derives that residual and
+then preserves the invariant from a supplied prior instance. Global invariant
+availability, the Wait and UnifyPayload residuals, same-boundary touches and
+target paths, raw seams, enabledness, and progress remain open.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -954,6 +963,19 @@ supplied prior canonical history and queued-head invariant, this is the exact
 residual. The module does not derive it from scheduler invariants, history, or
 reachability and makes no unconditional/global Forward, UnifyPayload,
 same-boundary, raw-seam, or progress claim.
+
+`SequentialFigure7OlderEventFutureWorkTouchForwardDischarge.lean` discharges
+that Forward created-head premise under structural well-formedness. An
+authentic old ledger event places its stored-left endpoint in the old
+representative's owned carrier. If it touched the inserted Forward conclusion,
+the generic source-left carrier theorem would place the same endpoint in the
+active par carrier. Strict representative order gives distinct live slots, so
+component-forest disjointness yields a contradiction. A direct corollary
+therefore preserves the queued-head invariant for an already-successful typed
+Forward step from the supplied prior invariant without an explicit created-head
+premise. It does not discharge `ForwardCreatedRegionSeparated`, the raw seam,
+the separate final equal-boundary commitment callback, global availability, or
+progress.
 
 `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` closes the
 parallel raw-mark transport under one explicit transition-local premise. The
@@ -1585,13 +1607,14 @@ active-reference walks between marked occurrences are equivalent to
   scheduler invariant are supplied, the child-event law and callback now
   follow automatically for any strictly older adjacent edge or positive
   interval ending at a strictly older boundary. New preservation of the
-  queued-head invariant is now kernel
-  checked from a supplied prior instance, while Wait, Forward, and UnifyPayload
-  preservation are checked under their exact candidate-indexed residuals.
+  queued-head invariant is now kernel checked from a supplied prior instance.
+  Wait and UnifyPayload preservation remain conditional on their exact
+  candidate-indexed residuals; Forward now derives its created-head residual
+  structurally and preserves from the supplied prior instance.
   A strict older event now splits at the candidate's immediate predecessor, so
-  every positive prefix is composable. Global invariant and residual
-  availability, the final same-boundary callback, and queue-to-created-candidate
-  geometry remain required by the seams.
+  every positive prefix is composable. Global invariant availability, the
+  final same-boundary callback, queue-to-created-candidate geometry, and the
+  Wait and UnifyPayload residuals remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

@@ -258,6 +258,13 @@ terminal axiom partner. Source shape, singleton incidence, termination,
 The companion region-availability corollary yields a run once a later history
 theorem supplies freshness/readiness for every region occurrence; it does not
 itself supply or assume that history theorem.
+`SequentialComponentSourceLeftGeometry.lean` proves the complementary
+occurrence-carrier closure theorem. If one source occurrence belongs to an
+exact `OccurrenceDerivation` owned list, then every recursively visited
+stored-left occurrence and the terminal axiom partner in its complete
+source-left region belongs to that same list. The proof is purely structural;
+it identifies no scheduler component and establishes no chronological
+separation, reachability, or progress.
 `SequentialFigure7BlockerHistory.lean` now lifts that dichotomy through an
 authentic `CanonicalTagHistory`, the complete `SchedulerInvariant`, and the
 selected `NewGuard`. A tag blocker is an exact prior initialization/`new`
@@ -526,10 +533,11 @@ hypothesis, and is preserved through the synchronized prepared prefix plus
 canonical `concl` and `nop`. It is not derived from declarative correctness,
 the scheduler invariant, canonical history, or queue provenance. This base
 module alone does not cover a candidate-creating rule. Downstream theorems
-close `new` and conditionally preserve the invariant through `wait`, `forward`,
-and `unifyPayload` for already successful typed edges. Global availability,
-the three transition-local residuals, the same-boundary head-touch case, raw
-seams, enabledness, and progress remain open.
+close `new`; conditionally preserve `wait` and `unifyPayload` under their exact
+residuals; and, for `forward`, derive the created-head residual structurally
+before preserving from a supplied prior invariant. Global invariant
+availability, the Wait and UnifyPayload residuals, the distinct same-boundary
+head-touch case, raw seams, enabledness, and progress remain open.
 `SequentialFigure7StrictCommitmentTargetAvoidance.lean` connects that strict
 conclusion law to the retained commitment geometry. Given the complete
 scheduler invariant and both supplied separation invariants, any adjacent
@@ -637,6 +645,18 @@ invariant this is the exact transition-local residual, but the module does not
 derive it from scheduler invariants, history, or reachability. It proves no
 unconditional/global Forward result, arbitrary-payload UnifyPayload case,
 same-boundary exclusion, raw/source-region seam, enabledness, or progress.
+`SequentialFigure7OlderEventFutureWorkTouchForwardDischarge.lean` now proves
+that exact created-head residual from structural well-formedness. An authentic
+old event supplies its stored-left endpoint inside the old representative's
+owned carrier; touching the inserted Forward conclusion places that endpoint
+inside the active par carrier by source-left carrier closure. Strict
+representative order makes those live slots distinct, contradicting exact
+component-forest disjointness. A direct corollary therefore preserves the
+queued-head invariant for an already-successful typed Forward step from the
+supplied prior invariant, with no explicit created-head premise. This does not
+discharge `ForwardCreatedRegionSeparated`, the raw seam, the separate final
+equal-boundary commitment callback, global invariant availability, or
+progress.
 `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` handles the
 parallel raw-mark invariant. The selected mark and every inserted Forward
 candidate share the exact active raw age, so the selected/created strict-order
@@ -1643,13 +1663,14 @@ available, and explicit adjacent callbacks now compose across any nonempty
 retained-`sigma` interval. When both strict separation invariants are supplied,
 the child-event law and callback are now derived automatically for any edge,
 or positive interval ending at a boundary, strictly older than the candidate.
-Globally establishing those invariants and the exact Wait, Forward, and
-UnifyPayload residuals, handling the final same-boundary edge, recovering queue
+Globally establishing those invariants and the exact Wait and UnifyPayload
+residuals, handling the final same-boundary edge, recovering queue
 origin, proving exhaustive guard applicability, and obtaining a
-total later-state transition system remain open. Its `new` preservation and
-conditional `wait`/`forward`/`unifyPayload` preservation are kernel checked for
-already-successful typed edges once their stated prior invariants and
-transition-local residuals are supplied.
+total later-state transition system remain open. Its `new` preservation,
+conditional `wait`/`unifyPayload` preservation, and structurally discharged
+`forward` preservation are kernel checked for already-successful typed edges
+once their stated prior invariants and remaining transition-local residuals are
+supplied.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -2143,7 +2164,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 868 declarations: 586 public MLL logical-boundary theorems
+separately audits 871 declarations: 589 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2233,6 +2254,7 @@ lake exe proofnet_ir_new_region_tests
 lake exe proofnet_ir_fresh_capacity_tests
 lake exe proofnet_ir_queue_history_tests
 lake exe proofnet_ir_fresh_source_blocker_tests
+lake exe proofnet_ir_sequential_component_source_left_geometry_tests
 lake exe proofnet_ir_blocker_history_tests
 lake exe proofnet_ir_touch_origin_tests
 lake exe proofnet_ir_reservation_ledger_tests
@@ -2261,6 +2283,7 @@ lake exe proofnet_ir_older_event_future_work_touch_wait_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_forward_preservation_tests
+lake exe proofnet_ir_older_event_future_work_touch_forward_discharge_tests
 lake exe proofnet_ir_older_raw_marked_region_forward_preservation_tests
 lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests
@@ -2349,6 +2372,7 @@ ProofNetIR/SequentialFigure7NewRegion.lean structural route reconstruction and s
 ProofNetIR/SequentialFigure7FreshCapacity.lean history-indexed fresh terminal allocation capacity
 ProofNetIR/SequentialFigure7QueueHistory.lean exact axiom-endpoint queue history and route-input equivalence
 ProofNetIR/SequentialFreshSourceBlocker.lean structural run-or-dynamic-blocker classification
+ProofNetIR/SequentialComponentSourceLeftGeometry.lean structural source-left closure of occurrence-owned carriers
 ProofNetIR/SequentialFigure7BlockerHistory.lean canonical-history blocker provenance and conditional elimination
 ProofNetIR/SequentialFigure7TerminalPartnerGeometry.lean correctness-based terminal-head exclusion
 ProofNetIR/SequentialFigure7TouchOrigin.lean exact historical touch-event provenance
@@ -2395,6 +2419,8 @@ ProofNetIR/SequentialFigure7CrossRepresentativeForwardPreservation.lean
   conditional Forward introduced-candidate preservation
 ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean
   conditional Forward preservation for the strictly older queued-head invariant
+ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchForwardDischarge.lean
+  structural discharge of the Forward created-head residual and direct preservation
 ProofNetIR/SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean
   conditional Forward preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean
@@ -2427,6 +2453,7 @@ ProofNetIRNewRegionTests.lean structural route/run and source-region bridge regr
 ProofNetIRFreshCapacityTests.lean fresh terminal capacity consumer fixture
 ProofNetIRQueueHistoryTests.lean exact axiom-endpoint queue and history-indexed enabledness fixtures
 ProofNetIRFreshSourceBlockerTests.lean source-region blocker and public dichotomy fixtures
+ProofNetIRSequentialComponentSourceLeftGeometryTests.lean occurrence-carrier source-left closure consumer
 ProofNetIRBlockerHistoryTests.lean canonical blocker-provenance and conditional enabledness consumers
 ProofNetIRTouchOriginTests.lean exact canonical touch-origin consumer fixtures
 ProofNetIRReservationLedgerTests.lean chronological event-index and touch-ledger consumers
@@ -2467,6 +2494,8 @@ ProofNetIROlderRawMarkedRegionWaitPreservationTests.lean
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers
 ProofNetIROlderEventFutureWorkTouchForwardPreservationTests.lean
   conditional Forward queued-head separation preservation consumer
+ProofNetIROlderEventFutureWorkTouchForwardDischargeTests.lean
+  structural Forward created-head discharge and direct preservation consumer
 ProofNetIROlderRawMarkedRegionForwardPreservationTests.lean
   conditional Forward raw-mark preservation consumers
 ProofNetIRCrossRepresentativeUnifyPayloadPreservationTests.lean

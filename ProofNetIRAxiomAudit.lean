@@ -198,6 +198,7 @@ expansion.
 #print axioms SequentialUnification.FreshSourceBlocker.prepend
 #print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_or_blocker
 #print axioms Certificate.StructurallyWellFormed.freshSourceLeftRun_of_regionAvailable
+#print axioms Certificate.OccurrenceDerivation.sourceLeftRegion_owned
 #print axioms SequentialFigure7.NewGuard.mate_bound
 #print axioms SequentialFigure7.NewGuard.not_sourceLeftReachable_mate_head
 #print axioms SequentialFigure7.NewGuard.terminalPartner_ne_head
@@ -304,6 +305,9 @@ expansion.
 #print axioms SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created
 #print axioms
   SequentialFigure7.ForwardStep.olderEventFutureWorkTouchSeparated
+#print axioms SequentialFigure7.ForwardStep.createdHeadTouchSeparated
+#print axioms
+  SequentialFigure7.ForwardStep.olderEventFutureWorkTouchSeparated_of_structural
 #print axioms
   SequentialFigure7.ForwardStep.created_rawMarksSeparatedFrom_of_retained
 #print axioms SequentialFigure7.ForwardStep.olderRawMarkedRegionSeparated
