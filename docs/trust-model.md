@@ -680,6 +680,18 @@ decoding, and independent nonzero coverage gates, including both New endpoints
 and the Unify retired-class and moved-candidate paths. No
 finite audit result is imported into any theorem, and no unconditional New,
 Wait, Forward, or Unify preservation follows.
+`SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean` adds no
+touch, queue, geometry, history, or reachability oracle. It is indexed by an
+already-successful typed `ForwardStep`, a prior canonical history, its supplied
+queued-head invariant, and the candidate-indexed
+`ForwardCreatedHeadTouchSeparated` premise. Prepared and exact Forward
+representative equations transport retained candidates. An actual inserted
+candidate is sent directly to that residual; Forward contributes no new
+reservation event. Relative to the prior invariant this is the exact
+transition-local obligation, but the proof does not derive it from scheduler
+invariants, history, or reachability. It establishes no unconditional/global
+Forward, UnifyPayload, same-boundary, raw/source-region seam, enabledness, or
+progress result.
 `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` adds no
 history, reachability, correctness, or source-region oracle. It is indexed by
 an already successful typed `ForwardStep`; exact prepare and queue equations
@@ -812,8 +824,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 863
-declarations: 581 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 864
+declarations: 582 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1249,10 +1261,10 @@ Lean now also constructs the exact simultaneous complementary
   Explicit adjacent callbacks compose across any supplied positive-length
   retained interval. The strict conclusion law follows from the two explicit
   separation invariants, and the queued-head half has empty/init, stable,
-  successful New, and conditional Wait preservation. Exhaustive later-state
-  branch enabledness and totality, Forward/UnifyPayload preservation, global
-  invariant and Wait-residual availability, the same-boundary case, actual
-  child-event laws/callbacks,
+  successful New, and conditional Wait/Forward preservation. Exhaustive
+  later-state branch enabledness and totality, UnifyPayload preservation,
+  global invariant and Wait and Forward residual availability, the
+  same-boundary case, actual child-event laws/callbacks,
   queue origin, the raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.

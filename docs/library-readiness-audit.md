@@ -760,6 +760,17 @@ part of the engineering and proof-identity gap.
    `FutureWorkAt` witness. The current scheduler invariant does not imply this
    new-candidate geometry, so unconditional Forward preservation remains an
    open maturity gate.
+   `SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean`
+   conditionally closes the parallel queued-head Forward branch. Retained
+   candidates transport through Prepared and the exact Forward representative
+   equality. For an actual inserted candidate, the candidate-indexed
+   `ForwardCreatedHeadTouchSeparated` premise is precisely the remaining
+   old-event/conclusion obligation, and Forward appends no current ledger
+   event. Relative to the supplied prior invariant this is the exact
+   transition-local residual, but scheduler invariants, canonical history, and
+   reachability do not derive it. Unconditional/global Forward,
+   UnifyPayload, same-boundary, raw/source-region seams, enabledness, and
+   progress remain open.
    `SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean` now
    closes the state-transport and representative-map portions of arbitrary-
    payload Unify. Output work is a same-boundary survivor, an active-ready item
@@ -916,11 +927,10 @@ part of the engineering and proof-identity gap.
     now compose across any supplied nonempty retained-`sigma` interval.
    The strict conclusion law also follows from the two explicit separation
    invariants, whose queued-head member has empty/init, stable, successful New,
-   and conditional Wait preservation. Forward and UnifyPayload preservation,
-   global availability of that invariant and the exact Wait residual, the
-   same-boundary case, actual adjacent laws/callbacks, queue origin, raw-seam
-   discharge, exhaustive guard
-   classification,
+   and conditional Wait/Forward preservation. UnifyPayload preservation,
+   global availability of that invariant and the exact Wait and Forward
+   residuals, the same-boundary case, actual adjacent laws/callbacks, queue
+   origin, raw-seam discharge, exhaustive guard classification,
    unconditional full-rule reachability,
    closing-par scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -1008,7 +1018,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 863 declarations: 581 public MLL
+- CI now parses `#print axioms` for 864 declarations: 582 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1139,12 +1149,11 @@ It can currently be used for:
   explicit-premise target-avoidance refinement are present, and supplied
   adjacent callbacks compose across every positive-length retained interval.
   The strict conclusion law is available from both explicit separation
-  invariants, with empty/init, stable, successful New, and conditional Wait
-  preservation for the queued-head half. Forward and UnifyPayload preservation,
-  global invariant and Wait-residual availability, the same-boundary case,
-  actual child-event
-  laws/callbacks, queue origin, raw-seam discharge, and unconditional full-rule
-  reachability are not, so
+  invariants, with empty/init, stable, successful New, and conditional
+  Wait/Forward preservation for the queued-head half. UnifyPayload preservation,
+  global invariant and Wait and Forward residual availability, the
+  same-boundary case, actual child-event laws/callbacks, queue origin, raw-seam
+  discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and
   validating its hashed artifacts.

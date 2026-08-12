@@ -20261,6 +20261,51 @@ ProofNetIR.SequentialFigure7.ForwardStep.olderSourceRegionSeparated_of_created :
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.forward step))
 ```
 
+### `ProofNetIR.SequentialFigure7.ForwardCreatedHeadTouchSeparated`
+
+Kind: definition.
+
+Every strictly older prior ledger event leaves the exact conclusion
+inserted by a successful `forward` untouched.
+
+This is only the residual old-event/inserted-head obligation. It does not
+repeat the inherited-candidate cases covered by the prior invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardCreatedHeadTouchSeparated : {certificate : ProofNetIR.Certificate} →
+  {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before} →
+      ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history →
+        ProofNetIR.SequentialFigure7.ForwardStep certificate before after → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.olderEventFutureWorkTouchSeparated`
+
+Kind: theorem.
+
+A canonical `forward` extension preserves older-event future-work
+head-touch separation when its newly inserted conclusion satisfies the
+explicit residual touch premise.
+
+The theorem applies to an already-successful typed `ForwardStep`. It does not
+derive `ForwardCreatedHeadTouchSeparated`, handle the other candidate-creating
+rules, discharge a raw or source-region seam, or establish scheduler progress.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.olderEventFutureWorkTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.forward, after := after }}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated prior →
+    ProofNetIR.SequentialFigure7.ForwardCreatedHeadTouchSeparated prior step →
+      ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
+        (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.forward step))
+```
+
 ### `ProofNetIR.SequentialFigure7.ForwardRetainedRawMarksSeparated`
 
 Kind: definition.

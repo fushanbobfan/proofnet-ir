@@ -1059,11 +1059,11 @@
     work transports, old-event/created-endpoint touch contradicts history
     disjointness, and the fresh event cannot be strictly older. Wait
     preservation is also kernel checked under the exact candidate-indexed
-    `WaitCreatedHeadTouchSeparated` residual. Forward and UnifyPayload
-    preservation, global invariant and Wait-residual availability, and the
-    same-boundary head-touch case remain open. Work must also eliminate old
-    exact marked owners; this layer
-    alone is not the universal premise.
+    `WaitCreatedHeadTouchSeparated` residual. Forward preservation is likewise
+    kernel checked under `ForwardCreatedHeadTouchSeparated`. UnifyPayload
+    preservation, global invariant and Wait and Forward residual availability,
+    and the same-boundary head-touch case remain open. Work must also eliminate
+    old exact marked owners; this layer alone is not the universal premise.
     The active-region availability layer now packages the complete structural
     search into `NewSourceRegionInput` or an exact old marked owner, and then
     into `NewEnabled` or that owner. Consequently route/run, raw and endpoint
@@ -1169,12 +1169,12 @@
     target-avoidance refinement. Explicit adjacent callbacks compose across
     arbitrary positive-length spine intervals. The strictly older queued-head
     law is now an explicit invariant with empty/structurally well-formed init,
-    stable-rule, successful New, and conditional Wait preservation. Derive the
-    Wait residual globally, prove Forward and UnifyPayload preservation and
-    global invariant availability, then derive and globalize the child-event
-    untouched laws and callbacks together with queue origin. Establish
-    unconditional full-rule
-    reachability, progress, completeness of that
+    stable-rule, successful New, and conditional Wait/Forward preservation.
+    Derive the Wait and Forward residuals globally, prove UnifyPayload
+    preservation and global invariant availability, then derive and globalize
+    the child-event untouched laws and callbacks together with queue origin.
+    Establish unconditional full-rule reachability, progress, completeness of
+    that
     sequential executable, and a cost theorem over every implemented operation
     before claiming Guerrini linearity. The needed stack invariants are false
     for the flat scheduler.

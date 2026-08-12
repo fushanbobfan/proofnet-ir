@@ -604,9 +604,17 @@ marks nor union-find parents, but the inserted conclusion had no prior
 `FutureWorkAt` witness, so the old invariant alone cannot prove this premise.
 No unconditional `forward` source-region preservation is claimed. For the
 queued-head invariant, `new` is preserved by the dedicated downstream theorem
-and `wait` is conditionally preserved under its exact created-head residual;
-`forward`, arbitrary-payload `unify`, and global residual availability remain
-open.
+and `wait` is conditionally preserved under its exact created-head residual.
+`SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean` gives the
+parallel conditional Forward result. Retained candidates transport through the
+prepared prefix and exact Forward representative equality. The only new
+candidate uses the inserted par conclusion, and the candidate-indexed
+`ForwardCreatedHeadTouchSeparated` premise is exactly its old-event/head-touch
+obligation. Forward appends no ledger event. Relative to the supplied prior
+invariant this is the exact transition-local residual, but the module does not
+derive it from scheduler invariants, history, or reachability. It proves no
+unconditional/global Forward result, arbitrary-payload UnifyPayload case,
+same-boundary exclusion, raw/source-region seam, enabledness, or progress.
 `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` handles the
 parallel raw-mark invariant. The selected mark and every inserted Forward
 candidate share the exact active raw age, so the selected/created strict-order
@@ -1599,12 +1607,12 @@ submitted-slot non-reuse, and exact reservation-event counting against final
 available, and explicit adjacent callbacks now compose across any nonempty
 retained-`sigma` interval. Deriving those callbacks and child-event untouched
 laws for an actual whole history, globally establishing the queued-head
-invariant and the exact Wait residual, preserving it through `forward` and
+invariant and the exact Wait and Forward residuals, preserving it through
 `unifyPayload`, handling the same-boundary case, proving exhaustive guard
 applicability, and obtaining a total later-state transition system remain open.
-Its `new` preservation and conditional `wait` preservation are kernel checked
-for already-successful typed edges once their stated prior invariants and Wait
-residual are supplied.
+Its `new` preservation and conditional `wait`/`forward` preservation are kernel
+checked for already-successful typed edges once their stated prior invariants
+and transition-local residuals are supplied.
 Closing-par
 scheduler-order exclusion and correct-state progress remain open.
 Pure-worklist completeness, recursive-fallback removal, and a whole-program
@@ -2096,7 +2104,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 863 declarations: 581 public MLL logical-boundary theorems
+separately audits 864 declarations: 582 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,
@@ -2211,6 +2219,7 @@ lake exe proofnet_ir_cross_representative_wait_preservation_tests
 lake exe proofnet_ir_older_event_future_work_touch_wait_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_wait_preservation_tests
 lake exe proofnet_ir_cross_representative_forward_preservation_tests
+lake exe proofnet_ir_older_event_future_work_touch_forward_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_forward_preservation_tests
 lake exe proofnet_ir_cross_representative_unify_payload_preservation_tests
 lake exe proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests
@@ -2338,6 +2347,8 @@ ProofNetIR/SequentialFigure7OlderRawMarkedRegionWaitPreservation.lean
   conditional Wait preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeForwardPreservation.lean
   conditional Forward introduced-candidate preservation
+ProofNetIR/SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean
+  conditional Forward preservation for the strictly older queued-head invariant
 ProofNetIR/SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean
   conditional Forward preservation for retained raw marks and created candidates
 ProofNetIR/SequentialFigure7CrossRepresentativeUnifyPayloadPreservation.lean
@@ -2401,6 +2412,8 @@ ProofNetIROlderEventFutureWorkTouchWaitPreservationTests.lean
 ProofNetIROlderRawMarkedRegionWaitPreservationTests.lean
   conditional Wait raw-mark preservation consumers
 ProofNetIRCrossRepresentativeForwardPreservationTests.lean conditional Forward preservation consumers
+ProofNetIROlderEventFutureWorkTouchForwardPreservationTests.lean
+  conditional Forward queued-head separation preservation consumer
 ProofNetIROlderRawMarkedRegionForwardPreservationTests.lean
   conditional Forward raw-mark preservation consumers
 ProofNetIRCrossRepresentativeUnifyPayloadPreservationTests.lean

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean`.
+  Every already-successful typed `ForwardStep` now preserves
+  `OlderEventFutureWorkTouchSeparated` from a supplied prior canonical history
+  and invariant when the candidate-indexed
+  `ForwardCreatedHeadTouchSeparated` residual holds. Retained candidates
+  transport through the prepared prefix and Forward representative equality;
+  the inserted par conclusion is the sole remaining old-event/head
+  obligation; and Forward contributes no new reservation event. Relative to
+  the supplied prior invariant, this premise is the exact transition-local
+  residual, but the module does not derive it from the scheduler invariant,
+  history, or reachability. It proves no unconditional or globally available
+  Forward result, UnifyPayload preservation, same-boundary exclusion, raw or
+  source-region seam, enabledness, progress, totality, completeness, fallback
+  removal, or linearity. A direct consumer invokes the theorem and its
+  projection; facade, default target, CI, generated API, and trust audit are
+  wired. The current public axiom audit covers 864 declarations: 582
+  full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchWaitPreservation.lean`.
   Every already-successful typed `WaitStep` now preserves
   `OlderEventFutureWorkTouchSeparated` from a supplied prior canonical history
@@ -16,9 +34,9 @@
   same-boundary exclusion, raw or source-region seam, enabledness, progress,
   totality, completeness, fallback removal, or linearity. A direct consumer
   invokes the theorem and its projection; facade, default target, CI, generated
-  API, and trust audit are wired. The current public axiom audit covers 863
-  declarations: 581 full-classical, 25 axiom-free, 122 `propext`-only, and 135
-  `propext`/`Quot.sound` boundaries;
+  API, and trust audit are wired. At that checkpoint the public axiom audit
+  covered 863 declarations: 581 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderEventFutureWorkTouchNewPreservation.lean`.
   Every already-successful typed `NewStep` now preserves
   `OlderEventFutureWorkTouchSeparated` from a supplied prior canonical history,

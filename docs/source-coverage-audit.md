@@ -180,8 +180,12 @@ Wait case is conditionally preserved under the candidate-indexed
 `WaitCreatedHeadTouchSeparated` premise. Retained candidates transport and the
 inserted conclusion is exactly the residual old-event/head obligation. This is
 also a code consequence rather than a literature result, and it does not derive
-the residual from scheduler invariants, history, or reachability. Forward and
-UnifyPayload preservation, global invariant and Wait-residual availability,
+the residual from scheduler invariants, history, or reachability. The successful
+typed Forward case is conditionally preserved under the candidate-indexed
+`ForwardCreatedHeadTouchSeparated` residual, with retained work transported
+through Prepared and exact Forward representative equality. It is likewise a
+code consequence and does not derive the residual. UnifyPayload preservation,
+global invariant and Wait and Forward residual availability,
 same-boundary touches, target paths, raw seams, and progress remain open. The
 availability-reduction
 layer now consumes the existing
@@ -194,9 +198,9 @@ active-region no-mark/no-owner from it. That is also a code consequence, not a
 new literature reading. Global preservation of the mate-region and
 older-raw-mark separation invariants through candidate-creating rules remains
 open. The future-head-touch invariant is preserved through New and
-conditionally through Wait under its exact residual, but not yet through
-Forward or UnifyPayload; global availability of both the invariant and Wait
-residual remains open. The New raw-mark branch is now conditionally
+conditionally through Wait and Forward under their exact residuals, but not
+yet through UnifyPayload; global availability of the invariant and both
+transition-local residuals remains open. The New raw-mark branch is now conditionally
 transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.

@@ -943,6 +943,18 @@ have a source-left region disjoint from the created tensor mate's region. That
 side condition is not derived from the current scheduler invariant, and the
 module makes no unconditional Forward claim.
 
+`SequentialFigure7OlderEventFutureWorkTouchForwardPreservation.lean` closes
+the orthogonal Forward state transport under one exact transition-local head
+premise. Retained candidates transport through Prepared and the exact Forward
+representative equality. For an actual inserted future-New candidate,
+`ForwardCreatedHeadTouchSeparated` says precisely that every strictly older
+prior ledger event leaves the inserted par conclusion untouched. Forward adds
+no reservation event, so there is no current-event branch. Relative to the
+supplied prior canonical history and queued-head invariant, this is the exact
+residual. The module does not derive it from scheduler invariants, history, or
+reachability and makes no unconditional/global Forward, UnifyPayload,
+same-boundary, raw-seam, or progress claim.
+
 `SequentialFigure7OlderRawMarkedRegionForwardPreservation.lean` closes the
 parallel raw-mark transport under one explicit transition-local premise. The
 selected mark and the inserted Forward candidate have the same active raw age,
@@ -1534,11 +1546,11 @@ active-reference walks between marked occurrences are equivalent to
   retained-`sigma` interval. The pointwise strict conclusion law now follows
   when both explicit separation invariants and structural well-formedness are
   supplied. New preservation of the queued-head invariant is now kernel
-  checked from a supplied prior instance, and Wait preservation is checked
-  under its exact candidate-indexed residual. Forward and UnifyPayload
-  preservation, global invariant and Wait-residual availability, the
-  same-boundary case, actual adjacent callbacks, and queue-to-created-candidate
-  geometry remain required by the seams.
+  checked from a supplied prior instance, while Wait and Forward preservation
+  are checked under their exact candidate-indexed residuals. UnifyPayload
+  preservation, global invariant and Wait and Forward residual availability,
+  the same-boundary case, actual adjacent callbacks, and
+  queue-to-created-candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity
