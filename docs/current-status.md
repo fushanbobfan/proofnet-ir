@@ -10,14 +10,14 @@ Historical checkpoints belong in [CHANGELOG.md](../CHANGELOG.md), proof design
 belongs in [v0.10-design.md](v0.10-design.md), and stable release guarantees
 belong in the corresponding release audit.
 
-Status date: 2026-08-18
+Status date: 2026-08-19
 
 ## Version tracks
 
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `5e59d120d55fa1f2125b0edc37c374dda3739642` | Active | This page and the exact commit |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `1040e0ef267788eb7264aa542c9f2b7cd16c6dfb` | Active | This page and the exact commit |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,13 +46,13 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint is the commitment-blocker maximality layer in the
-delayed Figure-7 scheduler development.
+The current checkpoint closes the input-availability theorem for an already
+established, history-indexed active Figure-7 `NewGuard`.
 
-Public theorem:
+Primary public theorem:
 
 ```text
-ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled
 ```
 
 Under all of the following supplied inputs:
@@ -60,39 +60,45 @@ Under all of the following supplied inputs:
 - `Certificate.DeclarativelyCorrect`;
 - the complete state-only `SchedulerInvariant`;
 - an authentic `CanonicalTagHistory`;
-- an active `NewGuard`;
-- membership of the starting event in the reservation ledger; and
-- strict current-representative order from that event to the active head;
+- and an already established active `NewGuard`;
 
-Lean proves the inclusive alternative:
+Lean now derives all of the following locally for that guard:
 
-1. there is an exact commitment/reference path to the active head that avoids
-   the active tensor conclusion; or
-2. the equal-boundary child event has stored-left orientation and carries the
-   exact adjacent conclusion-to-head callback-failure trace witness.
+1. every authentic reservation-ledger event is touch-separated from the
+   complete source-left region of the active tensor mate;
+2. that region contains no concrete raw mark and no exact marked occurrence
+   owner, while every region tag is `false`;
+3. there is a complete `NewSourceRegionInput`; and
+4. the input-only predicate `NewEnabled` holds.
 
-The proof filters the finite authentic ledger for mate-touch blockers between
-the starting representative and active head, maps them to current
-representatives, and takes a maximum. A maximal blocker's path alternative
-would combine historical source-left geometry, the blocker component route,
-the commitment path, and the active component route into a tensor bypass
-forbidden by reference-switching acyclicity. A further representative advance
-contradicts maximality.
+The reusable `ActiveMateEventAnchor` stores an exact conclusion-avoiding path
+from the active mate to one event's stored-left axiom endpoint. Finite blocker
+maximality and exact reference-tree edge identity exclude every strictly older
+anchored event: the commitment-path branch forms the forbidden active-tensor
+bypass, while the stored-left callback branch forms an alternate walk around
+the same exact tensor edge. Any event touch inside the active mate region
+constructs such an anchor.
 
-The disjunction is inclusive. The callback-failure branch does **not** prove
-that an avoiding path is absent.
+A concrete raw mark supplies its same-age authentic event and final owned
+component. The active-region path and the event's owned path therefore build
+the same forbidden anchor. Exact-owner absence follows from raw-mark absence;
+canonical touch provenance gives tag freshness; and the structural
+run-or-blocker theorem can return only the run branch. This proof does not
+assume either global `OlderEventTouchSeparated` or global
+`OlderRawMarkedRegionSeparated`. It also preserves the earlier claim boundary:
+the equal-boundary callback witness is contradicted only when the strict-old
+active-mate anchor is present, not in isolation.
 
 ## What the rolling theorem does not prove
 
 This checkpoint does not establish any of the following:
 
-- unconditional elimination of the stored-left equal-boundary branch;
-- queue-origin geometry sufficient to eliminate that branch;
-- global mate-source-region separation for every history;
-- global availability of `OlderRawMarkedRegionSeparated`;
-- any of the explicit New/Wait/Forward/UnifyPayload created-candidate raw
-  seams;
-- `NewEnabled` for every active reachable guard;
+- construction or existence of a canonical history or active `NewGuard`;
+- a proof that every relevant nonterminal state presents that guard;
+- selection of an exhaustive priority branch or a stored executor equation;
+- global preservation of the mate-region or older-raw-mark invariant families;
+- any of the explicit New/Wait/Forward/UnifyPayload created-candidate raw seams
+  or the queue-origin laws that would discharge them;
 - exhaustive enabledness of the canonical dispatcher;
 - dispatcher progress or later-state totality;
 - pure-worklist completeness;
@@ -109,37 +115,38 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling checkpoint is:
 
 ```text
-commit  5e59d120d55fa1f2125b0edc37c374dda3739642
-tree    3005e03015476a5e9d1f1277665dad4bc320d583
-stage   commitment blocker finite maximality
-delta   17 files, +606/-64
+commit  1040e0ef267788eb7264aa542c9f2b7cd16c6dfb
+tree    23409edf2bf63f8513b625bfe0befcca2edb3823
+stage   active-region touch separation and input-only New enabledness
+delta   19 files, +2022/-68
 ```
 
 Local verification on the committed bytes:
 
-- full `lake build`: 403/403 jobs;
-- Lean source audit: zero `sorry`/`admit` findings;
+- full `lake build`: 413/413 jobs;
+- Lean source audit: zero `sorry`/`admit` findings across 201 Lean files;
 - generated API reference: current;
-- runnable maximality consumer: passed under `--trust=0`;
+- both runnable active-region consumers: passed under `--trust=0` and invoke
+  every new public API;
 - facade, API manifest, and axiom-audit entry points: passed under `--trust=0`;
-- public declaration audit: 881 declarations total;
-- audit classes: 599 full-classical, 25 axiom-free, 122 `propext`-only,
+- public declaration audit: 888 declarations total;
+- audit classes: 606 full-classical, 25 axiom-free, 122 `propext`-only,
   and 135 `propext` plus `Quot.sound`;
-- the new public theorem depends only on
+- all seven new public theorems depend only on
   `[propext, Classical.choice, Quot.sound]`;
-- all six explicit theorem inputs are load-bearing under the minimal-hypothesis
-  audit;
+- every detected explicit theorem input is load-bearing under the
+  minimal-hypothesis audit;
 - independent proof and integrated-checkpoint reviews reported no actionable
   P0, P1, P2, or P3 findings.
 
 Exact-head GitHub verification:
 
 - workflow: `Lean CI`;
-- run: [32214065414](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32214065414);
-- build job: [95952157976](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32214065414/job/95952157976);
-- exact head: `5e59d120d55fa1f2125b0edc37c374dda3739642`;
+- run: [32230579133](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32230579133);
+- build job: [95999296136](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32230579133/job/95999296136);
+- exact head: `1040e0ef267788eb7264aa542c9f2b7cd16c6dfb`;
 - result: 36 successful steps, zero failures, one expected release-ref-only
-  skip.
+  skip; run duration 10m47s and build-job duration 10m42s.
 
 ## Current library-readiness position
 
@@ -196,20 +203,18 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. resolve or correctly accommodate the equal-boundary stored-left callback
-   branch;
-2. derive the remaining queue-origin, mate-region, and raw-mark separation
-   facts from authentic certified histories;
-3. close the New/Wait/Forward/UnifyPayload created-candidate raw seams;
-4. derive reachable active-guard enabledness and exhaustive nonterminal
-   dispatcher progress;
-5. prove pure-worklist completeness and remove the recursive fallback without
+1. classify every relevant nonterminal certified state into the applicable
+   priority branch, including existence of the active guard when New is next;
+2. close the queue-origin and New/Wait/Forward/UnifyPayload created-candidate
+   laws needed by the global mate-region and raw-mark preservation families;
+3. derive exhaustive nonterminal dispatcher progress and later-state totality;
+4. prove pure-worklist completeness and remove the recursive fallback without
    weakening the accepted-certificate theorem;
-6. implement and verify faithful `NEXTAXIOM`/token-age scheduling and its
+5. implement and verify faithful `NEXTAXIOM`/token-age scheduling and its
    whole-program complexity;
-7. continue the traceable, page/chapter-level literature matrix without
+6. continue the traceable, page/chapter-level literature matrix without
    treating file discovery or structural scans as completed reading;
-8. preserve public API, migration, downstream, experiment, and release gates
+7. preserve public API, migration, downstream, experiment, and release gates
    as the mathematical surface grows.
 
 ## Navigation
