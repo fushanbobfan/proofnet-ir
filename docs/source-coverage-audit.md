@@ -281,15 +281,21 @@ zero such gaps. This is finite executable evidence and records no new
 page/chapter reading or universal theorem. A further kernel-checked code
 consequence now defines the predecessor invariant over every ready or waiting
 `FutureWorkAt`, not only the selected head, and preserves it through
-empty/init/Prepared/Concl/Nop/New and canonical Wait. The Wait proof transports
-retained work and derives the inserted conclusion's adjacency from private
-reference, touch, and commitment geometry. This is a code consequence and
-records no new literature reading. Forward, UnifyPayload, and full-history
-availability remain open. Global preservation of the mate-region and
-older-raw-mark invariants through candidate-creating rules remains open, as do
-queue origin, created-candidate raw seams, ready-head existence, progress,
-later-state totality, fallback removal, faithful token-age scheduling, and
-whole-program linearity. The future-head-touch invariant is
+empty/init/Prepared/Concl/Nop/New and canonical Wait and Forward. The Wait proof
+transports retained work and derives the inserted conclusion's adjacency from
+reference, touch, and commitment geometry. A source-visible conditional bridge
+packages that geometry only after strict older-event separation and an exact
+child-event anchor are supplied; it does not prove either premise,
+applicability, or progress. The Forward proof privately derives those premises
+for an already-successful typed step and preserves the prior invariant under
+declarative correctness, the complete scheduler invariant, canonical history,
+typed dispatch, and `ForwardStep`. These are code consequences and record no
+new literature reading. UnifyPayload and full-history availability remain open.
+Global preservation of the mate-region and older-raw-mark invariants through
+candidate-creating rules remains open, as do queue origin, created-candidate raw
+seams, ready-head existence, progress, later-state totality, fallback removal,
+faithful token-age scheduling, and whole-program linearity. The
+future-head-touch invariant is
 preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head
 residuals, and canonical-history induction now makes it globally available

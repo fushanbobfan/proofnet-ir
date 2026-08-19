@@ -9361,6 +9361,72 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.wait_olderMarkedTensorPredecess
         ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor`
+
+Kind: theorem.
+
+Converts canonical history, strict older-event separation, and an exact
+child-event anchor into the marked tensor mate's immediate sigma predecessor.
+
+This bridge does not establish its separation or anchor premises. It proves no
+rule applicability, dispatcher progress or totality, global raw seam, fallback
+removal, sequentialization, or complexity bound.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ {candidateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {candidateVertex : ProofNetIR.Vertex},
+        ProofNetIR.SequentialFigure7.FutureWorkAt state candidateRawAge candidateVertex →
+          ∀ (outer : ProofNetIR.TensorBelow),
+            ProofNetIR.TensorBelow.Valid certificate certificate.consumerIndex candidateVertex outer →
+              ∀ {mateRawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+                state.core.marks[outer.mate]? = some (some mateRawAge) →
+                  state.core.representative mateRawAge < state.core.representative candidateRawAge →
+                    (∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate),
+                        event ∈ tagHistory.reservationLedger →
+                          state.core.representative event.rawAge < state.core.representative candidateRawAge →
+                            ¬event.Touched candidateVertex) →
+                      (∀ (childEvent : ProofNetIR.SequentialFigure7.ReservationEvent certificate),
+                          tagHistory.reservationLedger[candidateRawAge]? = some childEvent →
+                            ∃ path,
+                              path.start = childEvent.search.result.left ∧
+                                path.finish = candidateVertex ∧ ¬outer.conclusion ∈ path.vertices) →
+                        Nonempty
+                          (ProofNetIR.SequentialFigure7.SigmaImmediatePredecessorAt state.stack.sigma candidateRawAge
+                            mateRawAge mateRawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.forward_olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+A canonical successful `forward` preserves the all-future-work older
+marked-tensor predecessor invariant. Retained work transports through the
+prepared prefix, while the inserted par conclusion is discharged by the
+conditional child-anchor bridge after private Forward-specific history,
+component, and touch geometry.
+
+This theorem assumes an already-successful typed dispatcher branch. It proves
+no branch applicability, dispatcher progress or totality, global raw seam,
+fallback removal, sequentialization, or complexity bound.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.forward_olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.forward, after := after }}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+      ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate before →
+        ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

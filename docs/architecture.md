@@ -924,13 +924,22 @@ boundary immediately below the appended one.
 canonical successful `wait` case. Retained work transports through the prepared
 prefix and the sigma-preserving destination update; private reference, touch,
 and commitment geometry supplies the predecessor for the inserted conclusion.
-The module imports only the active-region touch-separation layer and the base
-predecessor invariant, and exposes no geometry helper. This is a branch prefix
-through Wait, not a full-history construction. `forward` is the first open
-preservation case, followed by `unifyPayload`; global history availability,
-ready-head existence, dispatcher progress, later-state totality,
-recursive-fallback removal, faithful token-age scheduling, Figure-7
-pure-worklist completeness, and whole-program linearity remain separate gates.
+The module now also exposes a source-visible conditional child-anchor bridge.
+That bridge consumes strict older-event separation and an exact child-event
+anchor; it does not derive either premise or prove branch applicability or
+progress.
+`SequentialFigure7OlderMarkedTensorPredecessorForwardPreservation.lean` closes
+the canonical successful `forward` case. Retained work transports through the
+prepared prefix, while private Forward history, component, and touch geometry
+discharges the bridge premises for the inserted par conclusion. Its public
+theorem requires declarative correctness, the complete scheduler invariant,
+canonical history, typed Forward dispatch, a `ForwardStep`, and the supplied
+prior predecessor invariant. This is a branch prefix through Forward, not a
+full-history construction. `unifyPayload` is the first open preservation case;
+global history availability, ready-head existence, dispatcher progress,
+later-state totality, recursive-fallback removal, faithful token-age scheduling,
+Figure-7 pure-worklist completeness, and whole-program linearity remain
+separate gates.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1305,7 +1314,7 @@ predecessor gaps. The detector retains a complete replayable counterexample and
 partitions any failure into a missing previous top or a boundary mismatch. These
 finite observations neither prove `ReadyHeadMarkedTensorPredecessorGap`
 uninhabited nor establish the predecessor invariant beyond its current
-empty/init/Prepared/Concl/Nop/New/Wait branch prefix.
+empty/init/Prepared/Concl/Nop/New/Wait/Forward branch prefix.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

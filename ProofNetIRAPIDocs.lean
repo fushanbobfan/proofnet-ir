@@ -811,7 +811,13 @@ def sections : List Section := [
         "new_olderMarkedTensorPredecessorInvariant",
       Name.str
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
-        "wait_olderMarkedTensorPredecessorInvariant"
+        "wait_olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "markedMate_sigmaImmediatePredecessor_of_childAnchor",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "forward_olderMarkedTensorPredecessorInvariant"
     ]
   },
   {

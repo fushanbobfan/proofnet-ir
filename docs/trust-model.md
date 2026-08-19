@@ -704,12 +704,19 @@ and canonical `new` and `wait` preservation theorems use exactly
 `[propext, Classical.choice, Quot.sound]`. Canonical history, declarative
 correctness, the scheduler invariant, and typed dispatch/step witnesses are
 ordinary hypotheses of those preservation theorems, not trusted reachability
-or progress assumptions. No theorem yet preserves this invariant through
-`forward`, which is the first open branch; `unifyPayload`, full-history
-availability, ready-head existence, residual elimination without an invariant
-premise, progress, later-state totality, recursive-fallback removal, faithful
-token-age scheduling, Figure-7 pure-worklist completeness, and whole-program
-linearity remain outside the theorem boundary.
+or progress assumptions. The new source-visible child-anchor bridge adds no
+separation or path oracle: strict older-event separation and the exact child
+anchor are explicit premises, so the bridge proves neither applicability nor
+progress. The canonical `forward` preservation theorem privately discharges
+those premises for an already-successful typed Forward branch and still
+requires declarative correctness, the complete scheduler invariant, canonical
+history, typed dispatch, a `ForwardStep`, and the supplied prior invariant. The
+bridge and Forward theorem are registered for the same existing three-axiom
+audit gate. `unifyPayload` is now the first open preservation branch;
+full-history availability, ready-head existence, residual elimination without
+an invariant premise, progress, later-state totality, recursive-fallback
+removal, faithful token-age scheduling, Figure-7 pure-worklist completeness,
+and whole-program linearity remain outside the theorem boundary.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

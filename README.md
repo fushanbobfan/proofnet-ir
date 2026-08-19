@@ -25,14 +25,17 @@ latest research surface and are prepared for documented development changes.
 
 The rolling branch carries an indexed predecessor invariant over every ready or
 waiting future-work occurrence. It holds for empty and initial-reservation
-states and survives Prepared, `concl`, and `nop`; canonical `new` and canonical
-successful `wait` preserve it under their stated scheduler, correctness,
-canonical-history, and typed-step hypotheses. Given the complete scheduler
-invariant at a supplied ready head, its projection supplies the exact immediate
-sigma predecessor and contradicts the marked-tensor residual.
-This remains a branch prefix, not full-history availability: `forward` is the
-first open preservation branch, followed by `unifyPayload`; ready-head
-existence, dispatcher progress, later-state totality, and Figure-7 pure-worklist
+states and survives Prepared, `concl`, and `nop`; canonical `new`, `wait`, and
+`forward` preserve it under their stated scheduler, correctness,
+canonical-history, dispatch, and typed-step hypotheses.
+Forward uses a source-visible conditional child-anchor bridge whose separation
+and anchor premises are discharged by private Forward geometry; the bridge
+itself proves neither branch applicability nor dispatcher progress.
+Given the complete scheduler invariant at a supplied ready head, the projection
+supplies the exact immediate sigma predecessor and contradicts the marked-tensor
+residual. This remains a branch prefix, not full-history availability:
+`unifyPayload` is the first open preservation branch; ready-head existence,
+dispatcher progress, later-state totality, and Figure-7 pure-worklist
 completeness remain open.
 [The replaceable current-status record](docs/current-status.md) remains the
 owner of exact revision, verification receipt, and gates.

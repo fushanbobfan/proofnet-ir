@@ -19,10 +19,11 @@ waiting-queue geometry, reference-switching-tree uniqueness, commitment
 interval target avoidance, and the history-local touch exclusion. Both par
 orientations are covered. No raw-unmarked-mate hypothesis is used.
 
-Only `CanonicalTagHistory.wait_olderMarkedTensorPredecessorInvariant` is
-public. All geometry and created-conclusion lemmas are implementation details.
-This module does not claim preservation for `forward` or `unifyPayload`, full
-dispatcher closure, scheduler progress, maximality, or sequentialization.
+The public surface consists of a conditional child-anchor bridge and
+`CanonicalTagHistory.wait_olderMarkedTensorPredecessorInvariant`. All lower
+geometry and created-conclusion lemmas are implementation details. This module
+does not claim preservation for `forward` or `unifyPayload`, full dispatcher
+closure, scheduler progress, maximality, or sequentialization.
 -/
 
 
@@ -2205,7 +2206,7 @@ private theorem maximal_tensorAnchor_bridge
 work.  It packages the maximal-anchor argument and isolates exactly two
 external facts: older-event separation from the candidate vertex and an exact
 child-event anchor at the candidate boundary. -/
-private theorem markedMate_sigmaImmediatePredecessor_of_childAnchor
+private theorem markedMate_sigmaImmediatePredecessor_of_childAnchor_core
     {certificate : Certificate} {state : ReservationState}
     {history : ExecutedHistory certificate state}
     (tagHistory : CanonicalTagHistory certificate history)
@@ -2343,6 +2344,61 @@ private theorem markedMate_sigmaImmediatePredecessor_of_childAnchor
       refine ⟨position, parentAt, candidateAt, ?_⟩
       simpa [mateRoot] using mateBoundary
 
+end WaitStep
+
+namespace CanonicalTagHistory
+
+/-- Converts canonical history, strict older-event separation, and an exact
+child-event anchor into the marked tensor mate's immediate sigma predecessor.
+
+This bridge does not establish its separation or anchor premises. It proves no
+rule applicability, dispatcher progress or totality, global raw seam, fallback
+removal, sequentialization, or complexity bound. -/
+theorem markedMate_sigmaImmediatePredecessor_of_childAnchor
+    {certificate : Certificate} {state : ReservationState}
+    {history : ExecutedHistory certificate state}
+    (tagHistory : CanonicalTagHistory certificate history)
+    (correct : certificate.DeclarativelyCorrect)
+    (invariant : SchedulerInvariant certificate state)
+    {candidateRawAge : RawTokenAge} {candidateVertex : Vertex}
+    (work : FutureWorkAt state candidateRawAge candidateVertex)
+    (outer : TensorBelow)
+    (outerValid :
+      outer.Valid certificate certificate.consumerIndex candidateVertex)
+    {mateRawAge : RawTokenAge}
+    (mateMarked :
+      state.core.marks[outer.mate]? = some (some mateRawAge))
+    (older :
+      state.core.representative mateRawAge <
+        state.core.representative candidateRawAge)
+    (headSeparated : ∀ event : ReservationEvent certificate,
+      event ∈ tagHistory.reservationLedger →
+      state.core.representative event.rawAge <
+          state.core.representative candidateRawAge →
+      ¬ event.Touched candidateVertex)
+    (childAnchor : ∀ childEvent : ReservationEvent certificate,
+      tagHistory.reservationLedger[candidateRawAge]? = some childEvent →
+      ∃ path : certificate.referenceSwitchingGraph.EdgeSimplePath,
+        path.start = childEvent.search.result.left ∧
+        path.finish = candidateVertex ∧
+        outer.conclusion ∉ path.vertices) :
+    Nonempty
+      (SigmaImmediatePredecessorAt state.stack.sigma
+        candidateRawAge mateRawAge mateRawAge) := by
+  rcases WaitStep.markedMate_sigmaImmediatePredecessor_of_childAnchor_core
+      tagHistory correct invariant work outer outerValid mateMarked older
+      headSeparated childAnchor with
+    ⟨position, previousAt, candidateAt, mateBoundary⟩
+  exact ⟨{
+    position
+    previous_at := previousAt
+    candidate_at := candidateAt
+    mate_boundary := mateBoundary }⟩
+
+end CanonicalTagHistory
+
+namespace WaitStep
+
 /-- Wait specialization after the history-local created-head separation fact
 has been supplied.  All destination/mate reference geometry is now derived
 for both submitted-par orientations. -/
@@ -2395,9 +2451,12 @@ private theorem createdConclusion_markedMate_sigmaImmediatePredecessor
   have childAnchor : CreatedConclusionTensorChildAnchor step tagHistory tensor :=
     step.createdConclusionTensorChildAnchor tagHistory correct invariant
       tensor tensorValid
-  exact markedMate_sigmaImmediatePredecessor_of_childAnchor tagHistory
-    correct invariant work tensor tensorValid tensorMateMarked older
-    headSeparated childAnchor
+  rcases tagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor
+      correct invariant work tensor tensorValid tensorMateMarked older
+      headSeparated childAnchor with
+    ⟨predecessor⟩
+  exact ⟨predecessor.position, predecessor.previous_at,
+    predecessor.candidate_at, predecessor.mate_boundary⟩
 
 end WaitStep
 end SequentialFigure7

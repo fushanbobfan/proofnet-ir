@@ -321,6 +321,10 @@ expansion.
   SequentialFigure7.CanonicalTagHistory.new_olderMarkedTensorPredecessorInvariant
 #print axioms
   SequentialFigure7.CanonicalTagHistory.wait_olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.forward_olderMarkedTensorPredecessorInvariant
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

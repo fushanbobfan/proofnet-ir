@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderMarkedTensorPredecessorForwardPreservation.lean`
+  and promoted
+  `CanonicalTagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor`
+  from private Wait geometry to a public conditional support theorem. The
+  bridge converts supplied strict older-event separation and an exact
+  child-event anchor into the indexed immediate predecessor; it does not
+  establish either premise, branch applicability, or dispatcher progress. A
+  canonical successful `forward` now preserves the all-future-work predecessor
+  invariant from a supplied prior invariant, complete scheduler invariant,
+  declarative correctness, canonical history, typed Forward dispatch, and
+  `ForwardStep`. Private Forward history, component, and touch geometry
+  discharges the bridge premises for the inserted par conclusion, while
+  retained work transports through the prepared prefix. The runnable consumer
+  actually applies both public theorems and consumes the indexed carrier. This
+  extends the branch prefix through Forward; `unifyPayload` is the first open
+  preservation branch before full canonical-history packaging. It does not
+  construct that history, establish ready-head existence, or prove dispatcher
+  progress, later-state totality, completeness, fallback removal, or linearity.
+  With both new public theorems registered, the local audit passes at 900
+  declarations: 617 full-classical, 25 axiom-free, 123 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderMarkedTensorPredecessorWaitPreservation.lean`.
   A canonical successful `wait` now preserves the all-future-work marked-tensor
   predecessor invariant from a supplied prior invariant, complete scheduler

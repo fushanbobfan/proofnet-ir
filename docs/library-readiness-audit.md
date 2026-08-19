@@ -547,16 +547,22 @@ part of the engineering and proof-identity gap.
    predecessor invariant now quantifies over every ready or waiting future-work
    occurrence, holds for empty and initial-reservation states, and is preserved
    through Prepared, `concl`, `nop`, canonical `new`, and canonical successful
-   `wait`. The Wait theorem transports retained work through the prepared and
-   destination updates and privately discharges the inserted conclusion. Its
+   `wait` and `forward`. The Wait theorem transports retained work through the
+   prepared and destination updates and discharges the inserted conclusion. A
+   source-visible conditional bridge packages the exact predecessor only after
+   callers supply strict older-event separation and a child-event anchor; the
+   bridge proves neither those premises nor branch applicability or progress.
+   The Forward theorem supplies those bridge premises from private
+   transition-specific geometry for an already-successful typed step and also
+   requires declarative correctness, the complete scheduler invariant,
+   canonical history, a `ForwardStep`, and the prior predecessor invariant. The
    ready-head projection converts the residual's strictly older boundary into
-   the exact immediate predecessor, closing the residual only when that
-   branch-prefix invariant is already available. Full history preservation is
-   not established: `forward` is the first open branch, followed by
-   `unifyPayload`. Ready-head existence, dispatcher progress, later-state
-   totality, recursive-fallback removal, faithful token-age scheduling,
-   whole-program linearity, and Figure-7 pure-worklist completeness remain open
-   maturity gates.
+   the exact immediate predecessor only when the branch-prefix invariant is
+   already available. Full history preservation is not established:
+   `unifyPayload` is the first open branch. Ready-head existence, dispatcher
+   progress, later-state totality, recursive-fallback removal, faithful
+   token-age scheduling, whole-program linearity, and Figure-7 pure-worklist
+   completeness remain open maturity gates.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -992,11 +998,11 @@ part of the engineering and proof-identity gap.
    removal, token-age scheduling, or whole-program linearity.
    The predecessor projection now discharges that ready-head residual for
    states carrying the new invariant. Availability beyond the current
-   empty/init/Prepared/Concl/Nop/New/Wait branch prefix remains the maturity
-   gap. `forward` is the first unproved preservation branch, followed by
-   `unifyPayload` and the full canonical-history induction. Consequently the
-   library still has no theorem deriving ready-head existence, dispatcher
-   progress, later-state totality, or Figure-7 pure-worklist completeness.
+   empty/init/Prepared/Concl/Nop/New/Wait/Forward branch prefix remains the
+   maturity gap. `unifyPayload` is the first unproved preservation branch,
+   followed by the full canonical-history induction. Consequently the library
+   still has no theorem deriving ready-head existence, dispatcher progress,
+   later-state totality, or Figure-7 pure-worklist completeness.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created

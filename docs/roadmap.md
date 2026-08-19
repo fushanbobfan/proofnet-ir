@@ -968,11 +968,17 @@
     work transports through the prepared prefix and destination update; private
     Wait geometry supplies the immediate predecessor for the inserted
     conclusion. This does not package full-history availability.
-  - [ ] Extend that invariant through `forward` first, then `unifyPayload`,
-    before packaging full canonical-history preservation. Separately prove that
-    every relevant semantic nonterminal state supplies a ready head before
-    claiming dispatcher progress, later-state totality, or Figure-7
-    pure-worklist completeness.
+  - [x] Expose a conditional child-anchor bridge and preserve the invariant
+    through canonical successful `forward`. The bridge assumes strict
+    older-event separation and an exact child-event anchor and therefore is
+    support infrastructure, not applicability or progress. The Forward theorem
+    privately discharges those premises for an already-successful typed branch
+    and still requires declarative correctness, the complete scheduler
+    invariant, canonical history, `ForwardStep`, and the prior invariant.
+  - [ ] Extend that invariant through `unifyPayload`, then package full
+    canonical-history preservation. Separately prove that every relevant
+    semantic nonterminal state supplies a ready head before claiming dispatcher
+    progress, later-state totality, or Figure-7 pure-worklist completeness.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
