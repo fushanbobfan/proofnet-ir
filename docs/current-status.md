@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `cd3ad0f8ea17be50d5ba2333816d33187f483609` | Active | This page and the exact commit |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `6de9e096c364bad69bef76ff51e3b6ff9973b257` | Active | This page and the exact commit |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,57 +46,69 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint isolates the exact residual left after classifying all
-six rule families for a supplied Figure-7 ready head.
+The current checkpoint establishes an indexed marked-tensor predecessor
+invariant for every ready or waiting future-work occurrence. It then proves the
+empty/init/Prepared/Concl/Nop/New branch prefix and uses the invariant to
+contradict the preceding ready-head residual when the required state hypotheses
+are supplied.
 
-Primary public theorems:
+Primary public declarations:
 
 ```text
-ProofNetIR.SequentialFigure7.CanonicalTagHistory.readyHead_priorityEnabled_or_markedTensorPredecessorGap
-ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch_or_markedTensorPredecessorGap
+ProofNetIR.SequentialFigure7.SigmaImmediatePredecessorAt
+ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant
+ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant.readyHead_predecessor_of_boundary_lt
+ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant
+ProofNetIR.SequentialFigure7.InitialReservationStep.olderMarkedTensorPredecessorInvariant
+ProofNetIR.SequentialFigure7.PreparedStep.olderMarkedTensorPredecessorInvariant
+ProofNetIR.SequentialFigure7.ConclStep.olderMarkedTensorPredecessorInvariant
+ProofNetIR.SequentialFigure7.NopStep.olderMarkedTensorPredecessorInvariant
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.new_olderMarkedTensorPredecessorInvariant
 ```
 
-The history-indexed theorem takes all of the following supplied inputs:
+`OlderMarkedTensorPredecessorInvariant` quantifies over every `FutureWorkAt`,
+including every member of every retained ready bucket and every initialized
+waiting payload. When a marked tensor mate's current representative is strictly
+below the work's current representative, `SigmaImmediatePredecessorAt` records
+adjacent sigma positions ending at the work boundary together with the exact
+mate-boundary lookup.
 
-- `Certificate.DeclarativelyCorrect`;
-- the complete state-only `SchedulerInvariant`;
-- an authentic `CanonicalTagHistory`;
-- and a `ReadyHeadInput` for the current state.
+The empty state satisfies the predicate vacuously, and every successful initial
+reservation establishes it because the raw-mark array remains empty. Prepared,
+`concl`, and `nop` preserve a supplied prior invariant under the input
+`SchedulerInvariant`. Canonical `new` preservation additionally requires
+`Certificate.DeclarativelyCorrect` and an authentic `CanonicalTagHistory`; old
+work transports across the fresh append, while a created endpoint's already
+marked tensor mate is forced to the prior active boundary immediately below the
+fresh boundary.
 
-It returns an inclusive disjunction:
+For a supplied `ReadyHeadInput`, the projection combines the new invariant with
+the complete `SchedulerInvariant`. The fields of
+`ReadyHeadMarkedTensorPredecessorGap` provide the tensor consumer, mate mark,
+exact `sigmaBoundary?` lookup, and strict active-boundary inequality. The
+projection therefore constructs `SigmaPredecessorInput`, contradicting the
+gap's own `no_predecessor` field. This is a consumer-level consequence of the
+public declarations; no unconditional gap-elimination premise is hidden in the
+state invariant.
 
-1. some fixed-priority branch is `PriorityEnabled`; or
-2. an exact marked tensor has a retained mate boundary strictly below the
-   active top, but no `SigmaPredecessorInput` identifies that boundary with the
-   active top's immediate predecessor.
-
-The second branch is stored in
-`ReadyHeadMarkedTensorPredecessorGap`: it retains the exact tensor consumer,
-concrete mate mark, `sigmaBoundary?` lookup, strict boundary inequality, and
-the negated immediate-predecessor witness. The alternatives are not claimed to
-be exclusive, and the carrier alone does not state that dispatch fails.
-
-Stable heads reconstruct their existing enabled branch. An unmarked tensor
-uses the active-region theorem to obtain input-only `NewEnabled`. A marked
-tensor with exact sigma adjacency obtains `UnifyPayloadEnabled`; otherwise the
-proof shows that its mate still resolves to a strictly older retained boundary
-and returns the precise gap. Under `ReachableByImplementedDispatcher`, the
-positive branch is lowered to an actual `dispatch? = some result` equation.
-
-The bounded replay audit checked 6,198 default and 26,658 extended selected
-marked-tensor ready heads. Every observed mate had the exact predecessor, so
-both runs recorded zero gaps, zero missing previous tops, and zero boundary
-mismatches. This is deterministic regression evidence, not a universal proof
-that the residual is uninhabited.
+Exact signatures are maintained in the
+[generated API reference](api-reference.md#older-marked-tensor-predecessor-branch-prefix).
+This remains a branch-prefix result, not a full canonical-history theorem:
+`wait` is the first open preservation branch, followed by `forward` and
+`unifyPayload`.
 
 ## What the rolling theorem does not prove
 
 This checkpoint does not establish any of the following:
 
-- construction or existence of a canonical history or `ReadyHeadInput`;
+- construction of a relevant `ExecutedHistory`, reachable state, or
+  `ReadyHeadInput`;
 - a proof that every relevant semantic nonterminal state presents a ready head;
-- exclusivity of the disjunction or universal unreachability of the gap;
-- the active-top-bucket queue-origin invariant needed to eliminate the gap;
+- preservation of `OlderMarkedTensorPredecessorInvariant` through `wait`,
+  `forward`, or `unifyPayload`;
+- full canonical-history availability of the new invariant;
+- unconditional elimination of `ReadyHeadMarkedTensorPredecessorGap` without
+  the invariant and complete scheduler hypotheses;
 - global preservation of the mate-region or older-raw-mark invariant families;
 - any of the explicit New/Wait/Forward/UnifyPayload created-candidate raw seams
   or the queue-origin laws that would discharge them;
@@ -116,42 +128,39 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling checkpoint is:
 
 ```text
-commit  cd3ad0f8ea17be50d5ba2333816d33187f483609
-tree    67b9e7006202176bd051093c8112a6c224277d94
-stage   ready-head priority dispatch residual and predecessor-gap audit
-delta   19 files, +1058/-103
+commit  6de9e096c364bad69bef76ff51e3b6ff9973b257
+tree    dbd2a131b9ab72c056a954b730aa569f34ea7592
+stage   all-future-work marked-tensor predecessor branch prefix
+delta   17 files, +1385/-62
 ```
 
 Local verification on the committed bytes:
 
-- full `lake build`: 418/418 jobs;
-- Lean source audit: zero `sorry`/`admit` findings across 203 Lean files;
+- full `lake build`: 425/425 jobs;
+- Lean source audit: zero `sorry`/`admit` findings across 206 Lean files;
 - generated API reference: current;
-- the runnable ready-head residual consumer: passed under `--trust=0` and
-  invokes both public theorems while destructuring both branches;
+- the runnable predecessor consumer: passed under `--trust=0`, invokes all nine
+  public declarations, constructs the indexed carrier, and derives `False`
+  from an actual gap's `no_predecessor` field;
 - facade, API manifest, and axiom-audit entry points: passed under `--trust=0`;
-- default replay: 23,184 reachable states, 6,198 marked-tensor ready heads,
-  6,198 exact predecessors, and zero gaps;
-- extended replay: 96,444 reachable states, 26,658 marked-tensor ready heads,
-  26,658 exact predecessors, and zero gaps;
-- public declaration audit: 890 declarations total;
-- audit classes: 608 full-classical, 25 axiom-free, 122 `propext`-only,
+- public declaration audit: 897 declarations total;
+- audit classes: 614 full-classical, 25 axiom-free, 123 `propext`-only,
   and 135 `propext` plus `Quot.sound`;
-- both new public theorems depend only on
+- `empty_olderMarkedTensorPredecessorInvariant` depends exactly on `[propext]`;
+- the other six new public theorems depend exactly on
   `[propext, Classical.choice, Quot.sound]`;
-- every detected explicit theorem input is load-bearing under the
-  minimal-hypothesis audit;
 - independent proof and integrated-checkpoint reviews reported no actionable
   P0, P1, P2, or P3 findings.
 
 Exact-head GitHub verification:
 
 - workflow: `Lean CI`;
-- run: [32238279967](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32238279967);
-- build job: [96023016555](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32238279967/job/96023016555);
-- exact head: `cd3ad0f8ea17be50d5ba2333816d33187f483609`;
+- run: [32246187565](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32246187565);
+- build job: [96047113726](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32246187565/job/96047113726);
+- exact head: `6de9e096c364bad69bef76ff51e3b6ff9973b257`;
 - result: 36 successful steps, zero failures, one expected release-ref-only
-  skip; run duration 12m21s and build-job duration 12m16s.
+  skip; run duration 12m48s (`11:09:20Z`-`11:22:08Z`) and build-job duration
+  12m45s (`11:09:23Z`-`11:22:08Z`).
 
 ## Current library-readiness position
 
@@ -208,12 +217,14 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. prove a history-preserved predecessor invariant for every member of the
-   active top ready bucket, then specialize it to eliminate the exact gap;
+1. extend `OlderMarkedTensorPredecessorInvariant` through `wait` first, then
+   `forward` and `unifyPayload`, and package full canonical-history preservation
+   so the ready-head residual is eliminated wherever that history is available;
 2. prove that every relevant semantic nonterminal certified state supplies a
    ready head;
-3. close the queue-origin and New/Wait/Forward/UnifyPayload created-candidate
-   laws needed by the global mate-region and raw-mark preservation families;
+3. close the separate queue-origin and New/Wait/Forward/UnifyPayload
+   created-candidate laws needed by the global mate-region and raw-mark
+   preservation families;
 4. derive exhaustive nonterminal dispatcher progress and later-state totality;
 5. prove pure-worklist completeness and remove the recursive fallback without
    weakening the accepted-certificate theorem;
