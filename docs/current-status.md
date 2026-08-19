@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `e6caa6818dfaf86a85a43b96e203b6c106394f78`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `fe7786f83d2df795df2e20e40b02d4f4535615ec`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,15 +46,16 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint adds a conditional bridge from the exact active-top
-residual to marking completion. It retains the full-history indexed
-marked-tensor predecessor invariant and the ready-head classification: in every
-started scheduler-invariant state, absence of `ReadyHeadInput` is equivalent to
-`ActiveTopDrained`, meaning that the live component at the last sigma boundary
-has no raw-unmarked frontier occurrence. A started, declaratively correct,
-dispatcher-reachable state therefore still satisfies the non-exclusive
-disjunction of one exact successful dispatcher result and that explicit
-residual.
+The current checkpoint characterizes the four remaining branch-local
+obligations for `ActiveTopMarkedNonconclusionDebt` exactly. It retains the
+full-history indexed marked-tensor predecessor invariant, the ready-head
+classification, and the conditional bridge from the exact active-top residual
+to marking completion. In every started scheduler-invariant state, absence of
+`ReadyHeadInput` is equivalent to `ActiveTopDrained`, meaning that the live
+component at the last sigma boundary has no raw-unmarked frontier occurrence.
+A started, declaratively correct, dispatcher-reachable state therefore still
+satisfies the non-exclusive disjunction of one exact successful dispatcher
+result and that explicit residual.
 
 `ActiveTopMarkedNonconclusionDebt certificate state` is the additional state
 predicate. For the component at the last sigma boundary, every frontier
@@ -75,6 +76,13 @@ ProofNetIR.SequentialFigure7.ConclStep.activeTopMarkedNonconclusionDebt
 ProofNetIR.SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion
 ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion
 ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_nonconclusionDebt
+ProofNetIR.SequentialFigure7.PreparedStep.SelectedAwayRawNonconclusionWitness
+ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionPresent
+ProofNetIR.SequentialFigure7.PreparedStep.activeTopMarkedNonconclusionDebt_iff_selectedAway
+ProofNetIR.SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_selectedAway
+ProofNetIR.SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_selectedAway
+ProofNetIR.SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
 ```
 
 The empty theorem establishes debt vacuously because there is no active sigma
@@ -100,13 +108,30 @@ active frontier concretely marked. Debt then excludes any active-frontier
 nonconclusion, and correctness plus scheduler ownership closes the connected
 certificate carrier. The result is exactly `state.core.allMarked = true`.
 
-This is a conditional marking-completion theorem, not a complete history
-invariant. Canonical preservation of the debt is still missing precisely for
-Nop, Wait, and the cases where Forward or UnifyPayload creates a global
-conclusion. Until those branches are closed, a dispatcher-reachable drained
-state does not automatically carry the debt, so the checkpoint does not prove
-the unconditional reachable-state implication from `ActiveTopDrained` to
-`core.allMarked = true` or unconditional progress.
+`PreparedStep.SelectedAwayRawNonconclusionWitness` records the exact extra
+witness needed when the common prefix marks its selected nonconclusion: a
+distinct raw-unmarked nonconclusion remains on the same component frontier.
+With prior debt fixed, debt after the prepared prefix, Nop, or Wait is
+equivalent to this witness. These are necessary-and-sufficient branch
+characterizations, not merely sufficient preservation lemmas.
+
+`ActiveTopMarkedNonconclusionPresent` records that the active live frontier
+actually contains a concretely marked nonconclusion. If Forward creates a
+global conclusion, the prior-state complete scheduler invariant makes
+post-debt equivalent to presence implying a non-global vertex in
+`step.prependStep.activeReady`. For a global-created UnifyPayload step, the
+corresponding exact tail is
+`payload ++ previousReady ++ activeReady`. The presence antecedent is needed
+because debt is vacuous when no marked nonconclusion is present.
+
+These equivalences expose the remaining proof obligations but do not discharge
+them. Bare `CanonicalTagHistory` and correctness hypotheses do not provide the
+selected-away or exact-tail witnesses through the current public theory.
+Consequently the debt is not yet packaged over complete canonical histories,
+and a dispatcher-reachable drained state does not automatically carry it. The
+checkpoint therefore does not prove the unconditional reachable-state
+implication from `ActiveTopDrained` to `core.allMarked = true` or unconditional
+progress.
 
 ### Finite ready-head boundary audit
 
@@ -133,11 +158,13 @@ and the
 [full-history declarations](api-reference.md#full-history-older-marked-tensor-predecessor-invariant),
 followed by the
 [active-top residual](api-reference.md#active-top-ready-head-residual) and the
-[active-top marked-nonconclusion debt](api-reference.md#active-top-marked-nonconclusion-debt).
+[active-top marked-nonconclusion debt](api-reference.md#active-top-marked-nonconclusion-debt),
+and then the
+[active-top debt branch residuals](api-reference.md#active-top-debt-branch-residuals).
 The structural no-head classifier and the conditional drained-to-all-marked
-reduction are kernel-checked. Complete canonical-history preservation of the
-debt through Nop, Wait, and global-created Forward/UnifyPayload is the first
-open proof step.
+reduction are kernel-checked. Deriving the selected-away and global-created
+exact-tail laws, then packaging complete canonical-history preservation of the
+debt, is the first open proof step.
 
 ## What the rolling theorem does not prove
 
@@ -145,9 +172,12 @@ This checkpoint does not establish any of the following:
 
 - construction of a relevant `ExecutedHistory`, reachable state, or
   `ReadyHeadInput`;
+- the selected-away witness for Nop or Wait from bare canonical history and
+  correctness;
+- the exact non-global tail law for global-created Forward or UnifyPayload from
+  bare canonical history and correctness;
 - complete canonical-history preservation of
-  `ActiveTopMarkedNonconclusionDebt` through Nop, Wait, and global-created
-  Forward/UnifyPayload;
+  `ActiveTopMarkedNonconclusionDebt`;
 - an unconditional reachable-state proof that `ActiveTopDrained` implies
   `core.allMarked = true`, semantic completion, or terminality without the
   debt hypothesis;
@@ -175,12 +205,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    e6caa6818dfaf86a85a43b96e203b6c106394f78
-tree      1b416ce9e43b0e2deb47b44bd441c439a02755fb
-parent    b7d1565cfb0d54754214ca324dadbe97dbf2a6e8
-stage     active-top marked-nonconclusion debt and conditional completion
-delta     17 paths, +1438/-62
-manifest  0D59F9256B54F235404078723699436FC26AB2160ED2256F28B8CDE3E99D1764
+commit    fe7786f83d2df795df2e20e40b02d4f4535615ec
+tree      073b742bb1aeb4dd54f9c706c71148d78a7ea504
+parent    c5f19c8c57e1a02d035ca41c3a5ae9ca93047422
+stage     active-top debt exact branch residuals
+delta     17 paths, +936/-46
+manifest  CE6601D205F8B9F8B1696E213E76BE2B7948335E450EDBF97916D2CD0EFBFD2F
 ```
 
 The separately committed finite-audit evidence is:
@@ -196,8 +226,8 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 455/455 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 218 Lean
+- full `lake build`: 460/460 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 220 Lean
   files;
 - generated API reference: current;
 - the default, extended, and cross-variant progress audits passed with every
@@ -228,9 +258,13 @@ Local verification on the committed bytes:
   `--trust=0`, invokes all seven public theorems, checks the empty,
   initial-reservation, New, Concl, non-global-created Forward and UnifyPayload
   cases, and applies the exact drained-to-all-marked reduction;
+- the runnable active-top debt branch-residual consumer: passed under
+  `--trust=0`, invokes both directions of all five exact equivalences and
+  consumes both new public definitions by destructuring and reconstructing
+  their witnesses;
 - facade, API manifest, and axiom-audit entry points: passed under `--trust=0`;
-- public declaration audit: 914 declarations total;
-- audit classes: 630 full-classical, 25 axiom-free, 124 `propext`-only,
+- public declaration audit: 919 declarations total;
+- audit classes: 634 full-classical, 25 axiom-free, 125 `propext`-only,
   and 135 `propext` plus `Quot.sound`;
 - `empty_olderMarkedTensorPredecessorInvariant` depends exactly on `[propext]`;
 - the other six original branch-prefix theorems and the Wait, bridge, and
@@ -243,6 +277,10 @@ Local verification on the committed bytes:
 - `empty_activeTopMarkedNonconclusionDebt` depends exactly on `[propext]`;
 - the other six active-top marked-nonconclusion debt theorems depend exactly on
   `[propext, Classical.choice, Quot.sound]`;
+- `PreparedStep.activeTopMarkedNonconclusionDebt_iff_selectedAway` depends
+  exactly on `[propext]`;
+- the Nop, Wait, Forward, and UnifyPayload exact branch-residual equivalences
+  depend exactly on `[propext, Classical.choice, Quot.sound]`;
 - independent proof, API, and documentation reviews reported no actionable P0,
   P1, P2, or P3 findings.
 
@@ -250,12 +288,12 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32291780984](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32291780984);
-- build job: [96194005211](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32291780984/job/96194005211);
-- exact head: `e6caa6818dfaf86a85a43b96e203b6c106394f78`;
+- run: [32301049304](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32301049304);
+- build job: [96223401596](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32301049304/job/96223401596);
+- exact head: `fe7786f83d2df795df2e20e40b02d4f4535615ec`;
 - result: 36 successful steps, zero failures, one expected release-ref-only
-  skip; run duration 12m15s (`19:12:57Z`-`19:25:12Z`) and build-job duration
-  12m10s (`19:13:01Z`-`19:25:11Z`).
+  skip; run duration 12m37s (`20:54:07Z`-`21:06:44Z`) and build-job duration
+  12m33s (`20:54:10Z`-`21:06:43Z`).
 
 Exact-head finite-audit GitHub verification:
 
@@ -322,10 +360,11 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. preserve `ActiveTopMarkedNonconclusionDebt` through Nop, Wait, and the
-   global-created Forward/UnifyPayload cases, package the complete canonical
-   history invariant, then derive the unconditional reachable-state
-   `ActiveTopDrained → core.allMarked = true` corollary and use marking
+1. derive the selected-away witnesses for Nop and Wait and the exact non-global
+   tail laws for global-created Forward and UnifyPayload; then package
+   `ActiveTopMarkedNonconclusionDebt` through complete canonical histories,
+   derive the unconditional reachable-state
+   `ActiveTopDrained → core.allMarked = true` corollary, and use marking
    incompleteness to exclude the residual;
 2. close the separate queue-origin and remaining created-candidate laws needed
    by the global mate-region and raw-mark preservation families;
