@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- reorganized the documentation without changing Lean semantics. The README is
+  now a bounded entry point with a short replaceable rolling summary instead
+  of a checkpoint log. `docs/current-status.md` owns the single current proof
+  checkpoint and verification receipt, `CONTRIBUTING.md` owns development and
+  release commands, and `docs/readme-relocation-ledger.md` records the
+  zero-loss destination of every former README range. The tutorial's released
+  dependency example now pins stable `v0.9.0`;
 - added `SequentialFigure7CommitmentBlockerMaximality.lean`. Under declarative
   correctness and the complete scheduler invariant, for a supplied canonical
   history, active `NewGuard`, authentic ledger membership, and strict current-

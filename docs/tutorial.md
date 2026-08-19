@@ -20,7 +20,7 @@ For a released build, pin a tag instead of tracking `main`:
 [[require]]
 name = "proofnet-ir"
 git = "https://github.com/fushanbobfan/proofnet-ir"
-rev = "v0.5.0"
+rev = "v0.9.0"
 ```
 
 Then import the single public umbrella module:
@@ -32,9 +32,9 @@ open ProofNetIR
 ```
 
 The path consumer in `consumer-smoke/` continuously checks the current API.
-The release consumer in `consumer-release-smoke/` protects the latest tagged
-API independently. `consumer-smoke/Tutorial.lean` compiles the tutorial's core
-examples so documentation drift becomes a CI failure.
+The release consumers protect their explicitly pinned tags, including the
+stable v0.9.0 surface, independently. `consumer-smoke/Tutorial.lean` compiles
+the tutorial's core examples so documentation drift becomes a CI failure.
 
 ## 2. Construct and check a certificate
 

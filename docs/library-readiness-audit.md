@@ -1126,10 +1126,10 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 881 declarations: 599 public MLL
-  logical-boundary theorems must retain exactly `propext`,
-  `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
-  122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+- CI parses `#print axioms` for the maintained public declaration set and
+  locks exact standard-three, axiom-free, `propext`-only, and
+  `propext`/`Quot.sound` boundaries; rolling totals and the exact checkpoint
+  receipt live in [current status](current-status.md);
 - the two public graph-acyclicity transport theorems and the two exact
   first-frontier/prefix-path theorems are separately locked to exactly
   `propext` and `Quot.sound`, without `Classical.choice`;
