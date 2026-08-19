@@ -964,11 +964,15 @@
     ready-head instance to the exact immediate sigma predecessor. This rules out
     `ReadyHeadMarkedTensorPredecessorGap` only when the invariant is supplied;
     it is a branch prefix, not a history theorem.
-  - [ ] Extend that invariant through `wait` first, then `forward` and
-    `unifyPayload`, before packaging full canonical-history preservation.
-    Separately prove that every relevant semantic nonterminal state supplies a
-    ready head before claiming dispatcher progress, later-state totality, or
-    Figure-7 pure-worklist completeness.
+  - [x] Preserve that invariant through a canonical successful `wait`. Retained
+    work transports through the prepared prefix and destination update; private
+    Wait geometry supplies the immediate predecessor for the inserted
+    conclusion. This does not package full-history availability.
+  - [ ] Extend that invariant through `forward` first, then `unifyPayload`,
+    before packaging full canonical-history preservation. Separately prove that
+    every relevant semantic nonterminal state supplies a ready head before
+    claiming dispatcher progress, later-state totality, or Figure-7
+    pure-worklist completeness.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1224,7 +1228,7 @@
     input-only. This is an API/classification migration only; it proves no
     progress, totality, completeness, or fallback removal. The predecessor
     projection now discharges the ready-head residual for states carrying the
-    new invariant. Complete `Wait`/`Forward`/`UnifyPayload` preservation and the
+    new invariant. Complete `Forward`/`UnifyPayload` preservation and the
     full-history induction before deriving ready-head existence or exhaustive
     dispatcher enabledness on correct certified-reachable nonterminal states.
     Exact source-left complexity descent, last-step decomposition, and

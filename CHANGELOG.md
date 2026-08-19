@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderMarkedTensorPredecessorWaitPreservation.lean`.
+  A canonical successful `wait` now preserves the all-future-work marked-tensor
+  predecessor invariant from a supplied prior invariant, complete scheduler
+  invariant, declarative correctness, canonical history, and typed Wait
+  dispatch and `WaitStep` witnesses. Retained work transports through the
+  prepared prefix and the sigma-preserving destination update; private Wait
+  geometry supplies the exact immediate predecessor for the inserted
+  conclusion. The runnable consumer
+  applies the public theorem and destructures all four indexed predecessor
+  fields. This extends the branch prefix through Wait; `forward` is the first
+  open preservation branch, followed by `unifyPayload` and full canonical-history
+  packaging. It does not construct that history, establish ready-head existence,
+  or prove dispatcher progress, later-state totality, completeness, fallback
+  removal, or linearity. The public axiom audit boundary becomes 898
+  declarations: 615 full-classical, 25 axiom-free, 123 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderMarkedTensorPredecessorInvariant.lean` and
   `SequentialFigure7OlderMarkedTensorPredecessorNewPreservation.lean`. The
   indexed invariant ranges over every ready or waiting `FutureWorkAt`, recording
@@ -14,7 +30,7 @@
   ready-head projection converts the residual's boundary lookup and strict
   active-boundary order into `SigmaPredecessorInput`. A supplied residual then
   contradicts its own no-predecessor field whenever the invariant is available.
-  This is only an
+  At that checkpoint this was only an
   empty/init/Prepared/Concl/Nop/New
   branch prefix: `wait` is the first open preservation branch, with `forward`,
   `unifyPayload`, full-history availability, ready-head existence, dispatcher

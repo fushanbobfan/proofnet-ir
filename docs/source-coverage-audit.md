@@ -278,13 +278,18 @@ witness. It does not deny that another branch may also be enabled, prove the gap
 unreachable, or establish ready-head existence. The deterministic replay audit
 observed 6,198 default and 26,658 extended marked-tensor ready-head states with
 zero such gaps. This is finite executable evidence and records no new
-page/chapter reading or universal theorem. The next code invariant must quantify
-over every member of the active top ready bucket, not just the selected head, so
-that it survives a pop exposing the bucket tail. Global preservation of the
-mate-region and older-raw-mark invariants through candidate-creating rules
-remains open, as do queue origin, created-candidate raw seams, ready-head
-existence, progress, later-state totality, fallback removal, faithful token-age
-scheduling, and whole-program linearity. The future-head-touch invariant is
+page/chapter reading or universal theorem. A further kernel-checked code
+consequence now defines the predecessor invariant over every ready or waiting
+`FutureWorkAt`, not only the selected head, and preserves it through
+empty/init/Prepared/Concl/Nop/New and canonical Wait. The Wait proof transports
+retained work and derives the inserted conclusion's adjacency from private
+reference, touch, and commitment geometry. This is a code consequence and
+records no new literature reading. Forward, UnifyPayload, and full-history
+availability remain open. Global preservation of the mate-region and
+older-raw-mark invariants through candidate-creating rules remains open, as do
+queue origin, created-candidate raw seams, ready-head existence, progress,
+later-state totality, fallback removal, faithful token-age scheduling, and
+whole-program linearity. The future-head-touch invariant is
 preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head
 residuals, and canonical-history induction now makes it globally available

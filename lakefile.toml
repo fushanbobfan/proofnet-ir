@@ -43,6 +43,7 @@ defaultTargets = [
   "proofnet_ir_older_event_future_work_touch_new_preservation_tests",
   "proofnet_ir_older_raw_marked_region_new_preservation_tests",
   "proofnet_ir_cross_representative_wait_preservation_tests",
+  "proofnet_ir_older_marked_tensor_predecessor_wait_tests",
   "proofnet_ir_older_event_future_work_touch_wait_preservation_tests",
   "proofnet_ir_older_event_future_work_touch_wait_discharge_tests",
   "proofnet_ir_older_raw_marked_region_wait_preservation_tests",
@@ -232,6 +233,10 @@ root = "ProofNetIROlderRawMarkedRegionNewPreservationTests"
 [[lean_exe]]
 name = "proofnet_ir_cross_representative_wait_preservation_tests"
 root = "ProofNetIRCrossRepresentativeWaitPreservationTests"
+
+[[lean_exe]]
+name = "proofnet_ir_older_marked_tensor_predecessor_wait_tests"
+root = "ProofNetIROlderMarkedTensorPredecessorWaitTests"
 
 [[lean_exe]]
 name = "proofnet_ir_older_event_future_work_touch_wait_preservation_tests"

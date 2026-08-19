@@ -9338,6 +9338,29 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.new_olderMarkedTensorPredecesso
           ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.wait_olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+A canonical dispatcher `wait` preserves the all-future-work predecessor
+invariant.  Retained work is transported through the prepared prefix and the
+sigma-preserving destination update; the inserted conclusion is discharged
+by private Wait-specific geometry internal to this module.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.wait_olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.wait, after := after }}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+      ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate before →
+        ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

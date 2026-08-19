@@ -23,17 +23,16 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch now carries an indexed predecessor invariant over every
-ready or waiting future-work occurrence. It holds for the empty and
-initial-reservation states, survives the shared prepared prefix and the `concl`
-and `nop` branches under their stated scheduler hypotheses. A canonical `new`
-step preserves it under the scheduler invariant, declarative correctness, and
-canonical history. Given the scheduler invariant at a supplied ready head, its
-projection supplies the exact immediate sigma predecessor and therefore
-contradicts the marked-tensor residual.
-This is a branch-prefix result, not a full-history theorem: `wait` is the first
-open preservation branch, while `forward`, `unifyPayload`, ready-head existence,
-dispatcher progress, later-state totality, and Figure-7 pure-worklist
+The rolling branch carries an indexed predecessor invariant over every ready or
+waiting future-work occurrence. It holds for empty and initial-reservation
+states and survives Prepared, `concl`, and `nop`; canonical `new` and canonical
+successful `wait` preserve it under their stated scheduler, correctness,
+canonical-history, and typed-step hypotheses. Given the complete scheduler
+invariant at a supplied ready head, its projection supplies the exact immediate
+sigma predecessor and contradicts the marked-tensor residual.
+This remains a branch prefix, not full-history availability: `forward` is the
+first open preservation branch, followed by `unifyPayload`; ready-head
+existence, dispatcher progress, later-state totality, and Figure-7 pure-worklist
 completeness remain open.
 [The replaceable current-status record](docs/current-status.md) remains the
 owner of exact revision, verification receipt, and gates.
