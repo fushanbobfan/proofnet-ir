@@ -39,6 +39,7 @@ defaultTargets = [
   "proofnet_ir_active_region_enabledness_tests",
   "proofnet_ir_ready_head_dispatch_residual_tests",
   "proofnet_ir_cross_representative_new_preservation_tests",
+  "proofnet_ir_older_marked_tensor_predecessor_tests",
   "proofnet_ir_older_event_future_work_touch_new_preservation_tests",
   "proofnet_ir_older_raw_marked_region_new_preservation_tests",
   "proofnet_ir_cross_representative_wait_preservation_tests",
@@ -215,6 +216,10 @@ root = "ProofNetIRReadyHeadDispatchResidualTests"
 [[lean_exe]]
 name = "proofnet_ir_cross_representative_new_preservation_tests"
 root = "ProofNetIRCrossRepresentativeNewPreservationTests"
+
+[[lean_exe]]
+name = "proofnet_ir_older_marked_tensor_predecessor_tests"
+root = "ProofNetIROlderMarkedTensorPredecessorTests"
 
 [[lean_exe]]
 name = "proofnet_ir_older_event_future_work_touch_new_preservation_tests"

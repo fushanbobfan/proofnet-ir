@@ -786,6 +786,32 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Older marked-tensor predecessor branch prefix"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.SigmaImmediatePredecessorAt,
+      `ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant,
+      Name.str
+        `ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant
+        "readyHead_predecessor_of_boundary_lt",
+      `ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant,
+      Name.str
+        `ProofNetIR.SequentialFigure7.InitialReservationStep
+        "olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.PreparedStep
+        "olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ConclStep
+        "olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "new_olderMarkedTensorPredecessorInvariant"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

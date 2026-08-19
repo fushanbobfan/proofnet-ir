@@ -305,6 +305,20 @@ expansion.
   CanonicalTagHistory.readyHead_priorityEnabled_or_markedTensorPredecessorGap
 #print axioms
   ReachableByImplementedDispatcher.readyHead_dispatch_or_markedTensorPredecessorGap
+#print axioms
+  SequentialFigure7.OlderMarkedTensorPredecessorInvariant.readyHead_predecessor_of_boundary_lt
+#print axioms
+  SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.InitialReservationStep.olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.PreparedStep.olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.ConclStep.olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.NopStep.olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.new_olderMarkedTensorPredecessorInvariant
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

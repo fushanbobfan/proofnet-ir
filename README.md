@@ -23,19 +23,20 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-Under declarative correctness, the complete scheduler invariant, a canonical
-history, and a supplied ready head, the current theorem gives an inclusive
-dichotomy: some fixed-priority branch is enabled, or a marked tensor has an
-exact strictly older sigma boundary without an immediate-predecessor witness.
-For dispatcher-reachable states the positive branch yields an actual canonical
-dispatch result. Bounded default and extended audits found no such predecessor
-gap, but this is regression evidence, not a universal proof of unreachability.
-The library still does not derive ready-head existence from semantic
-nonterminality, eliminate the gap, or prove progress, later-state totality,
-pure-worklist completeness, fallback removal, faithful token-age scheduling,
-or whole-program linearity. Exact revision, verification receipt, and gates are
-maintained in
-[the replaceable current-status record](docs/current-status.md).
+The rolling branch now carries an indexed predecessor invariant over every
+ready or waiting future-work occurrence. It holds for the empty and
+initial-reservation states, survives the shared prepared prefix and the `concl`
+and `nop` branches under their stated scheduler hypotheses. A canonical `new`
+step preserves it under the scheduler invariant, declarative correctness, and
+canonical history. Given the scheduler invariant at a supplied ready head, its
+projection supplies the exact immediate sigma predecessor and therefore
+contradicts the marked-tensor residual.
+This is a branch-prefix result, not a full-history theorem: `wait` is the first
+open preservation branch, while `forward`, `unifyPayload`, ready-head existence,
+dispatcher progress, later-state totality, and Figure-7 pure-worklist
+completeness remain open.
+[The replaceable current-status record](docs/current-status.md) remains the
+owner of exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->
 
 ## Scope

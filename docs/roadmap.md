@@ -958,13 +958,17 @@
     and `ReadyHeadMarkedTensorPredecessorGap`; certified dispatcher reachability
     lowers the positive branch to an exact `dispatch?` result. Do not read this
     as an exclusive partition or as a proof that the gap is unreachable.
-  - [ ] Prove a history-preserved active-top-bucket predecessor invariant. It
-    must quantify over every member of the active top ready bucket, not only the
-    currently selected head, because popping that head exposes an existing tail
-    member without changing the sigma top. Then specialize it to
-    `ReadyHeadInput` to eliminate the marked-tensor residual. Separately prove
-    that every relevant semantic nonterminal state supplies a ready head before
-    claiming dispatcher progress or later-state totality.
+  - [x] Define the predecessor invariant over every ready or waiting
+    `FutureWorkAt`, establish it for empty and initial-reservation states,
+    preserve it through Prepared, `concl`, `nop`, and canonical `new`, and project its
+    ready-head instance to the exact immediate sigma predecessor. This rules out
+    `ReadyHeadMarkedTensorPredecessorGap` only when the invariant is supplied;
+    it is a branch prefix, not a history theorem.
+  - [ ] Extend that invariant through `wait` first, then `forward` and
+    `unifyPayload`, before packaging full canonical-history preservation.
+    Separately prove that every relevant semantic nonterminal state supplies a
+    ready head before claiming dispatcher progress, later-state totality, or
+    Figure-7 pure-worklist completeness.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1218,11 +1222,11 @@
     constructor, the historical necessary-input facade, and fixed dispatcher
     priority. Both positive `new` and all stored negative `new` fields are now
     input-only. This is an API/classification migration only; it proves no
-    progress, totality, completeness, or fallback removal. The ready-head
-    residual theorem now localizes the remaining marked case, but its
-    elimination first needs the bucket-wide predecessor invariant above; after
-    that, derive ready-head existence and exhaustive dispatcher enabledness on
-    correct certified-reachable nonterminal states.
+    progress, totality, completeness, or fallback removal. The predecessor
+    projection now discharges the ready-head residual for states carrying the
+    new invariant. Complete `Wait`/`Forward`/`UnifyPayload` preservation and the
+    full-history induction before deriving ready-head existence or exhaustive
+    dispatcher enabledness on correct certified-reachable nonterminal states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

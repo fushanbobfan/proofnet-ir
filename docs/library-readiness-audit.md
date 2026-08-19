@@ -543,11 +543,17 @@ part of the engineering and proof-identity gap.
    The residual is already narrowed to a strictly older retained mate boundary
    that is not known to be the active top's immediate predecessor. This is not
    an exclusive classification, a proof that the gap is unreachable, or a
-   theorem that every semantic nonterminal state supplies a ready head. The
-   missing inductive invariant must quantify over every member of the active
-   top ready bucket so that popping one member preserves the fact for the tail.
-   Progress, later-state totality, recursive-fallback removal, faithful
-   token-age scheduling, and whole-program linearity remain open.
+   theorem that every semantic nonterminal state supplies a ready head. The new
+   predecessor invariant now quantifies over every ready or waiting future-work
+   occurrence, holds for empty and initial-reservation states, and is preserved
+   through Prepared, `concl`, `nop`, and canonical `new`. Its ready-head projection
+   converts the residual's strictly older boundary into the exact immediate
+   predecessor, closing the residual only when that branch-prefix invariant is
+   already available. Full history preservation is not established: `wait` is
+   the first open branch, followed by `forward` and `unifyPayload`. Ready-head
+   existence, dispatcher progress, later-state totality, recursive-fallback
+   removal, faithful token-age scheduling, whole-program linearity, and
+   Figure-7 pure-worklist completeness remain open maturity gates.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -981,15 +987,13 @@ part of the engineering and proof-identity gap.
    existence, branch exhaustiveness, global raw-invariant preservation,
    dispatcher progress, later-state totality, worklist completeness, fallback
    removal, token-age scheduling, or whole-program linearity.
-   The downstream ready-head residual layer packages the strongest current
-   branch boundary. For any supplied correct canonical-history ready head, the
-   result is inclusively either a priority-enabled branch or a marked tensor
-   whose mate lies at a strictly older retained boundary without the required
-   immediate-predecessor witness. Certified reachability lowers the former to
-   an exact dispatcher equation but does not eliminate the latter. The next
-   invariant must range over the complete active top ready bucket rather than
-   only its selected member; no current theorem supplies ready-head existence,
-   progress, later-state totality, fallback removal, scheduling, or linearity.
+   The predecessor projection now discharges that ready-head residual for
+   states carrying the new invariant. Availability beyond the current
+   empty/init/Prepared/Concl/Nop/New branch prefix remains the maturity gap.
+   `wait` is the first unproved preservation branch, followed by `forward`,
+   `unifyPayload`, and the full canonical-history induction. Consequently the
+   library still has no theorem deriving ready-head existence, dispatcher
+   progress, later-state totality, or Figure-7 pure-worklist completeness.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created

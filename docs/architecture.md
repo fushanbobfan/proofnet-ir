@@ -901,12 +901,30 @@ it with the active top's immediate predecessor. The alternatives are not stated
 as exclusive. Under `ReachableByImplementedDispatcher`, the positive branch is
 lowered to an exact successful `dispatch?` equation. The module does not prove
 that a semantic nonterminal state has a ready head or that the residual is
-unreachable. An inductive queue-origin bridge must therefore cover every member
-of the active top ready bucket: after its head is popped, an existing tail member
-can become selected while the sigma top remains unchanged. A selected-head-only
-property is too weak for that transition. Dispatcher progress, later-state
-totality, recursive-fallback removal, faithful token-age scheduling, and
-whole-program linearity remain separate gates.
+unreachable by itself.
+
+`SequentialFigure7OlderMarkedTensorPredecessorInvariant.lean` supplies the
+non-circular state layer immediately above that residual. Its indexed invariant
+ranges over every `FutureWorkAt`, including ready-bucket members and waiting
+work rather than only the selected head. When a marked tensor mate's current
+representative is strictly below the work's current representative, it stores
+the two adjacent sigma positions and the exact mate-boundary lookup. The
+ready-head projection combines that carrier with the scheduler
+invariant and returns the existing `SigmaPredecessorInput`; consequently a
+supplied `ReadyHeadMarkedTensorPredecessorGap` is impossible whenever this
+invariant is available.
+
+The base layer proves the invariant for empty and initial-reservation states and
+preserves it through the shared prepared prefix and the stable `concl` and
+`nop` branches. `SequentialFigure7OlderMarkedTensorPredecessorNewPreservation.lean`
+adds canonical `new`: retained work transports across the fresh sigma append,
+while an old marked mate of a created endpoint is forced to the prior active
+boundary immediately below the appended one. This is a branch prefix, not a
+full-history construction. `wait` is the first open preservation case;
+`forward`, `unifyPayload`, global history availability, ready-head existence,
+dispatcher progress, later-state totality, recursive-fallback removal, faithful
+token-age scheduling, Figure-7 pure-worklist completeness, and whole-program
+linearity remain separate gates.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1280,7 +1298,8 @@ mate resolved to the immediate predecessor, so both runs recorded zero missing-
 predecessor gaps. The detector retains a complete replayable counterexample and
 partitions any failure into a missing previous top or a boundary mismatch. These
 finite observations neither prove `ReadyHeadMarkedTensorPredecessorGap`
-uninhabited nor replace the bucket-wide invariant required by the Lean proof.
+uninhabited nor establish the predecessor invariant beyond its current
+empty/init/Prepared/Concl/Nop/New branch prefix.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

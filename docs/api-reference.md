@@ -9198,6 +9198,146 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch
     Nonempty (ProofNetIR.SequentialFigure7.ReadyHeadMarkedTensorPredecessorGap certificate before head)
 ```
 
+## Older marked-tensor predecessor branch prefix
+
+### `ProofNetIR.SequentialFigure7.SigmaImmediatePredecessorAt`
+
+Kind: inductive type.
+
+Indexed evidence that a marked tensor mate resolves to the sigma boundary
+immediately preceding one future-work boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.SigmaImmediatePredecessorAt : List ProofNetIR.SequentialSchedulerState.RawTokenAge →
+  ProofNetIR.SequentialSchedulerState.RawTokenAge →
+    ProofNetIR.SequentialSchedulerState.RawTokenAge → ProofNetIR.SequentialSchedulerState.RawTokenAge → Type
+```
+
+### `ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant`
+
+Kind: definition.
+
+Every marked tensor mate whose current representative is strictly below
+that of a ready or waiting future-work occurrence has an indexed immediate
+sigma predecessor.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant.readyHead_predecessor_of_boundary_lt`
+
+Kind: theorem.
+
+Project the invariant from the strict sigma-boundary evidence carried by
+the current ready-head dispatch residual.
+
+```lean
+ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant.readyHead_predecessor_of_boundary_lt : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate state →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (head : ProofNetIR.SequentialFigure7.ReadyHeadInput state)
+        (consumer : ProofNetIR.ConnectiveBelow certificate head.vertex),
+        consumer.kind = ProofNetIR.SequentialConnectiveKind.tensor →
+          ∀ {mateRawAge mateBoundary : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+            state.core.marks[consumer.mate]? = some (some mateRawAge) →
+              ProofNetIR.SequentialSchedulerState.sigmaBoundary? state.stack.sigma mateRawAge = some mateBoundary →
+                mateBoundary < head.rawAge →
+                  ∃ previousBoundary,
+                    Nonempty
+                      (ProofNetIR.SequentialFigure7.SigmaPredecessorInput state.stack.sigma head.rawAge mateRawAge
+                        previousBoundary)
+```
+
+### `ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+The empty reservation state satisfies the invariant vacuously.
+
+```lean
+ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate
+    (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.InitialReservationStep.olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+Initial reservation preserves the empty raw-mark array and establishes
+the invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.InitialReservationStep.olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+The pop/raw-mark prefix preserves the invariant. The scheduler invariant
+rules out the newly selected mark as a strictly older mate of retained work.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate before →
+      ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate step.after
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+A successful `concl` branch preserves the invariant through its prepared
+prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate before →
+      ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+A successful `nop` branch preserves the invariant through its prepared
+prefix.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate before →
+      ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.new_olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+A canonical successful `new` branch preserves the all-future-work
+predecessor invariant directly from the input state.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.new_olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+        ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate before →
+          ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

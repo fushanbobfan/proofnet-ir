@@ -118,6 +118,18 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "readyHead_priorityEnabled_or_markedTensorPredecessorGap",
     "ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher."
     "readyHead_dispatch_or_markedTensorPredecessorGap",
+    "ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant."
+    "readyHead_predecessor_of_boundary_lt",
+    "ProofNetIR.SequentialFigure7.InitialReservationStep."
+    "olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.PreparedStep."
+    "olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.ConclStep."
+    "olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.NopStep."
+    "olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "new_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
@@ -704,6 +716,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
 }
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated",
+    "ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem",
     "ProofNetIR.SequentialFigure7.PreparedStep.after_representative_eq_before",
     "ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before",

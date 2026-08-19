@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderMarkedTensorPredecessorInvariant.lean` and
+  `SequentialFigure7OlderMarkedTensorPredecessorNewPreservation.lean`. The
+  indexed invariant ranges over every ready or waiting `FutureWorkAt`, recording
+  exact adjacent sigma positions whenever a marked tensor mate's current
+  representative is strictly below the work's current representative. It holds
+  for empty and initial-reservation states and is preserved by the shared
+  prepared prefix and the stable `concl` and `nop` branches under their
+  scheduler-invariant hypotheses. A canonical `new` step preserves it under
+  the scheduler invariant, declarative correctness, and canonical history. Its
+  ready-head projection converts the residual's boundary lookup and strict
+  active-boundary order into `SigmaPredecessorInput`. A supplied residual then
+  contradicts its own no-predecessor field whenever the invariant is available.
+  This is only an
+  empty/init/Prepared/Concl/Nop/New
+  branch prefix: `wait` is the first open preservation branch, with `forward`,
+  `unifyPayload`, full-history availability, ready-head existence, dispatcher
+  progress, and Figure-7 pure-worklist completeness still open;
 - added `SequentialFigure7ReadyHeadDispatchResidual.lean`. For a supplied ready
   head under declarative correctness, the complete scheduler invariant, and an
   authentic canonical tag history, the six rule families now reduce to an

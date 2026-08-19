@@ -696,10 +696,18 @@ below the active top without an immediate-predecessor witness. It neither makes
 the branches exclusive nor proves the residual uninhabited. The reachable
 wrapper consumes an existing certified history and lowers only the positive
 branch to `dispatch? = some result`; it does not manufacture a ready head. The
-missing queue-origin invariant must range over every member of the active top
-ready bucket, because a pop can expose a tail member without changing the sigma
-top. Ready-head existence, residual elimination, progress, later-state
-totality, recursive-fallback removal, faithful token-age scheduling, and
+new predecessor invariant adds no oracle either: it is an explicit proposition
+over every ready or waiting `FutureWorkAt`, and its projection rules out the
+residual only when that proposition is supplied. The empty-state proof uses
+exactly `[propext]`; the projection, initialization, Prepared, `concl`, `nop`,
+and canonical `new` preservation theorems use exactly
+`[propext, Classical.choice, Quot.sound]`. Canonical history and declarative
+correctness are ordinary hypotheses of the New theorem, not trusted
+reachability or progress assumptions. No theorem yet preserves this invariant
+through `wait`, which is the first open branch; `forward`, `unifyPayload`, full
+history availability, ready-head existence, residual elimination without an
+invariant premise, progress, later-state totality, recursive-fallback removal,
+faithful token-age scheduling, Figure-7 pure-worklist completeness, and
 whole-program linearity remain outside the theorem boundary.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
