@@ -565,14 +565,20 @@ part of the engineering and proof-identity gap.
    the complete scheduler invariant, canonical history, and the prior
    predecessor invariant; it does not derive any of them. The
    ready-head projection converts the residual's strictly older boundary into
-   the exact immediate predecessor only when the branch-prefix invariant is
-   already available. The successful-rule prefix is now closed through
-   UnifyPayload, but full canonical-history preservation is the first open
-   gate. Ready-head existence, branch applicability, dispatcher
-   progress, later-state totality, recursive-fallback removal, faithful
-   token-age scheduling, whole-program linearity, and Figure-7 pure-worklist
-   completeness remain open maturity gates; no global raw seam,
-   sequentialization result, or linearity theorem follows from this branch.
+   the exact immediate predecessor whenever the invariant is available.
+   `SequentialFigure7OlderMarkedTensorPredecessorHistory.lean` now packages the
+   closed prefix over complete canonical dispatcher histories and exposes it for
+   every `ExecutedHistory` under declarative correctness. At a
+   dispatcher-reachable state with an explicitly supplied `ReadyHeadInput`, the
+   invariant eliminates the residual and yields one exact successful
+   dispatcher result. The wrapper does not construct that ready head.
+   Ready-head existence for relevant semantic nonterminal certified states is
+   therefore the first remaining gate before dispatcher progress. Branch
+   applicability without the explicit ready-head premise, later-state
+   totality, recursive-fallback removal, faithful token-age scheduling,
+   whole-program linearity, and Figure-7 pure-worklist completeness remain open
+   maturity gates; no global raw seam or sequentialization result follows from
+   this history package.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -1007,15 +1013,16 @@ part of the engineering and proof-identity gap.
    dispatcher progress, later-state totality, worklist completeness, fallback
    removal, token-age scheduling, or whole-program linearity.
    The predecessor projection now discharges that ready-head residual for
-   states carrying the new invariant. The successful-rule branch prefix is
-   closed through UnifyPayload: retained work transports across the sigma pop,
-   moved active work contradicts strict output order, and inserted work uses a
-   carrier-free older-event touch theorem plus the conditional child-anchor
-   bridge. Full canonical-history preservation is the first unproved gate.
-   Consequently the library still has no theorem deriving ready-head existence,
-   branch applicability, dispatcher progress, later-state totality, a global
-   raw seam, fallback removal, scheduling fidelity, sequentialization,
-   Figure-7 pure-worklist completeness, or whole-program linearity.
+   states carrying the new invariant. After the successful-rule prefix closes
+   through UnifyPayload, the full canonical-history induction makes the
+   invariant available for every correct executed dispatcher history. A
+   reachable state with an explicitly supplied ready head therefore has one
+   exact successful dispatcher result. Consequently the library still has no
+   theorem deriving ready-head existence from semantic nonterminality, branch
+   applicability without that ready-head premise, unconditional dispatcher
+   progress, later-state totality, a global raw seam, fallback removal,
+   scheduling fidelity, sequentialization, Figure-7 pure-worklist completeness,
+   or whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created

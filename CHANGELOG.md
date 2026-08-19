@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7OlderMarkedTensorPredecessorHistory.lean`, which
+  packages the predecessor invariant over complete canonical dispatcher
+  histories. The canonical-history induction handles empty and initial states
+  directly and case-splits every later successful `concl`, `nop`, `new`,
+  `wait`, `forward`, and `unifyPayload` dispatch, reusing the corresponding
+  branch-preservation theorem. An `ExecutedHistory` wrapper makes the invariant
+  available under declarative correctness. For a dispatcher-reachable state
+  with an explicitly supplied `ReadyHeadInput`, the invariant eliminates the
+  marked-tensor predecessor residual and yields an exact successful
+  `dispatch?` result. The runnable consumer invokes all three public
+  declarations, projects every indexed predecessor field, and destructures the
+  exact dispatcher result. This checkpoint does not derive a ready head from
+  semantic nonterminality and therefore does not prove unconditional dispatcher
+  progress, later-state totality, fallback removal, pure-worklist completeness,
+  faithful scheduling, sequentialization, or whole-program linearity. The
+  pending local audit gate is expected to report 905 declarations: 622
+  full-classical, 25 axiom-free, 123 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added
   `SequentialFigure7OlderMarkedTensorPredecessorUnifyPayloadPreservation.lean`
   and exposed the carrier-free raw touch theorem

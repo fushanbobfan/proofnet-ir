@@ -327,6 +327,11 @@ expansion.
   SequentialFigure7.CanonicalTagHistory.forward_olderMarkedTensorPredecessorInvariant
 #print axioms
   SequentialFigure7.CanonicalTagHistory.unifyPayload_olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.ExecutedHistory.olderMarkedTensorPredecessorInvariant
+#print axioms SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

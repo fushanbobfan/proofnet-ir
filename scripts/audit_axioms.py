@@ -138,6 +138,12 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "forward_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "unifyPayload_olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.ExecutedHistory."
+    "olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher."
+    "readyHead_dispatch",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",

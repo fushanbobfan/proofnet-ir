@@ -9455,6 +9455,58 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.unifyPayload_olderMarkedTensorP
         ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
 ```
 
+## Full-history older marked-tensor predecessor invariant
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+Every exact canonical tag history carries the older marked-tensor
+predecessor invariant.
+
+The `later` case only transports the invariant across an already-successful
+priority-aware dispatcher step. It does not assert that such a step exists.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.ExecutedHistory.olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+Every exact implemented-dispatcher history carries the predecessor
+invariant under declarative correctness.
+
+```lean
+ProofNetIR.SequentialFigure7.ExecutedHistory.olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate state
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch`
+
+Kind: theorem.
+
+A dispatcher-reachable state with an explicitly supplied ready head has
+one exact successful canonical dispatcher result.
+
+This theorem is conditional on `ReadyHeadInput`; it neither constructs that
+input nor states unconditional progress or totality.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (reachable : ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate before)
+  (correct : certificate.DeclarativelyCorrect) (head : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  have invariant := ⋯;
+  ∃ result, ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = some result
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

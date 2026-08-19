@@ -723,12 +723,19 @@ bridge for created work. It still requires declarative correctness, the
 complete scheduler invariant, canonical history, typed dispatch,
 `UnifyPayloadStep`, and the supplied prior invariant. These results remain
 inside the existing three-axiom gate; they add no trusted raw seam, scheduler,
-or progress premise. The successful-rule prefix is closed through UnifyPayload,
-but full canonical-history availability, ready-head existence, residual
-elimination without an invariant premise, branch applicability, progress,
-later-state totality, recursive-fallback removal, sequentialization, faithful
-token-age scheduling, Figure-7 pure-worklist completeness, and whole-program
-linearity remain outside the theorem boundary.
+or progress premise. The full-history package adds no history or applicability
+oracle. Its `CanonicalTagHistory` induction consumes the recorded exact
+dispatcher evidence in every later step, and the `ExecutedHistory` wrapper uses
+the already-proved canonical-history witness. The reachable ready-head theorem
+keeps declarative correctness, dispatcher reachability, and `ReadyHeadInput` as
+explicit ordinary hypotheses; it eliminates the predecessor residual but does
+not manufacture any of them. All three declarations depend exactly on
+`[propext, Classical.choice, Quot.sound]`. Full canonical-history availability
+is therefore inside the audited boundary, while ready-head existence from
+semantic nonterminality, applicability without the explicit ready-head premise,
+unconditional progress, later-state totality, recursive-fallback removal,
+sequentialization, faithful token-age scheduling, Figure-7 pure-worklist
+completeness, and whole-program linearity remain outside it.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

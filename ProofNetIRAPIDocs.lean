@@ -824,6 +824,20 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Full-history older marked-tensor predecessor invariant"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ExecutedHistory
+        "olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher
+        "readyHead_dispatch"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

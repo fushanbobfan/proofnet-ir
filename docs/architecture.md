@@ -949,11 +949,28 @@ by the public conditional child-anchor bridge. The public preservation theorem
 still requires declarative correctness, the complete scheduler invariant,
 canonical history, typed Unify dispatch, an already-successful
 `UnifyPayloadStep`, and the supplied prior predecessor invariant. The branch
-prefix is therefore closed through UnifyPayload, but complete canonical-history
-preservation is the first open gate. This layer does not prove ready-head
-existence, applicability, dispatcher progress or totality, global raw seams,
-fallback removal, faithful token-age scheduling, Figure-7 pure-worklist
-completeness, sequentialization, or whole-program linearity.
+prefix is therefore closed through UnifyPayload, but this transition module by
+itself does not package the invariant over complete histories or prove
+ready-head existence, applicability, dispatcher progress or totality, global
+raw seams, fallback removal, faithful token-age scheduling, Figure-7
+pure-worklist completeness, sequentialization, or whole-program linearity.
+
+`SequentialFigure7OlderMarkedTensorPredecessorHistory.lean` packages that
+closed prefix over every exact `CanonicalTagHistory`. Its induction handles the
+empty and initial histories with the base theorems. In the later case it splits
+the exact `DispatchStep` into all six rule constructors, recovers the typed step
+from the stored executor equation, and applies the corresponding preservation
+theorem. `ExecutedHistory.olderMarkedTensorPredecessorInvariant` obtains the
+canonical history and exposes the result for every executed dispatcher history
+under declarative correctness. Finally, at a dispatcher-reachable state with an
+explicitly supplied `ReadyHeadInput`, the complete invariant rules out the
+marked-tensor predecessor residual; the positive priority branch is lowered to
+one exact successful `dispatch?` result. This last theorem does not construct a
+ready head. Deriving `ReadyHeadInput` from every relevant semantic nonterminal
+certified state is the next proof gate before dispatcher progress or later-state
+totality; global raw seams, fallback removal, faithful scheduling,
+pure-worklist completeness, sequentialization, and whole-program linearity
+remain separate.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1326,9 +1343,11 @@ head against the active sigma top. The default depth-0-through-4 run observed
 mate resolved to the immediate predecessor, so both runs recorded zero missing-
 predecessor gaps. The detector retains a complete replayable counterexample and
 partitions any failure into a missing previous top or a boundary mismatch. These
-finite observations neither prove `ReadyHeadMarkedTensorPredecessorGap`
-uninhabited nor package the now-complete successful-rule predecessor prefix as
-a theorem over every canonical history.
+finite observations remain independent falsification evidence, not the source
+of the kernel theorem. The full-history invariant now eliminates the residual
+at an explicitly supplied correct canonical-history ready head, but neither the
+theorem nor the replay derives ready-head existence, unconditional progress, or
+totality.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

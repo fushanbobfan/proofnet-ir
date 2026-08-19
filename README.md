@@ -23,16 +23,15 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch carries an indexed predecessor invariant over every ready or
-waiting future-work occurrence. Its successful-rule branch prefix is now closed
-through UnifyPayload under the stated scheduler, correctness, history,
-dispatch, and typed-step hypotheses.
-The Unify proof transports retained work, rules out moved active work by strict
-ordering, and discharges inserted work through conditional child-anchor
-geometry. The first open gate is packaging the result over complete canonical
-histories. Ready-head existence, dispatcher progress, later-state totality,
-fallback removal, pure-worklist completeness, faithful scheduling, and
-whole-program linearity remain open.
+The rolling branch now packages its indexed predecessor invariant across every
+exact canonical dispatcher history under declarative correctness, with the same
+result available for every executed dispatcher history.
+At an explicitly supplied reachable ready head, that invariant eliminates the
+predecessor residual and yields an exact successful dispatcher result. It does
+not construct the ready head. Deriving a ready head from every relevant
+semantic nonterminal certified state is the first open gate; dispatcher
+progress, later-state totality, fallback removal, pure-worklist completeness,
+faithful scheduling, and whole-program linearity remain open.
 [The replaceable current-status record](docs/current-status.md) owns exact
 revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

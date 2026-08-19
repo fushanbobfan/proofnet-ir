@@ -292,20 +292,22 @@ those premises for an already-successful typed step. The Unify proof first
 exposes a carrier-free raw touch theorem for the inserted tensor conclusion.
 Retained evidence survives the final sigma pop; moved active work contradicts
 strict output order; and created work composes final component provenance, that
-raw touch result, and the conditional bridge. Both typed branch theorems
-consume
+raw touch result, and the conditional bridge. Both typed branch theorems consume
 declarative correctness, the complete scheduler invariant, canonical history,
-typed dispatch/step data, and the prior invariant. These are kernel-checked
-code
-consequences and record no new literature reading. The successful-rule prefix
-is closed through UnifyPayload; complete canonical-history preservation is the
-first open gate.
+typed dispatch/step data, and the prior invariant. A further kernel-checked
+packaging consequence inducts over every exact canonical dispatcher history,
+exposes the invariant for every correct `ExecutedHistory`, and eliminates the
+predecessor residual at an explicitly supplied reachable ready head to produce
+one exact successful dispatcher result. The theorem is independent of the
+finite replay and does not construct that ready head. These are code
+consequences and record no new page/chapter reading.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, ready-head existence, branch applicability, progress, later-state
-totality, fallback removal, sequentialization, faithful token-age scheduling,
-and whole-program linearity. The
-future-head-touch invariant is
+seams, ready-head existence from semantic nonterminality, applicability without
+the explicit ready-head premise, unconditional progress, later-state totality,
+fallback removal,
+sequentialization, faithful token-age scheduling, and whole-program linearity.
+The future-head-touch invariant is
 preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head
 residuals, and canonical-history induction now makes it globally available

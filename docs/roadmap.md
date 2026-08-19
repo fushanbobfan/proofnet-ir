@@ -962,8 +962,9 @@
     `FutureWorkAt`, establish it for empty and initial-reservation states,
     preserve it through Prepared, `concl`, `nop`, and canonical `new`, and project its
     ready-head instance to the exact immediate sigma predecessor. This rules out
-    `ReadyHeadMarkedTensorPredecessorGap` only when the invariant is supplied;
-    it is a branch prefix, not a history theorem.
+    `ReadyHeadMarkedTensorPredecessorGap` whenever the invariant is supplied;
+    the later packaging item makes that invariant available over complete
+    canonical dispatcher histories.
   - [x] Preserve that invariant through a canonical successful `wait`. Retained
     work transports through the prepared prefix and destination update; private
     Wait geometry supplies the immediate predecessor for the inserted
@@ -983,11 +984,16 @@
     conditional child-anchor bridge. The theorem still consumes declarative
     correctness, the complete scheduler invariant, canonical history, typed
     Unify dispatch, `UnifyPayloadStep`, and the prior invariant.
-  - [ ] Package the closed successful-rule prefix as complete
-    canonical-history preservation. Separately prove that every relevant
-    semantic nonterminal state supplies a ready head before claiming dispatcher
-    progress, later-state totality, or Figure-7 pure-worklist completeness.
-    Keep branch applicability, global raw seams, fallback removal,
+  - [x] Package the closed successful-rule prefix as complete
+    canonical-history preservation. The induction covers empty/init and every
+    later successful dispatcher constructor; an executed-history wrapper
+    exposes the invariant under declarative correctness, and a reachable
+    wrapper yields one exact dispatcher result at an explicitly supplied ready
+    head.
+  - [ ] Prove that every relevant semantic nonterminal certified state supplies
+    a ready head before claiming dispatcher progress, later-state totality, or
+    Figure-7 pure-worklist completeness. Keep branch applicability without the
+    explicit ready-head premise, global raw seams, fallback removal,
     sequentialization, faithful token-age scheduling, and whole-program
     linearity outside this checkpoint.
   - [x] Isolate unused waiting storage as the history-preserved predicate
@@ -1245,9 +1251,10 @@
     input-only. This is an API/classification migration only; it proves no
     progress, totality, completeness, or fallback removal. The predecessor
     projection now discharges the ready-head residual for states carrying the
-    new invariant. Complete the full canonical-history packaging and induction
-    before deriving ready-head existence or exhaustive dispatcher enabledness
-    on correct certified-reachable nonterminal states.
+    new invariant, and the complete canonical-history induction makes that
+    invariant available for every correct executed dispatcher history. Next
+    derive ready-head existence before exhaustive dispatcher enabledness on
+    correct certified-reachable nonterminal states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner
