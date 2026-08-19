@@ -774,6 +774,18 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Ready-head dispatch residual"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ReadyHeadMarkedTensorPredecessorGap,
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "readyHead_priorityEnabled_or_markedTensorPredecessorGap",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher
+        "readyHead_dispatch_or_markedTensorPredecessorGap"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ReadyHeadDispatchResidual.lean`. For a supplied ready
+  head under declarative correctness, the complete scheduler invariant, and an
+  authentic canonical tag history, the six rule families now reduce to an
+  inclusive disjunction: some fixed-priority branch is input-enabled, or the
+  marked tensor mate resolves to a retained sigma boundary strictly below the
+  active top without an input-only witness that it is the immediate
+  predecessor. The dispatcher-reachable wrapper turns the positive branch into
+  an exact `dispatch?` result. Neither theorem says that the alternatives are
+  exclusive or that the residual is impossible. The bounded canonical replay
+  audit observed 6,198 default and 26,658 extended marked-tensor ready-head
+  states, all with the required predecessor and hence zero observed residual
+  gaps. Those finite counts are regression evidence, not a universal theorem.
+  The next history-preserved invariant must quantify over every member of the
+  active top ready bucket, not only its currently selected head. Ready-head
+  existence, residual elimination, dispatcher progress and later-state
+  totality, recursive-fallback removal, faithful token-age scheduling, and
+  whole-program linearity remain open. The verified public axiom audit now
+  covers 890 declarations: 608 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveRegionEnabledness.lean`. Under declarative
   correctness, the complete scheduler invariant, an authentic canonical
   history, and an already established active `NewGuard`, the complete active

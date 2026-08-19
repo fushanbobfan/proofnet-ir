@@ -24,16 +24,17 @@ latest research surface and are prepared for documented development changes.
 ### Rolling-main summary
 
 Under declarative correctness, the complete scheduler invariant, a canonical
-history, and an already-established active `NewGuard`, every authentic ledger
-event is locally touch-separated from the guard's complete mate source-left
-region. Concrete raw marks and exact marked owners are excluded there, yielding
-a complete `NewSourceRegionInput` and input-only `NewEnabled` without assuming
-the global older-event or older-raw-region separation predicates. This does not
-construct the history or guard, select or execute a dispatcher branch, prove
-exhaustive nonterminal enabledness, progress, later-state totality,
+history, and a supplied ready head, the current theorem gives an inclusive
+dichotomy: some fixed-priority branch is enabled, or a marked tensor has an
+exact strictly older sigma boundary without an immediate-predecessor witness.
+For dispatcher-reachable states the positive branch yields an actual canonical
+dispatch result. Bounded default and extended audits found no such predecessor
+gap, but this is regression evidence, not a universal proof of unreachability.
+The library still does not derive ready-head existence from semantic
+nonterminality, eliminate the gap, or prove progress, later-state totality,
 pure-worklist completeness, fallback removal, faithful token-age scheduling,
-or whole-program linearity. Exact revision, hypotheses, verification receipt,
-and remaining research gates are maintained in
+or whole-program linearity. Exact revision, verification receipt, and gates are
+maintained in
 [the replaceable current-status record](docs/current-status.md).
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

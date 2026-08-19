@@ -9,7 +9,7 @@ open ProofNetIR.SequentialFigure7
 open ProofNetIR.SequentialSchedulerState
 
 /-!
-# Finite reachable-state audit for Figure-7 New, Wait, Forward, and Unify geometry
+# Finite reachable-state audit for Figure-7 progress and region geometry
 
 This executable searches only states produced by a successful
 `initializeReservation?` followed by zero or more successful canonical
@@ -18,7 +18,11 @@ This executable searches only states produced by a successful
 `certificate.check = true ∧ ReachableByImplementedDispatcher certificate state ∧
   Nonempty (NewGuard certificate state) ∧ new? certificate state invariant = none`.
 
-The default and extended modes search the shallow-New counterexample above.
+Every replay state with a marked exact tensor ready head is also checked for
+the `SigmaPredecessorInput` required by `markedTensor_unifyPayloadEnabled`.
+The default and extended modes search the shallow-New counterexample and
+separately audit marked-tensor predecessor availability. A missing predecessor
+is an adjacency regression witness, not by itself a proof that dispatch fails.
 `--cross-representative-search` additionally decodes every successful New,
 Wait, Forward, and arbitrary-payload Unify in the same replay, reconstructs the chronological
 reservation ledger, and checks every rule-created future-New candidate against
@@ -27,7 +31,7 @@ regions. Its coverage gates require successful steps, created candidates, and
 strict older-event pairs. `--wait-search` remains a compatibility spelling for
 the same combined finite search.
 
-The search is deterministic and finite. Absence of either witness is regression
+The search is deterministic and finite. Absence of any witness is regression
 evidence over the constants below, not a progress theorem, NewGuard sufficiency,
 or an unconditional New/Wait/Forward/Unify preservation theorem. Labelled variants may denote equal
 certificates; the reported count is a count of labelled audit cases, not a
@@ -329,6 +333,25 @@ structure UnifyRegionCounterexample where
   candidateRegion : List Vertex
   deriving Repr
 
+/-- A finite canonical-replay witness that a marked exact tensor ready head
+does not resolve to the boundary immediately preceding the active sigma top. -/
+structure MarkedTensorPredecessorCounterexample where
+  depth : Nat
+  seed : Nat
+  variant : String
+  initializationStart : Vertex
+  step : Nat
+  replayKinds : List Figure7RuleKind
+  certificate : Certificate
+  state : ReservationState
+  vertex : Vertex
+  activeBoundary : RawTokenAge
+  tensor : TensorBelow
+  mateRawAge : RawTokenAge
+  previousTop : Option RawTokenAge
+  computedBoundary : Option RawTokenAge
+  deriving Repr
+
 /-- A fully certified witness of the audited counterexample shape. The
 `reachable` field is definitionally `Nonempty (ExecutedHistory ...)`, so this
 cannot be populated by an arbitrary invariant-valid state. -/
@@ -356,6 +379,11 @@ structure AuditStats where
   initializationAttempts : Nat := 0
   initializationSuccesses : Nat := 0
   reachableStates : Nat := 0
+  markedTensorStates : Nat := 0
+  markedTensorAdjacentStates : Nat := 0
+  markedTensorMissingPredecessorStates : Nat := 0
+  markedTensorMissingPreviousTopStates : Nat := 0
+  markedTensorBoundaryMismatchStates : Nat := 0
   guardStates : Nat := 0
   newSuccessStates : Nat := 0
   newFailureStates : Nat := 0
@@ -412,6 +440,18 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
   initializationSuccesses :=
     left.initializationSuccesses + right.initializationSuccesses
   reachableStates := left.reachableStates + right.reachableStates
+  markedTensorStates := left.markedTensorStates + right.markedTensorStates
+  markedTensorAdjacentStates :=
+    left.markedTensorAdjacentStates + right.markedTensorAdjacentStates
+  markedTensorMissingPredecessorStates :=
+    left.markedTensorMissingPredecessorStates +
+      right.markedTensorMissingPredecessorStates
+  markedTensorMissingPreviousTopStates :=
+    left.markedTensorMissingPreviousTopStates +
+      right.markedTensorMissingPreviousTopStates
+  markedTensorBoundaryMismatchStates :=
+    left.markedTensorBoundaryMismatchStates +
+      right.markedTensorBoundaryMismatchStates
   guardStates := left.guardStates + right.guardStates
   newSuccessStates := left.newSuccessStates + right.newSuccessStates
   newFailureStates := left.newFailureStates + right.newFailureStates
@@ -491,6 +531,8 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
 structure SearchResult where
   stats : AuditStats := {}
   counterexample : Option Counterexample := none
+  markedTensorPredecessorCounterexample :
+    Option MarkedTensorPredecessorCounterexample := none
   newRegionCounterexample : Option NewRegionCounterexample := none
   waitCounterexample : Option WaitRegionCounterexample := none
   forwardCounterexample : Option ForwardRegionCounterexample := none
@@ -499,10 +541,18 @@ structure SearchResult where
 def SearchResult.addStats (result : SearchResult) (stats : AuditStats) : SearchResult :=
   { result with stats := result.stats.add stats }
 
+def SearchResult.addMarkedTensorInspection
+    (result inspection : SearchResult) : SearchResult :=
+  { result with
+    stats := result.stats.add inspection.stats
+    markedTensorPredecessorCounterexample :=
+      inspection.markedTensorPredecessorCounterexample }
+
 def SearchResult.hasCounterexample (result : SearchResult) : Bool :=
-  result.counterexample.isSome || result.newRegionCounterexample.isSome ||
-    result.waitCounterexample.isSome || result.forwardCounterexample.isSome ||
-    result.unifyCounterexample.isSome
+  result.counterexample.isSome ||
+    result.markedTensorPredecessorCounterexample.isSome ||
+    result.newRegionCounterexample.isSome || result.waitCounterexample.isSome ||
+    result.forwardCounterexample.isSome || result.unifyCounterexample.isSome
 
 def stateChecksum (state : ReservationState) : Nat :=
   state.stack.nextAge + state.stack.sigma.length +
@@ -1378,6 +1428,72 @@ def parCount (certificate : Certificate) : Nat :=
     | .par _ _ _ => count + 1
     | _ => count) 0
 
+/-- Independently classify the marked-tensor predecessor condition at one
+canonical replay state. Given the matched active top, a
+`SigmaPredecessorInput` exists exactly when `dropLast.getLast?` returns a
+boundary and `sigmaBoundary?` maps the mate age to that same boundary. -/
+def inspectMarkedTensorPredecessor (candidate : CheckedCandidate)
+    (start : Vertex) (step : Nat) (reversedKinds : List Figure7RuleKind)
+    (state : ReservationState) : SearchResult :=
+  match state.stack.ready.getLast?, state.stack.sigma.getLast? with
+  | some (vertex :: _), some activeBoundary =>
+      match candidate.certificate.tensorBelow? vertex with
+      | none => {}
+      | some tensor =>
+          match state.core.marks[tensor.mate]? with
+          | some (some mateRawAge) =>
+              let previousTop := state.stack.sigma.dropLast.getLast?
+              let computedBoundary :=
+                sigmaBoundary? state.stack.sigma mateRawAge
+              match previousTop with
+              | none =>
+                  { stats := {
+                      markedTensorStates := 1
+                      markedTensorMissingPredecessorStates := 1
+                      markedTensorMissingPreviousTopStates := 1 }
+                    markedTensorPredecessorCounterexample := some {
+                      depth := candidate.depth
+                      seed := candidate.seed
+                      variant := candidate.variant
+                      initializationStart := start
+                      step
+                      replayKinds := reversedKinds.reverse
+                      certificate := candidate.certificate
+                      state
+                      vertex
+                      activeBoundary
+                      tensor
+                      mateRawAge
+                      previousTop
+                      computedBoundary } }
+              | some previousBoundary =>
+                  if computedBoundary = some previousBoundary then
+                    { stats := {
+                        markedTensorStates := 1
+                        markedTensorAdjacentStates := 1 } }
+                  else
+                    { stats := {
+                        markedTensorStates := 1
+                        markedTensorMissingPredecessorStates := 1
+                        markedTensorBoundaryMismatchStates := 1 }
+                      markedTensorPredecessorCounterexample := some {
+                        depth := candidate.depth
+                        seed := candidate.seed
+                        variant := candidate.variant
+                        initializationStart := start
+                        step
+                        replayKinds := reversedKinds.reverse
+                        certificate := candidate.certificate
+                        state
+                        vertex
+                        activeBoundary
+                        tensor
+                        mateRawAge
+                        previousTop
+                        computedBoundary } }
+          | _ => {}
+  | _, _ => {}
+
 def inspectReachable (candidate : CheckedCandidate)
     (regionCache : SourceRegionCache) (start : Vertex)
     (state : ReservationState)
@@ -1397,50 +1513,8 @@ def inspectReachable (candidate : CheckedCandidate)
             if events.length == state.stack.nextAge then 0 else 1
           maxReplaySteps := step
           checksum := stateChecksum state }
-        match newEquation : new? candidate.certificate state
-            invariant.toReservationInvariant with
-        | none =>
-            match newGuard? candidate.certificate state with
-            | none => { stats := base }
-            | some guard =>
-                { stats := {
-                    base with guardStates := 1, newFailureStates := 1 }
-                  counterexample := some {
-                    depth := candidate.depth
-                    seed := candidate.seed
-                    variant := candidate.variant
-                    start
-                    step
-                    replayKinds := reversedKinds.reverse
-                    certificate := candidate.certificate
-                    accepted := candidate.accepted
-                    state
-                    reachable
-                    invariant
-                    guard
-                    newFailure := newEquation
-                    failureStage := diagnoseNew candidate.certificate state } }
-        | some _ =>
-            match newGuard? candidate.certificate state with
-            | none =>
-                { stats := {
-                    base with
-                      newSuccessStates := 1
-                      newSuccessWithoutGuard := 1 } }
-            | some _ =>
-                { stats := {
-                    base with guardStates := 1, newSuccessStates := 1 } }
-  | fuel + 1 =>
-      if state ∈ seen then
-        { stats := { cycleRuns := 1, maxReplaySteps := step } }
-      else
-        let invariant := reachable.schedulerInvariant candidate.structural
-        let base : AuditStats := {
-          reachableStates := 1
-          ledgerLengthMismatches :=
-            if events.length == state.stack.nextAge then 0 else 1
-          maxReplaySteps := step
-          checksum := stateChecksum state }
+        let markedInspection :=
+          inspectMarkedTensorPredecessor candidate start step reversedKinds state
         let afterGuard : SearchResult :=
           match newEquation : new? candidate.certificate state
               invariant.toReservationInvariant with
@@ -1475,16 +1549,69 @@ def inspectReachable (candidate : CheckedCandidate)
               | some _ =>
                   { stats := {
                       base with guardStates := 1, newSuccessStates := 1 } }
+        afterGuard.addMarkedTensorInspection markedInspection
+  | fuel + 1 =>
+      if state ∈ seen then
+        { stats := { cycleRuns := 1, maxReplaySteps := step } }
+      else
+        let invariant := reachable.schedulerInvariant candidate.structural
+        let base : AuditStats := {
+          reachableStates := 1
+          ledgerLengthMismatches :=
+            if events.length == state.stack.nextAge then 0 else 1
+          maxReplaySteps := step
+          checksum := stateChecksum state }
+        let markedInspection :=
+          inspectMarkedTensorPredecessor candidate start step reversedKinds state
+        let afterNewGuard : SearchResult :=
+          match newEquation : new? candidate.certificate state
+              invariant.toReservationInvariant with
+          | none =>
+              match newGuard? candidate.certificate state with
+              | none => { stats := base }
+              | some guard =>
+                  { stats := {
+                      base with guardStates := 1, newFailureStates := 1 }
+                    counterexample := some {
+                      depth := candidate.depth
+                      seed := candidate.seed
+                      variant := candidate.variant
+                      start
+                      step
+                      replayKinds := reversedKinds.reverse
+                      certificate := candidate.certificate
+                      accepted := candidate.accepted
+                      state
+                      reachable
+                      invariant
+                      guard
+                      newFailure := newEquation
+                      failureStage := diagnoseNew candidate.certificate state } }
+          | some _ =>
+              match newGuard? candidate.certificate state with
+              | none =>
+                  { stats := {
+                      base with
+                        newSuccessStates := 1
+                        newSuccessWithoutGuard := 1 } }
+              | some _ =>
+                  { stats := {
+                      base with guardStates := 1, newSuccessStates := 1 } }
+        let afterGuard :=
+          afterNewGuard.addMarkedTensorInspection markedInspection
         match afterGuard.counterexample with
         | some _ => afterGuard
         | none =>
-            match dispatchEquation :
-                dispatch? candidate.certificate state invariant with
+            match afterGuard.markedTensorPredecessorCounterexample with
+            | some _ => afterGuard
             | none =>
-                afterGuard.addStats {
-                  terminalRuns := 1
-                  maxReplaySteps := step }
-            | some result =>
+              match dispatchEquation :
+                  dispatch? candidate.certificate state invariant with
+              | none =>
+                  afterGuard.addStats {
+                    terminalRuns := 1
+                    maxReplaySteps := step }
+              | some result =>
                 let nextReachable :=
                   reachable.dispatch invariant dispatchEquation
                 let newInspection :=
@@ -1560,6 +1687,8 @@ def inspectReachable (candidate : CheckedCandidate)
                                     (step + 1) fuel
                                 { stats := currentStats.add tail.stats
                                   counterexample := tail.counterexample
+                                  markedTensorPredecessorCounterexample :=
+                                    tail.markedTensorPredecessorCounterexample
                                   newRegionCounterexample :=
                                     tail.newRegionCounterexample
                                   waitCounterexample := tail.waitCounterexample
@@ -1596,6 +1725,8 @@ def inspectStarts (candidate : CheckedCandidate)
             let tail := inspectStarts candidate regionCache rest
             { stats := current.stats.add tail.stats
               counterexample := tail.counterexample
+              markedTensorPredecessorCounterexample :=
+                tail.markedTensorPredecessorCounterexample
               newRegionCounterexample := tail.newRegionCounterexample
               waitCounterexample := tail.waitCounterexample
               forwardCounterexample := tail.forwardCounterexample
@@ -1637,6 +1768,8 @@ def inspectVariants (depth seed : Nat) : List PositiveVariant →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          markedTensorPredecessorCounterexample :=
+            tail.markedTensorPredecessorCounterexample
           newRegionCounterexample := tail.newRegionCounterexample
           waitCounterexample := tail.waitCounterexample
           forwardCounterexample := tail.forwardCounterexample
@@ -1662,6 +1795,8 @@ def inspectSeeds (depth : Nat) : List Nat → Except String SearchResult
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          markedTensorPredecessorCounterexample :=
+            tail.markedTensorPredecessorCounterexample
           newRegionCounterexample := tail.newRegionCounterexample
           waitCounterexample := tail.waitCounterexample
           forwardCounterexample := tail.forwardCounterexample
@@ -1679,6 +1814,8 @@ def inspectDepths (seedsPerDepth : Nat) : List Nat →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          markedTensorPredecessorCounterexample :=
+            tail.markedTensorPredecessorCounterexample
           newRegionCounterexample := tail.newRegionCounterexample
           waitCounterexample := tail.waitCounterexample
           forwardCounterexample := tail.forwardCounterexample
@@ -1693,6 +1830,7 @@ structure AuditConfig where
   seedsPerDepth : Nat
   budgetMs : Nat
   requireGuardCoverage : Bool
+  requireMarkedTensorPredecessorCoverage : Bool := false
   requireNewCoverage : Bool := false
   requireNewCreatedCoverage : Bool := false
   requireNewReachedCreatedCoverage : Bool := false
@@ -1717,6 +1855,7 @@ def defaultConfig : AuditConfig where
   seedsPerDepth := 1
   budgetMs := 300_000
   requireGuardCoverage := true
+  requireMarkedTensorPredecessorCoverage := true
   traceStarts := false
 
 def extendedConfig : AuditConfig where
@@ -1725,6 +1864,7 @@ def extendedConfig : AuditConfig where
   seedsPerDepth := 1
   budgetMs := 1_800_000
   requireGuardCoverage := true
+  requireMarkedTensorPredecessorCoverage := true
   traceStarts := false
 
 def waitSearchConfig : AuditConfig where
@@ -1733,6 +1873,7 @@ def waitSearchConfig : AuditConfig where
   seedsPerDepth := 16
   budgetMs := 1_800_000
   requireGuardCoverage := true
+  requireMarkedTensorPredecessorCoverage := true
   requireNewCoverage := true
   requireNewCreatedCoverage := true
   requireNewReachedCreatedCoverage := true
@@ -1775,6 +1916,21 @@ def renderCounterexample (counterexample : Counterexample) : String :=
     s!"variant={counterexample.variant} start={counterexample.start} " ++
     s!"step={counterexample.step} replay={repr counterexample.replayKinds} " ++
     s!"failure_stage={repr counterexample.failureStage}\n" ++
+    s!"certificate={repr counterexample.certificate}\n" ++
+    s!"state={repr counterexample.state}"
+
+def renderMarkedTensorPredecessorCounterexample
+    (counterexample : MarkedTensorPredecessorCounterexample) : String :=
+  s!"marked-tensor-predecessor-counterexample depth={counterexample.depth} " ++
+    s!"seed={counterexample.seed} variant={counterexample.variant} " ++
+    s!"initialization_start={counterexample.initializationStart} " ++
+    s!"step={counterexample.step} replay={repr counterexample.replayKinds}\n" ++
+    s!"vertex={counterexample.vertex} " ++
+    s!"active_boundary={counterexample.activeBoundary} " ++
+    s!"tensor={repr counterexample.tensor} " ++
+    s!"mate_raw_age={counterexample.mateRawAge} " ++
+    s!"previous_top={repr counterexample.previousTop} " ++
+    s!"computed_boundary={repr counterexample.computedBoundary}\n" ++
     s!"certificate={repr counterexample.certificate}\n" ++
     s!"state={repr counterexample.state}"
 
@@ -1866,6 +2022,14 @@ def renderStats (stats : AuditStats) : String :=
     s!"initialization_successes={stats.initializationSuccesses} " ++
     s!"initialization_failures={stats.initializationAttempts - stats.initializationSuccesses} " ++
     s!"reachable_states={stats.reachableStates} " ++
+    s!"marked_tensor_states={stats.markedTensorStates} " ++
+    s!"marked_tensor_adjacent_states={stats.markedTensorAdjacentStates} " ++
+    s!"marked_tensor_missing_predecessor_states=" ++
+    s!"{stats.markedTensorMissingPredecessorStates} " ++
+    s!"marked_tensor_missing_previous_top_states=" ++
+    s!"{stats.markedTensorMissingPreviousTopStates} " ++
+    s!"marked_tensor_boundary_mismatch_states=" ++
+    s!"{stats.markedTensorBoundaryMismatchStates} " ++
     s!"new_guard_states={stats.guardStates} " ++
     s!"new_success_states={stats.newSuccessStates} " ++
     s!"new_failure_states={stats.newFailureStates} " ++
@@ -1917,6 +2081,25 @@ def renderStats (stats : AuditStats) : String :=
     s!"checksum={stats.checksum}"
 
 def validateReplayStats (stats : AuditStats) : Except String Unit := do
+  if stats.markedTensorStates !=
+      stats.markedTensorAdjacentStates +
+        stats.markedTensorMissingPredecessorStates then
+    throw <|
+      s!"marked-tensor predecessor counts do not partition marked states: " ++
+        s!"{stats.markedTensorStates} != {stats.markedTensorAdjacentStates} + " ++
+        s!"{stats.markedTensorMissingPredecessorStates}"
+  if stats.markedTensorMissingPredecessorStates !=
+      stats.markedTensorMissingPreviousTopStates +
+        stats.markedTensorBoundaryMismatchStates then
+    throw <|
+      s!"marked-tensor predecessor failures do not partition by reason: " ++
+        s!"{stats.markedTensorMissingPredecessorStates} != " ++
+        s!"{stats.markedTensorMissingPreviousTopStates} + " ++
+        s!"{stats.markedTensorBoundaryMismatchStates}"
+  if stats.markedTensorMissingPredecessorStates != 0 then
+    throw <|
+      s!"reachable marked tensor heads lacked exact sigma predecessors: " ++
+        s!"{stats.markedTensorMissingPredecessorStates}"
   if stats.newCreatedCandidates !=
       stats.newCreatedReachedCandidates + stats.newCreatedPartnerCandidates then
     throw <|
@@ -2007,25 +2190,30 @@ def requireNoCounterexample (result : SearchResult) : IO Unit :=
   | some counterexample =>
       throw <| IO.userError (renderCounterexample counterexample)
   | none =>
-      match result.newRegionCounterexample with
+      match result.markedTensorPredecessorCounterexample with
       | some counterexample =>
           throw <| IO.userError
-            (renderNewRegionCounterexample counterexample)
+            (renderMarkedTensorPredecessorCounterexample counterexample)
       | none =>
-          match result.waitCounterexample with
+          match result.newRegionCounterexample with
           | some counterexample =>
-              throw <| IO.userError (renderWaitCounterexample counterexample)
+              throw <| IO.userError
+                (renderNewRegionCounterexample counterexample)
           | none =>
-              match result.forwardCounterexample with
+              match result.waitCounterexample with
               | some counterexample =>
-                  throw <| IO.userError
-                    (renderForwardCounterexample counterexample)
+                  throw <| IO.userError (renderWaitCounterexample counterexample)
               | none =>
-                  match result.unifyCounterexample with
-                  | none => pure ()
+                  match result.forwardCounterexample with
                   | some counterexample =>
                       throw <| IO.userError
-                        (renderUnifyRegionCounterexample counterexample)
+                        (renderForwardCounterexample counterexample)
+                  | none =>
+                      match result.unifyCounterexample with
+                      | none => pure ()
+                      | some counterexample =>
+                          throw <| IO.userError
+                            (renderUnifyRegionCounterexample counterexample)
 
 def inspectStartsIO (candidate : CheckedCandidate)
     (regionCache : SourceRegionCache) : List Vertex →
@@ -2080,6 +2268,8 @@ def inspectStartsIO (candidate : CheckedCandidate)
             return {
               stats := current.stats.add tail.stats
               counterexample := tail.counterexample
+              markedTensorPredecessorCounterexample :=
+                tail.markedTensorPredecessorCounterexample
               newRegionCounterexample := tail.newRegionCounterexample
               waitCounterexample := tail.waitCounterexample
               forwardCounterexample := tail.forwardCounterexample
@@ -2221,9 +2411,10 @@ def parseConfig (args : List String) : Except String AuditConfig :=
       "usage: proofnet_ir_new_progress_audit [--extended | --wait-search | " ++
         "--cross-representative-search | --depth N | --profile-depth N]"
 
-/-- Run the bounded finite audit. Any New failure or New/Wait/Forward/Unify region
-intersection is a hard regression and is printed with its complete certificate,
-states, initialization start, dispatcher rule trace, and decoded witness data.
+/-- Run the bounded finite audit. Any New failure, marked-tensor predecessor
+gap, or New/Wait/Forward/Unify region intersection is a hard regression and is
+printed with its complete certificate, states, initialization start,
+dispatcher rule trace, and decoded witness data.
 Passing these labelled, potentially duplicate cases proves no unconditional
 progress or cross-representative preservation theorem. -/
 def run (config : AuditConfig) : IO Unit := do
@@ -2252,6 +2443,9 @@ def run (config : AuditConfig) : IO Unit := do
     throw <| IO.userError "audit exercised no successful initializations"
   if stats.reachableStates == 0 then
     throw <| IO.userError "audit exercised no dispatcher-reachable states"
+  if config.requireMarkedTensorPredecessorCoverage &&
+      stats.markedTensorStates == 0 then
+    throw <| IO.userError "audit exercised no reachable marked tensor ready heads"
   if config.requireGuardCoverage && stats.guardStates == 0 then
     throw <| IO.userError "audit exercised no reachable NewGuard states"
   if config.requireNewCoverage && stats.newSteps == 0 then

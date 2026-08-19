@@ -950,6 +950,21 @@
     canonical-dispatcher
     reachability, exhaustive availability of the predecessor witness,
     progress, completeness, or linearity.
+  - [x] Reduce every supplied correct canonical-history ready head to the
+    strongest current dispatcher boundary. Stable cases are already enabled,
+    an unmarked tensor uses the local active-region `NewEnabled` theorem, and a
+    marked tensor with exact sigma adjacency enables `UnifyPayload`. The result
+    is an inclusive disjunction between an existential priority-enabled branch
+    and `ReadyHeadMarkedTensorPredecessorGap`; certified dispatcher reachability
+    lowers the positive branch to an exact `dispatch?` result. Do not read this
+    as an exclusive partition or as a proof that the gap is unreachable.
+  - [ ] Prove a history-preserved active-top-bucket predecessor invariant. It
+    must quantify over every member of the active top ready bucket, not only the
+    currently selected head, because popping that head exposes an existing tail
+    member without changing the sigma top. Then specialize it to
+    `ReadyHeadInput` to eliminate the marked-tensor residual. Separately prove
+    that every relevant semantic nonterminal state supplies a ready head before
+    claiming dispatcher progress or later-state totality.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1188,10 +1203,14 @@
     it covered 23,184 reachable states and 6,198 guarded successes with zero
     misses, inverse guard mismatches, cycles, or fuel truncations. The opt-in
     depth-5 extension covered 96,444 total reachable states and 26,658 guarded
-    successes. Acceptance is transported from `unificationCheck` through its
-    kernel equality with `check`, with 18 shallow direct-check sentinels. Keep
-    this explicitly finite: it is a counterexample search, not a universal
-    `NewGuard`-sufficiency, progress, totality, or completeness theorem.
+    successes. The same default and extended replays inspected 6,198 and 26,658
+    selected marked-tensor ready heads; every mate resolved to the exact
+    immediate sigma predecessor, so both recorded zero residual gaps.
+    Acceptance is transported from `unificationCheck` through its kernel
+    equality with `check`, with 18 shallow direct-check sentinels. Keep this
+    explicitly finite: it is a counterexample search, not a universal
+    `NewGuard`-sufficiency or predecessor theorem, ready-head existence,
+    progress, totality, or completeness theorem.
   - [x] Replace the remaining `NewExecutableEnabled` field inside
     `PriorityEnabled` with the proved input-only `NewEnabled` through the
     dedicated `SequentialFigure7NewInputCore` import-DAG split. Preserve
@@ -1199,9 +1218,11 @@
     constructor, the historical necessary-input facade, and fixed dispatcher
     priority. Both positive `new` and all stored negative `new` fields are now
     input-only. This is an API/classification migration only; it proves no
-    progress, totality, completeness, or fallback removal. Next derive
-    exhaustive dispatcher enabledness on correct
-    certified-reachable nonterminal states.
+    progress, totality, completeness, or fallback removal. The ready-head
+    residual theorem now localizes the remaining marked case, but its
+    elimination first needs the bucket-wide predecessor invariant above; after
+    that, derive ready-head existence and exhaustive dispatcher enabledness on
+    correct certified-reachable nonterminal states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

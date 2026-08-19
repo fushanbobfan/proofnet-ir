@@ -686,6 +686,21 @@ or reachability witness. This local theorem does not preserve a global
 raw-separation invariant through candidate-creating rules or establish
 dispatcher exhaustiveness, progress, fallback removal, scheduling, or
 complexity.
+`SequentialFigure7ReadyHeadDispatchResidual.lean` adds no enabledness,
+predecessor, reachability, or progress oracle. It combines the already audited
+ready-head case coverage, stable enabled predicates, active `NewEnabled`
+theorem, and conditional marked-tensor adjacency bridge. Its result is an
+inclusive disjunction: an existential fixed-priority enabled branch, or proof
+data showing that the marked mate resolves to a retained boundary strictly
+below the active top without an immediate-predecessor witness. It neither makes
+the branches exclusive nor proves the residual uninhabited. The reachable
+wrapper consumes an existing certified history and lowers only the positive
+branch to `dispatch? = some result`; it does not manufacture a ready head. The
+missing queue-origin invariant must range over every member of the active top
+ready bucket, because a pop can expose a tail member without changing the sigma
+top. Ready-head existence, residual elimination, progress, later-state
+totality, recursive-fallback removal, faithful token-age scheduling, and
+whole-program linearity remain outside the theorem boundary.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
@@ -934,10 +949,13 @@ proof-relevant `NewGuard`, and the actual `new? = none` equation. Generated
 certificate acceptance is obtained from `unificationCheck = true` and
 transported to `check = true` by the kernel theorem
 `unificationCheck_eq_check`; the 18 depth-0-through-2 cases additionally run
-the direct all-switchings checker. The default and extended finite receipts
-found no witness, but absence in 30 or 36 labelled cases is not an oracle,
-universal `NewGuard`-sufficiency theorem, reachability characterization, or
-progress result.
+the direct all-switchings checker. The same replay independently checked marked
+tensor predecessors: the default and extended runs observed 6,198 and 26,658
+selected marked-tensor ready-head states and zero missing-predecessor gaps. The
+default and extended finite receipts found no guarded New witness either, but
+absence in 30 or 36 labelled cases is not an oracle, universal
+`NewGuard`-sufficiency or predecessor theorem, reachability characterization,
+ready-head existence result, progress theorem, or later-state totality result.
 `SequentialFigure7TagHistory.lean` also adds no oracle. It pattern-matches only
 the exact typed branch recovered from an existing `DispatchStep` and augments
 the already-certified `ExecutedHistory`. The five stable branches prove array

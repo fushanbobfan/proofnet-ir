@@ -9143,6 +9143,61 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled : ∀ {certif
         ProofNetIR.SequentialFigure7.NewEnabled certificate before
 ```
 
+## Ready-head dispatch residual
+
+### `ProofNetIR.SequentialFigure7.ReadyHeadMarkedTensorPredecessorGap`
+
+Kind: inductive type.
+
+Exact marked-tensor predecessor gap exposed by the ready-head reduction.
+
+The tensor mate resolves to a strictly older retained sigma boundary, but no
+input-only witness identifies that boundary with the active top's immediate
+predecessor. This carrier alone does not state that every priority branch is
+disabled.
+
+```lean
+ProofNetIR.SequentialFigure7.ReadyHeadMarkedTensorPredecessorGap : ProofNetIR.Certificate →
+  (before : ProofNetIR.SequentialSchedulerBridge.ReservationState) →
+    ProofNetIR.SequentialFigure7.ReadyHeadInput before → Type
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.readyHead_priorityEnabled_or_markedTensorPredecessorGap`
+
+Kind: theorem.
+
+Every canonical ready head has a priority-enabled branch or exposes an
+exact strictly older, non-immediate marked-tensor sigma boundary. The
+disjunction is inclusive.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.readyHead_priorityEnabled_or_markedTensorPredecessorGap : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ (invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before)
+      (head : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+      (∃ kind, ProofNetIR.SequentialFigure7.PriorityEnabled certificate before invariant kind) ∨
+        Nonempty (ProofNetIR.SequentialFigure7.ReadyHeadMarkedTensorPredecessorGap certificate before head)
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch_or_markedTensorPredecessorGap`
+
+Kind: theorem.
+
+A dispatcher-reachable ready head makes the canonical executable
+dispatcher succeed or exposes the exact strictly older, non-immediate
+marked-tensor gap. The disjunction is inclusive.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch_or_markedTensorPredecessorGap : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (reachable : ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate before)
+  (correct : certificate.DeclarativelyCorrect) (head : ProofNetIR.SequentialFigure7.ReadyHeadInput before),
+  have invariant := ⋯;
+  (∃ result, ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = some result) ∨
+    Nonempty (ProofNetIR.SequentialFigure7.ReadyHeadMarkedTensorPredecessorGap certificate before head)
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

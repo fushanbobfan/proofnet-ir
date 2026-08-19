@@ -889,6 +889,25 @@ constructed history enters this data flow. Global preservation through
 candidate-creating rules, exhaustive enabledness, progress, totality, fallback
 removal, token-age scheduling, and whole-program linearity remain downstream.
 
+`SequentialFigure7ReadyHeadDispatchResidual.lean` composes the occurrence-level
+ready-head coverage with the stable enabled predicates, the preceding active
+`NewEnabled` theorem, marked-tensor adjacency, and fixed dispatcher priority.
+For an already supplied `ReadyHeadInput`, its first theorem returns an inclusive
+disjunction: an existential `PriorityEnabled` branch, or
+`ReadyHeadMarkedTensorPredecessorGap`. The residual retains the exact tensor
+consumer and mate mark, resolves that mark to a retained sigma boundary strictly
+below the active top, and records only that no `SigmaPredecessorInput` identifies
+it with the active top's immediate predecessor. The alternatives are not stated
+as exclusive. Under `ReachableByImplementedDispatcher`, the positive branch is
+lowered to an exact successful `dispatch?` equation. The module does not prove
+that a semantic nonterminal state has a ready head or that the residual is
+unreachable. An inductive queue-origin bridge must therefore cover every member
+of the active top ready bucket: after its head is popped, an existing tail member
+can become selected while the sigma top remains unchanged. A selected-head-only
+property is too weak for that transition. Dispatcher progress, later-state
+totality, recursive-fallback removal, faithful token-age scheduling, and
+whole-program linearity remain separate gates.
+
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
 retained marked-middle work or one of the reached/partner endpoints appended
@@ -1253,6 +1272,15 @@ kernel equality `unificationCheck_eq_check`; a direct all-switchings sentinel
 remains at depths 0 through 2. This executable architecture supplies regression
 evidence and diagnostics, not a `NewGuard` success converse or a scheduler
 progress theorem.
+
+The same replay now independently classifies every selected marked-tensor ready
+head against the active sigma top. The default depth-0-through-4 run observed
+6,198 such states, and the extended depth-0-through-5 run observed 26,658; every
+mate resolved to the immediate predecessor, so both runs recorded zero missing-
+predecessor gaps. The detector retains a complete replayable counterexample and
+partitions any failure into a missing previous top or a boundary mismatch. These
+finite observations neither prove `ReadyHeadMarkedTensorPredecessorGap`
+uninhabited nor replace the bucket-wide invariant required by the Lean proof.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

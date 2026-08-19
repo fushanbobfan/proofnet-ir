@@ -301,6 +301,10 @@ expansion.
 #print axioms
   SequentialFigure7.CanonicalTagHistory.active_newSourceRegionInput
 #print axioms SequentialFigure7.CanonicalTagHistory.active_newEnabled
+#print axioms
+  CanonicalTagHistory.readyHead_priorityEnabled_or_markedTensorPredecessorGap
+#print axioms
+  ReachableByImplementedDispatcher.readyHead_dispatch_or_markedTensorPredecessorGap
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

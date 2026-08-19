@@ -536,6 +536,18 @@ part of the engineering and proof-identity gap.
    for every supplied correct canonical-history `NewGuard`. It does not prove
    that every nonterminal state presents such a guard. Tensor-branch
    exhaustiveness, dispatcher progress, and worklist completeness remain open.
+   `SequentialFigure7ReadyHeadDispatchResidual.lean` now combines these local
+   results for every supplied correct canonical-history `ReadyHeadInput`. It
+   returns an inclusive `PriorityEnabled`-or-marked-tensor-gap disjunction; the
+   reachable wrapper turns the positive side into an exact dispatcher result.
+   The residual is already narrowed to a strictly older retained mate boundary
+   that is not known to be the active top's immediate predecessor. This is not
+   an exclusive classification, a proof that the gap is unreachable, or a
+   theorem that every semantic nonterminal state supplies a ready head. The
+   missing inductive invariant must quantify over every member of the active
+   top ready bucket so that popping one member preserves the fact for the tail.
+   Progress, later-state totality, recursive-fallback removal, faithful
+   token-age scheduling, and whole-program linearity remain open.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -969,6 +981,15 @@ part of the engineering and proof-identity gap.
    existence, branch exhaustiveness, global raw-invariant preservation,
    dispatcher progress, later-state totality, worklist completeness, fallback
    removal, token-age scheduling, or whole-program linearity.
+   The downstream ready-head residual layer packages the strongest current
+   branch boundary. For any supplied correct canonical-history ready head, the
+   result is inclusively either a priority-enabled branch or a marked tensor
+   whose mate lies at a strictly older retained boundary without the required
+   immediate-predecessor witness. Certified reachability lowers the former to
+   an exact dispatcher equation but does not eliminate the latter. The next
+   invariant must range over the complete active top ready bucket rather than
+   only its selected member; no current theorem supplies ready-head existence,
+   progress, later-state totality, fallback removal, scheduling, or linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created
@@ -1017,11 +1038,16 @@ part of the engineering and proof-identity gap.
    variants (30 certificate cases, 23,184 reachable states, 6,198 guarded
    successes); the opt-in depth-5 extension reaches 96,444 states and 26,658
    guarded successes. Both observed zero guarded failures, inverse guard
-   mismatches, cycles, and fuel truncations. Deep acceptance uses
+   mismatches, cycles, and fuel truncations. The same runs independently
+   inspected 6,198 and 26,658 selected marked-tensor ready-head states,
+   respectively; all had an exact immediate sigma predecessor, with zero
+   missing-predecessor gaps. Deep acceptance uses
    `unificationCheck` and the kernel theorem `unificationCheck_eq_check`, while
    the 18 cases at depths 0 through 2 also run the direct all-switchings
-   checker. This finite receipt does not close input-only `new` sufficiency,
-   intended-state exhaustiveness, progress, totality, or completeness.
+   checker. This finite receipt does not prove the residual universally
+   impossible, close input-only `new` sufficiency or ready-head existence, or
+   establish intended-state exhaustiveness, progress, totality, or
+   completeness.
    Its separate `--cross-representative-search` receipt covers 96 labelled
    depth-5 cases and 1,182,816 reachable states. New contributes 328,848
    successful steps, 222,246 actual endpoint candidates (59,706 reached and

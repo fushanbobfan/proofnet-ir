@@ -75,6 +75,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_active_region_touch_separation_tests
           ~/.elan/bin/lake exe proofnet_ir_older_raw_marked_region_separation_tests
           ~/.elan/bin/lake exe proofnet_ir_active_region_enabledness_tests
+          ~/.elan/bin/lake exe proofnet_ir_ready_head_dispatch_residual_tests
           ~/.elan/bin/lake exe proofnet_ir_cross_representative_new_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_older_event_future_work_touch_new_preservation_tests
           ~/.elan/bin/lake exe proofnet_ir_older_raw_marked_region_new_preservation_tests
@@ -95,7 +96,7 @@ jobs:
           ~/.elan/bin/lake exe \
             proofnet_ir_older_event_future_work_touch_availability_tests
           ~/.elan/bin/lake exe proofnet_ir_new_region_tests
-      - name: Search reachable Figure-7 new guards for executor misses
+      - name: Audit reachable Figure-7 New and marked-tensor predecessor cases
         run: ~/.elan/bin/lake exe proofnet_ir_new_progress_audit
       - name: Audit New/Wait/Forward/Unify-created candidate source regions
         run: >-

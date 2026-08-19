@@ -267,10 +267,25 @@ consequence no longer requires that global invariant for the current guard: a
 concrete raw mark yields its same-age authentic event and an
 `ActiveMateEventAnchor`, so no raw mark or exact owner remains; tag freshness and
 structural search then yield `NewSourceRegionInput` and `NewEnabled`. None of
-these steps records new page/chapter reading. Global preservation of the mate-
-region and older-raw-mark invariants through candidate-creating rules remains
-open, as do queue origin, created-candidate raw seams, and progress. The future-
-head-touch invariant is preserved through New and through
+these steps records new page/chapter reading. A downstream kernel-checked code
+consequence now combines that unmarked-tensor result with stable enabledness and
+the marked-tensor adjacency bridge. For a supplied correct canonical-history
+ready head, it returns an inclusive priority-enabled-or-predecessor-gap
+disjunction; under certified reachability the positive branch gives an exact
+dispatcher result. The gap says that the marked mate resolves to a retained
+boundary strictly below the active top but lacks an immediate-predecessor
+witness. It does not deny that another branch may also be enabled, prove the gap
+unreachable, or establish ready-head existence. The deterministic replay audit
+observed 6,198 default and 26,658 extended marked-tensor ready-head states with
+zero such gaps. This is finite executable evidence and records no new
+page/chapter reading or universal theorem. The next code invariant must quantify
+over every member of the active top ready bucket, not just the selected head, so
+that it survives a pop exposing the bucket tail. Global preservation of the
+mate-region and older-raw-mark invariants through candidate-creating rules
+remains open, as do queue origin, created-candidate raw seams, ready-head
+existence, progress, later-state totality, fallback removal, faithful token-age
+scheduling, and whole-program linearity. The future-head-touch invariant is
+preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head
 residuals, and canonical-history induction now makes it globally available
 under structural well-formedness. Global preservation of the mate-region and

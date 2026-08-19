@@ -114,6 +114,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "active_newSourceRegionInput",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "readyHead_priorityEnabled_or_markedTensorPredecessorGap",
+    "ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher."
+    "readyHead_dispatch_or_markedTensorPredecessorGap",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",

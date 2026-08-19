@@ -135,16 +135,19 @@ also execute the direct all-switchings checker for 18 differential sentinels.
 This distinction matters at depth five: the generated seed-0 certificate has
 15 par choices, so the direct checker takes the exponential switching path,
 whereas the theorem-equivalent unification check takes milliseconds. The
-current extended receipt, which also performs the New- and Unify-created-
-candidate geometry checks without making their cross-representative counts a
-hard coverage gate, was:
+current extended receipt also performs the marked-tensor predecessor and New-
+and Unify-created-candidate checks without making the cross-representative
+counts a hard coverage gate:
 
 ```text
 new-progress-audit-ok mode=extended depths=[0, 1, 2, 3, 4, 5]
 seeds_per_depth=1 variants_per_certificate=6 base_derivations=6
 labelled_certificates=36 direct_check_sentinels=18
 initialization_attempts=1254 initialization_successes=1254
-initialization_failures=0 reachable_states=96444 new_guard_states=26658
+initialization_failures=0 reachable_states=96444 marked_tensor_states=26658
+marked_tensor_adjacent_states=26658 marked_tensor_missing_predecessor_states=0
+marked_tensor_missing_previous_top_states=0
+marked_tensor_boundary_mismatch_states=0 new_guard_states=26658
 new_success_states=26658 new_failure_states=0
 new_success_without_guard=0 dispatch_steps=95190 new_steps=26658
 new_created_candidates=18822 new_created_reached_candidates=5760
@@ -165,12 +168,31 @@ unify_region_computation_failures=0 unify_retired_event_remaps=43416
 unify_moved_candidates=11922 ledger_decode_failures=0
 ledger_length_mismatches=0 terminal_runs=1254 max_replay_steps=110
 cycles=0 truncations=0 checksum=5588478
-replay_fuel=16*(formulas+links+1) elapsed_ms=7042 budget_ms=1800000
+replay_fuel=16*(formulas+links+1) elapsed_ms=9282 budget_ms=1800000
 ```
+
+The corresponding default and extended predecessor counters were:
+
+| Mode | Marked ready heads | Exact predecessors | Gaps |
+| --- | ---: | ---: | ---: |
+| Default, depths 0 through 4 | 6,198 | 6,198 | 0 |
+| Extended, depths 0 through 5 | 26,658 | 26,658 | 0 |
+
+The implementation also partitions any gap into a missing previous sigma top or
+a mate-boundary mismatch; both counters were zero in both runs. The default run
+also recorded 23,184 reachable states, 22,590 dispatch steps, 594 terminal runs,
+and checksum 741,882. The extended run recorded 96,444 reachable states, 95,190
+dispatch steps, 1,254 terminal runs, and checksum 5,588,478. These are finite
+coverage receipts, not a proof that the residual is universally impossible.
+The required Lean invariant must still quantify over every member of the active
+top ready bucket, and ready-head existence, dispatcher progress, later-state
+totality, recursive-fallback removal, faithful token-age scheduling, and
+whole-program linearity remain unproved.
 
 The default CI mode stops at depth four and is a 30-labelled-case finite gate;
 `--extended` is opt-in. Neither timing nor zero observed misses proves
-input-only `new` sufficiency, dispatcher progress, or whole-program linearity.
+input-only `new` sufficiency, marked-tensor predecessor totality, dispatcher
+progress, or whole-program linearity.
 
 The dedicated `--cross-representative-search` mode searches the conditional
 cross-representative New, Wait, Forward, and Unify seams over depth 5 and seeds 0
@@ -185,7 +207,7 @@ nonzero successful steps, inserted candidates, strict pairs, retired-event
 representative remaps, and moved future-New candidates. Every checked
 intersection and decode, representative, ledger, and region-computation failure count must be
 zero. `--wait-search` is a compatibility alias with the same bounds and gates.
-The frozen local receipt was:
+The previously frozen cross-representative geometry receipt was:
 
 ```text
 new-progress-audit-ok mode=cross-representative-search depths=[5]
