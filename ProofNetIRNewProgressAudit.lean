@@ -20,6 +20,10 @@ This executable searches only states produced by a successful
 
 Every replay state with a marked exact tensor ready head is also checked for
 the `SigmaPredecessorInput` required by `markedTensor_unifyPayloadEnabled`.
+Every post-initialization replay state is separately classified by concrete
+marking completeness and exact `ReadyHeadInput` availability. An incomplete
+state without a ready head, or a dispatch-none result while marking remains
+incomplete, is a hard regression with a fully replayable first witness.
 The default and extended modes search the shallow-New counterexample and
 separately audit marked-tensor predecessor availability. A missing predecessor
 is an adjacency regression witness, not by itself a proof that dispatch fails.
@@ -31,9 +35,11 @@ regions. Its coverage gates require successful steps, created candidates, and
 strict older-event pairs. `--wait-search` remains a compatibility spelling for
 the same combined finite search.
 
-The search is deterministic and finite. Absence of any witness is regression
-evidence over the constants below, not a progress theorem, NewGuard sufficiency,
-or an unconditional New/Wait/Forward/Unify preservation theorem. Labelled variants may denote equal
+The search is deterministic and finite. `dispatch_none_runs` means exactly an
+operational `dispatch? = none` stop; it is not named or interpreted as semantic
+termination. Absence of any witness is regression evidence over the constants
+below, not a progress theorem, NewGuard sufficiency, or an unconditional
+New/Wait/Forward/Unify preservation theorem. Labelled variants may denote equal
 certificates; the reported count is a count of labelled audit cases, not a
 uniqueness or statistical-independence claim. Default CI covers depths zero
 through four; `--extended` adds depth five; both cross-representative spellings
@@ -114,6 +120,23 @@ def newGuard? (certificate : Certificate) (before : ReservationState) :
               else
                 none
           | none => none
+      | none => none
+  | _ => none
+
+/-- Reconstruct exactly the typed active ready-head input, without inspecting
+which Figure-7 rule (if any) is enabled at that head. -/
+def readyHeadInput? (before : ReservationState) :
+    Option (ReadyHeadInput before) :=
+  match readyEquation : before.stack.ready.getLast? with
+  | some (vertex :: readyTail) =>
+      match sigmaEquation : before.stack.sigma.getLast? with
+      | some rawAge =>
+          some {
+            vertex
+            readyTail
+            rawAge
+            top_ready := readyEquation
+            sigma_top := sigmaEquation }
       | none => none
   | _ => none
 
@@ -372,6 +395,45 @@ structure Counterexample where
     new? certificate state invariant.toReservationInvariant = none
   failureStage : NewFailureStage
 
+/-- A post-initialization canonical replay state whose concrete mark array is
+incomplete but whose active ready bucket has no typed head. The replay origin,
+accepted certificate, exact state, reachability proof, scheduler invariant,
+and chronological rule trace make this a reproducible deadlock witness rather
+than an arbitrary state satisfying selected fields. -/
+structure IncompleteReadyHeadCounterexample where
+  depth : Nat
+  seed : Nat
+  variant : String
+  initializationStart : Vertex
+  step : Nat
+  replayKinds : List Figure7RuleKind
+  certificate : Certificate
+  accepted : certificate.check = true
+  state : ReservationState
+  reachable : ReachableByImplementedDispatcher certificate state
+  invariant : SchedulerInvariant certificate state
+  events : List AuditReservation
+  incomplete : state.core.allMarked = false
+  noReadyHead : readyHeadInput? state = none
+
+/-- A post-initialization canonical replay state that remains concretely
+incomplete even though the executable dispatcher returns no next step. -/
+structure IncompleteDispatchNoneCounterexample where
+  depth : Nat
+  seed : Nat
+  variant : String
+  initializationStart : Vertex
+  step : Nat
+  replayKinds : List Figure7RuleKind
+  certificate : Certificate
+  accepted : certificate.check = true
+  state : ReservationState
+  reachable : ReachableByImplementedDispatcher certificate state
+  invariant : SchedulerInvariant certificate state
+  events : List AuditReservation
+  incomplete : state.core.allMarked = false
+  dispatchNone : dispatch? certificate state invariant = none
+
 structure AuditStats where
   baseDerivations : Nat := 0
   checkedCertificates : Nat := 0
@@ -379,6 +441,11 @@ structure AuditStats where
   initializationAttempts : Nat := 0
   initializationSuccesses : Nat := 0
   reachableStates : Nat := 0
+  readyHeadStates : Nat := 0
+  incompleteStates : Nat := 0
+  incompleteReadyHeadStates : Nat := 0
+  incompleteNoReadyHeadStates : Nat := 0
+  fullyMarkedStates : Nat := 0
   markedTensorStates : Nat := 0
   markedTensorAdjacentStates : Nat := 0
   markedTensorMissingPredecessorStates : Nat := 0
@@ -389,7 +456,9 @@ structure AuditStats where
   newFailureStates : Nat := 0
   newSuccessWithoutGuard : Nat := 0
   dispatchSteps : Nat := 0
-  terminalRuns : Nat := 0
+  dispatchNoneRuns : Nat := 0
+  dispatchNoneIncompleteStates : Nat := 0
+  dispatchNoneFullyMarkedStates : Nat := 0
   cycleRuns : Nat := 0
   truncatedRuns : Nat := 0
   newSteps : Nat := 0
@@ -440,6 +509,13 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
   initializationSuccesses :=
     left.initializationSuccesses + right.initializationSuccesses
   reachableStates := left.reachableStates + right.reachableStates
+  readyHeadStates := left.readyHeadStates + right.readyHeadStates
+  incompleteStates := left.incompleteStates + right.incompleteStates
+  incompleteReadyHeadStates :=
+    left.incompleteReadyHeadStates + right.incompleteReadyHeadStates
+  incompleteNoReadyHeadStates :=
+    left.incompleteNoReadyHeadStates + right.incompleteNoReadyHeadStates
+  fullyMarkedStates := left.fullyMarkedStates + right.fullyMarkedStates
   markedTensorStates := left.markedTensorStates + right.markedTensorStates
   markedTensorAdjacentStates :=
     left.markedTensorAdjacentStates + right.markedTensorAdjacentStates
@@ -458,7 +534,11 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
   newSuccessWithoutGuard :=
     left.newSuccessWithoutGuard + right.newSuccessWithoutGuard
   dispatchSteps := left.dispatchSteps + right.dispatchSteps
-  terminalRuns := left.terminalRuns + right.terminalRuns
+  dispatchNoneRuns := left.dispatchNoneRuns + right.dispatchNoneRuns
+  dispatchNoneIncompleteStates :=
+    left.dispatchNoneIncompleteStates + right.dispatchNoneIncompleteStates
+  dispatchNoneFullyMarkedStates :=
+    left.dispatchNoneFullyMarkedStates + right.dispatchNoneFullyMarkedStates
   cycleRuns := left.cycleRuns + right.cycleRuns
   truncatedRuns := left.truncatedRuns + right.truncatedRuns
   newSteps := left.newSteps + right.newSteps
@@ -531,6 +611,10 @@ def AuditStats.add (left right : AuditStats) : AuditStats where
 structure SearchResult where
   stats : AuditStats := {}
   counterexample : Option Counterexample := none
+  incompleteReadyHeadCounterexample :
+    Option IncompleteReadyHeadCounterexample := none
+  incompleteDispatchNoneCounterexample :
+    Option IncompleteDispatchNoneCounterexample := none
   markedTensorPredecessorCounterexample :
     Option MarkedTensorPredecessorCounterexample := none
   newRegionCounterexample : Option NewRegionCounterexample := none
@@ -541,6 +625,13 @@ structure SearchResult where
 def SearchResult.addStats (result : SearchResult) (stats : AuditStats) : SearchResult :=
   { result with stats := result.stats.add stats }
 
+def SearchResult.addReadyHeadInspection
+    (result inspection : SearchResult) : SearchResult :=
+  { result with
+    stats := result.stats.add inspection.stats
+    incompleteReadyHeadCounterexample :=
+      inspection.incompleteReadyHeadCounterexample }
+
 def SearchResult.addMarkedTensorInspection
     (result inspection : SearchResult) : SearchResult :=
   { result with
@@ -550,6 +641,8 @@ def SearchResult.addMarkedTensorInspection
 
 def SearchResult.hasCounterexample (result : SearchResult) : Bool :=
   result.counterexample.isSome ||
+    result.incompleteReadyHeadCounterexample.isSome ||
+    result.incompleteDispatchNoneCounterexample.isSome ||
     result.markedTensorPredecessorCounterexample.isSome ||
     result.newRegionCounterexample.isSome || result.waitCounterexample.isSome ||
     result.forwardCounterexample.isSome || result.unifyCounterexample.isSome
@@ -558,6 +651,48 @@ def stateChecksum (state : ReservationState) : Nat :=
   state.stack.nextAge + state.stack.sigma.length +
     state.stack.ready.flatten.length + state.stack.waitingVertices.length +
     state.core.startedAxioms + state.core.firedConnectives
+
+/-- Classify one post-initialization replay state by concrete marking
+completeness and exact typed ready-head availability. Any incomplete state
+without a head carries the first fully replayable witness. -/
+def inspectReadyHeadExistence (candidate : CheckedCandidate) (start : Vertex)
+    (state : ReservationState)
+    (reachable : ReachableByImplementedDispatcher candidate.certificate state)
+    (invariant : SchedulerInvariant candidate.certificate state)
+    (events : List AuditReservation) (reversedKinds : List Figure7RuleKind)
+    (step : Nat) : SearchResult :=
+  if incomplete : state.core.allMarked = false then
+    match readyEquation : readyHeadInput? state with
+    | some _ =>
+        { stats := {
+            readyHeadStates := 1
+            incompleteStates := 1
+            incompleteReadyHeadStates := 1 } }
+    | none =>
+        { stats := {
+            incompleteStates := 1
+            incompleteNoReadyHeadStates := 1 }
+          incompleteReadyHeadCounterexample := some {
+            depth := candidate.depth
+            seed := candidate.seed
+            variant := candidate.variant
+            initializationStart := start
+            step
+            replayKinds := reversedKinds.reverse
+            certificate := candidate.certificate
+            accepted := candidate.accepted
+            state
+            reachable
+            invariant
+            events
+            incomplete
+            noReadyHead := readyEquation } }
+  else
+    match readyHeadInput? state with
+    | some _ =>
+        { stats := { readyHeadStates := 1, fullyMarkedStates := 1 } }
+    | none =>
+        { stats := { fullyMarkedStates := 1 } }
 
 /-- Conservative finite replay fuel. Zero truncations are required by the
 executable gate, so this bound is observable rather than silently assumed. -/
@@ -1513,6 +1648,9 @@ def inspectReachable (candidate : CheckedCandidate)
             if events.length == state.stack.nextAge then 0 else 1
           maxReplaySteps := step
           checksum := stateChecksum state }
+        let readyHeadInspection :=
+          inspectReadyHeadExistence candidate start state reachable invariant
+            events reversedKinds step
         let markedInspection :=
           inspectMarkedTensorPredecessor candidate start step reversedKinds state
         let afterGuard : SearchResult :=
@@ -1549,7 +1687,8 @@ def inspectReachable (candidate : CheckedCandidate)
               | some _ =>
                   { stats := {
                       base with guardStates := 1, newSuccessStates := 1 } }
-        afterGuard.addMarkedTensorInspection markedInspection
+        (afterGuard.addReadyHeadInspection readyHeadInspection).addMarkedTensorInspection
+          markedInspection
   | fuel + 1 =>
       if state ∈ seen then
         { stats := { cycleRuns := 1, maxReplaySteps := step } }
@@ -1561,6 +1700,9 @@ def inspectReachable (candidate : CheckedCandidate)
             if events.length == state.stack.nextAge then 0 else 1
           maxReplaySteps := step
           checksum := stateChecksum state }
+        let readyHeadInspection :=
+          inspectReadyHeadExistence candidate start state reachable invariant
+            events reversedKinds step
         let markedInspection :=
           inspectMarkedTensorPredecessor candidate start step reversedKinds state
         let afterNewGuard : SearchResult :=
@@ -1598,19 +1740,46 @@ def inspectReachable (candidate : CheckedCandidate)
                   { stats := {
                       base with guardStates := 1, newSuccessStates := 1 } }
         let afterGuard :=
-          afterNewGuard.addMarkedTensorInspection markedInspection
+          (afterNewGuard.addReadyHeadInspection readyHeadInspection).addMarkedTensorInspection
+            markedInspection
         match afterGuard.counterexample with
         | some _ => afterGuard
         | none =>
+          match afterGuard.incompleteReadyHeadCounterexample with
+          | some _ => afterGuard
+          | none =>
             match afterGuard.markedTensorPredecessorCounterexample with
             | some _ => afterGuard
             | none =>
               match dispatchEquation :
                   dispatch? candidate.certificate state invariant with
               | none =>
-                  afterGuard.addStats {
-                    terminalRuns := 1
-                    maxReplaySteps := step }
+                  if incomplete : state.core.allMarked = false then
+                    { afterGuard with
+                      stats := afterGuard.stats.add {
+                        dispatchNoneRuns := 1
+                        dispatchNoneIncompleteStates := 1
+                        maxReplaySteps := step }
+                      incompleteDispatchNoneCounterexample := some {
+                        depth := candidate.depth
+                        seed := candidate.seed
+                        variant := candidate.variant
+                        initializationStart := start
+                        step
+                        replayKinds := reversedKinds.reverse
+                        certificate := candidate.certificate
+                        accepted := candidate.accepted
+                        state
+                        reachable
+                        invariant
+                        events
+                        incomplete
+                        dispatchNone := dispatchEquation } }
+                  else
+                    afterGuard.addStats {
+                      dispatchNoneRuns := 1
+                      dispatchNoneFullyMarkedStates := 1
+                      maxReplaySteps := step }
               | some result =>
                 let nextReachable :=
                   reachable.dispatch invariant dispatchEquation
@@ -1687,6 +1856,10 @@ def inspectReachable (candidate : CheckedCandidate)
                                     (step + 1) fuel
                                 { stats := currentStats.add tail.stats
                                   counterexample := tail.counterexample
+                                  incompleteReadyHeadCounterexample :=
+                                    tail.incompleteReadyHeadCounterexample
+                                  incompleteDispatchNoneCounterexample :=
+                                    tail.incompleteDispatchNoneCounterexample
                                   markedTensorPredecessorCounterexample :=
                                     tail.markedTensorPredecessorCounterexample
                                   newRegionCounterexample :=
@@ -1725,6 +1898,10 @@ def inspectStarts (candidate : CheckedCandidate)
             let tail := inspectStarts candidate regionCache rest
             { stats := current.stats.add tail.stats
               counterexample := tail.counterexample
+              incompleteReadyHeadCounterexample :=
+                tail.incompleteReadyHeadCounterexample
+              incompleteDispatchNoneCounterexample :=
+                tail.incompleteDispatchNoneCounterexample
               markedTensorPredecessorCounterexample :=
                 tail.markedTensorPredecessorCounterexample
               newRegionCounterexample := tail.newRegionCounterexample
@@ -1768,6 +1945,10 @@ def inspectVariants (depth seed : Nat) : List PositiveVariant →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          incompleteReadyHeadCounterexample :=
+            tail.incompleteReadyHeadCounterexample
+          incompleteDispatchNoneCounterexample :=
+            tail.incompleteDispatchNoneCounterexample
           markedTensorPredecessorCounterexample :=
             tail.markedTensorPredecessorCounterexample
           newRegionCounterexample := tail.newRegionCounterexample
@@ -1795,6 +1976,10 @@ def inspectSeeds (depth : Nat) : List Nat → Except String SearchResult
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          incompleteReadyHeadCounterexample :=
+            tail.incompleteReadyHeadCounterexample
+          incompleteDispatchNoneCounterexample :=
+            tail.incompleteDispatchNoneCounterexample
           markedTensorPredecessorCounterexample :=
             tail.markedTensorPredecessorCounterexample
           newRegionCounterexample := tail.newRegionCounterexample
@@ -1814,6 +1999,10 @@ def inspectDepths (seedsPerDepth : Nat) : List Nat →
         return {
           stats := current.stats.add tail.stats
           counterexample := tail.counterexample
+          incompleteReadyHeadCounterexample :=
+            tail.incompleteReadyHeadCounterexample
+          incompleteDispatchNoneCounterexample :=
+            tail.incompleteDispatchNoneCounterexample
           markedTensorPredecessorCounterexample :=
             tail.markedTensorPredecessorCounterexample
           newRegionCounterexample := tail.newRegionCounterexample
@@ -1916,6 +2105,34 @@ def renderCounterexample (counterexample : Counterexample) : String :=
     s!"variant={counterexample.variant} start={counterexample.start} " ++
     s!"step={counterexample.step} replay={repr counterexample.replayKinds} " ++
     s!"failure_stage={repr counterexample.failureStage}\n" ++
+    s!"certificate={repr counterexample.certificate}\n" ++
+    s!"state={repr counterexample.state}"
+
+def renderIncompleteReadyHeadCounterexample
+    (counterexample : IncompleteReadyHeadCounterexample) : String :=
+  s!"incomplete-ready-head-counterexample depth={counterexample.depth} " ++
+    s!"seed={counterexample.seed} variant={counterexample.variant} " ++
+    s!"initialization_start={counterexample.initializationStart} " ++
+    s!"step={counterexample.step} replay={repr counterexample.replayKinds}\n" ++
+    s!"next_age={counterexample.state.stack.nextAge} " ++
+    s!"all_marked={counterexample.state.core.allMarked} " ++
+    s!"ready_top={repr counterexample.state.stack.ready.getLast?} " ++
+    s!"sigma_top={repr counterexample.state.stack.sigma.getLast?}\n" ++
+    s!"events={repr counterexample.events}\n" ++
+    s!"certificate={repr counterexample.certificate}\n" ++
+    s!"state={repr counterexample.state}"
+
+def renderIncompleteDispatchNoneCounterexample
+    (counterexample : IncompleteDispatchNoneCounterexample) : String :=
+  s!"incomplete-dispatch-none-counterexample depth={counterexample.depth} " ++
+    s!"seed={counterexample.seed} variant={counterexample.variant} " ++
+    s!"initialization_start={counterexample.initializationStart} " ++
+    s!"step={counterexample.step} replay={repr counterexample.replayKinds}\n" ++
+    s!"next_age={counterexample.state.stack.nextAge} " ++
+    s!"all_marked={counterexample.state.core.allMarked} " ++
+    s!"ready_top={repr counterexample.state.stack.ready.getLast?} " ++
+    s!"sigma_top={repr counterexample.state.stack.sigma.getLast?}\n" ++
+    s!"events={repr counterexample.events}\n" ++
     s!"certificate={repr counterexample.certificate}\n" ++
     s!"state={repr counterexample.state}"
 
@@ -2022,6 +2239,11 @@ def renderStats (stats : AuditStats) : String :=
     s!"initialization_successes={stats.initializationSuccesses} " ++
     s!"initialization_failures={stats.initializationAttempts - stats.initializationSuccesses} " ++
     s!"reachable_states={stats.reachableStates} " ++
+    s!"ready_head_states={stats.readyHeadStates} " ++
+    s!"incomplete_states={stats.incompleteStates} " ++
+    s!"incomplete_ready_head_states={stats.incompleteReadyHeadStates} " ++
+    s!"incomplete_no_ready_head_states={stats.incompleteNoReadyHeadStates} " ++
+    s!"fully_marked_states={stats.fullyMarkedStates} " ++
     s!"marked_tensor_states={stats.markedTensorStates} " ++
     s!"marked_tensor_adjacent_states={stats.markedTensorAdjacentStates} " ++
     s!"marked_tensor_missing_predecessor_states=" ++
@@ -2075,12 +2297,50 @@ def renderStats (stats : AuditStats) : String :=
     s!"unify_moved_candidates={stats.unifyMovedCandidates} " ++
     s!"ledger_decode_failures={stats.ledgerDecodeFailures} " ++
     s!"ledger_length_mismatches={stats.ledgerLengthMismatches} " ++
-    s!"terminal_runs={stats.terminalRuns} " ++
+    s!"dispatch_none_runs={stats.dispatchNoneRuns} " ++
+    s!"dispatch_none_incomplete_states={stats.dispatchNoneIncompleteStates} " ++
+    s!"dispatch_none_fully_marked_states=" ++
+    s!"{stats.dispatchNoneFullyMarkedStates} " ++
     s!"max_replay_steps={stats.maxReplaySteps} " ++
     s!"cycles={stats.cycleRuns} truncations={stats.truncatedRuns} " ++
     s!"checksum={stats.checksum}"
 
 def validateReplayStats (stats : AuditStats) : Except String Unit := do
+  if stats.reachableStates != stats.incompleteStates + stats.fullyMarkedStates then
+    throw <|
+      s!"marking-completeness counts do not partition reachable states: " ++
+        s!"{stats.reachableStates} != {stats.incompleteStates} + " ++
+        s!"{stats.fullyMarkedStates}"
+  if stats.incompleteStates !=
+      stats.incompleteReadyHeadStates + stats.incompleteNoReadyHeadStates then
+    throw <|
+      s!"ready-head counts do not partition incomplete states: " ++
+        s!"{stats.incompleteStates} != {stats.incompleteReadyHeadStates} + " ++
+        s!"{stats.incompleteNoReadyHeadStates}"
+  if stats.incompleteNoReadyHeadStates != 0 then
+    throw <|
+      s!"post-initialization incomplete states lacked a ready head: " ++
+        s!"{stats.incompleteNoReadyHeadStates}"
+  if stats.readyHeadStates != stats.dispatchSteps then
+    throw <|
+      s!"ready-head/dispatch-success count mismatch: " ++
+        s!"{stats.readyHeadStates} != {stats.dispatchSteps}"
+  if stats.dispatchNoneRuns !=
+      stats.dispatchNoneIncompleteStates + stats.dispatchNoneFullyMarkedStates then
+    throw <|
+      s!"dispatch-none counts do not partition by marking completeness: " ++
+        s!"{stats.dispatchNoneRuns} != {stats.dispatchNoneIncompleteStates} + " ++
+        s!"{stats.dispatchNoneFullyMarkedStates}"
+  if stats.dispatchNoneIncompleteStates != 0 then
+    throw <|
+      s!"dispatch returned none in post-initialization incomplete states: " ++
+        s!"{stats.dispatchNoneIncompleteStates}"
+  if stats.reachableStates !=
+      stats.dispatchSteps + stats.dispatchNoneRuns + stats.truncatedRuns then
+    throw <|
+      s!"dispatch outcomes do not partition reachable states: " ++
+        s!"{stats.reachableStates} != {stats.dispatchSteps} + " ++
+        s!"{stats.dispatchNoneRuns} + {stats.truncatedRuns}"
   if stats.markedTensorStates !=
       stats.markedTensorAdjacentStates +
         stats.markedTensorMissingPredecessorStates then
@@ -2176,7 +2436,7 @@ def validateReplayStats (stats : AuditStats) : Except String Unit := do
     throw s!"successful New transitions failed ledger decoding: {stats.ledgerDecodeFailures}"
   if stats.ledgerLengthMismatches != 0 then
     throw s!"audit ledger/raw-age horizon mismatches observed: {stats.ledgerLengthMismatches}"
-  if stats.terminalRuns + stats.cycleRuns + stats.truncatedRuns !=
+  if stats.dispatchNoneRuns + stats.cycleRuns + stats.truncatedRuns !=
       stats.initializationSuccesses then
     throw "replay stop-reason counts do not partition successful initializations"
 
@@ -2190,30 +2450,40 @@ def requireNoCounterexample (result : SearchResult) : IO Unit :=
   | some counterexample =>
       throw <| IO.userError (renderCounterexample counterexample)
   | none =>
-      match result.markedTensorPredecessorCounterexample with
+      match result.incompleteReadyHeadCounterexample with
       | some counterexample =>
           throw <| IO.userError
-            (renderMarkedTensorPredecessorCounterexample counterexample)
+            (renderIncompleteReadyHeadCounterexample counterexample)
       | none =>
-          match result.newRegionCounterexample with
+          match result.incompleteDispatchNoneCounterexample with
           | some counterexample =>
               throw <| IO.userError
-                (renderNewRegionCounterexample counterexample)
+                (renderIncompleteDispatchNoneCounterexample counterexample)
           | none =>
-              match result.waitCounterexample with
+              match result.markedTensorPredecessorCounterexample with
               | some counterexample =>
-                  throw <| IO.userError (renderWaitCounterexample counterexample)
+                  throw <| IO.userError
+                    (renderMarkedTensorPredecessorCounterexample counterexample)
               | none =>
-                  match result.forwardCounterexample with
+                  match result.newRegionCounterexample with
                   | some counterexample =>
                       throw <| IO.userError
-                        (renderForwardCounterexample counterexample)
+                        (renderNewRegionCounterexample counterexample)
                   | none =>
-                      match result.unifyCounterexample with
-                      | none => pure ()
+                      match result.waitCounterexample with
                       | some counterexample =>
-                          throw <| IO.userError
-                            (renderUnifyRegionCounterexample counterexample)
+                          throw <| IO.userError (renderWaitCounterexample counterexample)
+                      | none =>
+                          match result.forwardCounterexample with
+                          | some counterexample =>
+                              throw <| IO.userError
+                                (renderForwardCounterexample counterexample)
+                          | none =>
+                              match result.unifyCounterexample with
+                              | none => pure ()
+                              | some counterexample =>
+                                  throw <| IO.userError
+                                    (renderUnifyRegionCounterexample counterexample)
 
 def inspectStartsIO (candidate : CheckedCandidate)
     (regionCache : SourceRegionCache) : List Vertex →
@@ -2268,6 +2538,10 @@ def inspectStartsIO (candidate : CheckedCandidate)
             return {
               stats := current.stats.add tail.stats
               counterexample := tail.counterexample
+              incompleteReadyHeadCounterexample :=
+                tail.incompleteReadyHeadCounterexample
+              incompleteDispatchNoneCounterexample :=
+                tail.incompleteDispatchNoneCounterexample
               markedTensorPredecessorCounterexample :=
                 tail.markedTensorPredecessorCounterexample
               newRegionCounterexample := tail.newRegionCounterexample
@@ -2411,10 +2685,11 @@ def parseConfig (args : List String) : Except String AuditConfig :=
       "usage: proofnet_ir_new_progress_audit [--extended | --wait-search | " ++
         "--cross-representative-search | --depth N | --profile-depth N]"
 
-/-- Run the bounded finite audit. Any New failure, marked-tensor predecessor
-gap, or New/Wait/Forward/Unify region intersection is a hard regression and is
-printed with its complete certificate, states, initialization start,
-dispatcher rule trace, and decoded witness data.
+/-- Run the bounded finite audit. Any incomplete ready-head gap, incomplete
+dispatch-none result, New failure, marked-tensor predecessor gap, or
+New/Wait/Forward/Unify region intersection is a hard regression and is printed
+with its complete certificate, states, initialization start, dispatcher rule
+trace, and decoded witness data.
 Passing these labelled, potentially duplicate cases proves no unconditional
 progress or cross-representative preservation theorem. -/
 def run (config : AuditConfig) : IO Unit := do
@@ -2443,6 +2718,16 @@ def run (config : AuditConfig) : IO Unit := do
     throw <| IO.userError "audit exercised no successful initializations"
   if stats.reachableStates == 0 then
     throw <| IO.userError "audit exercised no dispatcher-reachable states"
+  if stats.incompleteStates == 0 then
+    throw <| IO.userError "audit exercised no post-initialization incomplete states"
+  if stats.incompleteReadyHeadStates == 0 then
+    throw <| IO.userError "audit exercised no incomplete states with ready heads"
+  if stats.fullyMarkedStates == 0 then
+    throw <| IO.userError "audit exercised no fully marked states"
+  if stats.dispatchNoneRuns == 0 then
+    throw <| IO.userError "audit exercised no dispatch-none replay stops"
+  if stats.dispatchNoneFullyMarkedStates == 0 then
+    throw <| IO.userError "audit exercised no fully marked dispatch-none states"
   if config.requireMarkedTensorPredecessorCoverage &&
       stats.markedTensorStates == 0 then
     throw <| IO.userError "audit exercised no reachable marked tensor ready heads"

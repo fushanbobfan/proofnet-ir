@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- strengthened `proofnet_ir_new_progress_audit` at the ready-head boundary. The
+  executable now classifies exact typed `ReadyHeadInput` availability at every
+  post-initialization canonical replay state, partitions states by concrete
+  marking completeness, and treats an incomplete state without a head or an
+  incomplete `dispatch? = none` result as a hard regression with a reproducible
+  certificate/state/ledger/rule-trace witness. The former `terminalRuns`
+  counter and `terminal_runs` output are renamed `dispatchNoneRuns` and
+  `dispatch_none_runs` because operational quiescence is not itself a semantic
+  termination theorem. The bounded default replay classified all
+  22,590 incomplete states as ready-head/successful-dispatch states and all 594
+  dispatch-none stops as fully marked; the extended replay classified all
+  95,190 incomplete states likewise and all 1,254 dispatch-none stops as fully
+  marked. Both incomplete-without-head and incomplete-dispatch-none counters
+  were zero. These deterministic finite receipts do not prove the remaining
+  semantic nonterminal-to-ready-head bridge or unconditional progress;
 - added `SequentialFigure7OlderMarkedTensorPredecessorHistory.lean`, which
   packages the predecessor invariant over complete canonical dispatcher
   histories. The canonical-history induction handles empty and initial states

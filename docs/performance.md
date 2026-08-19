@@ -135,16 +135,20 @@ also execute the direct all-switchings checker for 18 differential sentinels.
 This distinction matters at depth five: the generated seed-0 certificate has
 15 par choices, so the direct checker takes the exponential switching path,
 whereas the theorem-equivalent unification check takes milliseconds. The
-current extended receipt also performs the marked-tensor predecessor and New-
-and Unify-created-candidate checks without making the cross-representative
-counts a hard coverage gate:
+current extended receipt also classifies every post-initialization state by
+marking completeness and exact ready-head availability, then performs the
+marked-tensor predecessor and New- and Unify-created-candidate checks without
+making the cross-representative counts a hard coverage gate:
 
 ```text
 new-progress-audit-ok mode=extended depths=[0, 1, 2, 3, 4, 5]
 seeds_per_depth=1 variants_per_certificate=6 base_derivations=6
 labelled_certificates=36 direct_check_sentinels=18
 initialization_attempts=1254 initialization_successes=1254
-initialization_failures=0 reachable_states=96444 marked_tensor_states=26658
+initialization_failures=0 reachable_states=96444 ready_head_states=95190
+incomplete_states=95190 incomplete_ready_head_states=95190
+incomplete_no_ready_head_states=0 fully_marked_states=1254
+marked_tensor_states=26658
 marked_tensor_adjacent_states=26658 marked_tensor_missing_predecessor_states=0
 marked_tensor_missing_previous_top_states=0
 marked_tensor_boundary_mismatch_states=0 new_guard_states=26658
@@ -166,9 +170,11 @@ unify_region_intersections=0 unify_decode_failures=0
 unify_representative_failures=0 unify_ledger_failures=0
 unify_region_computation_failures=0 unify_retired_event_remaps=43416
 unify_moved_candidates=11922 ledger_decode_failures=0
-ledger_length_mismatches=0 terminal_runs=1254 max_replay_steps=110
+ledger_length_mismatches=0 dispatch_none_runs=1254
+dispatch_none_incomplete_states=0 dispatch_none_fully_marked_states=1254
+max_replay_steps=110
 cycles=0 truncations=0 checksum=5588478
-replay_fuel=16*(formulas+links+1) elapsed_ms=9282 budget_ms=1800000
+replay_fuel=16*(formulas+links+1) elapsed_ms=8820 budget_ms=1800000
 ```
 
 The corresponding default and extended predecessor counters were:
@@ -178,16 +184,23 @@ The corresponding default and extended predecessor counters were:
 | Default, depths 0 through 4 | 6,198 | 6,198 | 0 |
 | Extended, depths 0 through 5 | 26,658 | 26,658 | 0 |
 
-The implementation also partitions any gap into a missing previous sigma top or
-a mate-boundary mismatch; both counters were zero in both runs. The default run
-also recorded 23,184 reachable states, 22,590 dispatch steps, 594 terminal runs,
-and checksum 741,882. The extended run recorded 96,444 reachable states, 95,190
-dispatch steps, 1,254 terminal runs, and checksum 5,588,478. These are finite
-coverage receipts, not a proof that the residual is universally impossible.
-The required Lean invariant must still quantify over every member of the active
-top ready bucket, and ready-head existence, dispatcher progress, later-state
-totality, recursive-fallback removal, faithful token-age scheduling, and
-whole-program linearity remain unproved.
+The implementation also partitions any predecessor gap into a missing previous
+sigma top or a mate-boundary mismatch; both counters were zero in both runs. In
+the default run, all 22,590 incomplete states had ready heads and successful
+dispatches, while all 594 dispatch-none stops were fully marked. The extended
+run likewise classified all 95,190 incomplete states as ready-head/successful-
+dispatch states and all 1,254 dispatch-none stops as fully marked. The
+incomplete-without-head and incomplete-dispatch-none counters were zero in both
+runs. The checksums remained 741,882 and 5,588,478 respectively.
+
+`dispatch_none_runs` is deliberately operational wording: these counters do
+not define or prove semantic termination. The indexed predecessor invariant and
+its canonical-history packaging are kernel-checked separately. The finite
+receipt remains only falsification evidence for the first current gate:
+deriving a ready head from an appropriate semantic nonterminal condition.
+Unconditional dispatcher progress, later-state totality, recursive-fallback
+removal, faithful token-age scheduling, and whole-program linearity remain
+unproved.
 
 The default CI mode stops at depth four and is a 30-labelled-case finite gate;
 `--extended` is opt-in. Neither timing nor zero observed misses proves
@@ -207,14 +220,20 @@ nonzero successful steps, inserted candidates, strict pairs, retired-event
 representative remaps, and moved future-New candidates. Every checked
 intersection and decode, representative, ledger, and region-computation failure count must be
 zero. `--wait-search` is a compatibility alias with the same bounds and gates.
-The previously frozen cross-representative geometry receipt was:
+The current cross-representative geometry receipt was:
 
 ```text
 new-progress-audit-ok mode=cross-representative-search depths=[5]
 seeds_per_depth=16 variants_per_certificate=6 base_derivations=16
 labelled_certificates=96 direct_check_sentinels=0
 initialization_attempts=10608 initialization_successes=10608
-initialization_failures=0 reachable_states=1182816
+initialization_failures=0 reachable_states=1182816 ready_head_states=1172208
+incomplete_states=1172208 incomplete_ready_head_states=1172208
+incomplete_no_ready_head_states=0 fully_marked_states=10608
+marked_tensor_states=328848 marked_tensor_adjacent_states=328848
+marked_tensor_missing_predecessor_states=0
+marked_tensor_missing_previous_top_states=0
+marked_tensor_boundary_mismatch_states=0
 new_guard_states=328848 new_success_states=328848 new_failure_states=0
 new_success_without_guard=0 dispatch_steps=1172208 new_steps=328848
 new_created_candidates=222246 new_created_reached_candidates=59706
@@ -233,9 +252,11 @@ unify_region_intersections=0 unify_decode_failures=0
 unify_representative_failures=0 unify_ledger_failures=0
 unify_region_computation_failures=0 unify_retired_event_remaps=528204
 unify_moved_candidates=163806 ledger_decode_failures=0
-ledger_length_mismatches=0 terminal_runs=10608 max_replay_steps=111
+ledger_length_mismatches=0 dispatch_none_runs=10608
+dispatch_none_incomplete_states=0 dispatch_none_fully_marked_states=10608
+max_replay_steps=111
 cycles=0 truncations=0 checksum=77141346
-replay_fuel=16*(formulas+links+1) elapsed_ms=127151 budget_ms=1800000
+replay_fuel=16*(formulas+links+1) elapsed_ms=126499 budget_ms=1800000
 ```
 
 The cache used by this run memoizes the same complete structural source-left
