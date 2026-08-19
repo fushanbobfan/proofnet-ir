@@ -324,8 +324,18 @@ consequence. Under prior debt, post-Nop and post-Wait debt are exactly the
 prepared selected-away witness. Under the prior complete invariant and a global
 created conclusion, Forward and UnifyPayload post-debt are exactly presence
 implying a non-global vertex in the branch's ready tail. Presence only detects
-vacuity. Canonical history derives no witness, so full preservation remains
+vacuity. Canonical history derives no debt witness, so full debt preservation remains
 open. This records no new page or chapter reading.
+`SequentialFigure7ContinuationCredit.lean` and its preservation module are also
+kernel-checked code consequences, with no new source-reading claim. Their two
+carriers give every concretely marked nonconclusion an unmarked-mate,
+future-conclusion, or marked-conclusion receipt. Fresh events receive credit in
+all six dispatcher cases. The six branch transports and two dispatcher
+transports require structural well-formedness; Nop and New additionally use the
+old owner's mark. Exact canonical tag histories preserve the predicate without
+a correctness premise. This weaker history invariant supplies no active-frontier
+raw witness, selected-away witness, global-created exact tail, full active-top
+debt preservation, or progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, unconditional active-top completion, progress, later-state totality,

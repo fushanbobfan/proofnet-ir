@@ -23,16 +23,17 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch now isolates exact branch-local obligations for active-top
-marked-nonconclusion debt. With prior debt, post-Nop and post-Wait debt are each
-equivalent to the prepared prefix's selected-away raw witness. When Forward or
-Unify creates a global conclusion, post-debt is equivalent, under the prior
-scheduler invariant, to an exact-tail law: marked-nonconclusion presence on the
-active frontier implies a non-global vertex in that branch's ready tail. The
-presence condition only detects vacuity; it does not produce the witness.
-No canonical-history theorem yet supplies these witnesses. Full preservation,
-progress, later-state totality, fallback removal, pure-worklist completeness,
-faithful scheduling, and whole-program linearity remain open.
+The rolling branch now carries branch-local continuation credit through every
+exact canonical tag history. Each concretely marked nonconclusion receives an
+unmarked mate, future work for its connective conclusion, or an already marked
+conclusion. Existing credit
+crosses all six successful typed branches under structural well-formedness;
+Nop and New additionally use the old owner's concrete mark. This full-history
+invariant is strictly weaker than active-top marked-nonconclusion debt: it
+supplies neither the Nop/Wait selected-away witness nor the global-created
+Forward/Unify exact tail. Full debt preservation, progress, later-state
+totality, fallback removal, pure-worklist completeness, faithful scheduling,
+and whole-program linearity remain open.
 [The replaceable current-status record](docs/current-status.md) owns exact
 revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

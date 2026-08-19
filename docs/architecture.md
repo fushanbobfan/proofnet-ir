@@ -1008,6 +1008,21 @@ to marked-nonconclusion presence implying a non-global vertex in the exact
 ready tail. Presence only detects vacuity. Canonical history derives neither
 witness, so full debt preservation and downstream progress remain open.
 
+`SequentialFigure7ContinuationCredit.lean` and
+`SequentialFigure7ContinuationCreditPreservation.lean` close a deliberately
+weaker history invariant. `ContinuationCredit` records an unmarked connective
+mate, scheduled work for the connective conclusion, or an already marked
+conclusion. `MarkedNonconclusionContinuation` requires one such receipt for
+every concretely marked nonconclusion. Fresh events receive a receipt in all
+six dispatcher cases. The six branch transports plus the two dispatcher-level
+transports need only structural well-formedness; Nop and New additionally use
+the old owner's concrete mark, and the old-credit dispatcher theorem carries
+that mark uniformly. Induction over an exact `CanonicalTagHistory` establishes
+the state predicate without assuming declarative correctness. A receipt need
+not be a distinct raw-unmarked occurrence on the active frontier, so this
+full-history result proves neither the selected-away/exact-tail residuals nor
+full `ActiveTopMarkedNonconclusionDebt`, semantic completion, or progress.
+
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
 retained marked-middle work or one of the reached/partner endpoints appended
@@ -1389,9 +1404,10 @@ at an explicitly supplied correct canonical-history ready head, and the
 active-top classifier identifies the exact structural shape when that head is
 absent. The marked-nonconclusion debt theorem now turns that shape into
 `core.allMarked = true` when its additional state predicate holds. The replay
-does not prove that canonical histories preserve the predicate through Nop,
-Wait, or the global-created Forward/UnifyPayload cases, so unconditional
-progress and totality remain open.
+does not prove that canonical histories preserve the active-top debt predicate
+through Nop, Wait, or the global-created Forward/UnifyPayload cases. The
+separately proved full-history continuation-credit invariant is weaker and does
+not discharge those cases, so unconditional progress and totality remain open.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

@@ -357,6 +357,32 @@ expansion.
   SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
 #print axioms
   SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
+#print axioms SequentialFigure7.empty_markedNonconclusionContinuation
+#print axioms
+  SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation
+#print axioms SequentialFigure7.FutureWorkAt.afterPreparedOrSelected
+#print axioms SequentialFigure7.NopStep.selectedContinuationCredit
+#print axioms SequentialFigure7.WaitStep.createdConclusionFutureWorkAt
+#print axioms SequentialFigure7.WaitStep.selectedContinuationCredit
+#print axioms SequentialFigure7.NewStep.selectedContinuationCredit
+#print axioms SequentialFigure7.ForwardStep.createdConclusionFutureWorkAt
+#print axioms SequentialFigure7.ForwardStep.selectedContinuationCredit
+#print axioms
+  SequentialFigure7.UnifyPayloadStep.createdConclusionFutureWorkAt
+#print axioms SequentialFigure7.UnifyPayloadStep.selectedContinuationCredit
+#print axioms
+  SequentialFigure7.DispatchTagEvidence.newlyMarkedContinuationCredit
+#print axioms SequentialFigure7.ConclStep.continuationCredit
+#print axioms SequentialFigure7.NopStep.continuationCredit
+#print axioms SequentialFigure7.NewStep.continuationCredit
+#print axioms SequentialFigure7.WaitStep.continuationCredit
+#print axioms SequentialFigure7.ForwardStep.continuationCredit
+#print axioms SequentialFigure7.UnifyPayloadStep.continuationCredit
+#print axioms SequentialFigure7.DispatchTagEvidence.oldContinuationCredit
+#print axioms
+  SequentialFigure7.DispatchTagEvidence.markedNonconclusionContinuation
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.markedNonconclusionContinuation
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

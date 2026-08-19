@@ -769,8 +769,24 @@ only detects vacuity; it manufactures no tail vertex. The pending audit is
 expected to place the five new theorems in the existing trust profile, bringing
 the total to 919 declarations: 634 full-classical, 25 axiom-free, 125
 `propext`-only, and 135 `propext`/`Quot.sound`. `CanonicalTagHistory` derives no
-residual witness, so full preservation and progress remain outside the trusted
+residual witness, so full debt preservation and progress remain outside the trusted
 surface.
+`SequentialFigure7ContinuationCredit.lean` and its preservation module add no
+correctness, history-existence, scheduling, or progress oracle. The two public
+carriers record three concrete receipt forms. Fresh-event coverage and all six
+branch transports are proved from exact typed steps. The six branch transports
+and two dispatcher-level transports require only structural well-formedness;
+Nop and New additionally consume the old owner's concrete mark, while the
+old-credit dispatcher transport takes that mark uniformly. The exact
+`CanonicalTagHistory` induction has no declarative-correctness premise. Of the
+21 theorem boundaries, `empty_markedNonconclusionContinuation` depends exactly
+on `[propext]`, `FutureWorkAt.afterPreparedOrSelected` exactly on
+`[propext, Quot.sound]`, and the other 19 exactly on
+`[propext, Classical.choice, Quot.sound]`. The pending combined audit is
+expected to cover 940 declarations: 653 full-classical, 25 axiom-free, 126
+`propext`-only, and 136 `propext`/`Quot.sound`. Full-history continuation credit
+does not imply active-top debt or its selected-away/exact-tail witnesses, so
+semantic completion and progress remain outside the trusted surface.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

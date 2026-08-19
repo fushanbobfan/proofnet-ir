@@ -603,8 +603,19 @@ part of the engineering and proof-identity gap.
    invariant and a global created conclusion, Forward and UnifyPayload
    post-debt are equivalent to marked-nonconclusion presence implying a
    non-global vertex in the exact ready tail. Presence only detects vacuity.
-   Canonical history supplies none of these witnesses, so progress,
+   Canonical history supplies none of these debt witnesses, so progress,
    terminality, totality, and completeness remain open.
+   `SequentialFigure7ContinuationCredit.lean` and its preservation module now
+   close a weaker full-history invariant. The two carriers assign each marked
+   nonconclusion one of three receipts: an unmarked mate, future conclusion
+   work, or a marked conclusion. Fresh events receive credit in all six cases.
+   The six branch transports and two dispatcher transports require structural
+   well-formedness; Nop and New additionally consume the old owner's mark, and
+   dispatch-level old-credit transport supplies that mark uniformly. Exact
+   `CanonicalTagHistory` preserves the state predicate without a correctness
+   premise. None of the three receipt forms guarantees a distinct raw witness
+   on the active frontier, so the selected-away and global-created exact-tail
+   gates above remain open.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -1048,10 +1059,12 @@ part of the engineering and proof-identity gap.
    top component with no raw-unmarked frontier occurrence. The new
    marked-nonconclusion debt theorem turns that drained branch into
    `core.allMarked = true` when its additional state predicate is available.
-   The Nop/Wait selected-away and global-created Forward/UnifyPayload tail
-   residuals are exact, but canonical history does not yet supply them. The
-   library therefore still lacks unconditional branch applicability, progress,
-   later-state totality, global raw seams, fallback removal, scheduling fidelity,
+   Full-history continuation credit is now available without a correctness
+   premise, but it is strictly weaker than active-top debt. The Nop/Wait
+   selected-away and global-created Forward/UnifyPayload tail residuals are
+   exact, yet that credit theorem does not supply them. The library therefore
+   still lacks unconditional branch applicability, progress, later-state
+   totality, global raw seams, fallback removal, scheduling fidelity,
    sequentialization, pure-worklist completeness, and whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ContinuationCredit.lean` and
+  `SequentialFigure7ContinuationCreditPreservation.lean`. The two public
+  carriers record one of three receipts for every concretely marked
+  nonconclusion: an unmarked mate, future work for its connective conclusion,
+  or an already marked conclusion. Fresh nonconclusion marks receive credit
+  across all six dispatcher constructors. The eight public transport surfaces
+  require only structural well-formedness rather than the complete scheduler
+  invariant; the Nop and New branch theorems additionally consume the old
+  owner's concrete mark, while dispatch-level old-credit transport carries
+  that mark uniformly. Exact `CanonicalTagHistory` now preserves the state
+  predicate without a declarative-correctness hypothesis. This closes
+  full-history continuation credit only: the invariant is strictly weaker than
+  `ActiveTopMarkedNonconclusionDebt` and supplies neither the Nop/Wait
+  selected-away witnesses nor the global-created Forward/UnifyPayload exact
+  tails, so full debt preservation and progress remain open. The standalone
+  consumer exercises both carriers and all 21 theorem boundaries. The pending
+  audit is expected to report 940 declarations: 653 full-classical, 25
+  axiom-free, 126 `propext`-only, and 136 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopDebtBranchResidual.lean` to characterize the
   four open branch-local obligations exactly. Under prior debt, post-Nop and
   post-Wait debt are equivalent to the prepared selected-away witness. For a
@@ -9,7 +27,7 @@
   invariant makes post-debt equivalent to marked-nonconclusion presence
   implying a non-global vertex in the exact ready tail. Presence only detects
   vacuity and derives neither a witness nor a reserve. `CanonicalTagHistory`
-  does not supply these witnesses; full preservation, progress, terminality,
+  does not supply these witnesses; full debt preservation, progress, terminality,
   totality, fallback removal, completeness, scheduling, sequentialization, and
   linearity remain open. The pending audit is expected to report 919
   declarations: 634 full-classical, 25 axiom-free, 125 `propext`-only, and 135

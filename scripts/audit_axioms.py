@@ -168,6 +168,30 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
     "activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion",
+    "ProofNetIR.SequentialFigure7.InitialReservationStep."
+    "markedNonconclusionContinuation",
+    "ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit",
+    "ProofNetIR.SequentialFigure7.WaitStep.createdConclusionFutureWorkAt",
+    "ProofNetIR.SequentialFigure7.WaitStep.selectedContinuationCredit",
+    "ProofNetIR.SequentialFigure7.NewStep.selectedContinuationCredit",
+    "ProofNetIR.SequentialFigure7.ForwardStep.createdConclusionFutureWorkAt",
+    "ProofNetIR.SequentialFigure7.ForwardStep.selectedContinuationCredit",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
+    "createdConclusionFutureWorkAt",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep.selectedContinuationCredit",
+    "ProofNetIR.SequentialFigure7.DispatchTagEvidence."
+    "newlyMarkedContinuationCredit",
+    "ProofNetIR.SequentialFigure7.ConclStep.continuationCredit",
+    "ProofNetIR.SequentialFigure7.NopStep.continuationCredit",
+    "ProofNetIR.SequentialFigure7.NewStep.continuationCredit",
+    "ProofNetIR.SequentialFigure7.WaitStep.continuationCredit",
+    "ProofNetIR.SequentialFigure7.ForwardStep.continuationCredit",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep.continuationCredit",
+    "ProofNetIR.SequentialFigure7.DispatchTagEvidence.oldContinuationCredit",
+    "ProofNetIR.SequentialFigure7.DispatchTagEvidence."
+    "markedNonconclusionContinuation",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
@@ -758,6 +782,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt",
+    "ProofNetIR.SequentialFigure7.empty_markedNonconclusionContinuation",
     "ProofNetIR.SequentialFigure7.PreparedStep."
     "activeTopMarkedNonconclusionDebt_iff_selectedAway",
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem",
@@ -884,6 +909,7 @@ EXPECTED_PROPEXT_ONLY_THEOREMS = {
 }
 EXPECTED_PROPEXT_QUOT_THEOREMS = {
     "ProofNetIR.SequentialFigure7.NewGuard.sourceLeftRegion_formulaComplexity_lt_conclusion",
+    "ProofNetIR.SequentialFigure7.FutureWorkAt.afterPreparedOrSelected",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforePrepared",
     "ProofNetIR.SequentialFigure7.FutureNewCandidateAt.beforePrepared",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.mem_queued",

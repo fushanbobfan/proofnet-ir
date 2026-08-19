@@ -899,6 +899,79 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Branch-local continuation credit"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ContinuationCredit,
+      `ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation,
+      `ProofNetIR.SequentialFigure7.empty_markedNonconclusionContinuation,
+      Name.str
+        `ProofNetIR.SequentialFigure7.InitialReservationStep
+        "markedNonconclusionContinuation",
+      Name.str
+        `ProofNetIR.SequentialFigure7.FutureWorkAt
+        "afterPreparedOrSelected",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "selectedContinuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "createdConclusionFutureWorkAt",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "selectedContinuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "selectedContinuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "createdConclusionFutureWorkAt",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "selectedContinuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "createdConclusionFutureWorkAt",
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "selectedContinuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.DispatchTagEvidence
+        "newlyMarkedContinuationCredit"
+    ]
+  },
+  {
+    title := "Continuation-credit preservation"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "continuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "continuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ConclStep
+        "continuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "continuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "continuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "continuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.DispatchTagEvidence
+        "oldContinuationCredit",
+      Name.str
+        `ProofNetIR.SequentialFigure7.DispatchTagEvidence
+        "markedNonconclusionContinuation",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "markedNonconclusionContinuation"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

@@ -9773,6 +9773,350 @@ ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_i
               ¬pending ∈ certificate.conclusions)
 ```
 
+## Branch-local continuation credit
+
+### `ProofNetIR.SequentialFigure7.ContinuationCredit`
+
+Kind: inductive type.
+
+A branch-local receipt for a vertex: its opposite premise is still raw,
+its connective conclusion is scheduled, or that conclusion is already
+raw-marked. This carrier alone does not assert that the vertex is marked or
+that it is a non-conclusion.
+
+```lean
+ProofNetIR.SequentialFigure7.ContinuationCredit : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → ProofNetIR.Vertex → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation`
+
+Kind: definition.
+
+Every concretely raw-marked non-conclusion in a state has a continuation
+receipt. This predicate does not include inherited-credit transport or a
+canonical-history theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.empty_markedNonconclusionContinuation`
+
+Kind: theorem.
+
+The empty reservation state has no marked non-conclusion requiring a
+continuation receipt.
+
+```lean
+ProofNetIR.SequentialFigure7.empty_markedNonconclusionContinuation : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation certificate
+    (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation`
+
+Kind: theorem.
+
+An initial reservation step has no marked non-conclusion requiring a
+continuation receipt.
+
+```lean
+ProofNetIR.SequentialFigure7.InitialReservationStep.markedNonconclusionContinuation : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.FutureWorkAt.afterPreparedOrSelected`
+
+Kind: theorem.
+
+Transport queued work across the prepared prefix, except that the selected
+head may be the work itself. This is prefix-local and does not transport a
+complete inherited continuation receipt across a dispatcher branch.
+
+```lean
+ProofNetIR.SequentialFigure7.FutureWorkAt.afterPreparedOrSelected : ∀ {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before) {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge}
+  {vertex : ProofNetIR.Vertex},
+  ProofNetIR.SequentialFigure7.FutureWorkAt before rawAge vertex →
+    vertex = step.stackResult.vertex ∨ ProofNetIR.SequentialFigure7.FutureWorkAt step.after rawAge vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit`
+
+Kind: theorem.
+
+The fresh selected mark of a `nop` step has raw-mate continuation credit.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.selectedContinuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialFigure7.ContinuationCredit certificate after step.prepared.stackResult.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.createdConclusionFutureWorkAt`
+
+Kind: theorem.
+
+A `wait` step schedules its selected connective conclusion at the
+destination waiting boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.createdConclusionFutureWorkAt : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialFigure7.FutureWorkAt after step.destination.boundary step.consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.selectedContinuationCredit`
+
+Kind: theorem.
+
+The fresh selected mark of a `wait` step has future-conclusion credit.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.selectedContinuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialFigure7.ContinuationCredit certificate after step.prepared.stackResult.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.selectedContinuationCredit`
+
+Kind: theorem.
+
+The fresh selected mark of a `new` step has raw-mate continuation credit.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.selectedContinuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialFigure7.ContinuationCredit certificate after step.stackResult.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.createdConclusionFutureWorkAt`
+
+Kind: theorem.
+
+A `forward` step schedules its selected connective conclusion at the
+selected raw boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.createdConclusionFutureWorkAt : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialFigure7.FutureWorkAt after step.prepared.stackResult.rawAge step.consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.selectedContinuationCredit`
+
+Kind: theorem.
+
+The fresh selected mark of a `forward` step has future-conclusion credit.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.selectedContinuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialFigure7.ContinuationCredit certificate after step.prepared.stackResult.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdConclusionFutureWorkAt`
+
+Kind: theorem.
+
+A `unifyPayload` step schedules its selected connective conclusion at the
+previous active boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdConclusionFutureWorkAt : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialFigure7.FutureWorkAt after step.previousBoundary step.consumer.conclusion
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.selectedContinuationCredit`
+
+Kind: theorem.
+
+The fresh selected mark of a `unifyPayload` step has
+future-conclusion credit.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.selectedContinuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialFigure7.ContinuationCredit certificate after step.prepared.stackResult.vertex
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.newlyMarkedContinuationCredit`
+
+Kind: theorem.
+
+Every fresh non-conclusion raw-mark event receives a branch-local
+continuation receipt. This is only the new-event case; it does not transport
+inherited receipts or establish a canonical-history invariant.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.newlyMarkedContinuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result)
+  {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge} {vertex : ProofNetIR.Vertex},
+  evidence.RawMarked rawAge vertex →
+    ¬vertex ∈ certificate.conclusions → ProofNetIR.SequentialFigure7.ContinuationCredit certificate result.after vertex
+```
+
+## Continuation-credit preservation
+
+### `ProofNetIR.SequentialFigure7.NopStep.continuationCredit`
+
+Kind: theorem.
+
+A `nop` step transports continuation credit for an already-marked owner.
+The raw-mate-selected residual is impossible: the same submitted par viewed
+from the selected occurrence has the marked owner as its mate, contradicting
+the exact `nop` guard.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.continuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex} {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      before.core.marks[vertex]? = some (some rawAge) →
+        ProofNetIR.SequentialFigure7.ContinuationCredit certificate before vertex →
+          ProofNetIR.SequentialFigure7.ContinuationCredit certificate after vertex
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.continuationCredit`
+
+Kind: theorem.
+
+Every old continuation credit crosses a complete wait step. The only
+prepared-prefix residual is a raw mate equal to the selected occurrence; the
+wait destination upgrades exactly that residual to future-conclusion credit.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.continuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialFigure7.ContinuationCredit certificate before vertex →
+        ProofNetIR.SequentialFigure7.ContinuationCredit certificate after vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.continuationCredit`
+
+Kind: theorem.
+
+A `concl` step transports any prior continuation credit.
+The raw-mate-selected residual is impossible because the selected occurrence
+has an exact conclusion view and therefore cannot also have a consumer.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.continuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialFigure7.ContinuationCredit certificate before vertex →
+        ProofNetIR.SequentialFigure7.ContinuationCredit certificate after vertex
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.continuationCredit`
+
+Kind: theorem.
+
+A `new` step transports continuation credit for an already-marked owner.
+If the old raw mate is selected, exact consumer uniqueness identifies the owner
+with the new step's guarded-unmarked tensor mate, contradicting its old mark.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.continuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex} {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      before.core.marks[vertex]? = some (some rawAge) →
+        ProofNetIR.SequentialFigure7.ContinuationCredit certificate before vertex →
+          ProofNetIR.SequentialFigure7.ContinuationCredit certificate after vertex
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.continuationCredit`
+
+Kind: theorem.
+
+A `forward` step transports any prior continuation credit. If the old raw
+mate is selected, the branch's inserted conclusion is
+the same connective conclusion and upgrades the residual to future work.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.continuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialFigure7.ContinuationCredit certificate before vertex →
+        ProofNetIR.SequentialFigure7.ContinuationCredit certificate after vertex
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.continuationCredit`
+
+Kind: theorem.
+
+A `unifyPayload` step transports any prior continuation credit. If the old
+raw mate is selected, the branch's inserted tensor conclusion
+upgrades the residual to future work at the merged previous boundary.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.continuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex},
+      ProofNetIR.SequentialFigure7.ContinuationCredit certificate before vertex →
+        ProofNetIR.SequentialFigure7.ContinuationCredit certificate after vertex
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.oldContinuationCredit`
+
+Kind: theorem.
+
+Every branch-aligned dispatcher event transports continuation credit owned
+by an occurrence that was already concretely marked on input.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.oldContinuationCredit : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  certificate.StructurallyWellFormed →
+    ∀ {vertex : ProofNetIR.Vertex} {rawAge : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+      before.core.marks[vertex]? = some (some rawAge) →
+        ProofNetIR.SequentialFigure7.ContinuationCredit certificate before vertex →
+          ProofNetIR.SequentialFigure7.ContinuationCredit certificate result.after vertex
+```
+
+### `ProofNetIR.SequentialFigure7.DispatchTagEvidence.markedNonconclusionContinuation`
+
+Kind: theorem.
+
+One branch-aligned dispatcher event preserves continuation credit for
+every concrete raw-marked non-conclusion in its input state and gives the
+fresh selected raw mark its branch-local receipt.
+
+```lean
+ProofNetIR.SequentialFigure7.DispatchTagEvidence.markedNonconclusionContinuation : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {result : ProofNetIR.SequentialFigure7.Figure7DispatchResult}
+  (evidence : ProofNetIR.SequentialFigure7.DispatchTagEvidence certificate before result),
+  certificate.StructurallyWellFormed →
+    ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation certificate before →
+      ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation certificate result.after
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.markedNonconclusionContinuation`
+
+Kind: theorem.
+
+Every exact canonical dispatcher history carries continuation credit for
+all concrete raw-marked non-conclusions in its final state. This is induction
+over supplied execution evidence, not an existence or progress theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.markedNonconclusionContinuation : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialFigure7.MarkedNonconclusionContinuation certificate state
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`
