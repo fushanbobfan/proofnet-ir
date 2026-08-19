@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `ba38a75f5fa52f880d7acade8ee684a2d1be2316`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `88b13b5db6177c438d8047c038da1c526306997d`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,11 +46,13 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint packages the indexed marked-tensor predecessor
-invariant across every exact canonical dispatcher history under declarative
-correctness, with an `ExecutedHistory` wrapper. At an explicitly supplied
-reachable `ReadyHeadInput`, the invariant eliminates the predecessor residual
-and yields an exact successful dispatcher result.
+The current checkpoint builds on the full-history indexed marked-tensor
+predecessor invariant and isolates the remaining structural ready-head shape.
+In every started scheduler-invariant state, absence of `ReadyHeadInput` is
+equivalent to `ActiveTopDrained`: the live component at the last sigma boundary
+has no raw-unmarked frontier occurrence. A started, declaratively correct,
+dispatcher-reachable state therefore satisfies the non-exclusive disjunction
+of one exact successful dispatcher result and that explicit residual.
 
 Primary public declarations:
 
@@ -72,6 +74,9 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.unifyPayload_olderMarkedTensorP
 ProofNetIR.SequentialFigure7.CanonicalTagHistory.olderMarkedTensorPredecessorInvariant
 ProofNetIR.SequentialFigure7.ExecutedHistory.olderMarkedTensorPredecessorInvariant
 ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch
+ProofNetIR.SequentialFigure7.ActiveTopDrained
+ProofNetIR.SequentialFigure7.SchedulerInvariant.no_readyHead_iff_activeTopDrained
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_activeTopDrained
 ```
 
 `OlderMarkedTensorPredecessorInvariant` quantifies over every `FutureWorkAt`,
@@ -127,6 +132,20 @@ exact `dispatch?` result, while the marked-tensor gap contradicts the indexed
 predecessor. The theorem retains `ReadyHeadInput` as an explicit argument; it
 does not construct a ready head or assert unconditional progress.
 
+`ActiveTopDrained` stores the last sigma boundary, the live component at that
+boundary, and a proof that every occurrence on its frontier is not raw-unmarked.
+For a started state, stack well-shapedness aligns the final sigma and ready
+buckets, while `ReadyBucketFrontierExact` identifies the last ready bucket with
+exactly the raw-unmarked active frontier. Splitting that bucket proves
+`SchedulerInvariant.no_readyHead_iff_activeTopDrained` in both directions.
+
+The reachable wrapper derives the complete scheduler invariant from the
+supplied history. If a `ReadyHeadInput` exists, the full-history predecessor
+theorem gives an exact `dispatch?` result; otherwise the equivalence gives the
+drained witness. The exported theorem states only this disjunction. It does not
+claim exclusivity or identify `ActiveTopDrained` with `core.allMarked = true`,
+semantic completion, terminality, or progress.
+
 For a supplied `ReadyHeadInput`, the projection combines the new invariant with
 the complete `SchedulerInvariant`. The fields of
 `ReadyHeadMarkedTensorPredecessorGap` provide the tensor consumer, mate mark,
@@ -158,9 +177,12 @@ coverage or progress. Exact counters and scope are maintained in
 Exact signatures are maintained in the generated API reference for the
 [branch-prefix declarations](api-reference.md#older-marked-tensor-predecessor-branch-prefix)
 and the
-[full-history declarations](api-reference.md#full-history-older-marked-tensor-predecessor-invariant).
-Full-history availability is now kernel-checked. Deriving a ready head from the
-intended semantic nonterminal condition is the first open proof step.
+[full-history declarations](api-reference.md#full-history-older-marked-tensor-predecessor-invariant),
+followed by the
+[active-top residual](api-reference.md#active-top-ready-head-residual).
+The exact structural no-head classifier is now kernel-checked. Proving from
+authentic dispatcher history that `ActiveTopDrained` implies
+`core.allMarked = true` is the first open proof step.
 
 ## What the rolling theorem does not prove
 
@@ -168,6 +190,10 @@ This checkpoint does not establish any of the following:
 
 - construction of a relevant `ExecutedHistory`, reachable state, or
   `ReadyHeadInput`;
+- a proof that `ActiveTopDrained` implies `core.allMarked = true`, semantic
+  completion, or terminality;
+- an exclusivity theorem for the exact-dispatch / active-top-drained
+  disjunction;
 - a proof that every relevant semantic nonterminal state presents a ready head;
 - unconditional elimination of `ReadyHeadMarkedTensorPredecessorGap` without
   the invariant and complete scheduler hypotheses;
@@ -190,10 +216,10 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit  ba38a75f5fa52f880d7acade8ee684a2d1be2316
-tree    4e07634ff172bd71c1d91db01fa4bd53d2d7e2f1
-stage   full-history marked-tensor predecessor invariant and ready-head dispatch
-delta   17 files, +458/-74
+commit  88b13b5db6177c438d8047c038da1c526306997d
+tree    49a391febcb1a6f5023019e9a6e96aca542c7c5b
+stage   active-top ready-head structural residual
+delta   17 files, +546/-121
 ```
 
 The separately committed finite-audit evidence is:
@@ -209,8 +235,8 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 445/445 jobs;
-- Lean source audit: zero `sorry`/`admit` findings across 214 Lean files;
+- full `lake build`: 450/450 jobs;
+- Lean source audit: zero `sorry`/`admit` findings across 216 Lean files;
 - generated API reference: current;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
@@ -233,9 +259,12 @@ Local verification on the committed bytes:
 - the runnable full-history consumer: passed under `--trust=0`, invokes all
   three new history declarations, projects all four indexed predecessor
   fields, and destructures the exact dispatcher result into its kind and state;
+- the runnable active-top residual consumer: passed under `--trust=0`, invokes
+  both directions of the no-ready-head equivalence, destructures the exact
+  dispatcher witness, and consumes every residual field;
 - facade, API manifest, and axiom-audit entry points: passed under `--trust=0`;
-- public declaration audit: 905 declarations total;
-- audit classes: 622 full-classical, 25 axiom-free, 123 `propext`-only,
+- public declaration audit: 907 declarations total;
+- audit classes: 624 full-classical, 25 axiom-free, 123 `propext`-only,
   and 135 `propext` plus `Quot.sound`;
 - `empty_olderMarkedTensorPredecessorInvariant` depends exactly on `[propext]`;
 - the other six original branch-prefix theorems and the Wait, bridge, and
@@ -243,18 +272,20 @@ Local verification on the committed bytes:
   depend exactly on `[propext, Classical.choice, Quot.sound]`;
 - the three full-history declarations depend exactly on
   `[propext, Classical.choice, Quot.sound]`;
+- both active-top residual theorems depend exactly on
+  `[propext, Classical.choice, Quot.sound]`;
 - independent proof and integrated-checkpoint reviews reported no actionable
   P0, P1, P2, or P3 findings.
 
 Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
-- run: [32268211630](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32268211630);
-- build job: [96117854366](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32268211630/job/96117854366);
-- exact head: `ba38a75f5fa52f880d7acade8ee684a2d1be2316`;
+- run: [32278608858](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32278608858);
+- build job: [96151771289](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32278608858/job/96151771289);
+- exact head: `88b13b5db6177c438d8047c038da1c526306997d`;
 - result: 36 successful steps, zero failures, one expected release-ref-only
-  skip; run duration 12m46s (`15:08:08Z`-`15:20:54Z`) and build-job duration
-  12m42s (`15:08:11Z`-`15:20:53Z`).
+  skip; run duration 12m33s (`16:54:41Z`-`17:07:14Z`) and build-job duration
+  12m29s (`16:54:44Z`-`17:07:13Z`).
 
 Exact-head finite-audit GitHub verification:
 
@@ -321,8 +352,9 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. prove that every relevant semantic nonterminal certified state supplies a
-   `ReadyHeadInput`;
+1. prove from authentic canonical dispatcher history that
+   `ActiveTopDrained → core.allMarked = true`, then use marking incompleteness
+   to exclude the residual;
 2. close the separate queue-origin and New/Wait/Forward/UnifyPayload
    created-candidate laws needed by the global mate-region and raw-mark
    preservation families;
