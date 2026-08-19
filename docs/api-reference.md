@@ -9555,6 +9555,117 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_active
       ProofNetIR.SequentialFigure7.ActiveTopDrained state
 ```
 
+## Active-top marked-nonconclusion debt
+
+### `ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt`
+
+Kind: definition.
+
+A marked non-conclusion on the active live frontier is backed by a
+raw-unmarked non-conclusion on that same frontier.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt`
+
+Kind: theorem.
+
+The empty scheduler has no active sigma boundary, so the debt is vacuous.
+
+```lean
+ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt : ∀ (certificate : ProofNetIR.Certificate),
+  ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate
+    (ProofNetIR.SequentialSchedulerBridge.ReservationState.empty certificate)
+```
+
+### `ProofNetIR.SequentialFigure7.InitialReservationStep.activeTopMarkedNonconclusionDebt`
+
+Kind: theorem.
+
+The exact initial reservation has no concrete raw mark, so the debt holds
+vacuously.
+
+```lean
+ProofNetIR.SequentialFigure7.InitialReservationStep.activeTopMarkedNonconclusionDebt : ∀ {certificate : ProofNetIR.Certificate} {after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {start : ProofNetIR.Vertex}
+  (step : ProofNetIR.SequentialSchedulerBridge.InitialReservationStep certificate after start),
+  ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.NewStep.activeTopMarkedNonconclusionDebt`
+
+Kind: theorem.
+
+A successful `new` installs a fresh active axiom component whose two
+frontier endpoints are both raw-unmarked.
+
+```lean
+ProofNetIR.SequentialFigure7.NewStep.activeTopMarkedNonconclusionDebt : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NewStep certificate before after),
+  ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ConclStep.activeTopMarkedNonconclusionDebt`
+
+Kind: theorem.
+
+The conclusion branch is the selected-conclusion specialization of the
+common-prefix preservation theorem.
+
+```lean
+ProofNetIR.SequentialFigure7.ConclStep.activeTopMarkedNonconclusionDebt : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ConclStep certificate before after),
+  ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate before →
+    ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion`
+
+Kind: theorem.
+
+If `forward` creates a non-global conclusion, that new raw ready head
+immediately pays every active marked non-conclusion debt.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ¬step.consumer.conclusion ∈ certificate.conclusions →
+      ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion`
+
+Kind: theorem.
+
+If payload unification creates a non-global tensor conclusion, that new
+raw ready head immediately pays every active marked non-conclusion debt.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    ¬step.consumer.conclusion ∈ certificate.conclusions →
+      ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after
+```
+
+### `ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_nonconclusionDebt`
+
+Kind: theorem.
+
+Declarative correctness, the scheduler invariant, active draining, and the
+history debt force the complete production mark array to be concrete.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_nonconclusionDebt : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ProofNetIR.SequentialFigure7.ActiveTopDrained state →
+        ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate state → state.core.allMarked = true
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

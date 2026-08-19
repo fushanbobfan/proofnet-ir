@@ -850,6 +850,31 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top marked-nonconclusion debt"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt,
+      `ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt,
+      Name.str
+        `ProofNetIR.SequentialFigure7.InitialReservationStep
+        "activeTopMarkedNonconclusionDebt",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NewStep
+        "activeTopMarkedNonconclusionDebt",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ConclStep
+        "activeTopMarkedNonconclusionDebt",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "activeTopMarkedNonconclusionDebt_of_created_not_conclusion",
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "activeTopMarkedNonconclusionDebt_of_created_not_conclusion",
+      Name.str
+        `ProofNetIR.SequentialFigure7.SchedulerInvariant
+        "allMarked_of_activeTopDrained_of_nonconclusionDebt"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

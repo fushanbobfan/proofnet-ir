@@ -148,6 +148,18 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "no_readyHead_iff_activeTopDrained",
     "ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher."
     "dispatch_or_activeTopDrained",
+    "ProofNetIR.SequentialFigure7.InitialReservationStep."
+    "activeTopMarkedNonconclusionDebt",
+    "ProofNetIR.SequentialFigure7.NewStep."
+    "activeTopMarkedNonconclusionDebt",
+    "ProofNetIR.SequentialFigure7.ConclStep."
+    "activeTopMarkedNonconclusionDebt",
+    "ProofNetIR.SequentialFigure7.ForwardStep."
+    "activeTopMarkedNonconclusionDebt_of_created_not_conclusion",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
+    "activeTopMarkedNonconclusionDebt_of_created_not_conclusion",
+    "ProofNetIR.SequentialFigure7.SchedulerInvariant."
+    "allMarked_of_activeTopDrained_of_nonconclusionDebt",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
@@ -737,6 +749,7 @@ EXPECTED_AXIOM_FREE_THEOREMS = {
 EXPECTED_PROPEXT_ONLY_THEOREMS = {
     "ProofNetIR.SequentialFigure7.empty_olderRawMarkedRegionSeparated",
     "ProofNetIR.SequentialFigure7.empty_olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.empty_activeTopMarkedNonconclusionDebt",
     "ProofNetIR.SequentialUnification.SourceLeftChain.reachable_to_last_of_mem",
     "ProofNetIR.SequentialFigure7.PreparedStep.after_representative_eq_before",
     "ProofNetIR.SequentialSchedulerBridge.WaitDestinationStep.after_representative_eq_before",

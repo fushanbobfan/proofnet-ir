@@ -97,6 +97,8 @@ jobs:
             proofnet_ir_older_marked_tensor_predecessor_history_tests
           ~/.elan/bin/lake exe proofnet_ir_active_top_residual_tests
           ~/.elan/bin/lake exe \
+            proofnet_ir_active_top_marked_nonconclusion_debt_tests
+          ~/.elan/bin/lake exe \
             proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests
           ~/.elan/bin/lake exe \
             proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests

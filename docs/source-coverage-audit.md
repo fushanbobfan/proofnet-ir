@@ -308,11 +308,22 @@ when its active live component has no raw-unmarked frontier occurrence. The
 reachable wrapper combines this with the full-history ready-head result to
 return a non-exclusive exact-dispatch / explicit-residual disjunction. It neither interprets the
 residual as semantic completion nor proves it unreachable, and it records no
-new literature reading. The next source-level proof obligation is the
-history-bound implication from `ActiveTopDrained` to `core.allMarked = true`.
+new literature reading.
+`SequentialFigure7ActiveTopMarkedNonconclusionDebt.lean` is another
+kernel-checked code consequence, not a new source-reading claim. Its state
+predicate pairs each marked nonconclusion on the active frontier with a
+raw-unmarked nonconclusion witness there. Empty, initial reservation, and New
+establish it, with no additional scheduler-invariant premise needed by New;
+Concl preserves it; and Forward/UnifyPayload establish it under the prior
+complete scheduler invariant when their created conclusion is not global.
+Under declarative correctness and the complete scheduler invariant, the debt
+and `ActiveTopDrained` imply
+`core.allMarked = true`. The remaining source-level obligation is to preserve
+that debt through Nop, Wait, and the global-created Forward/UnifyPayload cases
+and then package the full canonical-history induction.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, active-top completion, unconditional progress, later-state totality,
+seams, unconditional active-top completion, progress, later-state totality,
 fallback removal,
 sequentialization, faithful token-age scheduling, and whole-program linearity.
 The future-head-touch invariant is

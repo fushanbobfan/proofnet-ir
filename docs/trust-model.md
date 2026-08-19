@@ -746,8 +746,21 @@ reachable wrapper additionally consumes ordinary declarative correctness and
 dispatcher reachability, then reuses the already-audited ready-head theorem in
 the positive branch. Both public theorems depend exactly on
 `[propext, Classical.choice, Quot.sound]`. They do not assume or prove that the
-drained branch is fully marked, terminal, or impossible; the history-level
-completion law remains outside the trusted surface.
+drained branch alone is fully marked, terminal, or impossible.
+`SequentialFigure7ActiveTopMarkedNonconclusionDebt.lean` adds no completion or
+history oracle. Its debt predicate is concrete state data over frontier
+membership, conclusion membership, and mark lookups. The empty-state theorem
+depends only on `propext`; the initial-reservation, New, Concl, conditional
+Forward, conditional UnifyPayload, and drained-to-all-marked theorems remain
+inside `[propext, Classical.choice, Quot.sound]`. New does not require a
+`SchedulerInvariant` premise. Forward and UnifyPayload explicitly assume the
+prior complete scheduler invariant and that their created conclusion is not
+global, while Concl explicitly consumes a prior debt instance. The final
+theorem keeps declarative correctness, the complete scheduler invariant,
+`ActiveTopDrained`, and debt as ordinary hypotheses. No theorem here supplies
+debt through Nop, Wait, or a global-created
+Forward/UnifyPayload step, so unconditional semantic completion and progress
+remain outside the trusted surface.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopMarkedNonconclusionDebt.lean`. The new
+  `ActiveTopMarkedNonconclusionDebt` state predicate requires every marked
+  nonconclusion on the active component frontier to have a raw-unmarked
+  nonconclusion witness on that same frontier. It holds for the empty and
+  initial-reservation states. New establishes it without an additional
+  `SchedulerInvariant` premise, Concl preserves a supplied prior instance, and
+  Forward and UnifyPayload establish it under the prior complete scheduler
+  invariant when their created conclusion is not a global conclusion.
+  Declarative correctness, the complete scheduler invariant,
+  `ActiveTopDrained`, and this debt together imply
+  `core.allMarked = true`. This is a conditional semantic reduction, not yet a
+  complete canonical-history invariant: Nop, Wait, and the global-created
+  Forward/UnifyPayload cases remain open, as do unconditional progress,
+  later-state totality, fallback removal, pure-worklist completeness, faithful
+  scheduling, sequentialization, and whole-program linearity. The pending
+  local audit gate is expected to report 914 declarations: 630 full-classical,
+  25 axiom-free, 124 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopResidual.lean` to isolate the exact
   post-history ready-head boundary. `ActiveTopDrained` records that the live
   component at the last sigma boundary has no raw-unmarked frontier occurrence.

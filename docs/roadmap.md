@@ -995,11 +995,19 @@
     last live component having no raw-unmarked frontier occurrence. A started,
     correct dispatcher-reachable state therefore satisfies an exact-dispatch /
     `ActiveTopDrained` disjunction, without an exclusivity claim.
-  - [ ] Prove the history-level completion law
-    `ActiveTopDrained → core.allMarked = true`. Only then combine the residual
-    dichotomy with marking incompleteness to obtain unconditional dispatcher
-    progress. Keep later-state totality, global raw seams, fallback removal,
-    Figure-7 pure-worklist completeness, sequentialization, faithful token-age
+  - [x] Define `ActiveTopMarkedNonconclusionDebt` and prove the conditional
+    completion law: declarative correctness, the complete scheduler invariant,
+    `ActiveTopDrained`, and this debt imply `core.allMarked = true`. Establish
+    the debt for empty and initial-reservation states; establish New without an
+    additional scheduler-invariant premise; preserve it through Concl; and close
+    Forward/UnifyPayload under the prior complete scheduler invariant when the
+    created conclusion is not global.
+  - [ ] Preserve `ActiveTopMarkedNonconclusionDebt` through complete canonical
+    histories. Nop, Wait, and the global-created Forward/UnifyPayload cases are
+    the remaining branches. Only then combine the residual dichotomy with
+    marking incompleteness to obtain unconditional dispatcher progress. Keep
+    later-state totality, global raw seams, fallback removal, Figure-7
+    pure-worklist completeness, sequentialization, faithful token-age
     scheduling, and whole-program linearity outside this checkpoint.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
@@ -1258,8 +1266,10 @@
     new invariant, and the complete canonical-history induction makes that
     invariant available for every correct executed dispatcher history. The
     active-top residual now supplies every started reachable state with an exact
-    dispatch / drained-active-component disjunction. Next prove that the drained branch
-    forces `allMarked = true` before claiming exhaustive progress on incomplete
+    dispatch / drained-active-component disjunction. Marked-nonconclusion debt
+    now conditionally turns the drained branch into `allMarked = true`; next
+    preserve that debt through Nop, Wait, and global-created
+    Forward/UnifyPayload before claiming exhaustive progress on incomplete
     correct certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.

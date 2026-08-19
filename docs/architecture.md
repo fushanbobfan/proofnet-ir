@@ -967,9 +967,10 @@ explicitly supplied `ReadyHeadInput`, the complete invariant rules out the
 marked-tensor predecessor residual; the positive priority branch is lowered to
 one exact successful `dispatch?` result. This history theorem alone does not
 construct a ready head; the following structural module classifies the exact
-shape of its absence. Turning that residual into semantic completion is the
-next proof gate before dispatcher progress or later-state totality; global raw
-seams, fallback removal, faithful scheduling, pure-worklist completeness,
+shape of its absence, and the subsequent debt layer gives a conditional
+semantic reduction. Preserving that debt over complete canonical histories is
+the next proof gate before dispatcher progress or later-state totality; global
+raw seams, fallback removal, faithful scheduling, pure-worklist completeness,
 sequentialization, and whole-program linearity remain separate.
 
 `SequentialFigure7ActiveTopResidual.lean` removes the ambiguity in that gate.
@@ -982,8 +983,22 @@ or nonempty cases therefore proves that absence of `ReadyHeadInput` is exactly
 `ActiveTopDrained`. For a correct dispatcher-reachable state, the full-history
 ready-head theorem lowers the nonempty case to an exact dispatcher result, so
 the remaining outcome is an explicit dispatch-or-drained disjunction. The
-drained branch is not called terminal: proving from canonical history that it
-implies `core.allMarked = true` is the next semantic completion obligation.
+drained branch is not called terminal and, by itself, does not imply
+`core.allMarked = true`.
+
+`SequentialFigure7ActiveTopMarkedNonconclusionDebt.lean` supplies the next
+conditional layer. `ActiveTopMarkedNonconclusionDebt` says that every concretely
+marked, nonconclusion occurrence on the active frontier has another
+raw-unmarked nonconclusion witness on that frontier. The predicate holds for
+empty and initial-reservation states. New establishes it without a scheduler-
+invariant premise, Concl transports a prior instance, and Forward and
+UnifyPayload establish it under the prior complete scheduler invariant when the
+conclusion they create is not a global conclusion. Under declarative correctness
+and the complete scheduler invariant,
+`ActiveTopDrained` contradicts any outstanding debt witness and switching
+connectivity then forces `core.allMarked = true`. This closes the conditional
+state reduction, not its full history induction: Nop, Wait, and the
+global-created Forward and UnifyPayload branches remain open.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1364,8 +1379,11 @@ finite observations remain independent falsification evidence, not the source
 of the kernel theorem. The full-history invariant now eliminates the residual
 at an explicitly supplied correct canonical-history ready head, and the
 active-top classifier identifies the exact structural shape when that head is
-absent. Neither result proves that `ActiveTopDrained` is fully marked or
-semantic completion, so unconditional progress and totality remain open.
+absent. The marked-nonconclusion debt theorem now turns that shape into
+`core.allMarked = true` when its additional state predicate holds. The replay
+does not prove that canonical histories preserve the predicate through Nop,
+Wait, or the global-created Forward/UnifyPayload cases, so unconditional
+progress and totality remain open.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

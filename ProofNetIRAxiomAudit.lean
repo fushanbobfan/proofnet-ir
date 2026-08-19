@@ -336,6 +336,17 @@ expansion.
   SequentialFigure7.SchedulerInvariant.no_readyHead_iff_activeTopDrained
 #print axioms
   SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_activeTopDrained
+#print axioms SequentialFigure7.empty_activeTopMarkedNonconclusionDebt
+#print axioms
+  SequentialFigure7.InitialReservationStep.activeTopMarkedNonconclusionDebt
+#print axioms SequentialFigure7.NewStep.activeTopMarkedNonconclusionDebt
+#print axioms SequentialFigure7.ConclStep.activeTopMarkedNonconclusionDebt
+#print axioms
+  SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion
+#print axioms
+  SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion
+#print axioms
+  SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_nonconclusionDebt
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

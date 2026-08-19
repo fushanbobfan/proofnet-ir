@@ -573,22 +573,33 @@ part of the engineering and proof-identity gap.
    invariant eliminates the residual and yields one exact successful
    dispatcher result. This history wrapper does not construct that ready head;
    the following structural classifier identifies the exact shape when it is
-   absent. Turning that residual into semantic completion remains the first
-   gate before dispatcher progress. Later-state totality, recursive-fallback
-   removal, faithful token-age scheduling, whole-program linearity, and
-   Figure-7 pure-worklist completeness remain open maturity gates; no global
-   raw seam or sequentialization result follows from this history package.
+   absent, and the following debt layer gives a conditional completion
+   reduction. Complete-history preservation of that debt remains the first gate
+   before dispatcher progress. Later-state totality, recursive-fallback removal,
+   faithful token-age scheduling, whole-program linearity, and Figure-7
+   pure-worklist completeness remain open maturity gates; no global raw seam or
+   sequentialization result follows from this history package.
    `SequentialFigure7ActiveTopResidual.lean` now identifies the exact remaining
    state shape. Under a complete scheduler invariant and a started-state
    premise, no `ReadyHeadInput` exists exactly when the active live component
    has no raw-unmarked frontier occurrence. A correct dispatcher-reachable
    state therefore satisfies a disjunction between one exact dispatcher result
    and this `ActiveTopDrained` witness; exclusivity is not claimed. This closes
-   the structural ready-head
-   classification, not the semantic completion gate: the library still lacks a
-   canonical-history theorem that a drained active top forces
-   `core.allMarked = true`. Until that theorem is proved, the result is not
-   unconditional progress, terminality, totality, or completeness.
+   the structural ready-head classification, but a drained active top alone is
+   not identified with semantic completion.
+   `SequentialFigure7ActiveTopMarkedNonconclusionDebt.lean` adds the exact
+   conditional reduction. Its state predicate requires every marked
+   nonconclusion on the active frontier to retain a raw-unmarked nonconclusion
+   witness there. It holds for empty and initial-reservation states; New
+   establishes it without an additional scheduler-invariant premise; Concl
+   preserves a prior instance; and Forward/UnifyPayload establish it under the
+   prior complete scheduler invariant when the created conclusion is not
+   global. Declarative correctness, the complete scheduler invariant,
+   `ActiveTopDrained`, and this debt imply
+   `core.allMarked = true`. Full canonical-history preservation is still open
+   at Nop, Wait, and the global-created Forward/UnifyPayload cases, so this does
+   not yet establish unconditional progress, terminality, totality, or
+   completeness.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -1029,13 +1040,15 @@ part of the engineering and proof-identity gap.
    reachable state with an explicitly supplied ready head therefore has one
    exact successful dispatcher result. The active-top residual now gives a
    started correct reachable state the disjunction of exact dispatch and a live
-   top component with no raw-unmarked frontier occurrence. The library still
-   has no theorem
-   turning that drained branch into `core.allMarked = true`, nor branch
-   applicability without the resulting completion bridge, unconditional
-   dispatcher progress, later-state totality, a global raw seam, fallback
-   removal, scheduling fidelity, sequentialization, Figure-7 pure-worklist
-   completeness, or whole-program linearity.
+   top component with no raw-unmarked frontier occurrence. The new
+   marked-nonconclusion debt theorem turns that drained branch into
+   `core.allMarked = true` when its additional state predicate is available.
+   The predicate is not yet preserved through complete canonical history: Nop,
+   Wait, and global-created Forward/UnifyPayload remain open. Consequently the
+   library still lacks unconditional branch applicability, dispatcher progress,
+   later-state totality, a global raw seam, fallback removal, scheduling
+   fidelity, sequentialization, Figure-7 pure-worklist completeness, and
+   whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created
@@ -1092,9 +1105,10 @@ part of the engineering and proof-identity gap.
    predecessor, with zero missing-predecessor gaps. Deep acceptance uses
    `unificationCheck` and the kernel theorem `unificationCheck_eq_check`, while
    the 18 cases at depths 0 through 2 also run the direct all-switchings
-   checker. This finite receipt does not prove that `ActiveTopDrained` implies
-   semantic completion or establish intended-state exhaustiveness, progress,
-   totality, or completeness.
+   checker. This finite receipt does not prove that canonical histories preserve
+   marked-nonconclusion debt, nor that `ActiveTopDrained` alone implies semantic
+   completion, and it does not establish intended-state exhaustiveness,
+   progress, totality, or completeness.
    Its separate `--cross-representative-search` receipt covers 96 labelled
    depth-5 cases and 1,182,816 reachable states: 1,172,208 incomplete states all
    had exact ready heads and successful dispatches, while all 10,608
