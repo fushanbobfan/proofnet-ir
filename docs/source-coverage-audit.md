@@ -301,10 +301,18 @@ predecessor residual at an explicitly supplied reachable ready head to produce
 one exact successful dispatcher result. The theorem is independent of the
 finite replay and does not construct that ready head. These are code
 consequences and record no new page/chapter reading.
+`SequentialFigure7ActiveTopResidual.lean` is a further kernel-checked code
+consequence. It uses stack alignment and exact ready-bucket/frontier
+correspondence to prove that a started invariant state has no ready head exactly
+when its active live component has no raw-unmarked frontier occurrence. The
+reachable wrapper combines this with the full-history ready-head result to
+return a non-exclusive exact-dispatch / explicit-residual disjunction. It neither interprets the
+residual as semantic completion nor proves it unreachable, and it records no
+new literature reading. The next source-level proof obligation is the
+history-bound implication from `ActiveTopDrained` to `core.allMarked = true`.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
-seams, ready-head existence from semantic nonterminality, applicability without
-the explicit ready-head premise, unconditional progress, later-state totality,
+seams, active-top completion, unconditional progress, later-state totality,
 fallback removal,
 sequentialization, faithful token-age scheduling, and whole-program linearity.
 The future-head-touch invariant is

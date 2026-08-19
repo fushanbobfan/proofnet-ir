@@ -144,6 +144,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher."
     "readyHead_dispatch",
+    "ProofNetIR.SequentialFigure7.SchedulerInvariant."
+    "no_readyHead_iff_activeTopDrained",
+    "ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher."
+    "dispatch_or_activeTopDrained",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",

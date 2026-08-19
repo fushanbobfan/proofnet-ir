@@ -332,6 +332,10 @@ expansion.
 #print axioms
   SequentialFigure7.ExecutedHistory.olderMarkedTensorPredecessorInvariant
 #print axioms SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch
+#print axioms
+  SequentialFigure7.SchedulerInvariant.no_readyHead_iff_activeTopDrained
+#print axioms
+  SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_activeTopDrained
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

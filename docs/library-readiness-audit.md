@@ -571,14 +571,24 @@ part of the engineering and proof-identity gap.
    every `ExecutedHistory` under declarative correctness. At a
    dispatcher-reachable state with an explicitly supplied `ReadyHeadInput`, the
    invariant eliminates the residual and yields one exact successful
-   dispatcher result. The wrapper does not construct that ready head.
-   Ready-head existence for relevant semantic nonterminal certified states is
-   therefore the first remaining gate before dispatcher progress. Branch
-   applicability without the explicit ready-head premise, later-state
-   totality, recursive-fallback removal, faithful token-age scheduling,
-   whole-program linearity, and Figure-7 pure-worklist completeness remain open
-   maturity gates; no global raw seam or sequentialization result follows from
-   this history package.
+   dispatcher result. This history wrapper does not construct that ready head;
+   the following structural classifier identifies the exact shape when it is
+   absent. Turning that residual into semantic completion remains the first
+   gate before dispatcher progress. Later-state totality, recursive-fallback
+   removal, faithful token-age scheduling, whole-program linearity, and
+   Figure-7 pure-worklist completeness remain open maturity gates; no global
+   raw seam or sequentialization result follows from this history package.
+   `SequentialFigure7ActiveTopResidual.lean` now identifies the exact remaining
+   state shape. Under a complete scheduler invariant and a started-state
+   premise, no `ReadyHeadInput` exists exactly when the active live component
+   has no raw-unmarked frontier occurrence. A correct dispatcher-reachable
+   state therefore satisfies a disjunction between one exact dispatcher result
+   and this `ActiveTopDrained` witness; exclusivity is not claimed. This closes
+   the structural ready-head
+   classification, not the semantic completion gate: the library still lacks a
+   canonical-history theorem that a drained active top forces
+   `core.allMarked = true`. Until that theorem is proved, the result is not
+   unconditional progress, terminality, totality, or completeness.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -1017,12 +1027,15 @@ part of the engineering and proof-identity gap.
    through UnifyPayload, the full canonical-history induction makes the
    invariant available for every correct executed dispatcher history. A
    reachable state with an explicitly supplied ready head therefore has one
-   exact successful dispatcher result. Consequently the library still has no
-   theorem deriving ready-head existence from semantic nonterminality, branch
-   applicability without that ready-head premise, unconditional dispatcher
-   progress, later-state totality, a global raw seam, fallback removal,
-   scheduling fidelity, sequentialization, Figure-7 pure-worklist completeness,
-   or whole-program linearity.
+   exact successful dispatcher result. The active-top residual now gives a
+   started correct reachable state the disjunction of exact dispatch and a live
+   top component with no raw-unmarked frontier occurrence. The library still
+   has no theorem
+   turning that drained branch into `core.allMarked = true`, nor branch
+   applicability without the resulting completion bridge, unconditional
+   dispatcher progress, later-state totality, a global raw seam, fallback
+   removal, scheduling fidelity, sequentialization, Figure-7 pure-worklist
+   completeness, or whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created
@@ -1064,25 +1077,28 @@ part of the engineering and proof-identity gap.
    and is not yet supplied by canonical reachability. It proves neither
    unconditional Unify, global availability, nor progress.
    `ProofNetIRNewProgressAudit.lean` now adds a finite, executable audit of the
-   specific reachable-state gap around `NewGuard`: it considers only states
-   reached by successful initialization and the canonical dispatcher and hard
-   fails on an exact guarded `new? = none` witness. The default CI corpus is
-   seed 0 at depths 0 through 4, every formula start, and six labelled ordering
-   variants (30 certificate cases, 23,184 reachable states, 6,198 guarded
-   successes); the opt-in depth-5 extension reaches 96,444 states and 26,658
-   guarded successes. Both observed zero guarded failures, inverse guard
-   mismatches, cycles, and fuel truncations. The same runs independently
-   inspected 6,198 and 26,658 selected marked-tensor ready-head states,
-   respectively; all had an exact immediate sigma predecessor, with zero
-   missing-predecessor gaps. Deep acceptance uses
+   complete ready-head boundary over states reached by successful initialization
+   and the canonical dispatcher. At every post-initialization state it
+   classifies concrete marking completeness, reconstructs exact typed
+   `ReadyHeadInput`, and invokes `dispatch?`; an incomplete state without a head
+   or an incomplete dispatch-none stop produces a full replayable witness. The
+   default CI corpus classified all 22,590 incomplete states as ready-head and
+   successful-dispatch states and all 594 dispatch-none stops as fully marked.
+   The opt-in depth-5 extension classified 95,190 incomplete states and 1,254
+   fully marked stops in the same way. Both modes recorded zero missing-head,
+   incomplete-dispatch-none, cycle, and fuel-truncation findings. The same runs
+   retain the guarded-New subaudit and independently inspected 6,198 and 26,658
+   selected marked-tensor ready-head states; all had an exact immediate sigma
+   predecessor, with zero missing-predecessor gaps. Deep acceptance uses
    `unificationCheck` and the kernel theorem `unificationCheck_eq_check`, while
    the 18 cases at depths 0 through 2 also run the direct all-switchings
-   checker. This finite receipt does not prove the residual universally
-   impossible, close input-only `new` sufficiency or ready-head existence, or
-   establish intended-state exhaustiveness, progress, totality, or
-   completeness.
+   checker. This finite receipt does not prove that `ActiveTopDrained` implies
+   semantic completion or establish intended-state exhaustiveness, progress,
+   totality, or completeness.
    Its separate `--cross-representative-search` receipt covers 96 labelled
-   depth-5 cases and 1,182,816 reachable states. New contributes 328,848
+   depth-5 cases and 1,182,816 reachable states: 1,172,208 incomplete states all
+   had exact ready heads and successful dispatches, while all 10,608
+   dispatch-none stops were fully marked. New contributes 328,848
    successful steps, 222,246 actual endpoint candidates (59,706 reached and
    162,540 partner), and 3,333,924 strict prior-event pairs. Wait contributes
    5,682 steps, 636 candidates, and 1,068 pairs; Forward contributes 158,766

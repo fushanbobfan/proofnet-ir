@@ -965,12 +965,25 @@ canonical history and exposes the result for every executed dispatcher history
 under declarative correctness. Finally, at a dispatcher-reachable state with an
 explicitly supplied `ReadyHeadInput`, the complete invariant rules out the
 marked-tensor predecessor residual; the positive priority branch is lowered to
-one exact successful `dispatch?` result. This last theorem does not construct a
-ready head. Deriving `ReadyHeadInput` from every relevant semantic nonterminal
-certified state is the next proof gate before dispatcher progress or later-state
-totality; global raw seams, fallback removal, faithful scheduling,
-pure-worklist completeness, sequentialization, and whole-program linearity
-remain separate.
+one exact successful `dispatch?` result. This history theorem alone does not
+construct a ready head; the following structural module classifies the exact
+shape of its absence. Turning that residual into semantic completion is the
+next proof gate before dispatcher progress or later-state totality; global raw
+seams, fallback removal, faithful scheduling, pure-worklist completeness,
+sequentialization, and whole-program linearity remain separate.
+
+`SequentialFigure7ActiveTopResidual.lean` removes the ambiguity in that gate.
+`ActiveTopDrained` stores the last sigma boundary, its exact live component, and
+the fact that no occurrence on that component frontier is raw-unmarked. In a
+started state, stack well-shapedness aligns the last sigma and ready entries;
+`ReadyBucketFrontierExact` identifies the final ready bucket with precisely the
+raw-unmarked frontier of that live component. Splitting the bucket into empty
+or nonempty cases therefore proves that absence of `ReadyHeadInput` is exactly
+`ActiveTopDrained`. For a correct dispatcher-reachable state, the full-history
+ready-head theorem lowers the nonempty case to an exact dispatcher result, so
+the remaining outcome is an explicit dispatch-or-drained disjunction. The
+drained branch is not called terminal: proving from canonical history that it
+implies `core.allMarked = true` is the next semantic completion obligation.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1323,19 +1336,23 @@ final-component owned list. No
 dispatcher progress or totality, pure-worklist completeness, fallback removal,
 or complexity bound follows here.
 
-The root executable `ProofNetIRNewProgressAudit.lean` is a bounded
-falsification layer over that boundary. It never inserts arbitrary states:
+The root executable `ProofNetIRNewProgressAudit.lean` is a bounded,
+fail-closed replay layer over that boundary. It never inserts arbitrary states:
 each path begins with `initializeReservation?` and recursively applies the
 canonical `dispatch?`, carrying `ReachableByImplementedDispatcher` and deriving
-`SchedulerInvariant` from the actual history. At each state it independently
-reconstructs `NewGuard`, calls the actual `new?`, and hard fails with a complete
-replayable witness on a mismatch. The default CI corpus is finite at seed 0,
-depths 0 through 4, every formula start, and six labelled order variants;
-`--extended` adds depth 5. Candidate acceptance uses `unificationCheck` and the
-kernel equality `unificationCheck_eq_check`; a direct all-switchings sentinel
-remains at depths 0 through 2. This executable architecture supplies regression
-evidence and diagnostics, not a `NewGuard` success converse or a scheduler
-progress theorem.
+`SchedulerInvariant` from the actual history. At every post-initialization
+state it classifies concrete marking completeness, reconstructs exact typed
+`ReadyHeadInput` availability, and calls the real dispatcher. An incomplete
+state without a head or with `dispatch? = none` is a hard failure retaining the
+accepted certificate, full state, event ledger, and replayed rule trace. The
+same traversal retains the earlier guarded-New and marked-tensor-predecessor
+subaudits. The default CI corpus is finite at seed 0, depths 0 through 4, every
+formula start, and six labelled order variants; `--extended` adds depth 5, and
+`--cross-representative-search` widens the labelled variants. Candidate
+acceptance uses `unificationCheck` and the kernel equality
+`unificationCheck_eq_check`; a direct all-switchings sentinel remains at depths
+0 through 2. This architecture supplies regression evidence and diagnostics,
+not semantic completion, dispatcher progress, or totality.
 
 The same replay now independently classifies every selected marked-tensor ready
 head against the active sigma top. The default depth-0-through-4 run observed
@@ -1345,9 +1362,10 @@ predecessor gaps. The detector retains a complete replayable counterexample and
 partitions any failure into a missing previous top or a boundary mismatch. These
 finite observations remain independent falsification evidence, not the source
 of the kernel theorem. The full-history invariant now eliminates the residual
-at an explicitly supplied correct canonical-history ready head, but neither the
-theorem nor the replay derives ready-head existence, unconditional progress, or
-totality.
+at an explicitly supplied correct canonical-history ready head, and the
+active-top classifier identifies the exact structural shape when that head is
+absent. Neither result proves that `ActiveTopDrained` is fully marked or
+semantic completion, so unconditional progress and totality remain open.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

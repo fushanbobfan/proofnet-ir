@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopResidual.lean` to isolate the exact
+  post-history ready-head boundary. `ActiveTopDrained` records that the live
+  component at the last sigma boundary has no raw-unmarked frontier occurrence.
+  Under a complete `SchedulerInvariant` and `0 < nextAge`, this is equivalent
+  to absence of `ReadyHeadInput`. For a declaratively correct
+  dispatcher-reachable state with the same started premise, the public wrapper
+  returns the disjunction of one exact successful `dispatch?` result and that
+  active-top residual, without asserting exclusivity. The runnable consumer
+  invokes both theorems, destructures the exact
+  dispatcher witness, and consumes every residual field. This checkpoint does
+  not prove that a drained active top is fully marked, terminal, or unreachable,
+  and therefore does not establish unconditional progress, later-state
+  totality, fallback removal, pure-worklist completeness, faithful scheduling,
+  sequentialization, or whole-program linearity. The pending local audit gate
+  is expected to report 907 declarations: 624 full-classical, 25 axiom-free,
+  123 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - strengthened `proofnet_ir_new_progress_audit` at the ready-head boundary. The
   executable now classifies exact typed `ReadyHeadInput` availability at every
   post-initialization canonical replay state, partitions states by concrete

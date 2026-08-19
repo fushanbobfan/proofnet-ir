@@ -9507,6 +9507,54 @@ ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch
   ∃ result, ProofNetIR.SequentialFigure7.dispatch? certificate before invariant = some result
 ```
 
+## Active-top ready-head residual
+
+### `ProofNetIR.SequentialFigure7.ActiveTopDrained`
+
+Kind: definition.
+
+The live component at the active scheduler boundary has no raw-unmarked
+frontier occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveTopDrained : ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.SchedulerInvariant.no_readyHead_iff_activeTopDrained`
+
+Kind: theorem.
+
+In a started scheduler-invariant state, absence of a ready head is exactly
+the structural residual that the active live component has no raw-unmarked
+frontier occurrence.
+
+```lean
+ProofNetIR.SequentialFigure7.SchedulerInvariant.no_readyHead_iff_activeTopDrained : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState},
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    0 < state.stack.nextAge →
+      (¬Nonempty (ProofNetIR.SequentialFigure7.ReadyHeadInput state) ↔
+        ProofNetIR.SequentialFigure7.ActiveTopDrained state)
+```
+
+### `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_activeTopDrained`
+
+Kind: theorem.
+
+A started reachable state satisfies the disjunction of one exact canonical
+dispatcher step and the active-top structural residual. The alternatives are
+not claimed to be exclusive, and the residual is not interpreted as semantic
+completion.
+
+```lean
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.dispatch_or_activeTopDrained : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (reachable : ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher certificate state)
+  (correct : certificate.DeclarativelyCorrect),
+  0 < state.stack.nextAge →
+    have invariant := ⋯;
+    (∃ result, ProofNetIR.SequentialFigure7.dispatch? certificate state invariant = some result) ∨
+      ProofNetIR.SequentialFigure7.ActiveTopDrained state
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

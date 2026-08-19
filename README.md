@@ -23,15 +23,17 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch now packages its indexed predecessor invariant across every
-exact canonical dispatcher history under declarative correctness, with the same
-result available for every executed dispatcher history.
-At an explicitly supplied reachable ready head, that invariant eliminates the
-predecessor residual and yields an exact successful dispatcher result. It does
-not construct the ready head. Deriving a ready head from every relevant
-semantic nonterminal certified state is the first open gate; dispatcher
-progress, later-state totality, fallback removal, pure-worklist completeness,
-faithful scheduling, and whole-program linearity remain open.
+The rolling branch now isolates the exact residual after full-history
+ready-head dispatch has been proved. In any started scheduler-invariant state,
+having no ready head is equivalent to the active live component having no
+raw-unmarked frontier occurrence. Every started correct dispatcher-reachable
+state therefore satisfies a disjunction between one exact dispatcher step and
+that active-top-drained residual. The theorem does not make the alternatives
+exclusive or prove that a drained active top is fully marked or unreachable.
+The first open gate is the history-level completion theorem that turns this
+residual into `allMarked = true`; unconditional progress, later-state totality,
+fallback removal, pure-worklist completeness, faithful scheduling, and
+whole-program linearity remain open.
 [The replaceable current-status record](docs/current-status.md) owns exact
 revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

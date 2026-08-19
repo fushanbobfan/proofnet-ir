@@ -990,12 +990,17 @@
     exposes the invariant under declarative correctness, and a reachable
     wrapper yields one exact dispatcher result at an explicitly supplied ready
     head.
-  - [ ] Prove that every relevant semantic nonterminal certified state supplies
-    a ready head before claiming dispatcher progress, later-state totality, or
-    Figure-7 pure-worklist completeness. Keep branch applicability without the
-    explicit ready-head premise, global raw seams, fallback removal,
-    sequentialization, faithful token-age scheduling, and whole-program
-    linearity outside this checkpoint.
+  - [x] Isolate the exact active-top residual. In a started
+    scheduler-invariant state, absence of `ReadyHeadInput` is equivalent to the
+    last live component having no raw-unmarked frontier occurrence. A started,
+    correct dispatcher-reachable state therefore satisfies an exact-dispatch /
+    `ActiveTopDrained` disjunction, without an exclusivity claim.
+  - [ ] Prove the history-level completion law
+    `ActiveTopDrained → core.allMarked = true`. Only then combine the residual
+    dichotomy with marking incompleteness to obtain unconditional dispatcher
+    progress. Keep later-state totality, global raw seams, fallback removal,
+    Figure-7 pure-worklist completeness, sequentialization, faithful token-age
+    scheduling, and whole-program linearity outside this checkpoint.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1227,21 +1232,20 @@
     `SequentialFigure7RegionBoundaries.lean` proves that a supplied run carrier
     is free of prior touches and old marked owners. This cannot be inverted to
     establish the run needed by its premise.
-  - [x] Add a deterministic finite search for an actually reachable
-    `NewGuard` state where the real `new?` fails. The default CI gate follows
-    successful initialization and the canonical dispatcher from every formula
-    start for seed 0, depths 0 through 4, and six labelled ordering variants;
-    it covered 23,184 reachable states and 6,198 guarded successes with zero
-    misses, inverse guard mismatches, cycles, or fuel truncations. The opt-in
-    depth-5 extension covered 96,444 total reachable states and 26,658 guarded
-    successes. The same default and extended replays inspected 6,198 and 26,658
-    selected marked-tensor ready heads; every mate resolved to the exact
-    immediate sigma predecessor, so both recorded zero residual gaps.
-    Acceptance is transported from `unificationCheck` through its kernel
-    equality with `check`, with 18 shallow direct-check sentinels. Keep this
-    explicitly finite: it is a counterexample search, not a universal
-    `NewGuard`-sufficiency or predecessor theorem, ready-head existence,
-    progress, totality, or completeness theorem.
+  - [x] Add a deterministic finite replay audit for the ready-head boundary.
+    The default CI gate follows successful initialization and the canonical
+    dispatcher from every formula start for seed 0, depths 0 through 4, and six
+    labelled ordering variants. It classified all 22,590 incomplete states as
+    exact-ready-head/successful-dispatch states and all 594 dispatch-none stops
+    as fully marked. The opt-in depth-5 extension classified 95,190 incomplete
+    states and 1,254 fully marked stops likewise; both recorded zero
+    incomplete-without-head, incomplete-dispatch-none, cycle, or truncation
+    findings. The same replays retain guarded-New checks and inspected 6,198 and
+    26,658 selected marked-tensor ready heads, every one with the exact immediate
+    sigma predecessor. Acceptance is transported from `unificationCheck`
+    through its kernel equality with `check`, with 18 shallow direct-check
+    sentinels. Keep this explicitly finite: it is a counterexample search, not
+    a semantic completion, progress, totality, or completeness theorem.
   - [x] Replace the remaining `NewExecutableEnabled` field inside
     `PriorityEnabled` with the proved input-only `NewEnabled` through the
     dedicated `SequentialFigure7NewInputCore` import-DAG split. Preserve
@@ -1252,9 +1256,11 @@
     progress, totality, completeness, or fallback removal. The predecessor
     projection now discharges the ready-head residual for states carrying the
     new invariant, and the complete canonical-history induction makes that
-    invariant available for every correct executed dispatcher history. Next
-    derive ready-head existence before exhaustive dispatcher enabledness on
-    correct certified-reachable nonterminal states.
+    invariant available for every correct executed dispatcher history. The
+    active-top residual now supplies every started reachable state with an exact
+    dispatch / drained-active-component disjunction. Next prove that the drained branch
+    forces `allMarked = true` before claiming exhaustive progress on incomplete
+    correct certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

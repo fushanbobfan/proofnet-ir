@@ -55,6 +55,7 @@ defaultTargets = [
   "proofnet_ir_cross_representative_unify_payload_preservation_tests",
   "proofnet_ir_older_marked_tensor_predecessor_unify_payload_tests",
   "proofnet_ir_older_marked_tensor_predecessor_history_tests",
+  "proofnet_ir_active_top_residual_tests",
   "proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests",
   "proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests",
   "proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests",
@@ -284,6 +285,10 @@ root = "ProofNetIROlderMarkedTensorPredecessorUnifyPayloadTests"
 [[lean_exe]]
 name = "proofnet_ir_older_marked_tensor_predecessor_history_tests"
 root = "ProofNetIROlderMarkedTensorPredecessorHistoryTests"
+
+[[lean_exe]]
+name = "proofnet_ir_active_top_residual_tests"
+root = "ProofNetIRActiveTopResidualTests"
 
 [[lean_exe]]
 name = "proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests"

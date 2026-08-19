@@ -838,6 +838,18 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top ready-head residual"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveTopDrained,
+      Name.str
+        `ProofNetIR.SequentialFigure7.SchedulerInvariant
+        "no_readyHead_iff_activeTopDrained",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher
+        "dispatch_or_activeTopDrained"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

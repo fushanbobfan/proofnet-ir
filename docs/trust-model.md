@@ -730,12 +730,24 @@ the already-proved canonical-history witness. The reachable ready-head theorem
 keeps declarative correctness, dispatcher reachability, and `ReadyHeadInput` as
 explicit ordinary hypotheses; it eliminates the predecessor residual but does
 not manufacture any of them. All three declarations depend exactly on
-`[propext, Classical.choice, Quot.sound]`. Full canonical-history availability
-is therefore inside the audited boundary, while ready-head existence from
-semantic nonterminality, applicability without the explicit ready-head premise,
+`[propext, Classical.choice, Quot.sound]`. At this full-history layer,
+availability of the invariant is therefore inside the audited boundary, while
+ready-head construction and branch applicability without its explicit premise
+remain outside it. The following structural residual layer narrows that gap;
 unconditional progress, later-state totality, recursive-fallback removal,
 sequentialization, faithful token-age scheduling, Figure-7 pure-worklist
-completeness, and whole-program linearity remain outside it.
+completeness, and whole-program linearity remain outside the combined result.
+`SequentialFigure7ActiveTopResidual.lean` adds no terminality, completion, or
+progress oracle. `ActiveTopDrained` is concrete state data: a last sigma
+boundary, the component stored at that slot, and absence of a raw-unmarked
+frontier occurrence. The no-ready-head equivalence consumes only the existing
+complete scheduler invariant and an explicit `0 < nextAge` premise. The
+reachable wrapper additionally consumes ordinary declarative correctness and
+dispatcher reachability, then reuses the already-audited ready-head theorem in
+the positive branch. Both public theorems depend exactly on
+`[propext, Classical.choice, Quot.sound]`. They do not assume or prove that the
+drained branch is fully marked, terminal, or impossible; the history-level
+completion law remains outside the trusted surface.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
@@ -979,18 +991,23 @@ The separate `ProofNetIRNewProgressAudit.lean` executable introduces no new
 axiom and does not manufacture invariant-shaped states. Each inspected state
 comes with `ReachableByImplementedDispatcher`, built from an exact successful
 initialization and exact dispatcher equations. A counterexample must retain
-the accepted certificate, complete state, start, replayed rule kinds,
-proof-relevant `NewGuard`, and the actual `new? = none` equation. Generated
-certificate acceptance is obtained from `unificationCheck = true` and
-transported to `check = true` by the kernel theorem
-`unificationCheck_eq_check`; the 18 depth-0-through-2 cases additionally run
-the direct all-switchings checker. The same replay independently checked marked
-tensor predecessors: the default and extended runs observed 6,198 and 26,658
-selected marked-tensor ready-head states and zero missing-predecessor gaps. The
-default and extended finite receipts found no guarded New witness either, but
-absence in 30 or 36 labelled cases is not an oracle, universal
-`NewGuard`-sufficiency or predecessor theorem, reachability characterization,
-ready-head existence result, progress theorem, or later-state totality result.
+the accepted certificate, complete state, start, event ledger, and replayed rule
+kinds. Every post-initialization state is classified by concrete marking
+completeness and exact typed ready-head availability before the real dispatcher
+is called. An incomplete state without a head or an incomplete dispatch-none
+stop has a dedicated replayable witness and fails closed. Generated certificate
+acceptance is obtained from `unificationCheck = true` and transported to
+`check = true` by the kernel theorem `unificationCheck_eq_check`; the 18
+depth-0-through-2 cases additionally run the direct all-switchings checker. The
+same replay retains guarded-New checks and independently checked marked-tensor
+predecessors: the default and extended runs observed 6,198 and 26,658 selected
+marked-tensor ready-head states and zero missing-predecessor gaps. Across the
+default, extended, and cross-variant receipts, every observed incomplete state
+had a ready head and successful dispatch and every dispatch-none stop was fully
+marked, with zero missing-head, incomplete-dispatch-none, cycle, or truncation
+findings. These bounded observations are not an oracle, semantic completion
+theorem, reachability characterization, progress theorem, or later-state
+totality result.
 `SequentialFigure7TagHistory.lean` also adds no oracle. It pattern-matches only
 the exact typed branch recovered from an existing `DispatchStep` and augments
 the already-certified `ExecutedHistory`. The five stable branches prove array
