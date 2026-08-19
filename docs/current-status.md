@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `1040e0ef267788eb7264aa542c9f2b7cd16c6dfb` | Active | This page and the exact commit |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `cd3ad0f8ea17be50d5ba2333816d33187f483609` | Active | This page and the exact commit |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,56 +46,57 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint closes the input-availability theorem for an already
-established, history-indexed active Figure-7 `NewGuard`.
+The current checkpoint isolates the exact residual left after classifying all
+six rule families for a supplied Figure-7 ready head.
 
-Primary public theorem:
+Primary public theorems:
 
 ```text
-ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.readyHead_priorityEnabled_or_markedTensorPredecessorGap
+ProofNetIR.SequentialFigure7.ReachableByImplementedDispatcher.readyHead_dispatch_or_markedTensorPredecessorGap
 ```
 
-Under all of the following supplied inputs:
+The history-indexed theorem takes all of the following supplied inputs:
 
 - `Certificate.DeclarativelyCorrect`;
 - the complete state-only `SchedulerInvariant`;
 - an authentic `CanonicalTagHistory`;
-- and an already established active `NewGuard`;
+- and a `ReadyHeadInput` for the current state.
 
-Lean now derives all of the following locally for that guard:
+It returns an inclusive disjunction:
 
-1. every authentic reservation-ledger event is touch-separated from the
-   complete source-left region of the active tensor mate;
-2. that region contains no concrete raw mark and no exact marked occurrence
-   owner, while every region tag is `false`;
-3. there is a complete `NewSourceRegionInput`; and
-4. the input-only predicate `NewEnabled` holds.
+1. some fixed-priority branch is `PriorityEnabled`; or
+2. an exact marked tensor has a retained mate boundary strictly below the
+   active top, but no `SigmaPredecessorInput` identifies that boundary with the
+   active top's immediate predecessor.
 
-The reusable `ActiveMateEventAnchor` stores an exact conclusion-avoiding path
-from the active mate to one event's stored-left axiom endpoint. Finite blocker
-maximality and exact reference-tree edge identity exclude every strictly older
-anchored event: the commitment-path branch forms the forbidden active-tensor
-bypass, while the stored-left callback branch forms an alternate walk around
-the same exact tensor edge. Any event touch inside the active mate region
-constructs such an anchor.
+The second branch is stored in
+`ReadyHeadMarkedTensorPredecessorGap`: it retains the exact tensor consumer,
+concrete mate mark, `sigmaBoundary?` lookup, strict boundary inequality, and
+the negated immediate-predecessor witness. The alternatives are not claimed to
+be exclusive, and the carrier alone does not state that dispatch fails.
 
-A concrete raw mark supplies its same-age authentic event and final owned
-component. The active-region path and the event's owned path therefore build
-the same forbidden anchor. Exact-owner absence follows from raw-mark absence;
-canonical touch provenance gives tag freshness; and the structural
-run-or-blocker theorem can return only the run branch. This proof does not
-assume either global `OlderEventTouchSeparated` or global
-`OlderRawMarkedRegionSeparated`. It also preserves the earlier claim boundary:
-the equal-boundary callback witness is contradicted only when the strict-old
-active-mate anchor is present, not in isolation.
+Stable heads reconstruct their existing enabled branch. An unmarked tensor
+uses the active-region theorem to obtain input-only `NewEnabled`. A marked
+tensor with exact sigma adjacency obtains `UnifyPayloadEnabled`; otherwise the
+proof shows that its mate still resolves to a strictly older retained boundary
+and returns the precise gap. Under `ReachableByImplementedDispatcher`, the
+positive branch is lowered to an actual `dispatch? = some result` equation.
+
+The bounded replay audit checked 6,198 default and 26,658 extended selected
+marked-tensor ready heads. Every observed mate had the exact predecessor, so
+both runs recorded zero gaps, zero missing previous tops, and zero boundary
+mismatches. This is deterministic regression evidence, not a universal proof
+that the residual is uninhabited.
 
 ## What the rolling theorem does not prove
 
 This checkpoint does not establish any of the following:
 
-- construction or existence of a canonical history or active `NewGuard`;
-- a proof that every relevant nonterminal state presents that guard;
-- selection of an exhaustive priority branch or a stored executor equation;
+- construction or existence of a canonical history or `ReadyHeadInput`;
+- a proof that every relevant semantic nonterminal state presents a ready head;
+- exclusivity of the disjunction or universal unreachability of the gap;
+- the active-top-bucket queue-origin invariant needed to eliminate the gap;
 - global preservation of the mate-region or older-raw-mark invariant families;
 - any of the explicit New/Wait/Forward/UnifyPayload created-candidate raw seams
   or the queue-origin laws that would discharge them;
@@ -115,24 +116,28 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling checkpoint is:
 
 ```text
-commit  1040e0ef267788eb7264aa542c9f2b7cd16c6dfb
-tree    23409edf2bf63f8513b625bfe0befcca2edb3823
-stage   active-region touch separation and input-only New enabledness
-delta   19 files, +2022/-68
+commit  cd3ad0f8ea17be50d5ba2333816d33187f483609
+tree    67b9e7006202176bd051093c8112a6c224277d94
+stage   ready-head priority dispatch residual and predecessor-gap audit
+delta   19 files, +1058/-103
 ```
 
 Local verification on the committed bytes:
 
-- full `lake build`: 413/413 jobs;
-- Lean source audit: zero `sorry`/`admit` findings across 201 Lean files;
+- full `lake build`: 418/418 jobs;
+- Lean source audit: zero `sorry`/`admit` findings across 203 Lean files;
 - generated API reference: current;
-- both runnable active-region consumers: passed under `--trust=0` and invoke
-  every new public API;
+- the runnable ready-head residual consumer: passed under `--trust=0` and
+  invokes both public theorems while destructuring both branches;
 - facade, API manifest, and axiom-audit entry points: passed under `--trust=0`;
-- public declaration audit: 888 declarations total;
-- audit classes: 606 full-classical, 25 axiom-free, 122 `propext`-only,
+- default replay: 23,184 reachable states, 6,198 marked-tensor ready heads,
+  6,198 exact predecessors, and zero gaps;
+- extended replay: 96,444 reachable states, 26,658 marked-tensor ready heads,
+  26,658 exact predecessors, and zero gaps;
+- public declaration audit: 890 declarations total;
+- audit classes: 608 full-classical, 25 axiom-free, 122 `propext`-only,
   and 135 `propext` plus `Quot.sound`;
-- all seven new public theorems depend only on
+- both new public theorems depend only on
   `[propext, Classical.choice, Quot.sound]`;
 - every detected explicit theorem input is load-bearing under the
   minimal-hypothesis audit;
@@ -142,11 +147,11 @@ Local verification on the committed bytes:
 Exact-head GitHub verification:
 
 - workflow: `Lean CI`;
-- run: [32230579133](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32230579133);
-- build job: [95999296136](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32230579133/job/95999296136);
-- exact head: `1040e0ef267788eb7264aa542c9f2b7cd16c6dfb`;
+- run: [32238279967](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32238279967);
+- build job: [96023016555](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32238279967/job/96023016555);
+- exact head: `cd3ad0f8ea17be50d5ba2333816d33187f483609`;
 - result: 36 successful steps, zero failures, one expected release-ref-only
-  skip; run duration 10m47s and build-job duration 10m42s.
+  skip; run duration 12m21s and build-job duration 12m16s.
 
 ## Current library-readiness position
 
@@ -203,18 +208,20 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. classify every relevant nonterminal certified state into the applicable
-   priority branch, including existence of the active guard when New is next;
-2. close the queue-origin and New/Wait/Forward/UnifyPayload created-candidate
+1. prove a history-preserved predecessor invariant for every member of the
+   active top ready bucket, then specialize it to eliminate the exact gap;
+2. prove that every relevant semantic nonterminal certified state supplies a
+   ready head;
+3. close the queue-origin and New/Wait/Forward/UnifyPayload created-candidate
    laws needed by the global mate-region and raw-mark preservation families;
-3. derive exhaustive nonterminal dispatcher progress and later-state totality;
-4. prove pure-worklist completeness and remove the recursive fallback without
+4. derive exhaustive nonterminal dispatcher progress and later-state totality;
+5. prove pure-worklist completeness and remove the recursive fallback without
    weakening the accepted-certificate theorem;
-5. implement and verify faithful `NEXTAXIOM`/token-age scheduling and its
+6. implement and verify faithful `NEXTAXIOM`/token-age scheduling and its
    whole-program complexity;
-6. continue the traceable, page/chapter-level literature matrix without
+7. continue the traceable, page/chapter-level literature matrix without
    treating file discovery or structural scans as completed reading;
-7. preserve public API, migration, downstream, experiment, and release gates
+8. preserve public API, migration, downstream, experiment, and release gates
    as the mathematical surface grows.
 
 ## Navigation
