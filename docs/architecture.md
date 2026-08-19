@@ -254,6 +254,11 @@ interpretation of the prose-defined nonactive waiting domain and the later
 `wait`/`unify` behavior, not an author-confirmed erratum or a uniqueness
 theorem.
 
+The canonical operational-`new` regression freezes one exact post-step state:
+`μ(0)=0`, `σ=[0,1]`, `R=[[1],[2,3]]`, `W(0)=∅`, and `W(1)=⊥`. This is an
+executable state-transition receipt for that fixture, not a general
+queue-shape, reachability, progress, or complexity theorem.
+
 `reserveAxiomAt?` creates a locally well-formed submitted-orientation live
 axiom component and a fresh self-parent while leaving marks unchanged. Each
 wrapper uses one `NextAxiomResult`: its delayed bucket keeps

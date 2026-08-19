@@ -936,11 +936,11 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 `FutureWaitingUndefined` preservation family; those theorems remain within the
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
-`native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 881
-declarations: 599 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
-axiom-free, 122 use exactly `[propext]`, and 135 use exactly
-`[propext, Quot.sound]`.
+`native_decide` for closed certificate facts. They are executable regression
+evidence, not public three-axiom theorems. The exact trust audit classifies the
+maintained declaration set across standard-three, axiom-free,
+`propext`-only, and `propext`/`Quot.sound` boundaries. Rolling totals and the
+exact checkpoint receipt live in [current status](current-status.md).
 `ConclusionBelow`'s
 `NodeWellFormed` field is only a local ownership check; it does not replace a
 whole-certificate `StructurallyWellFormed`/checked gate at a future untrusted
