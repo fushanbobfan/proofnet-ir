@@ -249,23 +249,34 @@ for that blocker would splice with the audited historical and component routes
 to form the tensor bypass forbidden by reference-switching acyclicity. Thus the
 current inclusive reduction is an exact avoiding path or the exact equal stored-
 left callback failure. This is a code consequence, not a new literature result;
-the callback branch still does not deny path existence or close queue origin,
-mate-region/global raw-mark availability, a created-candidate raw seam, or
-progress. The availability-reduction layer now
-consumes the existing
-structural search and those code invariants: it proves `NewSourceRegionInput`
-or an exact old marked owner, then `NewEnabled` or that owner. This is another
-code consequence rather than a new literature reading. The subsequent
-raw-mark separation layer turns owner exclusion into a precise state
-invariant, proves its empty/initial and Prepared/concl/nop cases, and derives
-active-region no-mark/no-owner from it. That is also a code consequence, not a
-new literature reading. Global preservation of the mate-region and
-older-raw-mark separation invariants through candidate-creating rules remains
-open. The future-head-touch invariant is preserved through New and through
+the callback branch by itself still does not deny path existence. A subsequent
+code theorem supplies the missing local context through
+`ActiveMateEventAnchor`: if the strictly older event also has an exact active-
+mate-to-event-left path avoiding the active conclusion, both maximality branches
+contradict exact reference-tree edge uniqueness. Any authentic event touch in
+the active mate source-left region constructs this anchor, so every ledger event
+is locally touch-separated from that region. This is derived Lean geometry, not
+a newly read literature theorem, and it does not claim callback impossibility
+without the anchor or global invariant preservation. The availability-reduction
+layer consumes the existing structural search and code invariants: it proves
+`NewSourceRegionInput` or an exact old marked owner, then `NewEnabled` or that
+owner. The raw-mark separation layer separately turns owner exclusion into a
+state invariant, proves its empty/initial and Prepared/concl/nop cases, and
+derives active-region no-mark/no-owner when supplied. The newest local code
+consequence no longer requires that global invariant for the current guard: a
+concrete raw mark yields its same-age authentic event and an
+`ActiveMateEventAnchor`, so no raw mark or exact owner remains; tag freshness and
+structural search then yield `NewSourceRegionInput` and `NewEnabled`. None of
+these steps records new page/chapter reading. Global preservation of the mate-
+region and older-raw-mark invariants through candidate-creating rules remains
+open, as do queue origin, created-candidate raw seams, and progress. The future-
+head-touch invariant is preserved through New and through
 Wait, Forward, and UnifyPayload after structurally deriving their created-head
 residuals, and canonical-history induction now makes it globally available
-under structural well-formedness. Global availability of the mate-region and
-raw-mark invariants remains open. The New raw-mark branch is now conditionally
+under structural well-formedness. Global preservation of the mate-region and
+raw-mark invariants remains open, although the local active-guard enabledness
+theorem bypasses their availability at its current state. The New raw-mark
+branch is now conditionally
 transported: switching acyclicity removes
 the selected-mark/created-candidate case, and
 `NewRetainedRawMarksSeparated` names the sole remaining retained-mark seam.

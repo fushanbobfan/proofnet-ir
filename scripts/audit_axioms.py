@@ -85,6 +85,10 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "strictOlder_commitmentPath_or_advance_or_equalCallbackFailure",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "strictOlder_commitmentPath_or_equalCallbackFailure",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "no_strictOlder_activeMateEventAnchor",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "event_touchSeparatedFrom_active_sourceLeftRegion",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant."
     "exactMarkedOccurrenceOwner_iff_exists_rawMark",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."
@@ -101,6 +105,15 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "active_sourceLeftRegion_no_rawMark",
     "ProofNetIR.SequentialFigure7.OlderRawMarkedRegionSeparated."
     "active_clearOwner",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_sourceLeftRegion_no_rawMark",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_sourceLeftRegion_no_exactMarkedOwner",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_sourceLeftRegion_tagFresh",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "active_newSourceRegionInput",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",

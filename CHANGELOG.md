@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveRegionEnabledness.lean`. Under declarative
+  correctness, the complete scheduler invariant, an authentic canonical
+  history, and an already established active `NewGuard`, the complete active
+  mate source-left region now contains no concrete raw mark and no exact marked
+  occurrence owner. Canonical touch provenance also makes every region tag
+  false. The structural run-or-blocker theorem therefore supplies a complete
+  `NewSourceRegionInput`, and hence input-only `NewEnabled`, without assuming
+  either global `OlderEventTouchSeparated` or global
+  `OlderRawMarkedRegionSeparated`. This does not construct a guard or history,
+  choose or execute a dispatcher branch, prove exhaustive enabledness or
+  progress, preserve a global raw-mark invariant through candidate-creating
+  rules, remove recursive fallback, establish faithful token-age scheduling,
+  or prove whole-program linearity. A dedicated consumer exercises all five
+  public layers;
+- added `SequentialFigure7ActiveRegionTouchSeparation.lean`. The public
+  `ActiveMateEventAnchor` records an exact reference path from the active tensor
+  mate to one authentic event's stored-left axiom endpoint while avoiding the
+  active tensor conclusion. Finite blocker maximality and exact tree-edge
+  uniqueness show that no strictly older ledger event can carry such an anchor:
+  the commitment-path branch forms the forbidden active-tensor bypass, while
+  the equal-boundary stored-left callback trace forms an alternate walk around
+  the same exact tensor edge. Every authentic ledger event is consequently
+  touch-separated from the complete active mate source-left region. The result
+  is local to the supplied active guard and does not claim that callback failure
+  is impossible without an anchor, manufacture global historical separation,
+  close created-candidate preservation seams, or prove dispatcher progress. A
+  standalone consumer checks both public theorem interfaces. Facade imports,
+  default targets, CI commands, generated API sections, and trust checks cover
+  both modules. The checkpoint axiom audit passes at 888 declarations
+  (606 full-classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound`);
 - reorganized the documentation without changing Lean semantics. The README is
   now a bounded entry point with a short replaceable rolling summary instead
   of a checkpoint log. `docs/current-status.md` owns the single current proof

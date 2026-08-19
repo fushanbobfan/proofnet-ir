@@ -742,6 +742,38 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-region touch separation"
+    declarations := [
+      `ProofNetIR.SequentialFigure7.ActiveMateEventAnchor,
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "no_strictOlder_activeMateEventAnchor",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "event_touchSeparatedFrom_active_sourceLeftRegion"
+    ]
+  },
+  {
+    title := "Active-region enabledness"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_sourceLeftRegion_no_rawMark",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_sourceLeftRegion_no_exactMarkedOwner",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_sourceLeftRegion_tagFresh",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_newSourceRegionInput",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "active_newEnabled"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

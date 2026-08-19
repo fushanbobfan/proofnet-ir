@@ -1035,17 +1035,18 @@
     candidates, and strict current-representative ordering. This does not prove
     global availability, created-candidate preservation premises, enabledness,
     or progress.
-  - [ ] Derive that universal no-obstruction premise for the relevant correct
-    canonical/certified histories. Structural descent and reference-switching
-    acyclicity now exclude return to the selected ready head throughout both
-    visited and terminal-partner regions. Do not postulate blanket disjointness
-    between prior touches and existing ownership: real correct canonical
-    states refute it, and historical touches are not uniformly absorbed by the
-    reserving component. Instead exclude each blocker locally from the exact
-    candidate current route. Only then bridge shallow reachable `NewGuard` to
-    `NewInputNecessary`. This is a geometric history/correctness
-    theorem, not a state-invariant field or an already-proved `NewGuard`
-    sufficiency, progress, totality, or completeness result.
+  - [x] Derive the local no-obstruction premise for every relevant correct
+    canonical-history active guard. Structural descent and reference-switching
+    acyclicity exclude return to the selected ready head throughout both
+    visited and terminal-partner regions. The proof does not postulate blanket
+    disjointness between prior touches and existing ownership: real correct
+    canonical states refute it, and historical touches are not uniformly
+    absorbed by the reserving component. Instead it excludes each blocker
+    locally from the exact active candidate route, then bridges the supplied
+    `NewGuard` to `NewSourceRegionInput` and `NewEnabled`. This is a geometric
+    history/correctness theorem, not a new state-invariant field or a proof of
+    guard existence, dispatcher exhaustiveness, progress, totality, or
+    completeness.
     The same-current-representative prior-event-touch slice is now
     kernel-excluded by exact reservation realization and reference-switching
     geometry. The conditional active-region order theorem now classifies any
@@ -1079,15 +1080,16 @@
     preservation therefore follows from a supplied prior invariant without an
     explicit created-head premise. A final induction over canonical histories
     now derives the queued-head invariant globally from structural
-    well-formedness. The independent mate-region invariant remains open. Given
-    both strict separation invariants and the complete scheduler invariant,
+    well-formedness. The independent global mate-region invariant remains open,
+    but the active-guard-local proof below no longer requires it. Given both
+    strict separation invariants and the complete scheduler invariant,
     Lean now derives the target-avoiding path for every adjacent edge whose
     child is strictly older than the candidate, and for every positive interval
     whose final boundary is strictly older. Stored-right equal-boundary
     avoidance is now kernel checked, while the stored-left case yields an exact
     inclusive touch obstruction rather than unconditional avoidance. Global
-    mate-region invariant availability, queue origin, and raw seams remain
-    open. Under declarative correctness and the complete scheduler invariant,
+    mate-region invariant preservation, queue origin, and created-candidate raw
+    seams remain open. Under declarative correctness and the complete scheduler invariant,
     for a supplied canonical history, active `NewGuard`, ledger membership, and
     strict current-representative order, the blocker-advance layer first returns
     an exact avoiding path, a mate-touching event at a strictly higher current
@@ -1095,18 +1097,21 @@
     callback failure. The subsequent finite-maximality layer eliminates that
     representative advance: a maximal mate-touch blocker with an avoiding path
     would create the forbidden tensor bypass, while another advance contradicts
-    maximality. The current inclusive reduction is therefore an exact path or
-    the exact equal stored-left callback failure. No created-candidate raw seam
-    is closed, and old exact marked owners remain outside this universal premise.
-    The active-region availability layer now packages the complete structural
-    search into `NewSourceRegionInput` or an exact old marked owner, and then
-    into `NewEnabled` or that owner. Consequently route/run, raw and endpoint
-    readiness, endpoint queue absence, fresh waiting capacity, and the existing
-    future-cell invariant are closed on the successful branch. The pointwise
-    no-owner corollary is conditional. The new state-only older-raw-mark
-    separation invariant now proves that corollary, and hence `NewEnabled`,
-    when supplied: empty/init and Prepared/concl/nop are kernel-closed. Global
-    preservation still requires created-candidate geometry. The typed New step
+    maximality. The inclusive reduction is therefore an exact path or the exact
+    equal stored-left callback failure. The active-region touch-separation layer
+    consumes both alternatives when an exact active-mate event anchor is
+    present: the path branch forms the forbidden tensor bypass, and the callback
+    branch forms an alternate walk omitting the active tensor edge. Every
+    authentic ledger event is therefore touch-separated from the complete
+    active mate region. A concrete raw mark supplies its own same-age ledger
+    anchor through exact reservation/component provenance, so raw marks and old
+    exact owners are impossible there as well. The active-region availability
+    layer can consequently return only `NewSourceRegionInput`, and then
+    input-only `NewEnabled`, for the supplied correct canonical-history active
+    guard. Route/run, raw and endpoint readiness, endpoint queue absence, fresh
+    waiting capacity, and the future-cell premise are closed at that local
+    boundary. This does not prove that every nonterminal state has such a guard
+    or close global preservation. The typed New step
     is now conditionally closed: its selected mark is structurally excluded
     from every created endpoint region, retained candidates transport, and the
     sole residual `NewRetainedRawMarksSeparated` premise covers input-retained

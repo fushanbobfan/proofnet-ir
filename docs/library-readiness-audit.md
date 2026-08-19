@@ -531,10 +531,11 @@ part of the engineering and proof-identity gap.
    identifies exactly two endpoint queue-absence obligations and strict fresh
    capacity beyond the exact run. The new fresh-capacity and endpoint-specific
    queue-history theorems derive all three from structural well-formedness,
-   canonical history, the complete invariant, and that exact run. Deriving the
-   run/route from every correct certified-reachable shallow `NewGuard`, then
-   proving tensor-branch exhaustiveness, progress, and completeness, remains
-   open.
+   canonical history, the complete invariant, and that exact run. The later
+   active-region layer now derives the run/route, and therefore `NewEnabled`,
+   for every supplied correct canonical-history `NewGuard`. It does not prove
+   that every nonterminal state presents such a guard. Tensor-branch
+   exhaustiveness, dispatcher progress, and worklist completeness remain open.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -587,11 +588,13 @@ part of the engineering and proof-identity gap.
    terminal axiom partner. The blocker vocabulary is complete and deliberately
    narrow: only tag lookup different from `some false` or raw-mark lookup
    different from `some none`. Source shape, source singletonhood, and adequate
-   fuel are discharged structurally. This is not yet a library-level progress
-   result: no theorem excludes blockers from correct canonical histories, and
-   endpoint queue absence plus fresh capacity are still downstream of the
-   positive run. No new reachability, enabledness, totality, completeness,
-   fallback-removal, or complexity guarantee follows.
+   fuel are discharged structurally. At this layer no theorem excludes blockers
+   from correct canonical histories, and endpoint queue absence plus fresh
+   capacity remain downstream of the positive run. The later active-region
+   touch and raw-anchor theorems discharge both blocker classes for a supplied
+   correct canonical-history active guard. This structural dichotomy alone
+   still adds no reachability, totality, progress, fallback-removal, or
+   complexity guarantee.
    `SequentialComponentSourceLeftGeometry.lean` adds the complementary
    structural carrier theorem. Starting from one occurrence owned by an exact
    `OccurrenceDerivation`, it keeps every recursively visited stored-left
@@ -609,12 +612,14 @@ part of the engineering and proof-identity gap.
    below eliminates the selected-head alternative throughout the complete
    region under declarative correctness. A universal premise excluding the two
    remaining blocker forms from the particular current source-left carrier
-   yields the exact run, `NewInputNecessary`, and `NewEnabled`; that premise
-   itself remains unproved. Library readiness therefore still requires a local
-   history/component intersection theorem before any shallow-guard sufficiency
-   or progress claim. This checkpoint adds
-   no totality, pure-worklist completeness, fallback-removal, or complexity
-   guarantee and records no new literature reading.
+   yields the exact run, `NewInputNecessary`, and `NewEnabled`. The new
+   active-region touch-separation and enabledness layers now prove that local
+   premise from declarative correctness, the complete invariant, canonical
+   history, and the supplied active guard. Shallow-guard sufficiency is
+   therefore closed at that history-indexed boundary. The result does not
+   construct a guard or history and adds no dispatcher exhaustiveness,
+   totality, progress, pure-worklist completeness, fallback-removal, or
+   complexity guarantee. It records no new literature reading.
    The first obstruction-elimination slice is now proved. Exact source-left
    complexity descent and final-step decomposition show that a recursively
    visited route from the tensor mate cannot return to the selected ready head;
@@ -923,6 +928,17 @@ part of the engineering and proof-identity gap.
    branch does not deny path existence, and the theorem does not derive queue
    origin, the remaining mate-region/global raw-mark invariants, a created-
    candidate raw seam, `NewEnabled`, progress, totality, or completeness.
+   `SequentialFigure7ActiveRegionTouchSeparation.lean` then supplies the local
+   bridge needed to consume both inclusive branches. Its public
+   `ActiveMateEventAnchor` carries a conclusion-avoiding exact path from the
+   active mate to one event's stored-left endpoint. A strictly older anchored
+   event contradicts the exact reference tree in either maximality branch: the
+   commitment path gives the active tensor bypass, while the stored-left
+   callback trace gives an alternate walk omitting the active tensor edge.
+   Every authentic ledger event is consequently touch-separated from the
+   complete active mate region. This is a per-guard theorem, not a global
+   preserved history invariant or a claim that callback failure is impossible
+   without an anchor.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -941,6 +957,18 @@ part of the engineering and proof-identity gap.
    exact marked owner from the active mate region, so the existing
    availability theorem yields `NewEnabled`. This is not global availability:
    rule-specific created-candidate raw geometry and progress remain open.
+   `SequentialFigure7ActiveRegionEnabledness.lean` removes the need to supply
+   that global raw-mark invariant for the current active guard. A hypothetical
+   raw mark is mapped to its same-age authentic reservation event and final
+   owned component; exact active-region and owned paths construct the public
+   anchor, and strict representative order contradicts the preceding theorem.
+   Thus the complete active region has no raw mark, no exact owner, and no
+   historical tag blocker. Structural search yields `NewSourceRegionInput` and
+   input-only `NewEnabled` for every supplied correct canonical-history active
+   guard. This closes the local active-guard applicability gate, not guard
+   existence, branch exhaustiveness, global raw-invariant preservation,
+   dispatcher progress, later-state totality, worklist completeness, fallback
+   removal, token-age scheduling, or whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created

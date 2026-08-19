@@ -23,15 +23,17 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The current branch has reduced the active Figure-7 commitment problem to an
-inclusive choice between an exact target-avoiding reference path and an exact
-equal-boundary stored-left callback-failure witness. Finite maximality removes
-the earlier current-representative advance branch. The witness does not prove
-that an avoiding path is absent. Queue origin, the remaining mate-region and
-raw-mark invariants, created-candidate raw seams, reachable enabledness,
-progress, pure-worklist completeness, fallback removal, faithful token-age
-scheduling, and whole-program linearity remain open. Exact revision, theorem
-hypotheses, CI, trust audit, and next gates are maintained in
+Under declarative correctness, the complete scheduler invariant, a canonical
+history, and an already-established active `NewGuard`, every authentic ledger
+event is locally touch-separated from the guard's complete mate source-left
+region. Concrete raw marks and exact marked owners are excluded there, yielding
+a complete `NewSourceRegionInput` and input-only `NewEnabled` without assuming
+the global older-event or older-raw-region separation predicates. This does not
+construct the history or guard, select or execute a dispatcher branch, prove
+exhaustive nonterminal enabledness, progress, later-state totality,
+pure-worklist completeness, fallback removal, faithful token-age scheduling,
+or whole-program linearity. Exact revision, hypotheses, verification receipt,
+and remaining research gates are maintained in
 [the replaceable current-status record](docs/current-status.md).
 <!-- ROLLING_MAIN_SUMMARY_END -->
 

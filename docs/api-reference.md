@@ -8985,6 +8985,164 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_e
                         beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
 ```
 
+## Active-region touch separation
+
+### `ProofNetIR.SequentialFigure7.ActiveMateEventAnchor`
+
+Kind: definition.
+
+A conclusion-avoiding exact reference anchor from the active mate to one
+historical reservation event's stored-left axiom endpoint.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveMateEventAnchor : {certificate : ProofNetIR.Certificate} →
+  {state : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.NewGuard certificate state →
+      ProofNetIR.SequentialFigure7.ReservationEvent certificate → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.no_strictOlder_activeMateEventAnchor`
+
+Kind: theorem.
+
+No authentic ledger event strictly below the active representative can
+carry an exact reference path from the active mate to its stored-left axiom
+endpoint while avoiding the active tensor conclusion.
+
+This is the reusable blocker-elimination interface. It does not require the
+anchor to arise from an event touch, and it does not claim that a callback
+failure is impossible without such an anchor.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.no_strictOlder_activeMateEventAnchor : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate state)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          state.core.representative event.rawAge < state.core.representative guard.head.rawAge →
+            ¬ProofNetIR.SequentialFigure7.ActiveMateEventAnchor guard event
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touchSeparatedFrom_active_sourceLeftRegion`
+
+Kind: theorem.
+
+Every authentic ledger event is touch-separated from the complete
+source-left region of the active `NewGuard`, without assuming the global
+`OlderEventTouchSeparated` predicate.
+
+The theorem is local to the supplied active guard. It does not by itself
+establish global historical separation, raw-mark readiness, `NewEnabled`, or
+scheduler progress.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.event_touchSeparatedFrom_active_sourceLeftRegion : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate state)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger → event.TouchSeparatedFrom guard.tensor.mate
+```
+
+## Active-region enabledness
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_no_rawMark`
+
+Kind: theorem.
+
+The complete active mate source-left region contains no concrete raw mark.
+
+Unlike `OlderRawMarkedRegionSeparated.active_sourceLeftRegion_no_rawMark`,
+this local theorem needs no global raw-marked-region separation premise.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_no_rawMark : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+        ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+          ¬∃ rawAge, before.core.marks[vertex]? = some (some rawAge)
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_no_exactMarkedOwner`
+
+Kind: theorem.
+
+No occurrence in the complete active mate source-left region has an exact
+live marked owner.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_no_exactMarkedOwner : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+        ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+          ¬ProofNetIR.SequentialFigure7.ExactMarkedOccurrenceOwner certificate before.core vertex
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFresh`
+
+Kind: theorem.
+
+Every occurrence in the complete active mate source-left region is false
+in the current input tag carrier, with no global older-event separation
+premise.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFresh : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before) {vertex : ProofNetIR.Vertex},
+        ProofNetIR.SequentialUnification.SourceLeftRegionVertex certificate guard.tensor.mate vertex →
+          before.tags[vertex]? = some false
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newSourceRegionInput`
+
+Kind: theorem.
+
+The active history-indexed guard determines a complete input-only source
+region package, including the exact run, endpoint queue absence, and waiting
+capacity.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newSourceRegionInput : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        Nonempty (ProofNetIR.SequentialFigure7.NewSourceRegionInput certificate before)
+```
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled`
+
+Kind: theorem.
+
+Every history-indexed active `NewGuard` is input-only `NewEnabled`, with
+no global older-event or older-raw-region separation premise.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.active_newEnabled : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate before),
+        ProofNetIR.SequentialFigure7.NewEnabled certificate before
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

@@ -851,8 +851,9 @@ candidate-creating rule. A downstream theorem closes the successful New case.
 Later structural theorems derive the Wait, Forward, and UnifyPayload residuals
 and then preserve the invariant. A capstone induction now establishes the
 queued-head invariant for every structurally well-formed canonical history.
-The separate mate-region and raw-mark invariants, unconditional stored-left
-equal-boundary avoidance, enabledness, and progress remain open.
+The separate global mate-region and raw-mark invariants remain open. A later
+active-guard-local layer bypasses both for `NewEnabled`, but does not turn them
+into preserved history invariants or establish dispatcher progress.
 
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` adds the parallel
 state-only raw-mark invariant. Its generic primitive takes a candidate raw age
@@ -871,6 +872,22 @@ the owner-clear premise used by `ActiveRegionAvailability`. This is still
 conditional: the module does not establish the raw-mark invariant for an
 arbitrary history or preserve it through candidate-creating `new`, `wait`,
 `forward`, or `unifyPayload`.
+
+`SequentialFigure7ActiveRegionEnabledness.lean` bypasses that global
+preservation requirement for one already established active guard. A concrete
+raw mark in the active mate region determines its same-age authentic ledger
+event and final owned component through `RawMarkReservationAnchor`. The active
+source-left path and the event's owned path splice into an
+`ActiveMateEventAnchor`, while representative order makes the event strictly
+older; the local touch-separation layer rules out the anchor. This gives both
+raw-mark absence and exact-owner absence. Canonical touch provenance separately
+makes every active-region tag false. The structural run-or-blocker API can then
+return only the run branch, which queue history, fresh capacity, and
+`FutureWaitingUndefined` package as `NewSourceRegionInput` and input-only
+`NewEnabled`. No executor result, output state, dispatcher choice, or newly
+constructed history enters this data flow. Global preservation through
+candidate-creating rules, exhaustive enabledness, progress, totality, fallback
+removal, token-age scheduling, and whole-program linearity remain downstream.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1189,6 +1206,21 @@ callback failure. That callback witness does not deny path existence. Queue
 origin, the independent mate-region and global raw-mark invariants, created-
 candidate raw seams, enabledness, progress, totality, completeness, and
 complexity remain outside the theorem.
+
+`SequentialFigure7ActiveRegionTouchSeparation.lean` consumes that inclusive
+result through a reusable local path carrier rather than adding a global
+history field. `ActiveMateEventAnchor guard event` stores an exact reference
+path from the active tensor mate to the event's stored-left axiom endpoint while
+omitting the active conclusion. The commitment-path branch extends that anchor
+through the representative event and final commitment edge, producing the
+forbidden tensor bypass. The stored-left callback branch instead follows the
+retained prefix, final New edge, and exact callback trace to produce an
+alternate mate-to-conclusion walk that omits the active tensor edge. Exact
+stored-edge identity in the reference tree excludes both walks. Because any
+touch inside the complete active mate source-left region constructs this anchor,
+every authentic ledger event is locally touch-separated from that region. The
+module does not claim callback impossibility without an anchor, create a global
+separation invariant, construct reachability, or execute a scheduler rule.
 
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is

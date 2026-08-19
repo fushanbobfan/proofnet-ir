@@ -277,6 +277,10 @@ expansion.
 #print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure
 #print axioms
+  SequentialFigure7.CanonicalTagHistory.no_strictOlder_activeMateEventAnchor
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.event_touchSeparatedFrom_active_sourceLeftRegion
+#print axioms
   SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner_iff_exists_rawMark
 #print axioms SequentialFigure7.empty_olderRawMarkedRegionSeparated
 #print axioms
@@ -288,6 +292,15 @@ expansion.
 #print axioms
   SequentialFigure7.OlderRawMarkedRegionSeparated.active_sourceLeftRegion_no_rawMark
 #print axioms SequentialFigure7.OlderRawMarkedRegionSeparated.active_clearOwner
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_no_rawMark
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_no_exactMarkedOwner
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.active_sourceLeftRegion_tagFresh
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.active_newSourceRegionInput
+#print axioms SequentialFigure7.CanonicalTagHistory.active_newEnabled
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

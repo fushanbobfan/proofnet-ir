@@ -647,6 +647,19 @@ contradicts the finite maximum. The resulting path-or-equal-callback theorem is
 inclusive, and the callback witness does not deny path existence. It adds no
 queue-origin, mate-region/global raw-mark, created-raw-seam, enabledness,
 progress, totality, completeness, scheduling, or complexity oracle.
+`SequentialFigure7ActiveRegionTouchSeparation.lean` likewise adds no edge,
+path, touch, or callback oracle. Its public `ActiveMateEventAnchor` is ordinary
+proof data: an exact `EdgeSimplePath` with checked endpoints and a checked
+vertex-avoidance proposition. The no-strict-older theorem filters only the
+authentic finite reservation ledger and consumes the already audited
+maximality, realization, component-path, source-left, and reference-tree
+interfaces. In the callback branch, exact stored-edge identity matters: the
+constructed walk omits the active tensor edge occurrence, not merely an
+endpoint pair with the same values. The local touch-separation corollary obtains
+its anchor from an actual `ReservationEvent.Touched` witness and structural
+source-left geometry. It does not assert callback impossibility without that
+anchor, postulate global history separation, or import executable search
+evidence.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -658,6 +671,21 @@ and occurrence-exact component provenance. The resulting owner-clear theorem
 is conditional on the raw-mark invariant. No theorem in this layer manufactures
 that invariant after New/Wait/Forward/Unify, creates a future run, or proves
 progress.
+`SequentialFigure7ActiveRegionEnabledness.lean` adds no raw-mark, component,
+run, readiness, execution, history, or reachability oracle. A concrete raw mark
+is mapped by the complete scheduler invariant and canonical history to its
+same-age authentic reservation event and occurrence-exact final component.
+Existing owned-path containment and active source-left geometry build the
+checked `ActiveMateEventAnchor`; the preceding theorem excludes it. Exact-owner
+absence is then a projection of raw-mark absence, and tag freshness follows
+from canonical touch provenance plus local event separation. The structural
+run-or-blocker theorem constructs the run, and the existing queue, capacity,
+and future-cell proofs construct `NewSourceRegionInput` and `NewEnabled`.
+`NewEnabled` still stores no executor equation, result, output state, history,
+or reachability witness. This local theorem does not preserve a global
+raw-separation invariant through candidate-creating rules or establish
+dispatcher exhaustiveness, progress, fallback removal, scheduling, or
+complexity.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
