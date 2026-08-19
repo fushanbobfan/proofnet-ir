@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `ba38a75f5fa52f880d7acade8ee684a2d1be2316` | Active | This page and the exact commit |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `ba38a75f5fa52f880d7acade8ee684a2d1be2316`; latest finite-audit evidence `1e46573141a8ad683cc539480f18c92992bda60c` | Active | This page and the exact commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -136,6 +136,25 @@ gap's own `no_predecessor` field. This is a consumer-level consequence of the
 public declarations; no unconditional gap-elimination premise is hidden in the
 state invariant.
 
+### Finite ready-head boundary audit
+
+A separately committed bounded replay now classifies each visited state after
+successful initialization as marking-incomplete or fully marked and checks
+exact typed ready-head reconstruction before invoking the dispatcher. In the
+default replay, all 22,590 incomplete states had a ready head and a successful
+dispatch, while all 594 dispatch-none stops were fully marked. The extended
+replay classified 95,190 incomplete states and 1,254 fully marked stops in the
+same way. The cross-variant replay classified 1,172,208 incomplete states and
+10,608 fully marked stops.
+
+Across all three modes, the incomplete-without-head,
+incomplete-dispatch-none, cycle, and truncation counters were zero. Any future
+violation produces a replayable certificate, state, event history, and rule
+trace rather than only an aggregate count. These results are bounded
+falsification evidence, not a proof of semantic nonterminal-to-ready-head
+coverage or progress. Exact counters and scope are maintained in
+[performance.md](performance.md).
+
 Exact signatures are maintained in the generated API reference for the
 [branch-prefix declarations](api-reference.md#older-marked-tensor-predecessor-branch-prefix)
 and the
@@ -168,7 +187,7 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 
 ## Verification receipt
 
-The exact rolling checkpoint is:
+The exact rolling proof checkpoint is:
 
 ```text
 commit  ba38a75f5fa52f880d7acade8ee684a2d1be2316
@@ -177,11 +196,26 @@ stage   full-history marked-tensor predecessor invariant and ready-head dispatch
 delta   17 files, +458/-74
 ```
 
+The separately committed finite-audit evidence is:
+
+```text
+commit    1e46573141a8ad683cc539480f18c92992bda60c
+tree      e953ef9fe8ef185cea4b5ac5399c6396ca25643b
+parent    e7983468736a8a156c2a51985a68828efe26dfae
+stage     finite ready-head and dispatch-none replay classification
+delta     3 files, +369/-48
+manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
+```
+
 Local verification on the committed bytes:
 
 - full `lake build`: 445/445 jobs;
 - Lean source audit: zero `sorry`/`admit` findings across 214 Lean files;
 - generated API reference: current;
+- the default, extended, and cross-variant progress audits passed with every
+  incomplete visited state carrying an exact ready head and successful
+  dispatch, every dispatch-none stop fully marked, and zero missing-head,
+  incomplete-dispatch-none, cycle, or truncation findings;
 - the runnable predecessor consumer: passed under `--trust=0`, invokes the nine
   branch-prefix declarations, constructs the indexed carrier, and derives
   `False` from an actual gap's `no_predecessor` field;
@@ -212,7 +246,7 @@ Local verification on the committed bytes:
 - independent proof and integrated-checkpoint reviews reported no actionable
   P0, P1, P2, or P3 findings.
 
-Exact-head GitHub verification:
+Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - run: [32268211630](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32268211630);
@@ -221,6 +255,16 @@ Exact-head GitHub verification:
 - result: 36 successful steps, zero failures, one expected release-ref-only
   skip; run duration 12m46s (`15:08:08Z`-`15:20:54Z`) and build-job duration
   12m42s (`15:08:11Z`-`15:20:53Z`).
+
+Exact-head finite-audit GitHub verification:
+
+- workflow: `Lean CI`;
+- run: [32273794767](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32273794767);
+- build job: [96136251609](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32273794767/job/96136251609);
+- exact head: `1e46573141a8ad683cc539480f18c92992bda60c`;
+- result: 36 successful steps, zero failures, one expected release-ref-only
+  skip; run duration 11m21s (`16:04:18Z`-`16:15:39Z`) and build-job duration
+  11m17s (`16:04:21Z`-`16:15:38Z`).
 
 ## Current library-readiness position
 
