@@ -136,6 +136,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "markedMate_sigmaImmediatePredecessor_of_childAnchor",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "forward_olderMarkedTensorPredecessorInvariant",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "unifyPayload_olderMarkedTensorPredecessorInvariant",
     "ProofNetIR.SequentialFigure7.NewStep.after_representative_eq_markedMiddle",
     "ProofNetIR.SequentialFigure7.FutureWorkAt.beforeNewOrInserted",
     "ProofNetIR.SequentialFigure7.NewStep.freshEvent_not_strictly_older",
@@ -182,6 +184,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
     "olderEventFutureWorkTouchSeparated",
+    "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
+    "createdConclusionTouchSeparated",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdHeadTouchSeparated",
     "ProofNetIR.SequentialFigure7.UnifyPayloadStep."
     "olderEventFutureWorkTouchSeparated_of_structural",

@@ -9427,6 +9427,34 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.forward_olderMarkedTensorPredec
         ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
 ```
 
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.unifyPayload_olderMarkedTensorPredecessorInvariant`
+
+Kind: theorem.
+
+A canonical successful `unifyPayload` preserves the all-future-work older
+marked-tensor predecessor invariant. Retained work transports across the
+active-boundary retirement, moved active work is incompatible with the strict
+output ordering, and the inserted tensor conclusion is discharged through the
+conditional child-anchor bridge.
+
+This theorem assumes an already-successful typed dispatcher branch. It proves
+no branch applicability, dispatcher progress or totality, global raw seam,
+fallback removal, sequentialization, or complexity bound.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.unifyPayload_olderMarkedTensorPredecessorInvariant : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  {invariant : ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before}
+  {dispatch :
+    ProofNetIR.SequentialFigure7.DispatchStep certificate before invariant
+      { kind := ProofNetIR.SequentialFigure7.Figure7RuleKind.unifyPayload, after := after }}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ∀ (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+      ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate before →
+        ProofNetIR.SequentialFigure7.OlderMarkedTensorPredecessorInvariant certificate after
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`
@@ -21311,6 +21339,27 @@ ProofNetIR.SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated
     ProofNetIR.SequentialFigure7.UnifyPayloadCreatedHeadTouchSeparated prior step →
       ProofNetIR.SequentialFigure7.OlderEventFutureWorkTouchSeparated
         (prior.later (ProofNetIR.SequentialFigure7.DispatchTagEvidence.unifyPayload step))
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdConclusionTouchSeparated`
+
+Kind: theorem.
+
+Every strictly older prior ledger event leaves the tensor conclusion
+inserted by a successful typed `unifyPayload` step untouched, without requiring
+the future-candidate carrier used by the preservation wrapper.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdConclusionTouchSeparated : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate before}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after)
+  (prior : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.StructurallyWellFormed →
+    ∀ (event : ProofNetIR.SequentialFigure7.ReservationEvent certificate),
+      event ∈ prior.reservationLedger →
+        step.prepared.after.core.representative event.rawAge <
+            step.prepared.after.core.representative step.previousBoundary →
+          ¬event.Touched step.consumer.conclusion
 ```
 
 ### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.createdHeadTouchSeparated`

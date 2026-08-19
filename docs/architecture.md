@@ -934,12 +934,26 @@ prepared prefix, while private Forward history, component, and touch geometry
 discharges the bridge premises for the inserted par conclusion. Its public
 theorem requires declarative correctness, the complete scheduler invariant,
 canonical history, typed Forward dispatch, a `ForwardStep`, and the supplied
-prior predecessor invariant. This is a branch prefix through Forward, not a
-full-history construction. `unifyPayload` is the first open preservation case;
-global history availability, ready-head existence, dispatcher progress,
-later-state totality, recursive-fallback removal, faithful token-age scheduling,
-Figure-7 pure-worklist completeness, and whole-program linearity remain
-separate gates.
+prior predecessor invariant.
+`SequentialFigure7OlderMarkedTensorPredecessorUnifyPayloadPreservation.lean`
+closes the canonical successful `unifyPayload` case. Its carrier-free raw
+touch dependency, `UnifyPayloadStep.createdConclusionTouchSeparated`, proves
+that every strictly older prior event leaves the inserted tensor conclusion
+untouched without requiring the future-candidate carrier used by the existing
+wrapper. Retained candidates transport their predecessor evidence across the
+final sigma pop. A moved active candidate would make its marked mate resolve
+both to and strictly below the surviving boundary and is therefore impossible.
+For the created conclusion, final component provenance constructs the exact
+child anchor, and the raw touch result supplies the separation premise consumed
+by the public conditional child-anchor bridge. The public preservation theorem
+still requires declarative correctness, the complete scheduler invariant,
+canonical history, typed Unify dispatch, an already-successful
+`UnifyPayloadStep`, and the supplied prior predecessor invariant. The branch
+prefix is therefore closed through UnifyPayload, but complete canonical-history
+preservation is the first open gate. This layer does not prove ready-head
+existence, applicability, dispatcher progress or totality, global raw seams,
+fallback removal, faithful token-age scheduling, Figure-7 pure-worklist
+completeness, sequentialization, or whole-program linearity.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either
@@ -1313,8 +1327,8 @@ mate resolved to the immediate predecessor, so both runs recorded zero missing-
 predecessor gaps. The detector retains a complete replayable counterexample and
 partitions any failure into a missing previous top or a boundary mismatch. These
 finite observations neither prove `ReadyHeadMarkedTensorPredecessorGap`
-uninhabited nor establish the predecessor invariant beyond its current
-empty/init/Prepared/Concl/Nop/New/Wait/Forward branch prefix.
+uninhabited nor package the now-complete successful-rule predecessor prefix as
+a theorem over every canonical history.
 
 The same executable's `--cross-representative-search` mode maintains a
 lightweight raw-age and source-start ledger that mirrors exact initialization

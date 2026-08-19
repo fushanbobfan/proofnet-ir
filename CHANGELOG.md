@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+- added
+  `SequentialFigure7OlderMarkedTensorPredecessorUnifyPayloadPreservation.lean`
+  and exposed the carrier-free raw touch theorem
+  `UnifyPayloadStep.createdConclusionTouchSeparated`. The raw theorem proves
+  that every strictly older prior event leaves the inserted tensor conclusion
+  untouched from structural well-formedness, canonical history, and an
+  already-successful typed Unify step; unlike the existing preservation
+  wrapper, it does not require a future-candidate carrier. The canonical
+  `unifyPayload` predecessor theorem classifies every output candidate as
+  retained, moved, or created. Retained evidence survives the final sigma pop;
+  moved active work contradicts the strict output ordering; and the created
+  conclusion composes the raw touch result, final component provenance, and
+  the public conditional child-anchor bridge. It requires declarative
+  correctness, the complete scheduler invariant, canonical history, typed
+  Unify dispatch, `UnifyPayloadStep`, and the supplied prior invariant. This
+  closes the successful-rule branch prefix through UnifyPayload; complete
+  canonical-history preservation is the first open gate. It does not establish
+  ready-head existence, branch applicability, dispatcher progress or totality,
+  global raw seams, fallback removal, scheduling fidelity, pure-worklist
+  completeness, sequentialization, or whole-program linearity. The pending
+  local audit gate is expected to report 902 declarations: 619 full-classical,
+  25 axiom-free, 123 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7OlderMarkedTensorPredecessorForwardPreservation.lean`
   and promoted
   `CanonicalTagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor`

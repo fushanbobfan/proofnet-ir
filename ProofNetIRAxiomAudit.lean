@@ -325,6 +325,8 @@ expansion.
   SequentialFigure7.CanonicalTagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor
 #print axioms
   SequentialFigure7.CanonicalTagHistory.forward_olderMarkedTensorPredecessorInvariant
+#print axioms
+  SequentialFigure7.CanonicalTagHistory.unifyPayload_olderMarkedTensorPredecessorInvariant
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older
@@ -367,6 +369,7 @@ expansion.
 #print axioms SequentialFigure7.UnifyPayloadStep.olderSourceRegionSeparated_of_created
 #print axioms
   SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated
+#print axioms SequentialFigure7.UnifyPayloadStep.createdConclusionTouchSeparated
 #print axioms SequentialFigure7.UnifyPayloadStep.createdHeadTouchSeparated
 #print axioms
   SequentialFigure7.UnifyPayloadStep.olderEventFutureWorkTouchSeparated_of_structural

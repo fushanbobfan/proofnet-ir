@@ -547,7 +547,8 @@ part of the engineering and proof-identity gap.
    predecessor invariant now quantifies over every ready or waiting future-work
    occurrence, holds for empty and initial-reservation states, and is preserved
    through Prepared, `concl`, `nop`, canonical `new`, and canonical successful
-   `wait` and `forward`. The Wait theorem transports retained work through the
+   `wait`, `forward`, and `unifyPayload`. The Wait theorem transports retained
+   work through the
    prepared and destination updates and discharges the inserted conclusion. A
    source-visible conditional bridge packages the exact predecessor only after
    callers supply strict older-event separation and a child-event anchor; the
@@ -556,13 +557,22 @@ part of the engineering and proof-identity gap.
    transition-specific geometry for an already-successful typed step and also
    requires declarative correctness, the complete scheduler invariant,
    canonical history, a `ForwardStep`, and the prior predecessor invariant. The
+   Unify theorem exposes a carrier-free raw touch result for the inserted
+   conclusion, transports retained evidence across the final sigma pop, rules
+   out moved active work by strict output order, and sends created work through
+   final component provenance plus the conditional child-anchor bridge. It
+   consumes an already-successful typed Unify branch, declarative correctness,
+   the complete scheduler invariant, canonical history, and the prior
+   predecessor invariant; it does not derive any of them. The
    ready-head projection converts the residual's strictly older boundary into
    the exact immediate predecessor only when the branch-prefix invariant is
-   already available. Full history preservation is not established:
-   `unifyPayload` is the first open branch. Ready-head existence, dispatcher
+   already available. The successful-rule prefix is now closed through
+   UnifyPayload, but full canonical-history preservation is the first open
+   gate. Ready-head existence, branch applicability, dispatcher
    progress, later-state totality, recursive-fallback removal, faithful
    token-age scheduling, whole-program linearity, and Figure-7 pure-worklist
-   completeness remain open maturity gates.
+   completeness remain open maturity gates; no global raw seam,
+   sequentialization result, or linearity theorem follows from this branch.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -997,12 +1007,15 @@ part of the engineering and proof-identity gap.
    dispatcher progress, later-state totality, worklist completeness, fallback
    removal, token-age scheduling, or whole-program linearity.
    The predecessor projection now discharges that ready-head residual for
-   states carrying the new invariant. Availability beyond the current
-   empty/init/Prepared/Concl/Nop/New/Wait/Forward branch prefix remains the
-   maturity gap. `unifyPayload` is the first unproved preservation branch,
-   followed by the full canonical-history induction. Consequently the library
-   still has no theorem deriving ready-head existence, dispatcher progress,
-   later-state totality, or Figure-7 pure-worklist completeness.
+   states carrying the new invariant. The successful-rule branch prefix is
+   closed through UnifyPayload: retained work transports across the sigma pop,
+   moved active work contradicts strict output order, and inserted work uses a
+   carrier-free older-event touch theorem plus the conditional child-anchor
+   bridge. Full canonical-history preservation is the first unproved gate.
+   Consequently the library still has no theorem deriving ready-head existence,
+   branch applicability, dispatcher progress, later-state totality, a global
+   raw seam, fallback removal, scheduling fidelity, sequentialization,
+   Figure-7 pure-worklist completeness, or whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created

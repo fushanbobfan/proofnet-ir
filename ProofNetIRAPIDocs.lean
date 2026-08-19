@@ -817,7 +817,10 @@ def sections : List Section := [
         "markedMate_sigmaImmediatePredecessor_of_childAnchor",
       Name.str
         `ProofNetIR.SequentialFigure7.CanonicalTagHistory
-        "forward_olderMarkedTensorPredecessorInvariant"
+        "forward_olderMarkedTensorPredecessorInvariant",
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "unifyPayload_olderMarkedTensorPredecessorInvariant"
     ]
   },
   {
@@ -1826,6 +1829,9 @@ def sections : List Section := [
       Name.str
         `ProofNetIR.SequentialFigure7.UnifyPayloadStep
         "olderEventFutureWorkTouchSeparated",
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "createdConclusionTouchSeparated",
       Name.str
         `ProofNetIR.SequentialFigure7.UnifyPayloadStep
         "createdHeadTouchSeparated",

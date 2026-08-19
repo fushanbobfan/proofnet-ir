@@ -33,17 +33,23 @@ open SequentialSchedulerBridge
 namespace UnifyPayloadStep
 
 /-- Every strictly older prior ledger event leaves the tensor conclusion
-inserted by a successful typed `unifyPayload` step untouched. -/
-theorem createdHeadTouchSeparated
+inserted by a successful typed `unifyPayload` step untouched, without requiring
+the future-candidate carrier used by the preservation wrapper. -/
+theorem createdConclusionTouchSeparated
     {certificate : Certificate} {before after : ReservationState}
     {history : ExecutedHistory certificate before}
     (step : UnifyPayloadStep certificate before after)
     (prior : CanonicalTagHistory certificate history)
     (structural : certificate.StructurallyWellFormed) :
-    UnifyPayloadCreatedHeadTouchSeparated prior step := by
+    ∀ event : ReservationEvent certificate,
+      event ∈ prior.reservationLedger →
+        step.prepared.after.core.representative event.rawAge <
+            step.prepared.after.core.representative
+              step.previousBoundary →
+          ¬ event.Touched step.consumer.conclusion := by
   have invariant : SchedulerInvariant certificate before :=
     history.schedulerInvariant structural
-  intro event eventMembership _created older touched
+  intro event eventMembership older touched
   rcases prior.reservationLedger_axiomEndpoints_accounted
       structural eventMembership with
     ⟨eventComponent, eventUsed, eventForestUsed, eventOwned,
@@ -193,6 +199,19 @@ theorem createdHeadTouchSeparated
     · have disjoint :=
         (forestSeparated eventLookup rightBeforeLookup differentRight).2
       exact disjoint event.search.result.left eventLeftForestOwned rightOwned
+
+/-- Every strictly older prior ledger event leaves the tensor conclusion
+inserted by a successful typed `unifyPayload` step untouched. -/
+theorem createdHeadTouchSeparated
+    {certificate : Certificate} {before after : ReservationState}
+    {history : ExecutedHistory certificate before}
+    (step : UnifyPayloadStep certificate before after)
+    (prior : CanonicalTagHistory certificate history)
+    (structural : certificate.StructurallyWellFormed) :
+    UnifyPayloadCreatedHeadTouchSeparated prior step := by
+  intro event eventMembership _created older
+  exact step.createdConclusionTouchSeparated prior structural event
+    eventMembership older
 
 /-- A successful typed `unifyPayload` preserves older-event future-work head
 separation from structural well-formedness and the supplied prior invariant.

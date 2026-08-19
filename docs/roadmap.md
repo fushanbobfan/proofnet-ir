@@ -975,10 +975,21 @@
     privately discharges those premises for an already-successful typed branch
     and still requires declarative correctness, the complete scheduler
     invariant, canonical history, `ForwardStep`, and the prior invariant.
-  - [ ] Extend that invariant through `unifyPayload`, then package full
+  - [x] Extend that invariant through a canonical successful `unifyPayload`.
+    The carrier-free raw touch theorem removes the future-candidate wrapper
+    from the created-conclusion separation fact. Retained predecessor evidence
+    survives the final sigma pop, moved active work contradicts strict output
+    order, and created work composes final component provenance with the
+    conditional child-anchor bridge. The theorem still consumes declarative
+    correctness, the complete scheduler invariant, canonical history, typed
+    Unify dispatch, `UnifyPayloadStep`, and the prior invariant.
+  - [ ] Package the closed successful-rule prefix as complete
     canonical-history preservation. Separately prove that every relevant
     semantic nonterminal state supplies a ready head before claiming dispatcher
     progress, later-state totality, or Figure-7 pure-worklist completeness.
+    Keep branch applicability, global raw seams, fallback removal,
+    sequentialization, faithful token-age scheduling, and whole-program
+    linearity outside this checkpoint.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1234,9 +1245,9 @@
     input-only. This is an API/classification migration only; it proves no
     progress, totality, completeness, or fallback removal. The predecessor
     projection now discharges the ready-head residual for states carrying the
-    new invariant. Complete `Forward`/`UnifyPayload` preservation and the
-    full-history induction before deriving ready-head existence or exhaustive
-    dispatcher enabledness on correct certified-reachable nonterminal states.
+    new invariant. Complete the full canonical-history packaging and induction
+    before deriving ready-head existence or exhaustive dispatcher enabledness
+    on correct certified-reachable nonterminal states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

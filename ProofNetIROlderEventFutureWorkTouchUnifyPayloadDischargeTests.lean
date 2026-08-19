@@ -13,8 +13,24 @@ namespace SequentialFigure7
 
 open SequentialSchedulerBridge
 
+#check UnifyPayloadStep.createdConclusionTouchSeparated
 #check UnifyPayloadStep.createdHeadTouchSeparated
 #check UnifyPayloadStep.olderEventFutureWorkTouchSeparated_of_structural
+
+example
+    {certificate : Certificate} {before after : ReservationState}
+    {history : ExecutedHistory certificate before}
+    (step : UnifyPayloadStep certificate before after)
+    (prior : CanonicalTagHistory certificate history)
+    (structural : certificate.StructurallyWellFormed)
+    (event : ReservationEvent certificate)
+    (eventMembership : event ∈ prior.reservationLedger)
+    (older :
+      step.prepared.after.core.representative event.rawAge <
+        step.prepared.after.core.representative step.previousBoundary)
+    (touched : event.Touched step.consumer.conclusion) : False :=
+  step.createdConclusionTouchSeparated prior structural event
+    eventMembership older touched
 
 example
     {certificate : Certificate} {before after : ReservationState}

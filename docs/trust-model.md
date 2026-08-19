@@ -700,7 +700,8 @@ new predecessor invariant adds no oracle either: it is an explicit proposition
 over every ready or waiting `FutureWorkAt`, and its projection rules out the
 residual only when that proposition is supplied. The empty-state proof uses
 exactly `[propext]`; the projection, initialization, Prepared, `concl`, `nop`,
-and canonical `new` and `wait` preservation theorems use exactly
+and canonical `new`, `wait`, `forward`, and `unifyPayload` preservation
+theorems use exactly
 `[propext, Classical.choice, Quot.sound]`. Canonical history, declarative
 correctness, the scheduler invariant, and typed dispatch/step witnesses are
 ordinary hypotheses of those preservation theorems, not trusted reachability
@@ -711,12 +712,23 @@ progress. The canonical `forward` preservation theorem privately discharges
 those premises for an already-successful typed Forward branch and still
 requires declarative correctness, the complete scheduler invariant, canonical
 history, typed dispatch, a `ForwardStep`, and the supplied prior invariant. The
-bridge and Forward theorem are registered for the same existing three-axiom
-audit gate. `unifyPayload` is now the first open preservation branch;
-full-history availability, ready-head existence, residual elimination without
-an invariant premise, progress, later-state totality, recursive-fallback
-removal, faithful token-age scheduling, Figure-7 pure-worklist completeness,
-and whole-program linearity remain outside the theorem boundary.
+carrier-free `UnifyPayloadStep.createdConclusionTouchSeparated` theorem also
+adds no touch or reachability oracle: it consumes structural well-formedness,
+the supplied canonical history, and an already-successful typed Unify step, and
+removes only the future-candidate carrier required by the older wrapper. The
+canonical Unify preservation theorem transports retained evidence across the
+sigma pop, eliminates moved active work by strict order, and composes the raw
+touch fact and final component provenance with the conditional child-anchor
+bridge for created work. It still requires declarative correctness, the
+complete scheduler invariant, canonical history, typed dispatch,
+`UnifyPayloadStep`, and the supplied prior invariant. These results remain
+inside the existing three-axiom gate; they add no trusted raw seam, scheduler,
+or progress premise. The successful-rule prefix is closed through UnifyPayload,
+but full canonical-history availability, ready-head existence, residual
+elimination without an invariant premise, branch applicability, progress,
+later-state totality, recursive-fallback removal, sequentialization, faithful
+token-age scheduling, Figure-7 pure-worklist completeness, and whole-program
+linearity remain outside the theorem boundary.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;
