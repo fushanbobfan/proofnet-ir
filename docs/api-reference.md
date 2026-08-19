@@ -8947,6 +8947,44 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_a
                           beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
 ```
 
+## Commitment blocker maximality
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure`
+
+Kind: theorem.
+
+Given a canonical tag history, declarative correctness, the complete
+scheduler invariant, a `NewGuard`, authentic ledger membership for one event,
+and strict order from that event's current representative to the active head
+representative, finite maximality removes the current-representative advance
+alternative. The result is an inclusive disjunction between a
+conclusion-avoiding commitment path and an equal-boundary stored-left
+callback-failure trace. Callback failure does not deny the existence of an
+avoiding path. This theorem does not derive queue origin or the remaining
+mate-region/global raw-mark invariants, close a created-candidate raw seam, or
+prove `NewEnabled`, progress, totality, worklist completeness, fallback
+removal, token-age scheduling, or whole-program linearity.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  certificate.DeclarativelyCorrect →
+    ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+      ∀ (guard : ProofNetIR.SequentialFigure7.NewGuard certificate state)
+        {event : ProofNetIR.SequentialFigure7.ReservationEvent certificate},
+        event ∈ tagHistory.reservationLedger →
+          state.core.representative event.rawAge < state.core.representative guard.head.rawAge →
+            tagHistory.CommitmentEdgeTargetAvoidingPath (state.core.representative event.rawAge) guard.head.rawAge
+                guard.tensor.conclusion ∨
+              ∃ childEvent beforeTrace afterTrace,
+                childEvent ∈ tagHistory.reservationLedger ∧
+                  childEvent.rawAge = guard.head.rawAge ∧
+                    guard.tensor.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+                      childEvent.search.result.trace =
+                        beforeTrace ++ guard.tensor.conclusion :: guard.head.vertex :: afterTrace
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

@@ -1089,13 +1089,15 @@
     mate-region invariant availability, queue origin, and raw seams remain
     open. Under declarative correctness and the complete scheduler invariant,
     for a supplied canonical history, active `NewGuard`, ledger membership, and
-    strict current-representative order, a further reduction returns an exact
-    avoiding path, a mate-touching event at a strictly higher current
+    strict current-representative order, the blocker-advance layer first returns
+    an exact avoiding path, a mate-touching event at a strictly higher current
     representative still below the head, or the exact equal stored-left
-    callback failure. The representative advance is neither chronology nor yet
-    maximalized/eliminated, and no created-candidate raw seam is closed. Work must
-    also eliminate old exact marked owners; this layer alone is not the
-    universal premise.
+    callback failure. The subsequent finite-maximality layer eliminates that
+    representative advance: a maximal mate-touch blocker with an avoiding path
+    would create the forbidden tensor bypass, while another advance contradicts
+    maximality. The current inclusive reduction is therefore an exact path or
+    the exact equal stored-left callback failure. No created-candidate raw seam
+    is closed, and old exact marked owners remain outside this universal premise.
     The active-region availability layer now packages the complete structural
     search into `NewSourceRegionInput` or an exact old marked owner, and then
     into `NewEnabled` or that owner. Consequently route/run, raw and endpoint
@@ -1220,10 +1222,9 @@
     already composes the
     positive prefix to the candidate's immediate predecessor. StoredRight closes
     the final edge, and under the theorem's additional public inputs the complete
-    interval now reduces to a path, current-representative advance, or equal
-    callback failure. Next eliminate the advance, resolve the storedLeft
-    callback failure, recover queue origin, and close the created-candidate raw
-    seams.
+    interval now reduces by finite maximality to a path or equal callback
+    failure. Next resolve the storedLeft callback failure, recover queue origin,
+    and close the created-candidate raw seams.
     Establish unconditional full-rule reachability, progress, completeness of
     that
     sequential executable, and a cost theorem over every implemented operation

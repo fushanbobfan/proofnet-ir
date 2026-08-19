@@ -275,6 +275,8 @@ expansion.
 #print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure
 #print axioms
+  SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure
+#print axioms
   SequentialFigure7.SchedulerInvariant.exactMarkedOccurrenceOwner_iff_exists_rawMark
 #print axioms SequentialFigure7.empty_olderRawMarkedRegionSeparated
 #print axioms

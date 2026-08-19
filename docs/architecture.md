@@ -1171,6 +1171,20 @@ does not prove path nonexistence. It derives no mate-region invariant, closes no
 created-candidate raw seam, and adds no enabledness, progress, reachability,
 totality, completeness, or complexity theorem.
 
+`SequentialFigure7CommitmentBlockerMaximality.lean` removes the intermediate
+current-representative advance under the same explicit correctness, complete
+scheduler-invariant, canonical-history, active-guard, membership, and strict-
+order inputs. It takes the maximum current representative among the finite
+authentic mate-touch blockers above the original event. At that blocker, an
+avoiding commitment path would splice with the historical and current
+component routes to form the tensor bypass forbidden by reference-switching
+acyclicity, while another advance contradicts maximality. The inclusive result
+is therefore an exact avoiding path or the exact equal-boundary stored-left
+callback failure. That callback witness does not deny path existence. Queue
+origin, the independent mate-region and global raw-mark invariants, created-
+candidate raw seams, enabledness, progress, totality, completeness, and
+complexity remain outside the theorem.
+
 The layer also exposes the precise conditional seam for the remaining
 geometric argument. If every vertex in the structural source-left region is
 proved free of the two remaining historical obstruction forms under
@@ -1673,12 +1687,11 @@ active-reference walks between marked occurrences are equivalent to
   history.
   An event whose current representative is strictly below the candidate now
   splits at the candidate's immediate predecessor, so every positive prefix is
-  composable. Under the additional public theorem inputs, the complete interval
-  further reduces to an avoiding path, a strictly higher-current-representative
-  mate touch, or the exact equal callback failure. Global availability of the independent
-  mate-region and raw-mark invariants, elimination of the advance branch, the
-  remaining stored-left callback failure, and
-  queue-to-created-candidate geometry remain required by the seams.
+  composable. Under the additional public theorem inputs, finite maximality
+  reduces the complete interval to an avoiding path or the exact equal callback
+  failure. Global availability of the independent mate-region and raw-mark
+  invariants, the remaining stored-left callback failure, and queue-to-created-
+  candidate geometry remain required by the seams.
   Canonical-history reservation counting is now exact against final
   `nextAge`; exhaustive branch enabledness, whole-history oriented-route
   generalization, and unconditional full-rule reachability remain open. Planarity

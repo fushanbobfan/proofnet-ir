@@ -734,6 +734,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment blocker maximality"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "strictOlder_commitmentPath_or_equalCallbackFailure"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

@@ -83,6 +83,8 @@ EXPECTED_CLASSICAL_THEOREMS = {
     "commitmentEdge_equal_boundary_dichotomy",
     "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
     "strictOlder_commitmentPath_or_advance_or_equalCallbackFailure",
+    "ProofNetIR.SequentialFigure7.CanonicalTagHistory."
+    "strictOlder_commitmentPath_or_equalCallbackFailure",
     "ProofNetIR.SequentialFigure7.SchedulerInvariant."
     "exactMarkedOccurrenceOwner_iff_exists_rawMark",
     "ProofNetIR.SequentialFigure7.InitialReservationStep."

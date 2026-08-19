@@ -576,12 +576,13 @@ available queued-head separation law with the strict `sigma` split and this
 equal-boundary classification. Under declarative correctness and the complete
 scheduler invariant, for a supplied canonical history, active `NewGuard`, and
 authentic ledger event whose current representative is strictly below the
-active head, Lean now returns an exact target-avoiding commitment path, a
+active head, that checkpoint returned an exact target-avoiding commitment
+path, a
 mate-touching ledger event at a strictly higher current representative still
 below the head, or the exact equal-boundary stored-left callback-failure trace
-witness. This is an inclusive reduction: `advance` is not raw-age or ledger
-chronology, the higher blocker is not yet maximalized or eliminated, and the
-callback-failure branch does not deny that an avoiding path exists. The theorem
+witness. At that checkpoint, the inclusive `advance` was not raw-age or ledger
+chronology, the higher blocker was not yet maximalized or eliminated, and the
+callback-failure branch did not deny that an avoiding path existed. The theorem
 does not derive the mate-region invariant, close any created-candidate raw
 seam, establish the global raw-mark invariant, derive `NewEnabled`, or prove
 progress, totality, completeness, fallback removal, scheduling, or complexity.
@@ -1276,9 +1277,8 @@ proves conditional payload applicability from explicit input-only
 `UnifyPayloadEnabled`; the canonical certified dispatcher history is now
 integrated, while derivation of that predicate for the selected branch,
 exhaustive enabledness, global availability of the mate-region separation
-invariant, elimination of the current-representative advance, unconditional
-stored-left equal-boundary avoidance, queue origin, the raw created-candidate
-seams,
+invariant, unconditional stored-left equal-boundary avoidance, queue origin,
+the raw created-candidate seams,
 later-state applicability/totality, pure-worklist completeness, fallback removal, faithful
 `NEXTAXIOM`/token-age sequencing, and whole-program linearity remain open.
 `RealizesSigma` preservation for later reservations splits old and fresh raw
@@ -1725,12 +1725,11 @@ available for every structurally well-formed canonical history. When the
 independent mate-region invariant is also supplied,
 the child-event law and callback are now derived automatically for any edge,
 or positive interval ending at a boundary, strictly older than the candidate.
-Under the theorem's correctness, complete-invariant, canonical-history, active-
-guard, membership, and strict current-representative inputs, each such event
-now reduces to a complete avoiding path, a strictly higher-current-
-representative mate touch, or the exact equal-boundary stored-left callback
-failure. Globally establishing the mate-region and raw-mark invariants,
-eliminating the advance branch, resolving the equal callback failure, closing
+Under the maximality theorem's correctness, complete-invariant, canonical-
+history, active-guard, membership, and strict current-representative inputs,
+each such event now reduces to a complete avoiding path or the exact equal-
+boundary stored-left callback failure. Globally establishing the mate-region
+and raw-mark invariants, resolving the equal callback failure, closing
 the created-candidate raw seams, recovering queue origin,
 proving exhaustive guard
 applicability, and obtaining a
@@ -1997,9 +1996,9 @@ The repository currently contains:
   and queue origin remain open. Strictly older edge and interval callbacks now
   follow from supplied instances of the two invariants. Under the additional
   correctness, complete-invariant, canonical-history, active-guard, membership,
-  and strict current-representative inputs, the exact
-  path/representative-advance/equal-callback-failure reduction follows. The
-  advance and equal-failure branches are not eliminated.
+  and strict current-representative inputs, finite maximality yields the exact
+  path-or-equal-callback-failure reduction. The equal-failure branch is not
+  eliminated and does not deny path existence.
   Closing-par exclusion,
   correct-state progress, pure-worklist completeness, fallback removal, and
   whole-program linearity remain open;
@@ -2056,10 +2055,8 @@ The repository currently contains:
   complete for the six dispatcher families. Reachable later-state
   applicability/totality, unconditional full-rule reachability, derivation of
   the globally available mate-region and raw-mark separation invariants,
-  elimination of the strict representative-advance branch, unconditional
-  stored-left equal-boundary avoidance, queue origin and raw-seam discharge,
-  full
-  scheduler correctness, and a whole-program cost
+  unconditional stored-left equal-boundary avoidance, queue origin and raw-
+  seam discharge, full scheduler correctness, and a whole-program cost
   proof remain open;
 - a Lean theorem `check_sound` connecting executable acceptance to an
   independent inductive walk semantics;
@@ -2235,7 +2232,7 @@ permutation, and rechecks its output. Its separate totality theorem is proved
 by the terminal-rule dichotomy, checker-gated candidate totality, complete
 finite boundary alignment, and well-founded fuel induction. The path-based
 downstream consumer executes the API and consumes that theorem, and CI
-separately audits 880 declarations: 598 public MLL logical-boundary theorems
+separately audits 881 declarations: 599 public MLL logical-boundary theorems
 against the exact axiom set `[propext, Classical.choice, Quot.sound]`, plus 25
 axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries. LeanProp
 boundaries are audited separately: the proof-term interpreter,

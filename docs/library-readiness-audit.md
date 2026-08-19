@@ -909,10 +909,20 @@ part of the engineering and proof-identity gap.
    representative is strictly below the active head, the theorem yields an
    exact avoiding path, a mate-touching event with a strictly higher current
    representative still below the head, or the exact equal stored-left callback
-   failure. The reduction is inclusive: the advance is not raw-age/ledger
-   chronology, is not maximalized or eliminated, and the callback failure does
-   not deny path existence. It derives no mate-region invariant, closes no
+   failure. At that checkpoint, the reduction was inclusive: the advance was
+   not raw-age/ledger chronology, was not maximalized or eliminated, and the
+   callback failure did not deny path existence. It derives no mate-region invariant, closes no
    created-candidate raw seam, and proves no `NewEnabled` or progress result.
+   `SequentialFigure7CommitmentBlockerMaximality.lean` then eliminates that
+   current-representative advance under the same explicit public inputs. It
+   maximizes over the finite authentic mate-touch blockers above the original
+   event; a maximal blocker cannot admit an avoiding commitment path without
+   creating the tensor bypass forbidden by reference-switching acyclicity, and
+   a further advance contradicts maximality. The inclusive result is an exact
+   avoiding path or the exact equal stored-left callback failure. The callback
+   branch does not deny path existence, and the theorem does not derive queue
+   origin, the remaining mate-region/global raw-mark invariants, a created-
+   candidate raw seam, `NewEnabled`, progress, totality, or completeness.
    `SequentialFigure7ActiveRegionAvailability.lean` now composes that
    conditional tag freshness with the complete structural run-or-blocker
    theorem. The result is an exact dichotomy between a complete
@@ -1025,10 +1035,10 @@ part of the engineering and proof-identity gap.
    Wait/Forward/UnifyPayload preservation plus global canonical-history
    availability under structural well-formedness. Events whose current
    representatives are strictly below the candidate now split at its immediate
-   predecessor. The stored-right final edge
-   is now closed and the stored-left callback-failure touch witness is exact;
-   unconditional stored-left avoidance, elimination of the strict
-   representative-advance branch, queue origin, raw-seam discharge, exhaustive
+   predecessor. The stored-right final edge is now closed, finite maximality
+   eliminates the strict current-representative advance, and the stored-left
+   callback-failure touch witness is exact; unconditional stored-left
+   avoidance, queue origin, raw-seam discharge, exhaustive
    guard classification, unconditional full-rule reachability, closing-par
    scheduler-order exclusion, correct-state
    progress, pure worklist completeness, recursive fallback removal, faithful
@@ -1116,7 +1126,7 @@ part of the engineering and proof-identity gap.
   sequentialization;
 - the finite direct-equivalence search is now proved complete on structurally
   well-formed left certificates, including repeated labels and link reordering;
-- CI now parses `#print axioms` for 880 declarations: 598 public MLL
+- CI now parses `#print axioms` for 881 declarations: 599 public MLL
   logical-boundary theorems must retain exactly `propext`,
   `Classical.choice`, and `Quot.sound`; it separately locks 25 axiom-free,
   122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
@@ -1254,9 +1264,8 @@ It can currently be used for:
   empty/init, stable, successful New, and
   structurally discharged Wait/Forward/UnifyPayload preservation, plus global
   availability for every structurally well-formed canonical history. The
-  independent mate-region and raw-mark invariants, elimination of the strict
-  representative-advance branch, unconditional stored-left equal-boundary
-  avoidance, queue origin, raw-seam
+  independent mate-region and raw-mark invariants, unconditional stored-left
+  equal-boundary avoidance, queue origin, raw-seam
   discharge, and unconditional full-rule reachability are not, so
   together these are not a complete scheduler API;
 - reproducing the first deterministic 1,000-task matched experiment and

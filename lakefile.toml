@@ -33,6 +33,7 @@ defaultTargets = [
   "proofnet_ir_strict_older_sigma_split_tests",
   "proofnet_ir_equal_boundary_commitment_target_avoidance_tests",
   "proofnet_ir_commitment_blocker_advance_tests",
+  "proofnet_ir_commitment_blocker_maximality_tests",
   "proofnet_ir_older_raw_marked_region_separation_tests",
   "proofnet_ir_cross_representative_new_preservation_tests",
   "proofnet_ir_older_event_future_work_touch_new_preservation_tests",
@@ -187,6 +188,10 @@ root = "ProofNetIREqualBoundaryCommitmentTargetAvoidanceTests"
 [[lean_exe]]
 name = "proofnet_ir_commitment_blocker_advance_tests"
 root = "ProofNetIRCommitmentBlockerAdvanceTests"
+
+[[lean_exe]]
+name = "proofnet_ir_commitment_blocker_maximality_tests"
+root = "ProofNetIRCommitmentBlockerMaximalityTests"
 
 [[lean_exe]]
 name = "proofnet_ir_older_raw_marked_region_separation_tests"

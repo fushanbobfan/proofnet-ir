@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- added `SequentialFigure7CommitmentBlockerMaximality.lean`. Under declarative
+  correctness and the complete scheduler invariant, for a supplied canonical
+  history, active `NewGuard`, authentic ledger membership, and strict current-
+  representative order below the active head, finite ledger maximality now
+  eliminates the preceding representative-advance branch. A maximal authentic
+  mate-touch blocker cannot also carry a conclusion-avoiding commitment path:
+  the historical mate route, the blocker's component route, that commitment
+  path, and the active component route would form a tensor bypass forbidden by
+  reference-switching acyclicity. The inclusive result is therefore an exact
+  target-avoiding path or the exact equal-boundary stored-left callback-failure
+  trace; callback failure still does not deny that an avoiding path exists. It
+  does not derive queue origin or the remaining mate-region/global raw-mark
+  invariants, close a created-candidate raw seam, derive `NewEnabled`, or prove
+  progress, totality, completeness, fallback removal, scheduling, or
+  complexity. The consumer typechecks branch-specific destructuring and
+  reconstruction, and its smoke executable is wired with the facade, default
+  target, CI, generated API, and trust audit. The checkpoint axiom audit covers
+  881 declarations: 599 full-classical, 25 axiom-free, 122
+  `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7CommitmentBlockerAdvance.lean`. Under declarative
   correctness and the complete scheduler invariant, for a supplied canonical
   history, active `NewGuard`, and authentic ledger event whose current
@@ -18,9 +37,10 @@
   establish the global raw-mark invariant, derive `NewEnabled`, or prove
   dispatcher progress, totality, completeness, fallback removal, scheduling,
   or complexity. The runnable consumer exhausts all three branches; facade,
-  default target, CI, generated API, and trust audit are wired. The current
-  public axiom audit covers 880 declarations: 598 full-classical, 25
-  axiom-free, 122 `propext`-only, and 135 `propext`/`Quot.sound` boundaries;
+  default target, CI, generated API, and trust audit are wired. At that
+  checkpoint the public axiom audit covered 880 declarations: 598 full-
+  classical, 25 axiom-free, 122 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7EqualBoundaryCommitmentTargetAvoidance.lean`. The
   final commitment edge whose child is the active ready head is now classified
   exactly. Stored-right orientation yields a canonical reference path avoiding

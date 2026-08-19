@@ -242,7 +242,16 @@ avoiding path, strictly higher-current-representative mate-touch event below the
 active head, or exact equal stored-left callback failure. This inclusive
 reduction does not make representative order into chronology, maximalize or
 eliminate the advance, deny a path in its final branch, close any created-
-candidate raw seam, or prove progress. The availability-reduction layer now
+candidate raw seam, or prove progress. A subsequent kernel-checked maximality
+consequence filters the finite authentic mate-touch blockers by their current
+representatives. At a maximum, another advance is impossible; an avoiding path
+for that blocker would splice with the audited historical and component routes
+to form the tensor bypass forbidden by reference-switching acyclicity. Thus the
+current inclusive reduction is an exact avoiding path or the exact equal stored-
+left callback failure. This is a code consequence, not a new literature result;
+the callback branch still does not deny path existence or close queue origin,
+mate-region/global raw-mark availability, a created-candidate raw seam, or
+progress. The availability-reduction layer now
 consumes the existing
 structural search and those code invariants: it proves `NewSourceRegionInput`
 or an exact old marked owner, then `NewEnabled` or that owner. This is another

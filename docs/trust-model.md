@@ -637,6 +637,16 @@ solely in current representative order. The result does not eliminate that
 event, make the order chronological, make the inclusive equal callback failure
 exclusive, close a created-candidate raw seam, or establish enabledness,
 progress, totality, or completeness.
+`SequentialFigure7CommitmentBlockerMaximality.lean` adds no maximality, path,
+or touch oracle. It filters the finite authentic ledger by the already audited
+mate-touch and current-representative predicates, maps those blockers to their
+representatives, and uses `List.max?`. The existing component and source-left
+geometry shows that a maximal blocker carrying an avoiding path would create a
+tensor bypass forbidden by declarative correctness; the only further advance
+contradicts the finite maximum. The resulting path-or-equal-callback theorem is
+inclusive, and the callback witness does not deny path existence. It adds no
+queue-origin, mate-region/global raw-mark, created-raw-seam, enabledness,
+progress, totality, completeness, scheduling, or complexity oracle.
 `SequentialFigure7OlderRawMarkedRegionSeparation.lean` introduces no history,
 executor, or reachability oracle. Its primitive is a proposition over concrete
 raw marks, current representatives, and one structural source-left region.
@@ -927,8 +937,8 @@ allocation ancestry and does not strengthen this raw-mark provenance claim.
 same audited standard boundary. The fixed tensor-adjacency, forged-future, and
 route-orientation counterexamples live only in test executables and use
 `native_decide` for closed certificate facts. They are explicitly executable regression
-evidence, not public three-axiom theorems. The exact trust audit now covers 880
-declarations: 598 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
+evidence, not public three-axiom theorems. The exact trust audit now covers 881
+declarations: 599 use exactly `[propext, Classical.choice, Quot.sound]`, 25 are
 axiom-free, 122 use exactly `[propext]`, and 135 use exactly
 `[propext, Quot.sound]`.
 `ConclusionBelow`'s
@@ -1372,8 +1382,7 @@ Lean now also constructs the exact simultaneous complementary
   Strict older events now split at the candidate's immediate predecessor and
   expose a composable positive prefix. Exhaustive later-state branch
   enabledness and totality, global mate-region and raw-mark invariant
-  availability, unconditional stored-left equal-boundary avoidance,
-  elimination of the strict representative-advance branch, queue origin, the
+  availability, unconditional stored-left equal-boundary avoidance, queue origin, the
   raw created-candidate seams, unconditional full-rule
   reachability, and the remaining `NEXTAXIOM`/token-age scheduler remain
   required for linearity.
