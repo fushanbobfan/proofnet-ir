@@ -17,7 +17,7 @@ Status date: 2026-08-19
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; latest proof checkpoint `ff47a08a6e6eccbaf1bc152ba7b8c8639b3cf954` | Active | This page and the exact commit |
+| Rolling research | `v0.10.0-dev`; latest proof checkpoint `38ce23c98d77f7fc625805809ddaf28ba30a3ae0` | Active | This page and the exact commit |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -48,9 +48,9 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 The current checkpoint establishes an indexed marked-tensor predecessor
 invariant for every ready or waiting future-work occurrence. It proves the
-empty/init/Prepared/Concl/Nop/New/Wait branch prefix and uses the invariant to
-contradict the preceding ready-head residual when the required state hypotheses
-are supplied.
+empty/init/Prepared/Concl/Nop/New/Wait/Forward branch prefix and uses the
+invariant to contradict the preceding ready-head residual when the required
+state hypotheses are supplied.
 
 Primary public declarations:
 
@@ -65,6 +65,8 @@ ProofNetIR.SequentialFigure7.ConclStep.olderMarkedTensorPredecessorInvariant
 ProofNetIR.SequentialFigure7.NopStep.olderMarkedTensorPredecessorInvariant
 ProofNetIR.SequentialFigure7.CanonicalTagHistory.new_olderMarkedTensorPredecessorInvariant
 ProofNetIR.SequentialFigure7.CanonicalTagHistory.wait_olderMarkedTensorPredecessorInvariant
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.markedMate_sigmaImmediatePredecessor_of_childAnchor
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.forward_olderMarkedTensorPredecessorInvariant
 ```
 
 `OlderMarkedTensorPredecessorInvariant` quantifies over every `FutureWorkAt`,
@@ -91,6 +93,15 @@ strict commitment interval by finite maximality, and proves that any strictly
 older marked tensor mate occupies the immediate predecessor boundary. No
 `FutureNewCandidateAt.mate_unmarked` premise is used.
 
+The source-visible child-anchor bridge packages the common maximality argument:
+given strict older-event separation and an exact child-event anchor, it returns
+the marked mate's indexed immediate predecessor. It does not establish either
+premise or any rule's applicability. Canonical `forward` preservation supplies
+those premises privately for the inserted par conclusion and transports
+retained work through the prepared prefix. It requires declarative correctness,
+the complete scheduler invariant, canonical history, typed dispatch and
+`ForwardStep` witnesses, and a supplied prior predecessor invariant.
+
 For a supplied `ReadyHeadInput`, the projection combines the new invariant with
 the complete `SchedulerInvariant`. The fields of
 `ReadyHeadMarkedTensorPredecessorGap` provide the tensor consumer, mate mark,
@@ -103,7 +114,7 @@ state invariant.
 Exact signatures are maintained in the
 [generated API reference](api-reference.md#older-marked-tensor-predecessor-branch-prefix).
 This remains a branch-prefix result, not a full canonical-history theorem:
-`forward` is the first open preservation branch, followed by `unifyPayload`.
+`unifyPayload` is the first open preservation branch.
 
 ## What the rolling theorem does not prove
 
@@ -112,7 +123,7 @@ This checkpoint does not establish any of the following:
 - construction of a relevant `ExecutedHistory`, reachable state, or
   `ReadyHeadInput`;
 - a proof that every relevant semantic nonterminal state presents a ready head;
-- preservation of `OlderMarkedTensorPredecessorInvariant` through `forward` or
+- preservation of `OlderMarkedTensorPredecessorInvariant` through
   `unifyPayload`;
 - full canonical-history availability of the new invariant;
 - unconditional elimination of `ReadyHeadMarkedTensorPredecessorGap` without
@@ -136,16 +147,16 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling checkpoint is:
 
 ```text
-commit  ff47a08a6e6eccbaf1bc152ba7b8c8639b3cf954
-tree    878485b42adb72b6f2f4caf7048a82983b35a81e
-stage   marked-tensor predecessor preservation through canonical Wait
-delta   17 files, +3028/-69
+commit  38ce23c98d77f7fc625805809ddaf28ba30a3ae0
+tree    fa1f9810918bc4c8aa08c8195269c18e744702d8
+stage   marked-tensor predecessor preservation through canonical Forward
+delta   18 files, +1028/-72
 ```
 
 Local verification on the committed bytes:
 
-- full `lake build`: 430/430 jobs;
-- Lean source audit: zero `sorry`/`admit` findings across 208 Lean files;
+- full `lake build`: 435/435 jobs;
+- Lean source audit: zero `sorry`/`admit` findings across 210 Lean files;
 - generated API reference: current;
 - the runnable predecessor consumer: passed under `--trust=0`, invokes the nine
   branch-prefix declarations, constructs the indexed carrier, and derives
@@ -153,13 +164,16 @@ Local verification on the committed bytes:
 - the runnable Wait-preservation consumer: passed under `--trust=0`, invokes
   the tenth public declaration, applies the preserved invariant, destructures
   `SigmaImmediatePredecessorAt`, and consumes all four carrier fields;
+- the runnable Forward-preservation consumer: passed under `--trust=0`, invokes
+  the public bridge and Forward theorem, applies the preserved invariant, and
+  consumes all four indexed predecessor fields;
 - facade, API manifest, and axiom-audit entry points: passed under `--trust=0`;
-- public declaration audit: 898 declarations total;
-- audit classes: 615 full-classical, 25 axiom-free, 123 `propext`-only,
+- public declaration audit: 900 declarations total;
+- audit classes: 617 full-classical, 25 axiom-free, 123 `propext`-only,
   and 135 `propext` plus `Quot.sound`;
 - `empty_olderMarkedTensorPredecessorInvariant` depends exactly on `[propext]`;
-- the other six original branch-prefix theorems and the new Wait theorem depend
-  exactly on
+- the other six original branch-prefix theorems and the Wait, bridge, and
+  Forward theorems depend exactly on
   `[propext, Classical.choice, Quot.sound]`;
 - independent proof and integrated-checkpoint reviews reported no actionable
   P0, P1, P2, or P3 findings.
@@ -167,12 +181,12 @@ Local verification on the committed bytes:
 Exact-head GitHub verification:
 
 - workflow: `Lean CI`;
-- run: [32251136674](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32251136674);
-- build job: [96062166451](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32251136674/job/96062166451);
-- exact head: `ff47a08a6e6eccbaf1bc152ba7b8c8639b3cf954`;
+- run: [32256887987](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32256887987);
+- build job: [96080550086](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32256887987/job/96080550086);
+- exact head: `38ce23c98d77f7fc625805809ddaf28ba30a3ae0`;
 - result: 36 successful steps, zero failures, one expected release-ref-only
-  skip; run duration 11m47s (`12:08:50Z`-`12:20:37Z`) and build-job duration
-  11m41s (`12:08:55Z`-`12:20:36Z`).
+  skip; run duration 8m47s (`13:13:34Z`-`13:22:21Z`) and build-job duration
+  8m43s (`13:13:37Z`-`13:22:20Z`).
 
 ## Current library-readiness position
 
@@ -229,9 +243,9 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. extend `OlderMarkedTensorPredecessorInvariant` through `forward` and then
-   `unifyPayload`, and package full canonical-history preservation so the
-   ready-head residual is eliminated wherever that history is available;
+1. extend `OlderMarkedTensorPredecessorInvariant` through `unifyPayload`, then
+   package full canonical-history preservation so the ready-head residual is
+   eliminated wherever that history is available;
 2. prove that every relevant semantic nonterminal certified state supplies a
    ready head;
 3. close the separate queue-origin and New/Wait/Forward/UnifyPayload
