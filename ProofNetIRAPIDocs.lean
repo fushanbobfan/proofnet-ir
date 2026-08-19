@@ -875,6 +875,30 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Active-top debt branch residuals"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.PreparedStep
+        "SelectedAwayRawNonconclusionWitness",
+      `ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionPresent,
+      Name.str
+        `ProofNetIR.SequentialFigure7.PreparedStep
+        "activeTopMarkedNonconclusionDebt_iff_selectedAway",
+      Name.str
+        `ProofNetIR.SequentialFigure7.NopStep
+        "activeTopMarkedNonconclusionDebt_iff_selectedAway",
+      Name.str
+        `ProofNetIR.SequentialFigure7.WaitStep
+        "activeTopMarkedNonconclusionDebt_iff_selectedAway",
+      Name.str
+        `ProofNetIR.SequentialFigure7.ForwardStep
+        "activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion",
+      Name.str
+        `ProofNetIR.SequentialFigure7.UnifyPayloadStep
+        "activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion"
+    ]
+  },
+  {
     title := "Exact-run-local region boundaries"
     declarations := [
       `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier,

@@ -9666,6 +9666,113 @@ ProofNetIR.SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of
         ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate state → state.core.allMarked = true
 ```
 
+## Active-top debt branch residuals
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.SelectedAwayRawNonconclusionWitness`
+
+Kind: definition.
+
+The exact extra witness needed when the common prefix marks its selected
+non-conclusion: another raw-unmarked non-conclusion remains on that component's
+frontier.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.SelectedAwayRawNonconclusionWitness : ProofNetIR.Certificate →
+  {before : ProofNetIR.SequentialSchedulerBridge.ReservationState} →
+    ProofNetIR.SequentialFigure7.PreparedStep before → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionPresent`
+
+Kind: definition.
+
+There is an actual marked non-conclusion on the active live frontier.
+
+```lean
+ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionPresent : ProofNetIR.Certificate → ProofNetIR.SequentialSchedulerBridge.ReservationState → Prop
+```
+
+### `ProofNetIR.SequentialFigure7.PreparedStep.activeTopMarkedNonconclusionDebt_iff_selectedAway`
+
+Kind: theorem.
+
+With prior debt fixed, debt after the common prefix is exactly equivalent
+to the selected-away raw witness.
+
+```lean
+ProofNetIR.SequentialFigure7.PreparedStep.activeTopMarkedNonconclusionDebt_iff_selectedAway : ∀ {certificate : ProofNetIR.Certificate} {before : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.PreparedStep before),
+  ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate before →
+    (ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate step.after ↔
+      ProofNetIR.SequentialFigure7.PreparedStep.SelectedAwayRawNonconclusionWitness certificate step)
+```
+
+### `ProofNetIR.SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_selectedAway`
+
+Kind: theorem.
+
+Under prior debt, post-`nop` debt is exactly equivalent to the common
+prefix's selected-away raw witness.
+
+```lean
+ProofNetIR.SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_selectedAway : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.NopStep certificate before after),
+  ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate before →
+    (ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after ↔
+      ProofNetIR.SequentialFigure7.PreparedStep.SelectedAwayRawNonconclusionWitness certificate step.prepared)
+```
+
+### `ProofNetIR.SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_selectedAway`
+
+Kind: theorem.
+
+Under prior debt, post-`wait` debt is exactly equivalent to the common
+prefix's selected-away raw witness.
+
+```lean
+ProofNetIR.SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_selectedAway : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.WaitStep certificate before after),
+  ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate before →
+    (ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after ↔
+      ProofNetIR.SequentialFigure7.PreparedStep.SelectedAwayRawNonconclusionWitness certificate step.prepared)
+```
+
+### `ProofNetIR.SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion`
+
+Kind: theorem.
+
+If a `forward` step creates a global ready head, post-debt is exactly the
+conditional law requiring a non-global vertex in its preserved ready tail.
+
+```lean
+ProofNetIR.SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.ForwardStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    step.consumer.conclusion ∈ certificate.conclusions →
+      (ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after ↔
+        ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionPresent certificate after →
+          ∃ pending, pending ∈ step.prependStep.activeReady ∧ ¬pending ∈ certificate.conclusions)
+```
+
+### `ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion`
+
+Kind: theorem.
+
+If an `unifyPayload` step creates a global ready head, post-debt is exactly
+the conditional law requiring a non-global vertex in its merged ready tail.
+
+```lean
+ProofNetIR.SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion : ∀ {certificate : ProofNetIR.Certificate} {before after : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  (step : ProofNetIR.SequentialFigure7.UnifyPayloadStep certificate before after),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate before →
+    step.consumer.conclusion ∈ certificate.conclusions →
+      (ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionDebt certificate after ↔
+        ProofNetIR.SequentialFigure7.ActiveTopMarkedNonconclusionPresent certificate after →
+          ∃ pending,
+            pending ∈ step.mergeStep.payload ++ step.mergeStep.previousReady ++ step.mergeStep.activeReady ∧
+              ¬pending ∈ certificate.conclusions)
+```
+
 ## Exact-run-local region boundaries
 
 ### `ProofNetIR.SequentialFigure7.ExactFreshSourceLeftRunCarrier`

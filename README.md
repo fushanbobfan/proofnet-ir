@@ -23,19 +23,16 @@ latest research surface and are prepared for documented development changes.
 <!-- ROLLING_MAIN_SUMMARY_START -->
 ### Rolling-main summary
 
-The rolling branch now has a conditional bridge from the exact active-top
-residual to marking completion. A marked-nonconclusion debt condition pairs
-every marked, nonconclusion frontier occurrence with a still raw-unmarked
-nonconclusion frontier occurrence. It is established for empty,
-initial-reservation, and New states, preserved by Concl, and established for
-Forward and Unify under the prior complete scheduler invariant when their
-created conclusion is not global. Under declarative correctness and the
-scheduler invariant, an active-top-drained state satisfying this debt is fully
-marked.
-Full canonical-history preservation of the debt remains open at Nop, Wait, and
-the global-created Forward and Unify cases. Until those branches close,
-unconditional progress, later-state totality, fallback removal, pure-worklist
-completeness, faithful scheduling, and whole-program linearity remain open.
+The rolling branch now isolates exact branch-local obligations for active-top
+marked-nonconclusion debt. With prior debt, post-Nop and post-Wait debt are each
+equivalent to the prepared prefix's selected-away raw witness. When Forward or
+Unify creates a global conclusion, post-debt is equivalent, under the prior
+scheduler invariant, to an exact-tail law: marked-nonconclusion presence on the
+active frontier implies a non-global vertex in that branch's ready tail. The
+presence condition only detects vacuity; it does not produce the witness.
+No canonical-history theorem yet supplies these witnesses. Full preservation,
+progress, later-state totality, fallback removal, pure-worklist completeness,
+faithful scheduling, and whole-program linearity remain open.
 [The replaceable current-status record](docs/current-status.md) owns exact
 revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

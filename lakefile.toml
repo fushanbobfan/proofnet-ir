@@ -57,6 +57,7 @@ defaultTargets = [
   "proofnet_ir_older_marked_tensor_predecessor_history_tests",
   "proofnet_ir_active_top_residual_tests",
   "proofnet_ir_active_top_marked_nonconclusion_debt_tests",
+  "proofnet_ir_active_top_debt_branch_residual_tests",
   "proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests",
   "proofnet_ir_older_event_future_work_touch_unify_payload_discharge_tests",
   "proofnet_ir_older_raw_marked_region_unify_payload_preservation_tests",
@@ -294,6 +295,10 @@ root = "ProofNetIRActiveTopResidualTests"
 [[lean_exe]]
 name = "proofnet_ir_active_top_marked_nonconclusion_debt_tests"
 root = "ProofNetIRActiveTopMarkedNonconclusionDebtTests"
+
+[[lean_exe]]
+name = "proofnet_ir_active_top_debt_branch_residual_tests"
+root = "ProofNetIRActiveTopDebtBranchResidualTests"
 
 [[lean_exe]]
 name = "proofnet_ir_older_event_future_work_touch_unify_payload_preservation_tests"

@@ -761,6 +761,16 @@ theorem keeps declarative correctness, the complete scheduler invariant,
 debt through Nop, Wait, or a global-created
 Forward/UnifyPayload step, so unconditional semantic completion and progress
 remain outside the trusted surface.
+`SequentialFigure7ActiveTopDebtBranchResidual.lean` adds no history or witness
+oracle. Nop and Wait take prior debt and expose the prepared selected-away
+witness exactly. Global-created Forward and UnifyPayload take the prior complete
+invariant and expose an exact ready-tail implication. The presence predicate
+only detects vacuity; it manufactures no tail vertex. The pending audit is
+expected to place the five new theorems in the existing trust profile, bringing
+the total to 919 declarations: 634 full-classical, 25 axiom-free, 125
+`propext`-only, and 135 `propext`/`Quot.sound`. `CanonicalTagHistory` derives no
+residual witness, so full preservation and progress remain outside the trusted
+surface.
 `SequentialFigure7CrossRepresentativeWaitPreservation.lean` adds no hidden
 source-region oracle. Its output-work classification follows only from the
 typed destination's exact waiting prepend and unchanged ready/sigma fields;

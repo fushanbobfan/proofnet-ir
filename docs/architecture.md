@@ -997,8 +997,16 @@ conclusion they create is not a global conclusion. Under declarative correctness
 and the complete scheduler invariant,
 `ActiveTopDrained` contradicts any outstanding debt witness and switching
 connectivity then forces `core.allMarked = true`. This closes the conditional
-state reduction, not its full history induction: Nop, Wait, and the
-global-created Forward and UnifyPayload branches remain open.
+state reduction, not its full history induction.
+
+`SequentialFigure7ActiveTopDebtBranchResidual.lean` characterizes the four
+branch-local boundaries. Given prior debt, post-Nop and post-Wait debt are
+equivalent to the prepared prefix retaining a distinct raw-unmarked
+nonconclusion after selecting its head. For global-created Forward and
+UnifyPayload, the prior complete scheduler invariant makes post-debt equivalent
+to marked-nonconclusion presence implying a non-global vertex in the exact
+ready tail. Presence only detects vacuity. Canonical history derives neither
+witness, so full debt preservation and downstream progress remain open.
 
 `SequentialFigure7CrossRepresentativeNewPreservation.lean` isolates the New
 branch's two genuinely new effects. Every output work occurrence is either

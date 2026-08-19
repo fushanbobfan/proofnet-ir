@@ -347,6 +347,16 @@ expansion.
   SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_of_created_not_conclusion
 #print axioms
   SequentialFigure7.SchedulerInvariant.allMarked_of_activeTopDrained_of_nonconclusionDebt
+#print axioms
+  SequentialFigure7.PreparedStep.activeTopMarkedNonconclusionDebt_iff_selectedAway
+#print axioms
+  SequentialFigure7.NopStep.activeTopMarkedNonconclusionDebt_iff_selectedAway
+#print axioms
+  SequentialFigure7.WaitStep.activeTopMarkedNonconclusionDebt_iff_selectedAway
+#print axioms
+  SequentialFigure7.ForwardStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
+#print axioms
+  SequentialFigure7.UnifyPayloadStep.activeTopMarkedNonconclusionDebt_iff_tailLaw_of_created_conclusion
 #print axioms SequentialFigure7.NewStep.after_representative_eq_markedMiddle
 #print axioms SequentialFigure7.FutureWorkAt.beforeNewOrInserted
 #print axioms SequentialFigure7.NewStep.freshEvent_not_strictly_older

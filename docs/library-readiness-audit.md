@@ -596,10 +596,15 @@ part of the engineering and proof-identity gap.
    prior complete scheduler invariant when the created conclusion is not
    global. Declarative correctness, the complete scheduler invariant,
    `ActiveTopDrained`, and this debt imply
-   `core.allMarked = true`. Full canonical-history preservation is still open
-   at Nop, Wait, and the global-created Forward/UnifyPayload cases, so this does
-   not yet establish unconditional progress, terminality, totality, or
-   completeness.
+   `core.allMarked = true`.
+   `SequentialFigure7ActiveTopDebtBranchResidual.lean` makes the four local
+   obligations exact. Under prior debt, post-Nop and post-Wait debt are
+   equivalent to the prepared selected-away witness. Under the prior complete
+   invariant and a global created conclusion, Forward and UnifyPayload
+   post-debt are equivalent to marked-nonconclusion presence implying a
+   non-global vertex in the exact ready tail. Presence only detects vacuity.
+   Canonical history supplies none of these witnesses, so progress,
+   terminality, totality, and completeness remain open.
    `SequentialFigure7PriorityEnabled.lean` now gives that dispatcher an exact
    branch-indexed applicability correspondence whose six positive fields and
    stored earlier-branch negations are input-only. Each executor has an
@@ -1043,12 +1048,11 @@ part of the engineering and proof-identity gap.
    top component with no raw-unmarked frontier occurrence. The new
    marked-nonconclusion debt theorem turns that drained branch into
    `core.allMarked = true` when its additional state predicate is available.
-   The predicate is not yet preserved through complete canonical history: Nop,
-   Wait, and global-created Forward/UnifyPayload remain open. Consequently the
-   library still lacks unconditional branch applicability, dispatcher progress,
-   later-state totality, a global raw seam, fallback removal, scheduling
-   fidelity, sequentialization, Figure-7 pure-worklist completeness, and
-   whole-program linearity.
+   The Nop/Wait selected-away and global-created Forward/UnifyPayload tail
+   residuals are exact, but canonical history does not yet supply them. The
+   library therefore still lacks unconditional branch applicability, progress,
+   later-state totality, global raw seams, fallback removal, scheduling fidelity,
+   sequentialization, pure-worklist completeness, and whole-program linearity.
    `SequentialFigure7OlderRawMarkedRegionNewPreservation.lean` now proves the
    New preservation step under the exact residual
    `NewRetainedRawMarksSeparated` condition. The selected mark versus created

@@ -1002,13 +1002,20 @@
     additional scheduler-invariant premise; preserve it through Concl; and close
     Forward/UnifyPayload under the prior complete scheduler invariant when the
     created conclusion is not global.
+  - [x] Characterize the four remaining branch residuals exactly. Under prior
+    debt, post-Nop and post-Wait debt are equivalent to the prepared
+    selected-away witness. Under the prior complete scheduler invariant and a
+    global created conclusion, Forward and UnifyPayload post-debt are equivalent
+    to actual marked-nonconclusion presence implying a non-global vertex in the
+    branch's exact ready tail. Presence only detects vacuity.
   - [ ] Preserve `ActiveTopMarkedNonconclusionDebt` through complete canonical
-    histories. Nop, Wait, and the global-created Forward/UnifyPayload cases are
-    the remaining branches. Only then combine the residual dichotomy with
-    marking incompleteness to obtain unconditional dispatcher progress. Keep
-    later-state totality, global raw seams, fallback removal, Figure-7
-    pure-worklist completeness, sequentialization, faithful token-age
-    scheduling, and whole-program linearity outside this checkpoint.
+    histories by deriving the selected-away and exact-tail witnesses above.
+    None currently follows from `CanonicalTagHistory`. Only after that gate may
+    the residual dichotomy combine with marking incompleteness to yield
+    unconditional dispatcher progress. Keep later-state totality, global raw
+    seams, fallback removal, Figure-7 pure-worklist completeness,
+    sequentialization, faithful token-age scheduling, and whole-program
+    linearity outside this checkpoint.
   - [x] Isolate unused waiting storage as the history-preserved predicate
     `FutureWaitingUndefined`. Prove it for empty/initial states and preserve it
     through Prepared, all six successful rules, dispatcher steps,
@@ -1267,10 +1274,11 @@
     invariant available for every correct executed dispatcher history. The
     active-top residual now supplies every started reachable state with an exact
     dispatch / drained-active-component disjunction. Marked-nonconclusion debt
-    now conditionally turns the drained branch into `allMarked = true`; next
-    preserve that debt through Nop, Wait, and global-created
-    Forward/UnifyPayload before claiming exhaustive progress on incomplete
-    correct certified-reachable states.
+    now conditionally turns the drained branch into `allMarked = true`. The
+    Nop/Wait selected-away and global-created Forward/UnifyPayload exact-tail
+    residuals are characterized, but canonical history does not yet supply
+    them; derive those witnesses before claiming exhaustive progress on
+    incomplete correct certified-reachable states.
     Exact source-left complexity descent, last-step decomposition, and
     recursive visited-route separation from the selected head are now proved.
     Reference-switching geometry now also excludes a terminal axiom partner

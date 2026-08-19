@@ -318,9 +318,14 @@ Concl preserves it; and Forward/UnifyPayload establish it under the prior
 complete scheduler invariant when their created conclusion is not global.
 Under declarative correctness and the complete scheduler invariant, the debt
 and `ActiveTopDrained` imply
-`core.allMarked = true`. The remaining source-level obligation is to preserve
-that debt through Nop, Wait, and the global-created Forward/UnifyPayload cases
-and then package the full canonical-history induction.
+`core.allMarked = true`.
+`SequentialFigure7ActiveTopDebtBranchResidual.lean` is a further code
+consequence. Under prior debt, post-Nop and post-Wait debt are exactly the
+prepared selected-away witness. Under the prior complete invariant and a global
+created conclusion, Forward and UnifyPayload post-debt are exactly presence
+implying a non-global vertex in the branch's ready tail. Presence only detects
+vacuity. Canonical history derives no witness, so full preservation remains
+open. This records no new page or chapter reading.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, unconditional active-top completion, progress, later-state totality,

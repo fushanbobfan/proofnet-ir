@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- added `SequentialFigure7ActiveTopDebtBranchResidual.lean` to characterize the
+  four open branch-local obligations exactly. Under prior debt, post-Nop and
+  post-Wait debt are equivalent to the prepared selected-away witness. For a
+  global-created Forward or UnifyPayload step, the prior complete scheduler
+  invariant makes post-debt equivalent to marked-nonconclusion presence
+  implying a non-global vertex in the exact ready tail. Presence only detects
+  vacuity and derives neither a witness nor a reserve. `CanonicalTagHistory`
+  does not supply these witnesses; full preservation, progress, terminality,
+  totality, fallback removal, completeness, scheduling, sequentialization, and
+  linearity remain open. The pending audit is expected to report 919
+  declarations: 634 full-classical, 25 axiom-free, 125 `propext`-only, and 135
+  `propext`/`Quot.sound` boundaries;
 - added `SequentialFigure7ActiveTopMarkedNonconclusionDebt.lean`. The new
   `ActiveTopMarkedNonconclusionDebt` state predicate requires every marked
   nonconclusion on the active component frontier to have a raw-unmarked
