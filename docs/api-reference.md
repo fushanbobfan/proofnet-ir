@@ -9006,6 +9006,51 @@ ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentEdge_parConclusion_di
                               beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace)
 ```
 
+## Commitment-interval par-conclusion dichotomy
+
+### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_dichotomy`
+
+Kind: theorem.
+
+A positive retained commitment interval either has a composed path that
+avoids the current par conclusion or contains one exact local edge with no
+avoiding path and an authentic selected/mate trace obstruction.
+
+Strict sigma ordering locates the obstruction's child strictly before or at
+the final boundary. The theorem does not eliminate either trace orientation
+or make the two outer alternatives disjoint.
+
+```lean
+ProofNetIR.SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_dichotomy : ∀ {certificate : ProofNetIR.Certificate} {state : ProofNetIR.SequentialSchedulerBridge.ReservationState}
+  {history : ProofNetIR.SequentialFigure7.ExecutedHistory certificate state}
+  (tagHistory : ProofNetIR.SequentialFigure7.CanonicalTagHistory certificate history),
+  ProofNetIR.SequentialSchedulerBridge.SchedulerInvariant certificate state →
+    ∀ (input : ProofNetIR.SequentialFigure7.ReadyHeadInput state)
+      (consumer : ProofNetIR.ConnectiveBelow certificate input.vertex),
+      consumer.kind = ProofNetIR.SequentialConnectiveKind.par →
+        ∀ {position edgeCount : Nat} {first last : ProofNetIR.SequentialSchedulerState.RawTokenAge},
+          0 < edgeCount →
+            state.stack.sigma[position]? = some first →
+              state.stack.sigma[position + edgeCount]? = some last →
+                tagHistory.CommitmentEdgeTargetAvoidingPath first last consumer.conclusion ∨
+                  ∃ offset parent child event,
+                    offset < edgeCount ∧
+                      state.stack.sigma[position + offset]? = some parent ∧
+                        state.stack.sigma[position + offset + 1]? = some child ∧
+                          (child < last ∨ child = last) ∧
+                            ¬tagHistory.CommitmentEdgeTargetAvoidingPath parent child consumer.conclusion ∧
+                              event ∈ tagHistory.reservationLedger ∧
+                                event.rawAge = child ∧
+                                  ((consumer.side = ProofNetIR.TensorPremiseSide.storedLeft ∧
+                                      ∃ beforeTrace afterTrace,
+                                        event.search.result.trace =
+                                          beforeTrace ++ consumer.conclusion :: input.vertex :: afterTrace) ∨
+                                    consumer.side = ProofNetIR.TensorPremiseSide.storedRight ∧
+                                      ∃ beforeTrace afterTrace,
+                                        event.search.result.trace =
+                                          beforeTrace ++ consumer.conclusion :: consumer.mate :: afterTrace)
+```
+
 ## Commitment blocker advance
 
 ### `ProofNetIR.SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure`

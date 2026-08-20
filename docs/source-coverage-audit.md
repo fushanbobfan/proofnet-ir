@@ -438,9 +438,12 @@ cannot target the selected head, so only a distinct historical mark remains.
 Adjacent-edge target avoidance now accepts the exact child-event untouched law
 for this par conclusion. The active-edge dichotomy returns either avoidance or
 an authentic same-age trace step from the conclusion to selected or mate. The
-modules do not derive untouchedness, eliminate either trace branch, compose
-the complete avoiding return, or produce a distinct raw payer, tail law, or
-progress theorem.
+complete positive-interval dichotomy now composes all local avoiding paths or
+localizes one exact failed child edge with an authentic child-age
+selected/mate trace; the child is strictly before or equal to the final
+boundary. Its outer outcomes remain inclusive. The modules do not discharge
+the failed edge, eliminate either trace branch, or produce a distinct raw
+payer, tail law, or progress theorem.
 Global preservation of the mate-region and older-raw-mark invariants through
 candidate-creating rules remains open, as do queue origin, created-candidate raw
 seams, derivation of the re-entry avoidance premise, marked-history descent,

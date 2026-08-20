@@ -1103,6 +1103,13 @@ part of the engineering and proof-identity gap.
    boundary, an inclusive dichotomy instead records an authentic same-age trace
    step from the par conclusion to selected or mate. Neither untouchedness nor
    elimination of those two trace branches is claimed.
+   `SequentialFigure7CommitmentIntervalParConclusionDichotomy.lean` extends
+   this to every complete positive retained interval. It returns a composed
+   avoiding endpoint path or one exact local edge with no avoiding path plus
+   an authentic child-age selected/mate trace. The child is strictly before or
+   equal to the final boundary, and the outer alternatives remain inclusive.
+   The failed edge, both trace branches, a distinct payer, the history-tail
+   law, and progress remain open.
    `SequentialFigure7CommitmentBlockerAdvance.lean` now combines the global
    queued-head law, strict split, and equal-boundary result. Under declarative
    correctness and the complete scheduler invariant, for a supplied canonical

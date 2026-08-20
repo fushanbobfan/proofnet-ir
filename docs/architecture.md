@@ -1474,6 +1474,16 @@ conclusion-to-mate step. It does not eliminate either par orientation. No
 mate-region/raw-mark invariant, queue origin, reachability, progress, or
 complexity result is added.
 
+`SequentialFigure7CommitmentIntervalParConclusionDichotomy.lean` lifts that
+classification across a complete positive retained interval. If every local
+edge has a par-conclusion-avoiding path, the interval compositor returns one
+endpoint path. Otherwise the theorem identifies an exact parent/child edge
+without such a local path and an authentic event at the child age whose trace
+contains the conclusion-to-selected or conclusion-to-mate step. Strict sigma
+ordering places the child strictly before or at the final boundary. The outer
+alternatives are inclusive; the theorem neither discharges the failed edge nor
+derives a payer, tail law, reachability, progress, or complexity result.
+
 `SequentialFigure7CommitmentBlockerAdvance.lean` joins the global queued-head
 law, the strict `sigma` split, the strict-edge avoiding adapter, and the final
 equal-boundary classification. Under declarative correctness and the complete

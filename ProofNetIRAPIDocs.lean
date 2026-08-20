@@ -736,6 +736,14 @@ def sections : List Section := [
     ]
   },
   {
+    title := "Commitment-interval par-conclusion dichotomy"
+    declarations := [
+      Name.str
+        `ProofNetIR.SequentialFigure7.CanonicalTagHistory
+        "commitmentInterval_parConclusion_dichotomy"
+    ]
+  },
+  {
     title := "Commitment blocker advance"
     declarations := [
       Name.str

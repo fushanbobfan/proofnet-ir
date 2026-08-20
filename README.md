@@ -27,22 +27,23 @@ For a correct selected `par`, a ready-head input and `SchedulerInvariant`
 yield a non-global ready tail or a carrier parent escape. No tail forces escape.
 
 Canonical history normalizes par and tensor escapes into one temporal outcome.
-Typed no-tail Nop and Wait guards leave external raw work or strictly older
-future/marked work. A positive retained `sigma` interval composes its paths and
-returns ready future and marked endpoints through an outside-to-inside edge.
+No-tail Nop and Wait guards leave external raw work or strictly older work. A
+positive retained `sigma` interval returns older endpoints through re-entry.
 
-That edge reverses a submitted parent edge and targets the selected raw head,
-a raw ready-tail occurrence, or a prior mark. No tail leaves selected or marked.
-Raw-mark history authenticates the mark at the active representative. If the
-path avoids the current par conclusion, parent uniqueness excludes selected and
-leaves a distinct marked target.
+Re-entry reverses a submitted parent edge and targets the selected raw head, a
+raw ready-tail occurrence, or a prior mark. History authenticates the mark; a
+path avoiding the current par conclusion excludes selected.
 
 An adjacent commitment edge gets that avoidance from an explicit child-event
-untouched law. At the active edge, either avoidance holds or a same-age trace
-contains the exact par-conclusion step to selected or mate.
+untouched law. The active edge instead gives avoidance or an exact same-age
+selected/mate trace.
+
+Across a complete positive interval, local paths compose to an avoiding
+endpoint path or one exact child edge fails and has an authentic trace. Its
+child is before or equal to the final boundary; the outcomes remain inclusive.
 
 This proves no unconditional all-marked, progress, completion, termination,
-totality, or completeness result. Child untouchedness and both trace branches
+totality, or completeness result. The local failed edge and both trace branches
 remain open. Next derive a distinct payer and discharge global-created tails.
 [Current status](docs/current-status.md) owns exact revision, verification receipt, and gates.
 <!-- ROLLING_MAIN_SUMMARY_END -->

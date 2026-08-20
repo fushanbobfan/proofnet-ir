@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- classified a complete positive retained commitment interval against the
+  current ready-head par conclusion. Either its local avoiding paths compose
+  to one endpoint path, or one exact child edge has no such local path and an
+  authentic child-age event trace contains the exact conclusion-to-selected
+  or conclusion-to-mate step. Strict sigma ordering places that child strictly
+  before or at the final boundary. The outer alternatives remain inclusive;
+  the theorem does not discharge the failed edge, eliminate either trace
+  branch, produce a payer or tail law, or prove progress. The verified combined
+  audit covers 976 theorems: 684 standard-three, 25 axiom-free, 128
+  `propext`-only, and 139 `propext`/`Quot.sound` boundaries;
 - extended adjacent and equal-boundary commitment target avoidance to the
   current ready-head par conclusion. An explicit child-event untouched law now
   yields an adjacent avoiding path. At the active boundary, an inclusive

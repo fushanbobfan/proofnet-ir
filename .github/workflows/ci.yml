@@ -70,6 +70,7 @@ jobs:
           ~/.elan/bin/lake exe proofnet_ir_strict_commitment_target_avoidance_tests
           ~/.elan/bin/lake exe proofnet_ir_strict_older_sigma_split_tests
           ~/.elan/bin/lake exe proofnet_ir_equal_boundary_commitment_target_avoidance_tests
+          ~/.elan/bin/lake exe proofnet_ir_commitment_interval_par_conclusion_dichotomy_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_advance_tests
           ~/.elan/bin/lake exe proofnet_ir_commitment_blocker_maximality_tests
           ~/.elan/bin/lake exe proofnet_ir_active_region_touch_separation_tests

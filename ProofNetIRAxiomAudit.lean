@@ -278,6 +278,8 @@ expansion.
 #print axioms
   SequentialFigure7.CanonicalTagHistory.commitmentEdge_parConclusion_dichotomy
 #print axioms
+  SequentialFigure7.CanonicalTagHistory.commitmentInterval_parConclusion_dichotomy
+#print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_advance_or_equalCallbackFailure
 #print axioms
   SequentialFigure7.CanonicalTagHistory.strictOlder_commitmentPath_or_equalCallbackFailure
