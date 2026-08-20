@@ -10,14 +10,14 @@ Historical checkpoints belong in [CHANGELOG.md](../CHANGELOG.md), proof design
 belongs in [v0.10-design.md](v0.10-design.md), and stable release guarantees
 belong in the corresponding release audit.
 
-Status date: 2026-08-19
+Status date: 2026-08-20
 
 ## Version tracks
 
 | Track | Revision | Status | Authority |
 | --- | --- | --- | --- |
 | Stable library | `v0.9.0` / `9b7dc3d104af8f57ea9123aab2e61b42e05d2216` | Released | [v0.9.0 release audit](v0.9-release-audit.md) |
-| Rolling research | `v0.10.0-dev`; proof `8414f49`; audit `1e46573` | Active | This page/commits |
+| Rolling research | `v0.10.0-dev`; proof `c56dfce`; audit `1e46573` | Active | This page/commits |
 
 Documentation-only commits may descend from the proof checkpoint without
 changing its mathematical authority. The stable release and rolling branch
@@ -46,22 +46,22 @@ The exact release guarantees, receipts, and non-goals are frozen in the
 
 ## Rolling main result
 
-The current checkpoint gives the failure-conditioned par and tensor parent
-escapes one common temporal outcome. The preceding source normalizer remains
-valid: when a Nop/Wait non-global ready-tail witness is absent, it classifies
-the exact marked parent escape as an anchored par continuation or a tensor
-same-boundary residual. The new tensor theorem consumes canonical
-continuation credit, while the generic theorem maps either source branch to
-`ActiveCarrierParentTemporalOutcome`.
+The current checkpoint specializes the normalized parent escape to actual Nop
+and Wait failures. The preceding source and continuation-credit normalizers
+remain valid: when the prepared non-global ready-tail witness is absent, they
+map a correct, canonically recorded parent escape to
+`ActiveCarrierParentTemporalOutcome`. The new typed-step theorems then rule out
+the selected-head raw case. Nop uses its unmarked-mate guard; Wait uses the
+strict raw-age order of its concretely marked mate.
 
-The outcome has three cases. A raw sibling is unmarked and either equals the
-selected head or lies outside the active owned carrier. A queued parent
-conclusion lies outside that carrier at a strictly older raw boundary. A
-concretely marked parent conclusion also lies outside the carrier and has a
-strictly older representative. The last case can continue a connective chain,
-so the carrier is not a terminal-exit claim. It is a common temporal reduction
-interface, not a ready-tail witness, residual elimination, history-tail proof,
-or derivation of `ActiveTopDebtTailLaw`.
+The strengthened `ActiveCarrierParentExternalTemporalOutcome` therefore has
+only three cases. An unmarked raw endpoint lies outside the active owned
+carrier. Future parent work lies outside that carrier at a strictly older raw
+boundary. A concretely marked parent conclusion lies outside the carrier and
+has a strictly older representative. The last case can continue a connective
+chain, and “outside” is component-local rather than global. The carrier is a
+failure reduction, not re-entry, a ready-tail witness, residual elimination,
+history-tail proof, or derivation of `ActiveTopDebtTailLaw`.
 
 The preceding queue/history-tail checkpoint remains valid. For supplied typed
 Nop and Wait steps, its iff theorems identify post-step debt with the exact
@@ -78,18 +78,19 @@ same-component locality carrier, but neither refutes direct debt nor supplies
 the required queue-tail or parent re-entry argument.
 
 Within `ProofNetIR.SequentialFigure7`, the checkpoint's new public surface is
-exactly three declaration boundaries:
+exactly four declaration boundaries:
 
 ```text
-ActiveCarrierParentTemporalOutcome
-CanonicalTagHistory.ActiveCarrierTensorSameBoundaryResidual.temporalOutcome
-ActiveCarrierParentTemporalResidual.temporalOutcome
+ActiveCarrierParentExternalTemporalOutcome
+ActiveCarrierParentExternalTemporalOutcome.temporalOutcome
+NopStep.externalParentTemporalOutcome_of_no_readyTail
+WaitStep.externalParentTemporalOutcome_of_no_readyTail
 ```
 
 The earlier parent-escape, source-temporal, debt, history-tail,
-continuation-exit, and conditional all-marked results remain valid. The new
-reduction exposes one shared downstream obstruction; it does not make any
-conditional implication unconditional.
+continuation-exit, common temporal-outcome, and conditional all-marked results
+remain valid. The new reduction removes one selected-head alternative but does
+not make any conditional implication unconditional.
 
 ### Finite ready-head boundary audit
 
@@ -118,17 +119,16 @@ Exact signatures are maintained in the generated API reference for the
 [active-top debt parent escape](api-reference.md#active-top-debt-parent-escape),
 [parent-escape temporal residual](api-reference.md#active-top-debt-parent-escape-temporal-residual),
 [parent temporal outcome](api-reference.md#active-top-debt-parent-temporal-outcome),
+[external parent outcome](api-reference.md#active-top-debt-parent-external-temporal-outcome),
 [branch-local continuation credit](api-reference.md#branch-local-continuation-credit),
 [continuation-credit preservation](api-reference.md#continuation-credit-preservation),
 [endpoint-localized continuation exits](api-reference.md#endpoint-localized-continuation-exits),
 and the retained
 [Wait endpoint-locality obstruction](api-reference.md#wait-endpoint-locality-obstruction).
-The first open proof step is now a shared first-re-entry or ownership law for
-the external strictly older outcome, or a proof that the normalized failure
-already carries a distinct active ready-tail payer. The raw endpoint alone is
-only known to equal the selected head or lie outside the active carrier. The
-remaining global-created Forward/UnifyPayload alternatives must also be
-derived.
+The first open proof step is now a first-reentry or ownership law for an
+external raw or strictly older outcome, or a proof that the normalized failure
+already carries a distinct active ready-tail payer. The remaining
+global-created Forward/UnifyPayload alternatives must also be derived.
 Together these are the missing implication from correctness plus canonical
 tag history to `ActiveTopDebtTailLaw`. Only after that law is established can
 the debt and drained reductions contribute to an unconditional progress or
@@ -143,13 +143,14 @@ This checkpoint does not establish any of the following:
 - impossibility of `ActiveCarrierParentEscape`, exclusivity between an escape
   and a valid non-global ready-tail witness, or a proof that an escaped parent
   re-enters the active carrier;
-- elimination of `ActiveCarrierParentTemporalOutcome`, including a theorem
-  that an external older endpoint re-enters the active carrier or that the raw
-  endpoint supplies a distinct ready-tail payer;
+- elimination of `ActiveCarrierParentExternalTemporalOutcome`, including a
+  theorem that an external raw or older endpoint re-enters the active carrier
+  or supplies a distinct ready-tail payer;
 - terminality of the temporal outcome; in particular, its marked case may
   continue through another submitted connective;
-- the failure-conditioned par/tensor re-entry or ordered distinct-payment law
-  needed to turn the normalized escape into the missing queue-tail result;
+- the failure-conditioned first-reentry, ownership, or ordered
+  distinct-payment law needed to turn the external-only outcome into the
+  missing queue-tail result;
 - derivation of `ActiveTopDebtTailLaw` from declarative correctness,
   reachability, or the matching canonical tag history;
 - existence of the exact non-global `remainingTop` witness for Nop or Wait, or
@@ -190,12 +191,12 @@ plan is maintained in [v0.10-design.md](v0.10-design.md) and
 The exact rolling proof checkpoint is:
 
 ```text
-commit    8414f49f060d5697cf36c634308981ed70902de3
-tree      371c3b0202f8be8289f1a01b49501c0ecc1968b8
-parent    9fad70d96e815e1cf8a2721bbde5b1810d2c532e
-stage     active-top debt parent temporal outcome
-delta     17 paths, +608/-20
-manifest  86E317F007327006DC5D9983AC0307BE239DFB7B1E9FD22E359E6723572267F8
+commit    c56dfce2c015b57106b931edf7538be7c7c2d95b
+tree      9984c611e755c736c0eefa23e9cfd0ee6a474c62
+parent    5e9db7d1c20a47507cd7aca8bce7eb7ce9295209
+stage     active-top debt external parent temporal outcome
+delta     17 paths, +776/-21
+manifest  C4754741D1078EA786795693D356904F688AB3EF51EC1E8BCF66EC96328A7E3C
 ```
 
 The manifest hashes canonical
@@ -204,9 +205,9 @@ The manifest hashes canonical
 The checkpoint source receipts are:
 
 ```text
-source         3E8C4E9AAF2928E2873CCAABEC075299C1608B47D12923FB3579E8A5587FF62B
-consumer       FD74424635C8973EB54C4B230AA0C753AA69FE2E1EDAC797A844BBA3F7D9EA1F
-generated API  A8829564ED22BB66428656113736540FE4310A755766DB81DC6BB9C1F6B23AC2
+source         8C7082E0A9CAF1E2DB633FC5EE985B361D04BFA3486CB6E595A88975673A0283
+consumer       4F47C460520C40ACE1B8CFD21A5677204DE2BDCB51D0675B5635E46154858475
+generated API  07351DE378A0FA20C711AC5B7C62A01D21598A619B3D9EC58DC3BFDDE36719E2
 ```
 
 The separately committed finite-audit evidence is:
@@ -222,16 +223,17 @@ manifest  4BBAB7FC99D03D2612459A0FD9291990313A05A184F2572A581BC93C6E49DFDD
 
 Local verification on the committed bytes:
 
-- full `lake build`: 499/499 jobs;
-- Lean source audit: zero actual `sorry`/`admit` findings across 236 Lean
+- full `lake build`: 504/504 jobs;
+- Lean source audit: zero actual `sorry`/`admit` findings across 238 Lean
   files;
-- generated API reference: current at 58 sections and 1,606 declarations;
-- the runnable temporal-outcome consumer destructured and reconstructed all
-  public carrier cases, exercised both public reductions, and
+- generated API reference: current at 59 sections and 1,610 declarations;
+- the runnable external-temporal-outcome consumer destructured all three
+  carrier cases, exercised the forgetful theorem and both typed-step
+  reductions, and
   emitted exactly
-  `active-top debt parent temporal-outcome consumer: kernel-green`;
-- public declaration audit: 956 declarations total: 666 full-classical, 25
-  axiom-free, 127 `propext`-only, and 138 `propext` plus `Quot.sound`;
+  `active-top debt external parent temporal outcome: kernel-green`;
+- public theorem audit: 959 entries total: 668 full-classical, 25
+  axiom-free, 128 `propext`-only, and 138 `propext` plus `Quot.sound`;
 - the default, extended, and cross-variant progress audits passed with every
   incomplete visited state carrying an exact ready head and successful
   dispatch, every dispatch-none stop fully marked, and zero missing-head,
@@ -243,16 +245,16 @@ Exact-head proof GitHub verification:
 
 - workflow: `Lean CI`;
 - event/ref: `push` / `main`;
-- run: [32338378585](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32338378585);
-- build job: [96332259119][proof-job];
-- exact head: `8414f49f060d5697cf36c634308981ed70902de3`;
+- run: [32341704666](https://github.com/fushanbobfan/proofnet-ir/actions/runs/32341704666);
+- build job: [96341955337][proof-job];
+- exact head: `c56dfce2c015b57106b931edf7538be7c7c2d95b`;
 - result: 36 successful steps, zero failures, and one expected release-ref-only
   skip;
-- run: `2026-08-20T06:08:57Z`-`2026-08-20T06:22:08Z` (13m11s);
-- build job: `2026-08-20T06:09:00Z`-`2026-08-20T06:22:08Z`
-  (13m08s).
+- run: `2026-08-20T06:56:06Z`-`2026-08-20T07:09:22Z` (13m16s);
+- build job: `2026-08-20T06:56:09Z`-`2026-08-20T07:09:22Z`
+  (13m13s).
 
-[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32338378585/job/96332259119
+[proof-job]: https://github.com/fushanbobfan/proofnet-ir/actions/runs/32341704666/job/96341955337
 
 Exact-head finite-audit GitHub verification:
 
@@ -319,10 +321,10 @@ deployment.
 
 The project goal remains open. The principal outstanding gates are:
 
-1. derive a first-re-entry or ownership law for the unified external older
-   temporal outcome, or derive a distinct active ready-tail payer directly,
-   and close the raw selected-or-external case; then derive the remaining
-   global-created Forward/UnifyPayload alternatives;
+1. derive a first-reentry or ownership law for the external raw or strictly
+   older temporal outcome, or derive a distinct active ready-tail payer
+   directly; then derive the remaining global-created Forward/UnifyPayload
+   alternatives;
    equivalently, prove that correctness plus `CanonicalTagHistory` implies
    `ActiveTopDebtTailLaw`. Only after that gate may endpoint debt combine with
    active-top drainedness and marking incompleteness in an unconditional
